@@ -21,51 +21,51 @@ class IBEISController(object):
     # Constructor
     def __init__(ibs):
         ibs.sql_file = "database.sqlite3"
-        ibs.database = dbcontroller.Database(".", ibs.sql_file)
+        ibs.database = DB_controller.Database(".", ibs.sql_file)
 
-        db.schema('images',             {
-                                        'image_id':                     'INTEGER PRIMARY KEY', 
-                                        'image_uri':                    'TEXT', 
-                                        'image_hash_sha1':              'TEXT', 
-                                        'image_width':                  'INTEGER', 
-                                        'image_height':                 'INTEGER', 
-                                        'image_exif_time_unix':         'INTEGER', 
-                                        'image_exif_GPS_lat':           'REAL', 
-                                        'image_exif_GPS_lon':           'REAL', 
-                                        'image_existence':              'REAL', 
-                                        'image_toggle_context':         'INTEGER', 
-                                        'image_toggle_encounter':       'INTEGER', 
-                                        'image_toggle_test':            'INTEGER',
-                                        'image_toggle_aif':             'INTEGER',
-                                        })    
-            
-        db.schema('rois',               {    
-                                        'roi_id':                       'INTEGER PRIMARY KEY', 
-                                        'image_id':                     'INTEGER', 
-                                        'name_id':                      'INTEGER', 
-                                        'roi_x0':                       'INTEGER', 
-                                        'roi_y0':                       'INTEGER', 
-                                        'roi_width':                    'INTEGER', 
-                                        'roi_height':                   'INTEGER', 
-                                        'roi_theta':                    'REAL', 
-                                        'roi_annotations':              'TEXT', 
-                                        'roi_notes':                    'TEXT',
-                                        })    
-            
-        db.schema('segmentatons',       {    
-                                        'segmentation_id':              'INTEGER PRIMARY KEY', 
-                                        'image_id':                     'INTEGER', 
-                                        'segmentation_pixel_map_uri':   'TEXT', 
-                                        'segmentation_annotations':     'TEXT',
-                                        })    
+        ibs.database.schema('images',           {
+                                                'image_id':                     'INTEGER PRIMARY KEY', 
+                                                'image_uri':                    'TEXT NOT NULL', 
+                                                'image_hash_sha1':              'TEXT NOT NULL', 
+                                                'image_width':                  'INTEGER NOT NULL', 
+                                                'image_height':                 'INTEGER NOT NULL', 
+                                                'image_exif_time_unix':         'INTEGER', 
+                                                'image_exif_GPS_lat':           'REAL', 
+                                                'image_exif_GPS_lon':           'REAL', 
+                                                'image_existence':              'REAL', 
+                                                'image_toggle_context':         'INTEGER DEFAULT 0', 
+                                                'image_toggle_encounter':       'INTEGER DEFAULT 0', 
+                                                'image_toggle_test':            'INTEGER DEFAULT 0',
+                                                'image_toggle_aif':             'INTEGER DEFAULT 0',
+                                                })
         
-        db.schema('identifications',    {    
-                                        'identification_id':            'INTEGER PRIMARY KEY', 
-                                        'image_id':                     'INTEGER', 
-                                        'identification_name':          'TEXT',
-                                        })
+        ibs.database.schema('rois',             {    
+                                                'roi_id':                       'INTEGER PRIMARY KEY', 
+                                                'image_id':                     'INTEGER NOT NULL', 
+                                                'roi_x0':                       'INTEGER NOT NULL', 
+                                                'roi_y0':                       'INTEGER NOT NULL', 
+                                                'roi_width':                    'INTEGER NOT NULL', 
+                                                'roi_height':                   'INTEGER NOT NULL', 
+                                                'roi_theta':                    'REAL DEFAULT 0.0', 
+                                                'roi_annotations':              'TEXT', 
+                                                'roi_notes':                    'TEXT',
+                                                })    
+            
+        ibs.database.schema('segmentatons',     {    
+                                                'segmentation_id':              'INTEGER PRIMARY KEY', 
+                                                'image_id':                     'INTEGER NOT NULL', 
+                                                'segmentation_pixel_map_uri':   'TEXT NOT NULL', 
+                                                'segmentation_annotations':     'TEXT',
+                                                })    
+        
+        ibs.database.schema('identifications',  {    
+                                                'identification_id':            'INTEGER PRIMARY KEY', 
+                                                'image_id':                     'INTEGER NOT NULL', 
+                                                'identification_name':          'TEXT',
+                                                })
 
-        db.dump()
+        ibs.database.commit()
+        ibs.database.dump()
         pass
 
     #---------------
@@ -280,3 +280,6 @@ class IBEISController(object):
         qres_list = jon_identifier.query(ibs, qcid_list, dcid_list, **kwargs)
         # Return for user inspection
         return qres_list
+
+if __name__ == "__main__":
+    ibeis = IBEISController()
