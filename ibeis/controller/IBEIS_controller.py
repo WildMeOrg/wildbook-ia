@@ -64,7 +64,6 @@ class IBEISController(object):
                                                 'identification_name':          'TEXT',
                                                 })
 
-        ibs.database.commit()
         ibs.database.dump()
         pass
 

@@ -90,6 +90,8 @@ class Database(object):
             file.  The default will store a dump parallel to the current
             database file.
         '''
+        db.commit()
+        
         if database_path is None:
             database_path = db.database_path
         dump = open(os.path.join(database_path, database_file), 'w')
