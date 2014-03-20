@@ -43,17 +43,24 @@ def _parse_args(**kwargs):
 
 
 def _init_gui():
-    from ibeis.view import guitool
+    from ibeis.view import guitool, guiback
+    print('[main] _init_gui()')
     guitool.init_qtapp()
+    back = guiback.MainWindowBackend()
+    back.show()
+    return back
 
 
 def _init_ibeis():
+    print('[main] _init_ibeis()')
     from ibeis.control import IBEISControl
     ibs = IBEISControl.IBEISControl()
     return ibs
 
+
 #-----------------------
 # private loop functions
+
 
 def _guitool_loop(main_locals):
     from ibeis.view import guitool
@@ -80,7 +87,7 @@ def main(**kwargs):
     _parse_args(**kwargs)
     _init_signals()
     if not params.args.nogui:
-        _init_gui()
+        back = _init_gui()
     ibs = _init_ibeis()
     main_locals = locals()
     return main_locals
@@ -94,11 +101,12 @@ def main_loop(main_locals):
     # Choose a main loop depending on params.args
     if params.args.cmd:
         exit_bit = _ipython_loop(main_locals)
-    if exit_bit and params.args.nogui:
+    if exit_bit and not params.args.nogui:
         exit_bit = _guitool_loop(main_locals)
     _reset_signals()
     if exit_bit:
         # Exit cleanly if a main loop ran
+        print('[main] ibeis clean exit')
         sys.exit(0)
     else:
         # Something else happened

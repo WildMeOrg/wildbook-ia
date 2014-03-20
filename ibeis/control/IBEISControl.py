@@ -280,6 +280,3 @@ class IBEISControl(object):
         qres_list = jon_identifier.query(ibs, qcid_list, dcid_list, **kwargs)
         # Return for user inspection
         return qres_list
-
-if __name__ == "__main__":
-    ibeis = IBEISController()
