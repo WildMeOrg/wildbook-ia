@@ -3,7 +3,7 @@ import os
 import sqlite3 as lite
 
 
-class Database(object):
+class DatabaseControl(object):
     def __init__(db, database_path, database_file="database.sqlite3"):
         '''
             Init the SQLite3 database connection and the query execution object.

@@ -5,11 +5,10 @@ LOGIC DOES NOT LIVE HERE
 THIS DEFINES THE ARCHITECTURE OF IBEIS
 '''
 from __future__ import division, print_function
-import DB_controller
-#import ibs_sql_loader
+from ibeis.control import DatabaseControl
 
 
-class IBEISController(object):
+class IBEISControl(object):
     '''
     IBEISController docstring
     cid - chip unique id
@@ -21,7 +20,7 @@ class IBEISController(object):
     # Constructor
     def __init__(ibs):
         ibs.sql_file = 'database.sqlite3'
-        ibs.database = DB_controller.Database('.', ibs.sql_file)
+        ibs.database = DatabaseControl.DatabaseControl('.', ibs.sql_file)
 
         ibs.database.schema('images',       {
             'image_uid':                    'INTEGER PRIMARY KEY',
