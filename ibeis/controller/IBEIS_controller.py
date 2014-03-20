@@ -20,49 +20,50 @@ class IBEISController(object):
 
     # Constructor
     def __init__(ibs):
-        ibs.sql_file = "database.sqlite3"
-        ibs.database = DB_controller.Database(".", ibs.sql_file)
+        ibs.sql_file = 'database.sqlite3'
+        ibs.database = DB_controller.Database('.', ibs.sql_file)
 
-        ibs.database.schema('images',           {
-                                                'image_id':                     'INTEGER PRIMARY KEY', 
-                                                'image_uri':                    'TEXT NOT NULL', 
-                                                'image_hash_sha1':              'TEXT NOT NULL', 
-                                                'image_width':                  'INTEGER NOT NULL', 
-                                                'image_height':                 'INTEGER NOT NULL', 
-                                                'image_exif_time_unix':         'INTEGER', 
-                                                'image_exif_GPS_lat':           'REAL', 
-                                                'image_exif_GPS_lon':           'REAL', 
-                                                'image_existence':              'REAL', 
-                                                'image_toggle_context':         'INTEGER DEFAULT 0', 
-                                                'image_toggle_encounter':       'INTEGER DEFAULT 0', 
-                                                'image_toggle_test':            'INTEGER DEFAULT 0',
-                                                'image_toggle_aif':             'INTEGER DEFAULT 0',
-                                                })
-        
-        ibs.database.schema('rois',             {    
-                                                'roi_id':                       'INTEGER PRIMARY KEY', 
-                                                'image_id':                     'INTEGER NOT NULL', 
-                                                'roi_x0':                       'INTEGER NOT NULL', 
-                                                'roi_y0':                       'INTEGER NOT NULL', 
-                                                'roi_width':                    'INTEGER NOT NULL', 
-                                                'roi_height':                   'INTEGER NOT NULL', 
-                                                'roi_theta':                    'REAL DEFAULT 0.0', 
-                                                'roi_annotations':              'TEXT', 
-                                                'roi_notes':                    'TEXT',
-                                                })    
-            
-        ibs.database.schema('segmentatons',     {    
-                                                'segmentation_id':              'INTEGER PRIMARY KEY', 
-                                                'image_id':                     'INTEGER NOT NULL', 
-                                                'segmentation_pixel_map_uri':   'TEXT NOT NULL', 
-                                                'segmentation_annotations':     'TEXT',
-                                                })    
-        
-        ibs.database.schema('identifications',  {    
-                                                'identification_id':            'INTEGER PRIMARY KEY', 
-                                                'image_id':                     'INTEGER NOT NULL', 
-                                                'identification_name':          'TEXT',
-                                                })
+        ibs.database.schema('images',       {
+            'image_uid':                    'INTEGER PRIMARY KEY',
+            'image_uri':                    'TEXT NOT NULL',
+            'image_hash_sha1':              'TEXT NOT NULL',  # remove???
+            'image_width':                  'INTEGER NOT NULL',
+            'image_height':                 'INTEGER NOT NULL',
+            'image_exif_time_unix':         'INTEGER',
+            'image_exif_gps_lat':           'REAL',
+            'image_exif_gps_lon':           'REAL',
+            'image_existence':              'REAL',
+            'image_toggle_context':         'INTEGER DEFAULT 0',
+            'image_toggle_encounter':       'INTEGER DEFAULT 0',
+            'image_toggle_test':            'INTEGER DEFAULT 0',
+            'image_toggle_aif':             'INTEGER DEFAULT 0',
+        })
+
+        # This is the old chip table
+        ibs.database.schema('rois',         {
+            'roi_uid':                      'INTEGER PRIMARY KEY',
+            'image_uid':                    'INTEGER NOT NULL',
+            'roi_xtl':                      'INTEGER NOT NULL',
+            'roi_ytl':                      'INTEGER NOT NULL',
+            'roi_width':                    'INTEGER NOT NULL',
+            'roi_height':                   'INTEGER NOT NULL',
+            'roi_theta':                    'REAL DEFAULT 0.0',
+            'roi_viewpoint':                'TEXT',
+            'roi_toggle_hard':              'INTEGER DEFAULT 0',
+        })
+
+        ibs.database.schema('identities',   {
+            'identity_uid':                 'INTEGER PRIMARY KEY',
+            'roi_uid':                      'INTEGER NOT NULL',
+            'identity_name':                'TEXT',
+        })
+
+        # Possibly remove???
+        ibs.database.schema('segmentatons', {
+            'segmentation_id':              'INTEGER PRIMARY KEY',
+            'image_id':                     'INTEGER NOT NULL',
+            'segmentation_pixel_map_uri':   'TEXT NOT NULL',
+        })
 
         ibs.database.dump()
         pass
