@@ -36,11 +36,6 @@ def csv_sanatize(str_):
     return str(str_).replace(',', ';;')
 
 
-#=================
-# Stream Stealer
-#=================
-
-
 def _tee_logging(front):
     print('[front] teeing log output')
     # Connect a StreamStealer object to the GUI output window
