@@ -29,7 +29,8 @@ class Database(object):
             column_n_name - string name of column heading
             column_n_type - NULL | INTEGER | REAL | TEXT | BLOB
                 The column type can be appended with " PRIMARY KEY" to indicate
-                the unique id for the table
+                the unique id for the table.  It can also specify a default
+                value for the column with " DEFAULT [VALUE]".
 
             The table will only be created if it does not exist.  Therefore,
             this can be done on every table without the fear of deleting old
