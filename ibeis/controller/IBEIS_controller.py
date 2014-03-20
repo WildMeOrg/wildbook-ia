@@ -39,22 +39,21 @@ class IBEISController(object):
             'image_toggle_aif':             'INTEGER DEFAULT 0',
         })
 
-        # This is the old chip table
-        ibs.database.schema('rois',         {
-            'roi_uid':                      'INTEGER PRIMARY KEY',
+        ibs.database.schema('chips',        {
+            'chip_uid':                     'INTEGER PRIMARY KEY',
             'image_uid':                    'INTEGER NOT NULL',
-            'roi_xtl':                      'INTEGER NOT NULL',
-            'roi_ytl':                      'INTEGER NOT NULL',
-            'roi_width':                    'INTEGER NOT NULL',
-            'roi_height':                   'INTEGER NOT NULL',
-            'roi_theta':                    'REAL DEFAULT 0.0',
-            'roi_viewpoint':                'TEXT',
-            'roi_toggle_hard':              'INTEGER DEFAULT 0',
+            'chip_roi_xtl':                 'INTEGER NOT NULL',
+            'chip_roi_ytl':                 'INTEGER NOT NULL',
+            'chip_roi_width':               'INTEGER NOT NULL',
+            'chip_roi_height':              'INTEGER NOT NULL',
+            'chip_roi_theta':               'REAL DEFAULT 0.0',
+            'chip_viewpoint':               'TEXT',
+            'chip_toggle_hard':             'INTEGER DEFAULT 0',
         })
 
         ibs.database.schema('identities',   {
             'identity_uid':                 'INTEGER PRIMARY KEY',
-            'roi_uid':                      'INTEGER NOT NULL',
+            'chip_uid':                     'INTEGER NOT NULL',
             'identity_name':                'TEXT',
         })
 
