@@ -25,17 +25,19 @@ class IBEISControl(object):
         ibs.database.schema('images',       {
             'image_uid':                    'INTEGER PRIMARY KEY',
             'image_uri':                    'TEXT NOT NULL',
-            'image_hash_sha1':              'TEXT NOT NULL',  # remove???
-            'image_width':                  'INTEGER NOT NULL',
-            'image_height':                 'INTEGER NOT NULL',
+            'image_width':                  'INTEGER',
+            'image_height':                 'INTEGER',
             'image_exif_time_unix':         'INTEGER',
             'image_exif_gps_lat':           'REAL',
             'image_exif_gps_lon':           'REAL',
-            'image_existence':              'REAL',
-            'image_toggle_context':         'INTEGER DEFAULT 0',
-            'image_toggle_encounter':       'INTEGER DEFAULT 0',
-            'image_toggle_test':            'INTEGER DEFAULT 0',
+            'image_confidence':             'REAL',
+            'image_toggle_enabled':         'INTEGER DEFAULT 0',
             'image_toggle_aif':             'INTEGER DEFAULT 0',
+        })
+
+        ibs.database.schema('encounters',   {
+            'encounter_uid':                'INTEGER PRIMARY KEY',
+            'image_uid':                    'INTEGER NOT NULL',
         })
 
         ibs.database.schema('chips',        {
