@@ -1,23 +1,6 @@
 from __future__ import division, print_function
 
 
-def _inject_colored_exception_hook():
-    import sys
-    def myexcepthook(type, value, tb):
-        #https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal
-        import traceback
-        from pygments import highlight
-        from pygments.lexers import get_lexer_by_name
-        from pygments.formatters import TerminalFormatter
-
-        tbtext = ''.join(traceback.format_exception(type, value, tb))
-        lexer = get_lexer_by_name("pytb", stripall=True)
-        formatter = TerminalFormatter(bg="dark")
-        sys.stderr.write(highlight(tbtext, lexer, formatter))
-    if not sys.platform.startswith('win32'):
-        sys.excepthook = myexcepthook
-
-
 def _on_ctrl_c(signal, frame):
     import sys
     print('Caught ctrl+c')
@@ -72,16 +55,17 @@ def _guitool_loop(main_locals):
 
 
 def _ipython_loop(main_locals):
-    from hscom import util
-    embedded = util.inIPython()
+    from ibeis.util import util_dbg
+    embedded = util_dbg.inIPython()
     if not embedded:
-        util.embed(parent_locals=main_locals)
+        util_dbg.embed(parent_locals=main_locals)
         return True
     return False
 
 
 def main(**kwargs):
     print('[main] ibeis.main_api.main()')
+    from ibeis.util.util_inject import _inject_colored_exception_hook
     from ibeis.dev import params
     _inject_colored_exception_hook()
     _parse_args(**kwargs)

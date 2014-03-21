@@ -153,3 +153,8 @@ def ping_python_interpreter(frequency=4200):  # 4200):
     timer.timeout.connect(lambda: None)
     timer.start(frequency)
     return timer
+
+
+def exit_application():
+    print('[*guitools] exiting application')
+    QtGui.qApp.quit()

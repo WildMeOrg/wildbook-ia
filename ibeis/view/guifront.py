@@ -1,9 +1,10 @@
 from __future__ import division, print_function
 # Qt
 from PyQt4 import QtGui, QtCore
-from PyQt4.Qt import (QAbstractItemView, pyqtSignal, Qt)
+from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtGui import QAbstractItemView
 # IBEIS
-from hscom import tools
+from ibeis.util.util_type import is_bool, is_int, is_float
 from ibeis.view import guitool
 from ibeis.view.MainSkel import Ui_mainSkel
 from ibeis.view.guitool import slot_
@@ -344,15 +345,15 @@ class MainWindowFrontend(QtGui.QMainWindow):
                 item = QtGui.QTableWidgetItem()
                 # RCOS TODO: Pass in datatype here.
                 # BOOLEAN DATA
-                if tools.is_bool(data) or data == 'True' or data == 'False':
+                if is_bool(data) or data == 'True' or data == 'False':
                     check_state = Qt.Checked if bool(data) else Qt.Unchecked
                     item.setCheckState(check_state)
                     #item.setData(Qt.DisplayRole, bool(data))
                 # INTEGER DATA
-                elif tools.is_int(data):
+                elif is_int(data):
                     item.setData(Qt.DisplayRole, int(data))
                 # FLOAT DATA
-                elif tools.is_float(data):
+                elif is_float(data):
                     item.setData(Qt.DisplayRole, float(data))
                 # STRING DATA
                 else:

@@ -11,12 +11,12 @@ from ibeis.control import DatabaseControl
 class IBEISControl(object):
     '''
     IBEISController docstring
-    chip - cropped region of interest from an image, should map to one animal
-    cid - chip unique id
-    gid - image unique id (could just be the relative file path)
-    name_list - name unique id
-    eid - encounter unique id
-    roi - region of interest for a chip
+    chip  - cropped region of interest from an image, should map to one animal
+    cid   - chip unique id
+    gid   - image unique id (could just be the relative file path)
+    name  - name unique id
+    eid   - encounter unique id
+    roi   - region of interest for a chip
     theta - angle of rotation for a chip
     '''
 
@@ -46,6 +46,7 @@ class IBEISControl(object):
         ibs.database.schema('chips',        {
             'chip_uid':                     'INTEGER PRIMARY KEY',
             'image_uid':                    'INTEGER NOT NULL',
+            'name_uid':                     'INTEGER DEFAULT 0',
             'chip_roi_xtl':                 'INTEGER NOT NULL',
             'chip_roi_ytl':                 'INTEGER NOT NULL',
             'chip_roi_width':               'INTEGER NOT NULL',
@@ -55,10 +56,9 @@ class IBEISControl(object):
             'chip_toggle_hard':             'INTEGER DEFAULT 0',
         })
 
-        ibs.database.schema('identities',   {
-            'identity_uid':                 'INTEGER PRIMARY KEY',
-            'chip_uid':                     'INTEGER NOT NULL',
-            'identity_name':                'TEXT',
+        ibs.database.schema('names',   {
+            'name_uid':                 'INTEGER PRIMARY KEY',
+            'name_text':                'TEXT',
         })
 
         # Possibly remove???
@@ -76,11 +76,11 @@ class IBEISControl(object):
     #---------------
 
     def add_images(ibs, gpath_list):
-        """ Adds a list of image paths to the database """
+        ''' Adds a list of image paths to the database '''
         pass
 
     def add_chips(ibs, gid_list, roi_list, theta_list):
-        """ Adds a list of chips to the database, with ROIs & thetas """
+        ''' Adds a list of chips to the database, with ROIs & thetas '''
         pass
 
     #---------------------
@@ -88,105 +88,112 @@ class IBEISControl(object):
     #---------------------
 
     def set_chip_rois(ibs, cid_list, roi_list):
-        """ Sets ROIs of a list of chips by cid, returns a list (x, y, w, h) tuples """
+        ''' Sets ROIs of a list of chips by cid, returns a list (x, y, w, h) tuples '''
         pass
 
     def set_chip_thetas(ibs, cid_list, theta_list):
-        """ Sets thetas of a list of chips by cid """
+        ''' Sets thetas of a list of chips by cid '''
         pass
 
     def set_chip_names(ibs, cid_list, name_list):
-        """ Sets names of a list of chips by cid """
+        ''' Sets names of a list of chips by cid '''
         pass
 
-    def set_chip_properties(ibs, cid_list, key, val_list):
-        """ Sets properties of a list of chips by cid """
-        pass
+    #def set_chip_properties(ibs, cid_list, key, val_list):
+        #''' Sets properties of a list of chips by cid '''
+        #pass
 
     #----------------------
     # --- Image Setters ---
     #----------------------
 
     def set_image_eid(ibs, gid_list, eid_list):
-        """ Sets the encounter id that a list of images is tied to """
+        ''' Sets the encounter id that a list of images is tied to '''
         pass
 
-    def set_image_properties(ibs, gid_list, key, val_list):
-        """ Sets properties of a list of images by gid """
-        pass
+    #def set_image_properties(ibs, gid_list, key, val_list):
+        #''' Sets properties of a list of images by gid '''
+        #pass
 
     #----------------------
     # --- Image Getters ---
     #----------------------
 
     def get_images(ibs, gid_list):
-        """ Returns a list of images in numpy matrix form by gid """
+        ''' Returns a list of images in numpy matrix form by gid '''
         pass
 
     def get_image_paths(ibs, gid_list):
-        """ Returns a list of image paths by gid """
+        ''' Returns a list of image paths by gid '''
         pass
 
     def get_image_size(ibs, gid_list):
-        """ Returns a list of image dimensions by gid in (width, height) tuples """
+        ''' Returns a list of image dimensions by gid in (width, height) tuples '''
         pass
 
     def get_image_unixtime(hs, gid_list):
-        """ Returns a list of times that the images were taken by gid """
+        ''' Returns a list of times that the images were taken by gid. Returns
+            -1 if no timedata exists for a given gid
+        '''
         pass
 
     def get_image_eid(ibs, gid_list):
-        """ Returns a list of encounter ids for each image by gid """
+        ''' Returns a list of encounter ids for each image by gid '''
         pass
 
     def get_cids_in_gids(ibs, gid_list):
-        """ Returns a list of cids for each image by gid, e.g. [(1, 2), (3), (), (4, 5, 6) ...] """
+        ''' Returns a list of cids for each image by gid, e.g. [(1, 2), (3), (), (4, 5, 6) ...] '''
         # for each image return chips in that image
         pass
 
     def get_num_cids_in_gids(ibs, gid_list):
-        """ Returns the number of chips associated with a list of images by gid """
+        ''' Returns the number of chips associated with a list of images by gid '''
         return map(len, ibs.get_cids_in_gids(gid_list))
 
-    def get_image_properties(ibs, gid_list, key):
-        """ Gets properties of a list of images by gid """
-        pass
+    #def get_image_properties(ibs, gid_list, key):
+        #''' Gets properties of a list of images by gid '''
+        #pass
 
     #---------------------
     # --- Chip Getters ---
     #---------------------
 
     def get_chips(ibs, cid_list):
-        """ Returns a list cropped images in numpy array form by their cid """
+        'Returns a list cropped images in numpy array form by their cid'
         pass
 
     def get_chip_paths(ibs, cid_list):
-        """ Returns a list of chip paths by their cid """
+        ''' Returns a list of chip paths by their cid '''
         pass
 
     def get_chip_gids(ibs, cid_list):
-        """ Returns a list of image ids associated with a list of chips by their cid """
+        ''' Returns a list of image ids associated with a list of chips ids'''
+
         pass
 
     def get_chip_rois(ibs, cid_list):
-        """ Returns a list of (x, y, w, h) tuples describing the regions for each chip """
+        ''' Returns a list of (x, y, w, h) tuples describing chip geometry in
+            image space.
+        '''
         pass
 
     def get_chip_thetas(ibs, cid_list):
-        """ Returns a list of floats describing the angles of each chip """
+        ''' Returns a list of floats describing the angles of each chip '''
         pass
 
     def get_chip_names(ibs, cid_list):
-        """ Returns a list of strings ["fred", "sue", ...] for each chip identifying the animal so contained """
+        ''' Returns a list of strings ['fred', 'sue', ...] for each chip
+            identifying the animal
+        '''
         pass
 
     def get_chip_masks(ibs, cid_list):
         # Should this function exist?
         pass
 
-    def get_chip_properties(ibs, cid_list, key):
-        """ Gets properties of a list of chips by cid """
-        pass
+    #def get_chip_properties(ibs, cid_list, key):
+        #''' Gets properties of a list of chips by cid '''
+        #pass
 
     #---------------------
     # --- Name Getters ---
@@ -263,6 +270,7 @@ class IBEISControl(object):
 
     def detect_rois_and_masks(ibs, gid_list, **kwargs):
         'Runs animal detection in each image'
+        # Should this function just return rois and no masks???
         from ibeis.model import jason_detector
         detections = jason_detector.detect_rois(ibs, gid_list, **kwargs)
         # detections should be a list of [(gid, roi, theta, mask), ...] tuples
