@@ -5,7 +5,13 @@ LOGIC DOES NOT LIVE HERE
 THIS DEFINES THE ARCHITECTURE OF IBEIS
 '''
 from __future__ import division, print_function
+from itertools import izip
 from ibeis.control import DatabaseControl
+from ibeis.vtool import image as gtool
+from ibeis.vtool import keypoint as ktool
+from ibeis.util import util_hash
+from os.path import join
+import numpy as np
 
 
 class IBEISControl(object):
@@ -76,12 +82,17 @@ class IBEISControl(object):
     #---------------
 
     def add_images(ibs, gpath_list):
-        ''' Adds a list of image paths to the database '''
-        pass
+        ''' Adds a list of image paths to the database. Returns newly added gids '''
+        gid_list = [util_hash.hashstr_arr(gtool.imread(gpath)) for gpath in gpath_list]
+        return gid_list
 
     def add_chips(ibs, gid_list, roi_list, theta_list):
-        ''' Adds a list of chips to the database, with ROIs & thetas '''
-        pass
+        ''' Adds a list of chips to the database, with ROIs & thetas.
+            returns newly added chip ids'''
+        chip_iter = izip(gid_list, roi_list, theta_list)
+        cid_list = util_hash.hashstr(str(gid) + str(roi) + str(theta)
+                                     for gid, roi, theta in chip_iter)
+        return cid_list
 
     #---------------------
     # --- Chip Setters ---
@@ -89,19 +100,15 @@ class IBEISControl(object):
 
     def set_chip_rois(ibs, cid_list, roi_list):
         ''' Sets ROIs of a list of chips by cid, returns a list (x, y, w, h) tuples '''
-        pass
+        return None
 
     def set_chip_thetas(ibs, cid_list, theta_list):
         ''' Sets thetas of a list of chips by cid '''
-        pass
+        return None
 
     def set_chip_names(ibs, cid_list, name_list):
         ''' Sets names of a list of chips by cid '''
-        pass
-
-    #def set_chip_properties(ibs, cid_list, key, val_list):
-        #''' Sets properties of a list of chips by cid '''
-        #pass
+        return None
 
     #----------------------
     # --- Image Setters ---
@@ -109,11 +116,7 @@ class IBEISControl(object):
 
     def set_image_eid(ibs, gid_list, eid_list):
         ''' Sets the encounter id that a list of images is tied to '''
-        pass
-
-    #def set_image_properties(ibs, gid_list, key, val_list):
-        #''' Sets properties of a list of images by gid '''
-        #pass
+        return None
 
     #----------------------
     # --- Image Getters ---
@@ -121,38 +124,42 @@ class IBEISControl(object):
 
     def get_images(ibs, gid_list):
         ''' Returns a list of images in numpy matrix form by gid '''
-        pass
+        gpath_list = ibs.get_image_paths(gid_list)
+        image_list = [gtool.imread(gpath) for gpath in gpath_list]
+        return image_list
 
     def get_image_paths(ibs, gid_list):
         ''' Returns a list of image paths by gid '''
-        pass
+        fmtstr = join(ibs.dbdir, '_ibeisdb/gid%d_dummy.jpg')
+        gpath_list = [fmtstr % gid for gid in gid_list]
+        return gpath_list
 
     def get_image_size(ibs, gid_list):
         ''' Returns a list of image dimensions by gid in (width, height) tuples '''
-        pass
+        gsize_list = [(0, 0) for gid in gid_list]
+        return gsize_list
 
     def get_image_unixtime(hs, gid_list):
         ''' Returns a list of times that the images were taken by gid. Returns
             -1 if no timedata exists for a given gid
         '''
-        pass
+        unixtime_list = [-1 for gid in gid_list]
+        return unixtime_list
 
     def get_image_eid(ibs, gid_list):
         ''' Returns a list of encounter ids for each image by gid '''
-        pass
+        eid_list = [-1 for gid in gid_list]
+        return eid_list
 
     def get_cids_in_gids(ibs, gid_list):
         ''' Returns a list of cids for each image by gid, e.g. [(1, 2), (3), (), (4, 5, 6) ...] '''
         # for each image return chips in that image
-        pass
+        cids_list = [[] for gid in gid_list]
+        return cids_list
 
     def get_num_cids_in_gids(ibs, gid_list):
         ''' Returns the number of chips associated with a list of images by gid '''
         return map(len, ibs.get_cids_in_gids(gid_list))
-
-    #def get_image_properties(ibs, gid_list, key):
-        #''' Gets properties of a list of images by gid '''
-        #pass
 
     #---------------------
     # --- Chip Getters ---
@@ -164,36 +171,45 @@ class IBEISControl(object):
 
     def get_chip_paths(ibs, cid_list):
         ''' Returns a list of chip paths by their cid '''
-        pass
+        fmtstr = join(ibs.dbdir, '_ibeisdb/cid%d_dummy.png')
+        cpath_list = [fmtstr % cid for cid in cid_list]
+        return cpath_list
 
     def get_chip_gids(ibs, cid_list):
         ''' Returns a list of image ids associated with a list of chips ids'''
-
-        pass
+        gid_list = [-1] * len(cid_list)
+        return gid_list
 
     def get_chip_rois(ibs, cid_list):
         ''' Returns a list of (x, y, w, h) tuples describing chip geometry in
             image space.
         '''
-        pass
+        roi_list = [(0, 0, -1, -1)] * len(cid_list)
+        return roi_list
 
     def get_chip_thetas(ibs, cid_list):
         ''' Returns a list of floats describing the angles of each chip '''
-        pass
+        theta_list = [0] * len(cid_list)
+        return theta_list
 
     def get_chip_names(ibs, cid_list):
         ''' Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         '''
-        pass
+        name_list = map(str, cid_list)
+        return name_list
+
+    def get_chip_kpts(ibs, cid_list):
+        kpts_list = [np.empty((0, ktool.KPTS_DIM)) for cid in cid_list]
+        return kpts_list
+
+    def get_chip_desc(ibs, cid_list):
+        desc_list = [np.empty((0, ktool.DESC_DIM)) for cid in cid_list]
+        return desc_list
 
     def get_chip_masks(ibs, cid_list):
-        # Should this function exist?
+        # Should this function exist? Yes. -Jon
         pass
-
-    #def get_chip_properties(ibs, cid_list, key):
-        #''' Gets properties of a list of chips by cid '''
-        #pass
 
     #---------------------
     # --- Name Getters ---
