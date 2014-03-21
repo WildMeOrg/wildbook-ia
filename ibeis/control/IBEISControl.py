@@ -184,12 +184,12 @@ class IBEISControl(object):
         ''' Returns a list of (x, y, w, h) tuples describing chip geometry in
             image space.
         '''
-        roi_list = [(0, 0, -1, -1)] * len(cid_list)
+        roi_list = [(0, 0, 1, 1) for cid in cid_list]
         return roi_list
 
     def get_chip_thetas(ibs, cid_list):
         ''' Returns a list of floats describing the angles of each chip '''
-        theta_list = [0] * len(cid_list)
+        theta_list = [0 for cid in cid_list]
         return theta_list
 
     def get_chip_names(ibs, cid_list):
@@ -209,7 +209,9 @@ class IBEISControl(object):
 
     def get_chip_masks(ibs, cid_list):
         # Should this function exist? Yes. -Jon
-        pass
+        roi_list = ibs.get_chip_rois(cid_list)
+        mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
+        return mask_list
 
     #---------------------
     # --- Name Getters ---
@@ -229,22 +231,23 @@ class IBEISControl(object):
 
     def get_cids_in_eids(ibs, eid_list):
         'returns a list of list of cids in each encounter'
-        #return cid_list
-        pass
+        cids_list = [[] for eid in eid_list]
+        return cids_list
 
     def get_gids_in_eids(ibs, eid_list):
         'returns a list of list of gids in each encounter'
-        pass
+        gids_list = [[] for eid in eid_list]
+        return gids_list
 
     #-----------------
     # --- Deleters ---
     #-----------------
 
     def delete_chips(ibs, cid_list):
-        pass
+        return None
 
     def delete_images(ibs, gid_list):
-        pass
+        return None
 
     #----------------
     # --- Loaders ---
@@ -252,7 +255,7 @@ class IBEISControl(object):
 
     def load_from_sql(ibs):
         'Loads chips, images, name, and encounters'
-        pass
+        return None
 
     #----------------
     # --- Writers ---
@@ -260,11 +263,11 @@ class IBEISControl(object):
 
     def save_to_sql(ibs, cid_list):
         'Saves chips, images, name, and encounters'
-        pass
+        return None
 
     def export_to_wildbook(ibs, cid_list):
         'Exports identified chips to wildbook'
-        pass
+        return None
 
     #--------------
     # --- Model ---
@@ -288,10 +291,10 @@ class IBEISControl(object):
         'Runs animal detection in each image'
         # Should this function just return rois and no masks???
         from ibeis.model import jason_detector
-        detections = jason_detector.detect_rois(ibs, gid_list, **kwargs)
+        detection_list = jason_detector.detect_rois(ibs, gid_list, **kwargs)
         # detections should be a list of [(gid, roi, theta, mask), ...] tuples
         # Return for user inspection
-        return detections
+        return detection_list
 
     def get_recognition_database_chips(ibs):
         'returns chips which are part of the persitent recognition database'
