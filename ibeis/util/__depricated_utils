@@ -18,18 +18,6 @@ def correct_zeros(M):
     return M
 
 
-def glob(dirname, pattern, recursive=False):
-    matching_fnames = []
-    for root, dirs, files in os.walk(dirname):
-        for fname in files:
-            if not fnmatch.fnmatch(fname, pattern):
-                continue
-            matching_fnames.append(join(root, fname))
-        if not recursive:
-            break
-    return matching_fnames
-
-
 def print_grep(*args, **kwargs):
     matching_lines = grep(*args, **kwargs)
     print('Matching Lines:')  # Print matching lines

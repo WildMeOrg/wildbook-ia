@@ -67,7 +67,7 @@ from .util_path import (path_ndir_split, remove_file, remove_dirs,  # NOQA
                         checkpath, ensurepath, ensuredir, assertpath, copy_task,
                         copy, copy_all, copy_list, move_list, win_shortcut,
                         symlink, file_bytes, byte_str2, byte_str,
-                        file_megabytes, file_megabytes_str)
+                        file_megabytes, file_megabytes_str, glob)
 
 from .util_dbg import (ipython_execstr, execstr_parent_locals,  # NOQA
                        execstr_attr_list, execstr_dict, execstr_func,

@@ -326,3 +326,15 @@ def file_megabytes(fpath):
 
 def file_megabytes_str(fpath):
     return ('%.2f MB' % file_megabytes(fpath))
+
+
+def glob(dirname, pattern, recursive=False):
+    matching_fnames = []
+    for root, dirs, files in os.walk(dirname):
+        for fname in files:
+            if not fnmatch.fnmatch(fname, pattern):
+                continue
+            matching_fnames.append(join(root, fname))
+        if not recursive:
+            break
+    return matching_fnames
