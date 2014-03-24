@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 import os
 import sys
 from os.path import join, splitext, exists, split
-from ibeis.util import util_path
+from utool import util_path
 
 
 def get_project_repo_dir():
@@ -17,6 +18,7 @@ def get_project_repo_dir():
 
 def compile_ui():
     'Compiles the qt designer *.ui files into python code'
+    print('[setup] compile_ui()')
     pyuic4_cmd = {'win32':  'C:\Python27\Lib\site-packages\PyQt4\pyuic4',
                   'linux2': 'pyuic4',
                   'darwin': 'pyuic4'}[sys.platform]
@@ -31,6 +33,7 @@ def compile_ui():
 
 
 def clean():
+    print('[setup] clean()')
     cwd = get_project_repo_dir()
     print('[setup] Current working directory: %r' % cwd)
     # Remove python compiled files
