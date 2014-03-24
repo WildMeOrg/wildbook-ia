@@ -2,12 +2,13 @@
 cross platform utilities
 '''
 from __future__ import division, print_function
-import platform
-from os.path import exists, normpath
 import os
-from os.path import expanduser
 import sys
+import platform
 import subprocess
+import shlex
+from os.path import exists, normpath
+from os.path import expanduser
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
@@ -16,8 +17,7 @@ def get_computer_name():
     return platform.node()
 
 
-def _cmd(*args, **kwargs):
-    import shlex
+def cmd(*args, **kwargs):
     sys.stdout.flush()
     verbose = kwargs.get('verbose', True)
     detatch = kwargs.get('detatch', False)

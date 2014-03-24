@@ -1,16 +1,16 @@
 from __future__ import division, print_function
-from .util_arg import get_flag
-from .util_str import pack_into, truncate_str
-from .util_print import Indenter
-from .util_type import get_type
 import fnmatch
 import inspect
 import numpy as np
 import sys
 import textwrap
 import types
+from .util_arg import get_flag
 from .util_inject import inject
 from .util_list import is_listlike, list_eq
+from .util_print import Indenter
+from .util_str import pack_into, truncate_str
+from .util_type import get_type
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
 # --- Exec Strings ---

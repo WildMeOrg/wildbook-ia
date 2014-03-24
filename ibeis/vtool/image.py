@@ -4,9 +4,9 @@ from __future__ import print_function, division
 import cv2
 from PIL import Image
 from PIL.ExifTags import TAGS
-import util_path
-import util_str
-import util_progress
+from ibeis.util import util_path
+from ibeis.util import util_str
+from ibeis.util import util_progress
 
 
 CV2_WARP_KWARGS = {'flags': cv2.INTER_LANCZOS4,

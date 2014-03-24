@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+import util_path  # NOQA
 import util_alg  # NOQA
 import util_arg  # NOQA
 import util_cache  # NOQA
@@ -11,7 +12,6 @@ import util_inject  # NOQA
 import util_iter  # NOQA
 import util_list  # NOQA
 import util_num  # NOQA
-import util_path  # NOQA
 import util_print  # NOQA
 import util_progress  # NOQA
 import util_str  # NOQA
@@ -20,7 +20,7 @@ import util_type  # NOQA
 
 from .util_time import (tic, toc, get_timestamp, Timer)  # NOQA
 
-from .util_cplat import (get_computer_name, _cmd, startfile, view_directory)  # NOQA
+from .util_cplat import (get_computer_name, cmd, startfile, view_directory)  # NOQA
 
 from .util_progress import (simple_progres_func, prog_func, progress_func,  # NOQA
                             progress_str)
@@ -50,7 +50,7 @@ from .util_print import (horiz_print, horiz_string, str2, rectify_wrapped_func, 
                          indent_decor, printshape, Indenter, NpPrintOpts)
 
 from .util_str import (remove_chars, indent, truncate_str, pack_into, joins,  # NOQA
-                       indent_list)
+                       indent_list, byte_str2, byte_str, file_megabytes_str)
 
 from .util_type import (try_cast, assert_int, is_type, is_int, is_float, is_str,  # NOQA
                         is_bool, is_dict, is_list)
@@ -66,8 +66,8 @@ from .util_path import (path_ndir_split, remove_file, remove_dirs,  # NOQA
                         remove_files_in_dir, delete, longest_existing_path,
                         checkpath, ensurepath, ensuredir, assertpath, copy_task,
                         copy, copy_all, copy_list, move_list, win_shortcut,
-                        symlink, file_bytes, byte_str2, byte_str,
-                        file_megabytes, file_megabytes_str, glob)
+                        symlink, file_bytes,
+                        file_megabytes, glob)
 
 from .util_dbg import (ipython_execstr, execstr_parent_locals,  # NOQA
                        execstr_attr_list, execstr_dict, execstr_func,

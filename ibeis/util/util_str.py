@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 from itertools import imap
+from os.path import split
 from .util_inject import inject
-from . import util_path
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
@@ -59,7 +59,7 @@ def print_filesize(fpath):
 
 
 def filesize_str(fpath):
-    _, fname = util_path.split(fpath)
+    _, fname = split(fpath)
     mb_str = file_megabytes_str(fpath)
     return 'filesize(%r)=%s' % (fname, mb_str)
 
@@ -90,4 +90,5 @@ def byte_str(nBytes, unit='bytes'):
 
 
 def file_megabytes_str(fpath):
+    from . import util_path
     return ('%.2f MB' % util_path.file_megabytes(fpath))

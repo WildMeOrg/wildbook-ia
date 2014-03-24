@@ -3,7 +3,7 @@ import sys
 import warnings
 from collections import OrderedDict
 import numpy as np
-from .util_path import byte_str2
+from .util_str import byte_str2
 from .util_inject import inject
 from .Printable import printableVal
 print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
