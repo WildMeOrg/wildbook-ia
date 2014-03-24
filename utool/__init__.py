@@ -17,6 +17,7 @@ import util_progress  # NOQA
 import util_str  # NOQA
 import util_time  # NOQA
 import util_type  # NOQA
+import util_sysreq  # NOQA
 
 from .util_time import (tic, toc, get_timestamp, Timer)  # NOQA
 

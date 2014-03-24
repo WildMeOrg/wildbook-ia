@@ -68,7 +68,7 @@ class Timer(object):
         pass
 
     def __exit__(self, type, value, trace):
-        self.toc()
+        return self.toc()
 
 
 def exiftime_to_unixtime(datetime_str):

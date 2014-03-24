@@ -41,6 +41,25 @@ def _init_ibeis():
     return ibs
 
 
+def __import_parallel_modules():
+    # Import any modules which parallel process will use here
+    # so they are accessable when the program forks
+    from utool import util_sysreq
+    util_sysreq.ensure_in_pythonpath('hesaff')
+    import pyhesaff  # NOQA
+
+
+def _init_parallel():
+    from utool import util_parallel
+    from ibeis.dev import params
+    __import_parallel_modules()
+    util_parallel.init_pool(params.args.num_procs)
+
+
+def _close_parallel():
+    from utool import util_parallel
+    util_parallel.close_pool()
+
 #-----------------------
 # private loop functions
 
@@ -67,8 +86,9 @@ def main(**kwargs):
     print('[main] ibeis.main_api.main()')
     from utool.util_inject import _inject_colored_exception_hook
     from ibeis.dev import params
-    _inject_colored_exception_hook()
     _parse_args(**kwargs)
+    _init_parallel()
+    _inject_colored_exception_hook()
     _init_signals()
     if not params.args.nogui:
         back = _init_gui()
@@ -77,17 +97,19 @@ def main(**kwargs):
     return main_locals
 
 
-def main_loop(main_locals):
+def main_loop(main_locals, loop=True):
     print('[main] ibeis.main_api.main_loop()')
     import sys
     from ibeis.dev import params
     exit_bit = True
-    # Choose a main loop depending on params.args
-    if params.args.cmd:
-        exit_bit = _ipython_loop(main_locals)
-    if exit_bit and not params.args.nogui:
-        exit_bit = _guitool_loop(main_locals)
+    if loop:
+        # Choose a main loop depending on params.args
+        if exit_bit and params.args.cmd:
+            exit_bit = _ipython_loop(main_locals)
+        if exit_bit and not params.args.nogui:
+            exit_bit = _guitool_loop(main_locals)
     _reset_signals()
+    _close_parallel()
     if exit_bit:
         # Exit cleanly if a main loop ran
         print('[main] ibeis clean exit')

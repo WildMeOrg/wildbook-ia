@@ -48,11 +48,11 @@ def clean():
 
 if __name__ == '__main__':
     print('[setup] Entering HotSpotter setup')
-    for cmd in iter(sys.argv[1:]):
+    for arg in iter(sys.argv[1:]):
         # Build PyQt UI files
-        if cmd in ['clean']:
+        if arg in ['clean']:
             clean()
             sys.exit(0)
-        if cmd in ['buildui', 'ui', 'compile_ui']:
+        if arg in ['buildui', 'ui', 'compile_ui']:
             compile_ui()
             sys.exit(0)
