@@ -1,0 +1,122 @@
+from __future__ import division, print_function
+import sys
+# Python
+import argparse
+from .util_type import try_cast
+from .util_inject import inject
+print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
+
+
+def get_arg(arg, type_=None, default=None):
+    arg_after = default
+    if type_ is bool:
+        arg_after = False if default is None else default
+    try:
+        argx = sys.argv.index(arg)
+        if argx < len(sys.argv):
+            if type_ is bool:
+                arg_after = True
+            else:
+                arg_after = try_cast(sys.argv[argx + 1], type_)
+    except Exception:
+        pass
+    return arg_after
+
+
+def get_flag(arg, default=False):
+    'Checks if the commandline has a flag or a corresponding noflag'
+    if arg.find('--') != 0:
+        raise Exception(arg)
+    #if arg.find('--no') == 0:
+        #arg = arg.replace('--no', '--')
+    noarg = arg.replace('--', '--no')
+    if arg in sys.argv:
+        return True
+    elif noarg in sys.argv:
+        return False
+    else:
+        return default
+    return default
+
+
+def argv_flag(name, default):
+    if name.find('--') == 0:
+        name = name[2:]
+    if '--' + name in sys.argv and default is False:
+        return True
+    if '--no' + name in sys.argv and default is True:
+        return False
+    return default
+
+
+# ---- OnTheFly argparse ^^^^
+# ---- Documented argparse VVVV
+
+
+def switch_sanataize(switch):
+    if isinstance(switch, str):
+        dest = switch.strip('-').replace('-', '_')
+    else:
+        if isinstance(switch, tuple):
+            switch = switch
+        elif isinstance(switch, list):
+            switch = tuple(switch)
+        dest = switch[0].strip('-').replace('-', '_')
+    return dest, switch
+
+
+class ArgumentParser2(object):
+    'Wrapper around argparse.ArgumentParser with convinence functions'
+    def __init__(self, parser):
+        self.parser = parser
+        self._add_arg = parser.add_argument
+
+    def add_arg(self, switch, *args, **kwargs):
+        #print('[argparse2] add_arg(%r) ' % (switch,))
+        if isinstance(switch, tuple):
+            args = tuple(list(switch) + list(args))
+            return self._add_arg(*args, **kwargs)
+        else:
+            return self._add_arg(switch, *args, **kwargs)
+
+    def add_meta(self, switch, type, default=None, help='', **kwargs):
+        #print('[argparse2] add_meta()')
+        dest, switch = switch_sanataize(switch)
+        self.add_arg(switch, metavar=dest, type=type, default=default, help=help, **kwargs)
+
+    def add_flag(self, switch, default=False, **kwargs):
+        #print('[argparse2] add_flag()')
+        action = 'store_false' if default else 'store_true'
+        dest, switch = switch_sanataize(switch)
+        self.add_arg(switch, dest=dest, action=action, default=default, **kwargs)
+
+    def add_int(self, switch, *args, **kwargs):
+        self.add_meta(switch, int,  *args, **kwargs)
+
+    def add_intlist(self, switch, *args, **kwargs):
+        self.add_meta(switch, int,  *args, nargs='*', **kwargs)
+
+    def add_strlist(self, switch, *args, **kwargs):
+        self.add_meta(switch, str,  *args, nargs='*', **kwargs)
+
+    def add_float(self, switch, *args, **kwargs):
+        self.add_meta(switch, float, *args, **kwargs)
+
+    def add_str(self, switch, *args, **kwargs):
+        self.add_meta(switch, str, *args, **kwargs)
+
+    def add_argument_group(self, *args, **kwargs):
+        return ArgumentParser2(self.parser.add_argument_group(*args, **kwargs))
+
+
+def make_argparse2(description, *args, **kwargs):
+    formatter_classes = [
+        argparse.RawDescriptionHelpFormatter,
+        argparse.RawTextHelpFormatter,
+        argparse.ArgumentDefaultsHelpFormatter]
+    return ArgumentParser2(
+        argparse.ArgumentParser(prog='Program',
+                                description=description,
+                                prefix_chars='+-',
+                                formatter_class=formatter_classes[2], *args,
+                                **kwargs))

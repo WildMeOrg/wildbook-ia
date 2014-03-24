@@ -4,7 +4,7 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal, Qt
 from PyQt4.QtGui import QAbstractItemView
 # IBEIS
-from ibeis.util.util_type import is_bool, is_int, is_float
+from utool.util_type import is_bool, is_int, is_float
 from ibeis.view import guitool
 from ibeis.view.MainSkel import Ui_mainSkel
 from ibeis.view.guitool import slot_

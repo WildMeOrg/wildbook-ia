@@ -55,7 +55,7 @@ def _guitool_loop(main_locals):
 
 
 def _ipython_loop(main_locals):
-    from ibeis.util import util_dbg
+    from utool import util_dbg
     embedded = util_dbg.inIPython()
     if not embedded:
         util_dbg.embed(parent_locals=main_locals)
@@ -65,7 +65,7 @@ def _ipython_loop(main_locals):
 
 def main(**kwargs):
     print('[main] ibeis.main_api.main()')
-    from ibeis.util.util_inject import _inject_colored_exception_hook
+    from utool.util_inject import _inject_colored_exception_hook
     from ibeis.dev import params
     _inject_colored_exception_hook()
     _parse_args(**kwargs)

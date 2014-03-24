@@ -5,9 +5,9 @@ def parse_args(**kwargs):
     # TODO: Port more from hotspotter/hsdev/argparse2.py
     # TODO: Incorporate kwargs
     global args
-    from ibeis.dev import argparse2
+    from utool import util_arg
     import multiprocessing
-    parser2 = argparse2.make_argparse2('IBEIS - lite', version='???')
+    parser2 = util_arg.make_argparse2('IBEIS - lite', version='???')
 
     def behavior_argparse(parser2):
         # Program behavior

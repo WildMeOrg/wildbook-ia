@@ -7,9 +7,9 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 from __future__ import division, print_function
 from itertools import izip
 from ibeis.control import DatabaseControl
-from ibeis.vtool import image as gtool
-from ibeis.vtool import keypoint as ktool
-from ibeis.util import util_hash
+from vtool import image as gtool
+from vtool import keypoint as ktool
+from utool import util_hash
 from os.path import join
 import numpy as np
 

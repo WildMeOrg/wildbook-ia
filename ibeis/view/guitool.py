@@ -158,5 +158,3 @@ def ping_python_interpreter(frequency=4200):  # 4200):
 def exit_application():
     print('[guitool] exiting application')
     QtGui.qApp.quit()
-
-
