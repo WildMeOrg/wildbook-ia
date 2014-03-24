@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from os.path import (join, normpath, split, isdir, isfile, exists, islink, ismount)
+from os.path import (join, realpath, normpath, split, isdir, isfile, exists, islink, ismount)
 from itertools import izip
 import fnmatch
 import os
@@ -12,6 +12,16 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[path]')
 
 
 __VERBOSE__ = False
+
+
+__IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
+__LOWER_EXTS = [ext.lower() for ext in __IMG_EXTS]
+__UPPER_EXTS = [ext.upper() for ext in __IMG_EXTS]
+IMG_EXTENSIONS =  set(__LOWER_EXTS + __UPPER_EXTS)
+
+
+def truepath(path):
+    return normpath(realpath(path))
 
 
 def path_ndir_split(path, n):
@@ -47,22 +57,28 @@ def remove_dirs(dpath, dryrun=False, **kwargs):
     return True
 
 
-def remove_files_in_dir(dpath, fname_pattern='*', recursive=False, verbose=True,
+def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
                         dryrun=False, **kwargs):
+    if isinstance(fname_pattern_list, str):
+        fname_pattern_list = [fname_pattern_list]
     print('[util] Removing files:')
     print('  * in dpath = %r ' % dpath)
-    print('  * matching pattern = %r' % fname_pattern)
+    print('  * matching patterns = %r' % fname_pattern_list)
     print('  * recursive = %r' % recursive)
     num_removed, num_matched = (0, 0)
+    kwargs.update({
+        'dryrun': dryrun,
+        'verbose': verbose,
+    })
     if not exists(dpath):
         msg = ('!!! dir = %r does not exist!' % dpath)
         print(msg)
         warnings.warn(msg, category=UserWarning)
     for root, dname_list, fname_list in os.walk(dpath):
-        for fname in fnmatch.filter(fname_list, fname_pattern):
-            num_matched += 1
-            num_removed += remove_file(join(root, fname), verbose=verbose,
-                                       dryrun=dryrun, **kwargs)
+        for fname_pattern in fname_pattern_list:
+            for fname in fnmatch.filter(fname_list, fname_pattern):
+                num_matched += 1
+                num_removed += remove_file(join(root, fname), **kwargs)
         if not recursive:
             break
     print('[util] ... Removed %d/%d files' % (num_removed, num_matched))
@@ -295,37 +311,8 @@ def file_bytes(fpath):
     return os.stat(fpath).st_size
 
 
-def byte_str2(nBytes):
-    if nBytes < 2.0 ** 10:
-        return byte_str(nBytes, 'KB')
-    if nBytes < 2.0 ** 20:
-        return byte_str(nBytes, 'KB')
-    if nBytes < 2.0 ** 30:
-        return byte_str(nBytes, 'MB')
-    else:
-        return byte_str(nBytes, 'GB')
-
-
-def byte_str(nBytes, unit='bytes'):
-    if unit.lower().startswith('b'):
-        nUnit = nBytes
-    elif unit.lower().startswith('k'):
-        nUnit =  nBytes / (2.0 ** 10)
-    elif unit.lower().startswith('m'):
-        nUnit =  nBytes / (2.0 ** 20)
-    elif unit.lower().startswith('g'):
-        nUnit = nBytes / (2.0 ** 30)
-    else:
-        raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
-    return '%.2f %s' % (nUnit, unit)
-
-
 def file_megabytes(fpath):
     return os.stat(fpath).st_size / (2.0 ** 20)
-
-
-def file_megabytes_str(fpath):
-    return ('%.2f MB' % file_megabytes(fpath))
 
 
 def glob(dirname, pattern, recursive=False):

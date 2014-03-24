@@ -69,3 +69,26 @@ class Timer(object):
 
     def __exit__(self, type, value, trace):
         self.toc()
+
+
+def exiftime_to_unixtime(datetime_str):
+    try:
+        dt = datetime.datetime.strptime(datetime_str, '%Y:%m:%d %H:%M:%S')
+        return time.mktime(dt.timetuple())
+    except TypeError:
+        #if datetime_str is None:
+            #return -1
+        return -1
+    except ValueError as ex:
+        if isinstance(datetime_str, str) or isinstance(datetime_str, unicode):
+            if datetime_str.find('No EXIF Data') == 0:
+                return -1
+            if datetime_str.find('Invalid') == 0:
+                return -1
+            if datetime_str == '0000:00:00 00:00:00':
+                return -1
+        print('!!!!!!!!!!!!!!!!!!')
+        print('Caught Error: ' + repr(ex))
+        print('type(datetime_str) = %r' % type(datetime_str))
+        print('datetime_str = %r' % datetime_str)
+        raise

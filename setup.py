@@ -1,7 +1,18 @@
-from os.path import join, dirname, realpath, splitext
-from ibeis.util import util_path
 import os
 import sys
+from os.path import join, splitext, exists, split
+from ibeis.util import util_path
+
+
+def get_project_repo_dir():
+    dpath, fname = split(__file__)
+    cwd = util_path.truepath(dpath)
+    assert exists('setup.py'), 'must be run in ibeis directory'
+    assert exists('../ibeis/setup.py'), 'must be run in ibeis directory'
+    assert exists('../ibeis/ibeis/control'), 'must be run in ibeis directory'
+    assert exists('_setup'), 'must be run in ibeis directory'
+    assert fname == 'setup.py', 'this file is not setup.py'
+    return cwd
 
 
 def compile_ui():
@@ -9,7 +20,8 @@ def compile_ui():
     pyuic4_cmd = {'win32':  'C:\Python27\Lib\site-packages\PyQt4\pyuic4',
                   'linux2': 'pyuic4',
                   'darwin': 'pyuic4'}[sys.platform]
-    widget_dir = join(dirname(realpath(__file__)), 'ibeis/view')
+    cwd = get_project_repo_dir()
+    widget_dir = join(cwd, 'ibeis/view')
     print('[setup] Compiling qt designer files in %r' % widget_dir)
     for widget_ui in util_path.glob(widget_dir, '*.ui'):
         widget_py = splitext(widget_ui)[0] + '.py'
@@ -18,10 +30,26 @@ def compile_ui():
         os.system(cmd)
 
 
+def clean():
+    cwd = get_project_repo_dir()
+    print('[setup] Current working directory: %r' % cwd)
+    # Remove python compiled files
+    pattern_list = ['*.dump.txt', '*.sqlite3', '*.pyc', '*.pyo', '*.prof',
+                    '*.prof.txt', '*.lprof', ]
+    util_path.remove_files_in_dir(cwd, pattern_list, recursive=True)
+    # Remove logs
+    util_path.remove_files_in_dir(join(cwd, 'logs'))
+    # Remove misc
+    util_path.delete(join(cwd, "'"))  # idk where this file comes from
+
+
 if __name__ == '__main__':
     print('[setup] Entering HotSpotter setup')
     for cmd in iter(sys.argv[1:]):
         # Build PyQt UI files
+        if cmd in ['clean']:
+            clean()
+            sys.exit(0)
         if cmd in ['buildui', 'ui', 'compile_ui']:
             compile_ui()
             sys.exit(0)

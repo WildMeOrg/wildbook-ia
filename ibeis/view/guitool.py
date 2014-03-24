@@ -77,23 +77,23 @@ def drawing(func):
     return drawing_wrapper
 
 
-class GUILoggingSender(QtCore.QObject):
-    write_ = QtCore.pyqtSignal(str)
-
-    def __init__(self, write_slot):
-        super(GUILoggingSender, self).__init__()
-        self.write_.connect(write_slot)
-
-    def write_gui(self, msg):
-        self.write_.emit(str(msg))
-
-
 class GUILoggingHandler(logging.StreamHandler):
     '''
     A handler class which sends messages to to a connected QSlot
     '''
     def __init__(self, write_slot):
         super(GUILoggingHandler, self).__init__()
+
+        # Qt object that will send messages (as signals) to the frontend gui_write slot
+        class GUILoggingSender(QtCore.QObject):
+            write_ = QtCore.pyqtSignal(str)
+            def __init__(self, write_slot):
+                super(GUILoggingSender, self).__init__()
+                self.write_.connect(write_slot)
+
+            def write_gui(self, msg):
+                self.write_.emit(str(msg))
+
         self.sender = GUILoggingSender(write_slot)
 
     def emit(self, record):
@@ -158,3 +158,5 @@ def ping_python_interpreter(frequency=4200):  # 4200):
 def exit_application():
     print('[guitool] exiting application')
     QtGui.qApp.quit()
+
+

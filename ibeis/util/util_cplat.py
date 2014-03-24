@@ -5,6 +5,7 @@ from __future__ import division, print_function
 import platform
 from os.path import exists, normpath
 import os
+from os.path import expanduser
 import sys
 import subprocess
 from .util_inject import inject
@@ -83,3 +84,12 @@ def view_directory(dname=None):
                  'linux2': 'nautilus',
                  'darwin': 'open'}[sys.platform]
     os.system(open_prog + ' ' + normpath(dname))
+
+
+def get_resource_dir():
+    if sys.platform.startswith('win32'):
+        return expanduser('~/AppData/Roaming')
+    if sys.platform.startswith('linux'):
+        return expanduser('~/.config')
+    if sys.platform.startswith('darwin'):
+        return expanduser('~/Library/Application Support')

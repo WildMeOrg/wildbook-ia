@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 from itertools import imap
 from .util_inject import inject
+from . import util_path
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
@@ -51,3 +52,42 @@ def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
 
 def indent_list(indent, list_):
     return imap(lambda item: indent + str(item), list_)
+
+
+def print_filesize(fpath):
+    print(filesize_str(fpath))
+
+
+def filesize_str(fpath):
+    _, fname = util_path.split(fpath)
+    mb_str = file_megabytes_str(fpath)
+    return 'filesize(%r)=%s' % (fname, mb_str)
+
+
+def byte_str2(nBytes):
+    if nBytes < 2.0 ** 10:
+        return byte_str(nBytes, 'KB')
+    if nBytes < 2.0 ** 20:
+        return byte_str(nBytes, 'KB')
+    if nBytes < 2.0 ** 30:
+        return byte_str(nBytes, 'MB')
+    else:
+        return byte_str(nBytes, 'GB')
+
+
+def byte_str(nBytes, unit='bytes'):
+    if unit.lower().startswith('b'):
+        nUnit = nBytes
+    elif unit.lower().startswith('k'):
+        nUnit =  nBytes / (2.0 ** 10)
+    elif unit.lower().startswith('m'):
+        nUnit =  nBytes / (2.0 ** 20)
+    elif unit.lower().startswith('g'):
+        nUnit = nBytes / (2.0 ** 30)
+    else:
+        raise NotImplementedError('unknown nBytes=%r unit=%r' % (nBytes, unit))
+    return '%.2f %s' % (nUnit, unit)
+
+
+def file_megabytes_str(fpath):
+    return ('%.2f MB' % util_path.file_megabytes(fpath))
