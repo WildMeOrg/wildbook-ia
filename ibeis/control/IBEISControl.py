@@ -44,8 +44,16 @@ class IBEISControl(object):
             'image_toggle_aif':             'INTEGER DEFAULT 0',
         })
 
-        ibs.database.schema('encounters',   {
-            'encounter_uid':                'INTEGER PRIMARY KEY',
+        '''
+            This table defines the pairing between an encounter and an 
+            image. Hence, egpairs stands for EncounterimaGePAIRS.  This table
+            exists for the sole purpose of defining multiple encounters to 
+            a single image without the need to duplicate an image's record
+            in the images table.
+        '''
+        ibs.database.schema('egpairs',   {
+            'egpair_uid':                   'INTEGER PRIMARY KEY',
+            'encounter_uid':                'INTEGER NOT NULL',
             'image_uid':                    'INTEGER NOT NULL',
         })
 
@@ -63,16 +71,19 @@ class IBEISControl(object):
         })
 
         ibs.database.schema('names',   {
-            'name_uid':                 'INTEGER PRIMARY KEY',
-            'name_text':                'TEXT',
+            'name_uid':                     'INTEGER PRIMARY KEY',
+            'name_text':                    'TEXT',
         })
 
         # Possibly remove???
         ibs.database.schema('segmentatons', {
-            'segmentation_id':              'INTEGER PRIMARY KEY',
-            'image_id':                     'INTEGER NOT NULL',
+            'segmentation_uid':             'INTEGER PRIMARY KEY',
+            'image_uid':                    'INTEGER NOT NULL',
             'segmentation_pixel_map_uri':   'TEXT NOT NULL',
         })
+
+        # Add default name into database with name_uid of 0.
+        ibs.database.query("INSERT INTO names(name_uid, name_text) VALUES (?,?)", [0, "____"])
 
         ibs.database.dump()
         pass
@@ -83,8 +94,26 @@ class IBEISControl(object):
 
     def add_images(ibs, gpath_list):
         ''' Adds a list of image paths to the database. Returns newly added gids '''
-        gid_list = [util_hash.hashstr_arr(gtool.imread(gpath)) for gpath in gpath_list]
-        return gid_list
+        
+        img_iter = (gtool.imread(gpath) for gpath in gpath_list)
+        values_list = [ [util_hash.hashstr_sha1(img, base10=True), gpath, img.shape[0], img.shape[1]] + 
+                        gtool.get_exif(image, ext) for img, gpath in izip(img_iter, gpath_list) ]
+        
+        errors = [ibs.database.query("INSERT INTO images( \
+            image_uid,              \
+            image_uri,              \
+            image_width,            \
+            image_height,           \
+            image_exif_time_posix,  \
+            image_exif_GPS_lat,     \
+            image_exif_gps_lon      \
+            ) VALUES (?,?,?,?,?,?,?)", value) for value in values_list]
+
+        if sum(errors) > 0:
+            raise ValueError("Error on inserting image into SQLite3 database, most likely primary key collision")
+
+        return [value[0] for value in values_list]
+
 
     def add_chips(ibs, gid_list, roi_list, theta_list):
         ''' Adds a list of chips to the database, with ROIs & thetas.
@@ -92,6 +121,7 @@ class IBEISControl(object):
         chip_iter = izip(gid_list, roi_list, theta_list)
         cid_list = util_hash.hashstr(str(gid) + str(roi) + str(theta)
                                      for gid, roi, theta in chip_iter)
+
         return cid_list
 
     #---------------------
@@ -99,7 +129,7 @@ class IBEISControl(object):
     #---------------------
 
     def set_chip_rois(ibs, cid_list, roi_list):
-        ''' Sets ROIs of a list of chips by cid, returns a list (x, y, w, h) tuples '''
+        ''' Sets ROIs of a list of chips by cid'''
         return None
 
     def set_chip_thetas(ibs, cid_list, theta_list):

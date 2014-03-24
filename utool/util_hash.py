@@ -74,3 +74,11 @@ def hashstr_md5(data):
     hashstr = hashlib.md5(data).hexdigest()
     #bin(int(my_hexdata, scale))
     return hashstr
+
+
+def hashstr_sha1(data, base10=False):
+    hashstr = hashlib.sha1(data).hexdigest()
+    if base10:
+        hashstr = int("0x" + hashstr, 0)
+
+    return hashstr
