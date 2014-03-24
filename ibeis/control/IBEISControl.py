@@ -22,6 +22,7 @@ class IBEISControl(object):
     gid   - image unique id (could just be the relative file path)
     name  - name unique id
     eid   - encounter unique id
+    rid   - region of interest unique id
     roi   - region of interest for a chip
     theta - angle of rotation for a chip
     '''
@@ -109,9 +110,10 @@ class IBEISControl(object):
             'encounter_text':               'TEXT NOT NULL',
         })
 
-        # Add default into database
+        # Add defaults into database
         ibs.database.query('INSERT IGNORE INTO names(name_uid, name_text) VALUES (?,?)', [0, '____'])
 
+        # Dump database, which will automatically commit database schema and defaults
         ibs.database.dump()
 
     #---------------
@@ -125,7 +127,7 @@ class IBEISControl(object):
                         gtool.get_exif(image, ext) for img, gpath in izip(img_iter, gpath_list) ]
         
         ibs.database.commit('Error on inserting image, most likely primary key collision',
-                [ibs.database.query('INSERT INTO images( \
+                [ibs.database.query('INSERT IGNORE INTO images( \
                 image_uid,              \
                 image_uri,              \
                 image_width,            \
@@ -137,39 +139,85 @@ class IBEISControl(object):
             )
         return [value[0] for value in values_list]
 
+    def add_rois(ibs, gid_list, roi_list):
+        pass 
 
-    def add_chips(ibs, gid_list, roi_list, theta_list):
+    def add_chips(ibs, roi_list):
         ''' Adds a list of chips to the database, with ROIs & thetas.
-            returns newly added chip ids'''
+            returns newly added chip ids
+        '''
         chip_iter = izip(gid_list, roi_list, theta_list)
         cid_list = util_hash.hashstr(str(gid) + str(roi) + str(theta)
                                      for gid, roi, theta in chip_iter)
         return cid_list
 
+    #----------------------
+    # --- Image Setters ---
+    #----------------------
+
+    def set_image_paths(ibs, gid_list, gpath_list):
+        ''' Do we want to do caching here? '''
+        pass
+
+    def set_image_eid(ibs, gid_list, eid_list):
+        ''' 
+            Sets the encounter id that a list of images is tied to, deletes old encounters.
+            eid_list is a list of tuples, each represents the set of encounters a tuple
+            should belong to.
+        '''
+
+        ibs.database.commit('Error on deleting old image encounters',
+                [ibs.database.query('DELETE FROM egpairs WHERE \
+                image_uid=?', [gid]) for gid in gid_list]
+            )
+
+        ibs.database.commit('Error on inserting new image encounters',
+                flatten([
+                    [ibs.database.query('INSERT IGNORE INTO egpairs( \
+                    encounter_uid, \
+                    image_uid      \
+                    ) VALUES (?,?)', [eid, gid]) for eid in eids] for eids, gid in izip(eid_list, gid_list)
+                ])
+            )
+        return None
+
+    #--------------------
+    # --- ROI Setters ---
+    #--------------------
+
+    def set_roi_shape(ibs, rid_list, shape_list):
+        ''' Sets ROIs of a list of rois by rid, where roi_list is a list of (x, y, w, h) tuples'''
+        ibs.database.commit('Error on updating roi shapes',
+                [ibs.database.query('UPDATE rois SET \
+                roi_xtl=?,     \
+                roi_ytl=?,     \
+                roi_width=?,   \
+                roi_height=?   \
+                WHERE roi_uid=?', shape + [rid]) for shape, rid in izip(shape_list, rid_list)]
+            )
+        return None
+
+    def set_roi_thetas(ibs, rid_list, theta_list):
+        ''' Sets thetas of a list of chips by rid '''
+        ibs.database.commit('Error on updating roi thetas',
+                [ibs.database.query('UPDATE rois SET \
+                roi_theta=?, \
+                WHERE roi_uid=?', value) for value in izip(theta_list, rid_list)]
+            )
+        return None
+
+    def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
+        ''' Sets viewpoints of a list of chips by rid '''
+        ibs.database.commit('Error on updating roi viewpoints',
+                [ibs.database.query('UPDATE rois SET \
+                roi_viewpoint=?, \
+                WHERE roi_uid=?', value) for value in izip(theta_list, viewpoint_list)]
+            )
+        return None
+
     #---------------------
     # --- Chip Setters ---
     #---------------------
-
-    def set_chip_rois(ibs, cid_list, roi_list):
-        ''' Sets ROIs of a list of chips by cid, where roi_list is a list of (x, y, w, h) tuples'''
-        ibs.database.commit('Error on updating chip rois',
-                [ibs.database.query('UPDATE chips SET \
-                chip_roi_xtl=?,     \
-                chip_roi_ytl=?,     \
-                chip_roi_width=?,   \
-                chip_roi_height=?   \
-                WHERE chip_uid=?', roi + [cid]) for roi, cid in izip(roi_list, cid_list)]
-            )
-        return None
-
-    def set_chip_thetas(ibs, cid_list, theta_list):
-        ''' Sets thetas of a list of chips by cid '''
-        ibs.database.commit('Error on updating chip thetas',
-                [ibs.database.query('UPDATE chips SET \
-                chip_roi_theta=?, \
-                WHERE chip_uid=?', value) for value in izip(theta_list, cid_list)]
-            )
-        return None
 
     def set_chip_names(ibs, cid_list, name_list):
         ''' Sets names of a list of chips by cid '''
@@ -180,22 +228,22 @@ class IBEISControl(object):
             )
         return None
 
-    #----------------------
-    # --- Image Setters ---
-    #----------------------
-
-    def set_image_eid(ibs, gid_list, eid_list):
-        ''' Sets the encounter id that a list of images is tied to, deletes old encounters '''
-        ibs.database.commit('Error on deleting old image encounters',
-                [ibs.database.query('DELETE FROM egpairs WHERE \
-                image_uid=?', [gid]) for gid in gid_list]
+    def set_chip_shape(ibs, cid_list, shape_list):
+        ''' Sets shape of a list of chips by cid, a list of tuples (w, h) '''
+        ibs.database.commit('Error on updating chip shape',
+                [ibs.database.query('UPDATE chips SET \
+                chip_width=?, \
+                chip_height=?, \
+                WHERE chip_uid=?', shape) for shape in izip(shape_list, cid_list)]
             )
+        return None
 
-        ibs.database.commit('Error on inserting new image encounters',
-                [ibs.database.query('INSERT INTO egpairs( \
-                encounter_uid, \
-                image_uid      \
-                ) VALUES (?,?)', value) for value in izip(eid_list, gid_list)]
+    def set_chip_toggle_hard(ibs, cid_list, hard_list):
+        ''' Sets hard toggle of a list of chips by cid '''
+        ibs.database.commit('Error on updating chip hard toggle, a list of booleans',
+                [ibs.database.query('UPDATE chips SET \
+                chip_toggle_hard=?, \
+                WHERE chip_uid=?', shape) for shape in izip(shape_list, map(int, cid_list))]
             )
         return None
 
@@ -204,13 +252,21 @@ class IBEISControl(object):
     #----------------------
 
     def get_images(ibs, gid_list):
-        ''' Returns a list of images in numpy matrix form by gid '''
+        ''' 
+            Returns a list of images in numpy matrix form by gid 
+            NO SQL REQUIRED, DEPENDS ON get_image_paths()
+        '''
         gpath_list = ibs.get_image_paths(gid_list)
         image_list = [gtool.imread(gpath) for gpath in gpath_list]
         return image_list
 
     def get_image_paths(ibs, gid_list):
         ''' Returns a list of image paths by gid '''
+        
+        db.query('SELECT image_uri FROM images',[])
+        for result in db.results():
+            print(result)
+
         fmtstr = join(ibs.dbdir, '_ibeisdb/gid%d_dummy.jpg')
         gpath_list = [fmtstr % gid for gid in gid_list]
         return gpath_list
@@ -341,20 +397,8 @@ class IBEISControl(object):
         return None
 
     #----------------
-    # --- Loaders ---
-    #----------------
-
-    def load_from_sql(ibs):
-        'Loads chips, images, name, and encounters'
-        return None
-
-    #----------------
     # --- Writers ---
     #----------------
-
-    def save_to_sql(ibs, cid_list):
-        'Saves chips, images, name, and encounters'
-        return None
 
     def export_to_wildbook(ibs, cid_list):
         'Exports identified chips to wildbook'
