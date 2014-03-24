@@ -17,7 +17,7 @@ def _SQLITE3_TO_NUMPY(blob):
     out.seek(0)
     return np.load(out)
 
-     
+
 class DatabaseControl(object):
     def __init__(db, database_path, database_file='database.sqlite3'):
         '''
@@ -27,7 +27,6 @@ class DatabaseControl(object):
             SQL UPDATE: http://www.w3schools.com/sql/sql_update.asp
             SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
             SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
-            
             --------------------------------------------------------------------
 
             Init the SQLite3 database connection and the query execution object.
@@ -48,7 +47,6 @@ class DatabaseControl(object):
 
         # Converts sqlite3 blob to numpy array object when select querying
         lite.register_converter('NUMPY', _SQLITE3_TO_NUMPY)
-
 
     def schema(db, table, schemas):
         '''
@@ -129,7 +127,6 @@ class DatabaseControl(object):
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         '''
-
         if sum(query_results) > 0:
             raise ValueError(error_text)
         else:
@@ -145,7 +142,7 @@ class DatabaseControl(object):
             file.  The default will store a dump parallel to the current
             database file.
         '''
-        db.commit()
+        db.connection.commit()
         if dump_path is None:
             dump_path = db.database_path
         dump = open(os.path.join(dump_path, dump_file), 'w')
@@ -155,7 +152,6 @@ class DatabaseControl(object):
 
 
 if __name__ == '__main__':
-
     try:
         os.remove('temp.sqlite3')
     except Exception as e:
@@ -180,4 +176,3 @@ if __name__ == '__main__':
         pass
 
     db.dump(dump_file='temp.dump.txt')
-

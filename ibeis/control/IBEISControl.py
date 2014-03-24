@@ -10,6 +10,7 @@ from ibeis.control import DatabaseControl as dbc
 from vtool import image as gtool
 from vtool import keypoint as ktool
 from utool import util_hash
+from utool import util_time
 from os.path import join
 import numpy as np
 
@@ -80,7 +81,7 @@ class IBEISControl(object):
             'feature_uid':                  'INTEGER PRIMARY KEY',
             'chip_uid':                     'INTEGER NOT NULL',
             'feature_keypoints':            'NUMPY',
-            'feature_sifts'                 'NUMPY',
+            'feature_sifts':                'NUMPY',
         })
 
         ibs.database.schema('names',        {
@@ -88,9 +89,9 @@ class IBEISControl(object):
             'name_text':                    'TEXT NOT NULL',
         })
 
-        ''' 
-            Detection and identification algorithm configurations, populated 
-            with caching information 
+        '''
+            Detection and identification algorithm configurations, populated
+            with caching information
         '''
         ibs.database.schema('configs',      {
             'config_uid':                   'INTEGER PRIMARY KEY',
@@ -98,9 +99,9 @@ class IBEISControl(object):
         })
 
         '''
-            This table defines the pairing between an encounter and an 
-            image. Hence, egpairs stands for EncounterimaGePAIRS.  This table
-            exists for the sole purpose of defining multiple encounters to 
+            This table defines the pairing between an encounter and an
+            image. Hence, egpairs stands for encounter-image-pairs.  This table
+            exists for the sole purpose of defining multiple encounters to
             a single image without the need to duplicate an image's record
             in the images table.
         '''
@@ -110,10 +111,27 @@ class IBEISControl(object):
             'encounter_text':               'TEXT NOT NULL',
         })
 
-        # Add defaults into database
-        ibs.database.query('INSERT IGNORE INTO names(name_uid, name_text) VALUES (?,?)', [0, '____'])
+        # Add default into database
+        # JON SAYS SOMETHING like this would look nicer:
+        # 
+        # JASON SAYS: While this does indeed look nicer, it has issues with extensibility.  
+        # Look at line 273.
+        # We would be creating a lot of different ways to call the different commands.
+        # The part that is keeping me from adopting such a structure is that the 
+        # commands would be super complex for some queries and we also have a very large
+        # number of kinds of querries, each with their own structure.  Generalization becomes
+        # a problem.  I have done the easier querries first, but there are a lot of queries
+        # that will use a LEFT JOIN operation in the getters for efficiency's sake.  So if we
+        # are going to have to keep a general function to handle these super complex queries, 
+        # why not make them all this form?  This way, all SQL is in the controller as opposed to 
+        # being dispursed between multiple files.  I'm not terribly happy with the non-general
+        # nature, but having some of the queries in my head, it is going to be a huge pain to 
+        # generalize (not bringing into the fact that there are security / consistency issues).
+        # I'm not terribly sold on not generalizing, but I'd like to re-evaluate after we have
+        # all the IBEIS SQL done so we can evaluate if it an be done.
+        #ibs.database.insert(table='names', columns=('names_uid', 'names_text'), values=[0, '____'])
+        ibs.database.query('INSERT INTO names(name_uid, name_text) VALUES (?, ?)', [0, '____'])
 
-        # Dump database, which will automatically commit database schema and defaults
         ibs.database.dump()
 
     #---------------
@@ -122,21 +140,50 @@ class IBEISControl(object):
 
     def add_images(ibs, gpath_list):
         ''' Adds a list of image paths to the database. Returns newly added gids '''
-        img_iter = (gtool.imread(gpath) for gpath in gpath_list)
-        values_list = [ [util_hash.hashstr_sha1(img, base10=True), gpath, img.shape[0], img.shape[1]] + 
-                        gtool.get_exif(image, ext) for img, gpath in izip(img_iter, gpath_list) ]
-        
-        ibs.database.commit('Error on inserting image, most likely primary key collision',
-                [ibs.database.query('INSERT IGNORE INTO images( \
-                image_uid,              \
-                image_uri,              \
-                image_width,            \
-                image_height,           \
-                image_exif_time_posix,  \
-                image_exif_GPS_lat,     \
-                image_exif_gps_lon      \
-                ) VALUES (?,?,?,?,?,?,?)', value) for value in values_list]
-            )
+
+        EXIF_TAGKEYS = gtool.get_exif_tagids([gtool.EXIF_TAG_DATETIME, gtool.EXIF_TAG_GPS])
+        EXIF_TAGVAL_DEFAULTS = (-1, (-1, -1))
+        def _image_values(gpath):
+            # opens lightweight handle to the image (only does this once)
+            pil_img = gtool.open_pil_image(gpath)
+            (w, h) = pil_img.size
+            # Reads all image data
+            img = np.asarray(pil_img)
+            # Hash the image into an global unique image id
+            gid = util_hash.hashstr_sha1(img, base10=True)
+            # Try to read exif tags. Default on failure
+            exif_val_list = gtool.read_exif_tags(pil_img, EXIF_TAGKEYS, EXIF_TAGVAL_DEFAULTS)
+            (exiftime, (gps_lat, gps_lon)) = exif_val_list
+            # Convert exif time to unix time
+            unixtime = util_time.exiftime_to_unixtime(exiftime)
+            # Return values in flat tuple
+            return (gid, gpath, w, h, unixtime, gps_lat, gps_lon)
+        values_list = [_image_values(gpath) for gpath in iter(gpath_list)]
+
+        sql_qstr = ('INSERT INTO images('
+                    'image_uid,'
+                    'image_uri,'
+                    'image_width,'
+                    'image_height,'
+                    'image_exif_time_posix,'
+                    'image_exif_gps_lat,'
+                    'image_exif_gps_lon'
+                    ') VALUES (?,?,?,?,?,?,?)')
+        sql_qres_list = [ibs.database.query(sql_qstr, value) for value in values_list]
+        # JON SAYS: I think it might be better to specify insert as a function, which
+        # takes some table (images) as an arg along with a tuple of of columns
+        # then have the database control build the string.
+        # This would allow for cleaner more reusable code
+        # The error would also be generated on the fly and be much more
+        # descriptive as well as not polluting the IBEISControl
+        # 
+        # JASON SAYS: A generic function would be great, but we would lose a lot of 
+        # extensibility in the process.  Yes, these commands are long and complex
+        # but a "security" issue is also raised by passing to a generator function.
+        # Furthermore, there is nothing to prevent us from doing complex error handling
+        # in the commit function as it is.  The SQL object will throw errors if, for example,
+        # the columns don't exist.
+        ibs.database.commit('Error on inserting image, most likely primary key collision', sql_qres_list)
         return [value[0] for value in values_list]
 
     def add_rois(ibs, gid_list, roi_list):

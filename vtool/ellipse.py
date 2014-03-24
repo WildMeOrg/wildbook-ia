@@ -8,7 +8,7 @@ from scipy.signal import argrelextrema
 import cv2
 import numpy as np
 # VTool
-import vtool.keypoint as ktool
+from . import keypoint as ktool
 
 try:
     profile

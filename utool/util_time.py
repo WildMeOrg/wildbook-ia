@@ -43,6 +43,7 @@ class Timer(object):
         self.verbose = verbose
         self.newline = newline
         self.tstart = -1
+        self.ellapsed = -1
         self.tic()
 
     def tic(self):
@@ -65,10 +66,11 @@ class Timer(object):
         #if not self.msg is None:
             #sys.stdout.write('---tic---'+self.msg+'  \n')
         #self.tic()
-        pass
+        return self
 
     def __exit__(self, type, value, trace):
-        return self.toc()
+        self.ellapsed = self.toc()
+        return self.ellapsed
 
 
 def exiftime_to_unixtime(datetime_str):
