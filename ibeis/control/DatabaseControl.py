@@ -17,14 +17,24 @@ def _SQLITE3_TO_NUMPY(blob):
 	out.seek(0)
 	return np.load(out)
 
-
+     
 class DatabaseControl(object):
-	def __init__(db, database_path, database_file="database.sqlite3"):
+	def __init__(db, database_path, database_file='database.sqlite3'):
 		'''
+			SQLite3 Documentation: http://www.sqlite.org/docs.html
+
+		    SQL INSERT: http://www.w3schools.com/sql/sql_insert.asp
+		    SQL UPDATE: http://www.w3schools.com/sql/sql_update.asp
+		    SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
+		    SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
+		    
+		    --------------------------------------------------------------------
+
 			Init the SQLite3 database connection and the query execution object.
 			If the database does not exist, it will be automatically created
 			upon this object's instantiation.
 		'''
+
 		db.database_path = database_path
 		db.database_file = database_file
 
@@ -37,7 +47,7 @@ class DatabaseControl(object):
 		lite.register_adapter(np.ndarray, _NUMPY_TO_SQLITE3)
 
 		# Converts sqlite3 blob to numpy array object when select querying
-		lite.register_converter("ARRAY", _SQLITE3_TO_NUMPY)
+		lite.register_converter('NUMPY', _SQLITE3_TO_NUMPY)
 
 
 	def schema(db, table, schemas):
@@ -52,10 +62,10 @@ class DatabaseControl(object):
 
 			column_n_name - string name of column heading
 			column_n_type - NULL | INTEGER | REAL | TEXT | BLOB
-				The column type can be appended with " PRIMARY KEY" to indicate
+				The column type can be appended with ' PRIMARY KEY' to indicate
 				the unique id for the table.  It can also specify a default
-				value for the column with " DEFAULT [VALUE]".  It can also
-				specify " NOT NULL" to indicate the column cannot be empty.
+				value for the column with ' DEFAULT [VALUE]'.  It can also
+				specify ' NOT NULL' to indicate the column cannot be empty.
 
 			The table will only be created if it does not exist.  Therefore,
 			this can be done on every table without the fear of deleting old
@@ -101,16 +111,20 @@ class DatabaseControl(object):
 	def results(db, all=False):
 		return db.querier.fetchall()
 
-	def commit(db):
+	def commit(db, error_text, query_results):
 		'''
 			Commits staged changes to the database and saves the binary
 			representation of the database to disk.  All staged changes can be
 			commited one at a time or after a batch - which allows for batch
 			error handling without comprimising the integrity of the database.
 		'''
-		db.connection.commit()
 
-	def dump(db, dump_path=None, dump_file="database.dump.txt"):
+	    if sum(query_results) > 0:
+	        raise ValueError(error_text)
+	    else:
+			db.connection.commit()
+
+	def dump(db, dump_path=None, dump_file='database.dump.txt'):
 		'''
 			Same output as shell command below
 			> sqlite3 database.sqlite3 .dump > database.dump.txt
@@ -129,33 +143,33 @@ class DatabaseControl(object):
 		dump.close()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
 	try:
-		os.remove("temp.sqlite3")
+		os.remove('temp.sqlite3')
 	except Exception as e:
 		print(1)
 
-	db = DatabaseControl(".", database_file="temp.sqlite3")
+	db = DatabaseControl('.', database_file='temp.sqlite3')
 
-	db.schema('temp',	   {
-		'temp_id':					'INTEGER PRIMARY KEY',
-		'temp_hash':				'ARRAY',
+	db.schema('temp',	{
+		'temp_id':		'INTEGER PRIMARY KEY',
+		'temp_hash':	'NUMPY',
 	})	
 
 	# list of 10,000 chips with 3,000 features apeice. 
 	table_list = [np.empty((3 * 10^3, 128), dtype=np.uint8) for i in xrange(10000)]
 	for table in iter(table_list):
-		db.query("INSERT INTO temp (temp_hash) VALUES (?)", [table])
+		db.query('INSERT INTO temp (temp_hash) VALUES (?)', [table])
 	
 	db.commit()
 	
-	db.query("SELECT temp_hash FROM temp",[])
+	db.query('SELECT temp_hash FROM temp',[])
 	while True:
 		data = db.result()
 		if data == None:
 			break
 		data = data[0]
 
-	db.dump(dump_file="temp.dump.txt")
+	db.dump(dump_file='temp.dump.txt')
 

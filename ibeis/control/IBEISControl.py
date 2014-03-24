@@ -6,7 +6,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 '''
 from __future__ import division, print_function
 from itertools import izip
-from ibeis.control import DatabaseControl
+from ibeis.control import DatabaseControl as dbc
 from vtool import image as gtool
 from vtool import keypoint as ktool
 from utool import util_hash
@@ -28,9 +28,11 @@ class IBEISControl(object):
 
     # Constructor
     def __init__(ibs):
+        ibs.dbdir = '.'
         ibs.sql_file = 'database.sqlite3'
-        ibs.database = DatabaseControl.DatabaseControl('.', ibs.sql_file)
+        ibs.database = dbc.DatabaseControl(ibs.dbdir, ibs.sql_file)
 
+        # TODO: Add algoritm config column
         ibs.database.schema('images',       {
             'image_uid':                    'INTEGER PRIMARY KEY',
             'image_uri':                    'TEXT NOT NULL',
@@ -39,9 +41,59 @@ class IBEISControl(object):
             'image_exif_time_unix':         'INTEGER',
             'image_exif_gps_lat':           'REAL',
             'image_exif_gps_lon':           'REAL',
-            'image_confidence':             'REAL',
+            'image_confidence':             'REAL',  # Think about moving because this is its own algorithm with settings
             'image_toggle_enabled':         'INTEGER DEFAULT 0',
             'image_toggle_aif':             'INTEGER DEFAULT 0',
+        })
+
+        ''' Used to store the detected ROIs '''
+        ibs.database.schema('rois',         {
+            'roi_uid':                      'INTEGER PRIMARY KEY',
+            'image_uid':                    'INTEGER NOT NULL',
+            'roi_xtl':                      'INTEGER NOT NULL',
+            'roi_ytl':                      'INTEGER NOT NULL',
+            'roi_width':                    'INTEGER NOT NULL',
+            'roi_height':                   'INTEGER NOT NULL',
+            'roi_theta':                    'REAL DEFAULT 0.0',
+            'roi_viewpoint':                'TEXT',
+        })
+
+        ''' Used to store *processed* ROIs as segmentations '''
+        ibs.database.schema('masks', {
+            'mask_uid':                     'INTEGER PRIMARY KEY',
+            'roi_uid':                      'INTEGER NOT NULL',
+            'mask_uri':                     'TEXT NOT NULL',
+        })
+
+        ''' Used to store *processed* ROIs as chips '''
+        ibs.database.schema('chips',        {
+            'chip_uid':                     'INTEGER PRIMARY KEY',
+            'roi_uid':                      'INTEGER NOT NULL',
+            'name_uid':                     'INTEGER DEFAULT 0',
+            'chip_width':                   'INTEGER NOT NULL',
+            'chip_height':                  'INTEGER NOT NULL',
+            'chip_toggle_hard':             'INTEGER DEFAULT 0',
+        })
+
+        ibs.database.schema('features',     {
+            'feature_uid':                  'INTEGER PRIMARY KEY',
+            'chip_uid':                     'INTEGER NOT NULL',
+            'feature_keypoints':            'NUMPY',
+            'feature_sifts'                 'NUMPY',
+        })
+
+        ibs.database.schema('names',        {
+            'name_uid':                     'INTEGER PRIMARY KEY',
+            'name_text':                    'TEXT NOT NULL',
+        })
+
+        ''' 
+            Detection and identification algorithm configurations, populated 
+            with caching information 
+        '''
+        ibs.database.schema('configs',      {
+            'config_uid':                   'INTEGER PRIMARY KEY',
+            'config_suffix':                'TEXT NOT NULL',
         })
 
         '''
@@ -51,42 +103,16 @@ class IBEISControl(object):
             a single image without the need to duplicate an image's record
             in the images table.
         '''
-        ibs.database.schema('egpairs',   {
-            'egpair_uid':                   'INTEGER PRIMARY KEY',
-            'encounter_uid':                'INTEGER NOT NULL',
+        ibs.database.schema('encounters',   {
+            'encounter_uid':                'INTEGER PRIMARY KEY',
             'image_uid':                    'INTEGER NOT NULL',
+            'encounter_text':               'TEXT NOT NULL',
         })
 
-        ibs.database.schema('chips',        {
-            'chip_uid':                     'INTEGER PRIMARY KEY',
-            'image_uid':                    'INTEGER NOT NULL',
-            'name_uid':                     'INTEGER DEFAULT 0',
-            'chip_roi_xtl':                 'INTEGER NOT NULL',
-            'chip_roi_ytl':                 'INTEGER NOT NULL',
-            'chip_roi_width':               'INTEGER NOT NULL',
-            'chip_roi_height':              'INTEGER NOT NULL',
-            'chip_roi_theta':               'REAL DEFAULT 0.0',
-            'chip_viewpoint':               'TEXT',
-            'chip_toggle_hard':             'INTEGER DEFAULT 0',
-        })
-
-        ibs.database.schema('names',   {
-            'name_uid':                     'INTEGER PRIMARY KEY',
-            'name_text':                    'TEXT',
-        })
-
-        # Possibly remove???
-        ibs.database.schema('segmentatons', {
-            'segmentation_uid':             'INTEGER PRIMARY KEY',
-            'image_uid':                    'INTEGER NOT NULL',
-            'segmentation_pixel_map_uri':   'TEXT NOT NULL',
-        })
-
-        # Add default name into database with name_uid of 0.
-        ibs.database.query("INSERT INTO names(name_uid, name_text) VALUES (?,?)", [0, "____"])
+        # Add default into database
+        ibs.database.query('INSERT IGNORE INTO names(name_uid, name_text) VALUES (?,?)', [0, '____'])
 
         ibs.database.dump()
-        pass
 
     #---------------
     # --- Adders ---
@@ -94,24 +120,21 @@ class IBEISControl(object):
 
     def add_images(ibs, gpath_list):
         ''' Adds a list of image paths to the database. Returns newly added gids '''
-        
         img_iter = (gtool.imread(gpath) for gpath in gpath_list)
         values_list = [ [util_hash.hashstr_sha1(img, base10=True), gpath, img.shape[0], img.shape[1]] + 
                         gtool.get_exif(image, ext) for img, gpath in izip(img_iter, gpath_list) ]
         
-        errors = [ibs.database.query("INSERT INTO images( \
-            image_uid,              \
-            image_uri,              \
-            image_width,            \
-            image_height,           \
-            image_exif_time_posix,  \
-            image_exif_GPS_lat,     \
-            image_exif_gps_lon      \
-            ) VALUES (?,?,?,?,?,?,?)", value) for value in values_list]
-
-        if sum(errors) > 0:
-            raise ValueError("Error on inserting image into SQLite3 database, most likely primary key collision")
-
+        ibs.database.commit('Error on inserting image, most likely primary key collision',
+                [ibs.database.query('INSERT INTO images( \
+                image_uid,              \
+                image_uri,              \
+                image_width,            \
+                image_height,           \
+                image_exif_time_posix,  \
+                image_exif_GPS_lat,     \
+                image_exif_gps_lon      \
+                ) VALUES (?,?,?,?,?,?,?)', value) for value in values_list]
+            )
         return [value[0] for value in values_list]
 
 
@@ -121,7 +144,6 @@ class IBEISControl(object):
         chip_iter = izip(gid_list, roi_list, theta_list)
         cid_list = util_hash.hashstr(str(gid) + str(roi) + str(theta)
                                      for gid, roi, theta in chip_iter)
-
         return cid_list
 
     #---------------------
@@ -129,15 +151,33 @@ class IBEISControl(object):
     #---------------------
 
     def set_chip_rois(ibs, cid_list, roi_list):
-        ''' Sets ROIs of a list of chips by cid'''
+        ''' Sets ROIs of a list of chips by cid, where roi_list is a list of (x, y, w, h) tuples'''
+        ibs.database.commit('Error on updating chip rois',
+                [ibs.database.query('UPDATE chips SET \
+                chip_roi_xtl=?,     \
+                chip_roi_ytl=?,     \
+                chip_roi_width=?,   \
+                chip_roi_height=?   \
+                WHERE chip_uid=?', roi + [cid]) for roi, cid in izip(roi_list, cid_list)]
+            )
         return None
 
     def set_chip_thetas(ibs, cid_list, theta_list):
         ''' Sets thetas of a list of chips by cid '''
+        ibs.database.commit('Error on updating chip thetas',
+                [ibs.database.query('UPDATE chips SET \
+                chip_roi_theta=?, \
+                WHERE chip_uid=?', value) for value in izip(theta_list, cid_list)]
+            )
         return None
 
     def set_chip_names(ibs, cid_list, name_list):
         ''' Sets names of a list of chips by cid '''
+        ibs.database.commit('Error on updating chip names',
+                [ibs.database.query('UPDATE chips SET \
+                chips.name_uid=(SELECT names.name_uid FROM names WHERE name_text=? ORDER BY name_uid LIMIT 1), \
+                WHERE chip_uid=?', value) for value in izip(name_list, cid_list)]
+            )
         return None
 
     #----------------------
@@ -145,7 +185,18 @@ class IBEISControl(object):
     #----------------------
 
     def set_image_eid(ibs, gid_list, eid_list):
-        ''' Sets the encounter id that a list of images is tied to '''
+        ''' Sets the encounter id that a list of images is tied to, deletes old encounters '''
+        ibs.database.commit('Error on deleting old image encounters',
+                [ibs.database.query('DELETE FROM egpairs WHERE \
+                image_uid=?', [gid]) for gid in gid_list]
+            )
+
+        ibs.database.commit('Error on inserting new image encounters',
+                [ibs.database.query('INSERT INTO egpairs( \
+                encounter_uid, \
+                image_uid      \
+                ) VALUES (?,?)', value) for value in izip(eid_list, gid_list)]
+            )
         return None
 
     #----------------------
@@ -274,9 +325,19 @@ class IBEISControl(object):
     #-----------------
 
     def delete_chips(ibs, cid_list):
+        ''' deletes all associated chips from the database that belong to the cid'''
+        ibs.database.commit('Error on deleting chips with cid',
+                [ibs.database.query('DELETE FROM chips WHERE \
+                chip_uid=?', [cid]) for cid in cid_list]
+            )
         return None
 
     def delete_images(ibs, gid_list):
+        ''' deletes the images from the database that belong to gids'''
+        ibs.database.commit('Error on deleting image with gid',
+                [ibs.database.query('DELETE FROM images WHERE \
+                image_uid=?', [gid]) for gid in gid_list]
+            )
         return None
 
     #----------------
@@ -352,3 +413,4 @@ class IBEISControl(object):
         qres_list = jon_identifier.query(ibs, qcid_list, dcid_list, **kwargs)
         # Return for user inspection
         return qres_list
+
