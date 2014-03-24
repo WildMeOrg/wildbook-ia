@@ -10,10 +10,10 @@ import cv2
 import numpy as np
 from numpy import array, sqrt
 # VTool
-import vtool.histogram as htool
-import vtool.keypoint as ktool
-import vtool.linalg as ltool
-import vtool.image as gtool
+from . import histogram as htool
+from . import keypoint as ktool
+from . import linalg as ltool
+from . import image as gtool
 
 
 # Command line switch

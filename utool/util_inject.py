@@ -9,6 +9,18 @@ __WRITE_FUNC__ = __STDOUT__.write
 __FLUSH_FUNC__ = __STDOUT__.flush
 
 
+__INJECTED_MODULES__ = set([])
+
+
+def _add_injected_module(module):
+    global __INJECTED_MODULES__
+    __INJECTED_MODULES__.add(module)
+
+
+def get_injected_modules():
+    return list(__INJECTED_MODULES__)
+
+
 def _get_module(module_name=None, module=None):
     if module is None and module_name is not None:
         try:
@@ -21,6 +33,7 @@ def _get_module(module_name=None, module=None):
         pass
     else:
         raise ValueError('module_name or module must be exclusively specified')
+    _add_injected_module(module)
     return module
 
 
@@ -91,11 +104,29 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
         from util.util_inject import inject
         print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     '''
-    rrr = inject_reload_function(module_name, module_prefix, module)
-    print, print_, printDBG = inject_print_functions(module_name, module_prefix,
-                                                     DEBUG, module)
-    profile = inject_profile_function(module_name, module_prefix, module)
+    rrr         = inject_reload_function(module_name, module_prefix, module)
+    profile     = inject_profile_function(module_name, module_prefix, module)
+    print_funcs = inject_print_functions(module_name, module_prefix, DEBUG, module)
+    print, print_, printDBG = print_funcs
     return print, print_, printDBG, rrr, profile
+
+
+def inject_all(DEBUG=False):
+    '''
+    Injects the print, print_, printDBG, rrr, and profile functions into all
+    loaded modules
+    '''
+    for key, val in sys.modules.iteritems():
+        if val is None:
+            continue
+        try:
+            module_prefix = '[%s]' % key
+            inject(module_name=key, module_prefix=module_prefix, DEBUG=DEBUG)
+        except Exception as ex:
+            print(ex)
+            print('key=%r' % key)
+            print('val=%r' % val)
+            raise
 
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')

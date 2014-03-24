@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
-from .util_inject import inject
+from .util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
 
@@ -50,7 +50,7 @@ class Indenter(object):
     # THIS IS MUCH BETTER
     def __init__(self, lbl='    '):
         #self.modules = modules
-        #self.modules = __common__.get_modules()
+        self.modules = get_injected_modules()
         self.old_prints = {}
         self.old_prints_ = {}
         self.old_printDBGs = {}

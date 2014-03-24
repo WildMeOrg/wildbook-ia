@@ -18,7 +18,7 @@ import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
 from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
 # VTool
-import vtool.linalg as ltool
+from . import linalg as ltool
 
 
 #PYX START

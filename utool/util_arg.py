@@ -4,6 +4,7 @@ import sys
 import argparse
 from .util_type import try_cast
 from .util_inject import inject
+from .util_print import Indenter
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 
@@ -120,3 +121,34 @@ def make_argparse2(description, *args, **kwargs):
                                 prefix_chars='+-',
                                 formatter_class=formatter_classes[2], *args,
                                 **kwargs))
+
+
+# Decorators which control program flow based on sys.argv
+# the decorated function does not execute without its corresponding
+# flag
+
+
+def argv_flag_dec(func):
+    return __argv_flag_dec(func, default=False)
+
+
+def argv_flag_dec_true(func):
+    return __argv_flag_dec(func, default=True)
+
+
+def __argv_flag_dec(func, default=False, quiet=False):
+    flag = func.func_name
+    if flag.find('no') == 0:
+        flag = flag[2:]
+    flag = '--' + flag.replace('_', '-')
+
+    def GaurdWrapper(*args, **kwargs):
+        if get_flag(flag, default):
+            indent_lbl = flag.replace('--', '').replace('print-', '')
+            with Indenter('[%s]' % indent_lbl):
+                return func(*args, **kwargs)
+        else:
+            if not quiet:
+                print('\n~~~ %s ~~~\n' % flag)
+    GaurdWrapper.func_name = func.func_name
+    return GaurdWrapper
