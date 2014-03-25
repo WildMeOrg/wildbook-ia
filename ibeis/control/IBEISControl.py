@@ -10,7 +10,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 from __future__ import division, print_function
 # Python
 from itertools import izip
-from os.path import join
+from os.path import join, realpath
 # Science
 import numpy as np
 # IBEIS
@@ -69,14 +69,21 @@ class IBEISControl(object):
     #--------------------
 
     def __init__(ibs, dbdir='.'):
-        ibs.dbdir = dbdir
-        ibs.sql_file = '__IBEIS_DATABASE__.sqlite3'
-        # Open the database
-        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.sql_file)
-        # Define the schema
+        print('[ibs] __init__')
+        ibs.dbdir = realpath(dbdir)
+        ibs.dbfname = '__IBEIS_DATABASE__.sqlite3'
+        print('[ibs.__init__] Open the database')
+        print('[ibs.__init__] ibs.dbdir    = %r' % ibs.dbdir)
+        print('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
+        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
+        print('[ibs.__init__] Define the schema.')
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
-        # Add default names
-        ibs.add_names((0, 1,), ('____', '____',))
+        try:
+            print('[ibs.__init__] Add default names.')
+            ibs.add_names((0, 1,), ('____', '____',))
+        except Exception as ex:
+            print('[ibs] HACKISLY IGNORING: %s, %s:' % (type(ex), ex,))
+            ibs.db.get_sql_version()
 
     #---------------
     # --- Adders ---
