@@ -1,25 +1,32 @@
 from __future__ import division, print_function
 import io
 import os
+from os.path import join
 import numpy as np
 import sqlite3 as lite
 
 
-def _NUMPY_TO_SQLITE3(arr):
-    out = io.BytesIO()
-    np.save(out, arr)
-    out.seek(0)
-    return buffer(out.read())
+def _REGISTER_NUMPY_WITH_SQLITE3():
+    def _write_numpy_to_sqlite3(arr):
+        out = io.BytesIO()
+        np.save(out, arr)
+        out.seek(0)
+        return buffer(out.read())
 
+    def _read_numpy_from_sqlite3(blob):
+        out = io.BytesIO(blob)
+        out.seek(0)
+        return np.load(out)
 
-def _SQLITE3_TO_NUMPY(blob):
-    out = io.BytesIO(blob)
-    out.seek(0)
-    return np.load(out)
+    lite.register_adapter(np.ndarray, _write_numpy_to_sqlite3)
+    lite.register_converter('NUMPY', _read_numpy_from_sqlite3)
+
+# Tell SQL how to deal with numpy arrays
+_REGISTER_NUMPY_WITH_SQLITE3()
 
 
 class DatabaseControl(object):
-    def __init__(db, database_path, database_file='database.sqlite3'):
+    def __init__(sqldb, database_path, database_file='database.sqlite3'):
         '''
             SQLite3 Documentation: http://www.sqlite.org/docs.html
 
@@ -34,21 +41,13 @@ class DatabaseControl(object):
             upon this object's instantiation.
         '''
 
-        db.database_path = database_path
-        db.database_file = database_file
+        sqldb.database_path = database_path
+        sqldb.database_file = database_file
+        # Open the SQL database connection with support for custom types
+        sqldb.connection = lite.connect(join(database_path, database_file), detect_types=lite.PARSE_DECLTYPES)
+        sqldb.querier = sqldb.connection.cursor()
 
-        db.connection = lite.connect(os.path.join(database_path, database_file), 
-            detect_types=lite.PARSE_DECLTYPES) # Need this param for numpy arrays
-
-        db.querier = db.connection.cursor()
-        
-        # Converts numpy array object to sqlite3 blob when insert querying
-        lite.register_adapter(np.ndarray, _NUMPY_TO_SQLITE3)
-
-        # Converts sqlite3 blob to numpy array object when select querying
-        lite.register_converter('NUMPY', _SQLITE3_TO_NUMPY)
-
-    def schema(db, table, schemas):
+    def schema(sqldb, table, schemas):
         '''
             schemas    - dictionary of table columns
                 {
@@ -80,9 +79,9 @@ class DatabaseControl(object):
         for column_name, column_type in schemas.items():
             sql += column_name + ' ' + column_type + ', '
         sql = sql[:-2] + ')'
-        db.query(sql, [])
+        sqldb.query(sql, [])
 
-    def query(db, sql, parameters, auto_commit=False):
+    def query(sqldb, sql, parameters, auto_commit=False):
         '''
             sql - parameterized SQL query string.
                 Parameterized prevents SQL injection attacks by using an ordered
@@ -101,26 +100,26 @@ class DatabaseControl(object):
         '''
         status = 0
         try:
-            status = db.querier.execute(sql, parameters)
-            
+            status = sqldb.querier.execute(sql, parameters)
             if auto_commit:
-                db.commit()
-        except Exception as e:
+                sqldb.commit()
+        except Exception as ex:
+            print(ex)
             status = 1
 
         return status
 
-    def result(db, all=False):
-        return db.querier.fetchone()
+    def result(sqldb, all=False):
+        return sqldb.querier.fetchone()
 
-    def results(db, all=False):
+    def results(sqldb, all=False):
         while True:
-            result = db.result()
+            result = sqldb.result()
             if not result:
                 break
             yield result[0]
 
-    def commit(db, error_text="Generic database error", query_results=[]):
+    def commit(sqldb, error_text="Generic database error", query_results=[]):
         '''
             Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
@@ -130,9 +129,9 @@ class DatabaseControl(object):
         if sum(query_results) > 0:
             raise ValueError(error_text)
         else:
-            db.connection.commit()
+            sqldb.connection.commit()
 
-    def dump(db, dump_path=None, dump_file='database.dump.txt'):
+    def dump(sqldb, dump_path=None, dump_file='database.dump.txt'):
         '''
             Same output as shell command below
             > sqlite3 database.sqlite3 .dump > database.dump.txt
@@ -142,11 +141,11 @@ class DatabaseControl(object):
             file.  The default will store a dump parallel to the current
             database file.
         '''
-        db.connection.commit()
+        sqldb.connection.commit()
         if dump_path is None:
-            dump_path = db.database_path
-        dump = open(os.path.join(dump_path, dump_file), 'w')
-        for line in db.connection.iterdump():
+            dump_path = sqldb.database_path
+        dump = open(join(dump_path, dump_file), 'w')
+        for line in sqldb.connection.iterdump():
             dump.write('%s\n' % line)
         dump.close()
 
@@ -157,22 +156,22 @@ if __name__ == '__main__':
     except Exception as e:
         print(1)
 
-    db = DatabaseControl('.', database_file='temp.sqlite3')
+    sqldb = DatabaseControl('.', database_file='temp.sqlite3')
 
-    db.schema('temp',	{
+    sqldb.schema('temp',    {
         'temp_id':      'INTEGER PRIMARY KEY',
         'temp_hash':    'NUMPY',
-    })    
+    })
 
-    # list of 10,000 chips with 3,000 features apeice. 
-    table_list = [np.empty((3 * 10^3, 128), dtype=np.uint8) for i in xrange(10000)]
+    # list of 10,000 chips with 3,000 features apeice.
+    table_list = [np.empty((3 * 1e3, 128), dtype=np.uint8) for i in xrange(10000)]
     for table in iter(table_list):
-        db.query('INSERT INTO temp (temp_hash) VALUES (?)', [table])
-    
-    db.commit()
-    
-    db.query('SELECT temp_hash FROM temp',[])
-    for result in db.results():
+        sqldb.query('INSERT INTO temp (temp_hash) VALUES (?)', [table])
+
+    sqldb.commit()
+
+    sqldb.query('SELECT temp_hash FROM temp', [])
+    for result in sqldb.results():
         pass
 
-    db.dump(dump_file='temp.dump.txt')
+    sqldb.dump(dump_file='temp.dump.txt')

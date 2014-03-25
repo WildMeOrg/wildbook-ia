@@ -1,3 +1,8 @@
+# Licence:
+#
+# TODO: Rename
+# util_science
+#
 from __future__ import division, print_function
 import numpy as np
 from .util_inject import inject

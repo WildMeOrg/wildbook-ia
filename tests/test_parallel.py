@@ -3,7 +3,7 @@
 Tests IBEIS parallel
 '''
 from __future__ import division, print_function
-import import_sysreq  # NOQA
+import __sysreq__  # NOQA
 import multiprocessing
 
 if __name__ == '__main__':
@@ -16,6 +16,7 @@ if __name__ == '__main__':
     from utool import util_list
     from utool import util_arg
     from utool import util_print
+    import utool
     import pyhesaff
     from utool.util_inject import inject, inject_all
     print, print_, printDBG, rrr, profile = inject(__name__, '[test_parallel]')
@@ -24,17 +25,11 @@ if __name__ == '__main__':
     #from utool import util_time
 
     imgdir = dirname(pyhesaff.__file__)
-    gname_list = [
-        'lena.png',
-        'zebra.png',
-        'lena.png',
-        'lena.png',
-        'lena.png',
-        'zebra.png',
-        'zebra.png',
-        'zebra.png',
-        'test.png',
-    ]
+    gname_list = utool.flatten([
+        ['lena.png']  * util_arg.get_flag('--lena', False),
+        ['zebra.png'] * util_arg.get_flag('--zebra', False),
+        ['test.png']  * util_arg.get_flag('--test', True),
+    ])
     # Increase data size
     print('use --ndata to specify bigger data')
     ndata = util_arg.get_arg('--ndata', type_=int, default=1)
@@ -67,9 +62,9 @@ if __name__ == '__main__':
         return result_list
 
     hesaff_kwargs = {
-        'scale_min': 0,
+        'scale_min': -1,
         'scale_max': -1,
-        'nogravity_hack': True
+        'nogravity_hack': False
     }
 
     test_par_task(None, hesaff_kwargs)

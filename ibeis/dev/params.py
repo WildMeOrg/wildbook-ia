@@ -13,7 +13,7 @@ def parse_args(**kwargs):
         parser2 = parser2.add_argument_group('Behavior')
         # TODO UNFILTER THIS HERE AND CHANGE PARALLELIZE TO KNOW ABOUT
         # MEMORY USAGE
-        parser2.add_int('--num-procs', default=None, help='defaults to max number of cpus')
+        parser2.add_int('--num-procs', default=None, help='defaults util_parallel.init_pools method')
         parser2.add_flag('--serial', help='Forces num_procs=1')
         parser2.add_flag('--nogui', help='Will not start the gui')
         parser2.add_int('--loop-freq', default=100, help='Qt main loop ms frequency')

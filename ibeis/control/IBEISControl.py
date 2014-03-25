@@ -362,7 +362,8 @@ class IBEISControl(object):
 
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths by gid """
-        db.query('SELECT image_uri FROM images',[])
+        qres_iter = (db.query('SELECT image_uri FROM images', (gid,))
+                     for gid in gid_list)
         for result in db.results():
             print(result)
 

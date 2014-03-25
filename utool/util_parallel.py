@@ -16,7 +16,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     global __POOL__
     if num_procs is None:
         # Get number of cpu cores
-        num_procs = multiprocessing.cpu_count()
+        num_procs = max(multiprocessing.cpu_count() - 2, 1)
     print('[parallel] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
         print('[parallel] num_procs=1, Will process in serial')
