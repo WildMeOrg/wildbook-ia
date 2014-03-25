@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import textwrap
 import types
+from . import util_inject
 from .util_arg import get_flag
 from .util_inject import inject
 from .util_list import is_listlike, list_eq
@@ -476,3 +477,14 @@ def printvar(locals_, varname, attr='.shape'):
     else:
         print('[var] %s %s = %r' % (typestr, varname, var))
     np.set_printoptions(**npprintopts)
+
+
+def all_rrr():
+    util_inject.inject_all()
+    for mod in util_inject.get_injected_modules():
+        try:
+            if hasattr(mod, 'rrr'):
+                mod.rrr()
+        except Exception as ex:
+            print(ex)
+            print('mod = %r ' % mod)

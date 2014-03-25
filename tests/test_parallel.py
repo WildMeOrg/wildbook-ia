@@ -3,6 +3,7 @@
 Tests IBEIS parallel
 '''
 from __future__ import division, print_function
+import import_sysreq  # NOQA
 import multiprocessing
 
 if __name__ == '__main__':
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     ]
     # Increase data size
     print('use --ndata to specify bigger data')
-    ndata = util_arg.get_arg('--ndata', type_=int, default=10)
+    ndata = util_arg.get_arg('--ndata', type_=int, default=1)
 
     # Build gpath_list
     if ndata == 0:

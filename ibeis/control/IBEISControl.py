@@ -1,9 +1,12 @@
-'''
+"""
 Module Licence and docstring
 
 LOGIC DOES NOT LIVE HERE
 THIS DEFINES THE ARCHITECTURE OF IBEIS
-'''
+"""
+# JON SAYS (3-24)
+# I had a change of heart. I'm using tripple double quotes for comment strings
+# only and tripple single quotes for python multiline strings only
 from __future__ import division, print_function
 from itertools import izip
 from ibeis.control import DatabaseControl as dbc
@@ -11,12 +14,13 @@ from vtool import image as gtool
 from vtool import keypoint as ktool
 from utool import util_hash
 from utool import util_time
+from utool.util_iter import iflatten
 from os.path import join
 import numpy as np
 
 
 class IBEISControl(object):
-    '''
+    """
     IBEISController docstring
     chip  - cropped region of interest from an image, should map to one animal
     cid   - chip unique id
@@ -26,16 +30,18 @@ class IBEISControl(object):
     rid   - region of interest unique id
     roi   - region of interest for a chip
     theta - angle of rotation for a chip
-    '''
+    """
 
     # Constructor
     def __init__(ibs):
         ibs.dbdir = '.'
         ibs.sql_file = 'database.sqlite3'
-        ibs.database = dbc.DatabaseControl(ibs.dbdir, ibs.sql_file)
+        ibs.sqldb = dbc.DatabaseControl(ibs.dbdir, ibs.sql_file)
+        ibs._sqlexec = ibs.sqldb.query
+        ibs._sqlsave = ibs.sqldb.commit
 
         # TODO: Add algoritm config column
-        ibs.database.schema('images',       {
+        ibs.sqldb.schema('images',       {
             'image_uid':                    'INTEGER PRIMARY KEY',
             'image_uri':                    'TEXT NOT NULL',
             'image_width':                  'INTEGER',
@@ -48,8 +54,8 @@ class IBEISControl(object):
             'image_toggle_aif':             'INTEGER DEFAULT 0',
         })
 
-        ''' Used to store the detected ROIs '''
-        ibs.database.schema('rois',         {
+        """ Used to store the detected ROIs """
+        ibs.sqldb.schema('rois',         {
             'roi_uid':                      'INTEGER PRIMARY KEY',
             'image_uid':                    'INTEGER NOT NULL',
             'roi_xtl':                      'INTEGER NOT NULL',
@@ -60,15 +66,15 @@ class IBEISControl(object):
             'roi_viewpoint':                'TEXT',
         })
 
-        ''' Used to store *processed* ROIs as segmentations '''
-        ibs.database.schema('masks', {
+        """ Used to store *processed* ROIs as segmentations """
+        ibs.sqldb.schema('masks', {
             'mask_uid':                     'INTEGER PRIMARY KEY',
             'roi_uid':                      'INTEGER NOT NULL',
             'mask_uri':                     'TEXT NOT NULL',
         })
 
-        ''' Used to store *processed* ROIs as chips '''
-        ibs.database.schema('chips',        {
+        """ Used to store *processed* ROIs as chips """
+        ibs.sqldb.schema('chips',        {
             'chip_uid':                     'INTEGER PRIMARY KEY',
             'roi_uid':                      'INTEGER NOT NULL',
             'name_uid':                     'INTEGER DEFAULT 0',
@@ -77,35 +83,35 @@ class IBEISControl(object):
             'chip_toggle_hard':             'INTEGER DEFAULT 0',
         })
 
-        ibs.database.schema('features',     {
+        ibs.sqldb.schema('features',     {
             'feature_uid':                  'INTEGER PRIMARY KEY',
             'chip_uid':                     'INTEGER NOT NULL',
             'feature_keypoints':            'NUMPY',
             'feature_sifts':                'NUMPY',
         })
 
-        ibs.database.schema('names',        {
+        ibs.sqldb.schema('names',        {
             'name_uid':                     'INTEGER PRIMARY KEY',
             'name_text':                    'TEXT NOT NULL',
         })
 
-        '''
+        """
             Detection and identification algorithm configurations, populated
             with caching information
-        '''
-        ibs.database.schema('configs',      {
+        """
+        ibs.sqldb.schema('configs',      {
             'config_uid':                   'INTEGER PRIMARY KEY',
             'config_suffix':                'TEXT NOT NULL',
         })
 
-        '''
+        """
             This table defines the pairing between an encounter and an
             image. Hence, egpairs stands for encounter-image-pairs.  This table
             exists for the sole purpose of defining multiple encounters to
             a single image without the need to duplicate an image's record
             in the images table.
-        '''
-        ibs.database.schema('encounters',   {
+        """
+        ibs.sqldb.schema('encounters',   {
             'encounter_uid':                'INTEGER PRIMARY KEY',
             'image_uid':                    'INTEGER NOT NULL',
             'encounter_text':               'TEXT NOT NULL',
@@ -113,89 +119,125 @@ class IBEISControl(object):
 
         # Add default into database
         # JON SAYS SOMETHING like this would look nicer:
-        # 
-        # JASON SAYS: While this does indeed look nicer, it has issues with extensibility.  
+        #
+        # JASON SAYS: While this does indeed look nicer, it has issues with extensibility.
         # Look at line 273.
         # We would be creating a lot of different ways to call the different commands.
-        # The part that is keeping me from adopting such a structure is that the 
+        # The part that is keeping me from adopting such a structure is that the
         # commands would be super complex for some queries and we also have a very large
         # number of kinds of querries, each with their own structure.  Generalization becomes
         # a problem.  I have done the easier querries first, but there are a lot of queries
         # that will use a LEFT JOIN operation in the getters for efficiency's sake.  So if we
-        # are going to have to keep a general function to handle these super complex queries, 
-        # why not make them all this form?  This way, all SQL is in the controller as opposed to 
+        # are going to have to keep a general function to handle these super complex queries,
+        # why not make them all this form?  This way, all SQL is in the controller as opposed to
         # being dispursed between multiple files.  I'm not terribly happy with the non-general
-        # nature, but having some of the queries in my head, it is going to be a huge pain to 
+        # nature, but having some of the queries in my head, it is going to be a huge pain to
         # generalize (not bringing into the fact that there are security / consistency issues).
         # I'm not terribly sold on not generalizing, but I'd like to re-evaluate after we have
         # all the IBEIS SQL done so we can evaluate if it an be done.
-        #ibs.database.insert(table='names', columns=('names_uid', 'names_text'), values=[0, '____'])
-        ibs.database.query('INSERT INTO names(name_uid, name_text) VALUES (?, ?)', [0, '____'])
+        #ibs.sqldb.insert(table='names', columns=('names_uid', 'names_text'), values=[0, '____'])
+        ibs._sqlexec('INSERT INTO names(name_uid, name_text) VALUES (?, ?)', [0, '____'])
 
-        ibs.database.dump()
+        ibs.sqldb.dump()
 
     #---------------
     # --- Adders ---
     #---------------
 
     def add_images(ibs, gpath_list):
-        ''' Adds a list of image paths to the database. Returns newly added gids '''
+        """ Adds a list of image paths to the database. Returns newly added gids """
 
-        EXIF_TAGKEYS = gtool.get_exif_tagids([gtool.EXIF_TAG_DATETIME, gtool.EXIF_TAG_GPS])
-        EXIF_TAGVAL_DEFAULTS = (-1, (-1, -1))
-        def _image_values(gpath):
-            # opens lightweight handle to the image (only does this once)
-            pil_img = gtool.open_pil_image(gpath)
-            (w, h) = pil_img.size
-            # Reads all image data
-            img = np.asarray(pil_img)
-            # Hash the image into an global unique image id
-            gid = util_hash.hashstr_sha1(img, base10=True)
-            # Try to read exif tags. Default on failure
-            exif_val_list = gtool.read_exif_tags(pil_img, EXIF_TAGKEYS, EXIF_TAGVAL_DEFAULTS)
-            (exiftime, (gps_lat, gps_lon)) = exif_val_list
-            # Convert exif time to unix time
-            unixtime = util_time.exiftime_to_unixtime(exiftime)
-            # Return values in flat tuple
-            return (gid, gpath, w, h, unixtime, gps_lat, gps_lon)
-        values_list = [_image_values(gpath) for gpath in iter(gpath_list)]
-
-        sql_qstr = ('INSERT INTO images('
-                    'image_uid,'
-                    'image_uri,'
-                    'image_width,'
-                    'image_height,'
-                    'image_exif_time_posix,'
-                    'image_exif_gps_lat,'
-                    'image_exif_gps_lon'
-                    ') VALUES (?,?,?,?,?,?,?)')
-        sql_qres_list = [ibs.database.query(sql_qstr, value) for value in values_list]
         # JON SAYS: I think it might be better to specify insert as a function, which
         # takes some table (images) as an arg along with a tuple of of columns
         # then have the database control build the string.
         # This would allow for cleaner more reusable code
         # The error would also be generated on the fly and be much more
         # descriptive as well as not polluting the IBEISControl
-        # 
-        # JASON SAYS: A generic function would be great, but we would lose a lot of 
+        #
+        # JASON SAYS: A generic function would be great, but we would lose a lot of
         # extensibility in the process.  Yes, these commands are long and complex
         # but a "security" issue is also raised by passing to a generator function.
         # Furthermore, there is nothing to prevent us from doing complex error handling
         # in the commit function as it is.  The SQL object will throw errors if, for example,
         # the columns don't exist.
-        ibs.database.commit('Error on inserting image, most likely primary key collision', sql_qres_list)
-        return [value[0] for value in values_list]
+
+        # <JON>: Ok, how about this?
+
+        _TAGKEYS = gtool.get_exif_tagids([gtool.EXIF_TAG_DATETIME, gtool.EXIF_TAG_GPS])
+        _TAGDEFAULTS = (-1, (-1, -1))
+
+        # TODO: We can probably add these to an extended PIL.Image class
+        def _get_exif(pil_img):
+            """ Image EXIF helper """
+            (exiftime, (lat, lon)) = gtool.read_exif_tags(pil_img, _TAGKEYS, _TAGDEFAULTS)
+            time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+            return time, lat, lon
+
+        def _gid_guid(pil_img):
+            """ Image GUID helper """
+            gid = util_hash.hashstr_sha1(np.asarray(pil_img), base10=True)  # Read all pixels
+            return gid
+        # /END TODO
+
+        def _sql_qres_gen(gpath):
+            """ executes sqlcmd with generated sqlvals """
+            pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
+            (w, h)  = pil_img.size                 # Read width, height
+            (time, lat, lon) = _get_exif(pil_img)  # Read exif tags
+            (gid,)           = _gid_guid(pil_img)  # Read pixels ]-hash-> guid = gid
+            yield ibs._sqlexec('''
+                              INSERT INTO images('
+                              'image_uid,'
+                              'image_uri,'
+                              'image_width,'
+                              'image_height,'
+                              'image_exif_time_posix,'
+                              'image_exif_gps_lat,'
+                              'image_exif_gps_lon'
+                              ') VALUES (?,?,?,?,?,?,?)
+                              ''', (gid, gpath, w, h, time, lat, lon))
+
+        # Stage database changes
+        sql_result_iter = (sql_result for sql_result in _sql_qres_gen())
+        # Commit database changes
+        ibs._sqlsave('[ibs.add_images] ERROR inserting image. Primary key collision?', sql_result_iter)
+        # Jon: I'm thinking this is what ibs.sql.commits
+        #   function definition should look like.
+        #   I'm not sure if you can abuse iterators here.
+        # </JON>
 
     def add_rois(ibs, gid_list, roi_list):
-        pass 
+        pass
 
-    def add_chips(ibs, roi_list):
-        ''' Adds a list of chips to the database, with ROIs & thetas.
+    def add_chips(ibs, chipdef_list, *args):
+    #def add_chips(ibs, roi_list):
+        """ Adds a list of chips to the database, with ROIs & thetas.
             returns newly added chip ids
-        '''
-        chip_iter = izip(gid_list, roi_list, theta_list)
+
+            Input:
+
+            chipdef_list = [
+            (gid1, roi1, theta1),
+            (gid2, roi2, theta2),
+            ...,
+            (gidN, roiN, thetaN),
+            ]
+
+            OR
+
+            gid_list
+            roi_list
+            theta_list
+        """
+        if len(args == 2):
+            gid_list   = chipdef_list
+            roi_list   = args[0]
+            theta_list = args[1]
+            chipdef_iter = izip(gid_list, roi_list, theta_list)
+        else:
+            chipdef_iter = iter(chipdef_list)
         cid_list = util_hash.hashstr(str(gid) + str(roi) + str(theta)
-                                     for gid, roi, theta in chip_iter)
+                                     for (gid, roi, theta) in chipdef_iter)
         return cid_list
 
     #----------------------
@@ -203,95 +245,106 @@ class IBEISControl(object):
     #----------------------
 
     def set_image_paths(ibs, gid_list, gpath_list):
-        ''' Do we want to do caching here? '''
+        """ Do we want to do caching here? """
         pass
 
-    def set_image_eid(ibs, gid_list, eid_list):
-        ''' 
+    def set_image_eid(ibs, gid_list, eids_list):
+        """
             Sets the encounter id that a list of images is tied to, deletes old encounters.
             eid_list is a list of tuples, each represents the set of encounters a tuple
             should belong to.
-        '''
+        """
+        errmsg1 = '[ibs.set_image_eid(1)] ERROR! deleting egpairs'
+        sqlres_iter1 = (ibs._sqlexec('''
+            DELETE FROM egpairs WHERE image_uid=?
+            ''', (gid,)) for gid in gid_list)
+        ibs._sqlsave(errmsg1, list(sqlres_iter1))
 
-        ibs.database.commit('Error on deleting old image encounters',
-                [ibs.database.query('DELETE FROM egpairs WHERE \
-                image_uid=?', [gid]) for gid in gid_list]
-            )
+        errmsg2 = '[ibs.set_image_eid(2)] Error on deleting old image encounters'
+        sqlres_iter2 = iflatten((ibs._sqlexec('''
+            INSERT IGNORE INTO egpairs(
+                    encounter_uid,
+                    image_uid
+                    ) VALUES (?,?)'
+            ''', (eid, gid)) for eid in eids) for eids, gid in izip(eids_list, gid_list))
 
-        ibs.database.commit('Error on inserting new image encounters',
-                flatten([
-                    [ibs.database.query('INSERT IGNORE INTO egpairs( \
-                    encounter_uid, \
-                    image_uid      \
-                    ) VALUES (?,?)', [eid, gid]) for eid in eids] for eids, gid in izip(eid_list, gid_list)
-                ])
-            )
-        return None
+        ibs._sqlsave(errmsg1, list(sqlres_iter1))
+        ibs._sqlsave(errmsg2, list(sqlres_iter2))
 
     #--------------------
     # --- ROI Setters ---
     #--------------------
 
-    def set_roi_shape(ibs, rid_list, shape_list):
-        ''' Sets ROIs of a list of rois by rid, where roi_list is a list of (x, y, w, h) tuples'''
-        ibs.database.commit('Error on updating roi shapes',
-                [ibs.database.query('UPDATE rois SET \
-                roi_xtl=?,     \
-                roi_ytl=?,     \
-                roi_width=?,   \
-                roi_height=?   \
-                WHERE roi_uid=?', shape + [rid]) for shape, rid in izip(shape_list, rid_list)]
-            )
+    def set_roi_shape(ibs, rid_list, roi_list):
+        """ Sets ROIs of a list of rois by rid, where roi_list is a list of (x, y, w, h) tuples"""
+        errmsg = '[ibs.set_roi_shape] ERROR!'
+        sqlres_iter = (ibs._sqlexec('''
+            UPDATE rois SET
+            roi_xtl=?,
+            roi_ytl=?,
+            roi_width=?,
+            roi_height=?,
+            WHERE roi_uid=?
+            ''', tup) for tup in izip(roi_list, rid_list))
+        ibs._sqlsave(errmsg, list(sqlres_iter))
         return None
 
     def set_roi_thetas(ibs, rid_list, theta_list):
-        ''' Sets thetas of a list of chips by rid '''
-        ibs.database.commit('Error on updating roi thetas',
-                [ibs.database.query('UPDATE rois SET \
-                roi_theta=?, \
-                WHERE roi_uid=?', value) for value in izip(theta_list, rid_list)]
-            )
+        """ Sets thetas of a list of chips by rid """
+        sqlres_iter = (ibs._sqlexec('''
+            UPDATE rois SET
+            roi_theta=?,
+            WHERE roi_uid=?
+            ''', tup) for tup in izip(theta_list, rid_list))
+        errmsg = '[ibs.set_roi_viewpoints()] ERROR'
+        ibs._sqlsave(errmsg, list(sqlres_iter))
         return None
 
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
-        ''' Sets viewpoints of a list of chips by rid '''
-        ibs.database.commit('Error on updating roi viewpoints',
-                [ibs.database.query('UPDATE rois SET \
-                roi_viewpoint=?, \
-                WHERE roi_uid=?', value) for value in izip(theta_list, viewpoint_list)]
-            )
-        return None
+        """ Sets viewpoints of a list of chips by rid """
+        sqlres_iter = (ibs._sqlexec('''
+            UPDATE rois SET
+            roi_viewpoint=?,
+            WHERE roi_uid=?
+            ''', tup) for tup in izip(viewpoint_list, rid_list))
+        errmsg = '[ibs.set_roi_viewpoints()] ERROR'
+        ibs._sqlsave(errmsg, list(sqlres_iter))
 
     #---------------------
     # --- Chip Setters ---
     #---------------------
 
     def set_chip_names(ibs, cid_list, name_list):
-        ''' Sets names of a list of chips by cid '''
-        ibs.database.commit('Error on updating chip names',
-                [ibs.database.query('UPDATE chips SET \
-                chips.name_uid=(SELECT names.name_uid FROM names WHERE name_text=? ORDER BY name_uid LIMIT 1), \
-                WHERE chip_uid=?', value) for value in izip(name_list, cid_list)]
-            )
-        return None
+        """ Sets names of a list of chips by cid """
+        sqlres_iter = (ibs._sqlexec('''
+            UPDATE chips SET
+            chips.name_uid=(SELECT names.name_uid FROM names WHERE name_text=? ORDER BY name_uid LIMIT 1),
+            WHERE chip_uid=?
+            ''', tup) for tup in izip(name_list, cid_list))
+        errmsg = '[ibs.set_chip_names()] ERROR'
+        ibs._sqlsave(errmsg, list(sqlres_iter))
 
     def set_chip_shape(ibs, cid_list, shape_list):
-        ''' Sets shape of a list of chips by cid, a list of tuples (w, h) '''
-        ibs.database.commit('Error on updating chip shape',
-                [ibs.database.query('UPDATE chips SET \
-                chip_width=?, \
-                chip_height=?, \
-                WHERE chip_uid=?', shape) for shape in izip(shape_list, cid_list)]
-            )
-        return None
+        """ Sets shape of a list of chips by cid, a list of tuples (w, h) """
+        sqlres_iter = (ibs._sqlexec('''
+            UPDATE chips SET
+            chip_width=?,
+            chip_height=?,
+            WHERE chip_uid=?
+            ''', (w, h, cid)) for ((w, h), cid) in izip(shape_list, cid_list))
+        errmsg = '[ibs.set_chip_shape()] ERROR'
+        ibs._sqlsave(errmsg, list(sqlres_iter))
 
     def set_chip_toggle_hard(ibs, cid_list, hard_list):
-        ''' Sets hard toggle of a list of chips by cid '''
-        ibs.database.commit('Error on updating chip hard toggle, a list of booleans',
-                [ibs.database.query('UPDATE chips SET \
-                chip_toggle_hard=?, \
-                WHERE chip_uid=?', shape) for shape in izip(shape_list, map(int, cid_list))]
-            )
+        """ Sets hard toggle of a list of chips by cid """
+        sqlres_iter = (ibs._sqlexec(
+            '''
+            UPDATE chips
+            SET chip_toggle_hard=?,
+            WHERE chip_uid=?
+            ''', tup) for tup in izip(hard_list, cid_list))
+        errmsg = '[ibs.set_chip_toggle_hard()] ERROR. updating chip hard toggle, a list of booleans'
+        ibs._sqlsave(errmsg, list(sqlres_iter))
         return None
 
     #----------------------
@@ -299,17 +352,16 @@ class IBEISControl(object):
     #----------------------
 
     def get_images(ibs, gid_list):
-        ''' 
-            Returns a list of images in numpy matrix form by gid 
+        """
+            Returns a list of images in numpy matrix form by gid
             NO SQL REQUIRED, DEPENDS ON get_image_paths()
-        '''
+        """
         gpath_list = ibs.get_image_paths(gid_list)
         image_list = [gtool.imread(gpath) for gpath in gpath_list]
         return image_list
 
     def get_image_paths(ibs, gid_list):
-        ''' Returns a list of image paths by gid '''
-        
+        """ Returns a list of image paths by gid """
         db.query('SELECT image_uri FROM images',[])
         for result in db.results():
             print(result)
@@ -319,30 +371,30 @@ class IBEISControl(object):
         return gpath_list
 
     def get_image_size(ibs, gid_list):
-        ''' Returns a list of image dimensions by gid in (width, height) tuples '''
+        """ Returns a list of image dimensions by gid in (width, height) tuples """
         gsize_list = [(0, 0) for gid in gid_list]
         return gsize_list
 
     def get_image_unixtime(hs, gid_list):
-        ''' Returns a list of times that the images were taken by gid. Returns
+        """ Returns a list of times that the images were taken by gid. Returns
             -1 if no timedata exists for a given gid
-        '''
+        """
         unixtime_list = [-1 for gid in gid_list]
         return unixtime_list
 
     def get_image_eid(ibs, gid_list):
-        ''' Returns a list of encounter ids for each image by gid '''
+        """ Returns a list of encounter ids for each image by gid """
         eid_list = [-1 for gid in gid_list]
         return eid_list
 
     def get_cids_in_gids(ibs, gid_list):
-        ''' Returns a list of cids for each image by gid, e.g. [(1, 2), (3), (), (4, 5, 6) ...] '''
+        """ Returns a list of cids for each image by gid, e.g. [(1, 2), (3), (), (4, 5, 6) ...] """
         # for each image return chips in that image
         cids_list = [[] for gid in gid_list]
         return cids_list
 
     def get_num_cids_in_gids(ibs, gid_list):
-        ''' Returns the number of chips associated with a list of images by gid '''
+        """ Returns the number of chips associated with a list of images by gid """
         return map(len, ibs.get_cids_in_gids(gid_list))
 
     #---------------------
@@ -354,32 +406,32 @@ class IBEISControl(object):
         pass
 
     def get_chip_paths(ibs, cid_list):
-        ''' Returns a list of chip paths by their cid '''
+        """ Returns a list of chip paths by their cid """
         fmtstr = join(ibs.dbdir, '_ibeisdb/cid%d_dummy.png')
         cpath_list = [fmtstr % cid for cid in cid_list]
         return cpath_list
 
     def get_chip_gids(ibs, cid_list):
-        ''' Returns a list of image ids associated with a list of chips ids'''
+        """ Returns a list of image ids associated with a list of chips ids"""
         gid_list = [-1] * len(cid_list)
         return gid_list
 
     def get_chip_rois(ibs, cid_list):
-        ''' Returns a list of (x, y, w, h) tuples describing chip geometry in
+        """ Returns a list of (x, y, w, h) tuples describing chip geometry in
             image space.
-        '''
+        """
         roi_list = [(0, 0, 1, 1) for cid in cid_list]
         return roi_list
 
     def get_chip_thetas(ibs, cid_list):
-        ''' Returns a list of floats describing the angles of each chip '''
+        """ Returns a list of floats describing the angles of each chip """
         theta_list = [0 for cid in cid_list]
         return theta_list
 
     def get_chip_names(ibs, cid_list):
-        ''' Returns a list of strings ['fred', 'sue', ...] for each chip
+        """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
-        '''
+        """
         name_list = map(str, cid_list)
         return name_list
 
@@ -427,20 +479,22 @@ class IBEISControl(object):
     # --- Deleters ---
     #-----------------
 
-    def delete_chips(ibs, cid_list):
-        ''' deletes all associated chips from the database that belong to the cid'''
-        ibs.database.commit('Error on deleting chips with cid',
-                [ibs.database.query('DELETE FROM chips WHERE \
-                chip_uid=?', [cid]) for cid in cid_list]
-            )
+    def delete_chips(ibs, cid_iter):
+        """ deletes all associated chips from the database that belong to the cid"""
+        errmsg = '[ibs.delete_chips()] ERROR.'
+        sqlres_iter = (ibs._sqlexec(
+            'DELETE FROM chips WHERE chip_uid=?',
+            (cid,)) for cid in cid_iter)
+        ibs._sqlsave(errmsg, list(sqlres_iter))
         return None
 
     def delete_images(ibs, gid_list):
-        ''' deletes the images from the database that belong to gids'''
-        ibs.database.commit('Error on deleting image with gid',
-                [ibs.database.query('DELETE FROM images WHERE \
-                image_uid=?', [gid]) for gid in gid_list]
-            )
+        """ deletes the images from the database that belong to gids"""
+        errmsg = '[ibs.delete_images()] ERROR'
+        sqlres_iter = (ibs._sqlexec(
+            'DELETE FROM images WHERE image_uid=?',
+            (gid,)) for gid in gid_list)
+        ibs._sqlsave(errmsg, list(sqlres_iter))
         return None
 
     #----------------
@@ -496,12 +550,11 @@ class IBEISControl(object):
         return qres_list
 
     def _query_chips(ibs, qcid_list, dcid_list, **kwargs):
-        '''
+        """
         qcid_list - query chip ids
         dcid_list - database chip ids
-        '''
+        """
         from ibeis.model import jon_identifier
         qres_list = jon_identifier.query(ibs, qcid_list, dcid_list, **kwargs)
         # Return for user inspection
         return qres_list
-

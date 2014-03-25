@@ -116,7 +116,7 @@ def inject_all(DEBUG=False):
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
     '''
-    for key, val in sys.modules.iteritems():
+    for key, val in sys.modules.items():
         if val is None:
             continue
         try:

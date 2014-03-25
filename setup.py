@@ -47,7 +47,7 @@ def clean():
 
 
 if __name__ == '__main__':
-    print('[setup] Entering HotSpotter setup')
+    print('[setup] Entering IBEIS setup')
     for arg in iter(sys.argv[1:]):
         # Build PyQt UI files
         if arg in ['clean']:
