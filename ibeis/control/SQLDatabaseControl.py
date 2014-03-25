@@ -3,8 +3,23 @@ from __future__ import division, print_function
 import io
 import textwrap  # NOQA
 from os.path import join
-# SQL
-import sqlite3 as lite
+# SQL This should be the only file which import sqlite3
+try:
+    # Try to import the correct version of sqlite3
+    from pysqlite2 import dbapi2
+    import sqlite3
+    print('dbapi2.sqlite_version  = %r' % dbapi2.sqlite_version)
+    print('sqlite3.sqlite_version = %r' % sqlite3.sqlite_version)
+    print('using dbapi2 as lite')
+    # Clean namespace
+    del sqlite3
+    del dbapi2
+    from pysqlite2 import dbapi2 as lite
+except ImportError as ex:
+    print(ex)
+    # Fallback
+    import sqlite3 as lite
+    print('using sqlite3 as lite')
 # Science
 import numpy as np
 

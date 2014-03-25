@@ -11,6 +11,7 @@ from __future__ import division, print_function
 # Python
 from itertools import izip
 from os.path import join, realpath
+import sys
 # Science
 import numpy as np
 # IBEIS
@@ -84,6 +85,9 @@ class IBEISControl(object):
         except Exception as ex:
             print('[ibs] HACKISLY IGNORING: %s, %s:' % (type(ex), ex,))
             ibs.db.get_sql_version()
+            if not '--ignore' in sys.argv:
+                print('use --ignore to keep going')
+                raise
 
     #---------------
     # --- Adders ---
