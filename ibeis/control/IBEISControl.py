@@ -139,7 +139,7 @@ class IBEISControl(object):
         # Autoinsert the defualt-unknown name into the database
         ibs.db.querymany(
             operation='''
-            INSERT IGNORE INTO names
+            INSERT OR IGNORE INTO names
             (
                 name_uid,
                 name_text
@@ -176,7 +176,7 @@ class IBEISControl(object):
 
         ibs.db.querymany(
             operation='''
-            INSERT IGNORE INTO egpairs(
+            INSERT OR IGNORE INTO egpairs(
                 encounter_uid,
                 image_uid
             ) VALUES (?, ?)'

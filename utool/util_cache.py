@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import shelve
-from os.path import join
+from os.path import join, normpath
 from .util_inject import inject
 from . import util_path
 from . import util_cplat
@@ -74,7 +74,7 @@ def write_to(fpath, to_write):
 def get_global_cache_dir(projectname='ibeis', ensure=False):
     os_resource_dpath = util_cplat.get_resource_dir()
     project_cache_dname = '%s_cache' % projectname
-    global_cache_dir = join(os_resource_dpath, project_cache_dname)
+    global_cache_dir = normpath(join(os_resource_dpath, project_cache_dname))
     util_path.ensuredir(global_cache_dir)
     return global_cache_dir
 
@@ -88,9 +88,15 @@ def get_global_shelf_fpath(**kwargs):
 def get_global_shelf(**kwargs):
     global __SHELF__
     if __SHELF__ is None:
-        shelf_fpath = get_global_shelf_fpath(**kwargs)
-        shelf_file = open(shelf_fpath, 'wa')
-        __SHELF__ = shelve.open(shelf_file)
+        try:
+            shelf_fpath = get_global_shelf_fpath(**kwargs)
+            __SHELF__ = shelve.open(shelf_fpath)
+        except Exception as ex:
+            print('!!!')
+            print('[util_cache] Failed opening: shelf_fpath=%r' % shelf_fpath)
+            print('[util_cache] Caught: %s: %s' % (type(ex), ex))
+            raise
+        #shelf_file = open(shelf_fpath, 'w')
     return __SHELF__
 
 

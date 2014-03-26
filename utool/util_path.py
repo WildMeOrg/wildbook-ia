@@ -1,9 +1,10 @@
 from __future__ import division, print_function
 from os.path import (join, realpath, normpath, split, isdir, isfile, exists, islink, ismount)
 from itertools import izip
-import fnmatch
 import os
+import sys
 import shutil
+import fnmatch
 import warnings
 from .util_dbg import get_caller_name
 from .util_inject import inject
@@ -11,7 +12,7 @@ from .util_progress import progress_func
 print, print_, printDBG, rrr, profile = inject(__name__, '[path]')
 
 
-__VERBOSE__ = False
+__VERBOSE__ = '--verbose' in sys.argv
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']

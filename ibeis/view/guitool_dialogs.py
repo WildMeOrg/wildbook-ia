@@ -1,10 +1,12 @@
 from PyQt4 import QtCore, QtGui  # NOQA
-from PyQt.QtCore import Qt
+from PyQt4.QtCore import Qt
 from os.path import split
-from ibeis.util import util_cache, util_path
+# UTool
+from utool import util_cache, util_path
 
 
-def user_option(parent, msg, title='options', options=['No', 'Yes'], use_cache=False):
+def user_option(parent=None, msg='msg', title='user_option',
+                options=['No', 'Yes'], use_cache=False):
     'Prompts user with several options with ability to save decision'
     print('[*guitools] user_option:\n %r: %s' + title + ': ' + msg)
     # Recall decision
@@ -43,14 +45,15 @@ def user_option(parent, msg, title='options', options=['No', 'Yes'], use_cache=F
     return reply
 
 
-def user_input(parent, msg, title='input dialog'):
+def user_input(parent=None, msg='msg', title='user_input'):
     reply, ok = QtGui.QInputDialog.getText(parent, title, msg)
     if not ok:
         return None
     return str(reply)
 
 
-def user_info(parent, msg, title='info'):
+def user_info(parent=None, msg='msg', title='user_info'):
+    print('[dlg.user_info] title=%r, msg=%r' % (title, msg))
     msgBox = _newMsgBox(msg, title, parent)
     msgBox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
@@ -60,6 +63,7 @@ def user_info(parent, msg, title='info'):
 
 
 def user_question(msg):
+    raise NotImplementedError('user_question')
     msgBox = QtGui.QMessageBox.question(None, '', 'lovely day?')
     return msgBox
 
@@ -92,7 +96,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None):
     'Selects one or more files from disk using a qt dialog'
     print(caption)
     if directory is None:
-        directory = util_cache.global_cache_read('select_directory')
+        directory = util_cache.global_cache_read('select_directory', default='.')
     qdlg = QtGui.QFileDialog()
     qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
     file_list = map(str, qfile_list)

@@ -43,28 +43,6 @@ def slot_(*types):  # This is called at wrap time to get args
 #---------------
 
 
-# BLOCKING DECORATOR
-# TODO: This decorator has to be specific to either front or back. Is there a
-# way to make it more general?
-def backblock(func):
-    def bacblock_wrapper(back, *args, **kwargs):
-        wasBlocked_ = back.front.blockSignals(True)
-        try:
-            result = func(back, *args, **kwargs)
-        except Exception as ex:
-            import traceback
-            back.front.blockSignals(wasBlocked_)
-            print('!!!!!!!!!!!!!')
-            print('[guitool] caught exception in %r' % func.func_name)
-            print(traceback.format_exc())
-            back.user_info('Error:\nex=%r' % ex)
-            raise
-        back.front.blockSignals(wasBlocked_)
-        return result
-    bacblock_wrapper.func_name = func.func_name
-    return bacblock_wrapper
-
-
 # DRAWING DECORATOR
 def drawing(func):
     'Wraps a class function and draws windows on completion'

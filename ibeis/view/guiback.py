@@ -8,7 +8,31 @@ from PyQt4.Qt import pyqtSignal
 from ibeis.dev import params
 from ibeis.view import guifront
 from ibeis.view import guitool
+from ibeis.view import guitool_dialogs
 from ibeis.view.guitool import drawing, slot_
+
+
+# BLOCKING DECORATOR
+# TODO: This decorator has to be specific to either front or back. Is there a
+# way to make it more general?
+def backblock(func):
+    def bacblock_wrapper(back, *args, **kwargs):
+        wasBlocked_ = back.front.blockSignals(True)
+        try:
+            result = func(back, *args, **kwargs)
+        except Exception as ex:
+            raise
+            import traceback
+            back.front.blockSignals(wasBlocked_)
+            print('!!!!!!!!!!!!!')
+            print('[guitool] caught exception in %r' % func.func_name)
+            print(traceback.format_exc())
+            back.user_info('Error:\nex=%r' % ex)
+            raise
+        back.front.blockSignals(wasBlocked_)
+        return result
+    bacblock_wrapper.func_name = func.func_name
+    return bacblock_wrapper
 
 
 def blocking_slot(*types_):
@@ -16,7 +40,7 @@ def blocking_slot(*types_):
         def wrap2(*args, **kwargs):
             return func(*args, **kwargs)
         wrap2.func_name = func.func_name
-        wrap3 = slot_(*types_)(guitool.backblock(wrap2))
+        wrap3 = slot_(*types_)(backblock(wrap2))
         return wrap3
     return wrap1
 
@@ -223,13 +247,13 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     def user_info(back, *args, **kwargs):
-        return guitool.user_info(back.front, *args, **kwargs)
+        return guitool_dialogs.user_info(parent=back.front, *args, **kwargs)
 
     def user_input(back, *args, **kwargs):
-        return guitool.user_input(back.front, *args, **kwargs)
+        return guitool_dialogs.user_input(parent=back.front, *args, **kwargs)
 
     def user_option(back, *args, **kwargs):
-        return guitool._user_option(back.front, *args, **kwargs)
+        return guitool_dialogs.user_option(parent=back.front, *args, **kwargs)
 
     def get_work_directory(back):
         return params.get_workdir()
@@ -315,13 +339,13 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def import_images(back):
-        # File -> Import Images
-        pass
+        # File -> Import Images (ctrl + i)
         print('[back] import images')
-        msg = 'Import specific files or whole directory?'
-        title = 'Import Images'
-        options = ['Files', 'Directory']
-        reply = back.user_option(msg, title, options, False)
+        reply = back.user_option(
+            msg='Import specific files or whole directory?',
+            title='Import Images',
+            options=['Files', 'Directory'],
+            use_cache=False)
         if reply == 'Files':
             back.import_images_from_file()
         if reply == 'Directory':
@@ -330,7 +354,9 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def import_images_from_file(back):
         # File -> Import Images From File
-        fpath_list = guitool.select_images('Select image files to import')
+        if back.ibs is None:
+            raise ValueError('must open IBEIS database first')
+        fpath_list = guitool_dialogs.select_images('Select image files to import')
         back.ibs.add_images(fpath_list)
         back.populate_image_table()
         print('')
