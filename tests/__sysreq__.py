@@ -1,6 +1,9 @@
 from __future__ import division, print_function
 import sys
+sys.argv.append('--strict')
+
 from os.path import realpath, dirname, join, exists
+
 utool_path = realpath(join(dirname(__file__), '..'))
 print('[test] appending: %r' % utool_path)
 try:

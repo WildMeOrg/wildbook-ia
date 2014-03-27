@@ -34,7 +34,7 @@ if __name__ == '__main__':
     try:
         # Create a HotSpotter API (hs) and GUI backend (back)
         print('[TEST] TEST_ADD_IMAGES')
-        main_locals = main_api.main(defaultdb='NAUTS', nogui=True)
+        main_locals = main_api.main(defaultdb='testdb', nogui=True)
         ibs = main_locals['ibs']    # IBEIS Control
         #back = main_locals['back']  # IBEIS GUI backend
 

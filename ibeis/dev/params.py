@@ -85,15 +85,15 @@ def get_dbalias_dict():
 
 
 def db_to_dbdir(db):
+    import os
+    import sys
+    import utool
     work_dir = get_workdir()
     dbdir = join(work_dir, db)
     dbalias_dict = get_dbalias_dict()
-    if not exists(dbdir) and db in dbalias_dict:
+    if not exists(dbdir) and db.upper() in dbalias_dict:
         dbdir = join(work_dir, dbalias_dict[db.upper()])
     if not exists(dbdir):
-        import os
-        import sys
-        import utool
         print('!!!!!!!!!!!!!!!!!!!!!')
         print('[params] WARNING: db=%r not found in work_dir=%r' %
               (db, work_dir))

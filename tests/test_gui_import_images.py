@@ -33,7 +33,7 @@ if __name__ == '__main__':
     try:
         # Create a HotSpotter API (hs) and GUI backend (back)
         print('[TEST] TEST_ADD_IMAGES')
-        main_locals = main_api.main(defaultdb='NAUTS')
+        main_locals = main_api.main(defaultdb='testdb')
         ibs = main_locals['ibs']    # IBEIS Control
         back = main_locals['back']  # IBEIS GUI backend
 
@@ -50,6 +50,7 @@ if __name__ == '__main__':
 
     except Exception as ex:
         print('[TEST] test_add_images FAILED: %s %s' % (type(ex), ex))
-        ibs.db.dump()
+        if 'ibs' in vars() and ibs is not None:
+            ibs.db.dump()
         if '--strict' in sys.argv:
             raise

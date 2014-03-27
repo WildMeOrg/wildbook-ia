@@ -47,7 +47,8 @@ from .util_dbg import (execstr_dict, save_testdata, load_testdata,     # NOQA
                        import_testdata, embed, quitflag, inIPython,
                         printvar2, all_rrr)
 
-from .util_list import (alloc_lists, list_index, npfind, index_of, flatten, list_eq, )   # NOQA
+from .util_list import (alloc_lists, list_index, npfind, index_of, flatten,  # NOQA
+                        list_eq, listfind)
 
 from .DynStruct import DynStruct   # NOQA
 
