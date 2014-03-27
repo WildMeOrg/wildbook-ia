@@ -175,17 +175,23 @@ class MainWindowBackend(QtCore.QObject):
     def _populate_table(back, tblname, extra_cols={},
                         index_list=None, prefix_cols=[]):
         print('[back] _populate_table(%r)' % tblname)
+
+        def make_header_lists(tbl_headers, editable_list, prop_keys=[]):
+            col_headers = tbl_headers[:] + prop_keys
+            col_editable = [False] * len(tbl_headers) + [True] * len(prop_keys)
+            for header in editable_list:
+                col_editable[col_headers.index(header)] = True
+            return col_headers, col_editable
+
         headers = back.table_headers[tblname]
         editable = back.table_editable[tblname]
         if tblname == 'cxs':  # in ['cxs', 'res']: TODO props in restable
             prop_keys = back.ibs.tables.prop_dict.keys()
         else:
             prop_keys = []
-            col_headers, col_editable = guitool.make_header_lists(headers,
-                                                                  editable,
-                                                                  prop_keys)
+            col_headers, col_editable = make_header_lists(headers, editable, prop_keys)
         if index_list is None:
-            index_list = back.ibs.get_valid_indexes(tblname)
+            index_list = back.ibs.get_valid_ids(tblname)
         # Prefix datatup
         prefix_datatup = [[prefix_col.get(header, 'error')
                            for header in col_headers]
@@ -338,26 +344,30 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def import_images(back):
+    def import_images(back, gpath_list=None, dir_=None):
         # File -> Import Images (ctrl + i)
         print('[back] import images')
-        reply = back.user_option(
-            msg='Import specific files or whole directory?',
-            title='Import Images',
-            options=['Files', 'Directory'],
-            use_cache=False)
-        if reply == 'Files':
+        if not (gpath_list is None and dir_ is None):
+            reply = back.user_option(
+                msg='Import specific files or whole directory?',
+                title='Import Images',
+                options=['Files', 'Directory'],
+                use_cache=False)
+        else:
+            reply = None
+        if reply == 'Files' or gpath_list is not None:
             back.import_images_from_file()
-        if reply == 'Directory':
+        if reply == 'Directory' or dir_ is not None:
             back.import_images_from_dir()
 
     @blocking_slot()
-    def import_images_from_file(back):
+    def import_images_from_file(back, gpath_list=None):
         # File -> Import Images From File
         if back.ibs is None:
-            raise ValueError('must open IBEIS database first')
-        fpath_list = guitool_dialogs.select_images('Select image files to import')
-        back.ibs.add_images(fpath_list)
+            raise ValueError('back.ibs is None! must open IBEIS database first')
+        if gpath_list is None:
+            gpath_list = guitool_dialogs.select_images('Select image files to import')
+        back.ibs.add_images(gpath_list)
         back.populate_image_table()
         print('')
 

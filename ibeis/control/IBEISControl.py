@@ -26,7 +26,17 @@ from utool import util_time
 from utool.util_iter import iflatten
 
 
-_TAGKEYS = gtool.get_exif_tagids([gtool.EXIF_TAG_DATETIME, gtool.EXIF_TAG_GPS])
+def get_exif_tagids(tag_list):
+    from PIL.ExifTags import TAGS
+    exif_keys  = TAGS.keys()
+    exif_vals  = TAGS.values()
+    tagid_list = [exif_keys[exif_vals.index(tag)] for tag in tag_list]
+    return tagid_list
+
+
+tag_list = ['GPSInfo', 'DateTimeOriginal']
+print(gtool)
+_TAGKEYS = get_exif_tagids(tag_list)
 _TAGDEFAULTS = (-1, (-1, -1))
 
 
@@ -43,13 +53,14 @@ def _gid_guid(pil_img):
     return gid
 
 
-def _sql_qres_gen(gpath):
+def _sql_qres_gen(gpath_list):
     """ executes sqlcmd with generated sqlvals """
-    pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
-    (w, h)  = pil_img.size                 # Read width, height
-    (time, lat, lon) = _get_exif(pil_img)  # Read exif tags
-    (gid,)           = _gid_guid(pil_img)  # Read pixels ]-hash-> guid = gid
-    yield (gid, gpath, w, h, time, lat, lon)
+    for gpath in gpath_list:
+        pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
+        (w, h)  = pil_img.size                 # Read width, height
+        (time, lat, lon) = _get_exif(pil_img)  # Read exif tags
+        (gid,)           = _gid_guid(pil_img)  # Read pixels ]-hash-> guid = gid
+        yield (gid, gpath, w, h, time, lat, lon)
 
 
 class IBEISControl(object):
@@ -95,6 +106,7 @@ class IBEISControl(object):
 
     def add_images(ibs, gpath_list):
         """ Adds a list of image paths to the database. Returns newly added gids """
+        print('[ibs] add_images')
         ibs.db.querymany(
             operation='''
             INSERT INTO images(
@@ -107,7 +119,7 @@ class IBEISControl(object):
                 image_exif_gps_lon
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ''',
-            parameters_iter=_sql_qres_gen(),
+            parameters_iter=_sql_qres_gen(gpath_list),
             errmsg='[ibs.add_images] ERROR!  inserting image. Primary key collision?')
         gid_list = [-1 for _ in xrange(len(gpath_list))]
         return gid_list
@@ -273,6 +285,11 @@ class IBEISControl(object):
     #----------------
     # --- Getters ---
     #----------------
+
+    # General Getter
+
+    def get_valid_ids(ibs, tblname):
+        return []
 
     # Image Getters
 

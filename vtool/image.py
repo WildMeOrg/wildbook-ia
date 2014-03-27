@@ -15,6 +15,10 @@ CV2_WARP_KWARGS = {'flags': cv2.INTER_LANCZOS4,
                    'borderMode': cv2.BORDER_CONSTANT}
 
 
+EXIF_TAG_GPS      = 'GPSInfo'
+EXIF_TAG_DATETIME = 'DateTimeOriginal'
+
+
 def imread(img_fpath):
     try:
         # opencv always reads in BGR mode (fastest load time)
@@ -66,14 +70,10 @@ def read_all_exif_tags(pil_img):
     return exif
 
 
-EXIF_KEYS = TAGS.keys()
-EXIF_VALS = TAGS.values()
-EXIF_TAG_GPS      = 'GPSInfo'
-EXIF_TAG_DATETIME = 'DateTimeOriginal'
-
-
 def get_exif_tagids(tag_list):
-    tagid_list = [EXIF_KEYS[EXIF_VALS.index(tag)] for tag in tag_list]
+    exif_keys  = TAGS.keys()
+    exif_vals  = TAGS.values()
+    tagid_list = [exif_keys[exif_vals.index(tag)] for tag in tag_list]
     return tagid_list
 
 
@@ -145,31 +145,31 @@ def print_image_checks(img_fpath):
     return hasimg
 
 
-def get_exif(image, ext):
-    """Returns a dictionary from the exif data of an PIL Image item. Also converts the GPS Tags"""
-    exif_data = {}
-    if ext in EXIF_EXTENSIONS:
-        info = image._getexif()
-        if info:
-            for tag, value in info.items():
-                decoded = TAGS.get(tag, tag)
-                if decoded == "GPSInfo":
-                    gps_data = {}
-                    for t in value:
-                        sub_decoded = GPSTAGS.get(t, t)
-                        gps_data[sub_decoded] = value[t]
+#def get_exif(image, ext):
+    #"""Returns a dictionary from the exif data of an PIL Image item. Also converts the GPS Tags"""
+    #exif_data = {}
+    #if ext in EXIF_EXTENSIONS:
+        #info = image._getexif()
+        #if info:
+            #for tag, value in info.items():
+                #decoded = TAGS.get(tag, tag)
+                #if decoded == "GPSInfo":
+                    #gps_data = {}
+                    #for t in value:
+                        #sub_decoded = GPSTAGS.get(t, t)
+                        #gps_data[sub_decoded] = value[t]
 
-                    exif_data[decoded] = gps_data
-                elif decoded == "DateTimeOriginal":
-                    exif_data[decoded] = calendar.timegm(tuple(map(int, value.replace(" ", ":").split(":")) + [0,0,0]))
-                else:
-                    exif_data[decoded] = value
-    if EXIF_TAG_GPS not in exif_data:
-        exif_data[EXIF_TAG_GPS] = [-1.0, -1.0]
-    if EXIF_TAG_DATETIME not in exif_data:
-        exif_data[EXIF_TAG_DATETIME] = -1.0
+                    #exif_data[decoded] = gps_data
+                #elif decoded == "DateTimeOriginal":
+                    #exif_data[decoded] = calendar.timegm(tuple(map(int, value.replace(" ", ":").split(":")) + [0,0,0]))
+                #else:
+                    #exif_data[decoded] = value
+    #if EXIF_TAG_GPS not in exif_data:
+        #exif_data[EXIF_TAG_GPS] = [-1.0, -1.0]
+    #if EXIF_TAG_DATETIME not in exif_data:
+        #exif_data[EXIF_TAG_DATETIME] = -1.0
 
-    return [exif_data[EXIF_TAG_DATETIME], exif_data[EXIF_TAG_GPS][0], exif_data[EXIF_TAG_GPS][1]]
+    #return [exif_data[EXIF_TAG_DATETIME], exif_data[EXIF_TAG_GPS][0], exif_data[EXIF_TAG_GPS][1]]
 
 
 def get_exist(data, key):
@@ -200,21 +200,21 @@ def get_lat_lon(exif_data):
     lat = -1.0
     lon = -1.0
 
-    if "GPSInfo" in exif_data:
-        gps_info = exif_data["GPSInfo"]
+    if 'GPSInfo' in exif_data:
+        gps_info = exif_data['GPSInfo']
 
-        gps_latitude = get_exist(gps_info, "GPSLatitude")
+        gps_latitude = get_exist(gps_info, 'GPSLatitude')
         gps_latitude_ref = get_exist(gps_info, 'GPSLatitudeRef')
         gps_longitude = get_exist(gps_info, 'GPSLongitude')
         gps_longitude_ref = get_exist(gps_info, 'GPSLongitudeRef')
 
         if gps_latitude and gps_latitude_ref and gps_longitude and gps_longitude_ref:
             lat = convert_degrees(gps_latitude)
-            if gps_latitude_ref != "N":
+            if gps_latitude_ref != 'N':
                 lat = 0 - lat
 
             lon = convert_degrees(gps_longitude)
-            if gps_longitude_ref != "E":
+            if gps_longitude_ref != 'E':
                 lon = 0 - lon
 
     return lat, lon

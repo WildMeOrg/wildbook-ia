@@ -1,8 +1,8 @@
 from __future__ import division, print_function
+import sys
 
 
 def _on_ctrl_c(signal, frame):
-    import sys
     print('Caught ctrl+c')
     sys.exit(0)
 
@@ -84,36 +84,49 @@ def _ipython_loop(main_locals):
 
 def main(**kwargs):
     print('[main] ibeis.main_api.main()')
-    from utool.util_inject import _inject_colored_exception_hook
-    from ibeis.dev import params
-    _parse_args(**kwargs)
-    _init_parallel()
-    _inject_colored_exception_hook()
-    _init_signals()
-    if not params.args.nogui:
-        back = _init_gui()
-    ibs = _init_ibeis()
+    try:
+        from utool.util_inject import _inject_colored_exception_hook
+        from ibeis.dev import params
+        _parse_args(**kwargs)
+        _init_parallel()
+        _inject_colored_exception_hook()
+        _init_signals()
+        if not params.args.nogui:
+            back = _init_gui()
+        ibs = _init_ibeis()
+        if 'back' in vars():
+            print('[MAIN] ATTACH IBS')
+            back.connect_ibeis_control(ibs)
+    except Exception as ex:
+        print('[main()] IBEIS Caught: %s %s' % (type(ex), ex))
+        print(ex)
+        if '--strict' in sys.argv:
+            raise
     main_locals = locals()
     return main_locals
 
 
 def main_loop(main_locals, loop=True):
     print('[main] ibeis.main_api.main_loop()')
-    import sys
     from ibeis.dev import params
-    exit_bit = True
-    if loop:
-        # Choose a main loop depending on params.args
-        if exit_bit and params.args.cmd:
-            exit_bit = _ipython_loop(main_locals)
-        if exit_bit and not params.args.nogui:
-            exit_bit = _guitool_loop(main_locals)
-    _reset_signals()
-    _close_parallel()
-    if exit_bit:
-        # Exit cleanly if a main loop ran
-        print('[main] ibeis clean exit')
-        sys.exit(0)
-    else:
-        # Something else happened
-        print('[main] ibeis unclean exit')
+    try:
+        exit_bit = True
+        if loop:
+            # Choose a main loop depending on params.args
+            if exit_bit and params.args.cmd:
+                exit_bit = _ipython_loop(main_locals)
+            if exit_bit and not params.args.nogui:
+                exit_bit = _guitool_loop(main_locals)
+        _reset_signals()
+        _close_parallel()
+        if exit_bit:
+            # Exit cleanly if a main loop ran
+            print('[main] ibeis clean exit')
+            sys.exit(0)
+        else:
+            # Something else happened
+            print('[main] ibeis unclean exit')
+    except Exception as ex:
+        print('[main_loop] IBEIS Caught: %s %s' % (type(ex), ex))
+        if '--strict' in sys.argv:
+            raise

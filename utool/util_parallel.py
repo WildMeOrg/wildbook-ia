@@ -22,8 +22,10 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         print('[parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
-    assert __POOL__ is None, 'pool is a singleton. can only initialize once'
-    assert multiprocessing.current_process().name, 'can only initialize from main process'
+    import sys
+    if '--strict' in sys.argv:
+        assert __POOL__ is None, 'pool is a singleton. can only initialize once'
+        assert multiprocessing.current_process().name, 'can only initialize from main process'
     # Create the pool of processes
     __POOL__ = multiprocessing.Pool(processes=num_procs,
                                     maxtasksperchild=maxtasksperchild)
