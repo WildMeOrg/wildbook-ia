@@ -5,6 +5,9 @@ from os.path import join, splitext, exists, split
 from utool import util_path
 
 
+VERBOSE = '--verbose' in sys.argv
+
+
 def get_project_repo_dir():
     dpath, fname = split(__file__)
     cwd = util_path.truepath(dpath)
@@ -39,9 +42,9 @@ def clean():
     # Remove python compiled files
     pattern_list = ['*.dump.txt', '*.sqlite3', '*.pyc', '*.pyo', '*.prof',
                     '*.prof.txt', '*.lprof', ]
-    util_path.remove_files_in_dir(cwd, pattern_list, recursive=True)
+    util_path.remove_files_in_dir(cwd, pattern_list, recursive=True, verbose=VERBOSE)
     # Remove logs
-    util_path.remove_files_in_dir(join(cwd, 'logs'))
+    util_path.remove_files_in_dir(join(cwd, 'logs'), verbose=VERBOSE)
     # Remove misc
     util_path.delete(join(cwd, "'"))  # idk where this file comes from
 

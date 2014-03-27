@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import hashlib
+import uuid
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[hash]')
 
@@ -82,3 +83,19 @@ def hashstr_sha1(data, base10=False):
         hashstr = int("0x" + hashstr, 0)
 
     return hashstr
+
+
+def image_uuid(pil_img):
+    """ image global unique id """
+    # Get the bytes of the image
+    img_bytes_ = pil_img.tobytes()
+    # Hash the bytes
+    img_bytes_sha1 = hashlib.sha1(img_bytes_)
+    # Digest them into a hash
+    #hashstr_40 = img_bytes_sha1.hexdigest()
+    #hashstr_32 = hashstr_40[0:32]
+    hashbytes_20 = img_bytes_sha1.digest()
+    hashbytes_16 = hashbytes_20[0:16]
+    # uuid.uuid5 takes a hsa1 hash of a namspace and a name
+    uuid_ = uuid.UUID(bytes=hashbytes_16)
+    return uuid_

@@ -107,12 +107,12 @@ def close_global_shelf(**kwargs):
     __SHELF__ = None
 
 
-def global_cache_read(key, default=None, **kwargs):
+def global_cache_read(key, **kwargs):
     shelf = get_global_shelf()
-    if default is None:
+    if not 'default' in kwargs:
         return shelf[key]
     else:
-        return shelf.get(key, default)
+        return shelf.get(key, kwargs['default'])
 
 
 def global_cache_write(key, val):

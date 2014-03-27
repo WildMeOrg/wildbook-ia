@@ -35,7 +35,7 @@ from .util_dev import (printable_mystats, mystats, myprint, get_object_size, )  
 
 from .util_arg import (get_arg, get_flag,)  # NOQA
 
-from .util_inject import (inject, inject_all)  # NOQA
+from .util_inject import (inject, inject_all, inject_print_functions)  # NOQA
 
 from .util_print import (horiz_print, horiz_string, indent_decor, printshape, Indenter, NpPrintOpts)  # NOQA
 

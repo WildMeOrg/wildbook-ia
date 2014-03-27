@@ -1,15 +1,16 @@
 from __future__ import division, print_function
 # Python
 from os.path import split
+import traceback
 # Qt
 from PyQt4 import QtCore
-from PyQt4.Qt import pyqtSignal
+# GUITool
+import guitool
+from guitool import drawing, slot_, signal_
 # IBEIS
 from ibeis.dev import params
 from ibeis.view import guifront
-from ibeis.view import guitool
-from ibeis.view import guitool_dialogs
-from ibeis.view.guitool import drawing, slot_
+from ibeis.view import gui_item_tables
 
 
 # BLOCKING DECORATOR
@@ -22,10 +23,9 @@ def backblock(func):
             result = func(back, *args, **kwargs)
         except Exception as ex:
             raise
-            import traceback
             back.front.blockSignals(wasBlocked_)
             print('!!!!!!!!!!!!!')
-            print('[guitool] caught exception in %r' % func.func_name)
+            print('[guiback] caught exception in %r' % func.func_name)
             print(traceback.format_exc())
             back.user_info('Error:\nex=%r' % ex)
             raise
@@ -53,8 +53,8 @@ class MainWindowBackend(QtCore.QObject):
     Sends and recieves signals to and from the frontend
     '''
     # Backend Signals
-    populateSignal = pyqtSignal(str, list, list, list, list)
-    setEnabledSignal = pyqtSignal(bool)
+    populateSignal = signal_(str, list, list, list, list)
+    setEnabledSignal = signal_(bool)
 
     #------------------------
     # Constructor
@@ -69,41 +69,6 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_nids = []
         back.sel_gids = []
         back.qcid2_res = {}
-
-        # A map from short internal headers to fancy headers seen by the user
-        back.fancy_headers = {
-            'gid':        'Image Index',
-            'nid':        'Name Index',
-            'cid':        'Chip ID',
-            'aif':        'All Detected',
-            'gname':      'Image Name',
-            'nCxs':       '#Chips',
-            'name':       'Name',
-            'nGt':        '#GT',
-            'nKpts':      '#Kpts',
-            'theta':      'Theta',
-            'roi':        'ROI (x, y, w, h)',
-            'rank':       'Rank',
-            'score':      'Confidence',
-            'match_name': 'Matching Name',
-        }
-        back.reverse_fancy = {v: k for (k, v) in back.fancy_headers.items()}
-
-        # A list of default internal headers to display
-        back.table_headers = {
-            'gids':  ['gid', 'gname', 'nCxs', 'aif'],
-            'cids':  ['cid', 'name', 'gname', 'nGt', 'nKpts', 'theta'],
-            'nids':  ['nid', 'name', 'nCxs'],
-            'res':   ['rank', 'score', 'name', 'cid']
-        }
-
-        # Lists internal headers whos items are editable
-        back.table_editable = {
-            'gids':  [],
-            'cids':  ['name'],
-            'nids':  ['name'],
-            'res':   ['name'],
-        }
 
         # connect signals and other objects
         back.front = guifront.MainWindowFrontend(back=back)
@@ -154,8 +119,9 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     def update_window_title(back):
+        print('[back] update_window_title()')
         if back.ibs is None:
-            title = 'IBEIS - NULL database'
+            title = 'IBEIS - No Database Open'
         if back.ibs.dbdir is None:
             title = 'IBEIS - invalid database'
         else:
@@ -167,61 +133,27 @@ class MainWindowBackend(QtCore.QObject):
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
+        back.update_window_title()
 
     #--------------------------------------------------------------------------
     # Populate functions
-    #--------------------------------------------------------------------------
-
-    def _populate_table(back, tblname, extra_cols={},
-                        index_list=None, prefix_cols=[]):
-        print('[back] _populate_table(%r)' % tblname)
-
-        def make_header_lists(tbl_headers, editable_list, prop_keys=[]):
-            col_headers = tbl_headers[:] + prop_keys
-            col_editable = [False] * len(tbl_headers) + [True] * len(prop_keys)
-            for header in editable_list:
-                col_editable[col_headers.index(header)] = True
-            return col_headers, col_editable
-
-        headers = back.table_headers[tblname]
-        editable = back.table_editable[tblname]
-        if tblname == 'cxs':  # in ['cxs', 'res']: TODO props in restable
-            prop_keys = back.ibs.tables.prop_dict.keys()
-        else:
-            prop_keys = []
-            col_headers, col_editable = make_header_lists(headers, editable, prop_keys)
-        if index_list is None:
-            index_list = back.ibs.get_valid_ids(tblname)
-        # Prefix datatup
-        prefix_datatup = [[prefix_col.get(header, 'error')
-                           for header in col_headers]
-                          for prefix_col in prefix_cols]
-        body_datatup = back.ibs.get_datatup_list(tblname, index_list,
-                                                 col_headers, extra_cols)
-        datatup_list = prefix_datatup + body_datatup
-        row_list = range(len(datatup_list))
-        # Populate with fancy headers.
-        col_fancyheaders = [back.fancy_headers[key]
-                            if key in back.fancy_headers else key
-                            for key in col_headers]
-        back.populateSignal.emit(tblname, col_fancyheaders, col_editable,
-                                 row_list, datatup_list)
+    #----------------------1----------------------------------------------------
 
     def populate_image_table(back, **kwargs):
-        back._populate_table('gids', **kwargs)
+        gui_item_tables.emit_populate_table(back, 'gids', **kwargs)
 
     def populate_name_table(back, **kwargs):
-        back._populate_table('nids', **kwargs)
+        gui_item_tables.emit_populate_table(back, 'nids', **kwargs)
 
     def populate_chip_table(back, **kwargs):
-        back._populate_table('cids', **kwargs)
+        gui_item_tables.emit_populate_table(back, 'cids', **kwargs)
 
     def populate_result_table(back, **kwargs):
         res = back.current_res
         if res is None:
             # Clear the table if there are no results
             print('[back] no results available')
-            back._populate_table('res', index_list=[])
+            back.emit_populate_table('res', index_list=[])
             return
         top_cxs = res.topN_cxs(back.ibs, N='all')
         qcid = res.qcid
@@ -233,10 +165,10 @@ class MainWindowBackend(QtCore.QObject):
         extra_cols = {
             'score':  lambda cxs:  [res.cx2_score[cid] for cid in iter(cxs)],
         }
-        back._populate_table('res', index_list=top_cxs,
-                             prefix_cols=prefix_cols,
-                             extra_cols=extra_cols,
-                             **kwargs)
+        back.emit_populate_table('res', index_list=top_cxs,
+                                 prefix_cols=prefix_cols,
+                                 extra_cols=extra_cols,
+                                 **kwargs)
 
     def populate_tables(back, image=True, chip=True, name=True, res=True):
         if image:
@@ -253,13 +185,13 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     def user_info(back, *args, **kwargs):
-        return guitool_dialogs.user_info(parent=back.front, *args, **kwargs)
+        return guitool.user_info(parent=back.front, *args, **kwargs)
 
     def user_input(back, *args, **kwargs):
-        return guitool_dialogs.user_input(parent=back.front, *args, **kwargs)
+        return guitool.user_input(parent=back.front, *args, **kwargs)
 
     def user_option(back, *args, **kwargs):
-        return guitool_dialogs.user_option(parent=back.front, *args, **kwargs)
+        return guitool.user_option(parent=back.front, *args, **kwargs)
 
     def get_work_directory(back):
         return params.get_workdir()
@@ -346,7 +278,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def import_images(back, gpath_list=None, dir_=None):
         # File -> Import Images (ctrl + i)
-        print('[back] import images')
+        print('[back] import_images')
         if not (gpath_list is None and dir_ is None):
             reply = back.user_option(
                 msg='Import specific files or whole directory?',
@@ -362,17 +294,19 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None):
+        print('[back] import_images_from_file')
         # File -> Import Images From File
         if back.ibs is None:
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
-            gpath_list = guitool_dialogs.select_images('Select image files to import')
+            gpath_list = guitool.select_images('Select image files to import')
         back.ibs.add_images(gpath_list)
         back.populate_image_table()
         print('')
 
     @blocking_slot()
     def import_images_from_dir(back):
+        print('[back] import_images_from_dir')
         # File -> Import Images From Directory
         pass
         #msg = 'Select directory with images in it'

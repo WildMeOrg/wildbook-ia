@@ -1,8 +1,10 @@
+# idk why this exists. probably jon's vimrc
+'
+
 *.py[cod]
 
 # C extensions
 *.so
-
 # Packages
 *.egg
 *.egg-info

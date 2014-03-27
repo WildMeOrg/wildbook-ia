@@ -10,7 +10,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 from __future__ import division, print_function
 # Python
 from itertools import izip
-from os.path import join, realpath
+from os.path import join, realpath, split
 import sys
 # Science
 import numpy as np
@@ -47,46 +47,31 @@ def _get_exif(pil_img):
     return time, lat, lon
 
 
-def _gid_guid(pil_img):
-    """ Image GUID helper """
-    gid = util_hash.hashstr_sha1(np.asarray(pil_img), base10=True)  # Read all pixels
-    return gid
-
-
-def _sql_qres_gen(gpath_list):
-    """ executes sqlcmd with generated sqlvals """
-    for gpath in gpath_list:
-        pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
-        (w, h)  = pil_img.size                 # Read width, height
-        (time, lat, lon) = _get_exif(pil_img)  # Read exif tags
-        (gid,)           = _gid_guid(pil_img)  # Read pixels ]-hash-> guid = gid
-        yield (gid, gpath, w, h, time, lat, lon)
-
-
 class IBEISControl(object):
     """
     IBEISController docstring
-    chip  - cropped region of interest from an image, should map to one animal
-    cid   - chip unique id
-    gid   - image unique id (could just be the relative file path)
-    name  - name unique id
-    eid   - encounter unique id
-    rid   - region of interest unique id
-    roi   - region of interest for a chip
-    theta - angle of rotation for a chip
+        chip  - cropped region of interest from an image, should map to one animal
+        cid   - chip unique id
+        gid   - image unique id (could just be the relative file path)
+        name  - name unique id
+        eid   - encounter unique id
+        rid   - region of interest unique id
+        roi   - region of interest for a chip
+        theta - angle of rotation for a chip
     """
 
     #--------------------
     # --- Constructor ---
     #--------------------
 
-    def __init__(ibs, dbdir='.'):
+    def __init__(ibs, dbdir=None):
         print('[ibs] __init__')
         ibs.dbdir = realpath(dbdir)
-        ibs.dbfname = '__IBEIS_DATABASE__.sqlite3'
+        ibs.dbfname = '__ibeisdb__.sqlite3'
         print('[ibs.__init__] Open the database')
         print('[ibs.__init__] ibs.dbdir    = %r' % ibs.dbdir)
         print('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
+        assert dbdir is not None, 'must specify database directory'
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
         print('[ibs.__init__] Define the schema.')
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
@@ -107,7 +92,17 @@ class IBEISControl(object):
     def add_images(ibs, gpath_list):
         """ Adds a list of image paths to the database. Returns newly added gids """
         print('[ibs] add_images')
-        ibs.db.querymany(
+
+        def _sql_qres_gen(gpath_list):
+            """ executes sqlcmd with generated sqlvals """
+            for gpath in gpath_list:
+                pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
+                width, height  = pil_img.size        # Read width, height
+                time, lat, lon = _get_exif(pil_img)  # Read exif tags
+                gid = util_hash.image_uuid(pil_img)  # Read pixels ]-hash-> guid = gid
+                yield (gid, gpath, width, height, time, lat, lon)
+
+        ibs.db.executemany(
             operation='''
             INSERT INTO images(
                 image_uid,
@@ -120,7 +115,7 @@ class IBEISControl(object):
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ''',
             parameters_iter=_sql_qres_gen(gpath_list),
-            errmsg='[ibs.add_images] ERROR!  inserting image. Primary key collision?')
+            errmsg='[ibs.add_images] ERROR!')
         gid_list = [-1 for _ in xrange(len(gpath_list))]
         return gid_list
 
@@ -133,7 +128,7 @@ class IBEISControl(object):
         """ Adds a list of chips to the database, with ROIs & thetas.
             returns newly added chip ids
         """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             INSERT INTO chips
             (
@@ -149,7 +144,7 @@ class IBEISControl(object):
 
     def add_names(ibs, nid_iter, name_iter):
         # Autoinsert the defualt-unknown name into the database
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             INSERT OR IGNORE INTO names
             (
@@ -179,14 +174,14 @@ class IBEISControl(object):
             eid_list is a list of tuples, each represents the set of encounters a tuple
             should belong to.
         """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             DELETE FROM egpairs WHERE image_uid=?
             ''',
             parameters_iter=gid_list,
             errmsg='[ibs.set_image_eid[1]] ERROR! deleting egpairs')
 
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             INSERT OR IGNORE INTO egpairs(
                 encounter_uid,
@@ -202,7 +197,7 @@ class IBEISControl(object):
 
     def set_roi_bbox(ibs, rid_list, bbox_list):
         """ Sets ROIs of a list of rois by rid, where roi_list is a list of (x, y, w, h) tuples"""
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             UPDATE rois SET
                 roi_xtl=?,
@@ -216,7 +211,7 @@ class IBEISControl(object):
 
     def set_roi_thetas(ibs, rid_list, theta_list):
         """ Sets thetas of a list of chips by rid """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             UPDATE rois SET
                 roi_theta=?,
@@ -227,7 +222,7 @@ class IBEISControl(object):
 
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
         """ Sets viewpoints of a list of chips by rid """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             UPDATE rois SET
                 roi_viewpoint=?,
@@ -240,7 +235,7 @@ class IBEISControl(object):
 
     def set_chip_names(ibs, cid_list, name_list):
         """ Sets names of a list of chips by cid """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             UPDATE chips
             SET
@@ -259,7 +254,7 @@ class IBEISControl(object):
 
     def set_chip_shape(ibs, cid_list, shape_list):
         """ Sets shape of a list of chips by cid, a list of tuples (w, h) """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             UPDATE chips
             SET
@@ -272,7 +267,7 @@ class IBEISControl(object):
 
     def set_chip_toggle_hard(ibs, cid_list, hard_list):
         """ Sets hard toggle of a list of chips by cid """
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             UPDATE chips
             SET
@@ -289,9 +284,24 @@ class IBEISControl(object):
     # General Getter
 
     def get_valid_ids(ibs, tblname):
-        return []
+        get_valid_tblname_ids = {
+            'gids': ibs.get_valid_gids,
+            'cids': ibs.get_valid_cids,
+            'nids': ibs.get_valid_nids,
+        }[tblname]
+        return get_valid_tblname_ids()
 
-    # Image Getters
+    # Image Getters (input gid_list)
+
+    def get_valid_gids(ibs):
+        ibs.db.execute(
+            operation='''
+            SELECT image_uid
+            FROM images
+            ''',
+            errmsg='[ibs.get_valid_gids] ERROR')
+        gid_iter = ibs.db.result_iter()
+        return gid_iter
 
     def get_images(ibs, gid_list):
         """
@@ -299,23 +309,36 @@ class IBEISControl(object):
             NO SQL REQUIRED, DEPENDS ON get_image_paths()
         """
         gpath_list = ibs.get_image_paths(gid_list)
-        image_list = [gtool.imread(gpath) for gpath in gpath_list]
-        return image_list
+        image_iter = (gtool.imread(gpath) for gpath in gpath_list)
+        return image_iter
 
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths by gid """
-        ibs.db.querymany(
-            '''
+        print('[DEBUG] get_image_paths(gid_list=%r)' % gid_list)
+
+        ibs.db.executemany(
+            operation='''
             SELECT image_uri
             FROM images
             WHERE image_uid=?
             ''',
-            gid_list,
+            parameters_iter=((gid,) for gid in gid_list),
             errmsg='[ibs.get_image_paths] ERROR')
         guri_iter = ibs.db.result_iter()
+        print('[DEBUG] guri_iter=%r' % guri_iter)
         img_dir = join(ibs.dbdir, 'images')
-        gpath_list = [join(img_dir, guri) for guri in guri_iter]
+        gpath_list = (join(img_dir, guri) for guri in guri_iter)
+        print('[DEBUG] gpath_list=%r' % gpath_list)
         return gpath_list
+
+    def get_image_aifs(ibs, gid_list):
+        aif_list = [False for gid in gid_list]
+        return aif_list
+
+    def get_image_gnames(ibs, gid_list):
+        gpath_list = ibs.get_image_paths(gid_list)
+        gname_list = map(lambda gpath: split(gpath)[1], gpath_list)
+        return gname_list
 
     def get_image_size(ibs, gid_list):
         """ Returns a list of image dimensions by gid in (width, height) tuples """
@@ -345,7 +368,10 @@ class IBEISControl(object):
         """ Returns the number of chips associated with a list of images by gid """
         return map(len, ibs.get_cids_in_gids(gid_list))
 
-    # Chip Getters
+    # Chip Getters (input cid_list)
+
+    def get_valid_cids(ibs):
+        return []
 
     def get_chips(ibs, cid_list):
         """ Returns a list cropped images in numpy array form by their cid """
@@ -389,23 +415,44 @@ class IBEISControl(object):
         desc_list = [np.empty((0, ktool.DESC_DIM)) for cid in cid_list]
         return desc_list
 
+    def get_chip_num_kpts(ibs, cid_list):
+        nKpts_list = map(len, ibs.get_chip_kpts(cid_list))
+        return nKpts_list
+
     def get_chip_masks(ibs, cid_list):
         # Should this function exist? Yes. -Jon
         roi_list = ibs.get_chip_rois(cid_list)
         mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
         return mask_list
 
-    # Name Getters
+    def get_chip_groundtruth(ibs, cid_list):
+        """ For each cid, return a list the other chip-ids with the same name """
+        groundtruth_list = [[] for cid in cid_list]
+        return groundtruth_list
 
-    def get_chips_in_name(ibs, name_list):
+    def get_chip_num_groundtruth(ibs, cid_list):
+        return map(len, ibs.get_chip_groundtruth(cid_list))
+
+    # Name Getters (input nid_list)
+
+    def get_valid_nids(ibs):
+        return []
+
+    def get_names(ibs, nid_list):
+        return ['name-%r' % nid for nid in nid_list]
+
+    def get_chips_in_name(ibs, nid_list):
         """ returns a list of list of cids in each name """
         # for each name return chips in that name
         pass
 
-    def get_num_cids_in_name(ibs, name_list):
-        return map(len, ibs.get_chips_in_name(name_list))
+    def get_num_cids_in_name(ibs, nid_list):
+        return map(len, ibs.get_chips_in_name(nid_list))
 
-    # Encounter Getters
+    # Encounter Getters (input eid_list)
+
+    def get_valid_eids(ibs):
+        return []
 
     def get_cids_in_eids(ibs, eid_list):
         """ returns a list of list of cids in each encounter """
@@ -423,7 +470,7 @@ class IBEISControl(object):
 
     def delete_chips(ibs, cid_iter):
         """ deletes all associated chips from the database that belong to the cid"""
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             DELETE
             FROM
@@ -435,7 +482,7 @@ class IBEISControl(object):
 
     def delete_images(ibs, gid_list):
         """ deletes the images from the database that belong to gids"""
-        ibs.db.querymany(
+        ibs.db.executemany(
             operation='''
             DELETE
             FROM images

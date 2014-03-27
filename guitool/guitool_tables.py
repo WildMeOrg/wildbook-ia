@@ -3,4 +3,4 @@ def make_header_lists(tbl_headers, editable_list, prop_keys=[]):
     col_editable = [False] * len(tbl_headers) + [True] * len(prop_keys)
     for header in editable_list:
         col_editable[col_headers.index(header)] = True
-    return col_headers, col_editable
+        return col_headers, col_editable

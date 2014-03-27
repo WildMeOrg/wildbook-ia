@@ -41,3 +41,5 @@ from utool import *
 # vtool
 import vtool
 from vtool import *
+# Guitool
+import guitool

@@ -1,50 +1,9 @@
 from __future__ import division, print_function
 # Python
-import io
-import textwrap  # NOQA
-from os.path import join
-# SQL This should be the only file which import sqlite3
-try:
-    # Try to import the correct version of sqlite3
-    from pysqlite2 import dbapi2
-    import sqlite3
-    print('dbapi2.sqlite_version  = %r' % dbapi2.sqlite_version)
-    print('sqlite3.sqlite_version = %r' % sqlite3.sqlite_version)
-    print('using dbapi2 as lite')
-    # Clean namespace
-    del sqlite3
-    del dbapi2
-    from pysqlite2 import dbapi2 as lite
-except ImportError as ex:
-    print(ex)
-    # Fallback
-    import sqlite3 as lite
-    print('using sqlite3 as lite')
-# Science
-import numpy as np
-
-
-# Tell SQL how to deal with numpy arrays
-def _REGISTER_NUMPY_WITH_SQLITE3():
-    """ Utility function allowing numpy arrays to be stored as raw blob data """
-    def _write_numpy_to_sqlite3(arr):
-        out = io.BytesIO()
-        np.save(out, arr)
-        out.seek(0)
-        return buffer(out.read())
-
-    def _read_numpy_from_sqlite3(blob):
-        out = io.BytesIO(blob)
-        out.seek(0)
-        return np.load(out)
-
-    lite.register_adapter(np.ndarray, _write_numpy_to_sqlite3)
-    lite.register_converter('NUMPY', _read_numpy_from_sqlite3)
-
-_REGISTER_NUMPY_WITH_SQLITE3()
-
-# Clean up namespace
-del(_REGISTER_NUMPY_WITH_SQLITE3)
+from os.path import join, exists
+import __SQLITE3__ as lite
+import utool
+(print, print_, printDBG) = utool.inject_print_functions(__name__, '[sql]')
 
 
 class SQLDatabaseControl(object):
@@ -57,21 +16,22 @@ class SQLDatabaseControl(object):
             SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
             SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
             -------------------------------------------------------
-            Init the SQLite3 database connection and the query execution object.
+            Init the SQLite3 database connection and the execution object.
             If the database does not exist, it will be automatically created
             upon this object's instantiation.
         """
-        print('[sql.__init__]')
+        printDBG('[sql.__init__]')
         # Get SQL file path
         db.dir_  = database_path
         db.fname = database_file
+        assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
         fpath    = join(db.dir_, db.fname)
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
-        db.querier    = db.connection.cursor()
+        db.executor    = db.connection.cursor()
 
     def get_sql_version(db):
-        db.query('''
+        db.execute('''
                  SELECT sqlite_version()
                  ''')
         sql_version = db.result()
@@ -106,7 +66,7 @@ class SQLDatabaseControl(object):
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        print('[sql.schema] ensuring table=%r' % table)
+        #print('[sql.schema] ensuring table=%r' % table)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -116,11 +76,11 @@ class SQLDatabaseControl(object):
         op_body = ', '.join(body_list)
         op_foot = ')'
         operation = op_head + op_body + op_foot
-        db.query(operation, [])
+        db.execute(operation, [])
 
-    def query(db, operation, parameters=(), auto_commit=False):
+    def execute(db, operation, parameters=(), auto_commit=False, errmsg=None):
         """
-            operation - parameterized SQL query string.
+            operation - parameterized SQL operation string.
                 Parameterized prevents SQL injection attacks by using an ordered
                 representation ( ? ) or by using an ordered, text representation
                 name ( :value )
@@ -135,10 +95,11 @@ class SQLDatabaseControl(object):
                     arbirtary order that will be filled into the cooresponging
                     slots of the sql operation string
         """
-        print('[sql.query]')
+        caller_name = utool.util_dbg.get_caller_name()
+        print('[sql.execute] caller_name=%r' % caller_name)
         status = False
         try:
-            status = db.querier.execute(operation, parameters)
+            status = db.executor.execute(operation, parameters)
             if auto_commit:
                 db.commit()
         except Exception as ex:
@@ -147,42 +108,44 @@ class SQLDatabaseControl(object):
             raise
         return status
 
-    def querymany(db, operation, parameters_iter, auto_commit=True, errmsg=None):
-        """ same as query but takes a iterable of parameters instead of just one
+    def executemany(db, operation, parameters_iter, auto_commit=True, errmsg=None):
+        """ same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
-        print('[sql.querymany]')
+        caller_name = utool.util_dbg.get_caller_name()
+        print('[sql.executemany] caller_name=%r' % caller_name)
+        #import textwrap
         #operation = textwrap.dedent(operation).strip()
         try:
             # Format 1
-            #qstat_flag_list = db.querier.executemany(operation, parameters_iter)
+            #qstat_flag_list = db.executor.executemany(operation, parameters_iter)
 
             # Format 2
-            #qstat_flag_list = [db.querier.execute(operation, parameters)
+            #qstat_flag_list = [db.executor.execute(operation, parameters)
                                  #for parameters in parameters_iter]
 
             # Format 3
             qstat_flag_list = []
             for parameters in parameters_iter:
-                stat_flag = db.querier.execute(operation, parameters)
+                stat_flag = db.executor.execute(operation, parameters)
                 qstat_flag_list.append(stat_flag)
         except Exception as ex1:
-            print('\n<!!!>')
-            print('[!sql] Caught but cannot handle %s: %r' % (type(ex1), ex1,))
+            print('\n<!!! ERROR>')
+            print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
             print('[!sql] operation=\n%s' % operation)
-            try:
+            if 'parameters' in vars():
                 print('[!sql] failed paramters=%r' % (parameters,))
-            except NameError:
+            else:
                 print('[!!sql] failed before parameters populated')
-            try:
+            if 'qstat_flag_list' in vars():
                 print('[!sql] failed qstat_flag_list=%r' % (qstat_flag_list,))
-            except NameError:
+            else:
                 print('[!sql] failed before qstat_flag_list populated')
             print('[!sql] parameters_iter=%r' % (parameters_iter,))
-            print('</!!!>\n')
+            print('</!!! ERROR>\n')
             db.dump()
             raise
-            raise lite.DatabaseError('%s --- %s' % (errmsg, ex1))
+            #raise lite.DatabaseError('%s --- %s' % (errmsg, ex1))
 
         try:
             if auto_commit:
@@ -190,22 +153,24 @@ class SQLDatabaseControl(object):
             else:
                 return qstat_flag_list
         except Exception as ex2:
-            print('\n<!!!>')
+            print('\n<!!! ERROR>')
             print('[!sql] Caught %s: %r' % (type(ex2), ex2,))
             print('[!sql] operation=\n%s' % operation)
-            print('</!!!>\n')
+            print('</!!! ERROR>\n')
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
     def result(db):
-        print('[sql.result]')
-        return db.querier.fetchone()
+        caller_name = utool.util_dbg.get_caller_name()
+        print('[sql.result] caller_name=%r' % caller_name)
+        return db.executor.fetchone()
 
     def result_iter(db):
         # Jon: I think we should be using the fetchmany command here
         # White iteration is efficient, I believe it still interupts
         # the sql work. If we let sql work uninterupted by python it
         # should go faster
-        print('[sql.result_iter]')
+        caller_name = utool.util_dbg.get_caller_name()
+        print('[sql.result_iter] caller_name=%r' % caller_name)
         while True:
             result = db.result()
             if not result:
@@ -219,7 +184,8 @@ class SQLDatabaseControl(object):
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         """
-        print('[sql.commit]')
+        caller_name = utool.util_dbg.get_caller_name()
+        print('[sql.commit] caller_name=%r' % caller_name)
         if not all(qstat_flag_list):
             raise lite.DatabaseError(errmsg)
         else:

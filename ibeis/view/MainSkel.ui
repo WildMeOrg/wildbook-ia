@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>HotSpotter</string>
+   <string>IBEIS - No Database Opened</string>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
@@ -37,7 +37,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="image_view">
         <property name="minimumSize">
@@ -157,7 +157,7 @@
      <x>0</x>
      <y>0</y>
      <width>1013</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="contextMenuPolicy">

@@ -2,6 +2,9 @@ from __future__ import division, print_function
 import __builtin__
 import sys
 
+
+__DEBUG__ = '--debug' in sys.argv
+
 __STDOUT__ = sys.stdout
 __PRINT_FUNC__     = __builtin__.print
 __PRINT_DBG_FUNC__ = __builtin__.print
@@ -63,7 +66,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     def print_(msg):
         __WRITE_FUNC__(msg)
 
-    if DEBUG:
+    if __DEBUG__ or DEBUG:
         def printDBG(msg):
             __PRINT_DBG_FUNC__(module_prefix + ' DEBUG ' + msg)
     else:

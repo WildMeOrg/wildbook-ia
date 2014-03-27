@@ -38,13 +38,13 @@ def random_indexes(max_index, subset_size):
 # --- List Searching --- #
 
 
-def safe_listget(list_, index, func=lambda x: x, default='?'):
+def safe_listget(list_, index, default='?'):
     if index >= len(list_):
         return default
     ret = list_[index]
     if ret is None:
         return default
-    return func(ret)
+    return ret
 
 
 def list_index(search_list, to_find_list):

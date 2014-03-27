@@ -1,6 +1,8 @@
 from __future__ import division, print_function
 import sys
 
+sys.argv.append('--strict')
+
 
 def _on_ctrl_c(signal, frame):
     print('Caught ctrl+c')
@@ -26,18 +28,25 @@ def _parse_args(**kwargs):
 
 
 def _init_gui():
-    from ibeis.view import guitool, guiback
+    import guitool
+    from ibeis.view import guiback
     print('[main] _init_gui()')
-    guitool.init_qtapp()
+    guitool.ensure_qtapp()
     back = guiback.MainWindowBackend()
-    back.show()
+    guitool.activate_qwindow(back)
     return back
 
 
 def _init_ibeis():
     print('[main] _init_ibeis()')
     from ibeis.control import IBEISControl
-    ibs = IBEISControl.IBEISControl()
+    import params
+    dbdir = params.args.dbdir
+    if dbdir is None:
+        print('[main!] WARNING args.dbdir is None')
+        ibs = None
+    else:
+        ibs = IBEISControl.IBEISControl(dbdir=dbdir)
     return ibs
 
 
@@ -65,7 +74,7 @@ def _close_parallel():
 
 
 def _guitool_loop(main_locals):
-    from ibeis.view import guitool
+    import guitool
     from ibeis.dev import params
     back = main_locals['back']
     loop_freq = params.args.loop_freq
@@ -77,14 +86,24 @@ def _ipython_loop(main_locals):
     from utool import util_dbg
     embedded = util_dbg.inIPython()
     if not embedded:
+        if 'back' in main_locals:
+            import guitool
+            back = main_locals['back']
+            guitool.qtapp_loop_nonblocking(back)
         util_dbg.embed(parent_locals=main_locals)
         return True
     return False
 
 
 def main(**kwargs):
+    print('''
+    _____ ______  _______ _____ _______
+      |   |_____] |______   |   |______
+    __|__ |_____] |______ __|__ ______|
+    ''')
     print('[main] ibeis.main_api.main()')
     try:
+
         from utool.util_inject import _inject_colored_exception_hook
         from ibeis.dev import params
         _parse_args(**kwargs)
@@ -94,8 +113,8 @@ def main(**kwargs):
         if not params.args.nogui:
             back = _init_gui()
         ibs = _init_ibeis()
-        if 'back' in vars():
-            print('[MAIN] ATTACH IBS')
+        if 'back' in vars() and ibs is not None:
+            print('[main] Attatch ibeis control')
             back.connect_ibeis_control(ibs)
     except Exception as ex:
         print('[main()] IBEIS Caught: %s %s' % (type(ex), ex))
@@ -106,7 +125,7 @@ def main(**kwargs):
     return main_locals
 
 
-def main_loop(main_locals, loop=True):
+def main_loop(main_locals, loop=True, rungui=True):
     print('[main] ibeis.main_api.main_loop()')
     from ibeis.dev import params
     try:
@@ -115,7 +134,7 @@ def main_loop(main_locals, loop=True):
             # Choose a main loop depending on params.args
             if exit_bit and params.args.cmd:
                 exit_bit = _ipython_loop(main_locals)
-            if exit_bit and not params.args.nogui:
+            if rungui and exit_bit and not params.args.nogui:
                 exit_bit = _guitool_loop(main_locals)
         _reset_signals()
         _close_parallel()

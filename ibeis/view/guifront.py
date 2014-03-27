@@ -1,13 +1,14 @@
 from __future__ import division, print_function
 # Qt
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QAbstractItemView
 # IBEIS
 from utool.util_type import is_bool, is_int, is_float
-from ibeis.view import guitool
 from ibeis.view.MainSkel import Ui_mainSkel
-from ibeis.view.guitool import slot_
+import guitool
+from guitool import slot_, signal_
+from ibeis.view import gui_item_tables
 
 #=================
 # Decorators / Helpers
@@ -171,16 +172,16 @@ def set_tabwidget_text(front, tblname, text):
 
 
 class MainWindowFrontend(QtGui.QMainWindow):
-    printSignal      = pyqtSignal(str)
-    quitSignal       = pyqtSignal()
-    selectGidSignal  = pyqtSignal(int)
-    selectCidSignal  = pyqtSignal(int)
-    selectResSignal  = pyqtSignal(int)
-    selectNameSignal = pyqtSignal(str)
-    changeCidSignal  = pyqtSignal(int, str, str)
-    aliasNameSignal  = pyqtSignal(int, str, str)
-    changeGidSignal  = pyqtSignal(int, str, bool)
-    querySignal      = pyqtSignal()
+    printSignal      = signal_(str)
+    quitSignal       = signal_()
+    selectGidSignal  = signal_(int)
+    selectCidSignal  = signal_(int)
+    selectResSignal  = signal_(int)
+    selectNameSignal = signal_(str)
+    changeCidSignal  = signal_(int, str, str)
+    aliasNameSignal  = signal_(int, str, str)
+    changeGidSignal  = signal_(int, str, bool)
+    querySignal      = signal_()
 
     def __init__(front, back):
         super(MainWindowFrontend, front).__init__()
@@ -383,8 +384,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_header(front, tbl, col):
         # Map the fancy header back to the internal one.
         fancy_header = str(tbl.horizontalHeaderItem(col).text())
-        header = (front.back.reverse_fancy[fancy_header]
-                  if fancy_header in front.back.reverse_fancy else fancy_header)
+        header = (gui_item_tables.reverse_fancy[fancy_header]
+                  if fancy_header in gui_item_tables.reverse_fancy else fancy_header)
         return header
 
     def get_tbl_int(front, tbl, row, col):
@@ -399,7 +400,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         tblname = str(tbl.objectName()).replace('_TBL', '')
         tblname = tblname.replace('image', 'img')  # Sooooo hack
         # TODO: backmap from fancy headers to consise
-        col = front.back.table_headers[tblname].index(header)
+        col = gui_item_tables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
     #=======================
