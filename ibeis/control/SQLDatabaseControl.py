@@ -3,11 +3,11 @@ from __future__ import division, print_function
 from os.path import join, exists
 import __SQLITE3__ as lite
 import utool
-from ibeis.dev import params
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]', DEBUG=False)
 
 
-VERBOSE = utool.getflag('--verbose')
+VERBOSE = utool.get_flag('--verbose')
+AUTODUMP = utool.get_flag('--auto-dump')
 
 
 class SQLDatabaseControl(object):
@@ -220,7 +220,7 @@ class SQLDatabaseControl(object):
         else:
             db.connection.commit()
 
-            if params.args.auto_dump:
+            if AUTODUMP:
                 db.dump(auto_commit=False)
 
     def dump(db, file_=None, auto_commit=True):
