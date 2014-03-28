@@ -170,6 +170,12 @@ class SQLDatabaseControl(object):
             print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
 
+    def result_list(db, verbose=True):
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql.result_list] caller_name=%r' % caller_name)
+        return db.executor.fetchall()
+
     def result_iter(db):
         # Jon: I think we should be using the fetchmany command here
         # White iteration is efficient, I believe it still interupts
