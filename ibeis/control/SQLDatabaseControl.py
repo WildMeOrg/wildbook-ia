@@ -49,7 +49,7 @@ class SQLDatabaseControl(object):
 
     def schema(db, table, schema_list):
         """
-            schema_dict - list of table columns tuples
+            schema_list - list of table columns tuples
                 {
                     (column_1_name, column_1_type),
                     (column_2_name, column_2_type),
