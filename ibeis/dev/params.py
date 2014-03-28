@@ -142,6 +142,7 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         parser2.add_int('--loop-freq', default=100, help='Qt main loop ms frequency')
         parser2.add_flag('--cmd', help='Runs in IPython mode')
         parser2.add_flag('--nocache-db', help='Disables db cache')
+        parser2.add_flag('--auto-dump', help='dumps the SQLITE3 database after every commit')
 
     def database_argparse(parser2):
         # Database selections

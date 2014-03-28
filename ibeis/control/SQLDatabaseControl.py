@@ -3,6 +3,7 @@ from __future__ import division, print_function
 from os.path import join, exists
 import __SQLITE3__ as lite
 import utool
+from ibeis.dev import params
 (print, print_, printDBG) = utool.inject_print_functions(__name__, '[sql]')
 
 
@@ -200,7 +201,10 @@ class SQLDatabaseControl(object):
         else:
             db.connection.commit()
 
-    def dump(db, file_=None):
+            if params.args.auto_dump:
+                db.dump(auto_commit=False)
+
+    def dump(db, file_=None, auto_commit=True):
         """
             Same output as shell command below
             > sqlite3 database.sqlite3 .dump > database.dump.txt
@@ -220,9 +224,10 @@ class SQLDatabaseControl(object):
             else:
                 dump_fpath = file_
             with open(dump_fpath, 'w') as file_:
-                db.dump(file_)
+                db.dump(file_, auto_commit)
         else:
             print('[sql.dump]')
-            db.commit(verbose=False)
+            if auto_commit:
+                db.commit(verbose=False)
             for line in db.connection.iterdump():
                 file_.write('%s\n' % line)
