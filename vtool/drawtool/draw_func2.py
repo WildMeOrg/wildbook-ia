@@ -34,7 +34,7 @@ import numpy as np
 import scipy.stats
 import cv2
 # VTool
-import vtool.drawtool.mpl_keypoint as mpl_kp
+import mpl_keypoint as mpl_kp
 import vtool.patch as ptool
 
 #================

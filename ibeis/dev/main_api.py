@@ -28,6 +28,36 @@ def _parse_args(**kwargs):
     params.parse_args(**kwargs)
 
 
+def init_matplotlib(module_prefix='[???]'):
+    import matplotlib
+    import multiprocessing
+    backend = matplotlib.get_backend()
+    if  multiprocessing.current_process().name == 'MainProcess':
+        if not '--quiet' in sys.argv:
+            print('--- INIT MPL---')
+            print('[main]  current backend is: %r' % backend)
+            print('[main]  matplotlib.use(Qt4Agg)')
+        if backend != 'Qt4Agg':
+            matplotlib.use('Qt4Agg', warn=True, force=True)
+            backend = matplotlib.get_backend()
+            print(module_prefix + ' current backend is: %r' % backend)
+        if '--notoolbar' in sys.argv or '--devmode' in sys.argv:
+            toolbar = 'None'
+        else:
+            toolbar = 'toolbar2'
+        matplotlib.rcParams['toolbar'] = toolbar
+        matplotlib.rc('text', usetex=False)
+        mpl_keypress_shortcuts = [key for key in matplotlib.rcParams.keys() if key.find('keymap') == 0]
+        for key in mpl_keypress_shortcuts:
+            matplotlib.rcParams[key] = ''
+        #matplotlib.rcParams['text'].usetex = False
+        #for key in mpl_keypress_shortcuts:
+            #print('%s = %s' % (key, matplotlib.rcParams[key]))
+        # Disable mpl shortcuts
+            #matplotlib.rcParams['toolbar'] = 'None'
+            #matplotlib.rcParams['interactive'] = True
+
+
 def _init_gui():
     import guitool
     from ibeis.view import guiback
@@ -128,6 +158,7 @@ def main(**kwargs):
         _init_parallel()
         utool.util_inject._inject_colored_exception_hook()
         _init_signals()
+        init_matplotlib()
         if not params.args.nogui:
             back = _init_gui()
         ibs = _init_ibeis()
