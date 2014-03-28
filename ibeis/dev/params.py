@@ -98,6 +98,7 @@ def db_to_dbdir(db, allow_newdir=False):
         if exists(dirname(dbdir)):
             print('[params] MAKE DIR: %r' % dbdir)
             os.mkdir(dbdir)
+
     if not exists(dbdir):
         print('!!!!!!!!!!!!!!!!!!!!!')
         print('[params] WARNING: db=%r not found in work_dir=%r' %

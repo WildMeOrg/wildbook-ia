@@ -101,11 +101,12 @@ def main(defaultdb='testdb', allow_newdir=False, **kwargs):
     from ibeis.dev import main_api
     from ibeis.dev import params
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
-    if defaultdb == 'testdb' and utool.get_flag('--clean'):
+    if defaultdb == 'testdb':
         allow_newdir = True
         defaultdbdir = join(params.get_workdir(), 'testdb')
         utool.ensuredir(defaultdbdir)
-        utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
+        if utool.get_flag('--clean'):
+            utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
     main_locals = main_api.main(defaultdb=defaultdb, allow_newdir=allow_newdir, **kwargs)
     return main_locals
 

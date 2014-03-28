@@ -6,6 +6,7 @@ import keypoint   # NOQA
 import ellipse    # NOQA
 import drawtool   # NOQA
 import patch      # NOQA
+import drawtool   # NOQA
 #from hist import *  # NOQA
 #from patch import *  # NOQA
 #from ellipse import *  # NOQA
