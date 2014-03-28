@@ -3,8 +3,9 @@ import sys
 import __builtin__
 from os.path import realpath, dirname, join, exists
 import numpy as np
-# Tests are always strict
-sys.argv.append('--strict')
+
+
+sys.argv.append('--strict')  # Tests are always strict
 
 
 def ensure_util_in_pythonpath():
@@ -22,17 +23,18 @@ ensure_util_in_pythonpath()
 
 import utool
 utool.util_sysreq.ensure_in_pythonpath('hesaff')
+utool.util_sysreq.ensure_in_pythonpath('ibeis')
 
-INTERACTIVE = utool.get_flag('--interactive')
+INTERACTIVE = utool.get_flag(('--interactive', '-i'))
 
 
 def handle_exceptions(ex, locals_, testname=None):
-            if testname is None:
-                testname = utool.get_caller_name()
-            printTEST('[TEST] %s FAILED: %s %s' % (testname, type(ex), ex))
-            ibs = locals_.get('ibs', None)
-            if ibs is not None:
-                ibs.db.dump()
+    if testname is None:
+        testname = utool.get_caller_name()
+        printTEST('[TEST] %s FAILED: %s %s' % (testname, type(ex), ex))
+        ibs = locals_.get('ibs', None)
+        if ibs is not None:
+            ibs.db.dump()
             if '--strict' in sys.argv:
                 raise
 
@@ -57,7 +59,7 @@ def testcontext(func):
     return test_wrapper
 
 
-def get_test_image_paths(ibs=None, ndata=None):
+def get_pyhesaff_test_image_paths(ndata):
     import pyhesaff
     #root = utool.getroot()
     imgdir = dirname(pyhesaff.__file__)
@@ -66,16 +68,20 @@ def get_test_image_paths(ibs=None, ndata=None):
         ['zebra.png'] * utool.get_flag('--zebra', False, help_='add zebra to test images'),
         ['test.png']  * utool.get_flag('--jeff',  False, help_='add jeff to test images'),
     ])
-    if ndata is None:
-        # Increase data size
-        ndata = utool.get_arg('--ndata', type_=int, default=1, help_='use --ndata to specify bigger data')
-
     # Build gpath_list
     if ndata == 0:
         gname_list = ['test.png']
     else:
         gname_list = utool.util_list.flatten([gname_list] * ndata)
-        gpath_list = [join(imgdir, path) for path in gname_list]
+    gpath_list = [join(imgdir, path) for path in gname_list]
+    return gpath_list
+
+
+def get_test_image_paths(ibs=None, ndata=None):
+    if ndata is None:
+        # Increase data size
+        ndata = utool.get_arg('--ndata', type_=int, default=1, help_='use --ndata to specify bigger data')
+    gpath_list = get_pyhesaff_test_image_paths(ndata)
     if INTERACTIVE:
         gpath_list = None
     return gpath_list
@@ -95,7 +101,7 @@ def main(defaultdb='testdb', allow_newdir=False, **kwargs):
     from ibeis.dev import main_api
     from ibeis.dev import params
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
-    if defaultdb == 'testdb':
+    if defaultdb == 'testdb' and utool.get_flag('--clean'):
         allow_newdir = True
         defaultdbdir = join(params.get_workdir(), 'testdb')
         utool.ensuredir(defaultdbdir)

@@ -80,6 +80,9 @@ def get_exif_tagids(tag_list):
 def get_exif_dict(pil_img):
     try:
         exif_dict = pil_img._getexif()
+        if exif_dict is None:
+            raise AttributeError
+        assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
     except AttributeError:
         exif_dict = {}
     return exif_dict

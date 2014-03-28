@@ -156,7 +156,7 @@ def import_testdata():
     return import_testdata.func_code.co_code
 
 
-def embed(parent_locals=None, parent_globals=None):
+def embed(parent_locals=None, parent_globals=None, exec_lines=None):
     if parent_locals is None:
         parent_locals = get_parent_locals()
     if parent_globals is None:
@@ -172,7 +172,10 @@ def embed(parent_locals=None, parent_globals=None):
         pyqtRemoveInputHook()
     except ImportError as ex:
         print(ex)
-    IPython.embed()
+    config_dict = {}
+    #if exec_lines is not None:
+        #config_dict['exec_lines'] = exec_lines
+    IPython.embed(**config_dict)
 
 
 def quitflag(num=None, embed_=False, parent_locals=None, parent_globals=None):
@@ -425,7 +428,7 @@ def get_caller_name():
     frame = inspect.currentframe()
     frame = frame.f_back
     caller_name = None
-    while caller_name in [None, 'ensurepath']:
+    while caller_name in [None, 'ensurepath', '<genexpr>']:
         frame = frame.f_back
         if frame is None:
             break

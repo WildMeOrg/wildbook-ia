@@ -4,7 +4,10 @@ from os.path import join, exists
 import __SQLITE3__ as lite
 import utool
 from ibeis.dev import params
-(print, print_, printDBG) = utool.inject_print_functions(__name__, '[sql]')
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]', DEBUG=False)
+
+
+VERBOSE = utool.getflag('--verbose')
 
 
 class SQLDatabaseControl(object):
@@ -67,7 +70,7 @@ class SQLDatabaseControl(object):
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        # print('[sql.schema] ensuring table=%r' % table)
+        print('[sql.schema] ensuring table=%r' % table)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -80,7 +83,7 @@ class SQLDatabaseControl(object):
         db.execute(operation, [], verbose=False)
 
     def execute(db, operation, parameters=(), auto_commit=False, errmsg=None,
-                verbose=True):
+                verbose=VERBOSE):
         """
             operation - parameterized SQL operation string.
                 Parameterized prevents SQL injection attacks by using an ordered
@@ -112,7 +115,7 @@ class SQLDatabaseControl(object):
         return status
 
     def executemany(db, operation, parameters_iter, auto_commit=True,
-                    errmsg=None, verbose=True):
+                    errmsg=None, verbose=VERBOSE):
         """ same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
@@ -131,9 +134,18 @@ class SQLDatabaseControl(object):
 
             # Format 3
             qstat_flag_list = []
+            result_list = []
             for parameters in parameters_iter:
+                if verbose:
+                    print('[sql] operation=\n%s' % operation)
+                    print('[sql] paramters=%r' % (parameters,))
                 stat_flag = db.executor.execute(operation, parameters)
                 qstat_flag_list.append(stat_flag)
+                resulttup = db.executor.fetchone()
+                print('[sql] resulttup=%r, stat_flag=%r' % (resulttup, stat_flag))
+                if resulttup is not None:
+                    result = resulttup[0]
+                    result_list.append(result)
         except Exception as ex1:
             print('\n<!!! ERROR>')
             print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
@@ -163,14 +175,15 @@ class SQLDatabaseControl(object):
             print('[!sql] operation=\n%s' % operation)
             print('</!!! ERROR>\n')
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
+        return result_list
 
-    def result(db, verbose=True):
+    def result(db, verbose=VERBOSE):
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
 
-    def result_list(db, verbose=True):
+    def result_list(db, verbose=VERBOSE):
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.result_list] caller_name=%r' % caller_name)
@@ -192,7 +205,7 @@ class SQLDatabaseControl(object):
                 raise StopIteration()
             yield result[0]
 
-    def commit(db, qstat_flag_list=[], errmsg=None, verbose=True):
+    def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
         """
             Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be

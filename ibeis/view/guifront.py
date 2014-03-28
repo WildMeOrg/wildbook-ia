@@ -1,10 +1,9 @@
 from __future__ import division, print_function
+import functools
 # Qt
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QAbstractItemView
 # IBEIS
-from utool.util_type import is_bool, is_int, is_float
 from ibeis.view.MainSkel import Ui_mainSkel
 import guitool
 from guitool import slot_, signal_
@@ -21,6 +20,7 @@ except AttributeError:
 
 
 def clicked(func):
+    @functools.wraps(func)
     def clicked_wrapper(front, item, *args, **kwargs):
         if front.isItemEditable(item):
             front.print('[front] does not select when clicking editable column')
@@ -29,7 +29,6 @@ def clicked(func):
             return
         front.prev_tbl_item = item
         return func(front, item, *args, **kwargs)
-    clicked_wrapper.func_name = func.func_name
     # Hacky decorator
     return clicked_wrapper
 
@@ -171,16 +170,19 @@ def set_tabwidget_text(front, tblname, text):
     ui.tablesTabWidget.setTabText(tab_index, tab_text)
 
 
+UUID_type = gui_item_tables.UUID_type
+
+
 class MainWindowFrontend(QtGui.QMainWindow):
     printSignal      = signal_(str)
     quitSignal       = signal_()
-    selectGidSignal  = signal_(int)
-    selectCidSignal  = signal_(int)
-    selectResSignal  = signal_(int)
+    selectGidSignal  = signal_(UUID_type)
+    selectCidSignal  = signal_(UUID_type)
+    selectResSignal  = signal_(UUID_type)
     selectNameSignal = signal_(str)
-    changeCidSignal  = signal_(int, str, str)
-    aliasNameSignal  = signal_(int, str, str)
-    changeGidSignal  = signal_(int, str, bool)
+    changeCidSignal  = signal_(UUID_type, str, str)
+    aliasNameSignal  = signal_(UUID_type, str, str)
+    changeGidSignal  = signal_(UUID_type, str, bool)
     querySignal      = signal_()
 
     def __init__(front, back):
@@ -278,101 +280,24 @@ class MainWindowFrontend(QtGui.QMainWindow):
     @slot_(str, list, list, list, list)
     def populate_tbl(front, tblname, col_fancyheaders, col_editable,
                      row_list, datatup_list):
-        #front.printDBG('populate_tbl(%s)' % table_name)
         tblname = str(tblname)
-        fancytab_dict = {
+        front.print('populate_tbl(%s)' % tblname)
+        fancytblname = {
             'gids': 'Image Table',
             'cids': 'Chip Table',
             'nids': 'Name Table',
-            'res': 'Query Results Table',
-        }
-        tbl_dict = {
+            'res':  'Query Results Table',
+        }[tblname]
+        tbl = {
             'gids': front.ui.gids_TBL,
             'cids': front.ui.cids_TBL,
             'nids': front.ui.nids_TBL,
             'res': front.ui.res_TBL,
-        }
-        tbl = tbl_dict[tblname]
-        front._populate_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
+        }[tblname]
+        gui_item_tables.populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
         # Set the tab text to show the number of items listed
-        text = fancytab_dict[tblname] + ' : %d' % len(row_list)
+        text = fancytblname + ' : %d' % len(row_list)
         set_tabwidget_text(front, tblname, text)
-
-    def _populate_table(front, tbl, col_fancyheaders, col_editable, row_list, datatup_list):
-        # TODO: for chip table: delete metedata column
-        # RCOS TODO:
-        # I have a small right-click context menu working
-        # Maybe one of you can put some useful functions in these?
-        # RCOS TODO: How do we get the clicked item on a right click?
-        # RCOS TODO:
-        # The data tables should not use the item model
-        # Instead they should use the more efficient and powerful
-        # QAbstractItemModel / QAbstractTreeModel
-        def set_header_context_menu(hheader):
-            hheader.setContextMenuPolicy(Qt.CustomContextMenu)
-            opt2_callback = [
-                ('header', lambda: print('finishme')),
-                ('cancel', lambda: print('cancel')), ]
-            popup_slot = guitool.popup_menu(tbl, opt2_callback)
-            hheader.customContextMenuRequested.connect(popup_slot)
-
-        def set_table_context_menu(tbl):
-            tbl.setContextMenuPolicy(Qt.CustomContextMenu)
-            opt2_callback = [
-                ('Query', front.querySignal.emit), ]
-            popup_slot = guitool.popup_menu(tbl, opt2_callback)
-            tbl.customContextMenuRequested.connect(popup_slot)
-
-        hheader = tbl.horizontalHeader()
-        #set_header_context_menu(hheader)
-        #set_table_context_menu(tbl)
-
-        sort_col = hheader.sortIndicatorSection()
-        sort_ord = hheader.sortIndicatorOrder()
-        tbl.sortByColumn(0, Qt.AscendingOrder)  # Basic Sorting
-        tblWasBlocked = tbl.blockSignals(True)
-        tbl.clear()
-        tbl.setColumnCount(len(col_fancyheaders))
-        tbl.setRowCount(len(row_list))
-        tbl.verticalHeader().hide()
-        tbl.setHorizontalHeaderLabels(col_fancyheaders)
-        tbl.setSelectionMode(QAbstractItemView.SingleSelection)
-        tbl.setSelectionBehavior(QAbstractItemView.SelectRows)
-        tbl.setSortingEnabled(False)
-        # Add items for each row and column
-        for row in iter(row_list):
-            data_tup = datatup_list[row]
-            for col, data in enumerate(data_tup):
-                item = QtGui.QTableWidgetItem()
-                # RCOS TODO: Pass in datatype here.
-                # BOOLEAN DATA
-                if is_bool(data) or data == 'True' or data == 'False':
-                    check_state = Qt.Checked if bool(data) else Qt.Unchecked
-                    item.setCheckState(check_state)
-                    #item.setData(Qt.DisplayRole, bool(data))
-                # INTEGER DATA
-                elif is_int(data):
-                    item.setData(Qt.DisplayRole, int(data))
-                # FLOAT DATA
-                elif is_float(data):
-                    item.setData(Qt.DisplayRole, float(data))
-                # STRING DATA
-                else:
-                    item.setText(str(data))
-                # Mark as editable or not
-                if col_editable[col]:
-                    item.setFlags(item.flags() | Qt.ItemIsEditable)
-                    item.setBackground(QtGui.QColor(250, 240, 240))
-                else:
-                    item.setFlags(item.flags() ^ Qt.ItemIsEditable)
-                item.setTextAlignment(Qt.AlignHCenter)
-                tbl.setItem(row, col, item)
-
-        #print(dbg_col2_dtype)
-        tbl.setSortingEnabled(True)
-        tbl.sortByColumn(sort_col, sort_ord)  # Move back to old sorting
-        tbl.show()
-        tbl.blockSignals(tblWasBlocked)
 
     def isItemEditable(self, item):
         return int(Qt.ItemIsEditable & item.flags()) == int(Qt.ItemIsEditable)
@@ -420,19 +345,19 @@ class MainWindowFrontend(QtGui.QMainWindow):
         return front.get_tbl_header(front.ui.nids_TBL, col)
 
     def get_restbl_cid(front, row):
-        return int(front.get_header_val(front.ui.res_TBL, 'cid', row))
+        return UUID_type(front.get_header_val(front.ui.res_TBL, 'cid', row))
 
     def get_chiptbl_cid(front, row):
-        return int(front.get_header_val(front.ui.cids_TBL, 'cid', row))
+        return UUID_type(front.get_header_val(front.ui.cids_TBL, 'cid', row))
 
     def get_nametbl_name(front, row):
         return str(front.get_header_val(front.ui.nids_TBL, 'name', row))
 
     def get_nametbl_nid(front, row):
-        return int(front.get_header_val(front.ui.nids_TBL, 'nid', row))
+        return UUID_type(front.get_header_val(front.ui.nids_TBL, 'nid', row))
 
     def get_imgtbl_gid(front, row):
-        return int(front.get_header_val(front.ui.gids_TBL, 'gid', row))
+        return UUID_type(front.get_header_val(front.ui.gids_TBL, 'gid', row))
 
     #=======================
     # Table Changed Functions

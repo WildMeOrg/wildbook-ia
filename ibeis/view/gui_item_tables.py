@@ -2,6 +2,12 @@ from __future__ import division, print_function
 from itertools import izip
 import numpy as np
 import utool
+from PyQt4 import QtGui
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QAbstractItemView
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitables]', DEBUG=False)
+
+UUID_type = str
 
 
 # A map from short internal headers to fancy headers seen by the user
@@ -46,11 +52,15 @@ def _get_datatup_list(ibs, tblname, index_list, header_order, extra_cols):
     '''
     print('[gui] _get_datatup_list()')
     cols = _datatup_cols(ibs, tblname)
+    print('[gui] cols=%r' % cols)
     cols.update(extra_cols)
+    print('[gui] cols=%r' % cols)
     unknown_header = lambda indexes: ['ERROR!' for gx in indexes]
     get_tup = lambda header: cols.get(header, unknown_header)(index_list)
     unziped_tups = [get_tup(header) for header in header_order]
+    print('[gui] unziped_tups=%r' % unziped_tups)
     datatup_list = [tup for tup in izip(*unziped_tups)]
+    print('[gui] datatup_list=%r' % datatup_list)
     return datatup_list
 
 
@@ -65,7 +75,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         cols = {
             'nid':   lambda nids: nids,
             'name':  lambda nids: ibs.get_names(nids),
-            'nCxs':  lambda nids: ibs.get_num_cids_in_name(nids),
+            'nCxs':  lambda nids: ibs.get_num_cids_in_nids(nids),
         }
     elif tblname == 'gids':
         cols = {
@@ -127,21 +137,26 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols=
                             index_list=None, prefix_cols=[]):
     if index_list is None:
         index_list = ibs.get_valid_ids(tblname)
-        # Prefix datatup
-        prefix_datatup = [[prefix_col.get(header, 'error')
-                           for header in col_headers]
-                          for prefix_col in prefix_cols]
-        body_datatup = _get_datatup_list(ibs, tblname, index_list,
-                                         col_headers, extra_cols)
-        datatup_list = prefix_datatup + body_datatup
-        return datatup_list
+    print('[tables] len(index_list) = %r' % len(index_list))
+    # Prefix datatup
+    prefix_datatup = [[prefix_col.get(header, 'error')
+                       for header in col_headers]
+                      for prefix_col in prefix_cols]
+    body_datatup = _get_datatup_list(ibs, tblname, index_list,
+                                     col_headers, extra_cols)
+    datatup_list = prefix_datatup + body_datatup
+    return datatup_list
 
 
 def emit_populate_table(back, tblname, *args, **kwargs):
+    print('>>>>>>>>>>>>>>>>>>>>>')
     print('[gui_item_tables] _populate_table(%r)' % tblname)
     col_headers, col_editable = _get_table_headers_editable(tblname)
+    print('[gui_item_tables] col_headers = %r' % col_headers)
+    print('[gui_item_tables] col_editable = %r' % col_editable)
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
+    print('[gui_item_tables] datatup_list = %r' % datatup_list)
     row_list = range(len(datatup_list))
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers[key]
@@ -152,3 +167,64 @@ def emit_populate_table(back, tblname, *args, **kwargs):
             len(datatup_list))))
     back.populateSignal.emit(tblname, col_fancyheaders, col_editable,
                              row_list, datatup_list)
+
+
+def populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list):
+    # TODO: for chip table: delete metedata column
+    # RCOS TODO:
+    # I have a small right-click context menu working
+    # Maybe one of you can put some useful functions in these?
+    # RCOS TODO: How do we get the clicked item on a right click?
+    # RCOS TODO:
+    # The data tables should not use the item model
+    # Instead they should use the more efficient and powerful
+    # QAbstractItemModel / QAbstractTreeModel
+
+    hheader = tbl.horizontalHeader()
+
+    sort_col = hheader.sortIndicatorSection()
+    sort_ord = hheader.sortIndicatorOrder()
+    tbl.sortByColumn(0, Qt.AscendingOrder)  # Basic Sorting
+    tblWasBlocked = tbl.blockSignals(True)
+    tbl.clear()
+    tbl.setColumnCount(len(col_fancyheaders))
+    tbl.setRowCount(len(row_list))
+    tbl.verticalHeader().hide()
+    tbl.setHorizontalHeaderLabels(col_fancyheaders)
+    tbl.setSelectionMode(QAbstractItemView.SingleSelection)
+    tbl.setSelectionBehavior(QAbstractItemView.SelectRows)
+    tbl.setSortingEnabled(False)
+    # Add items for each row and column
+    for row in iter(row_list):
+        data_tup = datatup_list[row]
+        for col, data in enumerate(data_tup):
+            item = QtGui.QTableWidgetItem()
+            # RCOS TODO: Pass in datatype here.
+            # BOOLEAN DATA
+            if utool.is_bool(data) or data == 'True' or data == 'False':
+                check_state = Qt.Checked if bool(data) else Qt.Unchecked
+                item.setCheckState(check_state)
+                #item.setData(Qt.DisplayRole, bool(data))
+            # INTEGER DATA
+            elif utool.is_int(data):
+                item.setData(Qt.DisplayRole, int(data))
+            # FLOAT DATA
+            elif utool.is_float(data):
+                item.setData(Qt.DisplayRole, float(data))
+            # STRING DATA
+            else:
+                item.setText(str(data))
+            # Mark as editable or not
+            if col_editable[col]:
+                item.setFlags(item.flags() | Qt.ItemIsEditable)
+                item.setBackground(QtGui.QColor(250, 240, 240))
+            else:
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+            item.setTextAlignment(Qt.AlignHCenter)
+            tbl.setItem(row, col, item)
+
+    #print(dbg_col2_dtype)
+    tbl.setSortingEnabled(True)
+    tbl.sortByColumn(sort_col, sort_ord)  # Move back to old sorting
+    tbl.show()
+    tbl.blockSignals(tblWasBlocked)

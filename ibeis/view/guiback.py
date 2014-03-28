@@ -1,7 +1,9 @@
 from __future__ import division, print_function
 # Python
 from os.path import split
+import functools
 import traceback
+import uuid
 # Qt
 from PyQt4 import QtCore
 # GUITool
@@ -11,12 +13,24 @@ from guitool import drawing, slot_, signal_
 from ibeis.dev import params
 from ibeis.view import guifront
 from ibeis.view import gui_item_tables
+from ibeis.view import interact
+# Utool
+import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
+
+
+UUID_type = gui_item_tables.UUID_type
+
+
+def uuid_cast(qtinput):
+    return uuid.UUID(UUID_type(qtinput))
 
 
 # BLOCKING DECORATOR
 # TODO: This decorator has to be specific to either front or back. Is there a
 # way to make it more general?
 def backblock(func):
+    @functools.wraps(func)
     def bacblock_wrapper(back, *args, **kwargs):
         wasBlocked_ = back.front.blockSignals(True)
         try:
@@ -31,7 +45,6 @@ def backblock(func):
             raise
         back.front.blockSignals(wasBlocked_)
         return result
-    bacblock_wrapper.func_name = func.func_name
     return bacblock_wrapper
 
 
@@ -39,8 +52,7 @@ def blocking_slot(*types_):
     def wrap1(func):
         def wrap2(*args, **kwargs):
             return func(*args, **kwargs)
-        wrap2.func_name = func.func_name
-        wrap3 = slot_(*types_)(backblock(wrap2))
+        wrap3 = functools.update_wrapper(slot_(*types_)(backblock(wrap2)), func)
         return wrap3
     return wrap1
 
@@ -88,6 +100,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @drawing
     def show_image(back, gid, sel_cids=[], **kwargs):
+        interact.interact_image(back.ibs, gid, sel_cids)
         pass
 
     @drawing
@@ -107,7 +120,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     #----------------------
-    # Work Functions
+    # State Management Functions (ewww... state)
     #----------------------
 
     def get_selected_gid(back):
@@ -130,10 +143,14 @@ class MainWindowBackend(QtCore.QObject):
             title = 'IBEIS - %r - %s' % (db_name, dbdir)
         back.front.setWindowTitle(title)
 
+    def refresh_state(back):
+        back.update_window_title()
+        back.populate_tables()
+
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
-        back.update_window_title()
+        back.refresh_state()
 
     #--------------------------------------------------------------------------
     # Populate functions
@@ -149,11 +166,12 @@ class MainWindowBackend(QtCore.QObject):
         gui_item_tables.emit_populate_table(back, 'cids', **kwargs)
 
     def populate_result_table(back, **kwargs):
-        res = back.current_res
+        #res = back.current_res
+        res = None
         if res is None:
             # Clear the table if there are no results
             print('[back] no results available')
-            back.emit_populate_table('res', index_list=[])
+            gui_item_tables.emit_populate_table(back, 'res', index_list=[])
             return
         top_cxs = res.topN_cxs(back.ibs, N='all')
         qcid = res.qcid
@@ -203,23 +221,32 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
-    @blocking_slot(int)
+    @blocking_slot(UUID_type)
     def select_gid(back, gid, **kwargs):
         # Table Click -> Image Table
+        gid = uuid_cast(gid)
+        print('[back] select gid=%r' % gid)
+        back.show_image(gid)
         pass
 
-    @blocking_slot(int)
+    @blocking_slot(UUID_type)
     def select_cid(back, cid, **kwargs):
         # Table Click -> Chip Table
+        cid = uuid_cast(cid)
+        print('[back] select cid=%r' % cid)
         pass
 
     @slot_(str)
     def select_name(back, name):
         # Table Click -> Name Table
+        name = str(name)
+        print('[back] select name=%r' % name)
         pass
 
-    @slot_(int)
+    @slot_(UUID_type)
     def select_res_cid(back, cid, **kwargs):
+        print('[back] select result cid=%r' % cid)
+        cid = uuid_cast(cid)
         # Table Click -> Result Table
         pass
 
@@ -241,19 +268,22 @@ class MainWindowBackend(QtCore.QObject):
         # Button Click -> Preferences Defaults
         pass
 
-    @blocking_slot(int, str, str)
+    @blocking_slot(UUID_type, str, str)
     def change_chip_property(back, cid, key, val):
+        cid = uuid_cast(cid)
         # Table Edit -> Change Chip Property
         pass
 
-    @blocking_slot(int, str, str)
+    @blocking_slot(UUID_type, str, str)
     def alias_name(back, nid, key, val):
         # Table Edit -> Change name
+        nid = uuid_cast(nid)
         pass
 
-    @blocking_slot(int, str, bool)
+    @blocking_slot(UUID_type, str, bool)
     def change_image_property(back, gid, key, val):
         # Table Edit -> Change Image Property
+        gid = uuid_cast(gid)
         pass
 
     #--------------------------------------------------------------------------
@@ -279,18 +309,18 @@ class MainWindowBackend(QtCore.QObject):
     def import_images(back, gpath_list=None, dir_=None):
         # File -> Import Images (ctrl + i)
         print('[back] import_images')
-        if not (gpath_list is None and dir_ is None):
+        reply = None
+        if gpath_list is None and dir_ is None:
             reply = back.user_option(
                 msg='Import specific files or whole directory?',
                 title='Import Images',
                 options=['Files', 'Directory'],
                 use_cache=False)
-        else:
-            reply = None
         if reply == 'Files' or gpath_list is not None:
-            back.import_images_from_file()
+            gid_list = back.import_images_from_file(gpath_list=gpath_list)
         if reply == 'Directory' or dir_ is not None:
-            back.import_images_from_dir()
+            gid_list = back.import_images_from_dir(dir_=dir_)
+        return gid_list
 
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None):
@@ -300,21 +330,22 @@ class MainWindowBackend(QtCore.QObject):
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
-        back.ibs.add_images(gpath_list)
+        gid_list = back.ibs.add_images(gpath_list)
         back.populate_image_table()
-        print('')
+        return gid_list
 
     @blocking_slot()
-    def import_images_from_dir(back):
+    def import_images_from_dir(back, dir_=None):
         print('[back] import_images_from_dir')
         # File -> Import Images From Directory
         pass
-        #msg = 'Select directory with images in it'
-        #img_dpath = guitool.select_directory(msg)
-        #print('[back] selected %r' % img_dpath)
-        #fpath_list = util.list_images(img_dpath, fullpath=True)
-        #back.ibs.add_images(fpath_list)
-        #back.populate_image_table()
+        if dir_ is None:
+            dir_ = guitool.select_directory('Select directory with images in it')
+        print('[back] dir=%r' % dir_)
+        gpath_list = utool.list_images(dir_, fullpath=True)
+        gid_list = back.ibs.add_images(gpath_list)
+        back.populate_image_table()
+        return gid_list
         #print('')
 
     @slot_()
@@ -357,9 +388,10 @@ class MainWindowBackend(QtCore.QObject):
         # Action -> Delete Chip
         pass
 
-    @blocking_slot()
+    @blocking_slot(UUID_type)
     def delete_image(back, gid=None):
         # Action -> Delete Images
+        gid = uuid_cast(gid)
         pass
 
     @blocking_slot()

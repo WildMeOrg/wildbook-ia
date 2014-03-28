@@ -108,5 +108,3 @@ def cmd(*args, **kwargs):
     # Make sure process if finished
     ret = proc.wait()
     return out, err, ret
-
-

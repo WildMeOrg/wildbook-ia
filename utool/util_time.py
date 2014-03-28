@@ -75,7 +75,10 @@ class Timer(object):
 
 def exiftime_to_unixtime(datetime_str):
     try:
-        dt = datetime.datetime.strptime(datetime_str, '%Y:%m:%d %H:%M:%S')
+        time_format = '%Y:%m:%d %H:%M:%S'
+        if len(datetime_str) > 19:
+            datetime_str = datetime_str[0:20]
+        dt = datetime.datetime.strptime(datetime_str, time_format)
         return time.mktime(dt.timetuple())
     except TypeError:
         #if datetime_str is None:
@@ -90,7 +93,9 @@ def exiftime_to_unixtime(datetime_str):
             if datetime_str == '0000:00:00 00:00:00':
                 return -1
         print('!!!!!!!!!!!!!!!!!!')
-        print('Caught Error: ' + repr(ex))
-        print('type(datetime_str) = %r' % type(datetime_str))
-        print('datetime_str = %r' % datetime_str)
+        print('[util_time] Caught Error: ' + repr(ex))
+        print('[util_time] type(datetime_str) = %r' % type(datetime_str))
+        print('[util_time] datetime_str = %r' % datetime_str)
+        print('[util_time] datetime_str = %s' % datetime_str)
+
         raise

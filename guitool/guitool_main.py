@@ -7,6 +7,11 @@ IS_ROOT = False
 QAPP = None
 
 
+def get_qtapp():
+    global QAPP
+    return QAPP
+
+
 def ensure_qtapp():
     global IS_ROOT
     global QAPP

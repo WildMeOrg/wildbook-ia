@@ -21,9 +21,11 @@ from ibeis.control import __IBEIS_SCHEMA__
 from vtool import image as gtool
 from vtool import keypoint as ktool
 # UTool
+import utool
 from utool import util_hash
 from utool import util_time
 from utool.util_iter import iflatten
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]', DEBUG=False)
 
 
 def get_exif_tagids(tag_list):
@@ -34,7 +36,7 @@ def get_exif_tagids(tag_list):
     return tagid_list
 
 
-tag_list = ['GPSInfo', 'DateTimeOriginal']
+tag_list = ['DateTimeOriginal', 'GPSInfo']
 print(gtool)
 _TAGKEYS = get_exif_tagids(tag_list)
 _TAGDEFAULTS = (-1, (-1, -1))
@@ -92,8 +94,9 @@ class IBEISControl(object):
     def add_images(ibs, gpath_list):
         """ Adds a list of image paths to the database. Returns newly added gids """
         print('[ibs] add_images')
+        print('[ibs] len(gpath_list) = %d' % len(gpath_list))
 
-        def _sql_qres_gen(gpath_list):
+        def _add_images_paramters_gen(gpath_list):
             """ executes sqlcmd with generated sqlvals """
             for gpath in gpath_list:
                 pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
@@ -102,9 +105,14 @@ class IBEISControl(object):
                 gid = util_hash.image_uuid(pil_img)  # Read pixels ]-hash-> guid = gid
                 yield (gid, gpath, width, height, time, lat, lon)
 
+        # Build parameter list early so we can grab the gids
+        param_list = [parameters for parameters in _add_images_paramters_gen(gpath_list)]
+        gid_list   = [parameters[0] for paramters in param_list]
+
+        # TODO have to handle duplicate images better here
         ibs.db.executemany(
             operation='''
-            INSERT INTO images(
+            INSERT or IGNORE INTO images(
                 image_uid,
                 image_uri,
                 image_width,
@@ -114,9 +122,8 @@ class IBEISControl(object):
                 image_exif_gps_lon
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ''',
-            parameters_iter=_sql_qres_gen(gpath_list),
+            parameters_iter=param_list,
             errmsg='[ibs.add_images] ERROR!')
-        gid_list = [-1 for _ in xrange(len(gpath_list))]
         return gid_list
 
     def add_rois(ibs, gid_list, bbox_list, theta_list):
@@ -292,7 +299,7 @@ class IBEISControl(object):
         return get_valid_tblname_ids()
 
     # Image Getters (input gid_list)
-
+    @utool.indent_decor('[get_valid_gids]')
     def get_valid_gids(ibs):
         ibs.db.execute(
             operation='''
@@ -301,22 +308,33 @@ class IBEISControl(object):
             ''',
             errmsg='[ibs.get_valid_gids] ERROR')
         gid_iter = ibs.db.result_iter()
-        return gid_iter
+        gid_list = list(gid_iter)
+        return gid_list
 
+    @utool.indent_decor('[get_images]')
+    @utool.accepts_scalar_input
     def get_images(ibs, gid_list):
         """
             Returns a list of images in numpy matrix form by gid
             NO SQL REQUIRED, DEPENDS ON get_image_paths()
         """
+        print('[DEBUG] get_images')
+        print('[DEBUG] len(gid_list)=%r' % len(gid_list))
         gpath_list = ibs.get_image_paths(gid_list)
+        print('[DEBUG] len(gpath_list)=%r' % len(gid_list))
         image_iter = (gtool.imread(gpath) for gpath in gpath_list)
-        return image_iter
+        image_list = list(image_iter)
+        print('[DEBUG] len(image_list)=%r' % len(image_list))
+        return image_list
 
+    @utool.indent_decor('[get_image_paths]')
+    @utool.accepts_scalar_input
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths by gid """
-        print('[DEBUG] get_image_paths(gid_list=%r)' % gid_list)
-
-        ibs.db.executemany(
+        print('[DEBUG] get_image_paths')
+        print('[DEBUG] len(gid_list)=%r' % len(gid_list))
+        # TODO: Fixeme. Executing multiple selects clobbers previous sql results
+        result_list = ibs.db.executemany(
             operation='''
             SELECT image_uri
             FROM images
@@ -324,27 +342,37 @@ class IBEISControl(object):
             ''',
             parameters_iter=((gid,) for gid in gid_list),
             errmsg='[ibs.get_image_paths] ERROR')
-        guri_iter = ibs.db.result_iter()
-        print('[DEBUG] guri_iter=%r' % guri_iter)
         img_dir = join(ibs.dbdir, 'images')
-        gpath_list = (join(img_dir, guri) for guri in guri_iter)
-        print('[DEBUG] gpath_list=%r' % gpath_list)
+        gpath_iter = (join(img_dir, guri) for guri in result_list)
+        #print('[DEBUG] gpath_iter=%r' % gpath_iter)
+        gpath_list = list(gpath_iter)
+        assert len(gpath_list) == len(gid_list), 'input is not the same size as the output'
+        print('[DEBUG] len(gpath_list)=%r' % len(gpath_list))
         return gpath_list
 
+    @utool.indent_decor('[get_image_aifs]')
+    @utool.accepts_scalar_input
     def get_image_aifs(ibs, gid_list):
         aif_list = [False for gid in gid_list]
         return aif_list
 
+    @utool.indent_decor('[get_image_gnames]')
+    @utool.accepts_scalar_input
     def get_image_gnames(ibs, gid_list):
+        print('[DEBUG] get_image_gnames()')
+        print('[DEBUG] len(gid_list)=%r' % len(gid_list))
         gpath_list = ibs.get_image_paths(gid_list)
-        gname_list = map(lambda gpath: split(gpath)[1], gpath_list)
+        gname_list = [split(gpath)[1] for gpath in gpath_list]
+        print('[DEBUG] len(gname_list)=%r' % len(gname_list))
         return gname_list
 
+    @utool.accepts_scalar_input
     def get_image_size(ibs, gid_list):
         """ Returns a list of image dimensions by gid in (width, height) tuples """
         gsize_list = [(0, 0) for gid in gid_list]
         return gsize_list
 
+    @utool.accepts_scalar_input
     def get_image_unixtime(hs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
@@ -352,11 +380,13 @@ class IBEISControl(object):
         unixtime_list = [-1 for gid in gid_list]
         return unixtime_list
 
+    @utool.accepts_scalar_input
     def get_image_eid(ibs, gid_list):
         """ Returns a list of encounter ids for each image by gid """
         eid_list = [-1 for gid in gid_list]
         return eid_list
 
+    @utool.accepts_scalar_input
     def get_cids_in_gids(ibs, gid_list):
         """ Returns a list of cids for each image by gid,
             e.g. [(1, 2), (3), (), (4, 5, 6) ...] """
@@ -364,6 +394,7 @@ class IBEISControl(object):
         cids_list = [[] for gid in gid_list]
         return cids_list
 
+    @utool.accepts_scalar_input
     def get_num_cids_in_gids(ibs, gid_list):
         """ Returns the number of chips associated with a list of images by gid """
         return map(len, ibs.get_cids_in_gids(gid_list))
@@ -441,13 +472,14 @@ class IBEISControl(object):
     def get_names(ibs, nid_list):
         return ['name-%r' % nid for nid in nid_list]
 
-    def get_chips_in_name(ibs, nid_list):
+    def get_cids_in_nids(ibs, nid_list):
         """ returns a list of list of cids in each name """
         # for each name return chips in that name
-        pass
+        cids_list = [[] for _ in xrange(len(nid_list))]
+        return cids_list
 
-    def get_num_cids_in_name(ibs, nid_list):
-        return map(len, ibs.get_chips_in_name(nid_list))
+    def get_num_cids_in_nids(ibs, nid_list):
+        return map(len, ibs.get_cids_in_nids(nid_list))
 
     # Encounter Getters (input eid_list)
 

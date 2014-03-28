@@ -26,17 +26,22 @@ def get_arg(arg, type_=None, default=None, **kwargs):
 
 def get_flag(arg, default=False, help_='', **kwargs):
     'Checks if the commandline has a flag or a corresponding noflag'
-    if arg.find('--') != 0:
-        raise Exception(arg)
-    #if arg.find('--no') == 0:
-        #arg = arg.replace('--no', '--')
-    noarg = arg.replace('--', '--no')
-    if arg in sys.argv:
-        return True
-    elif noarg in sys.argv:
-        return False
+    if isinstance(arg, (tuple, list)):
+        arg_list = arg
     else:
-        return default
+        arg_list = [arg]
+    for arg in arg_list:
+        if arg.find('--') != 0 and (len(arg) == 2 and arg.find('-') == 0):
+            raise AssertionError(arg)
+        #if arg.find('--no') == 0:
+            #arg = arg.replace('--no', '--')
+        noarg = arg.replace('--', '--no')
+        if arg in sys.argv:
+            return True
+        elif noarg in sys.argv:
+            return False
+        else:
+            return default
     return default
 
 

@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
+import functools
 from .util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
@@ -115,19 +116,15 @@ class Indenter(object):
         self.stop()
 
 
-def rectify_wrapped_func(wrapper, func):
-    wrapper.func_name = func.func_name
-
-
 def indent_decor(lbl):
-    def indent_decor2(func):
-        def indent_wrapper(*args, **kwargs):
+    def indent_decor_wrapper1(func):
+        @functools.wraps(func)
+        def indent_decor_wrapper2(*args, **kwargs):
             with Indenter(lbl):
                 ret = func(*args, **kwargs)
                 return ret
-        rectify_wrapped_func(indent_wrapper, func)
-        return indent_wrapper
-    return indent_decor2
+        return indent_decor_wrapper2
+    return indent_decor_wrapper1
 
 
 def printshape(arr_name, locals_):

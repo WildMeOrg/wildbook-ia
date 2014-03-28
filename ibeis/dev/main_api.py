@@ -6,6 +6,7 @@ sys.argv.append('--strict')
 
 def _on_ctrl_c(signal, frame):
     print('Caught ctrl+c')
+    _close_parallel()
     sys.exit(0)
 
 #-----------------------
@@ -83,14 +84,25 @@ def _guitool_loop(main_locals):
 
 
 def _ipython_loop(main_locals):
-    from utool import util_dbg
-    embedded = util_dbg.inIPython()
+    import utool
+    embedded = utool.util_dbg.inIPython()
     if not embedded:
+        exec_lines = []
         if 'back' in main_locals:
-            import guitool
-            back = main_locals['back']
-            guitool.qtapp_loop_nonblocking(back)
-        util_dbg.embed(parent_locals=main_locals)
+            import guitool  # NOQA
+            back = main_locals['back']  # NOQA
+            #exec_lines.append('guitool.qtapp_loop_nonblocking(back)')
+        def fixgui():
+            from IPython.lib.inputhook import enable_qt4
+            from IPython.lib.guisupport import start_event_loop_qt4
+            print('[guitool] Starting ipython qt4 hook')
+            enable_qt4()
+            start_event_loop_qt4(guitool.get_qtapp())
+        print('Embedding run fix_gui to actually see whats going on')
+        main_locals.update(locals())
+        utool.util_dbg.embed(parent_locals=main_locals,
+                             parent_globals=globals(),
+                             exec_lines=exec_lines)
         return True
     return False
 
@@ -135,16 +147,18 @@ def main_loop(main_locals, loop=True, rungui=True):
     print('[main] ibeis.main_api.main_loop()')
     from ibeis.dev import params
     try:
-        exit_bit = True
+        ipython_ran = False
+        guiloop_ran = not rungui
         if loop:
             # Choose a main loop depending on params.args
-            if exit_bit and params.args.cmd:
-                exit_bit = _ipython_loop(main_locals)
-            if rungui and exit_bit and not params.args.nogui:
-                exit_bit = _guitool_loop(main_locals)
+            if params.args.cmd:
+                ipython_ran = _ipython_loop(main_locals)
+                rungui = rungui and ipython_ran
+            if rungui and not params.args.nogui:
+                guiloop_ran = _guitool_loop(main_locals)
         _reset_signals()
         _close_parallel()
-        if exit_bit:
+        if guiloop_ran or ipython_ran:
             # Exit cleanly if a main loop ran
             print('[main] ibeis clean exit')
             #sys.exit(0)

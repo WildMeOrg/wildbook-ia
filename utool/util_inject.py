@@ -107,9 +107,10 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
         from util.util_inject import inject
         print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     '''
-    rrr         = inject_reload_function(module_name, module_prefix, module)
-    profile     = inject_profile_function(module_name, module_prefix, module)
-    print_funcs = inject_print_functions(module_name, module_prefix, DEBUG, module)
+    module = _get_module(module_name, module)
+    rrr         = inject_reload_function(None, module_prefix, module)
+    profile     = inject_profile_function(None, module_prefix, module)
+    print_funcs = inject_print_functions(None, module_prefix, DEBUG, module)
     print, print_, printDBG = print_funcs
     return print, print_, printDBG, rrr, profile
 
