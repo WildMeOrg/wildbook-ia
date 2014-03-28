@@ -6,7 +6,7 @@ print, print_, printDBG = inject_print_functions(__name__, '[SQLITE3]', DEBUG=Fa
 VERBOSE = '--verbose' in sys.argv
 
 
-# SQL This should be the only file which import sqlite3
+# SQL This should be the only file which imports sqlite3
 try:
     # Try to import the correct version of sqlite3
     if VERBOSE:

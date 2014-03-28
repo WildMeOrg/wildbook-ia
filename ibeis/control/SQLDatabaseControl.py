@@ -28,7 +28,7 @@ class SQLDatabaseControl(object):
         fpath    = join(db.dir_, db.fname)
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
-        db.executor    = db.connection.cursor()
+        db.executor   = db.connection.cursor()
 
     def get_sql_version(db):
         db.execute('''
@@ -66,7 +66,7 @@ class SQLDatabaseControl(object):
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        #print('[sql.schema] ensuring table=%r' % table)
+        # print('[sql.schema] ensuring table=%r' % table)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -174,6 +174,9 @@ class SQLDatabaseControl(object):
         # White iteration is efficient, I believe it still interupts
         # the sql work. If we let sql work uninterupted by python it
         # should go faster
+
+        # Jason: That's fine, it will just be a bigger memory footprint
+        # Speed vs Footprint
         caller_name = utool.util_dbg.get_caller_name()
         print('[sql.result_iter] caller_name=%r' % caller_name)
         while True:

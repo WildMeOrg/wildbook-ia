@@ -473,8 +473,7 @@ class IBEISControl(object):
         ibs.db.executemany(
             operation='''
             DELETE
-            FROM
-            chips
+            FROM chips
             WHERE chip_uid=?
             ''',
             parameters_iter=cid_iter,
