@@ -96,19 +96,25 @@ def _ipython_loop(main_locals):
 
 
 def main(**kwargs):
-    print('''
+    import utool
+    msg1 = '''
+    _____ ....... _______ _____ _______
+      |   |_____| |______   |   |______
+    ..|.. |.....| |______s__|__ ______|
+    '''
+    msg2 = '''
     _____ ______  _______ _____ _______
       |   |_____] |______   |   |______
     __|__ |_____] |______ __|__ ______|
-    ''')
+    '''
+    print(msg2 if not utool.getflag('--myway') in sys.argv else msg1)
     print('[main] ibeis.main_api.main()')
     try:
 
-        from utool.util_inject import _inject_colored_exception_hook
         from ibeis.dev import params
         _parse_args(**kwargs)
         _init_parallel()
-        _inject_colored_exception_hook()
+        utool.util_inject._inject_colored_exception_hook()
         _init_signals()
         if not params.args.nogui:
             back = _init_gui()
@@ -141,7 +147,7 @@ def main_loop(main_locals, loop=True, rungui=True):
         if exit_bit:
             # Exit cleanly if a main loop ran
             print('[main] ibeis clean exit')
-            sys.exit(0)
+            #sys.exit(0)
         else:
             # Something else happened
             print('[main] ibeis unclean exit')

@@ -8,7 +8,7 @@ from .util_print import Indenter
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
 
-def get_arg(arg, type_=None, default=None):
+def get_arg(arg, type_=None, default=None, **kwargs):
     arg_after = default
     if type_ is bool:
         arg_after = False if default is None else default
@@ -24,7 +24,7 @@ def get_arg(arg, type_=None, default=None):
     return arg_after
 
 
-def get_flag(arg, default=False):
+def get_flag(arg, default=False, help_='', **kwargs):
     'Checks if the commandline has a flag or a corresponding noflag'
     if arg.find('--') != 0:
         raise Exception(arg)
@@ -40,7 +40,7 @@ def get_flag(arg, default=False):
     return default
 
 
-def argv_flag(name, default):
+def argv_flag(name, default, **kwargs):
     if name.find('--') == 0:
         name = name[2:]
     if '--' + name in sys.argv and default is False:

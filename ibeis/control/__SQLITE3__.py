@@ -52,18 +52,19 @@ def REGISTER_SQLITE3_TYPES():
     # Tell SQL how to deal with numpy arrays
     def register_numpy():
         """ Utility function allowing numpy arrays to be stored as raw blob data """
-        printDBG('Register NUMPY with SQLite3')
-        lite.register_converter('NUMPY', _read_numpy_from_sqlite3)
-        lite.register_adapter(np.ndarray, _write_numpy_to_sqlite3)
+        print('Register NUMPY with SQLite3')
+        register_converter('NUMPY', _read_numpy_from_sqlite3)
+        register_adapter(np.ndarray, _write_numpy_to_sqlite3)
 
     def register_uuid():
         """ Utility function allowing uuids to be stored in sqlite """
-        printDBG('Register UUID with SQLite3')
-        lite.register_converter('UUID', _read_uuid_from_sqlite3)
-        lite.register_adapter(uuid.UUID, _write_uuid_to_sqlite3)
+        print('Register UUID with SQLite3')
+        register_converter('UUID', _read_uuid_from_sqlite3)
+        register_adapter(uuid.UUID, _write_uuid_to_sqlite3)
 
     register_numpy()
     register_uuid()
+REGISTER_SQLITE3_TYPES()
 
 # Clean namespace
 del REGISTER_SQLITE3_TYPES

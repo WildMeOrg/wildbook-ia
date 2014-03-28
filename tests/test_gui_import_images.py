@@ -1,56 +1,33 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import print_function, division
-import __sysreq__  # NOQA
-import __builtin__
-import sys
+import __testing__  # NOQA
 import multiprocessing
-from os.path import expanduser
-from ibeis.dev import main_api
+import utool
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_parallel]')
+printTEST = __testing__.printTEST
 
 
-INTERACTIVE = '--interactive' in sys.argv or '-i' in sys.argv
+@__testing__.testcontext
+def test_gui_import_images():
+    # Create a HotSpotter API (hs) and GUI backend (back)
+    printTEST('[TEST] TEST_ADD_IMAGES')
+    main_locals = __testing__.main()
+    ibs = main_locals['ibs']    # IBEIS Control
+    back = main_locals['back']  # IBEIS GUI backend
 
+    printTEST('[TEST] GET_TEST_IMAGE_PATHS', True)
+    # The test api returns a list of interesting chip indexes
+    gpath_list = __testing__.get_test_image_paths(ibs, ndata=None)
 
-def print(msg):
-    __builtin__.print('\n=============================')
-    __builtin__.print(msg)
-    if INTERACTIVE:
-        raw_input('press enter to continue')
+    print('[TEST] IMPORT IMAGES FROM FILE\ngpath_list=%r' % gpath_list)
+    gid_list = back.import_images_from_file(gpath_list)
 
-
-def  get_test_image_paths(ibs, nTest=None):
-    if nTest is None:
-        test_gpaths = [expanduser('/lena.png')]
-    if INTERACTIVE:
-        test_gpaths = None
-    return test_gpaths
+    print('[TEST] gid_list=%r' % gid_list)
+    __testing__.main_loop(main_locals)
 
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    try:
-        # Create a HotSpotter API (hs) and GUI backend (back)
-        print('[TEST] TEST_ADD_IMAGES')
-        main_locals = main_api.main(defaultdb='testdb')
-        ibs = main_locals['ibs']    # IBEIS Control
-        back = main_locals['back']  # IBEIS GUI backend
-
-        print('[TEST] GET_TEST_IMAGE_PATHS')
-        # The test api returns a list of interesting chip indexes
-        gpath_list = get_test_image_paths(ibs, nTest=None)
-
-        print('[TEST] IMPORT IMAGES FROM FILE\ngpath_list=%r' % gpath_list)
-        gid_list = back.import_images_from_file(gpath_list)
-
-        # Run Qt Loop to use the GUI
-        print('[TEST] MAIN_LOOP')
-        main_api.main_loop(main_locals, rungui=True)
-
-    except Exception as ex:
-        print('[TEST] test_add_images FAILED: %s %s' % (type(ex), ex))
-        if 'ibs' in vars() and ibs is not None:
-            ibs.db.dump()
-        if '--strict' in sys.argv:
-            raise
+    test_gui_import_images()

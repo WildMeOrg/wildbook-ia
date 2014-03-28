@@ -12,9 +12,60 @@ from os.path import expanduser
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
+COMPUTER_NAME = platform.node()
+
+WIN32         = sys.platform.startswith('win32')
+LINUX         = sys.platform.startswith('linux')
+DARWIN        = sys.platform.startswith('darwin')
+
 
 def get_computer_name():
-    return platform.node()
+    return COMPUTER_NAME
+
+
+def getroot():
+    root = {
+        'WIN32': 'C:\\',
+        'LINUX': '/',
+        'DARWIN': '/',
+    }[sys.platform]
+    return root
+
+
+def startfile(fpath):
+    print('[cplat] startfile(%r)' % fpath)
+    if not exists(fpath):
+        raise Exception('Cannot start nonexistant file: %r' % fpath)
+    if LINUX:
+        out, err, ret = cmd(['xdg-open', fpath], detatch=True)
+        if not ret:
+            raise Exception(out + ' -- ' + err)
+    elif DARWIN:
+        out, err, ret = cmd(['open', fpath], detatch=True)
+        if not ret:
+            raise Exception(out + ' -- ' + err)
+    else:
+        os.startfile(fpath)
+    pass
+
+
+def view_directory(dname=None):
+    'view directory'
+    print('[cplat] view_directory(%r) ' % dname)
+    dname = os.getcwd() if dname is None else dname
+    open_prog = {'win32': 'explorer.exe',
+                 'linux2': 'nautilus',
+                 'darwin': 'open'}[sys.platform]
+    os.system(open_prog + ' ' + normpath(dname))
+
+
+def get_resource_dir():
+    if WIN32:
+        return expanduser('~/AppData/Roaming')
+    if LINUX:
+        return expanduser('~/.config')
+    if DARWIN:
+        return expanduser('~/Library/Application Support')
 
 
 def cmd(*args, **kwargs):
@@ -29,7 +80,7 @@ def cmd(*args, **kwargs):
             args = shlex.split(args)
         else:
             args = [args]
-    if sudo is True and not sys.platform.startswith('win32'):
+    if sudo is True and not WIN32:
         args = ['sudo'] + args
     print('[cplat] Running: %r' % (args,))
     PIPE = subprocess.PIPE
@@ -59,37 +110,3 @@ def cmd(*args, **kwargs):
     return out, err, ret
 
 
-def startfile(fpath):
-    print('[cplat] startfile(%r)' % fpath)
-    if not exists(fpath):
-        raise Exception('Cannot start nonexistant file: %r' % fpath)
-    if sys.platform.startswith('linux'):
-        out, err, ret = _cmd(['xdg-open', fpath], detatch=True)
-        if not ret:
-            raise Exception(out + ' -- ' + err)
-    elif sys.platform.startswith('darwin'):
-        out, err, ret = _cmd(['open', fpath], detatch=True)
-        if not ret:
-            raise Exception(out + ' -- ' + err)
-    else:
-        os.startfile(fpath)
-    pass
-
-
-def view_directory(dname=None):
-    'view directory'
-    print('[cplat] view_directory(%r) ' % dname)
-    dname = os.getcwd() if dname is None else dname
-    open_prog = {'win32': 'explorer.exe',
-                 'linux2': 'nautilus',
-                 'darwin': 'open'}[sys.platform]
-    os.system(open_prog + ' ' + normpath(dname))
-
-
-def get_resource_dir():
-    if sys.platform.startswith('win32'):
-        return expanduser('~/AppData/Roaming')
-    if sys.platform.startswith('linux'):
-        return expanduser('~/.config')
-    if sys.platform.startswith('darwin'):
-        return expanduser('~/Library/Application Support')

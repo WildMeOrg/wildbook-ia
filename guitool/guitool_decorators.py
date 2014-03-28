@@ -5,6 +5,9 @@ from PyQt4.QtCore import Qt      # NOQA
 DEBUG = False
 
 
+signal_ = QtCore.pyqtSignal
+
+
 # SLOT DECORATOR
 def slot_(*types):  # This is called at wrap time to get args
     '''
@@ -22,9 +25,6 @@ def slot_(*types):  # This is called at wrap time to get args
         slot_wrapper.func_name = func_name
         return slot_wrapper
     return pyqtSlotWrapper
-
-
-signal_ = QtCore.pyqtSignal
 
 
 # DRAWING DECORATOR

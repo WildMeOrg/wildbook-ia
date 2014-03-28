@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import shelve
+import atexit
 from os.path import join, normpath
 from .util_inject import inject
 from . import util_path
@@ -124,3 +125,6 @@ def delete_global_cache():
     close_global_shelf()
     shelf_fpath = get_global_shelf_fpath()
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
+
+
+atexit.register(close_global_shelf)  # ensure proper cleanup when exiting python

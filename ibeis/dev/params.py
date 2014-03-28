@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from os.path import exists, join, realpath
+from os.path import exists, join, realpath, dirname
 import utool
 from utool import util_arg, util_cache
 
@@ -84,7 +84,7 @@ def get_dbalias_dict():
     return dbalias_dict
 
 
-def db_to_dbdir(db):
+def db_to_dbdir(db, allow_newdir=False):
     import os
     import sys
     import utool
@@ -93,6 +93,11 @@ def db_to_dbdir(db):
     dbalias_dict = get_dbalias_dict()
     if not exists(dbdir) and db.upper() in dbalias_dict:
         dbdir = join(work_dir, dbalias_dict[db.upper()])
+
+    if not exists(dbdir) and allow_newdir:
+        if exists(dirname(dbdir)):
+            print('[params] MAKE DIR: %r' % dbdir)
+            os.mkdir(dbdir)
     if not exists(dbdir):
         print('!!!!!!!!!!!!!!!!!!!!!')
         print('[params] WARNING: db=%r not found in work_dir=%r' %
@@ -120,7 +125,7 @@ def db_to_dbdir(db):
     return dbdir
 
 
-def parse_args(defaultdb='cache', **kwargs):
+def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
     # TODO: Port more from hotspotter/hsdev/argparse2.py
     # TODO: Incorporate kwargs
     global args
@@ -165,6 +170,6 @@ def parse_args(defaultdb='cache', **kwargs):
                         # Read dbdir from cache
                         args.dbdir = util_cache.global_cache_read('cached_dbdir', default=None)
                 else:
-                    args.dbdir = db_to_dbdir(args.db)
+                    args.dbdir = db_to_dbdir(args.db, allow_newdir=allow_newdir)
         return args
     args = postprocess(args)

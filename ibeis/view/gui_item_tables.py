@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 from itertools import izip
 import numpy as np
+import utool
 
 
 # A map from short internal headers to fancy headers seen by the user
@@ -75,16 +76,13 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'unixtime': lambda gids: ibs.get_image_unixtime(gids),
         }
     elif tblname in ['cxs', 'res']:
-        # Tau is the future. Unfortunately society is often stuck in the past.
-        # (tauday.com) ~half sarcasm~
-        FUTURE_FLAG = False
-        tau = (2 * np.pi)
-        taustr = 'tau' if FUTURE_FLAG else '2pi'
+        np.tau = (2 * np.pi)
+        taustr = 'tau' if utool.get_flag('--myway') else '2pi'
 
         def theta_str(theta):
             'Format theta so it is interpretable in base 10'
             #coeff = (((tau - theta) % tau) / tau)
-            coeff = (theta / tau)
+            coeff = (theta / np.tau)
             return ('%.2f * ' % coeff) + taustr
 
         cols = {

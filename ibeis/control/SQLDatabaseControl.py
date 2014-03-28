@@ -33,7 +33,7 @@ class SQLDatabaseControl(object):
     def get_sql_version(db):
         db.execute('''
                  SELECT sqlite_version()
-                 ''')
+                 ''', verbose=False)
         sql_version = db.result()
 
         print('[sql] SELECT sqlite_version = %r' % (sql_version,))
@@ -76,9 +76,10 @@ class SQLDatabaseControl(object):
         op_body = ', '.join(body_list)
         op_foot = ')'
         operation = op_head + op_body + op_foot
-        db.execute(operation, [])
+        db.execute(operation, [], verbose=False)
 
-    def execute(db, operation, parameters=(), auto_commit=False, errmsg=None):
+    def execute(db, operation, parameters=(), auto_commit=False, errmsg=None,
+                verbose=True):
         """
             operation - parameterized SQL operation string.
                 Parameterized prevents SQL injection attacks by using an ordered
@@ -95,25 +96,28 @@ class SQLDatabaseControl(object):
                     arbirtary order that will be filled into the cooresponging
                     slots of the sql operation string
         """
-        caller_name = utool.util_dbg.get_caller_name()
-        print('[sql.execute] caller_name=%r' % caller_name)
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql.execute] caller_name=%r' % caller_name)
         status = False
         try:
             status = db.executor.execute(operation, parameters)
             if auto_commit:
-                db.commit()
+                db.commit(verbose=False)
         except Exception as ex:
             print('[sql] Caught Exception: %r' % (ex,))
             status = True
             raise
         return status
 
-    def executemany(db, operation, parameters_iter, auto_commit=True, errmsg=None):
+    def executemany(db, operation, parameters_iter, auto_commit=True,
+                    errmsg=None, verbose=True):
         """ same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
-        caller_name = utool.util_dbg.get_caller_name()
-        print('[sql.executemany] caller_name=%r' % caller_name)
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql.executemany] caller_name=%r' % caller_name)
         #import textwrap
         #operation = textwrap.dedent(operation).strip()
         try:
@@ -149,7 +153,7 @@ class SQLDatabaseControl(object):
 
         try:
             if auto_commit:
-                db.commit(qstat_flag_list, errmsg)
+                db.commit(qstat_flag_list, errmsg, verbose=False)
             else:
                 return qstat_flag_list
         except Exception as ex2:
@@ -159,9 +163,10 @@ class SQLDatabaseControl(object):
             print('</!!! ERROR>\n')
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
-    def result(db):
-        caller_name = utool.util_dbg.get_caller_name()
-        print('[sql.result] caller_name=%r' % caller_name)
+    def result(db, verbose=True):
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
 
     def result_iter(db):
@@ -172,20 +177,21 @@ class SQLDatabaseControl(object):
         caller_name = utool.util_dbg.get_caller_name()
         print('[sql.result_iter] caller_name=%r' % caller_name)
         while True:
-            result = db.result()
+            result = db.result(verbose=False)
             if not result:
                 raise StopIteration()
             yield result[0]
 
-    def commit(db, qstat_flag_list=[], errmsg=None):
+    def commit(db, qstat_flag_list=[], errmsg=None, verbose=True):
         """
             Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         """
-        caller_name = utool.util_dbg.get_caller_name()
-        print('[sql.commit] caller_name=%r' % caller_name)
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql.commit] caller_name=%r' % caller_name)
         if not all(qstat_flag_list):
             raise lite.DatabaseError(errmsg)
         else:
@@ -203,14 +209,17 @@ class SQLDatabaseControl(object):
             file. The default will store a dump parallel to the current
             database file.
         """
-        if file_ is None:
-            dump_dir = db.dir_
-            dump_fname = db.fname + '.dump.txt'
-            dump_fpath = join(dump_dir, dump_fname)
+        if file_ is None or isinstance(file_, str):
+            if file_ is None:
+                dump_dir = db.dir_
+                dump_fname = db.fname + '.dump.txt'
+                dump_fpath = join(dump_dir, dump_fname)
+            else:
+                dump_fpath = file_
             with open(dump_fpath, 'w') as file_:
                 db.dump(file_)
         else:
             print('[sql.dump]')
-            db.commit()
+            db.commit(verbose=False)
             for line in db.connection.iterdump():
                 file_.write('%s\n' % line)

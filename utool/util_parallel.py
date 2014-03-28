@@ -6,6 +6,8 @@ This way we can print out progress.
 '''
 from __future__ import print_function, division
 import multiprocessing
+import atexit
+import sys
 from .util_progress import progress_func
 
 
@@ -22,7 +24,6 @@ def init_pool(num_procs=None, maxtasksperchild=None):
         print('[parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
-    import sys
     if '--strict' in sys.argv:
         assert __POOL__ is None, 'pool is a singleton. can only initialize once'
         assert multiprocessing.current_process().name, 'can only initialize from main process'
@@ -35,8 +36,8 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 
 def close_pool():
     global __POOL__
-    print('[parallel] closing pool')
     if __POOL__ is not None:
+        print('[parallel] closing pool')
         if __POOL__ != 1:
             # Must join after close to avoid runtime errors
             __POOL__.close()
@@ -66,7 +67,6 @@ def _process_parallel(func, args_list, args_dict={}):
                                         lbl=func.func_name + ': ')
     def _callback(result):
         mark_prog(num_tasks_returned_ptr[0])
-        import sys
         sys.stdout.flush()
         num_tasks_returned_ptr[0] += 1
     # Send all tasks to be executed asynconously
@@ -92,3 +92,5 @@ def process(func, args_list, args_dict={}):
         print('[parallel] executing %d %s tasks using %d processes' % _tup)
         result_list = _process_parallel(func, args_list, args_dict)
     return result_list
+
+atexit.register(close_pool)
