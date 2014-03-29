@@ -2,6 +2,9 @@ from __future__ import division, print_function
 import functools
 from PyQt4 import QtCore, QtGui  # NOQA
 from PyQt4.QtCore import Qt      # NOQA
+import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+                                                       '[guitool.decorators]', DEBUG=False)
 
 DEBUG = False
 
@@ -16,7 +19,7 @@ def slot_(*types):  # This is called at wrap time to get args
     *args = types
     '''
     def pyqtSlotWrapper(func):
-        print('[GUITOOL._SLOT] Wrapping: %r' % func.func_name)
+        printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.func_name)
         @QtCore.pyqtSlot(*types, name=func.func_name)
         def slot_wrapper(self, *args, **kwargs):
             result = func(self, *args, **kwargs)

@@ -37,9 +37,20 @@ from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
                       Qt, QObject, pyqtSlot, QKeyEvent)
 # utool
 import utool
-from utool import *
+from utool import *  # NOQA
 # vtool
 import vtool
-from vtool import *
+from vtool import *  # NOQA
 # Guitool
 import guitool
+import drawtool
+
+
+def get_ibeis_modules():
+    ibeis_modules = [
+        utool,
+        vtool,
+        guitool,
+        drawtool
+    ]
+    return ibeis_modules

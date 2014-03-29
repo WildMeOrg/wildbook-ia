@@ -24,6 +24,7 @@ from ibeis.control import IBEISControl
 UUID_type = gui_item_tables.UUID_type
 
 
+# Qt returns types weirdly via slots. Need to cast them
 def uuid_cast(qtinput):
     return uuid.UUID(UUID_type(qtinput))
 
@@ -38,12 +39,11 @@ def backblock(func):
         try:
             result = func(back, *args, **kwargs)
         except Exception as ex:
-            raise
             back.front.blockSignals(wasBlocked_)
             print('!!!!!!!!!!!!!')
             print('[guiback] caught exception in %r' % func.func_name)
             print(traceback.format_exc())
-            back.user_info('Error:\nex=%r' % ex)
+            back.user_info(msg=str(ex), title=str(type(ex)))
             raise
         back.front.blockSignals(wasBlocked_)
         return result
@@ -53,14 +53,14 @@ def backblock(func):
 def blocking_slot(*types_):
     def wrap1(func):
         def wrap2(*args, **kwargs):
-            print('[back*] ' + func.func_name)
+            printDBG('[back*] ' + func.func_name)
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
         wrap2 = functools.update_wrapper(wrap2, func)
         wrap3 = slot_(*types_)(backblock(wrap2))
         wrap3 = functools.update_wrapper(wrap3, func)
-        print('blocking slot: %r' % wrap3.func_name)
+        printDBG('blocking slot: %r' % wrap3.func_name)
         return wrap3
     return wrap1
 
@@ -210,14 +210,14 @@ class MainWindowBackend(QtCore.QObject):
     # Helper functions
     #--------------------------------------------------------------------------
 
-    def user_info(back, *args, **kwargs):
-        return guitool.user_info(parent=back.front, *args, **kwargs)
+    def user_info(back, **kwargs):
+        return guitool.user_info(parent=back.front, **kwargs)
 
     def user_input(back, *args, **kwargs):
-        return guitool.user_input(parent=back.front, *args, **kwargs)
+        return guitool.user_input(parent=back.front, **kwargs)
 
     def user_option(back, *args, **kwargs):
-        return guitool.user_option(parent=back.front, *args, **kwargs)
+        return guitool.user_option(parent=back.front, **kwargs)
 
     def get_work_directory(back):
         return params.get_workdir()
@@ -517,7 +517,13 @@ class MainWindowBackend(QtCore.QObject):
     def dev_reload(back):
         # Help -> Developer Reload
         print('[back] dev_reload')
-        pass
+        from ibeis.dev import debug_imports
+        ibeis_modules = debug_imports.get_ibeis_modules()
+        for module in ibeis_modules:
+            if not hasattr(module, 'rrr'):
+                utool.inject_reload_function(module=module)
+            if hasattr(module, 'rrr'):
+                module.rrr()
 
     @blocking_slot()
     def dev_mode(back):

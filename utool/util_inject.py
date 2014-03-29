@@ -14,6 +14,19 @@ __FLUSH_FUNC__ = __STDOUT__.flush
 
 __INJECTED_MODULES__ = set([])
 
+# Do not inject into these modules
+__INJECT_BLACKLIST__ = frozenset(['tri', 'gc', 'sys', 'string', 'types', '_dia', 'responce', 'six', __name__])
+
+
+def _inject_funcs(module, *func_list):
+    for func in func_list:
+        if not (module is None or
+                not hasattr(module, '__name__') or
+                module.__name__ in __INJECT_BLACKLIST__ or
+                module.__name__.startswith('six'),
+                module.__name__.startswith('sys')):
+            setattr(module, func.func_name, func)
+
 
 def _add_injected_module(module):
     global __INJECTED_MODULES__
@@ -76,18 +89,27 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     module.print  = print
     module.print_ = print_
     module.printDBG = printDBG
+    _inject_funcs(module, print, print_, printDBG)
     return print, print_, printDBG
 
 
 def inject_reload_function(module_name=None, module_prefix='[???]', module=None):
     'Injects dynamic module reloading'
     module = _get_module(module_name, module)
+    if module_name is None:
+        module_name = str(module.__name__)
     def rrr():
         'Dynamic module reloading'
-        import imp
-        __builtin__.print(module_prefix + ' reloading ' + module_name)
-        imp.reload(module)
-    module.rrr = rrr
+        try:
+            import imp
+            __builtin__.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)
+            imp.reload(module)
+        except Exception as ex:
+            print(ex)
+            print('%s Failed to reload' % module_prefix)
+            raise
+    _inject_funcs(module, rrr)
+    return rrr
 
 
 def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
@@ -96,7 +118,7 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
         profile = module.profile
     except AttributeError:
         profile = lambda func: func
-    module.profile = profile
+    _inject_funcs(module, profile)
     return profile
 
 
@@ -120,17 +142,18 @@ def inject_all(DEBUG=False):
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
     '''
-    for key, val in sys.modules.items():
-        if val is None:
+    for key, module in sys.modules.items():
+        if module is None or not hasattr(module, '__name__'):
             continue
         try:
             module_prefix = '[%s]' % key
             inject(module_name=key, module_prefix=module_prefix, DEBUG=DEBUG)
         except Exception as ex:
-            print(ex)
-            print('key=%r' % key)
-            print('val=%r' % val)
+            print('<!!!>')
+            print('[util_inject] Cannot Inject: %s: %s' % (type(ex), ex))
+            print('[util_inject] key=%r' % key)
+            print('[util_inject] module=%r' % module)
+            print('</!!!>')
             raise
-
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')
