@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 # Python
-from os.path import split
+from os.path import split, exists
 import functools
 import traceback
 import uuid
@@ -16,6 +16,7 @@ from ibeis.view import gui_item_tables
 from ibeis.view import interact
 # Utool
 import utool
+from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
 
 
@@ -51,6 +52,7 @@ def backblock(func):
 def blocking_slot(*types_):
     def wrap1(func):
         def wrap2(*args, **kwargs):
+            print('[back*] ' + func.func_name)
             return func(*args, **kwargs)
         wrap3 = functools.update_wrapper(slot_(*types_)(backblock(wrap2)), func)
         return wrap3
@@ -293,16 +295,29 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def new_database(back, new_dbdir=None):
         # File -> New Database
+        print('[back] ')
+        if new_dbdir is None:
+            print('TODO: SELECT A DIRECTORY')
+            new_dbdir = guitool.select_directory('Select new database directory')
+            if new_dbdir == '':
+                return
+
+        if not exists(new_dbdir):
+            utool.ensuredir(new_dbdir, verbose=True)
+            ibs = IBEISControl.IBEISControl(dbdir=new_dbdir)
+            back.connect_ibeis_control(ibs)
         pass
 
     @blocking_slot()
     def open_database(back, dbdir=None):
         # File -> Open Database
+        print('[back] ')
         pass
 
     @blocking_slot()
     def save_database(back):
         # File -> Save Database
+        print('[back] ')
         pass
 
     @blocking_slot()
@@ -351,6 +366,7 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def quit(back):
         # File -> Quit
+        print('[back] ')
         guitool.exit_application()
 
     #--------------------------------------------------------------------------
@@ -361,42 +377,50 @@ class MainWindowBackend(QtCore.QObject):
     def new_prop(back):
         # Action -> New Chip Property
         # Depricate?
+        print('[back] ')
         pass
 
     @blocking_slot()
     def add_chip(back, gid=None, roi=None, theta=0.0):
         # Action -> Add ROI
+        print('[back] ')
         pass
 
     @blocking_slot()
     def query(back, cid=None, **kwargs):
         # Action -> Query
+        print('[back] ')
         pass
 
     @blocking_slot()
     def reselect_roi(back, cid=None, roi=None, **kwargs):
         # Action -> Reselect ROI
+        print('[back] ')
         pass
 
     @blocking_slot()
     def reselect_ori(back, cid=None, theta=None, **kwargs):
         # Action -> Reselect ORI
+        print('[back] ')
         pass
 
     @blocking_slot()
     def delete_chip(back):
         # Action -> Delete Chip
+        print('[back] ')
         pass
 
     @blocking_slot(UUID_type)
     def delete_image(back, gid=None):
         # Action -> Delete Images
+        print('[back] ')
         gid = uuid_cast(gid)
         pass
 
     @blocking_slot()
     def select_next(back):
         # Action -> Next
+        print('[back] ')
         pass
 
     #--------------------------------------------------------------------------
@@ -406,10 +430,12 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def precompute_feats(back):
         # Batch -> Precompute Feats
+        print('[back] ')
         pass
 
     @blocking_slot()
     def precompute_queries(back):
+        print('[back] ')
         pass
 
     #--------------------------------------------------------------------------
@@ -419,18 +445,20 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def layout_figures(back):
         # Options -> Layout Figures
+        print('[back] ')
         pass
 
     @slot_()
     def edit_preferences(back):
+        print('[back] ')
         pass
         # Options -> Edit Preferences
-        back.edit_prefs = back.cfg.createQWidget()
-        epw = back.edit_prefs
-        epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
-        query_uid = ''.join(back.cfg.query_cfg.get_uid())
-        print('[back] query_uid = %s' % query_uid)
-        print('')
+        #back.edit_prefs = back.cfg.createQWidget()
+        #epw = back.edit_prefs
+        #epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
+        #query_uid = ''.join(back.cfg.query_cfg.get_uid())
+        #print('[back] query_uid = %s' % query_uid)
+        #print('')
 
     #--------------------------------------------------------------------------
     # Help menu slots
@@ -439,42 +467,51 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def view_docs(back):
         # Help -> View Documentation
+        print('[back] ')
         pass
 
     @slot_()
     def view_database_dir(back):
         # Help -> View Directory Slots
+        print('[back] ')
         pass
 
     @slot_()
     def view_computed_dir(back):
+        print('[back] ')
         pass
 
     @slot_()
     def view_global_dir(back):
+        print('[back] view_global_dir')
         pass
 
     @slot_()
     def delete_cache(back):
         # Help -> Delete Directory Slots
+        print('[back] delete_cache')
         pass
 
     @slot_()
     def delete_global_prefs(back):
         # RCOS TODO: Are you sure?
+        print('[back] delete_global_prefs')
         pass
 
     @slot_()
     def delete_queryresults_dir(back):
         # RCOS TODO: Are you sure?
+        print('[back] delete_queryresults_dir')
         pass
 
     @blocking_slot()
     def dev_reload(back):
         # Help -> Developer Reload
+        print('[back] dev_reload')
         pass
 
     @blocking_slot()
     def dev_mode(back):
-        # Help -> Developer Reload
+        # Help -> Developer Mode
+        print('[back] dev_mode')
         pass
