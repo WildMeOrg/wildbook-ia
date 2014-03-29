@@ -72,7 +72,7 @@ def connect_file_signals(front):
 def connect_action_signals(front):
     ui = front.ui
     back = front.back
-    ui.actionAdd_Chip.triggered.connect(back.add_chip)
+    ui.actionAdd_Chip.triggered.connect(back.add_roi)
     ui.actionNew_Chip_Property.triggered.connect(back.new_prop)
     ui.actionQuery.triggered.connect(back.query)
     ui.actionReselect_Ori.triggered.connect(back.reselect_ori)

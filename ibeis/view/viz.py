@@ -5,7 +5,7 @@ import numpy as np
 # UTool
 import utool
 # VTool
-import vtool.drawtool.draw_func2 as df2
+import drawtool.draw_func2 as df2
 import vtool.image as gtool
 from vtool import keypoint as ktool
 # IBEIS

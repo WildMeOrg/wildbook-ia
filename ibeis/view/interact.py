@@ -2,7 +2,7 @@ from __future__ import division, print_function
 # Scientific
 import numpy as np
 import utool
-from vtool.drawtool import draw_func2 as df2
+from drawtool import draw_func2 as df2
 # IBEIS
 from ibeis.view import viz
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact]', DEBUG=False)

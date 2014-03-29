@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib as mpl
 # vtool
 import vtool.keypoint as ktool
-from vtool.drawtool import mpl_sift
+import mpl_sift
 
 
 # TOOD: move to util

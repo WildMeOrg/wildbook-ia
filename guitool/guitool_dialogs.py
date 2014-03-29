@@ -82,8 +82,12 @@ def select_directory(caption='Select Directory', directory=None):
         'directory': directory_
     }
     dpath = str(qdlg.getExistingDirectory(**qtkw))
+    if dpath == '' or dpath is None:
+        dpath = None
+        return dpath
+    else:
+        util_cache.global_cache_write('guitool_selected_directory', split(dpath)[0])
     print('Selected Directory: %r' % dpath)
-    util_cache.global_cache_write('guitool_selected_directory', split(dpath)[0])
     return dpath
 
 

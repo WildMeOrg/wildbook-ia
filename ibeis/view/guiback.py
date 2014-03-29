@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 # Python
+import sys
 from os.path import split, exists
 import functools
 import traceback
@@ -53,8 +54,13 @@ def blocking_slot(*types_):
     def wrap1(func):
         def wrap2(*args, **kwargs):
             print('[back*] ' + func.func_name)
-            return func(*args, **kwargs)
-        wrap3 = functools.update_wrapper(slot_(*types_)(backblock(wrap2)), func)
+            result = func(*args, **kwargs)
+            sys.stdout.flush()
+            return result
+        wrap2 = functools.update_wrapper(wrap2, func)
+        wrap3 = slot_(*types_)(backblock(wrap2))
+        wrap3 = functools.update_wrapper(wrap3, func)
+        print('blocking slot: %r' % wrap3.func_name)
         return wrap3
     return wrap1
 
@@ -295,24 +301,27 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def new_database(back, new_dbdir=None):
         # File -> New Database
-        print('[back] ')
         if new_dbdir is None:
-            print('TODO: SELECT A DIRECTORY')
+            print('[back] new_database(): SELECT A DIRECTORY')
             new_dbdir = guitool.select_directory('Select new database directory')
-            if new_dbdir == '':
+            if new_dbdir is None:
                 return
-
+        print('[back] new_database(new_dbdir=%r)' % new_dbdir)
         if not exists(new_dbdir):
             utool.ensuredir(new_dbdir, verbose=True)
-            ibs = IBEISControl.IBEISControl(dbdir=new_dbdir)
-            back.connect_ibeis_control(ibs)
-        pass
+        back.open_database(dbdir=new_dbdir)
 
     @blocking_slot()
     def open_database(back, dbdir=None):
         # File -> Open Database
-        print('[back] ')
-        pass
+        if dbdir is None:
+            print('[back] new_database(): SELECT A DIRECTORY')
+            dbdir = guitool.select_directory('Select new database directory')
+            if dbdir is None:
+                return
+        print('[back] open_database(dbdir=%r)' % dbdir)
+        ibs = IBEISControl.IBEISControl(dbdir=dbdir)
+        back.connect_ibeis_control(ibs)
 
     @blocking_slot()
     def save_database(back):
@@ -381,7 +390,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def add_chip(back, gid=None, roi=None, theta=0.0):
+    def add_roi(back, gid=None, roi=None, theta=0.0):
         # Action -> Add ROI
         print('[back] ')
         pass

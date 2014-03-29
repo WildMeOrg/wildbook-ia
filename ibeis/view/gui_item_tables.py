@@ -50,17 +50,17 @@ def _get_datatup_list(ibs, tblname, index_list, header_order, extra_cols):
     '''
     Used by guiback to get lists of datatuples by internal column names.
     '''
-    print('[gui] _get_datatup_list()')
+    printDBG('[gui] _get_datatup_list()')
     cols = _datatup_cols(ibs, tblname)
-    print('[gui] cols=%r' % cols)
+    printDBG('[gui] cols=%r' % cols)
     cols.update(extra_cols)
-    print('[gui] cols=%r' % cols)
+    printDBG('[gui] cols=%r' % cols)
     unknown_header = lambda indexes: ['ERROR!' for gx in indexes]
     get_tup = lambda header: cols.get(header, unknown_header)(index_list)
     unziped_tups = [get_tup(header) for header in header_order]
-    print('[gui] unziped_tups=%r' % unziped_tups)
+    printDBG('[gui] unziped_tups=%r' % unziped_tups)
     datatup_list = [tup for tup in izip(*unziped_tups)]
-    print('[gui] datatup_list=%r' % datatup_list)
+    printDBG('[gui] datatup_list=%r' % datatup_list)
     return datatup_list
 
 
@@ -69,7 +69,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
     Returns maps which map which maps internal column names
     to lazy evaluation functions which compute the data (hence the lambdas)
     '''
-    print('[gui] _datatup_cols()')
+    printDBG('[gui] _datatup_cols()')
     # Return requested columns
     if tblname == 'nids':
         cols = {
@@ -127,8 +127,8 @@ def make_header_lists(tbl_headers, editable_list, prop_keys=[]):
 def _get_table_headers_editable(tblname):
     headers = table_headers[tblname]
     editable = table_editable[tblname]
-    print('headers = %r ' % headers)
-    print('editable = %r ' % editable)
+    printDBG('headers = %r ' % headers)
+    printDBG('editable = %r ' % editable)
     col_headers, col_editable = make_header_lists(headers, editable)
     return col_headers, col_editable
 
@@ -137,7 +137,7 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols=
                             index_list=None, prefix_cols=[]):
     if index_list is None:
         index_list = ibs.get_valid_ids(tblname)
-    print('[tables] len(index_list) = %r' % len(index_list))
+    printDBG('[tables] len(index_list) = %r' % len(index_list))
     # Prefix datatup
     prefix_datatup = [[prefix_col.get(header, 'error')
                        for header in col_headers]
@@ -149,22 +149,22 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols=
 
 
 def emit_populate_table(back, tblname, *args, **kwargs):
-    print('>>>>>>>>>>>>>>>>>>>>>')
-    print('[gui_item_tables] _populate_table(%r)' % tblname)
+    printDBG('>>>>>>>>>>>>>>>>>>>>>')
+    printDBG('[gui_item_tables] _populate_table(%r)' % tblname)
     col_headers, col_editable = _get_table_headers_editable(tblname)
-    print('[gui_item_tables] col_headers = %r' % col_headers)
-    print('[gui_item_tables] col_editable = %r' % col_editable)
+    printDBG('[gui_item_tables] col_headers = %r' % col_headers)
+    printDBG('[gui_item_tables] col_editable = %r' % col_editable)
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
-    print('[gui_item_tables] datatup_list = %r' % datatup_list)
+    printDBG('[gui_item_tables] datatup_list = %r' % datatup_list)
     row_list = range(len(datatup_list))
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers[key]
                         if key in fancy_headers else key
                         for key in col_headers]
-    print('[gui] populateSignal.emit(%r, len=%r, len=%r, len=%r, len=%r)' %
-          ((tblname, len(col_fancyheaders), len(col_editable), len(row_list),
-            len(datatup_list))))
+    printDBG('[gui] populateSignal.emit(%r, len=%r, len=%r, len=%r, len=%r)' %
+             ((tblname, len(col_fancyheaders), len(col_editable), len(row_list),
+               len(datatup_list))))
     back.populateSignal.emit(tblname, col_fancyheaders, col_editable,
                              row_list, datatup_list)
 
@@ -223,7 +223,7 @@ def populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_l
             item.setTextAlignment(Qt.AlignHCenter)
             tbl.setItem(row, col, item)
 
-    #print(dbg_col2_dtype)
+    #printDBG(dbg_col2_dtype)
     tbl.setSortingEnabled(True)
     tbl.sortByColumn(sort_col, sort_ord)  # Move back to old sorting
     tbl.show()

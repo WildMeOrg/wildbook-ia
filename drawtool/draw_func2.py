@@ -1620,7 +1620,7 @@ def draw_keypoint_gradient_orientations(rchip, kp, sift=None, mode='vec', **kwar
     if mode == 'vec':
         draw_vector_field(gradx, grady, **kwargs)
     elif mode == 'col':
-        import vtool.drawtool as dtool
+        import drawtool as dtool
         gmag = ptool.patch_mag(gradx, grady)
         gori = ptool.patch_ori(gradx, grady)
         gorimag = dtool.color_orimag(gori, gmag)
@@ -2011,3 +2011,19 @@ def connect_callback(fig, callback_type, callback_fn):
     cbfn_type = callback_type + '_func'
     fig.__dict__[cbid_type] = fig.canvas.mpl_connect(callback_type, callback_fn)
     fig.__dict__[cbfn_type] = callback_fn
+
+
+def color_orimag(gori, gmag):
+    # Turn a 0 to 1 orienation map into hsv colors
+    gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
+    cmap_ = plt.get_cmap('hsv')
+    flat_rgb = np.array(cmap_(gori_01.flatten()), dtype=np.float32)
+    rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
+    rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
+    hsv_ori = cv2.cvtColor(rgb_ori, cv2.COLOR_RGB2HSV)
+    # Desaturate colors based on magnitude
+    hsv_ori[:, :, 1] = (gmag / 255.0)
+    hsv_ori[:, :, 2] = (gmag / 255.0)
+    # Convert back to bgr
+    bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
+    return bgr_ori

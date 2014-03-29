@@ -16,6 +16,7 @@ def slot_(*types):  # This is called at wrap time to get args
     *args = types
     '''
     def pyqtSlotWrapper(func):
+        print('[GUITOOL._SLOT] Wrapping: %r' % func.func_name)
         @QtCore.pyqtSlot(*types, name=func.func_name)
         def slot_wrapper(self, *args, **kwargs):
             result = func(self, *args, **kwargs)

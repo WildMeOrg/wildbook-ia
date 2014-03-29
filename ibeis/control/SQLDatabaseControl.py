@@ -142,7 +142,7 @@ class SQLDatabaseControl(object):
                 stat_flag = db.executor.execute(operation, parameters)
                 qstat_flag_list.append(stat_flag)
                 resulttup = db.executor.fetchone()
-                print('[sql] resulttup=%r, stat_flag=%r' % (resulttup, stat_flag))
+                printDBG('[sql] resulttup=%r, stat_flag=%r' % (resulttup, stat_flag))
                 if resulttup is not None:
                     result = resulttup[0]
                     result_list.append(result)
