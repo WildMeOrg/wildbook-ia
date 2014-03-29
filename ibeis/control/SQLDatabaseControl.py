@@ -33,6 +33,15 @@ class SQLDatabaseControl(object):
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
+        db.table_columns = {}
+
+    def get_column_names(db, table):
+        """ Returns the sql table columns """
+        column_names = [name for name, type_ in  db.table_columns[table]]
+        return column_names
+
+    def get_tables(db):
+        return db.table_columns.keys()
 
     def get_sql_version(db):
         db.execute('''
@@ -81,6 +90,8 @@ class SQLDatabaseControl(object):
         op_foot = ')'
         operation = op_head + op_body + op_foot
         db.execute(operation, [], verbose=False)
+        # Append to internal storage
+        db.table_columns[table] = schema_list
 
     def execute(db, operation, parameters=(), auto_commit=False, errmsg=None,
                 verbose=VERBOSE):
@@ -122,8 +133,9 @@ class SQLDatabaseControl(object):
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.executemany] caller_name=%r' % caller_name)
-        #import textwrap
-        #operation = textwrap.dedent(operation).strip()
+        import textwrap
+        operation = textwrap.dedent(operation).strip()
+        operation_type = operation[:operation.find(' ')].strip()
         try:
             # Format 1
             #qstat_flag_list = db.executor.executemany(operation, parameters_iter)
@@ -135,7 +147,11 @@ class SQLDatabaseControl(object):
             # Format 3
             qstat_flag_list = []
             result_list = []
-            for parameters in parameters_iter:
+            parameters_list = list(parameters_iter)
+            mark_prog, end_prog = utool.progress_func(
+                max_val=len(parameters_list),
+                lbl='[sql] execute %s: ' % operation_type)
+            for count, parameters in enumerate(parameters_list):
                 if verbose:
                     print('[sql] operation=\n%s' % operation)
                     print('[sql] paramters=%r' % (parameters,))
@@ -143,9 +159,11 @@ class SQLDatabaseControl(object):
                 qstat_flag_list.append(stat_flag)
                 resulttup = db.executor.fetchone()
                 printDBG('[sql] resulttup=%r, stat_flag=%r' % (resulttup, stat_flag))
+                mark_prog(count)
                 if resulttup is not None:
                     result = resulttup[0]
                     result_list.append(result)
+            end_prog()
         except Exception as ex1:
             print('\n<!!! ERROR>')
             print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))

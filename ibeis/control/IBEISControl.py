@@ -11,6 +11,7 @@ from __future__ import division, print_function
 # Python
 from itertools import izip
 from os.path import join, realpath, split
+import re
 import sys
 # Science
 import numpy as np
@@ -258,7 +259,8 @@ class IBEISControl(object):
         """ Sets viewpoints of a list of chips by rid """
         ibs.db.executemany(
             operation='''
-            UPDATE rois SET
+            UPDATE rois
+            SET
                 roi_viewpoint=?,
             WHERE roi_uid=?
             ''',
@@ -315,7 +317,7 @@ class IBEISControl(object):
     # --- Getters ---
     #----------------
 
-    # General Getter
+    # General Getters
 
     def get_valid_ids(ibs, tblname):
         get_valid_tblname_ids = {
@@ -325,7 +327,31 @@ class IBEISControl(object):
         }[tblname]
         return get_valid_tblname_ids()
 
+    def get_table_properties(ibs, table, prop_key, uid_list):
+        printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
+        # Potentially UNSAFE SQL
+        # Sanatize input to be only lowercase alphabet and underscores
+        table    = re.sub('[^a-z_]', '', table)
+        prop_key = re.sub('[^a-z_]', '', prop_key)
+        valid_tables = ibs.db.get_tables()
+        valid_propkeys = ibs.db.get_column_names(table)
+        if not table in valid_tables:
+            raise Exception('UNSAFE TABLE: table=%r' % table)
+        if not prop_key in valid_propkeys:
+            raise Exception('UNSAFE KEY: prop_key=%r' % prop_key)
+        property_list = ibs.db.executemany(
+            operation='''
+            SELECT ''' + prop_key + '''
+            FROM ''' + table + '''
+            WHERE ''' + table[:-1] + '''_uid=?
+            ''',
+            parameters_iter=((_uid,) for _uid in uid_list),
+            errmsg='[ibs.get_table_properties] ERROR (table=%r, prop_key=%r)' %
+            (table, prop_key))
+        return property_list
+
     # Image Getters (input gid_list)
+
     @utool.indent_decor('[get_valid_gids]')
     def get_valid_gids(ibs):
         ibs.db.execute(
@@ -338,6 +364,9 @@ class IBEISControl(object):
         gid_list = list(gid_iter)
         return gid_list
 
+    def get_image_properties(ibs, prop_key, gid_list):
+        return ibs.get_table_properties('images', prop_key, gid_list)
+
     @utool.indent_decor('[get_images]')
     @utool.accepts_scalar_input
     def get_images(ibs, gid_list):
@@ -346,66 +375,73 @@ class IBEISControl(object):
             NO SQL REQUIRED, DEPENDS ON get_image_paths()
         """
         printDBG('[DEBUG] get_images')
-        printDBG('[DEBUG] len(gid_list)=%r' % len(gid_list))
         gpath_list = ibs.get_image_paths(gid_list)
-        printDBG('[DEBUG] len(gpath_list)=%r' % len(gid_list))
-        image_iter = (gtool.imread(gpath) for gpath in gpath_list)
-        image_list = list(image_iter)
-        printDBG('[DEBUG] len(image_list)=%r' % len(image_list))
+        image_list = [gtool.imread(gpath) for gpath in gpath_list]
         return image_list
 
-    @utool.indent_decor('[get_image_paths]')
-    @utool.accepts_scalar_input
-    def get_image_paths(ibs, gid_list):
-        """ Returns a list of image paths by gid """
-        printDBG('[DEBUG] get_image_paths')
-        printDBG('[DEBUG] len(gid_list)=%r' % len(gid_list))
-        # TODO: Fixeme. Executing multiple selects clobbers previous sql results
-        result_list = ibs.db.executemany(
+    def get_image_uris(ibs, gid_list):
+        """ Returns a list of image uris by gid """
+        uri_list = ibs.db.executemany(
             operation='''
             SELECT image_uri
             FROM images
             WHERE image_uid=?
             ''',
             parameters_iter=((gid,) for gid in gid_list),
-            errmsg='[ibs.get_image_paths] ERROR')
-        img_dir = join(ibs.dbdir, 'images')
-        gpath_iter = (join(img_dir, guri) for guri in result_list)
-        #printDBG('[DEBUG] gpath_iter=%r' % gpath_iter)
-        gpath_list = list(gpath_iter)
-        assert len(gpath_list) == len(gid_list), 'input is not the same size as the output'
-        printDBG('[DEBUG] len(gpath_list)=%r' % len(gpath_list))
-        return gpath_list
+            errmsg='[ibs.get_image_uris] ERROR')
+        return uri_list
 
-    @utool.indent_decor('[get_image_aifs]')
+    @utool.indent_decor('[get_image_paths]')
     @utool.accepts_scalar_input
-    def get_image_aifs(ibs, gid_list):
-        aif_list = [False for gid in gid_list]
-        return aif_list
+    def get_image_paths(ibs, gid_list):
+        """ Returns a list of image paths relative to img_dir? by gid """
+        uri_list = ibs.get_image_uris(gid_list)
+        img_dir = join(ibs.dbdir, 'images')
+        gpath_list = [join(img_dir, uri) for uri in uri_list]
+        return gpath_list
 
     @utool.indent_decor('[get_image_gnames]')
     @utool.accepts_scalar_input
     def get_image_gnames(ibs, gid_list):
+        """ Returns a list of image names """
         printDBG('[DEBUG] get_image_gnames()')
-        printDBG('[DEBUG] len(gid_list)=%r' % len(gid_list))
         gpath_list = ibs.get_image_paths(gid_list)
         gname_list = [split(gpath)[1] for gpath in gpath_list]
-        printDBG('[DEBUG] len(gname_list)=%r' % len(gname_list))
         return gname_list
 
     @utool.accepts_scalar_input
     def get_image_size(ibs, gid_list):
         """ Returns a list of image dimensions by gid in (width, height) tuples """
-        gsize_list = [(0, 0) for gid in gid_list]
+        img_width_list = ibs.get_table_properties('images', 'image_width', gid_list)
+        img_height_list = ibs.get_table_properties('images', 'image_height', gid_list)
+        gsize_list = [(w, h) for (w, h) in izip(img_width_list, img_height_list)]
         return gsize_list
 
     @utool.accepts_scalar_input
-    def get_image_unixtime(hs, gid_list):
+    def get_image_unixtime(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
         """
-        unixtime_list = [-1 for gid in gid_list]
+        unixtime_list = ibs.get_table_properties('images', 'image_exif_time_posix', gid_list)
         return unixtime_list
+
+    @utool.accepts_scalar_input
+    def get_image_gps(ibs, gid_list):
+        """ Returns a list of times that the images were taken by gid.
+            Returns -1 if no timedata exists for a given gid
+        """
+        lat_list = ibs.get_table_properties('images', 'image_exif_gps_lat', gid_list)
+        lon_list = ibs.get_table_properties('images', 'image_exif_gps_lon', gid_list)
+        gps_list = [(lat, lon) for (lat, lon) in izip(lat_list, lon_list)]
+        return gps_list
+
+    @utool.indent_decor('[get_image_aifs]')
+    @utool.accepts_scalar_input
+    def get_image_aifs(ibs, gid_list):
+        """ Returns "All Instances Found" flag, true if all objects of interest
+        (animals) have an ROI in the image """
+        aif_list = ibs.get_table_properties('images', 'image_toggle_aif', gid_list)
+        return aif_list
 
     @utool.accepts_scalar_input
     def get_image_eid(ibs, gid_list):
@@ -426,10 +462,49 @@ class IBEISControl(object):
         """ Returns the number of chips associated with a list of images by gid """
         return map(len, ibs.get_cids_in_gids(gid_list))
 
-    # Chip Getters (input cid_list)
+    # ROI Getters (input rid_list)
 
+    def get_valid_rids(ibs):
+        """ returns a list of vaoid ROI unique ids """
+        # TODO: Make sure the image exists
+        ibs.db.execute(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            ''',
+            errmsg='[ibs.get_valid_rids] ERROR')
+        rid_list = ibs.db.result_list()
+        return rid_list
+
+    def get_roi_bboxes(ibs, rid_list):
+        """ returns roi bounding boxes in image space """
+        xtl_list    = ibs.get_table_properties('rois', 'roi_xtl', rid_list)
+        ytl_list    = ibs.get_table_properties('rois', 'roi_ytl', rid_list)
+        width_list  = ibs.get_table_properties('rois', 'roi_width', rid_list)
+        height_list = ibs.get_table_properties('rois', 'roi_height', rid_list)
+        bbox_list = [(x, y, w, h) for (x, y, w, h) in izip(xtl_list, ytl_list, width_list, height_list)]
+        return bbox_list
+
+    def get_roi_thetas(ibs, rid_list):
+        """ returns roi bounding boxes in image space """
+        theta_list  = ibs.get_table_properties('rois', 'roi_theta', rid_list)
+        return theta_list
+
+    def get_roi_gids(ibs, rid_list):
+        """ returns roi bounding boxes in image space """
+        gid_list = ibs.get_table_properties('rois', 'image_uid', rid_list)
+        return gid_list
+
+    # Chip Getters (input cid_list)
     def get_valid_cids(ibs):
-        return []
+        ibs.db.execute(
+            operation='''
+            SELECT chip_uid
+            FROM chips
+            ''',
+            errmsg='[ibs.get_valid_cids] ERROR')
+        cid_list = ibs.db.result_list()
+        return cid_list
 
     def get_chips(ibs, cid_list):
         """ Returns a list cropped images in numpy array form by their cid """
