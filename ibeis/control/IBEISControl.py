@@ -126,9 +126,36 @@ class IBEISControl(object):
             errmsg='[ibs.add_images] ERROR!')
         return gid_list
 
-    def add_rois(ibs, gid_list, bbox_list, theta_list):
+    def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None):
         """ add_rois docstr """
-        rid_list = [-1 for _ in xrange(len(gid_list))]
+        if viewpoint_list is None:
+            viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
+        augment_uuid = utool.util_hash.augment_uuid
+        # Build deterministic and unique ROI ids
+        rid_list = [augment_uuid(gid, bbox, theta)
+                    for gid, bbox, theta
+                    in izip(gid_list, bbox_list, theta_list)]
+        # Define arguments to insert
+        param_iter = ((rid, gid, x, y, w, h, theta, viewpoint)
+                      for (rid, gid, (x, y, w, h), theta, viewpoint)
+                      in izip(rid_list, gid_list, bbox_list, theta_list, viewpoint_list))
+        ibs.db.executemany(
+            operation='''
+            INSERT OR IGNORE INTO rois
+            (
+                roi_uid,
+                image_uid,
+                roi_xtl,
+                roi_ytl,
+                roi_width,
+                roi_height,
+                roi_theta,
+                roi_viewpoint
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            parameters_iter=param_iter,
+            errmsg='[ibs.add_rois] ERROR inserting rois')
         return rid_list
 
     def add_chips(ibs, rid_list):
@@ -318,21 +345,21 @@ class IBEISControl(object):
             Returns a list of images in numpy matrix form by gid
             NO SQL REQUIRED, DEPENDS ON get_image_paths()
         """
-        print('[DEBUG] get_images')
-        print('[DEBUG] len(gid_list)=%r' % len(gid_list))
+        printDBG('[DEBUG] get_images')
+        printDBG('[DEBUG] len(gid_list)=%r' % len(gid_list))
         gpath_list = ibs.get_image_paths(gid_list)
-        print('[DEBUG] len(gpath_list)=%r' % len(gid_list))
+        printDBG('[DEBUG] len(gpath_list)=%r' % len(gid_list))
         image_iter = (gtool.imread(gpath) for gpath in gpath_list)
         image_list = list(image_iter)
-        print('[DEBUG] len(image_list)=%r' % len(image_list))
+        printDBG('[DEBUG] len(image_list)=%r' % len(image_list))
         return image_list
 
     @utool.indent_decor('[get_image_paths]')
     @utool.accepts_scalar_input
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths by gid """
-        print('[DEBUG] get_image_paths')
-        print('[DEBUG] len(gid_list)=%r' % len(gid_list))
+        printDBG('[DEBUG] get_image_paths')
+        printDBG('[DEBUG] len(gid_list)=%r' % len(gid_list))
         # TODO: Fixeme. Executing multiple selects clobbers previous sql results
         result_list = ibs.db.executemany(
             operation='''
@@ -344,10 +371,10 @@ class IBEISControl(object):
             errmsg='[ibs.get_image_paths] ERROR')
         img_dir = join(ibs.dbdir, 'images')
         gpath_iter = (join(img_dir, guri) for guri in result_list)
-        #print('[DEBUG] gpath_iter=%r' % gpath_iter)
+        #printDBG('[DEBUG] gpath_iter=%r' % gpath_iter)
         gpath_list = list(gpath_iter)
         assert len(gpath_list) == len(gid_list), 'input is not the same size as the output'
-        print('[DEBUG] len(gpath_list)=%r' % len(gpath_list))
+        printDBG('[DEBUG] len(gpath_list)=%r' % len(gpath_list))
         return gpath_list
 
     @utool.indent_decor('[get_image_aifs]')
@@ -359,11 +386,11 @@ class IBEISControl(object):
     @utool.indent_decor('[get_image_gnames]')
     @utool.accepts_scalar_input
     def get_image_gnames(ibs, gid_list):
-        print('[DEBUG] get_image_gnames()')
-        print('[DEBUG] len(gid_list)=%r' % len(gid_list))
+        printDBG('[DEBUG] get_image_gnames()')
+        printDBG('[DEBUG] len(gid_list)=%r' % len(gid_list))
         gpath_list = ibs.get_image_paths(gid_list)
         gname_list = [split(gpath)[1] for gpath in gpath_list]
-        print('[DEBUG] len(gname_list)=%r' % len(gname_list))
+        printDBG('[DEBUG] len(gname_list)=%r' % len(gname_list))
         return gname_list
 
     @utool.accepts_scalar_input

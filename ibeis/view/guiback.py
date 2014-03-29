@@ -88,7 +88,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_cids = []
         back.sel_nids = []
         back.sel_gids = []
-        back.qcid2_res = {}
+        back.sel_qres = []
 
         # connect signals and other objects
         back.front = guifront.MainWindowFrontend(back=back)
@@ -107,9 +107,13 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @drawing
+    def select_bbox(back, gid, **kwargs):
+        bbox = interact.select_bbox(back.ibs, gid, figtitle='Image View - Select ROI (click two points)')
+        return bbox
+
+    @drawing
     def show_image(back, gid, sel_cids=[], **kwargs):
         interact.interact_image(back.ibs, gid, sel_cids)
-        pass
 
     @drawing
     def show_chip(back, cid, **kwargs):
@@ -133,11 +137,17 @@ class MainWindowBackend(QtCore.QObject):
 
     def get_selected_gid(back):
         'selected image id'
-        pass
+        if len(back.sel_gids) == 0:
+            raise AssertionError('There are no selected images')
+        gid = back.sel_gids[0]
+        return gid
 
     def get_selected_cid(back):
         'selected chip id'
-        pass
+        if len(back.sel_cids) == 0:
+            raise AssertionError('There are no selected chips')
+        cid = back.sel_cids[0]
+        return cid
 
     def update_window_title(back):
         print('[back] update_window_title()')
@@ -229,11 +239,18 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
+    def _set_selection(back, gids=None, cids=None, nids=None, qres=None):
+        back.sel_gids = [] if gids is None else gids
+        back.sel_cids = [] if cids is None else cids
+        back.sel_nids = [] if nids is None else nids
+        back.sel_qres = [] if qres is None else qres
+
     @blocking_slot(UUID_type)
     def select_gid(back, gid, **kwargs):
         # Table Click -> Image Table
         gid = uuid_cast(gid)
         print('[back] select gid=%r' % gid)
+        back._set_selection(gids=[gid], **kwargs)
         back.show_image(gid)
         pass
 
@@ -242,14 +259,15 @@ class MainWindowBackend(QtCore.QObject):
         # Table Click -> Chip Table
         cid = uuid_cast(cid)
         print('[back] select cid=%r' % cid)
+        back._set_selection(cids=[cid], **kwargs)
         pass
 
-    @slot_(str)
-    def select_name(back, name):
+    @slot_(UUID_type)
+    def select_nid(back, nid, **kwargs):
         # Table Click -> Name Table
-        name = str(name)
-        print('[back] select name=%r' % name)
-        pass
+        nid = uuid_cast(nid)
+        print('[back] select nid=%r' % nid)
+        back._set_selection(nids=[nid], **kwargs)
 
     @slot_(UUID_type)
     def select_res_cid(back, cid, **kwargs):
@@ -390,46 +408,55 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def add_roi(back, gid=None, roi=None, theta=0.0):
+    def add_chip(back, gid=None, bbox=None, theta=0.0):
         # Action -> Add ROI
-        print('[back] ')
+        print('\n[back] add_chip')
+        if gid is None:
+            gid = back.get_selected_gid()
+        if bbox is None:
+            bbox = back.select_bbox(gid)
+        print('[back.add_chip] * adding bbox=%r' % bbox)
+        rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
+        print('[back.add_chip] * added chip rid=%r' % rid)
+        back.populate_tables()
+        #back.select_gid(gid, rids=[rid])
+        return rid
+
+    @blocking_slot()
+    def reselect_roi(back, cid=None, roi=None, **kwargs):
+        # Action -> Reselect ROI
+        print('[back] reselect_roi')
         pass
 
     @blocking_slot()
     def query(back, cid=None, **kwargs):
         # Action -> Query
-        print('[back] ')
-        pass
-
-    @blocking_slot()
-    def reselect_roi(back, cid=None, roi=None, **kwargs):
-        # Action -> Reselect ROI
-        print('[back] ')
+        print('[back] query')
         pass
 
     @blocking_slot()
     def reselect_ori(back, cid=None, theta=None, **kwargs):
         # Action -> Reselect ORI
-        print('[back] ')
+        print('[back] reselect_ori')
         pass
 
     @blocking_slot()
     def delete_chip(back):
         # Action -> Delete Chip
-        print('[back] ')
+        print('[back] delete_chip')
         pass
 
     @blocking_slot(UUID_type)
     def delete_image(back, gid=None):
         # Action -> Delete Images
-        print('[back] ')
+        print('[back] delete_image')
         gid = uuid_cast(gid)
         pass
 
     @blocking_slot()
     def select_next(back):
         # Action -> Next
-        print('[back] ')
+        print('[back] select_next')
         pass
 
     #--------------------------------------------------------------------------
@@ -439,12 +466,12 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def precompute_feats(back):
         # Batch -> Precompute Feats
-        print('[back] ')
+        print('[back] precompute_feats')
         pass
 
     @blocking_slot()
     def precompute_queries(back):
-        print('[back] ')
+        print('[back] precompute_queries')
         pass
 
     #--------------------------------------------------------------------------
@@ -454,12 +481,12 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def layout_figures(back):
         # Options -> Layout Figures
-        print('[back] ')
+        print('[back] layout_figures')
         pass
 
     @slot_()
     def edit_preferences(back):
-        print('[back] ')
+        print('[back] edit_preferences')
         pass
         # Options -> Edit Preferences
         #back.edit_prefs = back.cfg.createQWidget()
@@ -476,18 +503,18 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def view_docs(back):
         # Help -> View Documentation
-        print('[back] ')
+        print('[back] view_docs')
         pass
 
     @slot_()
     def view_database_dir(back):
         # Help -> View Directory Slots
-        print('[back] ')
+        print('[back] view_database_dir')
         pass
 
     @slot_()
     def view_computed_dir(back):
-        print('[back] ')
+        print('[back] view_computed_dir')
         pass
 
     @slot_()

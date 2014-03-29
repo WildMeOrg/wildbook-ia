@@ -85,17 +85,50 @@ def hashstr_sha1(data, base10=False):
     return hashstr
 
 
+def hash_to_uuid(bytes_):
+    # Hash the bytes
+    bytes_sha1 = hashlib.sha1(bytes_)
+    # Digest them into a hash
+    #hashstr_40 = img_bytes_sha1.hexdigest()
+    #hashstr_32 = hashstr_40[0:32]
+    hashbytes_20 = bytes_sha1.digest()
+    hashbytes_16 = hashbytes_20[0:16]
+    uuid_ = uuid.UUID(bytes=hashbytes_16)
+    return uuid_
+
+
 def image_uuid(pil_img):
     """ image global unique id """
     # Get the bytes of the image
     img_bytes_ = pil_img.tobytes()
-    # Hash the bytes
-    img_bytes_sha1 = hashlib.sha1(img_bytes_)
-    # Digest them into a hash
-    #hashstr_40 = img_bytes_sha1.hexdigest()
-    #hashstr_32 = hashstr_40[0:32]
-    hashbytes_20 = img_bytes_sha1.digest()
-    hashbytes_16 = hashbytes_20[0:16]
-    # uuid.uuid5 takes a hsa1 hash of a namspace and a name
-    uuid_ = uuid.UUID(bytes=hashbytes_16)
+    uuid_ = hash_to_uuid(img_bytes_)
     return uuid_
+
+
+def augment_uuid(uuid_, *hashables):
+    uuidhex_bytes   = uuid_.get_bytes()
+    hashable_str    = ''.join(map(repr, hashables))
+    augmented_str   = uuidhex_bytes + hashable_str
+    augmented_uuid_ = hash_to_uuid(augmented_str)
+    return augmented_uuid_
+
+
+def __test_augment__():
+    uuid_ = uuid.uuid1()
+
+    uuidhex_bytes = uuid_.get_bytes()
+    hashable_str1 = '[0, 0, 100, 100]'
+    hashable_str2 = ''
+    augmented_str1 = uuidhex_bytes + hashable_str1
+    augmented_str2 = uuidhex_bytes + hashable_str2
+
+    augmented_uuid1_ = hash_to_uuid(augmented_str1)
+    augmented_uuid2_ = hash_to_uuid(augmented_str2)
+
+    print('augmented_str1 =%r' % augmented_str1)
+    print('augmented_str2 =%r' % augmented_str2)
+
+    print('           uuid_=%r' % (uuid_,))
+    print('augmented_uuid1_=%r' % (augmented_uuid1_,))
+    print('augmented_uuid2_=%r' % (augmented_uuid2_,))
+    print('hash2uuid(uuid_)=%r' % (hash_to_uuid(uuid_),))

@@ -1,6 +1,7 @@
 from __future__ import division, print_function
-import sys
 import __builtin__
+import sys
+import functools
 from os.path import realpath, dirname, join, exists
 import numpy as np
 
@@ -40,8 +41,10 @@ def handle_exceptions(ex, locals_, testname=None):
 
 
 def testcontext(func):
+    @functools.wraps(func)
     def test_wrapper(*args, **kwargs):
         try:
+            printTEST('[TEST] %s SUCCESS' % (func.func_name,))
             result = func(*args, **kwargs)
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
             return result
@@ -55,7 +58,6 @@ def testcontext(func):
                 ibs.db.dump()
             if '--strict' in sys.argv:
                 raise
-    test_wrapper.func_name = func.func_name
     return test_wrapper
 
 
@@ -114,6 +116,10 @@ def main(defaultdb='testdb', allow_newdir=False, **kwargs):
 def main_loop(main_locals, **kwargs):
     from ibeis.dev import main_api
     printTEST('[TEST] TEST_LOOP')
+    parent_locals = utool.get_parent_locals()
+    parent_globals = utool.get_parent_globals()
+    main_locals.update(parent_locals)
+    main_locals.update(parent_globals)
     main_api.main_loop(main_locals, **kwargs)
 
 

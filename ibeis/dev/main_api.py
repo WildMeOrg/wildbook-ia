@@ -139,6 +139,7 @@ def _ipython_loop(main_locals):
 
 def main(**kwargs):
     import utool
+    import main_commands
     msg1 = '''
     _____ ....... _______ _____ _______
       |   |_____| |______   |   |______
@@ -159,12 +160,14 @@ def main(**kwargs):
         utool.util_inject._inject_colored_exception_hook()
         _init_signals()
         init_matplotlib()
+        main_commands.preload_commands()
         if not params.args.nogui:
             back = _init_gui()
         ibs = _init_ibeis()
         if 'back' in vars() and ibs is not None:
             print('[main] Attatch ibeis control')
             back.connect_ibeis_control(ibs)
+        main_commands.postload_commands(ibs)
     except Exception as ex:
         print('[main()] IBEIS Caught: %s %s' % (type(ex), ex))
         print(ex)

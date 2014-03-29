@@ -1,30 +1,39 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import print_function, division
+#------
+TEST_NAME = 'TEST_ADD_ROI'
+#------
 import __testing__
 import multiprocessing
 import utool
-from ibeis.dev import params
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_parallel]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[' + TEST_NAME + ']')
 printTEST = __testing__.printTEST
 
 RUNGUI = utool.get_flag('--gui')
 
 
 @__testing__.testcontext
-def test_gui_add_roi():
+def TEST_ADD_ROI():
     # Create a HotSpotter API (hs) and GUI backend (back)
-    printTEST('[TEST] TEST_ADD_IMAGES')
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
     back = main_locals['back']  # IBEIS GUI backend
 
-    back.add_roi()
+    valid_gids = ibs.get_valid_gids()
+    gid = valid_gids[0]
+    printTEST('[TEST] SELECT GID=%r' % gid)
+    back.select_gid(gid)
+    bbox = [0, 0, 100, 100] if not __testing__.INTERACTIVE else None
+    rid = back.add_chip(bbox=bbox)
+    printTEST('[TEST] NEW RID=%r' % rid)
 
     __testing__.main_loop(main_locals, rungui=RUNGUI)
+
+TEST_ADD_ROI.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    test_gui_add_roi()
+    TEST_ADD_ROI()

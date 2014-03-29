@@ -431,3 +431,34 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
     guitool.popup_menu(fig.canvas, opt2_callback, fig.canvas)
     df2.connect_callback(fig, 'button_press_event', _click_chipres_click)
     viz.draw()
+
+
+#================
+def select_bbox(ibs, gid, fnum=1, **kwargs):
+    #from matplotlib.backend_bases import mplDeprecation
+    print('[*interact] select_bbox(gid=%r, fnum=%r)' % (gid, fnum))
+    print('[*interact] Define a Rectanglular ROI by clicking two points.')
+    # Show the image
+    fig = begin_interaction('select_bbox', fnum)
+    viz.show_image(ibs, gid, **kwargs)
+    try:
+        viz.draw()
+        fig = df2.gcf()
+        pts = fig.ginput(2)
+        print('[*guitools] ginput(2) = %r' % (pts,))
+        [(x1, y1), (x2, y2)] = pts
+        xm = min(x1, x2)
+        xM = max(x1, x2)
+        ym = min(y1, y2)
+        yM = max(y1, y2)
+        xywh = map(int, map(round, (xm, ym, xM - xm, yM - ym)))
+        bbox = np.array(xywh, dtype=np.int32)
+        # Reconnect the old button press events
+        print('[*interact] bbox = %r ' % (bbox,))
+        return bbox
+    except Exception as ex:
+        print('<!!!>')
+        print('[*interact] Caught: %s %s' % (type(ex), ex))
+        print('[*interact] ROI selection Failed:')
+        print('</!!!>')
+        raise

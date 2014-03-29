@@ -72,7 +72,7 @@ def connect_file_signals(front):
 def connect_action_signals(front):
     ui = front.ui
     back = front.back
-    ui.actionAdd_Chip.triggered.connect(back.add_roi)
+    ui.actionAdd_Chip.triggered.connect(back.add_chip)
     ui.actionNew_Chip_Property.triggered.connect(back.new_prop)
     ui.actionQuery.triggered.connect(back.query)
     ui.actionReselect_Ori.triggered.connect(back.reselect_ori)
@@ -178,10 +178,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
     quitSignal       = signal_()
     selectGidSignal  = signal_(UUID_type)
     selectCidSignal  = signal_(UUID_type)
+    selectNidSignal  = signal_(UUID_type)
     selectResSignal  = signal_(UUID_type)
-    selectNameSignal = signal_(str)
     changeCidSignal  = signal_(UUID_type, str, str)
-    aliasNameSignal  = signal_(UUID_type, str, str)
+    aliasNidSignal  = signal_(UUID_type, str, str)
     changeGidSignal  = signal_(UUID_type, str, bool)
     querySignal      = signal_()
 
@@ -218,10 +218,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.quitSignal.connect(back.quit)
         front.selectGidSignal.connect(back.select_gid)
         front.selectCidSignal.connect(back.select_cid)
+        front.selectNidSignal.connect(back.select_nid)
         front.selectResSignal.connect(back.select_res_cid)
-        front.selectNameSignal.connect(back.select_name)
         front.changeCidSignal.connect(back.change_chip_property)
-        front.aliasNameSignal.connect(back.alias_name)
+        front.aliasNidSignal.connect(back.alias_name)
         front.changeGidSignal.connect(back.change_image_property)
         front.querySignal.connect(back.query)
 
@@ -397,7 +397,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         sel_nid = front.get_nametbl_nid(row)    # The changed row's name index
         new_val  = csv_sanatize(item.text())  # sanatize val for csv
         header_lbl = front.get_nametbl_header(col)  # Get changed column
-        front.aliasNameSignal.emit(sel_nid, header_lbl, new_val)
+        front.aliasNidSignal.emit(sel_nid, header_lbl, new_val)
 
     #=======================
     # Table Clicked Functions
@@ -432,7 +432,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
         row, col = (item.row(), item.column())
         front.print('name_tbl_clicked(%r, %r)' % (row, col))
         sel_name = front.get_nametbl_name(row)
-        front.selectNameSignal.emit(sel_name)
+        # TODO Need to either switch back to Name or use nid
+        front.selectNidSignal.emit(sel_name)
 
     #=======================
     # Other
