@@ -15,6 +15,7 @@ from ibeis.model.jon_recognition import match_chips3 as mc3
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 #from interaction import interact_keypoints, interact_chipres, interact_chip # NOQA
+from viz_helpers import draw, set_ibsdat, get_ibsdat  # NOQA
 from viz_image import show_image  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
@@ -24,12 +25,6 @@ SHOW_QUERY_OVERRIDE = utool.get_arg('--show-query-override', type_=bool, default
 NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
 
 SIFT_OR_VECFIELD = utool.get_arg('--vecfield', type_=bool)
-
-
-@profile
-def draw():
-    df2.adjust_subplots_safe()
-    df2.draw()
 
 
 def register_FNUMS(FNUMS_):

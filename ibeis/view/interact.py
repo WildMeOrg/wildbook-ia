@@ -7,83 +7,13 @@ from drawtool import draw_func2 as df2
 from ibeis.view import viz
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact]', DEBUG=False)
 
-
-# RCOS TODO: We should change the fnum, pnum figure layout into one managed by
-# gridspec.
-
-#==========================
-# HELPERS
-#==========================
-
-def nearest_point(x, y, pts):
-    dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
-    fx = dists.argmin()
-    mindist = dists[fx]
-    other_fx = np.where(mindist == dists)[0]
-    if len(other_fx > 0):
-        np.random.shuffle(other_fx)
-        fx = other_fx[0]
-    return fx, mindist
-
-
-def detect_keypress(fig):
-    def on_key_press(event):
-        if event.key == 'shift':
-            shift_is_held = True  # NOQA
-
-    def on_key_release(event):
-        if event.key == 'shift':
-            shift_is_held = False  # NOQA
-    fig.canvas.mpl_connect('key_press_event', on_key_press)
-    fig.canvas.mpl_connect('key_release_event', on_key_release)
-
-
-def begin_interaction(type_, fnum):
-    print('[inter] starting %s interaction' % type_)
-    fig = df2.figure(fnum=fnum, docla=True, doclf=True)
-    ax = df2.gca()
-    df2.disconnect_callback(fig, 'button_press_event', axes=[ax])
-    return fig
-
+from interact_helpers import begin_interaction
 
 #==========================
 # Image Interaction
 #==========================
 
-def interact_image(ibs, gid, sel_cids=[], select_cid_func=None, fnum=1, **kwargs):
-    fig = begin_interaction('image', fnum)
-
-    # Create callback wrapper
-    def _on_image_click(event):
-        print_('[inter] clicked image')
-        if event is None or event.inaxes is None or event.xdata is None:
-            # Toggle draw lbls
-            print(' ...out of axis')
-            kwargs['draw_lbls'] = not kwargs.pop('draw_lbls', True)
-            interact_image(ibs, gid, sel_cids=sel_cids,
-                           select_cid_func=select_cid_func, **kwargs)
-        else:
-            ax = event.inaxes
-            hs_viewtype = ax.__dict__.get('_hs_viewtype', '')
-            print_(' hs_viewtype=%r' % hs_viewtype)
-            centers = ax.__dict__.get('_hs_centers')
-            if centers is None or len(centers) == 0:
-                print(' ...no chips to click')
-                return
-            x, y = event.xdata, event.ydata
-            # Find ROI center nearest to the clicked point
-            cid_list = ax._hs_cid_list
-            centers = ax._hs_centers
-            centx = nearest_point(x, y, centers)[0]
-            cid = cid_list[centx]
-            print(' ...clicked cid=%r' % cid)
-            if select_cid_func is not None:
-                select_cid_func(cid)
-        viz.draw()
-
-    viz.show_image(ibs, gid, sel_cids, **kwargs)
-    viz.draw()
-    df2.connect_callback(fig, 'button_press_event', _on_image_click)
+from interact_image import interact_image  # NOQA
 
 
 #==========================
@@ -170,7 +100,7 @@ def interact_chip(ibs, cid, fnum=2, figtitle=None, fx=None, **kwargs):
             elif hs_viewtype == 'chip':
                 kpts = ibs.get_kpts(cid)
                 if len(kpts) > 0:
-                    fx = nearest_point(x, y, kpts)[0]
+                    fx = utool.nearest_point(x, y, kpts)[0]
                     print('... clicked fx=%r' % fx)
                     _select_ith_kpt(fx)
                 else:
@@ -232,7 +162,7 @@ def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, *
                 else:
                     print('...nearest')
                     x, y = event.xdata, event.ydata
-                    fx = nearest_point(x, y, kpts)[0]
+                    fx = utool.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif hs_viewtype == 'warped':
                 hs_fx = ax.__dict__.get('_hs_fx', None)
@@ -391,8 +321,8 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
                 kpts1_m = kpts1[fm[:, 0]]
                 kpts2_m = kpts2[fm[:, 1]]
                 x2, y2, w2, h2 = xywh2_ptr[0]
-                _mx1, _dist1 = nearest_point(x, y, kpts1_m)
-                _mx2, _dist2 = nearest_point(x - x2, y - y2, kpts2_m)
+                _mx1, _dist1 = utool.nearest_point(x, y, kpts1_m)
+                _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
                 _select_ith_match(mx, qcid, cid)
