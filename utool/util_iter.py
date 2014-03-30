@@ -39,7 +39,7 @@ def accepts_scalar_input(func):
     to the user expected format on return.
     '''
     @functools.wraps(func)
-    def accepts_scalar_input_wrapper(self, input_, *args, **kwargs):
+    def wrapper(self, input_, *args, **kwargs):
         is_scalar = not np.iterable(input_) or isinstance(input_, str)
         if is_scalar:
             iter_input = (input_,)
@@ -49,4 +49,26 @@ def accepts_scalar_input(func):
         if is_scalar:
             result = result[0]
         return result
-    return accepts_scalar_input_wrapper
+    return wrapper
+
+
+def accepts_scalar_input_vector_output(func):
+    '''
+    accepts_scalar_input is a decorator which expects to be used on class
+    methods.  It lets the user pass either a vector or a scalar to a function,
+    as long as the function treats everything like a vector. Input and output is
+    sanatized to the user expected format on return.
+    '''
+    @functools.wraps(func)
+    def wrapper(self, input_, *args, **kwargs):
+        is_scalar = not np.iterable(input_) or isinstance(input_, str)
+        if is_scalar:
+            iter_input = (input_,)
+        else:
+            iter_input = input_
+        result = func(self, iter_input, *args, **kwargs)
+        if is_scalar:
+            if len(result) != 0:
+                result = result[0]
+        return result
+    return wrapper

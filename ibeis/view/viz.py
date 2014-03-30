@@ -15,7 +15,7 @@ from ibeis.model.jon_recognition import match_chips3 as mc3
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 #from interaction import interact_keypoints, interact_chipres, interact_chip # NOQA
-
+from viz_image import show_image  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
@@ -107,59 +107,6 @@ def show_name(ibs, nid, nid2_cids=None, fnum=0, sel_cids=[], subtitle='',
 #==========================
 # Image Viz
 #==========================
-
-
-@utool.indent_decor('[annote_roi]')
-@profile
-def _annotate_roi(ibs, ax, cid, sel_cids, draw_lbls, annote):
-    # Draw an roi around a chip in the image
-    roi, theta = ibs.cid2_roi(cid), ibs.cid2_theta(cid)
-    if annote:
-        is_sel =  cid in sel_cids
-        label = ibs.cid2_name(cid)
-        label = ibs.cidstr(cid) if label == '____' else label
-        label = label if draw_lbls else None
-        lbl_alpha  = .75 if is_sel else .6
-        bbox_alpha = .95 if is_sel else .6
-        lbl_color  = df2.BLACK * lbl_alpha
-        bbox_color = (df2.ORANGE if is_sel else df2.DARK_ORANGE) * bbox_alpha
-        df2.draw_roi(roi, label, bbox_color, lbl_color, theta=theta, ax=ax)
-    # Index the roi centers (for interaction)
-    (x, y, w, h) = roi
-    xy_center = np.array([x + (w / 2), y + (h / 2)])
-    return xy_center
-
-
-@utool.indent_decor('[annote_image]')
-@profile
-def _annotate_image(ibs, ax, gid, sel_cids, draw_lbls, annote):
-    # draw chips in the image
-    cid_list = ibs.get_cids_in_gids(gid)
-    centers = []
-    # Draw all chip indexes in the image
-    for cid in cid_list:
-        xy_center = _annotate_roi(ibs, ax, cid, sel_cids, draw_lbls, annote)
-        centers.append(xy_center)
-    # Put roi centers in the axis
-    centers = np.array(centers)
-    ax._hs_centers = centers
-    ax._hs_cid_list = cid_list
-
-
-@utool.indent_decor('[show_image]')
-@profile
-def show_image(ibs, gid, sel_cids=[], fnum=1, figtitle='Image View', annote=True,
-               draw_lbls=True, **kwargs):
-    # Shows an image with annotations
-    gname = ibs.get_image_gnames((gid,))
-    title = 'gid=%r gname=%r' % (gid, gname)
-    img = ibs.get_images(gid)
-    fig = df2.figure(fnum=fnum, docla=True)
-    fig, ax = df2.imshow(img, title=title, fnum=fnum, **kwargs)
-    ax._hs_viewtype = 'image'
-    _annotate_image(ibs, ax, gid, sel_cids, draw_lbls, annote)
-    df2.set_figtitle(figtitle)
-
 
 #==========================
 # Chip Viz

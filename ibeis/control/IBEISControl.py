@@ -42,6 +42,9 @@ print(gtool)
 _TAGKEYS = get_exif_tagids(tag_list)
 _TAGDEFAULTS = (-1, (-1, -1))
 
+UNKNOWN_NID = utool.util_hash.get_zero_uuid()
+UNKNOWN_NAME = '____'
+
 
 def _get_exif(pil_img):
     """ Image EXIF helper """
@@ -80,7 +83,7 @@ class IBEISControl(object):
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
         try:
             print('[ibs.__init__] Add default names.')
-            ibs.add_names((0, 1,), ('____', '____',))
+            ibs.add_names((UNKNOWN_NID,), (UNKNOWN_NAME,))
         except Exception as ex:
             print('[ibs] HACKISLY IGNORING: %s, %s:' % (type(ex), ex,))
             ibs.db.get_sql_version()
@@ -127,25 +130,29 @@ class IBEISControl(object):
             errmsg='[ibs.add_images] ERROR!')
         return gid_list
 
-    def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None):
+    def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None,
+                 nid_list=None):
         """ add_rois docstr """
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
+        if nid_list is None:
+            nid_list = [UNKNOWN_NID for _ in xrange(len(gid_list))]
         augment_uuid = utool.util_hash.augment_uuid
         # Build deterministic and unique ROI ids
         rid_list = [augment_uuid(gid, bbox, theta)
                     for gid, bbox, theta
                     in izip(gid_list, bbox_list, theta_list)]
         # Define arguments to insert
-        param_iter = ((rid, gid, x, y, w, h, theta, viewpoint)
-                      for (rid, gid, (x, y, w, h), theta, viewpoint)
-                      in izip(rid_list, gid_list, bbox_list, theta_list, viewpoint_list))
+        param_iter = ((rid, gid, nid, x, y, w, h, theta, viewpoint)
+                      for (rid, gid, nid, (x, y, w, h), theta, viewpoint)
+                      in izip(rid_list, gid_list, nid_list, bbox_list, theta_list, viewpoint_list))
         ibs.db.executemany(
             operation='''
             INSERT OR IGNORE INTO rois
             (
                 roi_uid,
                 image_uid,
+                name_uid,
                 roi_xtl,
                 roi_ytl,
                 roi_width,
@@ -153,7 +160,7 @@ class IBEISControl(object):
                 roi_theta,
                 roi_viewpoint
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             parameters_iter=param_iter,
             errmsg='[ibs.add_rois] ERROR inserting rois')
@@ -379,6 +386,7 @@ class IBEISControl(object):
         image_list = [gtool.imread(gpath) for gpath in gpath_list]
         return image_list
 
+    @utool.accepts_scalar_input
     def get_image_uris(ibs, gid_list):
         """ Returns a list of image uris by gid """
         uri_list = ibs.db.executemany(
@@ -388,7 +396,8 @@ class IBEISControl(object):
             WHERE image_uid=?
             ''',
             parameters_iter=((gid,) for gid in gid_list),
-            errmsg='[ibs.get_image_uris] ERROR')
+            errmsg='[ibs.get_image_uris] ERROR',
+            unpack_scalars=True)
         return uri_list
 
     @utool.indent_decor('[get_image_paths]')
@@ -457,10 +466,25 @@ class IBEISControl(object):
         cids_list = [[] for gid in gid_list]
         return cids_list
 
+    @utool.accepts_scalar_input_vector_output
+    def get_rids_in_gids(ibs, gid_list):
+        """ Returns a list of rids for each image by gid """
+        rids_list = ibs.db.executemany(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            WHERE image_uid=?
+            ''',
+            parameters_iter=((gid,) for gid in gid_list),
+            errmsg='[ibs.get_image_uris] ERROR',
+            unpack_scalars=False)
+        # for each image return rois in that image
+        return rids_list
+
     @utool.accepts_scalar_input
-    def get_num_cids_in_gids(ibs, gid_list):
+    def get_num_rids_in_gids(ibs, gid_list):
         """ Returns the number of chips associated with a list of images by gid """
-        return map(len, ibs.get_cids_in_gids(gid_list))
+        return map(len, ibs.get_rids_in_gids(gid_list))
 
     # ROI Getters (input rid_list)
 
@@ -476,6 +500,7 @@ class IBEISControl(object):
         rid_list = ibs.db.result_list()
         return rid_list
 
+    @utool.accepts_scalar_input
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         xtl_list    = ibs.get_table_properties('rois', 'roi_xtl', rid_list)
@@ -485,15 +510,37 @@ class IBEISControl(object):
         bbox_list = [(x, y, w, h) for (x, y, w, h) in izip(xtl_list, ytl_list, width_list, height_list)]
         return bbox_list
 
-    def get_roi_thetas(ibs, rid_list):
-        """ returns roi bounding boxes in image space """
-        theta_list  = ibs.get_table_properties('rois', 'roi_theta', rid_list)
-        return theta_list
-
+    @utool.accepts_scalar_input
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         gid_list = ibs.get_table_properties('rois', 'image_uid', rid_list)
         return gid_list
+
+    @utool.accepts_scalar_input
+    def get_roi_gname(ibs, rid_list):
+        gid_list = ibs.get_roi_gids(rid_list)
+        gname_list = ibs.get_image_gnames(gid_list)
+        return gname_list
+
+    @utool.accepts_scalar_input
+    def get_roi_thetas(ibs, rid_list):
+        """ Returns a list of floats describing the angles of each chip """
+        theta_list = ibs.get_table_properties('rois', 'roi_theta', rid_list)
+        return theta_list
+
+    @utool.accepts_scalar_input
+    def get_roi_nids(ibs, rid_list):
+        nid_list = ibs.get_table_properties('rois', 'name_uid', rid_list)
+        return nid_list
+
+    @utool.accepts_scalar_input
+    def get_roi_names(ibs, rid_list):
+        """ Returns a list of strings ['fred', 'sue', ...] for each chip
+            identifying the animal
+        """
+        nid_list  = ibs.get_roi_nids(rid_list)
+        name_list = ibs.get_table_properties('names', 'name_text', nid_list)
+        return name_list
 
     # Chip Getters (input cid_list)
     def get_valid_cids(ibs):
@@ -510,16 +557,12 @@ class IBEISControl(object):
         """ Returns a list cropped images in numpy array form by their cid """
         pass
 
+    @utool.accepts_scalar_input
     def get_chip_paths(ibs, cid_list):
         """ Returns a list of chip paths by their cid """
         fmtstr = join(ibs.dbdir, '_ibeisdb/cid%d_dummy.png')
         cpath_list = [fmtstr % cid for cid in cid_list]
         return cpath_list
-
-    def get_chip_gids(ibs, cid_list):
-        """ Returns a list of image ids associated with a list of chips ids"""
-        gid_list = [-1] * len(cid_list)
-        return gid_list
 
     def get_chip_rois(ibs, cid_list):
         """ Returns a list of (x, y, w, h) tuples describing chip geometry in
@@ -527,18 +570,6 @@ class IBEISControl(object):
         """
         roi_list = [(0, 0, 1, 1) for cid in cid_list]
         return roi_list
-
-    def get_chip_thetas(ibs, cid_list):
-        """ Returns a list of floats describing the angles of each chip """
-        theta_list = [0 for cid in cid_list]
-        return theta_list
-
-    def get_chip_names(ibs, cid_list):
-        """ Returns a list of strings ['fred', 'sue', ...] for each chip
-            identifying the animal
-        """
-        name_list = map(str, cid_list)
-        return name_list
 
     def get_chip_kpts(ibs, cid_list):
         kpts_list = [np.empty((0, ktool.KPTS_DIM)) for cid in cid_list]

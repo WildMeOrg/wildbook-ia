@@ -132,3 +132,7 @@ def __test_augment__():
     print('augmented_uuid1_=%r' % (augmented_uuid1_,))
     print('augmented_uuid2_=%r' % (augmented_uuid2_,))
     print('hash2uuid(uuid_)=%r' % (hash_to_uuid(uuid_),))
+
+
+def get_zero_uuid():
+    return uuid.UUID('00000000-0000-0000-0000-000000000000')

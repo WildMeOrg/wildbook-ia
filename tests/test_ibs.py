@@ -41,8 +41,10 @@ def TEST_IBS():
     print(' * gps_list=%r' % gps_list)
 
     printTEST('[TEST] 2. add_rois')
-    bbox_list = [(50, 50, 100, 100)]
-    theta_list = [0]
+    gid = gid_list[0]
+    gid_list = [gid, gid]
+    bbox_list = [(50, 50, 100, 100), (75, 75, 102, 101)]
+    theta_list = [0, 1.1]
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list)
     print(' * rid_list=%r' % rid_list)
 
@@ -50,9 +52,14 @@ def TEST_IBS():
     gid_list    = ibs.get_roi_gids(rid_list)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
+    rids_list   = ibs.get_rids_in_gids(gid)
     print(' * gid_list=%r' % gid_list)
     print(' * bbox_list=%r' % bbox_list)
     print(' * theta_list=%r' % theta_list)
+    print(' * rids_list=%r' % rids_list)
+
+    from ibeis.view import viz
+    viz.show_image(ibs, gid)
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
@@ -64,3 +71,5 @@ if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
     TEST_IBS()
+    from drawtool import draw_func2 as df2
+    exec(df2.present())

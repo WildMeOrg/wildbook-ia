@@ -17,7 +17,7 @@ fancy_headers = {
     'cid':        'Chip ID',
     'aif':        'All Detected',
     'gname':      'Image Name',
-    'nCxs':       '#Chips',
+    'nRids':       '#ROIs',
     'name':       'Name',
     'nGt':        '#GT',
     'nKpts':      '#Kpts',
@@ -31,9 +31,9 @@ reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 
 # A list of default internal headers to display
 table_headers = {
-    'gids':  ['gid', 'gname', 'nCxs', 'aif'],
+    'gids':  ['gid', 'gname', 'nRids', 'aif'],
     'cids':  ['cid', 'name', 'gname', 'nGt', 'nKpts', 'theta'],
-    'nids':  ['nid', 'name', 'nCxs'],
+    'nids':  ['nid', 'name', 'nRids'],
     'res':   ['rank', 'score', 'name', 'cid']
 }
 
@@ -75,14 +75,14 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         cols = {
             'nid':   lambda nids: nids,
             'name':  lambda nids: ibs.get_names(nids),
-            'nCxs':  lambda nids: ibs.get_num_cids_in_nids(nids),
+            'nRids':  lambda nids: ibs.get_num_cids_in_nids(nids),
         }
     elif tblname == 'gids':
         cols = {
             'gid':   lambda gids: gids,
             'aif':   lambda gids: ibs.get_image_aifs(gids),
             'gname': lambda gids: ibs.get_image_gnames(gids),
-            'nCxs':  lambda gids: ibs.get_num_cids_in_gids(gids),
+            'nRids':  lambda gids: ibs.get_num_rids_in_gids(gids),
             'unixtime': lambda gids: ibs.get_image_unixtime(gids),
         }
     elif tblname in ['cxs', 'res']:
@@ -97,9 +97,9 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
 
         cols = {
             'cid':    lambda cids: cids,
-            'name':   lambda cids: ibs.get_chip_names(cids),
-            'gname':  lambda cids: ibs.get_chip_gname(cids),
-            'nGt':    lambda cids: ibs.get_chip_num_groundtruth(),
+            'name':   lambda rids: ibs.get_roi_names(rids),
+            'gname':  lambda rids: ibs.get_roi_gname(rids),
+            'nGt':    lambda cids: ibs.get_chip_num_groundtruth(cids),
             'nKpts':  lambda cids: ibs.get_chip_nKpts(cids),
             'theta':  lambda cids: map(theta_str, ibs.get_chip_theta(cids)),
             'roi':    lambda cids: map(str, ibs.get_chip_roi(cids)),

@@ -338,8 +338,14 @@ class MainWindowBackend(QtCore.QObject):
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
-        ibs = IBEISControl.IBEISControl(dbdir=dbdir)
-        back.connect_ibeis_control(ibs)
+        try:
+            ibs = IBEISControl.IBEISControl(dbdir=dbdir)
+            back.connect_ibeis_control(ibs)
+        except Exception as ex:
+            print('[guiback] Caught: %s: %s' % (type(ex), ex))
+            raise
+        else:
+            utool.global_cache_write('cached_dbdir', dbdir)
 
     @blocking_slot()
     def save_database(back):
@@ -380,7 +386,6 @@ class MainWindowBackend(QtCore.QObject):
     def import_images_from_dir(back, dir_=None):
         print('[back] import_images_from_dir')
         # File -> Import Images From Directory
-        pass
         if dir_ is None:
             dir_ = guitool.select_directory('Select directory with images in it')
         print('[back] dir=%r' % dir_)
@@ -419,6 +424,7 @@ class MainWindowBackend(QtCore.QObject):
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
         print('[back.add_chip] * added chip rid=%r' % rid)
         back.populate_tables()
+        back.show_image(gid)
         #back.select_gid(gid, rids=[rid])
         return rid
 

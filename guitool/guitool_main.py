@@ -30,6 +30,8 @@ def ensure_qtapp():
         pass
     return QAPP, IS_ROOT
 
+init_qtapp = ensure_qtapp
+
 
 def activate_qwindow(back):
     print('[guitool.qtapp_loop()] qapp.setActiveWindow(back.front)')

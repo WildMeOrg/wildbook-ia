@@ -126,45 +126,77 @@ class SQLDatabaseControl(object):
         return status
 
     def executemany(db, operation, parameters_iter, auto_commit=True,
-                    errmsg=None, verbose=VERBOSE):
-        """ same as execute but takes a iterable of parameters instead of just one
+                    errmsg=None, verbose=VERBOSE, unpack_scalars=True):
+        """
+        Input:
+            operation - an sql command to be executed
+                e.g.
+                operation = '''
+                SELECT column
+                FROM table
+                WHERE
+                (
+                    column_1=?,
+                    ...,
+                    column_N=?
+                )
+                '''
+            parameter_list - an iterable of parameters
+                e.g.
+                parameter_list = [(col1, colN),
+                                  ...,
+                                   (col1, ... colN),
+                                    ]
+
+
+        same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.executemany] caller_name=%r' % caller_name)
+        # Do any preprocesing on the SQL command / query
         import textwrap
         operation = textwrap.dedent(operation).strip()
         operation_type = operation[:operation.find(' ')].strip()
+        result_list = []
+        # Compute everything in Python before sending queries to SQL
+        parameters_list = list(parameters_iter)
+        num_params = len(parameters_list)
+        # Define progress printing / logging / ... functions
+        mark_prog, end_prog = utool.progress_func(
+            max_val=num_params,
+            mark_after=0 if VERBOSE else 3,
+            lbl='[sql] execute %s: ' % operation_type)
         try:
-            # Format 1
-            #qstat_flag_list = db.executor.executemany(operation, parameters_iter)
-
-            # Format 2
-            #qstat_flag_list = [db.executor.execute(operation, parameters)
-                                 #for parameters in parameters_iter]
-
-            # Format 3
-            qstat_flag_list = []
-            result_list = []
-            parameters_list = list(parameters_iter)
-            mark_prog, end_prog = utool.progress_func(
-                max_val=len(parameters_list),
-                lbl='[sql] execute %s: ' % operation_type)
+            # For each parameter in an input list
             for count, parameters in enumerate(parameters_list):
                 if verbose:
                     print('[sql] operation=\n%s' % operation)
                     print('[sql] paramters=%r' % (parameters,))
-                stat_flag = db.executor.execute(operation, parameters)
-                qstat_flag_list.append(stat_flag)
-                resulttup = db.executor.fetchone()
-                printDBG('[sql] resulttup=%r, stat_flag=%r' % (resulttup, stat_flag))
-                mark_prog(count)
-                if resulttup is not None:
-                    result = resulttup[0]
-                    result_list.append(result)
+                # Send command to SQL
+                # (all other results will be invalided)
+                stat_flag  = db.executor.execute(operation,  # NOQA
+                                                 parameters)
+                def result_gen():
+                    while True:
+                        result = db.executor.fetchone()
+                        if not result:
+                            raise StopIteration()
+                        yield result[0]
+                # Read results
+                resulttup = [result for result in result_gen()]
+                # Append to the list of queries
+                if len(resulttup) > 0 and unpack_scalars:
+                    result_list.append(resulttup[0])
+                else:
+                    result_list.append(resulttup)
+                mark_prog(count)  # mark progress
             end_prog()
-        except Exception as ex1:
+            num_results = len(result_list)
+            if num_results != 0 and num_results != num_params:
+                raise lite.Error('num_params=%r <> num_results=%r' % (num_params, num_results))
+        except lite.Error as ex1:
             print('\n<!!! ERROR>')
             print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
             print('[!sql] operation=\n%s' % operation)
@@ -172,27 +204,14 @@ class SQLDatabaseControl(object):
                 print('[!sql] failed paramters=%r' % (parameters,))
             else:
                 print('[!!sql] failed before parameters populated')
-            if 'qstat_flag_list' in vars():
-                print('[!sql] failed qstat_flag_list=%r' % (qstat_flag_list,))
-            else:
-                print('[!sql] failed before qstat_flag_list populated')
             print('[!sql] parameters_iter=%r' % (parameters_iter,))
             print('</!!! ERROR>\n')
             db.dump()
             raise
             #raise lite.DatabaseError('%s --- %s' % (errmsg, ex1))
+        if auto_commit:
+            db.commit(errmsg=errmsg, verbose=False)
 
-        try:
-            if auto_commit:
-                db.commit(qstat_flag_list, errmsg, verbose=False)
-            else:
-                return qstat_flag_list
-        except Exception as ex2:
-            print('\n<!!! ERROR>')
-            print('[!sql] Caught %s: %r' % (type(ex2), ex2,))
-            print('[!sql] operation=\n%s' % operation)
-            print('</!!! ERROR>\n')
-            raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
         return result_list
 
     def result(db, verbose=VERBOSE):
@@ -230,16 +249,23 @@ class SQLDatabaseControl(object):
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         """
-        if verbose:
+        try:
+            if verbose:
+                caller_name = utool.util_dbg.get_caller_name()
+                print('[sql.commit] caller_name=%r' % caller_name)
+            if not all(qstat_flag_list):
+                raise lite.DatabaseError(errmsg)
+            else:
+                db.connection.commit()
+                if AUTODUMP:
+                    db.dump(auto_commit=False)
+        except lite.Error as ex2:
+            print('\n<!!! ERROR>')
+            print('[!sql] Caught %s: %r' % (type(ex2), ex2,))
             caller_name = utool.util_dbg.get_caller_name()
-            print('[sql.commit] caller_name=%r' % caller_name)
-        if not all(qstat_flag_list):
-            raise lite.DatabaseError(errmsg)
-        else:
-            db.connection.commit()
-
-            if AUTODUMP:
-                db.dump(auto_commit=False)
+            print('[!sql] caller_name=%r' % caller_name)
+            print('</!!! ERROR>\n')
+            raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
     def dump(db, file_=None, auto_commit=True):
         """

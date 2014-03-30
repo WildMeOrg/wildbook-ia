@@ -22,6 +22,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('rois', (
         ('roi_uid',                      'UUID PRIMARY KEY'),
         ('image_uid',                    'UUID NOT NULL'),
+        ('name_uid',                     'UUID DEFAULT 0'),
         ('roi_xtl',                      'INTEGER NOT NULL'),
         ('roi_ytl',                      'INTEGER NOT NULL'),
         ('roi_width',                    'INTEGER NOT NULL'),
@@ -39,7 +40,6 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('chips', (
         ('chip_uid',                     'UUID PRIMARY KEY'),
         ('roi_uid',                      'UUID NOT NULL'),
-        ('name_uid',                     'UUID DEFAULT 0'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
         ('chip_toggle_hard',             'INTEGER DEFAULT 0'),
