@@ -1,6 +1,5 @@
 from __future__ import division, print_function
 from itertools import izip
-import numpy as np
 import utool
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
@@ -8,6 +7,12 @@ from PyQt4.QtGui import QAbstractItemView
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitables]', DEBUG=False)
 
 UUID_type = str
+
+# Table names (should reflect SQL tables)
+IMAGE_TABLE = 'images'
+ROI_TABLE   = 'rois'
+NAME_TABLE  = 'names'
+RES_TABLE   = 'res'
 
 
 # A map from short internal headers to fancy headers seen by the user
@@ -20,7 +25,7 @@ fancy_headers = {
     'nRids':       '#ROIs',
     'name':       'Name',
     'nGt':        '#GT',
-    'nKpts':      '#Kpts',
+    'nFeats':     '#Features',
     'theta':      'Theta',
     'roi':        'ROI (x, y, w, h)',
     'rank':       'Rank',
@@ -31,37 +36,26 @@ reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 
 # A list of default internal headers to display
 table_headers = {
-    'gids':  ['gid', 'gname', 'nRids', 'aif'],
-    'rids':  ['rid', 'name', 'gname', 'nGt', 'nKpts', 'theta'],
-    'nids':  ['nid', 'name', 'nRids'],
-    'res':   ['rank', 'score', 'name', 'rid']
+    IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif'],
+    ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'theta'],
+    NAME_TABLE:  ['nid', 'name', 'nRids'],
+    RES_TABLE:   ['rank', 'score', 'name', 'rid']
 }
 
 # Lists internal headers whos items are editable
 table_editable = {
-    'gids':  [],
-    'rids':  ['name'],
-    'nids':  ['name'],
-    'res':   ['name'],
+    IMAGE_TABLE: [],
+    ROI_TABLE:   ['name'],
+    NAME_TABLE:  ['name'],
+    RES_TABLE:   ['name'],
 }
 
-
-def _get_datatup_list(ibs, tblname, index_list, header_order, extra_cols):
-    '''
-    Used by guiback to get lists of datatuples by internal column names.
-    '''
-    printDBG('[gui] _get_datatup_list()')
-    cols = _datatup_cols(ibs, tblname)
-    printDBG('[gui] cols=%r' % cols)
-    cols.update(extra_cols)
-    printDBG('[gui] cols=%r' % cols)
-    unknown_header = lambda indexes: ['ERROR!' for gx in indexes]
-    get_tup = lambda header: cols.get(header, unknown_header)(index_list)
-    unziped_tups = [get_tup(header) for header in header_order]
-    printDBG('[gui] unziped_tups=%r' % unziped_tups)
-    datatup_list = [tup for tup in izip(*unziped_tups)]
-    printDBG('[gui] datatup_list=%r' % datatup_list)
-    return datatup_list
+fancy_tablenames = {
+    IMAGE_TABLE: 'Image Table',
+    ROI_TABLE:   'ROIs Table',
+    NAME_TABLE:  'Name Table',
+    RES_TABLE:   'Query Results Table',
+}
 
 
 def _datatup_cols(ibs, tblname, cx2_score=None):
@@ -71,13 +65,13 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
     '''
     printDBG('[gui] _datatup_cols()')
     # Return requested columns
-    if tblname == 'nids':
+    if tblname == NAME_TABLE:
         cols = {
             'nid':   lambda nids: nids,
             'name':  lambda nids: ibs.get_names(nids),
             'nRids':  lambda nids: ibs.get_num_rids_in_nids(nids),
         }
-    elif tblname == 'gids':
+    elif tblname == IMAGE_TABLE:
         cols = {
             'gid':   lambda gids: gids,
             'aif':   lambda gids: ibs.get_image_aifs(gids),
@@ -85,26 +79,18 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'nRids':  lambda gids: ibs.get_num_rids_in_gids(gids),
             'unixtime': lambda gids: ibs.get_image_unixtime(gids),
         }
-    elif tblname in ['cxs', 'res']:
-        np.tau = (2 * np.pi)
-        taustr = 'tau' if utool.get_flag('--myway') else '2pi'
-
-        def theta_str(theta):
-            'Format theta so it is interpretable in base 10'
-            #coeff = (((tau - theta) % tau) / tau)
-            coeff = (theta / np.tau)
-            return ('%.2f * ' % coeff) + taustr
+    elif tblname in [ROI_TABLE, RES_TABLE]:
 
         cols = {
             'rid':    lambda rids: rids,
             'name':   lambda rids: ibs.get_roi_names(rids),
             'gname':  lambda rids: ibs.get_roi_gname(rids),
             'nGt':    lambda rids: ibs.get_roi_num_groundtruth(rids),
-            'nKpts':  lambda rids: ibs.get_roi_nKpts(rids),
-            'theta':  lambda rids: map(theta_str, ibs.get_roi_theta(rids)),
+            'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
             'roi':    lambda rids: map(str, ibs.get_roi_bbox(rids)),
+            'nFeats':  lambda rids: ibs.get_chip_num_feats(rids),
         }
-        if tblname == 'res':
+        if tblname == RES_TABLE:
             cols.update({
                 'rank':   lambda cxs:  range(1, len(cxs) + 1),
             })
@@ -113,7 +99,22 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
     return cols
 
 
-# ----
+def _get_datatup_list(ibs, tblname, index_list, header_order, extra_cols):
+    '''
+    Used by guiback to get lists of datatuples by internal column names.
+    '''
+    #printDBG('[gui] _get_datatup_list()')
+    cols = _datatup_cols(ibs, tblname)
+    #printDBG('[gui] cols=%r' % cols)
+    cols.update(extra_cols)
+    #printDBG('[gui] cols=%r' % cols)
+    unknown_header = lambda indexes: ['ERROR!' for gx in indexes]
+    get_tup = lambda header: cols.get(header, unknown_header)(index_list)
+    unziped_tups = [get_tup(header) for header in header_order]
+    #printDBG('[gui] unziped_tups=%r' % unziped_tups)
+    datatup_list = [tup for tup in izip(*unziped_tups)]
+    #printDBG('[gui] datatup_list=%r' % datatup_list)
+    return datatup_list
 
 
 def make_header_lists(tbl_headers, editable_list, prop_keys=[]):
@@ -149,14 +150,14 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols=
 
 
 def emit_populate_table(back, tblname, *args, **kwargs):
-    printDBG('>>>>>>>>>>>>>>>>>>>>>')
-    printDBG('[gui_item_tables] _populate_table(%r)' % tblname)
+    #printDBG('>>>>>>>>>>>>>>>>>>>>>')
+    #printDBG('[gui_item_tables] _populate_table(%r)' % tblname)
     col_headers, col_editable = _get_table_headers_editable(tblname)
-    printDBG('[gui_item_tables] col_headers = %r' % col_headers)
-    printDBG('[gui_item_tables] col_editable = %r' % col_editable)
+    #printDBG('[gui_item_tables] col_headers = %r' % col_headers)
+    #printDBG('[gui_item_tables] col_editable = %r' % col_editable)
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
-    printDBG('[gui_item_tables] datatup_list = %r' % datatup_list)
+    #printDBG('[gui_item_tables] datatup_list = %r' % datatup_list)
     row_list = range(len(datatup_list))
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers[key]

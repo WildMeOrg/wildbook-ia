@@ -9,7 +9,7 @@ import sys
 import multiprocessing
 import utool
 printTEST = __testing__.printTEST
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[' + TEST_NAME + ']')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 
 sys.argv.append('--nogui')
 
@@ -71,5 +71,5 @@ if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
     TEST_IBS()
-    from drawtool import draw_func2 as df2
-    exec(df2.present())
+    #from drawtool import draw_func2 as df2
+    #exec(df2.present())

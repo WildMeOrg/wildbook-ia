@@ -2,10 +2,24 @@ from __future__ import division, print_function
 from itertools import imap
 from os.path import split
 from .util_inject import inject
+from .util_arg import get_flag
+import numpy as np
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
+np.tau = (2 * np.pi)  # tauday.com
+
+
+def theta_str(theta, taustr=('tau' if get_flag('--myway') else '2pi')):
+    """ Format theta so it is interpretable in base 10 """
+    #coeff = (((tau - theta) % tau) / tau)
+    coeff = (theta / np.tau)
+    return ('%.2f * ' % coeff) + taustr
+
+
 # --- Strings ----
+
+
 def remove_chars(instr, illegals_chars):
     outstr = instr
     for ill_char in iter(illegals_chars):

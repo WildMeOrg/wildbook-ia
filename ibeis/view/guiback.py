@@ -13,7 +13,7 @@ from guitool import drawing, slot_, signal_
 # IBEIS
 from ibeis.dev import params
 from ibeis.view import guifront
-from ibeis.view import gui_item_tables
+from ibeis.view import gui_item_tables as item_table
 from ibeis.view import interact
 # Utool
 import utool
@@ -21,7 +21,7 @@ from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
 
 
-UUID_type = gui_item_tables.UUID_type
+UUID_type = item_table.UUID_type
 
 
 # Qt returns types weirdly via slots. Need to cast them
@@ -179,13 +179,13 @@ class MainWindowBackend(QtCore.QObject):
     #----------------------1----------------------------------------------------
 
     def populate_image_table(back, **kwargs):
-        gui_item_tables.emit_populate_table(back, 'gids', **kwargs)
+        item_table.emit_populate_table(back, item_table.IMAGE_TABLE, **kwargs)
 
     def populate_name_table(back, **kwargs):
-        gui_item_tables.emit_populate_table(back, 'nids', **kwargs)
+        item_table.emit_populate_table(back, item_table.NAME_TABLE, **kwargs)
 
     def populate_roi_table(back, **kwargs):
-        gui_item_tables.emit_populate_table(back, 'rids', **kwargs)
+        item_table.emit_populate_table(back, item_table.ROI_TABLE, **kwargs)
 
     def populate_result_table(back, **kwargs):
         #res = back.current_res
@@ -193,8 +193,8 @@ class MainWindowBackend(QtCore.QObject):
         if res is None:
             # Clear the table if there are no results
             print('[back] no results available')
-            gui_item_tables.emit_populate_table(back, 'res', index_list=[])
             return
+        #item_table.emit_populate_table(back, item_table.RES_TABLE, index_list=[])
         top_cxs = res.topN_cxs(back.ibs, N='all')
         qrid = res.qrid
         # The ! mark is used for ascii sorting. TODO: can we work around this?
@@ -205,7 +205,7 @@ class MainWindowBackend(QtCore.QObject):
         extra_cols = {
             'score':  lambda cxs:  [res.cx2_score[rid] for rid in iter(cxs)],
         }
-        back.emit_populate_table('res', index_list=top_cxs,
+        back.emit_populate_table(item_table.RES_TABLE, index_list=top_cxs,
                                  prefix_cols=prefix_cols,
                                  extra_cols=extra_cols,
                                  **kwargs)

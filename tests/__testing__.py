@@ -29,17 +29,6 @@ utool.util_sysreq.ensure_in_pythonpath('ibeis')
 INTERACTIVE = utool.get_flag(('--interactive', '-i'))
 
 
-def handle_exceptions(ex, locals_, testname=None):
-    if testname is None:
-        testname = utool.get_caller_name()
-        printTEST('[TEST] %s FAILED: %s %s' % (testname, type(ex), ex))
-        ibs = locals_.get('ibs', None)
-        if ibs is not None:
-            ibs.db.dump()
-            if '--strict' in sys.argv:
-                raise
-
-
 def testcontext(func):
     @functools.wraps(func)
     def test_wrapper(*args, **kwargs):
@@ -47,12 +36,36 @@ def testcontext(func):
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
             result = func(*args, **kwargs)
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
+            print('--- :D ---')
+            print(r'''
+                  .-""""""-.
+                .'          '.
+               /   O      O   \
+              :                :
+              |                |
+              : ',          ,' :
+               \  '-......-'  /
+                '.          .'
+                  '-......-'
+                  ''')
+
             return result
         except Exception as ex:
             exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function
             locals_ = tb.tb_next.tb_frame.f_locals
             printTEST('[TEST] %s FAILED: %s %s' % (func.func_name, type(ex), ex))
+            print(r'''
+                  .-""""""-.
+                .'          '.
+               /   O      O   \
+              :           `    :
+              |                |
+              :    .------.    :
+               \  '        '  /
+                '.          .'
+                  '-......-'
+                  ''')
             ibs = locals_.get('ibs', None)
             if ibs is not None:
                 ibs.db.dump()

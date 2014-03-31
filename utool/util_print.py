@@ -104,10 +104,17 @@ def indent_decor(lbl):
         @functools.wraps(func)
         def indent_decor_wrapper2(*args, **kwargs):
             with Indenter(lbl):
-                ret = func(*args, **kwargs)
-                return ret
+                return func(*args, **kwargs)
         return indent_decor_wrapper2
     return indent_decor_wrapper1
+
+
+def indent_func(func):
+    @functools.wraps(func)
+    @indent_decor('[' + func.func_name + ']')
+    def indent_wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return indent_wrapper
 
 
 def printshape(arr_name, locals_):

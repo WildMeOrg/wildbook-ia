@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import print_function, division
+#-----
+TEST_NAME = 'TEST_GUI_IMPORT_IMAGES'
+#-----
 import __testing__
 import multiprocessing
 import utool
 from ibeis.dev import params
 from os.path import join
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_parallel]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+
 printTEST = __testing__.printTEST
 
 RUNGUI = utool.get_flag('--gui')
 
 
 @__testing__.testcontext
-def test_gui_import_images():
-    # Create a HotSpotter API (hs) and GUI backend (back)
-    printTEST('[TEST] TEST_ADD_IMAGES')
+def TEST_GUI_IMPORT_IMAGES():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
     back = main_locals['back']  # IBEIS GUI backend
@@ -39,8 +41,9 @@ def test_gui_import_images():
     printTEST('[TEST] * len(gid_list)=%r' % len(gid_list))
     __testing__.main_loop(main_locals, rungui=RUNGUI)
 
+TEST_GUI_IMPORT_IMAGES.func_name = TEST_NAME
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    test_gui_import_images()
+    TEST_GUI_IMPORT_IMAGES()

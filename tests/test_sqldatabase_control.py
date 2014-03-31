@@ -1,16 +1,19 @@
 #!usr/bin/env python
 from __future__ import division, print_function
-import __testing__  # NOQA
+#------
+TEST_NAME = 'TEST_GUI_OPEN_DATABASE'
+#------
 from ibeis.control import SQLDatabaseControl
 import numpy as np
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_sqldatabase_control]')
+import __testing__
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+
 printTEST = __testing__.printTEST
 
 
 @__testing__.testcontext
-def test_sqldatabase_control():
-    printTEST('[TEST] test_sqldatabase_control')
+def TEST_SQLDATABASE_CONTROL():
 
     utool.util_path.remove_file('temp.sqlite3', dryrun=False)
 
@@ -62,7 +65,8 @@ def test_sqldatabase_control():
     print(' * dump time=%r sec' % utool.toc(tt))
     #with open('temp.dump.txt') as file_:
         #print(file_.read())
+TEST_SQLDATABASE_CONTROL.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
-    test_sqldatabase_control()
+    TEST_SQLDATABASE_CONTROL()

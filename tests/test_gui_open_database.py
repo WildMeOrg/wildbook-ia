@@ -1,20 +1,22 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import print_function, division
+#------
+TEST_NAME = 'TEST_GUI_OPEN_DATABASE'
+#------
 import __testing__
 import multiprocessing
 import utool
 from ibeis.dev import params
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[test_parallel]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+
 printTEST = __testing__.printTEST
 
 RUNGUI = utool.get_flag('--gui')
 
 
 @__testing__.testcontext
-def test_gui_open_database():
-    # Create a HotSpotter API (hs) and GUI backend (back)
-    printTEST('[TEST] TEST_ADD_IMAGES')
+def TEST_GUI_OPEN_DATABASE():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
     back = main_locals['back']  # IBEIS GUI backend
@@ -25,9 +27,9 @@ def test_gui_open_database():
     back.open_database(dbdir)
 
     __testing__.main_loop(main_locals, rungui=RUNGUI)
+TEST_GUI_OPEN_DATABASE.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    test_gui_open_database()
+    multiprocessing.freeze_support()  # For windows
+    TEST_GUI_OPEN_DATABASE()

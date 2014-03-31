@@ -44,7 +44,7 @@ from .util_distances import (nearest_point,)  # NOQA
 
 from .util_inject import (inject, inject_all, inject_print_functions)  # NOQA
 
-from .util_print import (horiz_print, horiz_string, indent_decor, printshape, Indenter, NpPrintOpts)  # NOQA
+from .util_print import (horiz_print, horiz_string, indent_decor, indent_func, printshape, Indenter, NpPrintOpts)  # NOQA
 
 from .util_iter import (iflatten, ichunks, interleave,)  # NOQA
 
@@ -54,7 +54,7 @@ from .util_list import (alloc_lists, list_index, npfind, index_of, flatten,  # N
                         list_eq, listfind)
 
 
-from .util_str  import (byte_str2)  # NOQA
+from .util_str  import (byte_str2, theta_str)  # NOQA
 
 from .DynStruct import DynStruct   # NOQA
 

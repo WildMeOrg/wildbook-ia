@@ -9,48 +9,108 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 # only and tripple single quotes for python multiline strings only
 from __future__ import division, print_function
 # Python
-from itertools import izip
-from os.path import join, realpath, split
+import functools
 import re
 import sys
+from itertools import izip
+from os.path import join, realpath, split
 # Science
 import numpy as np
 # IBEIS
-from ibeis.control import SQLDatabaseControl
 from ibeis.control import __IBEIS_SCHEMA__
+from ibeis.control import SQLDatabaseControl
 # VTool
 from vtool import image as gtool
-from vtool import keypoint as ktool
 # UTool
 import utool
-from utool import util_hash
-from utool import util_time
+from utool import util_hash, util_time
 from utool.util_iter import iflatten
+
+# Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]', DEBUG=False)
 
 
-def get_exif_tagids(tag_list):
-    from PIL.ExifTags import TAGS
-    exif_keys  = TAGS.keys()
-    exif_vals  = TAGS.values()
-    tagid_list = [exif_keys[exif_vals.index(tag)] for tag in tag_list]
-    return tagid_list
+#-----------------
+# IBEIS GLOBAL
+#-----------------
 
-
-tag_list = ['DateTimeOriginal', 'GPSInfo']
-print(gtool)
-_TAGKEYS = get_exif_tagids(tag_list)
-_TAGDEFAULTS = (-1, (-1, -1))
 
 UNKNOWN_NID = utool.util_hash.get_zero_uuid()
 UNKNOWN_NAME = '____'
 
 
-def _get_exif(pil_img):
-    """ Image EXIF helper """
-    (exiftime, (lat, lon)) = gtool.read_exif_tags(pil_img, _TAGKEYS, _TAGDEFAULTS)
-    time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
-    return time, lat, lon
+#-----------------
+# IBEIS DECORATORS
+#-----------------
+
+# DECORATORS::ADDER
+
+
+def adder(func):
+    @utool.indent_func
+    @functools.wraps(func)
+    def adder_wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return adder_wrapper
+
+
+# DECORATORS::SETTER
+
+
+def setter(func):
+    @utool.indent_func
+    @functools.wraps(func)
+    def adder_wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return adder_wrapper
+
+
+# DECORATORS::GETTER
+
+def getter(func):
+    """ Getter decorator for functions which takes as the first input a unique
+    id list and returns a heterogeous list of values """
+    @utool.accepts_scalar_input
+    @utool.indent_decor('[' + func.func_name + ']')
+    @functools.wraps(func)
+    def getter_wrapper1(*args, **kwargs):
+        return func(*args, **kwargs)
+    return getter_wrapper1
+
+
+def getter_vector_output(func):
+    """ Getter decorator for functions which takes as the first input a unique
+    id list and returns a homogenous list of values """
+    @utool.indent_func
+    @utool.accepts_scalar_input_vector_output
+    @functools.wraps(func)
+    def getter_wrapper3(*args, **kwargs):
+        return func(*args, **kwargs)
+    return getter_wrapper3
+
+
+def getter_general(func):
+    """ Getter decorator for functions which has no gaurentees """
+    @utool.indent_func
+    @functools.wraps(func)
+    def getter_wrapper2(*args, **kwargs):
+        return func(*args, **kwargs)
+    return getter_wrapper2
+
+
+# DECORATORS::DELETER
+
+
+def deleter(func):
+    @utool.indent_func
+    @functools.wraps(func)
+    def adder_wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return adder_wrapper
+
+#-----------------
+# IBEIS CONTROLLER
+#-----------------
 
 
 class IBEISControl(object):
@@ -66,6 +126,8 @@ class IBEISControl(object):
         theta - angle of rotation for a chip
     """
 
+    #
+    #
     #--------------------
     # --- Constructor ---
     #--------------------
@@ -90,15 +152,27 @@ class IBEISControl(object):
             if not '--ignore' in sys.argv:
                 print('use --ignore to keep going')
                 raise
-
+    #
+    #
     #---------------
     # --- Adders ---
     #---------------
 
+    @adder
     def add_images(ibs, gpath_list):
         """ Adds a list of image paths to the database. Returns newly added gids """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
+
+        tag_list = ['DateTimeOriginal', 'GPSInfo']
+        _TAGKEYS = gtool.get_exif_tagids(tag_list)
+        _TAGDEFAULTS = (-1, (-1, -1))
+
+        def _get_exif(pil_img):
+            """ Image EXIF helper """
+            (exiftime, (lat, lon)) = gtool.read_exif_tags(pil_img, _TAGKEYS, _TAGDEFAULTS)
+            time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+            return time, lat, lon
 
         def _add_images_paramters_gen(gpath_list):
             """ executes sqlcmd with generated sqlvals """
@@ -126,18 +200,18 @@ class IBEISControl(object):
                 image_exif_gps_lon
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ''',
-            parameters_iter=param_list,
-            errmsg='[ibs.add_images] ERROR!')
+            parameters_iter=param_list)
         return gid_list
 
+    @adder
     def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None,
                  nid_list=None):
-        """ add_rois docstr """
+        """ Adds oriented ROI bounding boxes to images """
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
         if nid_list is None:
             nid_list = [UNKNOWN_NID for _ in xrange(len(gid_list))]
-        augment_uuid = utool.util_hash.augment_uuid
+        augment_uuid = util_hash.augment_uuid
         # Build deterministic and unique ROI ids
         rid_list = [augment_uuid(gid, bbox, theta)
                     for gid, bbox, theta
@@ -162,30 +236,14 @@ class IBEISControl(object):
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
-            parameters_iter=param_iter,
-            errmsg='[ibs.add_rois] ERROR inserting rois')
+            parameters_iter=param_iter)
         return rid_list
 
-    def add_chips(ibs, rid_list):
-        """ Adds a list of chips to the database, with ROIs & thetas.
-            returns newly added chip ids
-        """
-        ibs.db.executemany(
-            operation='''
-            INSERT INTO chips
-            (
-                rid_list,
-                name_text
-            )
-            VALUES (?, ?)
-            ''',
-            parameters_iter=rid_list,
-            errmsg='[ibs.add_chips] ERROR inserting chips')
-        cid_list = [-1 for _ in xrange(len(rid_list))]
-        return cid_list
-
+    @adder
     def add_names(ibs, nid_iter, name_iter):
-        # Autoinsert the defualt-unknown name into the database
+        """ Adds a list of names
+        Autoinsert the defualt-unknown name into the database
+        """
         ibs.db.executemany(
             operation='''
             INSERT OR IGNORE INTO names
@@ -195,21 +253,24 @@ class IBEISControl(object):
             )
             VALUES (?, ?)
             ''',
-            parameters_iter=izip(nid_iter, name_iter),
-            errmsg='[ibs.add_names] ERROR inserting names')
+            parameters_iter=izip(nid_iter, name_iter))
         nid_iter = [-1 for _ in xrange(len(nid_iter))]
         return nid_iter
 
-    #----------------------
+    #
+    #
+    #----------------
     # --- Setters ---
-    #----------------------
+    #----------------
 
-    # Image Setters
+    # SETTERS::Image
 
+    @setter
     def set_image_paths(ibs, gid_list, gpath_list):
         """ Do we want to do caching here? """
         pass
 
+    @setter
     def set_image_eid(ibs, gid_list, eids_list):
         """
             Sets the encounter id that a list of images is tied to, deletes old encounters.
@@ -220,8 +281,7 @@ class IBEISControl(object):
             operation='''
             DELETE FROM egpairs WHERE image_uid=?
             ''',
-            parameters_iter=gid_list,
-            errmsg='[ibs.set_image_eid[1]] ERROR! deleting egpairs')
+            parameters_iter=gid_list)
 
         ibs.db.executemany(
             operation='''
@@ -232,11 +292,11 @@ class IBEISControl(object):
             ''',
             parameters_iter=iflatten(((eid, gid)
                                       for eid in eids)
-                                     for eids, gid in izip(eids_list, gid_list)),
-            errmsg='[ibs.set_image_eid[2]] ERROR on deleting old image encounters')
+                                     for eids, gid in izip(eids_list, gid_list)))
 
-    # ROI Setters
+    # SETTERS::ROI
 
+    @setter
     def set_roi_bbox(ibs, rid_list, bbox_list):
         """ Sets ROIs of a list of rois by rid, where roi_list is a list of (x, y, w, h) tuples"""
         ibs.db.executemany(
@@ -248,9 +308,9 @@ class IBEISControl(object):
                 roi_height=?,
             WHERE roi_uid=?
             ''',
-            parameters_iter=izip(bbox_list, rid_list),
-            errmsg='[ibs.set_roi_bbox] ERROR!')
+            parameters_iter=izip(bbox_list, rid_list))
 
+    @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
         """ Sets thetas of a list of chips by rid """
         ibs.db.executemany(
@@ -259,9 +319,9 @@ class IBEISControl(object):
                 roi_theta=?,
             WHERE roi_uid=?
             ''',
-            parameters_iter=izip(theta_list, rid_list),
-            errmsg='[ibs.set_roi_thetas] ERROR.')
+            parameters_iter=izip(theta_list, rid_list))
 
+    @setter
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
         """ Sets viewpoints of a list of chips by rid """
         ibs.db.executemany(
@@ -271,12 +331,10 @@ class IBEISControl(object):
                 roi_viewpoint=?,
             WHERE roi_uid=?
             ''',
-            parameters_iter=izip(viewpoint_list, rid_list),
-            errmsg='[ibs.set_roi_viewpoints] ERROR.')
+            parameters_iter=izip(viewpoint_list, rid_list))
 
-    # Chip Setters
-
-    def set_chip_names(ibs, cid_list, name_list):
+    @setter
+    def set_roi_names(ibs, rid_list, name_list):
         """ Sets names of a list of chips by cid """
         ibs.db.executemany(
             operation='''
@@ -290,11 +348,13 @@ class IBEISControl(object):
                 ORDER BY name_uid
                 LIMIT 1
             ),
-            WHERE chip_uid=?
+            WHERE roi_uid=?
             ''',
-            parameters_iter=izip(name_list, cid_list),
-            errmsg='[ibs.set_chip_names] ERROR.')
+            parameters_iter=izip(name_list, rid_list))
 
+    # SETTERS::Chip
+
+    @setter
     def set_chip_shape(ibs, cid_list, shape_list):
         """ Sets shape of a list of chips by cid, a list of tuples (w, h) """
         ibs.db.executemany(
@@ -305,9 +365,9 @@ class IBEISControl(object):
                 chip_height=?,
             WHERE chip_uid=?
             ''',
-            parameters_iter=((w, h, cid) for ((w, h), cid) in izip(shape_list, cid_list)),
-            errmsg='[ibs.set_chip_shape] ERROR.')
+            parameters_iter=((w, h, cid) for ((w, h), cid) in izip(shape_list, cid_list)))
 
+    @setter
     def set_chip_toggle_hard(ibs, cid_list, hard_list):
         """ Sets hard toggle of a list of chips by cid """
         ibs.db.executemany(
@@ -317,23 +377,27 @@ class IBEISControl(object):
                 chip_toggle_hard=?,
             WHERE chip_uid=?
             ''',
-            parameters_iter=izip(hard_list, cid_list),
-            errmsg='[ibs.set_chip_toggle_hard] ERROR.')
+            parameters_iter=izip(hard_list, cid_list))
 
+    #
+    #
     #----------------
-    # --- Getters ---
+    # --- GETTERS ---
     #----------------
 
-    # General Getters
+    #
+    # GETTERS::General
 
+    @getter_general
     def get_valid_ids(ibs, tblname):
         get_valid_tblname_ids = {
-            'gids': ibs.get_valid_gids,
-            'rids': ibs.get_valid_cids,
-            'nids': ibs.get_valid_nids,
+            'images': ibs.get_valid_gids,
+            'rois': ibs.get_valid_rids,
+            'names': ibs.get_valid_nids,
         }[tblname]
         return get_valid_tblname_ids()
 
+    @getter_general
     def get_table_properties(ibs, table, prop_key, uid_list):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
         # Potentially UNSAFE SQL
@@ -357,25 +421,26 @@ class IBEISControl(object):
             (table, prop_key))
         return property_list
 
-    # Image Getters (input gid_list)
+    #
+    # GETTERS::Image
 
-    @utool.indent_decor('[get_valid_gids]')
+    @getter_general
+    def get_image_properties(ibs, prop_key, gid_list):
+        """ general image property getter """
+        return ibs.get_table_properties('images', prop_key, gid_list)
+
+    @getter_general
     def get_valid_gids(ibs):
         ibs.db.execute(
             operation='''
             SELECT image_uid
             FROM images
-            ''',
-            errmsg='[ibs.get_valid_gids] ERROR')
+            ''')
         gid_iter = ibs.db.result_iter()
         gid_list = list(gid_iter)
         return gid_list
 
-    def get_image_properties(ibs, prop_key, gid_list):
-        return ibs.get_table_properties('images', prop_key, gid_list)
-
-    @utool.indent_decor('[get_images]')
-    @utool.accepts_scalar_input
+    @getter
     def get_images(ibs, gid_list):
         """
             Returns a list of images in numpy matrix form by gid
@@ -386,7 +451,7 @@ class IBEISControl(object):
         image_list = [gtool.imread(gpath) for gpath in gpath_list]
         return image_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_image_uris(ibs, gid_list):
         """ Returns a list of image uris by gid """
         uri_list = ibs.db.executemany(
@@ -400,8 +465,7 @@ class IBEISControl(object):
             unpack_scalars=True)
         return uri_list
 
-    @utool.indent_decor('[get_image_paths]')
-    @utool.accepts_scalar_input
+    @getter
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths relative to img_dir? by gid """
         uri_list = ibs.get_image_uris(gid_list)
@@ -409,8 +473,7 @@ class IBEISControl(object):
         gpath_list = [join(img_dir, uri) for uri in uri_list]
         return gpath_list
 
-    @utool.indent_decor('[get_image_gnames]')
-    @utool.accepts_scalar_input
+    @getter
     def get_image_gnames(ibs, gid_list):
         """ Returns a list of image names """
         printDBG('[DEBUG] get_image_gnames()')
@@ -418,7 +481,7 @@ class IBEISControl(object):
         gname_list = [split(gpath)[1] for gpath in gpath_list]
         return gname_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_image_size(ibs, gid_list):
         """ Returns a list of image dimensions by gid in (width, height) tuples """
         img_width_list = ibs.get_table_properties('images', 'image_width', gid_list)
@@ -426,7 +489,7 @@ class IBEISControl(object):
         gsize_list = [(w, h) for (w, h) in izip(img_width_list, img_height_list)]
         return gsize_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_image_unixtime(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
@@ -434,7 +497,7 @@ class IBEISControl(object):
         unixtime_list = ibs.get_table_properties('images', 'image_exif_time_posix', gid_list)
         return unixtime_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_image_gps(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
@@ -444,29 +507,20 @@ class IBEISControl(object):
         gps_list = [(lat, lon) for (lat, lon) in izip(lat_list, lon_list)]
         return gps_list
 
-    @utool.indent_decor('[get_image_aifs]')
-    @utool.accepts_scalar_input
+    @getter
     def get_image_aifs(ibs, gid_list):
         """ Returns "All Instances Found" flag, true if all objects of interest
         (animals) have an ROI in the image """
         aif_list = ibs.get_table_properties('images', 'image_toggle_aif', gid_list)
         return aif_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_image_eid(ibs, gid_list):
         """ Returns a list of encounter ids for each image by gid """
         eid_list = [-1 for gid in gid_list]
         return eid_list
 
-    @utool.accepts_scalar_input
-    def get_cids_in_gids(ibs, gid_list):
-        """ Returns a list of cids for each image by gid,
-            e.g. [(1, 2), (3), (), (4, 5, 6) ...] """
-        # for each image return chips in that image
-        cids_list = [[] for gid in gid_list]
-        return cids_list
-
-    @utool.accepts_scalar_input_vector_output
+    @getter_vector_output
     def get_rids_in_gids(ibs, gid_list):
         """ Returns a list of rids for each image by gid """
         rids_list = ibs.db.executemany(
@@ -481,59 +535,65 @@ class IBEISControl(object):
         # for each image return rois in that image
         return rids_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_num_rids_in_gids(ibs, gid_list):
         """ Returns the number of chips associated with a list of images by gid """
         return map(len, ibs.get_rids_in_gids(gid_list))
 
-    # ROI Getters (input rid_list)
+    #
+    # GETTERS::ROI
 
+    @getter_general
+    def get_roi_properties(ibs, prop_key, rid_list):
+        """ general image property getter """
+        return ibs.get_table_properties('rois', prop_key, rid_list)
+
+    @getter_general
     def get_valid_rids(ibs):
         """ returns a list of vaoid ROI unique ids """
-        # TODO: Make sure the image exists
-        ibs.db.execute(
-            operation='''
-            SELECT roi_uid
-            FROM rois
-            ''',
-            errmsg='[ibs.get_valid_rids] ERROR')
+        ibs.db.execute(operation='''
+                       SELECT roi_uid
+                       FROM rois
+                       ''')
         rid_list = ibs.db.result_list()
         return rid_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        xtl_list    = ibs.get_table_properties('rois', 'roi_xtl', rid_list)
-        ytl_list    = ibs.get_table_properties('rois', 'roi_ytl', rid_list)
-        width_list  = ibs.get_table_properties('rois', 'roi_width', rid_list)
-        height_list = ibs.get_table_properties('rois', 'roi_height', rid_list)
+        xtl_list    = ibs.get_roi_properties('roi_xtl', rid_list)
+        ytl_list    = ibs.get_roi_properties('roi_ytl', rid_list)
+        width_list  = ibs.get_roi_properties('roi_width', rid_list)
+        height_list = ibs.get_roi_properties('roi_height', rid_list)
         bbox_list = [(x, y, w, h) for (x, y, w, h) in izip(xtl_list, ytl_list, width_list, height_list)]
         return bbox_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        gid_list = ibs.get_table_properties('rois', 'image_uid', rid_list)
+        gid_list = ibs.get_roi_properties('image_uid', rid_list)
         return gid_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_roi_gname(ibs, rid_list):
+        """ Returns the image names of each roi """
         gid_list = ibs.get_roi_gids(rid_list)
         gname_list = ibs.get_image_gnames(gid_list)
         return gname_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_roi_thetas(ibs, rid_list):
         """ Returns a list of floats describing the angles of each chip """
-        theta_list = ibs.get_table_properties('rois', 'roi_theta', rid_list)
+        theta_list = ibs.get_roi_properties('roi_theta', rid_list)
         return theta_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_roi_nids(ibs, rid_list):
-        nid_list = ibs.get_table_properties('rois', 'name_uid', rid_list)
+        """ Returns the name_ids of each roi """
+        nid_list = ibs.get_roi_properties('name_uid', rid_list)
         return nid_list
 
-    @utool.accepts_scalar_input
+    @getter
     def get_roi_names(ibs, rid_list):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
@@ -542,108 +602,135 @@ class IBEISControl(object):
         name_list = ibs.get_table_properties('names', 'name_text', nid_list)
         return name_list
 
+    @getter_vector_output
+    def get_roi_groundtruth(ibs, rid_list):
+        """ Returns a list of rids with the same name foreach rid in rid_list"""
+        groundtruth_list = [[] for rid in rid_list]
+        return groundtruth_list
+
+    @getter
+    def get_roi_num_groundtruth(ibs, cid_list):
+        """ Returns number of other chips with the same name foreach rid in rid_list """
+        return map(len, ibs.get_roi_groundtruth(cid_list))
+
+    @getter_vector_output
     def get_rids_in_nids(ibs, nid_list):
         """ returns a list of list of cids in each name """
         # for each name return chips in that name
         rids_list = [[] for _ in xrange(len(nid_list))]
         return rids_list
 
+    @getter
     def get_num_rids_in_nids(ibs, nid_list):
         return map(len, ibs.get_rids_in_nids(nid_list))
 
-    # Chip Getters (input cid_list)
-    def get_valid_cids(ibs):
-        ibs.db.execute(
-            operation='''
-            SELECT chip_uid
-            FROM chips
-            ''',
-            errmsg='[ibs.get_valid_cids] ERROR')
-        cid_list = ibs.db.result_list()
-        return cid_list
+    #
+    # GETTERS::Chips
 
-    def get_chips(ibs, cid_list):
+    @getter
+    def get_chips(ibs, rid_list):
         """ Returns a list cropped images in numpy array form by their cid """
         pass
 
-    @utool.accepts_scalar_input
-    def get_chip_paths(ibs, cid_list):
+    @getter
+    def get_chip_paths(ibs, rid_list):
         """ Returns a list of chip paths by their cid """
         fmtstr = join(ibs.dbdir, '_ibeisdb/cid%d_dummy.png')
-        cpath_list = [fmtstr % cid for cid in cid_list]
+        cpath_list = [fmtstr % cid for cid in rid_list]
         return cpath_list
 
-    def get_chip_rois(ibs, cid_list):
-        """ Returns a list of (x, y, w, h) tuples describing chip geometry in
-            image space.
-        """
-        roi_list = [(0, 0, 1, 1) for cid in cid_list]
-        return roi_list
-
-    def get_chip_kpts(ibs, cid_list):
-        kpts_list = [np.empty((0, ktool.KPTS_DIM)) for cid in cid_list]
+    @getter_vector_output
+    def get_chip_kpts(ibs, rid_list):
+        """ Returns chip keypoints """
+        import pyhesaff
+        kpts_dim = pyhesaff.KPTS_DIM
+        kpts_list = [np.empty((0, kpts_dim)) for rid in rid_list]
         return kpts_list
 
-    def get_chip_desc(ibs, cid_list):
-        desc_list = [np.empty((0, ktool.DESC_DIM)) for cid in cid_list]
+    @getter_vector_output
+    def get_chip_desc(ibs, rid_list):
+        """ Returns chip descriptors """
+        import pyhesaff
+        desc_dim = pyhesaff.DESC_DIM
+        desc_list = [np.empty((0, desc_dim)) for rid in rid_list]
         return desc_list
 
-    def get_chip_num_kpts(ibs, cid_list):
-        nKpts_list = map(len, ibs.get_chip_kpts(cid_list))
-        return nKpts_list
+    @getter
+    def get_chip_num_feats(ibs, rid_list):
+        nFeats_list = map(len, ibs.get_chip_kpts(rid_list))
+        return nFeats_list
+    #
+    # GETTERS::Mask
 
-    def get_chip_masks(ibs, cid_list):
+    @getter
+    def get_chip_masks(ibs, rid_list):
         # Should this function exist? Yes. -Jon
-        roi_list = ibs.get_chip_rois(cid_list)
+        roi_list = ibs.get_roi_bboxes(rid_list)
         mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
         return mask_list
 
-    def get_chip_groundtruth(ibs, cid_list):
-        """ For each cid, return a list the other chip-ids with the same name """
-        groundtruth_list = [[] for cid in cid_list]
-        return groundtruth_list
+    #
+    # GETTERS::Name
 
-    def get_chip_num_groundtruth(ibs, cid_list):
-        return map(len, ibs.get_chip_groundtruth(cid_list))
+    @getter_general
+    def get_name_properties(ibs, prop_key, nid_list):
+        """ general name property getter """
+        return ibs.get_table_properties('names', prop_key, nid_list)
 
-    # Name Getters (input nid_list)
-
+    @getter_general
     def get_valid_nids(ibs):
-        return []
+        """ Returns all valid names (does not include unknown names """
+        ibs.db.execute(operation='''
+                       SELECT name_uid
+                       FROM names
+                       ''')
+        nid_list = ibs.db.result_list()
+        return nid_list
 
+    @getter
     def get_names(ibs, nid_list):
-        return ['name-%r' % nid for nid in nid_list]
+        """ Returns text names """
+        name_list = ibs.get_name_properties('name_text', nid_list)
+        return name_list
 
-    # Encounter Getters (input eid_list)
+    #
+    # GETTERS::Encounter
 
+    @getter_general
     def get_valid_eids(ibs):
+        """ returns list of all encounter ids """
         return []
 
-    def get_cids_in_eids(ibs, eid_list):
-        """ returns a list of list of cids in each encounter """
-        cids_list = [[] for eid in eid_list]
-        return cids_list
+    @getter_vector_output
+    def get_rids_in_eids(ibs, eid_list):
+        """ returns a list of list of rids in each encounter """
+        rids_list = [[] for eid in eid_list]
+        return rids_list
 
+    @getter_vector_output
     def get_gids_in_eids(ibs, eid_list):
         """ returns a list of list of gids in each encounter """
         gids_list = [[] for eid in eid_list]
         return gids_list
 
+    #
+    #
     #-----------------
     # --- Deleters ---
     #-----------------
 
-    def delete_chips(ibs, cid_iter):
-        """ deletes all associated chips from the database that belong to the cid"""
+    @deleter
+    def delete_rois(ibs, rid_iter):
+        """ deletes all associated roi from the database that belong to the rid"""
         ibs.db.executemany(
             operation='''
             DELETE
-            FROM chips
-            WHERE chip_uid=?
+            FROM rois
+            WHERE roi_uid=?
             ''',
-            parameters_iter=cid_iter,
-            errmsg='[ibs.delete_chips()] ERROR.')
+            parameters_iter=rid_iter)
 
+    @deleter
     def delete_images(ibs, gid_list):
         """ deletes the images from the database that belong to gids"""
         ibs.db.executemany(
@@ -652,21 +739,26 @@ class IBEISControl(object):
             FROM images
             WHERE image_uid=?
             ''',
-            parameters_iter=gid_list,
-            errmsg='[ibs.delete_images()] ERROR.')
+            parameters_iter=gid_list)
 
+    #
+    #
     #----------------
     # --- Writers ---
     #----------------
 
-    def export_to_wildbook(ibs, cid_list):
+    @utool.indent_func
+    def export_to_wildbook(ibs, rid_list):
         """ Exports identified chips to wildbook """
         return None
 
+    #
+    #
     #--------------
     # --- Model ---
     #--------------
 
+    @utool.indent_func
     def cluster_encounters(ibs, gid_list):
         'Finds encounters'
         from ibeis.model import encounter_cluster
@@ -674,6 +766,7 @@ class IBEISControl(object):
         #ibs.set_image_eids(gid_list, eid_list)
         return eid_list
 
+    @utool.indent_func
     def detect_existence(ibs, gid_list, **kwargs):
         'Detects the probability of animal existence in each image'
         from ibeis.model import jason_detector
@@ -681,6 +774,7 @@ class IBEISControl(object):
         # Return for user inspection
         return probexist_list
 
+    @utool.indent_func
     def detect_rois_and_masks(ibs, gid_list, **kwargs):
         'Runs animal detection in each image'
         # Should this function just return rois and no masks???
@@ -690,29 +784,33 @@ class IBEISControl(object):
         # Return for user inspection
         return detection_list
 
+    @utool.indent_func
     def get_recognition_database_chips(ibs):
         'returns chips which are part of the persitent recognition database'
-        dcid_list = None
-        return dcid_list
+        drid_list = None
+        return drid_list
 
-    def query_intra_encounter(ibs, qcid_list, **kwargs):
+    @utool.indent_func
+    def query_intra_encounter(ibs, qrid_list, **kwargs):
         # wrapper
-        dcid_list = qcid_list
-        qres_list = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
+        drid_list = qrid_list
+        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
-    def query_database(ibs, qcid_list, **kwargs):
+    @utool.indent_func
+    def query_database(ibs, qrid_list, **kwargs):
         # wrapper
-        dcid_list = ibs.get_recognition_database_chips()
-        qres_list = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
+        drid_list = ibs.get_recognition_database_chips()
+        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
-    def _query_chips(ibs, qcid_list, dcid_list, **kwargs):
+    @utool.indent_func
+    def _query_chips(ibs, qrid_list, drid_list, **kwargs):
         """
-        qcid_list - query chip ids
-        dcid_list - database chip ids
+        qrid_list - query chip ids
+        drid_list - database chip ids
         """
         from ibeis.model import jon_identifier
-        qres_list = jon_identifier.query(ibs, qcid_list, dcid_list, **kwargs)
+        qres_list = jon_identifier.query(ibs, qrid_list, drid_list, **kwargs)
         # Return for user inspection
         return qres_list

@@ -154,8 +154,10 @@ class SQLDatabaseControl(object):
         same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
+        caller_name = utool.util_dbg.get_caller_name()
+        if errmsg is None:
+            errmsg = '%s ERROR' % caller_name
         if verbose:
-            caller_name = utool.util_dbg.get_caller_name()
             print('[sql.executemany] caller_name=%r' % caller_name)
         # Do any preprocesing on the SQL command / query
         #import textwrap
@@ -201,6 +203,7 @@ class SQLDatabaseControl(object):
         except lite.Error as ex1:
             print('\n<!!! ERROR>')
             print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
+            print('[!sql] %s' % (errmsg,))
             print('[!sql] operation=\n%s' % operation)
             if 'parameters' in vars():
                 if len(parameters) > 4:
@@ -219,7 +222,6 @@ class SQLDatabaseControl(object):
             #raise lite.DatabaseError('%s --- %s' % (errmsg, ex1))
         if auto_commit:
             db.commit(errmsg=errmsg, verbose=False)
-
         return result_list
 
     def result(db, verbose=VERBOSE):
@@ -232,7 +234,7 @@ class SQLDatabaseControl(object):
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.result_list] caller_name=%r' % caller_name)
-        return db.executor.fetchall()
+        return list(db.result_iter())
 
     def result_iter(db):
         # Jon: I think we should be using the fetchmany command here

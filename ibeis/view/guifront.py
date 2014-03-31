@@ -7,7 +7,7 @@ from PyQt4.QtCore import Qt
 from ibeis.view.MainSkel import Ui_mainSkel
 import guitool
 from guitool import slot_, signal_
-from ibeis.view import gui_item_tables
+from ibeis.view import gui_item_tables as item_table
 
 #=================
 # Decorators / Helpers
@@ -20,15 +20,22 @@ except AttributeError:
 
 
 def clicked(func):
+    """ Decorator which adds the decorated function as a slot and passes
+    the row and column of the item clicked instead of the item itself
+    Also provies debugging prints
+    """
+    @slot_(QtGui.QTableWidgetItem)
     @functools.wraps(func)
-    def clicked_wrapper(front, item, *args, **kwargs):
+    def clicked_wrapper(front, item):
         if front.isItemEditable(item):
             front.print('[front] does not select when clicking editable column')
             return
         if item == front.prev_tbl_item:
             return
         front.prev_tbl_item = item
-        return func(front, item, *args, **kwargs)
+        row, col = (item.row(), item.column())
+        front.print('%s(%r, %r)' % (func.func_name, row, col))
+        return func(front, row, col)
     # Hacky decorator
     return clicked_wrapper
 
@@ -157,10 +164,10 @@ def new_menu_action(front, menu_name, name, text=None, shortcut=None, slot_fn=No
 
 def set_tabwidget_text(front, tblname, text):
     tablename2_tabwidget = {
-        'gids': front.ui.image_view,
-        'rids': front.ui.roi_view,
-        'nids': front.ui.name_view,
-        'res': front.ui.result_view,
+        item_table.IMAGE_TABLE: front.ui.image_view,
+        item_table.ROI_TABLE: front.ui.roi_view,
+        item_table.NAME_TABLE: front.ui.name_view,
+        item_table.RES_TABLE: front.ui.result_view,
     }
     ui = front.ui
     tab_widget = tablename2_tabwidget[tblname]
@@ -170,7 +177,7 @@ def set_tabwidget_text(front, tblname, text):
     ui.tablesTabWidget.setTabText(tab_index, tab_text)
 
 
-UUID_type = gui_item_tables.UUID_type
+UUID_type = item_table.UUID_type
 
 
 class MainWindowFrontend(QtGui.QMainWindow):
@@ -282,21 +289,16 @@ class MainWindowFrontend(QtGui.QMainWindow):
                      row_list, datatup_list):
         tblname = str(tblname)
         front.print('populate_tbl(%s)' % tblname)
-        fancytblname = {
-            'gids': 'Image Table',
-            'rids': 'ROIs Table',
-            'nids': 'Name Table',
-            'res':  'Query Results Table',
-        }[tblname]
         tbl = {
-            'gids': front.ui.gids_TBL,
-            'rids': front.ui.rids_TBL,
-            'nids': front.ui.nids_TBL,
-            'res': front.ui.res_TBL,
+            item_table.IMAGE_TABLE: front.ui.gids_TBL,
+            item_table.ROI_TABLE:   front.ui.rids_TBL,
+            item_table.NAME_TABLE:  front.ui.nids_TBL,
+            item_table.RES_TABLE:   front.ui.res_TBL,
         }[tblname]
-        gui_item_tables.populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
+        item_table.populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
         # Set the tab text to show the number of items listed
-        text = fancytblname + ' : %d' % len(row_list)
+        fancy_tablename = item_table.fancy_tablenames[tblname]
+        text = fancy_tablename + ' : %d' % len(row_list)
         set_tabwidget_text(front, tblname, text)
 
     def isItemEditable(self, item):
@@ -309,8 +311,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_header(front, tbl, col):
         # Map the fancy header back to the internal one.
         fancy_header = str(tbl.horizontalHeaderItem(col).text())
-        header = (gui_item_tables.reverse_fancy[fancy_header]
-                  if fancy_header in gui_item_tables.reverse_fancy else fancy_header)
+        header = (item_table.reverse_fancy[fancy_header]
+                  if fancy_header in item_table.reverse_fancy else fancy_header)
         return header
 
     def get_tbl_int(front, tbl, row, col):
@@ -325,7 +327,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         tblname = str(tbl.objectName()).replace('_TBL', '')
         tblname = tblname.replace('image', 'img')  # Sooooo hack
         # TODO: backmap from fancy headers to consise
-        col = gui_item_tables.table_headers[tblname].index(header)
+        col = item_table.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
     #=======================
@@ -402,35 +404,23 @@ class MainWindowFrontend(QtGui.QMainWindow):
     #=======================
     # Table Clicked Functions
     #=======================
-    @slot_(QtGui.QTableWidgetItem)
     @clicked
-    def img_tbl_clicked(front, item):
-        row = item.row()
-        front.print('img_tbl_clicked(%r)' % (row))
+    def img_tbl_clicked(front, row, col):
         sel_gid = front.get_imgtbl_gid(row)
         front.selectGidSignal.emit(sel_gid)
 
-    @slot_(QtGui.QTableWidgetItem)
     @clicked
-    def roi_tbl_clicked(front, item):
-        row, col = (item.row(), item.column())
-        front.print('roi_tbl_clicked(%r, %r)' % (row, col))
+    def roi_tbl_clicked(front, row, col):
         sel_rid = front.get_roitbl_rid(row)
         front.selectCidSignal.emit(sel_rid)
 
-    @slot_(QtGui.QTableWidgetItem)
     @clicked
-    def res_tbl_clicked(front, item):
-        row, col = (item.row(), item.column())
-        front.print('res_tbl_clicked(%r, %r)' % (row, col))
+    def res_tbl_clicked(front, row, col):
         sel_rid = front.get_restbl_rid(row)
         front.selectResSignal.emit(sel_rid)
 
-    @slot_(QtGui.QTableWidgetItem)
     @clicked
-    def name_tbl_clicked(front, item):
-        row, col = (item.row(), item.column())
-        front.print('name_tbl_clicked(%r, %r)' % (row, col))
+    def name_tbl_clicked(front, row, col):
         sel_name = front.get_nametbl_name(row)
         # TODO Need to either switch back to Name or use nid
         front.selectNidSignal.emit(sel_name)

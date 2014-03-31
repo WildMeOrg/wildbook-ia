@@ -32,13 +32,13 @@ def define_IBEIS_schema(ibs):
     ))
     # Used to store *processed* ROIs as segmentations
     ibs.db.schema('masks', (
-        ('mask_uid',                     'UUID PRIMARY KEY'),
+        ('mask_uid',                     'INTEGER PRIMARY KEY'),
         ('roi_uid',                      'UUID NOT NULL'),
         ('mask_uri',                     'TEXT NOT NULL'),
     ))
     # Used to store *processed* ROIs as chips
     ibs.db.schema('chips', (
-        ('chip_uid',                     'UUID PRIMARY KEY'),
+        ('chip_uid',                     'INTEGER PRIMARY KEY'),
         ('roi_uid',                      'UUID NOT NULL'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
@@ -46,8 +46,8 @@ def define_IBEIS_schema(ibs):
     ))
     # Used to store individual chip features (ellipses)
     ibs.db.schema('features', (
-        ('feature_uid',                  'UUID PRIMARY KEY'),
-        ('chip_uid',                     'UUID NOT NULL'),
+        ('feature_uid',                  'INTEGER PRIMARY KEY'),
+        ('chip_uid',                     'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
     ))
@@ -59,7 +59,7 @@ def define_IBEIS_schema(ibs):
     # Detection and identification algorithm configurations, populated
     # with caching information
     ibs.db.schema('configs', (
-        ('config_uid',                   'UUID PRIMARY KEY'),
+        ('config_uid',                   'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
     ))
     # This table defines the pairing between an encounter and an
@@ -68,7 +68,7 @@ def define_IBEIS_schema(ibs):
     # a single image without the need to duplicate an image's record
     # in the images table.
     ibs.db.schema('encounters', (
-        ('encounter_uid',               'UUID PRIMARY KEY'),
+        ('encounter_uid',               'INTEGER PRIMARY KEY'),
         ('image_uid',                   'UUID NOT NULL'),
         ('encounter_text',              'TEXT NOT NULL'),
     ))

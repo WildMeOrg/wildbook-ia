@@ -9,14 +9,12 @@ import sys
 import multiprocessing
 import utool
 printTEST = __testing__.printTEST
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[' + TEST_NAME + ']')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 
 sys.argv.append('--nogui')
 
 
 def TEST_ADD_IMAGES():
-    # Create a HotSpotter API (hs) and GUI backend (back)
-    printTEST('[TEST] TEST_ADD_IMAGES')
     main_locals = __testing__.main(defaultdb='testdb', nogui=True)
     ibs = main_locals['ibs']    # IBEIS Control
     #back = main_locals['back']  # IBEIS GUI backend
