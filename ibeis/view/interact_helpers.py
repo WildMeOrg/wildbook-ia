@@ -30,5 +30,32 @@ def begin_interaction(type_, fnum):
     print('[inter] starting %s interaction' % type_)
     fig = df2.figure(fnum=fnum, docla=True, doclf=True)
     ax = df2.gca()
-    df2.disconnect_callback(fig, 'button_press_event', axes=[ax])
+    disconnect_callback(fig, 'button_press_event', axes=[ax])
     return fig
+
+
+def disconnect_callback(fig, callback_type, **kwargs):
+    #print('[df2] disconnect %r callback' % callback_type)
+    axes = kwargs.get('axes', [])
+    for ax in axes:
+        ax._hs_viewtype = ''
+    cbid_type = callback_type + '_cbid'
+    cbfn_type = callback_type + '_func'
+    cbid = fig.__dict__.get(cbid_type, None)
+    cbfn = fig.__dict__.get(cbfn_type, None)
+    if cbid is not None:
+        fig.canvas.mpl_disconnect(cbid)
+    else:
+        cbfn = None
+    fig.__dict__[cbid_type] = None
+    return cbid, cbfn
+
+
+def connect_callback(fig, callback_type, callback_fn):
+    #print('[df2] register %r callback' % callback_type)
+    if callback_fn is None:
+        return
+    cbid_type = callback_type + '_cbid'
+    cbfn_type = callback_type + '_func'
+    fig.__dict__[cbid_type] = fig.canvas.mpl_connect(callback_type, callback_fn)
+    fig.__dict__[cbfn_type] = callback_fn

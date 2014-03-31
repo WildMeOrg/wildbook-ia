@@ -148,7 +148,7 @@ class IBEISControl(object):
                       in izip(rid_list, gid_list, nid_list, bbox_list, theta_list, viewpoint_list))
         ibs.db.executemany(
             operation='''
-            INSERT OR IGNORE INTO rois
+            INSERT OR REPLACE INTO rois
             (
                 roi_uid,
                 image_uid,
@@ -329,7 +329,7 @@ class IBEISControl(object):
     def get_valid_ids(ibs, tblname):
         get_valid_tblname_ids = {
             'gids': ibs.get_valid_gids,
-            'cids': ibs.get_valid_cids,
+            'rids': ibs.get_valid_cids,
             'nids': ibs.get_valid_nids,
         }[tblname]
         return get_valid_tblname_ids()
@@ -542,6 +542,15 @@ class IBEISControl(object):
         name_list = ibs.get_table_properties('names', 'name_text', nid_list)
         return name_list
 
+    def get_rids_in_nids(ibs, nid_list):
+        """ returns a list of list of cids in each name """
+        # for each name return chips in that name
+        rids_list = [[] for _ in xrange(len(nid_list))]
+        return rids_list
+
+    def get_num_rids_in_nids(ibs, nid_list):
+        return map(len, ibs.get_rids_in_nids(nid_list))
+
     # Chip Getters (input cid_list)
     def get_valid_cids(ibs):
         ibs.db.execute(
@@ -604,15 +613,6 @@ class IBEISControl(object):
 
     def get_names(ibs, nid_list):
         return ['name-%r' % nid for nid in nid_list]
-
-    def get_cids_in_nids(ibs, nid_list):
-        """ returns a list of list of cids in each name """
-        # for each name return chips in that name
-        cids_list = [[] for _ in xrange(len(nid_list))]
-        return cids_list
-
-    def get_num_cids_in_nids(ibs, nid_list):
-        return map(len, ibs.get_cids_in_nids(nid_list))
 
     # Encounter Getters (input eid_list)
 

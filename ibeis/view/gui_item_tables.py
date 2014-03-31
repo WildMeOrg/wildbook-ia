@@ -32,15 +32,15 @@ reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 # A list of default internal headers to display
 table_headers = {
     'gids':  ['gid', 'gname', 'nRids', 'aif'],
-    'cids':  ['cid', 'name', 'gname', 'nGt', 'nKpts', 'theta'],
+    'rids':  ['rid', 'name', 'gname', 'nGt', 'nKpts', 'theta'],
     'nids':  ['nid', 'name', 'nRids'],
-    'res':   ['rank', 'score', 'name', 'cid']
+    'res':   ['rank', 'score', 'name', 'rid']
 }
 
 # Lists internal headers whos items are editable
 table_editable = {
     'gids':  [],
-    'cids':  ['name'],
+    'rids':  ['name'],
     'nids':  ['name'],
     'res':   ['name'],
 }
@@ -75,7 +75,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         cols = {
             'nid':   lambda nids: nids,
             'name':  lambda nids: ibs.get_names(nids),
-            'nRids':  lambda nids: ibs.get_num_cids_in_nids(nids),
+            'nRids':  lambda nids: ibs.get_num_rids_in_nids(nids),
         }
     elif tblname == 'gids':
         cols = {
@@ -96,13 +96,13 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             return ('%.2f * ' % coeff) + taustr
 
         cols = {
-            'cid':    lambda cids: cids,
+            'rid':    lambda rids: rids,
             'name':   lambda rids: ibs.get_roi_names(rids),
             'gname':  lambda rids: ibs.get_roi_gname(rids),
-            'nGt':    lambda cids: ibs.get_chip_num_groundtruth(cids),
-            'nKpts':  lambda cids: ibs.get_chip_nKpts(cids),
-            'theta':  lambda cids: map(theta_str, ibs.get_chip_theta(cids)),
-            'roi':    lambda cids: map(str, ibs.get_chip_roi(cids)),
+            'nGt':    lambda rids: ibs.get_roi_num_groundtruth(rids),
+            'nKpts':  lambda rids: ibs.get_roi_nKpts(rids),
+            'theta':  lambda rids: map(theta_str, ibs.get_roi_theta(rids)),
+            'roi':    lambda rids: map(str, ibs.get_roi_bbox(rids)),
         }
         if tblname == 'res':
             cols.update({

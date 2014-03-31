@@ -364,7 +364,9 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
 
 
 #================
-def select_bbox(ibs, gid, fnum=1, **kwargs):
+def select_bbox(ibs, gid, fnum=1,
+                figtitle='Image View - Select ROI (click two points)',
+                **kwargs):
     #from matplotlib.backend_bases import mplDeprecation
     print('[*interact] select_bbox(gid=%r, fnum=%r)' % (gid, fnum))
     print('[*interact] Define a Rectanglular ROI by clicking two points.')

@@ -72,12 +72,12 @@ def connect_file_signals(front):
 def connect_action_signals(front):
     ui = front.ui
     back = front.back
-    ui.actionAdd_Chip.triggered.connect(back.add_chip)
-    ui.actionNew_Chip_Property.triggered.connect(back.new_prop)
+    ui.actionAdd_ROI.triggered.connect(back.add_roi)
+    ui.actionNew_ROI_Property.triggered.connect(back.new_prop)
     ui.actionQuery.triggered.connect(back.query)
     ui.actionReselect_Ori.triggered.connect(back.reselect_ori)
     ui.actionReselect_ROI.triggered.connect(back.reselect_roi)
-    ui.actionDelete_Chip.triggered.connect(back.delete_chip)
+    ui.actionDelete_ROI.triggered.connect(back.delete_roi)
     ui.actionDelete_Image.triggered.connect(back.delete_image)
     ui.actionNext.triggered.connect(back.select_next)
 
@@ -109,7 +109,7 @@ def connect_help_signals(front):
 def connect_batch_signals(front):
     ui = front.ui
     back = front.back
-    ui.actionPrecomputeChipsFeatures.triggered.connect(back.precompute_feats)
+    ui.actionPrecomputeROIFeatures.triggered.connect(back.precompute_feats)
     ui.actionPrecompute_Queries.triggered.connect(back.precompute_queries)
 
 
@@ -158,7 +158,7 @@ def new_menu_action(front, menu_name, name, text=None, shortcut=None, slot_fn=No
 def set_tabwidget_text(front, tblname, text):
     tablename2_tabwidget = {
         'gids': front.ui.image_view,
-        'cids': front.ui.chip_view,
+        'rids': front.ui.roi_view,
         'nids': front.ui.name_view,
         'res': front.ui.result_view,
     }
@@ -217,10 +217,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.printSignal.connect(back.backend_print)
         front.quitSignal.connect(back.quit)
         front.selectGidSignal.connect(back.select_gid)
-        front.selectCidSignal.connect(back.select_cid)
+        front.selectCidSignal.connect(back.select_rid)
         front.selectNidSignal.connect(back.select_nid)
-        front.selectResSignal.connect(back.select_res_cid)
-        front.changeCidSignal.connect(back.change_chip_property)
+        front.selectResSignal.connect(back.select_res_rid)
+        front.changeCidSignal.connect(back.change_roi_property)
         front.aliasNidSignal.connect(back.alias_name)
         front.changeGidSignal.connect(back.change_image_property)
         front.querySignal.connect(back.query)
@@ -237,8 +237,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
         #
         # Gui Components
         # Tables Widgets
-        ui.cids_TBL.itemClicked.connect(front.chip_tbl_clicked)
-        ui.cids_TBL.itemChanged.connect(front.chip_tbl_changed)
+        ui.rids_TBL.itemClicked.connect(front.roi_tbl_clicked)
+        ui.rids_TBL.itemChanged.connect(front.roi_tbl_changed)
         ui.gids_TBL.itemClicked.connect(front.img_tbl_clicked)
         ui.gids_TBL.itemChanged.connect(front.img_tbl_changed)
         ui.res_TBL.itemClicked.connect(front.res_tbl_clicked)
@@ -247,7 +247,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui.nids_TBL.itemChanged.connect(front.name_tbl_changed)
         # Tab Widget
         ui.tablesTabWidget.currentChanged.connect(front.change_view)
-        ui.cids_TBL.sortByColumn(0, Qt.AscendingOrder)
+        ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
         ui.res_TBL.sortByColumn(0, Qt.AscendingOrder)
         ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
 
@@ -284,13 +284,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.print('populate_tbl(%s)' % tblname)
         fancytblname = {
             'gids': 'Image Table',
-            'cids': 'Chip Table',
+            'rids': 'ROIs Table',
             'nids': 'Name Table',
             'res':  'Query Results Table',
         }[tblname]
         tbl = {
             'gids': front.ui.gids_TBL,
-            'cids': front.ui.cids_TBL,
+            'rids': front.ui.rids_TBL,
             'nids': front.ui.nids_TBL,
             'res': front.ui.res_TBL,
         }[tblname]
@@ -332,8 +332,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
     # Specific Item Getters
     #=======================
 
-    def get_chiptbl_header(front, col):
-        return front.get_tbl_header(front.ui.cids_TBL, col)
+    def get_roibl_header(front, col):
+        return front.get_tbl_header(front.ui.rids_TBL, col)
 
     def get_imgtbl_header(front, col):
         return front.get_tbl_header(front.ui.gids_TBL, col)
@@ -344,11 +344,11 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_nametbl_header(front, col):
         return front.get_tbl_header(front.ui.nids_TBL, col)
 
-    def get_restbl_cid(front, row):
-        return UUID_type(front.get_header_val(front.ui.res_TBL, 'cid', row))
+    def get_restbl_rid(front, row):
+        return UUID_type(front.get_header_val(front.ui.res_TBL, 'rid', row))
 
-    def get_chiptbl_cid(front, row):
-        return UUID_type(front.get_header_val(front.ui.cids_TBL, 'cid', row))
+    def get_roibl_rid(front, row):
+        return UUID_type(front.get_header_val(front.ui.rids_TBL, 'rid', row))
 
     def get_nametbl_name(front, row):
         return str(front.get_header_val(front.ui.nids_TBL, 'name', row))
@@ -373,22 +373,22 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.changeGidSignal.emit(sel_gid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
-    def chip_tbl_changed(front, item):
-        front.print('chip_tbl_changed()')
+    def roi_tbl_changed(front, item):
+        front.print('roi_tbl_changed()')
         row, col = (item.row(), item.column())
-        sel_cid = front.get_chiptbl_cid(row)  # Get selected chipid
+        sel_rid = front.get_roibl_rid(row)  # Get selected roiid
         new_val = csv_sanatize(item.text())   # sanatize for csv
-        header_lbl = front.get_chiptbl_header(col)  # Get changed column
-        front.changeCidSignal.emit(sel_cid, header_lbl, new_val)
+        header_lbl = front.get_roitbl_header(col)  # Get changed column
+        front.changeCidSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def res_tbl_changed(front, item):
         front.print('res_tbl_changed()')
         row, col = (item.row(), item.column())
-        sel_cid  = front.get_restbl_cid(row)  # The changed row's chip id
+        sel_rid  = front.get_restbl_rid(row)  # The changed row's roi id
         new_val  = csv_sanatize(item.text())  # sanatize val for csv
         header_lbl = front.get_restbl_header(col)  # Get changed column
-        front.changeCidSignal.emit(sel_cid, header_lbl, new_val)
+        front.changeCidSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def name_tbl_changed(front, item):
@@ -412,19 +412,19 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     @slot_(QtGui.QTableWidgetItem)
     @clicked
-    def chip_tbl_clicked(front, item):
+    def roi_tbl_clicked(front, item):
         row, col = (item.row(), item.column())
-        front.print('chip_tbl_clicked(%r, %r)' % (row, col))
-        sel_cid = front.get_chiptbl_cid(row)
-        front.selectCidSignal.emit(sel_cid)
+        front.print('roi_tbl_clicked(%r, %r)' % (row, col))
+        sel_rid = front.get_roitbl_rid(row)
+        front.selectCidSignal.emit(sel_rid)
 
     @slot_(QtGui.QTableWidgetItem)
     @clicked
     def res_tbl_clicked(front, item):
         row, col = (item.row(), item.column())
         front.print('res_tbl_clicked(%r, %r)' % (row, col))
-        sel_cid = front.get_restbl_cid(row)
-        front.selectResSignal.emit(sel_cid)
+        sel_rid = front.get_restbl_rid(row)
+        front.selectResSignal.emit(sel_rid)
 
     @slot_(QtGui.QTableWidgetItem)
     @clicked

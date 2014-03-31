@@ -1,29 +1,28 @@
 from __future__ import division, print_function
 from ibeis.view import viz
-from drawtool import draw_func2 as df2
 import utool
 from viz_helpers import get_ibsdat
-from interact_helpers import begin_interaction, is_event_valid
+import interact_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact]',
                                                        DEBUG=False)
 
 
-def interact_image(ibs, gid, sel_cids=[], fnum=1,
+def interact_image(ibs, gid, sel_rids=[], fnum=1,
                    select_rid_callback=None,
                    **kwargs):
-    fig = begin_interaction('image', fnum)
+    fig = interact_helpers.begin_interaction('image', fnum)
 
     # Create callback wrapper
     def _on_image_click(event):
         print_('[inter] clicked image')
-        if not is_event_valid(event):
+        if not interact_helpers.is_event_valid(event):
             # Toggle draw lbls
             print(' ...out of axis')
             kwargs.update({
                 'draw_lbls': kwargs.pop('draw_lbls', True),  # Toggle
                 'select_rid_callback': select_rid_callback,
-                'sel_cids': sel_cids,
+                'sel_rids': sel_rids,
             })
             interact_image(ibs, gid, **kwargs)
         else:
@@ -41,9 +40,9 @@ def interact_image(ibs, gid, sel_cids=[], fnum=1,
             rid = rid_list[centx]
             print(' ...clicked rid=%r' % rid)
             if select_rid_callback is not None:
-                select_rid_callback(rid)
+                select_rid_callback(gid, sel_rids=[rid])
         viz.draw()
 
-    viz.show_image(ibs, gid, sel_cids, **kwargs)
+    viz.show_image(ibs, gid, sel_rids, **kwargs)
     viz.draw()
-    df2.connect_callback(fig, 'button_press_event', _on_image_click)
+    interact_helpers.connect_callback(fig, 'button_press_event', _on_image_click)

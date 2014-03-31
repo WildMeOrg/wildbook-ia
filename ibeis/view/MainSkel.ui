@@ -37,7 +37,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="image_view">
         <property name="minimumSize">
@@ -66,7 +66,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="chip_view">
+       <widget class="QWidget" name="roi_view">
         <attribute name="title">
          <string>Chip Table</string>
         </attribute>
@@ -74,7 +74,7 @@
          <item row="0" column="0">
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QTableWidget" name="cids_TBL">
+            <widget class="QTableWidget" name="rids_TBL">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -215,8 +215,8 @@
     <property name="title">
      <string>Actions</string>
     </property>
-    <addaction name="actionAdd_Chip"/>
-    <addaction name="actionNew_Chip_Property"/>
+    <addaction name="actionAdd_ROI"/>
+    <addaction name="actionNew_ROI_Property"/>
     <addaction name="separator"/>
     <addaction name="actionQuery"/>
     <addaction name="separator"/>
@@ -225,14 +225,14 @@
     <addaction name="separator"/>
     <addaction name="actionNext"/>
     <addaction name="separator"/>
-    <addaction name="actionDelete_Chip"/>
+    <addaction name="actionDelete_ROI"/>
     <addaction name="actionDelete_Image"/>
    </widget>
    <widget class="QMenu" name="menuBatch">
     <property name="title">
      <string>Batch</string>
     </property>
-    <addaction name="actionPrecomputeChipsFeatures"/>
+    <addaction name="actionPrecomputeROIFeatures"/>
     <addaction name="actionPrecompute_Queries"/>
     <addaction name="separator"/>
     <addaction name="actionScale_all_ROIS"/>
@@ -333,7 +333,7 @@
     <string>Workflow Help</string>
    </property>
   </action>
-  <action name="actionAdd_Chip">
+  <action name="actionAdd_ROI">
    <property name="text">
     <string>Add Chip</string>
    </property>
@@ -375,7 +375,7 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionDelete_Chip">
+  <action name="actionDelete_ROI">
    <property name="text">
     <string>Delete Chip</string>
    </property>
@@ -553,7 +553,7 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionPrecomputeChipsFeatures">
+  <action name="actionPrecomputeROIFeatures">
    <property name="text">
     <string>Precompute Chips/Features</string>
    </property>
@@ -606,7 +606,7 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionNew_Chip_Property">
+  <action name="actionNew_ROI_Property">
    <property name="text">
     <string>New Chip Property</string>
    </property>

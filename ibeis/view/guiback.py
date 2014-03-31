@@ -85,7 +85,7 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs  = None
         back.cfg = None
         # State variables
-        back.sel_cids = []
+        back.sel_rids = []
         back.sel_nids = []
         back.sel_gids = []
         back.sel_qres = []
@@ -108,19 +108,23 @@ class MainWindowBackend(QtCore.QObject):
 
     @drawing
     def select_bbox(back, gid, **kwargs):
-        bbox = interact.select_bbox(back.ibs, gid, figtitle='Image View - Select ROI (click two points)')
+        bbox = interact.select_bbox(back.ibs, gid)
         return bbox
 
     @drawing
-    def show_image(back, gid, sel_cids=[], **kwargs):
-        interact.interact_image(back.ibs, gid, sel_cids)
+    def show_image(back, gid, sel_rids=[], **kwargs):
+        kwargs.update({
+            'sel_rids': sel_rids,
+            'select_rid_callback': back.select_gid,
+        })
+        interact.interact_image(back.ibs, gid, **kwargs)
 
     @drawing
-    def show_chip(back, cid, **kwargs):
+    def show_roi(back, rid, **kwargs):
         pass
 
     @drawing
-    def show_name(back, name, sel_cids=[], **kwargs):
+    def show_name(back, name, sel_rids=[], **kwargs):
         pass
 
     @drawing
@@ -128,7 +132,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @drawing
-    def show_chipmatch(back, res, cid, **kwargs):
+    def show_roimatch(back, res, rid, **kwargs):
         pass
 
     #----------------------
@@ -142,12 +146,12 @@ class MainWindowBackend(QtCore.QObject):
         gid = back.sel_gids[0]
         return gid
 
-    def get_selected_cid(back):
-        'selected chip id'
-        if len(back.sel_cids) == 0:
-            raise AssertionError('There are no selected chips')
-        cid = back.sel_cids[0]
-        return cid
+    def get_selected_rid(back):
+        'selected roi id'
+        if len(back.sel_rids) == 0:
+            raise AssertionError('There are no selected ROIs')
+        rid = back.sel_rids[0]
+        return rid
 
     def update_window_title(back):
         print('[back] update_window_title()')
@@ -180,8 +184,8 @@ class MainWindowBackend(QtCore.QObject):
     def populate_name_table(back, **kwargs):
         gui_item_tables.emit_populate_table(back, 'nids', **kwargs)
 
-    def populate_chip_table(back, **kwargs):
-        gui_item_tables.emit_populate_table(back, 'cids', **kwargs)
+    def populate_roi_table(back, **kwargs):
+        gui_item_tables.emit_populate_table(back, 'rids', **kwargs)
 
     def populate_result_table(back, **kwargs):
         #res = back.current_res
@@ -192,25 +196,25 @@ class MainWindowBackend(QtCore.QObject):
             gui_item_tables.emit_populate_table(back, 'res', index_list=[])
             return
         top_cxs = res.topN_cxs(back.ibs, N='all')
-        qcid = res.qcid
+        qrid = res.qrid
         # The ! mark is used for ascii sorting. TODO: can we work around this?
         prefix_cols = [{'rank': '!Query',
                         'score': '---',
-                        'name': back.ibs.get_chip_name(qcid),
-                        'cid': qcid, }]
+                        'name': back.ibs.get_roi_name(qrid),
+                        'rid': qrid, }]
         extra_cols = {
-            'score':  lambda cxs:  [res.cx2_score[cid] for cid in iter(cxs)],
+            'score':  lambda cxs:  [res.cx2_score[rid] for rid in iter(cxs)],
         }
         back.emit_populate_table('res', index_list=top_cxs,
                                  prefix_cols=prefix_cols,
                                  extra_cols=extra_cols,
                                  **kwargs)
 
-    def populate_tables(back, image=True, chip=True, name=True, res=True):
+    def populate_tables(back, image=True, roi=True, name=True, res=True):
         if image:
             back.populate_image_table()
-        if chip:
-            back.populate_chip_table()
+        if roi:
+            back.populate_roi_table()
         if name:
             back.populate_name_table()
         if res:
@@ -239,27 +243,26 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
-    def _set_selection(back, gids=None, cids=None, nids=None, qres=None):
+    def _set_selection(back, gids=None, rids=None, nids=None, qres=None):
         back.sel_gids = [] if gids is None else gids
-        back.sel_cids = [] if cids is None else cids
+        back.sel_rids = [] if rids is None else rids
         back.sel_nids = [] if nids is None else nids
         back.sel_qres = [] if qres is None else qres
 
     @blocking_slot(UUID_type)
-    def select_gid(back, gid, **kwargs):
+    def select_gid(back, gid, sel_rids=[], **kwargs):
         # Table Click -> Image Table
         gid = uuid_cast(gid)
-        print('[back] select gid=%r' % gid)
-        back._set_selection(gids=[gid], **kwargs)
-        back.show_image(gid)
-        pass
+        print('[back] select_gid(gid=%r, sel_rids=%r)' % (gid, sel_rids))
+        back._set_selection(gids=(gid,), rids=sel_rids, **kwargs)
+        back.show_image(gid, sel_rids=sel_rids)
 
     @blocking_slot(UUID_type)
-    def select_cid(back, cid, **kwargs):
+    def select_rid(back, rid, **kwargs):
         # Table Click -> Chip Table
-        cid = uuid_cast(cid)
-        print('[back] select cid=%r' % cid)
-        back._set_selection(cids=[cid], **kwargs)
+        rid = uuid_cast(rid)
+        print('[back] select rid=%r' % rid)
+        back._set_selection(rids=[rid], **kwargs)
         pass
 
     @slot_(UUID_type)
@@ -270,9 +273,9 @@ class MainWindowBackend(QtCore.QObject):
         back._set_selection(nids=[nid], **kwargs)
 
     @slot_(UUID_type)
-    def select_res_cid(back, cid, **kwargs):
-        print('[back] select result cid=%r' % cid)
-        cid = uuid_cast(cid)
+    def select_res_rid(back, rid, **kwargs):
+        print('[back] select result rid=%r' % rid)
+        rid = uuid_cast(rid)
         # Table Click -> Result Table
         pass
 
@@ -295,8 +298,8 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot(UUID_type, str, str)
-    def change_chip_property(back, cid, key, val):
-        cid = uuid_cast(cid)
+    def change_roi_property(back, rid, key, val):
+        rid = uuid_cast(rid)
         # Table Edit -> Change Chip Property
         pass
 
@@ -413,43 +416,43 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def add_chip(back, gid=None, bbox=None, theta=0.0):
+    def add_roi(back, gid=None, bbox=None, theta=0.0):
         # Action -> Add ROI
-        print('\n[back] add_chip')
+        print('\n[back] add_roi')
         if gid is None:
             gid = back.get_selected_gid()
         if bbox is None:
             bbox = back.select_bbox(gid)
-        print('[back.add_chip] * adding bbox=%r' % bbox)
+        print('[back.add_roi] * adding bbox=%r' % bbox)
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
-        print('[back.add_chip] * added chip rid=%r' % rid)
+        print('[back.add_roi] * added rid=%r' % rid)
         back.populate_tables()
         back.show_image(gid)
         #back.select_gid(gid, rids=[rid])
         return rid
 
     @blocking_slot()
-    def reselect_roi(back, cid=None, roi=None, **kwargs):
+    def reselect_roi(back, rid=None, roi=None, **kwargs):
         # Action -> Reselect ROI
         print('[back] reselect_roi')
         pass
 
     @blocking_slot()
-    def query(back, cid=None, **kwargs):
+    def query(back, rid=None, **kwargs):
         # Action -> Query
         print('[back] query')
         pass
 
     @blocking_slot()
-    def reselect_ori(back, cid=None, theta=None, **kwargs):
+    def reselect_ori(back, rid=None, theta=None, **kwargs):
         # Action -> Reselect ORI
         print('[back] reselect_ori')
         pass
 
     @blocking_slot()
-    def delete_chip(back):
+    def delete_roi(back):
         # Action -> Delete Chip
-        print('[back] delete_chip')
+        print('[back] delete_roi')
         pass
 
     @blocking_slot(UUID_type)
