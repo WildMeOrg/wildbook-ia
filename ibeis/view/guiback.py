@@ -21,12 +21,28 @@ from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
 
 
-UUID_type = item_table.UUID_type
+# Wrapped QT UUID type (probably just a string)
+QT_UUID_TYPE = item_table.QT_UUID_TYPE
 
 
-# Qt returns types weirdly via slots. Need to cast them
-def uuid_cast(qtinput):
-    return uuid.UUID(UUID_type(qtinput))
+def qt_cast(qtinput):
+    if isinstance(qtinput, QtCore.QString):
+        qtoutput = str(qtinput)
+    else:
+        raise ValueError('Unknown QtType. type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
+    return qtoutput
+
+
+def uuid_cast(qtuuid):
+    """ unwraps QT_UUID types """
+    try:
+        uuid_str = QT_UUID_TYPE(qtuuid)
+        uuid_ = uuid.UUID(uuid_str)
+    except ValueError as ex:
+        print(ex)
+        print('qtuuid=%r' % qtuuid)
+        raise
+    return uuid_
 
 
 # BLOCKING DECORATOR
@@ -249,7 +265,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_nids = [] if nids is None else nids
         back.sel_qres = [] if qres is None else qres
 
-    @blocking_slot(UUID_type)
+    @blocking_slot(QT_UUID_TYPE)
     def select_gid(back, gid, sel_rids=[], **kwargs):
         # Table Click -> Image Table
         gid = uuid_cast(gid)
@@ -257,7 +273,7 @@ class MainWindowBackend(QtCore.QObject):
         back._set_selection(gids=(gid,), rids=sel_rids, **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
 
-    @blocking_slot(UUID_type)
+    @blocking_slot(QT_UUID_TYPE)
     def select_rid(back, rid, **kwargs):
         # Table Click -> Chip Table
         rid = uuid_cast(rid)
@@ -265,19 +281,18 @@ class MainWindowBackend(QtCore.QObject):
         back._set_selection(rids=[rid], **kwargs)
         pass
 
-    @slot_(UUID_type)
+    @slot_(QT_UUID_TYPE)
     def select_nid(back, nid, **kwargs):
         # Table Click -> Name Table
         nid = uuid_cast(nid)
         print('[back] select nid=%r' % nid)
         back._set_selection(nids=[nid], **kwargs)
 
-    @slot_(UUID_type)
+    @slot_(QT_UUID_TYPE)
     def select_res_rid(back, rid, **kwargs):
+        # Table Click -> Result Table
         print('[back] select result rid=%r' % rid)
         rid = uuid_cast(rid)
-        # Table Click -> Result Table
-        pass
 
     #--------------------------------------------------------------------------
     # Misc Slots
@@ -290,30 +305,32 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def clear_selection(back, **kwargs):
-        pass
+        print('[back] clear selection')
 
     @blocking_slot()
     def default_preferences(back):
         # Button Click -> Preferences Defaults
-        pass
+        print('[back] default preferences')
 
-    @blocking_slot(UUID_type, str, str)
+    @blocking_slot(QT_UUID_TYPE, str, str)
     def change_roi_property(back, rid, key, val):
-        rid = uuid_cast(rid)
         # Table Edit -> Change Chip Property
-        pass
+        rid = uuid_cast(rid)
+        val = qt_cast(val)
+        print('[back] change_roi_property(rid=%r, key=%r, val=%r)' % (rid, key, val))
+        back.ibs.set_roi_properties((rid,), key, (val,))
 
-    @blocking_slot(UUID_type, str, str)
+    @blocking_slot(QT_UUID_TYPE, str, str)
     def alias_name(back, nid, key, val):
         # Table Edit -> Change name
         nid = uuid_cast(nid)
-        pass
+        print('[back] alias_name(nid=%r, key=%r, val=%r)' % (nid, key, val))
 
-    @blocking_slot(UUID_type, str, bool)
+    @blocking_slot(QT_UUID_TYPE, str, bool)
     def change_image_property(back, gid, key, val):
         # Table Edit -> Change Image Property
         gid = uuid_cast(gid)
-        pass
+        print('[back] alias_name(gid=%r, key=%r, val=%r)' % (gid, key, val))
 
     #--------------------------------------------------------------------------
     # File Slots
@@ -455,7 +472,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_roi')
         pass
 
-    @blocking_slot(UUID_type)
+    @blocking_slot(QT_UUID_TYPE)
     def delete_image(back, gid=None):
         # Action -> Delete Images
         print('[back] delete_image')

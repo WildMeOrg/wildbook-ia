@@ -1,12 +1,9 @@
 from __future__ import division, print_function
-from hscom import __common__
-print, print_,  printDBG, rrr, profile =\
-    utool.inject(__name__, '[Config]', DEBUG=False)
-from hscom.Preferences import Pref
 import utool
+print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[Config]', DEBUG=False)
 
-ConfigBase = Pref
-#ConfigBase = DynStruct
+ConfigBase = utool.Pref
+#ConfigBase = utool.DynStruct
 
 
 def make_feasible(query_cfg):

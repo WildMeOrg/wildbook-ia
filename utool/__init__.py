@@ -57,6 +57,7 @@ from .util_list import (alloc_lists, list_index, npfind, index_of, flatten,  # N
 from .util_str  import (byte_str2, theta_str)  # NOQA
 
 from .DynStruct import DynStruct   # NOQA
+from .Preferences import Pref  # NOQA
 
 #if not get_flag('--strict', help='raises all exceptions'):
 from util_path import *  # NOQA

@@ -7,6 +7,8 @@ from numpy import (array, sin, cos)
 
 np.tau = 2 * np.pi  # tauday.com
 
+TRANSFORM_DTYPE = np.float64
+
 
 def svd(M):
     # V is actually Vt
@@ -94,17 +96,18 @@ def rotation3x3_around(theta, x, y):
     return rot
 
 
-def translation_mat(x, y):
+def translation_mat(x, y, dtype=TRANSFORM_DTYPE):
     T = array([[1, 0,  x],
                [0, 1,  y],
-               [0, 0,  1]])
+               [0, 0,  1]], dtype=dtype)
     return T
 
 
-def scale_mat(ss):
-    S = array([[ss, 0, 0],
-               [0, ss, 0],
-               [0,  0, 1]])
+def scale_mat(sx, sy=None, dtype=TRANSFORM_DTYPE):
+    sy = sx if sy is None else sy
+    S = array([[sx, 0, 0],
+               [0, sy, 0],
+               [0,  0, 1]], dtype=dtype)
     return S
 
 

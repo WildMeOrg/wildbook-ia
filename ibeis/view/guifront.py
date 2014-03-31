@@ -40,10 +40,6 @@ def clicked(func):
     return clicked_wrapper
 
 
-def csv_sanatize(str_):
-    return str(str_).replace(',', ';;')
-
-
 def _tee_logging(front):
     print('[front] teeing log output')
     # Connect a StreamStealer object to the GUI output window
@@ -177,19 +173,19 @@ def set_tabwidget_text(front, tblname, text):
     ui.tablesTabWidget.setTabText(tab_index, tab_text)
 
 
-UUID_type = item_table.UUID_type
+QT_UUID_TYPE = item_table.QT_UUID_TYPE
 
 
 class MainWindowFrontend(QtGui.QMainWindow):
     printSignal      = signal_(str)
     quitSignal       = signal_()
-    selectGidSignal  = signal_(UUID_type)
-    selectCidSignal  = signal_(UUID_type)
-    selectNidSignal  = signal_(UUID_type)
-    selectResSignal  = signal_(UUID_type)
-    changeCidSignal  = signal_(UUID_type, str, str)
-    aliasNidSignal  = signal_(UUID_type, str, str)
-    changeGidSignal  = signal_(UUID_type, str, bool)
+    selectGidSignal  = signal_(QT_UUID_TYPE)
+    selectRidSignal  = signal_(QT_UUID_TYPE)
+    selectNidSignal  = signal_(QT_UUID_TYPE)
+    selectResSignal  = signal_(QT_UUID_TYPE)
+    changeRidSignal  = signal_(QT_UUID_TYPE, str, str)
+    aliasNidSignal   = signal_(QT_UUID_TYPE, str, str)
+    changeGidSignal  = signal_(QT_UUID_TYPE, str, bool)
     querySignal      = signal_()
 
     def __init__(front, back):
@@ -224,10 +220,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.printSignal.connect(back.backend_print)
         front.quitSignal.connect(back.quit)
         front.selectGidSignal.connect(back.select_gid)
-        front.selectCidSignal.connect(back.select_rid)
+        front.selectRidSignal.connect(back.select_rid)
         front.selectNidSignal.connect(back.select_nid)
         front.selectResSignal.connect(back.select_res_rid)
-        front.changeCidSignal.connect(back.change_roi_property)
+        front.changeRidSignal.connect(back.change_roi_property)
         front.aliasNidSignal.connect(back.alias_name)
         front.changeGidSignal.connect(back.change_image_property)
         front.querySignal.connect(back.query)
@@ -325,8 +321,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         # RCOS TODO: This is hacky. These just need to be
         # in dicts to begin with.
         tblname = str(tbl.objectName()).replace('_TBL', '')
-        tblname = tblname.replace('image', 'img')  # Sooooo hack
-        # TODO: backmap from fancy headers to consise
+        tblname = item_table.sqltable_names[tblname]
         col = item_table.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
@@ -334,7 +329,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
     # Specific Item Getters
     #=======================
 
-    def get_roibl_header(front, col):
+    def get_roitbl_header(front, col):
         return front.get_tbl_header(front.ui.rids_TBL, col)
 
     def get_imgtbl_header(front, col):
@@ -347,19 +342,19 @@ class MainWindowFrontend(QtGui.QMainWindow):
         return front.get_tbl_header(front.ui.nids_TBL, col)
 
     def get_restbl_rid(front, row):
-        return UUID_type(front.get_header_val(front.ui.res_TBL, 'rid', row))
+        return QT_UUID_TYPE(front.get_header_val(front.ui.res_TBL, 'rid', row))
 
-    def get_roibl_rid(front, row):
-        return UUID_type(front.get_header_val(front.ui.rids_TBL, 'rid', row))
+    def get_roitbl_rid(front, row):
+        return QT_UUID_TYPE(front.get_header_val(front.ui.rids_TBL, 'rid', row))
 
     def get_nametbl_name(front, row):
         return str(front.get_header_val(front.ui.nids_TBL, 'name', row))
 
     def get_nametbl_nid(front, row):
-        return UUID_type(front.get_header_val(front.ui.nids_TBL, 'nid', row))
+        return QT_UUID_TYPE(front.get_header_val(front.ui.nids_TBL, 'nid', row))
 
     def get_imgtbl_gid(front, row):
-        return UUID_type(front.get_header_val(front.ui.gids_TBL, 'gid', row))
+        return QT_UUID_TYPE(front.get_header_val(front.ui.gids_TBL, 'gid', row))
 
     #=======================
     # Table Changed Functions
@@ -378,26 +373,26 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def roi_tbl_changed(front, item):
         front.print('roi_tbl_changed()')
         row, col = (item.row(), item.column())
-        sel_rid = front.get_roibl_rid(row)  # Get selected roiid
-        new_val = csv_sanatize(item.text())   # sanatize for csv
+        sel_rid = front.get_roitbl_rid(row)  # Get selected roiid
+        new_val = item.text()
         header_lbl = front.get_roitbl_header(col)  # Get changed column
-        front.changeCidSignal.emit(sel_rid, header_lbl, new_val)
+        front.changeRidSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def res_tbl_changed(front, item):
         front.print('res_tbl_changed()')
         row, col = (item.row(), item.column())
         sel_rid  = front.get_restbl_rid(row)  # The changed row's roi id
-        new_val  = csv_sanatize(item.text())  # sanatize val for csv
+        new_val  = item.text()
         header_lbl = front.get_restbl_header(col)  # Get changed column
-        front.changeCidSignal.emit(sel_rid, header_lbl, new_val)
+        front.changeRidSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def name_tbl_changed(front, item):
         front.print('name_tbl_changed()')
         row, col = (item.row(), item.column())
         sel_nid = front.get_nametbl_nid(row)    # The changed row's name index
-        new_val  = csv_sanatize(item.text())  # sanatize val for csv
+        new_val  = item.text()
         header_lbl = front.get_nametbl_header(col)  # Get changed column
         front.aliasNidSignal.emit(sel_nid, header_lbl, new_val)
 
@@ -412,7 +407,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
     @clicked
     def roi_tbl_clicked(front, row, col):
         sel_rid = front.get_roitbl_rid(row)
-        front.selectCidSignal.emit(sel_rid)
+        front.selectRidSignal.emit(sel_rid)
 
     @clicked
     def res_tbl_clicked(front, row, col):
@@ -421,9 +416,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     @clicked
     def name_tbl_clicked(front, row, col):
-        sel_name = front.get_nametbl_name(row)
-        # TODO Need to either switch back to Name or use nid
-        front.selectNidSignal.emit(sel_name)
+        sel_nid = front.get_nametbl_nid(row)
+        front.selectNidSignal.emit(sel_nid)
 
     #=======================
     # Other

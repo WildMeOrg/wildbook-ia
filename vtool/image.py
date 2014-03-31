@@ -11,8 +11,18 @@ from utool import util_str
 #from utool import util_progress
 
 
-CV2_WARP_KWARGS = {'flags': cv2.INTER_LANCZOS4,
-                   'borderMode': cv2.BORDER_CONSTANT}
+CV2_INTERPOLATION_TYPES = {
+    'nearest': cv2.INTER_NEAREST,
+    'linear':  cv2.INTER_LINEAR,
+    'area':    cv2.INTER_AREA,
+    'cubic':   cv2.INTER_CUBIC,
+    'lanczos': cv2.INTER_LANCZOS4
+}
+
+CV2_WARP_KWARGS = {
+    'flags': CV2_INTERPOLATION_TYPES['lanczos'],
+    'borderMode': cv2.BORDER_CONSTANT
+}
 
 
 EXIF_TAG_GPS      = 'GPSInfo'
@@ -24,6 +34,15 @@ def imread(img_fpath):
         # opencv always reads in BGR mode (fastest load time)
         imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
         return imgBGR
+    except Exception as ex:
+        print('[gtool] Caught Exception: %r' % ex)
+        print('[gtool] ERROR reading: %r' % (img_fpath,))
+        raise
+
+
+def imwrite(img_fpath, imgBGR):
+    try:
+        imgBGR = cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:
         print('[gtool] Caught Exception: %r' % ex)
         print('[gtool] ERROR reading: %r' % (img_fpath,))

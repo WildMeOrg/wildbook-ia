@@ -29,21 +29,42 @@ import networkx as netx
 try:
     import graph_tool
 except ImportError as ex:
-    print('Warning: %r' % ex)
+    #print('Warning: %r' % ex)
+    pass
 # Qt
 import PyQt4
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
                       Qt, QObject, pyqtSlot, QKeyEvent)
-# utool
+# UTool
 import utool
 from utool import *  # NOQA
-# vtool
+# VTool
 import vtool
+
+from vtool import chip as ctool
+from vtool import image as gtool
+from vtool import histogram as htool
+from vtool import patch as ptool
+from vtool import keypoint as ktool
+from vtool import linalg as ltool
+
 from vtool import *  # NOQA
-# Guitool
+# DrawTool
+import drawtool
+from drawtool import draw_func2 as df2  # NOQA
+# GUITool
 import guitool
 import drawtool
+import ibeis
+# IBEIS DEV
+import ibeis.dev
+from ibeis.dev import main_api  # NOQA
+# IBEIS MODEL
+import ibeis.model
+from ibeis.model.jon_recognition import Config
+# IBEIS CONTROl
+import ibeis.control  # NOQA
 
 
 def get_ibeis_modules():

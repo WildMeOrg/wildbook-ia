@@ -5,6 +5,7 @@ import image      # NOQA
 import keypoint   # NOQA
 import ellipse    # NOQA
 import patch      # NOQA
+import chip       # NOQA
 #from hist import *  # NOQA
 #from patch import *  # NOQA
 #from ellipse import *  # NOQA

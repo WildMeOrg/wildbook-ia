@@ -6,7 +6,8 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QAbstractItemView
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitables]', DEBUG=False)
 
-UUID_type = str
+QT_UUID_TYPE = str
+QT_UUID_TYPE2 = long
 
 # Table names (should reflect SQL tables)
 IMAGE_TABLE = 'images'
@@ -15,10 +16,19 @@ NAME_TABLE  = 'names'
 RES_TABLE   = 'res'
 
 
+sqltable_names = {
+    'nids': NAME_TABLE,
+    'rids': ROI_TABLE,
+    'gids': IMAGE_TABLE,
+    'res':  RES_TABLE,
+}
+
+
 # A map from short internal headers to fancy headers seen by the user
 fancy_headers = {
-    'gid':        'Image Index',
-    'nid':        'Name Index',
+    'gid':        'Image UUID',
+    'rid':        'ROI UUID',
+    'nid':        'Name ID',
     'cid':        'Chip ID',
     'aif':        'All Detected',
     'gname':      'Image Name',
@@ -27,7 +37,7 @@ fancy_headers = {
     'nGt':        '#GT',
     'nFeats':     '#Features',
     'theta':      'Theta',
-    'roi':        'ROI (x, y, w, h)',
+    'bbox':        'BBOX (x, y, w, h)',
     'rank':       'Rank',
     'score':      'Confidence',
     'match_name': 'Matching Name',
@@ -37,7 +47,7 @@ reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 # A list of default internal headers to display
 table_headers = {
     IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif'],
-    ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'theta'],
+    ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta'],
     NAME_TABLE:  ['nid', 'name', 'nRids'],
     RES_TABLE:   ['rank', 'score', 'name', 'rid']
 }
@@ -87,7 +97,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'gname':  lambda rids: ibs.get_roi_gname(rids),
             'nGt':    lambda rids: ibs.get_roi_num_groundtruth(rids),
             'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
-            'roi':    lambda rids: map(str, ibs.get_roi_bbox(rids)),
+            'bbox':    lambda rids: map(str, ibs.get_roi_bboxes(rids)),
             'nFeats':  lambda rids: ibs.get_chip_num_feats(rids),
         }
         if tblname == RES_TABLE:

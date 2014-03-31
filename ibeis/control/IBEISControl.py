@@ -133,12 +133,17 @@ class IBEISControl(object):
     #--------------------
 
     def __init__(ibs, dbdir=None):
+        """ Creates a new IBEIS Controller object associated with one database """
         print('[ibs] __init__')
         ibs.dbdir = realpath(dbdir)
-        ibs.dbfname = '__ibeisdb__.sqlite3'
-        print('[ibs.__init__] Open the database')
+        ibs.dbfname   = '_ibeis_database.sqlite3'
+        ibs.cachedir  = join(ibs.dbdir, '_ibeis_cache')
+        ibs.chipdir   = join(ibs.cachedir, 'chips')
+        ibs.flanndir  = join(ibs.cachedir, 'flann')
+        print('[ibs.__init__] new IBEISControl')
         print('[ibs.__init__] ibs.dbdir    = %r' % ibs.dbdir)
-        print('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
+        printDBG('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
+        printDBG('[ibs.__init__] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
         print('[ibs.__init__] Define the schema.')
@@ -152,6 +157,22 @@ class IBEISControl(object):
             if not '--ignore' in sys.argv:
                 print('use --ignore to keep going')
                 raise
+
+    def sanatize_sql(ibs, table, column=None):
+        """ Sanatizes an sql table and column. Use sparingly """
+        table    = re.sub('[^a-z_]', '', table)
+        valid_tables = ibs.db.get_tables()
+        if not table in valid_tables:
+            raise Exception('UNSAFE TABLE: table=%r' % table)
+        if column is None:
+            return table
+        else:
+            column = re.sub('[^a-z_]', '', column)
+            valid_columns = ibs.db.get_column_names(table)
+            if not column in valid_columns:
+                raise Exception('UNSAFE COLUMN: column=%r' % column)
+            return table, column
+
     #
     #
     #---------------
@@ -204,8 +225,7 @@ class IBEISControl(object):
         return gid_list
 
     @adder
-    def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None,
-                 nid_list=None):
+    def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None, nid_list=None):
         """ Adds oriented ROI bounding boxes to images """
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
@@ -263,6 +283,24 @@ class IBEISControl(object):
     # --- Setters ---
     #----------------
 
+    # SETTERS::General
+
+    @setter
+    def set_table_properties(ibs, table, prop_key, uid_list, val_list):
+        printDBG('[DEBUG] set_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
+        # Sanatize input to be only lowercase alphabet and underscores
+        table, prop_key = ibs.sanatize_sql(table, prop_key)
+        # Potentially UNSAFE SQL
+        ibs.db.executemany(
+            operation='''
+            UPDATE ''' + table + '''
+            SET ''' + prop_key + '''=?
+            WHERE ''' + table[:-1] + '''_uid=?
+            ''',
+            parameters_iter=(tup for tup in izip(val_list, uid_list)),
+            errmsg='[ibs.get_table_properties] ERROR (table=%r, prop_key=%r)' %
+            (table, prop_key))
+
     # SETTERS::Image
 
     @setter
@@ -295,6 +333,19 @@ class IBEISControl(object):
                                      for eids, gid in izip(eids_list, gid_list)))
 
     # SETTERS::ROI
+
+    @setter
+    def set_roi_properties(ibs, rid_list, key, value_list):
+        if key == 'bbox':
+            return ibs.set_roi_bbox(rid_list, value_list)
+        elif key == 'theta':
+            return ibs.set_roi_thetas(rid_list, value_list)
+        elif key == 'name':
+            return ibs.set_roi_names(rid_list, value_list)
+        elif key == 'viewpoint':
+            return ibs.set_roi_viewpoints(rid_list, value_list)
+        else:
+            raise KeyError('[ibs.set_roi_properties] UNKOWN key=%r' % (key,))
 
     @setter
     def set_roi_bbox(ibs, rid_list, bbox_list):
@@ -336,21 +387,8 @@ class IBEISControl(object):
     @setter
     def set_roi_names(ibs, rid_list, name_list):
         """ Sets names of a list of chips by cid """
-        ibs.db.executemany(
-            operation='''
-            UPDATE chips
-            SET
-            chips.name_uid=
-            (
-                SELECT names.name_uid
-                FROM names
-                WHERE name_text=?
-                ORDER BY name_uid
-                LIMIT 1
-            ),
-            WHERE roi_uid=?
-            ''',
-            parameters_iter=izip(name_list, rid_list))
+        nid_list = ibs.get_name_nids(name_list)
+        ibs.set_table_properties('rois', 'name_uid', rid_list, nid_list)
 
     # SETTERS::Chip
 
@@ -400,16 +438,9 @@ class IBEISControl(object):
     @getter_general
     def get_table_properties(ibs, table, prop_key, uid_list):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
-        # Potentially UNSAFE SQL
         # Sanatize input to be only lowercase alphabet and underscores
-        table    = re.sub('[^a-z_]', '', table)
-        prop_key = re.sub('[^a-z_]', '', prop_key)
-        valid_tables = ibs.db.get_tables()
-        valid_propkeys = ibs.db.get_column_names(table)
-        if not table in valid_tables:
-            raise Exception('UNSAFE TABLE: table=%r' % table)
-        if not prop_key in valid_propkeys:
-            raise Exception('UNSAFE KEY: prop_key=%r' % prop_key)
+        table, prop_key = ibs.sanatize_sql(table, prop_key)
+        # Potentially UNSAFE SQL
         property_list = ibs.db.executemany(
             operation='''
             SELECT ''' + prop_key + '''
@@ -582,6 +613,13 @@ class IBEISControl(object):
         return gname_list
 
     @getter
+    def get_roi_gpaths(ibs, rid_list):
+        """ Returns the image names of each roi """
+        gid_list = ibs.get_roi_gids(rid_list)
+        gpath_list = ibs.get_image_paths(gid_list)
+        return gpath_list
+
+    @getter
     def get_roi_thetas(ibs, rid_list):
         """ Returns a list of floats describing the angles of each chip """
         theta_list = ibs.get_roi_properties('roi_theta', rid_list)
@@ -605,7 +643,15 @@ class IBEISControl(object):
     @getter_vector_output
     def get_roi_groundtruth(ibs, rid_list):
         """ Returns a list of rids with the same name foreach rid in rid_list"""
-        groundtruth_list = [[] for rid in rid_list]
+        nid_list  = ibs.get_roi_nids(rid_list)
+        groundtruth_list = ibs.db.executemany(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            WHERE name_uid=?
+            ''',
+            parameters_iter=((nid,) for nid in nid_list),
+            unpack_scalars=False)
         return groundtruth_list
 
     @getter
@@ -622,22 +668,37 @@ class IBEISControl(object):
 
     @getter
     def get_num_rids_in_nids(ibs, nid_list):
+        """ returns the number of detections for each name """
         return map(len, ibs.get_rids_in_nids(nid_list))
 
     #
     # GETTERS::Chips
 
+    @getter_general
+    def get_chip_properties(ibs, prop_key, rid_list):
+        """ general chip property getter """
+        return ibs.get_table_properties('chips', prop_key, rid_list)
+
     @getter
     def get_chips(ibs, rid_list):
         """ Returns a list cropped images in numpy array form by their cid """
-        pass
+        cpath_list = ibs.get_chip_paths(rid_list)
+        chip_list = [gtool.imread(cpath) for cpath in cpath_list]
+        return chip_list
 
     @getter
     def get_chip_paths(ibs, rid_list):
         """ Returns a list of chip paths by their cid """
-        fmtstr = join(ibs.dbdir, '_ibeisdb/cid%d_dummy.png')
+        fmtstr = join(ibs.cachedir, 'chips/cid%d_dummy.png')
         cpath_list = [fmtstr % cid for cid in rid_list]
         return cpath_list
+
+    @getter
+    def get_chip_size(ibs, rid_list):
+        width_list  = ibs.get_chip_properties('chip_width', rid_list)
+        height_list = ibs.get_chip_properties('chip_height', rid_list)
+        size_list = (size_ for size_ in izip(width_list, height_list))
+        return size_list
 
     @getter_vector_output
     def get_chip_kpts(ibs, rid_list):
@@ -659,13 +720,14 @@ class IBEISControl(object):
     def get_chip_num_feats(ibs, rid_list):
         nFeats_list = map(len, ibs.get_chip_kpts(rid_list))
         return nFeats_list
+
     #
     # GETTERS::Mask
 
     @getter
     def get_chip_masks(ibs, rid_list):
         # Should this function exist? Yes. -Jon
-        roi_list = ibs.get_roi_bboxes(rid_list)
+        roi_list  = ibs.get_roi_bboxes(rid_list)
         mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
         return mask_list
 
@@ -684,7 +746,7 @@ class IBEISControl(object):
                        SELECT name_uid
                        FROM names
                        ''')
-        nid_list = ibs.db.result_list()
+        nid_list = [nid for nid in ibs.db.result_iter() if nid != UNKNOWN_NID]
         return nid_list
 
     @getter
@@ -692,6 +754,15 @@ class IBEISControl(object):
         """ Returns text names """
         name_list = ibs.get_name_properties('name_text', nid_list)
         return name_list
+
+    def get_name_nids(ibs, name_list):
+        """ Returns nid_list. Creates one if it doesnt exist """
+        # JASON TODO: Can you write this function? It should
+        # return nid_list, where len(nid_list) == len(name_list)
+        # If the name doesn't exist in the name table yet, it should be
+        # added an a new name ID should be created.
+        nid_list = [0 for _ in xrange(len(name_list))]
+        return nid_list
 
     #
     # GETTERS::Encounter
@@ -759,6 +830,16 @@ class IBEISControl(object):
     #--------------
 
     @utool.indent_func
+    def compute_chips(ibs, rid_list):
+        """ Ensures that chips are computed for each ROI."""
+        return None
+
+    @utool.indent_func
+    def compute_features(ibs, rid_list):
+        """ Ensures that features are computed for each chip. """
+        return None
+
+    @utool.indent_func
     def cluster_encounters(ibs, gid_list):
         'Finds encounters'
         from ibeis.model import encounter_cluster
@@ -792,14 +873,14 @@ class IBEISControl(object):
 
     @utool.indent_func
     def query_intra_encounter(ibs, qrid_list, **kwargs):
-        # wrapper
+        """ _query_chips wrapper """
         drid_list = qrid_list
         qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
     @utool.indent_func
     def query_database(ibs, qrid_list, **kwargs):
-        # wrapper
+        """ _query_chips wrapper """
         drid_list = ibs.get_recognition_database_chips()
         qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list

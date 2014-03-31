@@ -47,9 +47,10 @@ def close_pool():
 
 def _process_serial(func, args_list, args_dict={}):
     num_tasks = len(args_list)
+    result_list = []
     mark_prog, end_prog = progress_func(max_val=num_tasks,
                                         lbl=func.func_name + ': ')
-    result_list = []
+    mark_prog(0)
     # Execute each task sequentially
     for count, args in enumerate(args_list):
         result = func(*args, **args_dict)
@@ -81,9 +82,9 @@ def _process_parallel(func, args_list, args_dict={}):
     return result_list
 
 
-def process(func, args_list, args_dict={}):
+def process(func, args_list, args_dict={}, force_serial=False):
     assert __POOL__ is not None, 'must init_pool() first'
-    if __POOL__ == 1:
+    if __POOL__ == 1 or force_serial:
         _tup = (len(args_list), func.func_name)
         print('[parallel] executing %d %s tasks in serial' % _tup)
         result_list = _process_serial(func, args_list, args_dict)

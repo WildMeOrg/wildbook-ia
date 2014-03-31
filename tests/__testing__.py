@@ -36,7 +36,6 @@ def testcontext(func):
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
             result = func(*args, **kwargs)
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
-            print('--- :D ---')
             print(r'''
                   .-""""""-.
                 .'          '.

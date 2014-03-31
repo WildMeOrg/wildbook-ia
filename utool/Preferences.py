@@ -3,7 +3,6 @@ from __future__ import division, print_function
 import cPickle
 import os.path
 import sys
-import tools
 import traceback
 import warnings
 # Science
@@ -15,6 +14,7 @@ from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
 # Util
 from .DynStruct import DynStruct
 from .util_inject import inject
+from .util_type import is_str, is_dict
 print, print_, printDBG, rrr, profile = inject(__name__, '[pref]')
 
 # ---
@@ -336,7 +336,7 @@ class Pref(PrefNode):
                 warnings.warn(msg)
                 return msg
 
-        if not tools.is_dict(pref_dict):
+        if not is_dict(pref_dict):
             raise Exception('Preference file is corrupted')
         self.add_dict(pref_dict)
         return True
@@ -373,7 +373,7 @@ class Pref(PrefNode):
             row = self._tree.child_names.index(name)
             #child = self._tree.child_list[row]  # child node to "overwrite"
             _typestr = type(self._tree.child_list[row]._intern.value)
-            if tools.is_str(_typestr):
+            if is_str(_typestr):
                 return _typestr
 
     def pref_update(self, key, new_val):
