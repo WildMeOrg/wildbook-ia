@@ -30,6 +30,8 @@ class SQLDatabaseControl(object):
         db.fname = database_file
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
         fpath    = join(db.dir_, db.fname)
+        if not exists(fpath):
+            print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
@@ -156,9 +158,9 @@ class SQLDatabaseControl(object):
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.executemany] caller_name=%r' % caller_name)
         # Do any preprocesing on the SQL command / query
-        import textwrap
-        operation = textwrap.dedent(operation).strip()
-        operation_type = operation[:operation.find(' ')].strip()
+        #import textwrap
+        #operation = textwrap.dedent(operation).strip()
+        operation_type = operation.split()[0].strip()
         result_list = []
         # Compute everything in Python before sending queries to SQL
         parameters_list = list(parameters_iter)
@@ -171,8 +173,9 @@ class SQLDatabaseControl(object):
         try:
             # For each parameter in an input list
             for count, parameters in enumerate(parameters_list):
+                mark_prog(count)  # mark progress
                 if verbose:
-                    print('[sql] operation=\n%s' % operation)
+                    print('\n[sql] operation=\n%s' % operation)
                     print('[sql] paramters=%r' % (parameters,))
                 # Send command to SQL
                 # (all other results will be invalided)
@@ -191,7 +194,6 @@ class SQLDatabaseControl(object):
                     result_list.append(resulttup[0])
                 else:
                     result_list.append(resulttup)
-                mark_prog(count)  # mark progress
             end_prog()
             num_results = len(result_list)
             if num_results != 0 and num_results != num_params:
@@ -201,7 +203,13 @@ class SQLDatabaseControl(object):
             print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
             print('[!sql] operation=\n%s' % operation)
             if 'parameters' in vars():
-                print('[!sql] failed paramters=%r' % (parameters,))
+                if len(parameters) > 4:
+                    paraminfostr = utool.indentjoin(map(repr,
+                                                        enumerate(
+                                                            [(type(_), _) for _ in parameters])), '\n  ')
+                    print('[!sql] failed paramters=' + paraminfostr)
+                else:
+                    print('[!sql] failed paramters=%r' % (parameters,))
             else:
                 print('[!!sql] failed before parameters populated')
             print('[!sql] parameters_iter=%r' % (parameters_iter,))

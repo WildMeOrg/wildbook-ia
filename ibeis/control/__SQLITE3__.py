@@ -4,7 +4,7 @@ from utool.util_inject import inject_print_functions
 print, print_, printDBG = inject_print_functions(__name__, '[SQLITE3]', DEBUG=False)
 
 VERBOSE = '--verbose' in sys.argv
-
+TRY_NEW_SQLITE3 = False
 
 # SQL This should be the only file which imports sqlite3
 try:
@@ -18,6 +18,8 @@ try:
         # Clean namespace
         del sqlite3
         del dbapi2
+    if not TRY_NEW_SQLITE3:
+        raise ImportError('user wants python sqlite3')
     from pysqlite2.dbapi2 import *  # NOQA
 except ImportError as ex:
     if VERBOSE:
@@ -49,6 +51,12 @@ def REGISTER_SQLITE3_TYPES():
     def _write_uuid_to_sqlite3(uuid_):
         return buffer(uuid_.bytes_le)
 
+    def register_numpy_dtypes():
+        print('Register NUMPY dtypes with SQLite3')
+        for dtype in (np.int8, np.int16, np.int32, np.int64,
+                      np.uint8, np.uint16, np.uint32, np.uint64):
+            register_adapter(dtype, long)
+
     # Tell SQL how to deal with numpy arrays
     def register_numpy():
         """ Utility function allowing numpy arrays to be stored as raw blob data """
@@ -62,6 +70,7 @@ def REGISTER_SQLITE3_TYPES():
         register_converter('UUID', _read_uuid_from_sqlite3)
         register_adapter(uuid.UUID, _write_uuid_to_sqlite3)
 
+    register_numpy_dtypes()
     register_numpy()
     register_uuid()
 REGISTER_SQLITE3_TYPES()

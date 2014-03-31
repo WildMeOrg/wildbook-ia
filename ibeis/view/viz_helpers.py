@@ -21,6 +21,6 @@ def get_ibsdat(ax, key, default=None):
 def set_ibsdat(ax, key, val):
     """ sets internal IBEIS property to a matplotlib axis """
     if not '_ibsdat' in ax.__dict__:
-        ax.__dict__['_ibsdat'] = utool.DynStruct()
+        ax.__dict__['_ibsdat'] = {}
     _ibsdat = ax.__dict__['_ibsdat']
-    setattr(_ibsdat, key, val)
+    _ibsdat[key] = val

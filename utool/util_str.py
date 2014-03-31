@@ -17,6 +17,10 @@ def indent(string, indent='    '):
     return indent + string.replace('\n', '\n' + indent)
 
 
+def indentjoin(strlist, indent='\n    '):
+    return indent + indent.join(map(str, strlist))
+
+
 def truncate_str(str, maxlen=110):
     if len(str) < maxlen:
         return str

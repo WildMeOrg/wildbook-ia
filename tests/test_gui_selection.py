@@ -26,6 +26,7 @@ def TEST_GUI_SELECTION():
 
     print(' * len(valid_gids) = %r' % len(valid_gids))
     print(' * len(valid_rids) = %r' % len(valid_rids))
+    assert len(valid_gids) > 0, 'database images cannot be empty for test'
 
     gid = valid_gids[0]
     back.select_gid(gid)

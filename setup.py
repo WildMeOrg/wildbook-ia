@@ -3,9 +3,19 @@ import os
 import sys
 from os.path import join, splitext, exists, split
 from utool import util_path
-
+#import stat
 
 VERBOSE = '--verbose' in sys.argv
+
+
+def chmod_tests():
+    cwd = get_project_repo_dir()
+    st = os.stat(__file__)
+    print(st)
+    test_dir = join(cwd, 'tests')
+    for pyscript_fpath in util_path.glob(test_dir, 'test_*.py'):
+        print('[setup] chmod fpath=%r' % pyscript_fpath)
+        os.chmod(pyscript_fpath, st.st_mode)
 
 
 def get_project_repo_dir():
@@ -56,6 +66,8 @@ if __name__ == '__main__':
         if arg in ['clean']:
             clean()
             sys.exit(0)
+        if arg in ['chmod']:
+            chmod_tests()
         if arg in ['buildui', 'ui', 'compile_ui']:
             compile_ui()
             sys.exit(0)

@@ -22,7 +22,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('rois', (
         ('roi_uid',                      'UUID PRIMARY KEY'),
         ('image_uid',                    'UUID NOT NULL'),
-        ('name_uid',                     'UUID DEFAULT 0'),
+        ('name_uid',                     'UUID NOT NULL'),
         ('roi_xtl',                      'INTEGER NOT NULL'),
         ('roi_ytl',                      'INTEGER NOT NULL'),
         ('roi_width',                    'INTEGER NOT NULL'),
