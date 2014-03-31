@@ -21,6 +21,7 @@ def interact_image(ibs, gid, sel_cids=[], fnum=1,
             # Toggle draw lbls
             print(' ...out of axis')
             kwargs['draw_lbls'] = not kwargs.pop('draw_lbls', True)
+            kwargs.update('
             interact_image(ibs, gid, sel_cids=sel_cids,
                            select_rid_callback=select_rid_callback, **kwargs)
         else:
