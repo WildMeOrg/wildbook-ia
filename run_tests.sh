@@ -1,4 +1,4 @@
-export ARGV="$@"
+export ARGV="-quiet $@"
 
 export GUI_TESTS=ON
 export IBS_TESTS=ON

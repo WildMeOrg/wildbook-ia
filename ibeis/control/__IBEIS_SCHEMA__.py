@@ -3,8 +3,10 @@ Module Licence and docstring
 """
 from __future__ import division, print_function
 
-NAME_UID_TYPE = 'UUID'
-#NAME_UID_TYPE = 'INTEGER'
+IMAGE_UID_TYPE = 'UUID'
+ROI_UID_TYPE = 'UUID'
+#NAME_UID_TYPE = 'UUID'
+NAME_UID_TYPE = 'INTEGER'
 
 
 def define_IBEIS_schema(ibs):

@@ -22,16 +22,17 @@ from ibeis.control import IBEISControl
 
 VERBOSE = utool.get_flag('--verbose')
 
-# Wrapped QT UUID type (probably just a string)
+# Wrapped QT UUID type (usually string or long)
 QT_IMAGE_UID_TYPE = item_table.QT_IMAGE_UID_TYPE
 QT_ROI_UID_TYPE   = item_table.QT_ROI_UID_TYPE
 QT_NAME_UID_TYPE  = item_table.QT_NAME_UID_TYPE
 
 qt_cast = item_table.qt_cast
 
-qt_roi_uid_cast   = item_table.uuid_cast
-qt_image_uid_cast = item_table.uuid_cast
-qt_name_uid_cast  = item_table.qt_cast
+# For UUIDs the cast is special
+qt_roi_uid_cast   = item_table.qt_roi_uid_cast
+qt_image_uid_cast = item_table.qt_image_uid_cast
+qt_name_uid_cast  = item_table.qt_name_uid_cast
 
 
 # BLOCKING DECORATOR
@@ -160,7 +161,7 @@ class MainWindowBackend(QtCore.QObject):
         rid = back.sel_rids[0]
         return rid
 
-    @utool.indent_func
+    #@utool.indent_func
     def update_window_title(back):
         if VERBOSE:
             print('[back] update_window_title()')
@@ -174,7 +175,7 @@ class MainWindowBackend(QtCore.QObject):
             title = 'IBEIS - %r - %s' % (db_name, dbdir)
         back.front.setWindowTitle(title)
 
-    @utool.indent_func
+    #@utool.indent_func
     def refresh_state(back):
         back.update_window_title()
         back.populate_tables()

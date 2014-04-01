@@ -1,12 +1,12 @@
 #!usr/bin/env python
 from __future__ import division, print_function
 #------
-TEST_NAME = 'TEST_GUI_OPEN_DATABASE'
+TEST_NAME = 'TEST_SQLDATABASE_CONTROL'
 #------
-from ibeis.control import SQLDatabaseControl
+import __testing__  # Should be imported before any ibeis stuff
 import numpy as np
 import utool
-import __testing__
+from ibeis.control import SQLDatabaseControl
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 
 printTEST = __testing__.printTEST

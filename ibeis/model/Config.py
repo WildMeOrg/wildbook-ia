@@ -230,7 +230,7 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg   = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg  = AggregateConfig(**kwargs)
         # Queries depend on features # creating without ibs delays crash
-        query_cfg._feat_cfg = FeatureConfig(**kwargs) if ibs is None else ibs.prefs.feat_cfg
+        query_cfg._feat_cfg = FeatureConfig(**kwargs) if ibs is None else ibs.cfg.feat_cfg
         query_cfg.use_cache = False
         if ibs is not None:
             query_cfg.update_cfg(**kwargs)
@@ -315,7 +315,7 @@ class FeatureConfig(ConfigBase):
         if ibs is None:
             feat_cfg._chip_cfg = ChipConfig(**kwargs)  # creating without ibs delays crash
         else:
-            feat_cfg._chip_cfg = ibs.prefs.chip_cfg  # Features depend on chips
+            feat_cfg._chip_cfg = ibs.cfg.chip_cfg  # Features depend on chips
         feat_cfg.update(**kwargs)
 
     def get_dict_args(feat_cfg):
@@ -415,7 +415,7 @@ def default_feat_cfg(ibs, **kwargs):
     return feat_cfg
 
 
-def default_vsmany_cfg(ibs, **kwargs):
+def default_query_cfg(ibs, **kwargs):
     kwargs['query_type'] = 'vsmany'
     query_cfg = QueryConfig(ibs, **kwargs)
     return query_cfg

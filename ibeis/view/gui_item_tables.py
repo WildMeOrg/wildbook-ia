@@ -7,6 +7,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QAbstractItemView
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitables]', DEBUG=False)
 
+from ibeis.control import __IBEIS_SCHEMA__
 
 QT_UUID_TYPE = str
 QT_INTEGER_UID_TYPE = long
@@ -31,16 +32,25 @@ def qt_cast(qtinput):
         raise ValueError('Unknown QtType. type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
     return qtoutput
 
-qt_cast_map = {
+schema_qt_castmap = {
     'INTEGER': qt_cast,
     'UUID':    uuid_cast,
 }
 
+schema_qt_typemap = {
+    'INTEGER': QT_INTEGER_UID_TYPE,
+    'UUID': QT_UUID_TYPE,
+}
 
-QT_ROI_UID_TYPE   = QT_UUID_TYPE
-QT_IMAGE_UID_TYPE = QT_UUID_TYPE
+# Specialize table uid types
+QT_IMAGE_UID_TYPE = schema_qt_typemap[__IBEIS_SCHEMA__.IMAGE_UID_TYPE]
+QT_ROI_UID_TYPE   = schema_qt_typemap[__IBEIS_SCHEMA__.ROI_UID_TYPE]
+QT_NAME_UID_TYPE  = schema_qt_typemap[__IBEIS_SCHEMA__.NAME_UID_TYPE]
 
-QT_NAME_UID_TYPE  = QT_INTEGER_UID_TYPE
+# Specialize table uid casts
+qt_roi_uid_cast   = schema_qt_castmap[__IBEIS_SCHEMA__.IMAGE_UID_TYPE]
+qt_image_uid_cast = schema_qt_castmap[__IBEIS_SCHEMA__.ROI_UID_TYPE]
+qt_name_uid_cast  = schema_qt_castmap[__IBEIS_SCHEMA__.NAME_UID_TYPE]
 
 # Table names (should reflect SQL tables)
 IMAGE_TABLE = 'images'

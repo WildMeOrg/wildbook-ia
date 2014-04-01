@@ -11,7 +11,6 @@ from __future__ import division, print_function
 # Python
 import functools
 import re
-import sys
 from itertools import izip
 from os.path import join, realpath, split
 # Science
@@ -25,6 +24,7 @@ from vtool import image as gtool
 import utool
 from utool import util_hash, util_time
 from utool.util_iter import iflatten
+from ibeis.model import Config
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]', DEBUG=False)
@@ -37,7 +37,7 @@ VERBOSE = utool.get_flag('--verbose')
 #-----------------
 
 # define name constants
-if __IBEIS_SCHEMA__.NAME_UID_TYPE == 'INTERGER':
+if __IBEIS_SCHEMA__.NAME_UID_TYPE == 'INTEGER':
     UNKNOWN_NID = 0L
 elif __IBEIS_SCHEMA__.NAME_UID_TYPE == 'UUID':
     UNKNOWN_NID = utool.util_hash.get_zero_uuid()
@@ -143,6 +143,7 @@ class IBEISControl(object):
         """ Creates a new IBEIS Controller object associated with one database """
         if VERBOSE:
             print('[ibs.__init__] new IBEISControl')
+        # Define ibs directories
         ibs.dbdir = realpath(dbdir)
         ibs.dbfname   = '_ibeis_database.sqlite3'
         ibs.cachedir  = join(ibs.dbdir, '_ibeis_cache')
@@ -152,18 +153,30 @@ class IBEISControl(object):
         printDBG('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
         printDBG('[ibs.__init__] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
+        # Load or create sql database
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
         printDBG('[ibs.__init__] Define the schema.')
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
-        try:
-            printDBG('[ibs.__init__] Add default names.')
-            ibs.add_names((UNKNOWN_NID,), (UNKNOWN_NAME,))
-        except Exception as ex:
-            print('[ibs] HACKISLY IGNORING: %s, %s:' % (type(ex), ex,))
-            ibs.db.get_sql_version()
-            if not '--ignore' in sys.argv:
-                print('use --ignore to keep going')
-                raise
+        printDBG('[ibs.__init__] Add default names.')
+        #ibs.add_names((UNKNOWN_NID,), (UNKNOWN_NAME,))
+        ibs.add_names((UNKNOWN_NAME,))
+        # Load or create algorithm configs
+        ibs.load_config()
+
+    def load_config(ibs):
+        """ Loads the database's algorithm configuration """
+        print('[ibs] load_config()')
+        ibs.cfg = Config.ConfigBase('cfg', fpath=ibs.cachedir)
+        if not ibs.cfg.load() is True:
+            ibs.default_config()
+
+    def default_config(ibs):
+        """ Resets the databases's algorithm configuration """
+        print('[ibs] default_config()')
+        # TODO: Detector config
+        ibs.cfg.chip_cfg   = Config.default_chip_cfg()
+        ibs.cfg.feat_cfg   = Config.default_feat_cfg(ibs)
+        ibs.cfg.query_cfg  = Config.default_query_cfg(ibs)
 
     def sanatize_sql(ibs, table, column=None):
         """ Sanatizes an sql table and column. Use sparingly """
@@ -267,22 +280,26 @@ class IBEISControl(object):
         return rid_list
 
     @adder
-    def add_names(ibs, nid_iter, name_iter):
-        """ Adds a list of names
-        Autoinsert the defualt-unknown name into the database
-        """
+    def add_names(ibs, name_iter):
+        """ Adds a list of names. Returns their nids """
+        name_list = list(name_iter)
         ibs.db.executemany(
             operation='''
             INSERT OR IGNORE INTO names
             (
-                name_uid,
                 name_text
             )
-            VALUES (?, ?)
+            VALUES (?)
             ''',
-            parameters_iter=izip(nid_iter, name_iter))
-        nid_iter = [-1 for _ in xrange(len(nid_iter))]
-        return nid_iter
+            parameters_iter=((name,) for name in name_list))
+        nid_list = ibs.db.executemany(
+            operation='''
+            SELECT name_uid
+            FROM names
+            WHERE name_text=?
+            ''',
+            parameters_iter=((name,) for name in name_list))
+        return nid_list
 
     #
     #
@@ -433,7 +450,7 @@ class IBEISControl(object):
     #
     # GETTERS::General
 
-    @getter_general
+    #@getter_general
     def get_valid_ids(ibs, tblname):
         get_valid_tblname_ids = {
             'images': ibs.get_valid_gids,
@@ -442,7 +459,7 @@ class IBEISControl(object):
         }[tblname]
         return get_valid_tblname_ids()
 
-    @getter_general
+    #@getter_general
     def get_table_properties(ibs, table, prop_key, uid_list):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
@@ -462,7 +479,7 @@ class IBEISControl(object):
     #
     # GETTERS::Image
 
-    @getter_general
+    #@getter_general
     def get_image_properties(ibs, prop_key, gid_list):
         """ general image property getter """
         return ibs.get_table_properties('images', prop_key, gid_list)
@@ -581,7 +598,7 @@ class IBEISControl(object):
     #
     # GETTERS::ROI
 
-    @getter_general
+    #@getter_general
     def get_roi_properties(ibs, prop_key, rid_list):
         """ general image property getter """
         return ibs.get_table_properties('rois', prop_key, rid_list)
@@ -681,7 +698,7 @@ class IBEISControl(object):
     #
     # GETTERS::Chips
 
-    @getter_general
+    #@getter_general
     def get_chip_properties(ibs, prop_key, rid_list):
         """ general chip property getter """
         return ibs.get_table_properties('chips', prop_key, rid_list)
@@ -741,7 +758,7 @@ class IBEISControl(object):
     #
     # GETTERS::Name
 
-    @getter_general
+    #@getter_general
     def get_name_properties(ibs, prop_key, nid_list):
         """ general name property getter """
         return ibs.get_table_properties('names', prop_key, nid_list)
@@ -764,11 +781,7 @@ class IBEISControl(object):
 
     def get_name_nids(ibs, name_list):
         """ Returns nid_list. Creates one if it doesnt exist """
-        # JASON TODO: Can you write this function? It should
-        # return nid_list, where len(nid_list) == len(name_list)
-        # If the name doesn't exist in the name table yet, it should be
-        # added an a new name ID should be created.
-        nid_list = [0 for _ in xrange(len(name_list))]
+        nid_list = ibs.add_names(name_list)
         return nid_list
 
     #

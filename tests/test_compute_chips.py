@@ -10,7 +10,7 @@ from itertools import izip
 import utool
 import vtool.chip as ctool
 # IBEIST
-from ibeis.model.jon_recognition import Config
+from ibeis.model import Config
 from ibeis.view import viz
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST

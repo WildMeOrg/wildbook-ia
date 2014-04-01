@@ -62,7 +62,7 @@ import ibeis.dev
 from ibeis.dev import main_api  # NOQA
 # IBEIS MODEL
 import ibeis.model
-from ibeis.model.jon_recognition import Config
+from ibeis.model import Config
 # IBEIS CONTROl
 import ibeis.control  # NOQA
 
