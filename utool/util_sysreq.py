@@ -7,6 +7,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[sysreq]')
 
 
 DEBUG = '--debug' in sys.argv
+VERBOSE = '--verbose' in sys.argv
 
 
 def locate_path(dname, recurse_down=True):
@@ -36,7 +37,8 @@ def ensure_in_pythonpath(dname):
     dname_list = [split(dpath)[1] for dpath in sys.path]
     if not dname in dname_list:
         dpath = locate_path(dname)
-        print('[sysreq] appending %r to PYTHONPATH' % dpath)
+        if VERBOSE:
+            print('[sysreq] appending %r to PYTHONPATH' % dpath)
         sys.path.append(dpath)
     elif DEBUG:
         print('[sysreq] PYTHONPATH has %r' % dname)

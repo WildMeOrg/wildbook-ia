@@ -68,3 +68,15 @@ con = sqlite3.connect(":memory:")
 res = con.execute("create virtual table recipe using fts3(name, ingredients)")
 print(res)
 EOF
+
+
+
+
+
+
+
+
+
+# SIP
+# need newer version to use setdestroyonexit
+#sudo pip install --upgrade --allow-external sip --allow-unverified sip sip

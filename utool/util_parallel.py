@@ -17,11 +17,16 @@ VERBOSE = util_arg.VERBOSE
 __POOL__ = None
 
 
+def get_default_numprocs():
+    num_procs = max(multiprocessing.cpu_count() - 2, 1)
+    return num_procs
+
+
 def init_pool(num_procs=None, maxtasksperchild=None):
     global __POOL__
     if num_procs is None:
         # Get number of cpu cores
-        num_procs = max(multiprocessing.cpu_count() - 2, 1)
+        num_procs = get_default_numprocs()
     if not QUIET:
         print('[parallel] initializing pool with %d processes' % num_procs)
     if num_procs == 1:

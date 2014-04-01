@@ -5,7 +5,8 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 import sip
-sip.setdestroyonexit(False)  # This prevents a crash on windows
+if hasattr(sip, 'setdestroyonexit'):
+    sip.setdestroyonexit(False)  # This prevents a crash on windows
 
 IS_ROOT = False
 QAPP = None

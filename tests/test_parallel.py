@@ -46,6 +46,8 @@ def TEST_PARALLEL():
         if num_procs is not None:
             util_parallel.close_pool()
             util_parallel.init_pool(num_procs)
+        else:
+            num_procs = util_parallel.get_default_numprocs()
         msg = 'processing tasks in %s' % ('serial' if num_procs == 1 else
                                           str(num_procs) + '-parallel')
         with utool.Timer(msg):

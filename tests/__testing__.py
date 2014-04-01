@@ -1,14 +1,13 @@
 from __future__ import division, print_function
 import __builtin__
 import sys
-import functools
-from os.path import realpath, dirname, join, exists
-import numpy as np
-
-
 sys.argv.append('--strict')  # Tests are always strict
 VERBOSE = '--verbose' in sys.argv
 QUIET   = '--quiet' in sys.argv
+
+import functools
+from os.path import realpath, dirname, join, exists
+import numpy as np
 
 
 def ensure_util_in_pythonpath():
@@ -28,6 +27,11 @@ ensure_util_in_pythonpath()
 import utool
 utool.util_sysreq.ensure_in_pythonpath('hesaff')
 utool.util_sysreq.ensure_in_pythonpath('ibeis')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[__testing__]')
+from ibeis.dev import main_api
+from ibeis.dev import params
+import pyhesaff
+
 
 INTERACTIVE = utool.get_flag(('--interactive', '-i'))
 
@@ -35,11 +39,12 @@ INTERACTIVE = utool.get_flag(('--interactive', '-i'))
 def testcontext(func):
     @functools.wraps(func)
     def test_wrapper(*args, **kwargs):
-        try:
-            printTEST('[TEST] %s SUCCESS' % (func.func_name,))
-            func(*args, **kwargs)
-            printTEST('[TEST] %s SUCCESS' % (func.func_name,))
-            print(r'''
+        with utool.Indenter('[' + func.func_name.lower() + ']'):
+            try:
+                printTEST('[TEST] %s BEGIN' % (func.func_name,))
+                func(*args, **kwargs)
+                printTEST('[TEST] %s FINISH -- SUCCESS' % (func.func_name,))
+                print(r'''
                   .-""""""-.
                 .'          '.
                /   O      O   \
@@ -51,12 +56,12 @@ def testcontext(func):
                   '-......-'
                   ''')
 
-        except Exception as ex:
-            exc_type, exc_value, tb = sys.exc_info()
-            # Get locals in the wrapped function
-            locals_ = tb.tb_next.tb_frame.f_locals
-            printTEST('[TEST] %s FAILED: %s %s' % (func.func_name, type(ex), ex))
-            print(r'''
+            except Exception as ex:
+                exc_type, exc_value, tb = sys.exc_info()
+                # Get locals in the wrapped function
+                locals_ = tb.tb_next.tb_frame.f_locals
+                printTEST('[TEST] %s FINISH -- FAILED: %s %s' % (func.func_name, type(ex), ex))
+                print(r'''
                   .-""""""-.
                 .'          '.
                /   O      O   \
@@ -67,16 +72,15 @@ def testcontext(func):
                 '.          .'
                   '-......-'
                   ''')
-            ibs = locals_.get('ibs', None)
-            if ibs is not None:
-                ibs.db.dump()
-            if '--strict' in sys.argv:
-                raise
+                ibs = locals_.get('ibs', None)
+                if ibs is not None:
+                    ibs.db.dump()
+                if '--strict' in sys.argv:
+                    raise
     return test_wrapper
 
 
 def get_pyhesaff_test_image_paths(ndata):
-    import pyhesaff
     #root = utool.getroot()
     imgdir = dirname(pyhesaff.__file__)
     gname_list = utool.flatten([
@@ -114,8 +118,6 @@ def get_test_numpy_data(shape=(3e3, 128), dtype=np.uint8):
 
 
 def main(defaultdb='testdb', allow_newdir=False, **kwargs):
-    from ibeis.dev import main_api
-    from ibeis.dev import params
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
     if defaultdb == 'testdb':
         allow_newdir = True
@@ -128,7 +130,6 @@ def main(defaultdb='testdb', allow_newdir=False, **kwargs):
 
 
 def main_loop(main_locals, **kwargs):
-    from ibeis.dev import main_api
     printTEST('[TEST] TEST_LOOP')
     parent_locals = utool.get_parent_locals()
     parent_globals = utool.get_parent_globals()
@@ -139,6 +140,6 @@ def main_loop(main_locals, **kwargs):
 
 def printTEST(msg, wait=False):
     __builtin__.print('\n=============================')
-    __builtin__.print(msg)
+    __builtin__.print('**' + msg)
     if INTERACTIVE and wait:
         raw_input('press enter to continue')

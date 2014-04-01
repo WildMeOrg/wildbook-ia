@@ -6,6 +6,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 
 
 QUIET = get_flag('--quiet')
+VERBOSE = get_flag('--verbose')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 
 
@@ -41,6 +42,8 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     specified or simple=True'''
     write_fn = sys.stdout.write
     #write_fn = print_
+    #print('STARTING PROGRESS: VERBOSE=%r QUIET=%r' % (VERBOSE, QUIET))
+
     # Tell the user we are about to make progress
     if QUIET or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
         return lambda count: None, lambda: None

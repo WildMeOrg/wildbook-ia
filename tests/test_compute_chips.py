@@ -41,7 +41,7 @@ def TEST_COMPUTE_CHIPS():
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, ((w, h) for (x, y, w, h) in bbox_list))
 
     args_list = [args for args in izip(gpath_list, bbox_list, theta_list, newsize_list)]
-    filter_list = ctool.get_filter_list(chip_cfg)
+    filter_list = ctool.get_filter_list(chip_cfg.to_dict())
     chip_kwargs =  {
         'filter_list': filter_list,
     }
@@ -57,4 +57,4 @@ TEST_COMPUTE_CHIPS.func_name = TEST_NAME
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     TEST_COMPUTE_CHIPS()
-    exec(viz.df2.present())
+    #exec(viz.df2.present())

@@ -14,6 +14,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAM
 sys.argv.append('--nogui')
 
 
+@__testing__.testcontext
 def TEST_ADD_IMAGES():
     main_locals = __testing__.main(defaultdb='testdb', nogui=True)
     ibs = main_locals['ibs']    # IBEIS Control
