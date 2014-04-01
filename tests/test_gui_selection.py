@@ -23,11 +23,19 @@ def TEST_GUI_SELECTION():
 
     dbdir = params.db_to_dbdir('testdb')
 
+    printTEST('''
+              get_valid_gids
+              ''')
     valid_gids = ibs.get_valid_gids()
+    printTEST('''
+              get_valid_rids
+              ''')
     valid_rids = ibs.get_valid_rids()
 
-    print(' * len(valid_gids) = %r' % len(valid_gids))
-    print(' * len(valid_rids) = %r' % len(valid_rids))
+    printTEST('''
+    * len(valid_rids) = %r
+    * len(valid_gids) = %r
+    ''' % (len(valid_rids), len(valid_gids)))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
 
     gid = valid_gids[0]
@@ -38,7 +46,6 @@ def TEST_GUI_SELECTION():
     printTEST('[TEST] TEST SELECT dbdir=%r' % dbdir)
 
     __testing__.main_loop(main_locals, rungui=RUNGUI)
-
 
 TEST_GUI_SELECTION.func_name = TEST_NAME
 

@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 import sys
 
-sys.argv.append('--strict')
+sys.argv.append('--strict')  # do not supress any errors
 
 
 def _on_ctrl_c(signal, frame):
@@ -28,20 +28,22 @@ def _parse_args(**kwargs):
     params.parse_args(**kwargs)
 
 
-def init_matplotlib(module_prefix='[???]'):
+def init_matplotlib():
     import matplotlib
     import multiprocessing
+    import utool
     backend = matplotlib.get_backend()
     if  multiprocessing.current_process().name == 'MainProcess':
-        if not '--quiet' in sys.argv:
+        if not utool.QUIET:
             print('--- INIT MPL---')
             print('[main]  current backend is: %r' % backend)
             print('[main]  matplotlib.use(Qt4Agg)')
         if backend != 'Qt4Agg':
             matplotlib.use('Qt4Agg', warn=True, force=True)
             backend = matplotlib.get_backend()
-            print(module_prefix + ' current backend is: %r' % backend)
-        if '--notoolbar' in sys.argv or '--devmode' in sys.argv:
+            if not utool.QUIET:
+                print('[main] current backend is: %r' % backend)
+        if utool.get_flag('--notoolbar') or utool.get_flag('--devmode'):
             toolbar = 'None'
         else:
             toolbar = 'toolbar2'
@@ -61,7 +63,9 @@ def init_matplotlib(module_prefix='[???]'):
 def _init_gui():
     import guitool
     from ibeis.view import guiback
-    print('[main] _init_gui()')
+    import utool
+    if not utool.QUIET:
+        print('[main] _init_gui()')
     guitool.ensure_qtapp()
     back = guiback.MainWindowBackend()
     guitool.activate_qwindow(back)
@@ -69,9 +73,11 @@ def _init_gui():
 
 
 def _init_ibeis():
-    print('[main] _init_ibeis()')
+    import utool
     from ibeis.control import IBEISControl
     import params
+    if not utool.QUIET:
+        print('[main] _init_ibeis()')
     dbdir = params.args.dbdir
     if dbdir is None:
         print('[main!] WARNING args.dbdir is None')
@@ -151,7 +157,8 @@ def main(**kwargs):
     __|__ |_____] |______ __|__ ______|
     '''
     print(msg2 if not utool.getflag('--myway') in sys.argv else msg1)
-    print('[main] ibeis.main_api.main()')
+    if not utool.QUIET:
+        print('[main] ibeis.main_api.main()')
     try:
 
         from ibeis.dev import params
@@ -165,7 +172,8 @@ def main(**kwargs):
             back = _init_gui()
         ibs = _init_ibeis()
         if 'back' in vars() and ibs is not None:
-            print('[main] Attatch ibeis control')
+            if not utool.QUIET:
+                print('[main] Attatch ibeis control')
             back.connect_ibeis_control(ibs)
         main_commands.postload_commands(ibs)
     except Exception as ex:
@@ -190,16 +198,16 @@ def main_loop(main_locals, loop=True, rungui=True):
                 rungui = rungui and ipython_ran
             if rungui and not params.args.nogui:
                 guiloop_ran = _guitool_loop(main_locals)
-        _reset_signals()
-        _close_parallel()
-        if guiloop_ran or ipython_ran:
-            # Exit cleanly if a main loop ran
-            print('[main] ibeis clean exit')
-            #sys.exit(0)
-        else:
-            # Something else happened
-            print('[main] ibeis unclean exit')
     except Exception as ex:
         print('[main_loop] IBEIS Caught: %s %s' % (type(ex), ex))
         if '--strict' in sys.argv:
             raise
+    _close_parallel()
+    _reset_signals()
+    if guiloop_ran or ipython_ran:
+        # Exit cleanly if a main loop ran
+        print('[main] ibeis clean EXIT')
+        #sys.exit(0)
+    else:
+        # Something else happened
+        print('[main] ibeis unclean EXIT')

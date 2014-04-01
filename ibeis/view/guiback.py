@@ -21,6 +21,8 @@ from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
 
 
+VERBOSE = utool.get_flag('--verbose')
+
 # Wrapped QT UUID type (probably just a string)
 QT_UUID_TYPE = item_table.QT_UUID_TYPE
 
@@ -155,6 +157,7 @@ class MainWindowBackend(QtCore.QObject):
     # State Management Functions (ewww... state)
     #----------------------
 
+    @utool.indent_func
     def get_selected_gid(back):
         'selected image id'
         if len(back.sel_gids) == 0:
@@ -162,6 +165,7 @@ class MainWindowBackend(QtCore.QObject):
         gid = back.sel_gids[0]
         return gid
 
+    @utool.indent_func
     def get_selected_rid(back):
         'selected roi id'
         if len(back.sel_rids) == 0:
@@ -169,8 +173,10 @@ class MainWindowBackend(QtCore.QObject):
         rid = back.sel_rids[0]
         return rid
 
+    @utool.indent_func
     def update_window_title(back):
-        print('[back] update_window_title()')
+        if VERBOSE:
+            print('[back] update_window_title()')
         if back.ibs is None:
             title = 'IBEIS - No Database Open'
         if back.ibs.dbdir is None:
@@ -181,10 +187,12 @@ class MainWindowBackend(QtCore.QObject):
             title = 'IBEIS - %r - %s' % (db_name, dbdir)
         back.front.setWindowTitle(title)
 
+    @utool.indent_func
     def refresh_state(back):
         back.update_window_title()
         back.populate_tables()
 
+    @utool.indent_func
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
@@ -194,18 +202,23 @@ class MainWindowBackend(QtCore.QObject):
     # Populate functions
     #----------------------1----------------------------------------------------
 
+    @utool.indent_func
     def populate_image_table(back, **kwargs):
         item_table.emit_populate_table(back, item_table.IMAGE_TABLE, **kwargs)
 
+    @utool.indent_func
     def populate_name_table(back, **kwargs):
         item_table.emit_populate_table(back, item_table.NAME_TABLE, **kwargs)
 
+    @utool.indent_func
     def populate_roi_table(back, **kwargs):
         item_table.emit_populate_table(back, item_table.ROI_TABLE, **kwargs)
 
+    @utool.indent_func
     def populate_result_table(back, **kwargs):
         #res = back.current_res
         res = None
+        return
         if res is None:
             # Clear the table if there are no results
             print('[back] no results available')

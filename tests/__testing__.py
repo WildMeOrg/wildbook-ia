@@ -7,11 +7,14 @@ import numpy as np
 
 
 sys.argv.append('--strict')  # Tests are always strict
+VERBOSE = '--verbose' in sys.argv
+QUIET   = '--quiet' in sys.argv
 
 
 def ensure_util_in_pythonpath():
     utool_path = realpath(join(dirname(__file__), '..'))
-    print('[test] appending: %r' % utool_path)
+    if VERBOSE:
+        print('[test] appending to pythonpath: %r' % utool_path)
     try:
         assert exists(join(utool_path, 'utool')), ('cannot find util in: %r' % utool_path)
     except AssertionError as ex:
@@ -34,7 +37,7 @@ def testcontext(func):
     def test_wrapper(*args, **kwargs):
         try:
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
-            result = func(*args, **kwargs)
+            func(*args, **kwargs)
             printTEST('[TEST] %s SUCCESS' % (func.func_name,))
             print(r'''
                   .-""""""-.
@@ -48,7 +51,6 @@ def testcontext(func):
                   '-......-'
                   ''')
 
-            return result
         except Exception as ex:
             exc_type, exc_value, tb = sys.exc_info()
             # Get locals in the wrapped function

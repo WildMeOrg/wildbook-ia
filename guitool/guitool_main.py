@@ -1,10 +1,16 @@
 from __future__ import division, print_function
 # Python
+import atexit
 import sys
 from PyQt4 import QtCore, QtGui
 
+import sip
+sip.setdestroyonexit(False)  # This prevents a crash on windows
+
 IS_ROOT = False
 QAPP = None
+VERBOSE = '--verbose' in sys.argv
+QUIET = '--quiet' in sys.argv
 
 
 def get_qtapp():
@@ -20,7 +26,8 @@ def ensure_qtapp():
     QAPP = QtCore.QCoreApplication.instance()
     IS_ROOT = QAPP is None
     if IS_ROOT:  # if not in qtconsole
-        print('[guitool] Initializing QApplication')
+        if not QUIET:
+            print('[guitool] Initializing QApplication')
         QAPP = QtGui.QApplication(sys.argv)
     try:
         # You are not root if you are in IPYTHON
@@ -34,7 +41,8 @@ init_qtapp = ensure_qtapp
 
 
 def activate_qwindow(back):
-    print('[guitool.qtapp_loop()] qapp.setActiveWindow(back.front)')
+    if not QUIET:
+        print('[guitool.qtapp_loop()] qapp.setActiveWindow(back.front)')
     global QAPP
     back.front.show()
     QAPP.setActiveWindow(back.front)
@@ -44,27 +52,32 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
     global QAPP
     from IPython.lib.inputhook import enable_qt4
     from IPython.lib.guisupport import start_event_loop_qt4
-    print('[guitool] Starting ipython qt4 hook')
+    if not QUIET:
+        print('[guitool] Starting ipython qt4 hook')
     enable_qt4()
     start_event_loop_qt4(QAPP)
 
 
 def qtapp_loop(back=None, **kwargs):
-    print('[guitool] qtapp_loop()')
+    if not QUIET:
+        print('[guitool] qtapp_loop()')
     global QAPP
     if back is not None:
         activate_qwindow(back)
         back.timer = ping_python_interpreter(**kwargs)
     if IS_ROOT:
-        print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
+        if not QUIET:
+            print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
         QAPP.exec_()
     else:
-        print('[guitool.qtapp_loop()] not execing')
+        if not QUIET:
+            print('[guitool.qtapp_loop()] not execing')
 
 
 def ping_python_interpreter(frequency=4200):  # 4200):
     'Create a QTimer which lets the python catch ctrl+c'
-    print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
+    if not QUIET:
+        print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
     timer.timeout.connect(lambda: None)
     timer.start(frequency)
@@ -72,5 +85,9 @@ def ping_python_interpreter(frequency=4200):  # 4200):
 
 
 def exit_application():
-    print('[guitool] exiting application')
+    if not QUIET:
+        print('[guitool] exiting application')
     QtGui.qApp.quit()
+
+
+atexit.register(exit_application)

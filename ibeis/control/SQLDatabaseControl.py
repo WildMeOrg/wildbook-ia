@@ -6,6 +6,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]', DEBUG=False)
 
 
+QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')
 AUTODUMP = utool.get_flag('--auto-dump')
 
@@ -81,7 +82,8 @@ class SQLDatabaseControl(object):
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        print('[sql.schema] ensuring table=%r' % table)
+        if not QUIET:
+            print('[sql.schema] ensuring table=%r' % table)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.

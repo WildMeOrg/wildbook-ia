@@ -1,13 +1,19 @@
+# Licence
 from __future__ import division, print_function
+# Python
 import functools
 # Qt
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 # IBEIS
-from ibeis.view.MainSkel import Ui_mainSkel
+import utool
 import guitool
 from guitool import slot_, signal_
 from ibeis.view import gui_item_tables as item_table
+from ibeis.view.MainSkel import Ui_mainSkel
+
+QUIET   = utool.get_flag('--quiet')
+VERBOSE = utool.get_flag('--verbose')
 
 #=================
 # Decorators / Helpers
@@ -41,7 +47,8 @@ def clicked(func):
 
 
 def _tee_logging(front):
-    print('[front] teeing log output')
+    if VERBOSE:
+        print('[front] teeing log output')
     # Connect a StreamStealer object to the GUI output window
     #if __common__.__LOGGING__:
         #front.logging_handler = guitool.GUILoggingHandler(front.gui_write)
@@ -255,7 +262,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
 
     def print(front, msg):
-        print('[*front*] ' + msg)
+        if VERBOSE:
+            print('[*front*] ' + msg)
 
     @slot_(bool)
     def setEnabled(front, flag):

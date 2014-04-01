@@ -1,8 +1,12 @@
 from __future__ import division, print_function
 import numpy as np
+import sys
 import functools
 from .util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
+
+QUIET = '--quiet' in sys.argv
+VERBOSE = '--verbose' in sys.argv
 
 
 def horiz_print(*args):
@@ -133,3 +137,13 @@ class NpPrintOpts(object):
         np.set_printoptions(**self.new_opts)
     def __exit__(self, type, value, trace):
         np.set_printoptions(**self.orig_opts)
+
+
+def printVERBOSE(msg):
+    if VERBOSE:
+        print(msg)
+
+
+def printNOTQUIET(msg):
+    if not QUIET:
+        print(msg)

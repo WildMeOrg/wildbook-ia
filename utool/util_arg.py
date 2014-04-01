@@ -7,6 +7,9 @@ from .util_inject import inject
 from .util_print import Indenter
 print, print_, printDBG, rrr, profile = inject(__name__, '[arg]')
 
+QUIET = '--quiet' in sys.argv
+VERBOSE = '--verbose' in sys.argv
+
 
 def get_arg(arg, type_=None, default=None, **kwargs):
     arg_after = default

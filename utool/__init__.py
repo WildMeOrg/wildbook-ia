@@ -20,7 +20,7 @@ import util_sysreq  # NOQA
 import util_time  # NOQA
 import util_type  # NOQA
 
-from .util_arg import (get_arg, get_flag, argv_flag_dec)  # NOQA
+from .util_arg import (get_arg, get_flag, argv_flag_dec, QUIET, VERBOSE)  # NOQA
 
 from .util_time import (tic, toc, Timer)  # NOQA
 
@@ -44,7 +44,9 @@ from .util_distances import (nearest_point,)  # NOQA
 
 from .util_inject import (inject, inject_all, inject_print_functions)  # NOQA
 
-from .util_print import (horiz_print, horiz_string, indent_decor, indent_func, printshape, Indenter, NpPrintOpts)  # NOQA
+from .util_print import (horiz_print, horiz_string, indent_decor, indent_func, # NOQA
+                         printshape, Indenter, NpPrintOpts, printVERBOSE,
+                         printNOTQUIET)
 
 from .util_iter import (iflatten, ichunks, interleave,)  # NOQA
 

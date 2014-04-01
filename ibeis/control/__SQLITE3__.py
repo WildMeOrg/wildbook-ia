@@ -52,7 +52,8 @@ def REGISTER_SQLITE3_TYPES():
         return buffer(uuid_.bytes_le)
 
     def register_numpy_dtypes():
-        print('Register NUMPY dtypes with SQLite3')
+        if VERBOSE:
+            print('Register NUMPY dtypes with SQLite3')
         for dtype in (np.int8, np.int16, np.int32, np.int64,
                       np.uint8, np.uint16, np.uint32, np.uint64):
             register_adapter(dtype, long)
@@ -60,13 +61,15 @@ def REGISTER_SQLITE3_TYPES():
     # Tell SQL how to deal with numpy arrays
     def register_numpy():
         """ Utility function allowing numpy arrays to be stored as raw blob data """
-        print('Register NUMPY with SQLite3')
+        if VERBOSE:
+            print('Register NUMPY with SQLite3')
         register_converter('NUMPY', _read_numpy_from_sqlite3)
         register_adapter(np.ndarray, _write_numpy_to_sqlite3)
 
     def register_uuid():
         """ Utility function allowing uuids to be stored in sqlite """
-        print('Register UUID with SQLite3')
+        if VERBOSE:
+            print('Register UUID with SQLite3')
         register_converter('UUID', _read_uuid_from_sqlite3)
         register_adapter(uuid.UUID, _write_uuid_to_sqlite3)
 

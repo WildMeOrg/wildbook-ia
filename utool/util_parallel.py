@@ -9,8 +9,11 @@ import multiprocessing
 import atexit
 import sys
 from .util_progress import progress_func
+from . import util_arg
 
 
+QUIET   = util_arg.QUIET
+VERBOSE = util_arg.VERBOSE
 __POOL__ = None
 
 
@@ -19,7 +22,8 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     if num_procs is None:
         # Get number of cpu cores
         num_procs = max(multiprocessing.cpu_count() - 2, 1)
-    print('[parallel] initializing pool with %d processes' % num_procs)
+    if not QUIET:
+        print('[parallel] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
         print('[parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
@@ -37,7 +41,8 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 def close_pool():
     global __POOL__
     if __POOL__ is not None:
-        print('[parallel] closing pool')
+        if not QUIET:
+            print('[parallel] closing pool')
         if __POOL__ != 1:
             # Must join after close to avoid runtime errors
             __POOL__.close()
@@ -86,7 +91,8 @@ def process(func, args_list, args_dict={}, force_serial=False):
     assert __POOL__ is not None, 'must init_pool() first'
     if __POOL__ == 1 or force_serial:
         _tup = (len(args_list), func.func_name)
-        print('[parallel] executing %d %s tasks in serial' % _tup)
+        if not QUIET:
+            print('[parallel] executing %d %s tasks in serial' % _tup)
         result_list = _process_serial(func, args_list, args_dict)
     else:
         _tup = (len(args_list), func.func_name, __POOL__._processes)

@@ -29,6 +29,8 @@ from utool.util_iter import iflatten
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]', DEBUG=False)
 
+QUIET   = utool.get_flag('--quiet')
+VERBOSE = utool.get_flag('--verbose')
 
 #-----------------
 # IBEIS GLOBAL
@@ -134,22 +136,22 @@ class IBEISControl(object):
 
     def __init__(ibs, dbdir=None):
         """ Creates a new IBEIS Controller object associated with one database """
-        print('[ibs] __init__')
+        if VERBOSE:
+            print('[ibs.__init__] new IBEISControl')
         ibs.dbdir = realpath(dbdir)
         ibs.dbfname   = '_ibeis_database.sqlite3'
         ibs.cachedir  = join(ibs.dbdir, '_ibeis_cache')
         ibs.chipdir   = join(ibs.cachedir, 'chips')
         ibs.flanndir  = join(ibs.cachedir, 'flann')
-        print('[ibs.__init__] new IBEISControl')
         print('[ibs.__init__] ibs.dbdir    = %r' % ibs.dbdir)
         printDBG('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
         printDBG('[ibs.__init__] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
-        print('[ibs.__init__] Define the schema.')
+        printDBG('[ibs.__init__] Define the schema.')
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
         try:
-            print('[ibs.__init__] Add default names.')
+            printDBG('[ibs.__init__] Add default names.')
             ibs.add_names((UNKNOWN_NID,), (UNKNOWN_NAME,))
         except Exception as ex:
             print('[ibs] HACKISLY IGNORING: %s, %s:' % (type(ex), ex,))

@@ -1,9 +1,11 @@
 from __future__ import division, print_function
 import sys
 from .util_inject import inject
+from .util_arg import get_flag
 print, print_, printDBG, rrr, profile = inject(__name__, '[progress]')
 
 
+QUIET = get_flag('--quiet')
 VALID_PROGRESS_TYPES = ['none', 'dots', 'fmtstr', 'simple']
 
 
@@ -40,7 +42,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     write_fn = sys.stdout.write
     #write_fn = print_
     # Tell the user we are about to make progress
-    if progress_type in ['simple', 'fmtstr'] and max_val < mark_after:
+    if QUIET or (progress_type in ['simple', 'fmtstr'] and max_val < mark_after):
         return lambda count: None, lambda: None
     # none: nothing
     if progress_type == 'none':
