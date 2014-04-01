@@ -4,7 +4,6 @@ import sys
 from os.path import split, exists
 import functools
 import traceback
-import uuid
 # Qt
 from PyQt4 import QtCore
 # GUITool
@@ -24,27 +23,15 @@ from ibeis.control import IBEISControl
 VERBOSE = utool.get_flag('--verbose')
 
 # Wrapped QT UUID type (probably just a string)
-QT_UUID_TYPE = item_table.QT_UUID_TYPE
+QT_IMAGE_UID_TYPE = item_table.QT_IMAGE_UID_TYPE
+QT_ROI_UID_TYPE   = item_table.QT_ROI_UID_TYPE
+QT_NAME_UID_TYPE  = item_table.QT_NAME_UID_TYPE
 
+qt_cast = item_table.qt_cast
 
-def qt_cast(qtinput):
-    if isinstance(qtinput, QtCore.QString):
-        qtoutput = str(qtinput)
-    else:
-        raise ValueError('Unknown QtType. type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
-    return qtoutput
-
-
-def uuid_cast(qtuuid):
-    """ unwraps QT_UUID types """
-    try:
-        uuid_str = QT_UUID_TYPE(qtuuid)
-        uuid_ = uuid.UUID(uuid_str)
-    except ValueError as ex:
-        print(ex)
-        print('qtuuid=%r' % qtuuid)
-        raise
-    return uuid_
+qt_roi_uid_cast   = item_table.uuid_cast
+qt_image_uid_cast = item_table.uuid_cast
+qt_name_uid_cast  = item_table.qt_cast
 
 
 # BLOCKING DECORATOR
@@ -278,34 +265,34 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_nids = [] if nids is None else nids
         back.sel_qres = [] if qres is None else qres
 
-    @blocking_slot(QT_UUID_TYPE)
+    @blocking_slot(QT_IMAGE_UID_TYPE)
     def select_gid(back, gid, sel_rids=[], **kwargs):
         # Table Click -> Image Table
-        gid = uuid_cast(gid)
+        gid = qt_image_uid_cast(gid)
         print('[back] select_gid(gid=%r, sel_rids=%r)' % (gid, sel_rids))
         back._set_selection(gids=(gid,), rids=sel_rids, **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
 
-    @blocking_slot(QT_UUID_TYPE)
+    @blocking_slot(QT_ROI_UID_TYPE)
     def select_rid(back, rid, **kwargs):
         # Table Click -> Chip Table
-        rid = uuid_cast(rid)
+        rid = qt_roi_uid_cast(rid)
         print('[back] select rid=%r' % rid)
         back._set_selection(rids=[rid], **kwargs)
         pass
 
-    @slot_(QT_UUID_TYPE)
+    @slot_(QT_NAME_UID_TYPE)
     def select_nid(back, nid, **kwargs):
         # Table Click -> Name Table
-        nid = uuid_cast(nid)
+        nid = qt_name_uid_cast(nid)
         print('[back] select nid=%r' % nid)
         back._set_selection(nids=[nid], **kwargs)
 
-    @slot_(QT_UUID_TYPE)
+    @slot_(QT_ROI_UID_TYPE)
     def select_res_rid(back, rid, **kwargs):
         # Table Click -> Result Table
         print('[back] select result rid=%r' % rid)
-        rid = uuid_cast(rid)
+        rid = qt_roi_uid_cast(rid)
 
     #--------------------------------------------------------------------------
     # Misc Slots
@@ -325,24 +312,24 @@ class MainWindowBackend(QtCore.QObject):
         # Button Click -> Preferences Defaults
         print('[back] default preferences')
 
-    @blocking_slot(QT_UUID_TYPE, str, str)
+    @blocking_slot(QT_ROI_UID_TYPE, str, str)
     def change_roi_property(back, rid, key, val):
         # Table Edit -> Change Chip Property
-        rid = uuid_cast(rid)
+        rid = qt_roi_uid_cast(rid)
         val = qt_cast(val)
         print('[back] change_roi_property(rid=%r, key=%r, val=%r)' % (rid, key, val))
         back.ibs.set_roi_properties((rid,), key, (val,))
 
-    @blocking_slot(QT_UUID_TYPE, str, str)
+    @blocking_slot(QT_NAME_UID_TYPE, str, str)
     def alias_name(back, nid, key, val):
         # Table Edit -> Change name
-        nid = uuid_cast(nid)
+        nid = qt_name_uid_cast(nid)
         print('[back] alias_name(nid=%r, key=%r, val=%r)' % (nid, key, val))
 
-    @blocking_slot(QT_UUID_TYPE, str, bool)
+    @blocking_slot(QT_IMAGE_UID_TYPE, str, bool)
     def change_image_property(back, gid, key, val):
         # Table Edit -> Change Image Property
-        gid = uuid_cast(gid)
+        gid = qt_image_uid_cast(gid)
         print('[back] alias_name(gid=%r, key=%r, val=%r)' % (gid, key, val))
 
     #--------------------------------------------------------------------------
@@ -485,11 +472,11 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_roi')
         pass
 
-    @blocking_slot(QT_UUID_TYPE)
+    @blocking_slot(QT_IMAGE_UID_TYPE)
     def delete_image(back, gid=None):
         # Action -> Delete Images
         print('[back] delete_image')
-        gid = uuid_cast(gid)
+        gid = qt_image_uid_cast(gid)
         pass
 
     @blocking_slot()

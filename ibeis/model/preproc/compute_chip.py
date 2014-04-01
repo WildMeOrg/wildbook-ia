@@ -11,12 +11,23 @@ import vtool.chip as ctool
  printDBG, rrr, profile) = utool.inject(__name__, '[chip_compute]', DEBUG=False)
 
 
-def batch_extract_chips(gfpath_list, cfpath_list, bbox_list, theta_list,
-                        uniform_size=None, uniform_sqrt_area=None,
-                        filter_list=[]):
-    '''
-    cfpath_fmt - a string with a %d embedded where the cid will go.
-    '''
+def get_new_chipsize_list(ibs, bbox_list, sqrt_area):
+    # Get how big to resize each chip
+    target_area = sqrt_area ** 2
+    bbox_size_iter = ((w, h) for (x, y, w, h) in bbox_list)
+    newsize_list = ctool.get_scaled_sizes_with_area(target_area, bbox_size_iter)
+    return newsize_list
+
+
+def get_chip_fname_list(ibs, rid_list, chipcfg_uid, chipcfg_cmt):
+    # Create the paths to save each new chip
+    _cfname_fmt = 'rid%s' + chipcfg_uid + chipcfg_cmt
+    cfname_list = [_cfname_fmt  % rid for rid in iter(rid_list)]
+    return cfname_list
+
+
+def get_chip_existence(ibs, rid_list):
+    pass
 
 
 # Main Script
@@ -24,25 +35,26 @@ def batch_extract_chips(gfpath_list, cfpath_list, bbox_list, theta_list,
 def compute_chips(ibs, rid_list, chip_cfg):
     print('=============================')
     print('[cc2] Precomputing chips and loading chip paths: %r' % ibs.get_db_name())
-    chip_uid = chip_cfg.get_uid()
-
+    # Get chip configuration information
+    chipcfg_uid = chip_cfg.get_uid()   # algo settings uid
+    chipcfg_dict = chip_cfg.to_dict()
+    chipcfg_fmt = chipcfg_dict['chipfmt']  # png / jpeg
+    sqrt_area = chipcfg_dict['chip_sqrt_area']
+    filter_list = ctool.get_filter_list(chipcfg_dict)
+    # Get chip source information
     gpath_list = ibs.get_roi_gpaths(rid_list)
-    theta_list = ibs.get_roi_thetas(rid_list)
     bbox_list = ibs.get_roi_bboxes(rid_list)
-
-    target_area = chip_cfg['chip_sqrt_area'] ** 2
-    newsize_list = ctool.get_scaled_sizes_with_area(target_area, ((w, h) for (x, y, w, h) in bbox_list))
+    theta_list = ibs.get_roi_thetas(rid_list)
+    # Get chip destination information
+    newsize_list = get_new_chipsize_list(ibs, bbox_list, sqrt_area)
+    cfname_list  = get_chip_fname_list(ibs, rid_list, chipcfg_uid, chipcfg_fmt)
 
     args_list = [args for args in izip(gpath_list, bbox_list, theta_list, newsize_list)]
-    filter_list = ctool.get_filter_list(chip_cfg)
     chip_kwargs = {
         'filter_list': filter_list,
     }
     chip_list = utool.util_parallel.process(ctool.compute_chip, args_list, chip_kwargs, force_serial=True)
 
-    _cfname_fmt = 'rid%s' + chip_uid + chip_cfg['chipfmt']
-    _cfpath_fmt = join(ibs.chipdir, _cfname_fmt)
-    cfpath_list = [_cfpath_fmt  % cid for cid in iter(rid_list)]
     # Normalized Chip Sizes: ensure chips have about sqrt_area squared pixels
 
     try:

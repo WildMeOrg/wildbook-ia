@@ -5,6 +5,7 @@ import numpy as np
 # VTool
 from . import linalg as ltool
 from . import image as gtool
+from . import image_filters as gfilt_tool
 
 
 def _get_image_to_chip_transform(img_bbox, new_size, theta):
@@ -67,19 +68,18 @@ def cpmpute_and_write_chip(chip_fpath, img_fpath, bbox, theta, new_size, filter_
     return True
 
 
-def get_filter_list(chip_cfg):
-    from . import image_filters as gfilt_tool
+def get_filter_list(chipcfg_dict):
     filter_list = []
-    if chip_cfg['adapteq']:
+    if chipcfg_dict.get('adapteq'):
         filter_list.append(gfilt_tool.adapteq_fn)
-    if chip_cfg['histeq']:
+    if chipcfg_dict.get('histeq'):
         filter_list.append(gfilt_tool.histeq_fn)
-    #if chip_cfg['maxcontrast']:
+    #if chipcfg_dict.get('maxcontrast'):
         #filter_list.append(maxcontr_fn)
-    #if chip_cfg['rank_eq']:
+    #if chipcfg_dict.get('rank_eq'):
         #filter_list.append(rankeq_fn)
-    #if chip_cfg['local_eq']:
+    #if chipcfg_dict.get('local_eq'):
         #filter_list.append(localeq_fn)
-    if chip_cfg['grabcut']:
+    if chipcfg_dict.get('grabcut'):
         filter_list.append(gfilt_tool.grabcut_fn)
     return filter_list

@@ -3,6 +3,9 @@ Module Licence and docstring
 """
 from __future__ import division, print_function
 
+NAME_UID_TYPE = 'UUID'
+#NAME_UID_TYPE = 'INTEGER'
+
 
 def define_IBEIS_schema(ibs):
     # TODO, Add algoritm config column
@@ -22,7 +25,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('rois', (
         ('roi_uid',                      'UUID PRIMARY KEY'),
         ('image_uid',                    'UUID NOT NULL'),
-        ('name_uid',                     'UUID NOT NULL'),
+        ('name_uid',                     '%s NOT NULL' % NAME_UID_TYPE),
         ('roi_xtl',                      'INTEGER NOT NULL'),
         ('roi_ytl',                      'INTEGER NOT NULL'),
         ('roi_width',                    'INTEGER NOT NULL'),
@@ -53,7 +56,7 @@ def define_IBEIS_schema(ibs):
     ))
     # Used to store individual chip identieis (Fred, Sue, ...)
     ibs.db.schema('names', (
-        ('name_uid',                     'UUID PRIMARY KEY'),
+        ('name_uid',                     '%s PRIMARY KEY' % NAME_UID_TYPE),
         ('name_text',                    'TEXT NOT NULL'),
     ))
     # Detection and identification algorithm configurations, populated

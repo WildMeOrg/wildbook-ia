@@ -1,8 +1,8 @@
 export ARGV="--quiet$@"
 
 export GUI_TESTS=ON
-export IBS_TESTS=OFF
-export SQL_TESTS=OFF
+export IBS_TESTS=ON
+export SQL_TESTS=ON
 
 echo "<<<<<<<<<<<<<<<<<<<<<<<<<< BEGIN: ARGV=$ARGV"
 echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
@@ -22,19 +22,19 @@ fi
 # IBEIS TESTS
 if [ "$IBS_TESTS"="ON" ] ; then 
     echo
-    #python tests/test_ibs.py $ARGV
-    #echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-    #python tests/test_add_images.py $ARGV
-    #echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-    #python tests/test_parallel.py $ARGV
-    #echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    python tests/test_ibs.py $ARGV
+    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    python tests/test_add_images.py $ARGV
+    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    python tests/test_parallel.py $ARGV
+    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 fi
 #---------------------------------------------
 # SQL TESTS
 if [ "$SQL_TESTS" = "ON" ] ; then 
     echo
-    #python tests/test_sqldatabase_control.py $ARGV
-    #echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    python tests/test_sqldatabase_control.py $ARGV
+    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 fi
 #---------------------------------------------
 echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<DONE"

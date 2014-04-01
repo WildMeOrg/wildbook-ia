@@ -11,6 +11,7 @@ import utool
 import vtool.chip as ctool
 # IBEIST
 from ibeis.model.jon_recognition import Config
+from ibeis.view import viz
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST
 
@@ -41,11 +42,11 @@ def TEST_COMPUTE_CHIPS():
 
     args_list = [args for args in izip(gpath_list, bbox_list, theta_list, newsize_list)]
     filter_list = ctool.get_filter_list(chip_cfg)
-    chip_kwargs = args_dict = {
+    chip_kwargs =  {
         'filter_list': filter_list,
     }
-    chip_list = utool.util_parallel.process(ctool.compute_chip, args_list,
-                                            chip_kwargs, force_serial=True)
+    chip_list = utool.util_parallel.process(ctool.compute_chip, args_list, chip_kwargs, force_serial=True)
+    viz.df2.imshow(chip_list[0])
 
     __testing__.main_loop(main_locals, rungui=RUNGUI)
 
@@ -56,3 +57,4 @@ TEST_COMPUTE_CHIPS.func_name = TEST_NAME
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     TEST_COMPUTE_CHIPS()
+    exec(viz.df2.present())

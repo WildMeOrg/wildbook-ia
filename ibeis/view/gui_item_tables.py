@@ -1,20 +1,52 @@
 from __future__ import division, print_function
 from itertools import izip
+import uuid
 import utool
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QAbstractItemView
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitables]', DEBUG=False)
 
+
 QT_UUID_TYPE = str
-QT_UUID_TYPE2 = long
+QT_INTEGER_UID_TYPE = long
+
+
+def uuid_cast(qtuuid):
+    """ unwraps QT_UUID types """
+    try:
+        uuid_str = QT_UUID_TYPE(qtuuid)
+        uuid_ = uuid.UUID(uuid_str)
+    except ValueError as ex:
+        print(ex)
+        print('qtuuid=%r' % qtuuid)
+        raise
+    return uuid_
+
+
+def qt_cast(qtinput):
+    if isinstance(qtinput, QtCore.QString):
+        qtoutput = str(qtinput)
+    else:
+        raise ValueError('Unknown QtType. type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
+    return qtoutput
+
+qt_cast_map = {
+    'INTEGER': qt_cast,
+    'UUID':    uuid_cast,
+}
+
+
+QT_ROI_UID_TYPE   = QT_UUID_TYPE
+QT_IMAGE_UID_TYPE = QT_UUID_TYPE
+
+QT_NAME_UID_TYPE  = QT_INTEGER_UID_TYPE
 
 # Table names (should reflect SQL tables)
 IMAGE_TABLE = 'images'
 ROI_TABLE   = 'rois'
 NAME_TABLE  = 'names'
 RES_TABLE   = 'res'
-
 
 sqltable_names = {
     'nids': NAME_TABLE,

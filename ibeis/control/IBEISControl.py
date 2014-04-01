@@ -36,8 +36,13 @@ VERBOSE = utool.get_flag('--verbose')
 # IBEIS GLOBAL
 #-----------------
 
-
-UNKNOWN_NID = utool.util_hash.get_zero_uuid()
+# define name constants
+if __IBEIS_SCHEMA__.NAME_UID_TYPE == 'INTERGER':
+    UNKNOWN_NID = 0L
+elif __IBEIS_SCHEMA__.NAME_UID_TYPE == 'UUID':
+    UNKNOWN_NID = utool.util_hash.get_zero_uuid()
+else:
+    raise AssertionError('Unknown NAME_UID_TYPE=%r' % __IBEIS_SCHEMA__.NAME_UID_TYPE)
 UNKNOWN_NAME = '____'
 
 
