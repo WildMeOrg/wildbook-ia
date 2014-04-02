@@ -13,7 +13,7 @@ import vtool.image as gtool
 
 def compute_or_read_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
-    cfpath_list = ibs.get_chip_paths(rid_list)
+    cfpath_list = ibs.get_roi_cpaths(rid_list)
     try:
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
@@ -28,7 +28,7 @@ def add_chips_parameters_gen(ibs, rid_list):
     generates values for add_chips sqlcommands """
     # Ensures everything is computed
     compute_and_write_chips_lazy(ibs, rid_list)
-    cfpath_list = ibs.get_chip_paths(rid_list)
+    cfpath_list = ibs.get_roi_cpaths(rid_list)
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
@@ -70,6 +70,7 @@ def gen_chips_async(cfpath_list,
     chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
                          theta_list, newsize_list)
     for cfpath, gfpath, bbox, theta, new_size in chipinfo_iter:
+        print_('.')
         chipBGR = ctool.compute_chip(gfpath, bbox, theta,
                                      new_size, filter_list)
         yield chipBGR, cfpath
@@ -87,7 +88,7 @@ def compute_and_write_chips(ibs, rid_list):
     theta_list  = ibs.get_roi_thetas(rid_list)
     #
     # Get chip dest information (output path)
-    cfpath_list  = ibs.get_chip_paths(rid_list)
+    cfpath_list  = ibs.get_roi_cpaths(rid_list)
     #
     # Get how big to resize each chip
     target_area = sqrt_area ** 2
@@ -106,7 +107,7 @@ def compute_and_write_chips(ibs, rid_list):
 def compute_and_write_chips_lazy(ibs, rid_list):
     print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which rid's need their chips computed
-    cfpath_list = ibs.get_chip_paths(rid_list)
+    cfpath_list = ibs.get_roi_cpaths(rid_list)
     dirty_flags = [not exists(cfpath) for cfpath in cfpath_list]
     dirty_rid_list = [rid for (rid, flag) in izip(rid_list, dirty_flags) if flag]
     print('[preproc_chip] %d / %d chips need to be computed' % (len(dirty_rid_list), len(rid_list)))

@@ -18,7 +18,8 @@ __POOL__ = None
 
 
 def get_default_numprocs():
-    num_procs = max(multiprocessing.cpu_count() - 2, 1)
+    #num_procs = max(multiprocessing.cpu_count() - 2, 1)
+    num_procs = 1
     return num_procs
 
 

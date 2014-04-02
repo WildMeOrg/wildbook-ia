@@ -26,6 +26,9 @@ from utool import util_hash
 from utool.util_iter import iflatten
 from ibeis.model import Config
 from ibeis.model.preproc import preproc_chip
+from ibeis.model.preproc import preproc_image
+from ibeis.model.preproc import preproc_feat
+
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]', DEBUG=False)
@@ -195,8 +198,6 @@ class IBEISControl(object):
         """ Adds a list of image paths to the database. Returns newly added gids """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-        from ibeis.model.preproc import preproc_image
-
         # Build parameter list early so we can grab the gids
         param_list = [tup for tup in preproc_image.add_images_paramters_gen(gpath_list)]
         gid_list   = [tup[0] for tup in param_list]
@@ -224,9 +225,8 @@ class IBEISControl(object):
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
         if nid_list is None:
             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
-        augment_uuid = util_hash.augment_uuid
         # Build deterministic and unique ROI ids
-        rid_list = [augment_uuid(gid, bbox, theta)
+        rid_list = [util_hash.augment_uuid(gid, bbox, theta)
                     for gid, bbox, theta
                     in izip(gid_list, bbox_list, theta_list)]
         # Define arguments to insert
@@ -255,7 +255,8 @@ class IBEISControl(object):
     @adder
     def add_chips(ibs, rid_list):
         """ Adds chip data to the ROI. (does not create ROIs. first use add_rois
-        and then pass them here to ensure chips are computed
+        and then pass them here to ensure chips are computed)
+        return cid_list
         """
         ibs.db.executemany(
             operation='''
@@ -270,6 +271,43 @@ class IBEISControl(object):
             VALUES (NULL, ?, ?, ?)
             ''',
             parameters_iter=((rid,) for rid in rid_list))
+        cid_list = ibs.db.executemany(
+            operation='''
+            SELECT name_uid
+            FROM names
+            WHERE name_text=?
+            ''',
+            parameters_iter=((rid,) for rid in rid_list),
+            auto_commit=False)
+        return cid_list
+
+    @adder
+    def add_feats(ibs, cid_list):
+        """ Adds features to chips. (returns None) """
+        fid_list = ibs.db.executemany(
+            operation='''
+            SELECT feature_uid
+            FROM features
+            WHERE chip_uid=?
+            VALUES (?)
+            ''',
+            parameters_iter=((cid,) for cid in cid_list))
+        # Get which features have not been computed (have None value)
+        invalid_feat_cids = [cid for (cid, fid) in izip(fid_list, cid_list)
+                             if fid is None]
+        param_iter = preproc_feat.add_feat_params_gen(invalid_feat_cids)
+        ibs.db.executemany(
+            operation='''
+            INSERT OR IGNORE
+            INTO chips
+            (
+                chip_uid,
+                feature_keypoints,
+                feature_sifts,
+            )
+            VALUES (NULL, ?, ?, ?)
+            ''',
+            parameters_iter=(tup for tup in param_iter))
 
     @adder
     def add_names(ibs, name_iter):
@@ -408,33 +446,6 @@ class IBEISControl(object):
         """ Sets names of a list of chips by cid """
         nid_list = ibs.get_name_nids(name_list)
         ibs.set_table_properties('rois', 'name_uid', rid_list, nid_list)
-
-    # SETTERS::Chip
-
-    @setter
-    def set_chip_shape(ibs, cid_list, shape_list):
-        """ Sets shape of a list of chips by cid, a list of tuples (w, h) """
-        ibs.db.executemany(
-            operation='''
-            UPDATE chips
-            SET
-                chip_width=?,
-                chip_height=?,
-            WHERE chip_uid=?
-            ''',
-            parameters_iter=((w, h, cid) for ((w, h), cid) in izip(shape_list, cid_list)))
-
-    @setter
-    def set_chip_toggle_hard(ibs, cid_list, hard_list):
-        """ Sets hard toggle of a list of chips by cid """
-        ibs.db.executemany(
-            operation='''
-            UPDATE chips
-            SET
-                chip_toggle_hard=?,
-            WHERE chip_uid=?
-            ''',
-            parameters_iter=izip(hard_list, cid_list))
 
     #
     #
@@ -617,6 +628,12 @@ class IBEISControl(object):
         return bbox_list
 
     @getter
+    def get_roi_thetas(ibs, rid_list):
+        """ Returns a list of floats describing the angles of each chip """
+        theta_list = ibs.get_roi_properties('roi_theta', rid_list)
+        return theta_list
+
+    @getter
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         gid_list = ibs.get_roi_properties('image_uid', rid_list)
@@ -644,10 +661,21 @@ class IBEISControl(object):
         return gpath_list
 
     @getter
-    def get_roi_thetas(ibs, rid_list):
-        """ Returns a list of floats describing the angles of each chip """
-        theta_list = ibs.get_roi_properties('roi_theta', rid_list)
-        return theta_list
+    def get_roi_cids(ibs, rid_list):
+        cid_list = ibs.add_chips(rid_list)
+        #cid_list = ibs.get_chip_properties(ibs, rid_list)
+        return cid_list
+
+    @getter
+    def get_roi_chips(ibs, rid_list):
+        chip_list = preproc_chip.compute_or_read_chips(ibs, rid_list)
+        return chip_list
+
+    @getter
+    def get_roi_cpaths(ibs, rid_list):
+        """ Returns cpaths defined by ROIs """
+        cfpath_list = preproc_chip.get_chip_fpath_list(ibs, rid_list)
+        return cfpath_list
 
     @getter
     def get_roi_nids(ibs, rid_list):
@@ -699,48 +727,54 @@ class IBEISControl(object):
     # GETTERS::Chips
 
     #@getter_general
-    def get_chip_properties(ibs, prop_key, rid_list):
+    def get_chip_properties(ibs, prop_key, cid_list):
         """ general chip property getter """
-        return ibs.get_table_properties('chips', prop_key, rid_list)
+        return ibs.get_table_properties('chips', prop_key, cid_list)
 
     @getter
-    def get_chips(ibs, rid_list):
+    def get_chips(ibs, cid_list):
         """ Returns a list cropped images in numpy array form by their cid """
-        chip_list = preproc_chip.compute_or_read_chips(ibs, rid_list)
+        chip_list = preproc_chip.compute_or_read_chips(ibs, cid_list)
         return chip_list
 
     @getter
-    def get_chip_paths(ibs, rid_list):
+    def get_chip_rids(ibs, cid_list):
+        rid_list = ibs.get_chip_properties('roi_uid', cid_list)
+        return rid_list
+
+    @getter
+    def get_chip_paths(ibs, cid_list):
         """ Returns a list of chip paths by their rid """
-        cfpath_list = preproc_chip.get_chip_fpath_list(ibs, rid_list)
+        cfpath_list = ibs.get_roi_cpaths(ibs.get_chip_rids(cid_list))
         return cfpath_list
 
     @getter
-    def get_chip_size(ibs, rid_list):
-        width_list  = ibs.get_chip_properties('chip_width', rid_list)
-        height_list = ibs.get_chip_properties('chip_height', rid_list)
+    def get_chip_size(ibs, cid_list):
+        width_list  = ibs.get_chip_properties('chip_width', cid_list)
+        height_list = ibs.get_chip_properties('chip_height', cid_list)
         size_list = (size_ for size_ in izip(width_list, height_list))
         return size_list
 
+    #
+    # GETTERS::Features
+
     @getter_vector_output
-    def get_chip_kpts(ibs, rid_list):
+    def get_chip_kpts(ibs, cid_list):
         """ Returns chip keypoints """
-        import pyhesaff
-        kpts_dim = pyhesaff.KPTS_DIM
-        kpts_list = [np.empty((0, kpts_dim)) for rid in rid_list]
+        kpts_dim = preproc_feat.KPTS_DIM
+        kpts_list = [np.empty((0, kpts_dim)) for cid in cid_list]
         return kpts_list
 
     @getter_vector_output
-    def get_chip_desc(ibs, rid_list):
+    def get_chip_desc(ibs, cid_list):
         """ Returns chip descriptors """
-        import pyhesaff
-        desc_dim = pyhesaff.DESC_DIM
-        desc_list = [np.empty((0, desc_dim)) for rid in rid_list]
+        desc_dim = preproc_feat.DESC_DIM
+        desc_list = [np.empty((0, desc_dim)) for cid in cid_list]
         return desc_list
 
     @getter
-    def get_chip_num_feats(ibs, rid_list):
-        nFeats_list = map(len, ibs.get_chip_kpts(rid_list))
+    def get_chip_num_feats(ibs, cid_list):
+        nFeats_list = map(len, ibs.get_chip_kpts(cid_list))
         return nFeats_list
 
     #
