@@ -22,11 +22,17 @@ EOF
 echo "BEGIN: ARGV=$ARGV"
 PRINT_DELIMETER
 
+num_passed=0
+num_ran=0
+
 RUN_TEST()
 {
     echo "RUN_TEST: $1"
     python $1 $ARGV
+    export RETURN_CODE=$?
     PRINT_DELIMETER
+    num_passed=$(($num_passed + (1 - $RETURN_CODE)))
+    num_ran=$(($num_ran + 1))
 }
 
 
@@ -88,3 +94,5 @@ fi
 
 #---------------------------------------------
 echo "RUN_TESTS: DONE"
+
+echo "$num_passed / $num_ran tests passed"
