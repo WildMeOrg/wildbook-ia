@@ -107,7 +107,7 @@ def progress_func(max_val=0, lbl='Progress: ', mark_after=-1,
     def end_progress():
         write_fn('\n')
         sys.stdout.flush()
-    mark_progress(0)
+    #mark_progress(0)
     return mark_progress, end_progress
     raise Exception('unkown progress type = %r' % progress_type)
 

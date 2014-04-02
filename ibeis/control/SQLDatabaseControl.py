@@ -116,7 +116,7 @@ class SQLDatabaseControl(object):
         """
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
-            print('[sql.execute] caller_name=%r' % caller_name)
+            print('[sql] %r called execute' % caller_name)
         status = False
         try:
             status = db.executor.execute(operation, parameters)
@@ -127,6 +127,15 @@ class SQLDatabaseControl(object):
             status = True
             raise
         return status
+
+    def executeone(db, operation, parameters=(), auto_commit=True, errmsg=None,
+                   verbose=VERBOSE):
+        """ Runs execute and returns results """
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql] %r called executeone' % caller_name)
+        db.execute(operation, parameters, auto_commit, errmsg, verbose=False)
+        return db.result_list(verbose=False)
 
     def executemany(db, operation, parameters_iter, auto_commit=True,
                     errmsg=None, verbose=VERBOSE, unpack_scalars=True):
@@ -161,8 +170,6 @@ class SQLDatabaseControl(object):
         if verbose:
             print('[sql.executemany] caller_name=%r' % caller_name)
         # Do any preprocesing on the SQL command / query
-        #import textwrap
-        #operation = textwrap.dedent(operation).strip()
         operation_type = operation.split()[0].strip()
         result_list = []
         # Compute everything in Python before sending queries to SQL
@@ -174,32 +181,35 @@ class SQLDatabaseControl(object):
             lbl='[sql] execute %s: ' % operation_type)
         try:
             # For each parameter in an input list
+            if verbose:
+                print('[sql] operation=%s' % operation)
             for count, parameters in enumerate(parameters_list):
-                mark_prog(count)  # mark progress
+                mark_prog(count)
                 if verbose:
-                    print('\n[sql] operation=\n%s' % operation)
+                    print_('\n')
                     print('[sql] paramters=%r' % (parameters,))
                 # Send command to SQL
                 # (all other results will be invalided)
-                stat_flag  = db.executor.execute(operation,  # NOQA
-                                                 parameters)
-                def result_gen():
-                    while True:
-                        result = db.executor.fetchone()
-                        if not result:
-                            raise StopIteration()
-                        yield result[0]
-                # Read results
-                resulttup = [result for result in result_gen()]
+                stat_flag = db.executor.execute(operation, parameters)  # NOQA
+                # Read all results
+                results_ = [result for result in db.result_iter(verbose=False)]
                 # Append to the list of queries
-                if len(resulttup) > 0 and unpack_scalars:
-                    result_list.append(resulttup[0])
+                if unpack_scalars:
+                    assert len(results_) < 2, 'throwing away results!'
+                    results = None if len(results_) == 0 else results_[0]
                 else:
-                    result_list.append(resulttup)
-            end_prog()
+                    results = results_
+                result_list.append(results)
+                if verbose:
+                    #print_('\n')
+                    print('[sql] stat_flag = %r' % stat_flag)
+                    print('[sql] result_list.append(%r)' % (results,))
+                    #print('[sql] results_ = %r' % (results_,))
+            if not verbose:
+                end_prog()
             num_results = len(result_list)
             if num_results != 0 and num_results != num_params:
-                raise lite.Error('num_params=%r <> num_results=%r' % (num_params, num_results))
+                raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
         except lite.Error as ex1:
             print('\n<!!! ERROR>')
             print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
@@ -207,9 +217,8 @@ class SQLDatabaseControl(object):
             print('[!sql] operation=\n%s' % operation)
             if 'parameters' in vars():
                 if len(parameters) > 4:
-                    paraminfostr = utool.indentjoin(map(repr,
-                                                        enumerate(
-                                                            [(type(_), _) for _ in parameters])), '\n  ')
+                    paraminfostr = utool.indentjoin(
+                        map(repr, enumerate([(type(_), _) for _ in parameters])), '\n  ')
                     print('[!sql] failed paramters=' + paraminfostr)
                 else:
                     print('[!sql] failed paramters=%r' % (parameters,))
@@ -219,8 +228,9 @@ class SQLDatabaseControl(object):
             print('</!!! ERROR>\n')
             db.dump()
             raise
-            #raise lite.DatabaseError('%s --- %s' % (errmsg, ex1))
         if auto_commit:
+            if verbose:
+                print('[sql.executemany] commit')
             db.commit(errmsg=errmsg, verbose=False)
         return result_list
 
@@ -234,22 +244,17 @@ class SQLDatabaseControl(object):
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql.result_list] caller_name=%r' % caller_name)
-        return list(db.result_iter())
+        return list(db.result_iter(verbose=False))
 
-    def result_iter(db):
-        # Jon: I think we should be using the fetchmany command here
-        # White iteration is efficient, I believe it still interupts
-        # the sql work. If we let sql work uninterupted by python it
-        # should go faster
-
-        # Jason: That's fine, it will just be a bigger memory footprint
-        # Speed vs Footprint
-        caller_name = utool.util_dbg.get_caller_name()
-        print('[sql.result_iter] caller_name=%r' % caller_name)
+    def result_iter(db, verbose=VERBOSE):
+        if verbose:
+            caller_name = utool.util_dbg.get_caller_name()
+            print('[sql.result_iter] caller_name=%r' % caller_name)
         while True:
-            result = db.result(verbose=False)
+            result = db.executor.fetchone()
             if not result:
                 raise StopIteration()
+            assert len(result) < 2, '[sql] we are throwing away results! result=%r' % result
             yield result[0]
 
     def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
@@ -266,7 +271,9 @@ class SQLDatabaseControl(object):
             if not all(qstat_flag_list):
                 raise lite.DatabaseError(errmsg)
             else:
+                printDBG('<ACTUAL COMMIT>')
                 db.connection.commit()
+                printDBG('</ACTUAL COMMIT>')
                 if AUTODUMP:
                     db.dump(auto_commit=False)
         except lite.Error as ex2:

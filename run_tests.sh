@@ -1,4 +1,4 @@
-export ARGV="-quiet $@"
+export ARGV="--quiet $@"
 
 export GUI_TESTS=ON
 export IBS_TESTS=ON
@@ -79,7 +79,9 @@ cat <<EOF
  |___/\\__\\_\\____|   |_| |___|___/ |_| |___/
 EOF
 
-    RUN_TEST tests/test_sqldatabase_control.py 
+    RUN_TEST tests/test_sql_numpy.py 
+
+    RUN_TEST tests/test_sql_names.py 
 
 fi
 

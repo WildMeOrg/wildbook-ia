@@ -37,12 +37,13 @@ VERBOSE = utool.get_flag('--verbose')
 #-----------------
 
 # define name constants
-if __IBEIS_SCHEMA__.NAME_UID_TYPE == 'INTEGER':
-    UNKNOWN_NID = 0L
-elif __IBEIS_SCHEMA__.NAME_UID_TYPE == 'UUID':
-    UNKNOWN_NID = utool.util_hash.get_zero_uuid()
-else:
-    raise AssertionError('Unknown NAME_UID_TYPE=%r' % __IBEIS_SCHEMA__.NAME_UID_TYPE)
+#if __IBEIS_SCHEMA__.NAME_UID_TYPE == 'INTEGER':
+    #UNKNOWN_NID = 0L
+#elif __IBEIS_SCHEMA__.NAME_UID_TYPE == 'UUID':
+    #UNKNOWN_NID = utool.util_hash.get_zero_uuid()
+#else:
+    #raise AssertionError('Unknown NAME_UID_TYPE=%r' % __IBEIS_SCHEMA__.NAME_UID_TYPE)
+UNKNOWN_NID = None
 UNKNOWN_NAME = '____'
 
 
@@ -140,6 +141,7 @@ class IBEISControl(object):
     #--------------------
 
     def __init__(ibs, dbdir=None):
+        global UNKNOWN_NID
         """ Creates a new IBEIS Controller object associated with one database """
         if VERBOSE:
             print('[ibs.__init__] new IBEISControl')
@@ -159,7 +161,8 @@ class IBEISControl(object):
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
         printDBG('[ibs.__init__] Add default names.')
         #ibs.add_names((UNKNOWN_NID,), (UNKNOWN_NAME,))
-        ibs.add_names((UNKNOWN_NAME,))
+        UNKNOWN_NID = ibs.add_names((UNKNOWN_NAME,))[0]
+        assert UNKNOWN_NID == 1
         # Load or create algorithm configs
         ibs.load_config()
 
@@ -285,11 +288,13 @@ class IBEISControl(object):
         name_list = list(name_iter)
         ibs.db.executemany(
             operation='''
-            INSERT OR IGNORE INTO names
+            INSERT OR IGNORE
+            INTO names
             (
+                name_uid,
                 name_text
             )
-            VALUES (?)
+            VALUES (NULL, ?)
             ''',
             parameters_iter=((name,) for name in name_list))
         nid_list = ibs.db.executemany(
@@ -298,7 +303,8 @@ class IBEISControl(object):
             FROM names
             WHERE name_text=?
             ''',
-            parameters_iter=((name,) for name in name_list))
+            parameters_iter=((name,) for name in name_list),
+            auto_commit=False)
         return nid_list
 
     #
@@ -486,13 +492,11 @@ class IBEISControl(object):
 
     @getter_general
     def get_valid_gids(ibs):
-        ibs.db.execute(
+        gid_list = ibs.db.executeone(
             operation='''
             SELECT image_uid
             FROM images
             ''')
-        gid_iter = ibs.db.result_iter()
-        gid_list = list(gid_iter)
         return gid_list
 
     @getter
@@ -606,11 +610,11 @@ class IBEISControl(object):
     @getter_general
     def get_valid_rids(ibs):
         """ returns a list of vaoid ROI unique ids """
-        ibs.db.execute(operation='''
-                       SELECT roi_uid
-                       FROM rois
-                       ''')
-        rid_list = ibs.db.result_list()
+        rid_list = ibs.db.executeone(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            ''')
         return rid_list
 
     @getter
@@ -766,11 +770,13 @@ class IBEISControl(object):
     @getter_general
     def get_valid_nids(ibs):
         """ Returns all valid names (does not include unknown names """
-        ibs.db.execute(operation='''
-                       SELECT name_uid
-                       FROM names
-                       ''')
-        nid_list = [nid for nid in ibs.db.result_iter() if nid != UNKNOWN_NID]
+        nid_list = ibs.db.executeone(
+            operation='''
+            SELECT name_uid
+            FROM names
+            WHERE name_text != ?
+            ''',
+            parameters=(UNKNOWN_NAME,))
         return nid_list
 
     @getter

@@ -60,6 +60,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('names', (
         ('name_uid',                     '%s PRIMARY KEY' % NAME_UID_TYPE),
         ('name_text',                    'TEXT NOT NULL'),
+        ('CONSTRAINT superkey UNIQUE (name_text)', '')
     ))
     # Detection and identification algorithm configurations, populated
     # with caching information

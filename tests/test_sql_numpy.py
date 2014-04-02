@@ -1,7 +1,7 @@
 #!usr/bin/env python
 from __future__ import division, print_function
 #------
-TEST_NAME = 'TEST_SQLDATABASE_CONTROL'
+TEST_NAME = 'TEST_SQL_NUMPY'
 #------
 import __testing__  # Should be imported before any ibeis stuff
 import numpy as np
@@ -13,7 +13,7 @@ printTEST = __testing__.printTEST
 
 
 @__testing__.testcontext
-def TEST_SQLDATABASE_CONTROL():
+def TEST_SQL_NUMPY():
 
     utool.util_path.remove_file('temp.sqlite3', dryrun=False)
 
@@ -65,8 +65,8 @@ def TEST_SQLDATABASE_CONTROL():
     print(' * dump time=%r sec' % utool.toc(tt))
     #with open('temp.dump.txt') as file_:
         #print(file_.read())
-TEST_SQLDATABASE_CONTROL.func_name = TEST_NAME
+TEST_SQL_NUMPY.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
-    TEST_SQLDATABASE_CONTROL()
+    TEST_SQL_NUMPY()
