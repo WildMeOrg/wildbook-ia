@@ -4,7 +4,7 @@ import utool
 from viz_helpers import get_ibsdat
 import interact_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[interact]',
+                                                       '[interact_img]',
                                                        DEBUG=False)
 
 

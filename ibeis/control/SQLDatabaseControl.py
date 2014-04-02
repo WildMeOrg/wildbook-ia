@@ -58,7 +58,7 @@ class SQLDatabaseControl(object):
         print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
         return sql_version
 
-    def schema(db, table, schema_list):
+    def schema(db, table, schema_list, table_constraints=[]):
         """
             schema_list - list of table columns tuples
                 {
@@ -89,7 +89,7 @@ class SQLDatabaseControl(object):
         body_list = ['%s %s' % (name, type_)
                      for (name, type_) in schema_list]
         op_head = 'CREATE TABLE IF NOT EXISTS %s (' % table
-        op_body = ', '.join(body_list)
+        op_body = ', '.join(body_list + table_constraints)
         op_foot = ')'
         operation = op_head + op_body + op_foot
         db.execute(operation, [], verbose=False)
@@ -212,7 +212,7 @@ class SQLDatabaseControl(object):
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
         except lite.Error as ex1:
             print('\n<!!! ERROR>')
-            print('[!sql] executemany threw %s: %r' % (type(ex1), ex1,))
+            utool.print_exception(ex1, '[!sql] executemany threw')
             print('[!sql] %s' % (errmsg,))
             print('[!sql] operation=\n%s' % operation)
             if 'parameters' in vars():
@@ -278,7 +278,7 @@ class SQLDatabaseControl(object):
                     db.dump(auto_commit=False)
         except lite.Error as ex2:
             print('\n<!!! ERROR>')
-            print('[!sql] Caught %s: %r' % (type(ex2), ex2,))
+            utool.print_exception(ex2, '[!sql] Caught ex2=')
             caller_name = utool.util_dbg.get_caller_name()
             print('[!sql] caller_name=%r' % caller_name)
             print('</!!! ERROR>\n')

@@ -136,7 +136,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         cols = {
             'rid':    lambda rids: rids,
             'name':   lambda rids: ibs.get_roi_names(rids),
-            'gname':  lambda rids: ibs.get_roi_gname(rids),
+            'gname':  lambda rids: ibs.get_roi_gnames(rids),
             'nGt':    lambda rids: ibs.get_roi_num_groundtruth(rids),
             'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
             'bbox':    lambda rids: map(str, ibs.get_roi_bboxes(rids)),

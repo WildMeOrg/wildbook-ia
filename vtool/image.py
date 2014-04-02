@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 # Python
 from itertools import izip
+from os.path import exists
 # Science
 import cv2
 from PIL import Image
@@ -26,13 +27,18 @@ CV2_WARP_KWARGS = {
 
 
 EXIF_TAG_GPS      = 'GPSInfo'
-EXIF_TAG_DATETIME = 'DateTimeOriginal'
+EXIF_TAG_DATETIME =  'DateTimeOriginal'
 
 
 def imread(img_fpath):
     try:
         # opencv always reads in BGR mode (fastest load time)
         imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
+        if imgBGR is None:
+            if not exists(img_fpath):
+                raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)
+            else:
+                raise IOError('cannot read img_fpath=%r seems corrupted.' % img_fpath)
         return imgBGR
     except Exception as ex:
         print('[gtool] Caught Exception: %r' % ex)
@@ -42,7 +48,7 @@ def imread(img_fpath):
 
 def imwrite(img_fpath, imgBGR):
     try:
-        imgBGR = cv2.imwrite(img_fpath, imgBGR)
+        cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:
         print('[gtool] Caught Exception: %r' % ex)
         print('[gtool] ERROR reading: %r' % (img_fpath,))

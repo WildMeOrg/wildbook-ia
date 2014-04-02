@@ -44,82 +44,11 @@ def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs)
     df2.connect_callback(fig, 'button_press_event', _on_name_click)
     pass
 
-
 #==========================
 # Chip Interaction
 #==========================
 
-
-# CHIP INTERACTION 2
-def interact_chip(ibs, cid, fnum=2, figtitle=None, fx=None, **kwargs):
-    # TODO: Reconcile this with interact keypoints.
-    # Preferably this will call that but it will set some fancy callbacks
-    fig = begin_interaction('chip', fnum)
-    # Get chip info (make sure get_chip is called first)
-    rchip = ibs.get_chip(cid)
-    annote_ptr = [False]
-
-    def _select_ith_kpt(fx):
-        # Get the fx-th keypiont
-        kpts = ibs.get_kpts(cid)
-        desc = ibs.get_desc(cid)
-        kp, sift = kpts[fx], desc[fx]
-        # Draw chip + keypoints + highlighted plots
-        _chip_view(pnum=(2, 1, 1), sel_fx=fx)
-        # Draw the selected feature plots
-        nRows, nCols, px = (2, 3, 3)
-        viz.draw_feat_row(rchip, fx, kp, sift, fnum, nRows, nCols, px, None)
-
-    def _chip_view(pnum=(1, 1, 1), **kwargs):
-        df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
-        # Toggle no keypoints view
-        viz.show_chip(ibs, cid=cid, rchip=rchip, fnum=fnum, pnum=pnum, **kwargs)
-        df2.set_figtitle(figtitle)
-
-    def _on_chip_click(event):
-        print_('[inter] clicked chip')
-        ax, x, y = event.inaxes, event.xdata, event.ydata
-        if ax is None or x is None:
-            # The click is not in any axis
-            print('... out of axis')
-            annote_ptr[0] = (annote_ptr[0] + 1) % 3
-            mode = annote_ptr[0]
-            draw_ell = mode == 1
-            draw_pts = mode == 2
-            print('... default kpts view mode=%r' % mode)
-            _chip_view(draw_ell=draw_ell, draw_pts=draw_pts)
-        else:
-            hs_viewtype = ax.__dict__.get('_hs_viewtype', '')
-            print_('[ic] hs_viewtype=%r' % hs_viewtype)
-            if hs_viewtype == 'chip' and event.key == 'shift':
-                print('... masking')
-                # TODO: Do better integration of masking
-                _chip_view()
-                df2.disconnect_callback(fig, 'button_press_event')
-                #mc = mask_creator.MaskCreator(df2.gca())  # NOQA
-            elif hs_viewtype == 'chip':
-                kpts = ibs.get_kpts(cid)
-                if len(kpts) > 0:
-                    fx = utool.nearest_point(x, y, kpts)[0]
-                    print('... clicked fx=%r' % fx)
-                    _select_ith_kpt(fx)
-                else:
-                    print('... len(kpts) == 0')
-            elif hs_viewtype in ['warped', 'unwarped']:
-                hs_fx = ax.__dict__.get('_hs_fx', None)
-                if hs_fx is not None and hs_viewtype == 'warped':
-                    viz.show_keypoint_gradient_orientations(ibs, cid, hs_fx, fnum=df2.next_fnum())
-            else:
-                print('...Unknown viewtype: %r' % hs_viewtype)
-        viz.draw()
-
-    # Draw without keypoints the first time
-    if fx is not None:
-        _select_ith_kpt(fx)
-    else:
-        _chip_view(draw_ell=False, draw_pts=False)
-    viz.draw()
-    df2.connect_callback(fig, 'button_press_event', _on_chip_click)
+from interact_chip import interact_chip
 
 
 def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):

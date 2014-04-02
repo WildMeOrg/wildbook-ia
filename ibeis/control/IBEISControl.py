@@ -22,9 +22,10 @@ from ibeis.control import SQLDatabaseControl
 from vtool import image as gtool
 # UTool
 import utool
-from utool import util_hash, util_time
+from utool import util_hash
 from utool.util_iter import iflatten
 from ibeis.model import Config
+from ibeis.model.preproc import preproc_chip
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]', DEBUG=False)
@@ -32,27 +33,15 @@ from ibeis.model import Config
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')
 
-#-----------------
-# IBEIS GLOBAL
-#-----------------
 
-# define name constants
-#if __IBEIS_SCHEMA__.NAME_UID_TYPE == 'INTEGER':
-    #UNKNOWN_NID = 0L
-#elif __IBEIS_SCHEMA__.NAME_UID_TYPE == 'UUID':
-    #UNKNOWN_NID = utool.util_hash.get_zero_uuid()
-#else:
-    #raise AssertionError('Unknown NAME_UID_TYPE=%r' % __IBEIS_SCHEMA__.NAME_UID_TYPE)
-UNKNOWN_NID = None
-UNKNOWN_NAME = '____'
-
-
+#
+#
 #-----------------
 # IBEIS DECORATORS
 #-----------------
 
-# DECORATORS::ADDER
 
+# DECORATORS::ADDER
 
 def adder(func):
     @utool.indent_func
@@ -63,7 +52,6 @@ def adder(func):
 
 
 # DECORATORS::SETTER
-
 
 def setter(func):
     @utool.indent_func
@@ -108,7 +96,6 @@ def getter_general(func):
 
 # DECORATORS::DELETER
 
-
 def deleter(func):
     @utool.indent_func
     @functools.wraps(func)
@@ -116,10 +103,12 @@ def deleter(func):
         return func(*args, **kwargs)
     return adder_wrapper
 
+
+#
+#
 #-----------------
 # IBEIS CONTROLLER
 #-----------------
-
 
 class IBEISControl(object):
     """
@@ -136,12 +125,11 @@ class IBEISControl(object):
 
     #
     #
-    #--------------------
-    # --- Constructor ---
-    #--------------------
+    #-------------------------------
+    # --- Constructor / Privates ---
+    #-------------------------------
 
     def __init__(ibs, dbdir=None):
-        global UNKNOWN_NID
         """ Creates a new IBEIS Controller object associated with one database """
         if VERBOSE:
             print('[ibs.__init__] new IBEISControl')
@@ -160,28 +148,28 @@ class IBEISControl(object):
         printDBG('[ibs.__init__] Define the schema.')
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
         printDBG('[ibs.__init__] Add default names.')
-        #ibs.add_names((UNKNOWN_NID,), (UNKNOWN_NAME,))
-        UNKNOWN_NID = ibs.add_names((UNKNOWN_NAME,))[0]
-        assert UNKNOWN_NID == 1
+        ibs.UNKNOWN_NAME = '____'
+        ibs.UNKNOWN_NID = ibs.add_names((ibs.UNKNOWN_NAME,))[0]
+        assert ibs.UNKNOWN_NID == 1
         # Load or create algorithm configs
-        ibs.load_config()
+        ibs._load_config()
 
-    def load_config(ibs):
+    def _load_config(ibs):
         """ Loads the database's algorithm configuration """
-        print('[ibs] load_config()')
-        ibs.cfg = Config.ConfigBase('cfg', fpath=ibs.cachedir)
+        print('[ibs] _load_config()')
+        ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
         if not ibs.cfg.load() is True:
-            ibs.default_config()
+            ibs._default_config()
 
-    def default_config(ibs):
+    def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
-        print('[ibs] default_config()')
+        print('[ibs] _default_config()')
         # TODO: Detector config
         ibs.cfg.chip_cfg   = Config.default_chip_cfg()
         ibs.cfg.feat_cfg   = Config.default_feat_cfg(ibs)
         ibs.cfg.query_cfg  = Config.default_query_cfg(ibs)
 
-    def sanatize_sql(ibs, table, column=None):
+    def _sanatize_sql(ibs, table, column=None):
         """ Sanatizes an sql table and column. Use sparingly """
         table    = re.sub('[^a-z_]', '', table)
         valid_tables = ibs.db.get_tables()
@@ -207,29 +195,11 @@ class IBEISControl(object):
         """ Adds a list of image paths to the database. Returns newly added gids """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-
-        tag_list = ['DateTimeOriginal', 'GPSInfo']
-        _TAGKEYS = gtool.get_exif_tagids(tag_list)
-        _TAGDEFAULTS = (-1, (-1, -1))
-
-        def _get_exif(pil_img):
-            """ Image EXIF helper """
-            (exiftime, (lat, lon)) = gtool.read_exif_tags(pil_img, _TAGKEYS, _TAGDEFAULTS)
-            time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
-            return time, lat, lon
-
-        def _add_images_paramters_gen(gpath_list):
-            """ executes sqlcmd with generated sqlvals """
-            for gpath in gpath_list:
-                pil_img = gtool.open_pil_image(gpath)  # Open PIL Image
-                width, height  = pil_img.size        # Read width, height
-                time, lat, lon = _get_exif(pil_img)  # Read exif tags
-                gid = util_hash.image_uuid(pil_img)  # Read pixels ]-hash-> guid = gid
-                yield (gid, gpath, width, height, time, lat, lon)
+        from ibeis.model.preproc import preproc_image
 
         # Build parameter list early so we can grab the gids
-        param_list = [parameters for parameters in _add_images_paramters_gen(gpath_list)]
-        gid_list   = [parameters[0] for paramters in param_list]
+        param_list = [tup for tup in preproc_image.add_images_paramters_gen(gpath_list)]
+        gid_list   = [tup[0] for tup in param_list]
 
         # TODO have to handle duplicate images better here
         ibs.db.executemany(
@@ -253,7 +223,7 @@ class IBEISControl(object):
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
         if nid_list is None:
-            nid_list = [UNKNOWN_NID for _ in xrange(len(gid_list))]
+            nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
         augment_uuid = util_hash.augment_uuid
         # Build deterministic and unique ROI ids
         rid_list = [augment_uuid(gid, bbox, theta)
@@ -281,6 +251,25 @@ class IBEISControl(object):
             ''',
             parameters_iter=param_iter)
         return rid_list
+
+    @adder
+    def add_chips(ibs, rid_list):
+        """ Adds chip data to the ROI. (does not create ROIs. first use add_rois
+        and then pass them here to ensure chips are computed
+        """
+        ibs.db.executemany(
+            operation='''
+            INSERT OR IGNORE
+            INTO chips
+            (
+                chip_uid,
+                roi_uid,
+                chip_width,
+                chip_height,
+            )
+            VALUES (NULL, ?, ?, ?)
+            ''',
+            parameters_iter=((rid,) for rid in rid_list))
 
     @adder
     def add_names(ibs, name_iter):
@@ -319,7 +308,7 @@ class IBEISControl(object):
     def set_table_properties(ibs, table, prop_key, uid_list, val_list):
         printDBG('[DEBUG] set_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
-        table, prop_key = ibs.sanatize_sql(table, prop_key)
+        table, prop_key = ibs._sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
         ibs.db.executemany(
             operation='''
@@ -469,7 +458,7 @@ class IBEISControl(object):
     def get_table_properties(ibs, table, prop_key, uid_list):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
-        table, prop_key = ibs.sanatize_sql(table, prop_key)
+        table, prop_key = ibs._sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
         property_list = ibs.db.executemany(
             operation='''
@@ -634,11 +623,18 @@ class IBEISControl(object):
         return gid_list
 
     @getter
-    def get_roi_gname(ibs, rid_list):
+    def get_roi_gnames(ibs, rid_list):
         """ Returns the image names of each roi """
         gid_list = ibs.get_roi_gids(rid_list)
         gname_list = ibs.get_image_gnames(gid_list)
         return gname_list
+
+    @getter
+    def get_roi_images(ibs, rid_list):
+        """ Returns the images of each roi """
+        gid_list = ibs.get_roi_gids(rid_list)
+        image_list = ibs.get_images(gid_list)
+        return image_list
 
     @getter
     def get_roi_gpaths(ibs, rid_list):
@@ -710,16 +706,14 @@ class IBEISControl(object):
     @getter
     def get_chips(ibs, rid_list):
         """ Returns a list cropped images in numpy array form by their cid """
-        cpath_list = ibs.get_chip_paths(rid_list)
-        chip_list = [gtool.imread(cpath) for cpath in cpath_list]
+        chip_list = preproc_chip.compute_or_read_chips(ibs, rid_list)
         return chip_list
 
     @getter
     def get_chip_paths(ibs, rid_list):
-        """ Returns a list of chip paths by their cid """
-        fmtstr = join(ibs.cachedir, 'chips/cid%d_dummy.png')
-        cpath_list = [fmtstr % cid for cid in rid_list]
-        return cpath_list
+        """ Returns a list of chip paths by their rid """
+        cfpath_list = preproc_chip.get_chip_fpath_list(ibs, rid_list)
+        return cfpath_list
 
     @getter
     def get_chip_size(ibs, rid_list):
@@ -776,7 +770,7 @@ class IBEISControl(object):
             FROM names
             WHERE name_text != ?
             ''',
-            parameters=(UNKNOWN_NAME,))
+            parameters=(ibs.UNKNOWN_NAME,))
         return nid_list
 
     @getter

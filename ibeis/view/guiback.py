@@ -127,7 +127,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @drawing
     def show_roi(back, rid, **kwargs):
-        pass
+        interact.interact_chip(back.ibs, rid, **kwargs)
 
     @drawing
     def show_name(back, name, sel_rids=[], **kwargs):
@@ -280,7 +280,7 @@ class MainWindowBackend(QtCore.QObject):
         rid = qt_roi_uid_cast(rid)
         print('[back] select rid=%r' % rid)
         back._set_selection(rids=[rid], **kwargs)
-        pass
+        back.show_roi(rid, **kwargs)
 
     @slot_(QT_NAME_UID_TYPE)
     def select_nid(back, nid, **kwargs):

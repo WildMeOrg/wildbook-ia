@@ -3,7 +3,7 @@ import utool
 import drawtool.draw_func2 as df2
 import numpy as np
 from viz_helpers import get_ibsdat, set_ibsdat  # NOQA
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz-image]',
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img]',
                                                        DEBUG=False)
 
 

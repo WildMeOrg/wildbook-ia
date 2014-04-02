@@ -44,9 +44,9 @@ from .util_distances import (nearest_point,)  # NOQA
 
 from .util_inject import (inject, inject_all, inject_print_functions)  # NOQA
 
-from .util_print import (horiz_print, horiz_string, indent_decor, indent_func, # NOQA
+from .util_print import (horiz_print, horiz_string, indent_decor, indent_func,  # NOQA
                          printshape, Indenter, NpPrintOpts, printVERBOSE,
-                         printNOTQUIET)
+                         printNOTQUIET, print_exception)
 
 from .util_iter import (iflatten, ichunks, interleave,)  # NOQA
 

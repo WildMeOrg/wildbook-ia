@@ -62,12 +62,6 @@ def compute_chip(img_fpath, bbox, theta, new_size, filter_list=[]):
     return chipBGR
 
 
-def cpmpute_and_write_chip(chip_fpath, img_fpath, bbox, theta, new_size, filter_list=[]):
-    chipBGR = compute_chip(img_fpath, bbox, theta, new_size, filter_list)
-    gtool.imwrite(chip_fpath, chipBGR)
-    return True
-
-
 def get_filter_list(chipcfg_dict):
     filter_list = []
     if chipcfg_dict.get('adapteq'):

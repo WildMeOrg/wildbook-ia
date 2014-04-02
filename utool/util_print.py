@@ -103,6 +103,10 @@ class Indenter(object):
         self.stop()
 
 
+def print_exception(ex, msg='Caught exception'):
+    print(msg + '%s: %s' % (type(ex), ex))
+
+
 def indent_decor(lbl):
     def indent_decor_wrapper1(func):
         @functools.wraps(func)

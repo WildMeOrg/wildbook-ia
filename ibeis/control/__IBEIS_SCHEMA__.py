@@ -47,21 +47,23 @@ def define_IBEIS_schema(ibs):
         ('roi_uid',                      'UUID NOT NULL'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
-        ('chip_toggle_hard',             'INTEGER DEFAULT 0'),
-    ))
+        ('chip_toggle_hard',             'INTEGER DEFAULT 0'),  # TODO: Remove?
+    ), ['CONSTRAINT superkey UNIQUE (roi_uid)']
+    )
     # Used to store individual chip features (ellipses)
     ibs.db.schema('features', (
         ('feature_uid',                  'INTEGER PRIMARY KEY'),
         ('chip_uid',                     'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
-    ))
+    ), ['CONSTRAINT superkey UNIQUE (chip_uid)']
+    )
     # Used to store individual chip identieis (Fred, Sue, ...)
     ibs.db.schema('names', (
         ('name_uid',                     '%s PRIMARY KEY' % NAME_UID_TYPE),
         ('name_text',                    'TEXT NOT NULL'),
-        ('CONSTRAINT superkey UNIQUE (name_text)', '')
-    ))
+    ), ['CONSTRAINT superkey UNIQUE (name_text)']
+    )
     # Detection and identification algorithm configurations, populated
     # with caching information
     ibs.db.schema('configs', (

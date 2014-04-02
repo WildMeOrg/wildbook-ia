@@ -65,7 +65,7 @@ EOF
 
     RUN_TEST tests/test_parallel.py
 
-    RUN_TEST tests/test_compute_chips.py
+    RUN_TEST tests/test_chip_compute.py
 fi
 
 

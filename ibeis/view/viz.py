@@ -15,8 +15,10 @@ from ibeis.model.jon_recognition import match_chips3 as mc3
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 #from interaction import interact_keypoints, interact_chipres, interact_chip # NOQA
+import viz_helpers
 from viz_helpers import draw, set_ibsdat, get_ibsdat  # NOQA
 from viz_image import show_image  # NOQA
+from viz_chip import show_chip, show_keypoints  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
@@ -56,7 +58,7 @@ def show_splash(fnum=1, **kwargs):
 
 
 def show_name_of(ibs, cid, **kwargs):
-    nid = ibs.get_chip_name(cid)
+    nid = ibs.get_chip_names(cid)
     show_name(ibs, nid, sel_cids=[cid], **kwargs)
 
 
@@ -107,235 +109,12 @@ def show_name(ibs, nid, nid2_cids=None, fnum=0, sel_cids=[], subtitle='',
 # Chip Viz
 #==========================
 
-
-@profile
-def _annotate_qcid_match_results(ibs, res, qcid, kpts, cid2_color):
-    '''Draws which keypoints successfully matched'''
-    #print('[viz] !!! ANNOTATE QCX MATCH RESULTS !!!')
-
-    def stack_unique(fx_list):
-        # concatenates variable length lists
-        try:
-            if len(fx_list) == 0:
-                return np.array([], dtype=int)
-            stack_list = np.hstack(fx_list)
-            stack_ints = np.array(stack_list, dtype=int)
-            unique_ints = np.unique(stack_ints)
-            return unique_ints
-        except Exception as ex:
-            print('Ex: %r' % ex)
-            print('fx_list = %r ' % fx_list)
-            print('stack_insts = %r' % stack_ints)
-            print('unique_ints = %r' % unique_ints)
-            print(unique_ints)
-            raise
-
-    def _kpts_helper(kpts_, color, alpha, label):
-        # helper function taking into acount phantom labels
-        df2.draw_kpts2(kpts_, ell_color=color, ell_alpha=alpha)
-        df2.phantom_legend_label(label, color)
-
-    if cid2_color is not None:
-        # Show which keypoints match chosen chips with color
-        for cid, color in cid2_color.iteritems():
-            try:
-                qfxs = res.cid2_fm[cid][:, 0]
-                kpts_dim = kpts.shape[1]
-                kpts_ = np.empty((0, kpts_dim)) if len(qfxs) == 0 else kpts[qfxs]
-                _kpts_helper(kpts_, color, .4, ibs.cidstr(cid))
-            except Exception as ex:
-                print('qfxs=%r' % qfxs)
-                print('kpts.shape=%r' % (kpts.shape,))
-                print(ex)
-                raise
-    else:
-        # Show which keypoints match groundtruth, etc...
-        gt_cids = ibs.get_other_indexed_cids(qcid)
-        all_fx = np.arange(len(kpts))
-        cid2_fm = res.get_cid2_fm()
-        fx_list1 = [fm[:, 0] for fm in cid2_fm]
-        fx_list2 = [fm[:, 0] for fm in cid2_fm[gt_cids]] if len(gt_cids) > 0 else np.array([])
-        matched_fx = stack_unique(fx_list1)
-        true_matched_fx = stack_unique(fx_list2)
-        noise_fx = np.setdiff1d(all_fx, matched_fx)
-        # Print info
-        #tup = (ibs.cidstr(qcid), len(all_fx), len(matched_fx), len(true_matched_fx), len(noise_fx))
-        #print('[viz] %s has %d kpts. #Matches: %d, true=%d, noisy=%d.' % tup)
-        # Get keypoints
-        kpts_true  = kpts[true_matched_fx]
-        kpts_match = kpts[matched_fx, :]
-        kpts_noise = kpts[noise_fx, :]
-        # Draw keypoints
-        #ell_alpha = ell_args.pop('ell_alpha', ell_alpha)
-        #ell_color = ell_args.pop('ell_color', ell_color)
-        _kpts_helper(kpts_noise,  df2.RED, .1, 'Unverified')
-        _kpts_helper(kpts_match, df2.BLUE, .4, 'Verified')
-        _kpts_helper(kpts_true, df2.GREEN, .6, 'True Matches')
-
-
-@utool.indent_decor('[annote_kpts]')
-@profile
-def _annotate_kpts(kpts, sel_fx, draw_ell, draw_pts, color=None, nRandKpts=None,
-                   **kwargs):
-    #print('[viz] _annotate_kpts()')
-    if color is None:
-        color = 'distinct' if sel_fx is None else df2.ORANGE
-    ell_args = kwargs.copy()
-    ell_args.update({
-        'ell': draw_ell,
-        'pts': draw_pts,
-        'ell_alpha': kwargs.get('ell_alpha', .4),
-        'ell_linewidth': 2,
-        'ell_color': color,
-    })
-    printDBG('[df2._annotate_kpts] %r' % (ell_args.keys(),))
-    if draw_ell and nRandKpts is not None:
-        # show a random sample of kpts
-        nkpts1 = len(kpts)
-        fxs1 = np.arange(nkpts1)
-        size = nRandKpts
-        replace = False
-        p = np.ones(nkpts1)
-        p = p / p.sum()
-        fxs_randsamp = np.random.choice(fxs1, size, replace, p)
-        kpts = kpts[fxs_randsamp]
-        # TODO Fix this. This should not set the xlabel
-        df2.set_xlabel('displaying %r/%r keypoints' % (nRandKpts, nkpts1))
-    elif draw_ell or draw_pts:
-        # draw all keypoints
-        if sel_fx is not None:
-            # dont draw the selected keypoint in this batch
-            kpts_ = np.vstack((kpts[0:sel_fx], kpts[sel_fx + 1:]))
-        else:
-            kpts_ = kpts
-        df2.draw_kpts2(kpts_, **ell_args)
-    if sel_fx is not None:
-        # Draw selected keypoint
-        sel_kpts = kpts[sel_fx:sel_fx + 1]
-        #print('[viz] sel_kpts = \n%r' % sel_kpts)
-        ell_args2 = ell_args.copy()
-        ell_args2.update({
-            'ell_color': df2.BLUE,
-            'eig': True,
-            'rect': True,
-            'ori': True,
-        })
-        df2.draw_kpts2(sel_kpts, **ell_args2)
-
-
-@utool.indent_decor('[show_chip]')
-@profile
-def show_chip(ibs, cid=None, allres=None, res=None, draw_ell=True,
-              draw_pts=False, nRandKpts=None, prefix='', sel_fx=None,
-              color=None, in_image=False, sel_fx2=None, **kwargs):
-    printDBG('[viz] show_chip()')
-    if allres is not None:
-        res = allres.qcid2_res[cid]
-    if res is not None:
-        cid = res.qcid
-    if in_image:
-        rchip = ibs.cid2_image(cid)
-    else:
-        rchip = kwargs['rchip'] if 'rchip' in kwargs else ibs.get_chip(cid)
-    # Add info to title
-    title_list = []
-    title_list += [ibs.cidstr(cid)]
-    # FIXME
-    #title_list += ['gname=%r' % ibs.cid2_gname(cid)]
-    title_list += ['name=%r'  % ibs.cid2_name(cid)]
-    #title_list += [ibs.num_indexed_gt_str(cid)]
-    if NO_LABEL_OVERRIDE:
-        title_str = ''
-    else:
-        title_str = prefix + ', '.join(title_list)
-    fig, ax = df2.imshow(rchip, title=title_str, **kwargs)
-    # Add user data to axis
-    ax._hs_viewtype = 'chip'
-    ax._hs_cid = cid
-    if draw_ell or draw_pts:
-        # FIXME
-        if in_image:
-            kpts = cid2_imgkpts(ibs, [cid])[0]
-        else:
-            kpts = kwargs['kpts'] if 'kpts' in kwargs else ibs.get_kpts(cid)
-        if sel_fx2 is not None:
-            sel_fx2 = np.array(sel_fx2)
-            kpts = kpts[sel_fx2]
-        if res is not None:
-            # Draw keypoints with groundtruth information
-            cid2_color = kwargs.get('cid2_color', None)
-            _annotate_qcid_match_results(ibs, res, cid, kpts, cid2_color)
-        else:
-            # Just draw boring keypoints
-            _annotate_kpts(kpts, sel_fx, draw_ell, draw_pts, color, nRandKpts)
-
-
-@profile
-def show_keypoints(rchip, kpts, draw_ell=True, draw_pts=False, sel_fx=None, fnum=0,
-                   pnum=None, color=None, **kwargs):
-    #printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
-    df2.imshow(rchip, fnum=fnum, pnum=pnum, **kwargs)
-    _annotate_kpts(kpts, sel_fx, draw_ell, draw_pts, color=color, **kwargs)
-    ax = df2.gca()
-    ax._hs_viewtype = 'keypoints'
-    ax._hs_kpts = kpts
-
 #==========================
 # ChipRes Viz
 #==========================
 
 
-# HACK!
-def build_transform2(roi, chipsz, theta):
-    (x, y, w, h) = roi
-    (w_, h_) = chipsz
-    sx = (w_ / w)  # ** 2
-    sy = (h_ / h)  # ** 2
-    cos_ = np.cos(-theta)
-    sin_ = np.sin(-theta)
-    tx = -(x + (w / 2))
-    ty = -(y + (h / 2))
-
-    T1 = np.array([[1, 0, tx],
-                   [0, 1, ty],
-                   [0, 0, 1]], np.float64)
-
-    S = np.array([[sx, 0,  0],
-                  [0, sy,  0],
-                  [0,  0,  1]], np.float64)
-
-    R = np.array([[cos_, -sin_, 0],
-                  [sin_,  cos_, 0],
-                  [   0,     0, 1]], np.float64)
-
-    T2 = np.array([[1, 0, (w_ / 2)],
-                   [0, 1, (h_ / 2)],
-                   [0, 0, 1]], np.float64)
-
-    M = T2.dot(R.dot(S.dot(T1)))
-    return M
-
-
-# HACK!
-def cid2_imgkpts(ibs, cid_list):
-    roi_list = ibs.cid2_roi(cid_list)
-    theta_list = ibs.cid2_theta(cid_list)
-    chipsz_list = ibs.cid2_rchip_size(cid_list)
-    kpts_list = ibs.get_kpts(cid_list)
-
-    imgkpts_list = []
-    flatten_xs = np.array([[0, 2], [1, 2], [0, 0], [1, 0], [1, 1]])
-    for roi, theta, chipsz, kpts in zip(roi_list, theta_list, chipsz_list, kpts_list):
-        # HOLY SHIT THIS IS JANKY
-        M = build_transform2(roi, chipsz, theta)
-        invA_list = [np.array([[a, 0, x], [c, d, y], [0, 0, 1]]) for (x, y, a, c, d) in kpts]
-        invM = np.linalg.inv(M)
-        invMinvA_list = [invM.dot(invA) for invA in invA_list]
-        flatten_xs = np.array([[0, 2], [1, 2], [0, 0], [1, 0], [1, 1]])
-        imgkpts = [[invMinvA[index[0], index[1]] for index in flatten_xs] for invMinvA in invMinvA_list]
-        imgkpts_list.append(np.array(imgkpts))
-    return imgkpts_list
-
+# HACK
 
 def res_show_chipres(res, ibs, cid, **kwargs):
     'Wrapper for show_chipres(show annotated chip match result) '
@@ -368,9 +147,9 @@ def show_chipres(ibs, res, cid, fnum=None, pnum=None, sel_fm=[], in_image=False,
         # TODO: rectify build_transform2 with cc2
         # clean up so its not abysmal
         rchip1, rchip2 = [ibs.cid2_image(_) for _ in [qcid, cid]]
-        kpts1, kpts2   = cid2_imgkpts(ibs, [qcid, cid])
+        kpts1, kpts2   = viz_helpers.get_imgspace_chip_kpts(ibs, [qcid, cid])
     else:
-        rchip1, rchip2 = ibs.get_chip([qcid, cid])
+        rchip1, rchip2 = ibs.get_chips([qcid, cid])
         kpts1, kpts2   = ibs.get_kpts([qcid, cid])
 
     # Build annotation strings / colors
@@ -639,7 +418,7 @@ def _show_res(ibs, res, **kwargs):
         if cid_list is None:
             return
         # Do lazy load before show_chipres
-        ibs.get_chip(cid_list)
+        ibs.get_chips(cid_list)
         ibs.get_kpts(cid_list)
         for ox, cid in enumerate(cid_list):
             plotx = ox + plotx_shift + 1
@@ -743,7 +522,7 @@ def show_keypoint_gradient_orientations(ibs, cid, fx, fnum=None, pnum=None):
     # Draw the gradient vectors of a patch overlaying the keypoint
     if fnum is None:
         fnum = df2.next_fnum()
-    rchip = ibs.get_chip(cid)
+    rchip = ibs.get_chips(cid)
     kp = ibs.get_kpts(cid)[fx]
     sift = ibs.get_desc(cid)[fx]
     df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
@@ -846,7 +625,7 @@ def show_nearest_descriptors(ibs, qcid, qfx, fnum=None, stride=5,
 
         # Adds metadata to a feature match
         def get_extract_tuple(cid, fx, k=-1):
-            rchip = ibs.get_chip(cid)
+            rchip = ibs.get_chips(cid)
             kp    = ibs.get_kpts(cid)[fx]
             sift  = ibs.get_desc(cid)[fx]
             if k == -1:
@@ -964,8 +743,8 @@ def viz_spatial_verification(ibs, cid1, figtitle='Spatial Verification View', **
     fnum = kwargs.get('fnum', 4)
     fm  = ensure_fm(ibs, cid1, cid2, kwargs.pop('fm', None), kwargs.pop('res', 'db'))
     # Get keypoints
-    rchip1 = kwargs['rchip1'] if 'rchip1' in kwargs else ibs.get_chip(cid1)
-    rchip2 = kwargs['rchip2'] if 'rchip1' in kwargs else ibs.get_chip(cid2)
+    rchip1 = kwargs['rchip1'] if 'rchip1' in kwargs else ibs.get_chips(cid1)
+    rchip2 = kwargs['rchip2'] if 'rchip1' in kwargs else ibs.get_chips(cid2)
     kpts1 = kwargs['kpts1'] if 'kpts1' in kwargs else ibs.get_kpts(cid1)
     kpts2 = kwargs['kpts2'] if 'kpts2' in kwargs else ibs.get_kpts(cid2)
     dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2

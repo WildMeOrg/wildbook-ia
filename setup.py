@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division, print_function
 import os
 import sys
 from os.path import join, splitext, exists, split
@@ -46,12 +47,13 @@ def compile_ui():
 
 
 def clean():
+    """ Cleans up temporary and compiled files in the IBEIS directory """
     print('[setup] clean()')
     cwd = get_project_repo_dir()
     print('[setup] Current working directory: %r' % cwd)
     # Remove python compiled files
     pattern_list = ['*.dump.txt', '*.sqlite3', '*.pyc', '*.pyo', '*.prof',
-                    '*.prof.txt', '*.lprof', ]
+                    '*.prof.txt', '*.lprof', '\'']
     util_path.remove_files_in_dir(cwd, pattern_list, recursive=True, verbose=VERBOSE)
     # Remove logs
     util_path.remove_files_in_dir(join(cwd, 'logs'), verbose=VERBOSE)
