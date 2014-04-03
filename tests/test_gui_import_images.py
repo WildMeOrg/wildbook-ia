@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import print_function, division
+import sys
+import os
+sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
 #-----
 TEST_NAME = 'TEST_GUI_IMPORT_IMAGES'
 #-----
@@ -39,10 +42,14 @@ def TEST_GUI_IMPORT_IMAGES():
 
     printTEST('[TEST] * len(gid_list)=%r' % len(gid_list))
     __testing__.main_loop(main_locals, rungui=RUNGUI)
+    return locals()
 
 TEST_GUI_IMPORT_IMAGES.func_name = TEST_NAME
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    TEST_GUI_IMPORT_IMAGES()
+    test_locals = TEST_GUI_IMPORT_IMAGES()
+    ibs = test_locals['ibs']
+    back = test_locals['back']
+    exec(__testing__.execstr())

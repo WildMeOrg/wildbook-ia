@@ -53,7 +53,7 @@ def _annote_chip(ibs, rid, in_image, **kwargs):
 def show_chip(ibs, rid, in_image=False, **kwargs):
     printDBG('[viz] show_chip()')
     chip = kwargs.get('chip', ibs.get_roi_images(rid)
-                      if in_image else ibs.get_chips(rid))
+                      if in_image else ibs.get_roi_chips(rid))
     # Create chip title
     title_list = []
     title_list += [str(rid)]

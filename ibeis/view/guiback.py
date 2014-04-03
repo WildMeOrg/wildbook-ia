@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 # Python
 import sys
-from os.path import split, exists
+from os.path import split, exists, join
 import functools
 import traceback
 # Qt
@@ -45,10 +45,11 @@ def backblock(func):
         try:
             result = func(back, *args, **kwargs)
         except Exception as ex:
-            back.front.blockSignals(wasBlocked_)
-            print('!!!!!!!!!!!!!')
+            back.front.blockSignals(wasBlocked_)  # unblock signals on exception
+            print('<!!!>')
             print('[guiback] caught exception in %r' % func.func_name)
             print(traceback.format_exc())
+            print('</!!!>')
             back.user_info(msg=str(ex), title=str(type(ex)))
             raise
         back.front.blockSignals(wasBlocked_)
@@ -244,10 +245,10 @@ class MainWindowBackend(QtCore.QObject):
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)
 
-    def user_input(back, *args, **kwargs):
+    def user_input(back, **kwargs):
         return guitool.user_input(parent=back.front, **kwargs)
 
-    def user_option(back, *args, **kwargs):
+    def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
 
     def get_work_directory(back):
@@ -341,13 +342,30 @@ class MainWindowBackend(QtCore.QObject):
     def new_database(back, new_dbdir=None):
         # File -> New Database
         if new_dbdir is None:
-            print('[back] new_database(): SELECT A DIRECTORY')
-            new_dbdir = guitool.select_directory('Select new database directory')
-            if new_dbdir is None:
-                return
+            new_dbname = back.user_input(
+                msg='What do you want to name the new database?',
+                title='New Database')
+            if new_dbname is None or len(new_dbname) == 0:
+                raise Exception('Abort new database. new_dbname=%r' % new_dbname)
+            reply = back.user_option(
+                msg='Where should I put the new database?',
+                title='Import Images',
+                options=['Choose Directory', 'My Work Dir'],
+                use_cache=False)
+            if reply == 'Choose Directory':
+                print('[back] new_database(): SELECT A DIRECTORY')
+                putdir = guitool.select_directory('Select new database directory')
+            elif reply == 'My Work Dir':
+                putdir = back.get_work_directory()
+            else:
+                raise Exception('Abort new database')
+            new_dbdir = join(putdir, new_dbname)
+            if not exists(putdir):
+                raise ValueError('Directory %r does not exist.' % putdir)
+            if exists(new_dbdir):
+                raise ValueError('New DB %r already exists.' % new_dbdir)
+        utool.ensuredir(new_dbdir)
         print('[back] new_database(new_dbdir=%r)' % new_dbdir)
-        if not exists(new_dbdir):
-            utool.ensuredir(new_dbdir, verbose=True)
         back.open_database(dbdir=new_dbdir)
 
     @blocking_slot()

@@ -42,7 +42,7 @@ def testcontext(func):
         with utool.Indenter('[' + func.func_name.lower() + ']'):
             try:
                 printTEST('[TEST] %s BEGIN' % (func.func_name,))
-                func(*args, **kwargs)
+                test_locals = func(*args, **kwargs)
                 printTEST('[TEST] %s FINISH -- SUCCESS' % (func.func_name,))
                 print(r'''
                   .-""""""-.
@@ -55,6 +55,7 @@ def testcontext(func):
                 '.          .'
                   '-......-'
                   ''')
+                return test_locals
 
             except Exception as ex:
                 exc_type, exc_value, tb = sys.exc_info()
@@ -80,21 +81,27 @@ def testcontext(func):
     return test_wrapper
 
 
-def get_pyhesaff_test_image_paths(ndata):
+def get_pyhesaff_test_image_paths(ndata, lena=True, zebra=False, jeff=False):
     #root = utool.getroot()
     imgdir = dirname(pyhesaff.__file__)
     gname_list = utool.flatten([
-        ['lena.png']  * utool.get_flag('--lena',   True, help_='add lena to test images'),
-        ['zebra.png'] * utool.get_flag('--zebra', False, help_='add zebra to test images'),
-        ['test.png']  * utool.get_flag('--jeff',  False, help_='add jeff to test images'),
+        ['lena.png']  * utool.get_flag('--lena',   lena, help_='add lena to test images'),
+        ['zebra.png'] * utool.get_flag('--zebra', zebra, help_='add zebra to test images'),
+        ['test.png']  * utool.get_flag('--jeff',   jeff, help_='add jeff to test images'),
     ])
     # Build gpath_list
     if ndata == 0:
         gname_list = ['test.png']
     else:
+        if ndata is None:
+            ndata = 1
         gname_list = utool.util_list.flatten([gname_list] * ndata)
     gpath_list = [join(imgdir, path) for path in gname_list]
     return gpath_list
+
+
+def get_pyhesaff_test_gpaths(**kwargs):
+    return get_pyhesaff_test_image_paths(**kwargs)  # NOQA
 
 
 def get_test_image_paths(ibs=None, ndata=None):
@@ -143,3 +150,8 @@ def printTEST(msg, wait=False):
     __builtin__.print('**' + msg)
     if INTERACTIVE and wait:
         raw_input('press enter to continue')
+
+
+def execfunc(*args, **kwargs):
+    from drawtool import draw_func2 as df2
+    return df2.present
