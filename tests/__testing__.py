@@ -36,10 +36,14 @@ import pyhesaff
 INTERACTIVE = utool.get_flag(('--interactive', '-i'))
 
 
+class MyException(Exception):
+    pass
+
+
 def testcontext(func):
     @functools.wraps(func)
     def test_wrapper(*args, **kwargs):
-        with utool.Indenter('[' + func.func_name.lower() + ']'):
+        with utool.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
             try:
                 printTEST('[TEST] %s BEGIN' % (func.func_name,))
                 test_locals = func(*args, **kwargs)
@@ -77,7 +81,8 @@ def testcontext(func):
                 if ibs is not None:
                     ibs.db.dump()
                 if '--strict' in sys.argv:
-                    raise
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    raise exc_type, exc_value, exc_traceback.tb_next
     return test_wrapper
 
 

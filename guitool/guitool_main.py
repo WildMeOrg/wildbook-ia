@@ -24,16 +24,20 @@ def ensure_qtapp():
     global QAPP
     if QAPP is not None:
         return QAPP, IS_ROOT
-    QAPP = QtCore.QCoreApplication.instance()
-    IS_ROOT = QAPP is None
-    if IS_ROOT:  # if not in qtconsole
+    parent_qapp = QtCore.QCoreApplication.instance()
+    if parent_qapp is None:  # if not in qtconsole
         if not QUIET:
-            print('[guitool] Initializing QApplication')
+            print('[guitool] Init new QApplication')
         QAPP = QtGui.QApplication(sys.argv)
+        IS_ROOT = True
+    else:
+        if not QUIET:
+            print('[guitool] Using parent QApplication')
+        QAPP = parent_qapp
+        IS_ROOT = False
     try:
         # You are not root if you are in IPYTHON
         __IPYTHON__
-        IS_ROOT = False
     except NameError:
         pass
     return QAPP, IS_ROOT
@@ -60,9 +64,9 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
 
 
 def qtapp_loop(back=None, **kwargs):
+    global QAPP
     if not QUIET:
         print('[guitool] qtapp_loop()')
-    global QAPP
     if back is not None:
         activate_qwindow(back)
         back.timer = ping_python_interpreter(**kwargs)

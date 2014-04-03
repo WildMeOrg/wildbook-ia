@@ -3,7 +3,6 @@ from __future__ import division, print_function
 import sys
 from os.path import split, exists, join
 import functools
-import traceback
 # Qt
 from PyQt4 import QtCore
 # GUITool
@@ -40,6 +39,7 @@ qt_name_uid_cast  = item_table.qt_name_uid_cast
 # way to make it more general?
 def backblock(func):
     @functools.wraps(func)
+    @utool.ignores_exc_tb
     def bacblock_wrapper(back, *args, **kwargs):
         wasBlocked_ = back.front.blockSignals(True)
         try:
@@ -48,10 +48,12 @@ def backblock(func):
             back.front.blockSignals(wasBlocked_)  # unblock signals on exception
             print('<!!!>')
             print('[guiback] caught exception in %r' % func.func_name)
-            print(traceback.format_exc())
+            utool.print_exception(ex, '[guiback] exception=')
+            #print(traceback.format_exc())
             print('</!!!>')
             back.user_info(msg=str(ex), title=str(type(ex)))
             raise
+            #raise
         back.front.blockSignals(wasBlocked_)
         return result
     return bacblock_wrapper
@@ -59,6 +61,7 @@ def backblock(func):
 
 def blocking_slot(*types_):
     def wrap1(func):
+        @utool.ignores_exc_tb
         def wrap2(*args, **kwargs):
             printDBG('[back*] ' + func.func_name)
             result = func(*args, **kwargs)
@@ -390,6 +393,7 @@ class MainWindowBackend(QtCore.QObject):
     def save_database(back):
         # File -> Save Database
         print('[back] ')
+        # Depricate
         pass
 
     @blocking_slot()
@@ -447,14 +451,14 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def new_prop(back):
         # Action -> New Chip Property
-        # Depricate?
-        print('[back] ')
+        # Depricate
+        print('[back] new_prop')
         pass
 
     @blocking_slot()
     def add_roi(back, gid=None, bbox=None, theta=0.0):
         # Action -> Add ROI
-        print('\n[back] add_roi')
+        print('[back] add_roi')
         if gid is None:
             gid = back.get_selected_gid()
         if bbox is None:
@@ -555,6 +559,7 @@ class MainWindowBackend(QtCore.QObject):
     def view_database_dir(back):
         # Help -> View Directory Slots
         print('[back] view_database_dir')
+        utool.view_directory(back.ibs.dbdir)
         pass
 
     @slot_()
@@ -589,13 +594,13 @@ class MainWindowBackend(QtCore.QObject):
     def dev_reload(back):
         # Help -> Developer Reload
         print('[back] dev_reload')
-        from ibeis.dev import debug_imports
-        ibeis_modules = debug_imports.get_ibeis_modules()
-        for module in ibeis_modules:
-            if not hasattr(module, 'rrr'):
-                utool.inject_reload_function(module=module)
-            if hasattr(module, 'rrr'):
-                module.rrr()
+        #from ibeis.dev import debug_imports
+        #ibeis_modules = debug_imports.get_ibeis_modules()
+        #for module in ibeis_modules:
+            #if not hasattr(module, 'rrr'):
+                #utool.inject_reload_function(module=module)
+            #if hasattr(module, 'rrr'):
+                #module.rrr()
 
     @blocking_slot()
     def dev_mode(back):

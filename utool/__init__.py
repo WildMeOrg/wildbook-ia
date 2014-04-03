@@ -6,6 +6,7 @@ import util_cache  # NOQA
 import util_cplat  # NOQA
 import util_dbg  # NOQA
 import util_dev  # NOQA
+import util_decor  # NOQA
 import util_distances  # NOQA
 import util_dict  # NOQA
 import util_inject  # NOQA
@@ -40,11 +41,13 @@ from .util_dbg import (execstr_dict, save_testdata, load_testdata,   # NOQA
 
 from .util_dev import (printable_mystats, mystats, myprint, get_object_size, )  # NOQA
 
+from .util_decor import ignores_exc_tb, indent_decor, indent_func  # NOQA
+
 from .util_distances import (nearest_point,)  # NOQA
 
 from .util_inject import (inject, inject_all, inject_print_functions)  # NOQA
 
-from .util_print import (horiz_print, horiz_string, indent_decor, indent_func,  # NOQA
+from .util_print import (horiz_print, horiz_string,  # NOQA
                          printshape, Indenter, NpPrintOpts, printVERBOSE,
                          printNOTQUIET, print_exception)
 
@@ -69,6 +72,7 @@ from util_cache import *  # NOQA
 from util_cplat import *  # NOQA
 from util_dbg import *  # NOQA
 from util_dev import *  # NOQA
+from util_decor import *  # NOQA
 from util_dict import *  # NOQA
 from util_inject import *  # NOQA
 from util_iter import *  # NOQA

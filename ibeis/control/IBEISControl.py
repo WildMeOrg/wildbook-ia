@@ -9,7 +9,6 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 # only and tripple single quotes for python multiline strings only
 from __future__ import division, print_function
 # Python
-import functools
 import re
 from itertools import izip
 from os.path import join, realpath, split
@@ -18,6 +17,8 @@ import numpy as np
 # IBEIS
 from ibeis.control import __IBEIS_SCHEMA__
 from ibeis.control import SQLDatabaseControl
+from ibeis.control.__accessor_decors import (adder, setter, getter, getter_vector_output,
+                                             getter_general, deleter)
 # VTool
 from vtool import image as gtool
 # UTool
@@ -35,76 +36,6 @@ from ibeis.model.preproc import preproc_feat
 
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')
-
-
-#
-#
-#-----------------
-# IBEIS DECORATORS
-#-----------------
-
-
-# DECORATORS::ADDER
-
-def adder(func):
-    @utool.indent_func
-    @functools.wraps(func)
-    def adder_wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return adder_wrapper
-
-
-# DECORATORS::SETTER
-
-def setter(func):
-    @utool.indent_func
-    @functools.wraps(func)
-    def adder_wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return adder_wrapper
-
-
-# DECORATORS::GETTER
-
-def getter(func):
-    """ Getter decorator for functions which takes as the first input a unique
-    id list and returns a heterogeous list of values """
-    @utool.accepts_scalar_input
-    @utool.indent_decor('[' + func.func_name + ']')
-    @functools.wraps(func)
-    def getter_wrapper1(*args, **kwargs):
-        return func(*args, **kwargs)
-    return getter_wrapper1
-
-
-def getter_vector_output(func):
-    """ Getter decorator for functions which takes as the first input a unique
-    id list and returns a homogenous list of values """
-    @utool.indent_func
-    @utool.accepts_scalar_input_vector_output
-    @functools.wraps(func)
-    def getter_wrapper3(*args, **kwargs):
-        return func(*args, **kwargs)
-    return getter_wrapper3
-
-
-def getter_general(func):
-    """ Getter decorator for functions which has no gaurentees """
-    @utool.indent_func
-    @functools.wraps(func)
-    def getter_wrapper2(*args, **kwargs):
-        return func(*args, **kwargs)
-    return getter_wrapper2
-
-
-# DECORATORS::DELETER
-
-def deleter(func):
-    @utool.indent_func
-    @functools.wraps(func)
-    def adder_wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return adder_wrapper
 
 
 #
@@ -258,6 +189,11 @@ class IBEISControl(object):
         and then pass them here to ensure chips are computed)
         return cid_list
         """
+        #print('[ibs] add_chips')
+        cid_list = ibs.get_roi_cids(rid_list)
+        # Get which features have not been computed (have None value)
+        invalid_chip_rids = [rid for (cid, rid) in izip(cid_list, rid_list) if cid is None]
+        param_iter = preproc_chip.add_chips_parameters_gen(ibs, invalid_chip_rids)
         ibs.db.executemany(
             operation='''
             INSERT OR IGNORE
@@ -266,16 +202,16 @@ class IBEISControl(object):
                 chip_uid,
                 roi_uid,
                 chip_width,
-                chip_height,
+                chip_height
             )
             VALUES (NULL, ?, ?, ?)
             ''',
-            parameters_iter=((rid,) for rid in rid_list))
+            parameters_iter=param_iter)
         cid_list = ibs.db.executemany(
             operation='''
-            SELECT name_uid
-            FROM names
-            WHERE name_text=?
+            SELECT chip_uid
+            FROM chips
+            WHERE roi_uid=?
             ''',
             parameters_iter=((rid,) for rid in rid_list),
             auto_commit=False)
@@ -283,27 +219,19 @@ class IBEISControl(object):
 
     @adder
     def add_feats(ibs, cid_list):
-        """ Adds features to chips. (returns None) """
-        fid_list = ibs.db.executemany(
-            operation='''
-            SELECT feature_uid
-            FROM features
-            WHERE chip_uid=?
-            VALUES (?)
-            ''',
-            parameters_iter=((cid,) for cid in cid_list))
+        fid_list = ibs.get_chip_fids(cid_list)
         # Get which features have not been computed (have None value)
-        invalid_feat_cids = [cid for (cid, fid) in izip(fid_list, cid_list)
-                             if fid is None]
-        param_iter = preproc_feat.add_feat_params_gen(invalid_feat_cids)
+        invalid_feat_cids = [cid for (fid, cid) in izip(fid_list, cid_list) if fid is None]
+        param_iter = preproc_feat.add_feat_params_gen(ibs, invalid_feat_cids)
         ibs.db.executemany(
             operation='''
             INSERT OR IGNORE
-            INTO chips
+            INTO features
             (
+                feature_uid,
                 chip_uid,
                 feature_keypoints,
-                feature_sifts,
+                feature_sifts
             )
             VALUES (NULL, ?, ?, ?)
             ''',
@@ -413,7 +341,7 @@ class IBEISControl(object):
                 roi_xtl=?,
                 roi_ytl=?,
                 roi_width=?,
-                roi_height=?,
+                roi_height=?
             WHERE roi_uid=?
             ''',
             parameters_iter=izip(bbox_list, rid_list))
@@ -528,6 +456,10 @@ class IBEISControl(object):
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths relative to img_dir? by gid """
         uri_list = ibs.get_image_uris(gid_list)
+        if any([uri is None for count, uri in enumerate(uri_list)]):
+            msg1 = 'The count=%r-th image uri is None! ' % count
+            msg2 = 'gid_list[count] = %r' % gid_list[count]
+            raise Exception(msg1 + msg2)
         img_dir = join(ibs.dbdir, 'images')
         gpath_list = [join(img_dir, uri) for uri in uri_list]
         return gpath_list
@@ -657,14 +589,37 @@ class IBEISControl(object):
     def get_roi_gpaths(ibs, rid_list):
         """ Returns the image names of each roi """
         gid_list = ibs.get_roi_gids(rid_list)
+        try:
+            assert not any([gid is None for gid in gid_list])
+        except AssertionError:
+            print('rid_list = %r' % rid_list)
+            print('gid_list = %r' % gid_list)
+            raise
         gpath_list = ibs.get_image_paths(gid_list)
+        assert not any([gpath is None for gpath in gpath_list])
         return gpath_list
 
     @getter
     def get_roi_cids(ibs, rid_list):
-        cid_list = ibs.add_chips(rid_list)
-        #cid_list = ibs.get_chip_properties(ibs, rid_list)
+        cid_list = ibs.db.executemany(
+            operation='''
+            SELECT chip_uid
+            FROM chips
+            WHERE roi_uid=?
+            ''',
+            parameters_iter=((rid,) for rid in rid_list))
         return cid_list
+
+    @getter
+    def get_chip_fids(ibs, cid_list):
+        fid_list = ibs.db.executemany(
+            operation='''
+            SELECT feature_uid
+            FROM features
+            WHERE chip_uid=?
+            ''',
+            parameters_iter=((cid,) for cid in cid_list))
+        return fid_list
 
     @getter
     def get_roi_chips(ibs, rid_list):

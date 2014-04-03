@@ -13,12 +13,14 @@ import vtool.image as gtool
 
 def compute_or_read_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
+    print('[preproc_chip] compute_or_read_chips')
     cfpath_list = ibs.get_roi_cpaths(rid_list)
     try:
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
-        utool.print_exception(ex)
-        ibs.add_chips(ibs, rid_list)
+        if not utool.QUIET:
+            utool.print_exception(ex, '[preproc_chip] Handing Exception: ')
+        ibs.add_chips(rid_list)
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     return chip_list
 

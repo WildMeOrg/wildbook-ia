@@ -52,4 +52,4 @@ if __name__ == '__main__':
     test_locals = TEST_GUI_IMPORT_IMAGES()
     ibs = test_locals['ibs']
     back = test_locals['back']
-    exec(__testing__.execstr())
+    exec(__testing__.execfunc()())

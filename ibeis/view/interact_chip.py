@@ -15,8 +15,8 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     # Preferably this will call that but it will set some fancy callbacks
     fig = interact_helpers.begin_interaction('chip', fnum)
     # Get chip info (make sure get_chips is called first)
-    chip = ibs.get_chips(rid)
-    mode_ptr = [False]
+    chip = ibs.get_roi_chips(rid)
+    mode_ptr = [0]
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
@@ -37,8 +37,7 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     def _on_chip_click(event):
         print_('[inter] clicked chip')
         ax, x, y = event.inaxes, event.xdata, event.ydata
-        if ax is None or x is None:
-            # The click is not in any axis
+        if interact_helpers.clicked_outside_axis(event):
             print('... out of axis')
             mode_ptr[0] = (mode_ptr[0] + 1) % 3
             mode = mode_ptr[0]

@@ -31,19 +31,14 @@ EXIF_TAG_DATETIME =  'DateTimeOriginal'
 
 
 def imread(img_fpath):
-    try:
-        # opencv always reads in BGR mode (fastest load time)
-        imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
-        if imgBGR is None:
-            if not exists(img_fpath):
-                raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)
-            else:
-                raise IOError('cannot read img_fpath=%r seems corrupted.' % img_fpath)
-        return imgBGR
-    except Exception as ex:
-        print('[gtool] Caught Exception: %r' % ex)
-        print('[gtool] ERROR reading: %r' % (img_fpath,))
-        raise
+    # opencv always reads in BGR mode (fastest load time)
+    imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
+    if imgBGR is None:
+        if not exists(img_fpath):
+            raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)
+        else:
+            raise IOError('cannot read img_fpath=%r seems corrupted.' % img_fpath)
+    return imgBGR
 
 
 def imwrite(img_fpath, imgBGR):

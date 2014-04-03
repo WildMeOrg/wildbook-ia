@@ -1,7 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
 import sys
-import functools
 from .util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
@@ -105,24 +104,6 @@ class Indenter(object):
 
 def print_exception(ex, msg='Caught exception'):
     print(msg + '%s: %s' % (type(ex), ex))
-
-
-def indent_decor(lbl):
-    def indent_decor_wrapper1(func):
-        @functools.wraps(func)
-        def indent_decor_wrapper2(*args, **kwargs):
-            with Indenter(lbl):
-                return func(*args, **kwargs)
-        return indent_decor_wrapper2
-    return indent_decor_wrapper1
-
-
-def indent_func(func):
-    @functools.wraps(func)
-    @indent_decor('[' + func.func_name + ']')
-    def indent_wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return indent_wrapper
 
 
 def printshape(arr_name, locals_):

@@ -21,6 +21,7 @@ def slot_(*types):  # This is called at wrap time to get args
     def pyqtSlotWrapper(func):
         printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.func_name)
         @QtCore.pyqtSlot(*types, name=func.func_name)
+        @utool.ignores_exc_tb
         def slot_wrapper(self, *args, **kwargs):
             result = func(self, *args, **kwargs)
             return result
@@ -32,6 +33,7 @@ def slot_(*types):  # This is called at wrap time to get args
 # DRAWING DECORATOR
 def drawing(func):
     'Wraps a class function and draws windows on completion'
+    @utool.ignores_exc_tb
     @functools.wraps(func)
     def drawing_wrapper(self, *args, **kwargs):
         result = func(self, *args, **kwargs)

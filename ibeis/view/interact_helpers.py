@@ -19,11 +19,15 @@ def detect_keypress(fig):
     fig.canvas.mpl_connect('key_release_event', on_key_release)
 
 
-def is_event_valid(event, valid_tests=['click']):
-    is_valid = event is not None
-    if 'click' in valid_tests:
-        is_valid = is_valid and (event.inaxes is not None and event.xdata is not None)
-    return is_valid
+def clicked_inside_axis(event):
+    in_axis = event is not None and (event.inaxes is not None and event.xdata is not None)
+    if not in_axis:
+        print(' ...out of axis')
+    return in_axis
+
+
+def clicked_outside_axis(event):
+    return not clicked_inside_axis(event)
 
 
 def begin_interaction(type_, fnum):

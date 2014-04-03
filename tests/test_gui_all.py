@@ -37,6 +37,7 @@ def TEST_GUI_ALL():
     #
     printTEST('[TEST] NEW_DATABASE')
     back.new_database(new_dbdir)
+    ibs = back.ibs  # The backend has a new ibeis do not use the old one
 
     #
     #
@@ -45,20 +46,38 @@ def TEST_GUI_ALL():
                                                       zebra=True,
                                                       lena=True, jeff=True)
     gid_list = back.import_images(gpath_list=gpath_list)
+    print('\n'.join('  * gid_list[%d] = %r' % (count, gid) for count, gid in enumerate(gid_list)))
     assert len(gid_list) == len(gpath_list)
 
     #
     #
     def add_roi(gid, bbox, theta=0.0):
-        back.add_roi(gid=gid, bbox=bbox, theta=theta)
+        rid = back.add_roi(gid=gid, bbox=bbox, theta=theta)
+        return rid
 
-    add_roi(gid_list[0], [0, 0, 100, 100])
-    add_roi(gid_list[1], [50, 50, 100, 100])
-    add_roi(gid_list[2], [10, 10, 64, 64])
+    rid1 = add_roi(gid_list[0], [0, 0, 100, 100])
+    rid2 = add_roi(gid_list[1], [50, 50, 100, 100])
+    rid3 = add_roi(gid_list[2], [50, 50, 64, 64])
+
+    #
+    #
+    printTEST('[TEST] SELECT ROI / Add Chips')
+    rid_list = ibs.get_valid_rids()
+    print('\n'.join('  * rid_list[%d] = %r' % (count, rid) for count, rid in enumerate(rid_list)))
+
+    print(' * rid1 = %r' % rid1)
+    #print(' * rid2 = %r' % rid2)
+    #print(' * rid3 = %r' % rid3)
+
+    back.select_rid(rid_list[0])
+    #back.select_rid(rid_list[2])
+    #back.select_rid(rid_list[1])
+
     #add_roi(gid_list[2], None)  # user selection
     #add_roi(None, [42, 42, 8, 8])  # back selection
-
+    main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=RUNGUI)
+    # I'm not sure how I want to integrate that IPython stuff
     return locals()
 
 
@@ -71,4 +90,3 @@ if __name__ == '__main__':
     ibs = test_locals['ibs']
     back = test_locals['back']
     gid_list = test_locals['gid_list']
-    exec(__testing__.execfunc()())

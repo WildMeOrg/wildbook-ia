@@ -167,9 +167,10 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None):
     print('[util] embedding')
     import IPython
     try:
+        pass
         # make qt not loop forever
-        from PyQt4.QtCore import pyqtRemoveInputHook
-        pyqtRemoveInputHook()
+        #from PyQt4.QtCore import pyqtRemoveInputHook
+        #pyqtRemoveInputHook()
     except ImportError as ex:
         print(ex)
     config_dict = {}

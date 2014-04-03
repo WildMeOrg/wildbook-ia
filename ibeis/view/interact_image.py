@@ -16,9 +16,8 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
     # Create callback wrapper
     def _on_image_click(event):
         print_('[inter] clicked image')
-        if not interact_helpers.is_event_valid(event):
+        if interact_helpers.clicked_outside_axis(event):
             # Toggle draw lbls
-            print(' ...out of axis')
             kwargs.update({
                 'draw_lbls': kwargs.pop('draw_lbls', True),  # Toggle
                 'select_rid_callback': select_rid_callback,
