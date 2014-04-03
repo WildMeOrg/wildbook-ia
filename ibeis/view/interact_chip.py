@@ -20,8 +20,8 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
-        kp = ibs.get_chip_kpts(rid)[fx]
-        sift = ibs.get_chip_desc(rid)[fx]
+        kp = ibs.get_roi_kpts(rid)[fx]
+        sift = ibs.get_roi_desc(rid)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots
@@ -50,7 +50,7 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
                 _chip_view()
                 interact_helpers.disconnect_callback(fig, 'button_press_event')
             elif viztype == 'chip':
-                kpts = ibs.get_chip_kpts(rid)
+                kpts = ibs.get_roi_kpts(rid)
                 if len(kpts) > 0:
                     fx = utool.nearest_point(x, y, kpts)[0]
                     print('... clicked fx=%r' % fx)

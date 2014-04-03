@@ -600,6 +600,12 @@ class IBEISControl(object):
         return gpath_list
 
     @getter
+    def get_roi_fids(ibs, rid_list):
+        cid_list = ibs.get_roi_cids(ibs, rid_list)
+        fid_list = ibs.get_chip_fids(ibs, cid_list)
+        return fid_list
+
+    @getter
     def get_roi_cids(ibs, rid_list):
         cid_list = ibs.db.executemany(
             operation='''
@@ -611,20 +617,26 @@ class IBEISControl(object):
         return cid_list
 
     @getter
-    def get_chip_fids(ibs, cid_list):
-        fid_list = ibs.db.executemany(
-            operation='''
-            SELECT feature_uid
-            FROM features
-            WHERE chip_uid=?
-            ''',
-            parameters_iter=((cid,) for cid in cid_list))
-        return fid_list
-
-    @getter
     def get_roi_chips(ibs, rid_list):
+        ibs.add_chips(rid_list)
         chip_list = preproc_chip.compute_or_read_chips(ibs, rid_list)
         return chip_list
+
+    @getter_vector_output
+    def get_roi_kpts(ibs, rid_list):
+        """ Returns chip keypoints """
+        ibs.add_chips(rid_list)
+        cid_list  = ibs.get_roi_cids(rid_list)
+        kpts_list = ibs.get_chip_kpts(cid_list)
+        return kpts_list
+
+    @getter_vector_output
+    def get_roi_desc(ibs, rid_list):
+        """ Returns chip descriptors """
+        ibs.add_chips(rid_list)
+        cid_list  = ibs.get_roi_cids(rid_list)
+        desc_list = ibs.get_chip_desc(cid_list)
+        return desc_list
 
     @getter
     def get_roi_cpaths(ibs, rid_list):
@@ -710,27 +722,70 @@ class IBEISControl(object):
         size_list = (size_ for size_ in izip(width_list, height_list))
         return size_list
 
-    #
-    # GETTERS::Features
+    @getter
+    def get_chip_fids(ibs, cid_list):
+        fid_list = ibs.db.executemany(
+            operation='''
+            SELECT feature_uid
+            FROM features
+            WHERE chip_uid=?
+            ''',
+            parameters_iter=((cid,) for cid in cid_list))
+        return fid_list
 
     @getter_vector_output
     def get_chip_kpts(ibs, cid_list):
         """ Returns chip keypoints """
-        kpts_dim = preproc_feat.KPTS_DIM
-        kpts_list = [np.empty((0, kpts_dim)) for cid in cid_list]
+        ibs.add_feats(cid_list)
+        fid_list = ibs.get_chip_fids(cid_list)
+        kpts_list = ibs.get_feat_kpts(fid_list)
         return kpts_list
 
     @getter_vector_output
     def get_chip_desc(ibs, cid_list):
         """ Returns chip descriptors """
-        desc_dim = preproc_feat.DESC_DIM
-        desc_list = [np.empty((0, desc_dim)) for cid in cid_list]
+        ibs.add_feats(cid_list)
+        fid_list = ibs.get_chip_fids(cid_list)
+        desc_list = ibs.get_feat_desc(fid_list)
         return desc_list
+
+    @getter
+    def get_roi_num_feats(ibs, rid_list):
+        kpts_list = ibs.get_roi_kpts(rid_list)
+        nFeats_list = [len(kpts) if kpts is not None else -1 for kpts in kpts_list]
+        return nFeats_list
 
     @getter
     def get_chip_num_feats(ibs, cid_list):
         nFeats_list = map(len, ibs.get_chip_kpts(cid_list))
         return nFeats_list
+
+    #
+    # GETTERS::Features
+
+    @getter_vector_output
+    def get_feat_kpts(ibs, fid_list):
+        """ Returns chip keypoints """
+        kpts_list = ibs.db.executemany(
+            operation='''
+            SELECT feature_keypoints
+            FROM features
+            WHERE feature_uid=?
+            ''',
+            parameters_iter=((fid,) for fid in fid_list))
+        return kpts_list
+
+    @getter_vector_output
+    def get_feat_desc(ibs, fid_list):
+        """ Returns chip descriptors """
+        desc_list = ibs.db.executemany(
+            operation='''
+            SELECT feature_sifts
+            FROM features
+            WHERE feature_uid=?
+            ''',
+            parameters_iter=((fid,) for fid in fid_list))
+        return desc_list
 
     #
     # GETTERS::Mask

@@ -140,7 +140,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'nGt':    lambda rids: ibs.get_roi_num_groundtruth(rids),
             'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
             'bbox':    lambda rids: map(str, ibs.get_roi_bboxes(rids)),
-            'nFeats':  lambda rids: ibs.get_chip_num_feats(rids),
+            'nFeats':  lambda rids: ibs.get_roi_num_feats(rids),
         }
         if tblname == RES_TABLE:
             cols.update({

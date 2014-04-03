@@ -23,5 +23,5 @@ def add_feat_params_gen(ibs, cid_list):
     # TODO: make this an async process
     for cid, cpath in izip(cid_list, cfpath_list):
         print_('.')
-        kpts, desc = pyhesaff.detect_kpts(cpath, dict_args)
+        kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)
         yield cid, kpts, desc

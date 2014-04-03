@@ -44,7 +44,7 @@ def _annote_chip(ibs, rid, in_image, **kwargs):
     if in_image:
         kpts = viz_helpers.get_imgspace_chip_kpts(ibs, [rid])[0]
     else:
-        kpts = ibs.get_chip_kpts(rid)
+        kpts = ibs.get_roi_kpts(rid)
     # Draw keypoints on chip
     _annotate_kpts(kpts, **kwargs)
 
