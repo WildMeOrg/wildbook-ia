@@ -205,6 +205,7 @@ class IBEISControl(object):
 
     @adder
     def add_feats(ibs, cid_list):
+        """ Computes the features for every chip without them """
         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
         if len(dirty_cids) > 0:
@@ -280,8 +281,8 @@ class IBEISControl(object):
     @setter
     def set_image_eid(ibs, gid_list, eids_list):
         """ Sets the encounter id that a list of images is tied to, deletes old
-            encounters.  eid_list is a list of tuples, each represents the set of
-            encounters a tuple should belong to.
+        encounters.  eid_list is a list of tuples, each represents the set of
+        encounters a tuple should belong to.
         """
         ibs.db.executemany(
             operation='''
@@ -458,10 +459,10 @@ class IBEISControl(object):
 
     @getter
     def get_image_size(ibs, gid_list):
-        """ Returns a list of image dimensions by gid in (width, height) tuples """
-        img_width_list = ibs.get_image_properties('image_width', gid_list)
-        img_height_list = ibs.get_image_properties('image_height', gid_list)
-        gsize_list = [(w, h) for (w, h) in izip(img_width_list, img_height_list)]
+        """ Returns a list of (width, height) tuples """
+        gwidth_list = ibs.get_image_properties('image_width', gid_list)
+        gheight_list = ibs.get_image_properties('image_height', gid_list)
+        gsize_list = [(w, h) for (w, h) in izip(gwidth_list, gheight_list)]
         return gsize_list
 
     @getter
@@ -825,26 +826,26 @@ class IBEISControl(object):
     #-----------------
 
     @deleter
-    def delete_rois(ibs, rid_iter):
-        """ deletes all associated roi from the database that belong to the rid"""
+    def delete_rois(ibs, rid_list):
+        """ deletes rois from the database """
         ibs.db.executemany(
             operation='''
             DELETE
             FROM rois
             WHERE roi_uid=?
             ''',
-            parameters_iter=rid_iter)
+            parameters_iter=((rid,) for rid in rid_list))
 
     @deleter
     def delete_images(ibs, gid_list):
-        """ deletes the images from the database that belong to gids"""
+        """ deletes images from the database that belong to gids"""
         ibs.db.executemany(
             operation='''
             DELETE
             FROM images
             WHERE image_uid=?
             ''',
-            parameters_iter=gid_list)
+            parameters_iter=((gid,) for gid in gid_list))
 
     #
     #
@@ -885,7 +886,8 @@ class IBEISControl(object):
     def detect_existence(ibs, gid_list, **kwargs):
         'Detects the probability of animal existence in each image'
         from ibeis.model import jason_detector
-        probexist_list = jason_detector.detect_existence(ibs, gid_list, **kwargs)
+        probexist_list = jason_detector.detect_existence(ibs,
+                                                         gid_list, **kwargs)
         # Return for user inspection
         return probexist_list
 
@@ -919,13 +921,22 @@ class IBEISControl(object):
         qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
+    def _init_query_requestor(ibs):
+        from ibeis.model.jon_recognition import QueryRequest
+        ibs.qreq = QueryRequest.QueryRequest()  # Query Data
+        ibs.qreq.set_cfg(ibs.cfg.query_cfg)
+
     @utool.indent_func
-    def _query_chips(ibs, qrid_list, drid_list, **kwargs):
+    def _query_chips(ibs, qcid_list, dcid_list, **kwargs):
         """
-        qrid_list - query chip ids
-        drid_list - database chip ids
+        qcid_list - query chip ids
+        dcid_list - database chip ids
         """
-        from ibeis.model import jon_identifier
-        qres_list = jon_identifier.query(ibs, qrid_list, drid_list, **kwargs)
-        # Return for user inspection
-        return qres_list
+        from ibeis.model.jon_recognition import match_chips3 as mc3
+        qreq = mc3.prep_query_request(qreq=ibs.qreq,
+                                      qcids=qcid_list,
+                                      dcids=dcid_list,
+                                      query_cfg=ibs.cfg.query_cfg,
+                                      **kwargs)
+        qcid2_qres = mc3.process_query_request(ibs, qreq)
+        return qcid2_qres

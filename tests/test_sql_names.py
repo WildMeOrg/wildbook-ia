@@ -32,7 +32,8 @@ def __insert_names(db, name_list):
         VALUES (NULL, ?)
         ''',
         parameters_iter=((name,) for name in name_list))
-    print('INSERT RETURNED: %r' % ret)
+    assert ret == [None] * len(name_list)
+    #print('INSERT RETURNED: %r' % ret)
 
 
 @__testing__.testcontext
