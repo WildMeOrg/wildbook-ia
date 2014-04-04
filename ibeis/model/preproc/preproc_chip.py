@@ -34,8 +34,6 @@ def compute_or_read_roi_chips(ibs, rid_list):
 def add_chips_parameters_gen(ibs, rid_list):
     """ computes chips if they do not exist.
     generates values for add_chips sqlcommands """
-    # Ensures everything is computed
-    compute_and_write_chips_lazy(ibs, rid_list)
     cfpath_list = ibs.get_roi_cpaths(rid_list)
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)

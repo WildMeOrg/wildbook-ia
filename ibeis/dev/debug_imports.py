@@ -65,7 +65,7 @@ import ibeis.model
 from ibeis.model import Config
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
-from ibeis.model.preproc import preproc_feats
+from ibeis.model.preproc import preproc_feat
 # IBEIS CONTROl
 import ibeis.control  # NOQA
 
