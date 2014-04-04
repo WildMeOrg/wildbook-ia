@@ -9,7 +9,6 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 # only and tripple single quotes for python multiline strings only
 from __future__ import division, print_function
 # Python
-import re
 from itertools import izip
 from os.path import join, realpath, split
 # Science
@@ -67,56 +66,46 @@ class IBEISControl(object):
         """ Creates a new IBEIS Controller object associated with one database """
         if VERBOSE:
             print('[ibs.__init__] new IBEISControl')
-        # Define ibs directories
+        ibs._init_dirs(dbdir)
+        ibs._init_sql()
+        ibs._init_config()
+
+    def _init_dirs(ibs, dbdir):
+        """ Define ibs directories """
         ibs.dbdir = realpath(dbdir)
-        ibs.dbfname   = '_ibeis_database.sqlite3'
-        ibs.cachedir  = join(ibs.dbdir, '_ibeis_cache')
-        ibs.chipdir   = join(ibs.cachedir, 'chips')
-        ibs.flanndir  = join(ibs.cachedir, 'flann')
-        print('[ibs.__init__] ibs.dbdir    = %r' % ibs.dbdir)
-        printDBG('[ibs.__init__] ibs.dbfname = %r' % ibs.dbfname)
-        printDBG('[ibs.__init__] ibs.cachedir = %r' % ibs.cachedir)
+        ibs.dbfname  = '_ibeis_database.sqlite3'
+        ibs.cachedir = join(ibs.dbdir, '_ibeis_cache')
+        ibs.chipdir  = join(ibs.cachedir, 'chips')
+        ibs.flanndir = join(ibs.cachedir, 'flann')
+        print('[ibs._init_dirs] ibs.dbdir    = %r' % ibs.dbdir)
+        printDBG('[ibs._init_dirs] ibs.dbfname = %r' % ibs.dbfname)
+        printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
-        # Load or create sql database
+
+    def _init_sql(ibs):
+        """ Load or create sql database """
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
-        printDBG('[ibs.__init__] Define the schema.')
+        printDBG('[ibs._init_sql] Define the schema.')
         __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
-        printDBG('[ibs.__init__] Add default names.')
+        printDBG('[ibs._init_sql] Add default names.')
         ibs.UNKNOWN_NAME = '____'
         ibs.UNKNOWN_NID = ibs.add_names((ibs.UNKNOWN_NAME,))[0]
         assert ibs.UNKNOWN_NID == 1
-        # Load or create algorithm configs
-        ibs._load_config()
 
-    def _load_config(ibs):
+    def _init_config(ibs):
         """ Loads the database's algorithm configuration """
-        print('[ibs] _load_config()')
+        printDBG('[ibs] _load_config()')
         ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
         if not ibs.cfg.load() is True:
             ibs._default_config()
 
     def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
-        print('[ibs] _default_config()')
+        printDBG('[ibs] _default_config()')
         # TODO: Detector config
         ibs.cfg.chip_cfg   = Config.default_chip_cfg()
         ibs.cfg.feat_cfg   = Config.default_feat_cfg(ibs)
         ibs.cfg.query_cfg  = Config.default_query_cfg(ibs)
-
-    def _sanatize_sql(ibs, table, column=None):
-        """ Sanatizes an sql table and column. Use sparingly """
-        table    = re.sub('[^a-z_]', '', table)
-        valid_tables = ibs.db.get_tables()
-        if not table in valid_tables:
-            raise Exception('UNSAFE TABLE: table=%r' % table)
-        if column is None:
-            return table
-        else:
-            column = re.sub('[^a-z_]', '', column)
-            valid_columns = ibs.db.get_column_names(table)
-            if not column in valid_columns:
-                raise Exception('UNSAFE COLUMN: column=%r' % column)
-            return table, column
 
     #
     #
@@ -274,7 +263,7 @@ class IBEISControl(object):
     def set_table_properties(ibs, table, prop_key, uid_list, val_list):
         printDBG('[DEBUG] set_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
-        table, prop_key = ibs._sanatize_sql(table, prop_key)
+        table, prop_key = ibs.db.sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
         ibs.db.executemany(
             operation='''
@@ -397,7 +386,7 @@ class IBEISControl(object):
     def get_table_properties(ibs, table, prop_key, uid_list):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
-        table, prop_key = ibs._sanatize_sql(table, prop_key)
+        table, prop_key = ibs.db.sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
         property_list = ibs.db.executemany(
             operation='''

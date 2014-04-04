@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 # Python
+import re
 from os.path import join, exists
 import __SQLITE3__ as lite
 import utool
@@ -36,6 +37,21 @@ class SQLDatabaseControl(object):
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
         db.table_columns = {}
+
+    def sanatize_sql(db, table, column=None):
+        """ Sanatizes an sql table and column. Use sparingly """
+        table = re.sub('[^a-z_]', '', table)
+        valid_tables = db.get_tables()
+        if not table in valid_tables:
+            raise Exception('UNSAFE TABLE: table=%r' % table)
+        if column is None:
+            return table
+        else:
+            column = re.sub('[^a-z_]', '', column)
+            valid_columns = db.get_column_names(table)
+            if not column in valid_columns:
+                raise Exception('UNSAFE COLUMN: column=%r' % column)
+            return table, column
 
     def get_column_names(db, table):
         """ Returns the sql table columns """
