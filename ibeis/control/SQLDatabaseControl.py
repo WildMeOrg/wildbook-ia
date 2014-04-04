@@ -191,6 +191,9 @@ class SQLDatabaseControl(object):
         # Compute everything in Python before sending queries to SQL
         parameters_list = list(parameters_iter)
         num_params = len(parameters_list)
+        if num_params == 0:
+            print('[sql] cannot executemany with no parameters. use executeone instead')
+            return []
         # Define progress printing / logging / ... functions
         mark_prog, end_prog = utool.progress_func(
             max_val=num_params,

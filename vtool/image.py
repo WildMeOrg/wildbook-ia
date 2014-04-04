@@ -50,6 +50,19 @@ def imwrite(img_fpath, imgBGR):
         raise
 
 
+def get_num_channels(img):
+    ndims = len(img.shape)
+    if ndims == 2:
+        nChannels = 1
+    elif ndims == 3 and img.shape[2] == 3:
+        nChannels = 3
+    elif ndims == 3 and img.shape[2] == 1:
+        nChannels = 1
+    else:
+        raise Exception('Cannot determine number of channels')
+    return nChannels
+
+
 def open_pil_image(image_fpath):
     pil_img = Image.open(image_fpath)
     return pil_img

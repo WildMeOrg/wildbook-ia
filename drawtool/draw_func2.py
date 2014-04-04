@@ -14,7 +14,6 @@ matplotlib.use('Qt4Agg')
 
 # Python
 from os.path import splitext, split, join, normpath, exists
-from itertools import product as iprod
 import colorsys
 import pylab
 import sys
@@ -24,7 +23,7 @@ import warnings
 # Matplotlib / Qt
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.collections import PatchCollection, LineCollection
+from matplotlib.collections import LineCollection
 from matplotlib.font_manager import FontProperties
 # Qt
 from PyQt4 import QtCore, QtGui
@@ -36,6 +35,7 @@ import cv2
 # VTool
 import mpl_keypoint as mpl_kp
 import vtool.patch as ptool
+import vtool.image as gtool
 
 #================
 # GLOBALS
@@ -1372,98 +1372,6 @@ def variation_trunctate(data):
 #_----------------- HELPERS ^^^ ---------
 
 
-# ---- IMAGE CREATION FUNCTIONS ----
-#@utool.DEPRICATED
-def draw_sift(desc, kp=None):
-    # TODO: There might be a divide by zero warning in here.
-    ''' desc = np.random.rand(128)
-        desc = desc / np.sqrt((desc**2).sum())
-        desc = np.round(desc * 255) '''
-    # This is draw, because it is an overlay
-    ax = gca()
-    tau = 2 * np.pi
-    DSCALE = .25
-    XYSCALE = .5
-    XYSHIFT = -.75
-    ORI_SHIFT = 0  # -tau #1/8 * tau
-    # SIFT CONSTANTS
-    NORIENTS = 8
-    NX = 4
-    NY = 4
-    NBINS = NX * NY
-
-    def cirlce_rad2xy(radians, mag):
-        return np.cos(radians) * mag, np.sin(radians) * mag
-    discrete_ori = (np.arange(0, NORIENTS) * (tau / NORIENTS) + ORI_SHIFT)
-    # Build list of plot positions
-    # Build an "arm" for each sift measurement
-    arm_mag   = desc / 255.0
-    arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
-    # The offset x,y's for each sift measurment
-    arm_dxy = np.array(zip(*cirlce_rad2xy(arm_ori, arm_mag)))
-    yxt_gen = iprod(xrange(NY), xrange(NX), xrange(NORIENTS))
-    yx_gen  = iprod(xrange(NY), xrange(NX))
-    # Transform the drawing of the SIFT descriptor to the its elliptical patch
-    axTrans = ax.transData
-    kpTrans = None
-    if kp is None:
-        kp = [0, 0, 1, 0, 1]
-    kp = np.array(kp)
-    kpT = kp.T
-    if len(kpT) == 6:
-        x, y, a, c, d, r = kpT
-    elif len(kpT) == 5:
-        x, y, a, c, d = kpT
-    kpTrans = mpl.transforms.Affine2D([( a, 0, x),
-                                       ( c, d, y),
-                                       ( 0, 0, 1)])
-    axTrans = ax.transData
-    # Draw 8 directional arms in each of the 4x4 grid cells
-    arrow_patches = []
-    arrow_patches2 = []
-    for y, x, t in yxt_gen:
-        index = y * NX * NORIENTS + x * NORIENTS + t
-        (dx, dy) = arm_dxy[index]
-        arw_x  = x * XYSCALE + XYSHIFT
-        arw_y  = y * XYSCALE + XYSHIFT
-        arw_dy = dy * DSCALE * 1.5  # scale for viz Hack
-        arw_dx = dx * DSCALE * 1.5
-        #posA = (arw_x, arw_y)
-        #posB = (arw_x+arw_dx, arw_y+arw_dy)
-        _args = [arw_x, arw_y, arw_dx, arw_dy]
-        _kwargs = dict(head_width=.0001, transform=kpTrans, length_includes_head=False)
-        arrow_patches  += [mpl.patches.FancyArrow(*_args, **_kwargs)]
-        arrow_patches2 += [mpl.patches.FancyArrow(*_args, **_kwargs)]
-    # Draw circles around each of the 4x4 grid cells
-    circle_patches = []
-    for y, x in yx_gen:
-        circ_xy = (x * XYSCALE + XYSHIFT, y * XYSCALE + XYSHIFT)
-        circ_radius = DSCALE
-        circle_patches += [mpl.patches.Circle(circ_xy, circ_radius, transform=kpTrans)]
-    # Efficiently draw many patches with PatchCollections
-    circ_collection = PatchCollection(circle_patches)
-    circ_collection.set_facecolor('none')
-    circ_collection.set_transform(axTrans)
-    circ_collection.set_edgecolor(BLACK)
-    circ_collection.set_alpha(.5)
-    # Body of arrows
-    arw_collection = PatchCollection(arrow_patches)
-    arw_collection.set_transform(axTrans)
-    arw_collection.set_linewidth(.5)
-    arw_collection.set_color(RED)
-    arw_collection.set_alpha(1)
-    # Border of arrows
-    arw_collection2 = mpl.collections.PatchCollection(arrow_patches2)
-    arw_collection2.set_transform(axTrans)
-    arw_collection2.set_linewidth(1)
-    arw_collection2.set_color(BLACK)
-    arw_collection2.set_alpha(1)
-    # Add artists to axes
-    ax.add_collection(circ_collection)
-    ax.add_collection(arw_collection2)
-    ax.add_collection(arw_collection)
-
-
 def scores_to_color(score_list, cmap_='hot', logscale=False):
     printDBG('scores_to_color()')
     assert len(score_list.shape) == 1, 'score must be 1d'
@@ -1795,90 +1703,6 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
         set_title(title)
 
 
-def get_num_channels(img):
-    ndims = len(img.shape)
-    if ndims == 2:
-        nChannels = 1
-    elif ndims == 3 and img.shape[2] == 3:
-        nChannels = 3
-    elif ndims == 3 and img.shape[2] == 1:
-        nChannels = 1
-    else:
-        raise Exception('Cannot determine number of channels')
-    return nChannels
-
-
-def stack_image_list(img_list, **kwargs):
-    if len(img_list) == 0:
-        return None
-    imgB = img_list[0]
-    offset_list = []
-    for count, img2 in enumerate(img_list):
-        if count == 0:
-            continue
-        imgB, woff, hoff = stack_images(imgB, img2, **kwargs)
-        offset_list.append((woff, hoff))
-    return imgB
-
-
-def stack_image_recurse(img_list1, img_list2=None, vert=True):
-    if img_list2 is None:
-        # Initialization and error checking
-        if len(img_list1) == 0:
-            return None
-        if len(img_list1) == 1:
-            return img_list1[0]
-        return stack_image_recurse(img_list1[0::2], img_list1[1::2], vert=vert)
-    if len(img_list1) == 1:
-        # Left base case
-        img1 = img_list1[0]
-    else:
-        # Left recurse
-        img1 = stack_image_recurse(img_list1[0::2], img_list1[1::2], vert=not vert)
-    if len(img_list2) == 1:
-        # Right base case
-        img2 = img_list2[0]
-    else:
-        # Right Recurse
-        img2 = stack_image_recurse(img_list2[0::2], img_list2[1::2], vert=not vert)
-    imgB, woff, hoff = stack_images(img1, img2, vert=vert)
-    return imgB
-
-
-def stack_images(img1, img2, vert=None):
-    nChannels = get_num_channels(img1)
-    nChannels2 = get_num_channels(img2)
-    assert nChannels == nChannels2
-    (h1, w1) = img1.shape[0: 2]  # get chip dimensions
-    (h2, w2) = img2.shape[0: 2]
-    woff, hoff = 0, 0
-    vert_wh  = max(w1, w2), h1 + h2
-    horiz_wh = w1 + w2, max(h1, h2)
-    if vert is None:
-        # Display the orientation with the better (closer to 1) aspect ratio
-        vert_ar  = max(vert_wh) / min(vert_wh)
-        horiz_ar = max(horiz_wh) / min(horiz_wh)
-        vert = vert_ar < horiz_ar
-    if vert:
-        wB, hB = vert_wh
-        hoff = h1
-    else:
-        wB, hB = horiz_wh
-        woff = w1
-    # concatentate images
-    dtype = img1.dtype
-    assert img1.dtype == img2.dtype
-    if nChannels == 3:
-        imgB = np.zeros((hB, wB, 3), dtype)
-        imgB[0:h1, 0:w1, :] = img1
-        imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
-    elif nChannels == 1:
-        imgB = np.zeros((hB, wB), dtype)
-        imgB[0:h1, 0:w1] = img1
-        imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
-    return imgB, woff, hoff
-
-
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False, **kwargs):
     '''Draws two chips and the feature matches between them. feature matches
@@ -2000,3 +1824,75 @@ def color_orimag(gori, gmag):
     # Convert back to bgr
     bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2RGB)
     return bgr_ori
+
+
+def stack_image_list(img_list, **kwargs):
+    if len(img_list) == 0:
+        return None
+    imgB = img_list[0]
+    offset_list = []
+    for count, img2 in enumerate(img_list):
+        if count == 0:
+            continue
+        imgB, woff, hoff = stack_images(imgB, img2, **kwargs)
+        offset_list.append((woff, hoff))
+    return imgB
+
+
+def stack_image_recurse(img_list1, img_list2=None, vert=True):
+    if img_list2 is None:
+        # Initialization and error checking
+        if len(img_list1) == 0:
+            return None
+        if len(img_list1) == 1:
+            return img_list1[0]
+        return stack_image_recurse(img_list1[0::2], img_list1[1::2], vert=vert)
+    if len(img_list1) == 1:
+        # Left base case
+        img1 = img_list1[0]
+    else:
+        # Left recurse
+        img1 = stack_image_recurse(img_list1[0::2], img_list1[1::2], vert=not vert)
+    if len(img_list2) == 1:
+        # Right base case
+        img2 = img_list2[0]
+    else:
+        # Right Recurse
+        img2 = stack_image_recurse(img_list2[0::2], img_list2[1::2], vert=not vert)
+    imgB, woff, hoff = stack_images(img1, img2, vert=vert)
+    return imgB
+
+
+def stack_images(img1, img2, vert=None):
+    # TODO: move this to the same place I'm doing the color gradient
+    nChannels = gtool.get_num_channels(img1)
+    nChannels2 = gtool.get_num_channels(img2)
+    assert nChannels == nChannels2
+    (h1, w1) = img1.shape[0: 2]  # get chip dimensions
+    (h2, w2) = img2.shape[0: 2]
+    woff, hoff = 0, 0
+    vert_wh  = max(w1, w2), h1 + h2
+    horiz_wh = w1 + w2, max(h1, h2)
+    if vert is None:
+        # Display the orientation with the better (closer to 1) aspect ratio
+        vert_ar  = max(vert_wh) / min(vert_wh)
+        horiz_ar = max(horiz_wh) / min(horiz_wh)
+        vert = vert_ar < horiz_ar
+    if vert:
+        wB, hB = vert_wh
+        hoff = h1
+    else:
+        wB, hB = horiz_wh
+        woff = w1
+    # concatentate images
+    dtype = img1.dtype
+    assert img1.dtype == img2.dtype
+    if nChannels == 3:
+        imgB = np.zeros((hB, wB, 3), dtype)
+        imgB[0:h1, 0:w1, :] = img1
+        imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
+    elif nChannels == 1:
+        imgB = np.zeros((hB, wB), dtype)
+        imgB[0:h1, 0:w1] = img1
+        imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+    return imgB, woff, hoff

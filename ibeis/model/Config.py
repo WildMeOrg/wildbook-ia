@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import utool
-print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[Config]', DEBUG=False)
+print, print_,  printDBG, rrr, profile = utool.inject(
+    __name__, '[Config]', DEBUG=False)
 
 ConfigBase = utool.Pref
 #ConfigBase = utool.DynStruct

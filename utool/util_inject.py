@@ -61,7 +61,6 @@ def _inject_colored_exception_hook():
         from pygments import highlight
         from pygments.lexers import get_lexer_by_name
         from pygments.formatters import TerminalFormatter
-
         tbtext = ''.join(traceback.format_exception(type, value, tb))
         lexer = get_lexer_by_name("pytb", stripall=True)
         formatter = TerminalFormatter(bg="dark")

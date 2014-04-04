@@ -3,6 +3,7 @@ This file has helpers for both lists and numpy arrays
 '''
 from __future__ import division, print_function
 import numpy as np
+from itertools import izip
 from .util_iter import iflatten
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
@@ -110,6 +111,25 @@ def inbounds(arr, low, high):
     flag_high = arr < high if high is not None else flag_low
     flag = np.logical_and(flag_low, flag_high)
     return flag
+
+
+def assert_all_not_None(list_, list_name='some_list'):
+    if any([item is None for count, item in enumerate(list_)]):
+        msg = ((list_name + '[%d] = %r') % (count, item))
+        raise AssertionError(msg)
+
+
+def get_dirty_items(item_list, flag_list):
+    """ Returns each item in item_list where the corresponding item in flag list
+    is not None """
+    assert len(item_list) == len(flag_list)
+    dirty_items = [item for (item, flag) in
+                   izip(item_list, flag_list)
+                   if not flag]
+    #print('num_dirty_items = %r' % len(dirty_items))
+    #print('item_list = %r' % (item_list,))
+    #print('flag_list = %r' % (flag_list,))
+    return dirty_items
 
 
 # --- List combinations --- #

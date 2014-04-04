@@ -58,6 +58,8 @@ def TEST_GUI_ALL():
     rid1 = add_roi(gid_list[0], [0, 0, 100, 100])
     rid2 = add_roi(gid_list[1], [50, 50, 100, 100])
     rid3 = add_roi(gid_list[2], [50, 50, 64, 64])
+    rid4 = add_roi(gid_list[2], [50, 50, 200, 200])
+    rid5 = add_roi(gid_list[1], [0, 0, 400, 400])
 
     #
     #

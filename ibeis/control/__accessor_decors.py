@@ -37,7 +37,7 @@ def getter(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a heterogeous list of values """
     @utool.accepts_scalar_input
-    @utool.indent_decor('[' + func.func_name + ']')
+    @utool.indent_func
     @utool.ignores_exc_tb
     @functools.wraps(func)
     def getter_wrapper1(*args, **kwargs):
