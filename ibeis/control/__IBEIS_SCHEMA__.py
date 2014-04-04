@@ -54,6 +54,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('features', (
         ('feature_uid',                  'INTEGER PRIMARY KEY'),
         ('chip_uid',                     'INTEGER NOT NULL'),
+        ('feature_num_feats',            'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
     ), ['CONSTRAINT superkey UNIQUE (chip_uid)']

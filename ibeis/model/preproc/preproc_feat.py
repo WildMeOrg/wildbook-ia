@@ -22,5 +22,5 @@ def add_feat_params_gen(ibs, cid_list):
     for count, (cid, cpath) in enumerate(izip(cid_list, cfpath_list)):
         mark_prog(count)
         kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)
-        yield cid, kpts, desc
+        yield cid, len(kpts), kpts, desc
     end_prog()

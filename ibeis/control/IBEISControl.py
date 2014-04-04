@@ -218,10 +218,11 @@ class IBEISControl(object):
                 (
                     feature_uid,
                     chip_uid,
+                    feature_num_feats,
                     feature_keypoints,
                     feature_sifts
                 )
-                VALUES (NULL, ?, ?, ?)
+                VALUES (NULL, ?, ?, ?, ?)
                 ''',
                 parameters_iter=(tup for tup in param_iter))
             fid_list = ibs.get_chip_fids(cid_list, ensure=False)
@@ -409,6 +410,10 @@ class IBEISControl(object):
     def get_name_properties(ibs, prop_key, nid_list):
         """ general name property getter """
         return ibs.get_table_properties('names', prop_key, nid_list)
+
+    def get_feat_properties(ibs, prop_key, fid_list):
+        """ general feature property getter """
+        return ibs.get_table_properties('features', prop_key, fid_list)
 
     #
     # GETTERS::Image
@@ -674,9 +679,7 @@ class IBEISControl(object):
     def get_roi_num_feats(ibs, rid_list, ensure=False):
         cid_list = ibs.get_roi_cids(rid_list, ensure=ensure)
         fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
-        kpts_list = ibs.get_feat_kpts(fid_list)
-        nFeats_list = [None if kpts is None else len(kpts)
-                       for kpts in kpts_list]
+        nFeats_list = ibs.get_num_feats(fid_list)
         return nFeats_list
 
     #
@@ -732,26 +735,18 @@ class IBEISControl(object):
     @getter_vector_output
     def get_feat_kpts(ibs, fid_list):
         """ Returns chip keypoints """
-        kpts_list = ibs.db.executemany(
-            operation='''
-            SELECT feature_keypoints
-            FROM features
-            WHERE feature_uid=?
-            ''',
-            parameters_iter=((fid,) for fid in fid_list))
+        kpts_list = ibs.get_feat_properties('feature_keypoints', fid_list)
         return kpts_list
 
     @getter_vector_output
     def get_feat_desc(ibs, fid_list):
         """ Returns chip descriptors """
-        desc_list = ibs.db.executemany(
-            operation='''
-            SELECT feature_sifts
-            FROM features
-            WHERE feature_uid=?
-            ''',
-            parameters_iter=((fid,) for fid in fid_list))
+        desc_list = ibs.get_feat_properties('feature_sifts', fid_list)
         return desc_list
+
+    def get_num_feats(ibs, fid_list):
+        nFeats_list = ibs.get_feat_properties('feature_num_feats', fid_list)
+        return nFeats_list
 
     #
     # GETTERS::Mask

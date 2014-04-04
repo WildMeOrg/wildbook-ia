@@ -82,11 +82,15 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
     # TODO: Actually make this compute in parallel
     chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
                          theta_list, newsize_list)
-    for cfpath, gfpath, bbox, theta, new_size in chipinfo_iter:
-        print_('.')
+    num_chips = len(cfpath_list)
+    mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ')
+    for count, chipinfo in enumerate(chipinfo_iter):
+        mark_prog(count)
+        (cfpath, gfpath, bbox, theta, new_size) = chipinfo
         chipBGR = ctool.compute_chip(gfpath, bbox, theta,
                                      new_size, filter_list)
         yield chipBGR, cfpath
+    end_prog()
 
 
 def compute_and_write_chips(ibs, rid_list):
@@ -110,7 +114,7 @@ def compute_and_write_chips(ibs, rid_list):
                                       newsize_list, filter_list)
     # Write results to disk as they come back from parallel processess
     for chipBGR, chip_fpath in chip_async_iter:
-        print('write chip: %r' % chip_fpath)
+        #print('write chip: %r' % chip_fpath)
         gtool.imwrite(chip_fpath, chipBGR)
 
 

@@ -63,9 +63,9 @@ class Timer(object):
         return ellapsed
 
     def __enter__(self):
-        #if not self.msg is None:
-            #sys.stdout.write('---tic---'+self.msg+'  \n')
-        #self.tic()
+        if not self.msg is None:
+            sys.stdout.write('---tic---' + self.msg + '  \n')
+        self.tic()
         return self
 
     def __exit__(self, type, value, trace):
