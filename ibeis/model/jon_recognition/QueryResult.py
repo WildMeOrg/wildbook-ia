@@ -29,16 +29,16 @@ def remove_corrupted_queries(ibs, res, dryrun=True):
     # This res must be corrupted!
     uid = res.uid
     hash_id = utool.hashstr(uid, HASH_LEN)
-    qres_dir  = ibs.dirs.qres_dir
-    testres_dir = join(ibs.dirs.cache_dir, 'experiment_harness_results')
+    qres_dir  = ibs.qresdir
+    testres_dir = join(ibs.cachedir, 'experiment_harness_results')
     utool.remove_files_in_dir(testres_dir, dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + uid + '*', dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(ibs, qcx, uid):
-    qres_dir  = ibs.dirs.qres_dir
-    qcid  = ibs.tables.cid2_cid[qcx]
+def query_result_fpath(ibs, qcid, uid):
+    qres_dir  = ibs.qresdir
+    qcid  = ibs.tables.cid2_cid[qcid]
     fname = 'res_%s_qcid=%d.npz' % (uid, qcid)
     if len(fname) > 64:
         hash_id = utool.hashstr(uid, HASH_LEN)
@@ -47,8 +47,8 @@ def query_result_fpath(ibs, qcx, uid):
     return fpath
 
 
-def query_result_exists(ibs, qcx, uid):
-    fpath = query_result_fpath(ibs, qcx, uid)
+def query_result_exists(ibs, qcid, uid):
+    fpath = query_result_fpath(ibs, qcid, uid)
     return exists(fpath)
 
 
@@ -56,12 +56,12 @@ __OBJECT_BASE__ = object if not utool.get_flag('--debug') else utool.DynStrucct
 
 
 class QueryResult(__OBJECT_BASE__):
-    #__slots__ = ['qcx', 'uid', 'nn_time',
+    #__slots__ = ['qcid', 'uid', 'nn_time',
                  #'weight_time', 'filt_time', 'build_time', 'verify_time',
                  #'cid2_fm', 'cid2_fs', 'cid2_fk', 'cid2_score']
-    def __init__(res, qcx, uid):
+    def __init__(res, qcid, uid):
         super(QueryResult, res).__init__()
-        res.qcx = qcx
+        res.qcid = qcid
         res.uid = uid
         # Assigned features matches
         res.cid2_fm = np.array([], dtype=FM_DTYPE)
@@ -72,10 +72,10 @@ class QueryResult(__OBJECT_BASE__):
         res.filt2_meta = {}  # messy
 
     def has_cache(res, ibs):
-        return query_result_exists(ibs, res.qcx)
+        return query_result_exists(ibs, res.qcid)
 
     def get_fpath(res, ibs):
-        return query_result_fpath(ibs, res.qcx, res.uid)
+        return query_result_fpath(ibs, res.qcid, res.uid)
 
     @profile
     def save(res, ibs):
@@ -89,7 +89,7 @@ class QueryResult(__OBJECT_BASE__):
     def load(res, ibs):
         'Loads the result from the given database'
         fpath = res.get_fpath(ibs)
-        qcx_good = res.qcx
+        qcid_good = res.qcid
         try:
             with open(fpath, 'rb') as file_:
                 npz = np.load(file_)
@@ -100,7 +100,7 @@ class QueryResult(__OBJECT_BASE__):
             # These are nonarray items even if they are not lists
             # tolist seems to convert them back to their original
             # python representation
-            res.qcx = res.qcx.tolist()
+            res.qcid = res.qcid.tolist()
             try:
                 res.filt2_meta = res.filt2_meta.tolist()
             except AttributeError:
@@ -113,16 +113,16 @@ class QueryResult(__OBJECT_BASE__):
             if not exists(fpath):
                 print('[qr] query result cache miss')
                 #print(fpath)
-                #print('[qr] QueryResult(qcx=%d) does not exist' % res.qcx)
+                #print('[qr] QueryResult(qcid=%d) does not exist' % res.qcid)
                 raise
             else:
-                msg = ['[qr] QueryResult(qcx=%d) is corrupted' % (res.qcx)]
+                msg = ['[qr] QueryResult(qcid=%d) is corrupted' % (res.qcid)]
                 msg += ['\n%r' % (ex,)]
                 print(''.join(msg))
                 raise Exception(msg)
         except BadZipFile as ex:
             print('[qr] Caught other BadZipFile: %r' % ex)
-            msg = ['[qr] Attribute Error: QueryResult(qcx=%d) is corrupted' % (res.qcx)]
+            msg = ['[qr] Attribute Error: QueryResult(qcid=%d) is corrupted' % (res.qcid)]
             msg += ['\n%r' % (ex,)]
             print(''.join(msg))
             if exists(fpath):
@@ -134,41 +134,41 @@ class QueryResult(__OBJECT_BASE__):
         except Exception as ex:
             print('Caught other Exception: %r' % ex)
             raise
-        res.qcx = qcx_good
+        res.qcid = qcid_good
 
     def cache_bytes(res, ibs):
         fpath = res.get_fpath(ibs)
         return utool.file_bytes(fpath)
 
-    def get_gt_ranks(res, gt_cxs=None, ibs=None):
+    def get_gt_ranks(res, gt_cids=None, ibs=None):
         'returns the 0 indexed ranking of each groundtruth chip'
         # Ensure correct input
-        if gt_cxs is None and ibs is None:
+        if gt_cids is None and ibs is None:
             raise Exception('[qr] error')
-        if gt_cxs is None:
-            gt_cxs = ibs.get_other_indexed_cxs(res.qcx)
-        return res.get_cx_ranks(gt_cxs)
+        if gt_cids is None:
+            gt_cids = ibs.get_other_indexed_cids(res.qcid)
+        return res.get_cid_ranks(gt_cids)
 
-    def get_cx_ranks(res, cid_list):
+    def get_cid_ranks(res, cid_list):
         'get ranks of chip indexes in cid_list'
-        cid2_score = res.get_cx2_score()
-        top_cxs  = cid2_score.argsort()[::-1]
-        foundpos = [np.where(top_cxs == cid)[0] for cid in cid_list]
+        cid2_score = res.get_cid2_score()
+        top_cids  = cid2_score.argsort()[::-1]
+        foundpos = [np.where(top_cids == cid)[0] for cid in cid_list]
         ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
         assert all([len(r) == 1 for r in ranks_])
         rank_list = [r[0] for r in ranks_]
         return rank_list
 
-    def get_cx2_score(res):
+    def get_cid2_score(res):
         return res.cid2_score
 
-    def get_cx2_fm(res):
+    def get_cid2_fm(res):
         return res.cid2_fm
 
-    def get_cx2_fs(res):
+    def get_cid2_fs(res):
         return res.cid2_fs
 
-    def get_cx2_fk(res):
+    def get_cid2_fk(res):
         return res.cid2_fk
 
     def get_fmatch_iter(res):
@@ -178,37 +178,37 @@ class QueryResult(__OBJECT_BASE__):
                        for (fx_tup, score, rank) in izip(fm, fs, fk))
         return fmatch_iter
 
-    def topN_cxs(res, ibs, N=None, only_gt=False, only_nongt=False):
-        cid2_score = np.array(res.get_cx2_score())
+    def topN_cids(res, ibs, N=None, only_gt=False, only_nongt=False):
+        cid2_score = np.array(res.get_cid2_score())
         if ibs.prefs.display_cfg.name_scoring:
             cid2_chipscore = np.array(cid2_score)
             cid2_score = vr2.enforce_one_name(ibs, cid2_score,
                                               cid2_chipscore=cid2_chipscore)
-        top_cxs = cid2_score.argsort()[::-1]
-        dcxs_ = set(ibs.get_indexed_sample()) - set([res.qcx])
-        top_cxs = [cid for cid in iter(top_cxs) if cid in dcxs_]
-        #top_cxs = np.intersect1d(top_cxs, ibs.get_indexed_sample())
+        top_cids = cid2_score.argsort()[::-1]
+        dcids_ = set(ibs.get_indexed_sample()) - set([res.qcid])
+        top_cids = [cid for cid in iter(top_cids) if cid in dcids_]
+        #top_cids = np.intersect1d(top_cids, ibs.get_indexed_sample())
         if only_gt:
-            gt_cxs = set(ibs.get_other_indexed_cxs(res.qcx))
-            top_cxs = [cid for cid in iter(top_cxs) if cid in gt_cxs]
+            gt_cids = set(ibs.get_other_indexed_cids(res.qcid))
+            top_cids = [cid for cid in iter(top_cids) if cid in gt_cids]
         if only_nongt:
-            gt_cxs = set(ibs.get_other_indexed_cxs(res.qcx))
-            top_cxs = [cid for cid in iter(top_cxs) if not cid in gt_cxs]
-        nIndexed = len(top_cxs)
+            gt_cids = set(ibs.get_other_indexed_cids(res.qcid))
+            top_cids = [cid for cid in iter(top_cids) if not cid in gt_cids]
+        nIndexed = len(top_cids)
         if N is None:
             N = ibs.prefs.display_cfg.N
         if N == 'all':
             N = nIndexed
         #print('[qr] cid2_score = %r' % (cid2_score,))
-        #print('[qr] returning top_cxs = %r' % (top_cxs,))
+        #print('[qr] returning top_cids = %r' % (top_cids,))
         nTop = min(N, nIndexed)
         #print('[qr] returning nTop = %r' % (nTop,))
-        topN_cxs = top_cxs[0:nTop]
-        return topN_cxs
+        topN_cids = top_cids[0:nTop]
+        return topN_cids
 
     def compute_seperability(res, ibs):
-        top_gt = res.topN_cxs(ibs, N=1, only_gt=True)
-        top_nongt = res.topN_cxs(ibs, N=1, only_nongt=True)
+        top_gt = res.topN_cids(ibs, N=1, only_gt=True)
+        top_nongt = res.topN_cids(ibs, N=1, only_nongt=True)
         if len(top_gt) == 0:
             return None
         score_true = res.cid2_score[top_gt[0]]
@@ -231,9 +231,9 @@ class QueryResult(__OBJECT_BASE__):
 
     def show_gt_matches(res, ibs, *args, **kwargs):
         from ibeis.view import viz
-        figtitle = ('q%s -- GroundTruth' % (ibs.cidstr(res.qcx)))
-        gt_cxs = ibs.get_other_indexed_cxs(res.qcx)
-        return viz._show_chip_matches(ibs, res, gt_cxs=gt_cxs, figtitle=figtitle,
+        figtitle = ('q%s -- GroundTruth' % (ibs.cidstr(res.qcid)))
+        gt_cids = ibs.get_other_indexed_cids(res.qcid)
+        return viz._show_chip_matches(ibs, res, gt_cids=gt_cids, figtitle=figtitle,
                                       all_kpts=True, *args, **kwargs)
 
     def show_chipres(res, ibs, cid, **kwargs):
@@ -246,24 +246,24 @@ class QueryResult(__OBJECT_BASE__):
 
     def interact_top_chipres(res, ibs, tx, **kwargs):
         from ibeis.view import interact
-        cid = res.topN_cxs(ibs, tx + 1)[tx]
+        cid = res.topN_cids(ibs, tx + 1)[tx]
         return interact.interact_chipres(ibs, res, cid, **kwargs)
 
     def show_nearest_descriptors(res, ibs, qfx, dodraw=True):
         from ibeis.view import viz
-        qcx = res.qcx
-        viz.show_nearest_descriptors(ibs, qcx, qfx, fnum=None)
+        qcid = res.qcid
+        viz.show_nearest_descriptors(ibs, qcid, qfx, fnum=None)
         if dodraw:
             viz.draw()
 
     def get_match_index(res, ibs, cid, qfx, strict=True):
-        qcx = res.qcx
+        qcid = res.qcid
         fm = res.cid2_fm[cid]
         mx_list = np.where(fm[:, 0] == qfx)[0]
         if len(mx_list) != 1:
             if strict:
                 raise IndexError('qfx=%r not found in query %s' %
-                                 (qfx, ibs.vs_str(qcx, cid)))
+                                 (qfx, ibs.vs_str(qcid, cid)))
             else:
                 return None
         else:

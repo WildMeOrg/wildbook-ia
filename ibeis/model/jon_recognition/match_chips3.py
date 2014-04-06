@@ -18,7 +18,7 @@ from ibeis.model.jon_recognition import matching_functions as mf
 
 def get_bigcache_io_kwargs(ibs, qreq):
     query_uid = qreq.get_query_uid(ibs, qreq.qcids)
-    cache_dir = join(ibs.dirs.cache_dir, 'bigcache_query')
+    cache_dir = join(ibs.cachedir, 'bigcache_query')
     io_kwargs = {
         'dpath': cache_dir,
         'fname': 'bigcache_query',

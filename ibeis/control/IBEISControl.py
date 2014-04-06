@@ -80,6 +80,7 @@ class IBEISControl(object):
         ibs.cachedir = join(ibs.dbdir, '_ibeis_cache')
         ibs.chipdir  = join(ibs.cachedir, 'chips')
         ibs.flanndir = join(ibs.cachedir, 'flann')
+        ibs.qresdir = join(ibs.cachedir, 'query_results')
         printDBG('[ibs._init_dirs] ibs.dbfname = %r' % ibs.dbfname)
         printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
@@ -977,9 +978,11 @@ class IBEISControl(object):
     @utool.indent_func
     def query_database(ibs, qcid_list, **kwargs):
         """ _query_chips wrapper """
+        if not hasattr(ibs, 'qreq'):
+            ibs._init_query_requestor()
         dcid_list = ibs.get_recognition_database_chips()
-        qres_list = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
-        return qres_list
+        qcid2_res = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
+        return qcid2_res
 
     def _init_query_requestor(ibs):
         from ibeis.model.jon_recognition import QueryRequest
