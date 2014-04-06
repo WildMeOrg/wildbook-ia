@@ -1,13 +1,130 @@
 from __future__ import division, print_function
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nnindex]', DEBUG=False)
 # Standard
 from itertools import izip, chain, imap
-import utool
-from ibeis.dev import params
+from os.path import join, normpath, split, exists
+# Science
 import numpy as np
-from os.path import join, normpath, split
 import pyflann
+# UTool
+import utool
+# IBEIS
+from ibeis.dev import params
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[nnindex]', DEBUG=False)
+
+
+def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
+    cache_dir = '.' if cache_dir is None else cache_dir
+    # Generate a unique filename for data and flann parameters
+    fparams_uid = utool.remove_chars(str(flann_params.values()), ', \'[]')
+    data_uid = utool.hashstr_arr(data, 'dID')  # flann is dependent on the data
+    flann_suffix = '_' + fparams_uid + '_' + data_uid + '.flann'
+    # Append any user labels
+    flann_fname = 'flann_index_' + uid + flann_suffix
+    flann_fpath = normpath(join(cache_dir, flann_fname))
+    return flann_fpath
+
+
+def precompute_flann(data, cache_dir=None, uid='', flann_params=None,
+                     force_recompute=False):
+    """ Tries to load a cached flann index before doing anything """
+    print('[flann] precompute_flann(%r): ' % uid)
+    flann_fpath = get_flann_fpath(data, cache_dir, uid, flann_params)
+    flann = pyflann.FLANN()
+    load_success = False
+    # Load the index if it exists
+    if exists(flann_fpath) and not force_recompute:
+        try:
+            flann.load_index(flann_fpath, data)
+            print('[flann]...flann cache hit')
+            load_success = True
+        except Exception as ex:
+            print('[flann] ...cannot load index')
+            print('[flann] ...caught ex=\n%r' % (ex,))
+    # Rebuild the index otherwise
+    if not load_success:
+        with utool.Timer('compute FLANN'):
+            flann.build_index(data, **flann_params)
+        print('[flann] save_index(%r)' % split(flann_fpath)[1])
+        flann.save_index(flann_fpath)
+    return flann
+
+
+def get_flann_uid(ibs, cid_list):
+    feat_uid   = ibs.cfg.feat_cfg.get_uid()
+    sample_uid = utool.hashstr_arr(cid_list, 'dcids')
+    uid = '_' + sample_uid + feat_uid
+    return uid
+
+
+def aggregate_descriptors(ibs, cid_list):
+    """ Aggregates descriptors with inverted information
+     Return agg_index to(2) -> desc (descriptor)
+                               cid (chip uid)
+                               fx (feature index w.r.t. cid)
+    """
+    with utool.Timer('[nnindex] aggregate descriptors'):
+        fid_list = ibs.get_chip_fids(cid_list)
+        desc_list = ibs.get_feat_desc(fid_list)
+        # For each descriptor create a (cid, fx) pair indicating its
+        # chip id and the feature index in that chip id.
+        _ax2_cid = ([cid] * nFeat for (cid, nFeat) in
+                    izip(cid_list, imap(len, desc_list)))
+        _ax2_fx = (xrange(nFeat) for nFeat in imap(len, desc_list))
+        # flatten iterators with mondofast python magic
+        ax2_cid = np.array(list(chain.from_iterable(_ax2_cid)))
+        ax2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
+        try:
+            # Stack into giant numpy array for efficient indexing.
+            ax2_desc = np.vstack(desc_list)
+        except MemoryError as ex:
+            with utool.Indenter('[mem error]'):
+                utool.print_exception(ex, 'not enough space for inverted index')
+                print('len(cid_list) = %r' % (len(cid_list),))
+            raise
+    return ax2_desc, ax2_cid, ax2_fx
+
+
+def build_flann_inverted_index(ibs, cid_list):
+    ax2_desc, ax2_cid, ax2_fx = aggregate_descriptors(ibs, cid_list)
+    # Build/Load the flann index
+    flann_uid = get_flann_uid(ibs, cid_list)
+    flann_params = {'algorithm': 'kdtree', 'trees': 4}
+    precomp_kwargs = {'cache_dir': ibs.cachedir,
+                      'uid': flann_uid,
+                      'flann_params': flann_params,
+                      'force_recompute': params.args.nocache_flann}
+    flann = precompute_flann(ax2_desc, **precomp_kwargs)
+    return ax2_cid, ax2_fx, ax2_desc, flann
+
+
+class NNIndex(object):
+    """ Nearest Neighbor (FLANN) Index Class """
+    def __init__(nn_index, ibs, cid_list):
+        print('[ds] building NNIndex object')
+        ax2_cid, ax2_fx, ax2_desc, flann = build_flann_inverted_index(ibs,
+                                                                      cid_list)
+        # Agg Data
+        nn_index.ax2_cid  = ax2_cid
+        nn_index.ax2_fx   = ax2_fx
+        nn_index.ax2_data = ax2_desc
+        nn_index.flann = flann
+
+    def __getstate__(nn_index):
+        """ This class it not pickleable """
+        printDBG('get state NNIndex')
+        #if 'flann' in nn_index.__dict__ and nn_index.flann is not None:
+            #nn_index.flann.delete_index()
+            #nn_index.flann = None
+        # This class is not pickleable
+        return None
+
+    def __del__(nn_index):
+        """ Ensure flann is propertly removed """
+        printDBG('deleting NNIndex')
+        if getattr(nn_index, 'flann', None) is not None:
+            nn_index.flann.delete_index()
+            nn_index.flann = None
 
 
 def tune_flann(data, **kwargs):
@@ -121,124 +238,3 @@ def tune_flann(data, **kwargs):
                    #"kl"               : 8 }
 
 #pyflann.set_distance_type('hellinger', order=0)
-
-
-def get_flann_fpath(data, cache_dir, uid='', flann_params=None):
-    cache_dir = '.' if cache_dir is None else cache_dir
-    # Generate a unique filename for data and flann parameters
-    fparams_uid = utool.remove_chars(str(flann_params.values()), ', \'[]')
-    data_uid = utool.hashstr_arr(data, 'dID')  # flann is dependent on the data
-    flann_suffix = '_' + fparams_uid + '_' + data_uid + '.flann'
-    # Append any user labels
-    flann_fname = 'flann_index_' + uid + flann_suffix
-    flann_fpath = normpath(join(cache_dir, flann_fname))
-    return flann_fpath
-
-
-#@profile
-def precompute_flann(data, cache_dir=None, uid='', flann_params=None,
-                     force_recompute=False):
-    ''' Tries to load a cached flann index before doing anything'''
-    print('[flann] precompute_flann(%r): ' % uid)
-    # Load the index if it exists
-    flann_fpath = get_flann_fpath(data, cache_dir, uid, flann_params)
-    flann = pyflann.FLANN()
-    load_success = False
-    if utool.checkpath(flann_fpath) and not force_recompute:
-        try:
-            #print('[flann] precompute_flann():
-                #trying to load: %r ' % flann_fname)
-            flann.load_index(flann_fpath, data)
-            print('[flann]...flann cache hit')
-            load_success = True
-        except Exception as ex:
-            print('[flann] precompute_flann(): ...cannot load index')
-            print('[flann] precompute_flann(): ...caught ex=\n%r' % (ex,))
-    if not load_success:
-        # Rebuild the index otherwise
-        with utool.Timer(msg='compute FLANN', newline=False):
-            flann.build_index(data, **flann_params)
-        print('[flann] precompute_flann(): save_index(%r)' % split(flann_fpath)[1])
-        flann.save_index(flann_fpath)
-    return flann
-
-
-def get_flann_uid(ibs, cid_list):
-    feat_uid   = ibs.prefs.feat_cfg.get_uid()
-    sample_uid = utool.hashstr_arr(cid_list, 'dcxs')
-    uid = '_' + sample_uid + feat_uid
-    return uid
-
-
-@profile
-def build_flann_inverted_index(ibs, cid_list, return_info=False):
-    cid2_desc  = ibs.feats.cid2_desc
-    assert max(cid_list) < len(cid2_desc)
-    uid = get_flann_uid(ibs, cid_list)
-    # Make unique id for indexed descriptors
-    # Number of features per sample chip
-    nFeat_iter1 = imap(lambda cid: len(cid2_desc[cid]), iter(cid_list))
-    nFeat_iter2 = imap(lambda cid: len(cid2_desc[cid]), iter(cid_list))
-    nFeat_iter3 = imap(lambda cid: len(cid2_desc[cid]), iter(cid_list))
-    # Inverted index from indexed descriptor to chipx and featx
-    _ax2_cx = ([cid] * nFeat for (cid, nFeat) in izip(cid_list, nFeat_iter1))
-    _ax2_fx = (xrange(nFeat) for nFeat in iter(nFeat_iter2))
-    ax2_cx  = np.array(list(chain.from_iterable(_ax2_cx)))
-    ax2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
-    # Aggregate indexed descriptors into continuous structure
-    try:
-        # sanatize cid_list
-        cid_list = [cid for cid, nFeat in izip(iter(cid_list), nFeat_iter3) if nFeat > 0]
-        if isinstance(cid2_desc, list):
-            ax2_desc = np.vstack((cid2_desc[cid] for cid in cid_list))
-        elif isinstance(cid2_desc, np.ndarray):
-            ax2_desc = np.vstack(cid2_desc[cid_list])
-    except MemoryError as ex:
-        with utool.Indenter('[mem error]'):
-            print(ex)
-            print('len(cid_list) = %r' % (len(cid_list),))
-            print('len(cid_list) = %r' % (len(cid_list),))
-        raise
-    except Exception as ex:
-        with utool.Indenter('[unknown error]'):
-            print(ex)
-            print('cid_list = %r' % (cid_list,))
-        raise
-    # Build/Load the flann index
-    flann_params = {'algorithm': 'kdtree', 'trees': 4}
-    precomp_kwargs = {'cache_dir': ibs.dirs.cache_dir,
-                      'uid': uid,
-                      'flann_params': flann_params,
-                      'force_recompute': params.args.nocache_flann}
-    flann = precompute_flann(ax2_desc, **precomp_kwargs)
-    if not return_info:
-        return ax2_cx, ax2_fx, ax2_desc, flann
-    else:
-        return ax2_cx, ax2_fx, ax2_desc, flann, precomp_kwargs
-
-
-class NNIndex(object):
-    'Nearest Neighbor (FLANN) Index Class'
-    def __init__(nn_index, ibs, cid_list):
-        print('[ds] building NNIndex object')
-        ax2_cx, ax2_fx, ax2_desc, flann = build_flann_inverted_index(ibs, cid_list)
-        #----
-        # Agg Data
-        nn_index.ax2_cx   = ax2_cx
-        nn_index.ax2_fx   = ax2_fx
-        nn_index.ax2_data = ax2_desc
-        nn_index.flann = flann
-
-    def __getstate__(nn_index):
-        printDBG('get state NNIndex')
-        #if 'flann' in nn_index.__dict__ and nn_index.flann is not None:
-            #nn_index.flann.delete_index()
-            #nn_index.flann = None
-        # This class is not pickleable
-        return None
-
-    def __del__(nn_index):
-        printDBG('deleting NNIndex')
-        if 'flann' in nn_index.__dict__ and nn_index.flann is not None:
-            nn_index.flann.delete_index()
-            nn_index.flann = None

@@ -9,4 +9,5 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     from ibeis.dev import main_api
     main_locals = main_api.main()
+    ibs = main_locals['ibs']
     main_api.main_loop(main_locals)

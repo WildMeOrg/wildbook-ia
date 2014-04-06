@@ -26,9 +26,11 @@ from ibeis.model.preproc import preproc_feat
 # IBEIS
 from ibeis.control import __IBEIS_SCHEMA__
 from ibeis.control import SQLDatabaseControl
-from ibeis.control.__accessor_decors import (adder, setter, getter,
-                                             getter_vector_output,
-                                             getter_general, deleter)
+from ibeis.control.accessor_decors import (adder, setter, getter,
+                                           getter_numpy,
+                                           getter_numpy_vector_output,
+                                           getter_vector_output,
+                                           getter_general, deleter)
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
@@ -46,7 +48,7 @@ VERBOSE = utool.get_flag('--verbose')
 class IBEISControl(object):
     """
     IBEISController docstring
-        chip  - cropped region of interest in an image, should map to one animal
+        chip  - cropped region of interest in an image, maps to one animal
         cid   - chip unique id
         gid   - image unique id (could just be the relative file path)
         name  - name unique id
@@ -653,8 +655,9 @@ class IBEISControl(object):
             SELECT roi_uid
             FROM rois
             WHERE name_uid=?
+            AND name_uid!=?
             ''',
-            parameters_iter=((nid,) for nid in nid_list),
+            parameters_iter=((nid, ibs.UNKNOWN_NID) for nid in nid_list),
             unpack_scalars=False)
         return groundtruth_list
 
@@ -704,7 +707,7 @@ class IBEISControl(object):
         return cfpath_list
 
     @getter
-    def get_chip_size(ibs, cid_list):
+    def get_chip_sizes(ibs, cid_list):
         width_list  = ibs.get_chip_properties('chip_width', cid_list)
         height_list = ibs.get_chip_properties('chip_height', cid_list)
         size_list = (size_ for size_ in izip(width_list, height_list))
@@ -723,11 +726,47 @@ class IBEISControl(object):
             parameters_iter=((cid,) for cid in cid_list))
         return fid_list
 
+    @getter_numpy_vector_output
     def get_chip_desc(ibs, cid_list, ensure=True):
         """ Returns chip descriptors """
+        # FIXME: DEPRICATE (recognition uses this, fix there first)
         fid_list = ibs.get_chip_fids(cid_list, ensure)
         desc_list = ibs.get_feat_desc(fid_list)
         return desc_list
+
+    @getter_numpy_vector_output
+    def get_chip_kpts(ibs, cid_list, ensure=True):
+        """ Returns chip keypoints """
+        # FIXME: DEPRICATE (recognition uses this, fix there first)
+        fid_list = ibs.get_chip_fids(cid_list, ensure)
+        kpts_list = ibs.get_feat_kpts(fid_list)
+        return kpts_list
+
+    @getter_numpy
+    def get_chip_tnids(ibs, cid_list):
+        """ Returns chip 'temp' names. (negative chip ids if UNKONWN_NAME) """
+        # FIXME: DEPRICATE or move (recognition uses this, fix there first)
+        rid_list = ibs.get_chip_rids(cid_list)
+        nid_list = ibs.get_roi_nids(rid_list)
+        tnid_list = [nid if nid != ibs.UNKNOWN_NID else -cid
+                     for (nid, cid) in izip(nid_list, cid_list)]
+        return tnid_list
+
+    @getter_numpy
+    def get_chip_gids(ibs, cid_list):
+        """ Returns chip descriptors """
+        # FIXME: DEPRICATE (recognition uses this, fix there first)
+        rid_list = ibs.get_chip_rids(cid_list)
+        gid_list = ibs.get_roi_gids(rid_list)
+        return gid_list
+
+    @getter_numpy
+    def get_chip_nids(ibs, cid_list):
+        """ Returns chip descriptors """
+        # FIXME: DEPRICATE (recognition uses this, fix there first)
+        rid_list = ibs.get_chip_rids(cid_list)
+        nid_list = ibs.get_roi_nids(rid_list)
+        return nid_list
 
     #
     # GETTERS::Features
@@ -924,21 +963,22 @@ class IBEISControl(object):
     @utool.indent_func
     def get_recognition_database_chips(ibs):
         'returns chips which are part of the persitent recognition database'
-        drid_list = None
-        return drid_list
+        drid_list = ibs.get_valid_rids()
+        dcid_list = ibs.get_roi_cids(drid_list)
+        return dcid_list
 
     @utool.indent_func
-    def query_intra_encounter(ibs, qrid_list, **kwargs):
+    def query_intra_encounter(ibs, qcid_list, **kwargs):
         """ _query_chips wrapper """
-        drid_list = qrid_list
-        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
+        dcid_list = qcid_list
+        qres_list = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
         return qres_list
 
     @utool.indent_func
-    def query_database(ibs, qrid_list, **kwargs):
+    def query_database(ibs, qcid_list, **kwargs):
         """ _query_chips wrapper """
-        drid_list = ibs.get_recognition_database_chips()
-        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
+        dcid_list = ibs.get_recognition_database_chips()
+        qres_list = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
         return qres_list
 
     def _init_query_requestor(ibs):

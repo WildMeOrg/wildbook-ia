@@ -131,12 +131,15 @@ def get_test_numpy_data(shape=(3e3, 128), dtype=np.uint8):
 
 def main(defaultdb='testdb', allow_newdir=False, **kwargs):
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
-    if defaultdb == 'testdb':
+    known_testdbs = ['testdb', 'test_big_ibeis']
+    if defaultdb in known_testdbs:
         allow_newdir = True
-        defaultdbdir = join(params.get_workdir(), 'testdb')
+        defaultdbdir = join(params.get_workdir(), defaultdb)
         utool.ensuredir(defaultdbdir)
         if utool.get_flag('--clean'):
             utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
+    if utool.get_flag('--clean'):
+        sys.exit(0)
     main_locals = main_api.main(defaultdb=defaultdb, allow_newdir=allow_newdir, **kwargs)
     return main_locals
 

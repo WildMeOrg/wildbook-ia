@@ -26,7 +26,12 @@ def BIGDB():
     ibs = main_locals['ibs']    # IBEIS Control
     gpath_list = __testing__.get_test_image_paths(ibs, ndata=1)
     # this will probably will only work on jon's machines
-    imgdir = join(workdir, 'GZ_Cropped/images')
+    if utool.get_computer_name() == 'BakerStreet':
+        imgdir = r'D:\data\raw\Animals\Grevys\gz_mpala_cropped\images'
+    elif  utool.get_computer_name() == 'Hyrule':
+        imgdir = join(workdir, 'GZ_Cropped/images')
+    else:
+        print('this test only works on Jons computers')
     gname_list = utool.list_images(imgdir)
     gpath_list = [join(imgdir, gname) for gname in gname_list]
     gpath_list = gpath_list
@@ -50,7 +55,7 @@ def BIGDB():
     with utool.Timer('Getting %d nFeats' % nImages):
         nFeats_list = ibs.get_num_feats(fid_list)
 
-    print('Total number of features in the database: ' + sum(nFeats_list))
+    print('Total number of features in the database: %r' % sum(nFeats_list))
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
@@ -64,4 +69,3 @@ if __name__ == '__main__':
     BIGDB()
     #from drawtool import draw_func2 as df2
     #exec(df2.present())
-

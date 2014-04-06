@@ -12,7 +12,7 @@ from numpy.linalg import svd
 
 def score_chipmatch_csum(chipmatch):
     (_, cid2_fs, _) = chipmatch
-    cid2_score = np.array([np.sum(fs) for fs in cid2_fs])
+    cid2_score = {cid: np.sum(fs) for (cid, fs) in cid2_fs.iteritems()}
     return cid2_score
 
 

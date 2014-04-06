@@ -46,12 +46,11 @@ cat <<EOF
   \\___|\\___/|___|   |_| |___|___/ |_| |___/
 EOF
 
+    RUN_TEST tests/test_gui_import_images.py 
+
     RUN_TEST tests/test_gui_add_roi.py 
 
     RUN_TEST tests/test_gui_selection.py 
-
-    RUN_TEST tests/test_gui_import_images.py 
-
 fi
 
 

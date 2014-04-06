@@ -17,3 +17,13 @@ def dict_union2(dict1, dict2):
 
 def dict_union(*args):
     return dict([item for dict_ in iter(args) for item in dict_.iteritems()])
+
+
+def items_sorted_by_value(dict_):
+    sorted_items = sorted(dict_.iteritems(), key=lambda (k, v): v[1])
+    return sorted_items
+
+
+def keys_sorted_by_value(dict_):
+    sorted_keys = sorted(dict_, key=lambda key: dict_[key])
+    return sorted_keys

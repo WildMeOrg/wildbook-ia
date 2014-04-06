@@ -1,8 +1,8 @@
+from __future__ import division, print_function
 import utool
 import functools
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
-
-#
 #
 #-----------------
 # IBEIS DECORATORS
@@ -43,6 +43,26 @@ def getter(func):
     def getter_wrapper1(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapper1
+
+
+def getter_numpy(func):
+    """ Getter decorator for functions which takes as the first input a unique
+    id list and returns a heterogeous list of values """
+    @utool.accepts_numpy
+    @getter
+    def getter_wrapperNP(*args, **kwargs):
+        return func(*args, **kwargs)
+    return getter_wrapperNP
+
+
+def getter_numpy_vector_output(func):
+    """ Getter decorator for functions which takes as the first input a unique
+    id list and returns a heterogeous list of values """
+    @utool.accepts_numpy
+    @getter_vector_output
+    def getter_wrapperNP2(*args, **kwargs):
+        return func(*args, **kwargs)
+    return getter_wrapperNP2
 
 
 def getter_vector_output(func):

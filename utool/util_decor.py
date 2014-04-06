@@ -1,8 +1,11 @@
+from __future__ import print_function, division
 import sys
 from functools import wraps
 from .util_iter import isiterable
 from .util_print import Indenter
-
+import numpy as np
+from .util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
 IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv
 
@@ -87,3 +90,17 @@ def accepts_scalar_input_vector_output(func):
                 result = result[0]
         return result
     return wrapper_vec_output
+
+
+def accepts_numpy(func):
+    """ Allows the first input to be a numpy objet and get result in numpy form """
+    @wraps(func)
+    def numpy_wrapper(self, input_, *args, **kwargs):
+        if isinstance(input_, np.ndarray):
+            input_list = input_.flatten()
+            output_list = func(self, input_list)
+            output_ = np.array(output_list).reshape(input_.shape)
+        else:
+            output_ = func(self, input_)
+        return output_
+    return numpy_wrapper
