@@ -42,3 +42,7 @@ nosetests.xml
 .DS_Store
 *.dump.txt
 *.sqlite3
+
+# profiler
+*.lprof
+*.prof
