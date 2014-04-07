@@ -9,6 +9,8 @@ import cv2
 import numpy as np
 # VTool
 from . import keypoint as ktool
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[ell]', DEBUG=False)
 
 try:
     profile

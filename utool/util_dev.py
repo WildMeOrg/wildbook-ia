@@ -6,6 +6,7 @@ import numpy as np
 from .util_str import byte_str2
 from .util_inject import inject
 from .Printable import printableVal
+from .DynStruct import DynStruct
 print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
 
 
@@ -229,6 +230,13 @@ def get_object_size(obj):
 
 def print_object_size(obj, lbl=''):
     print(lbl + byte_str2(get_object_size(obj)))
+
+
+def get_object_base():
+    if '--dyn' in sys.argv:
+        return DynStruct
+    else:
+        return object
 
 #http://www.huyng.com/posts/python-performance-analysis/
 #Once youve gotten your code setup with the @profile decorator, use kernprof.py to run your script.

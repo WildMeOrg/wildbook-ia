@@ -12,8 +12,13 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 # --- List Allocations ---
 
 def alloc_lists(num_alloc):
-    'allocates space for a numpy array of lists'
+    """ allocates space for a list of lists """
     return [[] for _ in xrange(num_alloc)]
+
+
+def alloc_nones(num_alloc):
+    """ allocates space for a list of Nones """
+    return [None for _ in xrange(num_alloc)]
 
 
 def ensure_list_size(list_, size_):

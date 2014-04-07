@@ -14,6 +14,8 @@ from . import histogram as htool
 from . import keypoint as ktool
 from . import linalg as ltool
 from . import image as gtool
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[patch]', DEBUG=False)
 
 
 # Command line switch

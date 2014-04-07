@@ -124,8 +124,8 @@ class NpPrintOpts(object):
         np.set_printoptions(**self.orig_opts)
 
 
-def printVERBOSE(msg):
-    if VERBOSE:
+def printVERBOSE(msg, verbarg):
+    if VERBOSE or verbarg in sys.argv:
         print(msg)
 
 

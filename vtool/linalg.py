@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import numpy.linalg as npl
 from numpy import (array, sin, cos)
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[linalg]', DEBUG=False)
 
 np.tau = 2 * np.pi  # tauday.com
 

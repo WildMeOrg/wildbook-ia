@@ -1,9 +1,11 @@
 from __future__ import print_function, division
 import sys
 from functools import wraps
+from itertools import islice, imap
 from .util_iter import isiterable
-from .util_print import Indenter
+from .util_print import Indenter, printVERBOSE
 import numpy as np
+import pylru  # because we dont have functools.lru_cache
 from .util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
@@ -104,3 +106,39 @@ def accepts_numpy(func):
             output_ = func(self, input_)
         return output_
     return numpy_wrapper
+
+
+class lru_cache(object):
+    """
+        Python 2.7 does not have functools.lrucache. Here is an alternative
+        implementation. This can currently only wrap class functions
+    """
+    def __init__(cache, max_size=100, nInput=1):
+        cache.max_size = max_size
+        cache.nInput = nInput
+        cache.cache_ = pylru.lrucache(max_size)
+        cache.func_name = None
+
+    def clear_cache(cache):
+        printDBG('[cache.lru] clearing %r lru_cache' % (cache.func_name,))
+        cache.cache_.clear()
+
+    def __call__(cache, func):
+        def wrapped(self, *args, **kwargs):  # wrap a class
+            key = tuple(imap(tuple, islice(args, 0, cache.nInput)))
+            try:
+                value = cache.cache_[key]
+                printVERBOSE(func.func_name + ' ...lrucache HIT', '--verbose-lru')
+                return value
+            except KeyError:
+                printVERBOSE(func.func_name + ' ...lrucache MISS', '--verbose-lru')
+
+            value = func(self, *args, **kwargs)
+            cache.cache_[key] = value
+            return value
+        cache.func_name = func.func_name
+        printDBG('[@decor.lru] wrapping %r with max_size=%r lru_cache' %
+                 (cache.func_name, cache.max_size))
+        wrapped.func_name = func.func_name
+        wrapped.clear_cache = cache.clear_cache
+        return wrapped

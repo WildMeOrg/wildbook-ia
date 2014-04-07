@@ -5,6 +5,8 @@ import numpy as np
 import cv2
 # ---------------
 # Preprocessing funcs
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[gfilt]', DEBUG=False)
 
 
 def adapteq_fn(chipBGR):

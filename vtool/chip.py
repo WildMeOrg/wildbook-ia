@@ -2,16 +2,23 @@
 from __future__ import print_function, division
 # Science
 import numpy as np
+import numpy.linalg as npl
 # VTool
 from . import linalg as ltool
 from . import image as gtool
 from . import image_filters as gfilt_tool
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[chip]', DEBUG=False)
 
 
-def _get_image_to_chip_transform(img_bbox, new_size, theta):
-    """ returns transformation from image space into chipspace """
-    (x, y, w, h) = img_bbox
-    (w_, h_)     = new_size
+def _get_image_to_chip_transform(bbox, chipsz, theta):
+    """ transforms image space into chipspace
+        bbox   - bounding box of chip in image space
+        chipsz - size of the chip
+        theta  - rotation of the bounding box
+    """
+    (x, y, w, h) = bbox
+    (w_, h_)     = chipsz
     sx = (w_ / w)
     sy = (h_ / h)
     tx = -(x + (w / 2))
@@ -21,8 +28,19 @@ def _get_image_to_chip_transform(img_bbox, new_size, theta):
     S  = ltool.scale_mat(sx, sy)
     R  = ltool.rotation_mat(-theta)
     T2 = ltool.translation_mat((w_ / 2),  (h_ / 2))
-    transform = T2.dot(R.dot(S.dot(T1)))
-    return transform
+    C = T2.dot(R.dot(S.dot(T1)))
+    return C
+
+
+def _get_chip_to_image_transform(bbox, chipsz, theta):
+    """ transforms chip space into imgspace
+        bbox   - bounding box of chip in image space
+        chipsz - size of the chip
+        theta  - rotation of the bounding box
+    """
+    C    = _get_image_to_chip_transform(bbox, chipsz, theta)
+    invC = npl.inv(C)
+    return invC
 
 
 def _extract_chip(img_fpath, bbox, theta, new_size):

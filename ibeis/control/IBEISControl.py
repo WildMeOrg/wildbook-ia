@@ -24,7 +24,7 @@ from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_feat
 # IBEIS
-from ibeis.control import __IBEIS_SCHEMA__
+from ibeis.control import IBEIS_SCHEMA
 from ibeis.control import SQLDatabaseControl
 from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy,
@@ -80,7 +80,13 @@ class IBEISControl(object):
         ibs.cachedir = join(ibs.dbdir, '_ibeis_cache')
         ibs.chipdir  = join(ibs.cachedir, 'chips')
         ibs.flanndir = join(ibs.cachedir, 'flann')
-        ibs.qresdir = join(ibs.cachedir, 'query_results')
+        ibs.qresdir  = join(ibs.cachedir, 'query_results')
+        ibs.bigcachedir = join(ibs.cachedir, 'bigcache')
+        utool.ensuredir(ibs.cachedir)
+        utool.ensuredir(ibs.chipdir)
+        utool.ensuredir(ibs.flanndir)
+        utool.ensuredir(ibs.qresdir)
+        utool.ensuredir(ibs.bigcachedir)
         printDBG('[ibs._init_dirs] ibs.dbfname = %r' % ibs.dbfname)
         printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
@@ -89,7 +95,7 @@ class IBEISControl(object):
         """ Load or create sql database """
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
         printDBG('[ibs._init_sql] Define the schema.')
-        __IBEIS_SCHEMA__.define_IBEIS_schema(ibs)
+        IBEIS_SCHEMA.define_IBEIS_schema(ibs)
         printDBG('[ibs._init_sql] Add default names.')
         ibs.UNKNOWN_NAME = '____'
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
@@ -625,6 +631,11 @@ class IBEISControl(object):
         kpts_list = ibs.get_feat_kpts(fid_list)
         return kpts_list
 
+    def get_roi_chipsizes(ibs, rid_list, ensure=True):
+        cid_list  = ibs.get_roi_cids(rid_list, ensure=ensure)
+        chipsz_list = ibs.get_chip_sizes(cid_list)
+        return chipsz_list
+
     @getter_vector_output
     def get_roi_desc(ibs, rid_list, ensure=True):
         """ Returns chip descriptors """
@@ -711,8 +722,8 @@ class IBEISControl(object):
     def get_chip_sizes(ibs, cid_list):
         width_list  = ibs.get_chip_properties('chip_width', cid_list)
         height_list = ibs.get_chip_properties('chip_height', cid_list)
-        size_list = (size_ for size_ in izip(width_list, height_list))
-        return size_list
+        chipsz_list = [size_ for size_ in izip(width_list, height_list)]
+        return chipsz_list
 
     @getter
     def get_chip_fids(ibs, cid_list, ensure=True):
@@ -915,12 +926,14 @@ class IBEISControl(object):
 
     @utool.indent_func
     def get_empty_gids(ibs):
+        """ returns gid list without any chips """
         gid_list = ibs.get_valid_gids()
         nRois_list = ibs.get_num_rids_in_gids(gid_list)
         empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
         return empty_gids
 
     def convert_empty_images_to_rois(ibs):
+        """ images without chips are given an ROI over the entire image """
         gid_list = ibs.get_empty_gids()
         rid_list = ibs.use_images_as_rois(gid_list)
         return rid_list
@@ -936,7 +949,7 @@ class IBEISControl(object):
 
     @utool.indent_func
     def cluster_encounters(ibs, gid_list):
-        'Finds encounters'
+        """ Finds encounters """
         from ibeis.model import encounter_cluster
         eid_list = encounter_cluster.cluster(ibs, gid_list)
         #ibs.set_image_eids(gid_list, eid_list)
@@ -944,7 +957,7 @@ class IBEISControl(object):
 
     @utool.indent_func
     def detect_existence(ibs, gid_list, **kwargs):
-        'Detects the probability of animal existence in each image'
+        """ Detects the probability of animal existence in each image """
         from ibeis.model import jason_detector
         probexist_list = jason_detector.detect_existence(ibs,
                                                          gid_list, **kwargs)
@@ -953,7 +966,7 @@ class IBEISControl(object):
 
     @utool.indent_func
     def detect_rois_and_masks(ibs, gid_list, **kwargs):
-        'Runs animal detection in each image'
+        """ Runs animal detection in each image """
         # Should this function just return rois and no masks???
         from ibeis.model import jason_detector
         detection_list = jason_detector.detect_rois(ibs, gid_list, **kwargs)
@@ -963,7 +976,7 @@ class IBEISControl(object):
 
     @utool.indent_func
     def get_recognition_database_chips(ibs):
-        'returns chips which are part of the persitent recognition database'
+        """ returns chips which are part of the persitent recognition database """
         drid_list = ibs.get_valid_rids()
         dcid_list = ibs.get_roi_cids(drid_list)
         return dcid_list

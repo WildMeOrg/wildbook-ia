@@ -1,10 +1,14 @@
 from __future__ import division, print_function
 import numpy as np
+from itertools import izip
 import drawtool.draw_func2 as df2
 import utool
-import vtool.chip as ctool
 import vtool.keypoint as ktool
+from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
+
+
+NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
 
 
 def draw():
@@ -29,22 +33,87 @@ def set_ibsdat(ax, key, val):
     _ibsdat[key] = val
 
 
-def get_imgspace_chip_kpts(ibs, rid_list):
-    # HACK! less of a hack than the hotspotter version
-    bbox_list   = ibs.get_roi_bbox(rid_list)
-    theta_list  = ibs.get_roi_theta(rid_list)
-    chipsz_list = ibs.get_chip_size(rid_list)
-    kpts_list   = ibs.get_chip_kpts(rid_list)
+def cidstr(cid):
+    return 'cid=%r' % cid
 
-    imgkpts_list = []
-    flatten_xs = np.array([[0, 2], [1, 2], [0, 0], [1, 0], [1, 1]])
-    for bbox, theta, chipsz, kpts in zip(bbox_list, theta_list, chipsz_list, kpts_list):
-        # HOLY SHIT THIS IS JANKY
-        M = ctool._get_image_to_chip_transform(bbox, chipsz, theta)
-        invV_list = ktool.get_invV_mats(kpts, homog=True)
-        invM = np.linalg.inv(M)
-        invMinvV_list = [invM.dot(invV) for invV in invV_list]
-        flatten_xs = np.array([[0, 2], [1, 2], [0, 0], [1, 0], [1, 1]])
-        imgkpts = [[invMinvV[index[0], index[1]] for index in flatten_xs] for invMinvV in invMinvV_list]
-        imgkpts_list.append(np.array(imgkpts))
+
+@getter_vector_output
+def get_roi_kpts_in_imgspace(ibs, rid_list):
+    """ Transforms keypoints so they are plotable in imagespace """
+    bbox_list   = ibs.get_roi_bboxes(rid_list)
+    theta_list  = ibs.get_roi_thetas(rid_list)
+    chipsz_list = ibs.get_roi_sizes(rid_list)
+    kpts_list   = ibs.get_roi_kpts(rid_list)
+    imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz)
+                    for bbox, bbox_theta, chipsz, kpts
+                    in izip(bbox_list, theta_list, chipsz_list, kpts_list)]
     return imgkpts_list
+
+
+@getter
+def get_chips(ibs, cid_list, in_image=False, **kwargs):
+    if 'chip' in kwargs:
+        return kwargs['chip']
+    if in_image:
+        rid_list = ibs.get_chip_rids(cid_list)
+        return get_roi_kpts_in_imgspace(ibs, rid_list)
+    else:
+        return ibs.get_chips(cid_list)
+
+
+@getter
+def get_kpts(ibs, cid_list, in_image=False, **kwargs):
+    if 'kpts' in kwargs:
+        return kwargs['kpts']
+    if in_image:
+        kpts_list = get_roi_kpts_in_imgspace(ibs, cid_list)
+    else:
+        kpts_list = ibs.get_chip_kpts(cid_list)
+    return kpts_list
+
+
+@getter
+def get_names(ibs, cid_list):
+    rid_list = ibs.get_chip_rids(cid_list)
+    return ibs.get_roi_names(rid_list)
+
+
+@getter
+def get_gnames(ibs, cid_list):
+    rid_list = ibs.get_chip_rids(cid_list)
+    return ibs.get_roi_gnames(rid_list)
+
+
+@getter
+def get_chip_titles(ibs, cid_list):
+    title_list = ', '.join([
+        cidstr(cid),
+        'gname=%r' % get_gnames(ibs, cid),
+        'name=%r'  % get_names(ibs, cid),
+    ] for cid in cid_list)
+    return title_list
+
+
+@getter
+def get_image_titles(ibs, gid_list):
+    gname_list = ibs.get_image_gnames(gid_list)
+    title_list = [
+        'gid=%r gname=%r' % (gid, gname)
+        for gid, gname in izip(gid_list, gname_list)
+    ]
+    return title_list
+
+
+def get_roi_labels(ibs, rid_list, draw_lbls):
+    if draw_lbls:
+        label_list = ibs.get_roi_names(rid_list)
+        #label = rid if label == '____' else label
+    else:
+        label_list = utool.alloc_nones(len(rid_list))
+    return label_list
+
+
+def get_bbox_centers(bbox_list):
+    bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])]
+                            for (x, y, w, h) in bbox_list)
+    return bbox_centers

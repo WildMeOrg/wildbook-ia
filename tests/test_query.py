@@ -13,7 +13,6 @@ from os.path import join, exists  # NOQA
 from ibeis.dev import params  # NOQA
 import multiprocessing
 import utool
-from ibeis.model.jon_recognition import matching_functions as mf
 from ibeis.model.jon_recognition import match_chips3 as mc3
 from ibeis.model.jon_recognition import QueryRequest  # NOQA
 from ibeis.model.jon_recognition import NNIndex  # NOQA
@@ -38,7 +37,9 @@ def BUILDQUERY():
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
     qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0:3], dcids=cids)
     mc3.pre_exec_checks(ibs, qreq)
-    mc3.process_query_request(ibs, qreq)
+    qcid2_qres = mc3.process_query_request(ibs, qreq)
+
+    qres = qcid2_qres[cids[0]]
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')

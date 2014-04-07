@@ -45,6 +45,18 @@ def getter(func):
     return getter_wrapper1
 
 
+def getter_vector_output(func):
+    """ Getter decorator for functions which takes as the first input a unique
+    id list and returns a homogenous list of values """
+    @utool.accepts_scalar_input_vector_output
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @functools.wraps(func)
+    def getter_wrapper3(*args, **kwargs):
+        return func(*args, **kwargs)
+    return getter_wrapper3
+
+
 def getter_numpy(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a heterogeous list of values """
@@ -63,18 +75,6 @@ def getter_numpy_vector_output(func):
     def getter_wrapperNP2(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapperNP2
-
-
-def getter_vector_output(func):
-    """ Getter decorator for functions which takes as the first input a unique
-    id list and returns a homogenous list of values """
-    @utool.indent_func
-    @utool.accepts_scalar_input_vector_output
-    @utool.ignores_exc_tb
-    @functools.wraps(func)
-    def getter_wrapper3(*args, **kwargs):
-        return func(*args, **kwargs)
-    return getter_wrapper3
 
 
 def getter_general(func):

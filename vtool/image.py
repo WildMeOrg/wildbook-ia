@@ -10,6 +10,8 @@ from PIL.ExifTags import TAGS
 from utool import util_path
 from utool import util_str
 #from utool import util_progress
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[img]', DEBUG=False)
 
 
 CV2_INTERPOLATION_TYPES = {

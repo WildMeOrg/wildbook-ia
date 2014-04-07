@@ -19,6 +19,10 @@ from numpy.core.umath_tests import matrix_multiply
 from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
 # VTool
 from . import linalg as ltool
+from . import chip as ctool
+# UTool
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[kpts]', DEBUG=False)
 
 
 #PYX START
@@ -147,6 +151,33 @@ def get_invV_mats(kpts, ashomog=False, with_trans=False, ascontiguous=False):
     if ascontiguous:
         invV_mats = np.ascontiguousarray(invV_mats)
     return invV_mats
+
+
+def flatten_mats_to_xyacd(M_list):
+    """ flattens a matrix into keypoint format """
+    # TODO: Need to rectify M to point downward and have a rotation
+    #assert all([M.shape == (3, 3) for M in M_list])
+    invV_list_ = [[M[0, 2], M[1, 2], M[0, 0], M[1, 0], M[1, 1]] for M in M_list]
+    return invV_list_
+
+
+def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
+    """ Transforms keypoints so they are plotable in imagespace
+        kpts   - xyacdo keypoints
+        bbox   - chip bounding boxes in image space
+        theta  - chip rotations
+        chipsz - chip extent (in keypoint / chip space)
+    """
+    # TODO: Need to rectify C to point downward and have a rotation
+    # Get keypoints in matrix format
+    invV_list = get_invV_mats(kpts, ashomog=True)
+    # Get chip to imagespace transform
+    invC      = ctool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
+    # Apply transform to keypoints
+    invCinvV_list = (invC.dot(invV) for invV in invV_list)
+    # Flatten back into keypoint format
+    imgkpts = np.array(flatten_mats_to_xyacd(invCinvV_list))
+    return imgkpts
 
 
 def get_V_mats(invV_mats, **kwargs):

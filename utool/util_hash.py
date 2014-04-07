@@ -4,6 +4,18 @@ import uuid
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[hash]')
 
+# default length of hash codes
+HASH_LEN = 16
+
+# A large base-57 alphabet
+ALPHABET = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',  'a', 'b', 'c',
+            'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+            'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ';', '=', '@',
+            '[', ']', '^', '_', '`', '{', '}', '~', '!', '#', '$', '%', '&',
+            '+', ',']
+
+BIGBASE = len(ALPHABET)
+
 
 def hashstr_arr(arr, lbl='arr', **kwargs):
     if isinstance(arr, list):
@@ -17,15 +29,15 @@ def hashstr_arr(arr, lbl='arr', **kwargs):
     return arr_uid
 
 
-def hashstr(data, trunc_pos=8):
+def hashstr(data, hashlen=HASH_LEN):
     if isinstance(data, tuple):
         data = repr(data)
     # Get a 128 character hex string
     hashstr = hashlib.sha512(data).hexdigest()
     # Convert to base 57
-    hashstr2 = hex2_base57(hashstr)
+    hashstr2 = convert_hexstr_to_base57(hashstr)
     # Truncate
-    hashstr = hashstr2[:trunc_pos]
+    hashstr = hashstr2[:hashlen]
     return hashstr
 
 
@@ -45,16 +57,9 @@ def hashstr(data, trunc_pos=8):
             #valid_chars.append(chr(index))
     #return valid_chars
 #valid_filename_ascii_chars()
-ALPHABET = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',  'a', 'b', 'c',
-            'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
-            'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', ';', '=', '@',
-            '[', ']', '^', '_', '`', '{', '}', '~', '!', '#', '$', '%', '&',
-            '+', ',']
-
-BIGBASE = len(ALPHABET)
 
 
-def hex2_base57(hexstr):
+def convert_hexstr_to_base57(hexstr):
     x = int(hexstr, 16)
     if x == 0:
         return '0'

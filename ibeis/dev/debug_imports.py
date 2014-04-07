@@ -1,3 +1,4 @@
+# flake8: noqa
 from __future__ import division, print_function
 # Python
 from collections import OrderedDict, defaultdict
@@ -38,7 +39,7 @@ from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
                       Qt, QObject, pyqtSlot, QKeyEvent)
 # UTool
 import utool
-from utool import *  # NOQA
+from utool import *
 # VTool
 import vtool
 
@@ -49,25 +50,27 @@ from vtool import patch as ptool
 from vtool import keypoint as ktool
 from vtool import linalg as ltool
 
-from vtool import *  # NOQA
+from vtool import *
 # DrawTool
 import drawtool
-from drawtool import draw_func2 as df2  # NOQA
+from drawtool import draw_func2 as df2
 # GUITool
 import guitool
 import drawtool
 import ibeis
 # IBEIS DEV
 import ibeis.dev
-from ibeis.dev import main_api  # NOQA
+from ibeis.dev import main_api
 # IBEIS MODEL
 import ibeis.model
 from ibeis.model import Config
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
+from ibeis.view import viz
+from ibeis.view import interact
 # IBEIS CONTROl
-import ibeis.control  # NOQA
+import ibeis.control
 
 
 def get_ibeis_modules():

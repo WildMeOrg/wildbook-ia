@@ -5,6 +5,8 @@ from itertools import izip
 # Science
 from scipy.signal import argrelextrema
 import numpy as np
+from utool.util_inject import inject
+(print, print_, printDBG, rrr, profile) = inject(__name__, '[hist]', DEBUG=False)
 
 
 def hist_edges_to_centers(edges):

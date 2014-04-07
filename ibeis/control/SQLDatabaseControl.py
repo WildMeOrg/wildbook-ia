@@ -153,6 +153,7 @@ class SQLDatabaseControl(object):
         db.execute(operation, parameters, auto_commit, errmsg, verbose=False)
         return db.result_list(verbose=False)
 
+    @profile
     def executemany(db, operation, parameters_iter, auto_commit=True,
                     errmsg=None, verbose=VERBOSE, unpack_scalars=True):
         """
@@ -180,6 +181,7 @@ class SQLDatabaseControl(object):
         same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
+        # TODO: THIS SHOULD PACK EVERYTHING INTO A SINGLE TRANSACTION AND THEN EXECUTE IT
         caller_name = utool.util_dbg.get_caller_name()
         if errmsg is None:
             errmsg = '%s ERROR' % caller_name
@@ -189,6 +191,10 @@ class SQLDatabaseControl(object):
         operation_type = operation.split()[0].strip()
         result_list = []
         # Compute everything in Python before sending queries to SQL
+        # TODO: Agressively expanding the iterator into a list is a hack.
+        # Allowing for the passing of parameters in an iterator will greatly
+        # increase speed. The only caveat is that the number of parameters will
+        # need to be passed in as well, otherwise we have to cast to a list.
         parameters_list = list(parameters_iter)
         num_params = len(parameters_list)
         if num_params == 0:
@@ -196,21 +202,22 @@ class SQLDatabaseControl(object):
                 print('[sql] cannot executemany with no parameters. use executeone instead')
             return []
         # Define progress printing / logging / ... functions
+        operation_label = '[sql] execute %s: ' % operation_type
         mark_prog, end_prog = utool.progress_func(
             max_val=num_params,
-            lbl='[sql] execute %s: ' % operation_type)
+            flush_after=500,
+            lbl=operation_label)
         try:
             # For each parameter in an input list
             if verbose:
                 print('[sql] operation=%s' % operation)
             for count, parameters in enumerate(parameters_list):
-                mark_prog(count)
+                mark_prog(count)  # Mark pgoress
                 if verbose:
                     print_('\n')
                     print('[sql] paramters=%r' % (parameters,))
-                # Send command to SQL
-                # (all other results will be invalided)
-                stat_flag = db.executor.execute(operation, parameters)  # NOQA
+                # Send command to SQL (all other results will be invalided)
+                db.executor.execute(operation, parameters)
                 # Read all results
                 results_ = [result for result in db.result_iter(verbose=False)]
                 # Append to the list of queries
@@ -221,10 +228,7 @@ class SQLDatabaseControl(object):
                     results = results_
                 result_list.append(results)
                 if verbose:
-                    #print_('\n')
-                    print('[sql] stat_flag = %r' % stat_flag)
                     print('[sql] result_list.append(%r)' % (results,))
-                    #print('[sql] results_ = %r' % (results_,))
             if not verbose:
                 end_prog()
             num_results = len(result_list)
