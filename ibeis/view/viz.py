@@ -12,13 +12,14 @@ import drawtool.draw_func2 as df2
 # IBEIS
 from ibeis.dev import params
 from ibeis.model.jon_recognition import match_chips3 as mc3
+from ibeis.model.jon_recognition import QueryResult
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 #from interaction import interact_keypoints, interact_chipres, interact_chip # NOQA
 from viz_helpers import draw, set_ibsdat, get_ibsdat  # NOQA
 from viz_image import show_image  # NOQA
 from viz_chip import show_chip, show_keypoints  # NOQA
-from viz_matches import show_chipres  # NOQA
+from viz_matches import show_chipres, res_show_chipres, annotate_chipres  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
@@ -112,8 +113,6 @@ def show_name(ibs, nid, nid2_cids=None, fnum=0, sel_cids=[], subtitle='',
 #==========================
 # ChipRes Viz
 #==========================
-
-
 
 #==========================
 # Result Viz
@@ -571,7 +570,7 @@ def ensure_fm(ibs, cid1, cid2, fm=None, res='db'):
         query_args['use_cache'] = False
         print('[viz.sv] query_args = %r' % (query_args))
         res = ibs.query_groundtruth(cid1, **query_args)
-    assert isinstance(res, qr.QueryResult)
+    assert isinstance(res, QueryResult.QueryResult)
     # Get chip index to feature match
     fm = res.cid2_fm[cid2]
     if len(fm) == 0:

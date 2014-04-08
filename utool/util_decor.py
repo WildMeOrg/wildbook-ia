@@ -12,6 +12,15 @@ from .util_inject import inject
 IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv
 
 
+def composed(*decs):
+    """ combines multiple decorators """
+    def deco(f):
+        for dec in reversed(decs):
+            f = dec(f)
+        return f
+    return deco
+
+
 def ignores_exc_tb(func):
     """ decorator that removes other decorators from traceback """
     if IGNORE_EXC_TB:

@@ -2,33 +2,31 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import print_function, division
 #-----
-TEST_NAME = 'TEST_GUI_SELECTION'
+TEST_NAME = 'TEST_VIZ'
 #-----
+import sys
+sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis.dev import params
+from drawtool import draw_func2 as df2
+from ibeis.view import viz_image, viz_chip, viz_helpers
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST
 
-RUNGUI = utool.get_flag('--gui')
+
+def myreload():
+    viz_image.rrr()
+    viz_chip.rrr()
+    viz_helpers.rrr()
 
 
 @__testing__.testcontext
-def TEST_GUI_SELECTION():
+def TEST_VIZ():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-    back = main_locals['back']  # IBEIS GUI backend
 
-    dbdir = params.db_to_dbdir('testdb')
-
-    printTEST('''
-              get_valid_gids
-              ''')
     valid_gids = ibs.get_valid_gids()
-    printTEST('''
-              get_valid_rids
-              ''')
     valid_rids = ibs.get_valid_rids()
 
     printTEST('''
@@ -39,16 +37,26 @@ def TEST_GUI_SELECTION():
 
     gid = valid_gids[0]
     rid_list = ibs.get_rids_in_gids(gid)
-    rid = rid_list[-1]
-    back.select_gid(gid, sel_rids=[rid])
+    sel_rids = rid_list[1:3]
+    viz_image.show_image(ibs, gid, sel_rids=sel_rids, fnum=1)
 
-    printTEST('[TEST] TEST SELECT dbdir=%r' % dbdir)
+    cid_list = ibs.get_roi_cids(rid_list)
 
-    __testing__.main_loop(main_locals, rungui=RUNGUI)
+    cid = cid_list[1]
+    viz_chip.show_chip(ibs, cid, in_image=False, fnum=2)
 
-TEST_GUI_SELECTION.func_name = TEST_NAME
+    viz_chip.show_chip(ibs, cid, in_image=True, fnum=3)
+
+    df2.present(wh=1000)
+    main_locals.update(locals())
+    __testing__.main_loop(main_locals)
+    printTEST('return test locals')
+    return main_locals
+
+TEST_VIZ.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    TEST_GUI_SELECTION()
+    test_locals = TEST_VIZ()
+    exec(utool.execstr_dict(test_locals, 'test_locals'))

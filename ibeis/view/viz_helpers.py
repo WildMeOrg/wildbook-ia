@@ -33,7 +33,7 @@ def set_ibsdat(ax, key, val):
     _ibsdat[key] = val
 
 
-def cidstr(cid):
+def get_cidstr(cid):
     return 'cid=%r' % cid
 
 
@@ -42,7 +42,12 @@ def get_roi_kpts_in_imgspace(ibs, rid_list):
     """ Transforms keypoints so they are plotable in imagespace """
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
-    chipsz_list = ibs.get_roi_sizes(rid_list)
+    try:
+        chipsz_list = ibs.get_roi_chipsizes(rid_list)
+    except AssertionError as ex:
+        utool.print_exception(ex, '[!ibs.get_roi_kpts_in_imgspace]')
+        print('[!ibs.get_roi_kpts_in_imgspace] rid_list = %r' % (rid_list,))
+        raise
     kpts_list   = ibs.get_roi_kpts(rid_list)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz)
                     for bbox, bbox_theta, chipsz, kpts
@@ -56,7 +61,7 @@ def get_chips(ibs, cid_list, in_image=False, **kwargs):
         return kwargs['chip']
     if in_image:
         rid_list = ibs.get_chip_rids(cid_list)
-        return get_roi_kpts_in_imgspace(ibs, rid_list)
+        return ibs.get_roi_images(rid_list)
     else:
         return ibs.get_chips(cid_list)
 
@@ -66,7 +71,8 @@ def get_kpts(ibs, cid_list, in_image=False, **kwargs):
     if 'kpts' in kwargs:
         return kwargs['kpts']
     if in_image:
-        kpts_list = get_roi_kpts_in_imgspace(ibs, cid_list)
+        rid_list = ibs.get_chip_rids(cid_list)
+        kpts_list = get_roi_kpts_in_imgspace(ibs, rid_list)
     else:
         kpts_list = ibs.get_chip_kpts(cid_list)
     return kpts_list
@@ -74,8 +80,8 @@ def get_kpts(ibs, cid_list, in_image=False, **kwargs):
 
 @getter
 def get_names(ibs, cid_list):
-    rid_list = ibs.get_chip_rids(cid_list)
-    return ibs.get_roi_names(rid_list)
+    name_list = ibs.get_chip_names(cid_list)
+    return name_list
 
 
 @getter
@@ -86,11 +92,14 @@ def get_gnames(ibs, cid_list):
 
 @getter
 def get_chip_titles(ibs, cid_list):
-    title_list = ', '.join([
-        cidstr(cid),
-        'gname=%r' % get_gnames(ibs, cid),
-        'name=%r'  % get_names(ibs, cid),
-    ] for cid in cid_list)
+    title_list = [
+        ', '.join(
+            [
+                get_cidstr(cid),
+                'gname=%r' % get_gnames(ibs, cid),
+                'name=%r'  % get_names(ibs, cid),
+            ])
+        for cid in cid_list]
     return title_list
 
 

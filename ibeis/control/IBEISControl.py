@@ -35,9 +35,6 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
 
-QUIET   = utool.get_flag('--quiet')
-VERBOSE = utool.get_flag('--verbose')
-
 
 #
 #
@@ -66,7 +63,7 @@ class IBEISControl(object):
 
     def __init__(ibs, dbdir=None):
         """ Creates a new IBEIS Controller associated with one database """
-        if VERBOSE:
+        if utool.VERBOSE:
             print('[ibs.__init__] new IBEISControl')
         ibs._init_dirs(dbdir)
         ibs._init_sql()
@@ -195,8 +192,13 @@ class IBEISControl(object):
         cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         dirty_rids = utool.get_dirty_items(rid_list, cid_list)
         if len(dirty_rids) > 0:
-            preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
-            param_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
+            try:
+                preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
+                param_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
+            except AssertionError as ex:
+                utool.print_exception(ex, '[!ibs.add_chips]')
+                print('[!ibs.add_chips] rid_list = %r' % (rid_list,))
+                raise
             ibs.db.executemany(
                 operation='''
                 INSERT OR IGNORE
@@ -243,6 +245,8 @@ class IBEISControl(object):
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
+            valid_namecheck = [not (name.startswith('____') and len(name) > 4) for name in name_list]
+            assert all(valid_namecheck), 'User defined names cannot start with four underscores'
             ibs.db.executemany(
                 operation='''
                 INSERT OR IGNORE
@@ -569,7 +573,12 @@ class IBEISControl(object):
     @getter
     def get_roi_cids(ibs, rid_list, ensure=True):
         if ensure:
-            ibs.add_chips(rid_list)
+            try:
+                ibs.add_chips(rid_list)
+            except AssertionError as ex:
+                utool.print_exception(ex, '[!ibs.get_roi_cids]')
+                print('[!ibs.get_roi_cids] rid_list = %r' % (rid_list,))
+                raise
         cid_list = ibs.db.executemany(
             operation='''
             SELECT chip_uid
@@ -755,14 +764,21 @@ class IBEISControl(object):
         return kpts_list
 
     @getter_numpy
-    def get_chip_tnids(ibs, cid_list):
+    def get_chip_nids(ibs, cid_list):
         """ Returns chip 'temp' names. (negative chip ids if UNKONWN_NAME) """
-        # FIXME: DEPRICATE or move (recognition uses this, fix there first)
+        # TODO: Rectify this with ROI_UIDS
+        # I think ROIs should recieve an integer index in addition to the rather
+        # unweildy uuid. The same should probably happen with images
         rid_list = ibs.get_chip_rids(cid_list)
         nid_list = ibs.get_roi_nids(rid_list)
         tnid_list = [nid if nid != ibs.UNKNOWN_NID else -cid
                      for (nid, cid) in izip(nid_list, cid_list)]
         return tnid_list
+
+    def get_chip_names(ibs, cid_list):
+        nid_list = ibs.get_chip_nids(cid_list)
+        name_list = ibs.get_names(nid_list)
+        return name_list
 
     @getter_numpy
     def get_chip_gids(ibs, cid_list):
@@ -771,14 +787,6 @@ class IBEISControl(object):
         rid_list = ibs.get_chip_rids(cid_list)
         gid_list = ibs.get_roi_gids(rid_list)
         return gid_list
-
-    @getter_numpy
-    def get_chip_nids(ibs, cid_list):
-        """ Returns chip descriptors """
-        # FIXME: DEPRICATE (recognition uses this, fix there first)
-        rid_list = ibs.get_chip_rids(cid_list)
-        nid_list = ibs.get_roi_nids(rid_list)
-        return nid_list
 
     #
     # GETTERS::Features
@@ -828,7 +836,11 @@ class IBEISControl(object):
     @getter
     def get_names(ibs, nid_list):
         """ Returns text names """
-        name_list = ibs.get_name_properties('name_text', nid_list)
+        # Change the temporary negative indexes back to the unknown NID for the
+        # SQL query. Then augment the name list to distinguish unknown names
+        nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
+        name_list_ = ibs.get_name_properties('name_text', nid_list_)
+        name_list  = [name if nid > 0 else name + str(-nid) for (name, nid) in izip(name_list_, nid_list)]
         return name_list
 
     @getter

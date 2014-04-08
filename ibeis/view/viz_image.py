@@ -4,8 +4,7 @@ import utool
 import drawtool.draw_func2 as df2
 import numpy as np
 import viz_helpers as vh
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img]',
-                                                       DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img]', DEBUG=False)
 
 
 def annotate_roi(ax, bbox, theta, label, is_sel):
@@ -24,10 +23,11 @@ def annotate_image(ibs, ax, gid, sel_rids, draw_lbls, annote):
     theta_list  = ibs.get_roi_thetas(rid_list)
     label_list  = vh.get_roi_labels(ibs, rid_list, draw_lbls)
     roi_centers = vh.get_bbox_centers(bbox_list)
-    sel_list  = [rid in sel_rids for rid in rid_list]
+    sel_list    = [rid in sel_rids for rid in rid_list]
     # Draw all chip indexes in the image
     if annote:
-        for bbox, theta, label, is_sel in izip(bbox_list, theta_list, label_list, sel_list):
+        roi_iter = izip(bbox_list, theta_list, label_list, sel_list)
+        for bbox, theta, label, is_sel in roi_iter:
             annotate_roi(ax, bbox, theta, label, is_sel)
     # Put roi centers in the axis
     vh.set_ibsdat(ax, 'roi_centers', np.array(roi_centers))
@@ -35,16 +35,11 @@ def annotate_image(ibs, ax, gid, sel_rids, draw_lbls, annote):
 
 
 @utool.indent_decor('[show_image]')
-def show_image(ibs, gid, sel_rids=[],
-               fnum=1,
-               figtitle='Image View',
-               annote=True,
-               draw_lbls=True,
-               **kwargs):
+def show_image(ibs, gid, sel_rids=[], fnum=1, annote=True, draw_lbls=True, **kwargs):
+    """ Driver function to show images """
     # Shows an image with annotations
     title = vh.get_image_titles(ibs, gid)
     img = ibs.get_images(gid)
     fig, ax = df2.imshow(img, title=title, fnum=fnum, docla=True, **kwargs)
     vh.set_ibsdat(ax, 'viztype', 'image')
     annotate_image(ibs, ax, gid, sel_rids, draw_lbls, annote)
-    df2.set_figtitle(figtitle)

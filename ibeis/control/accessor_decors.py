@@ -1,6 +1,5 @@
 from __future__ import division, print_function
 import utool
-from functools import wraps
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
 #
@@ -9,13 +8,10 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 #-----------------
 
 
-def common_wrapper(func):
-    @utool.indent_func
-    @utool.ignores_exc_tb
-    @wraps(func)
-    def __common_wrap(func_):
-        return func_
-    return __common_wrap(func)
+common_wrapper = utool.composed(
+    #utool.indent_func,
+    utool.ignores_exc_tb
+)
 
 
 # DECORATORS::ADDER

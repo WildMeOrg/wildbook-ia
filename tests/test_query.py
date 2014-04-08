@@ -41,6 +41,8 @@ def BUILDQUERY():
 
     qres = qcid2_qres[cids[0]]
 
+    qrid = ibs.get_chip_rids(qres.qcid)
+
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
     main_locals.update(locals())
