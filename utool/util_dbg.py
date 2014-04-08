@@ -31,7 +31,6 @@ def embed_execstr():
     return IPYTHON_EMBED_STR
 
 
-
 def ipython_execstr():
     return textwrap.dedent(r'''
     import matplotlib.pyplot as plt
