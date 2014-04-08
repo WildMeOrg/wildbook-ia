@@ -17,6 +17,8 @@ from ibeis.model.jon_recognition import matching_functions as mf
 from ibeis.model.jon_recognition import match_chips3 as mc3
 from ibeis.model.jon_recognition import QueryRequest  # NOQA
 from ibeis.model.jon_recognition import NNIndex  # NOQA
+from ibeis.dev.debug_imports import *  # NOQA
+from ibeis.model.jon_recognition.matching_functions import _apply_filter_scores  # NOQA
 
 printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(
@@ -26,20 +28,38 @@ sys.argv.append('--nogui')
 
 
 def get_query_components(ibs, qcids):
-    ibs._init_query_requestor()
-    qreq = ibs.qreq
-    dcids = ibs.get_recognition_database_chips()
-    qreq = mc3.prep_query_request(qreq=qreq, qcids=qcids, dcids=dcids)
-    mc3.pre_exec_checks(ibs, qreq)
-    neighbs = mf.nearest_neighbors(ibs, qcids, qreq)
-    qcid2_nns = neighbs
-    weights, filt2_meta = mf.weight_neighbors(ibs, neighbs, qreq)
-    filt2_weights, filt2_meta = (weights, filt2_meta)
-    nnfiltFILT = mf.filter_neighbors(ibs, neighbs, weights, qreq)
-    matchesFILT = mf.build_chipmatches(ibs, neighbs, nnfiltFILT, qreq)
-    matchesSVER = mf.spatial_verification(ibs, matchesFILT, qreq)
-    qcid2_chipmatch = matchesSVER
-    qcid2_res = mf.chipmatch_to_resdict(ibs, matchesSVER, filt2_meta, qreq)
+    printTEST('[GET QUERY COMPONENTS]')
+    with utool.Indenter('[query_comp]'):
+        ibs._init_query_requestor()
+        qreq = ibs.qreq
+        dcids = ibs.get_recognition_database_chips()
+        qcid = qcids[0]
+        qreq = mc3.prep_query_request(qreq=qreq, qcids=qcids, dcids=dcids)
+        mc3.pre_exec_checks(ibs, qreq)
+        neighbs = mf.nearest_neighbors(ibs, qcids, qreq)
+        qcid2_nns = neighbs
+        print('[query_comp]' + utool.len_dbgstr('qcid2_nns[qcid]'))
+        #---
+        weights, filt2_meta = mf.weight_neighbors(ibs, neighbs, qreq)
+        filt2_weights, filt2_meta = (weights, filt2_meta)
+        qcid2_lnbnn_weights = filt2_weights['lnbnn'][qcid]
+        qcid2_lnbnn_meta = filt2_meta['lnbnn'][qcid]
+        utool.print_varlen('qcid2_lnbnn_weights')
+        utool.print_varlen('qcid2_lnbnn_meta')
+        #---
+        nnfiltFILT = mf.filter_neighbors(ibs, neighbs, weights, qreq)
+        qcid_nnfiltFILT = nnfiltFILT[qcid]
+        utool.print_varlen('qcid_nnfiltFILT')
+        #---
+        matchesFILT = mf.build_chipmatches(ibs, neighbs, nnfiltFILT, qreq)
+        qcid_matchesFILT = matchesFILT[qcid]
+        utool.print_varlen('qcid_matchesFILT')
+        #---
+        matchesSVER = mf.spatial_verification(ibs, matchesFILT, qreq)
+        qcid_matchesSVER = matchesSVER[qcid]
+        utool.print_varlen('qcid_matchesSVER')
+        #---
+        qcid2_res = mf.chipmatch_to_resdict(ibs, matchesSVER, filt2_meta, qreq)
     return locals()
 
 

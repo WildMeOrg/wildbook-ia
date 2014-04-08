@@ -147,8 +147,9 @@ class QueryResult(__OBJECT_BASE__):
 
     def get_cid_ranks(qres, cid_list):
         'get ranks of chip indexes in cid_list'
-        cid2_score = qres.get_cid2_score()
-        top_cids  = cid2_score.argsort()[::-1]
+        score_list = np.array(qres.cid2_score.values())
+        cid_list   = np.array(qres.cid2_score.keys())
+        top_cids = cid_list[score_list.argsort()[::-1]]
         foundpos = [np.where(top_cids == cid)[0] for cid in cid_list]
         ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
         assert all([len(r) == 1 for r in ranks_])
@@ -176,7 +177,7 @@ class QueryResult(__OBJECT_BASE__):
 
     def topN_cids(qres, ibs, N=None, only_gt=False, only_nongt=False):
         score_list = np.array(qres.cid2_score.values())
-        cid_list = np.array(qres.cid2_score.keys())
+        cid_list   = np.array(qres.cid2_score.keys())
         #if ibs.cfg.display_cfg.name_scoring:
             #cid2_chipscore = np.array(cid2_score)
             #cid2_score = vr2.enforce_one_name(ibs, cid2_score,

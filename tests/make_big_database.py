@@ -40,7 +40,7 @@ def BIGDB():
 
     assert all(map(exists, gpath_list)), 'some images dont exist'
 
-    nImages = len(gpath_list)
+    #nImages = len(gpath_list)
 
     #with utool.Timer('Add %d Images' % nImages):
     gid_list = ibs.add_images(gpath_list)

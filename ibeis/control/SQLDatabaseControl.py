@@ -10,6 +10,8 @@ import utool
 VERBOSE = utool.VERBOSE
 AUTODUMP = utool.get_flag('--auto-dump')
 
+QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
+
 
 class SQLDatabaseControl(object):
     def __init__(db, database_path, database_file='database.sqlite3'):
@@ -105,7 +107,7 @@ class SQLDatabaseControl(object):
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        if not utool.QUIET:
+        if not QUIET:
             print('[sql.schema] ensuring table=%r' % table)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
@@ -219,7 +221,7 @@ class SQLDatabaseControl(object):
             return []
 
         operation_label = '[sql] execute %d %s: ' % (num_params, operation_type)
-        if not utool.QUIET:
+        if not QUIET:
             tt = utool.tic(operation_label)
 
         # Define helper functions
@@ -267,7 +269,7 @@ class SQLDatabaseControl(object):
             db.dump()
             raise
         #
-        if not utool.QUIET:
+        if not QUIET:
             utool.toc(tt)
         #
         if auto_commit:

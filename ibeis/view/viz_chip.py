@@ -57,7 +57,7 @@ def show_chip(ibs, cid, in_image=False, fnum=2, **kwargs):
     # Get Keypoints
     kpts = vh.get_kpts(ibs, cid, in_image, **kwargs)
     # Create chip title
-    title_str = vh.get_chip_titles(ibs, cid)
+    title_str = vh.get_chip_labels(ibs, cid)
     # Draw chip
     fig, ax = df2.imshow(chip, title=title_str, fnum=fnum, **kwargs)
     # Populate axis user data

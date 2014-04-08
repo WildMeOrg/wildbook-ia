@@ -9,7 +9,7 @@ from . import util_inject
 from .util_arg import get_flag
 from .util_inject import inject
 from .util_list import is_listlike, list_eq
-from .util_print import Indenter
+from .util_print import Indenter, print_exception
 from .util_str import pack_into, truncate_str
 from .util_type import get_type
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
@@ -25,6 +25,11 @@ except Exception as ex:
     warnings.warn(repr(ex)+'\n!!!!!!!!')
     embedded = False
 '''
+
+
+def embed_execstr():
+    return IPYTHON_EMBED_STR
+
 
 
 def ipython_execstr():
@@ -161,8 +166,8 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None):
         parent_locals = get_parent_locals()
     if parent_globals is None:
         parent_globals = get_parent_globals()
-    exec(execstr_dict(parent_locals,  'parent_locals'))
     exec(execstr_dict(parent_globals, 'parent_globals'))
+    exec(execstr_dict(parent_locals,  'parent_locals'))
     print('')
     print('[util] embedding')
     import IPython
@@ -483,14 +488,56 @@ def printvar(locals_, varname, attr='.shape'):
     np.set_printoptions(**npprintopts)
 
 
-def list_dbgstr(listname, trunc=2):
+def dict_dbgstr(dict_name, locals_=None):
+    if locals_ is None:
+        locals_ = get_parent_locals()
+    lenstr = len_dbgstr(dict_name, locals_)
+    keystr = keys_dbgstr(dict_name, locals_)
+    return keystr + ' ' + lenstr
+    #printvar(locals_, dict_name)
+
+
+def keys_dbgstr(dict_name, locals_=None):
+    if locals_ is None:
+        locals_ = get_parent_locals()
+    dict_ = locals_[dict_name]
+    key_str = dict_name + '.keys() = ' + repr(dict_.keys())
+    return key_str
+    #dict_ = locals_[dict_name]
+
+
+def print_varlen(name_, locals_=None):
+    if locals_ is None:
+        locals_ = get_parent_locals()
+    prefix = '[' + get_caller_name() + ']'
+    print(prefix + ' ' + len_dbgstr(name_, locals_))
+
+
+def len_dbgstr(lenable_name, locals_=None):
+    try:
+        if locals_ is None:
+            locals_ = get_parent_locals()
+        lenable_ = locals_[lenable_name]
+    except Exception:
+        exec(execstr_dict(locals_, 'locals_'))
+        try:
+            lenable_ = eval(lenable_name)
+        except Exception as ex:
+            print('locals.keys = %r' % (locals_.keys(),))
+            print_exception(ex, '[!util_dbg]')
+            raise Exception('Cannot lendbg: %r' % lenable_name)
+    len_str = 'len(%s) = %d' % (lenable_name, len(lenable_))
+    return len_str
+
+
+def list_dbgstr(list_name, trunc=2):
     locals_ = get_parent_locals()
-    list_   = locals_[listname]
+    list_   = locals_[list_name]
     if trunc is None:
         pos = len(list_)
     else:
         pos     = min(trunc, len(list_) - 1)
-    list_str = listname + ' = ' + repr(list_[0:pos],)
+    list_str = list_name + ' = ' + repr(list_[0:pos],)
     return list_str
 
 

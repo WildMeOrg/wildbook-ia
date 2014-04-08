@@ -17,6 +17,9 @@ print, print_,  printDBG, rrr, profile =\
     utool.inject(__name__, '[mf]', DEBUG=False)
 
 
+QUIET = utool.QUIET or utool.get_flag('--quiet-query')
+
+
 #=================
 # Module Concepts
 #=================
@@ -87,7 +90,8 @@ def nearest_neighbors(ibs, qcids, qreq):
     Knorm  = nn_cfg.Knorm
     checks = nn_cfg.checks
     uid_   = nn_cfg.get_uid()
-    print('[mf] Step 1) Assign nearest neighbors: ' + uid_)
+    if not QUIET:
+        print('[mf] Step 1) Assign nearest neighbors: ' + uid_)
     # Grab descriptors
     qfids = ibs.get_chip_fids(qcids)
     qdesc_list = ibs.get_feat_desc(qfids)
@@ -120,8 +124,8 @@ def nearest_neighbors(ibs, qcids, qreq):
         nNN += qfx2_dx.size
         nDesc += len(qfx2_desc)
     end_prog()
-    print('[mf] * assigned %d desc from %d chips to %r nearest neighbors' %
-          (nDesc, len(qcids), nNN))
+    if not QUIET:
+        print('[mf] * assigned %d desc from %d chips to %r nearest neighbors' % (nDesc, len(qcids), nNN))
     return qcid2_nns
 
 
@@ -131,7 +135,8 @@ def nearest_neighbors(ibs, qcids, qreq):
 
 
 def weight_neighbors(ibs, qcid2_nns, qreq):
-    print('[mf] Step 2) Weight neighbors: ' + qreq.cfg.filt_cfg.get_uid())
+    if not QUIET:
+        print('[mf] Step 2) Weight neighbors: ' + qreq.cfg.filt_cfg.get_uid())
     if qreq.cfg.filt_cfg.filt_on:
         return _weight_neighbors(ibs, qcid2_nns, qreq)
     else:
@@ -182,15 +187,16 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
     cant_match_sameimg  = not filt_cfg.can_match_sameimg
     cant_match_samename = not filt_cfg.can_match_samename
     K = qreq.cfg.nn_cfg.K
-    print('[mf] Step 3) Filter neighbors: ')
+    if not QUIET:
+        print('[mf] Step 3) Filter neighbors: ')
     #+ filt_cfg.get_uid())
     # NNIndex
     # Database feature index to chip index
     dx2_cid = qreq.data_index.ax2_cid
     # Filter matches based on config and weights
-    mark_prog, end_prog = progress_func(len(qcid2_nns))
+    #mark_prog, end_prog = progress_func(len(qcid2_nns))
     for count, qcid in enumerate(qcid2_nns.iterkeys()):
-        mark_prog(count)
+        #mark_prog(count)
         (qfx2_dx, _) = qcid2_nns[qcid]
         qfx2_nn = qfx2_dx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
@@ -235,7 +241,7 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
         printDBG('[mf] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
         qcid2_nnfilt[qcid] = (qfx2_score, qfx2_valid)
-    end_prog()
+    #end_prog()
     return qcid2_nnfilt
 
 
@@ -253,7 +259,8 @@ def build_chipmatches(ibs, qcid2_nns, qcid2_nnfilt, qreq):
     K = qreq.cfg.nn_cfg.K
     query_type = qreq.cfg.agg_cfg.query_type
     is_vsone = query_type == 'vsone'
-    print('[mf] Step 4) Building chipmatches %s' % (query_type,))
+    if not QUIET:
+        print('[mf] Step 4) Building chipmatches %s' % (query_type,))
     # Data Index
     dx2_cid = qreq.data_index.ax2_cid
     dx2_fx = qreq.data_index.ax2_fx
@@ -373,19 +380,22 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
                                             min_nInliers, just_affine)
             #printDBG('[mf] sv_tup = %r' % (sv_tup,))
             if sv_tup is None:
-                print_('o')  # sv failure
+                if not QUIET:
+                    print_('o')  # sv failure
             else:
                 # Return the inliers to the homography
                 (H, inliers) = sv_tup
                 cid2_fm_V[cid] = fm[inliers, :]
                 cid2_fs_V[cid] = fs[inliers]
                 cid2_fk_V[cid] = fk[inliers]
-                print_('.')  # verified something
+                if not QUIET:
+                    print_('.')  # verified something
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(cid2_fm_V, cid2_fs_V, cid2_fk_V)
         qcid2_chipmatchSV[qcid] = chipmatchSV
-    print_('\n')
-    print('[mf] Finished sv')
+    if not QUIET:
+        print_('\n')
+        print('[mf] Finished sv')
     return qcid2_chipmatchSV
 
 
@@ -456,7 +466,8 @@ def new_fmfsfk():
 
 @profile
 def chipmatch_to_resdict(ibs, qcid2_chipmatch, filt2_meta, qreq):
-    print('[mf] Step 6) Convert chipmatch -> res')
+    if not QUIET:
+        print('[mf] Step 6) Convert chipmatch -> res')
     uid = qreq.get_uid()
     score_method = qreq.cfg.agg_cfg.score_method
     # Create the result structures for each query.

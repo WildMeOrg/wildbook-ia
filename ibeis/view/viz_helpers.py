@@ -33,10 +33,6 @@ def set_ibsdat(ax, key, val):
     _ibsdat[key] = val
 
 
-def get_cidstr(cid):
-    return 'cid=%r' % cid
-
-
 @getter_vector_output
 def get_roi_kpts_in_imgspace(ibs, rid_list):
     """ Transforms keypoints so they are plotable in imagespace """
@@ -90,16 +86,30 @@ def get_gnames(ibs, cid_list):
     return ibs.get_roi_gnames(rid_list)
 
 
+def get_cidstrs(cid_list):
+    fmtstr = 'cid=%r'
+    if utool.isiterable(cid_list):
+        return [fmtstr % cid for cid in cid_list]
+    else:
+        cid = cid_list
+        return fmtstr % cid_list
+
+
 @getter
-def get_chip_titles(ibs, cid_list):
-    title_list = [
-        ', '.join(
-            [
-                get_cidstr(cid),
-                'gname=%r' % get_gnames(ibs, cid),
-                'name=%r'  % get_names(ibs, cid),
-            ])
-        for cid in cid_list]
+def get_chip_labels(ibs, cid_list, **kwargs):
+    # Add each type of label_list to the strings list
+    label_strs = []
+    if kwargs.get('show_cidstr', True):
+        cidstr_list = get_cidstrs(cid_list)
+        label_strs.append(cidstr_list)
+    if kwargs.get('show_gname', True):
+        gname_list = get_gnames(ibs, cid_list)
+        label_strs.append(['gname=%s' % gname for gname in gname_list])
+    if kwargs.get('show_name', True):
+        name_list = get_names(ibs, cid_list)
+        label_strs.append(['name=%s' % name for name in name_list])
+    # zip them up to get a tuple for each chip and join the fields
+    title_list = [', '.join(tup) for tup in izip(*label_strs)]
     return title_list
 
 
@@ -126,3 +136,10 @@ def get_bbox_centers(bbox_list):
     bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])]
                             for (x, y, w, h) in bbox_list)
     return bbox_centers
+
+
+def is_true_match(ibs, cid1, cid2):
+    nid1, nid2 = ibs.get_chip_nids((cid1, cid2))
+    is_true = nid1 == nid2
+    is_unknown = nid1 < 0
+    return is_true, is_unknown

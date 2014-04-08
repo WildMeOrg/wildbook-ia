@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import utool
+import copy
 print, print_,  printDBG, rrr, profile = utool.inject(
     __name__, '[Config]', DEBUG=False)
 
@@ -250,7 +251,6 @@ class QueryConfig(ConfigBase):
         make_feasible(query_cfg)
 
     def deepcopy(query_cfg, **kwargs):
-        import copy
         copy_ = copy.deepcopy(query_cfg)
         copy_.update_cfg(**kwargs)
         return copy_

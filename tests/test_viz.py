@@ -10,7 +10,7 @@ import __testing__
 import multiprocessing
 import utool
 from drawtool import draw_func2 as df2
-from ibeis.view import viz_image, viz_chip, viz_helpers
+from ibeis.view import viz_image, viz_chip, viz_helpers, viz_matches
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST
 
@@ -51,14 +51,17 @@ def TEST_VIZ():
 
     #----------------------
     printTEST('Show Query')
-    qcids = [cid]
+    cid1 = cid
+    qcids = [cid1]
     qcid2_qres = ibs.query_database(qcids)
-    qres = qcid2_qres[cid]
-    print(qres.cid2_fm)
-    #viz_.show_chipres(ibs, qres, cid)
+    qres = qcid2_qres[cid1]
+    top_cids = qres.topN_cids(ibs)
+    assert len(top_cids) > 0
+    cid2 = top_cids[0]
+    viz_matches.show_chipres(ibs, qres, cid2, fnum=4)
 
-    import build_query
-    all_ = build_query.get_query_components(ibs, qcids)
+    #import build_query
+    #all_ = build_query.get_query_components(ibs, qcids)
 
     #----------------------
     df2.present(wh=1000)
