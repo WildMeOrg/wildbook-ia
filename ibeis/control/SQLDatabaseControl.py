@@ -217,13 +217,8 @@ class SQLDatabaseControl(object):
             lbl=operation_label)
 
         try:
-            # For each parameter in an input list
-            if verbose:
-                print('[sql] operation=%s' % operation)
-            
-            db.executor.execute('BEGIN', ())
-
-            for count, parameters in enumerate(parameters_list):
+            verbose = True
+            def _executemany_helper(count, parameters):
                 mark_prog(count)  # Mark pgoress
                 if verbose:
                     print_('\n')
@@ -238,9 +233,19 @@ class SQLDatabaseControl(object):
                     results = None if len(results_) == 0 else results_[0]
                 else:
                     results = results_
-                result_list.append(results)
+                
                 if verbose:
                     print('[sql] result_list.append(%r)' % (results,))
+
+                return results
+
+            # For each parameter in an input list
+            if verbose:
+                print('[sql] operation=%s' % operation)
+            
+            db.executor.execute('BEGIN', ())
+            result_list = [ _executemany_helper(count, parameters) 
+                            for count, parameters in enumerate(parameters_list) ]
             if not verbose:
                 end_prog()
             num_results = len(result_list)
