@@ -30,8 +30,10 @@ def BIGDB():
         imgdir = r'D:\data\raw\Animals\Grevys\gz_mpala_cropped\images'
     elif  utool.get_computer_name() == 'Hyrule':
         imgdir = join(workdir, 'GZ_Cropped/images')
+    elif  utool.get_computer_name() == 'Ooo':
+        imgdir = join(workdir, 'FROG_tufts/images')
     else:
-        print('this test only works on Jons computers')
+        raise AssertionError('this test only works on Jons computers')
     gname_list = utool.list_images(imgdir)
     gpath_list = [join(imgdir, gname) for gname in gname_list]
     gpath_list = gpath_list
