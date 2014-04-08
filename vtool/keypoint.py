@@ -128,7 +128,7 @@ def get_scales(kpts):
 def get_ori_mags(kpts):
     _oris = get_oris(kpts)
     ori_mats = [ltool.rotation_mat(ori) for ori in _oris]
-    print([ori for ori in ori_mats])
+    #print([ori for ori in ori_mats])
     return ori_mats
 
 
@@ -183,7 +183,7 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     # TODO: Need to rectify C to point downward and have a rotation
     # Get keypoints in matrix format
     invV_list = get_invV_mats(kpts, ashomog=True, with_trans=True, with_ori=True)
-    print('invV_list = \n%r' % (invV_list,))
+    #print('invV_list = \n%r' % (invV_list,))
     # Get chip to imagespace transform
     invC      = ctool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
     #print('invC = \n%r' % (invC,))

@@ -93,15 +93,15 @@ def _nn_normalized_weight(normweight_fn, ibs, qcid2_nns, qreq):
             qfx2_normk = np.zeros(len(qfx2_dist), np.int32) + (K + Knorm - 1)
         elif rule == 'name':
             # Get the top names you do not want your normalizer to be from
-            qtnid = ibs.get_chip_tnid(qcid)
+            qnid = ibs.get_chip_nid(qcid)
             nTop = max(1, K)
             qfx2_topdx = qfx2_dx.T[0:nTop, :].T
             qfx2_normdx = qfx2_dx.T[-Knorm:].T
             # Apply temporary uniquish name
-            qfx2_toptnid = ibs.get_chip_tnid(dx2_cid[qfx2_topdx])
-            qfx2_normtnid = ibs.get_chip_tnid(dx2_cid[qfx2_normdx])
+            qfx2_topnid = ibs.get_chip_nid(dx2_cid[qfx2_topdx])
+            qfx2_normnid = ibs.get_chip_nid(dx2_cid[qfx2_normdx])
             # Inspect the potential normalizers
-            qfx2_normk = mark_name_valid_normalizers(qfx2_normtnid, qfx2_toptnid, qtnid)
+            qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
             qfx2_normk += (K + Knorm)  # convert form negative to pos indexes
         else:
             raise NotImplementedError('[nn_filters] no rule=%r' % rule)

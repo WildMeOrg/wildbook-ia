@@ -64,9 +64,23 @@ from ibeis.dev import main_api
 # IBEIS MODEL
 import ibeis.model
 from ibeis.model import Config
+# preproc
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
+# jon recog
+from ibeis.model.jon_recognition import matching_functions as mf
+from ibeis.model.jon_recognition import match_chips3 as mc3
+from ibeis.model.jon_recognition import match_chips3 as nn_filters
+from ibeis.model.jon_recognition import QueryResult
+from ibeis.model.jon_recognition import QueryRequest
+from ibeis.model.jon_recognition import spatial_verification2 as sv2
+from ibeis.model.jon_recognition import voting_rules2 as vr2
+# view
+from ibeis.view import viz_helpers as vh
+from ibeis.view import viz_chip
+from ibeis.view import viz_matches
+from ibeis.view import viz_image
 from ibeis.view import viz
 from ibeis.view import interact
 # IBEIS CONTROl

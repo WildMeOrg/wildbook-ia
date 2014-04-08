@@ -147,9 +147,9 @@ class Pref(PrefNode):
         # Private internal structure
         self._intern = PrefInternal(name, doc, default, hidden, fpath, depeq, choices)
         self._tree = PrefTree(parent)
-        if default is PrefNode:
-            printDBG('----------')
-            printDBG('new Pref(default=PrefNode)')
+        #if default is PrefNode:
+            #printDBG('----------')
+            #printDBG('new Pref(default=PrefNode)')
 
     # -------------------
     # Attribute Setters
@@ -167,7 +167,7 @@ class Pref(PrefNode):
         return choice_obj.get_tuple()
 
     def __overwrite_child_attr(self, name, attr):
-        printDBG( "overwrite_attr: %s.%s = %r" % (self._intern.name, name, attr))
+        #printDBG( "overwrite_attr: %s.%s = %r" % (self._intern.name, name, attr))
         # get child node to "overwrite"
         row = self._tree.child_names.index(name)
         child = self._tree.child_list[row]
@@ -195,7 +195,7 @@ class Pref(PrefNode):
         if isinstance(attr, Pref):
             # Child attribute already has a Pref wrapping
 
-            printDBG( 'new_attr: %s.%s = %r' % (self._intern.name, name, attr.value()))
+            #printDBG( 'new_attr: %s.%s = %r' % (self._intern.name, name, attr.value()))
             new_childx = len(self._tree.child_names)
             # Children know about parents
             attr._tree.parent = self     # Give child parent
@@ -302,9 +302,9 @@ class Pref(PrefNode):
         'Saves prefs to disk in dict format'
         if self._intern.fpath in ['', None]:
             if self._tree.parent is not None:
-                printDBG('[save] Can my parent save me?')  # ...to disk
+                #printDBG('[save] Can my parent save me?')  # ...to disk
                 return self._tree.parent.save()
-            printDBG('[save] I cannot be saved. I have no parents.')
+            #printDBG('[save] I cannot be saved. I have no parents.')
             return False
         with open(self._intern.fpath, 'w') as f:
             print('[pref] Saving to ' + self._intern.fpath)
@@ -317,22 +317,22 @@ class Pref(PrefNode):
         'Read pref dict stored on disk. Overwriting current values.'
         if not os.path.exists(self._intern.fpath):
             msg = '[pref] fpath=%r does not exist' % (self._intern.fpath)
-            printDBG(msg)
+            #printDBG(msg)
             return msg
         with open(self._intern.fpath, 'r') as f:
             try:
-                printDBG('load: %r' % self._intern.fpath)
+                #printDBG('load: %r' % self._intern.fpath)
                 pref_dict = cPickle.load(f)
             except EOFError as ex1:
                 msg = (('[pref] EOFError WARN: fpath=%r did not load correctly.' +
                        'ex1=%r') % (self._intern.fpath, ex1))
-                printDBG(msg)
+                #printDBG(msg)
                 warnings.warn(msg)
                 return msg
             except ImportError as ex2:
                 msg = (('[pref] ImportError WARN: fpath=%r did not load correctly.' +
                        'ex2=%r') % (self._intern.fpath, ex2))
-                printDBG(msg)
+                #printDBG(msg)
                 warnings.warn(msg)
                 return msg
 
@@ -681,9 +681,9 @@ class EditPrefWidget(QWidget):
     @pyqtSlot(Pref, name='populatePrefTreeSlot')
     def populatePrefTreeSlot(self, pref_struct):
         'Populates the Preference Tree Model'
-        printDBG('Bulding Preference Model of: ' + repr(pref_struct))
+        #printDBG('Bulding Preference Model of: ' + repr(pref_struct))
         #Creates a QStandardItemModel that you can connect to a QTreeView
         self.pref_model = QPreferenceModel(pref_struct)
-        printDBG('Built: ' + repr(self.pref_model))
+        #printDBG('Built: ' + repr(self.pref_model))
         self.ui.prefTreeView.setModel(self.pref_model)
         self.ui.prefTreeView.header().resizeSection(0, 250)

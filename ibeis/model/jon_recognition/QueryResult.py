@@ -9,7 +9,7 @@ import os
 # Scientific
 import numpy as np
 # HotSpotter
-import voting_rules2 as vr2
+#import voting_rules2 as vr2
 
 
 FM_DTYPE  = np.uint32   # Feature Match datatype
@@ -175,26 +175,26 @@ class QueryResult(__OBJECT_BASE__):
         return fmatch_iter
 
     def topN_cids(qres, ibs, N=None, only_gt=False, only_nongt=False):
-        cid2_score = np.array(qres.get_cid2_score())
-        if ibs.prefs.display_cfg.name_scoring:
-            cid2_chipscore = np.array(cid2_score)
-            cid2_score = vr2.enforce_one_name(ibs, cid2_score,
-                                              cid2_chipscore=cid2_chipscore)
-        top_cids = cid2_score.argsort()[::-1]
-        dcids_ = set(ibs.get_indexed_sample()) - set([qres.qcid])
-        top_cids = [cid for cid in iter(top_cids) if cid in dcids_]
+        score_list = np.array(qres.cid2_score.values())
+        cid_list = np.array(qres.cid2_score.keys())
+        #if ibs.cfg.display_cfg.name_scoring:
+            #cid2_chipscore = np.array(cid2_score)
+            #cid2_score = vr2.enforce_one_name(ibs, cid2_score,
+                                              #cid2_chipscore=cid2_chipscore)
+        top_cids = cid_list[score_list.argsort()[::-1]]
         #top_cids = np.intersect1d(top_cids, ibs.get_indexed_sample())
         if only_gt:
-            gt_cids = set(ibs.get_other_indexed_cids(qres.qcid))
+            gt_cids = set(ibs.get_chip_groundtruth(qres.qcid))
             top_cids = [cid for cid in iter(top_cids) if cid in gt_cids]
         if only_nongt:
-            gt_cids = set(ibs.get_other_indexed_cids(qres.qcid))
+            gt_cids = set(ibs.get_chip_groundtruth(qres.qcid))
             top_cids = [cid for cid in iter(top_cids) if not cid in gt_cids]
         nIndexed = len(top_cids)
         if N is None:
-            N = ibs.prefs.display_cfg.N
-        if N == 'all':
-            N = nIndexed
+            N = 5
+            #N = ibs.prefs.display_cfg.N
+        #if N == 'all':
+            #N = nIndexed
         #print('[qr] cid2_score = %r' % (cid2_score,))
         #print('[qr] returning top_cids = %r' % (top_cids,))
         nTop = min(N, nIndexed)

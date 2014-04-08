@@ -1006,7 +1006,7 @@ class IBEISControl(object):
         if not hasattr(ibs, 'qreq'):
             ibs._init_query_requestor()
         dcid_list = ibs.get_recognition_database_chips()
-        qcid2_res = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
+        qcid2_res = ibs._query_chips(qcid_list, dcid_list, **kwargs)
         return qcid2_res
 
     def _init_query_requestor(ibs):

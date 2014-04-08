@@ -211,43 +211,44 @@ class SQLDatabaseControl(object):
             return []
         # Define progress printing / logging / ... functions
         operation_label = '[sql] execute %s: ' % operation_type
-        mark_prog, end_prog = utool.progress_func(
-            max_val=num_params,
-            flush_after=500,
-            lbl=operation_label)
+        #mark_prog, end_prog = utool.progress_func(
+            #max_val=num_params,
+            #flush_after=500,
+            #lbl=operation_label)
 
+        if not utool.QUIET:
+            tt = utool.tic(operation_label)
         try:
-            verbose = True
             def _executemany_helper(count, parameters):
-                mark_prog(count)  # Mark pgoress
-                if verbose:
-                    print_('\n')
-                    print('[sql] paramters=%r' % (parameters,))
+                #mark_prog(count)  # Mark progress
+                #if verbose:
+                    #print_('\n')
+                    #print('[sql] paramters=%r' % (parameters,))
                 # Send command to SQL (all other results will be invalided)
                 db.executor.execute(operation, parameters)
                 # Read all results
                 results_ = [result for result in db.result_iter(verbose=False)]
-                # Append to the list of queries
-                if unpack_scalars:
-                    assert len(results_) < 2, 'throwing away results!'
-                    results = None if len(results_) == 0 else results_[0]
-                else:
-                    results = results_
-                
+                return results_
+
+            def _unpack(results_):
+                assert len(results_) < 2, 'throwing away results!'
+                results = None if len(results_) == 0 else results_[0]
                 if verbose:
                     print('[sql] result_list.append(%r)' % (results,))
-
                 return results
 
             # For each parameter in an input list
             if verbose:
                 print('[sql] operation=%s' % operation)
-            
+
             db.executor.execute('BEGIN', ())
-            result_list = [ _executemany_helper(count, parameters) 
-                            for count, parameters in enumerate(parameters_list) ]
-            if not verbose:
-                end_prog()
+            result_list = [_executemany_helper(count, parameters)
+                           for count, parameters in enumerate(parameters_list)]
+            # Append to the list of queries
+            if unpack_scalars:
+                result_list = [_unpack(results_) for results_ in result_list]
+            #if not verbose:
+                #end_prog()
             num_results = len(result_list)
             if num_results != 0 and num_results != num_params:
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
@@ -270,6 +271,8 @@ class SQLDatabaseControl(object):
             print('</!!! ERROR>\n')
             db.dump()
             raise
+        if not utool.QUIET:
+            utool.toc(tt)
 
         if auto_commit:
             if verbose:
@@ -317,9 +320,9 @@ class SQLDatabaseControl(object):
             if not all(qstat_flag_list):
                 raise lite.DatabaseError(errmsg)
             else:
-                printDBG('<ACTUAL COMMIT>')
+                #printDBG('<ACTUAL COMMIT>')
                 db.connection.commit()
-                printDBG('</ACTUAL COMMIT>')
+                #printDBG('</ACTUAL COMMIT>')
                 if AUTODUMP:
                     db.dump(auto_commit=False)
         except lite.Error as ex2:

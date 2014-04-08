@@ -179,7 +179,7 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
     qcid2_nnfilt = {}
     # Configs
     filt_cfg = qreq.cfg.filt_cfg
-    cant_match_sameimg = not filt_cfg.can_match_sameimg
+    cant_match_sameimg  = not filt_cfg.can_match_sameimg
     cant_match_samename = not filt_cfg.can_match_samename
     K = qreq.cfg.nn_cfg.K
     print('[mf] Step 3) Filter neighbors: ')
@@ -201,7 +201,7 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
                  ((True - qfx2_valid).sum()))
         # Remove Impossible Votes:
         # dont vote for yourself or another chip in the same image
-        cant_match_self = False
+        cant_match_self = not cant_match_sameimg
         if cant_match_self:
             ####DBG
             qfx2_notsamechip = qfx2_cid != qcid

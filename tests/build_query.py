@@ -25,6 +25,24 @@ print, print_, printDBG, rrr, profile = utool.inject(
 sys.argv.append('--nogui')
 
 
+def get_query_components(ibs, qcids):
+    ibs._init_query_requestor()
+    qreq = ibs.qreq
+    dcids = ibs.get_recognition_database_chips()
+    qreq = mc3.prep_query_request(qreq=qreq, qcids=qcids, dcids=dcids)
+    mc3.pre_exec_checks(ibs, qreq)
+    neighbs = mf.nearest_neighbors(ibs, qcids, qreq)
+    qcid2_nns = neighbs
+    weights, filt2_meta = mf.weight_neighbors(ibs, neighbs, qreq)
+    filt2_weights, filt2_meta = (weights, filt2_meta)
+    nnfiltFILT = mf.filter_neighbors(ibs, neighbs, weights, qreq)
+    matchesFILT = mf.build_chipmatches(ibs, neighbs, nnfiltFILT, qreq)
+    matchesSVER = mf.spatial_verification(ibs, matchesFILT, qreq)
+    qcid2_chipmatch = matchesSVER
+    qcid2_res = mf.chipmatch_to_resdict(ibs, matchesSVER, filt2_meta, qreq)
+    return locals()
+
+
 @__testing__.testcontext
 def BUILDQUERY():
     main_locals = __testing__.main(defaultdb='test_big_ibeis',
@@ -51,6 +69,7 @@ def BUILDQUERY():
         # Query Chip Indexes
         # * vsone qcids/dcids swapping occurs here
         qcids = qreq.get_internal_qcids()
+        qreq = ibs.qreq
         mf.rrr()
         # Nearest neighbors (qcid2_nns)
         # * query descriptors assigned to database descriptors

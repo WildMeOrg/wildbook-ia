@@ -15,6 +15,7 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     # Preferably this will call that but it will set some fancy callbacks
     fig = interact_helpers.begin_interaction('chip', fnum)
     # Get chip info (make sure get_chips is called first)
+    cid = ibs.get_roi_cids(rid)
     chip = ibs.get_roi_chips(rid)
     mode_ptr = [0]
 
@@ -31,7 +32,7 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     def _chip_view(pnum=(1, 1, 1), **kwargs):
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
-        viz.show_chip(ibs, rid=rid, chip=chip, fnum=fnum, pnum=pnum, **kwargs)
+        viz.show_chip(ibs, cid, fnum=fnum, pnum=pnum, **kwargs)
         df2.set_figtitle(figtitle)
 
     def _on_chip_click(event):

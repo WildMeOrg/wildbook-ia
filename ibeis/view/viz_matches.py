@@ -11,11 +11,6 @@ from ibeis.model.jon_recognition import QueryResult
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz-matches]', DEBUG=False)
 
 
-def res_show_chipres(qres, ibs, cid, **kwargs):
-    'Wrapper for show_chipres(show annotated chip match result) '
-    return show_chipres(ibs, qres, cid, **kwargs)
-
-
 @utool.indent_decor('[show_chipres]')
 def show_chipres(ibs, qres, cid, fnum=None, pnum=None, sel_fm=[], in_image=False, **kwargs):
     'shows single annotated match result.'
