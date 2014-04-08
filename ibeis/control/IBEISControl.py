@@ -395,11 +395,14 @@ class IBEISControl(object):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' %
                  (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
+        if isinstance(prop_key, str):
+            prop_key = (prop_key,)
+
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
         property_list = ibs.db.executemany(
             operation='''
-            SELECT ''' + prop_key + '''
+            SELECT ''' + ', '.join(prop_key) + '''
             FROM ''' + table + '''
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
@@ -550,13 +553,9 @@ class IBEISControl(object):
     @getter
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        xtl_list    = ibs.get_roi_properties('roi_xtl', rid_list)
-        ytl_list    = ibs.get_roi_properties('roi_ytl', rid_list)
-        width_list  = ibs.get_roi_properties('roi_width', rid_list)
-        height_list = ibs.get_roi_properties('roi_height', rid_list)
-        bbox_list = [(x, y, w, h) for (x, y, w, h) in
-                     izip(xtl_list, ytl_list, width_list, height_list)]
-        return bbox_list
+        cols = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
+        col_list = ibs.get_roi_properties(cols, rid_list)
+        return col_list
 
     @getter
     def get_roi_thetas(ibs, rid_list):
