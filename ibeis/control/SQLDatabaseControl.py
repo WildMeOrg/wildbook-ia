@@ -38,20 +38,28 @@ class SQLDatabaseControl(object):
         db.executor   = db.connection.cursor()
         db.table_columns = {}
 
-    def sanatize_sql(db, table, column=None):
+    def sanatize_sql(db, table, columns=None):
         """ Sanatizes an sql table and column. Use sparingly """
         table = re.sub('[^a-z_]', '', table)
         valid_tables = db.get_tables()
         if not table in valid_tables:
             raise Exception('UNSAFE TABLE: table=%r' % table)
-        if column is None:
+        if columns is None:
             return table
         else:
-            column = re.sub('[^a-z_]', '', column)
-            valid_columns = db.get_column_names(table)
-            if not column in valid_columns:
-                raise Exception('UNSAFE COLUMN: column=%r' % column)
-            return table, column
+            def _sanitize_sql_helper(column):
+                column = re.sub('[^a-z_]', '', column)
+                valid_columns = db.get_column_names(table)
+                if not column in valid_columns:
+                    raise Exception('UNSAFE COLUMN: column=%r' % column)
+                    return None
+                else:
+                    return column
+
+            columns = [_sanitize_sql_helper(column) for column in columns]
+            columns = [column for column in columns if columns is not None]
+
+            return table, columns
 
     def get_column_names(db, table):
         """ Returns the sql table columns """
@@ -278,8 +286,11 @@ class SQLDatabaseControl(object):
             result = db.executor.fetchone()
             if not result:
                 raise StopIteration()
-            assert len(result) < 2, '[sql] we are throwing away results! result=%r' % result
-            yield result[0]
+            # assert len(result) < 2, '[sql] we are throwing away results! result=%r' % result
+            if len(result) == 1:
+                yield result[0]
+            else:
+                yield result
 
     def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
         """
