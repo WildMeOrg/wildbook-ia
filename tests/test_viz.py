@@ -42,7 +42,7 @@ def TEST_VIZ():
 
     cid_list = ibs.get_roi_cids(rid_list)
 
-    cid = cid_list[1]
+    cid = cid_list[2]
     viz_chip.show_chip(ibs, cid, in_image=False, fnum=2)
 
     viz_chip.show_chip(ibs, cid, in_image=True, fnum=3)

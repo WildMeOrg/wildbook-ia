@@ -97,6 +97,8 @@ PHI_numer = 1 + np.sqrt(5)
 PHI_denom = 2.0
 PHI = PHI_numer / PHI_denom
 
+DARKEN = .3 if utool.get_flag('--darken') else None
+
 
 def golden_wh2(sz):
     return (PHI * sz, sz)
@@ -1571,7 +1573,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 # ---- CHIP DISPLAY COMMANDS ----
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
-           data_colorbar=False, darken=None, **kwargs):
+           data_colorbar=False, darken=DARKEN, **kwargs):
     'other interpolations = nearest, bicubic, bilinear'
     printDBG('imshow()')
     #printDBG('[df2] ----- IMSHOW ------ ')

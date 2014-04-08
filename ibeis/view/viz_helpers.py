@@ -48,9 +48,9 @@ def get_roi_kpts_in_imgspace(ibs, rid_list):
         utool.print_exception(ex, '[!ibs.get_roi_kpts_in_imgspace]')
         print('[!ibs.get_roi_kpts_in_imgspace] rid_list = %r' % (rid_list,))
         raise
-    kpts_list   = ibs.get_roi_kpts(rid_list)
-    imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz)
-                    for bbox, bbox_theta, chipsz, kpts
+    kpts_list    = ibs.get_roi_kpts(rid_list)
+    imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
+                    for bbox, theta, chipsz, kpts
                     in izip(bbox_list, theta_list, chipsz_list, kpts_list)]
     return imgkpts_list
 

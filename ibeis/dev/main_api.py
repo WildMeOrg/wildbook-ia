@@ -162,6 +162,8 @@ def main(**kwargs):
     try:
 
         from ibeis.dev import params
+        import numpy as np
+        np.set_printoptions(linewidth=200)
         _parse_args(**kwargs)
         _init_parallel()
         utool.util_inject._inject_colored_exception_hook()
