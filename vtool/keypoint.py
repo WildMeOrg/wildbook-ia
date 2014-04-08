@@ -125,7 +125,14 @@ def get_scales(kpts):
     return _scales
 
 
-def get_invV_mats(kpts, ashomog=False, with_trans=False, ascontiguous=False):
+def get_ori_mags(kpts):
+    _oris = get_oris(kpts)
+    ori_mats = [ltool.rotation_mat(ori) for ori in _oris]
+    print([ori for ori in ori_mats])
+    return ori_mats
+
+
+def get_invV_mats(kpts, ashomog=False, with_trans=False, with_ori=False, ascontiguous=False):
     # packs keypoint shapes into affine invV matrixes
     nKpts = len(kpts)
     _iv11s, _iv21s, _iv22s = get_invVs(kpts)
@@ -146,8 +153,12 @@ def get_invV_mats(kpts, ashomog=False, with_trans=False, ascontiguous=False):
     else:
         invV_tups = ((_iv11s, _iv12s),
                      (_iv21s, _iv22s))
+
     invV_arrs = array(invV_tups)        # R x C x N
     invV_mats = rollaxis(invV_arrs, 2)  # N x R x C
+    if with_ori:
+        ori_mats = get_ori_mags(kpts)
+        invV_mats = [invV.dot(orimat) for (invV, orimat) in izip(invV_mats, ori_mats)]
     if ascontiguous:
         invV_mats = np.ascontiguousarray(invV_mats)
     return invV_mats
@@ -156,8 +167,8 @@ def get_invV_mats(kpts, ashomog=False, with_trans=False, ascontiguous=False):
 def flatten_mats_to_xyacd(M_list):
     """ flattens a matrix into keypoint format """
     # TODO: Need to rectify M to point downward and have a rotation
-    #assert all([M.shape == (3, 3) for M in M_list])
-    invV_list_ = [[M[0, 2], M[1, 2], M[0, 0], M[1, 0], M[1, 1]] for M in M_list]
+    assert all([M.shape == (3, 3) for M in M_list]), 'need to be 3x3 matrixes'
+    invV_list_ = [[M[0, 2], M[1, 2], M[0, 0], M[1, 0], M[1, 1], 0] for M in M_list]
     return invV_list_
 
 
@@ -168,15 +179,20 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
         theta  - chip rotations
         chipsz - chip extent (in keypoint / chip space)
     """
+    #print('kpts = %r' % (kpts,))
     # TODO: Need to rectify C to point downward and have a rotation
     # Get keypoints in matrix format
-    invV_list = get_invV_mats(kpts, ashomog=True)
+    invV_list = get_invV_mats(kpts, ashomog=True, with_trans=True, with_ori=True)
+    print('invV_list = \n%r' % (invV_list,))
     # Get chip to imagespace transform
     invC      = ctool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
+    #print('invC = \n%r' % (invC,))
     # Apply transform to keypoints
-    invCinvV_list = (invC.dot(invV) for invV in invV_list)
+    invCinvV_list = [invC.dot(invV) for invV in invV_list]
+    #print('invCinvV_list = \n%r' % (invCinvV_list,))
     # Flatten back into keypoint format
     imgkpts = np.array(flatten_mats_to_xyacd(invCinvV_list))
+    #print('image keypoints = %r' % (imgkpts,))
     return imgkpts
 
 

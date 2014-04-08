@@ -794,6 +794,7 @@ class IBEISControl(object):
     def get_feat_kpts(ibs, fid_list):
         """ Returns chip keypoints """
         kpts_list = ibs.get_feat_properties('feature_keypoints', fid_list)
+        #DEBUG: kpts_list = [kpts[-4:-1] for kpts in kpts_list]
         return kpts_list
 
     @getter_vector_output

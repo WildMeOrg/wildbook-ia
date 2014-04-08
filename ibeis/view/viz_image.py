@@ -16,7 +16,7 @@ def annotate_roi(ax, bbox, theta, label, is_sel):
     df2.draw_roi(bbox, label, bbox_color, lbl_color, theta=theta, ax=ax)
 
 
-def annotate_image(ibs, ax, gid, sel_rids, draw_lbls, annote):
+def annotate_image(ibs, ax, gid, sel_rids, draw_lbls=True, annote=True):
     # draw chips in the image
     rid_list    = ibs.get_rids_in_gids(gid)
     bbox_list   = ibs.get_roi_bboxes(rid_list)

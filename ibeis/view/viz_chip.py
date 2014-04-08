@@ -3,6 +3,7 @@ import utool
 import drawtool.draw_func2 as df2
 import numpy as np
 import viz_helpers as vh
+import viz_image
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_chip]',
                                                        DEBUG=False)
 
@@ -39,9 +40,9 @@ def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
         drawkpts2_kw = drawkpts_kw.copy()
         drawkpts2_kw.update({
             'ell_color': df2.BLUE,
-            'eig': True,
+            'eig':  True,
             'rect': True,
-            'ori': True,
+            'ori':  True,
         })
         df2.draw_kpts2(nonsel_kpts_, **drawkpts_kw)
         df2.draw_kpts2(sel_kpts, **drawkpts_kw)
@@ -64,3 +65,7 @@ def show_chip(ibs, cid, in_image=False, fnum=2, **kwargs):
     vh.set_ibsdat(ax, 'cid', cid)
     # Draw keypoints
     _annotate_kpts(kpts, **kwargs)
+    if in_image:
+        gid = ibs.get_chip_gids(cid)
+        rid = ibs.get_chip_rids(cid)
+        viz_image.annotate_image(ibs, ax, gid, [rid])
