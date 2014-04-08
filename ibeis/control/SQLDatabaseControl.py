@@ -197,7 +197,14 @@ class SQLDatabaseControl(object):
             print('[sql.executemany] caller_name=%r' % caller_name)
         # Do any preprocesing on the SQL command / query
         operation_type = operation.split()[0].strip()
-        result_list = []
+        if operation_type == 'SELECT':
+            startpos = operation.find('SELECT') + len('SELECT')
+            endpos = operation.find('FROM') - 1
+            #print((startpos, endpos))
+            #print(operation)
+            operation_args =  operation[startpos:endpos].strip()
+            #print(operation_args)
+            operation_type += ' ' + operation_args
         # Compute everything in Python before sending queries to SQL
         # TODO: Agressively expanding the iterator into a list is a hack.
         # Allowing for the passing of parameters in an iterator will greatly
@@ -205,75 +212,64 @@ class SQLDatabaseControl(object):
         # need to be passed in as well, otherwise we have to cast to a list.
         parameters_list = list(parameters_iter)
         num_params = len(parameters_list)
+
         if num_params == 0:
             if VERBOSE:
                 print('[sql] cannot executemany with no parameters. use executeone instead')
             return []
-        # Define progress printing / logging / ... functions
-        operation_label = '[sql] execute %s: ' % operation_type
-        #mark_prog, end_prog = utool.progress_func(
-            #max_val=num_params,
-            #flush_after=500,
-            #lbl=operation_label)
 
+        operation_label = '[sql] execute %d %s: ' % (num_params, operation_type)
         if not utool.QUIET:
             tt = utool.tic(operation_label)
+
+        # Define helper functions
+        def _executemany_helper(parameters):
+            # Send command to SQL (all other results will be invalided)
+            db.executor.execute(operation, parameters)
+            # Read all results
+            results_ = [result for result in db.result_iter(verbose=False)]
+            return results_
+
+        def _unpack_helper(results_):
+            assert len(results_) < 2, 'throwing away results!'
+            results = None if len(results_) == 0 else results_[0]
+            return results
+
         try:
-            def _executemany_helper(count, parameters):
-                #mark_prog(count)  # Mark progress
-                #if verbose:
-                    #print_('\n')
-                    #print('[sql] paramters=%r' % (parameters,))
-                # Send command to SQL (all other results will be invalided)
-                db.executor.execute(operation, parameters)
-                # Read all results
-                results_ = [result for result in db.result_iter(verbose=False)]
-                return results_
-
-            def _unpack(results_):
-                assert len(results_) < 2, 'throwing away results!'
-                results = None if len(results_) == 0 else results_[0]
-                if verbose:
-                    print('[sql] result_list.append(%r)' % (results,))
-                return results
-
-            # For each parameter in an input list
-            if verbose:
-                print('[sql] operation=%s' % operation)
-
+            # Begin a transaction (cuts execute time in half)
             db.executor.execute('BEGIN', ())
-            result_list = [_executemany_helper(count, parameters)
-                           for count, parameters in enumerate(parameters_list)]
+            # Process executions in list comprehension (cuts time by 10x)
+            result_list = [_executemany_helper(params) for params in parameters_list]
             # Append to the list of queries
             if unpack_scalars:
-                result_list = [_unpack(results_) for results_ in result_list]
-            #if not verbose:
-                #end_prog()
+                result_list = [_unpack_helper(results_) for results_ in result_list]
+            #
             num_results = len(result_list)
             if num_results != 0 and num_results != num_params:
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
-
+            #
         except lite.Error as ex1:
             print('\n<!!! ERROR>')
             utool.print_exception(ex1, '[!sql] executemany threw')
             print('[!sql] %s' % (errmsg,))
             print('[!sql] operation=\n%s' % operation)
             if 'parameters' in vars():
-                if len(parameters) > 4:
+                if len(params) > 4:
                     paraminfostr = utool.indentjoin(
-                        map(repr, enumerate([(type(_), _) for _ in parameters])), '\n  ')
+                        map(repr, enumerate([(type(_), _) for _ in params])), '\n  ')
                     print('[!sql] failed paramters=' + paraminfostr)
                 else:
-                    print('[!sql] failed paramters=%r' % (parameters,))
+                    print('[!sql] failed paramters=%r' % (params,))
             else:
                 print('[!!sql] failed before parameters populated')
             print('[!sql] parameters_iter=%r' % (parameters_iter,))
             print('</!!! ERROR>\n')
             db.dump()
             raise
+        #
         if not utool.QUIET:
             utool.toc(tt)
-
+        #
         if auto_commit:
             if verbose:
                 print('[sql.executemany] commit')

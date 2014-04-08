@@ -131,10 +131,11 @@ class IBEISControl(object):
         # Build parameter list early so we can grab the gids
         param_list = [tup for tup in
                       preproc_image.add_images_paramters_gen(gpath_list)]
-        gid_list   = [tup[0] for tup in param_list]
+        img_uuid_list   = [tup[0] for tup in param_list]
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
+                image_uid,
                 image_uuid,
                 image_uri,
                 image_width,
@@ -142,9 +143,16 @@ class IBEISControl(object):
                 image_exif_time_posix,
                 image_exif_gps_lat,
                 image_exif_gps_lon
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
             ''',
             parameters_iter=param_list)
+        gid_list = ibs.db.executemany(
+            operation='''
+            SELECT image_uid
+            FROM images
+            WHERE image_uuid=?
+            ''',
+            parameters_iter=[(img_uuid,) for img_uuid in img_uuid_list])
         return gid_list
 
     @adder
@@ -156,19 +164,26 @@ class IBEISControl(object):
         if nid_list is None:
             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
-        image_uuid_list = ibs.get_image_uuids(gid_list) 
-        rid_list = [util_hash.augment_uuid(gid, bbox, theta)
-                    for gid, bbox, theta
-                    in izip(image_uuid_list, bbox_list, theta_list)]
+        image_uuid_list = ibs.get_image_uuids(gid_list)
+        try:
+            roi_uuid_list = [util_hash.augment_uuid(img_uuid, bbox, theta)
+                             for img_uuid, bbox, theta
+                             in izip(image_uuid_list, bbox_list, theta_list)]
+        except Exception as ex:
+            utool.print_exception(ex, '[add_roi]')
+            print('[!add_rois] ' + utool.list_dbgstr('image_uuid_list'))
+            print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
+            raise
         # Define arguments to insert
         param_iter = ((rid, gid, nid, x, y, w, h, theta, viewpoint)
                       for (rid, gid, nid, (x, y, w, h), theta, viewpoint)
-                      in izip(rid_list, gid_list, nid_list, bbox_list,
+                      in izip(roi_uuid_list, gid_list, nid_list, bbox_list,
                               theta_list, viewpoint_list))
         ibs.db.executemany(
             operation='''
             INSERT OR REPLACE INTO rois
             (
+                roi_uid,
                 roi_uuid,
                 image_uid,
                 name_uid,
@@ -179,9 +194,16 @@ class IBEISControl(object):
                 roi_theta,
                 roi_viewpoint
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             parameters_iter=param_iter)
+        rid_list = ibs.db.executemany(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            WHERE roi_uuid=?
+            ''',
+            parameters_iter=[(roi_uuid,) for roi_uuid in roi_uuid_list])
         return rid_list
 
     @adder
@@ -198,7 +220,7 @@ class IBEISControl(object):
                 param_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
             except AssertionError as ex:
                 utool.print_exception(ex, '[!ibs.add_chips]')
-                print('[!ibs.add_chips] rid_list = %r' % (rid_list,))
+                print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
                 raise
             ibs.db.executemany(
                 operation='''
@@ -580,6 +602,13 @@ class IBEISControl(object):
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         gid_list = ibs.get_roi_properties('image_uid', rid_list)
+        try:
+            utool.assert_all_not_None(gid_list)
+        except AssertionError as ex:
+            utool.print_exception(ex, '[!get_roi_gids]')
+            print('[!get_roi_gids] ' + utool.list_dbgstr('gid_list'))
+            print('[!get_roi_gids] ' + utool.list_dbgstr('rid_list'))
+            raise
         return gid_list
 
     @getter
@@ -632,8 +661,8 @@ class IBEISControl(object):
         try:
             utool.assert_all_not_None(gid_list, 'gid_list')
         except AssertionError:
-            print('rid_list = %r' % rid_list)
-            print('gid_list = %r' % gid_list)
+            print('[!get_roi_gpaths] ' + utool.list_dbgstr('rid_list'))
+            print('[!get_roi_gpaths] ' + utool.list_dbgstr('gid_list'))
             raise
         gpath_list = ibs.get_image_paths(gid_list)
         utool.assert_all_not_None(gpath_list, 'gpath_list')

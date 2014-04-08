@@ -42,20 +42,20 @@ def BIGDB():
 
     nImages = len(gpath_list)
 
-    with utool.Timer('Add %d Images' % nImages):
-        gid_list = ibs.add_images(gpath_list)
+    #with utool.Timer('Add %d Images' % nImages):
+    gid_list = ibs.add_images(gpath_list)
 
-    with utool.Timer('Convert %d Images to rois' % nImages):
-        rid_list = ibs.use_images_as_rois(gid_list)
+    #with utool.Timer('Convert %d Images to rois' % nImages):
+    rid_list = ibs.use_images_as_rois(gid_list)
 
-    with utool.Timer('Compute %d chips' % nImages):
-        cid_list = ibs.add_chips(rid_list)
+    #with utool.Timer('Compute %d chips' % nImages):
+    cid_list = ibs.add_chips(rid_list)
 
-    with utool.Timer('Compute %d features' % nImages):
-        fid_list = ibs.add_feats(cid_list)
+    #with utool.Timer('Compute %d features' % nImages):
+    fid_list = ibs.add_feats(cid_list)
 
-    with utool.Timer('Getting %d nFeats' % nImages):
-        nFeats_list = ibs.get_num_feats(fid_list)
+    #with utool.Timer('Getting %d nFeats' % nImages):
+    nFeats_list = ibs.get_num_feats(fid_list)
 
     print('Total number of features in the database: %r' % sum(nFeats_list))
 

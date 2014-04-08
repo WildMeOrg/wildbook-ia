@@ -51,7 +51,7 @@ def define_IBEIS_schema(ibs):
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
         ('chip_toggle_hard',             'INTEGER DEFAULT 0'),  # TODO: Remove?
-    ), ['CONSTRAINT superkey UNIQUE (roi_uid)'] # TODO: constraint needs modify
+    ), ['CONSTRAINT superkey UNIQUE (roi_uid)']  # TODO: constraint needs modify
     )
     # Used to store individual chip features (ellipses)
     ibs.db.schema('features', (

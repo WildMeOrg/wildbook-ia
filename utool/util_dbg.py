@@ -483,6 +483,17 @@ def printvar(locals_, varname, attr='.shape'):
     np.set_printoptions(**npprintopts)
 
 
+def list_dbgstr(listname, trunc=2):
+    locals_ = get_parent_locals()
+    list_   = locals_[listname]
+    if trunc is None:
+        pos = len(list_)
+    else:
+        pos     = min(trunc, len(list_) - 1)
+    list_str = listname + ' = ' + repr(list_[0:pos],)
+    return list_str
+
+
 def all_rrr():
     util_inject.inject_all()
     for mod in util_inject.get_injected_modules():

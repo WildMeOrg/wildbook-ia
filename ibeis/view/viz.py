@@ -19,7 +19,7 @@ from ibeis.model.jon_recognition import QueryResult
 from viz_helpers import draw, set_ibsdat, get_ibsdat  # NOQA
 from viz_image import show_image  # NOQA
 from viz_chip import show_chip, show_keypoints  # NOQA
-from viz_matches import show_chipres, res_show_chipres, annotate_chipres  # NOQA
+from viz_matches import show_chipres, annotate_chipres  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
@@ -264,7 +264,7 @@ def _show_res(ibs, res, **kwargs):
             if not show_query:
                 _kwshow['draw_ell'] = annote == 1
                 _kwshow['draw_lines'] = annote >= 1
-                res_show_chipres(res, ibs, cid, in_image=in_image, **_kwshow)
+                show_chipres(res, ibs, cid, in_image=in_image, **_kwshow)
             else:
                 _kwshow['draw_ell'] = annote >= 1
                 if annote == 2:
