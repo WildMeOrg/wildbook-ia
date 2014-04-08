@@ -135,7 +135,7 @@ class IBEISControl(object):
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
-                image_uid,
+                image_uuid,
                 image_uri,
                 image_width,
                 image_height,
@@ -156,9 +156,10 @@ class IBEISControl(object):
         if nid_list is None:
             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
+        image_uuid_list = ibs.get_image_uuids(gid_list) 
         rid_list = [util_hash.augment_uuid(gid, bbox, theta)
                     for gid, bbox, theta
-                    in izip(gid_list, bbox_list, theta_list)]
+                    in izip(image_uuid_list, bbox_list, theta_list)]
         # Define arguments to insert
         param_iter = ((rid, gid, nid, x, y, w, h, theta, viewpoint)
                       for (rid, gid, nid, (x, y, w, h), theta, viewpoint)
@@ -168,7 +169,7 @@ class IBEISControl(object):
             operation='''
             INSERT OR REPLACE INTO rois
             (
-                roi_uid,
+                roi_uuid,
                 image_uid,
                 name_uid,
                 roi_xtl,
@@ -451,6 +452,12 @@ class IBEISControl(object):
         return image_list
 
     @getter
+    def get_image_uuids(ibs, gid_list):
+        """ Returns a list of image uuids by gid """
+        image_uuid_list = ibs.get_table_properties('images', 'image_uuid', gid_list)
+        return image_uuid_list
+
+    @getter
     def get_image_uris(ibs, gid_list):
         """ Returns a list of image uris by gid """
         uri_list = ibs.db.executemany(
@@ -549,6 +556,12 @@ class IBEISControl(object):
             FROM rois
             ''')
         return rid_list
+
+    @getter
+    def get_roi_uuids(ibs, rid_list):
+        """ Returns a list of image uuids by gid """
+        roi_uuid_list = ibs.get_table_properties('rois', 'roi_uuid', rid_list)
+        return roi_uuid_list
 
     @getter
     def get_roi_bboxes(ibs, rid_list):
