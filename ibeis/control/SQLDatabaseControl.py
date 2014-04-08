@@ -215,10 +215,14 @@ class SQLDatabaseControl(object):
             max_val=num_params,
             flush_after=500,
             lbl=operation_label)
+
         try:
             # For each parameter in an input list
             if verbose:
                 print('[sql] operation=%s' % operation)
+            
+            db.executor.execute('BEGIN', ())
+
             for count, parameters in enumerate(parameters_list):
                 mark_prog(count)  # Mark pgoress
                 if verbose:
@@ -242,6 +246,7 @@ class SQLDatabaseControl(object):
             num_results = len(result_list)
             if num_results != 0 and num_results != num_params:
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
+
         except lite.Error as ex1:
             print('\n<!!! ERROR>')
             utool.print_exception(ex1, '[!sql] executemany threw')
@@ -260,6 +265,7 @@ class SQLDatabaseControl(object):
             print('</!!! ERROR>\n')
             db.dump()
             raise
+
         if auto_commit:
             if verbose:
                 print('[sql.executemany] commit')
