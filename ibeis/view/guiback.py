@@ -349,7 +349,8 @@ class MainWindowBackend(QtCore.QObject):
                 msg='What do you want to name the new database?',
                 title='New Database')
             if new_dbname is None or len(new_dbname) == 0:
-                raise Exception('Abort new database. new_dbname=%r' % new_dbname)
+                print('Abort new database. new_dbname=%r' % new_dbname)
+                return
             reply = back.user_option(
                 msg='Where should I put the new database?',
                 title='Import Images',
@@ -361,7 +362,8 @@ class MainWindowBackend(QtCore.QObject):
             elif reply == 'My Work Dir':
                 putdir = back.get_work_directory()
             else:
-                raise Exception('Abort new database')
+                print('Abort new database')
+                return
             new_dbdir = join(putdir, new_dbname)
             if not exists(putdir):
                 raise ValueError('Directory %r does not exist.' % putdir)
