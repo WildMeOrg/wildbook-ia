@@ -28,6 +28,8 @@ def uuid_cast(qtuuid):
 def qt_cast(qtinput):
     if isinstance(qtinput, QtCore.QString):
         qtoutput = str(qtinput)
+    elif isinstance(qtinput, int):
+        return qtinput
     else:
         raise ValueError('Unknown QtType. type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
     return qtoutput
