@@ -1,3 +1,6 @@
+# TODO: These functions can go a shit-ton faster if they are put into list
+# comprehensions
+# TODO: Remove ibs control as much as possible or abstract it away
 from __future__ import division, print_function
 # Python
 from itertools import izip
@@ -29,11 +32,11 @@ qcid2_XXX - prefix mapping query chip index to
 qfx2_XXX  - prefix mapping query chip feature index to
 
 TUPLES:
- * nns    - a (qfx2_dx, qfx2_dist) tuple
+ * nns    - a (qfx2_ax, qfx2_dist) tuple
  * nnfilt - a (qfx2_fs, qfx2_valid) tuple
 
 SCALARS
- * dx     - the index into the database of features
+ * ax     - the index into the database of features
  * dist   - the distance to a corresponding feature
  * fs     - a score of a corresponding feature
  * valid  - a valid bit for a corresponding feature
@@ -41,7 +44,7 @@ SCALARS
 REALIZATIONS:
 qcid2_nns - maping from query chip index to nns
 {
- * qfx2_dx   - ranked list of query feature indexes to database feature indexes
+ * qfx2_ax   - ranked list of query feature indexes to database feature indexes
  * qfx2_dist - ranked list of query feature indexes to database feature indexes
 }
 
@@ -61,7 +64,7 @@ MARK_AFTER = 2
 
 def progress_func(maxval=0):
     mark_prog, end_prog = utool.progress_func(
-        maxval, mark_after=MARK_AFTER, progress_type='simple')
+        maxval, mark_after=MARK_AFTER, progress_type='fmtstr')
     return mark_prog, end_prog
 
 
@@ -110,18 +113,19 @@ def nearest_neighbors(ibs, qcids, qreq):
             # Raise error if strict
             if '--strict' in sys.argv:
                 raise NoDescriptorsException(ibs, qcid)
-            # Assign empty nearest neighbors
-            empty_qfx2_dx   = np.empty((0, K + Knorm), dtype=np.int)
-            empty_qfx2_dist = np.empty((0, K + Knorm), dtype=np.float)
-            qcid2_nns[qcid] = (empty_qfx2_dx, empty_qfx2_dist)
-            continue
+            else:
+                # Assign empty nearest neighbors
+                empty_qfx2_ax   = np.empty((0, K + Knorm), dtype=np.int)
+                empty_qfx2_dist = np.empty((0, K + Knorm), dtype=np.float)
+                qcid2_nns[qcid] = (empty_qfx2_ax, empty_qfx2_dist)
+                continue
         # Find Neareset Neighbors
-        (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm,
+        (qfx2_ax, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm,
                                               checks=checks)
         # Store nearest neighbors
-        qcid2_nns[qcid] = (qfx2_dx, qfx2_dist)
+        qcid2_nns[qcid] = (qfx2_ax, qfx2_dist)
         # record number of query and result desc
-        nNN += qfx2_dx.size
+        nNN += qfx2_ax.size
         nDesc += len(qfx2_desc)
     end_prog()
     if not QUIET:
@@ -162,9 +166,9 @@ def _weight_neighbors(ibs, qcid2_nns, qreq):
 #==========================
 
 
-def _apply_filter_scores(qcid, qfx2_nn, filt2_weights, filt_cfg):
-    qfx2_score = np.ones(qfx2_nn.shape, dtype=QueryResult.FS_DTYPE)
-    qfx2_valid = np.ones(qfx2_nn.shape, dtype=np.bool)
+def _apply_filter_scores(qcid, qfx2_nnax, filt2_weights, filt_cfg):
+    qfx2_score = np.ones(qfx2_nnax.shape, dtype=QueryResult.FS_DTYPE)
+    qfx2_valid = np.ones(qfx2_nnax.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, cid2_weights in filt2_weights.iteritems():
         qfx2_weights = cid2_weights[qcid]
@@ -192,19 +196,19 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
     #+ filt_cfg.get_uid())
     # NNIndex
     # Database feature index to chip index
-    dx2_cid = qreq.data_index.ax2_cid
     # Filter matches based on config and weights
-    #mark_prog, end_prog = progress_func(len(qcid2_nns))
+    mark_prog, end_prog = progress_func(len(qcid2_nns))
     for count, qcid in enumerate(qcid2_nns.iterkeys()):
-        #mark_prog(count)
-        (qfx2_dx, _) = qcid2_nns[qcid]
-        qfx2_nn = qfx2_dx[:, 0:K]
+        mark_prog(count)
+        (qfx2_ax, _) = qcid2_nns[qcid]
+        qfx2_nnax = qfx2_ax[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
         qfx2_score, qfx2_valid = _apply_filter_scores(
-            qcid, qfx2_nn, filt2_weights, filt_cfg)
-        qfx2_cid = dx2_cid[qfx2_nn]
-        printDBG('[mf] * %d assignments are invalid by thresh' %
-                 ((True - qfx2_valid).sum()))
+            qcid, qfx2_nnax, filt2_weights, filt_cfg)
+        qfx2_cid = qreq.data_index.ax2_cid[qfx2_nnax]
+        if not QUIET:
+            print('[mf] * %d assignments are invalid by thresh' %
+                  ((True - qfx2_valid).sum()))
         # Remove Impossible Votes:
         # dont vote for yourself or another chip in the same image
         cant_match_self = not cant_match_sameimg
@@ -213,8 +217,9 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
             qfx2_notsamechip = qfx2_cid != qcid
             nChip_all_invalid = ((True - qfx2_notsamechip)).sum()
             nChip_new_invalid = (qfx2_valid * (True - qfx2_notsamechip)).sum()
-            printDBG('[mf] * %d assignments are invalid by self' % nChip_all_invalid)
-            printDBG('[mf] * %d are newly invalided by self' % nChip_new_invalid)
+            if not QUIET:
+                print('[mf] * %d assignments are invalid by self' % nChip_all_invalid)
+                print('[mf] * %d are newly invalided by self' % nChip_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         if cant_match_sameimg:
@@ -224,8 +229,9 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
             ####DBG
             nImg_all_invalid = ((True - qfx2_notsameimg)).sum()
             nImg_new_invalid = (qfx2_valid * (True - qfx2_notsameimg)).sum()
-            printDBG('[mf] * %d assignments are invalid by gid' % nImg_all_invalid)
-            printDBG('[mf] * %d are newly invalided by gid' % nImg_new_invalid)
+            if not QUIET:
+                print('[mf] * %d assignments are invalid by gid' % nImg_all_invalid)
+                print('[mf] * %d are newly invalided by gid' % nImg_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
         if cant_match_samename:
@@ -235,13 +241,34 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
             ####DBG
             nName_all_invalid = ((True - qfx2_notsamename)).sum()
             nName_new_invalid = (qfx2_valid * (True - qfx2_notsamename)).sum()
-            printDBG('[mf] * %d assignments are invalid by nid' % nName_all_invalid)
-            printDBG('[mf] * %d are newly invalided by nid' % nName_new_invalid)
+            if not QUIET:
+                print('[mf] * %d assignments are invalid by nid' % nName_all_invalid)
+                print('[mf] * %d are newly invalided by nid' % nName_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
         printDBG('[mf] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
         qcid2_nnfilt[qcid] = (qfx2_score, qfx2_valid)
-    #end_prog()
+    end_prog()
+    return qcid2_nnfilt
+
+
+def identity_filter(qcid2_nns, qreq):
+    """ testing function returns unfiltered nearest neighbors
+    this does check that you are not matching yourself
+    """
+    qcid2_nnfilt = {}
+    K = qreq.cfg.nn_cfg.K
+    for count, qcid in enumerate(qcid2_nns.iterkeys()):
+        (qfx2_ax, _) = qcid2_nns[qcid]
+        qfx2_nnax = qfx2_ax[:, 0:K]
+        qfx2_score = np.ones(qfx2_nnax.shape, dtype=QueryResult.FS_DTYPE)
+        qfx2_valid = np.ones(qfx2_nnax.shape, dtype=np.bool)
+        # Check that you are not matching yourself
+        qfx2_cid = qreq.data_index.ax2_cid[qfx2_nnax]
+        qfx2_notsamechip = qfx2_cid != qcid
+        qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
+        qcid2_nnfilt[qcid] = (qfx2_score, qfx2_valid)
+
     return qcid2_nnfilt
 
 
@@ -250,8 +277,37 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
 #============================
 
 
+def _fix_fmfsfk(cid2_fm, cid2_fs, cid2_fk):
+    minMatches = 2  # TODO: paramaterize
+    # Convert to numpy
+    fm_dtype = QueryResult.FM_DTYPE
+    fs_dtype = QueryResult.FS_DTYPE
+    fk_dtype = QueryResult.FK_DTYPE
+    cid2_fm_ = {cid: np.array(fm, fm_dtype)
+                for cid, fm in cid2_fm.iteritems()
+                if len(fm) > minMatches}
+    cid2_fs_ = {cid: np.array(fs, fs_dtype)
+                for cid, fs in cid2_fs.iteritems()
+                if len(fs) > minMatches}
+    cid2_fk_ = {cid: np.array(fk, fk_dtype)
+                for cid, fk in cid2_fk.iteritems()
+                if len(fk) > minMatches}
+    # Ensure shape
+    for cid, fm in cid2_fm_.iteritems():
+        fm.shape = (fm.size // 2, 2)
+    chipmatch = (cid2_fm_, cid2_fs_, cid2_fk_)
+    return chipmatch
+
+
+def new_fmfsfk():
+    cid2_fm = defaultdict(list)
+    cid2_fs = defaultdict(list)
+    cid2_fk = defaultdict(list)
+    return cid2_fm, cid2_fs, cid2_fk
+
+
 @profile
-def build_chipmatches(ibs, qcid2_nns, qcid2_nnfilt, qreq):
+def build_chipmatches(qcid2_nns, qcid2_nnfilt, qreq):
     '''vsmany/vsone counts here. also this is where the filter
     weights and thershold are applied to the matches. Essientally
     nearest neighbors are converted into weighted assignments'''
@@ -261,9 +317,6 @@ def build_chipmatches(ibs, qcid2_nns, qcid2_nnfilt, qreq):
     is_vsone = query_type == 'vsone'
     if not QUIET:
         print('[mf] Step 4) Building chipmatches %s' % (query_type,))
-    # Data Index
-    dx2_cid = qreq.data_index.ax2_cid
-    dx2_fx = qreq.data_index.ax2_fx
     # Return var
     qcid2_chipmatch = {}
 
@@ -276,20 +329,19 @@ def build_chipmatches(ibs, qcid2_nns, qcid2_nnfilt, qreq):
     mark_prog, end_prog = progress_func(len(qcid2_nns))
     for count, qcid in enumerate(qcid2_nns.iterkeys()):
         mark_prog(count)
-        #print('[mf] * scoring q' + ibs.cidstr(qcid))
-        (qfx2_dx, _) = qcid2_nns[qcid]
+        (qfx2_ax, _) = qcid2_nns[qcid]
         (qfx2_fs, qfx2_valid) = qcid2_nnfilt[qcid]
-        nQuery = len(qfx2_dx)
+        nQKpts = len(qfx2_ax)
         # Build feature matches
-        qfx2_nn = qfx2_dx[:, 0:K]
-        qfx2_cid = dx2_cid[qfx2_nn]
-        qfx2_fx = dx2_fx[qfx2_nn]
-        qfx2_qfx = np.tile(np.arange(nQuery), (K, 1)).T
-        qfx2_k   = np.tile(np.arange(K), (nQuery, 1))
-        # Pack feature matches into an interator
-        match_iter = izip(*[qfx2[qfx2_valid] for qfx2 in
-                            (qfx2_qfx, qfx2_cid, qfx2_fx, qfx2_fs, qfx2_k)])
-        # Vsmany - Iterate over feature matches
+        qfx2_nnax = qfx2_ax[:, 0:K]
+        qfx2_cid  = qreq.data_index.ax2_cid[qfx2_nnax]
+        qfx2_fx   = qreq.data_index.ax2_fx[qfx2_nnax]
+        qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
+        qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
+        # Pack valid feature matches into an interator
+        valid_lists = [qfx2[qfx2_valid] for qfx2 in (qfx2_qfx, qfx2_cid, qfx2_fx, qfx2_fs, qfx2_k,)]
+        match_iter = izip(*valid_lists)
+        # Vsmany - Append query feature matches to database cids
         if not is_vsone:
             cid2_fm, cid2_fs, cid2_fk = new_fmfsfk()
             for qfx, cid, fx, fs, fk in match_iter:
@@ -298,7 +350,10 @@ def build_chipmatches(ibs, qcid2_nns, qcid2_nnfilt, qreq):
                 cid2_fk[cid].append(fk)
             chipmatch = _fix_fmfsfk(cid2_fm, cid2_fs, cid2_fk)
             qcid2_chipmatch[qcid] = chipmatch
-        # Vsone - Iterate over feature matches
+            #if not QUIET:
+                #nFeats_in_matches = [len(fm) for fm in cid2_fm.itervalues()]
+                #print('nFeats_in_matches_stats = ' + utool.dict_str(utool.mystats(nFeats_in_matches)))
+        # Vsone - Append database feature matches to query cids
         else:
             for qfx, cid, fx, fs, fk in match_iter:
                 cid2_fm[qcid].append((fx, qfx))  # Note the difference
@@ -340,15 +395,12 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
     min_nInliers    = sv_cfg.min_nInliers
     just_affine     = sv_cfg.just_affine
     qcid2_chipmatchSV = {}
-    #printDBG(qreq.dcids)
     # Find a transform from chip2 to chip1 (the old way was 1 to 2)
     for qcid in qcid2_chipmatch.iterkeys():
-        #printDBG('[mf] verify qcid=%r' % qcid)
         chipmatch = qcid2_chipmatch[qcid]
-
         cid2_prescore = score_chipmatch(ibs, qcid, chipmatch, prescore_method, qreq)
         (cid2_fm, cid2_fs, cid2_fk) = chipmatch
-        topx2_cid = utool.util_dict.keys_sorted_by_value(cid2_prescore)
+        topx2_cid = utool.util_dict.keys_sorted_by_value(cid2_prescore)[::-1]
         nRerank = min(len(topx2_cid), nShortlist)
         # Precompute output container
         cid2_fm_V, cid2_fs_V, cid2_fk_V = new_fmfsfk()
@@ -368,17 +420,13 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
         for topx in xrange(nRerank):
             cid = topx2_cid[topx]
             fm = cid2_fm[cid]
-            #printDBG('[mf] vs topcid=%r, score=%r' % (cid, cid2_prescore[cid]))
-            #printDBG('[mf] len(fm)=%r' % (len(fm)))
             dlen_sqrd = topx2_dlen_sqrd[topx]
             kpts2 = topx2_kpts[topx]
             fs    = cid2_fs[cid]
             fk    = cid2_fk[cid]
-            #printDBG('[mf] computing homog')
             sv_tup = sv2.homography_inliers(kpts1, kpts2, fm, xy_thresh,
                                             max_scale, min_scale, dlen_sqrd,
                                             min_nInliers, just_affine)
-            #printDBG('[mf] sv_tup = %r' % (sv_tup,))
             if sv_tup is None:
                 if not QUIET:
                     print_('o')  # sv failure
@@ -389,6 +437,7 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
                 cid2_fs_V[cid] = fs[inliers]
                 cid2_fk_V[cid] = fk[inliers]
                 if not QUIET:
+                    print(inliers)
                     print_('.')  # verified something
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(cid2_fm_V, cid2_fs_V, cid2_fk_V)
@@ -421,42 +470,6 @@ def _precompute_topx2_dlen_sqrd(ibs, cid2_fm, topx2_cid, topx2_kpts,
             return dlensqrd
         topx2_dlen_sqrd = [kpts_dlen_sqrd(tx) for tx in xrange(nRerank)]
     return topx2_dlen_sqrd
-
-
-def _remove_unsupported_matches(cid2_fm, cid2_fs, cid2_fk):
-    #min_nInliers    = sv_cfg.min_nInliers
-    unsupported_cids = [cid for (cid, fm) in cid2_fm.iteritems() if len(fm) < 4]
-    for cid in unsupported_cids:
-        del cid2_fm[cid]
-        del cid2_fs[cid]
-        del cid2_fk[cid]
-
-
-def _fix_fmfsfk(cid2_fm, cid2_fs, cid2_fk):
-    _remove_unsupported_matches(cid2_fm, cid2_fs, cid2_fk)
-    # Convert to numpy
-    fm_dtype = QueryResult.FM_DTYPE
-    fs_dtype = QueryResult.FS_DTYPE
-    fk_dtype = QueryResult.FK_DTYPE
-    cid2_fm = {cid: np.array(fm, fm_dtype) for cid, fm in cid2_fm.iteritems()}
-    cid2_fs = {cid: np.array(fs, fs_dtype) for cid, fs in cid2_fs.iteritems()}
-    cid2_fk = {cid: np.array(fk, fk_dtype) for cid, fk in cid2_fk.iteritems()}
-    # Ensure shape
-    for cid, fm in cid2_fm.iteritems():
-        fm.shape = (fm.size // 2, 2)
-    chipmatch = (cid2_fm, cid2_fs, cid2_fk)
-    return chipmatch
-
-
-def new_fmfsfk():
-    #num_chips = ibs.get_num_chips()
-    cid2_fm = defaultdict(list)
-    cid2_fs = defaultdict(list)
-    cid2_fk = defaultdict(list)
-    #cid2_fm = [[] for _ in xrange(num_chips)]
-    #cid2_fs = [[] for _ in xrange(num_chips)]
-    #cid2_fk = [[] for _ in xrange(num_chips)]
-    return cid2_fm, cid2_fs, cid2_fk
 
 
 #============================

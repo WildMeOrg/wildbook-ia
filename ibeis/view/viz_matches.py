@@ -17,46 +17,36 @@ from ibeis.view import viz_helpers as vh
 def show_chipres(ibs, qres, cid2, fnum=None, pnum=None, sel_fm=[], in_image=False, **kwargs):
     'shows single annotated match result.'
     qcid = qres.qcid
-    #cid2_score = qres.get_cid2_score()
-    cid2_fm    = qres.get_cid2_fm()
-    cid2_fs    = qres.get_cid2_fs()
-    #cid2_fk   = qres.get_cid2_fk()
-    fm = cid2_fm[cid2]
-    fs = cid2_fs[cid2]
-    #fk = cid2_fk[cid2]
-    #vs_str = ibs.vs_str(qcid, cid2)
+    fm = qres.cid2_fm[cid2]
+    fs = qres.cid2_fs[cid2]
     # Read query and result info (chips, names, ...)
     rchip1, rchip2 = vh.get_chips(ibs, [qcid, cid2], in_image=in_image)
-    kpts1, kpts2 = vh.get_kpts(ibs, [qcid, cid2], in_image=in_image)
+    kpts1,  kpts2  = vh.get_kpts( ibs, [qcid, cid2], in_image=in_image)
 
     # Build annotation strings / colors
     lbl1 = 'q' + vh.get_cidstrs(qcid)
     lbl2 = vh.get_cidstrs(cid2)
-    if in_image:
-        # HACK!
+    if in_image:  # HACK!
         lbl1 = None
         lbl2 = None
     # Draws the chips and keypoint matches
-    kwargs_ = dict(fs=fs, lbl1=lbl1, lbl2=lbl2, fnum=fnum,
-                   pnum=pnum)
-                   #vert=ibs.cfg.display_cfg.vert)
+    kwargs_ = dict(fs=fs, lbl1=lbl1, lbl2=lbl2, fnum=fnum, pnum=pnum)
     kwargs_.update(kwargs)
     try:
         ax, xywh1, xywh2 = df2.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, **kwargs_)
     except Exception as ex:
-        print('!!!!!!!!!!!!!!!')
-        print('[viz] %s: %s' % (type(ex), ex))
-        print('[viz] vsstr = %s' % ibs.vs_str(qcid, cid2))
+        print('<!!!>')
+        utool.print_exception(ex, '[viz_matches]')
         QueryResult.dbg_check_query_result(ibs, qres)
         print('consider qr.remove_corrupted_queries(ibs, qres, dryrun=False)')
-        utool.qflag()
+        print('</!!!>')
         raise
-    x1, y1, w1, h1 = xywh1
-    x2, y2, w2, h2 = xywh2
+    (x1, y1, w1, h1) = xywh1
+    (x2, y2, w2, h2) = xywh2
     if len(sel_fm) > 0:
         # Draw any selected matches
-        _smargs = dict(rect=True, colors=df2.BLUE)
-        df2.draw_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **_smargs)
+        sm_kw = dict(rect=True, colors=df2.BLUE)
+        df2.draw_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     offset1 = (x1, y1)
     offset2 = (x2, y2)
     annotate_chipres(ibs, qres, cid2, xywh2=xywh2, in_image=in_image, offset1=offset1, offset2=offset2, **kwargs)

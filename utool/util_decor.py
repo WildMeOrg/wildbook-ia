@@ -103,14 +103,26 @@ def accepts_scalar_input_vector_output(func):
     return wrapper_vec_output
 
 
+UNIQUE_NUMPY = True
+
+
 def accepts_numpy(func):
     """ Allows the first input to be a numpy objet and get result in numpy form """
     @wraps(func)
     def numpy_wrapper(self, input_, *args, **kwargs):
         if isinstance(input_, np.ndarray):
-            input_list = input_.flatten()
+            if UNIQUE_NUMPY:
+                # Remove redundant input (because we are passing it to SQL)
+                input_list, inverse_unique = np.unique(input_, return_inverse=True)
+            else:
+                input_list = input_.flatten()
             output_list = func(self, input_list)
-            output_ = np.array(output_list).reshape(input_.shape)
+            if UNIQUE_NUMPY:
+                # Reconstruct redundant queries (the user will never know!)
+                output_list_ = np.array(output_list)[inverse_unique]
+                output_ = np.array(output_list_).reshape(input_.shape)
+            else:
+                output_ = np.array(output_list).reshape(input_.shape)
         else:
             output_ = func(self, input_)
         return output_

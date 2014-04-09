@@ -65,13 +65,13 @@ from .util_list import (alloc_lists, list_index, npfind, index_of, flatten,
 
 from .util_path import (checkpath, ensuredir, assertpath, truepath, list_images)
 
-from .util_print import (horiz_print, horiz_string, printshape, Indenter,
+from .util_print import (horiz_print, printshape, Indenter,
                          NpPrintOpts, printVERBOSE, printNOTQUIET,
                          print_exception)
 
 from .util_progress import (progress_func)
 
-from .util_str  import (byte_str2, theta_str)
+from .util_str  import (byte_str2, horiz_string, theta_str)
 
 from .util_time import (tic, toc, Timer)
 

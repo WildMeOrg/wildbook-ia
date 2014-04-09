@@ -95,14 +95,14 @@ def build_flann_inverted_index(ibs, cid_list):
                       'flann_params': flann_params,
                       'force_recompute': params.args.nocache_flann}
     flann = precompute_flann(ax2_desc, **precomp_kwargs)
-    return ax2_cid, ax2_fx, ax2_desc, flann
+    return ax2_desc, ax2_cid, ax2_fx, flann
 
 
 class NNIndex(object):
     """ Nearest Neighbor (FLANN) Index Class """
     def __init__(nn_index, ibs, cid_list):
         print('[ds] building NNIndex object')
-        ax2_cid, ax2_fx, ax2_desc, flann = build_flann_inverted_index(ibs,
+        ax2_desc, ax2_cid, ax2_fx, flann = build_flann_inverted_index(ibs,
                                                                       cid_list)
         # Agg Data
         nn_index.ax2_cid  = ax2_cid

@@ -750,6 +750,15 @@ class IBEISControl(object):
     #
     # GETTERS::Chips
 
+    @getter_general
+    def get_valid_cids(ibs):
+        cid_list = ibs.db.executeone(
+            operation='''
+            SELECT chip_uid
+            FROM chips
+            ''')
+        return cid_list
+
     @getter
     def get_chips(ibs, cid_list):
         """ Returns a list cropped images in numpy array form by their cid """

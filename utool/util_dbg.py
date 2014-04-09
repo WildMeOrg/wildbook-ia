@@ -27,7 +27,7 @@ except Exception as ex:
 '''
 
 
-def embed_execstr():
+def execstr_embed():
     return IPYTHON_EMBED_STR
 
 

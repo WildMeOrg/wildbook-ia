@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import numpy as np
 import sys
+from .util_str import horiz_string, filesize_str
 from .util_inject import inject, get_injected_modules
 print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
@@ -11,43 +12,6 @@ VERBOSE = '--verbose' in sys.argv
 def horiz_print(*args):
     toprint = horiz_string(args)
     print(toprint)
-
-
-def horiz_string(str_list):
-    '''
-    prints a list of objects ensuring that the next item in the list
-    is all the way to the right of any previous items.
-    str_list = ['A = ', str(np.array(((1,2),(3,4)))), ' * ', str(np.array(((1,2),(3,4))))]
-    '''
-    all_lines = []
-    hpos = 0
-    for sx in xrange(len(str_list)):
-        str_ = str(str_list[sx])
-        lines = str_.split('\n')
-        line_diff = len(lines) - len(all_lines)
-        # Vertical padding
-        if line_diff > 0:
-            all_lines += [' ' * hpos] * line_diff
-        # Add strings
-        for lx, line in enumerate(lines):
-            all_lines[lx] += line
-            hpos = max(hpos, len(all_lines[lx]))
-        # Horizontal padding
-        for lx in xrange(len(all_lines)):
-            hpos_diff = hpos - len(all_lines[lx])
-            if hpos_diff > 0:
-                all_lines[lx] += ' ' * hpos_diff
-    ret = '\n'.join(all_lines)
-    return ret
-
-
-def str2(obj):
-    if isinstance(obj, dict):
-        return str(obj).replace(', ', '\n')[1:-1]
-    if isinstance(obj, type):
-        return str(obj).replace('<type \'', '').replace('\'>', '')
-    else:
-        return str(obj)
 
 
 class Indenter(object):
@@ -132,3 +96,7 @@ def printVERBOSE(msg, verbarg):
 def printNOTQUIET(msg):
     if not QUIET:
         print(msg)
+
+
+def print_filesize(fpath):
+    print(filesize_str(fpath))
