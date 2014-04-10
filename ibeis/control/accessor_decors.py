@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import utool
+from functools import wraps
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
 #
@@ -8,16 +9,19 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 #-----------------
 
 
-common_wrapper = utool.composed(
-    #utool.indent_func,
-    utool.ignores_exc_tb
-)
-
-
+"""
+Common wrappers
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
+"""
 # DECORATORS::ADDER
 
+
 def adder(func):
-    @common_wrapper
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return adder_wrapper
@@ -26,7 +30,9 @@ def adder(func):
 # DECORATORS::SETTER
 
 def setter(func):
-    @common_wrapper
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return adder_wrapper
@@ -38,7 +44,9 @@ def getter(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a heterogeous list of values """
     @utool.accepts_scalar_input
-    @common_wrapper
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
     def getter_wrapper1(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapper1
@@ -48,7 +56,9 @@ def getter_vector_output(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a homogenous list of values """
     @utool.accepts_scalar_input_vector_output
-    @common_wrapper
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
     def getter_wrapper3(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapper3
@@ -76,7 +86,9 @@ def getter_numpy_vector_output(func):
 
 def getter_general(func):
     """ Getter decorator for functions which has no gaurentees """
-    @common_wrapper
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
     def getter_wrapper2(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapper2
@@ -85,7 +97,9 @@ def getter_general(func):
 # DECORATORS::DELETER
 
 def deleter(func):
-    @common_wrapper
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return adder_wrapper

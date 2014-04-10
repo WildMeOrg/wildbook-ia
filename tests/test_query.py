@@ -60,7 +60,7 @@ def BUILDQUERY():
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
         #viz_matches.show_chipres(ibs, qres, cid2, fnum=fnum, in_image=True)
-        viz_matches.show_qres(ibs, qres, fnum=fnum)
+        viz_matches.show_qres(ibs, qres, fnum=fnum, ensure=False)
         df2.set_figtitle(label)
         df2.adjust_subplots_safe(top=.8)
     df2.present(wh=900)

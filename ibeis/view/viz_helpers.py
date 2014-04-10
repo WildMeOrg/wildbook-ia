@@ -41,17 +41,18 @@ def set_ibsdat(ax, key, val):
 
 
 @getter_vector_output
-def get_roi_kpts_in_imgspace(ibs, rid_list):
+def get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs):
     """ Transforms keypoints so they are plotable in imagespace """
+    ensure = kwargs.get('ensure', True)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
     try:
-        chipsz_list = ibs.get_roi_chipsizes(rid_list)
+        chipsz_list = ibs.get_roi_chipsizes(rid_list, ensure=ensure)
     except AssertionError as ex:
         utool.print_exception(ex, '[!ibs.get_roi_kpts_in_imgspace]')
         print('[!ibs.get_roi_kpts_in_imgspace] rid_list = %r' % (rid_list,))
         raise
-    kpts_list    = ibs.get_roi_kpts(rid_list)
+    kpts_list    = ibs.get_roi_kpts(rid_list, ensure=ensure)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
                     for bbox, theta, chipsz, kpts
                     in izip(bbox_list, theta_list, chipsz_list, kpts_list)]
@@ -73,11 +74,12 @@ def get_chips(ibs, cid_list, in_image=False, **kwargs):
 def get_kpts(ibs, cid_list, in_image=False, **kwargs):
     if 'kpts' in kwargs:
         return kwargs['kpts']
+    ensure = kwargs.get('ensure', True)
     if in_image:
         rid_list = ibs.get_chip_rids(cid_list)
-        kpts_list = get_roi_kpts_in_imgspace(ibs, rid_list)
+        kpts_list = get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs)
     else:
-        kpts_list = ibs.get_chip_kpts(cid_list)
+        kpts_list = ibs.get_chip_kpts(cid_list, ensure=ensure)
     return kpts_list
 
 

@@ -11,15 +11,16 @@ from ibeis.view import viz_chip
     __name__, '[viz-matches]', DEBUG=False)
 
 
-@utool.indent_decor('[show_chipres]')
-def show_chipres(ibs, qres, cid2, sel_fm=[], in_image=False, **kwargs):
+@utool.indent_func
+def show_chipres(ibs, qres, cid2, sel_fm=[], **kwargs):
     'shows single annotated match result.'
+    in_image = kwargs.get('in_image', False)
     qcid = qres.qcid
     fm = qres.cid2_fm[cid2]
     fs = qres.cid2_fs[cid2]
     # Read query and result info (chips, names, ...)
-    rchip1, rchip2 = vh.get_chips(ibs, [qcid, cid2], in_image=in_image)
-    kpts1,  kpts2  = vh.get_kpts( ibs, [qcid, cid2], in_image=in_image)
+    rchip1, rchip2 = vh.get_chips(ibs, [qcid, cid2], **kwargs)
+    kpts1,  kpts2  = vh.get_kpts( ibs, [qcid, cid2], **kwargs)
 
     # Build annotation strings / colors
     lbl1 = 'q' + vh.get_cidstrs(qcid)
@@ -45,17 +46,18 @@ def show_chipres(ibs, qres, cid2, sel_fm=[], in_image=False, **kwargs):
         df2.draw_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     offset1 = (x1, y1)
     offset2 = (x2, y2)
-    annotate_chipres(ibs, qres, cid2, xywh2=xywh2, in_image=in_image,
+    annotate_chipres(ibs, qres, cid2, xywh2=xywh2,
                      offset1=offset1, offset2=offset2, **kwargs)
     return ax, xywh1, xywh2
 
 
-@utool.indent_decor('[annote_chipres]')
-def annotate_chipres(ibs, qres, cid2, in_image=False,
+@utool.indent_func
+def annotate_chipres(ibs, qres, cid2,
                      offset1=(0, 0),
-                     offset2=(0, 0),
-                     show_query=True, **kwargs):
+                     offset2=(0, 0), **kwargs):
     # TODO Use this function when you clean show_chipres
+    in_image = kwargs.get('in_image', False)
+    show_query = kwargs.get('show_query', True)
     printDBG('[viz] annotate_chipres()')
     qcid = qres.qcid
     truth = vh.get_match_truth(ibs, qcid, cid2)
@@ -93,6 +95,7 @@ def annotate_chipres(ibs, qres, cid2, in_image=False,
         df2.draw_boxedX(bbox2, theta=theta2)
 
 
+@utool.indent_func
 def show_qres(ibs, qres, **kwargs):
     """ Displays query chip, groundtruth matches, and top 5 matches """
     annote     = kwargs.pop('annote', 2)  # this is toggled
@@ -155,11 +158,7 @@ def show_qres(ibs, qres, **kwargs):
         _kwshow['pnum'] = pnum
         _kwshow['cid2_color'] = cid2_color
         _kwshow['draw_ell'] = annote >= 1
-        #_kwshow['in_image'] = in_image
         viz_chip.show_chip(ibs, qres.qcid, **_kwshow)
-        #if in_image:
-            #roi1 = ibs.cid2_roi(qres.qcid)
-            #df2.draw_roi(roi1, bbox_color=df2.ORANGE, label='q' + ibs.cidstr(qres.qcid))
 
     def _plot_matches_cids(cid_list, plotx_shift, rowcols):
         """ helper for viz._show_res to draw many cids """
