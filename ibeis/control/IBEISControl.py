@@ -724,9 +724,9 @@ class IBEISControl(object):
         return groundtruth_list
 
     @getter
-    def get_roi_num_groundtruth(ibs, cid_list):
+    def get_roi_num_groundtruth(ibs, rid_list):
         """ Returns number of other chips with the same name """
-        return map(len, ibs.get_roi_groundtruth(cid_list))
+        return map(len, ibs.get_roi_groundtruth(rid_list))
 
     @getter_vector_output
     def get_rids_in_nids(ibs, nid_list):

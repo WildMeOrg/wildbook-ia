@@ -437,7 +437,7 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
                 cid2_fs_V[cid] = fs[inliers]
                 cid2_fk_V[cid] = fk[inliers]
                 if not QUIET:
-                    print(inliers)
+                    #print(inliers)
                     print_('.')  # verified something
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(cid2_fm_V, cid2_fs_V, cid2_fk_V)

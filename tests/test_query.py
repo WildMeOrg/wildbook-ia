@@ -8,14 +8,20 @@ try:
     import __testing__
 except ImportError:
     import tests.__testing__ as __testing__
+# Python
 import sys
 from os.path import join, exists  # NOQA
-from ibeis.dev import params  # NOQA
+from collections import OrderedDict
 import multiprocessing
+# Tools
 import utool
-from ibeis.model.jon_recognition import match_chips3 as mc3
+from drawtool import draw_func2 as df2
+#IBEIS
+from ibeis.dev import params  # NOQA
+from ibeis.view import viz_matches
 from ibeis.model.jon_recognition import QueryRequest  # NOQA
 from ibeis.model.jon_recognition import NNIndex  # NOQA
+import query_helpers
 
 printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(
@@ -35,13 +41,30 @@ def BUILDQUERY():
 
     cids = ibs.get_recognition_database_chips()
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0:3], dcids=cids)
-    mc3.pre_exec_checks(ibs, qreq)
-    qcid2_qres = mc3.process_query_request(ibs, qreq)
+    qcids = cids[2:3]
 
-    qres = qcid2_qres[cids[0]]
+    qres_ORIG, qres_FILT, qres_SVER, comp_locals_ = query_helpers.get_query_components(ibs, qcids)
+    qres_dict = OrderedDict([
+        ('ORIG', qres_ORIG),
+        ('FILT', qres_FILT),
+        ('SVER', qres_SVER),
+    ])
 
-    qrid = ibs.get_chip_rids(qres.qcid)
+    top_cids_ORIG = qres_ORIG.get_top_cids(ibs)
+    top_cids_FILT = qres_FILT.get_top_cids(ibs)
+    top_cids_SVER = qres_SVER.get_top_cids(ibs)
+    cid2 = top_cids_ORIG[0]
+
+    for px, (label, qres) in enumerate(qres_dict.iteritems()):
+        print(label)
+        fnum = df2.next_fnum()
+        df2.figure(fnum=fnum, doclf=True)
+        #viz_matches.show_chipres(ibs, qres, cid2, fnum=fnum, in_image=True)
+        viz_matches.show_qres(ibs, qres, fnum=fnum)
+        df2.set_figtitle(label)
+        df2.adjust_subplots_safe(top=.8)
+    df2.present(wh=900)
+    comp_locals_.update(locals())
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')

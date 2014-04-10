@@ -5,6 +5,7 @@ from itertools import imap
 from os.path import split
 import numpy as np
 from .util_inject import inject
+from .util_time import get_unix_timedelta
 print, print_, printDBG, rrr, profile = inject(__name__, '[str]')
 
 
@@ -75,10 +76,6 @@ def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
 
 def indent_list(indent, list_):
     return imap(lambda item: indent + str(item), list_)
-
-
-def print_filesize(fpath):
-    print(filesize_str(fpath))
 
 
 def filesize_str(fpath):
@@ -154,6 +151,12 @@ def horiz_string(*args):
     return ret
 
 
+def listinfo_str(list_):
+    info_list = enumerate([(type(item), item) for item in list_])
+    info_str  = indentjoin(map(repr, info_list, '\n  '))
+    return info_str
+
+
 def str2(obj):
     if isinstance(obj, dict):
         return str(obj).replace(', ', '\n')[1:-1]
@@ -161,3 +164,10 @@ def str2(obj):
         return str(obj).replace('<type \'', '').replace('\'>', '')
     else:
         return str(obj)
+
+
+def get_unix_timedelta_str(unixtime_diff):
+    timedelta = get_unix_timedelta(unixtime_diff)
+    sign = '+' if unixtime_diff >= 0 else '-'
+    timedelta_str = sign + str(timedelta)
+    return timedelta_str

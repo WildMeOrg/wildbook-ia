@@ -25,6 +25,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.font_manager import FontProperties
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Qt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
@@ -130,6 +131,12 @@ LINE_ALPHA_OVERRIDE = utool.get_arg('--line-alpha-override', type_=float, defaul
 ELL_ALPHA_OVERRIDE = utool.get_arg('--ell-alpha-override', type_=float, default=None)
 
 base_fnum = 9001
+
+
+def get_pnum_func(nRows, nCols):
+    def pnum_(px):
+        return (nRows, nCols, px + 1)
+    return pnum_
 
 
 def next_fnum(new_base=None):
@@ -1116,6 +1123,8 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     if docla or len(axes_list) == 0:
         printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
         if not pnum is None:
+            assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
+            assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
             #ax = plt.subplot(*pnum)
             ax = fig.add_subplot(*pnum)
             ax.cla()
@@ -1409,11 +1418,15 @@ def scores_to_cmap(scores, colors=None, cmap_='hot'):
 
 
 def colorbar(scalars, colors):
-    'adds a color bar next to the axes'
+    """ adds a color bar next to the axes """
     printDBG('colorbar()')
     # Parameters
-    xy, width, height = _axis_xy_width_height()
-    orientation = ['vertical', 'horizontal'][0]
+    ax = gca()
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+
+    xy, width, height = _axis_xy_width_height(ax)
+    #orientation = ['vertical', 'horizontal'][0]
     TICK_FONTSIZE = 8
     #
     listed_cmap = scores_to_cmap(scalars, colors)
@@ -1422,19 +1435,22 @@ def colorbar(scalars, colors):
     sm = plt.cm.ScalarMappable(cmap=listed_cmap)
     sm.set_array(sorted_scalars)
     # Use mapable object to create the colorbar
-    COLORBAR_SHRINK = .42  # 1
-    COLORBAR_PAD = .01  # 1
-    COLORBAR_ASPECT = np.abs(20 * height / (width))  # 1
-    printDBG('[df] COLORBAR_ASPECT = %r' % COLORBAR_ASPECT)
+    #COLORBAR_SHRINK = .42  # 1
+    #COLORBAR_PAD = .01  # 1
+    #COLORBAR_ASPECT = np.abs(20 * height / (width))  # 1
+    #printDBG('[df] COLORBAR_ASPECT = %r' % COLORBAR_ASPECT)
 
-    cb = plt.colorbar(sm, orientation=orientation, shrink=COLORBAR_SHRINK,
-                      pad=COLORBAR_PAD, aspect=COLORBAR_ASPECT)
-    # Add the colorbar to the correct label
-    axis = cb.ax.xaxis if orientation == 'horizontal' else cb.ax.yaxis
-    position = 'bottom' if orientation == 'horizontal' else 'right'
-    axis.set_ticks_position(position)
-    axis.set_ticks([0, .5, 1])
+    cb = plt.colorbar(sm, cax=cax)
+
+    #, orientation=orientation, shrink=COLORBAR_SHRINK,
+                      #pad=COLORBAR_PAD, aspect=COLORBAR_ASPECT)
+    ## Add the colorbar to the correct label
+    #axis = cb.ax.xaxis if orientation == 'horizontal' else cb.ax.yaxis
+    #position = 'bottom' if orientation == 'horizontal' else 'right'
+    #axis.set_ticks_position(position)
+    #axis.set_ticks([0, .5, 1])
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
+    plt.sca(ax)
 
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),

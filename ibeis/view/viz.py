@@ -16,7 +16,7 @@ from ibeis.model.jon_recognition import QueryResult
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 #from interaction import interact_keypoints, interact_chipres, interact_chip # NOQA
-from viz_helpers import draw, set_ibsdat, get_ibsdat  # NOQA
+import viz_helpers as vh
 from viz_image import show_image  # NOQA
 from viz_chip import show_chip, show_keypoints  # NOQA
 from viz_matches import show_chipres, annotate_chipres  # NOQA
@@ -33,13 +33,6 @@ SIFT_OR_VECFIELD = utool.get_arg('--vecfield', type_=bool)
 def register_FNUMS(FNUMS_):
     global FNUMS
     FNUMS = FNUMS_
-
-
-def get_square_row_cols(nSubplots, max_cols=5):
-    nCols = int(min(nSubplots, max_cols))
-    #nCols = int(min(np.ceil(np.sqrt(ncids)), 5))
-    nRows = int(np.ceil(nSubplots / nCols))
-    return nRows, nCols
 
 
 #=============
@@ -74,7 +67,7 @@ def show_name(ibs, nid, nid2_cids=None, fnum=0, sel_cids=[], subtitle='',
     else:
         cids = np.where(cid2_nid == nid)[0]
     print('[viz] show_name %r' % ibs.cidstr(cids))
-    nRows, nCols = get_square_row_cols(len(cids))
+    nRows, nCols = vh.get_square_row_cols(len(cids))
     print('[viz*] r=%r, c=%r' % (nRows, nCols))
     #gs2 = gridspec.GridSpec(nRows, nCols)
     pnum = lambda px: (nRows, nCols, px + 1)
@@ -294,7 +287,7 @@ def _show_res(ibs, res, **kwargs):
     if dosquare:
         # HACK
         nSubplots = nGtSubplts + nTopNSubplts
-        nRows, nCols = get_square_row_cols(nSubplots, 3)
+        nRows, nCols = vh.get_square_row_cols(nSubplots, 3)
         nTopNCols = nGTCols = nCols
         shift_topN = 1
         printDBG('nRows, nCols = (%r, %r)' % (nRows, nCols))

@@ -10,6 +10,7 @@ def check_sift_desc(desc):
     verbose = True
     if verbose:
         print('%s.shape=%r' % (varname, desc.shape))
+        print('%s.dtype=%r' % (varname, desc.dtype))
 
     assert desc.shape[1] == 128
     assert desc.dtype == np.uint8

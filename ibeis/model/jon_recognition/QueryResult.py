@@ -2,6 +2,7 @@ from __future__ import division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[QRes]', DEBUG=False)
 # Python
+import cPickle
 from itertools import izip
 from os.path import exists, split, join
 from zipfile import error as BadZipFile  # Screwy naming convention.
@@ -85,11 +86,11 @@ class QueryResult(__OBJECT_BASE__):
         qres.qcid = qcid
         qres.uid = uid
         # Assigned features matches
-        qres.cid2_fm = np.array([], dtype=FM_DTYPE)
-        qres.cid2_fs = np.array([], dtype=FS_DTYPE)
-        qres.cid2_fk = np.array([], dtype=FK_DTYPE)
-        qres.cid2_score = np.array([])
-        qres.filt2_meta = {}  # messy
+        qres.cid2_fm = None
+        qres.cid2_fs = None
+        qres.cid2_fk = None
+        qres.cid2_score = None
+        qres.filt2_meta = None  # messy
 
     def has_cache(qres, ibs):
         return query_result_exists(ibs, qres.qcid)
@@ -103,7 +104,7 @@ class QueryResult(__OBJECT_BASE__):
         if utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
-            np.savez(file_, **qres.__dict__.copy())
+            cPickle.dump(qres.__dict__, file_)
 
     @profile
     def load(qres, ibs):
@@ -111,23 +112,13 @@ class QueryResult(__OBJECT_BASE__):
         fpath = qres.get_fpath(ibs)
         qcid_good = qres.qcid
         try:
-            with open(fpath, 'rb') as file_:
-                npz = np.load(file_)
-                for _key in npz.files:
-                    qres.__dict__[_key] = npz[_key]
-                npz.close()
             print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
-            # These are nonarray items even if they are not lists
-            # tolist seems to convert them back to their original
-            # python representation
-            qres.qcid = qres.qcid.tolist()
-            try:
-                qres.filt2_meta = qres.filt2_meta.tolist()
-            except AttributeError:
+            with open(fpath, 'rb') as file_:
+                loaded_dict = cPickle.load(file_)
+                qres.__dict__.update(loaded_dict)
+            if not isinstance(qres.filt2_meta, dict):
                 print('[qr] loading old result format')
                 qres.filt2_meta = {}
-            qres.uid = qres.uid.tolist()
-            return True
         except IOError as ex:
             if not exists(fpath):
                 print('[qr] query result cache miss')

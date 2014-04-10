@@ -49,7 +49,7 @@ def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
 
 
 @utool.indent_decor('[show_chip]')
-def show_chip(ibs, cid, in_image=False, fnum=2, **kwargs):
+def show_chip(ibs, cid, in_image=False, **kwargs):
     """ Driver function to show chips """
     printDBG('[viz] show_chip()')
     # Get chip
@@ -57,9 +57,9 @@ def show_chip(ibs, cid, in_image=False, fnum=2, **kwargs):
     # Get Keypoints
     kpts = vh.get_kpts(ibs, cid, in_image, **kwargs)
     # Create chip title
-    title_str = vh.get_chip_labels(ibs, cid)
+    title_str = vh.get_chip_labels(ibs, cid, **kwargs)
     # Draw chip
-    fig, ax = df2.imshow(chip, title=title_str, fnum=fnum, **kwargs)
+    fig, ax = df2.imshow(chip, title=title_str, **kwargs)
     # Populate axis user data
     vh.set_ibsdat(ax, 'viztype', 'chip')
     vh.set_ibsdat(ax, 'cid', cid)

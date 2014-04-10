@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
+import functools
 import sys
 from .util_str import horiz_string, filesize_str
 from .util_inject import inject, get_injected_modules
@@ -19,9 +20,9 @@ class Indenter(object):
     def __init__(self, lbl='    '):
         #self.modules = modules
         self.modules = get_injected_modules()
-        self.old_prints = {}
-        self.old_prints_ = {}
-        self.old_printDBGs = {}
+        self.old_print_dict = {}
+        #self.old_prints_ = {}
+        self.old_printDBG_dict = {}
         self.lbl = lbl
         self.INDENT_PRINT_ = False
 
@@ -30,7 +31,7 @@ class Indenter(object):
         def indent_msg(msg):
             return self.lbl + str(msg).replace('\n', '\n' + self.lbl)
 
-        def save_module_functions(dict_, func_name):
+        def push_module_functions(dict_, func_name):
             for mod in self.modules:
                 try:
                     dict_[mod] = getattr(mod, func_name)
@@ -41,22 +42,30 @@ class Indenter(object):
                     print('[utool] AttributeError: ' + str(ex))
                     print('[utool] WARNING: module=%r does not have injected utool prints' % mod)
 
-        save_module_functions(self.old_prints, 'print')
-        save_module_functions(self.old_printDBGs, 'printDBG')
+        push_module_functions(self.old_print_dict, 'print')
+        for mod in self.old_print_dict.keys():
+            @functools.wraps(self.old_print_dict[mod])
+            def indent_print(msg):
+                self.old_print_dict[mod](indent_msg(msg))
+            setattr(mod, 'print', indent_print)
 
-        for mod in self.old_prints.keys():
-            indent_print = lambda msg: self.old_prints[mod](indent_msg(msg))
-            mod.print = indent_print
-
-        for mod in self.old_printDBGs.keys():
-            indent_printDBG = lambda msg: self.old_printDBGs[mod](indent_msg(msg))
-            mod.printDBG = indent_printDBG
+        #push_module_functions(self.old_printDBG_dict, 'printDBG')
+        #for mod in self.old_printDBG_dict.keys():
+            #@functools.wraps(self.old_printDBG_dict[mod])
+            #def indent_printDBG(msg):
+                #self.old_printDBG_dict[mod](indent_msg(msg))
+            #setattr(mod, 'printDBG', indent_printDBG)
 
     def stop(self):
-        for mod in self.old_prints.iterkeys():
-            mod.print = self.old_prints[mod]
-        for mod in self.old_printDBGs.iterkeys():
-            mod.printDBG = self.old_printDBGs[mod]
+        def pop_module_functions(dict_, func_name):
+            for mod in dict_.iterkeys():
+                setattr(mod, func_name, dict_[mod])
+        pop_module_functions(self.old_print_dict, 'print')
+        #pop_module_functions(self.old_printDBG_dict, 'printDBG')
+        #for mod in self.old_print_dict.iterkeys():
+            #setattr(mod, 'print', self.old_print_dict[mod])
+        #for mod in self.old_printDBG_dict.iterkeys():
+            #setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
 
     def __enter__(self):
         self.start()
@@ -64,10 +73,6 @@ class Indenter(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
-
-
-def print_exception(ex, msg='Caught exception'):
-    print(msg + '%s: %s' % (type(ex), ex))
 
 
 def printshape(arr_name, locals_):

@@ -11,12 +11,15 @@ def tic(msg=None):
     return (msg, time.time())
 
 
-def toc(tt):
+def toc(tt, return_msg=False, write_msg=True):
     (msg, start_time) = tt
     ellapsed = (time.time() - start_time)
-    if not msg is None:
+    if not return_msg and write_msg and not msg is None:
         sys.stdout.write('...toc(%.4fs, ' % ellapsed + '"' + str(msg) + '"' + ')\n')
-    return ellapsed
+    if return_msg:
+        return msg
+    else:
+        return ellapsed
 
 
 def get_timestamp(format_='filename', use_second=False):
@@ -99,3 +102,8 @@ def exiftime_to_unixtime(datetime_str):
         print('[util_time] datetime_str = %s' % datetime_str)
 
         raise
+
+
+def get_unix_timedelta(unixtime_diff):
+    timedelta = datetime.timedelta(seconds=abs(unixtime_diff))
+    return timedelta

@@ -107,8 +107,7 @@ class SQLDatabaseControl(object):
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        if not QUIET:
-            print('[sql.schema] ensuring table=%r' % table)
+        printDBG('[sql] schema ensuring table=%r' % table)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -245,32 +244,18 @@ class SQLDatabaseControl(object):
             # Append to the list of queries
             if unpack_scalars:
                 result_list = [_unpack_helper(results_) for results_ in result_list]
-            #
+            # Sanity check
             num_results = len(result_list)
             if num_results != 0 and num_results != num_params:
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
-            #
         except lite.Error as ex1:
-            print('\n<!!! ERROR>')
-            utool.print_exception(ex1, '[!sql] executemany threw')
-            print('[!sql] %s' % (errmsg,))
-            print('[!sql] operation=\n%s' % operation)
-            if 'parameters' in vars():
-                if len(params) > 4:
-                    paraminfostr = utool.indentjoin(
-                        map(repr, enumerate([(type(_), _) for _ in params])), '\n  ')
-                    print('[!sql] failed paramters=' + paraminfostr)
-                else:
-                    print('[!sql] failed paramters=%r' % (params,))
-            else:
-                print('[!!sql] failed before parameters populated')
-            print('[!sql] parameters_iter=%r' % (parameters_iter,))
-            print('</!!! ERROR>\n')
+            key_list = ['operation', 'parameters', 'parameters_iter']
+            utool.print_exception(ex1, 'executemany threw', '[!sql]', key_list)
             db.dump()
             raise
         #
         if not QUIET:
-            utool.toc(tt)
+            printDBG(utool.toc(tt, True))
         #
         if auto_commit:
             if verbose:

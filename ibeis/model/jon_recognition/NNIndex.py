@@ -43,8 +43,7 @@ def precompute_flann(data, cache_dir=None, uid='', flann_params=None,
             print('[flann] ...caught ex=\n%r' % (ex,))
     # Rebuild the index otherwise
     if not load_success:
-        with utool.Timer('compute FLANN'):
-            flann.build_index(data, **flann_params)
+        flann.build_index(data, **flann_params)
         print('[flann] save_index(%r)' % split(flann_fpath)[1])
         flann.save_index(flann_fpath)
     return flann
@@ -63,25 +62,24 @@ def aggregate_descriptors(ibs, cid_list):
                                cid (chip uid)
                                fx (feature index w.r.t. cid)
     """
-    with utool.Timer('[nnindex] aggregate descriptors'):
-        fid_list = ibs.get_chip_fids(cid_list)
-        desc_list = ibs.get_feat_desc(fid_list)
-        # For each descriptor create a (cid, fx) pair indicating its
-        # chip id and the feature index in that chip id.
-        _ax2_cid = ([cid] * nFeat for (cid, nFeat) in
-                    izip(cid_list, imap(len, desc_list)))
-        _ax2_fx = (xrange(nFeat) for nFeat in imap(len, desc_list))
-        # flatten iterators with mondofast python magic
-        ax2_cid = np.array(list(chain.from_iterable(_ax2_cid)))
-        ax2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
-        try:
-            # Stack into giant numpy array for efficient indexing.
-            ax2_desc = np.vstack(desc_list)
-        except MemoryError as ex:
-            with utool.Indenter('[mem error]'):
-                utool.print_exception(ex, 'not enough space for inverted index')
-                print('len(cid_list) = %r' % (len(cid_list),))
-            raise
+    fid_list = ibs.get_chip_fids(cid_list)
+    desc_list = ibs.get_feat_desc(fid_list)
+    # For each descriptor create a (cid, fx) pair indicating its
+    # chip id and the feature index in that chip id.
+    _ax2_cid = ([cid] * nFeat for (cid, nFeat) in
+                izip(cid_list, imap(len, desc_list)))
+    _ax2_fx = (xrange(nFeat) for nFeat in imap(len, desc_list))
+    # flatten iterators with mondofast python magic
+    ax2_cid = np.array(list(chain.from_iterable(_ax2_cid)))
+    ax2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
+    try:
+        # Stack into giant numpy array for efficient indexing.
+        ax2_desc = np.vstack(desc_list)
+    except MemoryError as ex:
+        with utool.Indenter('[mem error]'):
+            utool.print_exception(ex, 'not enough space for inverted index')
+            print('len(cid_list) = %r' % (len(cid_list),))
+        raise
     return ax2_desc, ax2_cid, ax2_fx
 
 
@@ -101,7 +99,7 @@ def build_flann_inverted_index(ibs, cid_list):
 class NNIndex(object):
     """ Nearest Neighbor (FLANN) Index Class """
     def __init__(nn_index, ibs, cid_list):
-        print('[ds] building NNIndex object')
+        print('[nnindex] building NNIndex object')
         ax2_desc, ax2_cid, ax2_fx, flann = build_flann_inverted_index(ibs,
                                                                       cid_list)
         # Agg Data
@@ -113,10 +111,6 @@ class NNIndex(object):
     def __getstate__(nn_index):
         """ This class it not pickleable """
         printDBG('get state NNIndex')
-        #if 'flann' in nn_index.__dict__ and nn_index.flann is not None:
-            #nn_index.flann.delete_index()
-            #nn_index.flann = None
-        # This class is not pickleable
         return None
 
     def __del__(nn_index):

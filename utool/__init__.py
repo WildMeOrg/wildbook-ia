@@ -66,8 +66,7 @@ from .util_list import (alloc_lists, list_index, npfind, index_of, flatten,
 from .util_path import (checkpath, ensuredir, assertpath, truepath, list_images)
 
 from .util_print import (horiz_print, printshape, Indenter,
-                         NpPrintOpts, printVERBOSE, printNOTQUIET,
-                         print_exception)
+                         NpPrintOpts, printVERBOSE, printNOTQUIET)
 
 from .util_progress import (progress_func)
 

@@ -3,7 +3,7 @@ import __builtin__
 import sys
 
 
-__DEBUG__ = '--debug' in sys.argv
+__DEBUG_ALL__ = '--debug-all' in sys.argv
 
 __STDOUT__ = sys.stdout
 __PRINT_FUNC__     = __builtin__.print
@@ -20,11 +20,12 @@ __INJECT_BLACKLIST__ = frozenset(['tri', 'gc', 'sys', 'string', 'types', '_dia',
 
 def _inject_funcs(module, *func_list):
     for func in func_list:
-        if not (module is None or
-                not hasattr(module, '__name__') or
-                module.__name__ in __INJECT_BLACKLIST__ or
-                module.__name__.startswith('six'),
-                module.__name__.startswith('sys')):
+        if (module is not None and
+                hasattr(module, '__name__') and
+                not module.__name__ in __INJECT_BLACKLIST__ and
+                not module.__name__.startswith('six') and
+                not module.__name__.startswith('sys')):
+            #print('setting: %s.%s = %r' % (module.__name__, func.func_name, func))
             setattr(module, func.func_name, func)
 
 
@@ -78,16 +79,32 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     def print_(msg):
         __WRITE_FUNC__(msg)
 
-    if __DEBUG__ or DEBUG:
+    # turn on module debugging with command line flags
+    dotpos = module.__name__.rfind('.')
+    if dotpos == -1:
+        module_name = module.__name__
+    else:
+        module_name = module.__name__[dotpos + 1:]
+    def _replchars(str_):
+        return str_.replace('_', '-').replace(']', '').replace('[', '')
+    flag1 = '--debug-%s' % _replchars(module_name)
+    flag2 = '--debug-%s' % _replchars(module_prefix)
+    DEBUG_FLAG = any([flag in sys.argv for flag in [flag1, flag2]])
+    if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
         def printDBG(msg):
             __PRINT_DBG_FUNC__(module_prefix + ' DEBUG ' + msg)
     else:
         def printDBG(msg):
             pass
+    if flag1 == '--debug-viz-matches':
+        print(flag1)
+        print(flag2)
+        print(DEBUG_FLAG)
+        print(printDBG)
 
-    module.print  = print
-    module.print_ = print_
-    module.printDBG = printDBG
+    #setattr(module, 'print', print)
+    #setattr(module, '.print_', print_)
+    #setattr(module, 'printDBG', printDBG)
     _inject_funcs(module, print, print_, printDBG)
     return print, print_, printDBG
 
@@ -116,7 +133,8 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
     try:
         profile = module.profile
     except AttributeError:
-        profile = lambda func: func
+        def profile(func):
+            return func
     _inject_funcs(module, profile)
     return profile
 
@@ -141,6 +159,7 @@ def inject_all(DEBUG=False):
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
     '''
+    raise NotImplemented('!!!')
     for key, module in sys.modules.items():
         if module is None or not hasattr(module, '__name__'):
             continue
