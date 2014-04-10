@@ -1,6 +1,6 @@
 #/usr/bin/env python
 'Removes profiled output of code that never ran'
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 import sys
 import operator
 

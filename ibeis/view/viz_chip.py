@@ -1,9 +1,9 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import utool
 import drawtool.draw_func2 as df2
 import numpy as np
-import viz_helpers as vh
-import viz_image
+from . import viz_helpers as vh
+from . import viz_image
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_chip]',
                                                        DEBUG=False)
 

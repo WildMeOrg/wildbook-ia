@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from os.path import (join, realpath, relpath, normpath, split, isdir, isfile, exists,
                      islink, ismount, expanduser)
 from itertools import izip

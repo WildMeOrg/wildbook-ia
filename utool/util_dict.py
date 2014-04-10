@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from itertools import product as iprod
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')

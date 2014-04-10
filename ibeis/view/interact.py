@@ -1,19 +1,16 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Scientific
 import numpy as np
 import utool
 from drawtool import draw_func2 as df2
+import guitool
 # IBEIS
-from ibeis.view import viz
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact]', DEBUG=False)
 
-from interact_helpers import begin_interaction
-
-#==========================
-# Image Interaction
-#==========================
-
-from interact_image import interact_image  # NOQA
+from . import viz
+from . import interact_helpers as ih
+from .interact_image import interact_image  # NOQA
+from .interact_chip import interact_chip
 
 
 #==========================
@@ -21,7 +18,7 @@ from interact_image import interact_image  # NOQA
 #==========================
 
 def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs):
-    fig = begin_interaction('name', fnum)
+    fig = ih.begin_interaction('name', fnum)
 
     def _on_name_click(event):
         print_('[inter] clicked name')
@@ -44,15 +41,9 @@ def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs)
     df2.connect_callback(fig, 'button_press_event', _on_name_click)
     pass
 
-#==========================
-# Chip Interaction
-#==========================
-
-from interact_chip import interact_chip
-
 
 def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
-    fig = begin_interaction('keypoint', fnum)
+    fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
 
     def _select_ith_kpt(fx):
@@ -106,7 +97,7 @@ def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, *
 
     # Draw without keypoints the first time
     _viz_keypoints(fnum, **kwargs)   # MAYBE: remove kwargs
-    df2.connect_callback(fig, 'button_press_event', _on_keypoints_click)
+    ih.connect_callback(fig, 'button_press_event', _on_keypoints_click)
     if not nodraw:
         viz.draw()
 
@@ -118,7 +109,7 @@ def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, *
 def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result',
                      same_fig=True, **kwargs):
     'Plots a chip result and sets up callbacks for interaction.'
-    fig = begin_interaction('chipres', fnum)
+    fig = ih.begin_interaction('chipres', fnum)
     qcid = res.qcid
     if cid is None:
         cid = res.topN_cids(ibs, 1)[0]
@@ -210,7 +201,7 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
     def _sv_view(cid):
         fnum = viz.FNUMS['special']
         fig = df2.figure(fnum=fnum, docla=True, doclf=True)
-        df2.disconnect_callback(fig, 'button_press_event')
+        ih.disconnect_callback(fig, 'button_press_event')
         viz.viz_spatial_verification(ibs, res.qcid, cid2=cid, fnum=fnum)
         viz.draw()
 
@@ -286,7 +277,6 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
         (toggle_samefig_key, toggle_samefig),
         ('query last feature', query_last_feature),
         ('cancel', lambda: print('cancel')), ]
-    import guitool
     guitool.popup_menu(fig.canvas, opt2_callback, fig.canvas)
     df2.connect_callback(fig, 'button_press_event', _click_chipres_click)
     viz.draw()
@@ -300,7 +290,7 @@ def select_bbox(ibs, gid, fnum=1,
     print('[*interact] select_bbox(gid=%r, fnum=%r)' % (gid, fnum))
     print('[*interact] Define a Rectanglular ROI by clicking two points.')
     # Show the image
-    fig = begin_interaction('select_bbox', fnum)
+    fig = ih.begin_interaction('select_bbox', fnum)
     viz.show_image(ibs, gid, **kwargs)
     try:
         viz.draw()

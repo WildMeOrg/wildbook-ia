@@ -3,7 +3,7 @@
 # TODO: Rename
 # util_science
 #
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import numpy as np
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[alg]')
@@ -68,4 +68,25 @@ def cartesian(arrays, out=None):
 
 
 def almost_eq(a, b, thresh=1E-11):
+    """ checks if floating point number are equal to a threshold """
     return abs(a - b) < thresh
+
+
+def xywh_to_tlbr(bbox, img_wh):
+    """ converts xywh format to (tlx, tly, blx, bly) """
+    (img_w, img_h) = img_wh
+    if img_w == 0 or img_h == 0:
+        img_w = 1
+        img_h = 1
+        msg = '[cc2.1] Your csv tables have an invalid ROI.'
+        print(msg)
+        #warnings.warn(msg)
+        #ht = 1
+        #wt = 1
+    # Ensure ROI is within bounds
+    (x, y, w, h) = bbox
+    x1 = max(x, 0)
+    y1 = max(y, 0)
+    x2 = min(x + w, img_w - 1)
+    y2 = min(y + h, img_h - 1)
+    return (x1, y1, x2, y2)

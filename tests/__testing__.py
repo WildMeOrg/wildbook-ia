@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
 sys.argv.append('--strict')  # Tests are always strict

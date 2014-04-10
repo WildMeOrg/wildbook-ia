@@ -1,8 +1,8 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from ibeis.view import viz
 import utool
-from viz_helpers import get_ibsdat
-import interact_helpers
+from . import viz_helpers as vh
+from . import interact_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_img]',
                                                        DEBUG=False)
@@ -26,15 +26,15 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
             interact_image(ibs, gid, **kwargs)
         else:
             ax          = event.inaxes
-            viztype     = get_ibsdat(ax, 'viztype')
-            roi_centers = get_ibsdat(ax, 'roi_centers', default=[])
+            viztype     = vh.get_ibsdat(ax, 'viztype')
+            roi_centers = vh.get_ibsdat(ax, 'roi_centers', default=[])
             print_(' viztype=%r' % viztype)
             if len(roi_centers) == 0:
                 print(' ...no chips to click')
                 return
             x, y = event.xdata, event.ydata
             # Find ROI center nearest to the clicked point
-            rid_list = get_ibsdat(ax, 'rid_list', default=[])
+            rid_list = vh.get_ibsdat(ax, 'rid_list', default=[])
             centx, _dist = utool.nearest_point(x, y, roi_centers)
             rid = rid_list[centx]
             print(' ...clicked rid=%r' % rid)

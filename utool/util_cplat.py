@@ -1,7 +1,7 @@
 '''
 cross platform utilities
 '''
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import os
 import sys
 import platform

@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
 
@@ -96,15 +96,7 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     else:
         def printDBG(msg):
             pass
-    if flag1 == '--debug-viz-matches':
-        print(flag1)
-        print(flag2)
-        print(DEBUG_FLAG)
-        print(printDBG)
 
-    #setattr(module, 'print', print)
-    #setattr(module, '.print_', print_)
-    #setattr(module, 'printDBG', printDBG)
     _inject_funcs(module, print, print_, printDBG)
     return print, print_, printDBG
 
@@ -142,7 +134,7 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     '''
     Usage:
-        from __future__ import print_function, division
+        from __future__ import absolute_import, division, print_function
         from util.util_inject import inject
         print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     '''

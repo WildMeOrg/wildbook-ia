@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Standard
 from itertools import izip
 # Science
@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib as mpl
 # vtool
 import vtool.keypoint as ktool
-import mpl_sift
+from . import mpl_sift
 
 
 # TOOD: move to util

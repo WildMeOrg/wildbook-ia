@@ -1,9 +1,10 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Python
 import re
 from os.path import join, exists
-import __SQLITE3__ as lite
+# Tools
 import utool
+from . import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]', DEBUG=False)
 
 

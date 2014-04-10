@@ -1,23 +1,24 @@
-from __future__ import division, print_function
-import utool
-print, print_,  printDBG, rrr, profile =\
-    utool.inject(__name__, '[cov]', DEBUG=False)
+# TODO: Integrate this with vtool instead
+from __future__ import absolute_import, division, print_function
 # Standard
 from itertools import izip
 # Science
 import cv2
 import numpy as np
-# HotSpotter
+# Tools
 import utool
-import matching_functions as mf
-# VTool
 import vtool.patch as ptool
+# Recognition
+print, print_,  printDBG, rrr, profile = utool.inject(
+    __name__, '[cov]', DEBUG=False)
 
 SCALE_FACTOR_DEFAULT = .05
 METHOD_DEFAULT = 0
 
 
 def score_chipmatch_coverage(ibs, qcx, chipmatch, qreq, method=0):
+    # THIS IS TERRIBLE AWFUL LOCAL IMPORT
+    from ibeis.model.jon_recognition import matching_functions as mf
     prescore_method = 'csum'
     nShortlist = 100
     dcxs_ = set(qreq._dcxs)

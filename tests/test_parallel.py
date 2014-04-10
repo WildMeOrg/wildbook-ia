@@ -3,14 +3,14 @@
 '''
 Tests IBEIS parallel
 '''
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 TEST_NAME = 'TEST_PARALLEL'
 import __testing__  # NOQA
 import multiprocessing
 import utool
 import sys
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
-utool.inject_all()
+#utool.inject_all()
 printTEST = __testing__.printTEST
 
 sys.argv.append('--nogui')

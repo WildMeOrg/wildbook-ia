@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import sys
 from utool.util_inject import inject_print_functions
 print, print_, printDBG = inject_print_functions(__name__, '[SQLITE3]', DEBUG=False)

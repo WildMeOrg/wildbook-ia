@@ -1,7 +1,7 @@
 '''
 This file has helpers for both lists and numpy arrays
 '''
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
 from .util_iter import iflatten

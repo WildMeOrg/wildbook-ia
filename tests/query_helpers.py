@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BUILDQUERY'
 #------
@@ -8,9 +8,12 @@ try:
     import __testing__
 except ImportError:
     import tests.__testing__ as __testing__
+import numpy as np
+from itertools import izip
 from ibeis.model.jon_recognition import QueryRequest  # NOQA
 from ibeis.model.jon_recognition import NNIndex  # NOQA
-from ibeis.dev.debug_imports import *  # NOQA
+from ibeis.model.jon_recognition import matching_functions as mf  # NOQA
+from ibeis.model.jon_recognition import match_chips3 as mc3  # NOQA
 from ibeis.model.jon_recognition.matching_functions import _apply_filter_scores, progress_func  # NOQA
 from tests import test_tools
 import utool
@@ -65,32 +68,6 @@ def get_query_components(ibs, qcids):
     return qres_ORIG, qres_FILT, qres_SVER, locals()
 
 
-def test_buildchipmatch(qcid2_nns, qcid):
-    (qfx2_ax, qfx2_dist) = qcid2_nns[qcid]
-    (qfx2_fs, qfx2_valid) = qcid2_nnfilt[qcid]
-    nQKpts = len(qfx2_ax)  # num query keypoints
-    # Build feature matches
-    qfx2_nnax = qfx2_ax[:, 0:K]
-    qfx2_cid  = qreq.data_index.ax2_cid[qfx2_nnax]
-    qfx2_fx   = qreq.data_index.ax2_fx[qfx2_nnax]
-    qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
-    qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
-    # Pack feature matches into an interator
-    valid_lists = [qfx2[qfx2_valid] for qfx2 in (qfx2_qfx, qfx2_cid, qfx2_fx, qfx2_fs, qfx2_k,)]
-    match_iter = izip(*valid_lists)
-    match_iter = list(match_iter)
-    cid2_fm, cid2_fs, cid2_fk = mf.new_fmfsfk()
-    for qfx, cid, fx, fs, fk in match_iter:
-        cid2_fm[cid].append((qfx, fx))  # Note the difference
-        cid2_fs[cid].append(fs)
-        cid2_fk[cid].append(fk)
-
-    nFeats_in_matches = [len(fm) for fm in cid2_fm.itervalues()]
-    print(utool.dict_str(utool.mystats(nFeats_in_matches)))
-    chipmatch = mf._fix_fmfsfk(cid2_fm, cid2_fs, cid2_fk)
-    qcid2_chipmatch[qcid] = chipmatch
-
-
 def data_index_integrity(ibs, qreq):
     print('checking qreq.data_index integrity')
 
@@ -126,8 +103,9 @@ def data_index_integrity(ibs, qreq):
     print('... seems ok')
 
 
-def find_matchable_chips():
+def find_matchable_chips(ibs):
     """ quick and dirty test to score by number of assignments """
+    qreq = ibs.qreq
     qcids = ibs.get_valid_cids()
     qreq = mc3.prep_query_request(qreq=qreq, qcids=qcids, dcids=qcids)
     mc3.pre_exec_checks(ibs, qreq)

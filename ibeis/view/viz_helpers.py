@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
 import drawtool.draw_func2 as df2

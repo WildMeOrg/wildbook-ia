@@ -5,7 +5,7 @@
 # show_<func_name> will always clear the current axes, but not fig: cla # Might # add annotates?
 # plot_<func_name> will not clear the axes or figure. More useful for graphs
 # draw_<func_name> same as plot for now. More useful for images
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
 
@@ -34,9 +34,10 @@ import numpy as np
 import scipy.stats
 import cv2
 # VTool
-import mpl_keypoint as mpl_kp
 import vtool.patch as ptool
 import vtool.image as gtool
+# Drawtool
+from . import mpl_keypoint as mpl_kp
 
 #================
 # GLOBALS

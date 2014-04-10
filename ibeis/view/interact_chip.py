@@ -1,9 +1,9 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from ibeis.view import viz
 import utool
-from viz_helpers import get_ibsdat
 from drawtool import draw_func2 as df2
-import interact_helpers
+from . import interact_helpers as ih
+from . import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_chip]',
                                                        DEBUG=False)
@@ -13,7 +13,7 @@ import interact_helpers
 def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
-    fig = interact_helpers.begin_interaction('chip', fnum)
+    fig = ih.begin_interaction('chip', fnum)
     # Get chip info (make sure get_chips is called first)
     cid = ibs.get_roi_cids(rid)
     chip = ibs.get_roi_chips(rid)
@@ -38,18 +38,18 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     def _on_chip_click(event):
         print_('[inter] clicked chip')
         ax, x, y = event.inaxes, event.xdata, event.ydata
-        if interact_helpers.clicked_outside_axis(event):
+        if ih.clicked_outside_axis(event):
             print('... out of axis')
             mode_ptr[0] = (mode_ptr[0] + 1) % 3
             mode = mode_ptr[0]
             print('... default kpts view mode=%r' % mode)
             _chip_view(ell=(mode == 1), pts=(mode == 2))
         else:
-            viztype = get_ibsdat(ax, 'viztype')
+            viztype = vh.get_ibsdat(ax, 'viztype')
             print_('[ic] viztype=%r' % viztype)
             if viztype == 'chip' and event.key == 'shift':
                 _chip_view()
-                interact_helpers.disconnect_callback(fig, 'button_press_event')
+                ih.disconnect_callback(fig, 'button_press_event')
             elif viztype == 'chip':
                 kpts = ibs.get_roi_kpts(rid)
                 if len(kpts) > 0:
@@ -59,7 +59,7 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
                 else:
                     print('... len(kpts) == 0')
             elif viztype in ['warped', 'unwarped']:
-                fx = get_ibsdat(ax, 'fx')
+                fx = vh.get_ibsdat(ax, 'fx')
                 if fx is not None and viztype == 'warped':
                     viz.show_keypoint_gradient_orientations(ibs, rid, fx, fnum=df2.next_fnum())
             else:
@@ -72,4 +72,4 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
     else:
         _chip_view(ell=False, pts=False)
     viz.draw()
-    interact_helpers.connect_callback(fig, 'button_press_event', _on_chip_click)
+    ih.connect_callback(fig, 'button_press_event', _on_chip_click)

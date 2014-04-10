@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import warnings
 # Scientific
 import numpy as np
@@ -16,10 +16,11 @@ from ibeis.model.jon_recognition import QueryResult
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 #from interaction import interact_keypoints, interact_chipres, interact_chip # NOQA
-import viz_helpers as vh
-from viz_image import show_image  # NOQA
-from viz_chip import show_chip, show_keypoints  # NOQA
-from viz_matches import show_chipres, annotate_chipres  # NOQA
+from . import viz_helpers as vh
+from .viz_helpers import draw  # NOQA
+from .viz_image import show_image  # NOQA
+from .viz_chip import show_chip, show_keypoints  # NOQA
+from .viz_matches import show_chipres, annotate_chipres  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 

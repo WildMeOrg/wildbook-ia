@@ -1,13 +1,11 @@
 #from __init__ import *
-from __future__ import division, print_function
-from hscom import __common__
-(print, print_, 
- rrr, profile) = utool.inject(__name__, '[seg]')
+from __future__ import absolute_import, division, print_function
 import numpy as np
-import utool
 import cv2
-import algos
-
+# Tools
+import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[seg]', DEBUG=False)
 
 DEBUG_SEGM = False
 
@@ -26,7 +24,7 @@ def im(img, fnum=0):
 
 def resize_img_and_roi(img_fpath, roi_, new_size=None, sqrt_area=400.0):
     printDBG('[segm] imread(%r) ' % img_fpath)
-    full_img = io.imread(img_fpath)
+    full_img = cv2.imread(img_fpath)
     (full_h, full_w) = full_img.shape[:2]                 # Image Shape
     printDBG('[segm] full_img.shape=%r' % (full_img.shape,))
     (rw_, rh_) = roi_[2:]
@@ -179,7 +177,7 @@ def segment(img_fpath, roi_, new_size=None):
     (img_h, img_w) = img_resz.shape[:2]                       # Image Shape
     printDBG(' * img_resz.shape=%r' % ((img_h, img_w),))
     # WH Safe
-    tlbr = algos.xywh_to_tlbr(roi_resz, (img_w, img_h))  # Rectangle ROI
+    tlbr = utool.xywh_to_tlbr(roi_resz, (img_w, img_h))  # Rectangle ROI
     (x1, y1, x2, y2) = tlbr
     rect = tuple(roi_resz)                               # Initialize: rect
     printDBG(' * rect=%r' % (rect,))

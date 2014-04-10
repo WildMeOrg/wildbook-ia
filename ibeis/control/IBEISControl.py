@@ -7,7 +7,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 # JON SAYS (3-24)
 # I had a change of heart. I'm using tripple double quotes for comment strings
 # only and tripple single quotes for python multiline strings only
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
 from os.path import join, realpath, split

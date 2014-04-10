@@ -1,11 +1,9 @@
-from __future__ import print_function, division
-import histogram  # NOQA
-import linalg     # NOQA
-import image      # NOQA
-import keypoint   # NOQA
-import ellipse    # NOQA
-import patch      # NOQA
-import chip       # NOQA
-#from hist import *  # NOQA
-#from patch import *  # NOQA
-#from ellipse import *  # NOQA
+# flake8: noqa
+from __future__ import absolute_import, division, print_function
+from . import histogram
+from . import linalg
+from . import image
+from . import keypoint
+from . import ellipse
+from . import patch
+from . import chip

@@ -1,5 +1,5 @@
 # LICENCE
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 # Science
 import numpy as np
 import numpy.linalg as npl

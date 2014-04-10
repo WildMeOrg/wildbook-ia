@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import sys
 
 sys.argv.append('--strict')  # do not supress any errors
@@ -75,7 +75,7 @@ def _init_gui():
 def _init_ibeis():
     import utool
     from ibeis.control import IBEISControl
-    import params
+    from . import params
     if not utool.QUIET:
         print('[main] _init_ibeis()')
     dbdir = params.args.dbdir
@@ -169,7 +169,7 @@ def _ipython_loop(main_locals):
 
 def main(**kwargs):
     import utool
-    import main_commands
+    from . import main_commands
     msg1 = '''
     _____ ....... _______ _____ _______
       |   |_____| |______   |   |______

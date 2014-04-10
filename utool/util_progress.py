@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import sys
 from .util_inject import inject
 from .util_arg import get_flag

@@ -1,7 +1,7 @@
 # TODO: These functions can go a shit-ton faster if they are put into list
 # comprehensions
 # TODO: Remove ibs control as much as possible or abstract it away
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
 from collections import defaultdict

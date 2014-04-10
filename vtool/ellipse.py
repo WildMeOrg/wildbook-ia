@@ -1,5 +1,5 @@
 'This module should handle all things elliptical'
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
 # Scientific
@@ -10,12 +10,8 @@ import numpy as np
 # VTool
 from . import keypoint as ktool
 from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[ell]', DEBUG=False)
-
-try:
-    profile
-except NameError:
-    profile = lambda func: func
+(print, print_, printDBG, rrr, profile) = inject(
+    __name__, '[ell]', DEBUG=False)
 
 
 @profile

@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import utool
 from functools import wraps
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')

@@ -1,5 +1,6 @@
-from __future__ import division, print_function
-from ibeis.dev.debug_imports import *  # NOQA
+# flake8: noqa
+from __future__ import absolute_import, division, print_function
+from ibeis.dev.all_imports import *
 
 if __name__ == 'main':
     multiprocessing.freeze_support()
