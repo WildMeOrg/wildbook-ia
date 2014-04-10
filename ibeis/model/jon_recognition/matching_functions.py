@@ -442,7 +442,7 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq, dbginfo=False):
                     print_('o')  # sv failure
             else:
                 # Return the inliers to the homography
-                (H, inliers) = sv_tup
+                (H, inliers, Aff, aff_inliers) = sv_tup
                 cid2_svtup[cid] = sv_tup
                 cid2_fm_V[cid] = fm[inliers, :]
                 cid2_fs_V[cid] = fs[inliers]

@@ -261,4 +261,4 @@ def homography_inliers(kpts1, kpts2, fm,
     xy_err = ((x1_mt / z1_mt) - x2_m) ** 2 + ((y1_mt / z1_mt) - y2_m) ** 2
     # Estimate final inliers
     inliers = np.where(xy_err < xy_thresh_sqrd)[0]
-    return H, inliers
+    return H, inliers, Aff, aff_inliers

@@ -728,18 +728,6 @@ class IBEISControl(object):
         """ Returns number of other chips with the same name """
         return map(len, ibs.get_roi_groundtruth(rid_list))
 
-    @getter_vector_output
-    def get_rids_in_nids(ibs, nid_list):
-        """ returns a list of list of cids in each name """
-        # for each name return chips in that name
-        rids_list = [[] for _ in xrange(len(nid_list))]
-        return rids_list
-
-    @getter
-    def get_num_rids_in_nids(ibs, nid_list):
-        """ returns the number of detections for each name """
-        return map(len, ibs.get_rids_in_nids(nid_list))
-
     @getter
     def get_roi_num_feats(ibs, rid_list, ensure=False):
         cid_list = ibs.get_roi_cids(rid_list, ensure=ensure)
@@ -862,7 +850,7 @@ class IBEISControl(object):
     # GETTERS::Mask
 
     @getter
-    def get_chip_masks(ibs, rid_list):
+    def get_chip_masks(ibs, rid_list, ensure=True):
         # Should this function exist? Yes. -Jon
         roi_list  = ibs.get_roi_bboxes(rid_list)
         mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
@@ -871,7 +859,6 @@ class IBEISControl(object):
     #
     # GETTERS::Name
 
-    #@getter_general
     @getter_general
     def get_valid_nids(ibs):
         """ Returns all valid names (does not include unknown names """
@@ -883,16 +870,6 @@ class IBEISControl(object):
             ''',
             parameters=(ibs.UNKNOWN_NAME,))
         return nid_list
-
-    @getter
-    def get_names(ibs, nid_list):
-        """ Returns text names """
-        # Change the temporary negative indexes back to the unknown NID for the
-        # SQL query. Then augment the name list to distinguish unknown names
-        nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
-        name_list_ = ibs.get_name_properties('name_text', nid_list_)
-        name_list  = [name if nid > 0 else name + str(-nid) for (name, nid) in izip(name_list_, nid_list)]
-        return name_list
 
     @getter
     def get_name_nids(ibs, name_list, ensure=True):
@@ -908,6 +885,28 @@ class IBEISControl(object):
             parameters_iter=((name,) for name in name_list),
             auto_commit=False)
         return nid_list
+
+    @getter
+    def get_names(ibs, nid_list):
+        """ Returns text names """
+        # Change the temporary negative indexes back to the unknown NID for the
+        # SQL query. Then augment the name list to distinguish unknown names
+        nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
+        name_list_ = ibs.get_name_properties('name_text', nid_list_)
+        name_list  = [name if nid > 0 else name + str(-nid) for (name, nid) in izip(name_list_, nid_list)]
+        return name_list
+
+    @getter_vector_output
+    def get_rids_in_nids(ibs, nid_list):
+        """ returns a list of list of cids in each name """
+        # for each name return chips in that name
+        rids_list = [[] for _ in xrange(len(nid_list))]
+        return rids_list
+
+    @getter
+    def get_num_rids_in_nids(ibs, nid_list):
+        """ returns the number of detections for each name """
+        return map(len, ibs.get_rids_in_nids(nid_list))
 
     #
     # GETTERS::Encounter
@@ -974,12 +973,14 @@ class IBEISControl(object):
     # --- Model ---
     #--------------
 
+    @utool.indent_func
     def compute_all_chips(ibs):
         print('[ibs] compute_all_chips')
         rid_list = ibs.get_valid_rids()
         cid_list = ibs.add_chips(rid_list)
         return cid_list
 
+    @utool.indent_func
     def compute_all_features(ibs):
         print('[ibs] compute_all_features')
         rid_list = ibs.get_valid_rids()
@@ -1060,6 +1061,7 @@ class IBEISControl(object):
         qcid2_res = ibs._query_chips(qcid_list, dcid_list, **kwargs)
         return qcid2_res
 
+    @utool.indent_func
     def _init_query_requestor(ibs):
         from ibeis.model.jon_recognition import QueryRequest
         ibs.qreq = QueryRequest.QueryRequest()  # Query Data

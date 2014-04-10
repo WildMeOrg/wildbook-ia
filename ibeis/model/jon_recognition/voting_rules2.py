@@ -25,7 +25,9 @@ def score_chipmatch_nunique(ibs, qcx, chipmatch, qreq):
 
 
 def enforce_one_name(ibs, cid2_score, chipmatch=None, cid2_chipscore=None):
-    'this is a hack to make the same name only show up once in the top ranked list'
+    """ this is a hack to make the same name only show up once in the top ranked
+        list
+    """
     if chipmatch is not None:
         (_, cid2_fs, _) = chipmatch
         cid2_chipscore = np.array([np.sum(fs) for fs in cid2_fs])
@@ -84,11 +86,7 @@ def score_chipmatch_PL(ibs, qcx, chipmatch, qreq):
     return cid2_score, nid2_score
 
 
-TMP = []
-
-
 def _optimize(M):
-    global TMP
     #print('[vote] optimize')
     if M.size == 0:
         return np.array([])
@@ -97,11 +95,6 @@ def _optimize(M):
     check = np.abs(M.dot(x)) < 1E-9
     if not all(check):
         raise Exception('SVD method failed miserably')
-    #tmp1 = []
-    #tmp1 += [('[vote] x=%r' % x)]
-    #tmp1 += [('[vote] M.dot(x).sum() = %r' % M.dot(x).sum())]
-    #tmp1 += [('[vote] M.dot(np.abs(x)).sum() = %r' % M.dot(np.abs(x)).sum())]
-    #TMP  += [tmp1]
     return x
 
 
@@ -135,13 +128,13 @@ def get_scores_from_altx2_score(ibs, qcx, altx2_prob, altx2_tnx):
 
 
 def _chipmatch2_utilities(ibs, qcx, chipmatch, K):
-    '''
+    """
     returns qfx2_utilities
     fx1 : [(cid_0, tnx_0, fs_0, fk_0), ..., (cid_m, tnx_m, fs_m, fk_m)]
     fx2 : [(cid_0, tnx_0, fs_0, fk_0), ..., (cid_m, tnx_m, fs_m, fk_m)]
                     ...
     fxN : [(cid_0, tnx_0, fs_0, fk_0), ..., (cid_m, tnx_m, fs_m, fk_m)]
-    '''
+    """
     #print('[vote] computing utilities')
     cid2_nx = ibs.tables.cid2_nx
     nQFeats = len(ibs.feats.cid2_kpts[qcx])
@@ -202,11 +195,14 @@ def _utilities2_pairwise_breaking(qfx2_utilities):
     qfx2_porder = [np.array([tnx2_altx[util[1]] for util in utils])
                    for utils in qfx2_utilities]
 
-    def sum_win(ij):  # pairiwse wins on off-diagonal
+    def sum_win(ij):
+        """ pairiwse wins on off-diagonal """
         pairwise_mat[ij[0], ij[1]] += 1
 
-    def sum_loss(ij):  # pairiwse wins on off-diagonal
+    def sum_loss(ij):
+        """ pairiwse wins on off-diagonal """
         pairwise_mat[ij[1], ij[1]] -= 1
+
     nVoters = 0
     for qfx in xrange(nUtilities):
         # partial and compliment order over alternatives
@@ -236,7 +232,7 @@ def _utilities2_pairwise_breaking(qfx2_utilities):
 
 
 def _get_alts_from_utilities(qfx2_utilities):
-    # get temp name indexes
+    """ get temp name indexes """
     tnxs = [utool[1] for utils in qfx2_utilities for utool in utils]
     altx2_tnx = utool.unique_keep_order(tnxs)
     tnx2_altx = {nid: altx for altx, nid in enumerate(altx2_tnx)}

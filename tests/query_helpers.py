@@ -65,7 +65,7 @@ def get_query_components(ibs, qcids):
     qres_FILT = qcid2_res_FILT[qcid]
     qres_SVER = qcid2_res_SVER[qcid]
 
-    return qres_ORIG, qres_FILT, qres_SVER, locals()
+    return locals()
 
 
 def data_index_integrity(ibs, qreq):

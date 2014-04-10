@@ -96,6 +96,25 @@ def flatten(list_):
     return list(iflatten(list_))
 
 
+def safe_slice(list_, *args):
+    """ Slices list and truncates if out of bounds """
+    if len(args) == 3:
+        start = args[0]
+        stop  = args[1]
+        step  = args[2]
+    else:
+        step = 1
+        if len(args) == 2:
+            start = args[0]
+            stop  = args[1]
+        else:
+            start = 0
+            stop = args[0]
+    len_ = len(list_)
+    if stop > len_:
+        stop = len_
+    return list_[slice(start, stop, step)]
+
 # --- List Queries --- #
 
 

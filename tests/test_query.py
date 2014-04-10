@@ -18,7 +18,7 @@ import utool
 from drawtool import draw_func2 as df2
 #IBEIS
 from ibeis.dev import params  # NOQA
-from ibeis.view import viz_matches
+from ibeis.view import viz, viz_matches
 from ibeis.model.jon_recognition import QueryRequest  # NOQA
 from ibeis.model.jon_recognition import NNIndex  # NOQA
 import query_helpers
@@ -41,29 +41,39 @@ def BUILDQUERY():
 
     cids = ibs.get_recognition_database_chips()
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    qcids = cids[2:3]
+    index = 4
+    qcids = utool.safe_slice(cids, index, index + 1)
 
-    qres_ORIG, qres_FILT, qres_SVER, comp_locals_ = query_helpers.get_query_components(ibs, qcids)
+    comp_locals_ = query_helpers.get_query_components(ibs, qcids)
     qres_dict = OrderedDict([
-        ('ORIG', qres_ORIG),
-        ('FILT', qres_FILT),
-        ('SVER', qres_SVER),
+        ('ORIG', comp_locals_['qres_ORIG']),
+        ('FILT', comp_locals_['qres_FILT']),
+        ('SVER', comp_locals_['qres_SVER']),
     ])
 
-    top_cids_ORIG = qres_ORIG.get_top_cids(ibs)
-    top_cids_FILT = qres_FILT.get_top_cids(ibs)
-    top_cids_SVER = qres_SVER.get_top_cids(ibs)
-    cid2 = top_cids_ORIG[0]
+    top_cids = qres_dict['SVER'].get_top_cids(ibs)
+    top_cids = utool.safe_slice(top_cids, 6)
+    cid2 = top_cids[0]
 
     for px, (label, qres) in enumerate(qres_dict.iteritems()):
+        continue
         print(label)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
-        top_cids = top_cids_SVER[0:min(len(top_cids_SVER), 6)]
         #viz_matches.show_chipres(ibs, qres, cid2, fnum=fnum, in_image=True)
         viz_matches.show_qres(ibs, qres, fnum=fnum, top_cids=top_cids, ensure=False)
         df2.set_figtitle(label)
         df2.adjust_subplots_safe(top=.8)
+
+    fnum = df2.next_fnum()
+
+    qcid2_svtups = comp_locals_['qcid2_svtups']
+    qcid2_chipmatch_FILT = comp_locals_['qcid2_chipmatch_FILT']
+    qcid = comp_locals_['qcid']
+    cid2_svtup    = qcid2_svtups[qcid]
+    chipmatch_FILT = qcid2_chipmatch_FILT[qcid]
+    viz.viz_spatial_verification(ibs, qcid, cid2, chipmatch_FILT, cid2_svtup,
+                                 fnum=fnum)
     df2.present(wh=900)
     comp_locals_.update(locals())
 
