@@ -4,6 +4,8 @@ import sys
 
 
 __DEBUG_ALL__ = '--debug-all' in sys.argv
+__DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
+
 
 __STDOUT__ = sys.stdout
 __PRINT_FUNC__     = __builtin__.print
@@ -123,10 +125,15 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
 def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
     module = _get_module(module_name, module)
     try:
-        profile = module.profile
+        profile = getattr(__builtin__, 'profile')
+        if __DEBUG_PROF__:
+            print('[util_inject] PROFILE ON: %r' % module)
+        return profile
     except AttributeError:
         def profile(func):
             return func
+        if __DEBUG_PROF__:
+            print('[util_inject] PROFILE OFF: %r' % module)
     _inject_funcs(module, profile)
     return profile
 
@@ -140,10 +147,10 @@ def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     '''
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
-    profile     = inject_profile_function(None, module_prefix, module)
+    profile_    = inject_profile_function(None, module_prefix, module)
     print_funcs = inject_print_functions(None, module_prefix, DEBUG, module)
     print, print_, printDBG = print_funcs
-    return print, print_, printDBG, rrr, profile
+    return print, print_, printDBG, rrr, profile_
 
 
 def inject_all(DEBUG=False):

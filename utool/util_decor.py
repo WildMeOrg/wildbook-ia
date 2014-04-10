@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import __builtin__
 import sys
 from functools import wraps
 from itertools import islice, imap
@@ -9,7 +10,9 @@ import pylru  # because we dont have functools.lru_cache
 from .util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
-IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv
+
+# do not ignore traceback when profiling
+IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv or hasattr(__builtin__, 'profile')
 
 
 def composed(*decs):

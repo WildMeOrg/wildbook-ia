@@ -85,6 +85,7 @@ def NoDescriptorsException(ibs, qcid):
 #============================
 
 
+@profile
 def nearest_neighbors(ibs, qcids, qreq):
     """ Plain Nearest Neighbors """
     # Neareset neighbor configuration
@@ -147,6 +148,7 @@ def weight_neighbors(ibs, qcid2_nns, qreq):
         return  {}
 
 
+@profile
 def _weight_neighbors(ibs, qcid2_nns, qreq):
     nnfilter_list = qreq.cfg.filt_cfg.get_active_filters()
     filt2_weights = {}
@@ -166,6 +168,7 @@ def _weight_neighbors(ibs, qcid2_nns, qreq):
 #==========================
 
 
+@profile
 def _apply_filter_scores(qcid, qfx2_nnax, filt2_weights, filt_cfg):
     qfx2_score = np.ones(qfx2_nnax.shape, dtype=QueryResult.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nnax.shape, dtype=np.bool)
@@ -252,6 +255,7 @@ def filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq):
     return qcid2_nnfilt
 
 
+@profile
 def identity_filter(qcid2_nns, qreq):
     """ testing function returns unfiltered nearest neighbors
     this does check that you are not matching yourself
@@ -277,6 +281,7 @@ def identity_filter(qcid2_nns, qreq):
 #============================
 
 
+@profile
 def _fix_fmfsfk(cid2_fm, cid2_fs, cid2_fk):
     minMatches = 2  # TODO: paramaterize
     # Convert to numpy
@@ -383,6 +388,7 @@ def spatial_verification(ibs, qcid2_chipmatch, qreq, dbginfo=False):
         return spatial_verification_(ibs, qcid2_chipmatch, qreq, dbginfo=dbginfo)
 
 
+@profile
 def spatial_verification_(ibs, qcid2_chipmatch, qreq, dbginfo=False):
     sv_cfg = qreq.cfg.sv_cfg
     print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_uid())
@@ -512,6 +518,7 @@ def chipmatch_to_resdict(ibs, qcid2_chipmatch, filt2_meta, qreq):
     return qcid2_res
 
 
+@profile
 def load_resdict(ibs, qreq):
     # Load the result structures for each query.
     qcids = qreq.qcids
@@ -529,6 +536,7 @@ def load_resdict(ibs, qreq):
     return qcid2_res
 
 
+@profile
 def try_load_resdict(ibs, qreq):
     # Load the result structures for each query.
     qcids = qreq.qcids
@@ -549,7 +557,7 @@ def try_load_resdict(ibs, qreq):
 # Scoring Mechanism
 #============================
 
-
+@profile
 def score_chipmatch(ibs, qcid, chipmatch, score_method, qreq=None):
     (cid2_fm, cid2_fs, cid2_fk) = chipmatch
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore

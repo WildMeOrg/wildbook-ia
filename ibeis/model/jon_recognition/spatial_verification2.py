@@ -92,13 +92,13 @@ def normalize_xy_points(x_m, y_m):
 # TODO: This is one of the slowest functions we have right now
 # This needs to be sped up
 #import numba
-@profile
 #@numba.autojit
 #PYX DEFINE
 #def affine_inliers(FLOAT_2D x1_m, FLOAT_2D y1_m, FLOAT_2D invV1_m,  FLOAT_2D fx1_m,
 #                   FLOAT_2D x2_m, FLOAT_2D y2_m, FLOAT_2D invV2_m,
 #                   float xy_thresh_sqrd,
 #                   float max_scale, float min_scale):
+@profile
 def affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
                    x2_m, y2_m, invV2_m,
                    xy_thresh_sqrd,

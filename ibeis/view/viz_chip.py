@@ -8,7 +8,6 @@ from . import viz_image
                                                        DEBUG=False)
 
 
-@profile
 def show_keypoints(rchip, kpts, fnum=0, pnum=None, **kwargs):
     #printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
     fig, ax = df2.imshow(rchip, fnum=fnum, pnum=pnum, **kwargs)
@@ -17,7 +16,7 @@ def show_keypoints(rchip, kpts, fnum=0, pnum=None, **kwargs):
     vh.set_ibsdat(ax, 'kpts', kpts)
 
 
-@utool.indent_decor('[annote_kpts]')
+@utool.indent_func
 def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
     color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
     # Keypoint drawing kwargs
@@ -48,7 +47,7 @@ def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
         df2.draw_kpts2(sel_kpts, **drawkpts_kw)
 
 
-@utool.indent_decor('[show_chip]')
+@utool.indent_func
 def show_chip(ibs, cid, in_image=False, **kwargs):
     """ Driver function to show chips """
     printDBG('[viz] show_chip()')

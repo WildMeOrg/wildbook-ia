@@ -113,7 +113,7 @@ def show_name(ibs, nid, nid2_cids=None, fnum=0, sel_cids=[], subtitle='',
 #==========================
 
 
-@utool.indent_decor('[show_top]')
+@utool.indent_func
 @profile
 def show_top(res, ibs, *args, **kwargs):
     topN_cids = res.topN_cids(ibs)
@@ -125,7 +125,7 @@ def show_top(res, ibs, *args, **kwargs):
                      all_kpts=False, **kwargs)
 
 
-@utool.indent_decor('[analysis]')
+@utool.indent_func
 @profile
 def res_show_analysis(res, ibs, **kwargs):
         print('[viz] res.show_analysis()')
@@ -167,7 +167,7 @@ def res_show_analysis(res, ibs, **kwargs):
                          figtitle=figtitle, show_query=show_query, **kwargs)
 
 
-@utool.indent_decor('[_showres]')
+@utool.indent_func
 @profile
 def _show_res(ibs, res, **kwargs):
     ''' Displays query chip, groundtruth matches, and top 5 matches'''

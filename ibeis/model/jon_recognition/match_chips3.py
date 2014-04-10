@@ -9,7 +9,7 @@ from ibeis.model.jon_recognition import matching_functions as mf
     __name__, '[mc3]', DEBUG=False)
 
 
-@utool.indent_decor('[quick_ensure]')
+@utool.indent_func
 def quickly_ensure_qreq(ibs, qcids=None, dcids=None):
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
@@ -28,7 +28,7 @@ def quickly_ensure_qreq(ibs, qcids=None, dcids=None):
     return qreq
 
 
-@utool.indent_decor('[prep_qreq]')
+@utool.indent_func
 def prep_query_request(qreq=None, query_cfg=None,
                        qcids=None, dcids=None, **kwargs):
     """  Builds or modifies a query request object """
@@ -52,8 +52,8 @@ def prep_query_request(qreq=None, query_cfg=None,
 #----------------------
 
 
+@utool.indent_func
 @profile
-@utool.indent_decor('[pre_exec]')
 def pre_exec_checks(ibs, qreq):
     """ Builds the NNIndex if not already in cache """
     print('  --- Pre Exec ---')
@@ -118,8 +118,8 @@ def execute_query_and_save_L1(ibs, qreq, failed_qcids=[]):
 
 
 # Query Level 0
-@profile
 @utool.indent_decor('[QL0]')
+@profile
 def execute_query_L0(ibs, qreq):
     '''
     Driver logic of query pipeline
