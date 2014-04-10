@@ -59,8 +59,9 @@ def BUILDQUERY():
         print(label)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
+        top_cids = top_cids_SVER[0:min(len(top_cids_SVER), 6)]
         #viz_matches.show_chipres(ibs, qres, cid2, fnum=fnum, in_image=True)
-        viz_matches.show_qres(ibs, qres, fnum=fnum, ensure=False)
+        viz_matches.show_qres(ibs, qres, fnum=fnum, top_cids=top_cids, ensure=False)
         df2.set_figtitle(label)
         df2.adjust_subplots_safe(top=.8)
     df2.present(wh=900)

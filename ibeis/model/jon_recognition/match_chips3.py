@@ -132,26 +132,39 @@ def execute_query_L0(ibs, qreq):
     # Query Chip Indexes
     # * vsone qcids/dcids swapping occurs here
     qcids = qreq.get_internal_qcids()
+
     # Nearest neighbors (qcid2_nns)
     # * query descriptors assigned to database descriptors
     # * FLANN used here
-    qcid2_nns = mf.nearest_neighbors(ibs, qcids, qreq)
+    qcid2_nns = mf.nearest_neighbors(
+        ibs, qcids, qreq)
+
     # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
     # * feature matches are weighted
-    filt2_weights, filt2_meta = mf.weight_neighbors(ibs, qcid2_nns, qreq)
+    filt2_weights, filt2_meta = mf.weight_neighbors(
+        ibs, qcid2_nns, qreq)
+
     # Thresholding and weighting (qcid2_nnfilter)
     # * feature matches are pruned
-    qcid2_nnfilt = mf.filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq)
+    qcid2_nnfilt = mf.filter_neighbors(
+        ibs, qcid2_nns, filt2_weights, qreq)
+
     # Nearest neighbors to chip matches (qcid2_chipmatch)
     # * Inverted index used to create cid2_fmfsfk (TODO: ccid2_fmfv)
     # * Initial scoring occurs
     # * vsone inverse swapping occurs here
-    qcid2_chipmatch_FILT = mf.build_chipmatches(qcid2_nns, qcid2_nnfilt, qreq)
+    qcid2_chipmatch_FILT = mf.build_chipmatches(
+        qcid2_nns, qcid2_nnfilt, qreq)
+
     # Spatial verification (qcid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches
-    qcid2_chipmatch_SVER = mf.spatial_verification(ibs, qcid2_chipmatch_FILT, qreq)
+    qcid2_chipmatch_SVER = mf.spatial_verification(
+        ibs, qcid2_chipmatch_FILT, qreq, dbginfo=False)
+
     # Query results format (qcid2_res) (TODO: SQL / Json Encoding)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qcid2_res = mf.chipmatch_to_resdict(ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
+    qcid2_res = mf.chipmatch_to_resdict(
+        ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
+
     return qcid2_res

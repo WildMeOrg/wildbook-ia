@@ -5,7 +5,7 @@ export RAW_SUFFIX=raw.prof
 export CLEAN_SUFFIX=clean.prof
 
 # Input
-export pyscript=$1
+export pyscript=$(echo $1 | sed -e 's/.*\///g')
 # Output Stage 1
 export line_profile_output=$pyscript.lprof
 # Output Stage 2
@@ -33,6 +33,9 @@ fi
 echo "pyscript: $pyscript"
 echo "line_profile_output: $line_profile_output"
 echo "Profiling $pyscript"
+
+#set -e
+#/bin/command-that-fails
 
 export SYSNAME="$(expr substr $(uname -s) 1 10)"
 # Choose one

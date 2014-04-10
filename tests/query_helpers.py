@@ -35,7 +35,8 @@ def get_query_components(ibs, qcids):
     #---
     qcid2_chipmatch_FILT = mf.build_chipmatches(qcid2_nns, qcid2_nnfilt, qreq)
     #---
-    qcid2_chipmatch_SVER = mf.spatial_verification(ibs, qcid2_chipmatch_FILT, qreq)
+    _tup = mf.spatial_verification(ibs, qcid2_chipmatch_FILT, qreq, dbginfo=True)
+    qcid2_chipmatch_SVER, qcid2_svtups = _tup
     #---
     qcid2_res = mf.chipmatch_to_resdict(ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
     #####################

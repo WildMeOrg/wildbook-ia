@@ -48,12 +48,14 @@ plotWidget = None
 
 # GENERAL FONTS
 
+SMALLEST = 6
 SMALLER  = 8
 SMALL    = 10
 MED      = 12
 LARGE    = 14
 #fpargs = dict(family=None, style=None, variant=None, stretch=None, fname=None)
 FONTS = utool.DynStruct()
+FONTS.smallest  = FontProperties(weight='light', size=SMALLEST)
 FONTS.small     = FontProperties(weight='light', size=SMALL)
 FONTS.smaller   = FontProperties(weight='light', size=SMALLER)
 FONTS.med       = FontProperties(weight='light', size=MED)
@@ -70,7 +72,7 @@ FONTS.subtitle = FONTS.med
 #FONTS.xlabel   = FONTS.smaller
 FONTS.xlabel   = FONTS.small
 FONTS.ylabel   = FONTS.small
-FONTS.relative = FONTS.smaller
+FONTS.relative = FONTS.smallest
 
 # COLORS
 
@@ -111,7 +113,8 @@ def golden_wh(x):
 
 
 # FIGURE GEOMETRY
-DPI = 80
+#DPI = 80
+DPI = 60
 #DPI = 160
 #FIGSIZE = (24) # default windows fullscreen
 FIGSIZE_MED = (12, 6)
@@ -269,7 +272,7 @@ def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
 
     ax.add_patch(bbox)
     ax.add_patch(arrow)
-    #ax.add_patch(arrow2)
+    # Draw a label
     if label is not None:
         ax_absolute_text(rx, ry, label, ax=ax,
                          horizontalalignment='center',
@@ -1445,10 +1448,10 @@ def colorbar(scalars, colors):
     #, orientation=orientation, shrink=COLORBAR_SHRINK,
                       #pad=COLORBAR_PAD, aspect=COLORBAR_ASPECT)
     ## Add the colorbar to the correct label
-    #axis = cb.ax.xaxis if orientation == 'horizontal' else cb.ax.yaxis
+    axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
     #position = 'bottom' if orientation == 'horizontal' else 'right'
     #axis.set_ticks_position(position)
-    #axis.set_ticks([0, .5, 1])
+    axis.set_ticks([0, .5, 1])
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
     plt.sca(ax)
 

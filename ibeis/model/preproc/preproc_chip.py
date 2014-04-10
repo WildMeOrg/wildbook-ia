@@ -17,9 +17,10 @@ import vtool.image as gtool
 #-------------
 
 
+@utool.lru_cache(16)
 def compute_or_read_roi_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
-    print('[preproc_chip] compute_or_read_chips')
+    #print('[preproc_chip] compute_or_read_chips')
     cfpath_list = ibs.get_roi_cpaths(rid_list)
     try:
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]

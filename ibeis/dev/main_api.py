@@ -106,6 +106,30 @@ def _close_parallel():
     from utool import util_parallel
     util_parallel.close_pool()
 
+
+def _init_numpy():
+    import numpy as np
+    floating_error_options = ['ignore', 'warn', 'raise', 'call', 'print', 'log']
+    on_float_err = floating_error_options[0]
+    numpy_err = {
+        'divide':  on_float_err,
+        'over':    on_float_err,
+        'under':   on_float_err,
+        'invalid': on_float_err,
+    }
+    numpy_print = {
+        'precision': 8,
+        'threshold': 1000,
+        'edgeitems': 3,
+        'linewidth': 200,  # default 75
+        'suppress': False,
+        'nanstr': 'nan',
+        'formatter': None,
+    }
+    np.seterr(**numpy_err)
+    np.set_printoptions(**numpy_print)
+
+
 #-----------------------
 # private loop functions
 
@@ -162,8 +186,7 @@ def main(**kwargs):
     try:
 
         from ibeis.dev import params
-        import numpy as np
-        np.set_printoptions(linewidth=200)
+        _init_numpy()
         _parse_args(**kwargs)
         _init_parallel()
         utool.util_inject._inject_colored_exception_hook()

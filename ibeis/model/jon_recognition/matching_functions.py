@@ -374,16 +374,16 @@ def build_chipmatches(qcid2_nns, qcid2_nnfilt, qreq):
 #============================
 
 
-def spatial_verification(ibs, qcid2_chipmatch, qreq):
+def spatial_verification(ibs, qcid2_chipmatch, qreq, dbginfo=False):
     sv_cfg = qreq.cfg.sv_cfg
     if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
         print('[mf] Step 5) Spatial verification: off')
-        return qcid2_chipmatch
+        return qcid2_chipmatch, {} if dbginfo else qcid2_chipmatch
     else:
-        return spatial_verification_(ibs, qcid2_chipmatch, qreq)
+        return spatial_verification_(ibs, qcid2_chipmatch, qreq, dbginfo=dbginfo)
 
 
-def spatial_verification_(ibs, qcid2_chipmatch, qreq):
+def spatial_verification_(ibs, qcid2_chipmatch, qreq, dbginfo=False):
     sv_cfg = qreq.cfg.sv_cfg
     print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_uid())
     prescore_method = sv_cfg.prescore_method
@@ -395,6 +395,14 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
     min_nInliers    = sv_cfg.min_nInliers
     just_affine     = sv_cfg.just_affine
     qcid2_chipmatchSV = {}
+    if dbginfo:
+        qcid2_svtups = {}  # dbg info (can remove if there is a speed issue)
+    def print_(msg, count=0):
+        """ temp print_. Using count in this way is a hack """
+        if not QUIET:
+            if count % 25 == 0:
+                sys.stdout.write(msg)
+            count += 1
     # Find a transform from chip2 to chip1 (the old way was 1 to 2)
     for qcid in qcid2_chipmatch.iterkeys():
         chipmatch = qcid2_chipmatch[qcid]
@@ -403,6 +411,8 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
         topx2_cid = utool.util_dict.keys_sorted_by_value(cid2_prescore)[::-1]
         nRerank = min(len(topx2_cid), nShortlist)
         # Precompute output container
+        if dbginfo:
+            cid2_svtup = {}  # dbg info (can remove if there is a speed issue)
         cid2_fm_V, cid2_fs_V, cid2_fk_V = new_fmfsfk()
         # Query Keypoints
         kpts1 = ibs.get_chip_kpts(qcid)
@@ -411,11 +421,6 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
         topx2_dlen_sqrd = _precompute_topx2_dlen_sqrd(ibs, cid2_fm, topx2_cid,
                                                       topx2_kpts, nRerank,
                                                       use_chip_extent)
-        # Override print function temporarilly
-        def print_(msg, count=0):
-            if count % 50 == 0:
-                sys.stdout.write(msg)
-            count += 1
         # spatially verify the top __NUM_RERANK__ results
         for topx in xrange(nRerank):
             cid = topx2_cid[topx]
@@ -428,11 +433,11 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
                                             max_scale, min_scale, dlen_sqrd,
                                             min_nInliers, just_affine)
             if sv_tup is None:
-                if not QUIET:
                     print_('o')  # sv failure
             else:
                 # Return the inliers to the homography
                 (H, inliers) = sv_tup
+                cid2_svtup[cid] = sv_tup
                 cid2_fm_V[cid] = fm[inliers, :]
                 cid2_fs_V[cid] = fs[inliers]
                 cid2_fk_V[cid] = fk[inliers]
@@ -441,11 +446,16 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq):
                     print_('.')  # verified something
         # Rebuild the feature match / score arrays to be consistent
         chipmatchSV = _fix_fmfsfk(cid2_fm_V, cid2_fs_V, cid2_fk_V)
+        if dbginfo:
+            qcid2_svtups[qcid] = cid2_svtup
         qcid2_chipmatchSV[qcid] = chipmatchSV
+    print_('\n')
     if not QUIET:
-        print_('\n')
         print('[mf] Finished sv')
-    return qcid2_chipmatchSV
+    if dbginfo:
+        return qcid2_chipmatchSV, qcid2_svtups
+    else:
+        return qcid2_chipmatchSV
 
 
 def _precompute_topx2_dlen_sqrd(ibs, cid2_fm, topx2_cid, topx2_kpts,

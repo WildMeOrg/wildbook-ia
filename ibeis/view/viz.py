@@ -440,11 +440,10 @@ def draw_feat_row(rchip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
         ax._hs_viewtype = 'histogram'
         if prevsift is not None:
-            from hsapi import algos
             #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
             #dist_list = ['L2', 'hist_isect']
             dist_list = ['L2']
-            distmap = algos.compute_distances(sift, prevsift, dist_list)
+            distmap = utool.compute_distances(sift, prevsift, dist_list)
             dist_str = ', '.join(['(%s, %.2E)' % (key, val) for key, val in distmap.iteritems()])
             df2.set_xlabel(dist_str)
     return px + nCols
@@ -589,7 +588,7 @@ def ensure_cid2(ibs, cid1, cid2=None):
 @utool.indent_decor('[viz.sv]')
 def viz_spatial_verification(ibs, cid1, figtitle='Spatial Verification View', **kwargs):
     #kwargs = {}
-    from hsapi import spatial_verification2 as sv2
+    from . import spatial_verification2 as sv2
     import cv2
     print('\n[viz] ======================')
     cid2 = ensure_cid2(ibs, cid1, kwargs.pop('cid2', None))
