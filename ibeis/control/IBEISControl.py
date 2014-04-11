@@ -711,7 +711,7 @@ class IBEISControl(object):
     def get_roi_desc(ibs, rid_list, ensure=True):
         """ Returns chip descriptors """
         fid_list  = ibs.get_roi_fids(rid_list, ensure=ensure)
-        desc_list = ibs.get_feat_desc(fid_list, ensure=ensure)
+        desc_list = ibs.get_feat_desc(fid_list)
         return desc_list
 
     @getter
@@ -1084,7 +1084,7 @@ class IBEISControl(object):
 
     @utool.indent_func
     def _init_query_requestor(ibs):
-        from ibeis.model.jon_recognition import QueryRequest
+        from ibeis.model.hots import QueryRequest
         ibs.qreq = QueryRequest.QueryRequest()  # Query Data
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
@@ -1094,7 +1094,7 @@ class IBEISControl(object):
         qcid_list - query chip ids
         dcid_list - database chip ids
         """
-        from ibeis.model.jon_recognition import match_chips3 as mc3
+        from ibeis.model.hots import match_chips3 as mc3
         qreq = mc3.prep_query_request(qreq=ibs.qreq,
                                       qcids=qcid_list,
                                       dcids=dcid_list,

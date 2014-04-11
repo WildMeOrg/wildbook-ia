@@ -2,8 +2,9 @@ from __future__ import absolute_import, division, print_function
 from ibeis.view import viz
 import utool
 from drawtool import draw_func2 as df2
+from ibeis.view.viz import viz_helpers as vh
 from . import interact_helpers as ih
-from . import viz_helpers as vh
+
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_chip]',
                                                        DEBUG=False)

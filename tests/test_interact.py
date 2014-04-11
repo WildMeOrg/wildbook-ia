@@ -2,21 +2,21 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 #-----
-TEST_NAME = 'TEST_VIZ'
+TEST_NAME = 'TEST_INTERACT'
 #-----
 import sys
 sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis.view import viz
+from ibeis.view import interact  # NOQA
 from drawtool import draw_func2 as df2
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST
 
 
 @__testing__.testcontext2(TEST_NAME)
-def TEST_VIZ():
+def TEST_INTERACT():
     main_locals = __testing__.main(defaultdb='test_big_ibeis')
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
 
@@ -33,32 +33,29 @@ def TEST_VIZ():
     rid_list = ibs.get_rids_in_gids(gid)
     cid_list = ibs.get_roi_cids(rid_list)
     cindex = int(utool.get_arg('--cx', default=0))
-    qcid = cid = cid_list[cindex]
-    sel_rids = rid_list[1:3]
-    qres = ibs.query_database([qcid])[qcid]
-    top_cids = qres.get_top_cids(ibs)
-    assert len(top_cids) > 0, 'there does not seem to be results'
-    cid2 = top_cids[0]  # 294
+    cid = cid_list[cindex]
 
     #----------------------
     #printTEST('Show Image')
+    sel_rids = rid_list[1:3]
     viz.show_image(ibs, gid, sel_rids=sel_rids, fnum=1)
-    df2.set_figtitle('Show Image')
 
     #----------------------
     #printTEST('Show Chip')
     viz.show_chip(ibs, cid, in_image=False, fnum=2)
-    df2.set_figtitle('Show Chip (normal)')
     viz.show_chip(ibs, cid, in_image=True, fnum=3)
-    df2.set_figtitle('Show Chip (in_image)')
 
     #----------------------
     printTEST('Show Query')
+    cid1 = cid
+    qcid2_qres = ibs.query_database([cid1])
+    qres = qcid2_qres.values()[0]
+    top_cids = qres.get_top_cids(ibs)
+    assert len(top_cids) > 0, 'there does not seem to be results'
+    cid2 = top_cids[0]  # 294
     viz.show_chipres(ibs, qres, cid2, fnum=4)
-    df2.set_figtitle('Show Chipres')
 
     viz.show_qres(ibs, qres, fnum=5)
-    df2.set_figtitle('Show QRes')
 
     ##----------------------
     df2.present(wh=1000)
@@ -70,5 +67,5 @@ def TEST_VIZ():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = TEST_VIZ()
+    test_locals = TEST_INTERACT()
     exec(test_locals['execstr'])

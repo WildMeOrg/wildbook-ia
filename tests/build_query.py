@@ -10,8 +10,8 @@ from os.path import join, exists  # NOQA
 from ibeis.dev import params  # NOQA
 import multiprocessing
 import utool
-from ibeis.model.jon_recognition import matching_functions as mf
-from ibeis.model.jon_recognition import match_chips3 as mc3
+from ibeis.model.hots import matching_functions as mf
+from ibeis.model.hots import match_chips3 as mc3
 
 printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(

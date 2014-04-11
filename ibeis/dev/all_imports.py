@@ -1,6 +1,7 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 # Python
+import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath)
@@ -16,6 +17,7 @@ import shutil
 import site
 import sys
 import textwrap
+import operator
 # Matplotlib
 import matplotlib
 import matplotlib as mpl
@@ -66,18 +68,18 @@ from ibeis.dev import params
 import ibeis.model
 from ibeis.model import Config
 from ibeis.model import preproc
-from ibeis.model import jon_recognition
+from ibeis.model import hots
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
-from ibeis.model.jon_recognition import matching_functions as mf
-from ibeis.model.jon_recognition import match_chips3 as mc3
-from ibeis.model.jon_recognition import match_chips3 as nn_filters
-from ibeis.model.jon_recognition import QueryResult
-from ibeis.model.jon_recognition import QueryRequest
-from ibeis.model.jon_recognition import spatial_verification2 as sv2
-from ibeis.model.jon_recognition import voting_rules2 as vr2
-from ibeis.model.jon_recognition import coverage
+from ibeis.model.hots import matching_functions as mf
+from ibeis.model.hots import match_chips3 as mc3
+from ibeis.model.hots import match_chips3 as nn_filters
+from ibeis.model.hots import QueryResult
+from ibeis.model.hots import QueryRequest
+from ibeis.model.hots import spatial_verification2 as sv2
+from ibeis.model.hots import voting_rules2 as vr2
+from ibeis.model.hots import coverage
 # IBEIS VIEW
 from ibeis.view import viz_helpers as vh
 from ibeis.view import viz_image

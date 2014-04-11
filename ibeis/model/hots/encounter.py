@@ -9,7 +9,7 @@ import networkx as netx
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 # HotSpotter
-from ibeis.model.jon_recognition import match_chips3 as mc3
+from ibeis.model.hots import match_chips3 as mc3
 
 import utool
 

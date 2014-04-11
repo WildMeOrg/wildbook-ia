@@ -24,10 +24,40 @@ def composed(*decs):
     return deco
 
 
+"""
+Common wrappers
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
+"""
+
+DISABLE_WRAPPERS = True  # utool.get_flag('--disable-wrappers')
+
+
+def common_wrapper(func):
+    """ Wraps decorator wrappers with a set of common decorators """
+    if DISABLE_WRAPPERS:
+        def outer_wrapper(func_):
+            def inner_wrapper(*args, **kwargs):
+                return func_(*args, **kwargs)
+            return inner_wrapper
+        return outer_wrapper
+    else:
+        def outer_wrapper(func_):
+            @indent_func
+            @ignores_exc_tb
+            @wraps(func)
+            def inner_wrapper(*args, **kwargs):
+                return func_(*args, **kwargs)
+            return inner_wrapper
+        return outer_wrapper
+
+
 def ignores_exc_tb(func):
     """ decorator that removes other decorators from traceback """
     if IGNORE_EXC_TB:
         @wraps(func)
+        #@profile
         def wrapper_ignore_exctb(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -43,7 +73,7 @@ def ignores_exc_tb(func):
 
 def indent_decor(lbl):
     def indent_decor_outer_wrapper(func):
-        @ignores_exc_tb
+        #@ignores_exc_tb
         @wraps(func)
         def indent_decor_inner_wrapper(*args, **kwargs):
             with Indenter(lbl):
@@ -55,21 +85,22 @@ def indent_decor(lbl):
 def indent_func(func):
     @wraps(func)
     @indent_decor('[' + func.func_name + ']')
-    @ignores_exc_tb
+    #@ignores_exc_tb
     def wrapper_indent_func(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper_indent_func
 
 
 def accepts_scalar_input(func):
-    '''
+    """
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
-    '''
-    @ignores_exc_tb
+    """
+    #@ignores_exc_tb
     @wraps(func)
+    @profile
     def wrapper_scalar_input(self, input_, *args, **kwargs):
         is_scalar = not isiterable(input_)
         if is_scalar:
@@ -84,14 +115,15 @@ def accepts_scalar_input(func):
 
 
 def accepts_scalar_input_vector_output(func):
-    '''
+    """
     accepts_scalar_input is a decorator which expects to be used on class
     methods.  It lets the user pass either a vector or a scalar to a function,
     as long as the function treats everything like a vector. Input and output is
     sanatized to the user expected format on return.
-    '''
-    @ignores_exc_tb
+    """
+    #@ignores_exc_tb
     @wraps(func)
+    #@profile
     def wrapper_vec_output(self, input_, *args, **kwargs):
         is_scalar = not isiterable(input_)
         if is_scalar:
@@ -112,6 +144,7 @@ UNIQUE_NUMPY = True
 def accepts_numpy(func):
     """ Allows the first input to be a numpy objet and get result in numpy form """
     @wraps(func)
+    #@profile
     def numpy_wrapper(self, input_, *args, **kwargs):
         if isinstance(input_, np.ndarray):
             if UNIQUE_NUMPY:

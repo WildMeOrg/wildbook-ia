@@ -11,6 +11,21 @@ from ibeis.control.accessor_decors import getter, getter_vector_output
 NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
 
 
+FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
+
+IN_IMAGE_OVERRIDE = utool.get_arg('--in-image-override', type_=bool, default=None)
+SHOW_QUERY_OVERRIDE = utool.get_arg('--show-query-override', type_=bool, default=None)
+NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
+
+SIFT_OR_VECFIELD = utool.get_arg('--vecfield', type_=bool)
+
+
+def register_FNUMS(FNUMS_):
+    # DEPREICATE
+    global FNUMS
+    FNUMS = FNUMS_
+
+
 def draw():
     df2.adjust_subplots_safe()
     df2.draw()
@@ -139,9 +154,9 @@ def get_bbox_centers(bbox_list):
 
 def get_match_truth(ibs, cid1, cid2):
     nid1, nid2 = ibs.get_chip_nids((cid1, cid2))
-    if nid1 != nid2:
+    if nid1 != nid2 and nid1 > 1 and nid2 > 1:
         truth = 0
-    elif nid1 > 0 and nid2 > 0:
+    elif nid1 > 1 and nid2 > 1:
         truth = 1
     else:
         truth = 2
@@ -233,3 +248,31 @@ def get_query_label(ibs, qres, cid2, truth, **kwargs):
         label_list.append(timedelta_str)
     query_label = ', '.join(label_list)
     return query_label
+
+
+#==========================#
+#  --- TESTING FUNCS ---   #
+#==========================#
+
+
+def show_keypoint_gradient_orientations(ibs, cid, fx, fnum=None, pnum=None):
+    # Draw the gradient vectors of a patch overlaying the keypoint
+    if fnum is None:
+        fnum = df2.next_fnum()
+    rchip = ibs.get_chips(cid)
+    kp = ibs.get_kpts(cid)[fx]
+    sift = ibs.get_desc(cid)[fx]
+    df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
+                                            mode='vec', fnum=fnum, pnum=pnum)
+    df2.set_title('Gradient orientation\n %s, fx=%d' % (ibs.cidstr(cid), fx))
+
+
+def kp_info(kp):
+    kpts = np.array([kp])
+    xy_str    = ktool.get_xy_strs(kpts)[0]
+    shape_str = ktool.get_shape_strs(kpts)[0]
+    ori_ = ktool.get_oris(kpts)[0]
+    ori_str = 'ori=%.2f' % ori_
+    scale = ktool.get_scales(kpts)[0]
+    return xy_str, shape_str, scale, ori_str
+#----

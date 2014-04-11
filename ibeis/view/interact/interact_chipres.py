@@ -1,109 +1,12 @@
 from __future__ import absolute_import, division, print_function
-# Scientific
-import numpy as np
 import utool
-from drawtool import draw_func2 as df2
 import guitool
-# IBEIS
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact]', DEBUG=False)
-
-from . import viz
+import numpy as np
+from drawtool import draw_func2 as df2
+from ibeis.view import viz
 from . import interact_helpers as ih
-from .interact_image import interact_image  # NOQA
 from .interact_chip import interact_chip
-
-
-#==========================
-# Name Interaction
-#==========================
-
-def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs):
-    fig = ih.begin_interaction('name', fnum)
-
-    def _on_name_click(event):
-        print_('[inter] clicked name')
-        ax, x, y = event.inaxes, event.xdata, event.ydata
-        if ax is None or x is None:
-            # The click is not in any axis
-            print('... out of axis')
-        else:
-            hs_viewtype = ax.__dict__.get('_hs_viewtype', '')
-            print_(' hs_viewtype=%r' % hs_viewtype)
-            if hs_viewtype == 'chip':
-                cid = ax.__dict__.get('_hs_cid')
-                print('... cid=%r' % cid)
-                viz.show_name(ibs, nid, fnum=fnum, sel_cids=[cid])
-                select_cid_func(cid)
-        viz.draw()
-
-    viz.show_name(ibs, nid, fnum=fnum, sel_cids=sel_cids)
-    viz.draw()
-    df2.connect_callback(fig, 'button_press_event', _on_name_click)
-    pass
-
-
-def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
-    fig = ih.begin_interaction('keypoint', fnum)
-    annote_ptr = [1]
-
-    def _select_ith_kpt(fx):
-        print_('[interact] viewing ith=%r keypoint' % fx)
-        # Get the fx-th keypiont
-        kp, sift = kpts[fx], desc[fx]
-        # Draw the image with keypoint fx highlighted
-        _viz_keypoints(fnum, (2, 1, 1), sel_fx=fx, **kwargs)  # MAYBE: remove kwargs
-        # Draw the selected feature
-        nRows, nCols, px = (2, 3, 3)
-        viz.draw_feat_row(rchip, fx, kp, sift, fnum, nRows, nCols, px, None)
-
-    def _viz_keypoints(fnum, pnum=(1, 1, 1), **kwargs):
-        df2.figure(fnum=fnum, docla=True, doclf=True)
-        viz.show_keypoints(rchip, kpts, fnum=fnum, pnum=pnum, **kwargs)
-        if figtitle is not None:
-            df2.set_figtitle(figtitle)
-
-    def _on_keypoints_click(event):
-        print_('[viz] clicked keypoint view')
-        if event is None  or event.xdata is None or event.inaxes is None:
-            annote_ptr[0] = (annote_ptr[0] + 1) % 3
-            mode = annote_ptr[0]
-            draw_ell = mode == 1
-            draw_pts = mode == 2
-            print('... default kpts view mode=%r' % mode)
-            _viz_keypoints(fnum, draw_ell=draw_ell, draw_pts=draw_pts, **kwargs)    # MAYBE: remove kwargs
-        else:
-            ax = event.inaxes
-            hs_viewtype = ax.__dict__.get('_hs_viewtype', None)
-            print_('[ik] viewtype=%r' % hs_viewtype)
-            if hs_viewtype == 'keypoints':
-                kpts = ax.__dict__.get('_hs_kpts', [])
-                if len(kpts) == 0:
-                    print('...nokpts')
-                else:
-                    print('...nearest')
-                    x, y = event.xdata, event.ydata
-                    fx = utool.nearest_point(x, y, kpts)[0]
-                    _select_ith_kpt(fx)
-            elif hs_viewtype == 'warped':
-                hs_fx = ax.__dict__.get('_hs_fx', None)
-                if hs_fx is not None:
-                    # Ugly. Interactions should be changed to classes.
-                    kp = kpts[hs_fx]
-                    sift = desc[hs_fx]
-                    df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift, mode='vec', fnum=df2.next_fnum())
-            else:
-                print('...unhandled')
-        viz.draw()
-
-    # Draw without keypoints the first time
-    _viz_keypoints(fnum, **kwargs)   # MAYBE: remove kwargs
-    ih.connect_callback(fig, 'button_press_event', _on_keypoints_click)
-    if not nodraw:
-        viz.draw()
-
-#==========================
-# Chipres Interaction
-#==========================
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact-chipres]', DEBUG=False)
 
 
 def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result',
@@ -118,8 +21,7 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
     mx = kwargs.pop('mx', None)
     xywh2_ptr = [None]
     annote_ptr = [kwargs.pop('mode', 0)]
-    from hscom.Printable import DynStruct
-    last_state = DynStruct()
+    last_state = utool.DynStruct()
     last_state.same_fig = same_fig
     last_state.last_fx = 0
 
@@ -280,36 +182,3 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
     guitool.popup_menu(fig.canvas, opt2_callback, fig.canvas)
     df2.connect_callback(fig, 'button_press_event', _click_chipres_click)
     viz.draw()
-
-
-#================
-def select_bbox(ibs, gid, fnum=1,
-                figtitle='Image View - Select ROI (click two points)',
-                **kwargs):
-    #from matplotlib.backend_bases import mplDeprecation
-    print('[*interact] select_bbox(gid=%r, fnum=%r)' % (gid, fnum))
-    print('[*interact] Define a Rectanglular ROI by clicking two points.')
-    # Show the image
-    fig = ih.begin_interaction('select_bbox', fnum)
-    viz.show_image(ibs, gid, **kwargs)
-    try:
-        viz.draw()
-        fig = df2.gcf()
-        pts = fig.ginput(2)
-        print('[*guitools] ginput(2) = %r' % (pts,))
-        [(x1, y1), (x2, y2)] = pts
-        xm = min(x1, x2)
-        xM = max(x1, x2)
-        ym = min(y1, y2)
-        yM = max(y1, y2)
-        xywh = map(int, map(round, (xm, ym, xM - xm, yM - ym)))
-        bbox = np.array(xywh, dtype=np.int32)
-        # Reconnect the old button press events
-        print('[*interact] bbox = %r ' % (bbox,))
-        return bbox
-    except Exception as ex:
-        print('<!!!>')
-        print('[*interact] Caught: %s %s' % (type(ex), ex))
-        print('[*interact] ROI selection Failed:')
-        print('</!!!>')
-        raise

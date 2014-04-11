@@ -18,7 +18,7 @@ METHOD_DEFAULT = 0
 
 def score_chipmatch_coverage(ibs, qcx, chipmatch, qreq, method=0):
     # THIS IS TERRIBLE AWFUL LOCAL IMPORT
-    from ibeis.model.jon_recognition import matching_functions as mf
+    from ibeis.model.hots import matching_functions as mf
     prescore_method = 'csum'
     nShortlist = 100
     dcxs_ = set(qreq._dcxs)

@@ -5,7 +5,7 @@ import utool
 # Science
 import numpy as np
 # HotSpotter
-from ibeis.model.jon_recognition import report_results2 as rr2
+from ibeis.model.hots import report_results2 as rr2
 
 
 def get_gt_cases(ibs):

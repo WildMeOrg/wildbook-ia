@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 import utool
 # HotSpotter
 from ibeis.dev import params
-from ibeis.model.jon_recognition import QueryRequest
-from ibeis.model.jon_recognition import NNIndex
-from ibeis.model.jon_recognition import matching_functions as mf
+from ibeis.model.hots import QueryRequest
+from ibeis.model.hots import NNIndex
+from ibeis.model.hots import matching_functions as mf
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[mc3]', DEBUG=False)
 

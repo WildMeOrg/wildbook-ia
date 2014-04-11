@@ -5,8 +5,8 @@ import utool
 # Drawtool
 import drawtool.draw_func2 as df2
 # IBEIS
-from ibeis.view import viz_helpers as vh
-from ibeis.view import viz_chip
+from . import viz_helpers as vh
+from . import viz_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[viz-matches]', DEBUG=False)
 
@@ -96,9 +96,62 @@ def annotate_chipres(ibs, qres, cid2,
 
 
 @utool.indent_func
+@profile
+def show_top(res, ibs, *args, **kwargs):
+    topN_cids = res.topN_cids(ibs)
+    N = len(topN_cids)
+    cidstr = ibs.cidstr(res.qcid)
+    figtitle = kwargs.pop('figtitle', 'q%s -- TOP %r' % (cidstr, N))
+    return show_qres(ibs, res, topN_cids=topN_cids, figtitle=figtitle,
+                     draw_kpts=False, draw_ell=False,
+                     all_kpts=False, **kwargs)
+
+
+@utool.indent_func
+@profile
+def res_show_analysis(res, ibs, **kwargs):
+        print('[viz] res.show_analysis()')
+        # Parse arguments
+        noshow_gt  = kwargs.pop('noshow_gt', True)
+        show_query = kwargs.pop('show_query', False)
+        cid_list    = kwargs.pop('cid_list', None)
+        figtitle   = kwargs.pop('figtitle', None)
+
+        # Debug printing
+        #print('[viz.analysis] noshow_gt  = %r' % noshow_gt)
+        #print('[viz.analysis] show_query = %r' % show_query)
+        #print('[viz.analysis] cid_list    = %r' % cid_list)
+
+        # Compare to cid_list instead of using top ranks
+        if cid_list is None:
+            print('[viz.analysis] showing topN cids')
+            topN_cids = res.topN_cids(ibs)
+            if figtitle is None:
+                if len(topN_cids) == 0:
+                    figtitle = 'WARNING: no top scores!' + ibs.cidstr(res.qcid)
+                else:
+                    topscore = res.get_cid2_score()[topN_cids][0]
+                    figtitle = ('q%s -- topscore=%r' % (ibs.cidstr(res.qcid), topscore))
+        else:
+            print('[viz.analysis] showing a given list of cids')
+            topN_cids = cid_list
+            if figtitle is None:
+                figtitle = 'comparing to ' + ibs.cidstr(topN_cids) + figtitle
+
+        # Do we show the ground truth?
+        def missed_cids():
+            showgt_cids = ibs.get_other_indexed_cids(res.qcid)
+            return np.setdiff1d(showgt_cids, topN_cids)
+        showgt_cids = [] if noshow_gt else missed_cids()
+
+        return show_qres(ibs, res, gt_cids=showgt_cids, topN_cids=topN_cids,
+                         figtitle=figtitle, show_query=show_query, **kwargs)
+
+
+@utool.indent_func
 def show_qres(ibs, qres, **kwargs):
     """ Displays query chip, groundtruth matches, and top 5 matches """
-    annote     = kwargs.pop('annote', 2)  # this is toggled
+    annote     = kwargs.get('annote', 1) % 3  # this is toggled
     fnum       = kwargs.get('fnum', 3)
     figtitle   = kwargs.get('figtitle', '')
     aug        = kwargs.get('aug', '')

@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import cv2
 import utool
 import drawtool.draw_func2 as df2
-import cv2
 from vtool import image as gtool
 from . import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_misc]', DEBUG=False)
@@ -36,12 +36,15 @@ def viz_spatial_verification(ibs, cid1, cid2, chipmatch_FILT, cid2_svtup, fnum=1
         # Helper with common arguments to df2.show_chipmatch2
         dmkwargs = dict(fs=None, title=title, all_kpts=False, draw_lines=True,
                         docla=True, fnum=fnum, pnum=(3, 3, px))
-        df2.show_chipmatch2(chip1, chip2, kpts1, kpts2, fm, show_nMatches=True, **dmkwargs)
+        df2.show_chipmatch2(chip1, chip2, kpts1, kpts2, fm, **dmkwargs)
 
     # Draw the Assigned -> Affine -> Homography matches
-    _draw_matches('Assigned matches', fm, 1)
-    _draw_matches('Affine inliers', fm[aff_inliers], 2)
-    _draw_matches('Homography inliers', fm[inliers], 3)
+    assign_fm = fm
+    affine_fm = fm[aff_inliers]
+    homog_fm = fm[inliers]
+    _draw_matches('%d Assigned matches' % len(assign_fm), assign_fm, 1)
+    _draw_matches('%d Affine inliers' % len(affine_fm), affine_fm,   2)
+    _draw_matches('%d Homography inliers' % len(homog_fm), homog_fm, 3)
     # Draw the Affine Transformations
     _draw_chip('Source', chip1, 5)
     _draw_chip('Affine', chip1_At, 6)

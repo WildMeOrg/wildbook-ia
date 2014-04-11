@@ -10,11 +10,11 @@ import sys
 import numpy as np
 from vtool import keypoint as ktool
 # Hotspotter
-from ibeis.model.jon_recognition import QueryResult
-from ibeis.model.jon_recognition import coverage
-from ibeis.model.jon_recognition import nn_filters
-from ibeis.model.jon_recognition import spatial_verification2 as sv2
-from ibeis.model.jon_recognition import voting_rules2 as vr2
+from ibeis.model.hots import QueryResult
+from ibeis.model.hots import coverage
+from ibeis.model.hots import nn_filters
+from ibeis.model.hots import spatial_verification2 as sv2
+from ibeis.model.hots import voting_rules2 as vr2
 import utool
 print, print_,  printDBG, rrr, profile =\
     utool.inject(__name__, '[mf]', DEBUG=False)

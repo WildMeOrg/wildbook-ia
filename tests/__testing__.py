@@ -40,6 +40,18 @@ class MyException(Exception):
     pass
 
 
+# Oooh hacky way to make test context take an arg or not
+def testcontext2(name):
+    def test_wrapper2(func):
+        func.func_name = name
+        @testcontext
+        @functools.wraps(func)
+        def test_wrapper3(*args, **kwargs):
+            return func(*args, **kwargs)
+        return test_wrapper3
+    return test_wrapper2
+
+
 def testcontext(func):
     @functools.wraps(func)
     def test_wrapper(*args, **kwargs):
@@ -59,8 +71,22 @@ def testcontext(func):
                 '.          .'
                   '-......-'
                   ''')
+                # Build big execstring that you return in the locals dict
+                if not isinstance(test_locals, dict):
+                    test_locals = {}
+                locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
+                embed_execstr  = utool.execstr_embed()
+                ifs_execstr = '''
+                if utool.get_flag(('--wait', '-w')):
+                    print('waiting')
+                    in_ = raw_input('press enter')
+                if utool.get_flag('--cmd2') or locals().get('in_', '') == 'cmd':
+                '''
+                execstr = (utool.unindent(ifs_execstr)  + '\n' +
+                           utool.indent(locals_execstr) + '\n' +
+                           utool.indent(embed_execstr))
+                test_locals['execstr'] = execstr
                 return test_locals
-
             except Exception as ex:
                 exc_type, exc_value, tb = sys.exc_info()
                 # Get locals in the wrapped function
