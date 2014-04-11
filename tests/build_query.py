@@ -30,8 +30,9 @@ def BUILDQUERY():
     qreq = ibs.qreq
 
     cids = ibs.get_recognition_database_chips()
+    assert len(cids) > 0, 'need chips'
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0:3], dcids=cids)
+    qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0], dcids=cids)
     mc3.pre_exec_checks(ibs, qreq)
 
     try:
@@ -47,36 +48,22 @@ def BUILDQUERY():
         # * vsone qcids/dcids swapping occurs here
         qcids = qreq.get_internal_qcids()
         qreq = ibs.qreq
-        mf.rrr()
-        # Nearest neighbors (qcid2_nns)
-        # * query descriptors assigned to database descriptors
-        # * FLANN used here
-        with utool.Timer('1) Nearest Neighbors'):
-            qcid2_nns = mf.nearest_neighbors(ibs, qcids, qreq)
-        # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
-        # * feature matches are weighted
-        with utool.Timer('2) Weight Neighbors'):
-            filt2_weights, filt2_meta = mf.weight_neighbors(ibs, qcid2_nns, qreq)
-        # Thresholding and weighting (qcid2_nnfilter)
-        # * feature matches are pruned
-        #
-        with utool.Timer('3) Filter Neighbors'):
-            qcid2_nnfilt = mf.filter_neighbors(ibs, qcid2_nns, filt2_weights, qreq)
-        # Nearest neighbors to chip matches (qcid2_chipmatch)
-        # * Inverted index used to create cid2_fmfsfk (TODO: ccid2_fmfv)
-        # * Initial scoring occurs
-        # * vsone inverse swapping occurs here
-        with utool.Timer('4) Filter Neighbors'):
-            qcid2_chipmatch_FILT = mf.build_chipmatches(qcid2_nns, qcid2_nnfilt, qreq)
-        # Spatial verification (qcid2_chipmatch) (TODO: cython)
-        # * prunes chip results and feature matches
-        with utool.Timer('5) Filter Neighbors'):
-            qcid2_chipmatch_SVER = mf.spatial_verification(ibs, qcid2_chipmatch_FILT, qreq)
-        # Query results format (qcid2_res) (TODO: SQL / Json Encoding)
-        # * Final Scoring. Prunes chip results.
-        # * packs into a wrapped query result object
-        with utool.Timer('6) Filter Neighbors'):
-            qcid2_res = mf.chipmatch_to_resdict(ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
+        #mf.rrr()
+        qcids = qreq.get_internal_qcids()
+        if isinstance(qcids, int):
+            qcids = [qcids]
+        qcid2_nns = mf.nearest_neighbors(
+            ibs, qcids, qreq)
+        filt2_weights, filt2_meta = mf.weight_neighbors(
+            ibs, qcid2_nns, qreq)
+        qcid2_nnfilt = mf.filter_neighbors(
+            ibs, qcid2_nns, filt2_weights, qreq)
+        qcid2_chipmatch_FILT = mf.build_chipmatches(
+            qcid2_nns, qcid2_nnfilt, qreq)
+        qcid2_chipmatch_SVER = mf.spatial_verification(
+            ibs, qcid2_chipmatch_FILT, qreq, dbginfo=False)
+        qcid2_res = mf.chipmatch_to_resdict(
+            ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
     except Exception as ex:
         utool.print_exception(ex, '[!build_query]')
         raise
@@ -94,6 +81,9 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     test_locals = BUILDQUERY()
     del test_locals['print']
-    exec(utool.execstr_dict(test_locals, 'test_locals'))
-    #from drawtool import draw_func2 as df2
-    #exec(df2.present())
+    if utool.get_flag('--cmd2'):
+        exec(utool.execstr_dict(test_locals, 'test_locals'))
+        exec(utool.execstr_embed())
+    if utool.get_flag('--wait'):
+        print('waiting')
+        raw_input('press enter')

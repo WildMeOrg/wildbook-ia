@@ -38,7 +38,8 @@ def BUILDQUERY():
 
     cids = ibs.get_recognition_database_chips()
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    index = 4
+    index = 0
+    index = utool.get_argv('--index', int)
     qcids = utool.safe_slice(cids, index, index + 1)
 
     comp_locals_ = query_helpers.get_query_components(ibs, qcids)
@@ -89,3 +90,6 @@ if __name__ == '__main__':
     if utool.get_flag('--cmd2'):
         exec(utool.execstr_dict(test_locals, 'test_locals'))
         exec(utool.execstr_embed())
+    if utool.get_flag('--wait'):
+        print('waiting')
+        raw_input('press enter')

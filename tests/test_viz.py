@@ -42,10 +42,12 @@ def TEST_VIZ():
     * len(valid_gids) = %r
     ''' % (len(valid_rids), len(valid_gids)))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
-    gid = valid_gids[0]
+    gindex = int(utool.get_arg('--gx', default=0))
+    gid = valid_gids[gindex]
     rid_list = ibs.get_rids_in_gids(gid)
     cid_list = ibs.get_roi_cids(rid_list)
-    cid = cid_list[min(len(cid_list) - 1, 2)]
+    cindex = int(utool.get_arg('--cx', default=0))
+    cid = cid_list[cindex]
 
     #----------------------
     #printTEST('Show Image')
@@ -82,6 +84,9 @@ TEST_VIZ.func_name = TEST_NAME
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     test_locals = TEST_VIZ()
-    if utool.get_flag('--cmd2'):
+    if utool.get_flag('--wait'):
+        print('waiting')
+        in_ = raw_input('press enter')
+    if utool.get_flag('--cmd2') or locals().get('in_', '') == 'cmd':
         exec(utool.execstr_dict(test_locals, 'test_locals'))
         exec(utool.execstr_embed())

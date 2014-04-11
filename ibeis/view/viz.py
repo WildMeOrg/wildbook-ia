@@ -19,7 +19,7 @@ from . import viz_helpers as vh
 from .viz_helpers import draw  # NOQA
 from .viz_image import show_image  # NOQA
 from .viz_chip import show_chip, show_keypoints  # NOQA
-from .viz_matches import show_chipres, annotate_chipres  # NOQA
+from .viz_matches import show_qres, show_chipres, annotate_chipres  # NOQA
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
