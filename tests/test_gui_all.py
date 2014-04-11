@@ -7,7 +7,7 @@ sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
 #-----
 TEST_NAME = 'TEST_GUI_ALL'
 #-----
-import __testing__
+import __testing__  # Should be imported before any ibeis stuff
 import multiprocessing
 import utool
 from ibeis.dev import params

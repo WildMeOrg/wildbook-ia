@@ -10,7 +10,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
-from os.path import join, realpath, split
+from os.path import join, split
 # Science
 import numpy as np
 # VTool
@@ -69,28 +69,49 @@ class IBEISControl(object):
         ibs._init_sql()
         ibs._init_config()
 
-    def _init_dirs(ibs, dbdir):
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_databases'):
         """ Define ibs directories """
         print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
-        ibs.dbdir = realpath(dbdir)
-        ibs.dbfname  = '_ibeis_database.sqlite3'
+        if dbdir is not None:
+            workdir, dbname = split(dbdir)
+        ibs.workdir  = utool.truepath(workdir)
+        ibs.dbname = dbname
+
+        ibs.sqldb_fname = '_ibeis_database.sqlite3'
+        ibs.dbdir = join(ibs.workdir, ibs.dbname)
         ibs.cachedir = join(ibs.dbdir, '_ibeis_cache')
         ibs.chipdir  = join(ibs.cachedir, 'chips')
         ibs.flanndir = join(ibs.cachedir, 'flann')
-        ibs.qresdir  = join(ibs.cachedir, 'query_results')
+        ibs.imgdir   = join(ibs.cachedir, 'images')
+        ibs.qresdir  = join(ibs.cachedir, 'qres')
         ibs.bigcachedir = join(ibs.cachedir, 'bigcache')
         utool.ensuredir(ibs.cachedir)
+        utool.ensuredir(ibs.workdir)
         utool.ensuredir(ibs.chipdir)
         utool.ensuredir(ibs.flanndir)
         utool.ensuredir(ibs.qresdir)
         utool.ensuredir(ibs.bigcachedir)
-        printDBG('[ibs._init_dirs] ibs.dbfname = %r' % ibs.dbfname)
+        printDBG('[ibs._init_dirs] ibs.dbname = %r' % ibs.dbname)
         printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
+    def get_dbname(ibs):
+        return ibs.dbname
+
+    def get_dbpath(ibs):
+        return join(ibs.workdir, ibs.dbname)
+
+    def get_num_images(ibs):
+        gid_list = ibs.get_valid_gids()
+        return len(gid_list)
+
+    def get_num_rois(ibs):
+        rid_list = ibs.get_valid_rids()
+        return len(rid_list)
+
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
+        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbpath(), ibs.sqldb_fname)
         printDBG('[ibs._init_sql] Define the schema.')
         IBEIS_SCHEMA.define_IBEIS_schema(ibs)
         printDBG('[ibs._init_sql] Add default names.')

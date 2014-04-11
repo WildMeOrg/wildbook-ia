@@ -4,10 +4,7 @@ from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BUILDQUERY'
 #------
-try:
-    import __testing__
-except ImportError:
-    import tests.__testing__ as __testing__
+import __testing__
 import numpy as np
 from itertools import izip
 from ibeis.model.jon_recognition import QueryRequest  # NOQA

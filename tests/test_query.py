@@ -4,10 +4,7 @@ from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BUILDQUERY'
 #------
-try:
-    import __testing__
-except ImportError:
-    import tests.__testing__ as __testing__
+import __testing__
 # Python
 import sys
 from os.path import join, exists  # NOQA
@@ -86,11 +83,9 @@ BUILDQUERY.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
-    from ibeis.model.jon_recognition.matching_functions import *  # NOQA
     # For windows
     multiprocessing.freeze_support()
     test_locals = BUILDQUERY()
-    del test_locals['print']
-    exec(utool.execstr_dict(test_locals, 'test_locals'))
-    #from drawtool import draw_func2 as df2
-    #exec(df2.present())
+    if utool.get_flag('--cmd2'):
+        exec(utool.execstr_dict(test_locals, 'test_locals'))
+        exec(utool.execstr_embed())

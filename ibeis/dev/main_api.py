@@ -28,7 +28,7 @@ def _parse_args(**kwargs):
     params.parse_args(**kwargs)
 
 
-def init_matplotlib():
+def _init_matplotlib():
     import matplotlib
     import multiprocessing
     import utool
@@ -169,7 +169,7 @@ def _ipython_loop(main_locals):
 
 def main(**kwargs):
     import utool
-    from . import main_commands
+    from ibeis.dev import main_commands
     msg1 = '''
     _____ ....... _______ _____ _______
       |   |_____| |______   |   |______
@@ -191,16 +191,14 @@ def main(**kwargs):
         _init_parallel()
         utool.util_inject._inject_colored_exception_hook()
         _init_signals()
-        init_matplotlib()
-        main_commands.preload_commands()
+        _init_matplotlib()
+        main_commands.preload_commands()  # PRELOAD CMDS
         if not params.args.nogui:
             back = _init_gui()
         ibs = _init_ibeis()
         if 'back' in vars() and ibs is not None:
-            if not utool.QUIET:
-                print('[main] Attatch ibeis control')
             back.connect_ibeis_control(ibs)
-        main_commands.postload_commands(ibs)
+        main_commands.postload_commands(ibs)  # POSTLOAD CMDS
     except Exception as ex:
         print('[main()] IBEIS Caught: %s %s' % (type(ex), ex))
         print(ex)

@@ -4,10 +4,7 @@ from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BUILDQUERY'
 #------
-try:
-    import __testing__
-except ImportError:
-    import tests.__testing__ as __testing__
+import __testing__  # Should be imported before any ibeis stuff
 import sys
 from os.path import join, exists  # NOQA
 from ibeis.dev import params  # NOQA
@@ -81,7 +78,8 @@ def BUILDQUERY():
         with utool.Timer('6) Filter Neighbors'):
             qcid2_res = mf.chipmatch_to_resdict(ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
     except Exception as ex:
-        print(ex)
+        utool.print_exception(ex, '[!build_query]')
+        raise
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')

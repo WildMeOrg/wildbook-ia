@@ -13,6 +13,7 @@ from ibeis.dev import params
     __name__, '[nnindex]', DEBUG=False)
 
 
+@utool.indent_func
 def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
     cache_dir = '.' if cache_dir is None else cache_dir
     # Generate a unique filename for data and flann parameters
@@ -25,6 +26,7 @@ def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
     return flann_fpath
 
 
+@utool.indent_func
 def precompute_flann(data, cache_dir=None, uid='', flann_params=None,
                      force_recompute=False):
     """ Tries to load a cached flann index before doing anything """
@@ -49,6 +51,7 @@ def precompute_flann(data, cache_dir=None, uid='', flann_params=None,
     return flann
 
 
+@utool.indent_func
 def get_flann_uid(ibs, cid_list):
     feat_uid   = ibs.cfg.feat_cfg.get_uid()
     sample_uid = utool.hashstr_arr(cid_list, 'dcids')
@@ -56,6 +59,7 @@ def get_flann_uid(ibs, cid_list):
     return uid
 
 
+@utool.indent_func
 def aggregate_descriptors(ibs, cid_list):
     """ Aggregates descriptors with inverted information
      Return agg_index to(2) -> desc (descriptor)
@@ -76,15 +80,23 @@ def aggregate_descriptors(ibs, cid_list):
         # Stack into giant numpy array for efficient indexing.
         ax2_desc = np.vstack(desc_list)
     except MemoryError as ex:
-        with utool.Indenter('[mem error]'):
-            utool.print_exception(ex, 'not enough space for inverted index')
-            print('len(cid_list) = %r' % (len(cid_list),))
+        utool.print_exception(ex, 'not enough space to build inverted index', '[!memerror]',
+                              [(len, 'cid_list')])
         raise
     return ax2_desc, ax2_cid, ax2_fx
 
 
+@utool.indent_func
 def build_flann_inverted_index(ibs, cid_list):
-    ax2_desc, ax2_cid, ax2_fx = aggregate_descriptors(ibs, cid_list)
+    try:
+        ax2_desc, ax2_cid, ax2_fx = aggregate_descriptors(ibs, cid_list)
+    except Exception as ex:
+        len_cid_list = len(cid_list)  # NOQA
+        dbname = ibs.get_dbname()  # NOQA
+        utool.print_exception(ex, 'cannot build inverted index', '[!build_invx]',
+                              ['dbname', 'len_cid_list'])
+        raise
+
     # Build/Load the flann index
     flann_uid = get_flann_uid(ibs, cid_list)
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
@@ -100,8 +112,17 @@ class NNIndex(object):
     """ Nearest Neighbor (FLANN) Index Class """
     def __init__(nn_index, ibs, cid_list):
         print('[nnindex] building NNIndex object')
-        ax2_desc, ax2_cid, ax2_fx, flann = build_flann_inverted_index(ibs,
-                                                                      cid_list)
+        try:
+            if len(cid_list) == 0:
+                raise AssertionError('Cannot build inverted index without features!')
+            ax2_desc, ax2_cid, ax2_fx, flann = build_flann_inverted_index(ibs, cid_list)
+        except Exception as ex:
+            dbname = ibs.get_dbname()  # NOQA
+            num_images = ibs.get_num_images()  # NOQA
+            num_rois = ibs.get_num_rois()      # NOQA
+            num_names = ibs.get_num_rois()     # NOQA
+            utool.print_exception(ex, '', '[nn]', locals().keys())
+            raise
         # Agg Data
         nn_index.ax2_cid  = ax2_cid
         nn_index.ax2_fx   = ax2_fx

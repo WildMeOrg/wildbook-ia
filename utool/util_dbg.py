@@ -466,6 +466,8 @@ def print_exception(ex,
         prefix = get_caller_prefix(aserror=True)
     if locals_ is None:
         locals_ = get_caller_locals()
+    sys.stdout.write('!!!!!!!!!!!!!!!!!!!!!!\n')
+    print('!!!!!!!!!!!!!!!!!!!!!!\n')
     print('<!!!>')
     print(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
     for key in key_list:

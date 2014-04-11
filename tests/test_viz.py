@@ -9,7 +9,9 @@ sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis.view import viz_image, viz_chip, viz_helpers, viz_matches
+from ibeis.view import viz_image, viz_chip, viz_helpers, viz_matches  # NOQA
+from ibeis.view import viz_helpers as vh  # NOQA
+from ibeis.view import viz
 from drawtool import draw_func2 as df2
 from ibeis.model.jon_recognition import matching_functions as mf
 from ibeis.model.jon_recognition import QueryResult, QueryRequest  # NOQA
@@ -22,7 +24,7 @@ printTEST = __testing__.printTEST
 def myreload():
     viz_image.rrr()
     viz_chip.rrr()
-    viz_helpers.rrr()
+    vh.rrr()
     build_query.rrr()
     mf.rrr()
 
@@ -58,14 +60,14 @@ def TEST_VIZ():
     #----------------------
     printTEST('Show Query')
     cid1 = cid
-    qcids = [cid1]
-
-    qcid2_qres = ibs.query_database(qcids)
-    qres = qcid2_qres[cid1]
+    qcid2_qres = ibs.query_database([cid1])
+    qres = qcid2_qres.values()[0]
     top_cids = qres.get_top_cids(ibs)
     assert len(top_cids) > 0, 'there does not seem to be results'
     cid2 = top_cids[0]  # 294
-    viz_matches.show_chipres(ibs, qres, cid2, fnum=4)
+    viz.show_chipres(ibs, qres, cid2, fnum=4)
+
+    viz.show_qres(ibs, qres, fnum=5)
 
     ##----------------------
     df2.present(wh=1000)

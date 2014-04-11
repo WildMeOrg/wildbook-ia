@@ -10,19 +10,19 @@ from os.path import realpath, dirname, join, exists
 import numpy as np
 
 
-def ensure_util_in_pythonpath():
+def ensure_utool_in_pythonpath():
     utool_path = realpath(join(dirname(__file__), '..'))
     if VERBOSE:
         print('[test] appending to pythonpath: %r' % utool_path)
     try:
-        assert exists(join(utool_path, 'utool')), ('cannot find util in: %r' % utool_path)
+        assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
     except AssertionError as ex:
         print('Caught Assertion Error: %s' % (ex))
         utool_path = join('..', utool_path)
-        assert exists(join(utool_path, 'utool')), ('cannot find util in: %r' % utool_path)
+        assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
     sys.path.append(realpath(utool_path))
 
-ensure_util_in_pythonpath()
+ensure_utool_in_pythonpath()
 
 import utool
 utool.util_sysreq.ensure_in_pythonpath('hesaff')

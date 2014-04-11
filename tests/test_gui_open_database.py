@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'TEST_GUI_OPEN_DATABASE'
 #------
-import __testing__
+import __testing__  # Should be imported before any ibeis stuff
 import multiprocessing
 import utool
 from ibeis.dev import params
