@@ -36,8 +36,10 @@ def prep_query_request(qreq=None, query_cfg=None,
     if qreq is None:
         qreq = QueryRequest.QueryRequest()
     if qcids is not None:
+        assert len(qcids) > 0, 'cannot query nothing!'
         qreq.qcids = qcids
     if dcids is not None:
+        assert len(dcids) > 0, 'cannot search nothing!'
         qreq.dcids = dcids
     if query_cfg is None:
         query_cfg = qreq.cfg

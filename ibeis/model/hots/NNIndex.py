@@ -120,7 +120,7 @@ class NNIndex(object):
             dbname = ibs.get_dbname()  # NOQA
             num_images = ibs.get_num_images()  # NOQA
             num_rois = ibs.get_num_rois()      # NOQA
-            num_names = ibs.get_num_rois()     # NOQA
+            num_names = ibs.get_num_names()    # NOQA
             utool.print_exception(ex, '', '[nn]', locals().keys())
             raise
         # Agg Data

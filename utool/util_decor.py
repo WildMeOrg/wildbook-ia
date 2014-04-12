@@ -31,7 +31,7 @@ Common wrappers
     @wraps(func)
 """
 
-DISABLE_WRAPPERS = True  # utool.get_flag('--disable-wrappers')
+DISABLE_WRAPPERS = '--disable-wrappers' in sys.argv
 
 
 def common_wrapper(func):
@@ -73,7 +73,7 @@ def ignores_exc_tb(func):
 
 def indent_decor(lbl):
     def indent_decor_outer_wrapper(func):
-        #@ignores_exc_tb
+        @ignores_exc_tb
         @wraps(func)
         def indent_decor_inner_wrapper(*args, **kwargs):
             with Indenter(lbl):
@@ -85,7 +85,7 @@ def indent_decor(lbl):
 def indent_func(func):
     @wraps(func)
     @indent_decor('[' + func.func_name + ']')
-    #@ignores_exc_tb
+    @ignores_exc_tb
     def wrapper_indent_func(*args, **kwargs):
         return func(*args, **kwargs)
     return wrapper_indent_func
@@ -98,9 +98,9 @@ def accepts_scalar_input(func):
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
     """
-    #@ignores_exc_tb
     @wraps(func)
-    @profile
+    @ignores_exc_tb
+    #@profile
     def wrapper_scalar_input(self, input_, *args, **kwargs):
         is_scalar = not isiterable(input_)
         if is_scalar:
@@ -121,7 +121,7 @@ def accepts_scalar_input_vector_output(func):
     as long as the function treats everything like a vector. Input and output is
     sanatized to the user expected format on return.
     """
-    #@ignores_exc_tb
+    @ignores_exc_tb
     @wraps(func)
     #@profile
     def wrapper_vec_output(self, input_, *args, **kwargs):

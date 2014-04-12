@@ -23,8 +23,11 @@ def get_query_components(ibs, qcids):
     printTEST('[GET QUERY COMPONENTS]')
     ibs._init_query_requestor()
     qreq = ibs.qreq
+    #print(ibs.get_infostr())
     dcids = ibs.get_recognition_database_chips()
     qcid = qcids[0]
+    assert len(dcids) > 0, '!!! nothing to search'
+    assert len(qcids) > 0, '!!! nothing to query'
     qreq = mc3.prep_query_request(qreq=qreq, qcids=qcids, dcids=dcids)
     mc3.pre_exec_checks(ibs, qreq)
     qcid2_nns = mf.nearest_neighbors(ibs, qcids, qreq)

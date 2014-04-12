@@ -14,6 +14,19 @@ AUTODUMP = utool.get_flag('--auto-dump')
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 
 
+def get_operation_type(operation):
+    operation_type = operation.split()[0].strip()
+    if operation_type == 'SELECT':
+        startpos = operation.find('SELECT') + len('SELECT')
+        endpos = operation.find('FROM') - 1
+        #print((startpos, endpos))
+        #print(operation)
+        operation_args =  operation[startpos:endpos].strip()
+        #print(operation_args)
+        operation_type += ' ' + operation_args
+    return operation_type
+
+
 class SQLDatabaseControl(object):
     def __init__(db, database_path, database_file='database.sqlite3'):
         """
@@ -160,8 +173,19 @@ class SQLDatabaseControl(object):
         if verbose:
             caller_name = utool.util_dbg.get_caller_name()
             print('[sql] %r called executeone' % caller_name)
-        db.execute(operation, parameters, auto_commit, errmsg, verbose=False)
-        return db.result_list(verbose=False)
+        operation_type = get_operation_type(operation)
+        operation_label = '[sql] executeone %s: ' % (operation_type)
+        if not QUIET:
+            tt = utool.tic(operation_label)
+        db.executor.execute(operation, parameters)
+        # JON: For some reason the top line works and the bottom line doesn't
+        # in test_query.py I don't know if removing the bottom line breaks
+        # anything else.
+        #db.execute(operation, parameters, auto_commit, errmsg, verbose=False)
+        result_list = db.result_list(verbose=False)
+        if not QUIET:
+            printDBG(utool.toc(tt, True))
+        return result_list
 
     @profile
     def executemany(db, operation, parameters_iter, auto_commit=True,
@@ -198,15 +222,7 @@ class SQLDatabaseControl(object):
         if verbose:
             print('[sql.executemany] caller_name=%r' % caller_name)
         # Do any preprocesing on the SQL command / query
-        operation_type = operation.split()[0].strip()
-        if operation_type == 'SELECT':
-            startpos = operation.find('SELECT') + len('SELECT')
-            endpos = operation.find('FROM') - 1
-            #print((startpos, endpos))
-            #print(operation)
-            operation_args =  operation[startpos:endpos].strip()
-            #print(operation_args)
-            operation_type += ' ' + operation_args
+        operation_type = get_operation_type(operation)
         # Compute everything in Python before sending queries to SQL
         # TODO: Agressively expanding the iterator into a list is a hack.
         # Allowing for the passing of parameters in an iterator will greatly

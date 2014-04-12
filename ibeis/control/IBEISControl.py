@@ -101,6 +101,9 @@ class IBEISControl(object):
     def get_dbpath(ibs):
         return join(ibs.workdir, ibs.dbname)
 
+    def get_workdir(ibs):
+        return ibs.workdir
+
     def get_num_images(ibs):
         gid_list = ibs.get_valid_gids()
         return len(gid_list)
@@ -108,6 +111,10 @@ class IBEISControl(object):
     def get_num_rois(ibs):
         rid_list = ibs.get_valid_rids()
         return len(rid_list)
+
+    def get_num_names(ibs):
+        nid_list = ibs.get_valid_nids()
+        return len(nid_list)
 
     def _init_sql(ibs):
         """ Load or create sql database """
@@ -1102,3 +1109,19 @@ class IBEISControl(object):
                                       **kwargs)
         qcid2_qres = mc3.process_query_request(ibs, qreq)
         return qcid2_qres
+
+    def get_infostr(ibs):
+        """ Returns printable database information """
+        dbname = ibs.get_dbname()
+        workdir = utool.unixpath(ibs.get_workdir())
+        num_images = ibs.get_num_images()
+        num_rois = ibs.get_num_rois()
+        num_names = ibs.get_num_names()
+        infostr = '''
+        workdir = %r
+        dbname = %r
+        num_images = %r
+        num_rois = %r
+        num_names = %r
+        ''' % (workdir, dbname, num_images, num_rois, num_names)
+        return infostr
