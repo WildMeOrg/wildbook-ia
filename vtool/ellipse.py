@@ -372,7 +372,7 @@ def kpts_matrices(kpts):
     # invert into V
     invV = kpts_to_invV(kpts)
     V = ktool.get_V_mats(invV)
-    Z = ktool.get_E_mats(V)
+    Z = ktool.get_Z_mats(V)
     return invV, V, Z
 
 
