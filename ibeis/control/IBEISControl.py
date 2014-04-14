@@ -664,9 +664,11 @@ class IBEISControl(object):
 
     @getter
     def get_roi_nids(ibs, rid_list):
-        """ Returns the name_ids of each roi """
+        """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
         nid_list = ibs.get_roi_properties('name_uid', rid_list)
-        return nid_list
+        tnid_list = [nid if nid != ibs.UNKNOWN_NID else -rid
+                     for (nid, rid) in izip(nid_list, rid_list)]
+        return tnid_list
 
     @getter
     def get_roi_gnames(ibs, rid_list):
@@ -831,15 +833,10 @@ class IBEISControl(object):
 
     @getter_numpy
     def get_chip_nids(ibs, cid_list):
-        """ Returns chip 'temp' names. (negative chip ids if UNKONWN_NAME) """
-        # TODO: Rectify this with ROI_UIDS
-        # I think ROIs should recieve an integer index in addition to the rather
-        # unweildy uuid. The same should probably happen with images
+        """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
         rid_list = ibs.get_chip_rids(cid_list)
         nid_list = ibs.get_roi_nids(rid_list)
-        tnid_list = [nid if nid != ibs.UNKNOWN_NID else -cid
-                     for (nid, cid) in izip(nid_list, cid_list)]
-        return tnid_list
+        return nid_list
 
     def get_chip_names(ibs, cid_list):
         nid_list = ibs.get_chip_nids(cid_list)

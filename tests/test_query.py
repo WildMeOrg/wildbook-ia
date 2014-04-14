@@ -19,10 +19,9 @@ from ibeis.view import viz
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
 import query_helpers
-
-printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[%s]' % TEST_NAME)
+printTEST = __testing__.printTEST
 
 sys.argv.append('--nogui')
 
@@ -36,10 +35,12 @@ def TEST_QUERY():
     ibs._init_query_requestor()
     qreq = ibs.qreq
 
+    query_helpers.find_matchable_chips(ibs)
+
     cids = ibs.get_recognition_database_chips()
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    index = 0
-    index = utool.get_arg('--index', type_=int, default=0)
+    index = 2
+    index = utool.get_arg('--index', type_=int, default=index)
     qcids = utool.safe_slice(cids, index, index + 1)
 
     comp_locals_ = query_helpers.get_query_components(ibs, qcids)
@@ -69,8 +70,7 @@ def TEST_QUERY():
     qcid = comp_locals_['qcid']
     cid2_svtup  = qcid2_svtups[qcid]
     chipmatch_FILT = qcid2_chipmatch_FILT[qcid]
-    viz.viz_spatial_verification(ibs, qcid, cid2, chipmatch_FILT, cid2_svtup,
-                                 fnum=fnum)
+    viz.show_sv(ibs, qcid, cid2, chipmatch_FILT, cid2_svtup, fnum=fnum)
     df2.present(wh=900)
     comp_locals_.update(locals())
 

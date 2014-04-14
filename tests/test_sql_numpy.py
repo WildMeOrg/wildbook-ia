@@ -12,7 +12,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAM
 printTEST = __testing__.printTEST
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_SQL_NUMPY():
 
     utool.util_path.remove_file('temp.sqlite3', dryrun=False)
@@ -65,8 +65,9 @@ def TEST_SQL_NUMPY():
     print(' * dump time=%r sec' % utool.toc(tt))
     #with open('temp.dump.txt') as file_:
         #print(file_.read())
-TEST_SQL_NUMPY.func_name = TEST_NAME
+    return locals()
 
 
 if __name__ == '__main__':
-    TEST_SQL_NUMPY()
+    test_locals = TEST_SQL_NUMPY()
+    exec(test_locals['execstr'])

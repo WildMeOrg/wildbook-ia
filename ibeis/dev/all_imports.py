@@ -53,6 +53,7 @@ from vtool import patch as ptool
 from vtool import keypoint as ktool
 from vtool import linalg as ltool
 from vtool import segmentation
+from vtool import spatial_verification as sverif
 
 from vtool import *
 # DrawTool
@@ -77,7 +78,6 @@ from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips3 as nn_filters
 from ibeis.model.hots import QueryResult
 from ibeis.model.hots import QueryRequest
-from ibeis.model.hots import spatial_verification2 as sv2
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import coverage
 # IBEIS VIEW

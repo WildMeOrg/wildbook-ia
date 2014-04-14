@@ -8,6 +8,13 @@ to rectify this I am changing terminology.
 invV - maps from ucircle onto an ellipse (perdoch.invA)
    V - maps from ellipse to ucircle      (perdoch.A)
    Z - the conic matrix                  (perdoch.E)
+
+
+Data formats:
+kpts = [x, y, iv11, iv21, iv22, ori]
+invV = ((iv11, iv12, x),
+        (iv21, iv22, y),
+        (   0,    0, 1))
 '''
 from __future__ import absolute_import, division, print_function
 # Python
@@ -197,21 +204,23 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
 
 
 def get_V_mats(invV_mats, **kwargs):
-    # invert keypoint into V format
+    """ invert keypoint into V format """
     V_mats = [npl.inv(invV) for invV in invV_mats]
     return V_mats
 
 
 def get_E_mats(V_mats):
-    # transform into conic matrix Z
-    # Z = (V.T).dot(V)
+    """
+        transform into conic matrix Z
+        Z = (V.T).dot(V)
+    """
     Vt_mats = array(map(np.transpose, V_mats))
     Z_mats = matrix_multiply(Vt_mats, V_mats)
     return Z_mats
 
 
 def get_xy_axis_extents(invV_mats=None, kpts=None):
-    'gets the scales of the major and minor elliptical axis'
+    """ gets the scales of the major and minor elliptical axis """
     if invV_mats is None:
         assert kpts is not None
         invV_mats = get_invV_mats(kpts, ashomog=False)
@@ -235,7 +244,7 @@ def diag_extent_sqrd(kpts):
 
 
 def cast_split(kpts, dtype=KPTS_DTYPE):
-    'breakup keypoints into location, shape, and orientation'
+    """ breakup keypoints into location, shape, and orientation """
     kptsT = kpts.T
     _xs   = array(kptsT[0], dtype=dtype)
     _ys   = array(kptsT[1], dtype=dtype)
@@ -245,6 +254,48 @@ def cast_split(kpts, dtype=KPTS_DTYPE):
     else:
         _oris = zeros(len(kpts))
     return _xs, _ys, _invVs, _oris
+
+
+def rectify_invV_is_up(invV_mats):
+    """
+    rotates affine shape matrixes into downward (lower triangular) position
+    # <TEST>
+    from vtool import linalg as ltool
+    invV_list = [((2, 0), (1, 4)), ((1, 0), (0, 1)), ((.5, 0), (12, .5))]
+    invV_mats = np.array(invV_list)
+    theta = 1.2
+    rot = ltool.rotation2x2(theta)
+    invV_mats = np.array([rot.dot(invV) for invV in invV_mats])
+    # <END TEST>
+
+    """
+    ##
+    nMats = len(invV_mats)
+    # Extract keypoint componetns
+    a = invV_mats[:, 0, 0]
+    b = invV_mats[:, 0, 1]
+    c = invV_mats[:, 1, 0]
+    d = invV_mats[:, 1, 1]
+    # Get deterimant and whatever b2a2 is
+    det_ = np.sqrt(np.abs((a * d) - (b * c)))
+    b2a2 = np.sqrt((b ** 2) + (a ** 2))
+    # Rectify the keypoint direction
+    iv11 = b2a2 / det_
+    iv12 = np.zeros(nMats)
+    iv21 = ((d * b) + (c * a)) / (b2a2 * det_)
+    iv22 = det_ / b2a2
+    # Rebuild the matrixes
+    invV_mats2 = np.empty(invV_mats.shape)
+    invV_mats2[:, 0, 0] = iv11 * det_
+    invV_mats2[:, 0, 1] = iv12 * det_
+    invV_mats2[:, 1, 0] = iv21 * det_
+    invV_mats2[:, 1, 1] = iv22 * det_
+    #
+    np.tau = 2 * np.pi
+    ori1 = np.arctan2(d, b)
+    ori2 = np.arctan2(invV_mats2[:, 1, 1], invV_mats2[:, 0, 1])
+    ori = (ori1 - ori2)
+    return invV_mats2
 
 
 # --- strings ---

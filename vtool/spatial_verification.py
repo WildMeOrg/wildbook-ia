@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sv2]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
 # Science
 import numpy as np
 import numpy.linalg as npl
@@ -49,21 +49,21 @@ def compute_homog(x1_mn, y1_mn, x2_mn, y2_mn):
     '''Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1 '''
-    #printDBG('[sv2] compute_homog')
+    #printDBG('[sver] compute_homog')
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     Mx9 = build_lstsqrs_Mx9(x1_mn, y1_mn, x2_mn, y2_mn)
     try:
         (U, S, V) = npl.svd(Mx9, full_matrices=False)
     except MemoryError as ex:
-        print('[sv2] Caught MemErr %r during full SVD. Trying sparse SVD.' % (ex))
+        print('[sver] Caught MemErr %r during full SVD. Trying sparse SVD.' % (ex))
         Mx9Sparse = sps.lil_matrix(Mx9)
         (U, S, V) = spsl.svds(Mx9Sparse)
     except npl.LinAlgError as ex:
-        print('[sv2] svd did not converge: %r' % ex)
+        print('[sver] svd did not converge: %r' % ex)
         raise  # return np.eye(3)
     except Exception as ex:
-        print('[sv2] svd error: %r' % ex)
-        print('[sv2] Mx9.shape = %r' % (Mx9.shape,))
+        print('[sver] svd error: %r' % ex)
+        print('[sver] Mx9.shape = %r' % (Mx9.shape,))
         raise
     # Rearange the nullspace into a homography
     h = V[-1]  # v = V.H
@@ -115,7 +115,7 @@ def affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
 
     We transform from 1 - >2
     '''
-    #printDBG('[sv2] affine_inliers')
+    #printDBG('[sver] affine_inliers')
     #print(repr((invV1_m.T[0:10]).T))
     #print(repr((invV2_m.T[0:10]).T))
     #with utool.Timer('enume all'):
@@ -204,7 +204,7 @@ def homography_inliers(kpts1, kpts2, fm,
                        dlen_sqrd2=None,
                        min_num_inliers=4,
                        just_affine=False):
-    #printDBG('[sv2] homography_inliers')
+    #printDBG('[sver] homography_inliers')
     #if len(fm) < min_num_inliers:
         #return None
     # Not enough data
@@ -244,7 +244,7 @@ def homography_inliers(kpts1, kpts2, fm,
         # Computes ax = b # x = npl.solve(a, b)
         H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
     except npl.LinAlgError as ex:
-        print('[sv2] Warning 285 %r' % ex)
+        print('[sver] Warning 285 %r' % ex)
         # raise
         return None
 

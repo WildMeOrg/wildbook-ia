@@ -18,7 +18,7 @@ printTEST = __testing__.printTEST
 RUNGUI = utool.get_flag('--gui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_COMPUTE_CHIPS():
     # Create a HotSpotter API (hs) and GUI backend (back)
     main_locals = __testing__.main()
@@ -28,13 +28,12 @@ def TEST_COMPUTE_CHIPS():
     assert len(rid_list) > 0, 'database rois cannot be empty for ' + TEST_NAME
     print(' * len(rid_list) = %r' % len(rid_list))
     preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
+    main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=RUNGUI)
-
-
-TEST_COMPUTE_CHIPS.func_name = TEST_NAME
+    return main_locals
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    TEST_COMPUTE_CHIPS()
-    #exec(viz.df2.present())
+    test_locals = TEST_COMPUTE_CHIPS()
+    exec(test_locals['execstr'])

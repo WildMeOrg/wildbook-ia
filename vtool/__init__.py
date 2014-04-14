@@ -8,3 +8,4 @@ from . import keypoint
 from . import ellipse
 from . import patch
 from . import chip
+from . import spatial_verification

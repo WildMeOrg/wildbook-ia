@@ -18,7 +18,7 @@ printTEST = __testing__.printTEST
 RUNGUI = utool.get_flag('--gui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_GUI_ALL():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
@@ -80,15 +80,10 @@ def TEST_GUI_ALL():
     main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=RUNGUI)
     # I'm not sure how I want to integrate that IPython stuff
-    return locals()
-
-
-TEST_GUI_ALL.func_name = TEST_NAME
+    return main_locals
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
     test_locals = TEST_GUI_ALL()
-    ibs = test_locals['ibs']
-    back = test_locals['back']
-    gid_list = test_locals['gid_list']
+    exec(test_locals['execstr'])

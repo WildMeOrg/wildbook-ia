@@ -25,7 +25,7 @@ def interact_qres(ibs, res, **kwargs):
         fnum = df2.next_fnum()
         fig = df2.figure(fnum=fnum, docla=True, doclf=True)
         df2.disconnect_callback(fig, 'button_press_event')
-        viz.viz_spatial_verification(ibs, res.qcid, cid2=cid, fnum=fnum)
+        viz.show_sv(ibs, res.qcid, cid2=cid, fnum=fnum)
         fig.canvas.draw()
         df2.bring_to_front(fig)
 

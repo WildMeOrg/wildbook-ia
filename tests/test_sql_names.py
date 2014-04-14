@@ -36,7 +36,7 @@ def __insert_names(db, name_list):
     #print('INSERT RETURNED: %r' % ret)
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_SQL_NAMES():
 
     # -------- INIT DATABASE ------------
@@ -93,9 +93,9 @@ def TEST_SQL_NAMES():
     # SQL INTEGERS START AT 1 APPARENTLY
     #expected_names = [test_names[nid - 1] for nid in nid_list]
     #assert expected_names == query_names, 'unexpected results from select names'
-
-TEST_SQL_NAMES.func_name = TEST_NAME
+    return locals()
 
 
 if __name__ == '__main__':
-    TEST_SQL_NAMES()
+    test_locals = TEST_SQL_NAMES()
+    exec(test_locals['execstr'])

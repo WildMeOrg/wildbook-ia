@@ -14,7 +14,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAM
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_ADD_IMAGES():
     main_locals = __testing__.main(defaultdb='testdb', nogui=True)
     ibs = main_locals['ibs']    # IBEIS Control
@@ -31,11 +31,13 @@ def TEST_ADD_IMAGES():
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
+    main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=False)
-TEST_ADD_IMAGES.func_name = TEST_NAME
+    return main_locals
 
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    TEST_ADD_IMAGES()
+    test_locals = TEST_ADD_IMAGES()
+    exec(test_locals['execstr'])

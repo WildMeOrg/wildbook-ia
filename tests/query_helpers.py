@@ -7,16 +7,15 @@ TEST_NAME = 'BUILDQUERY'
 import __testing__
 import numpy as np
 from itertools import izip
+import utool
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
 from ibeis.model.hots import matching_functions as mf  # NOQA
 from ibeis.model.hots import match_chips3 as mc3  # NOQA
 from ibeis.model.hots.matching_functions import _apply_filter_scores, progress_func  # NOQA
-from tests import test_tools
-import utool
-
-printTEST = __testing__.printTEST
+import test_tools
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
+printTEST = __testing__.printTEST
 
 
 def get_query_components(ibs, qcids):

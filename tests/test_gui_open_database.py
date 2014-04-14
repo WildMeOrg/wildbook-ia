@@ -15,7 +15,7 @@ printTEST = __testing__.printTEST
 RUNGUI = utool.get_flag('--gui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_GUI_OPEN_DATABASE():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
@@ -25,11 +25,12 @@ def TEST_GUI_OPEN_DATABASE():
 
     printTEST('[TEST] TEST_OPEN_DATABASE dbdir=%r' % dbdir)
     back.open_database(dbdir)
-
+    main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=RUNGUI)
-TEST_GUI_OPEN_DATABASE.func_name = TEST_NAME
+    return main_locals
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    TEST_GUI_OPEN_DATABASE()
+    test_locals = TEST_GUI_OPEN_DATABASE()
+    exec(test_locals['execstr'])

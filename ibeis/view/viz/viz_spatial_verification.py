@@ -9,15 +9,9 @@ from . import viz_helpers as vh
 
 
 @utool.indent_func
-def viz_spatial_verification(ibs, cid1, cid2, chipmatch_FILT, cid2_svtup, fnum=1, **kwargs):
-    print('\n[viz] ======================')
-    chip1, chip2 = vh.get_chips(ibs, [cid1, cid2], **kwargs)
-    wh2 = gtool.get_size(chip2)
-    kpts1, kpts2 = vh.get_kpts(ibs, [cid1, cid2], **kwargs)
-    cid2_fm, cid2_fs, cid2_fk = chipmatch_FILT
-    fm = cid2_fm[cid2]
-    (H, inliers, Aff, aff_inliers) = cid2_svtup[cid2]
+def viz_sv(chip1, chip2, kpts1, kpts2, fm, H, inliers, Aff, aff_inliers, fnum=1):
     print('warp homog')
+    wh2 = gtool.get_size(chip2)
     chip1_Ht = cv2.warpPerspective(chip1, H, wh2)
     print('warp affine')
     chip1_At = cv2.warpAffine(chip1, Aff[0:2, :], wh2)
@@ -55,3 +49,15 @@ def viz_spatial_verification(ibs, cid1, cid2, chipmatch_FILT, cid2_svtup, fnum=1
     _draw_chip('Homog', chip1_Ht, 10)
     _draw_chip('Destination', chip2, 11)
     _draw_chip('Homog Blend', chip2_blendH, 12)
+
+
+@utool.indent_func
+def show_sv(ibs, cid1, cid2, chipmatch_FILT, cid2_svtup, **kwargs):
+    print('\n[viz] ======================')
+    chip1, chip2 = vh.get_chips(ibs, [cid1, cid2], **kwargs)
+    kpts1, kpts2 = vh.get_kpts(ibs, [cid1, cid2], **kwargs)
+    cid2_fm, cid2_fs, cid2_fk = chipmatch_FILT
+    fm = cid2_fm[cid2]
+    (H, inliers, Aff, aff_inliers) = cid2_svtup[cid2]
+    viz_sv(chip1, chip2, kpts1, kpts2, fm,
+           H, inliers, Aff, aff_inliers, **kwargs)

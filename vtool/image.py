@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import exists
 # Science
 import cv2
+import numpy as np
 from PIL import Image
 from utool import util_path, util_str
 #from utool import util_progress
@@ -57,6 +58,7 @@ def get_size(img):
 
 
 def get_num_channels(img):
+    """ Returns the number of color channels """
     ndims = len(img.shape)
     if ndims == 2:
         nChannels = 1
@@ -67,6 +69,47 @@ def get_num_channels(img):
     else:
         raise Exception('Cannot determine number of channels')
     return nChannels
+
+
+def subpixel_values(img, pts):
+    ''' adapted from
+    stackoverflow.com/uestions/12729228/simple-efficient-binlinear-
+    interpolation-of-images-in-numpy-and-python'''
+    # Image info
+    nChannels = get_num_channels(img)
+    height, width = img.shape[0:2]
+    # Subpixel locations to sample
+    ptsT = pts.T
+    x = ptsT[0]
+    y = ptsT[1]
+    # Get quantized pixel locations near subpixel pts
+    x0 = np.floor(x).astype(int)
+    x1 = x0 + 1
+    y0 = np.floor(y).astype(int)
+    y1 = y0 + 1
+    # Make sure the values do not go past the boundary
+    x0 = np.clip(x0, 0, width - 1)
+    x1 = np.clip(x1, 0, width - 1)
+    y0 = np.clip(y0, 0, height - 1)
+    y1 = np.clip(y1, 0, height - 1)
+    # Find bilinear weights
+    wa = (x1 - x) * (y1 - y)
+    wb = (x1 - x) * (y - y0)
+    wc = (x - x0) * (y1 - y)
+    wd = (x - x0) * (y - y0)
+    if  nChannels != 1:
+        wa = np.array([wa] *  nChannels).T
+        wb = np.array([wb] *  nChannels).T
+        wc = np.array([wc] *  nChannels).T
+        wd = np.array([wd] *  nChannels).T
+    # Sample values
+    Ia = img[y0, x0]
+    Ib = img[y1, x0]
+    Ic = img[y0, x1]
+    Id = img[y1, x1]
+    # Perform the bilinear interpolation
+    subpxl_vals = (wa * Ia) + (wb * Ib) + (wc * Ic) + (wd * Id)
+    return subpxl_vals
 
 
 def open_pil_image(image_fpath):

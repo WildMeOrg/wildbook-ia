@@ -104,7 +104,7 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
         fnum = viz.FNUMS['special']
         fig = df2.figure(fnum=fnum, docla=True, doclf=True)
         ih.disconnect_callback(fig, 'button_press_event')
-        viz.viz_spatial_verification(ibs, res.qcid, cid2=cid, fnum=fnum)
+        viz.show_sv(ibs, res.qcid, cid2=cid, fnum=fnum)
         viz.draw()
 
     # Callback

@@ -9,11 +9,11 @@ import sys
 # Scientific
 import numpy as np
 from vtool import keypoint as ktool
+from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import QueryResult
 from ibeis.model.hots import coverage
 from ibeis.model.hots import nn_filters
-from ibeis.model.hots import spatial_verification2 as sv2
 from ibeis.model.hots import voting_rules2 as vr2
 import utool
 print, print_,  printDBG, rrr, profile =\
@@ -435,9 +435,9 @@ def spatial_verification_(ibs, qcid2_chipmatch, qreq, dbginfo=False):
             kpts2 = topx2_kpts[topx]
             fs    = cid2_fs[cid]
             fk    = cid2_fk[cid]
-            sv_tup = sv2.homography_inliers(kpts1, kpts2, fm, xy_thresh,
-                                            max_scale, min_scale, dlen_sqrd,
-                                            min_nInliers, just_affine)
+            sv_tup = sver.homography_inliers(kpts1, kpts2, fm, xy_thresh,
+                                             max_scale, min_scale, dlen_sqrd,
+                                             min_nInliers, just_affine)
             if sv_tup is None:
                     print_('o')  # sv failure
             else:

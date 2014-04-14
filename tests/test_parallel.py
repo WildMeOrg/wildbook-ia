@@ -16,7 +16,7 @@ printTEST = __testing__.printTEST
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_PARALLEL():
     import pyhesaff
     from utool import util_parallel
@@ -64,9 +64,9 @@ def TEST_PARALLEL():
     compare_serial()
 
     __testing__.main_loop(main_locals)
-TEST_PARALLEL.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-    TEST_PARALLEL()
+    test_locals = TEST_PARALLEL()
+    exec(test_locals['execstr'])
