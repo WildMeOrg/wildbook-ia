@@ -5,8 +5,8 @@
 #
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from .util_inject import inject
-print, print_, printDBG, rrr, profile = inject(__name__, '[alg]')
+from . import util_inject
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
 
 def normalize(array, dim=0):
@@ -67,9 +67,13 @@ def cartesian(arrays, out=None):
     return out
 
 
-def almost_eq(a, b, thresh=1E-11):
+def almost_eq(a, b, thresh=1E-11, ret_error=False):
     """ checks if floating point number are equal to a threshold """
-    return abs(a - b) < thresh
+    error = np.abs(a - b)
+    passed = error < thresh
+    if ret_error:
+        return passed, error
+    return passed
 
 
 def xywh_to_tlbr(bbox, img_wh):

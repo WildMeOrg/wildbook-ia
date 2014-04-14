@@ -34,18 +34,18 @@ def remove_corrupted_queries(ibs, qres, dryrun=True):
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(ibs, qcid, uid):
+def query_result_fpath(ibs, qrid, uid):
     qres_dir  = ibs.qresdir
-    fname = 'res_%s_qcid=%d.npz' % (uid, qcid)
+    fname = 'res_%s_qrid=%d.npz' % (uid, qrid)
     if len(fname) > 64:
         hash_id = utool.hashstr(uid)
-        fname = 'res_%s_qcid=%d.npz' % (hash_id, qcid)
+        fname = 'res_%s_qrid=%d.npz' % (hash_id, qrid)
     fpath = join(qres_dir, fname)
     return fpath
 
 
-def query_result_exists(ibs, qcid, uid):
-    fpath = query_result_fpath(ibs, qcid, uid)
+def query_result_exists(ibs, qrid, uid):
+    fpath = query_result_fpath(ibs, qrid, uid)
     return exists(fpath)
 
 
@@ -54,49 +54,49 @@ __OBJECT_BASE__ = utool.util_dev.get_object_base()
 
 def assert_qres(qres):
     try:
-        assert len(qres.cid2_fm) == len(qres.cid2_fs)
-        assert len(qres.cid2_fm) == len(qres.cid2_fk)
-        assert len(qres.cid2_fm) == len(qres.cid2_score)
+        assert len(qres.rid2_fm) == len(qres.rid2_fs)
+        assert len(qres.rid2_fm) == len(qres.rid2_fk)
+        assert len(qres.rid2_fm) == len(qres.rid2_score)
     except AssertionError:
         raise AssertionError('[!qr] matching dicts do not agree')
     nFeatMatch_list = get_num_feats_in_matches(qres)
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fm) for fm in qres.cid2_fm.itervalues()))])
+                izip(nFeatMatch_list, (len(fm) for fm in qres.rid2_fm.itervalues()))])
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fs) for fs in qres.cid2_fs.itervalues()))])
+                izip(nFeatMatch_list, (len(fs) for fs in qres.rid2_fs.itervalues()))])
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fk) for fk in qres.cid2_fk.itervalues()))])
+                izip(nFeatMatch_list, (len(fk) for fk in qres.rid2_fk.itervalues()))])
 
 
 def get_num_chip_matches(qres):
-    return len(qres.cid2_fm)
+    return len(qres.rid2_fm)
 
 
 def get_num_feats_in_matches(qres):
-    return [len(fm) for fm in qres.cid2_fm.itervalues()]
+    return [len(fm) for fm in qres.rid2_fm.itervalues()]
 
 
 class QueryResult(__OBJECT_BASE__):
-    #__slots__ = ['qcid', 'uid', 'nn_time',
+    #__slots__ = ['qrid', 'uid', 'nn_time',
                  #'weight_time', 'filt_time', 'build_time', 'verify_time',
-                 #'cid2_fm', 'cid2_fs', 'cid2_fk', 'cid2_score']
-    def __init__(qres, qcid, uid):
+                 #'rid2_fm', 'rid2_fs', 'rid2_fk', 'rid2_score']
+    def __init__(qres, qrid, uid):
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
-        qres.qcid = qcid
+        qres.qrid = qrid
         qres.uid = uid
         # Assigned features matches
-        qres.cid2_fm = None
-        qres.cid2_fs = None
-        qres.cid2_fk = None
-        qres.cid2_score = None
+        qres.rid2_fm = None
+        qres.rid2_fs = None
+        qres.rid2_fk = None
+        qres.rid2_score = None
         qres.filt2_meta = None  # messy
 
     def has_cache(qres, ibs):
-        return query_result_exists(ibs, qres.qcid)
+        return query_result_exists(ibs, qres.qrid)
 
     def get_fpath(qres, ibs):
-        return query_result_fpath(ibs, qres.qcid, qres.uid)
+        return query_result_fpath(ibs, qres.qrid, qres.uid)
 
     @profile
     def save(qres, ibs):
@@ -110,7 +110,7 @@ class QueryResult(__OBJECT_BASE__):
     def load(qres, ibs):
         'Loads the result from the given database'
         fpath = qres.get_fpath(ibs)
-        qcid_good = qres.qcid
+        qrid_good = qres.qrid
         try:
             print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
@@ -124,14 +124,14 @@ class QueryResult(__OBJECT_BASE__):
                 print('[qr] query result cache miss')
                 raise
             else:
-                msg_list = ['[!qr] QueryResult(qcid=%d) is corrupted' % (qres.qcid),
+                msg_list = ['[!qr] QueryResult(qrid=%d) is corrupted' % (qres.qrid),
                             '%r' % (ex,)]
                 msg = ('\n'.join(msg_list))
                 print(msg)
                 raise Exception(msg)
         except BadZipFile as ex:
             print('[!qr] Caught other BadZipFile: %r' % ex)
-            msg_list = ['[!qr] QueryResult(qcid=%d) is corrupted' % (qres.qcid),
+            msg_list = ['[!qr] QueryResult(qrid=%d) is corrupted' % (qres.qrid),
                         '%r' % (ex,)]
             msg = '\n'.join(msg_list)
             print(''.join(msg))
@@ -144,7 +144,7 @@ class QueryResult(__OBJECT_BASE__):
         except Exception as ex:
             print('Caught other Exception: %r' % ex)
             raise
-        qres.qcid = qcid_good
+        qres.qrid = qrid_good
 
     def cache_bytes(qres, ibs):
         """ Size of the cached query result on disk """
@@ -152,11 +152,11 @@ class QueryResult(__OBJECT_BASE__):
         nBytes = utool.file_bytes(fpath)
         return nBytes
 
-    def get_fmatch_index(qres, ibs, cid, qfx):
-        """ Returns the feature index in cid matching the query's qfx-th feature
+    def get_fmatch_index(qres, ibs, rid, qfx):
+        """ Returns the feature index in rid matching the query's qfx-th feature
             (if it exists)
         """
-        fm = qres.cid2_fm[cid]
+        fm = qres.rid2_fm[rid]
         mx_list = np.where(fm[:, 0] == qfx)[0]
         if len(mx_list) != 1:
             raise IndexError('[!qr] qfx=%r not found' % (qfx))
@@ -164,31 +164,31 @@ class QueryResult(__OBJECT_BASE__):
             mx = mx_list[0]
             return mx
 
-    def get_cids_and_scores(qres):
+    def get_rids_and_scores(qres):
         """ returns a chip index list and associated score list """
-        score_list = np.array(qres.cid2_score.values())
-        cid_list   = np.array(qres.cid2_score.keys())
-        return cid_list, score_list
+        score_list = np.array(qres.rid2_score.values())
+        rid_list   = np.array(qres.rid2_score.keys())
+        return rid_list, score_list
 
-    def get_top_cids(qres, num=None):
+    def get_top_rids(qres, num=None):
         """ Returns a ranked list of chip indexes """
-        cid_list, score_list = qres.get_cids_and_scores()
+        rid_list, score_list = qres.get_rids_and_scores()
         # Get chip-ids sorted by scores
-        top_cids = cid_list[score_list.argsort()[::-1]]
-        num_indexed = len(top_cids)
+        top_rids = rid_list[score_list.argsort()[::-1]]
+        num_indexed = len(top_rids)
         if num is None:
             num = num_indexed
-        return top_cids[0:min(num, num_indexed)]
+        return top_rids[0:min(num, num_indexed)]
 
-    def get_cid_scores(qres, cid_list):
-        return [qres.cid2_score[cid] for cid in cid_list]
+    def get_rid_scores(qres, rid_list):
+        return [qres.rid2_score[rid] for rid in rid_list]
 
-    def get_cid_ranks(qres, cid_list):
-        'get ranks of chip indexes in cid_list'
-        top_cids = qres.get_top_cids()
-        foundpos = [np.where(top_cids == cid)[0] for cid in cid_list]
+    def get_rid_ranks(qres, rid_list):
+        'get ranks of chip indexes in rid_list'
+        top_rids = qres.get_top_rids()
+        foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
         ranks_   = [ranks if len(ranks) > 0 else [-1] for ranks in foundpos]
-        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(cid_ranks) != 1'
+        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(rid_ranks) != 1'
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
 
@@ -198,24 +198,24 @@ class QueryResult(__OBJECT_BASE__):
         nFeatMatch_stats = utool.mystats(nFeatMatch_list)
 
         top_lbl = utool.unindent('''
-                                 top5 cids
+                                 top5 rids
                                  scores
                                  ranks''').strip()
 
-        top_cids = qres.get_top_cids(num=5)
-        top_scores = qres.get_cid_scores(top_cids)
-        top_ranks = qres.get_cid_ranks(top_cids)
+        top_rids = qres.get_top_rids(num=5)
+        top_scores = qres.get_rid_scores(top_rids)
+        top_ranks = qres.get_rid_ranks(top_rids)
 
-        top_stack = np.vstack((top_cids, top_scores, top_ranks))
+        top_stack = np.vstack((top_rids, top_scores, top_ranks))
         top_stack = np.array(top_stack, dtype=np.int32)
         top_str = str(top_stack)
 
         inspect_str = '\n'.join([
             'QueryResult',
-            'qcid=%r ' % qres.qcid,
+            'qrid=%r ' % qres.qrid,
             utool.horiz_string(top_lbl, ' ', top_str),
             'num Feat Matches stats:',
             utool.indent(utool.dict_str(nFeatMatch_stats)),
         ])
-        inspect_str = utool.indent(inspect_str, '[qr.INSPECT] ')
+        inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str

@@ -24,6 +24,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 # Scientific
 import numpy as np
+import numpy.linalg as npl
+from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
+from numpy.core.umath_tests import matrix_multiply
 from PIL import Image
 from PIL.ExifTags import TAGS
 import cv2
@@ -81,19 +84,18 @@ from ibeis.model.hots import QueryRequest
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import coverage
 # IBEIS VIEW
-from ibeis.view import viz_helpers as vh
-from ibeis.view import viz_image
-from ibeis.view import viz_chip
-from ibeis.view import viz_matches
-from ibeis.view import viz
-from ibeis.view import interact
 from ibeis.view import guifront
 from ibeis.view import guiback
 from ibeis.view import gui_item_tables
+from ibeis.view import viz
+from ibeis.view.viz import viz_helpers as vh
+from ibeis.view.viz import viz_image
+from ibeis.view.viz import viz_chip
+from ibeis.view.viz import viz_matches
 from ibeis.view import interact
-from ibeis.view import interact_helpers
-from ibeis.view import interact_image
-from ibeis.view import interact_chip
+from ibeis.view.interact import interact_helpers as ih
+from ibeis.view.interact import interact_image
+from ibeis.view.interact import interact_chip
 # IBEIS CONTROl
 import ibeis.control
 from ibeis.control import SQLDatabaseControl

@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.view import viz
 from ibeis.view.viz import viz_helpers as vh
+from drawtool import draw_func2 as df2
 from . import interact_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_img]',
@@ -12,6 +13,10 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
                    select_rid_callback=None,
                    **kwargs):
     fig = interact_helpers.begin_interaction('image', fnum)
+
+    def _image_view():
+        viz.show_image(ibs, gid, sel_rids, **kwargs)
+        df2.set_figtitle('Image View')
 
     # Create callback wrapper
     def _on_image_click(event):
@@ -42,6 +47,6 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
                 select_rid_callback(gid, sel_rids=[rid])
         viz.draw()
 
-    viz.show_image(ibs, gid, sel_rids, **kwargs)
+    _image_view()
     viz.draw()
     interact_helpers.connect_callback(fig, 'button_press_event', _on_image_click)

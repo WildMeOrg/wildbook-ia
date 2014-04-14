@@ -100,9 +100,9 @@ def get_chip_encounters(ibs):
 
 def get_fmatch_iter(res):
     # USE res.get_fmatch_iter()
-    fmfsfk_enum = enumerate(izip(res.cid2_fm, res.cid2_fs, res.cid2_fk))
-    fmatch_iter = ((cid, fx_tup, score, rank)
-                   for cid, (fm, fs, fk) in fmfsfk_enum
+    fmfsfk_enum = enumerate(izip(res.rid2_fm, res.rid2_fs, res.rid2_fk))
+    fmatch_iter = ((rid, fx_tup, score, rank)
+                   for rid, (fm, fs, fk) in fmfsfk_enum
                    for (fx_tup, score, rank) in izip(fm, fs, fk))
     return fmatch_iter
 
@@ -110,27 +110,27 @@ def get_fmatch_iter(res):
 def get_cxfx_enum(qreq):
     ax2_cxs = qreq._data_index.ax2_cx
     ax2_fxs = qreq._data_index.ax2_fx
-    cidfx_enum = enumerate(izip(ax2_cxs, ax2_fxs))
-    return cidfx_enum
+    ridfx_enum = enumerate(izip(ax2_cxs, ax2_fxs))
+    return ridfx_enum
 
 
-def intra_query_cxs(ibs, cids):
-    dcxs = qcxs = cids
+def intra_query_cxs(ibs, rids):
+    dcxs = qcxs = rids
     qreq = mc3.prep_query_request(qreq=ibs.qreq, qcxs=qcxs, dcxs=dcxs,
                                   query_cfg=ibs.prefs.query_cfg)
     qcx2_res = mc3.process_query_request(ibs, qreq)
     return qcx2_res
 
 
-#def intra_encounter_match(ibs, cids, **kwargs):
+#def intra_encounter_match(ibs, rids, **kwargs):
     # Make a graph between the chips
-    #qcx2_res = intra_query_cxs(cids)
+    #qcx2_res = intra_query_cxs(rids)
     #graph = make_chip_graph(qcx2_res)
     # TODO: Make a super cool algorithm which does this correctly
     #graph.cutEdges(**kwargs)
     # Get a temporary name id
     # TODO: ensure these name indexes do not conflict with other encounters
-    #cid2_nx, nid2_cxs = graph.getConnectedComponents()
+    #rid2_nx, nid2_cxs = graph.getConnectedComponents()
     #return graph
 
 
@@ -139,10 +139,10 @@ def execute_all_intra_encounter_match(ibs, **kwargs):
     ex2_cxs = get_chip_encounters(ibs)
     # For each encounter
     ex2_names = {}
-    for ex, cids in enumerate(ex2_cxs):
+    for ex, rids in enumerate(ex2_cxs):
         pass
         # Perform Intra-Encounter Matching
-        #nid2_cxs = intra_encounter_match(ibs, cids)
+        #nid2_cxs = intra_encounter_match(ibs, rids)
         #ex2_names[ex] = nid2_cxs
     return ex2_names
 
@@ -159,11 +159,11 @@ def inter_encounter_match(ibs, eid2_names=None, **kwargs):
     qcx2_res = name_result.chip_results()
     graph = netx.Graph()
     graph.add_nodes_from(range(len(qcx2_res)))
-    graph.add_edges_from([res.cid2_fm for res in qcx2_res.itervalues()])
-    graph.setWeights([(res.cid2_fs, res.cid2_fk) for res in qcx2_res.itervalues()])
+    graph.add_edges_from([res.rid2_fm for res in qcx2_res.itervalues()])
+    graph.setWeights([(res.rid2_fs, res.rid2_fk) for res in qcx2_res.itervalues()])
     graph.cutEdges(**kwargs)
-    cid2_nx, nid2_cxs = graph.getConnectedComponents()
-    return cid2_nx
+    rid2_nx, nid2_cxs = graph.getConnectedComponents()
+    return rid2_nx
 
 
 def print_encounter_stats(ex2_cxs):

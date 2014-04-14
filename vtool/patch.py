@@ -14,6 +14,7 @@ from . import histogram as htool
 from . import keypoint as ktool
 from . import linalg as ltool
 from . import image as gtool
+from . import trig
 from utool.util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[patch]', DEBUG=False)
 
@@ -41,10 +42,8 @@ def patch_mag(gradx, grady):
 
 
 def patch_ori(gradx, grady):
-    'returns patch orientation relative to the x-axis'
-    gori = np.arctan2(grady, gradx)  # outputs from -pi to pi
-    gori[gori < 0] = gori[gori < 0] + np.tau  # map to 0 to tau (keep coords)
-    gori = gori % np.tau
+    """ returns patch orientation relative to the x-axis """
+    gori = trig.atan2(grady, gradx)
     return gori
 
 
@@ -72,9 +71,9 @@ def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
 
 
 def get_unwarped_patches(rchip, kpts):
-    'Returns cropped unwarped patch around a keypoint'
+    """ Returns cropped unwarped patch around a keypoint """
     _xs, _ys = ktool.get_xys(kpts)
-    xyexnts = ktool.get_xy_axis_extents(kpts=kpts)
+    xyexnts = ktool.get_xy_axis_extents(kpts)
     patches = []
     subkpts = []
 
@@ -95,7 +94,7 @@ def get_unwarped_patches(rchip, kpts):
 
 
 def get_warped_patches(rchip, kpts):
-    'Returns warped patch around a keypoint'
+    """ Returns warped patch around a keypoint """
     # TODO: CLEAN ME
     warped_patches = []
     warped_subkpts = []
@@ -110,10 +109,10 @@ def get_warped_patches(rchip, kpts):
         ss = sqrt(s) * 3
         (h, w) = rchip.shape[0:2]
         # Translate to origin(0,0) = (x,y)
-        T = ltool.translation_mat(-x, -y)
-        R = ltool.rotation_mat(-ori)
-        S = ltool.scale_mat(ss)
-        X = ltool.translation_mat(s / 2, s / 2)
+        T = ltool.translation_mat3x3(-x, -y)
+        R = ltool.rotation_mat3x3(-ori)
+        S = ltool.scale_mat3x3(ss)
+        X = ltool.translation_mat3x3(s / 2, s / 2)
         M = X.dot(S).dot(R).dot(V).dot(T)
         # Prepare to warp
         dsize = np.array(np.ceil(np.array([s, s])), dtype=int)

@@ -20,14 +20,15 @@ def show_keypoints(rchip, kpts, fnum=0, pnum=None, **kwargs):
 def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
     color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
     # Keypoint drawing kwargs
-    drawkpts_kw = kwargs.copy()
-    drawkpts_kw.update({
+    drawkpts_kw = {
         'ell': True,
         'pts': False,
         'ell_alpha': .4,
         'ell_linewidth': 2,
         'ell_color': color,
-    })
+    }
+    drawkpts_kw.update(kwargs)
+
     # draw all keypoints
     if sel_fx is None:
         df2.draw_kpts2(kpts, **drawkpts_kw)
@@ -48,23 +49,22 @@ def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
 
 
 @utool.indent_func
-def show_chip(ibs, cid, in_image=False, **kwargs):
+def show_chip(ibs, rid, in_image=False, **kwargs):
     """ Driver function to show chips """
     printDBG('[viz] show_chip()')
     # Get chip
-    chip = vh.get_chips(ibs, cid, in_image, **kwargs)
+    chip = vh.get_chips(ibs, rid, in_image, **kwargs)
     # Get Keypoints
-    kpts = vh.get_kpts(ibs, cid, in_image, **kwargs)
+    kpts = vh.get_kpts(ibs, rid, in_image, **kwargs)
     # Create chip title
-    title_str = vh.get_chip_labels(ibs, cid, **kwargs)
+    title_str = vh.get_chip_labels(ibs, rid, **kwargs)
     # Draw chip
     fig, ax = df2.imshow(chip, title=title_str, **kwargs)
     # Populate axis user data
     vh.set_ibsdat(ax, 'viztype', 'chip')
-    vh.set_ibsdat(ax, 'cid', cid)
+    vh.set_ibsdat(ax, 'rid', rid)
     # Draw keypoints
     _annotate_kpts(kpts, **kwargs)
     if in_image:
-        gid = ibs.get_chip_gids(cid)
-        rid = ibs.get_chip_rids(cid)
+        gid = ibs.get_roi_gids(rid)
         viz_image.annotate_image(ibs, ax, gid, [rid])

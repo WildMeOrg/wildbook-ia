@@ -15,16 +15,16 @@ class QueryRequest(__REQUEST_BASE__):
     def __init__(qreq):
         super(QueryRequest, qreq).__init__()
         qreq.cfg = None  # Query config pointer
-        qreq.qcids = []
-        qreq.dcids = []
+        qreq.qrids = []
+        qreq.drids = []
         qreq.data_index = None  # current index
         qreq.dftup2_index = {}  # cached indexes
         qreq.vsmany = False
         qreq.vsone = False
 
-    def set_cids(qreq, qcids, dcids):
-        qreq.qcids = qcids
-        qreq.dcids = dcids
+    def set_rids(qreq, qrids, drids):
+        qreq.qrids = qrids
+        qreq.drids = drids
 
     def set_cfg(qreq, query_cfg):
         qreq.cfg = query_cfg
@@ -34,35 +34,35 @@ class QueryRequest(__REQUEST_BASE__):
     def get_uid_list(qreq, *args, **kwargs):
         uid_list = qreq.cfg.get_uid_list(*args, **kwargs)
         if not 'noDCXS' in args:
-            if len(qreq.dcids) == 0:
-                raise Exception('QueryRequest not populated. len(dcids)=0')
+            if len(qreq.drids) == 0:
+                raise Exception('QueryRequest not populated. len(drids)=0')
             # In case you don't search the entire dataset
-            dcids_uid = utool.hashstr_arr(qreq.dcids, '_dcids')
-            uid_list += [dcids_uid]
+            drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
+            uid_list += [drids_uid]
         return uid_list
 
     def get_uid(qreq, *args, **kwargs):
         return ''.join(qreq.get_uid_list(*args, **kwargs))
 
-    def get_query_uid(qreq, ibs, qcids):
+    def get_query_uid(qreq, ibs, qrids):
         query_uid = qreq.get_uid()
         hs_uid    = ibs.get_db_name()
-        qcids_uid  = utool.hashstr_arr(qcids, lbl='_qids')
-        test_uid  = hs_uid + query_uid + qcids_uid
+        qrids_uid  = utool.hashstr_arr(qrids, lbl='_qids')
+        test_uid  = hs_uid + query_uid + qrids_uid
         return test_uid
 
-    def get_internal_dcids(qreq):
-        """ These are not the users dcids in vsone mode """
-        dcids = qreq.dcids if qreq.vsmany else qreq.qcids
-        return dcids
+    def get_internal_drids(qreq):
+        """ These are not the users drids in vsone mode """
+        drids = qreq.drids if qreq.vsmany else qreq.qrids
+        return drids
 
-    def get_internal_qcids(qreq):
-        """ These are not the users qcids in vsone mode """
-        qcids = qreq.qcids if qreq.vsmany else qreq.dcids
-        return qcids
+    def get_internal_qrids(qreq):
+        """ These are not the users qrids in vsone mode """
+        qrids = qreq.qrids if qreq.vsmany else qreq.drids
+        return qrids
 
-    def get_cidfx_enum(qreq):
-        ax2_cids = qreq.data_index.ax2_cid
+    def get_ridfx_enum(qreq):
+        ax2_rids = qreq.data_index.ax2_rid
         ax2_fxs = qreq.data_index.ax2_fx
-        cidfx_enum = enumerate(izip(ax2_cids, ax2_fxs))
-        return cidfx_enum
+        ridfx_enum = enumerate(izip(ax2_rids, ax2_fxs))
+        return ridfx_enum

@@ -462,6 +462,7 @@ def print_exception(ex,
                     prefix=None,
                     key_list=[],
                     locals_=None):
+    """ Formats an exception with relevant info """
     if prefix is None:
         prefix = get_caller_prefix(aserror=True)
     if locals_ is None:
@@ -477,6 +478,9 @@ def print_exception(ex,
         else:
             print('%s !!! %s not populated!' % (prefix, key))
     print('</!!!>')
+
+
+printex = print_exception
 
 
 def printvar2(varstr, attr=''):

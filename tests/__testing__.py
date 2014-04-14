@@ -54,6 +54,7 @@ def testcontext2(name):
 
 def testcontext(func):
     @functools.wraps(func)
+    @utool.ignores_exc_tb
     def test_wrapper(*args, **kwargs):
         with utool.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
             try:

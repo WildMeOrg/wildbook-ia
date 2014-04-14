@@ -69,38 +69,37 @@ def get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs):
         raise
     kpts_list    = ibs.get_roi_kpts(rid_list, ensure=ensure)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
-                    for bbox, theta, chipsz, kpts
-                    in izip(bbox_list, theta_list, chipsz_list, kpts_list)]
+                    for kpts, bbox, theta, chipsz
+                    in izip(kpts_list, bbox_list, theta_list, chipsz_list)]
     return imgkpts_list
 
 
 @getter
-def get_chips(ibs, cid_list, in_image=False, **kwargs):
+def get_chips(ibs, rid_list, in_image=False, **kwargs):
     if 'chip' in kwargs:
         return kwargs['chip']
     if in_image:
-        rid_list = ibs.get_chip_rids(cid_list)
         return ibs.get_roi_images(rid_list)
     else:
-        return ibs.get_chips(cid_list)
+        return ibs.get_roi_chips(rid_list)
 
 
 @getter
-def get_kpts(ibs, cid_list, in_image=False, **kwargs):
+def get_kpts(ibs, rid_list, in_image=False, kpts_subset=None, **kwargs):
     if 'kpts' in kwargs:
         return kwargs['kpts']
     ensure = kwargs.get('ensure', True)
     if in_image:
-        rid_list = ibs.get_chip_rids(cid_list)
         kpts_list = get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs)
     else:
-        kpts_list = ibs.get_chip_kpts(cid_list, ensure=ensure)
+        kpts_list = ibs.get_roi_kpts(rid_list, ensure=ensure)
+    if kpts_subset:
+        kpts_list = [utool.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
     return kpts_list
 
 
 @getter
-def get_bboxes(ibs, cid_list, offset_list=None):
-    rid_list = ibs.get_chip_rids(cid_list)
+def get_bboxes(ibs, rid_list, offset_list=None):
     bbox_list = ibs.get_roi_bboxes(rid_list)
     if offset_list is not None:
         assert len(offset_list) == len(bbox_list)
@@ -112,38 +111,34 @@ def get_bboxes(ibs, cid_list, offset_list=None):
 
 
 @getter
-def get_thetas(ibs, cid_list):
-    rid_list = ibs.get_chip_rids(cid_list)
+def get_thetas(ibs, rid_list):
     theta_list = ibs.get_roi_thetas(rid_list)
     return theta_list
 
 
 @getter
-def get_groundtruth(ibs, cid_list):
-    rid_list = ibs.get_chip_rids(cid_list)
+def get_groundtruth(ibs, rid_list):
     gt_list = ibs.get_roi_groundtruth(rid_list)
     return gt_list
 
 
 @getter
-def get_names(ibs, cid_list):
-    name_list = ibs.get_chip_names(cid_list)
+def get_names(ibs, rid_list):
+    name_list = ibs.get_roi_names(rid_list)
     return name_list
 
 
 @getter
-def get_gnames(ibs, cid_list):
-    rid_list = ibs.get_chip_rids(cid_list)
+def get_gnames(ibs, rid_list):
     return ibs.get_roi_gnames(rid_list)
 
 
-def get_cidstrs(cid_list):
-    fmtstr = 'cid=%r'
-    if utool.isiterable(cid_list):
-        return [fmtstr % cid for cid in cid_list]
+def get_ridstrs(rid_list):
+    fmtstr = 'rid=%r'
+    if utool.isiterable(rid_list):
+        return [fmtstr % rid for rid in rid_list]
     else:
-        cid = cid_list
-        return fmtstr % cid_list
+        return fmtstr % rid_list
 
 
 def get_bbox_centers(bbox_list):
@@ -152,8 +147,8 @@ def get_bbox_centers(bbox_list):
     return bbox_centers
 
 
-def get_match_truth(ibs, cid1, cid2):
-    nid1, nid2 = ibs.get_chip_nids((cid1, cid2))
+def get_match_truth(ibs, rid1, rid2):
+    nid1, nid2 = ibs.get_roi_nids((rid1, rid2))
     if nid1 != nid2 and nid1 > 1 and nid2 > 1:
         truth = 0
     elif nid1 > 1 and nid2 > 1:
@@ -181,8 +176,8 @@ def get_truth_color(ibs, truth):
     return truth_colors[truth]
 
 
-def get_timedelta_str(ibs, cid1, cid2):
-    gid1, gid2 = ibs.get_chip_gids([cid1, cid2])
+def get_timedelta_str(ibs, rid1, rid2):
+    gid1, gid2 = ibs.get_roi_gids([rid1, rid2])
     unixtime1, unixtime2 = ibs.get_image_unixtime([gid1, gid2])
     if -1 in [unixtime1, unixtime2]:
         timedelta_str_ = 'NA'
@@ -194,17 +189,17 @@ def get_timedelta_str(ibs, cid1, cid2):
 
 
 @getter
-def get_chip_labels(ibs, cid_list, **kwargs):
+def get_chip_labels(ibs, rid_list, **kwargs):
     # Add each type of label_list to the strings list
     label_strs = []
-    if kwargs.get('show_cidstr', True):
-        cidstr_list = get_cidstrs(cid_list)
-        label_strs.append(cidstr_list)
+    if kwargs.get('show_ridstr', True):
+        ridstr_list = get_ridstrs(rid_list)
+        label_strs.append(ridstr_list)
     if kwargs.get('show_gname', True):
-        gname_list = get_gnames(ibs, cid_list)
+        gname_list = get_gnames(ibs, rid_list)
         label_strs.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):
-        name_list = get_names(ibs, cid_list)
+        name_list = get_names(ibs, rid_list)
         label_strs.append(['name=%s' % name for name in name_list])
     # zip them up to get a tuple for each chip and join the fields
     title_list = [', '.join(tup) for tup in izip(*label_strs)]
@@ -230,21 +225,21 @@ def get_roi_labels(ibs, rid_list, draw_lbls):
     return label_list
 
 
-def get_query_label(ibs, qres, cid2, truth, **kwargs):
+def get_query_label(ibs, qres, rid2, truth, **kwargs):
     """ returns title based on the query chip and result """
     label_list = []
     if kwargs.get('show_truth', True):
         truth_str = '*%s*' % get_truth_label(ibs, truth)
         label_list.append(truth_str)
     if kwargs.get('show_rank', True):
-        rank_str = ' rank=%s' % str(qres.get_cid_ranks([cid2])[0] + 1)
+        rank_str = ' rank=%s' % str(qres.get_rid_ranks([rid2])[0] + 1)
         label_list.append(rank_str)
     if kwargs.get('show_score', True):
-        score = qres.cid2_score[cid2]
+        score = qres.rid2_score[rid2]
         score_str = (' score=' + utool.num_fmt(score))
         label_list.append(score_str)
     if kwargs.get('show_timedelta', False):
-        timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qcid, cid2))
+        timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qrid, rid2))
         label_list.append(timedelta_str)
     query_label = ', '.join(label_list)
     return query_label
@@ -255,16 +250,16 @@ def get_query_label(ibs, qres, cid2, truth, **kwargs):
 #==========================#
 
 
-def show_keypoint_gradient_orientations(ibs, cid, fx, fnum=None, pnum=None):
+def show_keypoint_gradient_orientations(ibs, rid, fx, fnum=None, pnum=None):
     # Draw the gradient vectors of a patch overlaying the keypoint
     if fnum is None:
         fnum = df2.next_fnum()
-    rchip = ibs.get_chips(cid)
-    kp = ibs.get_kpts(cid)[fx]
-    sift = ibs.get_desc(cid)[fx]
+    rchip = ibs.get_roi_chips(rid)
+    kp    = ibs.get_roi_kpts(rid)[fx]
+    sift  = ibs.get_roi_desc(rid)[fx]
     df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
                                             mode='vec', fnum=fnum, pnum=pnum)
-    df2.set_title('Gradient orientation\n %s, fx=%d' % (ibs.cidstr(cid), fx))
+    df2.set_title('Gradient orientation\n %s, fx=%d' % (get_ridstrs(rid), fx))
 
 
 def kp_info(kp):

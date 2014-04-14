@@ -24,7 +24,6 @@ import warnings
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-from matplotlib.font_manager import FontProperties
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Qt
 from PyQt4 import QtCore, QtGui
@@ -55,14 +54,21 @@ SMALL    = 10
 MED      = 12
 LARGE    = 14
 #fpargs = dict(family=None, style=None, variant=None, stretch=None, fname=None)
+
+
+def FontProp(*args, **kwargs):
+    """ overwrite fontproperties with custom settings """
+    kwargs['family'] = 'monospace'
+    return mpl.font_manager.FontProperties(*args, **kwargs)
+
 FONTS = utool.DynStruct()
-FONTS.smallest  = FontProperties(weight='light', size=SMALLEST)
-FONTS.small     = FontProperties(weight='light', size=SMALL)
-FONTS.smaller   = FontProperties(weight='light', size=SMALLER)
-FONTS.med       = FontProperties(weight='light', size=MED)
-FONTS.large     = FontProperties(weight='light', size=LARGE)
-FONTS.medbold   = FontProperties(weight='bold', size=MED)
-FONTS.largebold = FontProperties(weight='bold', size=LARGE)
+FONTS.smallest  = FontProp(weight='light', size=SMALLEST)
+FONTS.small     = FontProp(weight='light', size=SMALL)
+FONTS.smaller   = FontProp(weight='light', size=SMALLER)
+FONTS.med       = FontProp(weight='light', size=MED)
+FONTS.large     = FontProp(weight='light', size=LARGE)
+FONTS.medbold   = FontProp(weight='bold', size=MED)
+FONTS.largebold = FontProp(weight='bold', size=LARGE)
 
 # SPECIFIC FONTS
 
@@ -261,9 +267,10 @@ def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
     trans_roi.translate(rx + rw / 2, ry + rh / 2)
     t_end = trans_roi + ax.transData
     bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=2, transform=t_end)
-    arw_x, arw_y, arw_dx, arw_dy   = (-0.5, -0.5, 1.0, 0.0)
-    arrowargs = dict(head_width=.1, transform=t_end, length_includes_head=True)
-    arrow = mpl.patches.FancyArrow(arw_x, arw_y, arw_dx, arw_dy, **arrowargs)
+    # Draw overhead arrow indicating the top of the ROI
+    arw_xydxdy = (-0.5, -0.5, 1.0, 0.0)
+    arw_kw = dict(head_width=.1, transform=t_end, length_includes_head=True)
+    arrow = mpl.patches.FancyArrow(*arw_xydxdy, **arw_kw)
 
     bbox.set_fill(False)
     #bbox.set_transform(trans)
@@ -1501,6 +1508,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
     printDBG(' * kpts.shape=%r:' % (kpts.shape,))
     printDBG(' * ell=%r pts=%r' % (ell, pts))
+    printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
     printDBG(' * scale_factor=%r' % (scale_factor,))
     printDBG(' * offset=%r' % (offset,))
     printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))

@@ -13,6 +13,10 @@ np.tau = 2 * np.pi  # tauday.com
 TRANSFORM_DTYPE = np.float64
 
 
+# Function which multiplies many matrices at once
+from numpy.core.umath_tests import matrix_multiply  # NOQA
+
+
 def svd(M):
     # V is actually Vt
     flags = cv2.SVD_FULL_UV
@@ -66,24 +70,24 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     return result
 
 
-def rotation_mat(radians):
+def rotation_mat3x3(radians):
     sin_ = sin(radians)
     cos_ = cos(radians)
-    R = array(((cos_, -sin_, 0),
-               (sin_,  cos_, 0),
-               (   0,      0, 1)))
+    R = array(((cos_, -sin_,  0),
+               (sin_,  cos_,  0),
+               (   0,     0,  1),))
     return R
 
 
-def rotation2x2(theta):
+def rotation_mat2x2(theta):
     sin_ = sin(theta)
     cos_ = cos(theta)
-    rot_ = array([[cos_, -sin_],
-                  [sin_, cos_]])
+    rot_ = array(((cos_, -sin_),
+                  (sin_,  cos_),))
     return rot_
 
 
-def rotation3x3_around(theta, x, y):
+def rotation_around_mat3x3(theta, x, y):
     sin_ = sin(theta)
     cos_ = cos(theta)
     tr1_ = array([[1, 0, -x],
@@ -99,14 +103,14 @@ def rotation3x3_around(theta, x, y):
     return rot
 
 
-def translation_mat(x, y, dtype=TRANSFORM_DTYPE):
+def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     T = array([[1, 0,  x],
                [0, 1,  y],
                [0, 0,  1]], dtype=dtype)
     return T
 
 
-def scale_mat(sx, sy=None, dtype=TRANSFORM_DTYPE):
+def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     sy = sx if sy is None else sy
     S = array([[sx, 0, 0],
                [0, sy, 0],

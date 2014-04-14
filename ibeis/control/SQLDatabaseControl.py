@@ -153,9 +153,9 @@ class SQLDatabaseControl(object):
                     arbirtary order that will be filled into the cooresponging
                     slots of the sql operation string
         """
-        if verbose:
-            caller_name = utool.util_dbg.get_caller_name()
-            print('[sql] %r called execute' % caller_name)
+        #if verbose:
+            #caller_name = utool.util_dbg.get_caller_name()
+            #print('[sql] %r called execute' % caller_name)
         status = False
         try:
             status = db.executor.execute(operation, parameters)
@@ -170,9 +170,9 @@ class SQLDatabaseControl(object):
     def executeone(db, operation, parameters=(), auto_commit=True, errmsg=None,
                    verbose=VERBOSE):
         """ Runs execute and returns results """
-        if verbose:
-            caller_name = utool.util_dbg.get_caller_name()
-            print('[sql] %r called executeone' % caller_name)
+        #if verbose:
+            #caller_name = utool.util_dbg.get_caller_name()
+            #print('[sql] %r called executeone' % caller_name)
         operation_type = get_operation_type(operation)
         operation_label = '[sql] executeone %s: ' % (operation_type)
         if not QUIET:
@@ -216,11 +216,11 @@ class SQLDatabaseControl(object):
         This function is a bit messy right now. Needs cleaning up
         """
         # TODO: THIS SHOULD PACK EVERYTHING INTO A SINGLE TRANSACTION AND THEN EXECUTE IT
-        caller_name = utool.util_dbg.get_caller_name()
-        if errmsg is None:
-            errmsg = '%s ERROR' % caller_name
-        if verbose:
-            print('[sql.executemany] caller_name=%r' % caller_name)
+        #caller_name = utool.util_dbg.get_caller_name()
+        #if errmsg is None:
+            #errmsg = '%s ERROR' % caller_name
+        #if verbose:
+            #print('[sql.executemany] caller_name=%r' % caller_name)
         # Do any preprocesing on the SQL command / query
         operation_type = get_operation_type(operation)
         # Compute everything in Python before sending queries to SQL
@@ -281,21 +281,21 @@ class SQLDatabaseControl(object):
         return result_list
 
     def result(db, verbose=VERBOSE):
-        if verbose:
-            caller_name = utool.util_dbg.get_caller_name()
-            print('[sql.result] caller_name=%r' % caller_name)
+        #if verbose:
+            #caller_name = utool.util_dbg.get_caller_name()
+            #print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
 
     def result_list(db, verbose=VERBOSE):
-        if verbose:
-            caller_name = utool.util_dbg.get_caller_name()
-            print('[sql.result_list] caller_name=%r' % caller_name)
+        #if verbose:
+            #caller_name = utool.util_dbg.get_caller_name()
+            #print('[sql.result_list] caller_name=%r' % caller_name)
         return list(db.result_iter(verbose=False))
 
     def result_iter(db, verbose=VERBOSE):
-        if verbose:
-            caller_name = utool.util_dbg.get_caller_name()
-            print('[sql.result_iter] caller_name=%r' % caller_name)
+        #if verbose:
+            #caller_name = utool.util_dbg.get_caller_name()
+            #print('[sql.result_iter] caller_name=%r' % caller_name)
         while True:
             result = db.executor.fetchone()
             if not result:
@@ -314,9 +314,9 @@ class SQLDatabaseControl(object):
             error handling without comprimising the integrity of the database.
         """
         try:
-            if verbose:
-                caller_name = utool.util_dbg.get_caller_name()
-                print('[sql.commit] caller_name=%r' % caller_name)
+            #if verbose:
+                #caller_name = utool.util_dbg.get_caller_name()
+                #print('[sql.commit] caller_name=%r' % caller_name)
             if not all(qstat_flag_list):
                 raise lite.DatabaseError(errmsg)
             else:

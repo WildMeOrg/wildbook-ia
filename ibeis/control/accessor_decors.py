@@ -34,6 +34,7 @@ def getter(func):
     id list and returns a heterogeous list of values """
     @utool.accepts_scalar_input
     @utool.common_wrapper(func)
+    @utool.ignores_exc_tb
     def getter_wrapper1(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapper1

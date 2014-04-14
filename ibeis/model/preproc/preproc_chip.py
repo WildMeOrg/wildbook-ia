@@ -20,7 +20,7 @@ import vtool.image as gtool
 @utool.lru_cache(16)
 def compute_or_read_roi_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
-    #print('[preproc_chip] compute_or_read_chips')
+    printDBG('[preproc_chip] compute_or_read_chips')
     cfpath_list = ibs.get_roi_cpaths(rid_list)
     try:
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
@@ -115,16 +115,16 @@ def compute_and_write_chips(ibs, rid_list):
                                       newsize_list, filter_list)
     # Write results to disk as they come back from parallel processess
     for chipBGR, chip_fpath in chip_async_iter:
-        #print('write chip: %r' % chip_fpath)
+        printDBG('write chip: %r' % chip_fpath)
         gtool.imwrite(chip_fpath, chipBGR)
 
 
 def compute_and_write_chips_lazy(ibs, rid_list):
-    print('[preproc_chip] compute_and_write_chips_lazy')
+    printDBG('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which rid's need their chips computed
     cfpath_list = get_roi_cfpath_list(ibs, rid_list)
     dirty_flags = [not exists(cfpath) for cfpath in cfpath_list]
     invalid_rids = [rid for (rid, flag) in izip(rid_list, dirty_flags) if flag]
-    print('[preproc_chip] %d / %d chips need to be computed' %
-          (len(invalid_rids), len(rid_list)))
+    printDBG('[preproc_chip] %d / %d chips need to be computed' %
+             (len(invalid_rids), len(rid_list)))
     compute_and_write_chips(ibs, invalid_rids)

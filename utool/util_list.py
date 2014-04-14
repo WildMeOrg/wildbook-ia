@@ -115,6 +115,33 @@ def safe_slice(list_, *args):
         stop = len_
     return list_[slice(start, stop, step)]
 
+
+def spaced_indexes(len_, n, trunc=False):
+    """ Returns n evenly spaced indexes.
+        Returns as many as possible if trunc is true
+    """
+    if n is None:
+        return np.arange(len_)
+    if n == 0:
+        return np.empty(0)
+    all_indexes = np.arange(len_)
+    if trunc:
+        n = min(len_, n)
+    stride = len_ // n
+    try:
+        indexes = all_indexes[0:-1:stride]
+    except ValueError:
+        raise ValueError('cannot slice list of len_=%r into n=%r parts' % (len_, n))
+    return indexes
+
+
+def spaced_items(list_, n, **kwargs):
+    """ Returns n evenly spaced items """
+    indexes = spaced_indexes(len(list_), n, **kwargs)
+    items = list_[indexes]
+    return items
+
+
 # --- List Queries --- #
 
 

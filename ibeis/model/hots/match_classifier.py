@@ -9,22 +9,22 @@ from ibeis.model.hots import report_results2 as rr2
 
 
 def get_gt_cases(ibs):
-    valid_cxs = ibs.get_valid_cxs()
-    cid_list = [cid for cid in valid_cxs if len(ibs.get_other_indexed_cxs(cid)) > 0]
-    return cid_list
+    valid_rids = ibs.get_valid_rids()
+    rid_list = [rid for rid in valid_rids if len(ibs.get_roi_groundtruth(rid)) > 0]
+    return rid_list
 
 
 def get_labeled_descriptors(allres, orgtype_='false'):
     qcxs = allres[orgtype_].qcxs
-    cids  = allres[orgtype_].cids
-    match_list = zip(qcxs, cids)
+    rids  = allres[orgtype_].rids
+    match_list = zip(qcxs, rids)
     aggdesc1, aggdesc2 = rr2.get_matching_descriptors(allres, match_list)
     return aggdesc1, aggdesc2
 
 
 def train_classifier(ibs):
-    cid_list = get_gt_cases(ibs)
-    allres = rr2.get_allres(ibs, cid_list)
+    rid_list = get_gt_cases(ibs)
+    allres = rr2.get_allres(ibs, rid_list)
     neg_eg = get_labeled_descriptors(allres, 'false')
     pos_eg = get_labeled_descriptors(allres, 'true')
 

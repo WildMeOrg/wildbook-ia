@@ -11,7 +11,7 @@ from . import interact_helpers as ih
 
 
 # CHIP INTERACTION 2
-def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
+def interact_chip(ibs, rid, fnum=2, fx=None, **kwargs):
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)
@@ -34,7 +34,7 @@ def interact_chip(ibs, rid, fnum=2, figtitle='Chip View', fx=None, **kwargs):
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
         viz.show_chip(ibs, cid, fnum=fnum, pnum=pnum, **kwargs)
-        df2.set_figtitle(figtitle)
+        df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
         print_('[inter] clicked chip')

@@ -22,26 +22,26 @@ def score_chipmatch_coverage(ibs, qcx, chipmatch, qreq, method=0):
     prescore_method = 'csum'
     nShortlist = 100
     dcxs_ = set(qreq._dcxs)
-    (cid2_fm, cid2_fs, cid2_fk) = chipmatch
-    cid2_prescore = mf.score_chipmatch(ibs, qcx, chipmatch, prescore_method, qreq)
-    topx2_cx = cid2_prescore.argsort()[::-1]  # Only allow indexed cids to be in the top results
-    topx2_cx = [cid for cid in iter(topx2_cx) if cid in dcxs_]
+    (rid2_fm, rid2_fs, rid2_fk) = chipmatch
+    rid2_prescore = mf.score_chipmatch(ibs, qcx, chipmatch, prescore_method, qreq)
+    topx2_cx = rid2_prescore.argsort()[::-1]  # Only allow indexed rids to be in the top results
+    topx2_cx = [rid for rid in iter(topx2_cx) if rid in dcxs_]
     nRerank = min(len(topx2_cx), nShortlist)
-    cid2_score = [0 for _ in xrange(len(cid2_fm))]
+    rid2_score = [0 for _ in xrange(len(rid2_fm))]
     mark_progress, end_progress = utool.progress_func(nRerank, flush_after=10,
                                                       lbl='[cov] Compute coverage')
     for topx in xrange(nRerank):
         mark_progress(topx)
-        cid2 = topx2_cx[topx]
-        fm = cid2_fm[cid2]
-        fs = cid2_fs[cid2]
-        covscore = get_match_coverage_score(ibs, qcx, cid2, fm, fs, method=method)
-        cid2_score[cid2] = covscore
+        rid2 = topx2_cx[topx]
+        fm = rid2_fm[rid2]
+        fs = rid2_fs[rid2]
+        covscore = get_match_coverage_score(ibs, qcx, rid2, fm, fs, method=method)
+        rid2_score[rid2] = covscore
     end_progress()
-    return cid2_score
+    return rid2_score
 
 
-def get_match_coverage_score(ibs, cid1, cid2, fm, fs, **kwargs):
+def get_match_coverage_score(ibs, rid1, rid2, fm, fs, **kwargs):
     if len(fm) == 0:
         return 0
     if not 'scale_factor' in kwargs:
@@ -50,10 +50,10 @@ def get_match_coverage_score(ibs, cid1, cid2, fm, fs, **kwargs):
         kwargs['method'] = METHOD_DEFAULT
     sel_fx1, sel_fx2 = fm.T
     method = kwargs.get('method', 0)
-    score1 = get_cx_match_covscore(ibs, cid1, sel_fx1, fs, **kwargs)
+    score1 = get_roi_match_covscore(ibs, rid1, sel_fx1, fs, **kwargs)
     if method in [0, 2]:
         # 0 and 2 use both score
-        score2 = get_cx_match_covscore(ibs, cid2, sel_fx2, fs, **kwargs)
+        score2 = get_roi_match_covscore(ibs, rid2, sel_fx2, fs, **kwargs)
         covscore = (score1 + score2) / 2
     elif method in [1, 3]:
         # 1 and 3 use just score 1
@@ -63,15 +63,15 @@ def get_match_coverage_score(ibs, cid1, cid2, fm, fs, **kwargs):
     return covscore
 
 
-def get_cx_match_covscore(ibs, cid, sel_fx, mx2_score, **kwargs):
-    dstimg = get_cx_match_covimg(ibs, cid, sel_fx, mx2_score, **kwargs)
+def get_roi_match_covscore(ibs, rid, sel_fx, mx2_score, **kwargs):
+    dstimg = get_roi_match_covimg(ibs, rid, sel_fx, mx2_score, **kwargs)
     score = dstimg.sum() / (dstimg.shape[0] * dstimg.shape[1])
     return score
 
 
-def get_cx_match_covimg(ibs, cid, sel_fx, mx2_score, **kwargs):
-    chip = ibs.get_chip(cid)
-    kpts = ibs.get_kpts(cid)
+def get_roi_match_covimg(ibs, rid, sel_fx, mx2_score, **kwargs):
+    chip = ibs.get_roi_chips(rid)
+    kpts = ibs.get_roi_kpts(rid)
     mx2_kp = kpts[sel_fx]
     srcimg = ptool.gaussian_patch()
     # 2 and 3 are scale modes
@@ -84,10 +84,10 @@ def get_cx_match_covimg(ibs, cid, sel_fx, mx2_score, **kwargs):
     return dstimg
 
 
-def get_match_coverage_images(ibs, cid1, cid2, fm, mx2_score, **kwargs):
+def get_match_coverage_images(ibs, rid1, rid2, fm, mx2_score, **kwargs):
     sel_fx1, sel_fx2 = fm.T
-    dstimg1 = get_cx_match_covimg(ibs, cid1, sel_fx1, mx2_score, **kwargs)
-    dstimg2 = get_cx_match_covimg(ibs, cid1, sel_fx1, mx2_score, **kwargs)
+    dstimg1 = get_roi_match_covimg(ibs, rid1, sel_fx1, mx2_score, **kwargs)
+    dstimg2 = get_roi_match_covimg(ibs, rid1, sel_fx1, mx2_score, **kwargs)
     return dstimg1, dstimg2
 
 

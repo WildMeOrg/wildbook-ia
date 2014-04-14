@@ -18,16 +18,22 @@ def _get_image_to_chip_transform(bbox, chipsz, theta):
         theta  - rotation of the bounding box
     """
     (x, y, w, h) = bbox
-    (w_, h_)     = chipsz
-    sx = (w_ / w)
-    sy = (h_ / h)
-    tx = -(x + (w / 2))
-    ty = -(y + (h / 2))
-
-    T1 = ltool.translation_mat(tx, ty)
-    S  = ltool.scale_mat(sx, sy)
-    R  = ltool.rotation_mat(-theta)
-    T2 = ltool.translation_mat((w_ / 2),  (h_ / 2))
+    (cw_, ch_)     = chipsz
+    # Translate from bbox center to (0, 0)
+    tx1 = -(x + (w / 2))
+    ty1 = -(y + (h / 2))
+    T1 = ltool.translation_mat3x3(tx1, ty1)
+    # Scale to chip height
+    sx = (cw_ / w)
+    sy = (ch_ / h)
+    S  = ltool.scale_mat3x3(sx, sy)
+    # Rotate to chip orientation
+    R  = ltool.rotation_mat3x3(-theta)
+    # Translate from (0, 0) to chip center
+    tx2 = (cw_ / 2)
+    ty2 = (cw_ / 2)
+    T2 = ltool.translation_mat3x3(tx2, ty2)
+    # Merge into single transformation (operate left-to-right aka data on left)
     C = T2.dot(R.dot(S.dot(T1)))
     return C
 
