@@ -15,6 +15,8 @@ import scipy.sparse.linalg as spsl
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 
+np.tau = 2 * np.pi  # tauday.org
+
 #PYX START
 """
 // These are cython style comments for maintaining python compatibility
@@ -98,6 +100,71 @@ def normalize_xy_points(x_m, y_m):
 #                   FLOAT_2D x2_m, FLOAT_2D y2_m, FLOAT_2D invV2_m,
 #                   float xy_thresh_sqrd,
 #                   float max_scale, float min_scale):
+@profile
+def affine_inliers2(kpts1, kpts2, fm,
+                    xy_thresh_sqrd, scale_thresh, ori_thresh):
+    """ Estimates inliers deterministically using elliptical shapes
+    1_m = img1_matches; 2_m = img2_matches
+    x and y are locations, invV is the elliptical shapes.
+    fx are the original feature indexes (used for making sure 1 keypoint isn't assigned to 2)
+
+    FROM PERDOCH 2009:
+        H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
+        H = inv(Aj).dot(Ai)
+        The input invVs = perdoch.invA's
+
+    We transform from 1 - >2
+    Get keypoint scales (determinant)
+    Compute all transforms from kpts1 to kpts2 (enumerate all hypothesis)
+    """
+    kpts1_m = kpts1[fm.T[0]]
+    kpts2_m = kpts2[fm.T[1]]
+
+    # Get keypoints to project
+    invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
+    V1s_m     = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
+    invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
+    # The transform from kp1 to kp2 is given as:
+    # Aff = inv(invV2).dot(V1)
+    Aff_mats = ktool.matrix_multiply(invVR2s_m, V1s_m)
+    # Get components to test projects against
+    det2_m = ktool.get_sqrd_scales(kpts2_m)  # PYX FLOAT_1D
+    _xy2_m   = invVR2s_m[:, 0, 0:2]
+    _ori2_m  = ktool.get_invVR_mats_oris(invVR2s_m)
+    # Test all hypothesis
+    def test_hypothosis_inliers(Aff):
+        # Map keypoints from image 1 onto image 2
+        invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
+        # Get projection components
+        _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
+        _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
+        _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])
+        # Check for projection errors
+        scale_err = _det1_mt / det2_m
+        ori_err   = (_ori1_mt - _ori2_m) % np.tau
+        xy_err    = ((_xy2_m - _xy1_mt) ** 2).sum(1)
+        # Mark keypoints which are inliers to this hypothosis
+        xy_inliers_flag = xy_err < xy_thresh_sqrd
+        ori_inliers_flag = ori_err < ori_thresh
+        scale_inliers_flag = scale_err < scale_thresh
+        hypo_inliers_flag = ltool.multi_ands(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+        hypo_inliers = np.where(hypo_inliers_flag)[0]
+        # TODO Add uniqueness of matches constraint
+        return hypo_inliers
+
+    # Enumerate all hypothesis
+    inliers_list = [test_hypothosis_inliers(Aff) for Aff in Aff_mats]
+    # Determine best hypothesis
+    nInliers_list = np.array(map(len, inliers_list))
+    best_mxs = nInliers_list.argsort()[::-1]
+    best_mx = best_mxs[0]
+    # Return best hypothesis and inliers
+    # TODO: In the future maybe average very good hypothesis?
+    best_inliers = inliers_list[best_mx]
+    best_Aff = Aff_mats[best_mx, :, :]
+    return best_Aff, best_inliers
+
+
 @profile
 def affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
                    x2_m, y2_m, invV2_m,
@@ -199,8 +266,10 @@ def affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
 @profile
 def homography_inliers(kpts1, kpts2, fm,
                        xy_thresh,
-                       max_scale,
-                       min_scale,
+                       #max_scale,
+                       #min_scale,
+                       scale_thresh,
+                       ori_thresh,
                        dlen_sqrd2=None,
                        min_num_inliers=4,
                        just_affine=False):
@@ -221,9 +290,11 @@ def homography_inliers(kpts1, kpts2, fm,
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
     fx1_m = fm[:, 0]
     #fx2_m = fm[:, 1]
-    Aff, aff_inliers = affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
-                                      x2_m, y2_m, invV2_m,
-                                      xy_thresh_sqrd, max_scale, min_scale)
+    #Aff, aff_inliers = affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
+                                      #x2_m, y2_m, invV2_m,
+                                      #xy_thresh_sqrd, max_scale, min_scale)
+    Aff, aff_inliers = affine_inliers2(kpts1_m, kpts2_m, fm,
+                                       xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Cannot find good affine correspondence
     if just_affine:
         #raise Exception('No affine inliers')

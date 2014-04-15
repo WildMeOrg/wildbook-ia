@@ -118,6 +118,10 @@ def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     return S
 
 
+def componentwise_ands(*args):
+    return reduce(lambda bits1, bits2: np.logical_and(bits1, bits2), args)
+
+
 # Ensure that a feature doesn't have multiple assignments
 # --------------------------------
 # Linear algebra functions on lower triangular matrices

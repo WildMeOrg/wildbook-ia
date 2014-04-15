@@ -212,47 +212,25 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
 #---------------------
 
 
-def get_invV_mats_components(invV_mats):
+def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components """
-    _iv11s = invV_mats[:, 0, 0]
-    _iv12s = invV_mats[:, 0, 1]
-    _iv21s = invV_mats[:, 1, 0]
-    _iv22s = invV_mats[:, 1, 1]
+    _iv11s = invVR_mats[:, 0, 0]
+    _iv12s = invVR_mats[:, 0, 1]
+    _iv21s = invVR_mats[:, 1, 0]
+    _iv22s = invVR_mats[:, 1, 1]
     return (_iv11s, _iv12s, _iv21s, _iv22s)
 
 
-def get_invVR_mats_orientation(invVR_mats):
-    """
-    import vtool.keypoint as ktool
-    import vtool.linalg as ltool
-    from vtool import trig
+def get_invVR_mats_xys(invVR_mats):
+    """ extracts xys from matrix encoding """
+    _xys = invVR_mats[:, 0, 0:2]
+    return _xys
 
-    theta1 = np.tau / 8
-    theta2 = -np.tau / 8
-    theta3 = 0
-    theta4 = 7 * np.tau / 8
 
-    invV_mats = ktool.get_dummy_invV_mats()
-
-    def R_mats(theta):
-        return np.array([ltool.rotation_mat2x2(theta) for _ in xrange(len(invV_mats))])
-
-    def test_rots(theta):
-        invVR_mats = matrix_multiply(invV_mats, R_mats(theta))
-        _oris = ktool.get_invVR_mats_orientation(invVR_mats)
-        print('________')
-        print('theta = %r' % (theta % np.tau,))
-        print('b / a = %r' % (_oris,))
-
-    test_rots(theta1)
-    test_rots(theta2)
-    test_rots(theta3)
-    test_rots(theta4)
-
-    """
+def get_invVR_mats_oris(invVR_mats):
     """ extracts orientation from matrix encoding """
     (_iv11s, _iv12s,
-     _iv21s, _iv22s) = get_invV_mats_components(invVR_mats)
+     _iv21s, _iv22s) = get_invVR_mats_shape(invVR_mats)
     #
     # Solve for orientations. Adjust gravity vector pointing down
     _oris = (-trig.atan2(_iv12s, _iv11s)) % np.tau
@@ -265,10 +243,10 @@ def rectify_invV_mats_are_up(invVR_mats):
     rotates affine shape matrixes into downward (lower triangular) position
     """
     # Get orientation encoded in the matrix
-    _oris = get_invVR_mats_orientation(invVR_mats)
+    _oris = get_invVR_mats_oris(invVR_mats)
     # Extract keypoint shape components
     (_a, _b,
-     _c, _d) = get_invV_mats_components(invVR_mats)
+     _c, _d) = get_invVR_mats_shape(invVR_mats)
     #
     # Convert to lower triangular (rectify orientation downwards)
     det_ = np.sqrt(np.abs((_a * _d) - (_b * _c)))
@@ -298,8 +276,8 @@ def flatten_invV_mats_to_kpts(invV_mats):
     return kpts
 
 
-def get_V_mats(invV_mats, **kwargs):
-    """ invert keypoint into V format """
+def get_V_mats(kpts, **kwargs):
+    invV_mats = get_invV_mats(kpts, **kwargs)
     V_mats = [npl.inv(invV) for invV in invV_mats]
     return V_mats
 
