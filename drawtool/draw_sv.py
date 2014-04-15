@@ -26,17 +26,6 @@ def blend_chips(chip1, chip2):
 
 
 def show_sv_affine(chip1, chip2, kpts1, kpts2, fm, Aff, aff_inliers, fnum=1, mx=None, **kwargs):
-    printDBG('[draw] show_sv_affine')
-    printDBG('[draw] len(kpts1) = %r' % len(kpts1))
-    printDBG('[draw] len(kpts2) = %r' % len(kpts2))
-    printDBG('[draw] len(fm) = %r' % len(fm))
-    printDBG('[draw] len(aff_inliers) = %r' % len(aff_inliers))
-    printDBG('[draw] aff_inliers = %r' % (aff_inliers,))
-    printDBG('[draw] mx = %r' % mx)
-
-    assert len(kpts1) > 0, 'len(kpts1) <= 0'
-    assert len(kpts2) > 0, 'len(kpts2) <= 0'
-    assert len(fm) > 0, 'len(fm) <= 0'
     kpts1_At = ktool.transform_kpts(kpts1, Aff)
     chip1_At = warp_affine(chip1, Aff, gtool.get_size(chip2))
     chip2_blendA = blend_chips(chip1_At, chip2)
@@ -44,8 +33,8 @@ def show_sv_affine(chip1, chip2, kpts1, kpts2, fm, Aff, aff_inliers, fnum=1, mx=
     pnumTop_ = df2.get_pnum_func(2, 2)
     pnumBot_ = df2.get_pnum_func(2, 4)
 
-    in_kwargs = dict(rect=True, ell_alpha=.7, eig=True, ori=True, pts=True)
-    out_kwargs = dict(rect=True, ell_alpha=.3, eig=True)
+    in_kwargs = dict(rect=True, ell_alpha=.7, eig=False, ori=True, pts=True)
+    out_kwargs = dict(rect=False, ell_alpha=.3, eig=False)
 
     # INLIER KEYPOINTS
     def draw_inliers(kpts, fxs, color):

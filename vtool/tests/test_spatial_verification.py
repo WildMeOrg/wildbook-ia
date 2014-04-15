@@ -72,8 +72,8 @@ def test_affine_inliers2(kpts1, kpts2, fm, nShow=6):
     for fnum, mx in enumerate(best_mxs[0:min(len(best_mxs), nShow)]):
         Aff = Aff_mats[mx]
         aff_inliers = inliers_list[mx]
-        errors = errors_list[mx]
-        print(utool.dict_str(errors, strvals=True))
+        #errors = errors_list[mx]
+        #print(utool.dict_str(errors, strvals=True))
         draw_sv.show_sv_affine(chip1, chip2, kpts1, kpts2, fm,
                                Aff, aff_inliers, mx=mx, fnum=fnum)
         df2.set_figtitle('#inliers = %r' % (nInliers_list[mx],))
@@ -84,8 +84,8 @@ def test_affine_inliers2(kpts1, kpts2, fm, nShow=6):
 if __name__ == '__main__':
     np.set_printoptions(precision=4, suppress=True)
     utool.util_inject._inject_colored_exception_hook()
-    kpts1 = dummy.pertebed_grid_kpts(seed=1, damping=4)
-    kpts2 = dummy.pertebed_grid_kpts(seed=2, damping=4)
+    kpts1 = dummy.pertebed_grid_kpts(seed=1, damping=2)
+    kpts2 = dummy.pertebed_grid_kpts(seed=2, damping=2)
     #kpts2 = ktool.get_grid_kpts()
     fm = dummy.make_dummy_fm(len(kpts1))
     nShow = utool.get_arg('--nShow', int, 1)
