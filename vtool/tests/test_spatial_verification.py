@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+import os
+import sys
+sys.path.append(os.getcwd())
 import utool
 import vtool.keypoint as ktool
 import vtool.linalg as ltool

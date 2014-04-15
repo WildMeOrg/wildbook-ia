@@ -1,44 +1,58 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+import functools
+from pkg_resources import parse_version
 
 ASSERT_FUNCS = []
 
 
-def checkme(func):
-    # Decorator which adds funcs to ASSERT_FUNCS
-    global ASSERT_FUNCS
-    ASSERT_FUNCS.append(func)
-    return func
+def version_check(target=None):
+    def wrapper1(func):
+        # Decorator which adds funcs to ASSERT_FUNCS
+        global ASSERT_FUNCS
+        @functools.wraps(func)
+        def wrapper2(*args, **kwargs):
+            name = func.func_name
+            current_version = func(*args, **kwargs)
+            print('%s: %r >= (target=%r)?' % (name, current_version, target))
+            if target is None:
+                assert current_version is not None
+            else:
+                assert parse_version(current_version) >= parse_version(target)
+            return current_version, target
+        ASSERT_FUNCS.append(wrapper2)
+        return wrapper2
+    return wrapper1
 
 
-@checkme
-def assert_pillow():
+@version_check('1.1.7')
+def pillow_version():
     from PIL import Image
-    assert Image.VERSION == '1.1.7'
+    return Image.VERSION
 
 
-@checkme
-def assert_matplotlib():
+@version_check('1.3.1')
+def matplotlib_version():
     import matplotlib as mpl
-    assert mpl.__version__ == '1.3.1'
+    return mpl.__version__
 
 
-@checkme
-def assert_scipy():
+@version_check('0.13.2')
+def scipy_version():
     import scipy
-    assert scipy.__version__ == '0.13.2'
+    return scipy.__version__
 
 
-@checkme
-def assert_numpy():
+@version_check('1.8.0')
+def numpy_version():
     import numpy
-    assert numpy.__version__ == '1.8.0'
+    return numpy.__version__
 
 
-@checkme
-def assert_PyQt4():
-    import PyQt4
-    assert PyQt4 is not None
+@version_check('4.10.1')
+def PyQt4_version():
+    from PyQt4 import QtCore
+    return QtCore.PYQT_VERSION_STR
 
 
 def assert_modules():
@@ -47,7 +61,7 @@ def assert_modules():
             func()
             print(func.func_name + ' passed')
         except AssertionError as ex:
-            print(func.func_name + ' FAILED')
+            print(func.func_name + ' FAILED!!!')
             print(ex)
 
 if __name__ == '__main__':
