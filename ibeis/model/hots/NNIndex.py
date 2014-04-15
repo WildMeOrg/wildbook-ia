@@ -74,7 +74,9 @@ class NNIndex(object):
         print('[nnindex] building NNIndex object')
         try:
             if len(drid_list) == 0:
-                raise AssertionError('Cannot build inverted index without features!')
+                msg = ('len(dir_list) == 0\n'
+                       'Cannot build inverted index without features!')
+                raise AssertionError(msg)
             ax2_desc, ax2_rid, ax2_fx, flann = build_flann_inverted_index(ibs, drid_list)
         except Exception as ex:
             dbname = ibs.get_dbname()  # NOQA

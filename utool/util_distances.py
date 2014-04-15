@@ -5,6 +5,8 @@ from itertools import izip
 print, print_, printDBG, rrr, profile = inject(__name__, '[dist]')
 
 
+# TODO DEPRICATE AND MOVE TO VTOOL
+
 def nearest_point(x, y, pts, mode='random'):
     """ finds the nearest point(s) in pts to (x, y) """
     dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2

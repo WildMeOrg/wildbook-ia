@@ -50,6 +50,10 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     eig_linewidth  = kwargs.get('eig_linewidth',  ell_linewidth)
     rect_linewidth = kwargs.get('rect_linewidth', ell_linewidth)
     ori_linewidth  = kwargs.get('ori_linewidth',  ell_linewidth)
+    # Offset keypoints
+    assert len(kpts) > 0, 'cannot draw no keypoints1'
+    kpts = ktool.offset_kpts(kpts, offset, scale_factor)
+    assert len(kpts) > 0, 'cannot draw no keypoints2'
     # Extract keypoint components
     _xs, _ys = ktool.get_xys(kpts)
     # Build list of keypoint shape transforms from unit circles to ellipes
@@ -75,7 +79,6 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
             eig_patches = eigenvector_actors(invV_aff2Ds)
             _draw_patches(ax, eig_patches, eig_color, ell_alpha, eig_linewidth)
         if ori:
-            pass
             # Keypoint orientation
             ori_patches = orientation_actors(kpts)
             _draw_patches(ax, ori_patches, ori_color, ell_alpha, ori_linewidth, ori_color)

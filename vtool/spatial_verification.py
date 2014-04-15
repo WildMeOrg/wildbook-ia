@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
 # Science
 import numpy as np
 import numpy.linalg as npl
@@ -14,6 +13,7 @@ import scipy.sparse.linalg as spsl
 # vtool
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
 
 np.tau = 2 * np.pi  # tauday.org
 
@@ -102,7 +102,9 @@ def normalize_xy_points(x_m, y_m):
 #                   float max_scale, float min_scale):
 @profile
 def affine_inliers2(kpts1, kpts2, fm,
-                    xy_thresh_sqrd, scale_thresh, ori_thresh):
+                    xy_thresh_sqrd,
+                    scale_thresh_sqrd,
+                    ori_thresh):
     """ Estimates inliers deterministically using elliptical shapes
     1_m = img1_matches; 2_m = img2_matches
     x and y are locations, invV is the elliptical shapes.
@@ -138,16 +140,16 @@ def affine_inliers2(kpts1, kpts2, fm,
         # Get projection components
         _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
         _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
-        _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])
+        _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
         # Check for projection errors
-        scale_err = _det1_mt / det2_m
-        ori_err   = (_ori1_mt - _ori2_m) % np.tau
-        xy_err    = ((_xy2_m - _xy1_mt) ** 2).sum(1)
+        ori_err   = ltool.ori_distance(_ori1_mt, _ori2_m)
+        xy_err    = ltool.L2_sqrd(_xy2_m, _xy1_mt)
+        scale_err = ltool.det_distance(_det1_mt, det2_m)
         # Mark keypoints which are inliers to this hypothosis
         xy_inliers_flag = xy_err < xy_thresh_sqrd
         ori_inliers_flag = ori_err < ori_thresh
-        scale_inliers_flag = scale_err < scale_thresh
-        hypo_inliers_flag = ltool.multi_ands(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+        scale_inliers_flag = scale_err < scale_thresh_sqrd
+        hypo_inliers_flag = ltool.logical_and_many(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
         hypo_inliers = np.where(hypo_inliers_flag)[0]
         # TODO Add uniqueness of matches constraint
         return hypo_inliers
@@ -286,7 +288,7 @@ def homography_inliers(kpts1, kpts2, fm,
     x1_m, y1_m, invV1_m, oris1_m = ktool.cast_split(kpts1_m, SV_DTYPE)
     x2_m, y2_m, invV2_m, oris2_m = ktool.cast_split(kpts2_m, SV_DTYPE)
     # Get diagonal length
-    dlen_sqrd2 = ktool.diag_extent_sqrd(kpts2_m) if dlen_sqrd2 is None else dlen_sqrd2
+    dlen_sqrd2 = ktool.get_diag_extent_sqrd(kpts2_m) if dlen_sqrd2 is None else dlen_sqrd2
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
     fx1_m = fm[:, 0]
     #fx2_m = fm[:, 1]

@@ -114,8 +114,11 @@ def file_megabytes_str(fpath):
     return ('%.2f MB' % util_path.file_megabytes(fpath))
 
 
-def dict_str(dict_):
-    itemstr_iter = ('%s : %r,' % (key, val) for (key, val) in dict_.iteritems())
+def dict_str(dict_, strvals=False):
+    if strvals:
+        itemstr_iter = ('%s : %s,' % (key, val) for (key, val) in dict_.iteritems())
+    else:
+        itemstr_iter = ('%s : %r,' % (key, val) for (key, val) in dict_.iteritems())
     return '{%s\n}' % indentjoin(itemstr_iter)
 
 

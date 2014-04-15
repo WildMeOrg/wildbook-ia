@@ -8,16 +8,21 @@ from . import viz_image
                                                        DEBUG=False)
 
 
-def show_keypoints(rchip, kpts, fnum=0, pnum=None, **kwargs):
+def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
     #printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
-    fig, ax = df2.imshow(rchip, fnum=fnum, pnum=pnum, **kwargs)
+    fig, ax = df2.imshow(chip, fnum=fnum, pnum=pnum, **kwargs)
     _annotate_kpts(kpts, **kwargs)
     vh.set_ibsdat(ax, 'viztype', 'keypoints')
     vh.set_ibsdat(ax, 'kpts', kpts)
+    if kwargs.get('ddd', False):
+        vh.draw()
+
+
+show_kpts = show_keypoints
 
 
 @utool.indent_func
-def _annotate_kpts(kpts, color=None, sel_fx=None, **kwargs):
+def _annotate_kpts(kpts, sel_fx=None, **kwargs):
     color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
     # Keypoint drawing kwargs
     drawkpts_kw = {

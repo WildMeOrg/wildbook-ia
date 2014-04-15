@@ -56,40 +56,35 @@ SCAX_DIM = 2
 SKEW_DIM = 3
 SCAY_DIM = 4
 ORI_DIM = 5
+LOC_DIMS   = np.array([XDIM, YDIM])
+SHAPE_DIMS = np.array([SCAX_DIM, SKEW_DIM, SCAY_DIM])
 
 
-def get_dummy_kpts(num):
-    """ Some testing data """
-    kpts = array([[0, 0, 5.21657705, -5.11095951, 24.1498699, 0],
-                  [0, 0, 2.35508823, -5.11095952, 24.1498692, 0],
-                  [0, 0, 12.2165705, 12.01909553, 10.5286992, 0],
-                  [0, 0, 13.3555705, 17.63429554, 14.1040992, 0],
-                  [0, 0, 16.0527005, 3.407312351, 11.7353722, 0]])
-    kpts = np.vstack([kpts] * num)
+def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, **kwargs):
+    """ Returns a regular grid of keypoints """
+    (w, h) = wh
+    (wstride, hstride) = wh_stride
+    padding = scale * 1.5
+    xbasis = np.arange(padding, (w - padding), wstride)
+    ybasis = np.arange(padding, (h - padding), hstride)
+    xs_grid, ys_grid = np.meshgrid(xbasis, ybasis)
+    _xs = xs_grid.flatten()
+    _ys = ys_grid.flatten()
+    nKpts = len(_xs)
+    _zeros = np.zeros(nKpts)
+    _iv11s = _zeros + scale
+    _iv21s = _zeros
+    _iv22s = _zeros + scale
+    _oris = _zeros
+    kpts = np.vstack((_xs, _ys, _iv11s, _iv21s, _iv22s, _oris)).T
     return kpts
-
-
-def get_dummy_invV_mats():
-    invV_mats = np.array((((1.0, 0.0),
-                           (0.0, 1.0),),
-
-                          ((0.5, 0.0),
-                           (0.0, 2.0),),
-
-                          ((2.5, 0.0),
-                           (0.5, 2.0),),
-
-                          ((1.0, 0.0),
-                           (0.5, 1.0),),))
-    return invV_mats
 
 
 # --- raw keypoint components ---
 def get_xys(kpts):
     """ Keypoint locations in chip space """
-    # TODO: _xys = kpts.T[0:2]
-    _xs, _ys   = kpts.T[0:2]
-    return _xs, _ys
+    _xys = kpts.T[0:2]
+    return _xys
 
 
 def get_invVs(kpts):
@@ -199,17 +194,33 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     invC = ctool._get_chip_to_image_transform(bbox, chipsz, bbox_theta)
     # Apply transform to keypoints
     invCinvV_mats = matrix_multiply(invC, invV_mats)
-    invCinvV_mats_ = np.array([invC.dot(invV) for invV in invV_mats])
-    is_matmult_ok = np.all(invCinvV_mats == invCinvV_mats_)
-    print('[trans_kpts_to_imagspace]: is_matmult_ok = %r' % is_matmult_ok)
-    assert is_matmult_ok
     # Flatten back into keypoint format
     imgkpts = flatten_invV_mats_to_kpts(invCinvV_mats)
     return imgkpts
 
+
+def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
+    if offset == (0.0, 0.0) and scale_factor == 1.0:
+        return kpts
+    M = ltool.scaleedoffset_mat3x3(offset, scale_factor)
+    kpts_ = transform_kpts(kpts, M)
+    return kpts_
+
+
+def transform_kpts(kpts, M):
+    invV_mats = get_invV_mats(kpts, with_trans=True, with_ori=True)
+    MinvV_mats = matrix_multiply(M, invV_mats)
+    kpts_ = flatten_invV_mats_to_kpts(MinvV_mats)
+    return kpts_
+
 #---------------------
 # invV_mats functions
 #---------------------
+
+
+def get_invVR_mats_sqrd_scale(invVR_mats):
+    """ Returns the squared scale of the invVR keyponts """
+    return npl.det(invVR_mats[:, 0:2, 0:2])
 
 
 def get_invVR_mats_shape(invVR_mats):
@@ -223,7 +234,7 @@ def get_invVR_mats_shape(invVR_mats):
 
 def get_invVR_mats_xys(invVR_mats):
     """ extracts xys from matrix encoding """
-    _xys = invVR_mats[:, 0, 0:2]
+    _xys = invVR_mats[:, 0:2, 2]
     return _xys
 
 
@@ -315,7 +326,16 @@ def get_xy_axis_extents(kpts):
     return get_invV_xy_axis_extents(invV_mats)
 
 
-def diag_extent_sqrd(kpts):
+def get_kpts_bounds(kpts):
+    """ returns the width and height of keypoint bounding box """
+    xs, ys = get_xys(kpts)
+    xyexnts = get_xy_axis_extents(kpts)
+    width = (xs + xyexnts.T[0]).max()
+    height = (ys + xyexnts.T[1]).max()
+    return (width, height)
+
+
+def get_diag_extent_sqrd(kpts):
     """ Returns the diagonal extent of keypoint locations """
     xs, ys = get_xys(kpts)
     x_extent_sqrd = (xs.max() - xs.min()) ** 2

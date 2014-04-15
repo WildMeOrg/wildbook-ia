@@ -10,7 +10,7 @@ from .util_arg import get_flag
 from .util_inject import inject
 from .util_list import is_listlike, list_eq
 from .util_print import Indenter
-from .util_str import pack_into, truncate_str
+from .util_str import pack_into, truncate_str, horiz_string, indent
 from .util_type import get_type
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
@@ -472,15 +472,41 @@ def print_exception(ex,
     print('<!!!>')
     print(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
     for key in key_list:
+        if isinstance(key, tuple):
+            func = key[0]
+            key = key[1]
+            assert key in locals_
+            val = locals_[key]
+            funcval = func(val)
+            print('%s %s(%s) = %r' % (prefix, func.func_name, key, funcval))
         if key in locals_:
             val = locals_[key]
-            print('%s %s = %r' % (prefix, key, val))
         else:
+            val = '???'
             print('%s !!! %s not populated!' % (prefix, key))
+        print('%s %s = %r' % (prefix, key, val))
     print('</!!!>')
 
 
 printex = print_exception
+
+
+def get_reprs(*args, **kwargs):
+    if 'locals_' in kwargs:
+        locals_ = kwargs['locals_']
+    else:
+        locals_ = locals()
+        locals_.update(get_caller_locals())
+
+    msg_list = []
+    var_list = list(args) + kwargs.get('var_list', [])
+    for key in var_list:
+        var = locals_[key]
+        msg = horiz_string(str(key) + ' = ', repr(var))
+        msg_list.append(msg)
+
+    reprs = '\n' + indent('\n##\n'.join(msg_list)) + '\n'
+    return reprs
 
 
 def printvar2(varstr, attr=''):

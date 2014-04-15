@@ -37,6 +37,7 @@ import vtool.patch as ptool
 import vtool.image as gtool
 # Drawtool
 from . import mpl_keypoint as mpl_kp
+from . import color_funcs as color_fns  # NOQA
 
 #================
 # GLOBALS
@@ -95,7 +96,9 @@ DEEP_PINK    = np.array((255,  20, 147, 255)) / 255.0
 PINK         = np.array((255,  100, 100, 255)) / 255.0
 FALSE_RED    = np.array((255,  51,   0, 255)) / 255.0
 TRUE_GREEN   = np.array((  0, 255,   0, 255)) / 255.0
-DARK_RED     = np.array((127,  0,   0, 255)) / 255.0
+DARK_GREEN   = np.array((  0, 127,   0, 255)) / 255.0
+DARK_BLUE    = np.array((  0,  0,  127, 255)) / 255.0
+DARK_RED     = np.array((127,  0,    0, 255)) / 255.0
 DARK_ORANGE  = np.array((127,  63,   0, 255)) / 255.0
 DARK_YELLOW  = np.array((127,  127,   0, 255)) / 255.0
 PURPLE = np.array((102,   0, 153, 255)) / 255.0
@@ -196,20 +199,13 @@ def OooScreen2():
                 row_first=True, no_tile=False)
 
 
-def deterministic_shuffle(list_):
-    randS = int(np.random.rand() * np.uint(0 - 2) / 2)
-    np.random.seed(len(list_))
-    np.random.shuffle(list_)
-    np.random.seed(randS)
-
-
 def distinct_colors(N, brightness=.878):
     # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
     sat = brightness
     val = brightness
     HSV_tuples = [(x * 1.0 / N, sat, val) for x in xrange(N)]
     RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
-    deterministic_shuffle(RGB_tuples)
+    utool.deterministic_shuffle(RGB_tuples)
     return RGB_tuples
 
 
@@ -243,8 +239,10 @@ def draw_border(ax, color=GREEN, lw=2, offset=None):
     rect.set_edgecolor(color)
 
 
+# TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ROI
 def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
-             lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1), theta=0, ax=None):
+             lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1),
+             draw_arrow=True, theta=0, ax=None):
     if ax is None:
         ax = gca()
     (rx, ry, rw, rh) = roi
@@ -267,19 +265,18 @@ def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
     trans_roi.translate(rx + rw / 2, ry + rh / 2)
     t_end = trans_roi + ax.transData
     bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=2, transform=t_end)
-    # Draw overhead arrow indicating the top of the ROI
-    arw_xydxdy = (-0.5, -0.5, 1.0, 0.0)
-    arw_kw = dict(head_width=.1, transform=t_end, length_includes_head=True)
-    arrow = mpl.patches.FancyArrow(*arw_xydxdy, **arw_kw)
-
     bbox.set_fill(False)
     #bbox.set_transform(trans)
     bbox.set_edgecolor(bbox_color)
-    arrow.set_edgecolor(bbox_color)
-    arrow.set_facecolor(bbox_color)
-
     ax.add_patch(bbox)
-    ax.add_patch(arrow)
+    # Draw overhead arrow indicating the top of the ROI
+    if draw_arrow:
+        arw_xydxdy = (-0.5, -0.5, 1.0, 0.0)
+        arw_kw = dict(head_width=.1, transform=t_end, length_includes_head=True)
+        arrow = mpl.patches.FancyArrow(*arw_xydxdy, **arw_kw)
+        arrow.set_edgecolor(bbox_color)
+        arrow.set_facecolor(bbox_color)
+        ax.add_patch(arrow)
     # Draw a label
     if label is not None:
         ax_absolute_text(rx, ry, label, ax=ax,
@@ -381,7 +378,9 @@ def get_monitor_geometries():
 
 
 def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
-                     row_first=True, no_tile=False, override1=False):
+                     row_first=True, no_tile=False, override1=False, **kwargs):
+    if 'nRows' in kwargs and 'nCols' in kwargs:
+        num_rc = (kwargs['nRows'], kwargs['nCols'])
     'Lays out all figures in a grid. if wh is a scalar, a golden ratio is used'
     print('[df2] all_figures_tile()')
     # RCOS TODO:
@@ -1465,7 +1464,7 @@ def colorbar(scalars, colors):
 
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
-                color_list=None, scale_factor=1, **kwargs):
+                color_list=None, scale_factor=1, lw=1.4, line_alpha=.35, **kwargs):
     printDBG('-------------')
     printDBG('draw_lines2()')
     printDBG(' * len(fm) = %r' % len(fm))
@@ -1490,8 +1489,8 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
         else:  # Draw with colors proportional to score difference
             color_list = scores_to_color(fs)
     segments  = [((x1, y1), (x2, y2)) for (x1, x2, y1, y2) in xxyy_iter]
-    linewidth = [1.4 for fx in xrange(len(fm))]
-    line_alpha = .35 if LINE_ALPHA_OVERRIDE is None else LINE_ALPHA_OVERRIDE
+    linewidth = [lw for fx in xrange(len(fm))]
+    line_alpha = line_alpha if LINE_ALPHA_OVERRIDE is None else LINE_ALPHA_OVERRIDE
     line_group = LineCollection(segments, linewidth, color_list, alpha=line_alpha)
     #plt.colorbar(line_group, ax=ax)
     ax.add_collection(line_group)
@@ -1502,7 +1501,9 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
-               ell_color=BLUE, pts_color=ORANGE, color_list=None, **kwargs):
+               ell_color=None, pts_color=ORANGE, color_list=None, **kwargs):
+    if ell_color is None:
+        ell_color = kwargs.get('color', BLUE)
     printDBG('-------------')
     printDBG('draw_kpts2():')
     #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
@@ -1512,6 +1513,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     printDBG(' * scale_factor=%r' % (scale_factor,))
     printDBG(' * offset=%r' % (offset,))
     printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
+    assert len(kpts) > 0, 'len(kpts) < 0'
     ax = gca()
     ell_alpha = ell_alpha if ELL_ALPHA_OVERRIDE is None else ELL_ALPHA_OVERRIDE
     if color_list is not None:
@@ -1755,7 +1757,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
 
 # draw feature match
 def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
-                fnum=None, pnum=None, rect=False, colorbar_=True, **kwargs):
+                fnum=None, pnum=None, rect=False, colorbar_=True,
+                draw_border=False, **kwargs):
     '''Draws the matching features. This is draw because it is an overlay
     xywh1 - location of rchip1 in the axes
     xywh2 - location or rchip2 in the axes
@@ -1787,6 +1790,10 @@ def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         all_args.update(kwargs)
         draw_kpts2(kpts1, **all_args)
         draw_kpts2(kpts2, offset=offset2, **all_args)
+    if draw_border:
+        draw_roi(xywh1, bbox_color=BLACK, draw_arrow=False)
+        draw_roi(xywh2, bbox_color=BLACK, draw_arrow=False)
+
     # Draw Lines and Ellipses and Points oh my
     if nMatch > 0:
         colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)

@@ -31,6 +31,12 @@ EXIF_TAG_GPS      = 'GPSInfo'
 EXIF_TAG_DATETIME =  'DateTimeOriginal'
 
 
+def dummy_img(w, h):
+    """ Creates a dummy test image """
+    img = np.zeros((h, w), dtype=np.uint8) + 200
+    return img
+
+
 def imread(img_fpath):
     # opencv always reads in BGR mode (fastest load time)
     imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)

@@ -13,10 +13,12 @@ def chmod_tests():
     cwd = get_project_repo_dir()
     st = os.stat(__file__)
     print(st)
-    test_dir = join(cwd, 'tests')
-    for pyscript_fpath in util_path.glob(test_dir, 'test_*.py'):
-        print('[setup] chmod fpath=%r' % pyscript_fpath)
-        os.chmod(pyscript_fpath, st.st_mode)
+    test_dirs = [join(cwd, 'tests'),
+                 join(cwd, 'vtool', 'tests')]
+    for test_dir in test_dirs:
+        for pyscript_fpath in util_path.glob(test_dir, 'test_*.py'):
+            print('[setup] chmod fpath=%r' % pyscript_fpath)
+            os.chmod(pyscript_fpath, st.st_mode)
 
 
 def get_project_repo_dir():

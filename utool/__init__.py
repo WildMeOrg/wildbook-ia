@@ -104,6 +104,30 @@ from .util_sysreq import *
 from .util_time import *
 from .util_type import *
 
+
+def reload_submodules():
+    util_alg.rrr()
+    util_arg.rrr()
+    util_cache.rrr()
+    util_cplat.rrr()
+    util_dbg.rrr()
+    util_decor.rrr()
+    util_dev.rrr()
+    util_dict.rrr()
+    util_distances.rrr()
+    util_inject.rrr()
+    util_iter.rrr()
+    util_list.rrr()
+    util_num.rrr()
+    util_path.rrr()
+    util_print.rrr()
+    util_progress.rrr()
+    util_str.rrr()
+    util_sysreq.rrr()
+    util_time.rrr()
+    util_type.rrr()
+
+
 print, print_, printDBG, rrr, profile = inject(__name__, '[util]')
 
 # Aliases

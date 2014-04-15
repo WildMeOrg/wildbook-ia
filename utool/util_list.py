@@ -227,3 +227,10 @@ def unique_keep_order(arr):
     return pd.unique(arr)
     #_, idx = np.unique(arr, return_index=True)
     #return arr[np.sort(idx)]
+
+
+def deterministic_shuffle(list_):
+    randS = int(np.random.rand() * np.uint(0 - 2) / 2)
+    np.random.seed(len(list_))
+    np.random.shuffle(list_)
+    np.random.seed(randS)
