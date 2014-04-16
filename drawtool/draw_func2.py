@@ -146,9 +146,10 @@ ELL_ALPHA_OVERRIDE = utool.get_arg('--ell-alpha-override', type_=float, default=
 base_fnum = 9001
 
 
-def get_pnum_func(nRows, nCols):
+def get_pnum_func(nRows, nCols, base=0):
+    offst = 0 if base == 1 else 1
     def pnum_(px):
-        return (nRows, nCols, px + 1)
+        return (nRows, nCols, px + offst)
     return pnum_
 
 

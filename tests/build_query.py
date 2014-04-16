@@ -29,10 +29,10 @@ def BUILDQUERY():
     ibs._init_query_requestor()
     qreq = ibs.qreq
 
-    cids = ibs.get_recognition_database_chips()
-    assert len(cids) > 0, 'need chips'
-    #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0], dcids=cids)
+    rids = ibs.get_recognition_database_rois()
+    assert len(rids) > 0, 'need chips'
+    #nn_index = NNIndex.NNIndex(ibs, rid_list)
+    qreq = mc3.prep_query_request(qreq=qreq, qrids=rids[0], drids=rids)
     mc3.pre_exec_checks(ibs, qreq)
 
     try:
@@ -42,28 +42,28 @@ def BUILDQUERY():
             ibs  - IBEIS database object to be queried
             qreq - QueryRequest Object   # use prep_qreq to create one
         Output:
-            qcid2_res - mapping from query indexes to QueryResult Objects
+            qrid2_res - mapping from query indexes to QueryResult Objects
         '''
         # Query Chip Indexes
-        # * vsone qcids/dcids swapping occurs here
-        qcids = qreq.get_internal_qcids()
+        # * vsone qrids/drids swapping occurs here
+        qrids = qreq.get_internal_qrids()
         qreq = ibs.qreq
         #mf.rrr()
-        qcids = qreq.get_internal_qcids()
-        if isinstance(qcids, int):
-            qcids = [qcids]
-        qcid2_nns = mf.nearest_neighbors(
-            ibs, qcids, qreq)
+        qrids = qreq.get_internal_qrids()
+        if isinstance(qrids, int):
+            qrids = [qrids]
+        qrid2_nns = mf.nearest_neighbors(
+            ibs, qrids, qreq)
         filt2_weights, filt2_meta = mf.weight_neighbors(
-            ibs, qcid2_nns, qreq)
-        qcid2_nnfilt = mf.filter_neighbors(
-            ibs, qcid2_nns, filt2_weights, qreq)
-        qcid2_chipmatch_FILT = mf.build_chipmatches(
-            qcid2_nns, qcid2_nnfilt, qreq)
-        qcid2_chipmatch_SVER = mf.spatial_verification(
-            ibs, qcid2_chipmatch_FILT, qreq, dbginfo=False)
-        qcid2_res = mf.chipmatch_to_resdict(
-            ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
+            ibs, qrid2_nns, qreq)
+        qrid2_nnfilt = mf.filter_neighbors(
+            ibs, qrid2_nns, filt2_weights, qreq)
+        qrid2_chipmatch_FILT = mf.build_chipmatches(
+            qrid2_nns, qrid2_nnfilt, qreq)
+        qrid2_chipmatch_SVER = mf.spatial_verification(
+            ibs, qrid2_chipmatch_FILT, qreq, dbginfo=False)
+        qrid2_res = mf.chipmatch_to_resdict(
+            ibs, qrid2_chipmatch_SVER, filt2_meta, qreq)
     except Exception as ex:
         utool.print_exception(ex, '[!build_query]')
         raise

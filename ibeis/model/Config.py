@@ -147,13 +147,12 @@ class FilterConfig(ConfigBase):
 class SpatialVerifyConfig(ConfigBase):
     def __init__(sv_cfg, **kwargs):
         super(SpatialVerifyConfig, sv_cfg).__init__(name='sv_cfg')
-        sv_cfg.scale_thresh_low = .5
-        sv_cfg.scale_thresh_high = 2
+        sv_cfg.ori_thresh   = 6.28 / 4.0
+        sv_cfg.scale_thresh = 2
         sv_cfg.xy_thresh = .01
         sv_cfg.nShortlist = 50
         sv_cfg.prescore_method = 'csum'
         sv_cfg.use_chip_extent = False
-        sv_cfg.just_affine = False
         sv_cfg.min_nInliers = 4
         sv_cfg.sv_on = True
         sv_cfg.update(**kwargs)
@@ -163,12 +162,10 @@ class SpatialVerifyConfig(ConfigBase):
             return ['_SV()']
         sv_uid = ['_SV(']
         sv_uid += [str(sv_cfg.nShortlist)]
-        sv_uid += [',' + str(sv_cfg.xy_thresh)]
-        scale_thresh = (sv_cfg.scale_thresh_low, sv_cfg.scale_thresh_high)
-        scale_str = utool.remove_chars(str(scale_thresh), ' ()')
-        sv_uid += [',' + scale_str.replace(',', '_')]
+        thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
+        thresh_str = utool.remove_chars(str(thresh_tup), ' ()').replace(',', '_')
+        sv_uid += [',' + thresh_str]
         sv_uid += [',cdl' * sv_cfg.use_chip_extent]  # chip diag len
-        sv_uid += [',aff' * sv_cfg.just_affine]  # chip diag len
         sv_uid += [',' + sv_cfg.prescore_method]
         sv_uid += [')']
         return sv_uid

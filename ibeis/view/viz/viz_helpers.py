@@ -33,7 +33,7 @@ def draw():
 
 def get_square_row_cols(nSubplots, max_cols=5):
     nCols = int(min(nSubplots, max_cols))
-    #nCols = int(min(np.ceil(np.sqrt(ncids)), 5))
+    #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
     nRows = int(np.ceil(nSubplots / nCols))
     return nRows, nCols
 

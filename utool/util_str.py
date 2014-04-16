@@ -174,3 +174,19 @@ def get_unix_timedelta_str(unixtime_diff):
     sign = '+' if unixtime_diff >= 0 else '-'
     timedelta_str = sign + str(timedelta)
     return timedelta_str
+
+
+class NpPrintOpts(object):
+    def __init__(self, **kwargs):
+        self.orig_opts = np.get_printoptions()
+        self.new_opts = kwargs
+    def __enter__(self):
+        np.set_printoptions(**self.new_opts)
+    def __exit__(self, type, value, trace):
+        np.set_printoptions(**self.orig_opts)
+
+
+def full_numpy_repr(arr):
+    with NpPrintOpts(threshold=np.uint64(-1)):
+        arr_repr = repr(arr)
+    return arr_repr

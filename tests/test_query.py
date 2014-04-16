@@ -35,42 +35,42 @@ def TEST_QUERY():
     ibs._init_query_requestor()
     qreq = ibs.qreq
 
-    query_helpers.find_matchable_chips(ibs)
+    #query_helpers.find_matchable_chips(ibs)
 
-    cids = ibs.get_recognition_database_chips()
-    #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    index = 2
+    rids = ibs.get_recognition_database_rois()
+    #nn_index = NNIndex.NNIndex(ibs, rid_list)
+    index = 5
     index = utool.get_arg('--index', type_=int, default=index)
-    qcids = utool.safe_slice(cids, index, index + 1)
+    qrids = utool.safe_slice(rids, index, index + 1)
 
-    comp_locals_ = query_helpers.get_query_components(ibs, qcids)
+    comp_locals_ = query_helpers.get_query_components(ibs, qrids)
     qres_dict = OrderedDict([
         ('ORIG', comp_locals_['qres_ORIG']),
         ('FILT', comp_locals_['qres_FILT']),
         ('SVER', comp_locals_['qres_SVER']),
     ])
 
-    top_cids = qres_dict['SVER'].get_top_cids(ibs)
-    top_cids = utool.safe_slice(top_cids, 6)
-    cid2 = top_cids[0]
+    top_rids = qres_dict['SVER'].get_top_rids(ibs)
+    top_rids = utool.safe_slice(top_rids, 6)
+    rid2 = top_rids[0]
 
     for px, (label, qres) in enumerate(qres_dict.iteritems()):
         print(label)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
-        #viz_matches.show_chipres(ibs, qres, cid2, fnum=fnum, in_image=True)
-        viz.show_qres(ibs, qres, fnum=fnum, top_cids=top_cids, ensure=False)
+        #viz_matches.show_chipres(ibs, qres, rid2, fnum=fnum, in_image=True)
+        viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
         df2.set_figtitle(label)
         df2.adjust_subplots_safe(top=.8)
 
     fnum = df2.next_fnum()
 
-    qcid2_svtups = comp_locals_['qcid2_svtups']
-    qcid2_chipmatch_FILT = comp_locals_['qcid2_chipmatch_FILT']
-    qcid = comp_locals_['qcid']
-    cid2_svtup  = qcid2_svtups[qcid]
-    chipmatch_FILT = qcid2_chipmatch_FILT[qcid]
-    viz.show_sv(ibs, qcid, cid2, chipmatch_FILT, cid2_svtup, fnum=fnum)
+    qrid2_svtups = comp_locals_['qrid2_svtups']
+    qrid2_chipmatch_FILT = comp_locals_['qrid2_chipmatch_FILT']
+    rid1 = qrid = comp_locals_['qrid']
+    rid2_svtup  = qrid2_svtups[rid1]
+    chipmatch_FILT = qrid2_chipmatch_FILT[rid1]
+    viz.show_sv(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup, fnum=fnum)
     df2.present(wh=900)
     comp_locals_.update(locals())
 

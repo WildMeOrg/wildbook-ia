@@ -3,6 +3,7 @@ import utool
 print, print_,  printDBG, rrr, profile =\
     utool.inject(__name__, '[nnfilt]', DEBUG=False)
 import numpy as np
+import vtool.linalg as ltool
 from numpy import array
 from itertools import izip
 
@@ -41,36 +42,13 @@ def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
     #columns = qfx2_topnid
     #matrix = qfx2_normnid
     Kn = qfx2_normnid.shape[1]
-    qfx2_valid = True - compare_matrix_columns(qfx2_normnid, qfx2_topnid)
+    qfx2_valid = True - ltool.compare_matrix_columns(qfx2_normnid, qfx2_topnid)
     if qnid is not None:
         qfx2_valid = np.logical_and(qfx2_normnid != qnid, qfx2_valid)
     qfx2_validlist = [np.where(normrow)[0] for normrow in qfx2_valid]
     qfx2_selnorm = array([poslist[0] - Kn if len(poslist) != 0 else -1 for
                           poslist in qfx2_validlist], np.int32)
     return qfx2_selnorm
-
-
-def compare_matrix_columns(matrix, columns):
-    #row_matrix = matrix.T
-    #row_list   = columns.T
-    return compare_matrix_to_rows(matrix.T, columns.T).T
-
-
-def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
-    '''
-    Compares each row in row_list to each row in row matrix using comp_op
-    Both must have the same number of columns.
-    Performs logic_op on the results of each individual row
-
-    compop   = np.equal
-    logic_op = np.logical_or
-    '''
-    row_result_list = [array([comp_op(matrow, row) for matrow in row_matrix])
-                       for row in row_list]
-    output = row_result_list[0]
-    for row_result in row_result_list[1:]:
-        output = logic_op(output, row_result)
-    return output
 
 
 def _nn_normalized_weight(normweight_fn, ibs, qrid2_nns, qreq):

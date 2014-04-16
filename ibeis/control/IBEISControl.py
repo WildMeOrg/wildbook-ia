@@ -613,20 +613,20 @@ class IBEISControl(object):
         roi_uuid_list = ibs.get_table_properties('rois', 'roi_uuid', rid_list)
         return roi_uuid_list
 
-    @getter
+    @getter_numpy
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         cols = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
         col_list = ibs.get_roi_properties(cols, rid_list)
         return col_list
 
-    @getter
+    @getter_numpy
     def get_roi_thetas(ibs, rid_list):
         """ Returns a list of floats describing the angles of each chip """
         theta_list = ibs.get_roi_properties('roi_theta', rid_list)
         return theta_list
 
-    @getter
+    @getter_numpy
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         gid_list = ibs.get_roi_properties('image_uid', rid_list)
@@ -654,15 +654,16 @@ class IBEISControl(object):
             FROM chips
             WHERE roi_uid=?
             ''',
-            parameters_iter=((rid,) for rid in rid_list))
+            parameters_iter=[(rid,) for rid in rid_list])
         return cid_list
 
+    @getter
     def get_roi_fids(ibs, rid_list, ensure=False):
         cid_list = ibs.get_roi_cids(rid_list, ensure=ensure)
         fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
         return fid_list
 
-    @getter
+    @getter_numpy
     def get_roi_nids(ibs, rid_list):
         """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
         nid_list = ibs.get_roi_properties('name_uid', rid_list)
@@ -1064,27 +1065,26 @@ class IBEISControl(object):
         return detection_list
 
     @utool.indent_func
-    def get_recognition_database_chips(ibs):
+    def get_recognition_database_rois(ibs):
         """ returns chips which are part of the persitent recognition database """
         drid_list = ibs.get_valid_rids()
-        dcid_list = ibs.get_roi_cids(drid_list)
-        return dcid_list
+        return drid_list
 
     @utool.indent_func
-    def query_intra_encounter(ibs, qcid_list, **kwargs):
+    def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
-        dcid_list = qcid_list
-        qres_list = ibs._query_chips(ibs, qcid_list, dcid_list, **kwargs)
+        drid_list = qrid_list
+        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
     @utool.indent_func
-    def query_database(ibs, qcid_list, **kwargs):
+    def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         if not hasattr(ibs, 'qreq'):
             ibs._init_query_requestor()
-        dcid_list = ibs.get_recognition_database_chips()
-        qcid2_res = ibs._query_chips(qcid_list, dcid_list, **kwargs)
-        return qcid2_res
+        drid_list = ibs.get_recognition_database_rois()
+        qrid2_res = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        return qrid2_res
 
     @utool.indent_func
     def _init_query_requestor(ibs):
@@ -1093,19 +1093,19 @@ class IBEISControl(object):
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
     @utool.indent_func
-    def _query_chips(ibs, qcid_list, dcid_list, **kwargs):
+    def _query_chips(ibs, qrid_list, drid_list, **kwargs):
         """
-        qcid_list - query chip ids
-        dcid_list - database chip ids
+        qrid_list - query chip ids
+        drid_list - database chip ids
         """
         from ibeis.model.hots import match_chips3 as mc3
         qreq = mc3.prep_query_request(qreq=ibs.qreq,
-                                      qcids=qcid_list,
-                                      dcids=dcid_list,
+                                      qrids=qrid_list,
+                                      drids=drid_list,
                                       query_cfg=ibs.cfg.query_cfg,
                                       **kwargs)
-        qcid2_qres = mc3.process_query_request(ibs, qreq)
-        return qcid2_qres
+        qrid2_qres = mc3.process_query_request(ibs, qreq)
+        return qrid2_qres
 
     def get_infostr(ibs):
         """ Returns printable database information """

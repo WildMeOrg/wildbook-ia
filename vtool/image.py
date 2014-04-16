@@ -78,9 +78,11 @@ def get_num_channels(img):
 
 
 def subpixel_values(img, pts):
-    ''' adapted from
+    """
+    adapted from
     stackoverflow.com/uestions/12729228/simple-efficient-binlinear-
-    interpolation-of-images-in-numpy-and-python'''
+    interpolation-of-images-in-numpy-and-python
+    """
     # Image info
     nChannels = get_num_channels(img)
     height, width = img.shape[0:2]
@@ -129,9 +131,27 @@ def cvt_BGR2L(imgBGR):
     return imgL
 
 
-def warpAffine(img, M, dsize):
-    warped_img = cv2.warpAffine(img, M[0:2], tuple(dsize), **CV2_WARP_KWARGS)
+def warpAffine(img, Aff, dsize):
+    """
+    dsize = (width, height) of return image
+    """
+    warped_img = cv2.warpAffine(img, Aff[0:2], tuple(dsize), **CV2_WARP_KWARGS)
     return warped_img
+
+
+def warpHomog(img, Homog, dsize):
+    """
+    dsize = (width, height) of return image
+    """
+    warped_img = cv2.warpPerspective(img, Homog, tuple(dsize), **CV2_WARP_KWARGS)
+    return warped_img
+
+
+def blend_images(img1, img2):
+    assert img1.shape == img2.shape, 'chips must be same shape to blend'
+    chip_blend = np.zeros(img2.shape, dtype=img2.dtype)
+    chip_blend = img1 / 2 + img2 / 2
+    return chip_blend
 
 
 def print_image_checks(img_fpath):

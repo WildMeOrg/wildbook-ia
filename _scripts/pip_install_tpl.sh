@@ -1,4 +1,13 @@
+sudo pip install numpy --upgrade
+sudo pip install scipy --upgrade
+
+
 # NonPip modules
+
+
+# PyQt4
+sudo apt-get install python-qt4
+
 
 
 # Apt-Get
@@ -23,53 +32,54 @@ sudo make install
 # Pip modules
 
 
-# Need SQLite >= 3.7.11
-#https://www.sqlite.org/download.html
-sudo pip install db-sqlite3
+    fixme-python-sqlite3()
+    {
+    # Need SQLite >= 3.7.11
+    #https://www.sqlite.org/download.html
+    sudo pip install db-sqlite3
 
-sudo pip install --upgrade --force-reinstall --install-option="build_static" pysqlite
+    sudo pip install --upgrade --force-reinstall --install-option="build_static" pysqlite
 
-echo "SQLite3 version should be >= 3.7.11"
-python -c "import sqlite3; print(sqlite3.sqlite_version)"
-
-
-python -c "from pysqlite2 import dbapi2 as sqlite3; print(sqlite3.sqlite_version)"
-
-# Try and build everything from source
-sudo pip uninstall pysqlite
-
-cd ~/tmp
-wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz#md5=7ff1cedee74646b50117acff87aa1cfa
-
-tar xzvf pysqlite-2.6.3.tar.gz
-cd pysqlite3
-
-ed setup.cfg <<EOF
-/SQLITE_OMIT_LOAD_EXTENSION/s/define=/#define=/
-w
-q
-EOF
-
-wget https://www.sqlite.org/2014/sqlite-amalgamation-3080401.zip
-7z x sqlite-amalgamation-3080401.zip
-mv sqlite-amalgamation-3080401/*.[hc] .
-
-sudo python setup.py build_static
-sudo python setup.py install
-
-python <<EOF
-from pysqlite2 import test
-test.test()
-EOF
-
-python <<EOF
-from pysqlite2 import dbapi2 as sqlite3
-con = sqlite3.connect(":memory:")
-res = con.execute("create virtual table recipe using fts3(name, ingredients)")
-print(res)
-EOF
+    echo "SQLite3 version should be >= 3.7.11"
+    python -c "import sqlite3; print(sqlite3.sqlite_version)"
 
 
+    python -c "from pysqlite2 import dbapi2 as sqlite3; print(sqlite3.sqlite_version)"
+
+    # Try and build everything from source
+    sudo pip uninstall pysqlite
+
+    cd ~/tmp
+    wget https://pypi.python.org/packages/source/p/pysqlite/pysqlite-2.6.3.tar.gz#md5=7ff1cedee74646b50117acff87aa1cfa
+
+    tar xzvf pysqlite-2.6.3.tar.gz
+    cd pysqlite3
+
+    ed setup.cfg <<EOF
+    /SQLITE_OMIT_LOAD_EXTENSION/s/define=/#define=/
+    w
+    q
+    EOF
+
+    wget https://www.sqlite.org/2014/sqlite-amalgamation-3080401.zip
+    7z x sqlite-amalgamation-3080401.zip
+    mv sqlite-amalgamation-3080401/*.[hc] .
+
+    sudo python setup.py build_static
+    sudo python setup.py install
+
+    python <<EOF
+    from pysqlite2 import test
+    test.test()
+    EOF
+
+    python <<EOF
+    from pysqlite2 import dbapi2 as sqlite3
+    con = sqlite3.connect(":memory:")
+    res = con.execute("create virtual table recipe using fts3(name, ingredients)")
+    print(res)
+    EOF
+    }
 
 
 
@@ -79,4 +89,4 @@ EOF
 
 # SIP
 # need newer version to use setdestroyonexit
-#sudo pip install --upgrade --allow-external sip --allow-unverified sip sip
+#sudo pip install --upgrade --allow-external sip --allow-unverified sip sip}

@@ -187,7 +187,7 @@ class SQLDatabaseControl(object):
             printDBG(utool.toc(tt, True))
         return result_list
 
-    @profile
+    #@profile
     def executemany(db, operation, parameters_iter, auto_commit=True,
                     errmsg=None, verbose=VERBOSE, unpack_scalars=True):
         """

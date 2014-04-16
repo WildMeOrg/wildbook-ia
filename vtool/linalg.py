@@ -126,10 +126,6 @@ def scaleedoffset_mat3x3(offset, scale_factor):
     return M
 
 
-def componentwise_ands(*args):
-    return reduce(lambda bits1, bits2: np.logical_and(bits1, bits2), args)
-
-
 # Ensure that a feature doesn't have multiple assignments
 # --------------------------------
 # Linear algebra functions on lower triangular matrices
@@ -189,10 +185,23 @@ def nearest_point(x, y, pts, mode='random'):
     return fx, mindist
 
 
-def logical_and_many(*args):
+def and_lists(*args):
     """ Like np.logical_and, but can take more than 2 arguments """
     # TODO: Cython
-    return reduce(np.logical_and, args)
+    flags =  reduce(np.logical_and, args)
+    #assert len(args) >= 1
+    #flags_ = args[0]
+    #for arg in args[1:]:
+        #flags_ = np.logical_and(flags_, arg)
+    #try:
+        #print('fixme')
+        #assert np.all(flags_ == flags), 'reduce has problems'
+    #except Exception as ex:
+        #utool.print_exception(ex)
+        #print(flags_)
+        #print(flags)
+        #raise
+    return flags
 
 
 def ori_distance(ori1, ori2):
@@ -259,6 +268,49 @@ def whiten_xy_points(xy_m):
 
 def homogonize(_xyzs):
     """ normalizes 3d homogonous coordinates into 2d coordinates """
-    _xs, _ys, _zs = _xyzs[2]
+    _xs, _ys, _zs = _xyzs
     _xys = np.vstack((_xs / _zs, _ys / _zs))
     return _xys
+
+
+def rowwise_operation(arr1, arr2, op):
+    """
+    performs an operation between an
+    (N x A x B ... x Z) array with an
+    (N x 1) array
+    """
+    # FIXME: not sure this is the correct terminology
+    assert arr1.shape[0] == arr2.shape[0]
+    broadcast_dimensions = arr1.shape[1:]
+    tileshape = tuple(list(broadcast_dimensions) + [1])
+    arr2_ = np.rollaxis(np.tile(arr2, tileshape), -1)
+    return op(arr1, arr2_)
+
+
+def rowwise_division(arr1, arr2):
+    return rowwise_operation(arr1, arr2, np.divide)
+
+
+def compare_matrix_columns(matrix, columns):
+    # FIXME: Generalize
+    #row_matrix = matrix.T
+    #row_list   = columns.T
+    return compare_matrix_to_rows(matrix.T, columns.T).T
+
+
+def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
+    # FIXME: Generalize
+    '''
+    Compares each row in row_list to each row in row matrix using comp_op
+    Both must have the same number of columns.
+    Performs logic_op on the results of each individual row
+
+    compop   = np.equal
+    logic_op = np.logical_or
+    '''
+    row_result_list = [array([comp_op(matrow, row) for matrow in row_matrix])
+                       for row in row_list]
+    output = row_result_list[0]
+    for row_result in row_result_list[1:]:
+        output = logic_op(output, row_result)
+    return output

@@ -87,10 +87,10 @@ def get_xys(kpts):
     return _xys
 
 
-def get_homog_xys(kpts):
+def get_homog_xyzs(kpts_):
     """ Keypoint locations in chip space """
-    _xys = get_xys(kpts)
-    _zs = np.ones(len(_xys))
+    _xys = get_xys(kpts_)
+    _zs = np.ones(len(kpts_), dtype=kpts_.dtype)
     _xyzs = np.vstack((_xys, _zs))
     return _xyzs
 
@@ -218,6 +218,13 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
 def transform_kpts(kpts, M):
     invV_mats = get_invV_mats(kpts, with_trans=True, with_ori=True)
     MinvV_mats = matrix_multiply(M, invV_mats)
+    try:
+        assert np.all(MinvV_mats[:, 2, 0:2] == 0)
+        assert np.all(MinvV_mats[:, 2, 2] == 1)
+    except AssertionError as ex:  # NOQA
+        #print(ex)
+        MinvV_mats = ltool.rowwise_division(MinvV_mats, MinvV_mats[:, 2, 2])
+        #utool.print_exception(ex, 'WARNING: transform produced nonhomogonous keypoint')
     kpts_ = flatten_invV_mats_to_kpts(MinvV_mats)
     return kpts_
 
@@ -242,15 +249,15 @@ def get_invVR_mats_shape(invVR_mats):
 
 def get_invVR_mats_xys(invVR_mats):
     """ extracts xys from matrix encoding """
-    _xys = invVR_mats[:, 0:2, 2]
+    _xys = invVR_mats[:, 0:2, 2].T
     return _xys
 
 
 def get_invVR_mats_oris(invVR_mats):
     """ extracts orientation from matrix encoding """
-    (_iv11s, _iv12s,
-     _iv21s, _iv22s) = get_invVR_mats_shape(invVR_mats)
-    #
+    # Extract only the needed shape components
+    _iv11s = invVR_mats[:, 0, 0]
+    _iv12s = invVR_mats[:, 0, 1]
     # Solve for orientations. Adjust gravity vector pointing down
     _oris = (-trig.atan2(_iv12s, _iv11s)) % np.tau
     return _oris

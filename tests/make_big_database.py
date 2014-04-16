@@ -16,7 +16,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAM
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def BIGDB():
     workdir = params.get_workdir()
     dbname = 'test_big_ibeis'
@@ -62,12 +62,9 @@ def BIGDB():
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
     __testing__.main_loop(main_locals, rungui=False)
-BIGDB.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    BIGDB()
-    #from drawtool import draw_func2 as df2
-    #exec(df2.present())
+    multiprocessing.freeze_support()  # For windows
+    test_locals = BIGDB()
+    exec(test_locals['execstr'])

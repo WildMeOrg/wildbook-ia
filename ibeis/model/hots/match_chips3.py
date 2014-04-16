@@ -55,7 +55,7 @@ def prep_query_request(qreq=None, query_cfg=None,
 
 
 @utool.indent_func
-@profile
+#@profile
 def pre_exec_checks(ibs, qreq):
     """ Builds the NNIndex if not already in cache """
     print('  --- Pre Exec ---')

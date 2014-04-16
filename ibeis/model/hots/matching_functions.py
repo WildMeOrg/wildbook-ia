@@ -224,8 +224,8 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         if cant_match_sameimg:
-            qfx2_gid = ibs.get_goi_gids(qfx2_rid)
-            qgid =  ibs.get_roi_gids(qrid)
+            qfx2_gid = ibs.get_roi_gids(qfx2_rid)
+            qgid     = ibs.get_roi_gids(qrid)
             qfx2_notsameimg = qfx2_gid != qgid
             ####DBG
             nImg_all_invalid = ((True - qfx2_notsameimg)).sum()
@@ -394,11 +394,10 @@ def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
     prescore_method = sv_cfg.prescore_method
     nShortlist      = sv_cfg.nShortlist
     xy_thresh       = sv_cfg.xy_thresh
-    min_scale = sv_cfg.scale_thresh_low
-    max_scale = sv_cfg.scale_thresh_high
+    scale_thresh    = sv_cfg.scale_thresh
+    ori_thresh      = sv_cfg.ori_thresh
     use_chip_extent = sv_cfg.use_chip_extent
     min_nInliers    = sv_cfg.min_nInliers
-    just_affine     = sv_cfg.just_affine
     qrid2_chipmatchSV = {}
     if dbginfo:
         qrid2_svtups = {}  # dbg info (can remove if there is a speed issue)
@@ -434,19 +433,19 @@ def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
             kpts2 = topx2_kpts[topx]
             fs    = rid2_fs[rid]
             fk    = rid2_fk[rid]
-            sv_tup = sver.homography_inliers(kpts1, kpts2, fm, xy_thresh,
-                                             max_scale, min_scale, dlen_sqrd,
-                                             min_nInliers, just_affine)
+            sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
+                                               xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
+                                               min_nInliers)
             if sv_tup is None:
                     print_('o')  # sv failure
             else:
                 # Return the inliers to the homography
-                (H, inliers, Aff, aff_inliers) = sv_tup
+                homog_inliers = sv_tup[0]
                 if dbginfo:
                     rid2_svtup[rid] = sv_tup
-                rid2_fm_V[rid] = fm[inliers, :]
-                rid2_fs_V[rid] = fs[inliers]
-                rid2_fk_V[rid] = fk[inliers]
+                rid2_fm_V[rid] = fm[homog_inliers, :]
+                rid2_fs_V[rid] = fs[homog_inliers]
+                rid2_fk_V[rid] = fk[homog_inliers]
                 if not QUIET:
                     #print(inliers)
                     print_('.')  # verified something

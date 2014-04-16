@@ -152,6 +152,7 @@ def accepts_numpy(func):
                 input_list, inverse_unique = np.unique(input_, return_inverse=True)
             else:
                 input_list = input_.flatten()
+            input_list = input_list.tolist()
             output_list = func(self, input_list)
             if UNIQUE_NUMPY:
                 # Reconstruct redundant queries (the user will never know!)

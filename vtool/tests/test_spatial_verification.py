@@ -4,70 +4,46 @@ import os
 import sys
 sys.path.append(os.getcwd())
 import utool
-import vtool.keypoint as ktool
-import vtool.linalg as ltool
+import vtool.spatial_verification as sver
 from drawtool import draw_sv
 from drawtool import draw_func2 as df2
 import numpy as np
 import vtool.tests.dummy as dummy
+import vtool.keypoint as ktool  # NOQA
+import vtool.linalg as ltool  # NOQA
+from  vtool.keypoint import *  # NOQA
+from  vtool.spatial_verification import *  # NOQA
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tets_sv]', DEBUG=False)
 
 
-def test_affine_inliers2(kpts1, kpts2, fm, nShow=6):
-    chip1 = dummy.get_kpts_dummy_img(kpts1)
-    chip2 = dummy.get_kpts_dummy_img(kpts2)
-    xy_thresh_sqrd = 150 ** 2
-    scale_thresh_sqrd = 1.2
-    ori_thresh = np.tau
+xy_thresh = .009
+scale_thresh_sqrd = 2
+ori_thresh = np.tau / 4
 
-    kpts1_m = kpts1[fm.T[0]]
-    kpts2_m = kpts2[fm.T[1]]
 
-    # Get keypoints to project
-    invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
-    V1s_m     = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
-    invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
-    # The transform from kp1 to kp2 is given as:
-    # Aff = inv(invV2).dot(V1)
-    Aff_mats = ktool.matrix_multiply(invVR2s_m, V1s_m)
-    # Get components to test projects against
-    det2_m = ktool.get_sqrd_scales(kpts2_m)  # PYX FLOAT_1D
-    _xy2_m   = invVR2s_m[:, 0, 0:2]
-    _ori2_m  = ktool.get_invVR_mats_oris(invVR2s_m)
-    # Test all hypothesis
-    errors_list = []
-    def test_hypothosis_inliers(Aff):
-        # Map keypoints from image 1 onto image 2
-        invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
-        # Get projection components
-        _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-        _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
-        _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-        # Check for projection errors
-        ori_err   = ltool.ori_distance(_ori1_mt, _ori2_m)
-        xy_err    = ltool.L2_sqrd(_xy2_m, _xy1_mt)
-        scale_err = ltool.det_distance(_det1_mt, det2_m)
-        # Mark keypoints which are inliers to this hypothosis
-        xy_inliers_flag = xy_err < xy_thresh_sqrd
-        ori_inliers_flag = ori_err < ori_thresh
-        scale_inliers_flag = scale_err < scale_thresh_sqrd
-        hypo_inliers_flag = ltool.logical_and_many(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
-        hypo_inliers = np.where(hypo_inliers_flag)[0]
-        # TODO Add uniqueness of matches constraint
+def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
 
-        def packerrors(flag, err):
-            return utool.indentjoin(['%5s %f' % tup for tup in zip(flag, err)])
-        errors = {
-            'scale_err': packerrors(scale_inliers_flag, np.sqrt(scale_err)),
-            'ori_err': packerrors(ori_inliers_flag, ori_err),
-            'xy_err': packerrors(xy_inliers_flag, np.sqrt(xy_err))
+    xy_thresh_sqrd = ktool.get_diag_extent_sqrd(kpts2) * xy_thresh
+
+    def pack_errors(xy_err, scale_err, ori_err):
+        """ makes human readable errors """
+        def _pack(bits, errs, thresh):
+            return utool.indentjoin(['%5s %f < %f' % (bit, err, thresh) for (bit, err) in zip(bits, errs)])
+        xy_flag = xy_err < xy_thresh_sqrd
+        scale_flag = scale_err < scale_thresh_sqrd
+        ori_flag = ori_err < ori_thresh
+        errors_dict = {
+            'xy_err':     _pack(xy_flag, np.sqrt(xy_err), np.sqrt(xy_thresh_sqrd)),
+            'scale_err':  _pack(scale_flag, np.sqrt(scale_err), np.sqrt(scale_thresh_sqrd)),
+            'ori_err':    _pack(ori_flag, ori_err, ori_thresh),
         }
-        # TEST
-        errors_list.append(errors)
-        return hypo_inliers
+        return errors_dict
 
-    # Enumerate all hypothesis
-    inliers_list = [test_hypothosis_inliers(Aff) for Aff in Aff_mats]
+    # Test each affine hypothesis
+    aff_hypo_tups = sver.get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd,
+                                            scale_thresh_sqrd, ori_thresh)
+    inliers_list, errors_list, Aff_mats = aff_hypo_tups
+
     # Determine best hypothesis
     nInliers_list = np.array(map(len, inliers_list))
     best_mxs = nInliers_list.argsort()[::-1]
@@ -75,22 +51,52 @@ def test_affine_inliers2(kpts1, kpts2, fm, nShow=6):
     for fnum, mx in enumerate(best_mxs[0:min(len(best_mxs), nShow)]):
         Aff = Aff_mats[mx]
         aff_inliers = inliers_list[mx]
-        #errors = errors_list[mx]
-        #print(utool.dict_str(errors, strvals=True))
-        draw_sv.show_sv_affine(chip1, chip2, kpts1, kpts2, fm,
-                               Aff, aff_inliers, mx=mx, fnum=fnum)
-        df2.set_figtitle('#inliers = %r' % (nInliers_list[mx],))
-    # Enumerate all hypothesis
-    # Determine best hypothesis
+        if utool.get_flag('--print-error'):
+            errors = pack_errors(*errors_list[mx])  # NOQA
+            print(utool.dict_str(errors, strvals=True))
+
+        homog_inliers, H = sver.get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+
+        kpts1_At = ktool.transform_kpts(kpts1, Aff)
+        kpts1_Ht = ktool.transform_kpts(kpts1, H)
+        kpts = kpts1
+        M = H
+
+        homog_tup = (homog_inliers, H)
+        aff_tup = (aff_inliers, Aff)
+
+        _args = (chip1, chip2, kpts1, kpts2, fm)
+        _kw = dict(show_assign=True, show_kpts=True, mx=mx, fnum=fnum * 3)
+        draw_sv.show_sv(*_args, aff_tup=aff_tup, homog_tup=homog_tup, **_kw)
+        #draw_sv.show_sv(*_args, aff_tup=aff_tup, mx=mx, fnum=fnum * 3)
+        #draw_sv.show_sv(*_args, homog_tup=homog_tup, mx=mx, fnum=3)
+
+        df2.set_figtitle('# %r inliers (in rects, hypo in bold)' % (nInliers_list[mx],))
+    return locals()
+
+
+def get_dummy_test_vars():
+    kpts1 = dummy.pertebed_grid_kpts(seed=12, damping=1.2)
+    kpts2 = dummy.pertebed_grid_kpts(seed=24, damping=1.6)
+    chip1 = dummy.get_kpts_dummy_img(kpts1)
+    chip2 = dummy.get_kpts_dummy_img(kpts2)
+    #kpts2 = ktool.get_grid_kpts()
+    fm = dummy.make_dummy_fm(len(kpts1))
+    return chip1, chip2, kpts1, kpts2, fm
+
+
+def get_stashed_test_vars():
+    chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup = utool.load_testdata(
+        'chip1', 'chip2', 'kpts1', 'kpts2', 'fm', 'homog_tup', 'aff_tup')
+    return chip1, chip2, kpts1, kpts2, fm
 
 
 if __name__ == '__main__':
     np.set_printoptions(precision=4, suppress=True)
     utool.util_inject._inject_colored_exception_hook()
-    kpts1 = dummy.pertebed_grid_kpts(seed=1, damping=2)
-    kpts2 = dummy.pertebed_grid_kpts(seed=2, damping=2)
-    #kpts2 = ktool.get_grid_kpts()
-    fm = dummy.make_dummy_fm(len(kpts1))
     nShow = utool.get_arg('--nShow', int, 1)
-    test_affine_inliers2(kpts1, kpts2, fm, nShow=nShow)
+    chip1, chip2, kpts1, kpts2, fm = get_dummy_test_vars()
+    #chip1, chip2, kpts1, kpts2, fm = get_stashed_test_vars()
+    test_locals = test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=nShow)
+    exec(utool.execstr_dict(test_locals, 'test_locals'))
     exec(df2.present(wh=(500, 300), num_rc=(3, 1)))
