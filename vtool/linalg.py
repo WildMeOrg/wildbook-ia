@@ -239,3 +239,26 @@ def hist_isect(hist1, hist2):
     if len(hisect_dist) == 1:
         hisect_dist = hisect_dist[0]
     return hisect_dist
+
+
+def whiten_xy_points(xy_m):
+    """
+    whitens points to mean=0, stddev=1 and returns transformation
+    """
+    mu_xy  = xy_m.mean(1)  # center of mass
+    std_xy = xy_m.std(1)
+    std_xy[std_xy == 0] = 1  # prevent divide by zero
+    tx, ty = -mu_xy / std_xy
+    sx, sy = 1 / std_xy
+    T = np.array([(sx, 0, tx),
+                  (0, sy, ty),
+                  (0,  0,  1)])
+    xy_norm = ((xy_m.T - mu_xy) / std_xy).T
+    return xy_norm, T
+
+
+def homogonize(_xyzs):
+    """ normalizes 3d homogonous coordinates into 2d coordinates """
+    _xs, _ys, _zs = _xyzs[2]
+    _xys = np.vstack((_xs / _zs, _ys / _zs))
+    return _xys

@@ -29,8 +29,10 @@ ctypedef np.float64_t FLOAT64
 SV_DTYPE = np.float64
 
 
-def build_lstsqrs_Mx9(x1_mn, y1_mn, x2_mn, y2_mn):
+def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     # Builds the M x 9 least squares matrix
+    x1_mn, y1_mn = xy1_mn
+    x2_mn, y2_mn = xy2_mn
     num_pts = len(x1_mn)
     Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     for ix in xrange(num_pts):  # Loop over inliers
@@ -47,13 +49,13 @@ def build_lstsqrs_Mx9(x1_mn, y1_mn, x2_mn, y2_mn):
 
 
 @profile
-def compute_homog(x1_mn, y1_mn, x2_mn, y2_mn):
+def compute_homog(xy1_mn, xy2_mn):
     '''Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1 '''
     #printDBG('[sver] compute_homog')
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
-    Mx9 = build_lstsqrs_Mx9(x1_mn, y1_mn, x2_mn, y2_mn)
+    Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
     try:
         (U, S, V) = npl.svd(Mx9, full_matrices=False)
     except MemoryError as ex:
@@ -71,22 +73,6 @@ def compute_homog(x1_mn, y1_mn, x2_mn, y2_mn):
     h = V[-1]  # v = V.H
     H = np.vstack((h[0:3], h[3:6], h[6:9]))
     return H
-
-
-def normalize_xy_points(x_m, y_m):
-    'Returns a transformation to normalize points to mean=0, stddev=1'
-    mu_x = x_m.mean()  # center of mass
-    mu_y = y_m.mean()
-    std_x = x_m.std()
-    std_y = y_m.std()
-    sx = 1.0 / std_x if std_x > 0 else 1  # average xy magnitude
-    sy = 1.0 / std_y if std_x > 0 else 1
-    T = np.array([(sx, 0, -mu_x * sx),
-                  (0, sy, -mu_y * sy),
-                  (0,  0,  1)])
-    x_norm = (x_m - mu_x) * sx
-    y_norm = (y_m - mu_y) * sy
-    return x_norm, y_norm, T
 
 
 #---
@@ -275,26 +261,13 @@ def homography_inliers(kpts1, kpts2, fm,
                        dlen_sqrd2=None,
                        min_num_inliers=4,
                        just_affine=False):
-    #printDBG('[sver] homography_inliers')
-    #if len(fm) < min_num_inliers:
-        #return None
-    # Not enough data
-    # Estimate affine correspondence convert to SV_DTYPE
-    # matching feature indexes
     fx1_m, fx2_m = fm[:, 0], fm[:, 1]
     kpts1_m = kpts1[fx1_m, :]
     kpts2_m = kpts2[fx2_m, :]
-    # x, y, a, c, d : postion, shape
-    x1_m, y1_m, invV1_m, oris1_m = ktool.cast_split(kpts1_m, SV_DTYPE)
-    x2_m, y2_m, invV2_m, oris2_m = ktool.cast_split(kpts2_m, SV_DTYPE)
     # Get diagonal length
     dlen_sqrd2 = ktool.get_diag_extent_sqrd(kpts2_m) if dlen_sqrd2 is None else dlen_sqrd2
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
     fx1_m = fm[:, 0]
-    #fx2_m = fm[:, 1]
-    #Aff, aff_inliers = affine_inliers(x1_m, y1_m, invV1_m, fx1_m,
-                                      #x2_m, y2_m, invV2_m,
-                                      #xy_thresh_sqrd, max_scale, min_scale)
     Aff, aff_inliers = affine_inliers2(kpts1_m, kpts2_m, fm,
                                        xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Cannot find good affine correspondence
@@ -304,34 +277,31 @@ def homography_inliers(kpts1, kpts2, fm,
     if len(aff_inliers) < min_num_inliers:
         return None
     # Get corresponding points and shapes
-    (x1_ma, y1_ma, invV1_m) = (
-        x1_m[aff_inliers], y1_m[aff_inliers], invV1_m[:, aff_inliers])
-    (x2_ma, y2_ma, invV2_m) = (
-        x2_m[aff_inliers], y2_m[aff_inliers], invV2_m[:, aff_inliers])
+    kpts1_ma = kpts1_m[aff_inliers]
+    kpts2_ma = kpts2_m[aff_inliers]
+    xy1_ma = ktool.get_xys(kpts1_ma)
+    xy2_ma = ktool.get_xys(kpts2_ma)
     # Normalize affine inliers
-    x1_mn, y1_mn, T1 = normalize_xy_points(x1_ma, y1_ma)
-    x2_mn, y2_mn, T2 = normalize_xy_points(x2_ma, y2_ma)
+    xy1_mn, T1 = ltool.whiten_xy_points(xy1_ma)
+    xy2_mn, T2 = ltool.whiten_xy_points(xy2_ma)
+    # Compute homgraphy transform from 1-->2 using affine inliers
+    # Then compute ax = b  # x = npl.solve(a, b)
     try:
-        # Compute homgraphy transform from 1-->2 using affine inliers
-        H_prime = compute_homog(x1_mn, y1_mn, x2_mn, y2_mn)
-        # Computes ax = b # x = npl.solve(a, b)
+        H_prime = compute_homog(xy1_mn, xy2_mn)
         H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
     except npl.LinAlgError as ex:
         print('[sver] Warning 285 %r' % ex)
-        # raise
         return None
 
-    ((H11, H12, H13),
-     (H21, H22, H23),
-     (H31, H32, H33)) = H
     # Transform all xy1 matches to xy2 space
-    x1_mt = H11 * (x1_m) + H12 * (y1_m) + H13
-    y1_mt = H21 * (x1_m) + H22 * (y1_m) + H23
-    z1_mt = H31 * (x1_m) + H32 * (y1_m) + H33
+    xyz1_m = ktool.get_homog_xys(kpts1_m)
+    xyz1_mt = ltool.matrix_multiply(H, xyz1_m)
+    xy1_mt = ltool.homogonize(xyz1_mt)
+    xy1_m  = xyz1_m[0:2]
+
     # --- Find (Squared) Homography Distance Error ---
     #scale_err = np.abs(npl.det(H)) * det2_m / det1_m
-    z1_mt[z1_mt == 0] = 1E-14  # Avoid divide by zero
-    xy_err = ((x1_mt / z1_mt) - x2_m) ** 2 + ((y1_mt / z1_mt) - y2_m) ** 2
+    xy_err = ltool.L2_sqrd(xy1_mt, xy1_m)
     # Estimate final inliers
     inliers = np.where(xy_err < xy_thresh_sqrd)[0]
     return H, inliers, Aff, aff_inliers

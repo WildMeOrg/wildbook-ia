@@ -87,6 +87,14 @@ def get_xys(kpts):
     return _xys
 
 
+def get_homog_xys(kpts):
+    """ Keypoint locations in chip space """
+    _xys = get_xys(kpts)
+    _zs = np.ones(len(_xys))
+    _xyzs = np.vstack((_xys, _zs))
+    return _xyzs
+
+
 def get_invVs(kpts):
     """ Keypoint shapes (oriented with the gravity vector) """
     _invVs = kpts.T[2:5]
