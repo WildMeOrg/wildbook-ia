@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'TEST_IBS'
 #------
-import __testing__
+import __testing__  # Should be imported before any ibeis stuff
 import sys
 import multiprocessing
 import utool
@@ -14,7 +14,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAM
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_IBS():
     main_locals = __testing__.main(defaultdb='testdb', nogui=True)
     ibs = main_locals['ibs']    # IBEIS Control
@@ -68,12 +68,10 @@ def TEST_IBS():
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
     __testing__.main_loop(main_locals, rungui=False)
-TEST_IBS.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    TEST_IBS()
-    #from drawtool import draw_func2 as df2
-    #exec(df2.present())
+    test_locals = TEST_IBS()
+    exec(test_locals['execstr'])

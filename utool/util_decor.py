@@ -1,4 +1,5 @@
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
+import __builtin__
 import sys
 from functools import wraps
 from itertools import islice, imap
@@ -9,7 +10,9 @@ import pylru  # because we dont have functools.lru_cache
 from .util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[decor]')
 
-IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv
+
+# do not ignore traceback when profiling
+IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv or hasattr(__builtin__, 'profile')
 
 
 def composed(*decs):
@@ -21,10 +24,40 @@ def composed(*decs):
     return deco
 
 
+"""
+Common wrappers
+    @utool.indent_func
+    @utool.ignores_exc_tb
+    @wraps(func)
+"""
+
+DISABLE_WRAPPERS = '--disable-wrappers' in sys.argv
+
+
+def common_wrapper(func):
+    """ Wraps decorator wrappers with a set of common decorators """
+    if DISABLE_WRAPPERS:
+        def outer_wrapper(func_):
+            def inner_wrapper(*args, **kwargs):
+                return func_(*args, **kwargs)
+            return inner_wrapper
+        return outer_wrapper
+    else:
+        def outer_wrapper(func_):
+            @indent_func
+            @ignores_exc_tb
+            @wraps(func)
+            def inner_wrapper(*args, **kwargs):
+                return func_(*args, **kwargs)
+            return inner_wrapper
+        return outer_wrapper
+
+
 def ignores_exc_tb(func):
     """ decorator that removes other decorators from traceback """
     if IGNORE_EXC_TB:
         @wraps(func)
+        #@profile
         def wrapper_ignore_exctb(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
@@ -59,14 +92,15 @@ def indent_func(func):
 
 
 def accepts_scalar_input(func):
-    '''
+    """
     accepts_scalar_input is a decorator which expects to be used on class methods.
     It lets the user pass either a vector or a scalar to a function, as long as
     the function treats everything like a vector. Input and output is sanatized
     to the user expected format on return.
-    '''
-    @ignores_exc_tb
+    """
     @wraps(func)
+    @ignores_exc_tb
+    #@profile
     def wrapper_scalar_input(self, input_, *args, **kwargs):
         is_scalar = not isiterable(input_)
         if is_scalar:
@@ -81,14 +115,15 @@ def accepts_scalar_input(func):
 
 
 def accepts_scalar_input_vector_output(func):
-    '''
+    """
     accepts_scalar_input is a decorator which expects to be used on class
     methods.  It lets the user pass either a vector or a scalar to a function,
     as long as the function treats everything like a vector. Input and output is
     sanatized to the user expected format on return.
-    '''
+    """
     @ignores_exc_tb
     @wraps(func)
+    #@profile
     def wrapper_vec_output(self, input_, *args, **kwargs):
         is_scalar = not isiterable(input_)
         if is_scalar:
@@ -103,14 +138,27 @@ def accepts_scalar_input_vector_output(func):
     return wrapper_vec_output
 
 
+UNIQUE_NUMPY = True
+
+
 def accepts_numpy(func):
     """ Allows the first input to be a numpy objet and get result in numpy form """
     @wraps(func)
+    #@profile
     def numpy_wrapper(self, input_, *args, **kwargs):
         if isinstance(input_, np.ndarray):
-            input_list = input_.flatten()
+            if UNIQUE_NUMPY:
+                # Remove redundant input (because we are passing it to SQL)
+                input_list, inverse_unique = np.unique(input_, return_inverse=True)
+            else:
+                input_list = input_.flatten()
             output_list = func(self, input_list)
-            output_ = np.array(output_list).reshape(input_.shape)
+            if UNIQUE_NUMPY:
+                # Reconstruct redundant queries (the user will never know!)
+                output_list_ = np.array(output_list)[inverse_unique]
+                output_ = np.array(output_list_).reshape(input_.shape)
+            else:
+                output_ = np.array(output_list).reshape(input_.shape)
         else:
             output_ = func(self, input_)
         return output_

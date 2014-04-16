@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import numpy as np
 from .util_type import is_list, is_int, is_str, is_float
 from .util_inject import inject

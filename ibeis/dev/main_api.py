@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import sys
 
 sys.argv.append('--strict')  # do not supress any errors
@@ -28,7 +28,7 @@ def _parse_args(**kwargs):
     params.parse_args(**kwargs)
 
 
-def init_matplotlib():
+def _init_matplotlib():
     import matplotlib
     import multiprocessing
     import utool
@@ -75,7 +75,7 @@ def _init_gui():
 def _init_ibeis():
     import utool
     from ibeis.control import IBEISControl
-    import params
+    from . import params
     if not utool.QUIET:
         print('[main] _init_ibeis()')
     dbdir = params.args.dbdir
@@ -105,6 +105,30 @@ def _init_parallel():
 def _close_parallel():
     from utool import util_parallel
     util_parallel.close_pool()
+
+
+def _init_numpy():
+    import numpy as np
+    floating_error_options = ['ignore', 'warn', 'raise', 'call', 'print', 'log']
+    on_float_err = floating_error_options[0]
+    numpy_err = {
+        'divide':  on_float_err,
+        'over':    on_float_err,
+        'under':   on_float_err,
+        'invalid': on_float_err,
+    }
+    numpy_print = {
+        'precision': 8,
+        'threshold': 1000,
+        'edgeitems': 3,
+        'linewidth': 200,  # default 75
+        'suppress': False,
+        'nanstr': 'nan',
+        'formatter': None,
+    }
+    np.seterr(**numpy_err)
+    np.set_printoptions(**numpy_print)
+
 
 #-----------------------
 # private loop functions
@@ -145,7 +169,7 @@ def _ipython_loop(main_locals):
 
 def main(**kwargs):
     import utool
-    import main_commands
+    from ibeis.dev import main_commands
     msg1 = '''
     _____ ....... _______ _____ _______
       |   |_____| |______   |   |______
@@ -162,22 +186,19 @@ def main(**kwargs):
     try:
 
         from ibeis.dev import params
-        import numpy as np
-        np.set_printoptions(linewidth=200)
+        _init_numpy()
         _parse_args(**kwargs)
         _init_parallel()
         utool.util_inject._inject_colored_exception_hook()
         _init_signals()
-        init_matplotlib()
-        main_commands.preload_commands()
+        _init_matplotlib()
+        main_commands.preload_commands()  # PRELOAD CMDS
         if not params.args.nogui:
             back = _init_gui()
         ibs = _init_ibeis()
         if 'back' in vars() and ibs is not None:
-            if not utool.QUIET:
-                print('[main] Attatch ibeis control')
             back.connect_ibeis_control(ibs)
-        main_commands.postload_commands(ibs)
+        main_commands.postload_commands(ibs)  # POSTLOAD CMDS
     except Exception as ex:
         print('[main()] IBEIS Caught: %s %s' % (type(ex), ex))
         print(ex)

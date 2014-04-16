@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from os.path import (join, realpath, relpath, normpath, split, isdir, isfile, exists,
                      islink, ismount, expanduser)
 from itertools import izip
@@ -22,7 +22,13 @@ __UPPER_EXTS = [ext.upper() for ext in __IMG_EXTS]
 IMG_EXTENSIONS =  set(__LOWER_EXTS + __UPPER_EXTS)
 
 
+def unixpath(path):
+    """ Corrects fundamental problems with windows paths.~ """
+    return truepath(path).replace('\\', '/')
+
+
 def truepath(path):
+    """ Normalizes and returns absolute path with so specs """
     return normpath(realpath(expanduser(path)))
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 import sys
 import os
 sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
@@ -17,7 +17,7 @@ printTEST = __testing__.printTEST
 RUNGUI = utool.get_flag('--gui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_GUI_IMPORT_IMAGES():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
@@ -41,15 +41,12 @@ def TEST_GUI_IMPORT_IMAGES():
         raise AssertionError('unknown mode=%r' % mode)
 
     printTEST('[TEST] * len(gid_list)=%r' % len(gid_list))
+    main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=RUNGUI)
-    return locals()
-
-TEST_GUI_IMPORT_IMAGES.func_name = TEST_NAME
+    return main_locals
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
     test_locals = TEST_GUI_IMPORT_IMAGES()
-    ibs = test_locals['ibs']
-    back = test_locals['back']
-    exec(__testing__.execfunc()())
+    exec(test_locals['execstr'])

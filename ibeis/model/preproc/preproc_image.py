@@ -1,19 +1,20 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # UTool
 import utool
 # VTool
 import vtool.image as gtool
+import vtool.exif as exif
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 
 
 tag_list = ['DateTimeOriginal', 'GPSInfo']
-_TAGKEYS = gtool.get_exif_tagids(tag_list)
+_TAGKEYS = exif.get_exif_tagids(tag_list)
 _TAGDEFAULTS = (-1, (-1, -1))
 
 
 def get_exif(pil_img):
     """ Image EXIF helper """
-    (exiftime, (lat, lon)) = gtool.read_exif_tags(pil_img, _TAGKEYS, _TAGDEFAULTS)
+    (exiftime, (lat, lon)) = exif.read_exif_tags(pil_img, _TAGKEYS, _TAGDEFAULTS)
     time = utool.util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
     return time, lat, lon
 

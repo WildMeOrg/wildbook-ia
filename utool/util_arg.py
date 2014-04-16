@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import sys
 # Python
 import argparse
@@ -34,7 +34,7 @@ def get_flag(arg, default=False, help_='', **kwargs):
     else:
         arg_list = [arg]
     for arg in arg_list:
-        if arg.find('--') != 0 and (len(arg) == 2 and arg.find('-') == 0):
+        if not (arg.find('--') == 0 or (arg.find('-') == 0 and len(arg) == 2)):
             raise AssertionError(arg)
         #if arg.find('--no') == 0:
             #arg = arg.replace('--no', '--')
@@ -43,8 +43,6 @@ def get_flag(arg, default=False, help_='', **kwargs):
             return True
         elif noarg in sys.argv:
             return False
-        else:
-            return default
     return default
 
 

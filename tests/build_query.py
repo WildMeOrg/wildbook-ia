@@ -1,66 +1,23 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BUILDQUERY'
 #------
-try:
-    import __testing__
-except ImportError:
-    import tests.__testing__ as __testing__
+import __testing__  # Should be imported before any ibeis stuff
 import sys
 from os.path import join, exists  # NOQA
 from ibeis.dev import params  # NOQA
 import multiprocessing
 import utool
-from ibeis.model.jon_recognition import matching_functions as mf
-from ibeis.model.jon_recognition import match_chips3 as mc3
-from ibeis.model.jon_recognition import QueryRequest  # NOQA
-from ibeis.model.jon_recognition import NNIndex  # NOQA
-from ibeis.dev.debug_imports import *  # NOQA
-from ibeis.model.jon_recognition.matching_functions import _apply_filter_scores  # NOQA
+from ibeis.model.hots import matching_functions as mf
+from ibeis.model.hots import match_chips3 as mc3
 
 printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[%s]' % TEST_NAME)
 
 sys.argv.append('--nogui')
-
-
-def get_query_components(ibs, qcids):
-    printTEST('[GET QUERY COMPONENTS]')
-    with utool.Indenter('[query_comp]'):
-        ibs._init_query_requestor()
-        qreq = ibs.qreq
-        dcids = ibs.get_recognition_database_chips()
-        qcid = qcids[0]
-        qreq = mc3.prep_query_request(qreq=qreq, qcids=qcids, dcids=dcids)
-        mc3.pre_exec_checks(ibs, qreq)
-        neighbs = mf.nearest_neighbors(ibs, qcids, qreq)
-        qcid2_nns = neighbs
-        print('[query_comp]' + utool.len_dbgstr('qcid2_nns[qcid]'))
-        #---
-        weights, filt2_meta = mf.weight_neighbors(ibs, neighbs, qreq)
-        filt2_weights, filt2_meta = (weights, filt2_meta)
-        qcid2_lnbnn_weights = filt2_weights['lnbnn'][qcid]
-        qcid2_lnbnn_meta = filt2_meta['lnbnn'][qcid]
-        utool.print_varlen('qcid2_lnbnn_weights')
-        utool.print_varlen('qcid2_lnbnn_meta')
-        #---
-        nnfiltFILT = mf.filter_neighbors(ibs, neighbs, weights, qreq)
-        qcid_nnfiltFILT = nnfiltFILT[qcid]
-        utool.print_varlen('qcid_nnfiltFILT')
-        #---
-        matchesFILT = mf.build_chipmatches(ibs, neighbs, nnfiltFILT, qreq)
-        qcid_matchesFILT = matchesFILT[qcid]
-        utool.print_varlen('qcid_matchesFILT')
-        #---
-        matchesSVER = mf.spatial_verification(ibs, matchesFILT, qreq)
-        qcid_matchesSVER = matchesSVER[qcid]
-        utool.print_varlen('qcid_matchesSVER')
-        #---
-        qcid2_res = mf.chipmatch_to_resdict(ibs, matchesSVER, filt2_meta, qreq)
-    return locals()
 
 
 @__testing__.testcontext
@@ -73,8 +30,9 @@ def BUILDQUERY():
     qreq = ibs.qreq
 
     cids = ibs.get_recognition_database_chips()
+    assert len(cids) > 0, 'need chips'
     #nn_index = NNIndex.NNIndex(ibs, cid_list)
-    qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0:3], dcids=cids)
+    qreq = mc3.prep_query_request(qreq=qreq, qcids=cids[0], dcids=cids)
     mc3.pre_exec_checks(ibs, qreq)
 
     try:
@@ -90,44 +48,29 @@ def BUILDQUERY():
         # * vsone qcids/dcids swapping occurs here
         qcids = qreq.get_internal_qcids()
         qreq = ibs.qreq
-        mf.rrr()
-        # Nearest neighbors (qcid2_nns)
-        # * query descriptors assigned to database descriptors
-        # * FLANN used here
-        with utool.Timer('1) Nearest Neighbors'):
-            neighbs = mf.nearest_neighbors(ibs, qcids, qreq)
-            qcid2_nns = neighbs
-        # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
-        # * feature matches are weighted
-        with utool.Timer('2) Weight Neighbors'):
-            weights, filt2_meta = mf.weight_neighbors(ibs, neighbs, qreq)
-            filt2_weights, filt2_meta = (weights, filt2_meta)
-        # Thresholding and weighting (qcid2_nnfilter)
-        # * feature matches are pruned
-        #
-        with utool.Timer('3) Filter Neighbors'):
-            nnfiltFILT = mf.filter_neighbors(ibs, neighbs, weights, qreq)
-        # Nearest neighbors to chip matches (qcid2_chipmatch)
-        # * Inverted index used to create cid2_fmfsfk (TODO: ccid2_fmfv)
-        # * Initial scoring occurs
-        # * vsone inverse swapping occurs here
-        with utool.Timer('4) Filter Neighbors'):
-            matchesFILT = mf.build_chipmatches(ibs, neighbs, nnfiltFILT, qreq)
-        # Spatial verification (qcid2_chipmatch) (TODO: cython)
-        # * prunes chip results and feature matches
-        with utool.Timer('5) Filter Neighbors'):
-            matchesSVER = mf.spatial_verification(ibs, matchesFILT, qreq)
-            qcid2_chipmatch = matchesSVER
-        # Query results format (qcid2_res) (TODO: SQL / Json Encoding)
-        # * Final Scoring. Prunes chip results.
-        # * packs into a wrapped query result object
-        with utool.Timer('6) Filter Neighbors'):
-            qcid2_res = mf.chipmatch_to_resdict(ibs, matchesSVER, filt2_meta, qreq)
+        #mf.rrr()
+        qcids = qreq.get_internal_qcids()
+        if isinstance(qcids, int):
+            qcids = [qcids]
+        qcid2_nns = mf.nearest_neighbors(
+            ibs, qcids, qreq)
+        filt2_weights, filt2_meta = mf.weight_neighbors(
+            ibs, qcid2_nns, qreq)
+        qcid2_nnfilt = mf.filter_neighbors(
+            ibs, qcid2_nns, filt2_weights, qreq)
+        qcid2_chipmatch_FILT = mf.build_chipmatches(
+            qcid2_nns, qcid2_nnfilt, qreq)
+        qcid2_chipmatch_SVER = mf.spatial_verification(
+            ibs, qcid2_chipmatch_FILT, qreq, dbginfo=False)
+        qcid2_res = mf.chipmatch_to_resdict(
+            ibs, qcid2_chipmatch_SVER, filt2_meta, qreq)
     except Exception as ex:
-        print(ex)
+        utool.print_exception(ex, '[!build_query]')
+        raise
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
+    main_locals.update(globals())
     main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=False)
     return main_locals
@@ -135,11 +78,12 @@ BUILDQUERY.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
-    from ibeis.model.jon_recognition.matching_functions import *  # NOQA
-    # For windows
-    multiprocessing.freeze_support()
+    multiprocessing.freeze_support()  # For windows
     test_locals = BUILDQUERY()
     del test_locals['print']
-    exec(utool.execstr_dict(test_locals, 'test_locals'))
-    #from drawtool import draw_func2 as df2
-    #exec(df2.present())
+    if utool.get_flag('--cmd2'):
+        exec(utool.execstr_dict(test_locals, 'test_locals'))
+        exec(utool.execstr_embed())
+    if utool.get_flag('--wait'):
+        print('waiting')
+        raw_input('press enter')

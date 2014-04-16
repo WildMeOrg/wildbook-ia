@@ -5,7 +5,7 @@
 # show_<func_name> will always clear the current axes, but not fig: cla # Might # add annotates?
 # plot_<func_name> will not clear the axes or figure. More useful for graphs
 # draw_<func_name> same as plot for now. More useful for images
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
 
@@ -24,7 +24,7 @@ import warnings
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-from matplotlib.font_manager import FontProperties
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Qt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
@@ -33,9 +33,11 @@ import numpy as np
 import scipy.stats
 import cv2
 # VTool
-import mpl_keypoint as mpl_kp
 import vtool.patch as ptool
 import vtool.image as gtool
+# Drawtool
+from . import mpl_keypoint as mpl_kp
+from . import color_funcs as color_fns  # NOQA
 
 #================
 # GLOBALS
@@ -47,18 +49,27 @@ plotWidget = None
 
 # GENERAL FONTS
 
+SMALLEST = 6
 SMALLER  = 8
 SMALL    = 10
 MED      = 12
 LARGE    = 14
 #fpargs = dict(family=None, style=None, variant=None, stretch=None, fname=None)
+
+
+def FontProp(*args, **kwargs):
+    """ overwrite fontproperties with custom settings """
+    kwargs['family'] = 'monospace'
+    return mpl.font_manager.FontProperties(*args, **kwargs)
+
 FONTS = utool.DynStruct()
-FONTS.small     = FontProperties(weight='light', size=SMALL)
-FONTS.smaller   = FontProperties(weight='light', size=SMALLER)
-FONTS.med       = FontProperties(weight='light', size=MED)
-FONTS.large     = FontProperties(weight='light', size=LARGE)
-FONTS.medbold   = FontProperties(weight='bold', size=MED)
-FONTS.largebold = FontProperties(weight='bold', size=LARGE)
+FONTS.smallest  = FontProp(weight='light', size=SMALLEST)
+FONTS.small     = FontProp(weight='light', size=SMALL)
+FONTS.smaller   = FontProp(weight='light', size=SMALLER)
+FONTS.med       = FontProp(weight='light', size=MED)
+FONTS.large     = FontProp(weight='light', size=LARGE)
+FONTS.medbold   = FontProp(weight='bold', size=MED)
+FONTS.largebold = FontProp(weight='bold', size=LARGE)
 
 # SPECIFIC FONTS
 
@@ -69,7 +80,7 @@ FONTS.subtitle = FONTS.med
 #FONTS.xlabel   = FONTS.smaller
 FONTS.xlabel   = FONTS.small
 FONTS.ylabel   = FONTS.small
-FONTS.relative = FONTS.smaller
+FONTS.relative = FONTS.smallest
 
 # COLORS
 
@@ -85,7 +96,9 @@ DEEP_PINK    = np.array((255,  20, 147, 255)) / 255.0
 PINK         = np.array((255,  100, 100, 255)) / 255.0
 FALSE_RED    = np.array((255,  51,   0, 255)) / 255.0
 TRUE_GREEN   = np.array((  0, 255,   0, 255)) / 255.0
-DARK_RED     = np.array((127,  0,   0, 255)) / 255.0
+DARK_GREEN   = np.array((  0, 127,   0, 255)) / 255.0
+DARK_BLUE    = np.array((  0,  0,  127, 255)) / 255.0
+DARK_RED     = np.array((127,  0,    0, 255)) / 255.0
 DARK_ORANGE  = np.array((127,  63,   0, 255)) / 255.0
 DARK_YELLOW  = np.array((127,  127,   0, 255)) / 255.0
 PURPLE = np.array((102,   0, 153, 255)) / 255.0
@@ -110,7 +123,8 @@ def golden_wh(x):
 
 
 # FIGURE GEOMETRY
-DPI = 80
+#DPI = 80
+DPI = 60
 #DPI = 160
 #FIGSIZE = (24) # default windows fullscreen
 FIGSIZE_MED = (12, 6)
@@ -130,6 +144,12 @@ LINE_ALPHA_OVERRIDE = utool.get_arg('--line-alpha-override', type_=float, defaul
 ELL_ALPHA_OVERRIDE = utool.get_arg('--ell-alpha-override', type_=float, default=None)
 
 base_fnum = 9001
+
+
+def get_pnum_func(nRows, nCols):
+    def pnum_(px):
+        return (nRows, nCols, px + 1)
+    return pnum_
 
 
 def next_fnum(new_base=None):
@@ -179,20 +199,13 @@ def OooScreen2():
                 row_first=True, no_tile=False)
 
 
-def deterministic_shuffle(list_):
-    randS = int(np.random.rand() * np.uint(0 - 2) / 2)
-    np.random.seed(len(list_))
-    np.random.shuffle(list_)
-    np.random.seed(randS)
-
-
 def distinct_colors(N, brightness=.878):
     # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
     sat = brightness
     val = brightness
     HSV_tuples = [(x * 1.0 / N, sat, val) for x in xrange(N)]
     RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
-    deterministic_shuffle(RGB_tuples)
+    utool.deterministic_shuffle(RGB_tuples)
     return RGB_tuples
 
 
@@ -226,8 +239,10 @@ def draw_border(ax, color=GREEN, lw=2, offset=None):
     rect.set_edgecolor(color)
 
 
+# TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ROI
 def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
-             lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1), theta=0, ax=None):
+             lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1),
+             draw_arrow=True, theta=0, ax=None):
     if ax is None:
         ax = gca()
     (rx, ry, rw, rh) = roi
@@ -250,19 +265,19 @@ def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
     trans_roi.translate(rx + rw / 2, ry + rh / 2)
     t_end = trans_roi + ax.transData
     bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=2, transform=t_end)
-    arw_x, arw_y, arw_dx, arw_dy   = (-0.5, -0.5, 1.0, 0.0)
-    arrowargs = dict(head_width=.1, transform=t_end, length_includes_head=True)
-    arrow = mpl.patches.FancyArrow(arw_x, arw_y, arw_dx, arw_dy, **arrowargs)
-
     bbox.set_fill(False)
     #bbox.set_transform(trans)
     bbox.set_edgecolor(bbox_color)
-    arrow.set_edgecolor(bbox_color)
-    arrow.set_facecolor(bbox_color)
-
     ax.add_patch(bbox)
-    ax.add_patch(arrow)
-    #ax.add_patch(arrow2)
+    # Draw overhead arrow indicating the top of the ROI
+    if draw_arrow:
+        arw_xydxdy = (-0.5, -0.5, 1.0, 0.0)
+        arw_kw = dict(head_width=.1, transform=t_end, length_includes_head=True)
+        arrow = mpl.patches.FancyArrow(*arw_xydxdy, **arw_kw)
+        arrow.set_edgecolor(bbox_color)
+        arrow.set_facecolor(bbox_color)
+        ax.add_patch(arrow)
+    # Draw a label
     if label is not None:
         ax_absolute_text(rx, ry, label, ax=ax,
                          horizontalalignment='center',
@@ -363,7 +378,9 @@ def get_monitor_geometries():
 
 
 def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
-                     row_first=True, no_tile=False, override1=False):
+                     row_first=True, no_tile=False, override1=False, **kwargs):
+    if 'nRows' in kwargs and 'nCols' in kwargs:
+        num_rc = (kwargs['nRows'], kwargs['nCols'])
     'Lays out all figures in a grid. if wh is a scalar, a golden ratio is used'
     print('[df2] all_figures_tile()')
     # RCOS TODO:
@@ -1116,6 +1133,8 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     if docla or len(axes_list) == 0:
         printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
         if not pnum is None:
+            assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
+            assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
             #ax = plt.subplot(*pnum)
             ax = fig.add_subplot(*pnum)
             ax.cla()
@@ -1409,11 +1428,15 @@ def scores_to_cmap(scores, colors=None, cmap_='hot'):
 
 
 def colorbar(scalars, colors):
-    'adds a color bar next to the axes'
+    """ adds a color bar next to the axes """
     printDBG('colorbar()')
     # Parameters
-    xy, width, height = _axis_xy_width_height()
-    orientation = ['vertical', 'horizontal'][0]
+    ax = gca()
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+
+    xy, width, height = _axis_xy_width_height(ax)
+    #orientation = ['vertical', 'horizontal'][0]
     TICK_FONTSIZE = 8
     #
     listed_cmap = scores_to_cmap(scalars, colors)
@@ -1422,23 +1445,26 @@ def colorbar(scalars, colors):
     sm = plt.cm.ScalarMappable(cmap=listed_cmap)
     sm.set_array(sorted_scalars)
     # Use mapable object to create the colorbar
-    COLORBAR_SHRINK = .42  # 1
-    COLORBAR_PAD = .01  # 1
-    COLORBAR_ASPECT = np.abs(20 * height / (width))  # 1
-    printDBG('[df] COLORBAR_ASPECT = %r' % COLORBAR_ASPECT)
+    #COLORBAR_SHRINK = .42  # 1
+    #COLORBAR_PAD = .01  # 1
+    #COLORBAR_ASPECT = np.abs(20 * height / (width))  # 1
+    #printDBG('[df] COLORBAR_ASPECT = %r' % COLORBAR_ASPECT)
 
-    cb = plt.colorbar(sm, orientation=orientation, shrink=COLORBAR_SHRINK,
-                      pad=COLORBAR_PAD, aspect=COLORBAR_ASPECT)
-    # Add the colorbar to the correct label
-    axis = cb.ax.xaxis if orientation == 'horizontal' else cb.ax.yaxis
-    position = 'bottom' if orientation == 'horizontal' else 'right'
-    axis.set_ticks_position(position)
+    cb = plt.colorbar(sm, cax=cax)
+
+    #, orientation=orientation, shrink=COLORBAR_SHRINK,
+                      #pad=COLORBAR_PAD, aspect=COLORBAR_ASPECT)
+    ## Add the colorbar to the correct label
+    axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
+    #position = 'bottom' if orientation == 'horizontal' else 'right'
+    #axis.set_ticks_position(position)
     axis.set_ticks([0, .5, 1])
     cb.ax.tick_params(labelsize=TICK_FONTSIZE)
+    plt.sca(ax)
 
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
-                color_list=None, scale_factor=1, **kwargs):
+                color_list=None, scale_factor=1, lw=1.4, line_alpha=.35, **kwargs):
     printDBG('-------------')
     printDBG('draw_lines2()')
     printDBG(' * len(fm) = %r' % len(fm))
@@ -1463,8 +1489,8 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
         else:  # Draw with colors proportional to score difference
             color_list = scores_to_color(fs)
     segments  = [((x1, y1), (x2, y2)) for (x1, x2, y1, y2) in xxyy_iter]
-    linewidth = [1.4 for fx in xrange(len(fm))]
-    line_alpha = .35 if LINE_ALPHA_OVERRIDE is None else LINE_ALPHA_OVERRIDE
+    linewidth = [lw for fx in xrange(len(fm))]
+    line_alpha = line_alpha if LINE_ALPHA_OVERRIDE is None else LINE_ALPHA_OVERRIDE
     line_group = LineCollection(segments, linewidth, color_list, alpha=line_alpha)
     #plt.colorbar(line_group, ax=ax)
     ax.add_collection(line_group)
@@ -1475,15 +1501,19 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
-               ell_color=BLUE, pts_color=ORANGE, color_list=None, **kwargs):
+               ell_color=None, pts_color=ORANGE, color_list=None, **kwargs):
+    if ell_color is None:
+        ell_color = kwargs.get('color', BLUE)
     printDBG('-------------')
     printDBG('draw_kpts2():')
     #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
     printDBG(' * kpts.shape=%r:' % (kpts.shape,))
     printDBG(' * ell=%r pts=%r' % (ell, pts))
+    printDBG(' * rect=%r eig=%r, ori=%r' % (rect, eig, ori))
     printDBG(' * scale_factor=%r' % (scale_factor,))
     printDBG(' * offset=%r' % (offset,))
     printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
+    assert len(kpts) > 0, 'len(kpts) < 0'
     ax = gca()
     ell_alpha = ell_alpha if ELL_ALPHA_OVERRIDE is None else ELL_ALPHA_OVERRIDE
     if color_list is not None:
@@ -1727,7 +1757,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
 
 # draw feature match
 def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
-                fnum=None, pnum=None, rect=False, colorbar_=True, **kwargs):
+                fnum=None, pnum=None, rect=False, colorbar_=True,
+                draw_border=False, **kwargs):
     '''Draws the matching features. This is draw because it is an overlay
     xywh1 - location of rchip1 in the axes
     xywh2 - location or rchip2 in the axes
@@ -1759,6 +1790,10 @@ def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         all_args.update(kwargs)
         draw_kpts2(kpts1, **all_args)
         draw_kpts2(kpts2, offset=offset2, **all_args)
+    if draw_border:
+        draw_roi(xywh1, bbox_color=BLACK, draw_arrow=False)
+        draw_roi(xywh2, bbox_color=BLACK, draw_arrow=False)
+
     # Draw Lines and Ellipses and Points oh my
     if nMatch > 0:
         colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)

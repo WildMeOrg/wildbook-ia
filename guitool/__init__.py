@@ -1,14 +1,14 @@
-from __future__ import division, print_function
+# flake8: noqa
+from __future__ import absolute_import, division, print_function
 
+from . import  guitool_tables
+from . import guitool_dialogs
+from . import guitool_decorators
+from . import guitool_main
+from . import guitool_misc
 
-import  guitool_tables   # NOQA
-import guitool_dialogs   # NOQA
-import guitool_decorators   # NOQA
-import guitool_main   # NOQA
-import guitool_misc   # NOQA
-
-from guitool_tables import *  # NOQA
-from guitool_dialogs import *  # NOQA
-from guitool_decorators import *  # NOQA
-from guitool_main import *  # NOQA
-from guitool_misc import *  # NOQA
+from .guitool_tables import *
+from .guitool_dialogs import *
+from .guitool_decorators import *
+from .guitool_main import *
+from .guitool_misc import *

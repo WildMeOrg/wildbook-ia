@@ -1,5 +1,5 @@
 'This module should handle all things elliptical'
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
 # Scientific
@@ -9,13 +9,10 @@ import cv2
 import numpy as np
 # VTool
 from . import keypoint as ktool
+from . import image as gtool
 from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[ell]', DEBUG=False)
-
-try:
-    profile
-except NameError:
-    profile = lambda func: func
+(print, print_, printDBG, rrr, profile) = inject(
+    __name__, '[etool]', DEBUG=False)
 
 
 @profile
@@ -92,7 +89,7 @@ def sample_ell_border_vals(imgBGR, expanded_kpts, nKp, nScales, nSamples):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]
     imgMag = gradient_magnitude(imgL)
-    border_vals = subpixel_values(imgMag, ell_border_pts)
+    border_vals = gtool.subpixel_values(imgMag, ell_border_pts)
     #assert len(border_vals) == (nKp * nScales * nSamples)
     border_vals.shape = (nKp, nScales, nSamples, 1)
     border_vals_sum = border_vals.sum(3).sum(2)
@@ -339,57 +336,6 @@ def gradient_magnitude(img):
     return imgMag
 
 
-def subpixel_values(img, pts):
-    ''' adapted from
-    stackoverflow.com/uestions/12729228/simple-efficient-binlinear-
-    interpolation-of-images-in-numpy-and-python'''
-    # Image info
-    height, width = img.shape[0:2]
-    nChannels = 1 if len(img.shape) == 2 else img.shape[2]
-
-    # Subpixel locations to sample
-    ptsT = pts.T
-    x = ptsT[0]
-    y = ptsT[1]
-
-    # Get quantized pixel locations near subpixel pts
-    x0 = np.floor(x).astype(int)
-    x1 = x0 + 1
-    y0 = np.floor(y).astype(int)
-    y1 = y0 + 1
-
-    # Make sure the values do not go past the boundary
-    x0 = np.clip(x0, 0, width - 1)
-    x1 = np.clip(x1, 0, width - 1)
-    y0 = np.clip(y0, 0, height - 1)
-    y1 = np.clip(y1, 0, height - 1)
-
-    # Find bilinear weights
-    wa = (x1 - x) * (y1 - y)
-    wb = (x1 - x) * (y - y0)
-    wc = (x - x0) * (y1 - y)
-    wd = (x - x0) * (y - y0)
-    if  nChannels != 1:
-        wa = array([wa] *  nChannels).T
-        wb = array([wb] *  nChannels).T
-        wc = array([wc] *  nChannels).T
-        wd = array([wd] *  nChannels).T
-
-    # Sample values
-    Ia = img[y0, x0]
-    Ib = img[y1, x0]
-    Ic = img[y0, x1]
-    Id = img[y1, x1]
-
-    # Perform the bilinear interpolation
-    subpxl_vals = (wa * Ia) + (wb * Ib) + (wc * Ic) + (wd * Id)
-    return subpxl_vals
-
-
-def get_num_channels(img):
-    return 1 if len(img.shape) == 2 else img.shape[2]
-
-
 #----------------
 # Numeric Helpers
 #----------------
@@ -426,7 +372,7 @@ def kpts_matrices(kpts):
     # invert into V
     invV = kpts_to_invV(kpts)
     V = ktool.get_V_mats(invV)
-    Z = ktool.get_E_mats(V)
+    Z = ktool.get_Z_mats(V)
     return invV, V, Z
 
 

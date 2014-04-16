@@ -7,10 +7,10 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 # JON SAYS (3-24)
 # I had a change of heart. I'm using tripple double quotes for comment strings
 # only and tripple single quotes for python multiline strings only
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
-from os.path import join, realpath, split
+from os.path import join, split
 # Science
 import numpy as np
 # VTool
@@ -69,28 +69,56 @@ class IBEISControl(object):
         ibs._init_sql()
         ibs._init_config()
 
-    def _init_dirs(ibs, dbdir):
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_databases'):
         """ Define ibs directories """
         print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
-        ibs.dbdir = realpath(dbdir)
-        ibs.dbfname  = '_ibeis_database.sqlite3'
+        if dbdir is not None:
+            workdir, dbname = split(dbdir)
+        ibs.workdir  = utool.truepath(workdir)
+        ibs.dbname = dbname
+
+        ibs.sqldb_fname = '_ibeis_database.sqlite3'
+        ibs.dbdir = join(ibs.workdir, ibs.dbname)
         ibs.cachedir = join(ibs.dbdir, '_ibeis_cache')
         ibs.chipdir  = join(ibs.cachedir, 'chips')
         ibs.flanndir = join(ibs.cachedir, 'flann')
-        ibs.qresdir  = join(ibs.cachedir, 'query_results')
+        ibs.imgdir   = join(ibs.cachedir, 'images')
+        ibs.qresdir  = join(ibs.cachedir, 'qres')
         ibs.bigcachedir = join(ibs.cachedir, 'bigcache')
         utool.ensuredir(ibs.cachedir)
+        utool.ensuredir(ibs.workdir)
         utool.ensuredir(ibs.chipdir)
         utool.ensuredir(ibs.flanndir)
         utool.ensuredir(ibs.qresdir)
         utool.ensuredir(ibs.bigcachedir)
-        printDBG('[ibs._init_dirs] ibs.dbfname = %r' % ibs.dbfname)
+        printDBG('[ibs._init_dirs] ibs.dbname = %r' % ibs.dbname)
         printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
+    def get_dbname(ibs):
+        return ibs.dbname
+
+    def get_dbpath(ibs):
+        return join(ibs.workdir, ibs.dbname)
+
+    def get_workdir(ibs):
+        return ibs.workdir
+
+    def get_num_images(ibs):
+        gid_list = ibs.get_valid_gids()
+        return len(gid_list)
+
+    def get_num_rois(ibs):
+        rid_list = ibs.get_valid_rids()
+        return len(rid_list)
+
+    def get_num_names(ibs):
+        nid_list = ibs.get_valid_nids()
+        return len(nid_list)
+
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.dbdir, ibs.dbfname)
+        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbpath(), ibs.sqldb_fname)
         printDBG('[ibs._init_sql] Define the schema.')
         IBEIS_SCHEMA.define_IBEIS_schema(ibs)
         printDBG('[ibs._init_sql] Add default names.')
@@ -636,9 +664,11 @@ class IBEISControl(object):
 
     @getter
     def get_roi_nids(ibs, rid_list):
-        """ Returns the name_ids of each roi """
+        """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
         nid_list = ibs.get_roi_properties('name_uid', rid_list)
-        return nid_list
+        tnid_list = [nid if nid != ibs.UNKNOWN_NID else -rid
+                     for (nid, rid) in izip(nid_list, rid_list)]
+        return tnid_list
 
     @getter
     def get_roi_gnames(ibs, rid_list):
@@ -690,7 +720,7 @@ class IBEISControl(object):
     def get_roi_desc(ibs, rid_list, ensure=True):
         """ Returns chip descriptors """
         fid_list  = ibs.get_roi_fids(rid_list, ensure=ensure)
-        desc_list = ibs.get_feat_desc(fid_list, ensure=ensure)
+        desc_list = ibs.get_feat_desc(fid_list)
         return desc_list
 
     @getter
@@ -724,21 +754,9 @@ class IBEISControl(object):
         return groundtruth_list
 
     @getter
-    def get_roi_num_groundtruth(ibs, cid_list):
+    def get_roi_num_groundtruth(ibs, rid_list):
         """ Returns number of other chips with the same name """
-        return map(len, ibs.get_roi_groundtruth(cid_list))
-
-    @getter_vector_output
-    def get_rids_in_nids(ibs, nid_list):
-        """ returns a list of list of cids in each name """
-        # for each name return chips in that name
-        rids_list = [[] for _ in xrange(len(nid_list))]
-        return rids_list
-
-    @getter
-    def get_num_rids_in_nids(ibs, nid_list):
-        """ returns the number of detections for each name """
-        return map(len, ibs.get_rids_in_nids(nid_list))
+        return map(len, ibs.get_roi_groundtruth(rid_list))
 
     @getter
     def get_roi_num_feats(ibs, rid_list, ensure=False):
@@ -749,6 +767,15 @@ class IBEISControl(object):
 
     #
     # GETTERS::Chips
+
+    @getter_general
+    def get_valid_cids(ibs):
+        cid_list = ibs.db.executeone(
+            operation='''
+            SELECT chip_uid
+            FROM chips
+            ''')
+        return cid_list
 
     @getter
     def get_chips(ibs, cid_list):
@@ -806,15 +833,10 @@ class IBEISControl(object):
 
     @getter_numpy
     def get_chip_nids(ibs, cid_list):
-        """ Returns chip 'temp' names. (negative chip ids if UNKONWN_NAME) """
-        # TODO: Rectify this with ROI_UIDS
-        # I think ROIs should recieve an integer index in addition to the rather
-        # unweildy uuid. The same should probably happen with images
+        """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
         rid_list = ibs.get_chip_rids(cid_list)
         nid_list = ibs.get_roi_nids(rid_list)
-        tnid_list = [nid if nid != ibs.UNKNOWN_NID else -cid
-                     for (nid, cid) in izip(nid_list, cid_list)]
-        return tnid_list
+        return nid_list
 
     def get_chip_names(ibs, cid_list):
         nid_list = ibs.get_chip_nids(cid_list)
@@ -853,7 +875,7 @@ class IBEISControl(object):
     # GETTERS::Mask
 
     @getter
-    def get_chip_masks(ibs, rid_list):
+    def get_chip_masks(ibs, rid_list, ensure=True):
         # Should this function exist? Yes. -Jon
         roi_list  = ibs.get_roi_bboxes(rid_list)
         mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
@@ -862,7 +884,6 @@ class IBEISControl(object):
     #
     # GETTERS::Name
 
-    #@getter_general
     @getter_general
     def get_valid_nids(ibs):
         """ Returns all valid names (does not include unknown names """
@@ -874,16 +895,6 @@ class IBEISControl(object):
             ''',
             parameters=(ibs.UNKNOWN_NAME,))
         return nid_list
-
-    @getter
-    def get_names(ibs, nid_list):
-        """ Returns text names """
-        # Change the temporary negative indexes back to the unknown NID for the
-        # SQL query. Then augment the name list to distinguish unknown names
-        nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
-        name_list_ = ibs.get_name_properties('name_text', nid_list_)
-        name_list  = [name if nid > 0 else name + str(-nid) for (name, nid) in izip(name_list_, nid_list)]
-        return name_list
 
     @getter
     def get_name_nids(ibs, name_list, ensure=True):
@@ -899,6 +910,28 @@ class IBEISControl(object):
             parameters_iter=((name,) for name in name_list),
             auto_commit=False)
         return nid_list
+
+    @getter
+    def get_names(ibs, nid_list):
+        """ Returns text names """
+        # Change the temporary negative indexes back to the unknown NID for the
+        # SQL query. Then augment the name list to distinguish unknown names
+        nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
+        name_list_ = ibs.get_name_properties('name_text', nid_list_)
+        name_list  = [name if nid > 0 else name + str(-nid) for (name, nid) in izip(name_list_, nid_list)]
+        return name_list
+
+    @getter_vector_output
+    def get_rids_in_nids(ibs, nid_list):
+        """ returns a list of list of cids in each name """
+        # for each name return chips in that name
+        rids_list = [[] for _ in xrange(len(nid_list))]
+        return rids_list
+
+    @getter
+    def get_num_rids_in_nids(ibs, nid_list):
+        """ returns the number of detections for each name """
+        return map(len, ibs.get_rids_in_nids(nid_list))
 
     #
     # GETTERS::Encounter
@@ -965,12 +998,14 @@ class IBEISControl(object):
     # --- Model ---
     #--------------
 
+    @utool.indent_func
     def compute_all_chips(ibs):
         print('[ibs] compute_all_chips')
         rid_list = ibs.get_valid_rids()
         cid_list = ibs.add_chips(rid_list)
         return cid_list
 
+    @utool.indent_func
     def compute_all_features(ibs):
         print('[ibs] compute_all_features')
         rid_list = ibs.get_valid_rids()
@@ -1051,8 +1086,9 @@ class IBEISControl(object):
         qcid2_res = ibs._query_chips(qcid_list, dcid_list, **kwargs)
         return qcid2_res
 
+    @utool.indent_func
     def _init_query_requestor(ibs):
-        from ibeis.model.jon_recognition import QueryRequest
+        from ibeis.model.hots import QueryRequest
         ibs.qreq = QueryRequest.QueryRequest()  # Query Data
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
@@ -1062,7 +1098,7 @@ class IBEISControl(object):
         qcid_list - query chip ids
         dcid_list - database chip ids
         """
-        from ibeis.model.jon_recognition import match_chips3 as mc3
+        from ibeis.model.hots import match_chips3 as mc3
         qreq = mc3.prep_query_request(qreq=ibs.qreq,
                                       qcids=qcid_list,
                                       dcids=dcid_list,
@@ -1070,3 +1106,19 @@ class IBEISControl(object):
                                       **kwargs)
         qcid2_qres = mc3.process_query_request(ibs, qreq)
         return qcid2_qres
+
+    def get_infostr(ibs):
+        """ Returns printable database information """
+        dbname = ibs.get_dbname()
+        workdir = utool.unixpath(ibs.get_workdir())
+        num_images = ibs.get_num_images()
+        num_rois = ibs.get_num_rois()
+        num_names = ibs.get_num_names()
+        infostr = '''
+        workdir = %r
+        dbname = %r
+        num_images = %r
+        num_rois = %r
+        num_names = %r
+        ''' % (workdir, dbname, num_images, num_rois, num_names)
+        return infostr

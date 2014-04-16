@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BIGDB'
 #------
-import __testing__
+import __testing__  # Should be imported before any ibeis stuff
 import sys
 from os.path import join, exists
 from ibeis.dev import params

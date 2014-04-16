@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Python
 import sys
 from os.path import split, exists, join
@@ -130,8 +130,11 @@ class MainWindowBackend(QtCore.QObject):
         interact.interact_image(back.ibs, gid, **kwargs)
 
     @drawing
-    def show_roi(back, rid, **kwargs):
+    def show_roi(back, rid, show_image=False, **kwargs):
         interact.interact_chip(back.ibs, rid, **kwargs)
+        if show_image:
+            gid = back.ibs.get_roi_gids(rid)
+            interact.interact_image(back.ibs, gid, sel_rids=[rid])
 
     @drawing
     def show_name(back, name, sel_rids=[], **kwargs):
@@ -264,7 +267,7 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
-    def _set_selection(back, gids=None, rids=None, nids=None, qres=None):
+    def _set_selection(back, gids=None, rids=None, nids=None, qres=None, **kwargs):
         back.sel_gids = [] if gids is None else gids
         back.sel_rids = [] if rids is None else rids
         back.sel_nids = [] if nids is None else nids
@@ -279,12 +282,13 @@ class MainWindowBackend(QtCore.QObject):
         back.show_image(gid, sel_rids=sel_rids)
 
     @blocking_slot(QT_ROI_UID_TYPE)
-    def select_rid(back, rid, **kwargs):
+    def select_rid(back, rid, show_roi=True, **kwargs):
         # Table Click -> Chip Table
         rid = qt_roi_uid_cast(rid)
         print('[back] select rid=%r' % rid)
         back._set_selection(rids=[rid], **kwargs)
-        back.show_roi(rid, **kwargs)
+        if show_roi:
+            back.show_roi(rid, **kwargs)
 
     @slot_(QT_NAME_UID_TYPE)
     def select_nid(back, nid, **kwargs):
@@ -343,7 +347,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def new_database(back, new_dbdir=None):
-        # File -> New Database
+        """ File -> New Database"""
         if new_dbdir is None:
             new_dbname = back.user_input(
                 msg='What do you want to name the new database?',
@@ -375,7 +379,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def open_database(back, dbdir=None):
-        # File -> Open Database
+        """ File -> Open Database"""
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
             dbdir = guitool.select_directory('Select new database directory')
@@ -393,14 +397,14 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def save_database(back):
-        # File -> Save Database
+        """ File -> Save Database"""
         print('[back] ')
         # Depricate
         pass
 
     @blocking_slot()
     def import_images(back, gpath_list=None, dir_=None):
-        # File -> Import Images (ctrl + i)
+        """ File -> Import Images (ctrl + i)"""
         print('[back] import_images')
         reply = None
         if gpath_list is None and dir_ is None:
@@ -418,7 +422,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None):
         print('[back] import_images_from_file')
-        # File -> Import Images From File
+        """ File -> Import Images From File"""
         if back.ibs is None:
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
@@ -430,10 +434,10 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def import_images_from_dir(back, dir_=None):
         print('[back] import_images_from_dir')
-        # File -> Import Images From Directory
+        """ File -> Import Images From Directory"""
         if dir_ is None:
             dir_ = guitool.select_directory('Select directory with images in it')
-        print('[back] dir=%r' % dir_)
+        printDBG('[back] dir=%r' % dir_)
         gpath_list = utool.list_images(dir_, fullpath=True)
         gid_list = back.ibs.add_images(gpath_list)
         back.populate_image_table()
@@ -442,7 +446,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def quit(back):
-        # File -> Quit
+        """ File -> Quit"""
         print('[back] ')
         guitool.exit_application()
 
@@ -452,22 +456,22 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def new_prop(back):
-        # Action -> New Chip Property
+        """ Action -> New Chip Property"""
         # Depricate
         print('[back] new_prop')
         pass
 
     @blocking_slot()
     def add_roi(back, gid=None, bbox=None, theta=0.0):
-        # Action -> Add ROI
+        """ Action -> Add ROI"""
         print('[back] add_roi')
         if gid is None:
             gid = back.get_selected_gid()
         if bbox is None:
             bbox = back.select_bbox(gid)
-        print('[back.add_roi] * adding bbox=%r' % bbox)
+        printDBG('[back.add_roi] * adding bbox=%r' % bbox)
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
-        print('[back.add_roi] * added rid=%r' % rid)
+        printDBG('[back.add_roi] * added rid=%r' % rid)
         back.populate_tables()
         back.show_image(gid)
         #back.select_gid(gid, rids=[rid])
@@ -475,38 +479,38 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def reselect_roi(back, rid=None, roi=None, **kwargs):
-        # Action -> Reselect ROI
+        """ Action -> Reselect ROI"""
         print('[back] reselect_roi')
         pass
 
     @blocking_slot()
     def query(back, rid=None, **kwargs):
-        # Action -> Query
+        """ Action -> Query"""
         print('[back] query')
         pass
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
-        # Action -> Reselect ORI
+        """ Action -> Reselect ORI"""
         print('[back] reselect_ori')
         pass
 
     @blocking_slot()
     def delete_roi(back):
-        # Action -> Delete Chip
+        """ Action -> Delete Chip"""
         print('[back] delete_roi')
         pass
 
     @blocking_slot(QT_IMAGE_UID_TYPE)
     def delete_image(back, gid=None):
-        # Action -> Delete Images
+        """ Action -> Delete Images"""
         print('[back] delete_image')
         gid = qt_image_uid_cast(gid)
         pass
 
     @blocking_slot()
     def select_next(back):
-        # Action -> Next
+        """ Action -> Next"""
         print('[back] select_next')
         pass
 
@@ -516,12 +520,13 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def precompute_feats(back):
-        # Batch -> Precompute Feats
+        """ Batch -> Precompute Feats"""
         print('[back] precompute_feats')
         pass
 
     @blocking_slot()
     def precompute_queries(back):
+        """ Batch -> Precompute Queries"""
         print('[back] precompute_queries')
         pass
 
@@ -531,7 +536,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def layout_figures(back):
-        # Options -> Layout Figures
+        """ Options -> Layout Figures"""
         print('[back] layout_figures')
         pass
 
@@ -539,7 +544,7 @@ class MainWindowBackend(QtCore.QObject):
     def edit_preferences(back):
         print('[back] edit_preferences')
         pass
-        # Options -> Edit Preferences
+        """ Options -> Edit Preferences"""
         #back.edit_prefs = back.cfg.createQWidget()
         #epw = back.edit_prefs
         #epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
@@ -553,13 +558,13 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def view_docs(back):
-        # Help -> View Documentation
+        """ Help -> View Documentation"""
         print('[back] view_docs')
         pass
 
     @slot_()
     def view_database_dir(back):
-        # Help -> View Directory Slots
+        """ Help -> View Directory Slots"""
         print('[back] view_database_dir')
         utool.view_directory(back.ibs.dbdir)
         pass
@@ -576,25 +581,25 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def delete_cache(back):
-        # Help -> Delete Directory Slots
+        """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
         pass
 
     @slot_()
     def delete_global_prefs(back):
-        # RCOS TODO: Are you sure?
+        # RCOS TODO: Add are you sure dialog?
         print('[back] delete_global_prefs')
         pass
 
     @slot_()
     def delete_queryresults_dir(back):
-        # RCOS TODO: Are you sure?
+        # RCOS TODO: Add are you sure dialog?
         print('[back] delete_queryresults_dir')
         pass
 
     @blocking_slot()
     def dev_reload(back):
-        # Help -> Developer Reload
+        """ Help -> Developer Reload"""
         print('[back] dev_reload')
         #from ibeis.dev import debug_imports
         #ibeis_modules = debug_imports.get_ibeis_modules()
@@ -606,6 +611,6 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def dev_mode(back):
-        # Help -> Developer Mode
+        """ Help -> Developer Mode"""
         print('[back] dev_mode')
         pass

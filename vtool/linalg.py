@@ -1,15 +1,20 @@
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 # Science
 import cv2
 import numpy as np
 import numpy.linalg as npl
 from numpy import (array, sin, cos)
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[linalg]', DEBUG=False)
+import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[linalg]', DEBUG=False)
 
 np.tau = 2 * np.pi  # tauday.com
 
 TRANSFORM_DTYPE = np.float64
+
+
+# Function which multiplies many matrices at once
+from numpy.core.umath_tests import matrix_multiply  # NOQA
 
 
 def svd(M):
@@ -65,24 +70,24 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     return result
 
 
-def rotation_mat(radians):
+def rotation_mat3x3(radians):
     sin_ = sin(radians)
     cos_ = cos(radians)
-    R = array(((cos_, -sin_, 0),
-               (sin_,  cos_, 0),
-               (   0,      0, 1)))
+    R = array(((cos_, -sin_,  0),
+               (sin_,  cos_,  0),
+               (   0,     0,  1),))
     return R
 
 
-def rotation2x2(theta):
+def rotation_mat2x2(theta):
     sin_ = sin(theta)
     cos_ = cos(theta)
-    rot_ = array([[cos_, -sin_],
-                  [sin_, cos_]])
+    rot_ = array(((cos_, -sin_),
+                  (sin_,  cos_),))
     return rot_
 
 
-def rotation3x3_around(theta, x, y):
+def rotation_around_mat3x3(theta, x, y):
     sin_ = sin(theta)
     cos_ = cos(theta)
     tr1_ = array([[1, 0, -x],
@@ -98,19 +103,31 @@ def rotation3x3_around(theta, x, y):
     return rot
 
 
-def translation_mat(x, y, dtype=TRANSFORM_DTYPE):
+def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     T = array([[1, 0,  x],
                [0, 1,  y],
                [0, 0,  1]], dtype=dtype)
     return T
 
 
-def scale_mat(sx, sy=None, dtype=TRANSFORM_DTYPE):
+def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     sy = sx if sy is None else sy
     S = array([[sx, 0, 0],
                [0, sy, 0],
                [0,  0, 1]], dtype=dtype)
     return S
+
+
+def scaleedoffset_mat3x3(offset, scale_factor):
+    sfy = sfx = scale_factor
+    T = translation_mat3x3(*offset)
+    S = scale_mat3x3(sfx, sfy)
+    M = T.dot(S)
+    return M
+
+
+def componentwise_ands(*args):
+    return reduce(lambda bits1, bits2: np.logical_and(bits1, bits2), args)
 
 
 # Ensure that a feature doesn't have multiple assignments
@@ -153,3 +170,95 @@ def dot_ltri(ltri1, ltri2):
     ltri3 = array((o11, o21, o22), dtype=ltri1.dtype)
     return ltri3
 # PYX END CDEF
+
+
+def nearest_point(x, y, pts, mode='random'):
+    """ finds the nearest point(s) in pts to (x, y) """
+    dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
+    fx = dists.argmin()
+    mindist = dists[fx]
+    other_fx = np.where(mindist == dists)[0]
+    if len(other_fx) > 0:
+        if mode == 'random':
+            np.random.shuffle(other_fx)
+            fx = other_fx[0]
+        if mode == 'all':
+            fx = other_fx
+        if mode == 'first':
+            fx = fx
+    return fx, mindist
+
+
+def logical_and_many(*args):
+    """ Like np.logical_and, but can take more than 2 arguments """
+    # TODO: Cython
+    return reduce(np.logical_and, args)
+
+
+def ori_distance(ori1, ori2):
+    """ Returns how far off determinants are from one another """
+    # TODO: Cython
+    ori_dist = np.abs(ori1 - ori2) % np.tau
+    ori_dist = np.minimum(ori_dist, np.tau - ori_dist)
+    return ori_dist
+
+
+def det_distance(det1, det2):
+    """ Returns how far off determinants are from one another """
+    # TODO: Cython
+    det_dist = det1 / det2
+    # Flip ratios that are less than 1
+    _flip_flag = det_dist < 1
+    det_dist[_flip_flag] = (1.0 / det_dist[_flip_flag])
+    return det_dist
+
+
+def L1(hist1, hist2):
+    """ returns L1 (aka manhatten or grid) distance between two histograms """
+    return (np.abs(hist1 - hist2)).sum(-1)
+
+
+def L2_sqrd(hist1, hist2):
+    """ returns the squared L2 distance
+    seealso L2
+    """
+    # TODO: Cython
+    return (np.abs(hist1 - hist2) ** 2).sum(-1)
+
+
+def L2(hist1, hist2):
+    """ returns L2 (aka euclidean or standard) distance between two histograms """
+    return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
+
+
+def hist_isect(hist1, hist2):
+    """ returns histogram intersection distance between two histograms """
+    numer = (np.dstack([hist1, hist2])).min(-1).sum(-1)
+    denom = hist2.sum(-1)
+    hisect_dist = 1 - (numer / denom)
+    if len(hisect_dist) == 1:
+        hisect_dist = hisect_dist[0]
+    return hisect_dist
+
+
+def whiten_xy_points(xy_m):
+    """
+    whitens points to mean=0, stddev=1 and returns transformation
+    """
+    mu_xy  = xy_m.mean(1)  # center of mass
+    std_xy = xy_m.std(1)
+    std_xy[std_xy == 0] = 1  # prevent divide by zero
+    tx, ty = -mu_xy / std_xy
+    sx, sy = 1 / std_xy
+    T = np.array([(sx, 0, tx),
+                  (0, sy, ty),
+                  (0,  0,  1)])
+    xy_norm = ((xy_m.T - mu_xy) / std_xy).T
+    return xy_norm, T
+
+
+def homogonize(_xyzs):
+    """ normalizes 3d homogonous coordinates into 2d coordinates """
+    _xs, _ys, _zs = _xyzs[2]
+    _xys = np.vstack((_xs / _zs, _ys / _zs))
+    return _xys

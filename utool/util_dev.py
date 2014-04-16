@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 import sys
 import warnings
 from collections import OrderedDict
@@ -149,6 +149,9 @@ def numpy_list_num_bits(nparr_list, expected_type, expected_dims):
 
 def runprofile(cmd, globals_=globals(), locals_=locals()):
     # Meliae # from meliae import loader # om = loader.load('filename.json') # s = om.summarize();
+    #http://www.huyng.com/posts/python-performance-analysis/
+    #Once youve gotten your code setup with the <AT>profile decorator, use kernprof.py to run your script.
+    #kernprof.py -l -v fib.py
     import cProfile
     import os
     print('[util] Profiling Command: ' + cmd)
@@ -237,7 +240,3 @@ def get_object_base():
         return DynStruct
     else:
         return object
-
-#http://www.huyng.com/posts/python-performance-analysis/
-#Once youve gotten your code setup with the @profile decorator, use kernprof.py to run your script.
-#kernprof.py -l -v fib.py

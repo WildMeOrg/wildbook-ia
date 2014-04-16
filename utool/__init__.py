@@ -8,30 +8,30 @@ TODO: INSERT APACHE LICENCE
 # flake8: noqa
 
 # We hope to support python3
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 
 
 # Import each utility module
-import util_alg
-import util_arg
-import util_cache
-import util_cplat
-import util_dbg
-import util_dev
-import util_decor
-import util_distances
-import util_dict
-import util_inject
-import util_iter
-import util_list
-import util_num
-import util_path
-import util_print
-import util_progress
-import util_str
-import util_sysreq
-import util_time
-import util_type
+from . import util_alg
+from . import util_arg
+from . import util_cache
+from . import util_cplat
+from . import util_dbg
+from . import util_dev
+from . import util_decor
+from . import util_distances
+from . import util_dict
+from . import util_inject
+from . import util_iter
+from . import util_list
+from . import util_num
+from . import util_path
+from . import util_print
+from . import util_progress
+from . import util_str
+from . import util_sysreq
+from . import util_time
+from . import util_type
 
 # Import common functions from each utilty module
 from .util_alg import (cartesian, almost_eq,)
@@ -65,13 +65,12 @@ from .util_list import (alloc_lists, list_index, npfind, index_of, flatten,
 
 from .util_path import (checkpath, ensuredir, assertpath, truepath, list_images)
 
-from .util_print import (horiz_print, horiz_string, printshape, Indenter,
-                         NpPrintOpts, printVERBOSE, printNOTQUIET,
-                         print_exception)
+from .util_print import (horiz_print, printshape, Indenter,
+                         NpPrintOpts, printVERBOSE, printNOTQUIET)
 
 from .util_progress import (progress_func)
 
-from .util_str  import (byte_str2, theta_str)
+from .util_str  import (byte_str2, horiz_string, theta_str)
 
 from .util_time import (tic, toc, Timer)
 
@@ -84,26 +83,50 @@ from . import Preferences
 # "Good" functions that are commonly used should be explicitly listed because
 # we are trying to develop quickly, we are being a little hacky
 #if not get_flag('--strict', help='raises all exceptions'):
-from util_path import *
-from util_alg import *
-from util_arg import *
-from util_cache import *
-from util_cplat import *
-from util_dbg import *
-from util_dev import *
-from util_decor import *
-from util_dict import *
-from util_inject import *
-from util_iter import *
-from util_list import *
-from util_num import *
-from util_print import *
-from util_progress import *
-from util_str import *
-from util_time import *
-from util_type import *
-from util_sysreq import *
-from util_distances import *
+from .util_alg import *
+from .util_arg import *
+from .util_cache import *
+from .util_cplat import *
+from .util_dbg import *
+from .util_decor import *
+from .util_dev import *
+from .util_dict import *
+from .util_distances import *
+from .util_inject import *
+from .util_iter import *
+from .util_list import *
+from .util_num import *
+from .util_path import *
+from .util_print import *
+from .util_progress import *
+from .util_str import *
+from .util_sysreq import *
+from .util_time import *
+from .util_type import *
+
+
+def reload_submodules():
+    util_alg.rrr()
+    util_arg.rrr()
+    util_cache.rrr()
+    util_cplat.rrr()
+    util_dbg.rrr()
+    util_decor.rrr()
+    util_dev.rrr()
+    util_dict.rrr()
+    util_distances.rrr()
+    util_inject.rrr()
+    util_iter.rrr()
+    util_list.rrr()
+    util_num.rrr()
+    util_path.rrr()
+    util_print.rrr()
+    util_progress.rrr()
+    util_str.rrr()
+    util_sysreq.rrr()
+    util_time.rrr()
+    util_type.rrr()
+
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[util]')
 

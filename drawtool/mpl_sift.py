@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 # Standard
 from itertools import product as iprod
 from itertools import izip

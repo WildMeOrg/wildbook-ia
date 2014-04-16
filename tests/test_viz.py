@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 #-----
 TEST_NAME = 'TEST_VIZ'
 #-----
@@ -9,21 +9,15 @@ sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
+from ibeis.view import viz
 from drawtool import draw_func2 as df2
-from ibeis.view import viz_image, viz_chip, viz_helpers, viz_matches
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST
 
 
-def myreload():
-    viz_image.rrr()
-    viz_chip.rrr()
-    viz_helpers.rrr()
-
-
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_VIZ():
-    main_locals = __testing__.main(defaultdb='test_big_ibeis')
+    main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
 
     valid_gids = ibs.get_valid_gids()
@@ -34,46 +28,57 @@ def TEST_VIZ():
     * len(valid_gids) = %r
     ''' % (len(valid_rids), len(valid_gids)))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
-
-    #----------------------
-    printTEST('Show Image')
-    gid = valid_gids[0]
+    gindex = int(utool.get_arg('--gx', default=0))
+    gid = valid_gids[gindex]
     rid_list = ibs.get_rids_in_gids(gid)
-    sel_rids = rid_list[1:3]
-    viz_image.show_image(ibs, gid, sel_rids=sel_rids, fnum=1)
-
-    #----------------------
-    printTEST('Show Chip')
     cid_list = ibs.get_roi_cids(rid_list)
-    cid = cid_list[min(len(cid_list) - 1, 2)]
-    viz_chip.show_chip(ibs, cid, in_image=False, fnum=2)
-    viz_chip.show_chip(ibs, cid, in_image=True, fnum=3)
+    cindex = int(utool.get_arg('--cx', default=0))
+    cid = cid_list[cindex]
+    qcid = cid
+    sel_rids = rid_list[1:3]
+    rid = rid_list[-1]
+
+    try:
+        qres = ibs.query_database([qcid])[qcid]
+        top_cids = qres.get_top_cids(ibs)
+        assert len(top_cids) > 0, 'there does not seem to be results'
+        cid2 = top_cids[0]  # 294
+        query_failed = False
+    except Exception as ex:
+        query_failed = True
+        utool.print_exception(ex, 'QUERY FAILED!')
 
     #----------------------
-    printTEST('Show Query')
-    cid1 = cid
-    qcids = [cid1]
-    qcid2_qres = ibs.query_database(qcids)
-    qres = qcid2_qres[cid1]
-    top_cids = qres.topN_cids(ibs)
-    assert len(top_cids) > 0
-    cid2 = top_cids[0]
-    viz_matches.show_chipres(ibs, qres, cid2, fnum=4)
-
-    #import build_query
-    #all_ = build_query.get_query_components(ibs, qcids)
+    #printTEST('Show Image')
+    viz.show_image(ibs, gid, sel_rids=sel_rids, fnum=1)
+    df2.set_figtitle('Show Image')
 
     #----------------------
+    #printTEST('Show Chip')
+    kpts_kwargs = dict(ell=True, ori=True, rect=True, eig=True, pts=False, kpts_subset=10)
+    viz.show_chip(ibs, rid, in_image=False, fnum=2, **kpts_kwargs)
+    df2.set_figtitle('Show Chip (normal)')
+    viz.show_chip(ibs, rid, in_image=True, fnum=3, **kpts_kwargs)
+    df2.set_figtitle('Show Chip (in_image)')
+
+    #----------------------
+    if not query_failed:
+        printTEST('Show Query')
+        viz.show_chipres(ibs, qres, cid2, fnum=4)
+        df2.set_figtitle('Show Chipres')
+
+        viz.show_qres(ibs, qres, fnum=5)
+        df2.set_figtitle('Show QRes')
+
+    ##----------------------
     df2.present(wh=1000)
     main_locals.update(locals())
     __testing__.main_loop(main_locals)
     printTEST('return test locals')
     return main_locals
 
-TEST_VIZ.func_name = TEST_NAME
-
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     test_locals = TEST_VIZ()
-    exec(utool.execstr_dict(test_locals, 'test_locals'))
+    exec(test_locals['execstr'])

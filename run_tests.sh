@@ -71,6 +71,8 @@ EOF
     RUN_TEST tests/test_parallel.py
 
     RUN_TEST tests/test_chip_compute.py
+
+    RUN_TEST tests/test_query.py
 fi
 
 

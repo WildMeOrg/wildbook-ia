@@ -1,5 +1,6 @@
-from __future__ import division, print_function
+# flake8: noqa
+from __future__ import absolute_import, division, print_function
 
-import Config
-import preproc
-import jon_recognition
+from . import Config
+from . import preproc
+from . import hots

@@ -3,7 +3,7 @@
 This is a hacky script meant to be run interactively
 """
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 from dbgimport2 import *  # NOQA
 import utool
 from drawtool import draw_func2 as df2

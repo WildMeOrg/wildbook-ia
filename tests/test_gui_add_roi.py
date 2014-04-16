@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'TEST_GUI_ADD_ROI'
 #------
@@ -14,7 +14,7 @@ printTEST = __testing__.printTEST
 RUNGUI = utool.get_flag('--gui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_GUI_ADD_ROI():
     main_locals = __testing__.main()
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
@@ -28,12 +28,13 @@ def TEST_GUI_ADD_ROI():
     rid = back.add_roi(bbox=bbox)
     printTEST('[TEST] NEW RID=%r' % rid)
 
+    main_locals.update(locals())
     __testing__.main_loop(main_locals, rungui=RUNGUI)
-
-TEST_GUI_ADD_ROI.func_name = TEST_NAME
+    return main_locals
 
 
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    TEST_GUI_ADD_ROI()
+    test_locals = TEST_GUI_ADD_ROI()
+    exec(test_locals['execstr'])

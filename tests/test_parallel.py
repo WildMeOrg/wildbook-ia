@@ -3,20 +3,20 @@
 '''
 Tests IBEIS parallel
 '''
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 TEST_NAME = 'TEST_PARALLEL'
 import __testing__  # NOQA
 import multiprocessing
 import utool
 import sys
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
-utool.inject_all()
+#utool.inject_all()
 printTEST = __testing__.printTEST
 
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext
+@__testing__.testcontext2(TEST_NAME)
 def TEST_PARALLEL():
     import pyhesaff
     from utool import util_parallel
@@ -64,9 +64,9 @@ def TEST_PARALLEL():
     compare_serial()
 
     __testing__.main_loop(main_locals)
-TEST_PARALLEL.func_name = TEST_NAME
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-    TEST_PARALLEL()
+    test_locals = TEST_PARALLEL()
+    exec(test_locals['execstr'])

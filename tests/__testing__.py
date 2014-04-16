@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
 sys.argv.append('--strict')  # Tests are always strict
@@ -10,19 +10,19 @@ from os.path import realpath, dirname, join, exists
 import numpy as np
 
 
-def ensure_util_in_pythonpath():
+def ensure_utool_in_pythonpath():
     utool_path = realpath(join(dirname(__file__), '..'))
     if VERBOSE:
         print('[test] appending to pythonpath: %r' % utool_path)
     try:
-        assert exists(join(utool_path, 'utool')), ('cannot find util in: %r' % utool_path)
+        assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
     except AssertionError as ex:
         print('Caught Assertion Error: %s' % (ex))
         utool_path = join('..', utool_path)
-        assert exists(join(utool_path, 'utool')), ('cannot find util in: %r' % utool_path)
+        assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
     sys.path.append(realpath(utool_path))
 
-ensure_util_in_pythonpath()
+ensure_utool_in_pythonpath()
 
 import utool
 utool.util_sysreq.ensure_in_pythonpath('hesaff')
@@ -40,8 +40,21 @@ class MyException(Exception):
     pass
 
 
+# Oooh hacky way to make test context take an arg or not
+def testcontext2(name):
+    def test_wrapper2(func):
+        func.func_name = name
+        @testcontext
+        @functools.wraps(func)
+        def test_wrapper3(*args, **kwargs):
+            return func(*args, **kwargs)
+        return test_wrapper3
+    return test_wrapper2
+
+
 def testcontext(func):
     @functools.wraps(func)
+    @utool.ignores_exc_tb
     def test_wrapper(*args, **kwargs):
         with utool.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
             try:
@@ -59,8 +72,22 @@ def testcontext(func):
                 '.          .'
                   '-......-'
                   ''')
+                # Build big execstring that you return in the locals dict
+                if not isinstance(test_locals, dict):
+                    test_locals = {}
+                locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
+                embed_execstr  = utool.execstr_embed()
+                ifs_execstr = '''
+                if utool.get_flag(('--wait', '-w')):
+                    print('waiting')
+                    in_ = raw_input('press enter')
+                if utool.get_flag('--cmd2') or locals().get('in_', '') == 'cmd':
+                '''
+                execstr = (utool.unindent(ifs_execstr)  + '\n' +
+                           utool.indent(locals_execstr) + '\n' +
+                           utool.indent(embed_execstr))
+                test_locals['execstr'] = execstr
                 return test_locals
-
             except Exception as ex:
                 exc_type, exc_value, tb = sys.exc_info()
                 # Get locals in the wrapped function

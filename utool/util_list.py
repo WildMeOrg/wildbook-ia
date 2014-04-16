@@ -1,7 +1,7 @@
 '''
 This file has helpers for both lists and numpy arrays
 '''
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
 from .util_iter import iflatten
@@ -96,6 +96,52 @@ def flatten(list_):
     return list(iflatten(list_))
 
 
+def safe_slice(list_, *args):
+    """ Slices list and truncates if out of bounds """
+    if len(args) == 3:
+        start = args[0]
+        stop  = args[1]
+        step  = args[2]
+    else:
+        step = 1
+        if len(args) == 2:
+            start = args[0]
+            stop  = args[1]
+        else:
+            start = 0
+            stop = args[0]
+    len_ = len(list_)
+    if stop > len_:
+        stop = len_
+    return list_[slice(start, stop, step)]
+
+
+def spaced_indexes(len_, n, trunc=False):
+    """ Returns n evenly spaced indexes.
+        Returns as many as possible if trunc is true
+    """
+    if n is None:
+        return np.arange(len_)
+    if n == 0:
+        return np.empty(0)
+    all_indexes = np.arange(len_)
+    if trunc:
+        n = min(len_, n)
+    stride = len_ // n
+    try:
+        indexes = all_indexes[0:-1:stride]
+    except ValueError:
+        raise ValueError('cannot slice list of len_=%r into n=%r parts' % (len_, n))
+    return indexes
+
+
+def spaced_items(list_, n, **kwargs):
+    """ Returns n evenly spaced items """
+    indexes = spaced_indexes(len(list_), n, **kwargs)
+    items = list_[indexes]
+    return items
+
+
 # --- List Queries --- #
 
 
@@ -181,3 +227,10 @@ def unique_keep_order(arr):
     return pd.unique(arr)
     #_, idx = np.unique(arr, return_index=True)
     #return arr[np.sort(idx)]
+
+
+def deterministic_shuffle(list_):
+    randS = int(np.random.rand() * np.uint(0 - 2) / 2)
+    np.random.seed(len(list_))
+    np.random.shuffle(list_)
+    np.random.seed(randS)

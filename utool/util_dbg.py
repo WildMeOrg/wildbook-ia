@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import fnmatch
 import inspect
 import numpy as np
@@ -9,8 +9,8 @@ from . import util_inject
 from .util_arg import get_flag
 from .util_inject import inject
 from .util_list import is_listlike, list_eq
-from .util_print import Indenter, print_exception
-from .util_str import pack_into, truncate_str
+from .util_print import Indenter
+from .util_str import pack_into, truncate_str, horiz_string, indent
 from .util_type import get_type
 print, print_, printDBG, rrr, profile = inject(__name__, '[dbg]')
 
@@ -27,7 +27,7 @@ except Exception as ex:
 '''
 
 
-def embed_execstr():
+def execstr_embed():
     return IPYTHON_EMBED_STR
 
 
@@ -266,22 +266,38 @@ def get_stack_frame(N=0):
     return frame_cur
 
 
-def get_parent_locals(N=0):
+def get_parent_frame(N=0):
     parent_frame = get_stack_frame(N=N + 2)
+    return parent_frame
+
+
+def get_parent_locals(N=0):
+    parent_frame = get_parent_frame(N=N + 1)
     return parent_frame.f_locals
 
 
 def get_parent_globals(N=0):
-    parent_frame = get_stack_frame(N=N + 2)
+    parent_frame = get_stack_frame(N=N + 1)
     return parent_frame.f_globals
 
 
-def get_caller_locals():
-    this_frame = inspect.currentframe()
-    call_frame = this_frame.f_back
-    if call_frame is None:
-        return None
-    return call_frame.f_locals
+def get_caller_locals(N=0):
+    """ returns the locals of the function that called you """
+    locals_ = get_parent_locals(N=N + 1)
+    return locals_
+
+
+def get_caller_prefix(N=0, aserror=False):
+    prefix_fmt = '[!%s]' if aserror else '[%s]'
+    prefix = prefix_fmt % (get_caller_name(N=N + 1),)
+    return prefix
+
+
+def get_caller_name(N=0):
+    """ returns the name of the function that called you """
+    parent_frame = get_parent_frame(N=N + 1)
+    caller_name = parent_frame.f_code.co_name
+    return caller_name
 
 
 def module_functions(module):
@@ -429,18 +445,6 @@ def debug_vstack(stacktup):
         raise
 
 
-def get_caller_name():
-    frame = inspect.currentframe()
-    frame = frame.f_back
-    caller_name = None
-    while caller_name in [None, 'ensurepath', '<genexpr>']:
-        frame = frame.f_back
-        if frame is None:
-            break
-        caller_name = frame.f_code.co_name
-    return caller_name
-
-
 def debug_exception(func):
     def ex_wrapper(*args, **kwargs):
         try:
@@ -451,6 +455,58 @@ def debug_exception(func):
             raise
     ex_wrapper.func_name = func.func_name
     return ex_wrapper
+
+
+def print_exception(ex,
+                    msg='[!?] Caught exception',
+                    prefix=None,
+                    key_list=[],
+                    locals_=None):
+    """ Formats an exception with relevant info """
+    if prefix is None:
+        prefix = get_caller_prefix(aserror=True)
+    if locals_ is None:
+        locals_ = get_caller_locals()
+    sys.stdout.write('!!!!!!!!!!!!!!!!!!!!!!\n')
+    print('!!!!!!!!!!!!!!!!!!!!!!\n')
+    print('<!!!>')
+    print(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
+    for key in key_list:
+        if isinstance(key, tuple):
+            func = key[0]
+            key = key[1]
+            assert key in locals_
+            val = locals_[key]
+            funcval = func(val)
+            print('%s %s(%s) = %r' % (prefix, func.func_name, key, funcval))
+        if key in locals_:
+            val = locals_[key]
+        else:
+            val = '???'
+            print('%s !!! %s not populated!' % (prefix, key))
+        print('%s %s = %r' % (prefix, key, val))
+    print('</!!!>')
+
+
+printex = print_exception
+
+
+def get_reprs(*args, **kwargs):
+    if 'locals_' in kwargs:
+        locals_ = kwargs['locals_']
+    else:
+        locals_ = locals()
+        locals_.update(get_caller_locals())
+
+    msg_list = []
+    var_list = list(args) + kwargs.get('var_list', [])
+    for key in var_list:
+        var = locals_[key]
+        msg = horiz_string(str(key) + ' = ', repr(var))
+        msg_list.append(msg)
+
+    reprs = '\n' + indent('\n##\n'.join(msg_list)) + '\n'
+    return reprs
 
 
 def printvar2(varstr, attr=''):
@@ -508,7 +564,7 @@ def keys_dbgstr(dict_name, locals_=None):
 def print_varlen(name_, locals_=None):
     if locals_ is None:
         locals_ = get_parent_locals()
-    prefix = '[' + get_caller_name() + ']'
+    prefix = get_caller_prefix()
     print(prefix + ' ' + len_dbgstr(name_, locals_))
 
 
@@ -541,6 +597,7 @@ def list_dbgstr(list_name, trunc=2):
 
 
 def all_rrr():
+    raise NotImplementedError('!!! STOP !!!')
     util_inject.inject_all()
     for mod in util_inject.get_injected_modules():
         try:

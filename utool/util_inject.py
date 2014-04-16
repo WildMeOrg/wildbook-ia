@@ -1,9 +1,11 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
 
 
-__DEBUG__ = '--debug' in sys.argv
+__DEBUG_ALL__ = '--debug-all' in sys.argv
+__DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
+
 
 __STDOUT__ = sys.stdout
 __PRINT_FUNC__     = __builtin__.print
@@ -20,11 +22,12 @@ __INJECT_BLACKLIST__ = frozenset(['tri', 'gc', 'sys', 'string', 'types', '_dia',
 
 def _inject_funcs(module, *func_list):
     for func in func_list:
-        if not (module is None or
-                not hasattr(module, '__name__') or
-                module.__name__ in __INJECT_BLACKLIST__ or
-                module.__name__.startswith('six'),
-                module.__name__.startswith('sys')):
+        if (module is not None and
+                hasattr(module, '__name__') and
+                not module.__name__ in __INJECT_BLACKLIST__ and
+                not module.__name__.startswith('six') and
+                not module.__name__.startswith('sys')):
+            #print('setting: %s.%s = %r' % (module.__name__, func.func_name, func))
             setattr(module, func.func_name, func)
 
 
@@ -78,16 +81,24 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     def print_(msg):
         __WRITE_FUNC__(msg)
 
-    if __DEBUG__ or DEBUG:
+    # turn on module debugging with command line flags
+    dotpos = module.__name__.rfind('.')
+    if dotpos == -1:
+        module_name = module.__name__
+    else:
+        module_name = module.__name__[dotpos + 1:]
+    def _replchars(str_):
+        return str_.replace('_', '-').replace(']', '').replace('[', '')
+    flag1 = '--debug-%s' % _replchars(module_name)
+    flag2 = '--debug-%s' % _replchars(module_prefix)
+    DEBUG_FLAG = any([flag in sys.argv for flag in [flag1, flag2]])
+    if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
         def printDBG(msg):
             __PRINT_DBG_FUNC__(module_prefix + ' DEBUG ' + msg)
     else:
         def printDBG(msg):
             pass
 
-    module.print  = print
-    module.print_ = print_
-    module.printDBG = printDBG
     _inject_funcs(module, print, print_, printDBG)
     return print, print_, printDBG
 
@@ -114,9 +125,15 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
 def inject_profile_function(module_name=None, module_prefix='[???]', module=None):
     module = _get_module(module_name, module)
     try:
-        profile = module.profile
+        profile = getattr(__builtin__, 'profile')
+        if __DEBUG_PROF__:
+            print('[util_inject] PROFILE ON: %r' % module)
+        return profile
     except AttributeError:
-        profile = lambda func: func
+        def profile(func):
+            return func
+        if __DEBUG_PROF__:
+            print('[util_inject] PROFILE OFF: %r' % module)
     _inject_funcs(module, profile)
     return profile
 
@@ -124,16 +141,16 @@ def inject_profile_function(module_name=None, module_prefix='[???]', module=None
 def inject(module_name=None, module_prefix='[???]', DEBUG=False, module=None):
     '''
     Usage:
-        from __future__ import print_function, division
+        from __future__ import absolute_import, division, print_function
         from util.util_inject import inject
         print, print_, printDBG, rrr, profile = inject(__name__, '[mod]')
     '''
     module = _get_module(module_name, module)
     rrr         = inject_reload_function(None, module_prefix, module)
-    profile     = inject_profile_function(None, module_prefix, module)
+    profile_    = inject_profile_function(None, module_prefix, module)
     print_funcs = inject_print_functions(None, module_prefix, DEBUG, module)
     print, print_, printDBG = print_funcs
-    return print, print_, printDBG, rrr, profile
+    return print, print_, printDBG, rrr, profile_
 
 
 def inject_all(DEBUG=False):
@@ -141,6 +158,7 @@ def inject_all(DEBUG=False):
     Injects the print, print_, printDBG, rrr, and profile functions into all
     loaded modules
     '''
+    raise NotImplemented('!!!')
     for key, module in sys.modules.items():
         if module is None or not hasattr(module, '__name__'):
             continue
