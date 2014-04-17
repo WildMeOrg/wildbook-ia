@@ -75,7 +75,7 @@ class QueryException(Exception):
 
 def NoDescriptorsException(ibs, qrid):
     msg = ('QUERY ERROR IN %s: qrid=%r has no descriptors!' +
-           'Please delete it.') % (ibs.dbfname, qrid)
+           'Please delete it.') % (ibs.get_dbname(), qrid)
     ex = QueryException(msg)
     return ex
 

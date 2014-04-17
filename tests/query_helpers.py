@@ -4,7 +4,12 @@ from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'BUILDQUERY'
 #------
-import __testing__
+try:
+    import __testing__
+    printTEST = __testing__.printTEST
+except ImportError:
+    printTEST = print
+    pass
 import numpy as np
 from itertools import izip
 import utool
@@ -13,9 +18,8 @@ from ibeis.model.hots import NNIndex  # NOQA
 from ibeis.model.hots import matching_functions as mf  # NOQA
 from ibeis.model.hots import match_chips3 as mc3  # NOQA
 from ibeis.model.hots.matching_functions import _apply_filter_scores, progress_func  # NOQA
-import test_tools
+from . import test_tools
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
-printTEST = __testing__.printTEST
 
 
 def get_query_components(ibs, qrids):

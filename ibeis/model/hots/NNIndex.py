@@ -107,3 +107,15 @@ class NNIndex(object):
         if getattr(nn_index, 'flann', None) is not None:
             nn_index.flann.delete_index()
             nn_index.flann = None
+
+    def nn_index(nn_index, ibs, qfx2_desc, K=None):
+        """ return nearest neighbors from this data_index's flann object """
+        flann   = nn_index.flann
+        K       = ibs.qreq.cfg.nn_cfg.K
+        Knorm   = ibs.qreq.cfg.nn_cfg.Knorm
+        checks  = ibs.qreq.cfg.nn_cfg.checks
+
+        (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm, checks=checks)
+        qfx2_rid = nn_index.ax2_rid[qfx2_dx]
+        qfx2_fx  = nn_index.ax2_fx[qfx2_dx]
+        return qfx2_rid, qfx2_fx

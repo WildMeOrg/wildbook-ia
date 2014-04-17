@@ -4,7 +4,12 @@ from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'TEST_QUERY'
 #------
-import __testing__
+try:
+    import __testing__
+    printTEST = __testing__.printTEST
+except ImportError:
+    printTEST = print
+    pass
 # Python
 import sys
 from os.path import join, exists  # NOQA
@@ -18,19 +23,19 @@ from ibeis.dev import params  # NOQA
 from ibeis.view import viz
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
-import query_helpers
+from . import query_helpers
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[%s]' % TEST_NAME)
-printTEST = __testing__.printTEST
 
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext2(TEST_NAME)
-def TEST_QUERY():
-    main_locals = __testing__.main(defaultdb='test_big_ibeis',
-                                   allow_newdir=True, nogui=True)
-    ibs = main_locals['ibs']    # IBEIS Control
+def TEST_QUERY(ibs=None):
+    if ibs is None:
+        print('ibs is none')
+        main_locals = __testing__.main(defaultdb='test_big_ibeis',
+                                       allow_newdir=True, nogui=True)
+        ibs = main_locals['ibs']    # IBEIS Control
 
     ibs._init_query_requestor()
     qreq = ibs.qreq
@@ -39,19 +44,19 @@ def TEST_QUERY():
 
     rids = ibs.get_recognition_database_rois()
     #nn_index = NNIndex.NNIndex(ibs, rid_list)
-    index = 5
+    index = 1
     index = utool.get_arg('--index', type_=int, default=index)
     qrids = utool.safe_slice(rids, index, index + 1)
 
     comp_locals_ = query_helpers.get_query_components(ibs, qrids)
     qres_dict = OrderedDict([
-        ('ORIG', comp_locals_['qres_ORIG']),
+        #('ORIG', comp_locals_['qres_ORIG']),
         ('FILT', comp_locals_['qres_FILT']),
         ('SVER', comp_locals_['qres_SVER']),
     ])
 
     top_rids = qres_dict['SVER'].get_top_rids(ibs)
-    top_rids = utool.safe_slice(top_rids, 6)
+    top_rids = utool.safe_slice(top_rids, 3)
     rid2 = top_rids[0]
 
     for px, (label, qres) in enumerate(qres_dict.iteritems()):
@@ -76,9 +81,15 @@ def TEST_QUERY():
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
-    main_locals.update(locals())
-    __testing__.main_loop(main_locals, rungui=False)
-    return main_locals
+    if main_locals is None:
+        main_locals.update(locals())
+        __testing__.main_loop(main_locals, rungui=False)
+    return locals()
+
+try:
+    TEST_QUERY = __testing__.testcontext2(TEST_NAME)(TEST_QUERY)
+except Exception:
+    pass
 
 
 if __name__ == '__main__':

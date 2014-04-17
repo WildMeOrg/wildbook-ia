@@ -134,42 +134,16 @@ def _init_numpy():
 # private loop functions
 
 
-def _guitool_loop(main_locals):
+def _guitool_loop(main_locals, ipy=False):
     import guitool
     from ibeis.dev import params
     back = main_locals['back']
     loop_freq = params.args.loop_freq
-    guitool.qtapp_loop(back=back, frequency=loop_freq)
-    return True
-
-
-def _ipython_loop(main_locals):
-    import utool
-    embedded = utool.util_dbg.inIPython()
-    if not embedded:
-        exec_lines = []
-        if 'back' in main_locals:
-            import guitool  # NOQA
-            back = main_locals['back']  # NOQA
-            #exec_lines.append('guitool.qtapp_loop_nonblocking(back)')
-        def fixgui():
-            from IPython.lib.inputhook import enable_qt4
-            from IPython.lib.guisupport import start_event_loop_qt4
-            print('[guitool] Starting ipython qt4 hook')
-            enable_qt4()
-            start_event_loop_qt4(guitool.get_qtapp())
-        print('Embedding run fix_gui to actually see whats going on')
-        main_locals.update(locals())
-        utool.util_dbg.embed(parent_locals=main_locals,
-                             parent_globals=globals(),
-                             exec_lines=exec_lines)
-        return True
-    return False
+    guitool.qtapp_loop(back=back, ipy=ipy or params.args.cmd, frequency=loop_freq)
 
 
 def main(**kwargs):
-    import utool
-    from ibeis.dev import main_commands
+    # Display an intro message
     msg1 = '''
     _____ ....... _______ _____ _______
       |   |_____| |______   |   |______
@@ -180,57 +154,65 @@ def main(**kwargs):
       |   |_____] |______   |   |______
     __|__ |_____] |______ __|__ ______|
     '''
-    print(msg2 if not utool.getflag('--myway') in sys.argv else msg1)
-    if not utool.QUIET:
+    print(msg2 if not '--myway' in sys.argv else msg1)
+    # Init the only two main system api handles
+    ibs = None
+    back = None
+    if not '--quiet' in sys.argv:
         print('[main] ibeis.main_api.main()')
+    _setup()
+    _preload_commands()
     try:
-
-        from ibeis.dev import params
-        _init_numpy()
-        _parse_args(**kwargs)
-        _init_parallel()
-        utool.util_inject._inject_colored_exception_hook()
-        _init_signals()
-        _init_matplotlib()
-        main_commands.preload_commands()  # PRELOAD CMDS
-        if not params.args.nogui:
-            back = _init_gui()
         ibs = _init_ibeis()
-        if 'back' in vars() and ibs is not None:
+        if '--gui' in sys.argv or not '--nogui' in sys.argv:
+            back = _init_gui()
             back.connect_ibeis_control(ibs)
-        main_commands.postload_commands(ibs)  # POSTLOAD CMDS
     except Exception as ex:
-        print('[main()] IBEIS Caught: %s %s' % (type(ex), ex))
-        print(ex)
-        if '--strict' in sys.argv:
-            raise
-    main_locals = locals()
-    return main_locals
+        print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
+        raise
+    _postload_commands()
+    return {'ibs': ibs, 'back': back}
 
 
-def main_loop(main_locals, loop=True, rungui=True):
+def _setup(**kwargs):
+    import utool
+    from ibeis.dev import params
+    _parse_args(**kwargs)
+    _init_matplotlib()
+    _init_numpy()
+    _init_parallel(**kwargs)
+    _init_signals()
+    utool.util_inject._inject_colored_exception_hook()
+    args = params.args
+    return args
+
+
+def _preload_commands():
+    from ibeis.dev import main_commands
+    main_commands.preload_commands()  # PRELOAD CMDS
+
+
+def _postload_commands():
+    from ibeis.dev import main_commands
+    main_commands.preload_commands()  # PRELOAD CMDS
+
+
+def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     print('[main] ibeis.main_api.main_loop()')
     from ibeis.dev import params
-    try:
-        ipython_ran = False
-        guiloop_ran = not rungui
-        if loop:
-            # Choose a main loop depending on params.args
-            if params.args.cmd:
-                ipython_ran = _ipython_loop(main_locals)
-                rungui = rungui and ipython_ran
-            if rungui and not params.args.nogui:
-                guiloop_ran = _guitool_loop(main_locals)
-    except Exception as ex:
-        print('[main_loop] IBEIS Caught: %s %s' % (type(ex), ex))
-        if '--strict' in sys.argv:
+    import utool
+    if rungui and not params.args.nogui:
+        try:
+            _guitool_loop(main_locals, ipy=ipy)
+        except Exception as ex:
+            print('[main_loop] IBEIS Caught: %s %s' % (type(ex), ex))
             raise
+    if not persist or params.args.cmd:
+        main_close()
+    execstr = utool.ipython_execstr()
+    return execstr
+
+
+def main_close(main_locals=None):
     _close_parallel()
     _reset_signals()
-    if guiloop_ran or ipython_ran:
-        # Exit cleanly if a main loop ran
-        print('[main] ibeis clean EXIT')
-        #sys.exit(0)
-    else:
-        # Something else happened
-        print('[main] ibeis unclean EXIT')

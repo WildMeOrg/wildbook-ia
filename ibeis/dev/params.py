@@ -132,6 +132,9 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
     global args
     parser2 = util_arg.make_argparse2('IBEIS - lite', version='???')
 
+    def dev_argparse(parser2):
+        parser2.add_str(('--tests', '--test', '-t'),  [], 'integer or test name', nargs='*')
+
     def behavior_argparse(parser2):
         # Program behavior
         parser2 = parser2.add_argument_group('Behavior')
@@ -155,6 +158,7 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
 
     behavior_argparse(parser2)
     database_argparse(parser2)
+    dev_argparse(parser2)
 
     args, unknown = parser2.parser.parse_known_args()
 

@@ -12,7 +12,8 @@ from . import viz_helpers as vh
 @utool.indent_decor('[viz.draw_feat_row]')
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
                   rid=None, info='', type_=None):
-    pnum_ = lambda px: (nRows, nCols, px)
+
+    pnum_ = df2.get_pnum_func(nRows, nCols)
 
     def _draw_patch(**kwargs):
         return df2.draw_keypoint_patch(chip, kp, sift, ori_color=df2.DEEP_PINK, **kwargs)

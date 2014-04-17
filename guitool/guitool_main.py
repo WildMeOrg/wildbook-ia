@@ -63,7 +63,7 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
     start_event_loop_qt4(QAPP)
 
 
-def qtapp_loop(back=None, **kwargs):
+def qtapp_loop(back=None, ipy=False, **kwargs):
     global QAPP
     if not QUIET:
         print('[guitool] qtapp_loop()')
@@ -73,7 +73,10 @@ def qtapp_loop(back=None, **kwargs):
     if IS_ROOT:
         if not QUIET:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
-        QAPP.exec_()
+        if ipy:
+            pass
+        else:
+            QAPP.exec_()
     else:
         if not QUIET:
             print('[guitool.qtapp_loop()] not execing')

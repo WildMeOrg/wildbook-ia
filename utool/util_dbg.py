@@ -31,9 +31,8 @@ def execstr_embed():
     return IPYTHON_EMBED_STR
 
 
-def ipython_execstr():
+def ipython_execstr2():
     return textwrap.dedent(r'''
-    import matplotlib.pyplot as plt
     import sys
     embedded = False
     try:
@@ -48,21 +47,52 @@ def ipython_execstr():
         have_ipython = False
     if in_ipython:
         print('Presenting in current ipython shell.')
-    elif '--cmd' in sys.argv or 'devmode' in vars():
-        print('[util] Requested IPython shell with --cmd argument.')
+    elif '--cmd' in sys.argv:
+        print('[utool.dbg] Requested IPython shell with --cmd argument.')
         if have_ipython:
-            print('[util] Found IPython')
+            print('[utool.dbg] Found IPython')
             try:
                 import IPython
-                print('[util] Presenting in new ipython shell.')
+                print('[utool.dbg] Presenting in new ipython shell.')
                 embedded = True
                 IPython.embed()
             except Exception as ex:
                 print(repr(ex)+'\n!!!!!!!!')
                 embedded = False
         else:
-            print('[util] IPython is not installed')
+            print('[utool.dbg] IPython is not installed')
     ''')
+
+
+def ipython_execstr():
+    return textwrap.dedent(r'''
+    import sys
+    embedded = False
+    if '--cmd' in sys.argv:
+        print('[utool.dbg] Requested IPython shell with --cmd argument.')
+        try:
+            __IPYTHON__
+            print('[ipython_execstr] Already in IPython!')
+        except NameError:
+            try:
+                import IPython
+                print('[utool.dbg] Presenting in new ipython shell.')
+                embedded = True
+                IPython.embed()
+            except Exception as ex:
+                print('[ipython_execstr]: Error: ' + str(type(ex)) + str(ex))
+                raise
+    ''')
+
+#if 'PyQt4' in sys.modules:
+    #from PyQt4 import QtCore
+    #from IPython.lib.inputhook import enable_qt4
+    #from IPython.lib.guisupport import start_event_loop_qt4
+    #qapp = QtCore.QCoreApplication.instance()
+    ##qapp.exec_()
+    #print('[utool.dbg] Starting ipython qt4 hook')
+    #enable_qt4()
+    #start_event_loop_qt4(qapp)
 
 
 def execstr_parent_locals():
