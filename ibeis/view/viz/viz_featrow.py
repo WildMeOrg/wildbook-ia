@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 # UTool
 import utool
 # Drawtool
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 # IBEIS
 from . import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -23,7 +23,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
 
     # Draw the unwarped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 1))
-    vh.set_ibsdat(ax, 'viewtype', 'unwarped')
+    vh.set_ibsdat(ax, 'viztype', 'unwarped')
     vh.set_ibsdat(ax, 'rid', rid)
     vh.set_ibsdat(ax, 'fx', fx)
     unwarped_lbl = 'affine feature invV =\n' + shape_str + '\n' + ori_str
@@ -31,7 +31,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
 
     # Draw the warped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 2), warped=True)
-    vh.set_ibsdat(ax, 'viewtype', 'warped')
+    vh.set_ibsdat(ax, 'viztype', 'warped')
     vh.set_ibsdat(ax, 'rid', rid)
     vh.set_ibsdat(ax, 'fx', fx)
     warped_lbl = ('warped feature\n' +
@@ -54,7 +54,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
     else:
         sigtitle = '' if px != 3 else 'sift histogram'
         ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
-        ax._hs_viewtype = 'histogram'
+        ax._hs_viztype = 'histogram'
         if prevsift is not None:
             #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
             #dist_list = ['L2', 'hist_isect']

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 # Scientific
 import numpy as np
 import utool
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 import guitool
 # IBEIS
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact]', DEBUG=False)

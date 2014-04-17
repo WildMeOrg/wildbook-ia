@@ -35,12 +35,14 @@ def define_IBEIS_schema(ibs):
         ('roi_width',                    'INTEGER NOT NULL'),
         ('roi_height',                   'INTEGER NOT NULL'),
         ('roi_theta',                    'REAL DEFAULT 0.0'),
-        ('roi_viewpoint',                'TEXT'),
+        ('roi_viewpoint',                'INTEGER DEFAULT 0'),
+        ('roi_notes',                    'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (roi_uuid)']
     )
     # Used to store *processed* ROIs as segmentations
     ibs.db.schema('masks', (
         ('mask_uid',                     'INTEGER PRIMARY KEY'),
+        ('config_uid',                   'INTEGER NOT NULL'),
         ('roi_uid',                      '%s NOT NULL' % ROI_UID_TYPE),
         ('mask_uri',                     'TEXT NOT NULL'),
     ))
@@ -48,19 +50,20 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('chips', (
         ('chip_uid',                     'INTEGER PRIMARY KEY'),
         ('roi_uid',                      '%s NOT NULL' % ROI_UID_TYPE),
+        ('config_uid',                   'INTEGER NOT NULL'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
-        ('chip_toggle_hard',             'INTEGER DEFAULT 0'),  # TODO: Remove?
-    ), ['CONSTRAINT superkey UNIQUE (roi_uid)']  # TODO: constraint needs modify
+    ), ['CONSTRAINT superkey UNIQUE (roi_uid, config_uid)']  # TODO: constraint needs modify
     )
     # Used to store individual chip features (ellipses)
     ibs.db.schema('features', (
         ('feature_uid',                  'INTEGER PRIMARY KEY'),
         ('chip_uid',                     'INTEGER NOT NULL'),
+        ('config_uid',                   'INTEGER NOT NULL'),
         ('feature_num_feats',            'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
-    ), ['CONSTRAINT superkey UNIQUE (chip_uid)']
+    ), ['CONSTRAINT superkey UNIQUE (chip_uid, config_uid)']
     )
     # Used to store individual chip identieis (Fred, Sue, ...)
     ibs.db.schema('names', (

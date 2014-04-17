@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 import utool
 from ibeis.model.hots import match_chips3 as mc3
 from .viz_featrow import draw_feat_row

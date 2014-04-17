@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from ibeis.view import viz
 import utool
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 from ibeis.view.viz import viz_helpers as vh
 from . import interact_helpers as ih
 
@@ -16,7 +16,6 @@ def interact_chip(ibs, rid, fnum=2, fx=None, **kwargs):
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)
     # Get chip info (make sure get_chips is called first)
-    cid = ibs.get_roi_cids(rid)
     chip = ibs.get_roi_chips(rid)
     mode_ptr = [0]
 
@@ -33,7 +32,7 @@ def interact_chip(ibs, rid, fnum=2, fx=None, **kwargs):
     def _chip_view(pnum=(1, 1, 1), **kwargs):
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
-        viz.show_chip(ibs, cid, fnum=fnum, pnum=pnum, **kwargs)
+        viz.show_chip(ibs, rid, fnum=fnum, pnum=pnum, **kwargs)
         df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
@@ -64,7 +63,7 @@ def interact_chip(ibs, rid, fnum=2, fx=None, **kwargs):
                 if fx is not None and viztype == 'warped':
                     viz.show_keypoint_gradient_orientations(ibs, rid, fx, fnum=df2.next_fnum())
             else:
-                print('...Unknown viewtype: %r' % viztype)
+                print('...Unknown viztype: %r' % viztype)
         viz.draw()
 
     # Draw without keypoints the first time

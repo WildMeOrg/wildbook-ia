@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 from ibeis.view import viz
 from . import interact_helpers as ih
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact-kpts]', DEBUG=False)
@@ -37,9 +37,9 @@ def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, *
             _viz_keypoints(fnum, draw_ell=draw_ell, draw_pts=draw_pts, **kwargs)    # MAYBE: remove kwargs
         else:
             ax = event.inaxes
-            hs_viewtype = ax.__dict__.get('_hs_viewtype', None)
-            print_('[ik] viewtype=%r' % hs_viewtype)
-            if hs_viewtype == 'keypoints':
+            hs_viztype = ax.__dict__.get('_hs_viztype', None)
+            print_('[ik] viztype=%r' % hs_viztype)
+            if hs_viztype == 'keypoints':
                 kpts = ax.__dict__.get('_hs_kpts', [])
                 if len(kpts) == 0:
                     print('...nokpts')
@@ -48,7 +48,7 @@ def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, *
                     x, y = event.xdata, event.ydata
                     fx = utool.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
-            elif hs_viewtype == 'warped':
+            elif hs_viztype == 'warped':
                 hs_fx = ax.__dict__.get('_hs_fx', None)
                 if hs_fx is not None:
                     # Ugly. Interactions should be changed to classes.

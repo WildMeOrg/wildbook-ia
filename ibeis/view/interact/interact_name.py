@@ -12,9 +12,9 @@ def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs)
             # The click is not in any axis
             print('... out of axis')
         else:
-            hs_viewtype = ax.__dict__.get('_hs_viewtype', '')
-            print_(' hs_viewtype=%r' % hs_viewtype)
-            if hs_viewtype == 'chip':
+            hs_viztype = ax.__dict__.get('_hs_viztype', '')
+            print_(' hs_viztype=%r' % hs_viztype)
+            if hs_viztype == 'chip':
                 cid = ax.__dict__.get('_hs_cid')
                 print('... cid=%r' % cid)
                 viz.show_name(ibs, nid, fnum=fnum, sel_cids=[cid])

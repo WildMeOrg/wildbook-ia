@@ -156,8 +156,9 @@ def accepts_numpy(func):
             output_list = func(self, input_list)
             if UNIQUE_NUMPY:
                 # Reconstruct redundant queries (the user will never know!)
-                output_list_ = np.array(output_list)[inverse_unique]
-                output_ = np.array(output_list_).reshape(input_.shape)
+                output_arr = np.array(output_list)[inverse_unique]
+                output_shape = tuple(list(input_.shape) + list(output_arr.shape[1:]))
+                output_ = np.array(output_arr).reshape(output_shape)
             else:
                 output_ = np.array(output_list).reshape(input_.shape)
         else:

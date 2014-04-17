@@ -1,14 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import utool
-import drawtool.draw_sv as draw_sv
+import plottool.draw_sv as draw_sv
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_misc]', DEBUG=False)
 
 
 WRITE_SV_DEBUG = utool.get_flag('--write-sv-debug')
 
 
-def _get_sv_vartup_for_drawtool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup):
-    """ Compiles IBEIS information into info suitable for drawtool """
+def _get_sv_vartup_for_plottool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup):
+    """ Compiles IBEIS information into info suitable for plottool """
     chip1, chip2 = ibs.get_roi_chips([rid1, rid2])
     kpts1, kpts2 = ibs.get_roi_kpts([rid1, rid2])
     rid2_fm, rid2_fs, rid2_fk = chipmatch_FILT
@@ -22,9 +22,9 @@ def _get_sv_vartup_for_drawtool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup):
 
 @utool.indent_func
 def show_sv(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup, **kwargs):
-    """ Compiles IBEIS information and sends it to drawtool """
+    """ Compiles IBEIS information and sends it to plottool """
     print('\n[viz] ======================')
-    sv_vartup = _get_sv_vartup_for_drawtool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup)
+    sv_vartup = _get_sv_vartup_for_plottool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup)
     (chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup) = sv_vartup
     if WRITE_SV_DEBUG:
         keys = ('chip1', 'chip2', 'kpts1', 'kpts2', 'fm', 'homog_tup', 'aff_tup')

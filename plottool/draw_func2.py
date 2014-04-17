@@ -1561,7 +1561,7 @@ def draw_keypoint_gradient_orientations(rchip, kp, sift=None, mode='vec', **kwar
     if mode == 'vec':
         draw_vector_field(gradx, grady, **kwargs)
     elif mode == 'col':
-        import drawtool as dtool
+        import plottool as dtool
         gmag = ptool.patch_mag(gradx, grady)
         gori = ptool.patch_ori(gradx, grady)
         gorimag = dtool.color_orimag(gori, gmag)

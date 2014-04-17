@@ -2,40 +2,39 @@ from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.view import viz
 from ibeis.view.viz import viz_helpers as vh
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 from . import interact_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_img]',
                                                        DEBUG=False)
 
 
+@utool.indent_func
 def interact_image(ibs, gid, sel_rids=[], fnum=1,
                    select_rid_callback=None,
                    **kwargs):
     fig = interact_helpers.begin_interaction('image', fnum)
+    kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)
 
-    def _image_view():
-        viz.show_image(ibs, gid, sel_rids, **kwargs)
+    def _image_view(**_kwargs):
+        viz.show_image(ibs, gid, sel_rids, **_kwargs)
         df2.set_figtitle('Image View')
 
     # Create callback wrapper
     def _on_image_click(event):
-        print_('[inter] clicked image')
+        print('[inter] clicked image')
         if interact_helpers.clicked_outside_axis(event):
             # Toggle draw lbls
-            kwargs.update({
-                'draw_lbls': kwargs.pop('draw_lbls', True),  # Toggle
-                'select_rid_callback': select_rid_callback,
-                'sel_rids': sel_rids,
-            })
-            interact_image(ibs, gid, **kwargs)
+            kwargs['draw_lbls'] = not kwargs.get('draw_lbls', True)
+            _image_view(ibs, **kwargs)
         else:
             ax          = event.inaxes
             viztype     = vh.get_ibsdat(ax, 'viztype')
             roi_centers = vh.get_ibsdat(ax, 'roi_centers', default=[])
-            print_(' viztype=%r' % viztype)
+            print(' roi_centers=%r' % roi_centers)
+            print(' viztype=%r' % viztype)
             if len(roi_centers) == 0:
-                print(' ...no chips to click')
+                print(' ...no chips exist to click')
                 return
             x, y = event.xdata, event.ydata
             # Find ROI center nearest to the clicked point
@@ -47,6 +46,6 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
                 select_rid_callback(gid, sel_rids=[rid])
         viz.draw()
 
-    _image_view()
+    _image_view(**kwargs)
     viz.draw()
     interact_helpers.connect_callback(fig, 'button_press_event', _on_image_click)

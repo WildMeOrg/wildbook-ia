@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 from itertools import izip
 import utool
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 import numpy as np
-from . import viz_helpers as vh
+from ibeis.view.viz import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img]', DEBUG=False)
 
 

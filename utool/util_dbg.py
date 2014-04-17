@@ -202,9 +202,9 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None):
     import IPython
     try:
         pass
-        # make qt not loop forever
-        #from PyQt4.QtCore import pyqtRemoveInputHook
-        #pyqtRemoveInputHook()
+        # make qt not loop forever (I had qflag loop forever with this off)
+        from PyQt4.QtCore import pyqtRemoveInputHook
+        pyqtRemoveInputHook()
     except ImportError as ex:
         print(ex)
     config_dict = {}

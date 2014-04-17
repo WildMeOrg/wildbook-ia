@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 import utool
 import vtool.keypoint as ktool
-from ibeis.control.accessor_decors import getter, getter_vector_output
+from ibeis.control.accessor_decors import getter, getter_vector_output, getter_numpy_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
 
 
@@ -74,7 +74,7 @@ def get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs):
     return imgkpts_list
 
 
-@getter
+@getter_numpy_vector_output
 def get_chips(ibs, rid_list, in_image=False, **kwargs):
     if 'chip' in kwargs:
         return kwargs['chip']
@@ -84,7 +84,7 @@ def get_chips(ibs, rid_list, in_image=False, **kwargs):
         return ibs.get_roi_chips(rid_list)
 
 
-@getter
+@getter_numpy_vector_output
 def get_kpts(ibs, rid_list, in_image=False, kpts_subset=None, **kwargs):
     if 'kpts' in kwargs:
         return kwargs['kpts']
@@ -98,13 +98,13 @@ def get_kpts(ibs, rid_list, in_image=False, kpts_subset=None, **kwargs):
     return kpts_list
 
 
-@getter
+@getter_numpy_vector_output
 def get_bboxes(ibs, rid_list, offset_list=None):
     bbox_list = ibs.get_roi_bboxes(rid_list)
     if offset_list is not None:
         assert len(offset_list) == len(bbox_list)
         # convert (ofx, ofy) offsets to (ofx, ofy, 0, 0) numpy arrays
-        np_offsts = (np.array(list(offst) + [0, 0]) for offst in offset_list)
+        np_offsts = [np.array(list(offst) + [0, 0]) for offst in offset_list]
         # add offsets to (x, y, w, h) bounding boxes
         bbox_list = [bbox + offst for bbox, offst in izip(bbox_list, np_offsts)]
     return bbox_list
@@ -142,8 +142,8 @@ def get_ridstrs(rid_list):
 
 
 def get_bbox_centers(bbox_list):
-    bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])]
-                            for (x, y, w, h) in bbox_list)
+    bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])
+                             for (x, y, w, h) in bbox_list])
     return bbox_centers
 
 

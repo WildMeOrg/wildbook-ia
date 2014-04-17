@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import guitool
 import numpy as np
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 from ibeis.view import viz
 from . import interact_helpers as ih
 from .interact_chip import interact_chip
@@ -123,17 +123,17 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
             _chipmatch_view()
             viz.draw()
             return
-        hs_viewtype = ax.__dict__.get('_hs_viewtype', '')
-        print_('[ir] hs_viewtype=%r ' % hs_viewtype)
+        hs_viztype = ax.__dict__.get('_hs_viztype', '')
+        print_('[ir] hs_viztype=%r ' % hs_viztype)
         key = '' if event.key is None else event.key
         print_('key=%r ' % key)
         ctrl_down = key.find('control') == 0
         # Click in match axes
-        if hs_viewtype == 'chipres' and ctrl_down:
+        if hs_viztype == 'chipres' and ctrl_down:
             # Ctrl-Click
             print('.. control click')
             return _sv_view(cid)
-        elif hs_viewtype == 'chipres':
+        elif hs_viztype == 'chipres':
             if len(fm) == 0:
                 print('[inter] no feature matches to click')
             else:
@@ -148,15 +148,15 @@ def interact_chipres(ibs, res, cid=None, fnum=4, figtitle='Inspect Query Result'
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
                 _select_ith_match(mx, qcid, cid)
-        elif hs_viewtype in ['warped', 'unwarped']:
+        elif hs_viztype in ['warped', 'unwarped']:
             hs_cid = ax.__dict__.get('_hs_cid', None)
             hs_fx = ax.__dict__.get('_hs_fx', None)
-            if hs_cid is not None and hs_viewtype == 'unwarped':
+            if hs_cid is not None and hs_viztype == 'unwarped':
                 interact_chip(ibs, hs_cid, fx=hs_fx, fnum=df2.next_fnum())
-            elif hs_cid is not None and hs_viewtype == 'warped':
+            elif hs_cid is not None and hs_viztype == 'warped':
                 viz.show_keypoint_gradient_orientations(ibs, hs_cid, hs_fx, fnum=df2.next_fnum())
         else:
-            print('...Unknown viewtype: %r' % hs_viewtype)
+            print('...Unknown viztype: %r' % hs_viztype)
         viz.draw()
 
     if mx is None:

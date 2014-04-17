@@ -445,10 +445,10 @@ class IBEISControl(object):
     def get_table_properties(ibs, table, prop_key, uid_list):
         printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' %
                  (table, prop_key))
-        # Sanatize input to be only lowercase alphabet and underscores
+        # Input to table properties must be a list
         if isinstance(prop_key, str):
             prop_key = (prop_key,)
-
+        # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
         property_list = ibs.db.executemany(
@@ -460,7 +460,7 @@ class IBEISControl(object):
             parameters_iter=((_uid,) for _uid in uid_list),
             errmsg='[ibs.get_table_properties] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
-        return property_list
+        return list(property_list)
 
     def get_chip_properties(ibs, prop_key, cid_list):
         """ general chip property getter """
@@ -613,14 +613,20 @@ class IBEISControl(object):
         roi_uuid_list = ibs.get_table_properties('rois', 'roi_uuid', rid_list)
         return roi_uuid_list
 
-    @getter_numpy
+    @getter
+    def get_roi_notes(ibs, rid_list):
+        """ Returns a list of roi notes """
+        roi_notes_list = ibs.get_table_properties('rois', 'notes', rid_list)
+        return roi_notes_list
+
+    @getter_numpy_vector_output
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         cols = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
-        col_list = ibs.get_roi_properties(cols, rid_list)
-        return col_list
+        bbox_list = ibs.get_roi_properties(cols, rid_list)
+        return bbox_list
 
-    @getter_numpy
+    @getter
     def get_roi_thetas(ibs, rid_list):
         """ Returns a list of floats describing the angles of each chip """
         theta_list = ibs.get_roi_properties('roi_theta', rid_list)
@@ -705,7 +711,7 @@ class IBEISControl(object):
         chip_list = ibs.get_chips(cid_list)
         return chip_list
 
-    @getter_vector_output
+    @getter_numpy_vector_output
     def get_roi_kpts(ibs, rid_list, ensure=True):
         """ Returns chip keypoints """
         fid_list  = ibs.get_roi_fids(rid_list, ensure=ensure)

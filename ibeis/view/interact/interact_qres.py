@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 # UTool
 import utool
 # Drawtool
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 # IBEIS
 from ibeis.view import viz
 from ibeis.view.viz import viz_helpers as vh
@@ -51,11 +51,11 @@ def interact_qres(ibs, res, **kwargs):
         if event.xdata is None or event.inaxes is None:
             return _top_matches_view()
         ax = event.inaxes
-        hs_viewtype = ax.__dict__.get('_hs_viewtype', '')
+        hs_viztype = ax.__dict__.get('_hs_viztype', '')
         printDBG(event.__dict__)
-        printDBG('hs_viewtype=%r' % hs_viewtype)
+        printDBG('hs_viztype=%r' % hs_viztype)
         # Clicked a specific chipres
-        if hs_viewtype.find('chipres') == 0:
+        if hs_viztype.find('chipres') == 0:
             cid = ax.__dict__.get('_hs_cid')
             # Ctrl-Click
             key = '' if event.key is None else event.key

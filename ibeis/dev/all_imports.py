@@ -60,8 +60,8 @@ from vtool import spatial_verification as sverif
 
 from vtool import *
 # DrawTool
-import drawtool
-from drawtool import draw_func2 as df2
+import plottool
+from plottool import draw_func2 as df2
 # GUITool
 import guitool
 # IBEIS DEV
@@ -110,6 +110,6 @@ def get_ibeis_modules():
         utool,
         vtool,
         guitool,
-        drawtool
+        plottool
     ]
     return ibeis_modules

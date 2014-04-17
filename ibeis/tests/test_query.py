@@ -17,13 +17,13 @@ from collections import OrderedDict
 import multiprocessing
 # Tools
 import utool
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 #IBEIS
 from ibeis.dev import params  # NOQA
 from ibeis.view import viz
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
-from . import query_helpers
+from ibeis.tests import query_helpers
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[%s]' % TEST_NAME)
 

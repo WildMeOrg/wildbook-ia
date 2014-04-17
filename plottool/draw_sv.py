@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 from vtool import image as gtool
 from vtool import keypoint as ktool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_sv]', DEBUG=False)

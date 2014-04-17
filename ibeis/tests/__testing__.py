@@ -12,21 +12,16 @@ import numpy as np
 
 def ensure_utool_in_pythonpath():
     utool_path = realpath(join(dirname(__file__), '..'))
-    if VERBOSE:
-        print('[test] appending to pythonpath: %r' % utool_path)
-    try:
-        assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
-    except AssertionError as ex:
-        print('Caught Assertion Error: %s' % (ex))
-        utool_path = join('..', utool_path)
-        assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
+    while utool_path != '' and not exists(join(utool_path, 'utool')):
+        utool_path = join(utool_path, '..')
+    assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
     sys.path.append(realpath(utool_path))
 
 ensure_utool_in_pythonpath()
 
 import utool
-utool.util_sysreq.ensure_in_pythonpath('hesaff')
-utool.util_sysreq.ensure_in_pythonpath('ibeis')
+utool.ensure_in_pythonpath('hesaff')
+utool.ensure_in_pythonpath('ibeis')
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[__testing__]')
 from ibeis.dev import main_api
 from ibeis.dev import params
@@ -38,6 +33,69 @@ INTERACTIVE = utool.get_flag(('--interactive', '-i'))
 
 class MyException(Exception):
     pass
+
+
+HAPPY_FACE = r'''
+                .-""""""-.
+            .'          '.
+            /   O      O   \
+            :                :
+            |                |
+            : ',          ,' :
+            \  '-......-'  /
+            '.          .'
+                '-......-'
+                '''
+
+
+SAD_FACE = r'''
+                .-""""""-.
+            .'          '.
+            /   O      O   \
+            :           `    :
+            |                |
+            :    .------.    :
+            \  '        '  /
+            '.          .'
+                '-......-'
+                '''
+
+
+def run_test(func, *args, **kwargs):
+    with utool.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
+        try:
+            printTEST('[TEST] %s BEGIN' % (func.func_name,))
+            test_locals = func(*args, **kwargs)
+            printTEST('[TEST] %s FINISH -- SUCCESS' % (func.func_name,))
+            print(HAPPY_FACE)
+            # Build big execstring that you return in the locals dict
+            if not isinstance(test_locals, dict):
+                test_locals = {}
+            locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
+            embed_execstr  = utool.execstr_embed()
+            ifs_execstr = '''
+            if utool.get_flag(('--wait', '-w')):
+                print('waiting')
+                in_ = raw_input('press enter')
+            if utool.get_flag('--cmd2') or locals().get('in_', '') == 'cmd':
+            '''
+            execstr = (utool.unindent(ifs_execstr)  + '\n' +
+                       utool.indent(locals_execstr) + '\n' +
+                       utool.indent(embed_execstr))
+            test_locals['execstr'] = execstr
+            return test_locals
+        except Exception as ex:
+            # Get locals in the wrapped function
+            exc_type, exc_value, tb = sys.exc_info()
+            locals_ = tb.tb_next.tb_frame.f_locals
+            printTEST('[TEST] %s FINISH -- FAILED: %s %s' % (func.func_name, type(ex), ex))
+            print(SAD_FACE)
+            ibs = locals_.get('ibs', None)
+            if ibs is not None:
+                ibs.db.dump()
+            if '--strict' in sys.argv:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                raise exc_type, exc_value, exc_traceback.tb_next
 
 
 # Oooh hacky way to make test context take an arg or not
@@ -56,60 +114,7 @@ def testcontext(func):
     @functools.wraps(func)
     @utool.ignores_exc_tb
     def test_wrapper(*args, **kwargs):
-        with utool.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
-            try:
-                printTEST('[TEST] %s BEGIN' % (func.func_name,))
-                test_locals = func(*args, **kwargs)
-                printTEST('[TEST] %s FINISH -- SUCCESS' % (func.func_name,))
-                print(r'''
-                  .-""""""-.
-                .'          '.
-               /   O      O   \
-              :                :
-              |                |
-              : ',          ,' :
-               \  '-......-'  /
-                '.          .'
-                  '-......-'
-                  ''')
-                # Build big execstring that you return in the locals dict
-                if not isinstance(test_locals, dict):
-                    test_locals = {}
-                locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
-                embed_execstr  = utool.execstr_embed()
-                ifs_execstr = '''
-                if utool.get_flag(('--wait', '-w')):
-                    print('waiting')
-                    in_ = raw_input('press enter')
-                if utool.get_flag('--cmd2') or locals().get('in_', '') == 'cmd':
-                '''
-                execstr = (utool.unindent(ifs_execstr)  + '\n' +
-                           utool.indent(locals_execstr) + '\n' +
-                           utool.indent(embed_execstr))
-                test_locals['execstr'] = execstr
-                return test_locals
-            except Exception as ex:
-                exc_type, exc_value, tb = sys.exc_info()
-                # Get locals in the wrapped function
-                locals_ = tb.tb_next.tb_frame.f_locals
-                printTEST('[TEST] %s FINISH -- FAILED: %s %s' % (func.func_name, type(ex), ex))
-                print(r'''
-                  .-""""""-.
-                .'          '.
-               /   O      O   \
-              :           `    :
-              |                |
-              :    .------.    :
-               \  '        '  /
-                '.          .'
-                  '-......-'
-                  ''')
-                ibs = locals_.get('ibs', None)
-                if ibs is not None:
-                    ibs.db.dump()
-                if '--strict' in sys.argv:
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    raise exc_type, exc_value, exc_traceback.tb_next
+        return run_test(func, *args, **kwargs)
     return test_wrapper
 
 
@@ -188,5 +193,5 @@ def printTEST(msg, wait=False):
 
 
 def execfunc(*args, **kwargs):
-    from drawtool import draw_func2 as df2
+    from plottool import draw_func2 as df2
     return df2.present

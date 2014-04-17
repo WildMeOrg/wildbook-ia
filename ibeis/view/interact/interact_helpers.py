@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_helpers]',
@@ -36,7 +36,8 @@ def clicked_outside_axis(event):
 
 
 def begin_interaction(type_, fnum):
-    printDBG('[inter] starting %s interaction' % type_)
+    print('<<<<  BEGIN INTERACTION >>>>')
+    print('[inter] starting %s interaction' % type_)
     fig = df2.figure(fnum=fnum, docla=True, doclf=True)
     ax = df2.gca()
     disconnect_callback(fig, 'button_press_event', axes=[ax])
@@ -47,7 +48,7 @@ def disconnect_callback(fig, callback_type, **kwargs):
     #print('[df2] disconnect %r callback' % callback_type)
     axes = kwargs.get('axes', [])
     for ax in axes:
-        ax._hs_viewtype = ''
+        ax._hs_viztype = ''
     cbid_type = callback_type + '_cbid'
     cbfn_type = callback_type + '_func'
     cbid = fig.__dict__.get(cbid_type, None)

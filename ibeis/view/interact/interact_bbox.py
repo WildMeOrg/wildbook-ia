@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from . import interact_helpers as ih
 from ibeis.view import viz
-from drawtool import draw_func2 as df2
+from plottool import draw_func2 as df2
 import numpy as np
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,

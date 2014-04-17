@@ -3,7 +3,7 @@ import numpy as np
 # UTool
 import utool
 # Drawtool
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 # IBEIS
 from . import viz_helpers as vh
 from . import viz_chip
@@ -67,7 +67,7 @@ def annotate_chipres(ibs, qres, rid2,
     # Build xlabel
     xlabel = vh.get_chip_labels(ibs, rid2, **kwargs)
     ax = df2.gca()
-    vh.set_ibsdat(ax, 'viewtype', 'chipres')
+    vh.set_ibsdat(ax, 'viztype', 'chipres')
     vh.set_ibsdat(ax, 'qrid', qrid)
     vh.set_ibsdat(ax, 'rid2', rid2)
     if vh.NO_LABEL_OVERRIDE:

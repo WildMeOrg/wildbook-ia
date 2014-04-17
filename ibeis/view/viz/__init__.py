@@ -9,7 +9,7 @@ import utool
 import vtool.image as gtool
 from vtool import keypoint as ktool
 # Drawtool
-import drawtool.draw_func2 as df2
+import plottool.draw_func2 as df2
 # IBEIS
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 

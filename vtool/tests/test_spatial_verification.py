@@ -5,8 +5,8 @@ import sys
 sys.path.append(os.getcwd())
 import utool
 import vtool.spatial_verification as sver
-from drawtool import draw_sv
-from drawtool import draw_func2 as df2
+from plottool import draw_sv
+from plottool import draw_func2 as df2
 import numpy as np
 import vtool.tests.dummy as dummy
 import vtool.keypoint as ktool  # NOQA
