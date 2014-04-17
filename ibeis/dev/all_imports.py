@@ -104,7 +104,6 @@ from ibeis.control import IBEIS_SCHEMA
 from ibeis.control import IBEISControl
 from ibeis.control import accessor_decors
 
-
 def get_ibeis_modules():
     ibeis_modules = [
         utool,

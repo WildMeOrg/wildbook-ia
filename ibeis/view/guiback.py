@@ -46,11 +46,9 @@ def backblock(func):
             result = func(back, *args, **kwargs)
         except Exception as ex:
             back.front.blockSignals(wasBlocked_)  # unblock signals on exception
-            print('<!!!>')
-            print('[guiback] caught exception in %r' % func.func_name)
-            utool.print_exception(ex, '[guiback] exception=')
+            msg = ('[guiback] caught exception in %r' % func.func_name)
+            utool.print_exception(ex, msg, '[guiback!]')
             #print(traceback.format_exc())
-            print('</!!!>')
             back.user_info(msg=str(ex), title=str(type(ex)))
             raise
             #raise
@@ -63,14 +61,15 @@ def blocking_slot(*types_):
     def wrap1(func):
         @utool.ignores_exc_tb
         def wrap2(*args, **kwargs):
-            printDBG('[back*] ' + func.func_name)
+            printDBG('[back*] ' + utool.func_str(func))
+            printDBG('[back*] ' + utool.func_str(func, args, kwargs))
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
         wrap2 = functools.update_wrapper(wrap2, func)
         wrap3 = slot_(*types_)(backblock(wrap2))
         wrap3 = functools.update_wrapper(wrap3, func)
-        printDBG('blocking slot: %r' % wrap3.func_name)
+        printDBG('blocking slot: %r, types=%r' % (wrap3.func_name, types_))
         return wrap3
     return wrap1
 
@@ -125,7 +124,7 @@ class MainWindowBackend(QtCore.QObject):
     def show_image(back, gid, sel_rids=[], **kwargs):
         kwargs.update({
             'sel_rids': sel_rids,
-            'select_rid_callback': back.select_gid,
+            'select_callback': back.select_gid,
         })
         interact.interact_image(back.ibs, gid, **kwargs)
 
@@ -268,10 +267,14 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     def _set_selection(back, gids=None, rids=None, nids=None, qres=None, **kwargs):
-        back.sel_gids = [] if gids is None else gids
-        back.sel_rids = [] if rids is None else rids
-        back.sel_nids = [] if nids is None else nids
-        back.sel_qres = [] if qres is None else qres
+        if gids is not None:
+            back.sel_gids = gids
+        if rids is not None:
+            back.sel_rids = rids
+        if nids is not None:
+            back.sel_nids = nids
+        if qres is not None:
+            back.sel_qres = qres
 
     @blocking_slot(QT_IMAGE_UID_TYPE)
     def select_gid(back, gid, sel_rids=[], **kwargs):

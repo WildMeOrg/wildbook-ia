@@ -36,6 +36,7 @@ def drawing(func):
     @utool.ignores_exc_tb
     @functools.wraps(func)
     def drawing_wrapper(self, *args, **kwargs):
+        #print('[DRAWING]: ' + utool.func_str(func, args, kwargs))
         result = func(self, *args, **kwargs)
         if kwargs.get('dodraw', True):
             pass

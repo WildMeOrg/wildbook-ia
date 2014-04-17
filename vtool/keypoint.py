@@ -304,7 +304,7 @@ def flatten_invV_mats_to_kpts(invV_mats):
 
 def get_V_mats(kpts, **kwargs):
     invV_mats = get_invV_mats(kpts, **kwargs)
-    V_mats = [npl.inv(invV) for invV in invV_mats]
+    V_mats = npl.inv(invV_mats)
     return V_mats
 
 
@@ -316,6 +316,11 @@ def get_Z_mats(V_mats):
     Vt_mats = array(map(np.transpose, V_mats))
     Z_mats = matrix_multiply(Vt_mats, V_mats)
     return Z_mats
+
+
+def invert_invV_mats(invV_mats):
+    V_mats = npl.inv(invV_mats)
+    return V_mats
 
 
 def get_invV_xy_axis_extents(invV_mats):

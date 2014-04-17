@@ -1934,3 +1934,11 @@ def stack_images(img1, img2, vert=None):
         imgB[0:h1, 0:w1] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
     return imgB, woff, hoff
+
+
+def remove_patches(ax=None):
+    """ deletes patches from axes """
+    if ax is None:
+        ax = gca()
+    for patch in ax.patches:
+        del patch

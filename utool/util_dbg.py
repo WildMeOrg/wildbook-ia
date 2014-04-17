@@ -285,6 +285,23 @@ def search_stack_for_localvar(varname):
     return None
 
 
+def search_stack_for_var(varname):
+    curr_frame = inspect.currentframe()
+    print(' * Searching parent frames for: ' + str(varname))
+    frame_no = 0
+    while not curr_frame.f_back is None:
+        if varname in curr_frame.f_locals.keys():
+            print(' * Found local in frame: ' + str(frame_no))
+            return curr_frame.f_locals[varname]
+        if varname in curr_frame.f_globals.keys():
+            print(' * Found global in frame: ' + str(frame_no))
+            return curr_frame.f_globals[varname]
+        frame_no += 1
+        curr_frame = curr_frame.f_back
+    print('... Found nothing in all ' + str(frame_no) + ' frames.')
+    return None
+
+
 def get_stack_frame(N=0):
     frame_level0 = inspect.currentframe()
     frame_cur = frame_level0

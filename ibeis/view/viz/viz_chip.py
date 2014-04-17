@@ -23,6 +23,9 @@ show_kpts = show_keypoints
 
 @utool.indent_func
 def _annotate_kpts(kpts, sel_fx=None, **kwargs):
+    if len(kpts) == 0:
+        print('len(kpts) == 0...')
+        return
     color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
     # Keypoint drawing kwargs
     drawkpts_kw = {
@@ -50,7 +53,7 @@ def _annotate_kpts(kpts, sel_fx=None, **kwargs):
             'ori':  True,
         })
         df2.draw_kpts2(nonsel_kpts_, **drawkpts_kw)
-        df2.draw_kpts2(sel_kpts, **drawkpts_kw)
+        df2.draw_kpts2(sel_kpts, **drawkpts2_kw)
 
 
 @utool.indent_func

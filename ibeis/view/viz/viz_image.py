@@ -41,5 +41,6 @@ def show_image(ibs, gid, sel_rids=[], fnum=1, annote=True, draw_lbls=True, **kwa
     title = vh.get_image_titles(ibs, gid)
     img = ibs.get_images(gid)
     fig, ax = df2.imshow(img, title=title, fnum=fnum, docla=True, **kwargs)
+    df2.remove_patches(ax)
     vh.set_ibsdat(ax, 'viztype', 'image')
     annotate_image(ibs, ax, gid, sel_rids, draw_lbls, annote)

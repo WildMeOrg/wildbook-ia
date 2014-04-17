@@ -123,12 +123,6 @@ def get_groundtruth(ibs, rid_list):
 
 
 @getter
-def get_names(ibs, rid_list):
-    name_list = ibs.get_roi_names(rid_list)
-    return name_list
-
-
-@getter
 def get_gnames(ibs, rid_list):
     return ibs.get_roi_gnames(rid_list)
 
@@ -192,6 +186,11 @@ def get_timedelta_str(ibs, rid1, rid2):
 def get_chip_labels(ibs, rid_list, **kwargs):
     # Add each type of label_list to the strings list
     label_strs = []
+    try:
+        assert all([isinstance(rid, int) for rid in rid_list]), 'invalid input'
+    except AssertionError as ex:
+        utool.print_exception(ex, 'invalid input', 'viz', key_list=['rid_list'])
+        raise
     if kwargs.get('show_ridstr', True):
         ridstr_list = get_ridstrs(rid_list)
         label_strs.append(ridstr_list)
@@ -199,7 +198,7 @@ def get_chip_labels(ibs, rid_list, **kwargs):
         gname_list = get_gnames(ibs, rid_list)
         label_strs.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):
-        name_list = get_names(ibs, rid_list)
+        name_list = ibs.get_roi_names(rid_list)
         label_strs.append(['name=%s' % name for name in name_list])
     # zip them up to get a tuple for each chip and join the fields
     title_list = [', '.join(tup) for tup in izip(*label_strs)]

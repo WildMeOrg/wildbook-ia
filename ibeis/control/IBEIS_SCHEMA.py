@@ -4,8 +4,8 @@ Module Licence and docstring
 from __future__ import absolute_import, division, print_function
 
 IMAGE_UID_TYPE = 'INTEGER'
-ROI_UID_TYPE = 'INTEGER'
-NAME_UID_TYPE = 'INTEGER'
+ROI_UID_TYPE   = 'INTEGER'
+NAME_UID_TYPE  = 'INTEGER'
 
 
 def define_IBEIS_schema(ibs):

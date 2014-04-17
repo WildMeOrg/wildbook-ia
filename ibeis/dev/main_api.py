@@ -175,16 +175,24 @@ def main(**kwargs):
 
 
 def _setup(**kwargs):
-    import utool
     from ibeis.dev import params
     _parse_args(**kwargs)
     _init_matplotlib()
     _init_numpy()
     _init_parallel(**kwargs)
     _init_signals()
-    utool.util_inject._inject_colored_exception_hook()
+    _init_utool()
     args = params.args
     return args
+
+
+def _init_utool():
+    import utool
+    from ibeis.dev import main_registration
+    # Inject colored exceptions
+    utool.util_inject._inject_colored_exception_hook()
+    # Register type aliases for debugging
+    main_registration.register_utool_aliases()
 
 
 def _preload_commands():

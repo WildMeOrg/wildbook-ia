@@ -36,8 +36,8 @@ def clicked_outside_axis(event):
 
 
 def begin_interaction(type_, fnum):
-    print('<<<<  BEGIN INTERACTION >>>>')
-    print('[inter] starting %s interaction' % type_)
+    #printDBG('\n<<<<  BEGIN %s INTERACTION >>>>' % (str(type_).upper()))
+    #printDBG('[inter] starting %s interaction' % type_)
     fig = df2.figure(fnum=fnum, docla=True, doclf=True)
     ax = df2.gca()
     disconnect_callback(fig, 'button_press_event', axes=[ax])

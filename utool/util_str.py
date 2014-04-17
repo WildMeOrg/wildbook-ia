@@ -66,6 +66,16 @@ def pack_into(instr, textwidth=160, breakchars=' ', break_words=True):
     return '\n'.join(newlines)
 
 
+def newlined_list(list_, joinstr=', ', textwidth=160):
+    """ Converts a list to a string but inserts a new line after textwidth chars """
+    newlines = ['']
+    for word in list_:
+        if len(newlines[-1]) + len(word) > textwidth:
+            newlines.append('')
+        newlines[-1] += word + joinstr
+    return '\n'.join(newlines)
+
+
 def joins(string, list_, with_head=True, with_tail=False, tostrip='\n'):
     head = string if with_head else ''
     tail = string if with_tail else ''
@@ -114,12 +124,55 @@ def file_megabytes_str(fpath):
     return ('%.2f MB' % util_path.file_megabytes(fpath))
 
 
-def dict_str(dict_, strvals=False):
+# <Alias repr funcs>
+GLOBAL_TYPE_ALIASES = []
+
+
+def extend_global_aliases(type_aliases):
+    global GLOBAL_TYPE_ALIASES
+    GLOBAL_TYPE_ALIASES.extend(type_aliases)
+
+
+def var_aliased_repr(var, type_aliases):
+    global GLOBAL_TYPE_ALIASES
+    # Replace aliased values
+    for alias_type, alias_name in (type_aliases + GLOBAL_TYPE_ALIASES):
+        if isinstance(var, alias_type):
+            return alias_name + '<' + str(id(var)) + '>'
+    return repr(var)
+
+
+def list_aliased_repr(args, type_aliases=[]):
+    return [var_aliased_repr(item, type_aliases)
+            for item in args]
+
+
+def dict_aliased_repr(dict_, type_aliases=[]):
+    return ['%s : %s' % (key, var_aliased_repr(val, type_aliases))
+            for (key, val) in dict_.iteritems()]
+
+# </Alias repr funcs>
+
+
+def func_str(func, args=[], kwargs={}, type_aliases=[]):
+    """ string representation of function definition """
+    repr_list = list_aliased_repr(args, type_aliases) + dict_aliased_repr(kwargs)
+    argskwargs_str = newlined_list(repr_list, ', ', textwidth=80)
+    func_str = '%s(%s)' % (func.func_name, argskwargs_str)
+    return func_str
+
+
+def dict_itemstr_list(dict_, strvals=False):
     if strvals:
         itemstr_iter = ('%s : %s,' % (key, val) for (key, val) in dict_.iteritems())
     else:
         itemstr_iter = ('%s : %r,' % (key, val) for (key, val) in dict_.iteritems())
-    return '{%s\n}' % indentjoin(itemstr_iter)
+    return list(itemstr_iter)
+
+
+def dict_str(dict_, strvals=False):
+    itemstr_list = dict_itemstr_list(dict_, strvals)
+    return '{%s\n}' % indentjoin(itemstr_list)
 
 
 def horiz_string(*args):

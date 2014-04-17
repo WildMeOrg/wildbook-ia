@@ -102,7 +102,7 @@ def get_warped_patches(rchip, kpts):
     # rotate relative to the gravity vector
     oris = ktool.get_oris(kpts)
     invV_mats = ktool.get_invV_mats(kpts, with_trans=False, ashomog=True)
-    V_mats = ktool.get_V_mats(invV_mats)
+    V_mats = ktool.invert_invV_mats(invV_mats)
     kpts_iter = izip(xs, ys, V_mats, oris)
     s = 41  # sf
     for x, y, V, ori in kpts_iter:

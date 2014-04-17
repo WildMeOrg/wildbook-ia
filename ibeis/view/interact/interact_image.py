@@ -9,20 +9,20 @@ from . import interact_helpers
                                                        DEBUG=False)
 
 
-@utool.indent_func
-def interact_image(ibs, gid, sel_rids=[], fnum=1,
-                   select_rid_callback=None,
+@utool.indent_decor('[interact_img]')
+def interact_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
                    **kwargs):
     fig = interact_helpers.begin_interaction('image', fnum)
+    #printDBG(utool.func_str(interact_image, [], locals()))
     kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)
 
-    def _image_view(**_kwargs):
+    def _image_view(sel_rids=sel_rids, **_kwargs):
         viz.show_image(ibs, gid, sel_rids, **_kwargs)
         df2.set_figtitle('Image View')
 
     # Create callback wrapper
     def _on_image_click(event):
-        print('[inter] clicked image')
+        printDBG('[inter] clicked image')
         if interact_helpers.clicked_outside_axis(event):
             # Toggle draw lbls
             kwargs['draw_lbls'] = not kwargs.get('draw_lbls', True)
@@ -31,8 +31,8 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
             ax          = event.inaxes
             viztype     = vh.get_ibsdat(ax, 'viztype')
             roi_centers = vh.get_ibsdat(ax, 'roi_centers', default=[])
-            print(' roi_centers=%r' % roi_centers)
-            print(' viztype=%r' % viztype)
+            printDBG(' roi_centers=%r' % roi_centers)
+            printDBG(' viztype=%r' % viztype)
             if len(roi_centers) == 0:
                 print(' ...no chips exist to click')
                 return
@@ -42,8 +42,11 @@ def interact_image(ibs, gid, sel_rids=[], fnum=1,
             centx, _dist = utool.nearest_point(x, y, roi_centers)
             rid = rid_list[centx]
             print(' ...clicked rid=%r' % rid)
-            if select_rid_callback is not None:
-                select_rid_callback(gid, sel_rids=[rid])
+            if select_callback is not None:
+                select_callback(gid, [rid])
+            else:
+                _image_view(sel_rids=[rid])
+
         viz.draw()
 
     _image_view(**kwargs)

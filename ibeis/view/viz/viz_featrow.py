@@ -13,7 +13,7 @@ from . import viz_helpers as vh
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
                   rid=None, info='', type_=None):
 
-    pnum_ = df2.get_pnum_func(nRows, nCols)
+    pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
 
     def _draw_patch(**kwargs):
         return df2.draw_keypoint_patch(chip, kp, sift, ori_color=df2.DEEP_PINK, **kwargs)
