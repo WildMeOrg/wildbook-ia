@@ -136,7 +136,7 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         parser2.add_str(('--tests', '--test', '-t'),  [], 'integer or test name', nargs='*')
         parser2.add_int('--histid', help='history id (hard cases)')
         parser2.add_intlist('--qrid', default=[], help='investigate match cx')
-        parser2.add_flag('--all-cases')
+        parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'))
 
     def behavior_argparse(parser2):

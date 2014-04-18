@@ -67,7 +67,7 @@ class SQLDatabaseControl(object):
                 column = re.sub('[^a-z_]', '', column)
                 valid_columns = db.get_column_names(table)
                 if not column in valid_columns:
-                    raise Exception('UNSAFE COLUMN: column=%r' % column)
+                    raise Exception('UNSAFE COLUMN: table=%r column=%r' % (table, column))
                     return None
                 else:
                     return column
@@ -228,8 +228,8 @@ class SQLDatabaseControl(object):
         # Allowing for the passing of parameters in an iterator will greatly
         # increase speed. The only caveat is that the number of parameters will
         # need to be passed in as well, otherwise we have to cast to a list.
-        parameters_list = list(parameters_iter)
-        num_params = len(parameters_list)
+        params_list = list(parameters_iter)
+        num_params = len(params_list)
 
         if num_params == 0:
             if VERBOSE:
@@ -257,7 +257,7 @@ class SQLDatabaseControl(object):
             # Begin a transaction (cuts execute time in half)
             db.executor.execute('BEGIN', ())
             # Process executions in list comprehension (cuts time by 10x)
-            result_list = [_executemany_helper(params) for params in parameters_list]
+            result_list = [_executemany_helper(params) for params in params_list]
             # Append to the list of queries
             if unpack_scalars:
                 result_list = [_unpack_helper(results_) for results_ in result_list]
@@ -266,7 +266,7 @@ class SQLDatabaseControl(object):
             if num_results != 0 and num_results != num_params:
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
         except lite.Error as ex1:
-            key_list = ['operation', 'parameters', 'parameters_iter']
+            key_list = [(str, 'operation'), 'params', 'params_list', 'parameters_iter']
             utool.print_exception(ex1, 'executemany threw', '[!sql]', key_list)
             db.dump()
             raise

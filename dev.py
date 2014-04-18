@@ -5,75 +5,19 @@ This is a hacky script meant to be run interactively
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from ibeis.dev.main_api import _init_matplotlib
+# init maplotlib first
 _init_matplotlib()
+from plottool import draw_func2 as df2
+from ibeis.dev import main_helpers
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
-from itertools import izip
 import ibeis
 import multiprocessing
-from plottool import draw_func2 as df2
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
 
 
-@utool.indent_func
-def filter_rids(ibs, rid_list, with_hard=True, with_gt=True, with_nogt=True):
-    qrid_list = []
-    if with_hard:
-        notes_list = ibs.get_roi_notes(rid_list)
-        qrid_list.extend([rid for (notes, rid) in izip(notes_list, rid_list)
-                          if 'hard' in notes.lower().split()])
-    if with_gt and not with_nogt:
-        gts_list = ibs.get_roi_groundtruth(rid_list)
-        qrid_list.extend([rid for (gts, rid) in izip(gts_list, rid_list)
-                          if len(gts) > 0])
-    if with_gt and with_nogt:
-        qrid_list = rid_list
-    return qrid_list
-
-
-@utool.indent_func
-def get_test_qrids(ibs):
-    """ Function for getting the list of queries to test """
-    print('[dev] get_test_qrids()')
-
-    valid_rids = ibs.get_valid_rids()
-
-    # Sample a large pool of query indexes
-    histids = None if params.args.histid is None else np.array(params.args.histid)
-    if params.args.all_cases:
-        print('[dev] all cases')
-        qrids_all = filter_rids(ibs, valid_rids, with_gt=True, with_nogt=True)
-    elif params.args.all_gt_cases:
-        print('[dev] all gt cases')
-        qrids_all = filter_rids(ibs, valid_rids, with_hard=True, with_gt=True, with_nogt=False)
-    elif params.args.qrid is None:
-        print('[dev] did not select cases')
-        qrids_all = filter_rids(ibs, valid_rids, with_hard=True, with_gt=False, with_nogt=False)
-    else:
-        print('[dev] Chosen qrid=%r' % params.args.qrid)
-        qrids_all = params.args.qrid
-
-    # Filter only the ones you want from the large pool
-    if histids is None:
-        qrid_list = qrids_all
-    else:
-        histids = utool.ensure_iterable(histids)
-        print('[dev] Chosen histids=%r' % histids)
-        qrid_list = [qrid_list[id_] for id_ in histids]
-
-    if len(qrid_list) == 0:
-        msg = '[dev.get_qrids] no qrid_list history'
-        print(msg)
-        print(valid_rids)
-        qrid_list = valid_rids[0:1]
-    print('[dev] len(qrid_list) = %d' % len(qrid_list))
-    qrid_list = utool.unique_keep_order(qrid_list)
-    print('[dev] qrid_list = %r' % qrid_list)
-    return qrid_list
-
-
-@utool.indent_func
+@utool.indent_decor('[dev]')
 def run_experiments(ibs, qrid_list):
-    print('\n\n')
+    print('\n')
     print('==========================')
     print('RUN INVESTIGATIONS %s' % ibs.get_dbname())
     print('==========================')
@@ -89,8 +33,8 @@ def run_experiments(ibs, qrid_list):
             ret = testname in input_test_list
             if ret:
                 input_test_list.remove(testname)
-                print('[dev] ===================')
-                print('[dev] running testname=%s' % testname)
+                print('+===================')
+                print('| running testname=%s' % testname)
                 return ret
         return False
 
@@ -123,18 +67,17 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     from ibeis.dev.all_imports import *  # NOQA
     print('\n [DEV] __DEV__\n')
-
-    main_locals = ibeis.main()
-    ibs = main_locals['ibs']
+    main_locals = ibeis.main(gui='--gui' in sys.argv)
+    ibs  = main_locals['ibs']
     back = main_locals['back']
 
-    qrid_list = get_test_qrids(ibs)
-    qrid_list = []
-    print('[dev]====================')
     fnum = 1
+    qrid_list = main_helpers.get_test_qrids(ibs)
     run_experiments(ibs, qrid_list)
 
-    execstr = ibeis.main_loop(main_locals, ipy=True)
     df2.present()
-    print('\n [DEV] ENTER EXEC \n')
+    ipy = (not '--gui' in sys.argv) or ('--cmd' in sys.argv)
+    execstr = ibeis.main_loop(main_locals, ipy=ipy)
+    print('\n[DEV] ENTER EXEC\n')
+    print(execstr)
     exec(execstr)

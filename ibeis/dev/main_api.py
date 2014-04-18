@@ -143,7 +143,11 @@ def _guitool_loop(main_locals, ipy=False):
 
 
 def main(**kwargs):
-    # Display an intro message
+    """
+    Program entry point
+    Inits the system environment, an IBEISControl, and a GUI if requested
+    """
+    # Display a visible intro message
     msg1 = '''
     _____ ....... _______ _____ _______
       |   |_____| |______   |   |______
@@ -164,7 +168,7 @@ def main(**kwargs):
     _preload_commands()
     try:
         ibs = _init_ibeis()
-        if '--gui' in sys.argv or not '--nogui' in sys.argv:
+        if kwargs.get('gui', True) and ('--gui' in sys.argv or not '--nogui' in sys.argv):
             back = _init_gui()
             back.connect_ibeis_control(ibs)
     except Exception as ex:
@@ -188,11 +192,11 @@ def _setup(**kwargs):
 
 def _init_utool():
     import utool
-    from ibeis.dev import main_registration
+    from ibeis.dev import main_helpers
     # Inject colored exceptions
     utool.util_inject._inject_colored_exception_hook()
     # Register type aliases for debugging
-    main_registration.register_utool_aliases()
+    main_helpers.register_utool_aliases()
 
 
 def _preload_commands():
@@ -206,6 +210,10 @@ def _postload_commands():
 
 
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
+    """
+    Runs the qt loop if the GUI was initialized and returns an executable string
+    for embedding an IPython terminal if requested.
+    """
     print('[main] ibeis.main_api.main_loop()')
     from ibeis.dev import params
     import utool

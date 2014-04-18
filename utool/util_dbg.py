@@ -507,6 +507,18 @@ def debug_exception(func):
     return ex_wrapper
 
 
+def get_func_name(func):
+    """ Works on must functionlike objects including str, which has no func_name """
+    try:
+        return func.func_name
+    except AttributeError:
+        if isinstance(func, type):
+            return repr(str).replace('<type \'', '').replace('\'>', '')
+        else:
+            raise NotImplementedError(('cannot get func_name of func=%r'
+                                       'type(func)=%r') % (func, type(func)))
+
+
 def print_exception(ex,
                     msg='[!?] Caught exception',
                     prefix=None,
@@ -517,9 +529,9 @@ def print_exception(ex,
         prefix = get_caller_prefix(aserror=True)
     if locals_ is None:
         locals_ = get_caller_locals()
-    sys.stdout.write('!!!!!!!!!!!!!!!!!!!!!!\n')
-    print('!!!!!!!!!!!!!!!!!!!!!!\n')
-    print('<!!!>')
+    #sys.stdout.write('!!!!!!!!!!!!!!!!!!!!!!\n')
+    #print('!!!!!!!!!!!!!!!!!!!!!!\n')
+    print('<!!! EXCEPTION !!!>')
     print(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
     for key in key_list:
         if isinstance(key, tuple):
@@ -528,14 +540,14 @@ def print_exception(ex,
             assert key in locals_
             val = locals_[key]
             funcval = func(val)
-            print('%s %s(%s) = %r' % (prefix, func.func_name, key, funcval))
-        if key in locals_:
-            val = locals_[key]
+            print('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcval))
+        elif key in locals_:
+            val = repr(locals_[key])
+            print('%s %s = %s' % (prefix, key, val))
         else:
             val = '???'
             print('%s !!! %s not populated!' % (prefix, key))
-        print('%s %s = %r' % (prefix, key, val))
-    print('</!!!>')
+    print('</!!! EXCEPTION !!!>')
 
 
 printex = print_exception

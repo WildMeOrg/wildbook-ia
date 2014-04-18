@@ -185,12 +185,14 @@ class IBEISControl(object):
 
     @adder
     def add_rois(ibs, gid_list, bbox_list, theta_list,
-                 viewpoint_list=None, nid_list=None):
+                 viewpoint_list=None, nid_list=None, notes_list=None):
         """ Adds oriented ROI bounding boxes to images """
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
         if nid_list is None:
             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
+        if notes_list is None:
+            notes_list = ['' for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
         try:
@@ -203,10 +205,13 @@ class IBEISControl(object):
             print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
             raise
         # Define arguments to insert
-        param_iter = ((rid, gid, nid, x, y, w, h, theta, viewpoint)
-                      for (rid, gid, nid, (x, y, w, h), theta, viewpoint)
-                      in izip(roi_uuid_list, gid_list, nid_list, bbox_list,
-                              theta_list, viewpoint_list))
+        _ziped = izip(roi_uuid_list, gid_list, nid_list, bbox_list,
+                      theta_list, viewpoint_list, notes_list)
+        # Unpack zipped arguments into a flat iterator
+        param_iter = (
+            (uuid, gid, nid,  x, y, w, h,  theta, viewpoint, notes) for
+            (uuid, gid, nid, (x, y, w, h), theta, viewpoint, notes) in _ziped)
+        # Insert the new ROIs into the SQL database
         ibs.db.executemany(
             operation='''
             INSERT OR REPLACE INTO rois
@@ -220,11 +225,13 @@ class IBEISControl(object):
                 roi_width,
                 roi_height,
                 roi_theta,
-                roi_viewpoint
+                roi_viewpoint,
+                roi_notes
             )
-            VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             parameters_iter=param_iter)
+        # Get the rids of the rois that were just inserted
         rid_list = ibs.db.executemany(
             operation='''
             SELECT roi_uid
@@ -616,7 +623,7 @@ class IBEISControl(object):
     @getter
     def get_roi_notes(ibs, rid_list):
         """ Returns a list of roi notes """
-        roi_notes_list = ibs.get_table_properties('rois', 'notes', rid_list)
+        roi_notes_list = ibs.get_table_properties('rois', 'roi_notes', rid_list)
         return roi_notes_list
 
     @getter_numpy_vector_output
