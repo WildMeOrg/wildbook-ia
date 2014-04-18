@@ -65,7 +65,7 @@ def BUILDQUERY():
         qrid2_res = mf.chipmatch_to_resdict(
             ibs, qrid2_chipmatch_SVER, filt2_meta, qreq)
     except Exception as ex:
-        utool.print_exception(ex, '[!build_query]')
+        utool.printex(ex, '[!build_query]')
         raise
 
     # Run Qt Loop to use the GUI

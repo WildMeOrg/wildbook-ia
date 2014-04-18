@@ -519,20 +519,28 @@ def get_func_name(func):
                                        'type(func)=%r') % (func, type(func)))
 
 
-def print_exception(ex,
-                    msg='[!?] Caught exception',
-                    prefix=None,
-                    key_list=[],
-                    locals_=None):
-    """ Formats an exception with relevant info """
+def printex(ex, msg='[!?] Caught exception',
+            prefix=None, key_list=[], locals_=None):
+    """ Prints an exception with relevant info """
     if prefix is None:
         prefix = get_caller_prefix(aserror=True)
     if locals_ is None:
         locals_ = get_caller_locals()
-    #sys.stdout.write('!!!!!!!!!!!!!!!!!!!!!!\n')
-    #print('!!!!!!!!!!!!!!!!!!!!!!\n')
-    print('<!!! EXCEPTION !!!>')
-    print(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
+    exstr = formatex(ex, msg, prefix, key_list, locals_)
+    print(exstr)
+
+
+def formatex(ex, msg='[!?] Caught exception',
+             prefix=None, key_list=[], locals_=None):
+    """ Formats an exception with relevant info """
+    ex_str = []
+    append_exstr = ex_str.append
+    if prefix is None:
+        prefix = get_caller_prefix(aserror=True)
+    if locals_ is None:
+        locals_ = get_caller_locals()
+    append_exstr('<!!! EXCEPTION !!!>')
+    append_exstr(prefix + ' ' + msg + '%s: %s' % (type(ex), ex))
     for key in key_list:
         if isinstance(key, tuple):
             func = key[0]
@@ -540,17 +548,15 @@ def print_exception(ex,
             assert key in locals_
             val = locals_[key]
             funcval = func(val)
-            print('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcval))
+            append_exstr('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcval))
         elif key in locals_:
             val = repr(locals_[key])
-            print('%s %s = %s' % (prefix, key, val))
+            append_exstr('%s %s = %s' % (prefix, key, val))
         else:
             val = '???'
-            print('%s !!! %s not populated!' % (prefix, key))
-    print('</!!! EXCEPTION !!!>')
-
-
-printex = print_exception
+            append_exstr('%s !!! %s not populated!' % (prefix, key))
+    append_exstr('</!!! EXCEPTION !!!>')
+    return '\n'.join(ex_str)
 
 
 def get_reprs(*args, **kwargs):
@@ -641,7 +647,7 @@ def len_dbgstr(lenable_name, locals_=None):
             lenable_ = eval(lenable_name)
         except Exception as ex:
             print('locals.keys = %r' % (locals_.keys(),))
-            print_exception(ex, '[!util_dbg]')
+            printex(ex, '[!util_dbg]')
             raise Exception('Cannot lendbg: %r' % lenable_name)
     len_str = 'len(%s) = %d' % (lenable_name, len(lenable_))
     return len_str

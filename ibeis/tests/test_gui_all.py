@@ -28,7 +28,7 @@ def TEST_GUI_ALL():
     Creates dummy ROIS
     Selects things
     """
-    main_locals = __testing__.main()
+    main_locals = __testing__.main(defaultdb='testdb')
     ibs = main_locals['ibs']    # IBEIS Control  # NOQA
     back = main_locals['back']  # IBEIS GUI backend
 

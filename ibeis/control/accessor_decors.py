@@ -13,6 +13,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
 def adder(func):
     @utool.common_wrapper(func)
+    @utool.ignores_exc_tb
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return adder_wrapper
@@ -22,6 +23,7 @@ def adder(func):
 
 def setter(func):
     @utool.common_wrapper(func)
+    @utool.ignores_exc_tb
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return adder_wrapper
@@ -55,6 +57,7 @@ def getter_numpy(func):
     id list and returns a heterogeous list of values """
     getter_func = getter(func)
     @utool.accepts_numpy
+    @utool.ignores_exc_tb
     def getter_wrapperNP(*args, **kwargs):
         return getter_func(*args, **kwargs)
     return getter_wrapperNP
@@ -65,6 +68,7 @@ def getter_numpy_vector_output(func):
     id list and returns a heterogeous list of values """
     getter_func = getter_vector_output(func)
     @utool.accepts_numpy
+    @utool.ignores_exc_tb
     def getter_wrapperNP2(*args, **kwargs):
         return getter_func(*args, **kwargs)
     return getter_wrapperNP2
@@ -73,6 +77,7 @@ def getter_numpy_vector_output(func):
 def getter_general(func):
     """ Getter decorator for functions which has no gaurentees """
     @utool.common_wrapper(func)
+    @utool.ignores_exc_tb
     def getter_wrapper2(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_wrapper2
@@ -82,6 +87,7 @@ def getter_general(func):
 
 def deleter(func):
     @utool.common_wrapper(func)
+    @utool.ignores_exc_tb
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return adder_wrapper

@@ -43,7 +43,7 @@ def aggregate_descriptors(ibs, rid_list):
         # Stack descriptors into numpy array corresponding to inverted inexed
         ax2_desc = np.vstack(desc_list)
     except MemoryError as ex:
-        utool.print_exception(ex, 'cannot build inverted index', '[!memerror]')
+        utool.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
     return ax2_desc, ax2_rid, ax2_fx
 
@@ -54,7 +54,7 @@ def build_flann_inverted_index(ibs, rid_list):
         ax2_desc, ax2_rid, ax2_fx = aggregate_descriptors(ibs, rid_list)
     except Exception as ex:
         intostr = ibs.get_infostr()  # NOQA
-        utool.print_exception(ex, 'cannot build inverted index', '[!build_invx]',
+        utool.printex(ex, 'cannot build inverted index', '[!build_invx]',
                                   ['infostr'])
         raise
     # Build/Load the flann index
@@ -83,7 +83,7 @@ class NNIndex(object):
             num_images = ibs.get_num_images()  # NOQA
             num_rois = ibs.get_num_rois()      # NOQA
             num_names = ibs.get_num_names()    # NOQA
-            utool.print_exception(ex, '', '[nn]', locals().keys())
+            utool.printex(ex, '', '[nn]', locals().keys())
             raise
         # Agg Data
         nn_index.ax2_rid  = ax2_rid

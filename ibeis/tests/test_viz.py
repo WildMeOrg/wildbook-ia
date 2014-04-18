@@ -46,7 +46,7 @@ def TEST_VIZ():
         query_failed = False
     except Exception as ex:
         query_failed = True
-        utool.print_exception(ex, 'QUERY FAILED!')
+        utool.printex(ex, 'QUERY FAILED!')
 
     #----------------------
     #printTEST('Show Image')

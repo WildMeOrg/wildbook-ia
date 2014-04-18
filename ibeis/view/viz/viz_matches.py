@@ -34,7 +34,7 @@ def show_chipres(ibs, qres, rid2, sel_fm=[], **kwargs):
                                                fm, fs=fs, lbl1=lbl1, lbl2=lbl2,
                                                **kwargs)
     except Exception as ex:
-        utool.print_exception(ex, 'consider qr.remove_corrupted_queries',
+        utool.printex(ex, 'consider qr.remove_corrupted_queries',
                               '[viz_matches]')
         print('')
         raise

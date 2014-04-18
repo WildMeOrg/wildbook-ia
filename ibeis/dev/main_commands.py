@@ -17,8 +17,12 @@ def vd(ibs):
 
 
 def preload_commands():
-    if utool.get_flag('--set-workdir'):
-        set_workdir(params.args.dbdir)
+    if params.args.dump_global_cache:
+        utool.global_cache_dump()
+    if params.args.workdir is not None:
+        params.set_workdir(params.args.workdir)
+    if params.args.set_default_dbdir:
+        set_default_dbdir(params.args.dbdir)
     if utool.get_flag('--vdq'):
         vdq()
 
@@ -28,6 +32,6 @@ def postload_commands(ibs):
         vd(ibs)
 
 
-def set_workdir(dbdir):
-    print('seting default work directory to: %r' % dbdir)
-    utool.global_cache_write('[main_cmd] cached_dbdir', dbdir)
+def set_default_dbdir(dbdir):
+    print('seting default database directory to: %r' % dbdir)
+    utool.global_cache_write('cached_dbdir', dbdir)

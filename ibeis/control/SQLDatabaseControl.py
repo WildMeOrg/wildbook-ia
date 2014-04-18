@@ -17,13 +17,11 @@ QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 def get_operation_type(operation):
     operation_type = operation.split()[0].strip()
     if operation_type == 'SELECT':
-        startpos = operation.find('SELECT') + len('SELECT')
-        endpos = operation.find('FROM') - 1
-        #print((startpos, endpos))
-        #print(operation)
-        operation_args =  operation[startpos:endpos].strip()
-        #print(operation_args)
+        operation_args = utool.str_between(operation, 'SELECT', 'FROM').strip()
         operation_type += ' ' + operation_args
+    if operation_type == 'INSERT':
+        operation_args = utool.str_between(operation, 'INSERT', '(').strip()
+        operation_type += ' ' + operation_args.replace('\n', ' ')
     return operation_type
 
 
@@ -267,7 +265,7 @@ class SQLDatabaseControl(object):
                 raise lite.Error('num_params=%r != num_results=%r' % (num_params, num_results))
         except lite.Error as ex1:
             key_list = [(str, 'operation'), 'params', 'params_list', 'parameters_iter']
-            utool.print_exception(ex1, 'executemany threw', '[!sql]', key_list)
+            utool.printex(ex1, 'executemany threw', '[!sql]', key_list)
             db.dump()
             raise
         #
@@ -327,7 +325,7 @@ class SQLDatabaseControl(object):
                     db.dump(auto_commit=False)
         except lite.Error as ex2:
             print('\n<!!! ERROR>')
-            utool.print_exception(ex2, '[!sql] Caught ex2=')
+            utool.printex(ex2, '[!sql] Caught ex2=')
             caller_name = utool.util_dbg.get_caller_name()
             print('[!sql] caller_name=%r' % caller_name)
             print('</!!! ERROR>\n')

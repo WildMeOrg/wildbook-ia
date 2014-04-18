@@ -197,7 +197,7 @@ def and_lists(*args):
         #print('fixme')
         #assert np.all(flags_ == flags), 'reduce has problems'
     #except Exception as ex:
-        #utool.print_exception(ex)
+        #utool.printex(ex)
         #print(flags_)
         #print(flags)
         #raise

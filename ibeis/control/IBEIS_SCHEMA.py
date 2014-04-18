@@ -42,7 +42,7 @@ def define_IBEIS_schema(ibs):
     # Used to store *processed* ROIs as segmentations
     ibs.db.schema('masks', (
         ('mask_uid',                     'INTEGER PRIMARY KEY'),
-        ('config_uid',                   'INTEGER NOT NULL'),
+        ('config_uid',                   'INTEGER DEFAULT 0'),
         ('roi_uid',                      '%s NOT NULL' % ROI_UID_TYPE),
         ('mask_uri',                     'TEXT NOT NULL'),
     ))
@@ -50,7 +50,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('chips', (
         ('chip_uid',                     'INTEGER PRIMARY KEY'),
         ('roi_uid',                      '%s NOT NULL' % ROI_UID_TYPE),
-        ('config_uid',                   'INTEGER NOT NULL'),
+        ('config_uid',                   'INTEGER DEFAULT 0'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
     ), ['CONSTRAINT superkey UNIQUE (roi_uid, config_uid)']  # TODO: constraint needs modify
@@ -59,7 +59,7 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema('features', (
         ('feature_uid',                  'INTEGER PRIMARY KEY'),
         ('chip_uid',                     'INTEGER NOT NULL'),
-        ('config_uid',                   'INTEGER NOT NULL'),
+        ('config_uid',                   'INTEGER DEFAULT 0'),
         ('feature_num_feats',            'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),

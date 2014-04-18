@@ -136,7 +136,7 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     try:
         invV_aug = np.random.normal(0, scale=invV_std, size=(len(kpts), 3))
     except ValueError as ex:
-        utool.print_exception(ex, key_list=[(type, 'invV_std')])
+        utool.printex(ex, key_list=[(type, 'invV_std')])
         raise
     ori_aug  = np.random.normal(0, scale=ori_std,  size=(len(kpts), 1))
     # Augment keypoints

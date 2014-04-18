@@ -224,7 +224,7 @@ def transform_kpts(kpts, M):
     except AssertionError as ex:  # NOQA
         #print(ex)
         MinvV_mats = ltool.rowwise_division(MinvV_mats, MinvV_mats[:, 2, 2])
-        #utool.print_exception(ex, 'WARNING: transform produced nonhomogonous keypoint')
+        #utool.printex(ex, 'WARNING: transform produced nonhomogonous keypoint')
     kpts_ = flatten_invV_mats_to_kpts(MinvV_mats)
     return kpts_
 

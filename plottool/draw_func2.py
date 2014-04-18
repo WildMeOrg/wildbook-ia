@@ -481,10 +481,10 @@ def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
             QMainWin = mpl.backends.backend_qt4.MainWindow
         except Exception as ex:
             try:
-                utool.print_exception(ex, 'warning', '[df2]')
+                utool.printex(ex, 'warning', '[df2]')
                 QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
             except Exception as ex1:
-                utool.print_exception(ex1, 'warning', '[df2]')
+                utool.printex(ex1, 'warning', '[df2]')
                 QMainWin = object
 
         isqt4_mpl = isinstance(win, QMainWin)

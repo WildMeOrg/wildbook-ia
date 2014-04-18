@@ -243,3 +243,9 @@ def full_numpy_repr(arr):
     with NpPrintOpts(threshold=np.uint64(-1)):
         arr_repr = repr(arr)
     return arr_repr
+
+
+def str_between(str_, startstr, endstr):
+    startpos = str_.find(startstr) + len(startstr)
+    endpos = str_.find(endstr) - 1
+    return str_[startpos:endpos]

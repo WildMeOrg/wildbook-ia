@@ -183,7 +183,8 @@ class lru_cache(object):
         cache.cache_.clear()
 
     def __call__(cache, func):
-        def wrapped(self, *args, **kwargs):  # wrap a class
+        @ignores_exc_tb
+        def lru_wrapper(self, *args, **kwargs):  # wrap a class
             key = tuple(imap(tuple, islice(args, 0, cache.nInput)))
             try:
                 value = cache.cache_[key]
@@ -198,6 +199,6 @@ class lru_cache(object):
         cache.func_name = func.func_name
         printDBG('[@decor.lru] wrapping %r with max_size=%r lru_cache' %
                  (cache.func_name, cache.max_size))
-        wrapped.func_name = func.func_name
-        wrapped.clear_cache = cache.clear_cache
-        return wrapped
+        lru_wrapper.func_name = func.func_name
+        lru_wrapper.clear_cache = cache.clear_cache
+        return lru_wrapper

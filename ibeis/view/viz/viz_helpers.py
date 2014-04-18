@@ -64,7 +64,7 @@ def get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs):
     try:
         chipsz_list = ibs.get_roi_chipsizes(rid_list, ensure=ensure)
     except AssertionError as ex:
-        utool.print_exception(ex, '[!ibs.get_roi_kpts_in_imgspace]')
+        utool.printex(ex, '[!ibs.get_roi_kpts_in_imgspace]')
         print('[!ibs.get_roi_kpts_in_imgspace] rid_list = %r' % (rid_list,))
         raise
     kpts_list    = ibs.get_roi_kpts(rid_list, ensure=ensure)
@@ -189,7 +189,7 @@ def get_chip_labels(ibs, rid_list, **kwargs):
     try:
         assert all([isinstance(rid, int) for rid in rid_list]), 'invalid input'
     except AssertionError as ex:
-        utool.print_exception(ex, 'invalid input', 'viz', key_list=['rid_list'])
+        utool.printex(ex, 'invalid input', 'viz', key_list=['rid_list'])
         raise
     if kwargs.get('show_ridstr', True):
         ridstr_list = get_ridstrs(rid_list)

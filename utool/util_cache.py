@@ -2,10 +2,11 @@ from __future__ import absolute_import, division, print_function
 import shelve
 import atexit
 from os.path import join, normpath
-from .util_inject import inject
+from . import util_inject
 from . import util_path
+from . import util_str
 from . import util_cplat
-print, print_, printDBG, rrr, profile = inject(__name__, '[cache]')
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
 __PRINT_WRITES__ = False
@@ -40,7 +41,7 @@ def write_to(fpath, to_write):
 
 # --- Global Cache ---
 
-def get_global_cache_dir(appname='ibeis', ensure=False):
+def get_global_cache_dir(appname='ibeis', ensure=False, **kwargs):
     """
         Returns a cache directory for a project in the correct location for each
         operating system: IE: '~/.config, '~/AppData/Roaming', or
@@ -67,9 +68,9 @@ def get_global_shelf(**kwargs):
             shelf_fpath = get_global_shelf_fpath(**kwargs)
             __SHELF__ = shelve.open(shelf_fpath)
         except Exception as ex:
-            print('!!!')
-            print('[util_cache] Failed opening: shelf_fpath=%r' % shelf_fpath)
-            print('[util_cache] Caught: %s: %s' % (type(ex), ex))
+            from . import util_dbg
+            util_dbg.printex(ex, 'Failed opening shelf_fpath',
+                             key_list=['shelf_fpath'])
             raise
         #shelf_file = open(shelf_fpath, 'w')
     return __SHELF__
@@ -83,23 +84,30 @@ def close_global_shelf(**kwargs):
 
 
 def global_cache_read(key, **kwargs):
-    shelf = get_global_shelf()
+    shelf = get_global_shelf(**kwargs)
     if not 'default' in kwargs:
         return shelf[key]
     else:
         return shelf.get(key, kwargs['default'])
 
 
-def global_cache_write(key, val):
+def global_cache_dump(**kwargs):
+    shelf_fpath = get_global_shelf_fpath(**kwargs)
+    shelf = get_global_shelf(**kwargs)
+    print('shelf_fpath = %r' % shelf_fpath)
+    print(util_str.dict_str(shelf))
+
+
+def global_cache_write(key, val, **kwargs):
     """ Writes cache files to a safe place in each operating system """
-    shelf = get_global_shelf()
+    shelf = get_global_shelf(**kwargs)
     shelf[key] = val
 
 
-def delete_global_cache():
+def delete_global_cache(**kwargs):
     """ Reads cache files to a safe place in each operating system """
-    close_global_shelf()
-    shelf_fpath = get_global_shelf_fpath()
+    close_global_shelf(**kwargs)
+    shelf_fpath = get_global_shelf_fpath(**kwargs)
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
 
 

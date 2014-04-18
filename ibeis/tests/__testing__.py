@@ -36,29 +36,29 @@ class MyException(Exception):
 
 
 HAPPY_FACE = r'''
-                .-""""""-.
-            .'          '.
+               .-""""""-.
+             .'          '.
             /   O      O   \
-            :                :
-            |                |
-            : ',          ,' :
+           :                :
+           |                |
+           : ',          ,' :
             \  '-......-'  /
-            '.          .'
-                '-......-'
-                '''
+             '.          .'
+               '-......-'
+                   '''
 
 
 SAD_FACE = r'''
-                .-""""""-.
-            .'          '.
+               .-""""""-.
+             .'          '.
             /   O      O   \
-            :           `    :
-            |                |
-            :    .------.    :
+           :           `    :
+           |                |
+           :    .------.    :
             \  '        '  /
-            '.          .'
-                '-......-'
-                '''
+             '.          .'
+               '-......-'
+                  '''
 
 
 def run_test(func, *args, **kwargs):
@@ -104,6 +104,7 @@ def testcontext2(name):
         func.func_name = name
         @testcontext
         @functools.wraps(func)
+        @utool.ignores_exc_tb
         def test_wrapper3(*args, **kwargs):
             return func(*args, **kwargs)
         return test_wrapper3

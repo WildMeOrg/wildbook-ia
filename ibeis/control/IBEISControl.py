@@ -200,7 +200,7 @@ class IBEISControl(object):
                              for img_uuid, bbox, theta
                              in izip(image_uuid_list, bbox_list, theta_list)]
         except Exception as ex:
-            utool.print_exception(ex, '[add_roi]')
+            utool.printex(ex, '[add_roi]')
             print('[!add_rois] ' + utool.list_dbgstr('image_uuid_list'))
             print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
             raise
@@ -247,14 +247,19 @@ class IBEISControl(object):
         and then pass them here to ensure chips are computed)
         return cid_list
         """
+        # Ensure must be false, otherwise an infinite loop occurs
+        printDBG('ADD_CHIPS(rid_list=%r)' % (rid_list,))
         cid_list = ibs.get_roi_cids(rid_list, ensure=False)
+        printDBG('ADD_CHIPS(cid_list=%r)' % (cid_list,))
         dirty_rids = utool.get_dirty_items(rid_list, cid_list)
+        printDBG('ADD_CHIPS(dirty_rids=%r)' % (dirty_rids,))
         if len(dirty_rids) > 0:
             try:
+                printDBG('ADD_CHIPS(dirty_rids=%r)' % (rid_list,))
                 preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
                 param_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
             except AssertionError as ex:
-                utool.print_exception(ex, '[!ibs.add_chips]')
+                utool.printex(ex, '[!ibs.add_chips]')
                 print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
                 raise
             ibs.db.executemany(
@@ -270,7 +275,8 @@ class IBEISControl(object):
                 VALUES (NULL, ?, ?, ?)
                 ''',
                 parameters_iter=param_iter)
-            cid_list = ibs.get_roi_cids(rid_list)
+            # Ensure must be false, otherwise an infinite loop occurs
+            cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         return cid_list
 
     @adder
@@ -329,7 +335,7 @@ class IBEISControl(object):
 
     @setter
     def set_table_properties(ibs, table, prop_key, uid_list, val_list):
-        printDBG('[DEBUG] set_table_properties(table=%r, prop_key=%r)' %
+        printDBG('set_table_properties(table=%r, prop_key=%r)' %
                  (table, prop_key))
         # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
@@ -450,7 +456,7 @@ class IBEISControl(object):
         return get_valid_tblname_ids()
 
     def get_table_properties(ibs, table, prop_key, uid_list):
-        printDBG('[DEBUG] get_table_properties(table=%r, prop_key=%r)' %
+        printDBG('get_table_properties(table=%r, prop_key=%r)' %
                  (table, prop_key))
         # Input to table properties must be a list
         if isinstance(prop_key, str):
@@ -646,7 +652,7 @@ class IBEISControl(object):
         try:
             utool.assert_all_not_None(gid_list)
         except AssertionError as ex:
-            utool.print_exception(ex, '[!get_roi_gids]')
+            utool.printex(ex, '[!get_roi_gids]')
             print('[!get_roi_gids] ' + utool.list_dbgstr('gid_list'))
             print('[!get_roi_gids] ' + utool.list_dbgstr('rid_list'))
             raise
@@ -658,7 +664,7 @@ class IBEISControl(object):
             try:
                 ibs.add_chips(rid_list)
             except AssertionError as ex:
-                utool.print_exception(ex, '[!ibs.get_roi_cids]')
+                utool.printex(ex, '[!ibs.get_roi_cids]')
                 print('[!ibs.get_roi_cids] rid_list = %r' % (rid_list,))
                 raise
         cid_list = ibs.db.executemany(
@@ -668,6 +674,14 @@ class IBEISControl(object):
             WHERE roi_uid=?
             ''',
             parameters_iter=[(rid,) for rid in rid_list])
+        if ensure:
+            try:
+                utool.assert_all_not_None(cid_list, 'cid_list')
+            except AssertionError as ex:
+                valid_cids = ibs.get_valid_cids()  # NOQA
+                utool.printex(ex, 'Ensured cids returned None!',
+                              key_list=['rid_list', 'cid_list', 'valid_cids'])
+                raise
         return cid_list
 
     @getter
@@ -714,7 +728,13 @@ class IBEISControl(object):
 
     @getter
     def get_roi_chips(ibs, rid_list, ensure=True):
+        utool.assert_all_not_None(rid_list, 'rid_list')
         cid_list = ibs.get_roi_cids(rid_list, ensure=ensure)
+        try:
+            utool.assert_all_not_None(cid_list, 'cid_list')
+        except AssertionError as ex:
+            utool.printex(ex, 'Invalid cid_list', key_list=['ensure', 'cid_list'])
+            raise
         chip_list = ibs.get_chips(cid_list)
         return chip_list
 
@@ -740,6 +760,7 @@ class IBEISControl(object):
     @getter
     def get_roi_cpaths(ibs, rid_list):
         """ Returns cpaths defined by ROIs """
+        utool.assert_all_not_None(rid_list, 'rid_list')
         cfpath_list = preproc_chip.get_roi_cfpath_list(ibs, rid_list)
         return cfpath_list
 

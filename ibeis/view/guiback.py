@@ -46,10 +46,12 @@ def backblock(func):
             result = func(back, *args, **kwargs)
         except Exception as ex:
             back.front.blockSignals(wasBlocked_)  # unblock signals on exception
-            msg = ('[guiback] caught exception in %r' % func.func_name)
-            utool.print_exception(ex, msg, '[guiback!]')
             #print(traceback.format_exc())
-            back.user_info(msg=str(ex), title=str(type(ex)))
+            msg = ('caught exception in %r' % func.func_name)
+            print('\n\n\n')
+            utool.printex(ex, msg)
+            print('\n\n\n')
+            back.user_info(msg=msg, title=str(type(ex)))
             raise
             #raise
         back.front.blockSignals(wasBlocked_)
