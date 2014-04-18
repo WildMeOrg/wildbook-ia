@@ -99,4 +99,4 @@ if __name__ == '__main__':
     #chip1, chip2, kpts1, kpts2, fm = get_stashed_test_vars()
     test_locals = test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=nShow)
     exec(utool.execstr_dict(test_locals, 'test_locals'))
-    exec(df2.present(wh=(500, 300), num_rc=(3, 1)))
+    exec(df2.present())

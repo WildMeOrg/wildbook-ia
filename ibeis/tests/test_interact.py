@@ -57,7 +57,6 @@ def TEST_INTERACT():
     #viz.show_qres(ibs, qres, fnum=5)
 
     ##----------------------
-    df2.present(wh=1000)
     main_locals.update(locals())
     __testing__.main_loop(main_locals)
     printTEST('return test locals')
@@ -67,4 +66,5 @@ def TEST_INTERACT():
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     test_locals = TEST_INTERACT()
+    df2.present()
     exec(test_locals['execstr'])

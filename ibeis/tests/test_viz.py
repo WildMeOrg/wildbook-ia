@@ -71,7 +71,6 @@ def TEST_VIZ():
         df2.set_figtitle('Show QRes')
 
     ##----------------------
-    df2.present(wh=1000)
     main_locals.update(locals())
     __testing__.main_loop(main_locals)
     printTEST('return test locals')
@@ -81,4 +80,5 @@ def TEST_VIZ():
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     test_locals = TEST_VIZ()
+    df2.present()
     exec(test_locals['execstr'])

@@ -85,7 +85,7 @@ if __name__ == '__main__':
     run_experiments(ibs, qrid_list)
 
     if not '--nopresent' in sys.argv:
-        df2.present(adaptive=True)
+        df2.present()
     ipy = (not '--gui' in sys.argv) or ('--cmd' in sys.argv)
     execstr = ibeis.main_loop(main_locals, ipy=ipy)
     print('\n[DEV] ENTER EXEC\n')

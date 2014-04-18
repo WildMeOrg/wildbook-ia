@@ -153,4 +153,4 @@ for row, col in iprod(xrange(nRows), xrange(nCols)):
 #mpl_sift.draw_sift(ax, sift)
 #df2.update()
 
-exec(df2.present(wh=(900, 950)))
+exec(df2.present())

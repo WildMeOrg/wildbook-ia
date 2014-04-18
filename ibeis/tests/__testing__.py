@@ -23,6 +23,8 @@ import utool
 utool.ensure_in_pythonpath('hesaff')
 utool.ensure_in_pythonpath('ibeis')
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[__testing__]')
+import ibeis
+ibeis._preload()
 from ibeis.dev import main_api
 from ibeis.dev import params
 import pyhesaff

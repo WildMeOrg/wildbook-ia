@@ -5,15 +5,16 @@ import textwrap
 import time
 import warnings
 # maptlotlib
+import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 # PyQt
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 # Science
-import numpy as np
+#import numpy as np
 from .custom_figure import get_fig
-from .custom_constants import golden_wh
+#from .custom_constants import golden_wh
 
 
 QT4_WINS = []
@@ -131,131 +132,107 @@ def get_monitor_geometries():
     return monitor_geometries
 
 
-def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
-                     row_first=True, no_tile=False, override1=False,
-                     adaptive=False, monitor_num=0, **kwargs):
+def get_main_win_base():
+    try:
+        QMainWin = mpl.backends.backend_qt4.MainWindow
+    except Exception as ex:
+        try:
+            utool.printex(ex, 'warning', '[df2]')
+            QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
+        except Exception as ex1:
+            utool.printex(ex1, 'warning', '[df2]')
+            QMainWin = object
+    return QMainWin
+
+# Win7 Areo
+WIN7_SIZES = {
+    'os_border_x':   20,
+    'os_border_y':   35,
+    'os_border_h':   30,
+    'win_border_x':  17,
+    'win_border_y':  10,
+    'mpl_toolbar_y': 10,
+}
+
+# Ubuntu (Medeterrainian Dark)
+GNOME3_SIZES = {
+    'os_border_x':    0,
+    'os_border_y':   35,  # for gnome3 title bar
+    'os_border_h':    0,
+    'win_border_x':   5,
+    'win_border_y':  30,
+    'mpl_toolbar_y':  0,
+}
+
+
+def get_stdpxls():
+    if sys.platform.startswith('win32'):
+        stdpxls = WIN7_SIZES
+    if sys.platform.startswith('linux'):
+        stdpxls = GNOME3_SIZES
+    return stdpxls
+
+
+def get_xywh_pads():
+    stdpxls = get_stdpxls()
+    w_pad =  stdpxls['win_border_x']
+    y_pad =  stdpxls['win_border_y'] + stdpxls['mpl_toolbar_y']
+    # Pads are applied to all windows
+    x_pad =  stdpxls['os_border_x']
+    y_pad =  stdpxls['os_border_y']
+    return (x_pad, y_pad, w_pad, y_pad)
+
+
+def get_avail_geom(monitor_num=None):
+    stdpxls = get_stdpxls()
+    if monitor_num is None:
+        if utool.get_computer_name() == 'Ooo':
+            monitor_num = 1
+        else:
+            monitor_num = 0
+    monitor_geometries = get_monitor_geometries()
+    (startx, starty, availw, availh) = monitor_geometries[monitor_num]
+    available_geom = (startx, starty, availw / 2, availh - stdpxls['os_border_h'])
+    return available_geom
+
+
+def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
+                     adaptive=False, monitor_num=None, **kwargs):
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
-    if 'nRows' in kwargs and 'nCols' in kwargs:
-        num_rc = (kwargs['nRows'], kwargs['nCols'])
-
     print('[df2] all_figures_tile()')
-    # RCOS TODO:
-    # I want this function to layout all the figures and qt windows within the
-    # bounds of a rectangle. (taken from the get_monitor_geom, or specified by
-    # the user i.e. left half of monitor 0). It should lay them out
-    # rectangularly and choose figure sizes such that all of them will fit.
     if no_tile:
         return
+    startx, starty, avail_width, avail_height = get_avail_geom()
 
-    if not np.iterable(wh):
-        wh = golden_wh(wh)
+    print('tile_figures_in_avail_geom')
 
     all_figures = get_all_figures()
     all_qt4wins = get_all_qt4_wins()
+    all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
 
-    if adaptive:
-        print('adaptive tile')
-        nFigures = len(all_figures)
-        x, y, w, h = get_monitor_geom(monitor_num)
-        if nFigures < 4:
-            num_rc = num_rc = (nFigures, 1)
-        else:
-            num_rc = (4, np.ceil(nFigures // 4))
-        wh = ((w / 2) / num_rc[1], h / num_rc[0])
+    num_wins = len(all_wins)
 
-    if override1:
-        if len(all_figures) == 1:
-            fig = all_figures[0]
-            win = fig.canvas.manager.window
-            win.setGeometry(0, 0, 900, 900)
-            update()
-            return
+    nRows = num_wins if num_wins < max_rows else max_rows
+    nCols = int(np.ceil(num_wins / nRows))
 
-    #nFigs = len(all_figures) + len(all_qt4_wins)
+    win_height = avail_height / nRows
+    win_width  = avail_width  / nCols
 
-    # Win7 Areo
-    win7_sizes = {
-        'os_border_x':   20,
-        'os_border_y':   35,
-        'os_border_h':   30,
-        'win_border_x':  17,
-        'win_border_y':  10,
-        'mpl_toolbar_y': 10,
-    }
+    (x_pad, y_pad, w_pad, h_pad) = get_xywh_pads()
 
-    # Ubuntu (Medeterrainian Dark)
-    gnome3_sizes = {
-        'os_border_x':    0,
-        'os_border_y':   35,  # for gnome3 title bar
-        'os_border_h':    0,
-        'win_border_x':   5,
-        'win_border_y':  30,
-        'mpl_toolbar_y':  0,
-    }
-
-    w, h = wh
-    x_off, y_off = xy_off
-    w_off, h_off = wh_off
-    x_pad, y_pad = (0, 0)
-    # Good offset measurements for...
-    #Windows 7
-    if sys.platform.startswith('win32'):
-        stdpxls = win7_sizes
-    if sys.platform.startswith('linux'):
-        stdpxls = gnome3_sizes
-    x_off +=  0
-    y_off +=  0
-    w_off +=  stdpxls['win_border_x']
-    h_off +=  stdpxls['win_border_y'] + stdpxls['mpl_toolbar_y']
-    # Pads are applied to all windows
-    x_pad +=  stdpxls['os_border_x']
-    y_pad +=  stdpxls['os_border_y']
-
-    effective_w = w + w_off
-    effective_h = h + h_off
-    startx = 0
-    starty = 0
-
-    if num_rc is None:
-        monitor_geometries = get_monitor_geometries()
-        printDBG('[df2] monitor_geometries = %r' % (monitor_geometries,))
-        geom = monitor_geometries[0]
-        # Use all of monitor 0
-        available_geom = (geom[0], geom[1], geom[2] - stdpxls['os_border_h'], geom[3])
-        startx = available_geom[0]
-        starty = available_geom[1]
-        avail_width = available_geom[2] - available_geom[0]
-        avail_height = available_geom[3] - available_geom[1]
-        printDBG('[df2] available_geom = %r' % (available_geom,))
-        printDBG('[df2] avail_width = %r' % (avail_width,))
-        printDBG('[df2] avail_height = %r' % (avail_height,))
-
-        nRows = int(avail_height // (effective_h))
-        nCols = int(avail_width // (effective_w))
-    else:
-        nRows, nCols = num_rc
-
-    printDBG('[df2] Tile all figures: ')
-    printDBG('[df2]     wh = %r' % ((w, h),))
-    printDBG('[df2]     xy_offsets = %r' % ((x_off, y_off),))
-    printDBG('[df2]     wh_offsets = %r' % ((w_off, h_off),))
-    printDBG('[df2]     wh_effective = %r' % ((effective_w, effective_h),))
-    printDBG('[df2]     xy_pads = %r' % ((x_pad, y_pad),))
-    printDBG('[df2]     nRows, nCols = %r' % ((nRows, nCols),))
+    print('startx = %r' % startx)
+    print('starty = %r' % starty)
+    print('avail_width = %r' % avail_width)
+    print('avail_height = %r' % avail_height)
+    print('win_width = %r' % win_width)
+    print('win_height = %r' % win_height)
+    print('nRows = %r' % nRows)
+    print('nCols = %r' % nCols)
 
     def position_window(ix, win):
-        try:
-            QMainWin = mpl.backends.backend_qt4.MainWindow
-        except Exception as ex:
-            try:
-                utool.printex(ex, 'warning', '[df2]')
-                QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
-            except Exception as ex1:
-                utool.printex(ex1, 'warning', '[df2]')
-                QMainWin = object
-
+        QMainWin = get_main_win_base()
         isqt4_mpl = isinstance(win, QMainWin)
         isqt4_back = isinstance(win, QtGui.QMainWindow)
         if not isqt4_mpl and not isqt4_back:
@@ -267,22 +244,17 @@ def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
         else:
             colx = (ix % nCols)
             rowx = int(ix // nCols)
-        x = startx + colx * (effective_w)
-        y = starty + rowx * (effective_h)
-        printDBG('ix=%r) rowx=%r colx=%r, x=%r y=%r, w=%r, h=%r' %
-                 (ix, rowx, colx, x, y, w, h))
+        w = win_width  - w_pad
+        h = win_height - h_pad
+        x = startx + colx * (win_width)  + x_pad
+        y = starty + rowx * (win_height) + y_pad
         try:
-            #(x, y, w1, h1) = win.getGeometry()
-            win.setGeometry(x + x_pad, y + y_pad, w, h)
+            print('tile %d-th win: rc=%r xywh=%r' % (ix, (rowx, colx), (x, y, w, h)))
+            win.setGeometry(x, y, w, h)
         except Exception as ex:
             print(ex)
-    ioff = 0
-    for i, win in enumerate(all_qt4wins):
-        position_window(i, win)
-        ioff += 1
-    for i, fig in enumerate(all_figures):
-        win = fig.canvas.manager.window
-        position_window(i + ioff, win)
+    for ix, win in enumerate(all_wins):
+        position_window(ix, win)
 
 
 def all_figures_bring_to_front():

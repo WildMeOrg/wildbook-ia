@@ -80,7 +80,6 @@ def TEST_QUERY_COMP(ibs=None, qrid_list=None):
     rid2_svtup  = qrid2_svtups[rid1]
     chipmatch_FILT = qrid2_chipmatch_FILT[rid1]
     viz.show_sv(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup, fnum=fnum)
-    df2.present(wh=900)
     comp_locals_.update(locals())
 
     # Run Qt Loop to use the GUI
@@ -100,4 +99,5 @@ if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
     test_locals = TEST_QUERY_COMP()
+    df2.present()
     exec(test_locals['execstr'])

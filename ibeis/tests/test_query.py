@@ -60,8 +60,6 @@ def TEST_QUERY(ibs=None, qrid_list=None):
         df2.set_figtitle('Query Result')
         df2.adjust_subplots_safe(top=.8)
 
-    df2.present(wh=900)
-
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
     execstr = __testing__.main_loop(main_locals, rungui=False)
@@ -77,4 +75,5 @@ if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
     test_locals = TEST_QUERY()
+    df2.present()
     exec(test_locals['execstr'])

@@ -40,13 +40,13 @@ def get_test_qrids(ibs):
         test_qrids.extend(valid_rids)
         print('2. test_qrids = %r' % test_qrids[0:5])
     else:
-        is_hard_list = ibs.get_roi_is_hard(ibs, valid_rids)
+        is_hard_list = ibs.get_roi_is_hard(valid_rids)
         hard_rids = utool.filter_items(valid_rids, is_hard_list)
         print('Testing %d known hard cases' % len(hard_rids))
         test_qrids.extend(hard_rids)
 
     if params.args.all_gt_cases:
-        has_gt_list = ibs.get_roi_has_groundtruth(ibs, valid_rids)
+        has_gt_list = ibs.get_roi_has_groundtruth(valid_rids)
         hasgt_rids = utool.filter_items(valid_rids, has_gt_list)
         print('Testing all %d ground-truthed cases' % len(hasgt_rids))
         test_qrids.extend(hasgt_rids)

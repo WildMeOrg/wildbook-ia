@@ -865,7 +865,7 @@ class IBEISControl(object):
         return has_gt_list
 
     @getter
-    def get_rid_is_hard(ibs, rid_list):
+    def get_roi_is_hard(ibs, rid_list):
         notes_list = ibs.get_roi_notes(rid_list)
         is_hard_list = ['hard' in notes.lower().split() for (notes) in notes_list]
         return is_hard_list
