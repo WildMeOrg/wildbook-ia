@@ -4,13 +4,11 @@ This is a hacky script meant to be run interactively
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.dev.main_api import _init_matplotlib
-# init maplotlib first
-_init_matplotlib()
+import ibeis
+ibeis._preload()
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
 import utool
-import ibeis
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
 

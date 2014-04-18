@@ -17,7 +17,7 @@ import vtool.image as gtool
 #-------------
 
 
-@utool.lru_cache(16)
+#@utool.lru_cache(16)  # TODO: LRU cache needs to handle cfg_uids first
 def compute_or_read_roi_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
     printDBG('[preproc_chip] compute_or_read_chips')
@@ -41,10 +41,11 @@ def add_chips_parameters_gen(ibs, rid_list):
     """ computes chips if they do not exist.
     generates values for add_chips sqlcommands """
     cfpath_list = ibs.get_roi_cpaths(rid_list)
+    chip_config_uid = ibs.get_chip_config_uid()
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
-        yield (rid, width, height)
+        yield (rid, width, height, chip_config_uid)
 
 
 #---------------

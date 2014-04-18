@@ -175,11 +175,15 @@ class SQLDatabaseControl(object):
         operation_label = '[sql] executeone %s: ' % (operation_type)
         if not QUIET:
             tt = utool.tic(operation_label)
+        #print(operation)
+        #print(parameters)
         db.executor.execute(operation, parameters)
         # JON: For some reason the top line works and the bottom line doesn't
         # in test_query.py I don't know if removing the bottom line breaks
         # anything else.
         #db.execute(operation, parameters, auto_commit, errmsg, verbose=False)
+        if auto_commit:
+            db.commit(verbose=False)
         result_list = db.result_list(verbose=False)
         if not QUIET:
             printDBG(utool.toc(tt, True))

@@ -17,10 +17,11 @@ def add_feat_params_gen(ibs, cid_list):
     feat_cfg  = ibs.cfg.feat_cfg
     dict_args = feat_cfg.get_dict_args()
     num_feats = len(cid_list)
+    feat_config_uid = ibs.get_feat_config_uid()
     mark_prog, end_prog = utool.progress_func(num_feats, lbl='hesaff: ')
     # TODO: make this an async process
     for count, (cid, cpath) in enumerate(izip(cid_list, cfpath_list)):
         mark_prog(count)
         kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)
-        yield cid, len(kpts), kpts, desc
+        yield cid, len(kpts), kpts, desc, feat_config_uid
     end_prog()

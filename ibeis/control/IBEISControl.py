@@ -145,11 +145,61 @@ class IBEISControl(object):
         ibs.cfg.feat_cfg   = Config.default_feat_cfg(ibs)
         ibs.cfg.query_cfg  = Config.default_query_cfg(ibs)
 
+    @utool.indent_func
+    def update_cfg(ibs, **kwargs):
+        ibs.cfg.query_cfg.update_cfg(**kwargs)
+
+    @utool.indent_func
+    def get_chip_config_uid(ibs):
+        chip_cfg_suffix = ibs.cfg.chip_cfg.get_uid()
+        chip_cfg_uid = ibs.add_config(chip_cfg_suffix)
+        return chip_cfg_uid
+
+    @utool.indent_func
+    def get_feat_config_uid(ibs):
+        feat_cfg_suffix = ibs.cfg.feat_cfg.get_uid()
+        feat_cfg_uid = ibs.add_config(feat_cfg_suffix)
+        return feat_cfg_uid
+
+    @utool.indent_func
+    def get_query_config_uid(ibs):
+        query_cfg_suffix = ibs.cfg.query_cfg.get_uid()
+        query_cfg_uid = ibs.add_config(query_cfg_suffix)
+        return query_cfg_uid
     #
     #
     #---------------
     # --- Adders ---
     #---------------
+
+    def add_config(ibs, config_suffix):
+        #print('ADD CONFIG: %r' % config_suffix)
+        ibs.db.executeone(
+            operation='''
+            INSERT OR IGNORE INTO configs
+            (
+                config_uid,
+                config_suffix
+            )
+            VALUES (NULL, ?)
+            ''',
+            parameters=(config_suffix,))
+
+        config_uid = ibs.db.executeone(
+            operation='''
+            SELECT config_uid
+            FROM configs
+            WHERE config_suffix=?
+            ''',
+            parameters=(config_suffix,))
+        try:
+            # executeone always returns a list
+            if len(config_uid) == 1:
+                config_uid = config_uid[0]
+        except AttributeError:
+            pass
+        #print('ADD CONFIG: config_uid = %r' % (config_uid,))
+        return config_uid
 
     @adder
     def add_images(ibs, gpath_list):
@@ -270,9 +320,10 @@ class IBEISControl(object):
                     chip_uid,
                     roi_uid,
                     chip_width,
-                    chip_height
+                    chip_height,
+                    config_uid
                 )
-                VALUES (NULL, ?, ?, ?)
+                VALUES (NULL, ?, ?, ?, ?)
                 ''',
                 parameters_iter=param_iter)
             # Ensure must be false, otherwise an infinite loop occurs
@@ -295,9 +346,10 @@ class IBEISControl(object):
                     chip_uid,
                     feature_num_feats,
                     feature_keypoints,
-                    feature_sifts
+                    feature_sifts,
+                    config_uid
                 )
-                VALUES (NULL, ?, ?, ?, ?)
+                VALUES (NULL, ?, ?, ?, ?, ?)
                 ''',
                 parameters_iter=(tup for tup in param_iter))
             fid_list = ibs.get_chip_fids(cid_list, ensure=False)
@@ -667,13 +719,15 @@ class IBEISControl(object):
                 utool.printex(ex, '[!ibs.get_roi_cids]')
                 print('[!ibs.get_roi_cids] rid_list = %r' % (rid_list,))
                 raise
+        chip_config_uid = ibs.get_chip_config_uid()
         cid_list = ibs.db.executemany(
             operation='''
             SELECT chip_uid
             FROM chips
             WHERE roi_uid=?
+            AND config_uid=?
             ''',
-            parameters_iter=[(rid,) for rid in rid_list])
+            parameters_iter=[(rid, chip_config_uid) for rid in rid_list])
         if ensure:
             try:
                 utool.assert_all_not_None(cid_list, 'cid_list')
@@ -805,11 +859,14 @@ class IBEISControl(object):
 
     @getter_general
     def get_valid_cids(ibs):
+        chip_config_uid = ibs.get_chip_config_uid()
         cid_list = ibs.db.executeone(
             operation='''
             SELECT chip_uid
             FROM chips
-            ''')
+            WHERE config_uid=?
+            ''',
+            parameters=(chip_config_uid,))
         return cid_list
 
     @getter
@@ -841,13 +898,15 @@ class IBEISControl(object):
     def get_chip_fids(ibs, cid_list, ensure=True):
         if ensure:
             ibs.add_feats(cid_list)
+        feat_config_uid = ibs.get_feat_config_uid()
         fid_list = ibs.db.executemany(
             operation='''
             SELECT feature_uid
             FROM features
             WHERE chip_uid=?
+            AND config_uid=?
             ''',
-            parameters_iter=((cid,) for cid in cid_list))
+            parameters_iter=((cid, feat_config_uid) for cid in cid_list))
         return fid_list
 
     @getter_numpy_vector_output

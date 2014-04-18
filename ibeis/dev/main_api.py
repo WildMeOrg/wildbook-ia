@@ -164,8 +164,8 @@ def main(**kwargs):
     back = None
     if not '--quiet' in sys.argv:
         print('[main] ibeis.main_api.main()')
-    _setup()
-    _preload_commands()
+    _preload(**kwargs)
+    _preload_commands(**kwargs)
     try:
         ibs = _init_ibeis()
         if kwargs.get('gui', True) and ('--gui' in sys.argv or not '--nogui' in sys.argv):
@@ -178,33 +178,32 @@ def main(**kwargs):
     return {'ibs': ibs, 'back': back}
 
 
-def _setup(**kwargs):
-    from ibeis.dev import params
-    _parse_args(**kwargs)
-    _init_matplotlib()
-    _init_numpy()
-    _init_parallel(**kwargs)
-    _init_signals()
-    _init_utool()
-    args = params.args
-    return args
-
-
-def _init_utool():
+def _preload(**kwargs):
     import utool
     from ibeis.dev import main_helpers
-    # Inject colored exceptions
+    from ibeis.dev import params
+    _parse_args(**kwargs)
+    # matplotlib backends
+    _init_matplotlib()
+    # numpy print settings
+    _init_numpy()
+    # parallel servent processes
+    _init_parallel()
+    # ctrl+c
+    _init_signals()
+    # inject colored exceptions
     utool.util_inject._inject_colored_exception_hook()
-    # Register type aliases for debugging
+    # register type aliases for debugging
     main_helpers.register_utool_aliases()
+    return params.args
 
 
-def _preload_commands():
+def _preload_commands(**kwargs):
     from ibeis.dev import main_commands
     main_commands.preload_commands()  # PRELOAD CMDS
 
 
-def _postload_commands():
+def _postload_commands(**kwargs):
     from ibeis.dev import main_commands
     main_commands.preload_commands()  # PRELOAD CMDS
 
