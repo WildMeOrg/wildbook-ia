@@ -21,6 +21,7 @@ from plottool import draw_func2 as df2
 #IBEIS
 from ibeis.dev import params  # NOQA
 from ibeis.view import viz
+from ibeis.view import interact
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
 from ibeis.tests import query_helpers
@@ -36,6 +37,8 @@ def TEST_QUERY(ibs=None):
         main_locals = __testing__.main(defaultdb='test_big_ibeis',
                                        allow_newdir=True, nogui=True)
         ibs = main_locals['ibs']    # IBEIS Control
+    else:
+        main_locals = locals()
 
     ibs._init_query_requestor()
     qreq = ibs.qreq
@@ -44,13 +47,13 @@ def TEST_QUERY(ibs=None):
 
     rids = ibs.get_recognition_database_rois()
     #nn_index = NNIndex.NNIndex(ibs, rid_list)
-    index = 1
+    index = 0
     index = utool.get_arg('--index', type_=int, default=index)
     qrids = utool.safe_slice(rids, index, index + 1)
 
     comp_locals_ = query_helpers.get_query_components(ibs, qrids)
     qres_dict = OrderedDict([
-        #('ORIG', comp_locals_['qres_ORIG']),
+        ('ORIG', comp_locals_['qres_ORIG']),
         ('FILT', comp_locals_['qres_FILT']),
         ('SVER', comp_locals_['qres_SVER']),
     ])
@@ -64,7 +67,8 @@ def TEST_QUERY(ibs=None):
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
         #viz_matches.show_chipres(ibs, qres, rid2, fnum=fnum, in_image=True)
-        viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
+        #viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
+        interact.interact_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
         df2.set_figtitle(label)
         df2.adjust_subplots_safe(top=.8)
 

@@ -8,9 +8,12 @@
 from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
-
-import matplotlib
-matplotlib.use('Qt4Agg')
+# Matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib as mpl
+mpl.use('Qt4Agg')
 
 # Python
 from os.path import splitext, split, join, normpath, exists
@@ -20,11 +23,6 @@ import sys
 import textwrap
 import time
 import warnings
-# Matplotlib / Qt
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Qt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
@@ -481,9 +479,14 @@ def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
     def position_window(ix, win):
         try:
             QMainWin = mpl.backends.backend_qt4.MainWindow
-        except NameError as ex:
-            print('[df2] Warning: %r' % ex)
-            QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
+        except Exception as ex:
+            try:
+                utool.print_exception(ex, 'warning', '[df2]')
+                QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
+            except Exception as ex1:
+                utool.print_exception(ex1, 'warning', '[df2]')
+                QMainWin = object
+
         isqt4_mpl = isinstance(win, QMainWin)
         isqt4_back = isinstance(win, QtGui.QMainWindow)
         if not isqt4_mpl and not isqt4_back:
@@ -514,9 +517,12 @@ def all_figures_tile(num_rc=None, wh=400, xy_off=(0, 0), wh_off=(0, 0),
 
 
 def all_figures_bring_to_front():
-    all_figures = get_all_figures()
-    for fig in iter(all_figures):
-        bring_to_front(fig)
+    try:
+        all_figures = get_all_figures()
+        for fig in iter(all_figures):
+            bring_to_front(fig)
+    except Exception as ex:
+        print(ex)
 
 
 def close_all_figures():

@@ -68,7 +68,10 @@ def ipython_execstr():
     return textwrap.dedent(r'''
     import sys
     embedded = False
-    if '--cmd' in sys.argv:
+    if '-w' in sys.argv or '--wait' in sys.argv:
+        print('waiting')
+        in_ = raw_input('press enter')
+    if '--cmd' in sys.argv or locals().get('in_', '') == 'cmd':
         print('[utool.dbg] Requested IPython shell with --cmd argument.')
         try:
             __IPYTHON__

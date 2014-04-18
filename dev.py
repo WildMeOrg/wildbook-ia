@@ -4,13 +4,14 @@ This is a hacky script meant to be run interactively
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.dev.all_imports import *  # NOQA
+from ibeis.dev.main_api import _init_matplotlib
+_init_matplotlib()
+import utool
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
 from itertools import izip
 import ibeis
 import multiprocessing
-import utool
 from plottool import draw_func2 as df2
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
 
 
 @utool.indent_func
@@ -120,6 +121,7 @@ def run_experiments(ibs, qrid_list):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
+    from ibeis.dev.all_imports import *  # NOQA
     print('\n [DEV] __DEV__\n')
 
     main_locals = ibeis.main()
