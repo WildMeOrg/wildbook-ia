@@ -183,6 +183,19 @@ def get_dirty_items(item_list, flag_list):
     return dirty_items
 
 
+def filter_items(item_list, flag_list):
+    assert len(item_list) == len(flag_list)
+    filtered_items = [item for (item, flag) in
+                      izip(item_list, flag_list)
+                      if flag]
+    return filtered_items
+
+
+def filter_Nones(list_):
+    """ Removes any nones from the list """
+    return [item for item in list_ if item is not None]
+
+
 # --- List combinations --- #
 
 
@@ -222,11 +235,23 @@ def intersect2d(A, B):
 
 
 def unique_keep_order(arr):
-    'pandas.unique preseves order and seems to be faster due to index overhead'
+    """ pandas.unique preseves order and seems to be faster due to index overhead """
     import pandas as pd
     return pd.unique(arr)
     #_, idx = np.unique(arr, return_index=True)
     #return arr[np.sort(idx)]
+
+
+def unique_keep_order2(list_):
+    """ pure python version """
+    seen = set()
+    def unseen(item):
+        if item in seen:
+            return False
+        seen.add(item)
+        return True
+    unique_list = [item for item in list_ if unseen(item)]
+    return unique_list
 
 
 def deterministic_shuffle(list_):

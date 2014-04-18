@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
-from os.path import join
-from os.path import exists
+from os.path import exists, join
+import os
 # UTool
 import utool
 # VTool
@@ -33,7 +33,14 @@ def compute_or_read_roi_chips(ibs, rid_list):
         if not utool.QUIET:
             utool.printex(ex, '[preproc_chip] Handing Exception: ')
         ibs.add_chips(rid_list)
-        chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+        try:
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+        except IOError:
+            print('[preproc_chip] cache must have been deleted from disk')
+            compute_and_write_chips_lazy(ibs, rid_list)
+            # Try just one more time
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+
     return chip_list
 
 
@@ -46,6 +53,23 @@ def add_chips_parameters_gen(ibs, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
         yield (rid, width, height, chip_config_uid)
+
+
+#--------------
+# Chip deleters
+#--------------
+
+def delete_chips(ibs, cid_list):
+    """ Removes chips from disk (not SQL)"""
+    # TODO: Fixme, depends on current algo config
+    chip_fpath_list = ibs.get_chip_paths(cid_list)
+    print('[preproc_chip] deleting %d chips' % len(cid_list))
+    for chip_fpath in chip_fpath_list:
+        try:
+            os.remove(chip_fpath)
+        except OSError:
+            if exists(chip_fpath):
+                print('[preproc_chip] cannot remove: %r ' % chip_fpath)
 
 
 #---------------
@@ -81,10 +105,10 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
                     newsize_list, filter_list=[]):
     """ Computes chips and yeilds results asynchronously for writing  """
     # TODO: Actually make this compute in parallel
-    chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
-                         theta_list, newsize_list)
     num_chips = len(cfpath_list)
     mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ')
+    chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
+                         theta_list, newsize_list)
     for count, chipinfo in enumerate(chipinfo_iter):
         mark_prog(count)
         (cfpath, gfpath, bbox, theta, new_size) = chipinfo
@@ -120,11 +144,15 @@ def compute_and_write_chips(ibs, rid_list):
 
 
 def compute_and_write_chips_lazy(ibs, rid_list):
+    """
+    Will write a chip if it does not exist on disk, regardless of if it exists
+    in the SQL database
+    """
     printDBG('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which rid's need their chips computed
     cfpath_list = get_roi_cfpath_list(ibs, rid_list)
-    dirty_flags = [not exists(cfpath) for cfpath in cfpath_list]
-    invalid_rids = [rid for (rid, flag) in izip(rid_list, dirty_flags) if flag]
+    exists_flags = [exists(cfpath) for cfpath in cfpath_list]
+    invalid_rids = utool.get_dirty_items(rid_list, exists_flags)
     printDBG('[preproc_chip] %d / %d chips need to be computed' %
              (len(invalid_rids), len(rid_list)))
     compute_and_write_chips(ibs, invalid_rids)

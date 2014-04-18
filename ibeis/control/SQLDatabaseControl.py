@@ -83,35 +83,31 @@ class SQLDatabaseControl(object):
     def get_tables(db):
         return db.table_columns.keys()
 
-    def get_table_csv(db, table):
+    def get_table_csv(db, table, exclude_columns=[]):
         """ Converts a table to csv format """
         header_name  = '# TABLENAME: %r' % table
         column_nametypes = db.table_columns[table]
-        column_labels = [name for (name, type_) in column_nametypes]
+        column_names = [name for (name, type_) in column_nametypes]
         header_types = utool.indentjoin(column_nametypes, '\n# ')
-
         column_list = []
-        for label in column_labels:
-            _table, (_column,) = db.sanatize_sql(table, (label,))
+        column_labels = []
+        for name in column_names:
+            if name in exclude_columns:
+                continue
+            _table, (_column,) = db.sanatize_sql(table, (name,))
             column_vals = db.executeone(
                 operation='''
                 SELECT %s
                 FROM %s
                 ''' % (_column, _table))
             column_list.append(column_vals)
+            column_labels.append(name.replace(table[:-1] + '_', ''))
+        # remove column prefix for more compact csvs
 
         #=None, column_list=[], header='', column_type=None
-        header = '\n'.join([header_name, header_types])
+        header = header_name + header_types
         csv_table = utool.make_csv_table(column_labels, column_list, header)
         return csv_table
-
-    def print_csv_tables(db):
-        csv_table_dict = db.get_csv_table_dict()
-        print('\n------\n'.join(csv_table_dict.values()))
-
-    def get_csv_table_dict(db):
-        csv_table_dict = {table: db.get_table_csv(table) for table in db.get_tables()}
-        return csv_table_dict
 
     def get_sql_version(db):
         db.execute('''

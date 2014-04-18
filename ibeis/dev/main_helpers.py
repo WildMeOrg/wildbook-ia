@@ -1,8 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-import numpy as np
 from ibeis.dev import params
-from itertools import izip
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[main_helpers]', DEBUG=False)
@@ -23,58 +21,51 @@ def register_utool_aliases():
     ])
 
 
-@utool.indent_decor('[rid_filt]')
-def rid_filter(ibs, rid_list, with_hard=True, with_gt=True, with_nogt=True):
-    qrid_list = []
-    if with_hard:
-        notes_list = ibs.get_roi_notes(rid_list)
-        qrid_list.extend([rid for (notes, rid) in izip(notes_list, rid_list)
-                          if 'hard' in notes.lower().split()])
-    if with_gt and not with_nogt:
-        gts_list = ibs.get_roi_groundtruth(rid_list)
-        qrid_list.extend([rid for (gts, rid) in izip(gts_list, rid_list)
-                          if len(gts) > 0])
-    if with_gt and with_nogt:
-        qrid_list = rid_list
-    return qrid_list
-
-
 @utool.indent_decor('[get_test_rids]')
 def get_test_qrids(ibs):
     """ Gets test roi_uids based on command line arguments """
-    print('[main_helpers]')
+    #print('[main_helpers]')
+    test_qrids = []
     valid_rids = ibs.get_valid_rids()
-    print(utool.dict_str(vars(params.args)))
+    print('1. valid_rids = %r' % valid_rids[0:5])
+    #print(utool.dict_str(vars(params.args)))
+
+    if params.args.qrid is not None:
+        print('Testing qrid=%r' % params.args.qrid)
+        test_qrids.extend(params.args.qrid)
+
+    if params.args.all_cases:
+        print('Testing all %d cases' % (len(valid_rids),))
+        print('1. test_qrids = %r' % test_qrids[0:5])
+        test_qrids.extend(valid_rids)
+        print('2. test_qrids = %r' % test_qrids[0:5])
+    else:
+        is_hard_list = ibs.get_roi_is_hard(ibs, valid_rids)
+        hard_rids = utool.filter_items(valid_rids, is_hard_list)
+        print('Testing %d known hard cases' % len(hard_rids))
+        test_qrids.extend(hard_rids)
+
+    if params.args.all_gt_cases:
+        has_gt_list = ibs.get_roi_has_groundtruth(ibs, valid_rids)
+        hasgt_rids = utool.filter_items(valid_rids, has_gt_list)
+        print('Testing all %d ground-truthed cases' % len(hasgt_rids))
+        test_qrids.extend(hasgt_rids)
 
     # Sample a large pool of query indexes
-    histids = None if params.args.histid is None else np.array(params.args.histid)
-    if params.args.all_cases:
-        print('all cases')
-        qrids_all = rid_filter(ibs, valid_rids, with_gt=True, with_nogt=True)
-    elif params.args.all_gt_cases:
-        print('all gt cases')
-        qrids_all = rid_filter(ibs, valid_rids, with_hard=True, with_gt=True, with_nogt=False)
-    elif params.args.qrid is None:
-        print('did not select cases')
-        qrids_all = rid_filter(ibs, valid_rids, with_hard=True, with_gt=False, with_nogt=False)
-    else:
-        print('Chosen qrid=%r' % params.args.qrid)
-        qrids_all = params.args.qrid
-
     # Filter only the ones you want from the large pool
-    if histids is None:
-        qrid_list = qrids_all
-    else:
-        histids = utool.ensure_iterable(histids)
-        print('Chosen histids=%r' % histids)
-        qrid_list = [qrids_all[id_] for id_ in histids]
+    if params.args.index is not None:
+        indexes = utool.ensure_iterable(params.args.index)
+        print('Chosen indexes=%r' % (indexes,))
+        print('test_qrids = %r' % test_qrids[0:5])
+        _test_qrids = [test_qrids[xx] for xx in indexes]
+        test_qrids = _test_qrids
+        print('test_qrids = %r' % test_qrids)
+    elif len(test_qrids) == 0 and len(valid_rids) > 0:
+        print('no hard or gt rids. Defaulting to the first ROI')
+        test_qrids = valid_rids[0:1]
 
-    if len(qrid_list) == 0:
-        msg = 'no qrid_list history'
-        print(msg)
-        print('valid_rids = %r' % (valid_rids,))
-        qrid_list = valid_rids[0:1]
-    print('len(qrid_list) = %d' % len(qrid_list))
-    qrid_list = utool.unique_keep_order(qrid_list)
-    print('qrid_list = %r' % qrid_list)
-    return qrid_list
+    print('len(test_qrids) = %d' % len(test_qrids))
+    print('test_qrids = %r' % test_qrids)
+    test_qrids = utool.unique_keep_order2(test_qrids)
+    print('test_qrids = %r' % test_qrids)
+    return test_qrids

@@ -306,7 +306,11 @@ class IBEISControl(object):
         if len(dirty_rids) > 0:
             try:
                 printDBG('ADD_CHIPS(dirty_rids=%r)' % (rid_list,))
-                preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
+                # FIXME:
+                # Need to not be lazy here for now, until we fix the chip config
+                # / delete issue
+                preproc_chip.compute_and_write_chips(ibs, rid_list)
+                #preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
                 param_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
             except AssertionError as ex:
                 utool.printex(ex, '[!ibs.add_chips]')
@@ -331,7 +335,7 @@ class IBEISControl(object):
         return cid_list
 
     @adder
-    def add_feats(ibs, cid_list):
+    def add_feats(ibs, cid_list, force=False):
         """ Computes the features for every chip without them """
         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
@@ -854,6 +858,18 @@ class IBEISControl(object):
         nFeats_list = ibs.get_num_feats(fid_list)
         return nFeats_list
 
+    @getter
+    def get_roi_has_groundtruth(ibs, rid_list):
+        numgts_list = ibs.get_roi_num_groundtruth(rid_list)
+        has_gt_list = [num_gts > 0 for num_gts in numgts_list]
+        return has_gt_list
+
+    @getter
+    def get_rid_is_hard(ibs, rid_list):
+        notes_list = ibs.get_roi_notes(rid_list)
+        is_hard_list = ['hard' in notes.lower().split() for (notes) in notes_list]
+        return is_hard_list
+
     #
     # GETTERS::Chips
 
@@ -884,6 +900,9 @@ class IBEISControl(object):
     @getter
     def get_chip_paths(ibs, cid_list):
         """ Returns a list of chip paths by their rid """
+        # FIXME: This does not take into account that there may be multiple
+        # config settings for a chip. Need to take into account config suffix
+        # as well
         cfpath_list = ibs.get_roi_cpaths(ibs.get_chip_rids(cid_list))
         return cfpath_list
 
@@ -947,6 +966,17 @@ class IBEISControl(object):
 
     #
     # GETTERS::Features
+    @getter_general
+    def get_valid_fids(ibs):
+        feat_config_uid = ibs.get_feat_config_uid()
+        cid_list = ibs.db.executeone(
+            operation='''
+            SELECT feature_uid
+            FROM features
+            WHERE config_uid=?
+            ''',
+            parameters=(feat_config_uid,))
+        return cid_list
 
     @getter_vector_output
     def get_feat_kpts(ibs, fid_list):
@@ -1001,8 +1031,7 @@ class IBEISControl(object):
             FROM names
             WHERE name_text=?
             ''',
-            parameters_iter=((name,) for name in name_list),
-            auto_commit=False)
+            parameters_iter=((name,) for name in name_list))
         return nid_list
 
     @getter
@@ -1075,6 +1104,34 @@ class IBEISControl(object):
             ''',
             parameters_iter=((gid,) for gid in gid_list))
 
+    @deleter
+    def delete_features(ibs, fid_list):
+        """ deletes images from the database that belong to gids"""
+        ibs.db.executemany(
+            operation='''
+            DELETE
+            FROM features
+            WHERE feature_uid=?
+            ''',
+            parameters_iter=((fid,) for fid in fid_list))
+
+    @deleter
+    def delete_chips(ibs, cid_list):
+        """ deletes images from the database that belong to gids"""
+        preproc_chip.delete_chips(ibs, cid_list)
+
+        _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
+        fid_list = utool.filter_Nones(_fid_list)
+
+        ibs.db.executemany(
+            operation='''
+            DELETE
+            FROM chips
+            WHERE chip_uid=?
+            ''',
+            parameters_iter=((cid,) for cid in cid_list))
+
+        ibs.delete_features(fid_list)
     #
     #
     #----------------
@@ -1216,6 +1273,41 @@ class IBEISControl(object):
         ''' % (workdir, dbname, num_images, num_rois, num_names)
         return infostr
 
-    def print_csv_tables(ibs):
-        """ Dumps all tables to stdout """
-        ibs.db.print_csv_tables()
+    def print_roi_table(ibs):
+        """ Dumps roi table to stdout """
+        print(ibs.db.get_table_csv('rois'))
+
+    def print_chip_table(ibs):
+        """ Dumps chip table to stdout """
+        print(ibs.db.get_table_csv('chips'))
+
+    def print_feat_table(ibs):
+        """ Dumps chip table to stdout """
+        print(ibs.db.get_table_csv('features', exclude_columns=['feature_keypoints', 'feature_sifts']))
+
+    def print_image_table(ibs):
+        """ Dumps chip table to stdout """
+        print(ibs.db.get_table_csv('images'))
+
+    def print_name_table(ibs):
+        """ Dumps chip table to stdout """
+        print(ibs.db.get_table_csv('names'))
+
+    def print_config_table(ibs):
+        """ Dumps chip table to stdout """
+        print(ibs.db.get_table_csv('configs'))
+
+    def print_tables(ibs):
+        print('\n')
+        ibs.print_image_table()
+        print('\n')
+        ibs.print_roi_table()
+        print('\n')
+        ibs.print_chip_table()
+        print('\n')
+        ibs.print_feat_table()
+        print('\n')
+        ibs.print_name_table()
+        print('\n')
+        ibs.print_config_table()
+        print('\n')

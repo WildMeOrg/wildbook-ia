@@ -31,7 +31,7 @@ def _get_image_to_chip_transform(bbox, chipsz, theta):
     R  = ltool.rotation_mat3x3(-theta)
     # Translate from (0, 0) to chip center
     tx2 = (cw_ / 2)
-    ty2 = (cw_ / 2)
+    ty2 = (ch_ / 2)
     T2 = ltool.translation_mat3x3(tx2, ty2)
     # Merge into single transformation (operate left-to-right aka data on left)
     C = T2.dot(R.dot(S.dot(T1)))
@@ -49,9 +49,9 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
     return invC
 
 
-def _extract_chip(img_fpath, bbox, theta, new_size):
+def _extract_chip(gfpath, bbox, theta, new_size):
     """ Crops chip from image ; Rotates and scales; """
-    imgBGR = gtool.imread(img_fpath)  # Read parent image
+    imgBGR = gtool.imread(gfpath)  # Read parent image
     M = _get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
     chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
     return chipBGR
@@ -79,9 +79,9 @@ def get_scaled_sizes_with_area(target_area, size_list):
     return [get_scaled_size_with_area(target_area, w, h) for (w, h) in size_list]
 
 
-def compute_chip(img_fpath, bbox, theta, new_size, filter_list=[]):
+def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
     """ Extracts a chip and applies filters """
-    chipBGR = _extract_chip(img_fpath, bbox, theta, new_size)
+    chipBGR = _extract_chip(gfpath, bbox, theta, new_size)
     chipBGR = _filter_chip(chipBGR, filter_list)
     return chipBGR
 

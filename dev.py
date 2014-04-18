@@ -13,6 +13,10 @@ import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
 
 
+def vdd(ibs=None):
+    utool.view_directory(ibs.get_dbpath())
+
+
 @utool.indent_decor('[dev]')
 def run_experiments(ibs, qrid_list):
     print('\n')
@@ -38,9 +42,16 @@ def run_experiments(ibs, qrid_list):
 
     if intest('info'):
         print(ibs.get_infostr())
+    if intest('tables'):
+        ibs.print_tables()
+    if intest('imgtbl'):
+        ibs.print_image_table()
     if intest('query'):
         from ibeis.tests.test_query import TEST_QUERY
-        TEST_QUERY(ibs)
+        TEST_QUERY(ibs, qrid_list)
+    if intest('show'):
+        for rid in qrid_list:
+            viz.show_chip(ibs, rid, fnum=df2.next_fnum())
 
     # Allow any testcfg to be in tests like:
     # vsone_1 or vsmany_3
@@ -73,7 +84,8 @@ if __name__ == '__main__':
     qrid_list = main_helpers.get_test_qrids(ibs)
     run_experiments(ibs, qrid_list)
 
-    df2.present()
+    if not '--nopresent' in sys.argv:
+        df2.present(adaptive=True)
     ipy = (not '--gui' in sys.argv) or ('--cmd' in sys.argv)
     execstr = ibeis.main_loop(main_locals, ipy=ipy)
     print('\n[DEV] ENTER EXEC\n')
