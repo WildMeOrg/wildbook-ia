@@ -16,6 +16,7 @@ from . import util_alg
 from . import util_arg
 from . import util_cache
 from . import util_cplat
+from . import util_csv
 from . import util_dbg
 from . import util_dev
 from . import util_decor
@@ -86,6 +87,7 @@ from . import Preferences
 from .util_alg import *
 from .util_arg import *
 from .util_cache import *
+from .util_csv import *
 from .util_cplat import *
 from .util_dbg import *
 from .util_decor import *
@@ -127,6 +129,11 @@ def reload_submodules():
     util_time.rrr()
     util_type.rrr()
 
+
+def rrrr():
+    """Reloads self and submodules """
+    reload_submodules()
+    rrr()
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[util]')
 

@@ -23,7 +23,7 @@ def register_utool_aliases():
     ])
 
 
-@utool.indent_decor('[ridfilt]')
+@utool.indent_decor('[rid_filt]')
 def rid_filter(ibs, rid_list, with_hard=True, with_gt=True, with_nogt=True):
     qrid_list = []
     if with_hard:
@@ -39,11 +39,12 @@ def rid_filter(ibs, rid_list, with_hard=True, with_gt=True, with_nogt=True):
     return qrid_list
 
 
-@utool.indent_decor('[gettestrids]')
+@utool.indent_decor('[get_test_rids]')
 def get_test_qrids(ibs):
     """ Gets test roi_uids based on command line arguments """
-    print('[main_helpers] get_test_qrids()')
+    print('[main_helpers]')
     valid_rids = ibs.get_valid_rids()
+    print(utool.dict_str(vars(params.args)))
 
     # Sample a large pool of query indexes
     histids = None if params.args.histid is None else np.array(params.args.histid)
@@ -71,7 +72,7 @@ def get_test_qrids(ibs):
     if len(qrid_list) == 0:
         msg = 'no qrid_list history'
         print(msg)
-        print(valid_rids)
+        print('valid_rids = %r' % (valid_rids,))
         qrid_list = valid_rids[0:1]
     print('len(qrid_list) = %d' % len(qrid_list))
     qrid_list = utool.unique_keep_order(qrid_list)

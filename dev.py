@@ -77,5 +77,5 @@ if __name__ == '__main__':
     ipy = (not '--gui' in sys.argv) or ('--cmd' in sys.argv)
     execstr = ibeis.main_loop(main_locals, ipy=ipy)
     print('\n[DEV] ENTER EXEC\n')
-    print(execstr)
+    #print(execstr)
     exec(execstr)

@@ -1215,3 +1215,7 @@ class IBEISControl(object):
         num_names = %r
         ''' % (workdir, dbname, num_images, num_rois, num_names)
         return infostr
+
+    def print_csv_tables(ibs):
+        """ Dumps all tables to stdout """
+        ibs.db.print_csv_tables()
