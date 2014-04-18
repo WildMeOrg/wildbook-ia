@@ -60,6 +60,7 @@ def _annotate_kpts(kpts, sel_fx=None, **kwargs):
 def show_chip(ibs, rid, in_image=False, **kwargs):
     """ Driver function to show chips """
     printDBG('[viz] show_chip()')
+    #utool.embed()
     # Get chip
     chip = vh.get_chips(ibs, rid, in_image, **kwargs)
     # Get Keypoints

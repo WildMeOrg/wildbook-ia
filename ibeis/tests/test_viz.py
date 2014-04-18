@@ -31,18 +31,17 @@ def TEST_VIZ():
     gindex = int(utool.get_arg('--gx', default=0))
     gid = valid_gids[gindex]
     rid_list = ibs.get_rids_in_gids(gid)
-    cid_list = ibs.get_roi_cids(rid_list)
-    cindex = int(utool.get_arg('--cx', default=0))
-    cid = cid_list[cindex]
-    qcid = cid
+    rindex = int(utool.get_arg('--rx', default=0))
+    rid = rid_list[rindex]
+    qrid = rid
     sel_rids = rid_list[1:3]
     rid = rid_list[-1]
 
     try:
-        qres = ibs.query_database([qcid])[qcid]
-        top_cids = qres.get_top_cids(ibs)
-        assert len(top_cids) > 0, 'there does not seem to be results'
-        cid2 = top_cids[0]  # 294
+        qres = ibs.query_database([qrid])[qrid]
+        top_rids = qres.get_top_rids(ibs)
+        assert len(top_rids) > 0, 'Results seems to be empty'
+        rid2 = top_rids[0]  # 294
         query_failed = False
     except Exception as ex:
         query_failed = True
@@ -55,16 +54,17 @@ def TEST_VIZ():
 
     #----------------------
     #printTEST('Show Chip')
-    kpts_kwargs = dict(ell=True, ori=True, rect=True, eig=True, pts=False, kpts_subset=10)
-    viz.show_chip(ibs, rid, in_image=False, fnum=2, **kpts_kwargs)
+    kpts_kwgs = dict(ell=True, ori=True, rect=True,
+                     eig=True, pts=False, kpts_subset=10)
+    viz.show_chip(ibs, rid, in_image=False, fnum=2, **kpts_kwgs)
     df2.set_figtitle('Show Chip (normal)')
-    viz.show_chip(ibs, rid, in_image=True, fnum=3, **kpts_kwargs)
+    viz.show_chip(ibs, rid, in_image=True, fnum=3, **kpts_kwgs)
     df2.set_figtitle('Show Chip (in_image)')
 
     #----------------------
     if not query_failed:
         printTEST('Show Query')
-        viz.show_chipres(ibs, qres, cid2, fnum=4)
+        viz.show_chipres(ibs, qres, rid2, fnum=4)
         df2.set_figtitle('Show Chipres')
 
         viz.show_qres(ibs, qres, fnum=5)

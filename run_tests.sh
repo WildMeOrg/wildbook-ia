@@ -46,11 +46,15 @@ cat <<EOF
   \\___|\\___/|___|   |_| |___|___/ |_| |___/
 EOF
 
-    RUN_TEST tests/test_gui_import_images.py 
+    RUN_TEST ibeis/tests/test_gui_import_images.py 
 
-    RUN_TEST tests/test_gui_add_roi.py 
+    RUN_TEST ibeis/tests/test_gui_add_roi.py 
 
-    RUN_TEST tests/test_gui_selection.py 
+    RUN_TEST ibeis/tests/test_gui_selection.py 
+
+    RUN_TEST ibeis/tests/test_gui_open_database.py
+
+    RUN_TEST ibeis/tests/test_gui_all.py
 fi
 
 
@@ -64,15 +68,21 @@ cat <<EOF
  |___|___/___|___|___/   |_| |___|___/ |_| |___/
 EOF
     
-    RUN_TEST tests/test_ibs.py
+    RUN_TEST ibeis/tests/test_ibs.py
 
-    RUN_TEST tests/test_add_images.py
+    RUN_TEST ibeis/tests/test_add_images.py
 
-    RUN_TEST tests/test_parallel.py
+    RUN_TEST ibeis/tests/test_parallel.py
 
-    RUN_TEST tests/test_chip_compute.py
+    RUN_TEST ibeis/tests/test_chip_compute.py
 
-    RUN_TEST tests/test_query.py
+    RUN_TEST ibeis/tests/test_query.py
+
+    RUN_TEST ibeis/tests/test_ibs_getters.py
+
+    RUN_TEST ibeis/tests/test_viz.py
+
+    RUN_TEST ibeis/tests/test_interact.py
 fi
 
 
@@ -86,9 +96,9 @@ cat <<EOF
  |___/\\__\\_\\____|   |_| |___|___/ |_| |___/
 EOF
 
-    RUN_TEST tests/test_sql_numpy.py 
+    RUN_TEST ibeis/tests/test_sql_numpy.py 
 
-    RUN_TEST tests/test_sql_names.py 
+    RUN_TEST ibeis/tests/test_sql_names.py 
 
 fi
 

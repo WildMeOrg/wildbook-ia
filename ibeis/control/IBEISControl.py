@@ -1111,7 +1111,7 @@ class IBEISControl(object):
         qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
-    @utool.indent_func
+    @utool.indent_decor('[query_db]')
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         if not hasattr(ibs, 'qreq'):

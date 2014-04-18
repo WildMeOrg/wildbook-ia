@@ -153,7 +153,7 @@ def accepts_numpy(func):
             else:
                 input_list = input_.flatten()
             input_list = input_list.tolist()
-            output_list = func(self, input_list)
+            output_list = func(self, input_list, *args, **kwargs)
             if UNIQUE_NUMPY:
                 # Reconstruct redundant queries (the user will never know!)
                 output_arr = np.array(output_list)[inverse_unique]

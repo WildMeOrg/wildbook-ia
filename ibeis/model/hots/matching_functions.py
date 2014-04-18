@@ -324,6 +324,7 @@ def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
     # Return var
     qrid2_chipmatch = {}
 
+    nFeatMatches = 0
     #Vsone
     if is_vsone:
         assert len(qreq.qrids) == 1
@@ -352,6 +353,7 @@ def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
                 rid2_fm[rid].append((qfx, fx))  # Note the difference
                 rid2_fs[rid].append(fs)
                 rid2_fk[rid].append(fk)
+                nFeatMatches += 1
             chipmatch = _fix_fmfsfk(rid2_fm, rid2_fs, rid2_fk)
             qrid2_chipmatch[qrid] = chipmatch
             #if not QUIET:
@@ -363,13 +365,15 @@ def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
                 rid2_fm[qrid].append((fx, qfx))  # Note the difference
                 rid2_fs[qrid].append(fs)
                 rid2_fk[qrid].append(fk)
+                nFeatMatches += 1
     #Vsone
     if is_vsone:
         chipmatch = _fix_fmfsfk(rid2_fm, rid2_fs, rid2_fk)
         qrid = qreq.qrids[0]
         qrid2_chipmatch[qrid] = chipmatch
-
     end_prog()
+    if not QUIET:
+        print('[mf] * made %d feat matches' % nFeatMatches)
     return qrid2_chipmatch
 
 
@@ -399,6 +403,9 @@ def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
     use_chip_extent = sv_cfg.use_chip_extent
     min_nInliers    = sv_cfg.min_nInliers
     qrid2_chipmatchSV = {}
+    nFeatSVTotal = 0
+    nFeatMatchSV = 0
+    nFeatMatchSVAff = 0
     if dbginfo:
         qrid2_svtups = {}  # dbg info (can remove if there is a speed issue)
     def print_(msg, count=0):
@@ -411,6 +418,7 @@ def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
     for qrid in qrid2_chipmatch.iterkeys():
         chipmatch = qrid2_chipmatch[qrid]
         rid2_prescore = score_chipmatch(ibs, qrid, chipmatch, prescore_method, qreq)
+        #print('Prescore: %r' % (rid2_prescore,))
         (rid2_fm, rid2_fs, rid2_fk) = chipmatch
         topx2_rid = utool.util_dict.keys_sorted_by_value(rid2_prescore)[::-1]
         nRerank = min(len(topx2_rid), nShortlist)
@@ -436,16 +444,19 @@ def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
             sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
                                                xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
                                                min_nInliers)
+            nFeatSVTotal += len(fm)
             if sv_tup is None:
                     print_('o')  # sv failure
             else:
                 # Return the inliers to the homography
-                homog_inliers = sv_tup[0]
+                homog_inliers, H, aff_inliers, Aff = sv_tup
                 if dbginfo:
                     rid2_svtup[rid] = sv_tup
                 rid2_fm_V[rid] = fm[homog_inliers, :]
                 rid2_fs_V[rid] = fs[homog_inliers]
                 rid2_fk_V[rid] = fk[homog_inliers]
+                nFeatMatchSV += len(homog_inliers)
+                nFeatMatchSVAff += len(aff_inliers)
                 if not QUIET:
                     #print(inliers)
                     print_('.')  # verified something
@@ -456,7 +467,8 @@ def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
         qrid2_chipmatchSV[qrid] = chipmatchSV
     print_('\n')
     if not QUIET:
-        print('[mf] Finished sv')
+        print('[mf] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
+        print('[mf] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
     if dbginfo:
         return qrid2_chipmatchSV, qrid2_svtups
     else:

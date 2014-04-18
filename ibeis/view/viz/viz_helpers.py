@@ -4,7 +4,7 @@ from itertools import izip
 import plottool.draw_func2 as df2
 import utool
 import vtool.keypoint as ktool
-from ibeis.control.accessor_decors import getter, getter_vector_output, getter_numpy_vector_output
+from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
 
 
@@ -74,31 +74,32 @@ def get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs):
     return imgkpts_list
 
 
-@getter_numpy_vector_output
+@getter_vector_output
 def get_chips(ibs, rid_list, in_image=False, **kwargs):
-    if 'chip' in kwargs:
-        return kwargs['chip']
+    #if 'chip' in kwargs:
+        #return kwargs['chip']
     if in_image:
         return ibs.get_roi_images(rid_list)
     else:
         return ibs.get_roi_chips(rid_list)
 
 
-@getter_numpy_vector_output
-def get_kpts(ibs, rid_list, in_image=False, kpts_subset=None, **kwargs):
-    if 'kpts' in kwargs:
-        return kwargs['kpts']
+@getter_vector_output
+def get_kpts(ibs, rid_list, in_image=False, **kwargs):
+    #if 'kpts' in kwargs:
+        #return kwargs['kpts']
+    kpts_subset = kwargs.get('kpts_subset', None)
     ensure = kwargs.get('ensure', True)
     if in_image:
         kpts_list = get_roi_kpts_in_imgspace(ibs, rid_list, **kwargs)
     else:
         kpts_list = ibs.get_roi_kpts(rid_list, ensure=ensure)
-    if kpts_subset:
+    if kpts_subset is not None:
         kpts_list = [utool.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
     return kpts_list
 
 
-@getter_numpy_vector_output
+@getter_vector_output
 def get_bboxes(ibs, rid_list, offset_list=None):
     bbox_list = ibs.get_roi_bboxes(rid_list)
     if offset_list is not None:
