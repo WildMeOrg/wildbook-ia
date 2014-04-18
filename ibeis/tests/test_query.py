@@ -43,6 +43,8 @@ def TEST_QUERY(ibs=None, qrid_list=None):
     #query_helpers.find_matchable_chips(ibs)
 
     rids = ibs.get_recognition_database_rois()
+    if qrid_list is None:
+        qrid_list = rids[0:1]
     qres_dict = ibs.query_database(qrid_list)
 
     for qrid in qrid_list:
@@ -62,9 +64,7 @@ def TEST_QUERY(ibs=None, qrid_list=None):
 
     # Run Qt Loop to use the GUI
     printTEST('[TEST] MAIN_LOOP')
-    if main_locals is None:
-        main_locals.update(locals())
-        __testing__.main_loop(main_locals, rungui=False)
+    execstr = __testing__.main_loop(main_locals, rungui=False)
     return locals()
 
 try:

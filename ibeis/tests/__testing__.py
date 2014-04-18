@@ -72,24 +72,16 @@ def run_test(func, *args, **kwargs):
             if not isinstance(test_locals, dict):
                 test_locals = {}
             locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
-            embed_execstr  = utool.execstr_embed()
-            ifs_execstr = '''
-            if utool.get_flag(('--wait', '-w')):
-                print('waiting')
-                in_ = raw_input('press enter')
-            if utool.get_flag('--cmd2') or locals().get('in_', '') == 'cmd':
-            '''
-            execstr = (utool.unindent(ifs_execstr)  + '\n' +
-                       utool.indent(locals_execstr) + '\n' +
-                       utool.indent(embed_execstr))
-            test_locals['execstr'] = execstr
+            execstr = test_locals.get('execstr', '')
+            test_locals['execstr'] = locals_execstr + '\n' + execstr
             return test_locals
         except Exception as ex:
             # Get locals in the wrapped function
+            utool.printex(ex)
             exc_type, exc_value, tb = sys.exc_info()
-            locals_ = tb.tb_next.tb_frame.f_locals
             printTEST('[TEST] %s FINISH -- FAILED: %s %s' % (func.func_name, type(ex), ex))
             print(SAD_FACE)
+            locals_ = tb.tb_next.tb_frame.f_locals
             ibs = locals_.get('ibs', None)
             if ibs is not None:
                 ibs.db.dump()
@@ -183,7 +175,7 @@ def main_loop(main_locals, **kwargs):
     parent_globals = utool.get_parent_globals()
     main_locals.update(parent_locals)
     main_locals.update(parent_globals)
-    main_api.main_loop(main_locals, **kwargs)
+    return main_api.main_loop(main_locals, **kwargs)
 
 
 def printTEST(msg, wait=False):
