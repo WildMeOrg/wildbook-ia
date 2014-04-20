@@ -29,22 +29,10 @@ sys.argv.append('--nogui')
 
 
 def TEST_QUERY(ibs=None, qrid_list=None):
-    if ibs is None:
-        print('ibs is none')
-        main_locals = __testing__.main(defaultdb='test_big_ibeis',
-                                       allow_newdir=True, nogui=True)
-        ibs = main_locals['ibs']    # IBEIS Control
-    else:
-        main_locals = locals()
-
     ibs._init_query_requestor()
     qreq = ibs.qreq
-
     #query_helpers.find_matchable_chips(ibs)
-
     rids = ibs.get_recognition_database_rois()
-    if qrid_list is None:
-        qrid_list = rids[0:1]
     qres_dict = ibs.query_database(qrid_list)
 
     for qrid in qrid_list:
@@ -59,10 +47,6 @@ def TEST_QUERY(ibs=None, qrid_list=None):
         interact.interact_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
         df2.set_figtitle('Query Result')
         df2.adjust_subplots_safe(top=.8)
-
-    # Run Qt Loop to use the GUI
-    printTEST('[TEST] MAIN_LOOP')
-    execstr = __testing__.main_loop(main_locals, rungui=False)
     return locals()
 
 try:
@@ -74,6 +58,10 @@ except Exception:
 if __name__ == '__main__':
     # For windows
     multiprocessing.freeze_support()
-    test_locals = TEST_QUERY()
+    main_locals = __testing__.main(defaultdb='test_big_ibeis', allow_newdir=True, nogui=True)
+    ibs = main_locals['ibs']
+    qrid_list = [0]
+    test_locals = TEST_QUERY(ibs, qrid_list)
+    execstr = __testing__.main_loop(main_locals, rungui=False)
     df2.present()
-    exec(test_locals['execstr'])
+    exec(execstr)
