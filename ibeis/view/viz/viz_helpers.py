@@ -136,6 +136,10 @@ def get_ridstrs(rid_list):
         return fmtstr % rid_list
 
 
+def get_vsstr(qrid, rid):
+    return 'qrid%d-vs-rid%d' % (qrid, rid)
+
+
 def get_bbox_centers(bbox_list):
     bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])
                              for (x, y, w, h) in bbox_list])

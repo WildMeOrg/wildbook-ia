@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 from . import interact_helpers as ih
 from ibeis.view import viz
 from plottool import draw_func2 as df2
-import numpy as np
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_bbox]', DEBUG=False)
@@ -28,8 +27,7 @@ def select_bbox(ibs, gid, fnum=1,
         xM = max(x1, x2)
         ym = min(y1, y2)
         yM = max(y1, y2)
-        xywh = map(int, map(round, (xm, ym, xM - xm, yM - ym)))
-        bbox = np.array(xywh, dtype=np.int32)
+        bbox = map(int, map(round, (xm, ym, xM - xm, yM - ym)))
         # Reconnect the old button press events
         print('[*interact] bbox = %r ' % (bbox,))
         return bbox

@@ -8,12 +8,12 @@ import plottool.draw_func2 as df2
 from . import viz_helpers as vh
 from . import viz_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[viz-matches]', DEBUG=False)
+    __name__, '[viz_matches]', DEBUG=False)
 
 
 @utool.indent_func
 def show_chipres(ibs, qres, rid2, sel_fm=[], **kwargs):
-    'shows single annotated match result.'
+    """ shows single annotated match result. """
     in_image = kwargs.get('in_image', False)
     qrid = qres.qrid
     fm = qres.rid2_fm[rid2]
@@ -35,7 +35,7 @@ def show_chipres(ibs, qres, rid2, sel_fm=[], **kwargs):
                                                **kwargs)
     except Exception as ex:
         utool.printex(ex, 'consider qr.remove_corrupted_queries',
-                              '[viz_matches]')
+                      '[viz_matches]')
         print('')
         raise
     (x1, y1, w1, h1) = xywh1
@@ -97,19 +97,19 @@ def annotate_chipres(ibs, qres, rid2,
 
 @utool.indent_func
 @profile
-def show_top(qres, ibs, *args, **kwargs):
-    topN_rids = qres.get_top_rids(ibs)
-    N = len(topN_rids)
+def show_top(ibs, qres, **kwargs):
+    top_rids = qres.get_top_rids(ibs)
+    N = len(top_rids)
     ridstr = ibs.ridstr(qres.qrid)
     figtitle = kwargs.pop('figtitle', 'q%s -- TOP %r' % (ridstr, N))
-    return show_qres(ibs, qres, topN_rids=topN_rids, figtitle=figtitle,
+    return show_qres(ibs, qres, top_rids=top_rids, figtitle=figtitle,
                      draw_kpts=False, draw_ell=False,
                      all_kpts=False, **kwargs)
 
 
 @utool.indent_func
 @profile
-def res_show_analysis(qres, ibs, **kwargs):
+def show_qres_analysis(ibs, qres, **kwargs):
         print('[viz] qres.show_analysis()')
         # Parse arguments
         noshow_gt  = kwargs.pop('noshow_gt', True)
@@ -124,27 +124,27 @@ def res_show_analysis(qres, ibs, **kwargs):
 
         # Compare to rid_list instead of using top ranks
         if rid_list is None:
-            print('[viz.analysis] showing topN rids')
-            topN_rids = qres.topN_rids(ibs)
+            print('[viz.analysis] showing top rids')
+            top_rids = qres.get_top_rids(ibs)
             if figtitle is None:
-                if len(topN_rids) == 0:
+                if len(top_rids) == 0:
                     figtitle = 'WARNING: no top scores!' + ibs.ridstr(qres.qrid)
                 else:
-                    topscore = qres.get_rid2_score()[topN_rids][0]
+                    topscore = qres.get_rid2_score()[top_rids][0]
                     figtitle = ('q%s -- topscore=%r' % (ibs.ridstr(qres.qrid), topscore))
         else:
             print('[viz.analysis] showing a given list of rids')
-            topN_rids = rid_list
+            top_rids = rid_list
             if figtitle is None:
-                figtitle = 'comparing to ' + ibs.ridstr(topN_rids) + figtitle
+                figtitle = 'comparing to ' + ibs.ridstr(top_rids) + figtitle
 
         # Do we show the ground truth?
         def missed_rids():
             showgt_rids = vh.get_groundtruth(ibs, qres.qrid)
-            return np.setdiff1d(showgt_rids, topN_rids)
+            return np.setdiff1d(showgt_rids, top_rids)
         showgt_rids = [] if noshow_gt else missed_rids()
 
-        return show_qres(ibs, qres, gt_rids=showgt_rids, topN_rids=topN_rids,
+        return show_qres(ibs, qres, gt_rids=showgt_rids, top_rids=top_rids,
                          figtitle=figtitle, show_query=show_query, **kwargs)
 
 
@@ -165,43 +165,47 @@ def show_qres(ibs, qres, **kwargs):
     if isinstance(top_rids, int):
         top_rids = qres.get_top_rids(num=top_rids)
 
+    all_gts = vh.get_groundtruth(ibs, qres.qrid)
+    nTop   = len(top_rids)
+    nSelGt = len(gt_rids)
+    nAllGt = len(all_gts)
+
     max_nCols = 5
-    if len(top_rids) in [6, 7]:
+    if nTop in [6, 7]:
         max_nCols = 3
-    if len(top_rids) in [8]:
+    if nTop in [8]:
         max_nCols = 4
 
     printDBG('[viz]========================')
-    printDBG('[viz._show_res()]----------------')
-    all_gts = vh.get_groundtruth(ibs, qres.qrid)
-    _tup = tuple(map(len, (top_rids, gt_rids, all_gts)))
-    printDBG('[viz._show_res()] #topN=%r #missed_gts=%r/%r' % _tup)
-    printDBG('[viz._show_res()] * fnum=%r' % (fnum,))
-    printDBG('[viz._show_res()] * figtitle=%r' % (figtitle,))
-    printDBG('[viz._show_res()] * max_nCols=%r' % (max_nCols,))
-    printDBG('[viz._show_res()] * show_query=%r' % (show_query,))
+    printDBG('[viz.show_qres()]----------------')
+    printDBG('[viz.show_qres()] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt,
+                                                               nAllGt))
+    printDBG('[viz.show_qres()] * fnum=%r' % (fnum,))
+    printDBG('[viz.show_qres()] * figtitle=%r' % (figtitle,))
+    printDBG('[viz.show_qres()] * max_nCols=%r' % (max_nCols,))
+    printDBG('[viz.show_qres()] * show_query=%r' % (show_query,))
     printDBG(qres.get_inspect_str())
     ranked_rids = qres.get_top_rids()
     # Build a subplot grid
     nQuerySubplts = 1 if show_query else 0
     nGtSubplts    = nQuerySubplts + (0 if gt_rids is None else len(gt_rids))
-    nTopNSubplts  = 0 if top_rids is None else len(top_rids)
+    nTopNSubplts  = nTop
     nTopNCols     = min(max_nCols, nTopNSubplts)
     nGTCols       = min(max_nCols, nGtSubplts)
     nGTCols       = max(nGTCols, nTopNCols)
     nTopNCols     = nGTCols
-    nGtRows       = 0 if nGTCols == 0 else int(np.ceil(nGtSubplts / nGTCols))
+    nGtRows       = 0 if nGTCols   == 0 else int(np.ceil(nGtSubplts   / nGTCols))
     nTopNRows     = 0 if nTopNCols == 0 else int(np.ceil(nTopNSubplts / nTopNCols))
     nGtCells      = nGtRows * nGTCols
     nRows         = nTopNRows + nGtRows
 
     # HACK:
-    _color_list = df2.distinct_colors(len(top_rids))
+    _color_list = df2.distinct_colors(nTop)
     rid2_color = {rid: _color_list[ox] for ox, rid in enumerate(top_rids)}
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
-        """ helper for viz._show_res """
+        """ helper for viz.show_qres """
         plotx = plotx_shift + 1
         pnum = (rowcols[0], rowcols[1], plotx)
         #print('[viz] Plotting Query: pnum=%r' % (pnum,))
@@ -214,11 +218,11 @@ def show_qres(ibs, qres, **kwargs):
         viz_chip.show_chip(ibs, qres.qrid, **_kwshow)
 
     def _plot_matches_rids(rid_list, plotx_shift, rowcols):
-        """ helper for viz._show_res to draw many rids """
+        """ helper for viz.show_qres to draw many rids """
         def _show_matches_fn(rid, orank, pnum):
             """ Helper function for drawing matches to one rid """
             aug = 'rank=%r\n' % orank
-            #printDBG('[viz._show_res()] plotting: %r'  % (pnum,))
+            #printDBG('[viz.show_qres()] plotting: %r'  % (pnum,))
             _kwshow  = dict(draw_ell=annote, draw_pts=False, draw_lines=annote,
                             ell_alpha=.5, all_kpts=all_kpts)
             _kwshow.update(kwargs)
@@ -239,7 +243,7 @@ def show_qres(ibs, qres, **kwargs):
                 viz_chip.show_chip(ibs, rid, in_image=in_image, **_kwshow)
                 annotate_chipres(ibs, qres, rid, in_image=in_image, show_query=not show_query)
 
-        printDBG('[viz._show_res()] Plotting Chips %s:' % vh.get_ridstrs(rid_list))
+        printDBG('[viz.show_qres()] Plotting Chips %s:' % vh.get_ridstrs(rid_list))
         if rid_list is None:
             return
         # Do lazy load before show
@@ -283,5 +287,5 @@ def show_qres(ibs, qres, **kwargs):
 
     # Result Interaction
     df2.adjust_subplots_safe()
-    printDBG('[viz._show_res()] Finished')
+    printDBG('[viz.show_qres()] Finished')
     return fig

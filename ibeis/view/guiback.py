@@ -8,6 +8,8 @@ from PyQt4 import QtCore
 # GUITool
 import guitool
 from guitool import drawing, slot_, signal_
+# PlotTool
+from plottool import fig_presenter
 # IBEIS
 from ibeis.dev import params
 from ibeis.view import guifront
@@ -105,6 +107,7 @@ class MainWindowBackend(QtCore.QObject):
         back.front = guifront.MainWindowFrontend(back=back)
         back.populateSignal.connect(back.front.populate_tbl)
         back.setEnabledSignal.connect(back.front.setEnabled)
+        fig_presenter.register_qt4_win(back.front)
 
     #------------------------
     # Draw Functions
@@ -139,14 +142,18 @@ class MainWindowBackend(QtCore.QObject):
 
     @drawing
     def show_name(back, name, sel_rids=[], **kwargs):
+        name = back.ibs.get_name_nid(name)
+        interact.interact_name(back.ibs, name, **kwargs)
         pass
 
     @drawing
-    def show_query_result(back, res, **kwargs):
+    def show_qres(back, qres, **kwargs):
+        interact.interact_qres(back.ibs, qres, **kwargs)
         pass
 
     @drawing
-    def show_roimatch(back, res, rid, **kwargs):
+    def show_qres_roimatch(back, qres, rid, **kwargs):
+        interact.interact_qres(back.ibs, qres, rid, **kwargs)
         pass
 
     #----------------------
@@ -483,16 +490,28 @@ class MainWindowBackend(QtCore.QObject):
         return rid
 
     @blocking_slot()
-    def reselect_roi(back, rid=None, roi=None, **kwargs):
+    def reselect_roi(back, rid=None, bbox=None, **kwargs):
         """ Action -> Reselect ROI"""
+        if rid is None:
+            rid = back.get_selected_rid()
+        if bbox is None:
+            gid = back.ibs.get_roi_gids(rid)
+            bbox = back.select_bbox(gid)
         print('[back] reselect_roi')
-        pass
+        back.ibs.set_roi_bboxes([rid], [bbox])
+        back.populate_tables()
+        back.show_image(gid)
 
     @blocking_slot()
     def query(back, rid=None, **kwargs):
         """ Action -> Query"""
-        print('[back] query')
-        pass
+        print('[back] query(rid=%r)' % (rid,))
+        if rid is None:
+            rid = back.get_selected_rid()
+        qrid_list = [rid]
+        qrid2_qres = back.ibs.query_database(qrid_list)
+        qres = qrid2_qres[rid]
+        back.show_qres(qres)
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
@@ -501,9 +520,12 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def delete_roi(back):
+    def delete_roi(back, rid=None):
         """ Action -> Delete Chip"""
         print('[back] delete_roi')
+        if rid is None:
+            rid = back.get_selected_rid()
+        back.ibs.delete_rois([rid])
         pass
 
     @blocking_slot(QT_IMAGE_UID_TYPE)
@@ -543,6 +565,7 @@ class MainWindowBackend(QtCore.QObject):
     def layout_figures(back):
         """ Options -> Layout Figures"""
         print('[back] layout_figures')
+        fig_presenter.present()
         pass
 
     @slot_()

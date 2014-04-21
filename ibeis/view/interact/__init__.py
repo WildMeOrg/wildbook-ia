@@ -16,3 +16,5 @@ from .interact_name import interact_name
 from .interact_qres import interact_qres
 from .interact_chipres import interact_chipres
 from .interact_bbox import select_bbox
+
+present = df2.present

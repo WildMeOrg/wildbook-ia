@@ -159,8 +159,8 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         # Database selections
         parser2 = parser2.add_argument_group('Database')
         parser2.add_str('--db', defaultdb, 'specifies the short name of the database to load')
-        parser2.add_str('--dbdir', None, 'specifies the full path of the database to load')
-        parser2.add_flag(('--set-default-dbdir', '--setdb', '--set-db'), help='sets the opening database to be the default')
+        parser2.add_str('--dbdir', kwargs.get('dbdir', None), 'specifies the full path of the database to load')
+        parser2.add_flag(('--set-default-dbdir',  '--setdbdir', '--setdb', '--set-db'), help='sets the opening database to be the default')
         parser2.add_flag('--dump-global-cache')
         parser2.add_str(('--workdir', '--wdir'), None, help='sets the default work directory')
     behavior_argparse(parser2)

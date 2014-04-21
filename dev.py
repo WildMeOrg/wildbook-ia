@@ -8,6 +8,7 @@ import ibeis
 ibeis._preload()
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
+from ibeis.view import interact
 import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
@@ -15,6 +16,18 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Tr
 
 def vdd(ibs=None):
     utool.view_directory(ibs.get_dbpath())
+
+
+def show_rids(ibs, qrid_list):
+    for rid in qrid_list:
+        interact.interact_chip(ibs, rid, fnum=df2.next_fnum())
+
+
+def query_rids(ibs, qrid_list):
+    qrid2_qres = ibs.query_database(qrid_list)
+    for qrid in qrid_list:
+        qres = qrid2_qres[qrid]
+        interact.interact_qres(ibs, qres, fnum=df2.next_fnum())
 
 
 @utool.indent_decor('[dev]')
@@ -47,11 +60,9 @@ def run_experiments(ibs, qrid_list):
     if intest('imgtbl'):
         ibs.print_image_table()
     if intest('query'):
-        from ibeis.tests.test_query import TEST_QUERY
-        TEST_QUERY(ibs, qrid_list)
+        query_rids(ibs, qrid_list)
     if intest('show'):
-        for rid in qrid_list:
-            viz.show_chip(ibs, rid, fnum=df2.next_fnum())
+        show_rids(ibs, qrid_list)
 
     # Allow any testcfg to be in tests like:
     # vsone_1 or vsmany_3

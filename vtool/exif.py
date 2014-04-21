@@ -10,6 +10,32 @@ from . import image as gtool
     __name__, '[exif]', DEBUG=False)
 
 
+# Inverse of PIL.ExifTags.TAGS
+EXIF_TAG_TO_TAGID = {val: key for (key, val) in TAGS.iteritems()}
+
+
+def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
+    if default_list is None:
+        default_list = [None for _ in xrange(len(exif_tagid_list))]
+    exif_dict = get_exif_dict(pil_img)
+    exif_val_list = [exif_dict.get(key, default) for key, default in
+                     izip(exif_tagid_list, default_list)]
+    return exif_val_list
+
+
+def get_exif_dict(pil_img):
+    try:
+        exif_dict = pil_img._getexif()
+        if exif_dict is None:
+            raise AttributeError
+        assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
+    except AttributeError:
+        exif_dict = {}
+    except OverflowError:
+        exif_dict = {}
+    return exif_dict
+
+
 def check_exif_keys(pil_img):
     info_ = pil_img._getexif()
     valid_keys = []
@@ -35,30 +61,8 @@ def read_all_exif_tags(pil_img):
 
 
 def get_exif_tagids(tag_list):
-    exif_keys  = TAGS.keys()
-    exif_vals  = TAGS.values()
-    tagid_list = [exif_keys[exif_vals.index(tag)] for tag in tag_list]
+    tagid_list = [EXIF_TAG_TO_TAGID[tag] for tag in tag_list]
     return tagid_list
-
-
-def get_exif_dict(pil_img):
-    try:
-        exif_dict = pil_img._getexif()
-        if exif_dict is None:
-            raise AttributeError
-        assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
-    except AttributeError:
-        exif_dict = {}
-    return exif_dict
-
-
-def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
-    if default_list is None:
-        default_list = [None for _ in xrange(len(exif_tagid_list))]
-    exif_dict = get_exif_dict(pil_img)
-    exif_val_list = [exif_dict.get(key, default) for key, default in
-                     izip(exif_tagid_list, default_list)]
-    return exif_val_list
 
 
 def read_one_exif_tag(pil_img, tag):
@@ -158,10 +162,10 @@ def get_lat_lon(exif_data):
     if 'GPSInfo' in exif_data:
         gps_info = exif_data['GPSInfo']
 
-        gps_latitude = get_exist(gps_info, 'GPSLatitude')
-        gps_latitude_ref = get_exist(gps_info, 'GPSLatitudeRef')
-        gps_longitude = get_exist(gps_info, 'GPSLongitude')
-        gps_longitude_ref = get_exist(gps_info, 'GPSLongitudeRef')
+        gps_latitude      = gps_info.get('GPSLatitude', None)
+        gps_latitude_ref  = gps_info.get('GPSLatitudeRef', None)
+        gps_longitude     = gps_info.get('GPSLongitude', None)
+        gps_longitude_ref = gps_info.get('GPSLongitudeRef', None)
 
         if gps_latitude and gps_latitude_ref and gps_longitude and gps_longitude_ref:
             lat = convert_degrees(gps_latitude)

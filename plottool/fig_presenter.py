@@ -206,13 +206,15 @@ def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
         return
     startx, starty, avail_width, avail_height = get_avail_geom()
 
-    print('tile_figures_in_avail_geom')
+    #print('tile_figures_in_avail_geom')
 
     all_figures = get_all_figures()
     all_qt4wins = get_all_qt4_wins()
     all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
 
     num_wins = len(all_wins)
+    if num_wins == 0:
+        return
 
     nRows = num_wins if num_wins < max_rows else max_rows
     nCols = int(np.ceil(num_wins / nRows))
@@ -222,14 +224,14 @@ def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
 
     (x_pad, y_pad, w_pad, h_pad) = get_xywh_pads()
 
-    print('startx = %r' % startx)
-    print('starty = %r' % starty)
-    print('avail_width = %r' % avail_width)
-    print('avail_height = %r' % avail_height)
-    print('win_width = %r' % win_width)
-    print('win_height = %r' % win_height)
-    print('nRows = %r' % nRows)
-    print('nCols = %r' % nCols)
+    printDBG('startx = %r' % startx)
+    printDBG('starty = %r' % starty)
+    printDBG('avail_width = %r' % avail_width)
+    printDBG('avail_height = %r' % avail_height)
+    printDBG('win_width = %r' % win_width)
+    printDBG('win_height = %r' % win_height)
+    printDBG('nRows = %r' % nRows)
+    printDBG('nCols = %r' % nCols)
 
     def position_window(ix, win):
         QMainWin = get_main_win_base()
@@ -249,7 +251,7 @@ def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
         x = startx + colx * (win_width)  + x_pad
         y = starty + rowx * (win_height) + y_pad
         try:
-            print('tile %d-th win: rc=%r xywh=%r' % (ix, (rowx, colx), (x, y, w, h)))
+            printDBG('tile %d-th win: rc=%r xywh=%r' % (ix, (rowx, colx), (x, y, w, h)))
             win.setGeometry(x, y, w, h)
         except Exception as ex:
             print(ex)

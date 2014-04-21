@@ -17,8 +17,13 @@ def isiterable(obj):
 
 
 def iflatten(list_):
+    """ flatten """
     flat_iter = chain.from_iterable(list_)  # very fast flatten
     return flat_iter
+
+
+def iflatten_scalars(list_):
+    [item for item in list_]
 
 
 def ichunks(list_, size):

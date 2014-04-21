@@ -184,7 +184,7 @@ class QueryResult(__OBJECT_BASE__):
         return [qres.rid2_score[rid] for rid in rid_list]
 
     def get_rid_ranks(qres, rid_list):
-        'get ranks of chip indexes in rid_list'
+        """ get ranks of chip indexes in rid_list """
         top_rids = qres.get_top_rids()
         foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
         ranks_   = [ranks if len(ranks) > 0 else [-1] for ranks in foundpos]
@@ -198,7 +198,7 @@ class QueryResult(__OBJECT_BASE__):
         nFeatMatch_stats = utool.mystats(nFeatMatch_list)
 
         top_lbl = utool.unindent('''
-                                 top5 rids
+                                 top rids
                                  scores
                                  ranks''').strip()
 

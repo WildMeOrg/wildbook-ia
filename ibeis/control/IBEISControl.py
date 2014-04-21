@@ -18,7 +18,7 @@ from vtool import image as gtool
 # UTool
 import utool
 from utool import util_hash
-from utool.util_iter import iflatten
+from utool.util_list import flatten_items
 from ibeis.model import Config
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
@@ -223,14 +223,14 @@ class IBEISControl(object):
                 image_exif_gps_lon
             ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
             ''',
-            parameters_iter=param_list)
+            params_iter=param_list)
         gid_list = ibs.db.executemany(
             operation='''
             SELECT image_uid
             FROM images
             WHERE image_uuid=?
             ''',
-            parameters_iter=[(img_uuid,) for img_uuid in img_uuid_list])
+            params_iter=[(img_uuid,) for img_uuid in img_uuid_list])
         return gid_list
 
     @adder
@@ -255,12 +255,8 @@ class IBEISControl(object):
             print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
             raise
         # Define arguments to insert
-        _ziped = izip(roi_uuid_list, gid_list, nid_list, bbox_list,
-                      theta_list, viewpoint_list, notes_list)
-        # Unpack zipped arguments into a flat iterator
-        param_iter = (
-            (uuid, gid, nid,  x, y, w, h,  theta, viewpoint, notes) for
-            (uuid, gid, nid, (x, y, w, h), theta, viewpoint, notes) in _ziped)
+        params_iter = flatten_items(izip(roi_uuid_list, gid_list, nid_list, bbox_list,
+                                         theta_list, viewpoint_list, notes_list))
         # Insert the new ROIs into the SQL database
         ibs.db.executemany(
             operation='''
@@ -280,7 +276,7 @@ class IBEISControl(object):
             )
             VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
-            parameters_iter=param_iter)
+            params_iter=params_iter)
         # Get the rids of the rois that were just inserted
         rid_list = ibs.db.executemany(
             operation='''
@@ -288,7 +284,7 @@ class IBEISControl(object):
             FROM rois
             WHERE roi_uuid=?
             ''',
-            parameters_iter=[(roi_uuid,) for roi_uuid in roi_uuid_list])
+            params_iter=[(roi_uuid,) for roi_uuid in roi_uuid_list])
         return rid_list
 
     @adder
@@ -311,7 +307,7 @@ class IBEISControl(object):
                 # / delete issue
                 preproc_chip.compute_and_write_chips(ibs, rid_list)
                 #preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
-                param_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
+                params_iter = preproc_chip.add_chips_parameters_gen(ibs, dirty_rids)
             except AssertionError as ex:
                 utool.printex(ex, '[!ibs.add_chips]')
                 print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
@@ -329,7 +325,7 @@ class IBEISControl(object):
                 )
                 VALUES (NULL, ?, ?, ?, ?)
                 ''',
-                parameters_iter=param_iter)
+                params_iter=params_iter)
             # Ensure must be false, otherwise an infinite loop occurs
             cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         return cid_list
@@ -340,7 +336,7 @@ class IBEISControl(object):
         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
         if len(dirty_cids) > 0:
-            param_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
+            params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
             ibs.db.executemany(
                 operation='''
                 INSERT OR IGNORE
@@ -355,7 +351,7 @@ class IBEISControl(object):
                 )
                 VALUES (NULL, ?, ?, ?, ?, ?)
                 ''',
-                parameters_iter=(tup for tup in param_iter))
+                params_iter=(tup for tup in params_iter))
             fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         return fid_list
 
@@ -377,7 +373,7 @@ class IBEISControl(object):
                 )
                 VALUES (NULL, ?)
                 ''',
-                parameters_iter=((name,) for name in dirty_names))
+                params_iter=((name,) for name in dirty_names))
             nid_list = ibs.get_name_nids(name_list, ensure=False)
         return nid_list
 
@@ -402,7 +398,7 @@ class IBEISControl(object):
             SET ''' + prop_key + '''=?
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
-            parameters_iter=(tup for tup in izip(val_list, uid_list)),
+            params_iter=izip(val_list, uid_list),
             errmsg='[ibs.set_table_properties] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
 
@@ -423,7 +419,7 @@ class IBEISControl(object):
             operation='''
             DELETE FROM egpairs WHERE image_uid=?
             ''',
-            parameters_iter=gid_list)
+            params_iter=gid_list)
 
         ibs.db.executemany(
             operation='''
@@ -432,15 +428,14 @@ class IBEISControl(object):
                 image_uid
             ) VALUES (?, ?)'
             ''',
-            parameters_iter=iflatten(((eid, gid) for eid in eids) for eids, gid
-                                     in izip(eids_list, gid_list)))
+            params_iter=flatten_items(izip(eids_list, gid_list)))
 
     # SETTERS::ROI
 
     @setter
     def set_roi_properties(ibs, rid_list, key, value_list):
         if key == 'bbox':
-            return ibs.set_roi_bbox(rid_list, value_list)
+            return ibs.set_roi_bboxes(rid_list, value_list)
         elif key == 'theta':
             return ibs.set_roi_thetas(rid_list, value_list)
         elif key == 'name':
@@ -451,9 +446,10 @@ class IBEISControl(object):
             raise KeyError('[ibs.set_roi_properties] UNKOWN key=%r' % (key,))
 
     @setter
-    def set_roi_bbox(ibs, rid_list, bbox_list):
+    def set_roi_bboxes(ibs, rid_list, bbox_list):
         """ Sets ROIs of a list of rois by rid, where roi_list is a list of
             (x, y, w, h) tuples """
+        ibs.delete_roi_chips(rid_list)
         ibs.db.executemany(
             operation='''
             UPDATE rois SET
@@ -463,18 +459,19 @@ class IBEISControl(object):
                 roi_height=?
             WHERE roi_uid=?
             ''',
-            parameters_iter=izip(bbox_list, rid_list))
+            params_iter=flatten_items(izip(bbox_list, rid_list)))
 
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
         """ Sets thetas of a list of chips by rid """
+        ibs.delete_roi_chips(rid_list)
         ibs.db.executemany(
             operation='''
             UPDATE rois SET
                 roi_theta=?,
             WHERE roi_uid=?
             ''',
-            parameters_iter=izip(theta_list, rid_list))
+            params_iter=izip(theta_list, rid_list))
 
     @setter
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
@@ -486,7 +483,7 @@ class IBEISControl(object):
                 roi_viewpoint=?,
             WHERE roi_uid=?
             ''',
-            parameters_iter=izip(viewpoint_list, rid_list))
+            params_iter=izip(viewpoint_list, rid_list))
 
     @setter
     def set_roi_names(ibs, rid_list, name_list):
@@ -526,7 +523,7 @@ class IBEISControl(object):
             FROM ''' + table + '''
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
-            parameters_iter=((_uid,) for _uid in uid_list),
+            params_iter=((_uid,) for _uid in uid_list),
             errmsg='[ibs.get_table_properties] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
         return list(property_list)
@@ -585,7 +582,7 @@ class IBEISControl(object):
             FROM images
             WHERE image_uid=?
             ''',
-            parameters_iter=((gid,) for gid in gid_list),
+            params_iter=((gid,) for gid in gid_list),
             unpack_scalars=True)
         return uri_list
 
@@ -652,7 +649,7 @@ class IBEISControl(object):
             FROM rois
             WHERE image_uid=?
             ''',
-            parameters_iter=((gid,) for gid in gid_list),
+            params_iter=((gid,) for gid in gid_list),
             unpack_scalars=False)
         return rids_list
 
@@ -731,7 +728,7 @@ class IBEISControl(object):
             WHERE roi_uid=?
             AND config_uid=?
             ''',
-            parameters_iter=[(rid, chip_config_uid) for rid in rid_list])
+            params_iter=[(rid, chip_config_uid) for rid in rid_list])
         if ensure:
             try:
                 utool.assert_all_not_None(cid_list, 'cid_list')
@@ -842,7 +839,7 @@ class IBEISControl(object):
             WHERE name_uid=?
             AND name_uid!=?
             ''',
-            parameters_iter=((nid, ibs.UNKNOWN_NID) for nid in nid_list),
+            params_iter=((nid, ibs.UNKNOWN_NID) for nid in nid_list),
             unpack_scalars=False)
         return groundtruth_list
 
@@ -925,7 +922,7 @@ class IBEISControl(object):
             WHERE chip_uid=?
             AND config_uid=?
             ''',
-            parameters_iter=((cid, feat_config_uid) for cid in cid_list))
+            params_iter=((cid, feat_config_uid) for cid in cid_list))
         return fid_list
 
     @getter_numpy_vector_output
@@ -1031,7 +1028,7 @@ class IBEISControl(object):
             FROM names
             WHERE name_text=?
             ''',
-            parameters_iter=((name,) for name in name_list))
+            params_iter=((name,) for name in name_list))
         return nid_list
 
     @getter
@@ -1091,7 +1088,7 @@ class IBEISControl(object):
             FROM rois
             WHERE roi_uid=?
             ''',
-            parameters_iter=((rid,) for rid in rid_list))
+            params_iter=((rid,) for rid in rid_list))
 
     @deleter
     def delete_images(ibs, gid_list):
@@ -1102,7 +1099,7 @@ class IBEISControl(object):
             FROM images
             WHERE image_uid=?
             ''',
-            parameters_iter=((gid,) for gid in gid_list))
+            params_iter=((gid,) for gid in gid_list))
 
     @deleter
     def delete_features(ibs, fid_list):
@@ -1113,7 +1110,14 @@ class IBEISControl(object):
             FROM features
             WHERE feature_uid=?
             ''',
-            parameters_iter=((fid,) for fid in fid_list))
+            params_iter=((fid,) for fid in fid_list))
+
+    @deleter
+    def delete_roi_chips(ibs, rid_list):
+        """ Clears roi data but does not remove the roi """
+        _cid_list = ibs.get_roi_cids(rid_list)
+        cid_list = utool.filter_Nones(_cid_list)
+        ibs.delete_chips(cid_list)
 
     @deleter
     def delete_chips(ibs, cid_list):
@@ -1129,7 +1133,7 @@ class IBEISControl(object):
             FROM chips
             WHERE chip_uid=?
             ''',
-            parameters_iter=((cid,) for cid in cid_list))
+            params_iter=((cid,) for cid in cid_list))
 
         ibs.delete_features(fid_list)
     #

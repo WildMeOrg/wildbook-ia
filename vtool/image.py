@@ -125,6 +125,12 @@ def open_pil_image(image_fpath):
     return pil_img
 
 
+def open_image_size(image_fpath):
+    pil_img = Image.open(image_fpath)
+    size = pil_img.size
+    return size
+
+
 def cvt_BGR2L(imgBGR):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]

@@ -4,7 +4,7 @@ This file has helpers for both lists and numpy arrays
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
-from .util_iter import iflatten
+from .util_iter import iflatten, isiterable
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
@@ -94,6 +94,23 @@ def list_replace(instr, search_list=[], repl_list=None):
 
 def flatten(list_):
     return list(iflatten(list_))
+
+
+def tuplize(list_):
+    tup_list = [item if isiterable(item) else (item,) for item in list_]
+    return tup_list
+
+
+def scalarflatten(list_):
+    return flatten(map(tuplize, list_))
+
+
+def flatten_items(list_):
+    """ maps iflatten to a list
+    list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
+    """
+    #return imap(iflatten, list_)
+    return map(flatten, map(tuplize, list_))
 
 
 def safe_slice(list_, *args):

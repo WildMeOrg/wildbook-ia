@@ -124,7 +124,7 @@ def longest_existing_path(_path):
 
 
 def checkpath(path_, verbose=__VERBOSE__):
-    'returns true if path_ exists on the filesystem'
+    """ returns true if path_ exists on the filesystem """
     path_ = normpath(path_)
     if verbose:
         pretty_path = path_ndir_split(path_, 2)
@@ -172,11 +172,11 @@ def assertpath(path_):
 
 # ---File Copy---
 def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
-    '''
+    """
     Input list of tuples:
         format = [(src_1, dst_1), ..., (src_N, dst_N)]
     Copies all files src_i to dst_i
-    '''
+    """
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
     if nooverwrite:
