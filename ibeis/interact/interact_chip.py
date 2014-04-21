@@ -5,13 +5,12 @@ from plottool import draw_func2 as df2
 from ibeis.viz import viz_helpers as vh
 from . import interact_helpers as ih
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[interact_chip]',
-                                                       DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[interact_chip]', DEBUG=False)
 
 
 # CHIP INTERACTION 2
-def interact_chip(ibs, rid, fnum=2, fx=None, **kwargs):
+def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)

@@ -1,15 +1,6 @@
-#!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
+# TODO: Restructure
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'BUILDQUERY'
-#------
-try:
-    import __testing__
-    printTEST = __testing__.printTEST
-except ImportError:
-    printTEST = print
-    pass
 import numpy as np
 from itertools import izip
 import utool
@@ -21,8 +12,15 @@ from ibeis.model.hots.matching_functions import _apply_filter_scores, progress_f
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
 
 
+def get_roifeat_nn_index(ibs, qrid, qfx):
+    ibs._init_query_requestor()
+    qreq = mc3.quickly_ensure_qreq(ibs, [qrid])
+    qfx2_desc = ibs.get_roi_desc(qrid)[qfx:(qfx + 1)]
+    (qfx2_rid, qfx2_fx, qfx2_dist, K, Knorm) = qreq.data_index.nn_index2(qreq, qfx2_desc)
+    return qfx2_rid, qfx2_fx, qfx2_dist, K, Knorm
+
+
 def get_query_components(ibs, qrids):
-    printTEST('[GET QUERY COMPONENTS]')
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #print(ibs.get_infostr())

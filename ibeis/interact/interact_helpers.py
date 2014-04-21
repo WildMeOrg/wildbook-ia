@@ -28,6 +28,8 @@ def clicked_inside_axis(event):
     in_axis = event is not None and (event.inaxes is not None and event.xdata is not None)
     if not in_axis:
         print(' ...out of axis')
+    else:
+        print(' ...in axis')
     return in_axis
 
 

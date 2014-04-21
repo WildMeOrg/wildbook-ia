@@ -25,14 +25,22 @@ PRINT_DELIMETER
 num_passed=0
 num_ran=0
 
+export FAILED_TESTS=''
+
 RUN_TEST()
 {
     echo "RUN_TEST: $1"
-    python $1 $ARGV
+    export TEST="python $1 $ARGV"
+    $TEST
     export RETURN_CODE=$?
     PRINT_DELIMETER
     num_passed=$(($num_passed + (1 - $RETURN_CODE)))
     num_ran=$(($num_ran + 1))
+
+    if [ "$RETURN_CODE" != "1" ] ; then
+        export FAILED_TESTS="$FAILED_TESTS\n$TEST"
+    fi
+
 }
 
 
@@ -107,3 +115,5 @@ fi
 echo "RUN_TESTS: DONE"
 
 echo "$num_passed / $num_ran tests passed"
+
+echo "$FAILED_TESTS"

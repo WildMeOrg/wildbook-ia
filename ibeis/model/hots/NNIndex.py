@@ -55,7 +55,7 @@ def build_flann_inverted_index(ibs, rid_list):
     except Exception as ex:
         intostr = ibs.get_infostr()  # NOQA
         utool.printex(ex, 'cannot build inverted index', '[!build_invx]',
-                                  ['infostr'])
+                      ['infostr'])
         raise
     # Build/Load the flann index
     flann_uid = get_flann_uid(ibs, rid_list)
@@ -108,14 +108,14 @@ class NNIndex(object):
             nn_index.flann.delete_index()
             nn_index.flann = None
 
-    def nn_index(nn_index, ibs, qfx2_desc, K=None):
+    def nn_index2(nn_index, qreq, qfx2_desc):
         """ return nearest neighbors from this data_index's flann object """
         flann   = nn_index.flann
-        K       = ibs.qreq.cfg.nn_cfg.K
-        Knorm   = ibs.qreq.cfg.nn_cfg.Knorm
-        checks  = ibs.qreq.cfg.nn_cfg.checks
+        K       = qreq.cfg.nn_cfg.K
+        Knorm   = qreq.cfg.nn_cfg.Knorm
+        checks  = qreq.cfg.nn_cfg.checks
 
         (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm, checks=checks)
         qfx2_rid = nn_index.ax2_rid[qfx2_dx]
         qfx2_fx  = nn_index.ax2_fx[qfx2_dx]
-        return qfx2_rid, qfx2_fx
+        return qfx2_rid, qfx2_fx, qfx2_dist, K, Knorm

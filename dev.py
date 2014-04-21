@@ -20,14 +20,23 @@ def vdd(ibs=None):
 
 def show_rids(ibs, qrid_list):
     for rid in qrid_list:
-        interact.interact_chip(ibs, rid, fnum=df2.next_fnum())
+        interact.ishow_chjp(ibs, rid, fnum=df2.next_fnum())
 
 
 def query_rids(ibs, qrid_list):
     qrid2_qres = ibs.query_database(qrid_list)
     for qrid in qrid_list:
         qres = qrid2_qres[qrid]
-        interact.interact_qres(ibs, qres, fnum=df2.next_fnum())
+        interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
+    return qrid2_qres
+
+
+def sver_rids(ibs, qrid_list):
+    qrid2_qres = ibs.query_database(qrid_list)
+    for qrid in qrid_list:
+        qres = qrid2_qres[qrid]
+        rid2 = qres.get_top_rids()[0]
+        interact.ishow_sver(ibs, qrid, rid2, fnum=df2.next_fnum(), annote_mode=1)
     return qrid2_qres
 
 
@@ -37,6 +46,7 @@ def printcfg(ibs):
 
 
 #@utool.indent_decor('[dev]')
+@profile
 def run_experiments(ibs, qrid_list):
     print('\n')
     print('==========================')
@@ -69,6 +79,8 @@ def run_experiments(ibs, qrid_list):
         ibs.print_image_table()
     if intest('query'):
         qrid2_qres = query_rids(ibs, qrid_list)
+    if intest('sver'):
+        sver_rids(ibs, qrid_list)
     if intest('show'):
         show_rids(ibs, qrid_list)
 
@@ -111,16 +123,15 @@ def dev_main():
 
 if __name__ == '__main__':
     """
-    --- The Developer Script ---
-    A command line interface to almost everything
+        The Developer Script
+            A command line interface to almost everything
 
-    -w    -- wait            # so the gui / figures are visible
-    --cmd -- ipython shell   # interact with variables
-    -t [test1, [test2, ...]] # run tests
+            -w     # wait / show the gui / figures are visible
+            --cmd  # ipython shell to play with variables
+            -t     # run list of tests
 
-    Examples:
-        ./dev.py -t query -w
-
+            Examples:
+                ./dev.py -t query -w
     """
     multiprocessing.freeze_support()  # for win32
     from ibeis.dev.all_imports import *  # NOQA

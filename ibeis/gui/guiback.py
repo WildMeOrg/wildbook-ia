@@ -122,7 +122,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @drawing
     def select_bbox(back, gid, **kwargs):
-        bbox = interact.select_bbox(back.ibs, gid)
+        bbox = interact.iselect_bbox(back.ibs, gid)
         return bbox
 
     @drawing
@@ -131,29 +131,29 @@ class MainWindowBackend(QtCore.QObject):
             'sel_rids': sel_rids,
             'select_callback': back.select_gid,
         })
-        interact.interact_image(back.ibs, gid, **kwargs)
+        interact.ishow_image(back.ibs, gid, **kwargs)
 
     @drawing
     def show_roi(back, rid, show_image=False, **kwargs):
-        interact.interact_chip(back.ibs, rid, **kwargs)
+        interact.ishow_chip(back.ibs, rid, **kwargs)
         if show_image:
             gid = back.ibs.get_roi_gids(rid)
-            interact.interact_image(back.ibs, gid, sel_rids=[rid])
+            interact.ishow_image(back.ibs, gid, sel_rids=[rid])
 
     @drawing
     def show_name(back, name, sel_rids=[], **kwargs):
         name = back.ibs.get_name_nid(name)
-        interact.interact_name(back.ibs, name, **kwargs)
+        interact.ishow_name(back.ibs, name, **kwargs)
         pass
 
     @drawing
     def show_qres(back, qres, **kwargs):
-        interact.interact_qres(back.ibs, qres, **kwargs)
+        interact.ishow_qres(back.ibs, qres, **kwargs)
         pass
 
     @drawing
     def show_qres_roimatch(back, qres, rid, **kwargs):
-        interact.interact_qres(back.ibs, qres, rid, **kwargs)
+        interact.ishow_qres(back.ibs, qres, rid, **kwargs)
         pass
 
     #----------------------

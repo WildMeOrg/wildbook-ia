@@ -6,7 +6,7 @@ from . import interact_helpers as ih
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact-kpts]', DEBUG=False)
 
 
-def interact_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
+def ishow_keypoints(rchip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
     fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
 

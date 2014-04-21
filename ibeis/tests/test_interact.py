@@ -37,12 +37,12 @@ def TEST_INTERACT():
     #----------------------
     #printTEST('Show Image')
     sel_rids = rid_list[1:3]
-    interact.interact_image(ibs, gid, sel_rids=sel_rids, fnum=1)
+    interact.ishow_image(ibs, gid, sel_rids=sel_rids, fnum=1)
 
     #----------------------
     #printTEST('Show Chip')
-    interact.interact_chip(ibs, rid, in_image=False, fnum=2)
-    #interact.interact_chip(ibs, rid, in_image=True, fnum=3)
+    interact.ishow_chip(ibs, rid, in_image=False, fnum=2)
+    #interact.ishow_chip(ibs, rid, in_image=True, fnum=3)
 
     #----------------------
     #printTEST('Show Query')

@@ -8,6 +8,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[print]')
 
 QUIET = '--quiet' in sys.argv
 VERBOSE = '--verbose' in sys.argv
+NO_INDENT = '--noindent' in sys.argv or '--no-indent' in sys.argv
 
 
 def horiz_print(*args):
@@ -18,16 +19,19 @@ def horiz_print(*args):
 class Indenter(object):
     # THIS IS MUCH BETTER
     def __init__(self, lbl='    '):
-        #self.modules = modules
-        self.modules = get_injected_modules()
-        self.old_print_dict = {}
-        #self.old_prints_ = {}
-        self.old_printDBG_dict = {}
-        self.lbl = lbl
-        self.INDENT_PRINT_ = False
+        if not NO_INDENT:
+            #self.modules = modules
+            self.modules = get_injected_modules()
+            self.old_print_dict = {}
+            #self.old_prints_ = {}
+            self.old_printDBG_dict = {}
+            self.lbl = lbl
+            self.INDENT_PRINT_ = False
 
     def start(self):
         # Chain functions together rather than overwriting stdout
+        if NO_INDENT:
+            return
         def indent_msg(msg):
             return self.lbl + str(msg).replace('\n', '\n' + self.lbl)
 
@@ -57,6 +61,8 @@ class Indenter(object):
             #setattr(mod, 'printDBG', indent_printDBG)
 
     def stop(self):
+        if NO_INDENT:
+            return
         def pop_module_functions(dict_, func_name):
             for mod in dict_.iterkeys():
                 setattr(mod, func_name, dict_[mod])

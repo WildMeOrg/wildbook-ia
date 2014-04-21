@@ -20,10 +20,25 @@ def _get_sv_vartup_for_plottool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup):
     return sv_vartup
 
 
+def _compute_svvars(ibs, rid1):
+    """ If spatial-verfication dbginfo is not in we need to compute it """
+    from ibeis.model.hots import query_helpers
+    qrids = [rid1]
+    qcomp = query_helpers.get_query_components(ibs, qrids)
+    qrid2_chipmatch_FILT = qcomp['qrid2_chipmatch_FILT']
+    qrid2_svtups         = qcomp['qrid2_svtups']
+    chipmatch_FILT = qrid2_chipmatch_FILT[rid1]
+    rid2_svtup     = qrid2_svtups[rid1]
+    return chipmatch_FILT, rid2_svtup
+
+
 @utool.indent_func
-def show_sv(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup, **kwargs):
+def show_sver(ibs, rid1, rid2, chipmatch_FILT=None, rid2_svtup=None, **kwargs):
     """ Compiles IBEIS information and sends it to plottool """
-    print('\n[viz] ======================')
+    print('\n[show_sver] ====================== [show_sver]')
+    #print(utool.func_str(show_sv, kwargs=locals()))
+    if chipmatch_FILT is None or rid2_svtup is None:
+        chipmatch_FILT, rid2_svtup = _compute_svvars(ibs, rid1)
     sv_vartup = _get_sv_vartup_for_plottool(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup)
     (chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup) = sv_vartup
     if WRITE_SV_DEBUG:

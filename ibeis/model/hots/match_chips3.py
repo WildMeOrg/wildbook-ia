@@ -14,9 +14,10 @@ def quickly_ensure_qreq(ibs, qrids=None, drids=None):
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
     print(' --- quick ensure qreq --- ')
+    ibs._init_query_requestor()
     qreq = ibs.qreq
-    query_cfg = ibs.prefs.query_cfg
-    rids = ibs.get_recognition_database_chips()
+    query_cfg = ibs.cfg.query_cfg
+    rids = ibs.get_recognition_database_rois()
     if qrids is None:
         qrids = rids
     if drids is None:

@@ -64,53 +64,65 @@ import plottool
 from plottool import draw_func2 as df2
 # GUITool
 import guitool
-# IBEIS
-import ibeis
-from ibeis import main_module
+# IBEIS DEV
 from ibeis.dev import main_commands
 from ibeis.dev import params
 from ibeis.dev import ibsfuncs
 # IBEIS MODEL
-import ibeis.model
 from ibeis.model import Config
 from ibeis.model import preproc
 from ibeis.model import hots
+# IBEIS MODEL PREPROCESSING
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
+# IBEIS MODEL HOTSPOTTER
 from ibeis.model.hots import matching_functions as mf
 from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips3 as nn_filters
+from ibeis.model.hots import NNIndex
 from ibeis.model.hots import QueryResult
 from ibeis.model.hots import QueryRequest
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import coverage
-# IBEIS VIEW
+from ibeis.model.hots import query_helpers
+# IBEIS VIEW GUI
 from ibeis.gui import guifront
 from ibeis.gui import guiback
 from ibeis.gui import gui_item_tables
-from ibeis import viz
+# IBEIS VIEW VIZ
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
-from ibeis import interact
+from ibeis.viz import viz_sver
+# IBEIS VIEW INTERACT
 from ibeis.interact import interact_helpers as ih
 from ibeis.interact import interact_image
 from ibeis.interact import interact_chip
+from ibeis.interact import interact_name
+from ibeis.interact import interact_qres
+from ibeis.interact import interact_bbox
+from ibeis.interact import interact_sver
+from ibeis.interact import interact_matches
 # IBEIS CONTROl
-import ibeis.control
 from ibeis.control import SQLDatabaseControl
 from ibeis.control import __SQLITE3__ as lite
 from ibeis.control import IBEIS_SCHEMA
 from ibeis.control import IBEISControl
 from ibeis.control import accessor_decors
+# IBEIS
+import ibeis
+from ibeis import model
+from ibeis import control
+from ibeis import gui
+from ibeis import viz
+from ibeis import interact
+from ibeis import main_module
+from ibeis.model import hots
+from ibeis.model import preproc
 
-def get_ibeis_modules():
-    ibeis_modules = [
-        utool,
-        vtool,
-        guitool,
-        plottool
-    ]
-    return ibeis_modules
+def reload_all():
+    viz.reload_all()
+    interact.reload_all()
+    hots.reload_all()

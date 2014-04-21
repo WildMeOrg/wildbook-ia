@@ -44,7 +44,8 @@ def TEST_QUERY(ibs=None, qrid_list=None):
         df2.figure(fnum=fnum, doclf=True)
         #viz_matches.show_matches(ibs, qres, rid2, fnum=fnum, in_image=True)
         #viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
-        interact.interact_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
+        interact.ishow_qres(ibs, qres, fnum=fnum, top_rids=top_rids,
+                            ensure=False, annote_mode=1)
         df2.set_figtitle('Query Result')
         df2.adjust_subplots_safe(top=.8)
     return locals()
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     main_locals = __testing__.main(defaultdb='test_big_ibeis', allow_newdir=True, nogui=True)
     ibs = main_locals['ibs']
-    qrid_list = [0]
+    qrid_list = ibs.get_valid_rids()[0:1]
     test_locals = TEST_QUERY(ibs, qrid_list)
     execstr = __testing__.main_loop(main_locals, rungui=False)
     df2.present()

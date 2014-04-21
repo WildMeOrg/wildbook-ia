@@ -9,7 +9,7 @@ from vtool import keypoint as ktool
 
 @utool.indent_func
 def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
-            mx=None, show_assign=True, show_kpts=True, fnum=1):
+            mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1, **kwargs):
     """ Visualizes spatial verification """
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]
@@ -66,7 +66,7 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         if kpts2_m is not None:
             _draw_kpts(kpts2_m, color=df2.DARK_RED, **out_kwargs)
             draw_inlier_kpts(kpts2_m, inliers, df2.RED)
-        if kpts2_m is not None and kpts1_m is not None:
+        if kpts2_m is not None and kpts1_m is not None and show_lines:
             __fm = np.vstack((inliers, inliers)).T
             df2.draw_lines2(kpts1_m, kpts2_m, __fm, color_list=[df2.ORANGE], lw=2, line_alpha=1)
         return px + 1
@@ -98,4 +98,4 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
         px = _draw_chip(px, 'Homog Blend', chip2_blendH, hom_inliers, kpts1_mHt, kpts2_m)
     #
     # Adjust subplots
-    df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)
+    df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.03, bottom=.01)

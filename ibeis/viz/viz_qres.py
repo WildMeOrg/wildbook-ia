@@ -65,7 +65,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
 @utool.indent_func
 def show_qres(ibs, qres, **kwargs):
     """ Displays query chip, groundtruth matches, and top 5 matches """
-    annote     = kwargs.get('annote', 1) % 3  # this is toggled
+    annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
     fnum       = kwargs.get('fnum', 3)
     figtitle   = kwargs.get('figtitle', '')
     aug        = kwargs.get('aug', '')
@@ -123,12 +123,12 @@ def show_qres(ibs, qres, **kwargs):
         plotx = plotx_shift + 1
         pnum = (rowcols[0], rowcols[1], plotx)
         #print('[viz] Plotting Query: pnum=%r' % (pnum,))
-        _kwshow = dict(draw_kpts=annote)
+        _kwshow = dict(draw_kpts=annote_mode)
         _kwshow.update(kwargs)
         _kwshow['prefix'] = 'q'
         _kwshow['pnum'] = pnum
         _kwshow['rid2_color'] = rid2_color
-        _kwshow['draw_ell'] = annote >= 1
+        _kwshow['draw_ell'] = annote_mode >= 1
         viz_chip.show_chip(ibs, qres.qrid, **_kwshow)
 
     def _plot_matches_rids(rid_list, plotx_shift, rowcols):
@@ -137,7 +137,7 @@ def show_qres(ibs, qres, **kwargs):
             """ Helper function for drawing matches to one rid """
             aug = 'rank=%r\n' % orank
             #printDBG('[show_qres()] plotting: %r'  % (pnum,))
-            _kwshow  = dict(draw_ell=annote, draw_pts=False, draw_lines=annote,
+            _kwshow  = dict(draw_ell=annote_mode, draw_pts=False, draw_lines=annote_mode,
                             ell_alpha=.5, all_kpts=all_kpts)
             _kwshow.update(kwargs)
             _kwshow['fnum'] = fnum
@@ -145,12 +145,12 @@ def show_qres(ibs, qres, **kwargs):
             _kwshow['title_aug'] = aug
             # If we already are showing the query dont show it here
             if not show_query:
-                _kwshow['draw_ell'] = annote == 1
-                _kwshow['draw_lines'] = annote >= 1
+                _kwshow['draw_ell'] = annote_mode == 1
+                _kwshow['draw_lines'] = annote_mode >= 1
                 viz_matches.show_matches(ibs, qres, rid, in_image=in_image, **_kwshow)
             else:
-                _kwshow['draw_ell'] = annote >= 1
-                if annote == 2:
+                _kwshow['draw_ell'] = annote_mode >= 1
+                if annote_mode == 2:
                     # TODO Find a better name
                     _kwshow['color'] = rid2_color[rid]
                     _kwshow['sel_fx2'] = qres.rid2_fm[rid][:, 1]

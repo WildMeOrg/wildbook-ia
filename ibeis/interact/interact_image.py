@@ -10,8 +10,8 @@ from . import interact_helpers as ih
 
 
 @utool.indent_decor('[interact_img]')
-def interact_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
-                   **kwargs):
+def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
+                **kwargs):
     fig = ih.begin_interaction('image', fnum)
     #printDBG(utool.func_str(interact_image, [], locals()))
     kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)

@@ -8,9 +8,9 @@ import utool
 
 
 #================
-def select_bbox(ibs, gid, fnum=1,
-                figtitle='Image View - Select ROI (click two points)',
-                **kwargs):
+def iselect_bbox(ibs, gid, fnum=1,
+                 figtitle='Image View - Select ROI (click two points)',
+                 **kwargs):
     #from matplotlib.backend_bases import mplDeprecation
     print('[*interact] select_bbox(gid=%r, fnum=%r)' % (gid, fnum))
     print('[*interact] Define a Rectanglular ROI by clicking two points.')

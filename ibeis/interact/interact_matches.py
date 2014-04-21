@@ -6,12 +6,12 @@ from plottool import draw_func2 as df2
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from . import interact_helpers as ih
-from .interact_chip import interact_chip
+from .interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
 
 
-def interact_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
-                     same_fig=True, **kwargs):
+def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
+                  same_fig=True, **kwargs):
     'Plots a chip result and sets up callbacks for interaction.'
     fig = ih.begin_interaction('matches', fnum)
     qrid = qres.qrid
@@ -153,7 +153,7 @@ def interact_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
             hs_rid = ax.__dict__.get('_hs_rid', None)
             hs_fx = ax.__dict__.get('_hs_fx', None)
             if hs_rid is not None and viztype == 'unwarped':
-                interact_chip(ibs, hs_rid, fx=hs_fx, fnum=df2.next_fnum())
+                ishow_chip(ibs, hs_rid, fx=hs_fx, fnum=df2.next_fnum())
             elif hs_rid is not None and viztype == 'warped':
                 viz.show_keypoint_gradient_orientations(ibs, hs_rid, hs_fx, fnum=df2.next_fnum())
         else:
@@ -166,7 +166,8 @@ def interact_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
         _select_ith_match(mx, qrid, rid)
 
     def toggle_samefig():
-        interact_matches(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
+        # FIXME: Do not do recursive calls
+        ishow_matches(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
 
     def query_last_feature():
         viz.show_nearest_descriptors(ibs, qrid, last_state.last_fx, df2.next_fnum())

@@ -1,8 +1,15 @@
+from __future__ import absolute_import, division, print_function
+import utool
+from . import interact_helpers as ih
+from ibeis import viz
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+                                                       '[interact_name]', DEBUG=False)
 #==========================
 # Name Interaction
 #==========================
 
-def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs):
+
+def ishow_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs):
     fig = ih.begin_interaction('name', fnum)
 
     def _on_name_click(event):
@@ -23,5 +30,5 @@ def interact_name(ibs, nid, sel_cids=[], select_cid_func=None, fnum=5, **kwargs)
 
     viz.show_name(ibs, nid, fnum=fnum, sel_cids=sel_cids)
     viz.draw()
-    df2.connect_callback(fig, 'button_press_event', _on_name_click)
+    ih.connect_callback(fig, 'button_press_event', _on_name_click)
     pass

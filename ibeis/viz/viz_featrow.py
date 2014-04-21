@@ -6,7 +6,7 @@ import plottool.draw_func2 as df2
 # IBEIS
 from . import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[viz-featrow]', DEBUG=False)
+    __name__, '[viz_featrow]', DEBUG=False)
 
 
 @utool.indent_decor('[viz.draw_feat_row]')
