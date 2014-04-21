@@ -5,6 +5,7 @@ from itertools import izip
 import pyhesaff
 # UTool
 import utool
+import sys
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[preproc_feat]', DEBUG=False)
@@ -20,6 +21,8 @@ def add_feat_params_gen(ibs, cid_list):
     feat_config_uid = ibs.get_feat_config_uid()
     mark_prog, end_prog = utool.progress_func(num_feats, lbl='hesaff: ')
     # TODO: make this an async process
+    mark_prog(0)
+    sys.stdout.flush()
     for count, (cid, cpath) in enumerate(izip(cid_list, cfpath_list)):
         mark_prog(count)
         kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)

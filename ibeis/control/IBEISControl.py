@@ -61,17 +61,19 @@ class IBEISControl(object):
     # --- Constructor / Privates ---
     #-------------------------------
 
-    def __init__(ibs, dbdir=None):
+    def __init__(ibs, dbdir=None, ensure=True):
         """ Creates a new IBEIS Controller associated with one database """
         if utool.VERBOSE:
             print('[ibs.__init__] new IBEISControl')
-        ibs._init_dirs(dbdir)
+        ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         ibs._init_sql()
         ibs._init_config()
 
-    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_databases'):
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
+                   workdir='~/ibeis_databases', ensure=True):
         """ Define ibs directories """
-        print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
+        if ensure:
+            print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
@@ -85,20 +87,25 @@ class IBEISControl(object):
         ibs.imgdir   = join(ibs.cachedir, 'images')
         ibs.qresdir  = join(ibs.cachedir, 'qres')
         ibs.bigcachedir = join(ibs.cachedir, 'bigcache')
-        utool.ensuredir(ibs.cachedir)
-        utool.ensuredir(ibs.workdir)
-        utool.ensuredir(ibs.chipdir)
-        utool.ensuredir(ibs.flanndir)
-        utool.ensuredir(ibs.qresdir)
-        utool.ensuredir(ibs.bigcachedir)
+        if ensure:
+            utool.ensuredir(ibs.cachedir)
+            utool.ensuredir(ibs.workdir)
+            utool.ensuredir(ibs.chipdir)
+            utool.ensuredir(ibs.flanndir)
+            utool.ensuredir(ibs.qresdir)
+            utool.ensuredir(ibs.bigcachedir)
         printDBG('[ibs._init_dirs] ibs.dbname = %r' % ibs.dbname)
         printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
+    def clone_handle(ibs):
+        ibs2 = IBEISControl(dbdir=ibs.get_dbdir(), ensure=False)
+        return ibs2
+
     def get_dbname(ibs):
         return ibs.dbname
 
-    def get_dbpath(ibs):
+    def get_dbdir(ibs):
         return join(ibs.workdir, ibs.dbname)
 
     def get_workdir(ibs):
@@ -118,7 +125,7 @@ class IBEISControl(object):
 
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbpath(), ibs.sqldb_fname)
+        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbdir(), ibs.sqldb_fname)
         printDBG('[ibs._init_sql] Define the schema.')
         IBEIS_SCHEMA.define_IBEIS_schema(ibs)
         printDBG('[ibs._init_sql] Add default names.')

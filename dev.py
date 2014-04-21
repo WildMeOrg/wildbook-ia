@@ -20,7 +20,17 @@ def vdd(ibs=None):
 
 def show_rids(ibs, qrid_list):
     for rid in qrid_list:
-        interact.ishow_chjp(ibs, rid, fnum=df2.next_fnum())
+        interact.ishow_chip(ibs, rid, fnum=df2.next_fnum())
+
+
+def compare_gravity(ibs, qrid_list):
+    ibs_nogv = ibs.clone_handle()
+    #ibslist = [ibs.clone_handle() for _ in xrange(1000)]
+    ibs_nogv.update_cfg(nogravity_hack=True)
+    for rid in qrid_list:
+        interact.ishow_chip(ibs_nogv, rid, fnum=df2.next_fnum(), eig=True)
+    for rid in qrid_list:
+        interact.ishow_chip(ibs, rid, fnum=df2.next_fnum(), eig=True)
 
 
 def query_rids(ibs, qrid_list):
@@ -83,6 +93,8 @@ def run_experiments(ibs, qrid_list):
         sver_rids(ibs, qrid_list)
     if intest('show'):
         show_rids(ibs, qrid_list)
+    if intest('compare_gravity', 'gv'):
+        compare_gravity(ibs, qrid_list)
 
     # Allow any testcfg to be in tests like:
     # vsone_1 or vsmany_3

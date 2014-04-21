@@ -15,11 +15,11 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)
     # Get chip info (make sure get_chips is called first)
-    chip = ibs.get_roi_chips(rid)
-    mode_ptr = [0]
+    mode_ptr = [1]
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
+        chip = ibs.get_roi_chips(rid)
         kp = ibs.get_roi_kpts(rid)[fx]
         sift = ibs.get_roi_desc(rid)[fx]
         # Draw chip + keypoints + highlighted plots
@@ -28,7 +28,10 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
         nRows, nCols, px = (2, 3, 3)
         viz.draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, None)
 
-    def _chip_view(pnum=(1, 1, 1), **kwargs):
+    def _chip_view(mode=0, pnum=(1, 1, 1), **kwargs):
+        print('... _chip_view mode=%r' % mode_ptr[0])
+        kwargs['ell'] = mode_ptr[0] == 1
+        kwargs['pts'] = mode_ptr[0]  == 2
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
         viz.show_chip(ibs, rid, fnum=fnum, pnum=pnum, **kwargs)
@@ -40,14 +43,12 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
         if ih.clicked_outside_axis(event):
             print('... out of axis')
             mode_ptr[0] = (mode_ptr[0] + 1) % 3
-            mode = mode_ptr[0]
-            print('... default kpts view mode=%r' % mode)
-            _chip_view(ell=(mode == 1), pts=(mode == 2))
+            _chip_view(**kwargs)
         else:
             viztype = vh.get_ibsdat(ax, 'viztype')
             print_('[ic] viztype=%r' % viztype)
             if viztype == 'chip' and event.key == 'shift':
-                _chip_view()
+                _chip_view(**kwargs)
                 ih.disconnect_callback(fig, 'button_press_event')
             elif viztype == 'chip':
                 kpts = ibs.get_roi_kpts(rid)
@@ -69,6 +70,6 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
     if fx is not None:
         _select_fxth_kpt(fx)
     else:
-        _chip_view(ell=False, pts=False)
+        _chip_view(**kwargs)
     viz.draw()
     ih.connect_callback(fig, 'button_press_event', _on_chip_click)
