@@ -16,6 +16,7 @@ from . import viz_helpers as vh
 from .viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
 from .viz_image import show_image
 from .viz_chip import show_chip, show_keypoints, show_kpts
+from .viz_name import show_name
 from .viz_matches import show_matches, annotate_matches
 from .viz_qres import show_qres, show_qres_top, show_qres_analysis
 from .viz_sver import show_sver, _compute_svvars

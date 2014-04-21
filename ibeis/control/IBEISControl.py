@@ -368,6 +368,7 @@ class IBEISControl(object):
     @adder
     def add_names(ibs, name_list):
         """ Adds a list of names. Returns their nids """
+        print('add_names %r' % (name_list,))
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
@@ -397,8 +398,9 @@ class IBEISControl(object):
 
     @setter
     def set_table_properties(ibs, table, prop_key, uid_list, val_list):
-        printDBG('set_table_properties(table=%r, prop_key=%r)' %
-                 (table, prop_key))
+        printDBG('------------------------')
+        printDBG('[ibs] set_table_properties(table=%r, prop_key=%r)' % (table, prop_key))
+        printDBG('[ibs] set_table_properties(uid_list=%r, val_list=%r)' % (uid_list, val_list))
         # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
@@ -409,7 +411,7 @@ class IBEISControl(object):
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
             params_iter=izip(val_list, uid_list),
-            errmsg='[ibs.set_table_properties] ERROR (table=%r, prop_key=%r)' %
+            errmsg='[ibs.set_table_props] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
 
     # SETTERS::Image
@@ -444,16 +446,17 @@ class IBEISControl(object):
 
     @setter
     def set_roi_properties(ibs, rid_list, key, value_list):
+        print('[ibs] set_roi_properties')
         if key == 'bbox':
             return ibs.set_roi_bboxes(rid_list, value_list)
         elif key == 'theta':
             return ibs.set_roi_thetas(rid_list, value_list)
-        elif key == 'name':
+        elif key in ('name', 'names',):
             return ibs.set_roi_names(rid_list, value_list)
         elif key == 'viewpoint':
             return ibs.set_roi_viewpoints(rid_list, value_list)
         else:
-            raise KeyError('[ibs.set_roi_properties] UNKOWN key=%r' % (key,))
+            raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_roi_bboxes(ibs, rid_list, bbox_list):
@@ -496,10 +499,22 @@ class IBEISControl(object):
             params_iter=izip(viewpoint_list, rid_list))
 
     @setter
-    def set_roi_names(ibs, rid_list, name_list):
+    def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
         """ Sets names of a list of chips by cid """
-        nid_list = ibs.get_name_nids(name_list)
-        ibs.set_table_properties('rois', 'name_uid', rid_list, nid_list)
+        print('!!!!!!!!!!!!!!')
+        print('[ibs]' + str(utool.func_str(ibs.set_roi_names, kwargs=locals())))
+        print('!!!!!!!!!!!!!!')
+        if nid_list is None:
+            assert name_list is not None
+            nid_list = ibs.add_names(name_list)
+        # Potentially UNSAFE SQL
+        ibs.db.executemany(
+            operation='''
+            UPDATE rois
+            SET name_uid=?
+            WHERE roi_uid=?
+            ''',
+            params_iter=izip(nid_list, rid_list))
 
     #
     #
@@ -1263,7 +1278,7 @@ class IBEISControl(object):
 
     def print_image_table(ibs):
         """ Dumps chip table to stdout """
-        print(ibs.db.get_table_csv('images'))
+        print(ibs.db.get_table_csv('images', exclude_columns=['image_uid']))
 
     def print_name_table(ibs):
         """ Dumps chip table to stdout """

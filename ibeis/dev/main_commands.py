@@ -45,17 +45,24 @@ def preload_commands():
         vdq()
 
 
-def postload_commands(ibs):
+def postload_commands(ibs, back):
     #print('[main_cmd] postload_commands')
-    if params.args.dump_argv:
+    args = params.args
+    if args.dump_argv:
         print(utool.dict_str(vars(params.args)))
-    if params.args.view_database_directory:
+    if args.view_database_directory:
         print('got arg --vd')
         vd(ibs)
-    if params.args.update_cfg is not None:
+    if args.update_cfg is not None:
         cfgdict = parse_cfgstr_list(params.args.update_cfg)
         ibs.update_cfg(**cfgdict)
-    if params.args.postload_exit:
+    if args.select_rid is not None:
+        back.select_rid(args.select_rid)
+    if args.select_gid is not None:
+        back.select_gid(args.select_gid)
+    if args.select_nid is not None:
+        back.select_nid(args.select_nid)
+    if args.postload_exit:
         print('[main_cmd] postload exit')
         sys.exit(1)
 

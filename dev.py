@@ -23,6 +23,16 @@ def show_rids(ibs, qrid_list):
         interact.ishow_chip(ibs, rid, fnum=df2.next_fnum())
 
 
+def change_names(ibs, qrid_list):
+    new_name = utool.get_arg('--name', str, default='<name>_the_<species>')
+    for rid in qrid_list:
+        ibs.print_name_table()
+        #(nid,) = ibs.add_names((new_name,))
+        ibs.set_roi_properties((rid,), 'name', (new_name,))
+        ibs.print_name_table()
+        ibs.print_roi_table()
+
+
 def compare_gravity(ibs, qrid_list):
     ibs_nogv = ibs.clone_handle()
     #ibslist = [ibs.clone_handle() for _ in xrange(1000)]
@@ -95,6 +105,8 @@ def run_experiments(ibs, qrid_list):
         show_rids(ibs, qrid_list)
     if intest('compare_gravity', 'gv'):
         compare_gravity(ibs, qrid_list)
+    if intest('change_names'):
+        change_names(ibs, qrid_list)
 
     # Allow any testcfg to be in tests like:
     # vsone_1 or vsmany_3

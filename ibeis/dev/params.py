@@ -138,11 +138,14 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         parser2.add_flag(('--wait', '-w'),  help='wait for user to press enter')
         parser2.add_flag(('--cmd', '--ipy'), help='Runs in IPython mode')
         parser2.add_ints(('--index', '-x'), None, help='test only this index')
-        parser2.add_ints('--qrid', default=[], help='investigate match cx')
         parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'))
         parser2.add_intlist(('--sel-rows', '-r'), help='view row')
         parser2.add_intlist(('--sel-cols', '-c'), help='view col')
+        parser2.add_ints('--qrid', default=[], help='investigate match cx')
+        parser2.add_int(('--select-nid', '--nid'), help='view col')
+        parser2.add_int(('--select-gid', '--gid'), help='view col')
+        parser2.add_int(('--select-rid', '--rid'), help='view col')
 
     def behavior_argparse(parser2):
         # Program behavior
@@ -151,7 +154,8 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         # MEMORY USAGE
         parser2.add_int('--num-procs', default=None, help='defaults util_parallel.init_pools method')
         parser2.add_flag('--serial', help='Forces num_procs=1')
-        parser2.add_flag('--nogui', help='Will not start the gui')
+        parser2.add_flag('--nogui', default=False, help='Will not start the gui.')
+        parser2.add_flag('--gui', default=True, help='Will start the gui if able.')
         parser2.add_int('--loop-freq', default=100, help='Qt main loop ms frequency')
         parser2.add_flag('--nocache-db', help='Disables db cache')
         parser2.add_flag('--nocache-flann', help='Disables flann cache')
@@ -185,6 +189,7 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
 
     # Apply any argument dependencies here
     def postprocess(args):
+        args.gui = not args.nogui
         if args.serial:
             args.num_proces = 1
         if args.dbdir is not None:

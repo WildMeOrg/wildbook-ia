@@ -141,9 +141,9 @@ class MainWindowBackend(QtCore.QObject):
             interact.ishow_image(back.ibs, gid, sel_rids=[rid])
 
     @drawing
-    def show_name(back, name, sel_rids=[], **kwargs):
-        name = back.ibs.get_name_nid(name)
-        interact.ishow_name(back.ibs, name, **kwargs)
+    def show_name(back, nid, sel_rids=[], **kwargs):
+        #nid = back.ibs.get_name_nids(name)
+        interact.ishow_name(back.ibs, nid, **kwargs)
         pass
 
     @drawing
@@ -303,11 +303,13 @@ class MainWindowBackend(QtCore.QObject):
             back.show_roi(rid, **kwargs)
 
     @slot_(QT_NAME_UID_TYPE)
-    def select_nid(back, nid, **kwargs):
+    def select_nid(back, nid, show_name=True, **kwargs):
         # Table Click -> Name Table
         nid = qt_name_uid_cast(nid)
         print('[back] select nid=%r' % nid)
         back._set_selection(nids=[nid], **kwargs)
+        if show_name:
+            back.show_name(nid, **kwargs)
 
     @slot_(QT_ROI_UID_TYPE)
     def select_res_rid(back, rid, **kwargs):
@@ -338,13 +340,20 @@ class MainWindowBackend(QtCore.QObject):
         # Table Edit -> Change Chip Property
         rid = qt_roi_uid_cast(rid)
         val = qt_cast(val)
+        key = str(key)
         print('[back] change_roi_property(rid=%r, key=%r, val=%r)' % (rid, key, val))
         back.ibs.set_roi_properties((rid,), key, (val,))
+        back.refresh_state()
+
+    def change_roi_name(back, rid, val):
+        back.change_roi_property(rid, 'name', val)
 
     @blocking_slot(QT_NAME_UID_TYPE, str, str)
     def alias_name(back, nid, key, val):
         # Table Edit -> Change name
         nid = qt_name_uid_cast(nid)
+        key = str(key)
+        val = str(val)
         print('[back] alias_name(nid=%r, key=%r, val=%r)' % (nid, key, val))
 
     @blocking_slot(QT_IMAGE_UID_TYPE, str, bool)

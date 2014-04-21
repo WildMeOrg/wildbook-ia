@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+"""
+e.g.
+python ibeis/injest/injest_named_folders.py --db polar_bears
+"""
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+import sys
+import os
+sys.path.append(os.getcwd())  # Windows fix
 from os.path import join
-import utool
 import ibeis
 from ibeis.dev import ibsfuncs
 from ibeis.dev import params
@@ -26,7 +32,8 @@ def injest_named_folder(ibs, img_dir):
 if __name__ == '__main__':
     from ibeis.dev.all_imports import *  # NOQA
     # TODO: be able to injest more than polar bears
-    img_dir = join(params.get_workdir(), r'polar_bears')
+    img_dirname = utool.get_arg('--db', str, None)
+    img_dir = join(params.get_workdir(), img_dirname)
     main_locals = ibeis.main(dbdir=img_dir)
     ibs = main_locals['ibs']
     back = main_locals.get('back', None)

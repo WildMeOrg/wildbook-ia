@@ -186,7 +186,7 @@ def main(**kwargs):
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
-    _postload_commands(ibs)
+    _postload_commands(ibs, back)
     main_locals = {'ibs': ibs, 'back': back}
     return main_locals
 
@@ -217,9 +217,9 @@ def _preload_commands(**kwargs):
     main_commands.preload_commands()  # PRELOAD CMDS
 
 
-def _postload_commands(ibs, **kwargs):
+def _postload_commands(ibs, back, **kwargs):
     from ibeis.dev import main_commands
-    main_commands.postload_commands(ibs)  # POSTLOAD CMDS
+    main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
 
 
 @profile
