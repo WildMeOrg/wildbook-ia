@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from itertools import product as iprod
+from itertools import izip
+from collections import defaultdict
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
 
@@ -27,3 +29,13 @@ def items_sorted_by_value(dict_):
 def keys_sorted_by_value(dict_):
     sorted_keys = sorted(dict_, key=lambda key: dict_[key])
     return sorted_keys
+
+
+def build_conflict_dict(key_list, val_list):
+    """
+    Builds dict where a list of values is associated with a key
+    """
+    key_to_vals = defaultdict(list)
+    for key, val in izip(key_list, val_list):
+        key_to_vals[key].append(val)
+    return key_to_vals

@@ -94,24 +94,24 @@ def compute_seperability(qres, ibs):
 
 
 def show_query(qres, ibs, **kwargs):
-    from ibeis.view import viz
+    from ibeis import viz
     print('[qr] show_query')
     qrid = ibs.get_chip_rids(qres.qcid)
     viz.show_chip(ibs, qrid, **kwargs)
 
 
 def show_analysis(qres, ibs, *args, **kwargs):
-    from ibeis.view import viz
+    from ibeis import viz
     return viz.res_show_analysis(qres, ibs, *args, **kwargs)
 
 
 def show_top(qres, ibs, *args, **kwargs):
-    from ibeis.view import viz
+    from ibeis import viz
     return viz.show_top(qres, ibs, *args, **kwargs)
 
 
 def show_gt_matches(qres, ibs, *args, **kwargs):
-    from ibeis.view import viz
+    from ibeis import viz
     figtitle = ('q%s -- GroundTruth' % (ibs.cidstr(qres.qcid)))
     gt_cids = ibs.get_other_indexed_cids(qres.qcid)
     return viz._show_chip_matches(ibs, qres, gt_cids=gt_cids, figtitle=figtitle,
@@ -119,23 +119,23 @@ def show_gt_matches(qres, ibs, *args, **kwargs):
 
 
 def show_chipres(qres, ibs, cid, **kwargs):
-    from ibeis.view import viz
+    from ibeis import viz
     return viz.res_show_chipres(qres, ibs, cid, **kwargs)
 
 
 def interact_chipres(qres, ibs, cid, **kwargs):
-    from ibeis.view import interact
+    from ibeis import interact
     return interact.interact_chipres(ibs, qres, cid, **kwargs)
 
 
 def interact_top_chipres(qres, ibs, tx, **kwargs):
-    from ibeis.view import interact
+    from ibeis import interact
     cid = qres.topN_cids(ibs, tx + 1)[tx]
     return interact.interact_chipres(ibs, qres, cid, **kwargs)
 
 
 def show_nearest_descriptors(qres, ibs, qfx, dodraw=True):
-    from ibeis.view import viz
+    from ibeis import viz
     qcid = qres.qcid
     viz.show_nearest_descriptors(ibs, qcid, qfx, fnum=None)
     if dodraw:

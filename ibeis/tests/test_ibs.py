@@ -62,7 +62,7 @@ def TEST_IBS():
     print(' * theta_list=%r' % theta_list)
     print(' * rids_list=%r' % rids_list)
 
-    from ibeis.view import viz
+    from ibeis import viz
     viz.show_image(ibs, gid)
 
     # Run Qt Loop to use the GUI

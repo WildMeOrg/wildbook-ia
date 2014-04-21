@@ -12,9 +12,9 @@ from guitool import drawing, slot_, signal_
 from plottool import fig_presenter
 # IBEIS
 from ibeis.dev import params
-from ibeis.view import guifront
-from ibeis.view import gui_item_tables as item_table
-from ibeis.view import interact
+from ibeis.gui import guifront
+from ibeis.gui import gui_item_tables as item_table
+from ibeis import interact
 # Utool
 import utool
 from ibeis.control import IBEISControl

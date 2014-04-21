@@ -11,8 +11,8 @@ def register_utool_aliases():
     import utool
     import matplotlib as mpl
     from ibeis.control.IBEISControl import IBEISControl
-    from ibeis.view.guiback import MainWindowBackend
-    from ibeis.view.guifront import MainWindowFrontend
+    from ibeis.gui.guiback import MainWindowBackend
+    from ibeis.gui.guifront import MainWindowFrontend
     utool.extend_global_aliases([
         (IBEISControl, 'ibs'),
         (MainWindowBackend, 'back'),

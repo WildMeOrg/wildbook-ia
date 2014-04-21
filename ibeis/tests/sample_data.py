@@ -9,7 +9,7 @@ sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis.view import viz
+from ibeis import viz
 from plottool import draw_func2 as df2
 from ibeis.dev.all_imports import *  # NOQA
 import vtool.tests.dummy as dummy

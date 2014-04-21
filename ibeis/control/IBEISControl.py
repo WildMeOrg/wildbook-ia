@@ -235,12 +235,15 @@ class IBEISControl(object):
 
     @adder
     def add_rois(ibs, gid_list, bbox_list, theta_list,
-                 viewpoint_list=None, nid_list=None, notes_list=None):
+                 viewpoint_list=None, nid_list=None, name_list=None, notes_list=None):
         """ Adds oriented ROI bounding boxes to images """
+        assert name_list is None or nid_list is None, 'cannot specify both names and nids'
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
         if nid_list is None:
             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
+        if name_list is not None:
+            nid_list = ibs.add_names(name_list)
         if notes_list is None:
             notes_list = ['' for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
@@ -1152,44 +1155,6 @@ class IBEISControl(object):
     #--------------
     # --- Model ---
     #--------------
-
-    @utool.indent_func
-    def compute_all_chips(ibs):
-        print('[ibs] compute_all_chips')
-        rid_list = ibs.get_valid_rids()
-        cid_list = ibs.add_chips(rid_list)
-        return cid_list
-
-    @utool.indent_func
-    def compute_all_features(ibs):
-        print('[ibs] compute_all_features')
-        rid_list = ibs.get_valid_rids()
-        cid_list = ibs.get_roi_cids(rid_list, ensure=True)
-        fid_list = ibs.add_feats(cid_list)
-        return fid_list
-
-    @utool.indent_func
-    def get_empty_gids(ibs):
-        """ returns gid list without any chips """
-        gid_list = ibs.get_valid_gids()
-        nRois_list = ibs.get_num_rids_in_gids(gid_list)
-        empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
-        return empty_gids
-
-    def convert_empty_images_to_rois(ibs):
-        """ images without chips are given an ROI over the entire image """
-        gid_list = ibs.get_empty_gids()
-        rid_list = ibs.use_images_as_rois(gid_list)
-        return rid_list
-
-    @utool.indent_func
-    def use_images_as_rois(ibs, gid_list):
-        """ Adds an roi the size of the entire image to each image."""
-        gsize_list = ibs.get_image_size(gid_list)
-        bbox_list  = [(0, 0, w, h) for (w, h) in gsize_list]
-        theta_list = [0.0 for _ in xrange(len(gsize_list))]
-        rid_list = ibs.add_rois(gid_list, bbox_list, theta_list)
-        return rid_list
 
     @utool.indent_func
     def cluster_encounters(ibs, gid_list):

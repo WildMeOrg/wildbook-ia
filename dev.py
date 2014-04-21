@@ -8,7 +8,7 @@ import ibeis
 ibeis._preload()
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
-from ibeis.view import interact
+from ibeis import interact
 import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)

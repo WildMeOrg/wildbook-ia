@@ -4,8 +4,8 @@ import utool
 # Drawtool
 import plottool.draw_func2 as df2
 # IBEIS
-from ibeis.view import viz
-from ibeis.view.viz import viz_helpers as vh
+from ibeis import viz
+from ibeis.viz import viz_helpers as vh
 from . import interact_helpers as ih
 from . import interact_chipres
 

@@ -62,7 +62,7 @@ def _init_matplotlib():
 
 def _init_gui():
     import guitool
-    from ibeis.view import guiback
+    from ibeis import guiback
     import utool
     if not utool.QUIET:
         print('[main] _init_gui()')
@@ -75,7 +75,7 @@ def _init_gui():
 def _init_ibeis():
     import utool
     from ibeis.control import IBEISControl
-    from . import params
+    from ibeis.dev import params
     if not utool.QUIET:
         print('[main] _init_ibeis()')
     dbdir = params.args.dbdir
@@ -163,7 +163,7 @@ def main(**kwargs):
     ibs = None
     back = None
     if not '--quiet' in sys.argv:
-        print('[main] ibeis.main_api.main()')
+        print('[main] ibeis.main_module.main()')
     _preload(**kwargs)
     _preload_commands(**kwargs)
     try:
@@ -213,7 +213,7 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     Runs the qt loop if the GUI was initialized and returns an executable string
     for embedding an IPython terminal if requested.
     """
-    print('[main] ibeis.main_api.main_loop()')
+    print('[main] ibeis.main_module.main_loop()')
     from ibeis.dev import params
     import utool
     if rungui and not params.args.nogui:

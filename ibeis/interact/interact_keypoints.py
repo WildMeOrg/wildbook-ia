@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from plottool import draw_func2 as df2
-from ibeis.view import viz
+from ibeis import viz
 from . import interact_helpers as ih
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact-kpts]', DEBUG=False)
 

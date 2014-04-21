@@ -20,8 +20,8 @@ import utool
 from plottool import draw_func2 as df2
 #IBEIS
 from ibeis.dev import params  # NOQA
-from ibeis.view import viz
-from ibeis.view import interact
+from ibeis import viz
+from ibeis import interact
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
 from ibeis.tests import query_helpers

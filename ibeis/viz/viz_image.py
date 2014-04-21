@@ -3,7 +3,7 @@ from itertools import izip
 import utool
 import plottool.draw_func2 as df2
 import numpy as np
-from ibeis.view.viz import viz_helpers as vh
+from ibeis.viz import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img]', DEBUG=False)
 
 

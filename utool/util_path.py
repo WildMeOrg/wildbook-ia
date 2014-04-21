@@ -362,7 +362,7 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
         for fname in iter(flist):
             gname = join(relpath(root, img_dpath), fname).replace('\\', '/').replace('./', '')
             if fullpath:
-                gname_list_.append(join(root, gname))
+                gname_list_.append(join(img_dpath, gname))
             else:
                 gname_list_.append(gname)
         if not recursive:

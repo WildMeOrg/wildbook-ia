@@ -9,17 +9,14 @@ sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis.view import viz
+from ibeis import viz
 from plottool import draw_func2 as df2
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST
 
 
 @__testing__.testcontext2(TEST_NAME)
-def TEST_VIZ():
-    main_locals = __testing__.main()
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-
+def TEST_VIZ(ibs):
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
 
@@ -72,13 +69,15 @@ def TEST_VIZ():
 
     ##----------------------
     main_locals.update(locals())
-    __testing__.main_loop(main_locals)
     printTEST('return test locals')
-    return main_locals
+    return locals()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = TEST_VIZ()
+    main_locals = __testing__.main()
+    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
+    test_locals = TEST_VIZ(ibs)
+    __testing__.main_loop(test_locals)
     df2.present()
     exec(test_locals['execstr'])

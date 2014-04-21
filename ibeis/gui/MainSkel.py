@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/joncrall/code/ibeis/ibeis/view/MainSkel.ui'
+# Form implementation generated from reading ui file '/home/joncrall/code/ibeis/ibeis/MainSkel.ui'
 #
 # Created: Mon Mar 31 16:37:17 2014
 #      by: PyQt4 UI code generator 4.9.1

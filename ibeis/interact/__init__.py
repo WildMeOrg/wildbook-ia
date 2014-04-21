@@ -8,7 +8,7 @@ import guitool
 # IBEIS
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact]', DEBUG=False)
 
-from ibeis.view import viz
+from ibeis import viz
 from . import interact_helpers as ih
 from .interact_image import interact_image
 from .interact_chip import interact_chip

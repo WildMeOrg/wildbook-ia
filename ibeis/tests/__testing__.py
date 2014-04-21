@@ -25,7 +25,6 @@ utool.ensure_in_pythonpath('ibeis')
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[__testing__]')
 import ibeis
 ibeis._preload()
-from ibeis.dev import main_api
 from ibeis.dev import params
 import pyhesaff
 
@@ -167,7 +166,7 @@ def main(defaultdb='testdb', allow_newdir=False, **kwargs):
             utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
     if utool.get_flag('--clean'):
         sys.exit(0)
-    main_locals = main_api.main(defaultdb=defaultdb, allow_newdir=allow_newdir, **kwargs)
+    main_locals = ibeis.main(defaultdb=defaultdb, allow_newdir=allow_newdir, **kwargs)
     return main_locals
 
 
@@ -177,7 +176,7 @@ def main_loop(main_locals, **kwargs):
     parent_globals = utool.get_parent_globals()
     main_locals.update(parent_locals)
     main_locals.update(parent_globals)
-    return main_api.main_loop(main_locals, **kwargs)
+    return ibeis.main_loop(main_locals, **kwargs)
 
 
 def printTEST(msg, wait=False):

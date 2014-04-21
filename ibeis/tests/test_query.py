@@ -19,7 +19,7 @@ import utool
 from plottool import draw_func2 as df2
 #IBEIS
 from ibeis.dev import params  # NOQA
-from ibeis.view import interact
+from ibeis import interact
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(

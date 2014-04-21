@@ -9,7 +9,7 @@ sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis.view import interact  # NOQA
+from ibeis import interact  # NOQA
 from plottool import draw_func2 as df2
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
 printTEST = __testing__.printTEST

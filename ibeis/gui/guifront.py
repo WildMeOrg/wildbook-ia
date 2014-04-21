@@ -9,8 +9,8 @@ from PyQt4.QtCore import Qt
 import utool
 import guitool
 from guitool import slot_, signal_
-from ibeis.view import gui_item_tables as item_table
-from ibeis.view.MainSkel import Ui_mainSkel
+from ibeis.gui import gui_item_tables as item_table
+from ibeis.gui.MainSkel import Ui_mainSkel
 
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')

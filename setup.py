@@ -39,7 +39,7 @@ def compile_ui():
                   'linux2': 'pyuic4',
                   'darwin': 'pyuic4'}[sys.platform]
     cwd = get_project_repo_dir()
-    widget_dir = join(cwd, 'ibeis/view')
+    widget_dir = join(cwd, 'ibeis')
     print('[setup] Compiling qt designer files in %r' % widget_dir)
     for widget_ui in util_path.glob(widget_dir, '*.ui'):
         widget_py = splitext(widget_ui)[0] + '.py'
