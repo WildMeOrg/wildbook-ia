@@ -1,4 +1,4 @@
-#!usr/bin/env python
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 #------
 TEST_NAME = 'TEST_SQL_NUMPY'
@@ -38,7 +38,7 @@ def TEST_SQL_NUMPY():
             temp_hash
         )
         VALUES (?)
-        ''', parameters_iter=feats_iter)
+        ''', params_iter=feats_iter)
     print(' * execute insert time=%r sec' % utool.toc(tt))
 
     printTEST('[TEST] save sql database')

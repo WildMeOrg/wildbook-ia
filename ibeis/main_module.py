@@ -62,7 +62,7 @@ def _init_matplotlib():
 
 def _init_gui():
     import guitool
-    from ibeis import guiback
+    from ibeis.gui import guiback
     import utool
     if not utool.QUIET:
         print('[main] _init_gui()')

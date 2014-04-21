@@ -31,7 +31,7 @@ def __insert_names(db, name_list):
         )
         VALUES (NULL, ?)
         ''',
-        parameters_iter=((name,) for name in name_list))
+        params_iter=((name,) for name in name_list))
     assert ret == [None] * len(name_list)
     #print('INSERT RETURNED: %r' % ret)
 
@@ -77,7 +77,7 @@ def TEST_SQL_NAMES():
                FROM names
                WHERE name_text=?
                ''',
-        parameters_iter=((name,) for name in query_names))
+        params_iter=((name,) for name in query_names))
 
     # Get the parameter indexes that failed
     failx_list = [count for count, nid in enumerate(nid_list) if nid is None]
