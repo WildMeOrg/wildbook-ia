@@ -7,7 +7,7 @@ import plottool.draw_func2 as df2
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from . import interact_helpers as ih
-from . import interact_chipres
+from . import interact_matches
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[viz-matches]', DEBUG=False)
@@ -15,11 +15,11 @@ from . import interact_chipres
 
 @utool.indent_func
 @profile
-def interact_qres(ibs, qres, **kwargs):
+def interact_qres(ibs, qres, fnum=None, **kwargs):
     ''' Displays query chip, groundtruth matches, and top 5 matches'''
-
+    fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
-    printDBG('[viz._show_res()] starting interaction')
+    printDBG('[interact_qres] starting interaction')
 
     def _ctrlclicked_rid(rid):
         printDBG('ctrl+clicked rid=%r' % rid)
@@ -33,7 +33,7 @@ def interact_qres(ibs, qres, **kwargs):
     def _clicked_rid(rid):
         printDBG('clicked rid=%r' % rid)
         fnum = df2.next_fnum()
-        interact_chipres.interact_chipres(ibs, qres, rid, fnum=fnum)
+        interact_matches.interact_matches(ibs, qres, rid, fnum=fnum)
         fig = df2.gcf()
         fig.canvas.draw()
         df2.bring_to_front(fig)
@@ -43,7 +43,6 @@ def interact_qres(ibs, qres, **kwargs):
         printDBG('clicked none')
         kwargs['annote'] = kwargs.get('annote', 0) + toggle
         fig = viz.show_qres(ibs, qres, **kwargs)
-        vh.draw()
         return fig
 
     def _on_match_click(event):
@@ -55,8 +54,8 @@ def interact_qres(ibs, qres, **kwargs):
         viztype = vh.get_ibsdat(ax, 'viztype', '')
         #printDBG(str(event.__dict__))
         printDBG('viztype=%r' % viztype)
-        # Clicked a specific chipres
-        if viztype.startswith('chipres'):
+        # Clicked a specific matches
+        if viztype.startswith('matches'):
             rid = vh.get_ibsdat(ax, 'rid', None)
             # Ctrl-Click
             key = '' if event.key is None else event.key
@@ -68,7 +67,9 @@ def interact_qres(ibs, qres, **kwargs):
             else:
                 print('[viz] result clicked')
                 return _clicked_rid(rid)
+        vh.draw()
 
     fig = _top_matches_view()
+    vh.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
-    printDBG('[viz._show_res()] Finished')
+    printDBG('[interact_qres] Finished')

@@ -103,8 +103,12 @@ class ArgumentParser2(object):
     def add_intlist(self, switch, *args, **kwargs):
         self.add_meta(switch, int,  *args, nargs='*', **kwargs)
 
+    add_ints = add_intlist
+
     def add_strlist(self, switch, *args, **kwargs):
         self.add_meta(switch, str,  *args, nargs='*', **kwargs)
+
+    add_strs = add_strlist
 
     def add_float(self, switch, *args, **kwargs):
         self.add_meta(switch, float, *args, **kwargs)

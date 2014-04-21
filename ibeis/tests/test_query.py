@@ -42,7 +42,7 @@ def TEST_QUERY(ibs=None, qrid_list=None):
         rid2 = top_rids[0]
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
-        #viz_matches.show_chipres(ibs, qres, rid2, fnum=fnum, in_image=True)
+        #viz_matches.show_matches(ibs, qres, rid2, fnum=fnum, in_image=True)
         #viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
         interact.interact_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
         df2.set_figtitle('Query Result')

@@ -7,13 +7,13 @@ from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from . import interact_helpers as ih
 from .interact_chip import interact_chip
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact-chipres]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
 
 
-def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
+def interact_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
                      same_fig=True, **kwargs):
     'Plots a chip result and sets up callbacks for interaction.'
-    fig = ih.begin_interaction('chipres', fnum)
+    fig = ih.begin_interaction('matches', fnum)
     qrid = qres.qrid
     if rid is None:
         rid = qres.get_top_rids(num=1)[0]
@@ -33,8 +33,8 @@ def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
         draw_lines = mode == 2
         annote_ptr[0] = (annote_ptr[0] + 1) % 3
         df2.figure(fnum=fnum, docla=True, doclf=True)
-        # TODO RENAME This to remove qres and rectify with show_chipres
-        tup = viz.show_chipres(ibs, qres, rid, fnum=fnum, pnum=pnum,
+        # TODO RENAME This to remove qres and rectify with show_matches
+        tup = viz.show_matches(ibs, qres, rid, fnum=fnum, pnum=pnum,
                                draw_lines=draw_lines, draw_ell=draw_ell,
                                colorbar_=True, **kwargs)
         ax, xywh1, xywh2 = tup
@@ -97,7 +97,7 @@ def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
                                    prevsift=prevsift, rid=rid, info=info)
             prevsift = sift
         if not same_fig:
-            ih.connect_callback(fig2, 'button_press_event', _click_chipres_click)
+            ih.connect_callback(fig2, 'button_press_event', _click_matches_click)
             df2.set_figtitle(figtitle + vh.get_vsstr(qrid, rid))
 
     # Draw ctrl clicked selection
@@ -109,8 +109,8 @@ def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
         viz.draw()
 
     # Callback
-    def _click_chipres_click(event):
-        print_('[inter] clicked chipres')
+    def _click_matches_click(event):
+        print_('[inter] clicked matches')
         if event is None:
             return
         button = event.button
@@ -130,11 +130,11 @@ def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
         print_('key=%r ' % key)
         ctrl_down = key.find('control') == 0
         # Click in match axes
-        if viztype == 'chipres' and ctrl_down:
+        if viztype == 'matches' and ctrl_down:
             # Ctrl-Click
             print('.. control click')
             return _sv_view(rid)
-        elif viztype == 'chipres':
+        elif viztype == 'matches':
             if len(fm) == 0:
                 print('[inter] no feature matches to click')
             else:
@@ -166,12 +166,12 @@ def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
         _select_ith_match(mx, qrid, rid)
 
     def toggle_samefig():
-        interact_chipres(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
+        interact_matches(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
 
     def query_last_feature():
         viz.show_nearest_descriptors(ibs, qrid, last_state.last_fx, df2.next_fnum())
         fig3 = df2.gcf()
-        ih.connect_callback(fig3, 'button_press_event', _click_chipres_click)
+        ih.connect_callback(fig3, 'button_press_event', _click_matches_click)
         df2.update()
 
     toggle_samefig_key = 'Toggle same_fig (currently %r)' % same_fig
@@ -181,5 +181,5 @@ def interact_chipres(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result
         ('query last feature', query_last_feature),
         ('cancel', lambda: print('cancel')), ]
     guitool.popup_menu(fig.canvas, opt2_callback, fig.canvas)
-    ih.connect_callback(fig, 'button_press_event', _click_chipres_click)
+    ih.connect_callback(fig, 'button_press_event', _click_matches_click)
     viz.draw()

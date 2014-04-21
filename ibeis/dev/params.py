@@ -130,14 +130,19 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
     # TODO: Port more from hotspotter/hsdev/argparse2.py
     # TODO: Incorporate kwargs
     global args
-    parser2 = util_arg.make_argparse2('IBEIS - lite', version='???')
+    parser2 = util_arg.make_argparse2('IBEIS - Lite', version='0.0')
 
     def dev_argparse(parser2):
+        parser2 = parser2.add_argument_group('Developer')
         parser2.add_str(('--tests', '--test', '-t'),  [], 'integer or test name', nargs='*')
-        parser2.add_intlist(('--index', '-x'), None, help='test only this index')
-        parser2.add_intlist('--qrid', default=[], help='investigate match cx')
+        parser2.add_flag(('--wait', '-w'),  help='wait for user to press enter')
+        parser2.add_flag(('--cmd', '--ipy'), help='Runs in IPython mode')
+        parser2.add_ints(('--index', '-x'), None, help='test only this index')
+        parser2.add_ints('--qrid', default=[], help='investigate match cx')
         parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'))
+        parser2.add_intlist(('--sel-rows', '-r'), help='view row')
+        parser2.add_intlist(('--sel-cols', '-c'), help='view col')
 
     def behavior_argparse(parser2):
         # Program behavior
@@ -148,7 +153,6 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         parser2.add_flag('--serial', help='Forces num_procs=1')
         parser2.add_flag('--nogui', help='Will not start the gui')
         parser2.add_int('--loop-freq', default=100, help='Qt main loop ms frequency')
-        parser2.add_flag('--cmd', help='Runs in IPython mode')
         parser2.add_flag('--nocache-db', help='Disables db cache')
         parser2.add_flag('--nocache-flann', help='Disables flann cache')
         parser2.add_flag('--nocache-query', help='Disables flann cache')
@@ -160,12 +164,22 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         parser2 = parser2.add_argument_group('Database')
         parser2.add_str('--db', defaultdb, 'specifies the short name of the database to load')
         parser2.add_str('--dbdir', kwargs.get('dbdir', None), 'specifies the full path of the database to load')
+        parser2.add_str(('--workdir', '--wdir'), None, help='sets the default work directory')
+
+    def commands_argparse(parser2):
+        parser2 = parser2.add_argument_group('Commands')
         parser2.add_flag(('--set-default-dbdir',  '--setdbdir', '--setdb', '--set-db'), help='sets the opening database to be the default')
         parser2.add_flag('--dump-global-cache')
-        parser2.add_str(('--workdir', '--wdir'), None, help='sets the default work directory')
+        parser2.add_flag('--dump-argv')
+        parser2.add_flag(('--view-database-directory', '--vdd'), help='opens the database directory')
+        parser2.add_strlist(('--update-cfg', '--set-cfg', '--cfg'),
+                            default=None, help='set cfg dict via strings: e.g.  --cfg xy_thresh=.01 score_method=csum')
+        parser2.add_flag('--postload-exit', help='exit after posload commands')
+
     behavior_argparse(parser2)
     database_argparse(parser2)
     dev_argparse(parser2)
+    commands_argparse(parser2)
 
     args, unknown = parser2.parser.parse_known_args()
 

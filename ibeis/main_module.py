@@ -1,7 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import __builtin__
 
 sys.argv.append('--strict')  # do not supress any errors
+
+try:
+    profile = getattr(__builtin__, 'profile')
+except AttributeError:
+    def profile(func):
+        return func
 
 
 def _on_ctrl_c(signal, frame):
@@ -28,20 +35,21 @@ def _parse_args(**kwargs):
     params.parse_args(**kwargs)
 
 
+@profile
 def _init_matplotlib():
     import matplotlib
     import multiprocessing
     import utool
     backend = matplotlib.get_backend()
     if  multiprocessing.current_process().name == 'MainProcess':
-        if not utool.QUIET:
+        if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
             print('[main]  current backend is: %r' % backend)
             print('[main]  matplotlib.use(Qt4Agg)')
         if backend != 'Qt4Agg':
             matplotlib.use('Qt4Agg', warn=True, force=True)
             backend = matplotlib.get_backend()
-            if not utool.QUIET:
+            if not utool.QUIET and utool.VERBOSE:
                 print('[main] current backend is: %r' % backend)
         if utool.get_flag('--notoolbar') or utool.get_flag('--devmode'):
             toolbar = 'None'
@@ -60,6 +68,7 @@ def _init_matplotlib():
             #matplotlib.rcParams['interactive'] = True
 
 
+@profile
 def _init_gui():
     import guitool
     from ibeis.gui import guiback
@@ -72,6 +81,7 @@ def _init_gui():
     return back
 
 
+@profile
 def _init_ibeis():
     import utool
     from ibeis.control import IBEISControl
@@ -137,11 +147,13 @@ def _init_numpy():
 def _guitool_loop(main_locals, ipy=False):
     import guitool
     from ibeis.dev import params
+    print('[main] guitool loop')
     back = main_locals['back']
     loop_freq = params.args.loop_freq
     guitool.qtapp_loop(back=back, ipy=ipy or params.args.cmd, frequency=loop_freq)
 
 
+@profile
 def main(**kwargs):
     """
     Program entry point
@@ -174,10 +186,12 @@ def main(**kwargs):
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
-    _postload_commands()
-    return {'ibs': ibs, 'back': back}
+    _postload_commands(ibs)
+    main_locals = {'ibs': ibs, 'back': back}
+    return main_locals
 
 
+@profile
 def _preload(**kwargs):
     import utool
     from ibeis.dev import main_helpers
@@ -203,11 +217,12 @@ def _preload_commands(**kwargs):
     main_commands.preload_commands()  # PRELOAD CMDS
 
 
-def _postload_commands(**kwargs):
+def _postload_commands(ibs, **kwargs):
     from ibeis.dev import main_commands
-    main_commands.preload_commands()  # PRELOAD CMDS
+    main_commands.postload_commands(ibs)  # POSTLOAD CMDS
 
 
+@profile
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     """
     Runs the qt loop if the GUI was initialized and returns an executable string

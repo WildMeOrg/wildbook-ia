@@ -61,7 +61,7 @@ def TEST_VIZ(ibs):
     #----------------------
     if not query_failed:
         printTEST('Show Query')
-        viz.show_chipres(ibs, qres, rid2, fnum=4)
+        viz.show_matches(ibs, qres, rid2, fnum=4)
         df2.set_figtitle('Show Chipres')
 
         viz.show_qres(ibs, qres, fnum=5)

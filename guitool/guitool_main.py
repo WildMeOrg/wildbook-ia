@@ -3,10 +3,12 @@ from __future__ import absolute_import, division, print_function
 import atexit
 import sys
 from PyQt4 import QtCore, QtGui
-
 import sip
 if hasattr(sip, 'setdestroyonexit'):
     sip.setdestroyonexit(False)  # This prevents a crash on windows
+import utool
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool]', DEBUG=False)
+
 
 IS_ROOT = False
 QAPP = None
@@ -19,6 +21,7 @@ def get_qtapp():
     return QAPP
 
 
+@profile
 def ensure_qtapp():
     global IS_ROOT
     global QAPP
@@ -45,6 +48,7 @@ def ensure_qtapp():
 init_qtapp = ensure_qtapp
 
 
+@profile
 def activate_qwindow(back):
     if not QUIET:
         print('[guitool.qtapp_loop()] qapp.setActiveWindow(back.front)')
@@ -53,6 +57,7 @@ def activate_qwindow(back):
     QAPP.setActiveWindow(back.front)
 
 
+@profile
 def qtapp_loop_nonblocking(back=None, **kwargs):
     global QAPP
     from IPython.lib.inputhook import enable_qt4
@@ -63,6 +68,7 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
     start_event_loop_qt4(QAPP)
 
 
+@profile
 def qtapp_loop(back=None, ipy=False, **kwargs):
     global QAPP
     if not QUIET:
@@ -82,6 +88,7 @@ def qtapp_loop(back=None, ipy=False, **kwargs):
             print('[guitool.qtapp_loop()] not execing')
 
 
+@profile
 def ping_python_interpreter(frequency=4200):  # 4200):
     'Create a QTimer which lets the python catch ctrl+c'
     if not QUIET:

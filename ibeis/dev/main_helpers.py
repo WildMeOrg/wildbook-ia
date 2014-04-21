@@ -22,27 +22,28 @@ def register_utool_aliases():
 
 
 @utool.indent_decor('[get_test_rids]')
+@profile
 def get_test_qrids(ibs):
     """ Gets test roi_uids based on command line arguments """
     #print('[main_helpers]')
     test_qrids = []
     valid_rids = ibs.get_valid_rids()
-    print('1. valid_rids = %r' % valid_rids[0:5])
+    printDBG('1. valid_rids = %r' % valid_rids[0:5])
     #print(utool.dict_str(vars(params.args)))
 
     if params.args.qrid is not None:
-        print('Testing qrid=%r' % params.args.qrid)
+        printDBG('Testing qrid=%r' % params.args.qrid)
         test_qrids.extend(params.args.qrid)
 
     if params.args.all_cases:
-        print('Testing all %d cases' % (len(valid_rids),))
-        print('1. test_qrids = %r' % test_qrids[0:5])
+        printDBG('Testing all %d cases' % (len(valid_rids),))
+        printDBG('1. test_qrids = %r' % test_qrids[0:5])
         test_qrids.extend(valid_rids)
-        print('2. test_qrids = %r' % test_qrids[0:5])
+        printDBG('2. test_qrids = %r' % test_qrids[0:5])
     else:
         is_hard_list = ibs.get_roi_is_hard(valid_rids)
         hard_rids = utool.filter_items(valid_rids, is_hard_list)
-        print('Testing %d known hard cases' % len(hard_rids))
+        printDBG('Testing %d known hard cases' % len(hard_rids))
         test_qrids.extend(hard_rids)
 
     if params.args.all_gt_cases:
@@ -55,17 +56,17 @@ def get_test_qrids(ibs):
     # Filter only the ones you want from the large pool
     if params.args.index is not None:
         indexes = utool.ensure_iterable(params.args.index)
-        print('Chosen indexes=%r' % (indexes,))
-        print('test_qrids = %r' % test_qrids[0:5])
+        printDBG('Chosen indexes=%r' % (indexes,))
+        printDBG('test_qrids = %r' % test_qrids[0:5])
         _test_qrids = [test_qrids[xx] for xx in indexes]
         test_qrids = _test_qrids
-        print('test_qrids = %r' % test_qrids)
+        printDBG('test_qrids = %r' % test_qrids)
     elif len(test_qrids) == 0 and len(valid_rids) > 0:
-        print('no hard or gt rids. Defaulting to the first ROI')
+        printDBG('no hard or gt rids. Defaulting to the first ROI')
         test_qrids = valid_rids[0:1]
 
-    print('len(test_qrids) = %d' % len(test_qrids))
-    print('test_qrids = %r' % test_qrids)
+    printDBG('test_qrids = %r' % test_qrids)
     test_qrids = utool.unique_keep_order2(test_qrids)
-    print('test_qrids = %r' % test_qrids)
+    printDBG('test_qrids = %r' % test_qrids)
+    printDBG('len(test_qrids) = %d' % len(test_qrids))
     return test_qrids

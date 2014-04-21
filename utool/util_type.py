@@ -26,13 +26,13 @@ VALID_FLOAT_TYPES = (types.FloatType,
                      np.dtype('float16'),)
 
 
-def try_cast(var, type_):
+def try_cast(var, type_, default=None):
     if type_ is None:
         return var
     try:
         return type_(var)
     except Exception:
-        return None
+        return default
 
 
 def assert_int(var, lbl='var'):

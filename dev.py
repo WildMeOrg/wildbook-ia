@@ -11,7 +11,7 @@ from ibeis.dev import main_helpers
 from ibeis import interact
 import utool
 import multiprocessing
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=True)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
 
 def vdd(ibs=None):
@@ -28,16 +28,22 @@ def query_rids(ibs, qrid_list):
     for qrid in qrid_list:
         qres = qrid2_qres[qrid]
         interact.interact_qres(ibs, qres, fnum=df2.next_fnum())
+    return qrid2_qres
 
 
-@utool.indent_decor('[dev]')
+def printcfg(ibs):
+    ibs.cfg.printme3()
+    print(ibs.cfg.query_cfg.get_uid())
+
+
+#@utool.indent_decor('[dev]')
 def run_experiments(ibs, qrid_list):
     print('\n')
     print('==========================')
     print('RUN INVESTIGATIONS %s' % ibs.get_dbname())
     print('==========================')
     input_test_list = params.args.tests[:]
-    print('[dev] input_test_list = %r' % (input_test_list,))
+    print('input_test_list = %r' % (input_test_list,))
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
@@ -55,12 +61,14 @@ def run_experiments(ibs, qrid_list):
 
     if intest('info'):
         print(ibs.get_infostr())
+    if intest('printcfg'):
+        printcfg(ibs)
     if intest('tables'):
         ibs.print_tables()
     if intest('imgtbl'):
         ibs.print_image_table()
     if intest('query'):
-        query_rids(ibs, qrid_list)
+        qrid2_qres = query_rids(ibs, qrid_list)
     if intest('show'):
         show_rids(ibs, qrid_list)
 
@@ -81,24 +89,42 @@ def run_experiments(ibs, qrid_list):
         print('valid tests are: \n')
         print('\n'.join(valid_test_list))
         raise Exception('Unknown tests: %r ' % input_test_list)
+    return locals()
 
 
-if __name__ == '__main__':
-    multiprocessing.freeze_support()  # for win32
-    from ibeis.dev.all_imports import *  # NOQA
-    print('\n [DEV] __DEV__\n')
+@profile
+def dev_main():
+    print('++dev')
     main_locals = ibeis.main(gui='--gui' in sys.argv)
     ibs  = main_locals['ibs']
     back = main_locals['back']
 
     fnum = 1
     qrid_list = main_helpers.get_test_qrids(ibs)
-    run_experiments(ibs, qrid_list)
+    expt_locals = run_experiments(ibs, qrid_list)
 
     if not '--nopresent' in sys.argv:
         df2.present()
     ipy = (not '--gui' in sys.argv) or ('--cmd' in sys.argv)
-    execstr = ibeis.main_loop(main_locals, ipy=ipy)
-    print('\n[DEV] ENTER EXEC\n')
-    #print(execstr)
+    main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
+    return locals(), main_execstr
+
+if __name__ == '__main__':
+    """
+    --- The Developer Script ---
+    A command line interface to almost everything
+
+    -w    -- wait            # so the gui / figures are visible
+    --cmd -- ipython shell   # interact with variables
+    -t [test1, [test2, ...]] # run tests
+
+    Examples:
+        ./dev.py -t query -w
+
+    """
+    multiprocessing.freeze_support()  # for win32
+    from ibeis.dev.all_imports import *  # NOQA
+    dev_locals, main_execstr = dev_main()
+    dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
+    execstr = dev_execstr + '\n' + main_execstr
     exec(execstr)

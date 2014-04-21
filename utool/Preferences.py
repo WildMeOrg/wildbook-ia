@@ -14,7 +14,7 @@ from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
 # Util
 from .DynStruct import DynStruct
 from .util_inject import inject
-from .util_type import is_str, is_dict
+from .util_type import is_str, is_dict, try_cast
 print, print_, printDBG, rrr, profile = inject(__name__, '[pref]')
 
 # ---
@@ -74,12 +74,19 @@ class PrefInternal(DynStruct):
         _intern.hidden  = hidden   # A node can be hidden
         _intern.fpath   = fpath    # A node is cached to
         _intern.depeq   = depeq    # A node depends on
+        _intern._frozen_type = None     # A node's value type
         # Some preferences are constrained to a list of choices
         if choices is not None:
             _intern.value = PrefChoice(choices, default)
 
-    def type(_intern):
-        return type(_intern.value)
+    def get_type(_intern):
+        if _intern._frozen_type is not None:
+            return _intern._frozen_type
+        else:
+            return type(_intern.value)
+
+    def freeze_type(_intern):
+        _intern._frozen_type = _intern.get_type()
 
 
 class PrefTree(DynStruct):
@@ -151,6 +158,9 @@ class Pref(PrefNode):
             #printDBG('----------')
             #printDBG('new Pref(default=PrefNode)')
 
+    def get_type(self):
+        return self._intern.get_type()
+
     # -------------------
     # Attribute Setters
     def toggle(self, key):
@@ -185,6 +195,11 @@ class Pref(PrefNode):
             if isinstance(child._intern.value, PrefChoice):
                 child.change_combo_val(attr)
             else:
+                child_type = child._intern.get_type()
+                attr_type  = type(attr)
+                if not child_type is attr_type:
+                    #print('WARNING TYPE DIFFERENCE! %r, %r' % (child_type, attr_type))
+                    attr = try_cast(attr, child_type, attr)
                 child._intern.value = attr
             self.__dict__[name] = child.value()
 
@@ -273,8 +288,14 @@ class Pref(PrefNode):
             return self._tree.child_list[attrx]
         #print(self._internal.name)
         #print(self._tree)
-        print('[prefs!] !!! ERROR !!!')
-        raise AttributeError('attribute: %s.%s not found' % (self._intern.name, name))
+        msg = '\n' + '\n'.join([
+            '[prefs!] !!! Attribute Error !!!',
+            '  * attribute: %s.%s not found' % (self._intern.name, name),
+            '  * type(self) = %r' % (type(self),),
+            '  * type(self._intern) = %r' % (type(self._intern),),
+        ])
+        print(msg)
+        raise AttributeError(msg)
 
     def iteritems(self):
         for (key, val) in self.__dict__.iteritems():
@@ -442,7 +463,7 @@ class Pref(PrefNode):
         print('[pref] qt_set_leaf_data: qvar=%s' % str(qvar.toString()))
 
         print('[pref] qt_set_leaf_data: _intern.name=%r' % self._intern.name)
-        print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.type())
+        print('[pref] qt_set_leaf_data: _intern.type_=%r' % self._intern.get_type())
         print('[pref] qt_set_leaf_data: _intern.value=%r' % self._intern.value)
 
         if self._tree.parent is None:

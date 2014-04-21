@@ -7,6 +7,16 @@ __DEBUG_ALL__ = '--debug-all' in sys.argv
 __DEBUG_PROF__ = '--debug-prof' in sys.argv or '--debug-profile' in sys.argv
 
 
+# Read all flags with --debug in them
+ARGV_DEBUG_FLAGS = []
+for argv in sys.argv:
+    if argv.startswith('--debug'):
+        ARGV_DEBUG_FLAGS.append(argv.replace('--debug', '').strip('-'))
+
+
+#print('ARGV_DEBUG_FLAGS: %r' % (ARGV_DEBUG_FLAGS,))
+
+
 __STDOUT__ = sys.stdout
 __PRINT_FUNC__     = __builtin__.print
 __PRINT_DBG_FUNC__ = __builtin__.print
@@ -92,7 +102,11 @@ def inject_print_functions(module_name=None, module_prefix='[???]', DEBUG=False,
     flag1 = '--debug-%s' % _replchars(module_name)
     flag2 = '--debug-%s' % _replchars(module_prefix)
     DEBUG_FLAG = any([flag in sys.argv for flag in [flag1, flag2]])
+    for curflag in ARGV_DEBUG_FLAGS:
+        if curflag in module_prefix:
+            DEBUG_FLAG = True
     if __DEBUG_ALL__ or DEBUG or DEBUG_FLAG:
+        print('DEBUGGING: %r == %r' % (module_name, module_prefix))
         def printDBG(msg):
             __PRINT_DBG_FUNC__(module_prefix + ' DEBUG ' + msg)
     else:

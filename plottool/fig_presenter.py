@@ -75,6 +75,7 @@ def get_screen_info():
     normal_geometry = desktop.normalGeometry()  # NOQA
 
 
+#@profile
 def get_all_figures():
     all_figures_ = [manager.canvas.figure for manager in
                     mpl._pylab_helpers.Gcf.get_all_fig_managers()]
@@ -196,16 +197,15 @@ def get_avail_geom(monitor_num=None):
     return available_geom
 
 
+#@profile
 def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
                      adaptive=False, monitor_num=None, **kwargs):
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
-    print('[df2] all_figures_tile()')
+    #print('[df2] all_figures_tile()')
     if no_tile:
         return
-    startx, starty, avail_width, avail_height = get_avail_geom()
-
     #print('tile_figures_in_avail_geom')
 
     all_figures = get_all_figures()
@@ -215,6 +215,8 @@ def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
     num_wins = len(all_wins)
     if num_wins == 0:
         return
+
+    startx, starty, avail_width, avail_height = get_avail_geom()
 
     nRows = num_wins if num_wins < max_rows else max_rows
     nCols = int(np.ceil(num_wins / nRows))
@@ -319,7 +321,7 @@ iup = iupdate
 
 def present(*args, **kwargs):
     'execing present should cause IPython magic'
-    print('[df2] Presenting figures...')
+    #print('[df2] Presenting figures...')
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         all_figures_tile(*args, **kwargs)

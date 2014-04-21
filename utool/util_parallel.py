@@ -28,10 +28,11 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     if num_procs is None:
         # Get number of cpu cores
         num_procs = get_default_numprocs()
-    if not QUIET:
+    if not QUIET and VERBOSE:
         print('[parallel] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
-        print('[parallel] num_procs=1, Will process in serial')
+        if VERBOSE:
+            print('[parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
     if '--strict' in sys.argv:
@@ -47,7 +48,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 def close_pool():
     global __POOL__
     if __POOL__ is not None:
-        if not QUIET:
+        if not QUIET and VERBOSE:
             print('[parallel] closing pool')
         if __POOL__ != 1:
             # Must join after close to avoid runtime errors

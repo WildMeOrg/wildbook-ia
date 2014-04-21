@@ -52,7 +52,7 @@ def TEST_INTERACT():
     #top_cids = qres.get_top_cids(ibs)
     #assert len(top_cids) > 0, 'there does not seem to be results'
     #cid2 = top_cids[0]  # 294
-    #viz.show_chipres(ibs, qres, cid2, fnum=4)
+    #viz.show_matches(ibs, qres, cid2, fnum=4)
 
     #viz.show_qres(ibs, qres, fnum=5)
 
