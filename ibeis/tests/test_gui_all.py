@@ -4,34 +4,23 @@ from __future__ import absolute_import, division, print_function
 import sys
 import os
 sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
-#-----
-TEST_NAME = 'TEST_GUI_ALL'
-#-----
 import __testing__  # Should be imported before any ibeis stuff
 import multiprocessing
 import utool
 import numpy as np
-np.tau = 2 * np.pi
 from ibeis.dev import params
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
-
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ALL]')
+np.tau = 2 * np.pi
 printTEST = __testing__.printTEST
 
-RUNGUI = utool.get_flag('--gui')
 
-
-@__testing__.testcontext2(TEST_NAME)
-def TEST_GUI_ALL():
+def TEST_GUI_ALL(ibs, back):
     """
     Creates a new database
     Adds test images
     Creates dummy ROIS
     Selects things
     """
-    main_locals = __testing__.main(defaultdb='testdb')
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-    back = main_locals['back']  # IBEIS GUI backend
-
     # DELETE OLD
     printTEST('[TEST] DELETE_OLD_DATABASE')
     work_dir   = params.get_workdir()
@@ -83,13 +72,14 @@ def TEST_GUI_ALL():
 
     #add_roi(gid_list[2], None)  # user selection
     #add_roi(None, [42, 42, 8, 8])  # back selection
-    main_locals.update(locals())
-    __testing__.main_loop(main_locals, rungui=RUNGUI)
     # I'm not sure how I want to integrate that IPython stuff
-    return main_locals
+    return locals()
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    test_locals = TEST_GUI_ALL()
-    exec(test_locals['execstr'])
+    multiprocessing.freeze_support()  # For windows
+    main_locals = __testing__.main(defaultdb='testdb', gui=True)
+    ibs  = main_locals['ibs']   # IBEIS Control
+    back = main_locals['back']  # IBEIS GUI backend
+    test_locals = __testing__.run_test(TEST_GUI_ALL, ibs, back)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

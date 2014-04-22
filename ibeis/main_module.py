@@ -82,13 +82,15 @@ def _init_gui():
 
 
 @profile
-def _init_ibeis():
+def _init_ibeis(**kwargs):
     import utool
     from ibeis.control import IBEISControl
     from ibeis.dev import params
     if not utool.QUIET:
         print('[main] _init_ibeis()')
-    dbdir = params.args.dbdir
+    dbdir = kwargs.get('dbdir', None)
+    if dbdir is None:
+        dbdir = params.args.dbdir
     if dbdir is None:
         print('[main!] WARNING args.dbdir is None')
         ibs = None
@@ -146,18 +148,25 @@ def _init_numpy():
 
 def _guitool_loop(main_locals, ipy=False):
     import guitool
+    import utool
     from ibeis.dev import params
     print('[main] guitool loop')
-    back = main_locals['back']
-    loop_freq = params.args.loop_freq
-    guitool.qtapp_loop(back=back, ipy=ipy or params.args.cmd, frequency=loop_freq)
+    back = main_locals.get('back', None)
+    if back is not None:
+        loop_freq = params.args.loop_freq
+        guitool.qtapp_loop(back=back, ipy=ipy or params.args.cmd, frequency=loop_freq)
+    else:
+        if not utool.QUIET and utool.VERBOSE:
+            print('WARNING: back was not expected to be None')
 
 
 @profile
-def main(**kwargs):
+def main(gui=True, **kwargs):
     """
     Program entry point
     Inits the system environment, an IBEISControl, and a GUI if requested
+
+    If gui is False a gui instance will not be created
     """
     # Display a visible intro message
     msg1 = '''
@@ -179,8 +188,8 @@ def main(**kwargs):
     _preload(**kwargs)
     _preload_commands(**kwargs)
     try:
-        ibs = _init_ibeis()
-        if kwargs.get('gui', True) and ('--gui' in sys.argv or not '--nogui' in sys.argv):
+        ibs = _init_ibeis(**kwargs)
+        if gui and ('--gui' in sys.argv or not '--nogui' in sys.argv):
             back = _init_gui()
             back.connect_ibeis_control(ibs)
     except Exception as ex:
@@ -227,6 +236,8 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     """
     Runs the qt loop if the GUI was initialized and returns an executable string
     for embedding an IPython terminal if requested.
+
+    If rungui is False the gui will not loop even if back has been created
     """
     print('[main] ibeis.main_module.main_loop()')
     from ibeis.dev import params

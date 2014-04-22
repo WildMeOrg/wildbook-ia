@@ -1,39 +1,20 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
+import __sysreq__  # NOQA
+import ibeis
+ibeis._preload()
+import utool
 import sys
-sys.argv.append('--strict')  # Tests are always strict
+import numpy as np
+import vtool
+from plottool import fig_presenter
+from os.path import join, exists
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[__testing__]')
+
 VERBOSE = '--verbose' in sys.argv
 QUIET   = '--quiet' in sys.argv
 
-import functools
-from os.path import realpath, dirname, join, exists
-import numpy as np
-
-
-def ensure_utool_in_pythonpath():
-    utool_path = realpath(join(dirname(__file__), '..'))
-    while utool_path != '' and not exists(join(utool_path, 'utool')):
-        utool_path = join(utool_path, '..')
-    assert exists(join(utool_path, 'utool')), ('cannot find utool in: %r' % utool_path)
-    sys.path.append(realpath(utool_path))
-
-ensure_utool_in_pythonpath()
-
-import utool
-utool.ensure_in_pythonpath('hesaff')
-utool.ensure_in_pythonpath('ibeis')
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[__testing__]')
-import ibeis
-ibeis._preload()
-from ibeis.dev import params
-import pyhesaff
-
-
 INTERACTIVE = utool.get_flag(('--interactive', '-i'))
-
-
-class MyException(Exception):
-    pass
 
 
 HAPPY_FACE = r'''
@@ -63,18 +44,20 @@ SAD_FACE = r'''
 
 
 def run_test(func, *args, **kwargs):
+    """
+    Runs the test function
+    Input:
+        Anything that needs to be passed to <func>
+    Output:
+        executable (python code) which add tests_locals dictionary keys to your
+        local namespace
+    """
     with utool.Indenter('[' + func.func_name.lower().replace('test_', '') + ']'):
         try:
             printTEST('[TEST] %s BEGIN' % (func.func_name,))
             test_locals = func(*args, **kwargs)
             printTEST('[TEST] %s FINISH -- SUCCESS' % (func.func_name,))
             print(HAPPY_FACE)
-            # Build big execstring that you return in the locals dict
-            if not isinstance(test_locals, dict):
-                test_locals = {}
-            locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
-            execstr = test_locals.get('execstr', '')
-            test_locals['execstr'] = locals_execstr + '\n' + execstr
             return test_locals
         except Exception as ex:
             # Get locals in the wrapped function
@@ -92,33 +75,48 @@ def run_test(func, *args, **kwargs):
 
 
 # Oooh hacky way to make test context take an arg or not
-def testcontext2(name):
-    def test_wrapper2(func):
-        func.func_name = name
-        @testcontext
-        @functools.wraps(func)
-        @utool.ignores_exc_tb
-        def test_wrapper3(*args, **kwargs):
-            return func(*args, **kwargs)
-        return test_wrapper3
-    return test_wrapper2
+#def testcontext2(name):
+    #def test_wrapper2(func):
+        #func.func_name = name
+        #@testcontext
+        #@functools.wraps(func)
+        #@utool.ignores_exc_tb
+        #def test_wrapper3(*args, **kwargs):
+            #return func(*args, **kwargs)
+        #return test_wrapper3
+    #return test_wrapper2
 
 
-def testcontext(func):
-    @functools.wraps(func)
-    @utool.ignores_exc_tb
-    def test_wrapper(*args, **kwargs):
-        return run_test(func, *args, **kwargs)
-    return test_wrapper
+#def testcontext(func):
+    #@functools.wraps(func)
+    #@utool.ignores_exc_tb
+    #def test_wrapper(*args, **kwargs):
+        #return run_test(func, *args, **kwargs)
+    #return test_wrapper
+
+
+def get_test_imgdir(ensure=True):
+    """
+    Gets test img directory and downloads it if it doesn't exist
+    """
+    imgdir = utool.get_module_dir(vtool, 'tests', 'testdata')
+    if not exists(imgdir) and ensure:
+        zip_fpath = utool.truepath(join(imgdir, '..', 'testdata.zip'))
+        dropbox_link = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
+        utool.download_url(dropbox_link, zip_fpath)
+        utool.unzip_file(zip_fpath)
+        if exists(imgdir):
+            utool.delete(zip_fpath)
+    return imgdir
 
 
 def get_pyhesaff_test_image_paths(ndata, lena=True, zebra=False, jeff=False):
-    #root = utool.getroot()
-    imgdir = dirname(pyhesaff.__file__)
+    # FIXME: The testdata no longer lives in hesaff
+    imgdir = get_test_imgdir()
     gname_list = utool.flatten([
-        ['lena.png']  * utool.get_flag('--lena',   lena, help_='add lena to test images'),
-        ['zebra.png'] * utool.get_flag('--zebra', zebra, help_='add zebra to test images'),
-        ['test.png']  * utool.get_flag('--jeff',   jeff, help_='add jeff to test images'),
+        ['lena.jpg']  * utool.get_flag('--lena',   lena, help_='add lena to test images'),
+        ['zebra.jpg'] * utool.get_flag('--zebra', zebra, help_='add zebra to test images'),
+        ['jeff.png']  * utool.get_flag('--jeff',   jeff, help_='add jeff to test images'),
     ])
     # Build gpath_list
     if ndata == 0:
@@ -155,28 +153,37 @@ def get_test_numpy_data(shape=(3e3, 128), dtype=np.uint8):
     return table_list
 
 
-def main(defaultdb='testdb', allow_newdir=False, **kwargs):
+def main(defaultdb='testdb', allow_newdir=False, gui=False, **kwargs):
+    # TODO remove all of this fluff
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
-    known_testdbs = ['testdb', 'test_big_ibeis']
-    if defaultdb in known_testdbs:
-        allow_newdir = True
-        defaultdbdir = join(params.get_workdir(), defaultdb)
-        utool.ensuredir(defaultdbdir)
-        if utool.get_flag('--clean'):
-            utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
-    if utool.get_flag('--clean'):
-        sys.exit(0)
-    main_locals = ibeis.main(defaultdb=defaultdb, allow_newdir=allow_newdir, **kwargs)
+    #from ibeis import params
+    #known_testdbs = ['testdb', 'test_big_ibeis']
+    #if defaultdb in known_testdbs:
+        #allow_newdir = True
+        #defaultdbdir = join(params.get_workdir(), defaultdb)
+        #utool.ensuredir(defaultdbdir)
+        #if utool.get_flag('--clean'):
+            #utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
+    #if utool.get_flag('--clean'):
+        #sys.exit(0)
+    main_locals = ibeis.main(defaultdb=defaultdb, allow_newdir=allow_newdir, gui=gui, **kwargs)
     return main_locals
 
 
-def main_loop(main_locals, **kwargs):
+def main_loop(test_locals, rungui=False, **kwargs):
+    """
+    Runs ibs main loop (if applicable), does a present, and returns a useful
+    execstr
+    """
     printTEST('[TEST] TEST_LOOP')
-    parent_locals = utool.get_parent_locals()
-    parent_globals = utool.get_parent_globals()
-    main_locals.update(parent_locals)
-    main_locals.update(parent_globals)
-    return ibeis.main_loop(main_locals, **kwargs)
+    # Build big execstring that you return in the locals dict
+    ipycmd_execstr = ibeis.main_loop(test_locals, rungui=rungui, **kwargs)
+    fig_presenter.present()
+    if not isinstance(test_locals, dict):
+        test_locals = {}
+    locals_execstr = utool.execstr_dict(test_locals, 'test_locals')
+    execstr = locals_execstr + '\n' + ipycmd_execstr
+    return execstr
 
 
 def printTEST(msg, wait=False):
@@ -184,8 +191,3 @@ def printTEST(msg, wait=False):
     __builtin__.print('**' + msg)
     if INTERACTIVE and wait:
         raw_input('press enter to continue')
-
-
-def execfunc(*args, **kwargs):
-    from plottool import draw_func2 as df2
-    return df2.present

@@ -1,27 +1,14 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#-----
-TEST_NAME = 'TEST_GUI_SELECTION'
-#-----
 import __testing__  # Should be imported before any ibeis stuff
 import multiprocessing
 import utool
-from ibeis.dev import params
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_SELECTION]')
 printTEST = __testing__.printTEST
 
-RUNGUI = utool.get_flag('--gui')
 
-
-@__testing__.testcontext2(TEST_NAME)
-def TEST_GUI_SELECTION():
-    main_locals = __testing__.main()
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-    back = main_locals['back']  # IBEIS GUI backend
-
-    dbdir = params.db_to_dbdir('testdb')
-
+def TEST_GUI_SELECTION(ibs, back):
     printTEST('''
               get_valid_gids
               ''')
@@ -38,18 +25,18 @@ def TEST_GUI_SELECTION():
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
 
     gid = valid_gids[0]
-    rid_list = ibs.get_image_rois(gid)
+    rid_list = ibs.get_image_rids(gid)
     rid = rid_list[-1]
     back.select_gid(gid, sel_rids=[rid])
 
-    printTEST('[TEST] TEST SELECT dbdir=%r' % dbdir)
-
-    main_locals.update(locals())
-    __testing__.main_loop(main_locals, rungui=RUNGUI)
-    return main_locals
+    return locals()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = TEST_GUI_SELECTION()
-    exec(test_locals['execstr'])
+    main_locals = __testing__.main(gui=True)
+    ibs  = main_locals['ibs']   # IBEIS Control
+    back = main_locals['back']  # IBEIS GUI backend
+    test_locals = __testing__.run_test(TEST_GUI_SELECTION, ibs, back)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

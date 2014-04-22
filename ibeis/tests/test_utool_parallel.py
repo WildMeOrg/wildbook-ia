@@ -4,24 +4,17 @@
 Tests IBEIS parallel
 '''
 from __future__ import absolute_import, division, print_function
-TEST_NAME = 'TEST_PARALLEL'
 import __testing__  # NOQA
 import multiprocessing
 import utool
-import sys
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+import pyhesaff
+from utool import util_parallel
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_PARALLEL]')
 #utool.inject_all()
 printTEST = __testing__.printTEST
 
-sys.argv.append('--nogui')
 
-
-@__testing__.testcontext2(TEST_NAME)
 def TEST_PARALLEL():
-    import pyhesaff
-    from utool import util_parallel
-
-    main_locals = __testing__.main()
 
     gpath_list = __testing__.get_test_image_paths()
     args_list  = [(gpath,) for gpath in gpath_list]
@@ -62,11 +55,11 @@ def TEST_PARALLEL():
         printTEST('compare_serial')
         run_parallel_task(1)
     compare_serial()
-
-    __testing__.main_loop(main_locals)
+    return locals()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-    test_locals = TEST_PARALLEL()
-    exec(test_locals['execstr'])
+    test_locals = __testing__.run_test(TEST_PARALLEL)
+    execstr = __testing__.main_loop(test_locals)
+    exec(execstr)

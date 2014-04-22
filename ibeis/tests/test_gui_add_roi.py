@@ -1,25 +1,15 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'TEST_GUI_ADD_ROI'
-#------
 import __testing__
 import multiprocessing
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ADD_ROI]')
 
 printTEST = __testing__.printTEST
 
-RUNGUI = utool.get_flag('--gui')
 
-
-@__testing__.testcontext2(TEST_NAME)
-def TEST_GUI_ADD_ROI():
-    main_locals = __testing__.main()
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-    back = main_locals['back']  # IBEIS GUI backend
-
+def TEST_GUI_ADD_ROI(ibs, back):
     valid_gids = ibs.get_valid_gids()
     gid = valid_gids[0]
     printTEST('[TEST] SELECT GID=%r' % gid)
@@ -27,14 +17,14 @@ def TEST_GUI_ADD_ROI():
     bbox = [0, 0, 100, 100] if not __testing__.INTERACTIVE else None
     rid = back.add_roi(bbox=bbox)
     printTEST('[TEST] NEW RID=%r' % rid)
-
-    main_locals.update(locals())
-    __testing__.main_loop(main_locals, rungui=RUNGUI)
-    return main_locals
+    return locals()
 
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    test_locals = TEST_GUI_ADD_ROI()
-    exec(test_locals['execstr'])
+    multiprocessing.freeze_support()  # For windows
+    main_locals = __testing__.main(gui=True)
+    ibs  = main_locals['ibs']   # IBEIS Control
+    back = main_locals['back']  # IBEIS GUI backend
+    test_locals = __testing__.run_test(TEST_GUI_ADD_ROI, ibs, back)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

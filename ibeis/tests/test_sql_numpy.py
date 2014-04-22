@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'TEST_SQL_NUMPY'
-#------
 import __testing__  # Should be imported before any ibeis stuff
 import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NUMPY] ')
 
 printTEST = __testing__.printTEST
 
 
-@__testing__.testcontext2(TEST_NAME)
 def TEST_SQL_NUMPY():
-
     utool.util_path.remove_file('temp.sqlite3', dryrun=False)
 
     db = SQLDatabaseControl.SQLDatabaseControl(database_path='.', database_file='temp.sqlite3')
@@ -69,5 +64,6 @@ def TEST_SQL_NUMPY():
 
 
 if __name__ == '__main__':
-    test_locals = TEST_SQL_NUMPY()
-    exec(test_locals['execstr'])
+    test_locals = __testing__.run_test(TEST_SQL_NUMPY)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

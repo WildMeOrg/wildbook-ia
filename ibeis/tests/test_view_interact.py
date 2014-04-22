@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#-----
-TEST_NAME = 'TEST_INTERACT'
-#-----
 import sys
 sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
-from ibeis import interact  # NOQA
-from plottool import draw_func2 as df2
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+from ibeis.viz import interact
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_INTERACT]')
 printTEST = __testing__.printTEST
 
 
-@__testing__.testcontext2(TEST_NAME)
-def TEST_INTERACT():
-    main_locals = __testing__.main(defaultdb='test_big_ibeis')
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
+def TEST_INTERACT(ibs):
 
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
@@ -31,7 +24,7 @@ def TEST_INTERACT():
     gindex = int(utool.get_arg('--gx', default=0))
     cindex = int(utool.get_arg('--rx', default=0))
     gid = valid_gids[gindex]
-    rid_list = ibs.get_image_rois(gid)
+    rid_list = ibs.get_image_rids(gid)
     rid = rid_list[cindex]
 
     #----------------------
@@ -55,16 +48,13 @@ def TEST_INTERACT():
     #viz.show_matches(ibs, qres, cid2, fnum=4)
 
     #viz.show_qres(ibs, qres, fnum=5)
-
-    ##----------------------
-    main_locals.update(locals())
-    __testing__.main_loop(main_locals)
-    printTEST('return test locals')
-    return main_locals
+    return locals()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = TEST_INTERACT()
-    df2.present()
-    exec(test_locals['execstr'])
+    main_locals = __testing__.main(defaultdb='test_big_ibeis')
+    ibs = main_locals['ibs']    # IBEIS Control
+    test_locals = __testing__.run_test(TEST_INTERACT, ibs)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

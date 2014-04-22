@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'TEST_IBS'
-#------
-import __testing__  # Should be imported before any ibeis stuff
-import sys
+try:
+    import __testing__  # Should be imported before any ibeis stuff
+except ImportError:
+    pass
 import multiprocessing
 import utool
+from ibeis import viz
 printTEST = __testing__.printTEST
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
-
-sys.argv.append('--nogui')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS]')
 
 
-@__testing__.testcontext2(TEST_NAME)
-def TEST_IBS():
-    main_locals = __testing__.main(defaultdb='testdb', nogui=True)
-    ibs = main_locals['ibs']    # IBEIS Control
+def TEST_IBS(ibs):
     gpath_list = __testing__.get_test_image_paths(ibs, ndata=1)
 
     printTEST('[TEST] 1.ibs.add_images(gpath_list=%r)' % gpath_list)
@@ -56,22 +51,21 @@ def TEST_IBS():
     gid_list    = ibs.get_roi_gids(rid_list)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
-    rids_list   = ibs.get_image_rois(gid)
+    rids_list   = ibs.get_image_rids(gid)
     print(' * gid_list=%r' % gid_list)
     print(' * bbox_list=%r' % bbox_list)
     print(' * theta_list=%r' % theta_list)
     print(' * rids_list=%r' % rids_list)
 
-    from ibeis import viz
     viz.show_image(ibs, gid)
-
-    # Run Qt Loop to use the GUI
-    printTEST('[TEST] MAIN_LOOP')
-    __testing__.main_loop(main_locals, rungui=False)
+    return locals()
 
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    test_locals = TEST_IBS()
-    exec(test_locals['execstr'])
+    multiprocessing.freeze_support()  # For windows
+    # Initialize database
+    main_locals = __testing__.main(defaultdb='testdb')
+    ibs = main_locals['ibs']
+    test_locals = __testing__.run_test(TEST_IBS, ibs)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

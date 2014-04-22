@@ -124,12 +124,12 @@ def show_chipres(qres, ibs, cid, **kwargs):
 
 
 def interact_chipres(qres, ibs, cid, **kwargs):
-    from ibeis import interact
+    from ibeis.viz import interact
     return interact.interact_chipres(ibs, qres, cid, **kwargs)
 
 
 def interact_top_chipres(qres, ibs, tx, **kwargs):
-    from ibeis import interact
+    from ibeis.viz import interact
     cid = qres.topN_cids(ibs, tx + 1)[tx]
     return interact.interact_chipres(ibs, qres, cid, **kwargs)
 

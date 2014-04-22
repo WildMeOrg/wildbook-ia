@@ -1,31 +1,24 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'BIGDB'
-#------
 import __testing__  # Should be imported before any ibeis stuff
 import sys
 from os.path import join, exists
 from ibeis.dev import params
+import ibeis
 import multiprocessing
 import utool
 printTEST = __testing__.printTEST
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[MAKE_BIG_DB]')
 
 sys.argv.append('--nogui')
 
 
-@__testing__.testcontext2(TEST_NAME)
-def BIGDB():
-    workdir = params.get_workdir()
-    dbname = 'test_big_ibeis'
-    utool.delete(join(workdir, dbname))
-
-    main_locals = __testing__.main(defaultdb=dbname, allow_newdir=True, nogui=True)
-    ibs = main_locals['ibs']    # IBEIS Control
-    gpath_list = __testing__.get_test_image_paths(ibs, ndata=1)
-    # this will probably will only work on jon's machines
+def get_big_imgdir(workdir):
+    """
+    Get a place where a lot of images are.
+    this probably will only work on jon's machines
+    """
     if utool.get_computer_name() == 'BakerStreet':
         imgdir = r'D:\data\raw\Animals\Grevys\gz_mpala_cropped\images'
     elif  utool.get_computer_name() == 'Hyrule':
@@ -34,6 +27,20 @@ def BIGDB():
         imgdir = join(workdir, 'FROG_tufts/images')
     else:
         raise AssertionError('this test only works on Jons computers')
+    return imgdir
+
+
+def MAKE_BIG_DB():
+    workdir = params.get_workdir()
+    dbname = 'testdb_big'
+    dbdir  = join(workdir, dbname)
+    utool.delete(dbdir)
+
+    main_locals = ibeis.main(dbdir=dbdir, gui=False)
+    ibs = main_locals['ibs']    # IBEIS Control
+    gpath_list = __testing__.get_test_image_paths(ibs, ndata=1)
+
+    imgdir = get_big_imgdir(workdir)
     gname_list = utool.list_images(imgdir)
     gpath_list = [join(imgdir, gname) for gname in gname_list]
     gpath_list = gpath_list
@@ -41,7 +48,6 @@ def BIGDB():
     assert all(map(exists, gpath_list)), 'some images dont exist'
 
     #nImages = len(gpath_list)
-
     #with utool.Timer('Add %d Images' % nImages):
     gid_list = ibs.add_images(gpath_list)
 
@@ -58,13 +64,11 @@ def BIGDB():
     nFeats_list = ibs.get_num_feats(fid_list)
 
     print('Total number of features in the database: %r' % sum(nFeats_list))
-
-    # Run Qt Loop to use the GUI
-    printTEST('[TEST] MAIN_LOOP')
-    __testing__.main_loop(main_locals, rungui=False)
+    return locals()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = BIGDB()
-    exec(test_locals['execstr'])
+    test_locals = __testing__.run_test(MAKE_BIG_DB)
+    execstr     = __testing__.main_loop(test_locals)
+    exec('execstr')

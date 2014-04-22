@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'TEST_QUERY'
-#------
 try:
     import __testing__
-    printTEST = __testing__.printTEST
 except ImportError:
-    printTEST = print
     pass
 # Python
-import sys
 from os.path import join, exists  # NOQA
 import multiprocessing
 # Tools
@@ -19,16 +13,15 @@ import utool
 from plottool import draw_func2 as df2
 #IBEIS
 from ibeis.dev import params  # NOQA
-from ibeis import interact
+from ibeis.viz import interact
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[%s]' % TEST_NAME)
-
-sys.argv.append('--nogui')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_QUERY]')
 
 
-def TEST_QUERY(ibs=None, qrid_list=None):
+def TEST_QUERY(ibs, qrid_list=None):
+    if qrid_list is None:
+        qrid_list = ibs.get_valid_rids()[0:1]
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #query_helpers.find_matchable_chips(ibs)
@@ -50,19 +43,11 @@ def TEST_QUERY(ibs=None, qrid_list=None):
         df2.adjust_subplots_safe(top=.8)
     return locals()
 
-try:
-    TEST_QUERY = __testing__.testcontext2(TEST_NAME)(TEST_QUERY)
-except Exception:
-    pass
-
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    main_locals = __testing__.main(defaultdb='test_big_ibeis', allow_newdir=True, nogui=True)
+    multiprocessing.freeze_support()  # For windows
+    main_locals = __testing__.main(defaultdb='test_big_ibeis')
     ibs = main_locals['ibs']
-    qrid_list = ibs.get_valid_rids()[0:1]
-    test_locals = TEST_QUERY(ibs, qrid_list)
-    execstr = __testing__.main_loop(main_locals, rungui=False)
-    df2.present()
+    test_locals = __testing__.run_test(TEST_QUERY, ibs)
+    execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

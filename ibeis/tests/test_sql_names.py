@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'TEST_SQL_NAMES'
-#------
 import __testing__  # Should be imported before any ibeis stuff
 import utool
 from ibeis.control import SQLDatabaseControl
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NAMES]')
 
 printTEST = __testing__.printTEST
 
@@ -36,9 +33,7 @@ def __insert_names(db, name_list):
     #print('INSERT RETURNED: %r' % ret)
 
 
-@__testing__.testcontext2(TEST_NAME)
 def TEST_SQL_NAMES():
-
     # -------- INIT DATABASE ------------
     printTEST('Remove Old Temp Database')
     utool.util_path.remove_file('temp.sqlite3', dryrun=False)
@@ -97,5 +92,6 @@ def TEST_SQL_NAMES():
 
 
 if __name__ == '__main__':
-    test_locals = TEST_SQL_NAMES()
-    exec(test_locals['execstr'])
+    test_locals = __testing__.run_test(TEST_SQL_NAMES)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

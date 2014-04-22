@@ -6,6 +6,7 @@ This is a hacky script meant to be run interactively
 from __future__ import absolute_import, division, print_function
 import ibeis
 ibeis._preload()
+from ibeis.dev.all_imports import *  # NOQA
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
 from ibeis.viz import interact
@@ -167,7 +168,6 @@ if __name__ == '__main__':
                 ./dev.py -t query -w
     """
     multiprocessing.freeze_support()  # for win32
-    from ibeis.dev.all_imports import *  # NOQA
     dev_locals, main_execstr = dev_main()
     dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
     execstr = dev_execstr + '\n' + main_execstr

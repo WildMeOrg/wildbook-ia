@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#------
-TEST_NAME = 'TEST_IBS_GETTERS'
-#------
 try:
     import __testing__
     printTEST = __testing__.printTEST
@@ -11,7 +8,6 @@ except ImportError:
     printTEST = print
     pass
 # Python
-import sys
 from os.path import join, exists  # NOQA
 import multiprocessing
 # Tools
@@ -22,17 +18,12 @@ import numpy as np
 from ibeis.model.hots import QueryRequest  # NOQA
 from ibeis.model.hots import NNIndex  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[%s]' % TEST_NAME)
-
-sys.argv.append('--nogui')
+    __name__, '[TEST_IBS_GETTERS]')
 
 
 def TEST_IBS_GETTERS(ibs=None):
     if ibs is None:
         print('ibs is none')
-        main_locals = __testing__.main(defaultdb='test_big_ibeis',
-                                       allow_newdir=True, nogui=True)
-        ibs = main_locals['ibs']    # IBEIS Control
 
     gid_list = ibs.get_valid_gids()
     rid_list = ibs.get_valid_rids()
@@ -69,14 +60,11 @@ def TEST_IBS_GETTERS(ibs=None):
         __testing__.main_loop(main_locals, rungui=False)
     return locals()
 
-try:
-    TEST_IBS_GETTERS = __testing__.testcontext2(TEST_NAME)(TEST_IBS_GETTERS)
-except Exception:
-    pass
-
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    test_locals = TEST_IBS_GETTERS()
-    exec(test_locals['execstr'])
+    multiprocessing.freeze_support()  # For windows
+    main_locals = __testing__.main(defaultdb='test_big_ibeis')
+    ibs = main_locals['ibs']    # IBEIS Control
+    test_locals = __testing__.run_test(TEST_IBS_GETTERS, ibs)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

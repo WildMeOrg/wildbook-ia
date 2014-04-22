@@ -46,3 +46,7 @@ nosetests.xml
 # profiler
 *.lprof
 *.prof
+
+# Test data
+vtool/tests/testdata*
+test_data*.shelf

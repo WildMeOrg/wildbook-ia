@@ -138,7 +138,7 @@ def reload_subs():
 
 def rrrr():
     """Reloads self and submodules """
-    reload_submods()
+    reload_subs()
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[util]')
 

@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#-----
-TEST_NAME = 'SAMPLE_DATA'
-#-----
-import sys
-sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
@@ -32,10 +27,7 @@ def draw_data(img1, img2, kpts1, kpts2):
     viz.show_kpts(img2, kpts2, fnum=0, pnum=pnum_(1), **kpkw)
 
 
-@__testing__.testcontext2(TEST_NAME)
-def SAMPLE_DATA():
-    main_locals = __testing__.main()
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
+def SAMPLE_DATA(ibs):
     ##
     # Sample keypoints
     kpts = get_test_kpts(ibs, 11)
@@ -61,5 +53,8 @@ def SAMPLE_DATA():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = SAMPLE_DATA()
-    exec(test_locals['execstr'])
+    main_locals = __testing__.main()
+    ibs = main_locals['ibs']
+    test_locals = __testing__.run_test(SAMPLE_DATA, ibs)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

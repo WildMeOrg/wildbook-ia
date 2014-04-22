@@ -1,12 +1,15 @@
 from __future__ import absolute_import, division, print_function
 from os.path import (join, realpath, relpath, normpath, split, isdir, isfile, exists,
-                     islink, ismount, expanduser)
+                     islink, ismount, expanduser, dirname)
 from itertools import izip
 import os
 import sys
 import shutil
 import fnmatch
 import warnings
+import zipfile
+import urllib
+import time
 from .util_dbg import get_caller_name
 from .util_inject import inject
 from .util_progress import progress_func
@@ -388,3 +391,43 @@ def fpaths_to_fnames(fpath_list):
     """
     fname_list = [split(fpath)[1] for fpath in fpath_list]
     return fname_list
+
+
+BadZipfile = zipfile.BadZipfile
+
+
+def unzip_file(zip_fpath):
+    zip_file = zipfile.ZipFile(zip_fpath)
+    zip_dir  = dirname(zip_fpath)
+    zipped_namelist = zip_file.namelist()
+    for member in zipped_namelist:
+        (dname, fname) = split(member)
+        dpath = join(zip_dir, dname)
+        ensurepath(dpath)
+        print('[utool] Unzip ' + fname + ' in ' + dpath)
+        zip_file.extract(member, path=zip_dir)
+
+
+def download_url(url, filename):
+    # From http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
+    start_time_ptr = [0]
+    def reporthook(count, block_size, total_size):
+        if count == 0:
+            start_time_ptr[0] = time.time()
+            return
+        duration = time.time() - start_time_ptr[0]
+        progress_size = int(count * block_size)
+        speed = int(progress_size / (1024 * duration))
+        percent = int(count * block_size * 100 / total_size)
+        sys.stdout.write('\r...%d%%, %d MB, %d KB/s, %d seconds passed' %
+                        (percent, progress_size / (1024 * 1024), speed, duration))
+        sys.stdout.flush()
+    print('[utool] Downloading url=%r to filename=%r' % (url, filename))
+    urllib.urlretrieve(url, filename, reporthook)
+
+
+def get_module_dir(module, *args):
+    module_dir = truepath(dirname(module.__file__))
+    if len(args) > 0:
+        module_dir = join(module_dir, *args)
+    return module_dir

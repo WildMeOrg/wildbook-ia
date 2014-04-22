@@ -1,21 +1,15 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#-----
-TEST_NAME = 'TEST_VIZ'
-#-----
-import sys
-sys.argv.append('--nogui')
 import __testing__
 import multiprocessing
 import utool
 from ibeis import viz
 from plottool import draw_func2 as df2
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_VIZ]')
 printTEST = __testing__.printTEST
 
 
-@__testing__.testcontext2(TEST_NAME)
 def TEST_VIZ(ibs):
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
@@ -27,7 +21,7 @@ def TEST_VIZ(ibs):
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
     gindex = int(utool.get_arg('--gx', default=0))
     gid = valid_gids[gindex]
-    rid_list = ibs.get_image_rois(gid)
+    rid_list = ibs.get_image_rids(gid)
     rindex = int(utool.get_arg('--rx', default=0))
     rid = rid_list[rindex]
     qrid = rid
@@ -68,7 +62,6 @@ def TEST_VIZ(ibs):
         df2.set_figtitle('Show QRes')
 
     ##----------------------
-    main_locals.update(locals())
     printTEST('return test locals')
     return locals()
 
@@ -76,8 +69,7 @@ def TEST_VIZ(ibs):
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     main_locals = __testing__.main()
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-    test_locals = TEST_VIZ(ibs)
-    __testing__.main_loop(test_locals)
-    df2.present()
-    exec(test_locals['execstr'])
+    ibs = main_locals['ibs']    # IBEIS Control
+    test_locals = __testing__.run_test(TEST_VIZ, ibs)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)

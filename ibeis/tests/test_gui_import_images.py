@@ -4,25 +4,15 @@ from __future__ import absolute_import, division, print_function
 import sys
 import os
 sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
-#-----
-TEST_NAME = 'TEST_GUI_IMPORT_IMAGES'
-#-----
 import __testing__
 import multiprocessing
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_IMPORT_IMAGES]')
 
 printTEST = __testing__.printTEST
 
-RUNGUI = utool.get_flag('--gui')
 
-
-@__testing__.testcontext2(TEST_NAME)
-def TEST_GUI_IMPORT_IMAGES():
-    main_locals = __testing__.main()
-    ibs = main_locals['ibs']    # IBEIS Control  # NOQA
-    back = main_locals['back']  # IBEIS GUI backend
-
+def TEST_GUI_IMPORT_IMAGES(ibs, back):
     printTEST('[TEST] GET_TEST_IMAGE_PATHS', wait=True)
     # The test api returns a list of interesting chip indexes
     mode = 'FILE'
@@ -41,12 +31,13 @@ def TEST_GUI_IMPORT_IMAGES():
         raise AssertionError('unknown mode=%r' % mode)
 
     printTEST('[TEST] * len(gid_list)=%r' % len(gid_list))
-    main_locals.update(locals())
-    __testing__.main_loop(main_locals, rungui=RUNGUI)
-    return main_locals
+    return locals()
 
 if __name__ == '__main__':
-    # For windows
-    multiprocessing.freeze_support()
-    test_locals = TEST_GUI_IMPORT_IMAGES()
-    exec(test_locals['execstr'])
+    multiprocessing.freeze_support()  # For windows
+    main_locals = __testing__.main(defaultdb='testdb', gui=True)
+    ibs  = main_locals['ibs']   # IBEIS Control
+    back = main_locals['back']  # IBEIS GUI backend
+    test_locals = __testing__.run_test(TEST_GUI_IMPORT_IMAGES, ibs, back)
+    execstr     = __testing__.main_loop(test_locals)
+    exec(execstr)
