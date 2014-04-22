@@ -38,7 +38,7 @@ def TEST_GUI_SELECTION():
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
 
     gid = valid_gids[0]
-    rid_list = ibs.get_rids_in_gids(gid)
+    rid_list = ibs.get_image_rois(gid)
     rid = rid_list[-1]
     back.select_gid(gid, sel_rids=[rid])
 

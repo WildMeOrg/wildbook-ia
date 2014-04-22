@@ -16,9 +16,8 @@ def show_name(ibs, nid, nid2_rids=None, fnum=0, sel_rids=[], subtitle='',
               annote=False, **kwargs):
     print('[viz] show_name nid=%r' % nid)
     rids = ibs.get_rids_in_nids(nid)
-    name = ibs.get_names(nid)
-    rids = nid2_rids[nid]
-    print('[viz] show_name %r' % ibs.ridstr(rids))
+    name = ibs.get_names((nid,))
+    print('[viz] show_name=%r rids=%r' % (name, rids))
     nRows, nCols = vh.get_square_row_cols(len(rids))
     print('[viz*] r=%r, c=%r' % (nRows, nCols))
     #gs2 = gridspec.GridSpec(nRows, nCols)
@@ -26,7 +25,6 @@ def show_name(ibs, nid, nid2_rids=None, fnum=0, sel_rids=[], subtitle='',
     fig = df2.figure(fnum=fnum, pnum=pnum(0), **kwargs)
     fig.clf()
     # Trigger computation of all chips in parallel
-    ibs.get_roi_cids(rids, enfore=True)
     for px, rid in enumerate(rids):
         show_chip(ibs, rid=rid, pnum=pnum(px), draw_ell=annote, kpts_alpha=.2)
         if rid in sel_rids:

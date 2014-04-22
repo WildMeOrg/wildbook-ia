@@ -56,7 +56,7 @@ def TEST_IBS():
     gid_list    = ibs.get_roi_gids(rid_list)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
-    rids_list   = ibs.get_rids_in_gids(gid)
+    rids_list   = ibs.get_image_rois(gid)
     print(' * gid_list=%r' % gid_list)
     print(' * bbox_list=%r' % bbox_list)
     print(' * theta_list=%r' % theta_list)

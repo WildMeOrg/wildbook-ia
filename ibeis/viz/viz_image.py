@@ -18,7 +18,7 @@ def annotate_roi(ax, bbox, theta, label, is_sel):
 
 def annotate_image(ibs, ax, gid, sel_rids, draw_lbls=True, annote=True):
     # draw chips in the image
-    rid_list    = ibs.get_rids_in_gids(gid)
+    rid_list    = ibs.get_image_rois(gid)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
     label_list  = vh.get_roi_labels(ibs, rid_list, draw_lbls)

@@ -27,7 +27,7 @@ def TEST_VIZ(ibs):
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
     gindex = int(utool.get_arg('--gx', default=0))
     gid = valid_gids[gindex]
-    rid_list = ibs.get_rids_in_gids(gid)
+    rid_list = ibs.get_image_rois(gid)
     rindex = int(utool.get_arg('--rx', default=0))
     rid = rid_list[rindex]
     qrid = rid

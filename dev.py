@@ -14,6 +14,10 @@ import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
 
+if not 'back' in vars():
+    back = None
+
+
 def vdd(ibs=None):
     utool.view_directory(ibs.get_dbpath())
 
@@ -24,13 +28,17 @@ def show_rids(ibs, qrid_list):
 
 
 def change_names(ibs, qrid_list):
-    new_name = utool.get_arg('--name', str, default='<name>_the_<species>')
+    #new_name = utool.get_arg('--name', str, default='<name>_the_<species>')
+    new_name = utool.get_arg('--name', str, default='glob')
     for rid in qrid_list:
         ibs.print_name_table()
         #(nid,) = ibs.add_names((new_name,))
         ibs.set_roi_properties((rid,), 'name', (new_name,))
         ibs.print_name_table()
         ibs.print_roi_table()
+    new_nid = ibs.get_name_nids(new_name, ensure=False)
+    if back is not None:
+        back.select_nid(new_nid)
 
 
 def compare_gravity(ibs, qrid_list):
@@ -130,6 +138,7 @@ def run_experiments(ibs, qrid_list):
 
 @profile
 def dev_main():
+    global back
     print('++dev')
     main_locals = ibeis.main(gui='--gui' in sys.argv)
     ibs  = main_locals['ibs']

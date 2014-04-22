@@ -31,7 +31,7 @@ def TEST_INTERACT():
     gindex = int(utool.get_arg('--gx', default=0))
     cindex = int(utool.get_arg('--rx', default=0))
     gid = valid_gids[gindex]
-    rid_list = ibs.get_rids_in_gids(gid)
+    rid_list = ibs.get_image_rois(gid)
     rid = rid_list[cindex]
 
     #----------------------

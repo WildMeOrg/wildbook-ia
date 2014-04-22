@@ -666,7 +666,7 @@ class IBEISControl(object):
         return eid_list
 
     @getter_vector_output
-    def get_rids_in_gids(ibs, gid_list):
+    def get_image_rids(ibs, gid_list):
         """ Returns a list of rids for each image by gid """
         rids_list = ibs.db.executemany(
             operation='''
@@ -679,9 +679,9 @@ class IBEISControl(object):
         return rids_list
 
     @getter
-    def get_num_rids_in_gids(ibs, gid_list):
+    def get_image_num_rois(ibs, gid_list):
         """ Returns the number of chips in each image """
-        return map(len, ibs.get_rids_in_gids(gid_list))
+        return map(len, ibs.get_image_rids(gid_list))
 
     #
     # GETTERS::ROI
@@ -1033,13 +1033,15 @@ class IBEISControl(object):
     @getter_general
     def get_valid_nids(ibs):
         """ Returns all valid names (does not include unknown names """
-        nid_list = ibs.db.executeone(
+        _nid_list = ibs.db.executeone(
             operation='''
             SELECT name_uid
             FROM names
             WHERE name_text != ?
             ''',
             parameters=(ibs.UNKNOWN_NAME,))
+        nRois_list = ibs.get_name_num_rois(_nid_list)
+        nid_list = [nid for nid, nRois in izip(_nid_list, nRois_list) if nRois > 0]
         return nid_list
 
     @getter
@@ -1070,11 +1072,19 @@ class IBEISControl(object):
     def get_rids_in_nids(ibs, nid_list):
         """ returns a list of list of cids in each name """
         # for each name return chips in that name
-        rids_list = [[] for _ in xrange(len(nid_list))]
+        rids_list = ibs.db.executemany(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            WHERE name_uid=?
+            ''',
+            params_iter=((nid,) for nid in nid_list),
+            unpack_scalars=False)
+        #rids_list = [[] for _ in xrange(len(nid_list))]
         return rids_list
 
     @getter
-    def get_num_rids_in_nids(ibs, nid_list):
+    def get_name_num_rois(ibs, nid_list):
         """ returns the number of detections for each name """
         return map(len, ibs.get_rids_in_nids(nid_list))
 
@@ -1266,7 +1276,7 @@ class IBEISControl(object):
 
     def print_roi_table(ibs):
         """ Dumps roi table to stdout """
-        print(ibs.db.get_table_csv('rois'))
+        print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid']))
 
     def print_chip_table(ibs):
         """ Dumps chip table to stdout """

@@ -129,14 +129,14 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         cols = {
             'nid':   lambda nids: nids,
             'name':  lambda nids: ibs.get_names(nids),
-            'nRids':  lambda nids: ibs.get_num_rids_in_nids(nids),
+            'nRids':  lambda nids: ibs.get_name_num_rois(nids),
         }
     elif tblname == IMAGE_TABLE:
         cols = {
             'gid':   lambda gids: gids,
             'aif':   lambda gids: ibs.get_image_aifs(gids),
             'gname': lambda gids: ibs.get_image_gnames(gids),
-            'nRids':  lambda gids: ibs.get_num_rids_in_gids(gids),
+            'nRids':  lambda gids: ibs.get_image_num_rois(gids),
             'unixtime': lambda gids: ibs.get_image_unixtime(gids),
         }
     elif tblname in [ROI_TABLE, RES_TABLE]:

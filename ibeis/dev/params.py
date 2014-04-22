@@ -156,7 +156,8 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
         parser2.add_flag('--serial', help='Forces num_procs=1')
         parser2.add_flag('--nogui', default=False, help='Will not start the gui.')
         parser2.add_flag('--gui', default=True, help='Will start the gui if able.')
-        parser2.add_int('--loop-freq', default=100, help='Qt main loop ms frequency')
+        loopfreq = 42000  # 100
+        parser2.add_int('--loop-freq', default=loopfreq, help='Qt main loop ms frequency')
         parser2.add_flag('--nocache-db', help='Disables db cache')
         parser2.add_flag('--nocache-flann', help='Disables flann cache')
         parser2.add_flag('--nocache-query', help='Disables flann cache')

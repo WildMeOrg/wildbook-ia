@@ -277,8 +277,11 @@ class SQLDatabaseControl(object):
             return results_
 
         def _unpack_helper(results_):
-            assert len(results_) < 2, 'throwing away results!'
             results = None if len(results_) == 0 else results_[0]
+            assert len(results_) < 2, 'throwing away results!'
+            #if len(results_) == 1:
+            #else:
+                #results = results_
             return results
 
         try:
