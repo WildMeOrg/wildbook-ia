@@ -1,7 +1,7 @@
 from __future__ import division, print_function
-from hscom import __common__
-(print, print_, print_on, print_off, rrr,
- profile, printDBG) = __common__.init(__name__, '[harn]', DEBUG=False)
+import utool
+print, print_, printDBG, rrr, profile = utool.inject(
+    __name__, '[harn]', DEBUG=False)
 # Python
 import sys
 import itertools
@@ -13,16 +13,16 @@ from itertools import imap
 import numpy as np
 # Hotspotter
 import experiment_configs
-from hsapi import Config
-from hsapi import DataStructures as ds
-from hsapi import match_chips3 as mc3
-from hsapi import matching_functions as mf
-from hscom import fileio as io
-from hscom import util
-from hscom import latex_formater
-from hscom import csvtool
-from hsdev import params
-from hsviz import draw_func2 as df2
+from ibeis.model import Config
+from ibeis.model.hots import match_chips3 as mc3
+from ibeis.model.hots import QueryResult
+from ibeis.model.hots import matching_functions as mf
+from ibeis.dev import params
+from plottool import draw_func2 as df2
+#from hscom import fileio as io
+#from hscom import util
+#from hscom import latex_formater
+#from hscom import csvtool
 #from match_chips3 import *
 #import draw_func2 as df2
 # What are good ways we can divide up FLANN indexes instead of having one
@@ -37,7 +37,7 @@ from hsviz import draw_func2 as df2
 def get_valid_testcfg_names():
     testcfg_keys = vars(experiment_configs).keys()
     testcfg_locals = [key for key in testcfg_keys if key.find('_') != 0]
-    valid_cfg_names = util.indent('\n'.join(testcfg_locals), '  * ')
+    valid_cfg_names = utool.indent('\n'.join(testcfg_locals), '  * ')
     return valid_cfg_names
 
 
@@ -75,9 +75,9 @@ def __argv_flag_dec(func, default=False):
     flag = '--' + flag.replace('_', '-')
 
     def GaurdWrapper(*args, **kwargs):
-        if util.get_flag(flag, default):
+        if utool.get_flag(flag, default):
             indent_lbl = flag.replace('--', '').replace('print-', '')
-            with util.Indenter2('[%s]' % indent_lbl):
+            with utool.Indenter2('[%s]' % indent_lbl):
                 return func(*args, **kwargs)
         else:
             if not __QUIET__:
@@ -89,7 +89,7 @@ def __argv_flag_dec(func, default=False):
 def rankscore_str(thresh, nLess, total):
     #helper to print rank scores of configs
     percent = 100 * nLess / total
-    fmtsf = '%' + str(util.num2_sigfig(total)) + 'd'
+    fmtsf = '%' + str(utool.num2_sigfig(total)) + 'd'
     fmtstr = '#ranks < %d = ' + fmtsf + '/%d = (%.1f%%) (err=' + fmtsf + ')'
     rankscore_str = fmtstr % (thresh, nLess, total, percent, (total - nLess))
     return rankscore_str
@@ -102,7 +102,7 @@ def wrap_uid(uid):
     uidmarker_list = re.findall(cfg_regex, uid)
     uidconfig_list = re.split(cfg_regex, uid)
     args = [uidconfig_list, uidmarker_list]
-    interleave_iter = util.interleave(args)
+    interleave_iter = utool.interleave(args)
     new_uid_list = []
     total_len = 0
     prefix_str = ''
@@ -131,9 +131,9 @@ def wrap_uid(uid):
 
 
 def format_uid_list(uid_list):
-    indented_list = util.indent_list('    ', uid_list)
+    indented_list = utool.indent_list('    ', uid_list)
     wrapped_list = imap(wrap_uid, indented_list)
-    return util.joins('\n', wrapped_list)
+    return utool.joins('\n', wrapped_list)
 
 
 #---------------
@@ -165,7 +165,7 @@ def load_cached_test_results(hs, qreq, qcxs, dcxs, nocache_testres, test_results
 def cache_test_results(qx2_bestranks, hs, qreq, qcxs, dcxs):
     test_uid = qreq.get_query_uid(hs, qcxs)
     cache_dir = join(hs.dirs.cache_dir, 'experiment_harness_results')
-    util.ensuredir(cache_dir)
+    utool.ensuredir(cache_dir)
     io_kwargs = {'dpath': cache_dir,
                  'fname': 'test_results',
                  'uid': test_uid,
@@ -223,7 +223,7 @@ def get_test_results2(hs, qcxs, qreq, cfgx=0, nCfg=1, nocache_testres=False,
         ---------------------
         [harn] TEST %d/%d
         ---------------------''')
-        mark_progress = util.simple_progres_func(test_results_verbosity, msg, '.')
+        mark_progress = utool.simple_progres_func(test_results_verbosity, msg, '.')
         total = nQuery * nCfg
         nPrevQ = nQuery * cfgx
         mc3.pre_cache_checks(hs, qreq)
@@ -265,7 +265,7 @@ def get_test_results2(hs, qcxs, qreq, cfgx=0, nCfg=1, nocache_testres=False,
 
 def get_varied_params_list(test_cfg_name_list):
     vary_dicts = get_vary_dicts(test_cfg_name_list)
-    get_all_dict_comb = util.all_dict_combinations
+    get_all_dict_comb = utool.all_dict_combinations
     dict_comb_list = [get_all_dict_comb(_dict) for _dict in vary_dicts]
     varied_params_list = [comb for dict_comb in dict_comb_list for comb in dict_comb]
     #map(lambda x: print('\n' + str(x)), varied_params_list)
@@ -295,7 +295,7 @@ def get_cfg_list(hs, test_cfg_name_list):
 
 
 #-----------
-#@util.indent_decor('[harn]')
+#@utool.indent_decor('[harn]')
 @profile
 def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     if __QUIET__:
@@ -326,10 +326,10 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     nQuery   = len(qcx_list)
     #rc2_res = np.empty((nQuery, nCfg), dtype=list)  # row/col -> result
     mat_list = []
-    qreq = ds.QueryRequest()
+    qreq = QueryResult.QueryRequest()
 
     # TODO Add to argparse2
-    nocache_testres =  util.get_flag('--nocache-testres', False)
+    nocache_testres =  utool.get_flag('--nocache-testres', False)
 
     test_results_verbosity = 2 - (2 * __QUIET__)
     test_cfg_verbosity = 2
@@ -340,7 +340,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     ---------------------
     [harn] TEST_CFG %d/%d: ''' + testnameid + '''
     ---------------------''')
-    mark_progress = util.simple_progres_func(test_cfg_verbosity, msg, '+')
+    mark_progress = utool.simple_progres_func(test_cfg_verbosity, msg, '+')
 
     nomemory = params.args.nomemory
 
@@ -353,7 +353,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         # Set data to the current config
         qreq = mc3.prep_query_request(qreq=qreq, qcxs=qcx_list, dcxs=dcxs, query_cfg=query_cfg)
         # Run the test / read cache
-        with util.Indenter2('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
+        with utool.Indenter2('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
             qx2_bestranks = get_test_results2(hs, qcx_list, qreq, cfgx,
                                               nCfg, nocache_testres,
                                               test_results_verbosity)
@@ -371,7 +371,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     rank_mat = np.hstack(mat_list)  # concatenate each query rank across configs
     # Label the rank matrix:
     _colxs = np.arange(nCfg)
-    lbld_mat = util.debug_vstack([_colxs, rank_mat])
+    lbld_mat = utool.debug_vstack([_colxs, rank_mat])
 
     _rowxs = np.arange(nQuery + 1).reshape(nQuery + 1, 1) - 1
     lbld_mat = np.hstack([_rowxs, lbld_mat])
@@ -393,7 +393,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         cfgx2_lbl.append(cfg_label)
     cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
-    indent = util.indent
+    indent = utool.indent
 
     @argv_flag_dec
     def print_rowlbl():
@@ -526,10 +526,10 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         tabular_kwargs = dict(title=cfg_score_title, out_of=nQuery,
                               bold_best=True, replace_rowlbl=replace_rowlbl,
                               flip=True)
-        tabular_str = latex_formater.make_score_tabular(cfgx2_lbl,
-                                                        criteria_lbls,
-                                                        cfgscores,
-                                                        **tabular_kwargs)
+        tabular_str = utool.util_latex.make_score_tabular(cfgx2_lbl,
+                                                          criteria_lbls,
+                                                          cfgscores,
+                                                          **tabular_kwargs)
         #latex_formater.render(tabular_str)
         print(tabular_str)
         print('--- /LaTeX ---')
@@ -587,7 +587,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
         print(' labled rank matrix: rows=queries, cols=cfgs:')
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
-        with util.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
             print(lbld_mat)
         print('[harn]-------------')
     print_rankmat()
@@ -601,7 +601,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     col_labels = list(chain(['qcid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
     col_types  = list(chain([int], [int] * nCfg))
     header = 'rankmat2'
-    diff_matstr = csvtool.numpy_to_csv(diff_mat, col_labels, header, col_types)
+    diff_matstr = utool.numpy_to_csv(diff_mat, col_labels, header, col_types)
     @argv_flag_dec
     def print_diffmat():
         print('')
@@ -617,7 +617,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     sumstrs.append('||===========================')
     sumstrs.append('|| [cfg*] SUMMARY: %s' % testnameid)
     sumstrs.append('||---------------------------')
-    sumstrs.append(util.joins('\n|| ', best_rankscore_summary))
+    sumstrs.append(utool.joins('\n|| ', best_rankscore_summary))
     sumstrs.append('||===========================')
     print('\n' + '\n'.join(sumstrs) + '\n')
     #print('--- /SUMMARY ---')
@@ -639,9 +639,9 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
 
     prev_cfg = None
 
-    skip_to = util.get_arg('--skip-to', default=None)
+    skip_to = utool.get_arg('--skip-to', default=None)
 
-    dev_mode = util.get_arg('--devmode', default=False)
+    dev_mode = utool.get_arg('--devmode', default=False)
     skip_list = []
     if dev_mode:
         hs.prefs.display_cfg.N = 3

@@ -97,14 +97,14 @@ from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
 from ibeis.viz import viz_sver
 # IBEIS VIEW INTERACT
-from ibeis.interact import interact_helpers as ih
-from ibeis.interact import interact_image
-from ibeis.interact import interact_chip
-from ibeis.interact import interact_name
-from ibeis.interact import interact_qres
-from ibeis.interact import interact_bbox
-from ibeis.interact import interact_sver
-from ibeis.interact import interact_matches
+from ibeis.viz.interact import interact_helpers as ih
+from ibeis.viz.interact import ishow_image
+from ibeis.viz.interact import ishow_chip
+from ibeis.viz.interact import ishow_name
+from ibeis.viz.interact import ishow_qres
+from ibeis.viz.interact import ishow_sver
+from ibeis.viz.interact import ishow_matches
+from ibeis.viz.interact import iselect_bbox
 # IBEIS CONTROl
 from ibeis.control import SQLDatabaseControl
 from ibeis.control import __SQLITE3__ as lite
@@ -117,12 +117,14 @@ from ibeis import model
 from ibeis import control
 from ibeis import gui
 from ibeis import viz
-from ibeis import interact
 from ibeis import main_module
+from ibeis.viz import interact
 from ibeis.model import hots
 from ibeis.model import preproc
 
 def reload_all():
-    viz.reload_all()
-    interact.reload_all()
-    hots.reload_all()
+    ibeis.reload_subs()
+    utool.reload_subs()
+    #vtool.reload_subs()
+    #guitool.reload_subs()
+    #plottool.reload_subs()

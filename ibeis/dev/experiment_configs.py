@@ -1,7 +1,6 @@
 from __future__ import division, print_function
-from hscom import __common__
-(print, print_, print_on, print_off, rrr,
- profile, printDBG) = __common__.init(__name__, '[cfgbank]', DEBUG=False)
+import utool
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
 # Python
 
 vsmany_2 = {

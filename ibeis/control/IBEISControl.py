@@ -19,6 +19,9 @@ from vtool import image as gtool
 import utool
 from utool import util_hash
 from utool.util_list import flatten_items
+# IBEIS DEV
+from ibeis.dev import ibsfuncs
+# IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
@@ -34,6 +37,15 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
+
+
+class DNAMES(object):
+    cache  = '_ibeis_cache'
+    chips  = 'chips'
+    flann  = 'flann'
+    images = 'images'
+    qres   = 'qres'
+    bigcache = 'bigcache'
 
 
 #
@@ -81,12 +93,12 @@ class IBEISControl(object):
 
         ibs.sqldb_fname = '_ibeis_database.sqlite3'
         ibs.dbdir = join(ibs.workdir, ibs.dbname)
-        ibs.cachedir = join(ibs.dbdir, '_ibeis_cache')
-        ibs.chipdir  = join(ibs.cachedir, 'chips')
-        ibs.flanndir = join(ibs.cachedir, 'flann')
-        ibs.imgdir   = join(ibs.cachedir, 'images')
-        ibs.qresdir  = join(ibs.cachedir, 'qres')
-        ibs.bigcachedir = join(ibs.cachedir, 'bigcache')
+        ibs.cachedir = join(ibs.dbdir, DNAMES.cache)
+        ibs.chipdir  = join(ibs.cachedir,  DNAMES.chips)
+        ibs.flanndir = join(ibs.cachedir,  DNAMES.flann)
+        ibs.imgdir   = join(ibs.cachedir,  DNAMES.images)
+        ibs.qresdir  = join(ibs.cachedir,  DNAMES.qres)
+        ibs.bigcachedir = join(ibs.cachedir,  DNAMES.bigcache)
         if ensure:
             utool.ensuredir(ibs.cachedir)
             utool.ensuredir(ibs.workdir)
@@ -726,13 +738,18 @@ class IBEISControl(object):
     @getter_numpy
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        gid_list = ibs.get_roi_properties('image_uid', rid_list)
+        gid_list = ibs.db.executemany(
+            operation='''
+            SELECT image_uid
+            FROM rois
+            WHERE roi_uid=?
+            ''',
+            params_iter=((rid,) for rid in rid_list))
         try:
-            utool.assert_all_not_None(gid_list)
+            utool.assert_all_not_None(gid_list, 'gid_list')
         except AssertionError as ex:
-            utool.printex(ex, '[!get_roi_gids]')
-            print('[!get_roi_gids] ' + utool.list_dbgstr('gid_list'))
-            print('[!get_roi_gids] ' + utool.list_dbgstr('rid_list'))
+            ibsfuncs.assert_valid_rids(ibs, rid_list)
+            utool.printex(ex, 'Rids must have image ids!', key_list=['gid_list', 'rid_list'])
             raise
         return gid_list
 
@@ -1069,7 +1086,7 @@ class IBEISControl(object):
         return name_list
 
     @getter_vector_output
-    def get_rids_in_nids(ibs, nid_list):
+    def get_name_rids(ibs, nid_list):
         """ returns a list of list of cids in each name """
         # for each name return chips in that name
         rids_list = ibs.db.executemany(
@@ -1086,7 +1103,7 @@ class IBEISControl(object):
     @getter
     def get_name_num_rois(ibs, nid_list):
         """ returns the number of detections for each name """
-        return map(len, ibs.get_rids_in_nids(nid_list))
+        return map(len, ibs.get_name_rids(nid_list))
 
     #
     # GETTERS::Encounter
@@ -1097,13 +1114,13 @@ class IBEISControl(object):
         return []
 
     @getter_vector_output
-    def get_rids_in_eids(ibs, eid_list):
+    def get_encounter_rids(ibs, eid_list):
         """ returns a list of list of rids in each encounter """
         rids_list = [[] for eid in eid_list]
         return rids_list
 
     @getter_vector_output
-    def get_gids_in_eids(ibs, eid_list):
+    def get_encounter_gids(ibs, eid_list):
         """ returns a list of list of gids in each encounter """
         gids_list = [[] for eid in eid_list]
         return gids_list
@@ -1276,39 +1293,39 @@ class IBEISControl(object):
 
     def print_roi_table(ibs):
         """ Dumps roi table to stdout """
+        print('\n')
         print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid']))
 
     def print_chip_table(ibs):
         """ Dumps chip table to stdout """
+        print('\n')
         print(ibs.db.get_table_csv('chips'))
 
     def print_feat_table(ibs):
         """ Dumps chip table to stdout """
+        print('\n')
         print(ibs.db.get_table_csv('features', exclude_columns=['feature_keypoints', 'feature_sifts']))
 
     def print_image_table(ibs):
         """ Dumps chip table to stdout """
+        print('\n')
         print(ibs.db.get_table_csv('images', exclude_columns=['image_uid']))
 
     def print_name_table(ibs):
         """ Dumps chip table to stdout """
+        print('\n')
         print(ibs.db.get_table_csv('names'))
 
     def print_config_table(ibs):
         """ Dumps chip table to stdout """
+        print('\n')
         print(ibs.db.get_table_csv('configs'))
 
     def print_tables(ibs):
-        print('\n')
         ibs.print_image_table()
-        print('\n')
         ibs.print_roi_table()
-        print('\n')
         ibs.print_chip_table()
-        print('\n')
         ibs.print_feat_table()
-        print('\n')
         ibs.print_name_table()
-        print('\n')
         ibs.print_config_table()
         print('\n')

@@ -11,6 +11,7 @@ from . import interact_helpers as ih
 
 # CHIP INTERACTION 2
 def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
+    vh.ibsfuncs.assert_valid_rids(ibs, (rid,))
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)

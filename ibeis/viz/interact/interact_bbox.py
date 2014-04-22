@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from . import interact_helpers as ih
 from ibeis import viz
 from plottool import draw_func2 as df2
+from plottool import fig_presenter
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_bbox]', DEBUG=False)
@@ -16,6 +17,7 @@ def iselect_bbox(ibs, gid, fnum=1,
     print('[*interact] Define a Rectanglular ROI by clicking two points.')
     # Show the image
     fig = ih.begin_interaction('select_bbox', fnum)
+    fig_presenter.bring_to_front(fig)
     viz.show_image(ibs, gid, **kwargs)
     try:
         viz.draw()

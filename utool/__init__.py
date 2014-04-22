@@ -31,6 +31,7 @@ from . import util_print
 from . import util_progress
 from . import util_str
 from . import util_sysreq
+from . import util_regex
 from . import util_time
 from . import util_type
 
@@ -73,6 +74,8 @@ from .util_progress import (progress_func)
 
 from .util_str  import (byte_str2, horiz_string, theta_str)
 
+from .util_regex import (regex_search)
+
 from .util_time import (tic, toc, Timer)
 
 from .DynStruct import DynStruct
@@ -103,11 +106,13 @@ from .util_print import *
 from .util_progress import *
 from .util_str import *
 from .util_sysreq import *
+from .util_regex import *
 from .util_time import *
 from .util_type import *
 
 
-def reload_submodules():
+def reload_subs():
+    rrr()
     util_alg.rrr()
     util_arg.rrr()
     util_cache.rrr()
@@ -125,6 +130,7 @@ def reload_submodules():
     util_print.rrr()
     util_progress.rrr()
     util_str.rrr()
+    util_regex.rrr()
     util_sysreq.rrr()
     util_time.rrr()
     util_type.rrr()
@@ -132,8 +138,7 @@ def reload_submodules():
 
 def rrrr():
     """Reloads self and submodules """
-    reload_submodules()
-    rrr()
+    reload_submods()
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[util]')
 

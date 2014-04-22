@@ -353,14 +353,22 @@ def matches_image(fname):
     return any([fnmatch.fnmatch(fname_, pat) for pat in img_pats])
 
 
+def dirsplit(path):
+    return path.split(os.sep)
+
+
 def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
+    print(ignore_list)
     ignore_set = set(ignore_list)
     gname_list_ = []
     assertpath(img_dpath)
     # Get all the files in a directory recursively
     for root, dlist, flist in os.walk(img_dpath):
+        rel_dpath = relpath(root, img_dpath)
+        if any([dname in ignore_set for dname in dirsplit(rel_dpath)]):
+            continue
         for fname in iter(flist):
-            gname = join(relpath(root, img_dpath), fname).replace('\\', '/').replace('./', '')
+            gname = join(rel_dpath, fname).replace('\\', '/').replace('./', '')
             if fullpath:
                 gname_list_.append(join(img_dpath, gname))
             else:
@@ -371,3 +379,12 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
     gname_list = [gname for gname in iter(gname_list_)
                   if not gname in ignore_set and matches_image(gname)]
     return gname_list
+
+
+def fpaths_to_fnames(fpath_list):
+    """
+    Input: Filepath list
+    Output: Filename list
+    """
+    fname_list = [split(fpath)[1] for fpath in fpath_list]
+    return fname_list

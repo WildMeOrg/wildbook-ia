@@ -1136,9 +1136,12 @@ def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
     return None
 
 
-def draw_boxedX(xywh, color=RED, lw=2, alpha=.5, theta=0):
+def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     'draws a big red x. redx'
     ax = gca()
+    if xywh is None:
+        xy, w, h = _axis_xy_width_height(ax)
+        xywh = (xy[0], xy[1], w, h)
     x1, y1, w, h = xywh
     x2, y2 = x1 + w, y1 + h
     segments = [((x1, y1), (x2, y2)),
@@ -1247,3 +1250,8 @@ def remove_patches(ax=None):
         ax = gca()
     for patch in ax.patches:
         del patch
+
+
+def imshow_null(**kwargs):
+    df2.imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
+    df2.draw_boxedX()

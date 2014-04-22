@@ -8,19 +8,17 @@ from __future__ import absolute_import, division, print_function
 import sys
 import os
 sys.path.append(os.getcwd())  # Windows fix
-from os.path import join
-import ibeis
+import utool
 from ibeis.dev import ibsfuncs
-from ibeis.dev import params
 
 
-def injest_named_images(ibs, img_dir):
+def injest_named_images(ibs, img_dir, fmtkey='testdata'):
     """
     Converts a folder structure where folders = names of animals to an ibeis
     database
     """
-    gpath_list = utool.list_images(img_dir, fullpath=True)
-    name_list = ibsfuncs.get_names_from_parent_folder(gpath_list, img_dir)
+    gpath_list = ibsfuncs.list_images(img_dir)
+    name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
     # Add Images
     gid_list = ibs.add_images(gpath_list)
     # Resolve conflicts
@@ -31,6 +29,9 @@ def injest_named_images(ibs, img_dir):
 
 if __name__ == '__main__':
     from ibeis.dev.all_imports import *  # NOQA
+    from os.path import join
+    from ibeis.dev import params
+    import ibeis
     # TODO: be able to injest more than polar bears
     img_dirname = utool.get_arg('--db', str, None)
     img_dir = join(params.get_workdir(), img_dirname)

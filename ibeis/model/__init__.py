@@ -4,3 +4,9 @@ from __future__ import absolute_import, division, print_function
 from . import Config
 from . import preproc
 from . import hots
+
+
+def reload_subs():
+    Config.rrr()
+    hots.reload_subs()
+    preproc.reload_subs()

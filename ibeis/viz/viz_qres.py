@@ -54,7 +54,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
 
         # Do we show the ground truth?
         def missed_rids():
-            showgt_rids = vh.get_groundtruth(ibs, qres.qrid)
+            showgt_rids = ibs.get_roi_groundtruth(qres.qrid)
             return np.setdiff1d(showgt_rids, top_rids)
         showgt_rids = [] if noshow_gt else missed_rids()
 
@@ -79,7 +79,7 @@ def show_qres(ibs, qres, **kwargs):
     if isinstance(top_rids, int):
         top_rids = qres.get_top_rids(num=top_rids)
 
-    all_gts = vh.get_groundtruth(ibs, qres.qrid)
+    all_gts = ibs.get_roi_groundtruth(qres.qrid)
     nTop   = len(top_rids)
     nSelGt = len(gt_rids)
     nAllGt = len(all_gts)
@@ -186,18 +186,21 @@ def show_qres(ibs, qres, **kwargs):
     if nGtSubplts == 1:
         nGTCols = 1
 
-    fig = df2.figure(fnum=fnum, pnum=(nRows, nGTCols, 1), docla=True, doclf=True)
-    #df2.disconnect_callback(fig, 'button_press_event')
-    df2.plt.subplot(nRows, nGTCols, 1)
-    # Plot Query
-    if show_query:
-        _show_query_fn(0, (nRows, nGTCols))
-    # Plot Ground Truth
-    _plot_matches_rids(gt_rids, nQuerySubplts, (nRows, nGTCols))
-    _plot_matches_rids(top_rids, shift_topN, (nRows, nTopNCols))
-    #figtitle += ' q%s name=%s' % (ibs.ridstr(qres.qrid), ibs.rid2_name(qres.qrid))
-    figtitle += aug
-    df2.set_figtitle(figtitle, incanvas=not vh.NO_LABEL_OVERRIDE)
+    if nRows == 0:
+        df2.imshow_null(fnum=fnum)
+    else:
+        fig = df2.figure(fnum=fnum, pnum=(nRows, nGTCols, 1), docla=True, doclf=True)
+        #df2.disconnect_callback(fig, 'button_press_event')
+        df2.plt.subplot(nRows, nGTCols, 1)
+        # Plot Query
+        if show_query:
+            _show_query_fn(0, (nRows, nGTCols))
+        # Plot Ground Truth
+        _plot_matches_rids(gt_rids, nQuerySubplts, (nRows, nGTCols))
+        _plot_matches_rids(top_rids, shift_topN, (nRows, nTopNCols))
+        #figtitle += ' q%s name=%s' % (ibs.ridstr(qres.qrid), ibs.rid2_name(qres.qrid))
+        figtitle += aug
+        df2.set_figtitle(figtitle, incanvas=not vh.NO_LABEL_OVERRIDE)
 
     # Result Interaction
     df2.adjust_subplots_safe()

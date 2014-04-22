@@ -20,7 +20,7 @@ from .interact_matches import ishow_matches
 from .interact_bbox import iselect_bbox
 from .interact_sver import ishow_sver
 
-def reload_all():
+def reload_subs():
     interact_image.rrr()
     interact_chip.rrr()
     interact_name.rrr()
@@ -30,4 +30,4 @@ def reload_all():
     interact_matches.rrr()
     rrr()
 
-rrrr = reload_all
+rrrr = reload_subs

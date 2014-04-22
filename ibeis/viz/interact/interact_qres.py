@@ -18,7 +18,7 @@ from .interact_sver import ishow_sver
 @profile
 def ishow_qres(ibs, qres, **kwargs):
     ''' Displays query chip, groundtruth matches, and top 5 matches'''
-    fnum = kwargs.get('fnum', None)
+    fnum = kwargs.get('fnum', 3)
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
     printDBG('[ishow_qres] starting interaction')

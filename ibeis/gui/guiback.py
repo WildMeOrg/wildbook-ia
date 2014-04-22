@@ -14,7 +14,7 @@ from plottool import fig_presenter
 from ibeis.dev import params
 from ibeis.gui import guifront
 from ibeis.gui import gui_item_tables as item_table
-from ibeis import interact
+from ibeis.viz import interact
 # Utool
 import utool
 from ibeis.control import IBEISControl
@@ -143,11 +143,16 @@ class MainWindowBackend(QtCore.QObject):
     @drawing
     def show_name(back, nid, sel_rids=[], **kwargs):
         #nid = back.ibs.get_name_nids(name)
+        kwargs.update({
+            'sel_rids': sel_rids,
+            'select_rid_callback': back.select_rid,
+        })
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
 
     @drawing
     def show_qres(back, qres, **kwargs):
+        kwargs['annote_mode'] = kwargs.get('annote_mode', 2)
         interact.ishow_qres(back.ibs, qres, **kwargs)
         pass
 
@@ -579,13 +584,13 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def edit_preferences(back):
+        """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
         pass
-        """ Options -> Edit Preferences"""
-        #back.edit_prefs = back.cfg.createQWidget()
+        #back.edit_prefs = back.ibs.cfg.createQWidget()
         #epw = back.edit_prefs
         #epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
-        #query_uid = ''.join(back.cfg.query_cfg.get_uid())
+        #query_uid = ''.join(back.ibs.cfg.query_cfg.get_uid())
         #print('[back] query_uid = %s' % query_uid)
         #print('')
 

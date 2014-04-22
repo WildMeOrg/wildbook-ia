@@ -4,6 +4,7 @@ from itertools import izip
 import plottool.draw_func2 as df2
 import utool
 import vtool.keypoint as ktool
+from ibeis.dev import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
 
@@ -32,6 +33,8 @@ def draw():
 
 
 def get_square_row_cols(nSubplots, max_cols=5):
+    if nSubplots == 0:
+        return 0, 0
     nCols = int(min(nSubplots, max_cols))
     #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
     nRows = int(np.ceil(nSubplots / nCols))
@@ -111,23 +114,6 @@ def get_bboxes(ibs, rid_list, offset_list=None):
     return bbox_list
 
 
-@getter
-def get_thetas(ibs, rid_list):
-    theta_list = ibs.get_roi_thetas(rid_list)
-    return theta_list
-
-
-@getter
-def get_groundtruth(ibs, rid_list):
-    gt_list = ibs.get_roi_groundtruth(rid_list)
-    return gt_list
-
-
-@getter
-def get_gnames(ibs, rid_list):
-    return ibs.get_roi_gnames(rid_list)
-
-
 def get_ridstrs(rid_list):
     fmtstr = 'rid=%r'
     if utool.isiterable(rid_list):
@@ -190,6 +176,7 @@ def get_timedelta_str(ibs, rid1, rid2):
 @getter
 def get_chip_labels(ibs, rid_list, **kwargs):
     # Add each type of label_list to the strings list
+    ibsfuncs.assert_valid_rids(ibs, rid_list)
     label_strs = []
     try:
         assert all([isinstance(rid, int) for rid in rid_list]), 'invalid input'
@@ -200,7 +187,7 @@ def get_chip_labels(ibs, rid_list, **kwargs):
         ridstr_list = get_ridstrs(rid_list)
         label_strs.append(ridstr_list)
     if kwargs.get('show_gname', True):
-        gname_list = get_gnames(ibs, rid_list)
+        gname_list = ibs.get_roi_gnames(rid_list)
         label_strs.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):
         name_list = ibs.get_roi_names(rid_list)

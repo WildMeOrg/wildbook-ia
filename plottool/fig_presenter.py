@@ -17,6 +17,9 @@ from .custom_figure import get_fig
 #from .custom_constants import golden_wh
 
 
+DEFAULT_MAX_ROWS = 3
+AVAIL_PERCENT_W = .5
+AVAIL_PERCENT_H = 1
 QT4_WINS = []
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
 
@@ -193,16 +196,20 @@ def get_avail_geom(monitor_num=None):
             monitor_num = 0
     monitor_geometries = get_monitor_geometries()
     (startx, starty, availw, availh) = monitor_geometries[monitor_num]
-    available_geom = (startx, starty, availw / 2, availh - stdpxls['os_border_h'])
+    available_geom = (startx, starty,
+                      availw * AVAIL_PERCENT_W,
+                      (availh - stdpxls['os_border_h']) * AVAIL_PERCENT_H)
     return available_geom
 
 
 #@profile
-def all_figures_tile(max_rows=4, row_first=True, no_tile=False, override1=False,
+def all_figures_tile(max_rows=None, row_first=True, no_tile=False, override1=False,
                      adaptive=False, monitor_num=None, **kwargs):
     """
     Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
     """
+    if max_rows is None:
+        max_rows = DEFAULT_MAX_ROWS
     #print('[df2] all_figures_tile()')
     if no_tile:
         return

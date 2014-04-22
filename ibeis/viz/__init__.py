@@ -23,10 +23,17 @@ from .viz_sver import show_sver, _compute_svvars
 from .viz_nearest_descriptors import show_nearest_descriptors
 from .viz_featrow import draw_feat_row
 
+__LOADED__ = False
+
+def import_subs():
+    global __LOADED__
+    from . import interact
+    __LOADED__ = True
 
 
-
-def reload_all():
+def reload_subs():
+    if not __LOADED__:
+        import_subs()
     viz_helpers.rrr()
     viz_image.rrr()
     viz_chip.rrr()
@@ -36,5 +43,6 @@ def reload_all():
     viz_nearest_descriptors.rrr()
     viz_sver.rrr()
     rrr()
+    interact.reload_subs()
 
-rrrr = reload_all
+rrrr = reload_subs

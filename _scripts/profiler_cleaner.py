@@ -2,9 +2,9 @@
 'Removes profiled output of code that never ran'
 from __future__ import absolute_import, division, print_function
 import sys
-import re
 import operator
 from collections import defaultdict
+from utool import regex_search, regex_split
 
 
 def __dbg_list(list_):
@@ -13,25 +13,6 @@ def __dbg_list(list_):
         twoline = item[newline + 1:].find('\n')
         head = item[0:(newline + twoline)]
         print(head)
-
-
-def get_match_string(match):
-    if match is not None:
-        start, stop = match.start(), match.end()
-        return match.string[start:stop]
-    else:
-        return None
-
-
-def regex_search(regex, string):
-    if string is None:
-        return None
-    match = re.search(regex, string, flags=re.M)
-    return get_match_string(match)
-
-
-def regex_split(regex, string):
-    return re.split(regex, string, flags=re.M)
 
 
 def get_block_totaltime(block):

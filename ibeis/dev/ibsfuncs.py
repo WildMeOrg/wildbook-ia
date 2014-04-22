@@ -11,6 +11,16 @@ import utool
 UNKNOWN_NAMES = set(['Unassigned'])
 
 
+def list_images(img_dir, fullpath=True, recursive=True):
+    """ lists images that are not in an internal cache """
+    ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+    gpath_list = utool.list_images(img_dir,
+                                   fullpath=fullpath,
+                                   recursive=recursive,
+                                   ignore_list=ignore_list)
+    return gpath_list
+
+
 def normalize_name(name):
     """
     Maps unknonwn names to the standard ____
@@ -34,6 +44,37 @@ def get_names_from_parent_folder(gpath_list, img_dir):
     """
     relgpath_list = [relpath(gpath, img_dir) for gpath in gpath_list]
     _name_list  = [split(relgpath)[0] for relgpath in relgpath_list]
+    name_list = normalize_names(_name_list)
+    return name_list
+
+
+def get_names_from_gnames(gpath_list, img_dir, fmtkey='testdata'):
+    """
+    Input: gpath_list
+    Output: names based on the parent folder of each image
+    """
+    FORMATS = {
+        'testdata': utool.named_field_regex( [
+            ('name', r'[a-zA-Z]+'),
+            ('id',  r'\d*'),
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
+    }
+    regex = FORMATS.get(fmtkey, fmtkey)
+    gname_list = utool.fpaths_to_fnames(gpath_list)
+    parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
+
+    anyfailed = False
+    for gpath, parsed in izip(gpath_list, parsed_list):
+        if parsed is None:
+            print('FAILED TO PARSE: %r' % gpath)
+            anyfailed = True
+    if anyfailed:
+        msg = ('FAILED REGEX: %r' % regex)
+        raise Exception(msg)
+
+    _name_list = [parsed['name'] for parsed in parsed_list]
     name_list = normalize_names(_name_list)
     return name_list
 
@@ -88,6 +129,13 @@ def compute_all_features(ibs):
     return fid_list
 
 
+def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
+    if chips or feats:
+        cid_list = ibs.add_chips(rid_list)
+    if feats:
+        ibs.add_feats(cid_list)
+
+
 @utool.indent_func
 def get_empty_gids(ibs):
     """ returns gid list without any chips """
@@ -113,3 +161,9 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None, notes_list=
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
                             name_list=name_list, nid_list=nid_list, notes_list=notes_list)
     return rid_list
+
+
+def assert_valid_rids(ibs, rid_list):
+    valid_rids = set(ibs.get_valid_rids())
+    invalid_rids = [rid for rid in rid_list if not rid in valid_rids]
+    assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)

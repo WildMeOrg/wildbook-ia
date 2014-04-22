@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import sys
 from ibeis.dev import params
+from ibeis.dev import ibsfuncs
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[main_cmds]')
 
 
@@ -46,7 +47,7 @@ def preload_commands():
 
 
 def postload_commands(ibs, back):
-    #print('[main_cmd] postload_commands')
+    print('[main_cmd] postload_commands')
     args = params.args
     if args.dump_argv:
         print(utool.dict_str(vars(params.args)))
@@ -57,6 +58,11 @@ def postload_commands(ibs, back):
         cfgdict = parse_cfgstr_list(params.args.update_cfg)
         ibs.update_cfg(**cfgdict)
     if args.select_rid is not None:
+        try:
+            ibsfuncs.assert_valid_rids(ibs, (args.select_rid,))
+        except AssertionError:
+            print('Valid RIDs are: %r' % (ibs.get_valid_rids(),))
+            raise
         back.select_rid(args.select_rid)
     if args.select_gid is not None:
         back.select_gid(args.select_gid)

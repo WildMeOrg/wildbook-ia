@@ -3,6 +3,25 @@ from __future__ import absolute_import, division, print_function
 from .dev import params
 from . import main_module
 from .main_module import main, _preload, main_loop
-#from .control import IBEISControl
-#from .view import viz
-#from .interact import interact
+
+__LOADED__ = False
+
+def import_subs():
+    global __LOADED__
+    from . import dev
+    from . import viz
+    from . import control
+    from . import model
+    __LOADED__ = True
+
+
+def reload_subs():
+    if not __LOADED__:
+        import_subs()
+    dev.reload_subs()
+    viz.reload_subs()
+    #control.reload_subs()
+    model.reload_subs()
+    #injest.reload_subs()
+    #gui.reload_subs()
+    #tests.reload_subs()

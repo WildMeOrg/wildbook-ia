@@ -8,7 +8,7 @@ import ibeis
 ibeis._preload()
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
-from ibeis import interact
+from ibeis.viz import interact
 import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
@@ -172,3 +172,13 @@ if __name__ == '__main__':
     dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
     execstr = dev_execstr + '\n' + main_execstr
     exec(execstr)
+
+
+"""
+Snippets:
+
+rid_list = ibs.get_valid_rids()
+gid_list = ibs.get_valid_gids()
+nid_list = ibs.get_valid_nids()
+
+"""

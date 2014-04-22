@@ -19,7 +19,7 @@ def injest_named_folder(ibs, img_dir):
     Converts a folder structure where folders = names of animals to an ibeis
     database
     """
-    gpath_list = utool.list_images(img_dir, fullpath=True)
+    gpath_list = ibsfuncs.list_images(img_dir)
     name_list = ibsfuncs.get_names_from_parent_folder(gpath_list, img_dir)
     # Add Images
     gid_list = ibs.add_images(gpath_list)

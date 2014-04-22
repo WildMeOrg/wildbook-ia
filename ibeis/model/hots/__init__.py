@@ -14,7 +14,8 @@ from . import QueryResult
 from . import voting_rules2
 
 
-def reload_all():
+def reload_subs():
+    rrr()
     match_chips3.rrr()
     matching_functions.rrr()
     nn_filters.rrr()
@@ -23,6 +24,5 @@ def reload_all():
     QueryRequest.rrr()
     QueryResult.rrr()
     voting_rules2.rrr()
-    rrr()
 
-rrrr = reload_all
+rrrr = reload_subs
