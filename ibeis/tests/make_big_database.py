@@ -38,7 +38,7 @@ def MAKE_BIG_DB():
 
     main_locals = ibeis.main(dbdir=dbdir, gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
-    gpath_list = __testing__.get_test_image_paths(ibs, ndata=1)
+    gpath_list = __testing__.get_test_gpaths(ndata=1)
 
     imgdir = get_big_imgdir(workdir)
     gname_list = utool.list_images(imgdir)

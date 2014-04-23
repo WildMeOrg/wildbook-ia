@@ -8,6 +8,7 @@ import ibeis
 from ibeis.dev import main_commands
 import utool
 from os.path import join
+from vtool.tests import grabdata
 
 workdir = ibeis.params.get_workdir()
 TESTDB_DIR = join(workdir, 'testdb')
@@ -30,6 +31,7 @@ def make_testdbs():
 
 
 def reset_testdbs():
+    grabdata.ensure_testdata()
     delete_testdbs()
     make_testdbs()
 

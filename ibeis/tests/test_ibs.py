@@ -13,7 +13,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS]')
 
 
 def TEST_IBS(ibs):
-    gpath_list = __testing__.get_test_image_paths(ibs, ndata=1)
+    gpath_list = __testing__.get_test_gpaths(ndata=1)
 
     printTEST('[TEST] 1.ibs.add_images(gpath_list=%r)' % gpath_list)
     gid_list = ibs.add_images(gpath_list)

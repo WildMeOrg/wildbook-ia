@@ -11,7 +11,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ADD_IMAGES
 def TEST_ADD_IMAGES(ibs):
     printTEST('[TEST] GET_TEST_IMAGE_PATHS')
     # The test api returns a list of interesting chip indexes
-    gpath_list = __testing__.get_test_image_paths(ibs, ndata=None)
+    gpath_list = __testing__.get_test_gpaths(ibs, ndata=None)
 
     printTEST('[TEST] IMPORT IMAGES FROM FILE\ngpath_list=%r' % gpath_list)
     gid_list = ibs.add_images(gpath_list)

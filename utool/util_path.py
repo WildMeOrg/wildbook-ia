@@ -393,6 +393,11 @@ def fpaths_to_fnames(fpath_list):
     return fname_list
 
 
+def fnames_to_fpaths(fname_list, path):
+    fpath_list = [join(path, fname) for fname in fname_list]
+    return fpath_list
+
+
 BadZipfile = zipfile.BadZipfile
 
 
@@ -416,6 +421,8 @@ def download_url(url, filename):
             start_time_ptr[0] = time.time()
             return
         duration = time.time() - start_time_ptr[0]
+        if duration == 0:
+            duration = 1E-9
         progress_size = int(count * block_size)
         speed = int(progress_size / (1024 * duration))
         percent = int(count * block_size * 100 / total_size)

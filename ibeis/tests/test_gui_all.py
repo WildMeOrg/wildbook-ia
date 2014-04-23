@@ -41,8 +41,7 @@ def TEST_GUI_ALL(ibs, back):
     #
     # IMPORT IMAGES
     printTEST('[TEST] IMPORT_TEST_GPATHS', wait=True)
-    gpath_list = __testing__.get_pyhesaff_test_gpaths(ndata=None,
-                                                      zebra=True, lena=True, jeff=True)
+    gpath_list = __testing__.get_test_gpaths(zebra=True, lena=True, jeff=True)
     gid_list = back.import_images(gpath_list=gpath_list)
     print('\n'.join('  * gid_list[%d] = %r' % (count, gid) for count, gid in enumerate(gid_list)))
     assert len(gid_list) == len(gpath_list)
