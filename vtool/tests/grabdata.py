@@ -26,6 +26,15 @@ def ensure_testdata():
     assert_testdata()
 
 
+def get_testimg_path(gname):
+    """
+    Returns path to image in testdata
+    """
+    testdata_dir = get_testdata_dir()
+    gpath = realpath(join(testdata_dir, gname))
+    return gpath
+
+
 def download_testdata():
     zip_fpath = realpath(join(TESTDATA_DIR, '..', 'testdata.zip'))
     # Download and unzip testdata

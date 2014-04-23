@@ -40,10 +40,10 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
             _viz_keypoints(fnum, draw_ell=draw_ell, draw_pts=draw_pts, **kwargs)    # MAYBE: remove kwargs
         else:
             ax = event.inaxes
-            viztype = ph.set_plotdat(ax, 'viztype', None)
+            viztype = ph.get_plotdat(ax, 'viztype', None)
             print_('[ik] viztype=%r' % viztype)
             if viztype == 'keypoints':
-                kpts = ph.set_plotdat(ax, 'kpts', [])
+                kpts = ph.get_plotdat(ax, 'kpts', [])
                 if len(kpts) == 0:
                     print('...nokpts')
                 else:
@@ -52,7 +52,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                     fx = utool.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif viztype == 'warped':
-                hs_fx = ph.set_plotdat(ax, 'fx', None)
+                hs_fx = ph.get_plotdat(ax, 'fx', None)
                 if hs_fx is not None:
                     # Ugly. Interactions should be changed to classes.
                     kp = kpts[hs_fx]

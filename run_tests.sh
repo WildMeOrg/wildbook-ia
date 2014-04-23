@@ -9,7 +9,10 @@ http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
 
 # Win32 path hacks
 export CWD=$(pwd)
-export PYTHONPATH=$PYTHONPATH:$CWD
+
+# FIXME: Weird directory dependency
+export HESAFF_DIR=../hesaff
+export PYTHONPATH=$PYTHONPATH:$CWD:$HESAFF_DIR
 
 export ARGV="--quiet --noshow $@"
 
@@ -21,6 +24,7 @@ export SQL_TESTS=$DEFAULT
 export MISC_TESTS=$DEFAULT
 export VIEW_TESTS=$DEFAULT
 export VTOOL_TESTS=$DEFAULT
+export HESAFF_TESTS=$DEFAULT
 
 
 
@@ -154,6 +158,23 @@ EOF
     RUN_TEST ibeis/tests/test_utool_parallel.py
 fi
 
+#---------------------------------------------
+# HESAFF TESTS
+if [ "$HESAFF_TESTS" = "ON" ] ; then 
+cat <<EOF
+    _  _ ____ ____ ____ ____ ____    ___ ____ ____ ___ ____ 
+    |__| |___ [__  |__| |___ |___     |  |___ [__   |  [__  
+    |  | |___ ___] |  | |    |        |  |___ ___]  |  ___] 
+EOF
+    
+    RUN_TEST $HESAFF_DIR/tests/test_adaptive_scale.py
+    RUN_TEST $HESAFF_DIR/tests/test_draw_keypoint.py
+    RUN_TEST $HESAFF_DIR/tests/test_ellipse.py
+    RUN_TEST $HESAFF_DIR/tests/test_exhaustive_ori_extract.py
+    RUN_TEST $HESAFF_DIR/tests/test_patch_orientation.py
+    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff.py
+    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple.py
+fi
 
 #---------------------------------------------
 # SQL TESTS
