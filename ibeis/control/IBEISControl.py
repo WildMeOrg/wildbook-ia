@@ -27,7 +27,7 @@ from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_feat
 # IBEIS
-from ibeis.control import IBEIS_SCHEMA
+from ibeis.control import DB_SCHEMA
 from ibeis.control import SQLDatabaseControl
 from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy,
@@ -139,7 +139,7 @@ class IBEISControl(object):
         """ Load or create sql database """
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbdir(), ibs.sqldb_fname)
         printDBG('[ibs._init_sql] Define the schema.')
-        IBEIS_SCHEMA.define_IBEIS_schema(ibs)
+        DB_SCHEMA.define_IBEIS_schema(ibs)
         printDBG('[ibs._init_sql] Add default names.')
         ibs.UNKNOWN_NAME = '____'
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]

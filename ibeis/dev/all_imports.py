@@ -108,7 +108,7 @@ from ibeis.viz.interact import iselect_bbox
 # IBEIS CONTROl
 from ibeis.control import SQLDatabaseControl
 from ibeis.control import __SQLITE3__ as lite
-from ibeis.control import IBEIS_SCHEMA
+from ibeis.control import DB_SCHEMA
 from ibeis.control import IBEISControl
 from ibeis.control import accessor_decors
 # IBEIS
