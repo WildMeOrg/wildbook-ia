@@ -11,8 +11,10 @@ http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
 export CWD=$(pwd)
 
 # FIXME: Weird directory dependency
+export PATHSEP=$(python -c "import os; print(os.pathsep)")
 export HESAFF_DIR=../hesaff
-export PYTHONPATH=$PYTHONPATH:$CWD:$HESAFF_DIR
+export PYTHONPATH=$PYTHONPATH$PATHSEP$CWD$PATHSEP$HESAFF_DIR$PATHSEP$HESAFF_DIR/pyhesaff
+echo $PYTHONPATH
 
 export ARGV="--quiet --noshow $@"
 
