@@ -1,12 +1,22 @@
-export ARGV="--quiet $@"
+"""
+Runs all tests
+
+Bubble text from:
+http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
+"""
 # TODO: MAKE SURE IBS DATABASE CAN HANDLE WHEN IMAGE PATH IS NOT WHERE IT EXPECTED
 # TODO: ADD CACHE / LOCALIZE IMAGES IN IBEIS CONTROL
 
-export GUI_TESTS=ON
-export IBS_TESTS=ON
-export SQL_TESTS=ON
-export MISC_TESTS=ON
-export VIEW_TESTS=ON
+export ARGV="--quiet $@"
+
+export DEFAULT=ON
+
+export GUI_TESTS=$DEFAULT
+export IBS_TESTS=$DEFAULT
+export SQL_TESTS=$DEFAULT
+export MISC_TESTS=$DEFAULT
+export VIEW_TESTS=$DEFAULT
+export VTOOL_TESTS=$DEFAULT
 
 
 
@@ -33,8 +43,8 @@ export FAILED_TESTS=''
 
 RUN_TEST()
 {
-    echo "RUN_TEST: $1"
-    export TEST="python $1 $ARGV"
+    echo "RUN_TEST: $@"
+    export TEST="python $@ $ARGV"
     $TEST
     export RETURN_CODE=$?
     PRINT_DELIMETER
@@ -50,6 +60,25 @@ RUN_TEST()
 
 RUN_TEST ibeis/tests/assert_modules.py 
 
+
+#---------------------------------------------
+# VTOOL TESTS
+if [ "$VTOOL_TESTS" = "ON" ] ; then 
+cat <<EOF
+    _  _ ___ ____ ____ _       ___ ____ ____ ___ ____ 
+    |  |  |  |  | |  | |        |  |___ [__   |  [__  
+     \/   |  |__| |__| |___     |  |___ ___]  |  ___] 
+EOF
+
+    RUN_TEST vtool/tests/test_draw_keypoint.py --noshow 
+
+    RUN_TEST vtool/tests/test_spatial_verification.py --noshow 
+
+    RUN_TEST vtool/tests/test_exhaustive_ori_extract.py --noshow 
+
+    RUN_TEST vtool/tests/test_vtool.py 
+
+fi
 
 #---------------------------------------------
 # GUI_TESTS

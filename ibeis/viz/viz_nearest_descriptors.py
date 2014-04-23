@@ -3,7 +3,7 @@ import plottool.draw_func2 as df2
 import utool
 from ibeis.model.hots import query_helpers
 from . import viz_helpers as vh
-from .viz_featrow import draw_feat_row
+from plottool.viz_featrow import draw_feat_row
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_nndesc]', DEBUG=False)
 
 

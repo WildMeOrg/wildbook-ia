@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function
 import __testing__
 import multiprocessing
 import utool
-from ibeis import viz
 from plottool import draw_func2 as df2
+from plottool.viz_keypoints import show_keypoints
 from ibeis.dev.all_imports import *  # NOQA
 import vtool.tests.dummy as dummy
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
@@ -23,8 +23,8 @@ def draw_data(img1, img2, kpts1, kpts2):
     # Draw keypoints
     kpkw = dict(ddd=True, rect=True, ori=True, eig=True, pts=True)
     pnum_ = df2.get_pnum_func(1, 2)
-    viz.show_kpts(img1, kpts1, fnum=0, pnum=pnum_(0), **kpkw)
-    viz.show_kpts(img2, kpts2, fnum=0, pnum=pnum_(1), **kpkw)
+    show_keypoints(img1, kpts1, fnum=0, pnum=pnum_(0), **kpkw)
+    show_keypoints(img2, kpts2, fnum=0, pnum=pnum_(1), **kpkw)
 
 
 def SAMPLE_DATA(ibs):

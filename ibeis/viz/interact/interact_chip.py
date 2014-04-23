@@ -2,8 +2,9 @@ from __future__ import absolute_import, division, print_function
 from ibeis import viz
 import utool
 from plottool import draw_func2 as df2
+from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[interact_chip]', DEBUG=False)
@@ -27,7 +28,7 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots
         nRows, nCols, px = (2, 3, 3)
-        viz.draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, None)
+        draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, None)
 
     def _chip_view(mode=0, pnum=(1, 1, 1), **kwargs):
         print('... _chip_view mode=%r' % mode_ptr[0])

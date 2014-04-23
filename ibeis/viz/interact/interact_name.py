@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,

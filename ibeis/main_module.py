@@ -215,7 +215,7 @@ def _preload(**kwargs):
     # ctrl+c
     _init_signals()
     # inject colored exceptions
-    utool.util_inject._inject_colored_exception_hook()
+    utool.util_inject.inject_colored_exceptions()
     # register type aliases for debugging
     main_helpers.register_utool_aliases()
     return params.args

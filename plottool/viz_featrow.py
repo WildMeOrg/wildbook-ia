@@ -3,13 +3,12 @@ from __future__ import absolute_import, division, print_function
 import utool
 # Drawtool
 import plottool.draw_func2 as df2
-# IBEIS
-from . import viz_helpers as vh
+from plottool import plot_helpers as ph
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[viz_featrow]', DEBUG=False)
 
 
-@utool.indent_decor('[viz.draw_feat_row]')
+@utool.indent_func
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
                   rid=None, info='', type_=None):
 
@@ -19,21 +18,21 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         return df2.draw_keypoint_patch(chip, kp, sift, ori_color=df2.DEEP_PINK, **kwargs)
 
     # Feature strings
-    xy_str, shape_str, scale, ori_str = vh.kp_info(kp)
+    xy_str, shape_str, scale, ori_str = ph.kp_info(kp)
 
     # Draw the unwarped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 1))
-    vh.set_ibsdat(ax, 'viztype', 'unwarped')
-    vh.set_ibsdat(ax, 'rid', rid)
-    vh.set_ibsdat(ax, 'fx', fx)
+    ph.set_plotdat(ax, 'viztype', 'unwarped')
+    ph.set_plotdat(ax, 'rid', rid)
+    ph.set_plotdat(ax, 'fx', fx)
     unwarped_lbl = 'affine feature invV =\n' + shape_str + '\n' + ori_str
     df2.set_xlabel(unwarped_lbl, ax)
 
     # Draw the warped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 2), warped=True)
-    vh.set_ibsdat(ax, 'viztype', 'warped')
-    vh.set_ibsdat(ax, 'rid', rid)
-    vh.set_ibsdat(ax, 'fx', fx)
+    ph.set_plotdat(ax, 'viztype', 'warped')
+    ph.set_plotdat(ax, 'rid', rid)
+    ph.set_plotdat(ax, 'fx', fx)
     warped_lbl = ('warped feature\n' +
                   'fx=%r scale=%.1f\n' +
                   '%s' + info) % (fx, scale, xy_str)
@@ -48,7 +47,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
 
     # Draw the SIFT representation
     pnum = pnum_(px + 3)
-    if vh.SIFT_OR_VECFIELD:
+    if ph.SIFT_OR_VECFIELD:
         df2.figure(fnum=fnum, pnum=pnum)
         df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
     else:

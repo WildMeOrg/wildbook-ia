@@ -93,7 +93,7 @@ def get_stashed_test_vars():
 
 if __name__ == '__main__':
     np.set_printoptions(precision=4, suppress=True)
-    utool.util_inject._inject_colored_exception_hook()
+    utool.util_inject.inject_colored_exceptions()
     nShow = utool.get_arg('--nShow', int, 1)
     chip1, chip2, kpts1, kpts2, fm = get_dummy_test_vars()
     #chip1, chip2, kpts1, kpts2, fm = get_stashed_test_vars()

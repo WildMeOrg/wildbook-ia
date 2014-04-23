@@ -4,8 +4,9 @@ import guitool
 import numpy as np
 from plottool import draw_func2 as df2
 from ibeis import viz
+from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 from .interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
 
@@ -93,8 +94,8 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
         else:
             fnum2 = fnum
         for (rchip, kp, sift, fx, rid, info) in extracted_list:
-            px = viz.draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
-                                   prevsift=prevsift, rid=rid, info=info)
+            px = draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
+                               prevsift=prevsift, rid=rid, info=info)
             prevsift = sift
         if not same_fig:
             ih.connect_callback(fig2, 'button_press_event', _click_matches_click)

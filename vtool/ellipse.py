@@ -371,7 +371,7 @@ def kpts_matrices(kpts):
     #    Z = perdoch.E
     # invert into V
     invV = kpts_to_invV(kpts)
-    V = ktool.get_V_mats(invV)
+    V = ktool.invert_invV_mats(invV)
     Z = ktool.get_Z_mats(V)
     return invV, V, Z
 

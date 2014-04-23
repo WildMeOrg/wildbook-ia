@@ -11,7 +11,7 @@ from . import interact_bbox
 from . import interact_sver
 from . import interact_matches
 
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 from .interact_image import ishow_image
 from .interact_chip import ishow_chip
 from .interact_name import ishow_name

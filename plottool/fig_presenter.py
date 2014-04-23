@@ -341,6 +341,8 @@ def present(*args, **kwargs):
         if not '--quiet' in sys.argv:
             print('[df2] Presenting in normal shell.')
             print('[df2] ... plt.show()')
-        plt.show()
+        import matplotlib.pyplot as plt
+        if not '--noshow' in sys.argv:
+            plt.show()
     ''')
     return execstr

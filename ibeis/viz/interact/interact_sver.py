@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[interact_sver]', DEBUG=False)

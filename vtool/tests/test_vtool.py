@@ -3,6 +3,7 @@ import vtool.keypoint as ktool
 import vtool.linalg as ltool
 import numpy as np
 import utool
+from vtool.tests import dummy
 
 
 def test_get_invR_mats_orientation():
@@ -11,14 +12,14 @@ def test_get_invR_mats_orientation():
     theta3 = 0
     theta4 = 7 * np.tau / 8
 
-    invV_mats = ktool.get_dummy_invV_mats()
+    invV_mats = dummy.get_dummy_invV_mats()
 
     def R_mats(theta):
         return np.array([ltool.rotation_mat2x2(theta) for _ in xrange(len(invV_mats))])
 
     def test_rots(theta):
         invVR_mats = ltool.matrix_multiply(invV_mats, R_mats(theta))
-        _oris = ktool.get_invVR_mats_orientation(invVR_mats)
+        _oris = ktool.get_invVR_mats_oris(invVR_mats)
         print('________')
         print('theta = %r' % (theta % np.tau,))
         print('b / a = %r' % (_oris,))
@@ -35,4 +36,5 @@ def test_get_invR_mats_orientation():
     test_rots(theta4)
 
 
-test_get_invR_mats_orientation()
+if __name__ == '__main__':
+    test_get_invR_mats_orientation()

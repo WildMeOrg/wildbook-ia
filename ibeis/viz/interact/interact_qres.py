@@ -6,7 +6,7 @@ import plottool.draw_func2 as df2
 # IBEIS
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 from .interact_matches import ishow_matches
 from .interact_sver import ishow_sver
 
@@ -17,7 +17,7 @@ from .interact_sver import ishow_sver
 @utool.indent_func
 @profile
 def ishow_qres(ibs, qres, **kwargs):
-    ''' Displays query chip, groundtruth matches, and top 5 matches'''
+    """ Displays query chip, groundtruth matches, and top 5 matches"""
     fnum = kwargs.get('fnum', 3)
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction

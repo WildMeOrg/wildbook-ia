@@ -66,7 +66,7 @@ def _get_module(module_name=None, module=None):
     return module
 
 
-def _inject_colored_exception_hook():
+def inject_colored_exceptions():
     import sys
     def myexcepthook(type, value, tb):
         #https://stackoverflow.com/questions/14775916/coloring-exceptions-from-python-on-a-terminal

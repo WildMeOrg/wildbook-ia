@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
 import plottool.draw_func2 as df2
+from plottool import plot_helpers as ph
 import utool
 import vtool.keypoint as ktool
 from ibeis.dev import ibsfuncs
@@ -18,7 +19,7 @@ IN_IMAGE_OVERRIDE = utool.get_arg('--in-image-override', type_=bool, default=Non
 SHOW_QUERY_OVERRIDE = utool.get_arg('--show-query-override', type_=bool, default=None)
 NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
 
-SIFT_OR_VECFIELD = utool.get_arg('--vecfield', type_=bool)
+SIFT_OR_VECFIELD  = ph.SIFT_OR_VECFIELD
 
 
 def register_FNUMS(FNUMS_):
@@ -26,36 +27,10 @@ def register_FNUMS(FNUMS_):
     global FNUMS
     FNUMS = FNUMS_
 
-
-def draw():
-    df2.adjust_subplots_safe()
-    df2.draw()
-
-
-def get_square_row_cols(nSubplots, max_cols=5):
-    if nSubplots == 0:
-        return 0, 0
-    nCols = int(min(nSubplots, max_cols))
-    #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
-    nRows = int(np.ceil(nSubplots / nCols))
-    return nRows, nCols
-
-
-def get_ibsdat(ax, key, default=None):
-    """ returns internal IBEIS property from a matplotlib axis """
-    _ibsdat = ax.__dict__.get('_ibsdat', None)
-    if _ibsdat is None:
-        return default
-    val = _ibsdat.get(key, default)
-    return val
-
-
-def set_ibsdat(ax, key, val):
-    """ sets internal IBEIS property to a matplotlib axis """
-    if not '_ibsdat' in ax.__dict__:
-        ax.__dict__['_ibsdat'] = {}
-    _ibsdat = ax.__dict__['_ibsdat']
-    _ibsdat[key] = val
+draw = ph.draw
+get_square_row_cols = ph.get_square_row_cols
+get_ibsdat = ph.get_plotdat
+set_ibsdat = ph.set_plotdat
 
 
 @getter_vector_output

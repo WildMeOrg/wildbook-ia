@@ -3,7 +3,7 @@ import utool
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool import draw_func2 as df2
-from . import interact_helpers as ih
+from plottool import interact_helpers as ih
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_img]',
                                                        DEBUG=False)

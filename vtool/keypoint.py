@@ -144,7 +144,11 @@ def get_invV_mats2x2(kpts, with_ori=False):
         (default orientation is down)
     """
     nKpts = len(kpts)
-    _iv11s, _iv21s, _iv22s = get_invVs(kpts)
+    try:
+        _iv11s, _iv21s, _iv22s = get_invVs(kpts)
+    except ValueError:
+        print(kpts)
+        raise
     _zeros = zeros(nKpts)
     invV_arrs = array(((_iv11s, _zeros),
                        (_iv21s, _iv22s)))  # R x C x N
