@@ -94,10 +94,10 @@ class IBEISControl(object):
         ibs.sqldb_fname = '_ibeis_database.sqlite3'
         ibs.dbdir = join(ibs.workdir, ibs.dbname)
         ibs.cachedir = join(ibs.dbdir, DNAMES.cache)
-        ibs.chipdir  = join(ibs.cachedir,  DNAMES.chips)
-        ibs.flanndir = join(ibs.cachedir,  DNAMES.flann)
-        ibs.imgdir   = join(ibs.cachedir,  DNAMES.images)
-        ibs.qresdir  = join(ibs.cachedir,  DNAMES.qres)
+        ibs.chipdir  = join(ibs.cachedir, DNAMES.chips)
+        ibs.flanndir = join(ibs.cachedir, DNAMES.flann)
+        ibs.imgdir   = join(ibs.cachedir, DNAMES.images)
+        ibs.qresdir  = join(ibs.cachedir, DNAMES.qres)
         ibs.bigcachedir = join(ibs.cachedir,  DNAMES.bigcache)
         if ensure:
             utool.ensuredir(ibs.cachedir)
