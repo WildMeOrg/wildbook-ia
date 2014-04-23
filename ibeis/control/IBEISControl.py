@@ -39,7 +39,9 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
     __name__, '[ibs]', DEBUG=False)
 
 
-class DNAMES(object):
+class PATH_NAMES(object):
+    sqldb  = '_ibeis_database.sqlite3'
+    _ibsdb  = '_ibsdb'
     cache  = '_ibeis_cache'
     chips  = 'chips'
     flann  = 'flann'
@@ -91,15 +93,23 @@ class IBEISControl(object):
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
 
-        ibs.sqldb_fname = '_ibeis_database.sqlite3'
-        ibs.dbdir = join(ibs.workdir, ibs.dbname)
-        ibs.cachedir = join(ibs.dbdir, DNAMES.cache)
-        ibs.chipdir  = join(ibs.cachedir, DNAMES.chips)
-        ibs.flanndir = join(ibs.cachedir, DNAMES.flann)
-        ibs.imgdir   = join(ibs.cachedir, DNAMES.images)
-        ibs.qresdir  = join(ibs.cachedir, DNAMES.qres)
-        ibs.bigcachedir = join(ibs.cachedir,  DNAMES.bigcache)
+        # Make sure you are not nesting databases
+        assert PATH_NAMES._ibsdb != utool.dirsplit(ibs.workdir), 'cannot work in _ibsdb internals'
+        assert PATH_NAMES._ibsdb != dbname, 'cannot create db in _ibsdb internals'
+
+        ibs.dbdir    = join(ibs.workdir, ibs.dbname)
+        # All internal paths live in <dbdir>/_ibsdb
+        ibs._ibsdb   = join(ibs.dbdir, PATH_NAMES._ibsdb)
+        ibs.sqldb_fname = join(ibs._ibsdb, PATH_NAMES.sqldb)
+        ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
+        # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
+        ibs.chipdir     = join(ibs.cachedir, PATH_NAMES.chips)
+        ibs.flanndir    = join(ibs.cachedir, PATH_NAMES.flann)
+        ibs.imgdir      = join(ibs.cachedir, PATH_NAMES.images)
+        ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
+        ibs.bigcachedir = join(ibs.cachedir,  PATH_NAMES.bigcache)
         if ensure:
+            utool.ensuredir(ibs._ibsdb)
             utool.ensuredir(ibs.cachedir)
             utool.ensuredir(ibs.workdir)
             utool.ensuredir(ibs.chipdir)
@@ -115,10 +125,16 @@ class IBEISControl(object):
         return ibs2
 
     def get_dbname(ibs):
+        """ Returns database name """
         return ibs.dbname
 
     def get_dbdir(ibs):
+        """ Returns database dir with ibs internal directory """
         return join(ibs.workdir, ibs.dbname)
+
+    def get_ibsdir(ibs):
+        """ Returns ibs internal directory """
+        return ibs._ibsdb
 
     def get_workdir(ibs):
         return ibs.workdir

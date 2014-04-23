@@ -1,22 +1,27 @@
 #!/usr/bin/env python
+"""
+Converts a hotspostter database to IBEIS
+"""
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import ibeis
-from ibeis.dev import params
 from itertools import izip
 import utool
 import re
 import csv
 print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[injest_hotspotter]')
+    __name__, '[injest_hsbd]')
 
 
-def injest_hsdb(hsdb_dir):
+SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_succesful'
+
+
+def convert_hsdb_to_ibeis(hsdb_dir):
     print('Injesting: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
 
-    main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=True, gui=True)
+    main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=False, gui=False)
     ibs = main_locals['ibs']  # IBEIS Control
 
     # READ NAME TABLE
@@ -54,6 +59,7 @@ def injest_hsdb(hsdb_dir):
     nid_list = ibs.add_names(names_name_list)
     # Build mappings to new indexes
     names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in izip(name_nid_list, nid_list)}
+    names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
     images_gid_to_gid = {images_gid: gid for (images_gid, gid) in izip(image_gid_list, gid_list)}
 
     #get rois from chip_table
@@ -86,14 +92,12 @@ def injest_hsdb(hsdb_dir):
 
     # Add Chips Table
     ibs.add_rois(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
+    with open(join(hsdb_dir, SUCCESS_FLAG_FNAME), 'w') as file_:
+        file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
+    print('finished injest')
 
 
 if __name__ == '__main__':
     import sys
-    try:
-        dbdir = sys.argv[1]
-    except Exception:
-        # TEST
-        workdir = params.get_workdir()
-        dbdir = join(workdir, 'PZ_MOTHERS')
-    injest_hsdb(dbdir)
+    dbdir = sys.argv[1]
+    convert_hsdb_to_ibeis(dbdir)

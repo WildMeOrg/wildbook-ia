@@ -62,6 +62,8 @@ from vtool import *
 # DrawTool
 import plottool
 from plottool import draw_func2 as df2
+from plottool import interact_helpers as ih
+from plottool import viz_keypoints
 # GUITool
 import guitool
 # IBEIS DEV
@@ -97,7 +99,6 @@ from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
 from ibeis.viz import viz_sver
 # IBEIS VIEW INTERACT
-from ibeis.viz.interact import interact_helpers as ih
 from ibeis.viz.interact import ishow_image
 from ibeis.viz.interact import ishow_chip
 from ibeis.viz.interact import ishow_name
