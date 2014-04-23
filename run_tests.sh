@@ -205,4 +205,3 @@ if [ "$FAILED_TESTS" != "" ] ; then
 fi
 
 echo "$num_passed / $num_ran tests passed"
-
