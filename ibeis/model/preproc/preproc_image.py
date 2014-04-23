@@ -4,6 +4,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 import vtool.exif as exif
 from PIL import Image
+import numpy as np
 import hashlib
 import uuid
 from utool import util_time
@@ -13,6 +14,7 @@ GPSInfo_TAGID          = exif.EXIF_TAG_TO_TAGID['GPSInfo']
 DateTimeOriginal_TAGID = exif.EXIF_TAG_TO_TAGID['DateTimeOriginal']
 
 
+@profile
 def get_exif(pil_img):
     """ Image EXIF helper """
     exif_dict = exif.get_exif_dict(pil_img)
@@ -25,9 +27,10 @@ def get_exif(pil_img):
     return time, lat, lon
 
 
-def get_image_uuid(pil_img):
+@profile
+def get_image_uuid(img_bytes_):
     # Read PIL image data
-    img_bytes_ = pil_img.tobytes()
+    #img_bytes_ = pil_img.tobytes()
     # hash the bytes using sha1
     bytes_sha1 = hashlib.sha1(img_bytes_)
     hashbytes_20 = bytes_sha1.digest()
@@ -37,6 +40,7 @@ def get_image_uuid(pil_img):
     return uuid_
 
 
+@profile
 def add_images_paramters_gen(gpath_list):
     """ generates values for add_images sqlcommands """
     mark_prog, end_prog = utool.progress_func(len(gpath_list), lbl='imgs: ')
@@ -53,6 +57,7 @@ def add_images_paramters_gen(gpath_list):
                 raise
         width, height  = pil_img.size         # Read width, height
         time, lat, lon = get_exif(pil_img)    # Read exif tags
-        image_uuid = get_image_uuid(pil_img)  # Read pixels ]-hash-> guid = gid
+        img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
+        image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
         yield (image_uuid, gpath, width, height, time, lat, lon)
     end_prog()
