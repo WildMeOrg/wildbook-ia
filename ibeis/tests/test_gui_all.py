@@ -76,7 +76,7 @@ def TEST_GUI_ALL(ibs, back):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb', gui=True)
+    main_locals = __testing__.main(defaultdb='testdb0', gui=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = __testing__.run_test(TEST_GUI_ALL, ibs, back)

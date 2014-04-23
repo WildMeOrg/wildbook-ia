@@ -223,7 +223,10 @@ def copy(src, dst):
             print('[util] [Copying]: ')
         print('[%s] | %s' % (prefix, src))
         print('[%s] ->%s' % (prefix, dst))
-        shutil.copy(src, dst)
+        if isdir(src):
+            shutil.copytree(src, dst)
+        else:
+            shutil.copy(src, dst)
     else:
         prefix = 'Miss'
         print('[util] [Cannot Copy]: ')
@@ -430,7 +433,7 @@ def download_url(url, filename):
                         (percent, progress_size / (1024 * 1024), speed, duration))
         sys.stdout.flush()
     print('[utool] Downloading url=%r to filename=%r' % (url, filename))
-    urllib.urlretrieve(url, filename, reporthook)
+    urllib.urlretrieve(url, filename=filename, reporthook=reporthook)
 
 
 def get_module_dir(module, *args):

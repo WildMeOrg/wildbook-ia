@@ -63,7 +63,7 @@ def TEST_IBS_GETTERS(ibs=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb_big')
+    main_locals = __testing__.main(defaultdb='testdb0')
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = __testing__.run_test(TEST_IBS_GETTERS, ibs)
     execstr     = __testing__.main_loop(test_locals)

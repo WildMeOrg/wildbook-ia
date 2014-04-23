@@ -11,15 +11,18 @@ printTEST = __testing__.printTEST
 
 
 def TEST_GUI_OPEN_DATABASE(ibs, back):
-    dbdir = params.db_to_dbdir('testdb')
-    printTEST('[TEST] TEST_OPEN_DATABASE dbdir=%r' % dbdir)
-    back.open_database(dbdir)
+    testdb0 = params.db_to_dbdir('testdb0')
+    testdb1 = params.db_to_dbdir('testdb1')
+    printTEST('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
+    back.open_database(testdb1)
+    printTEST('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
+    back.open_database(testdb0)
     return locals()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(gui=True)
+    main_locals = __testing__.main(defaultdb='testdb0', gui=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = __testing__.run_test(TEST_GUI_OPEN_DATABASE, ibs, back)

@@ -13,8 +13,14 @@ def vdq():
     sys.exit(1)
 
 
-def vd(ibs):
+def vdd(ibs):
+    " view data dir "
     utool.util_cplat.view_directory(ibs.dbdir)
+
+
+def vwd():
+    """ view work dir """
+    utool.util_cplat.view_directory(params.get_workdir())
 
 
 def parse_cfgstr_list(cfgstr_list):
@@ -41,6 +47,8 @@ def preload_commands():
         params.set_workdir(params.args.workdir)
     if params.args.set_default_dbdir:
         set_default_dbdir(params.args.dbdir)
+    if utool.get_flag('--vwd'):
+        vwd()
     if utool.get_flag('--vdq'):
         print('got arg --vdq')
         vdq()
@@ -52,8 +60,8 @@ def postload_commands(ibs, back):
     if args.dump_argv:
         print(utool.dict_str(vars(params.args)))
     if args.view_database_directory:
-        print('got arg --vd')
-        vd(ibs)
+        print('got arg --vdd')
+        vdd(ibs)
     if args.update_cfg is not None:
         cfgdict = parse_cfgstr_list(params.args.update_cfg)
         ibs.update_cfg(**cfgdict)

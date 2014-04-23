@@ -64,7 +64,7 @@ def TEST_IBS(ibs):
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     # Initialize database
-    main_locals = __testing__.main(defaultdb='testdb')
+    main_locals = __testing__.main(defaultdb='testdb0')
     ibs = main_locals['ibs']
     test_locals = __testing__.run_test(TEST_IBS, ibs)
     execstr     = __testing__.main_loop(test_locals)

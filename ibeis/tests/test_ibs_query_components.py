@@ -67,7 +67,7 @@ def TEST_QUERY_COMP(ibs, qrid_list=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb_big')
+    main_locals = __testing__.main(defaultdb='testdb1')
     ibs = main_locals['ibs']
     test_locals = __testing__.run_test(TEST_QUERY_COMP, ibs)
     execstr     = __testing__.main_loop(test_locals)

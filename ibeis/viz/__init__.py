@@ -8,7 +8,6 @@ from . import viz_image
 from . import viz_chip
 from . import viz_matches
 from . import viz_qres
-from . import viz_featrow
 from . import viz_nearest_descriptors
 from . import viz_sver
 
@@ -38,7 +37,6 @@ def reload_subs():
     viz_chip.rrr()
     viz_matches.rrr()
     viz_qres.rrr()
-    viz_featrow.rrr()
     viz_nearest_descriptors.rrr()
     viz_sver.rrr()
     rrr()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function, division
+from __future__ import absolute_import, division, print_function
 import __sysreq__  # NOQA
 import sys
 import os

@@ -10,9 +10,10 @@ printTEST = __testing__.printTEST
 
 
 def TEST_SQL_NUMPY():
-    utool.util_path.remove_file('temp.sqlite3', dryrun=False)
+    dbfilename = '__temp.sqlite3'
+    utool.util_path.remove_file(dbfilename, dryrun=False)
 
-    db = SQLDatabaseControl.SQLDatabaseControl(database_path='.', database_file='temp.sqlite3')
+    db = SQLDatabaseControl.SQLDatabaseControl(database_path='.', database_file=dbfilename)
 
     db.schema('temp',    [
         ('temp_id',      'INTEGER PRIMARY KEY'),

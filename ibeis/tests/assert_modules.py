@@ -49,7 +49,7 @@ def numpy_version():
     return numpy.__version__
 
 
-@version_check('4.10.1')
+@version_check('4.9.1')  # 4.10.1 on windows
 def PyQt4_version():
     from PyQt4 import QtCore
     return QtCore.PYQT_VERSION_STR

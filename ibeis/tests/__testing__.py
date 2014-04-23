@@ -73,12 +73,17 @@ def run_test(func, *args, **kwargs):
                 raise exc_type, exc_value, exc_traceback.tb_next
 
 
+def get_testdata_dir():
+    imgdir = grabdata.get_testdata_dir()
+    return imgdir
+
+
 def get_test_gpaths(ndata=None, lena=True, zebra=False, jeff=False):
     # FIXME: The testdata no longer lives in hesaff
     if ndata is None:
         # Increase data size
         ndata = utool.get_arg('--ndata', type_=int, default=1, help_='use --ndata to specify bigger data')
-    imgdir = grabdata.get_testdata_dir()
+    imgdir = get_testdata_dir()
     gname_list = utool.flatten([
         ['lena.jpg']  * utool.get_flag('--lena',   lena, help_='add lena to test images'),
         ['zebra.jpg'] * utool.get_flag('--zebra', zebra, help_='add zebra to test images'),
@@ -132,7 +137,8 @@ def main_loop(test_locals, rungui=False, **kwargs):
     printTEST('[TEST] TEST_LOOP')
     # Build big execstring that you return in the locals dict
     ipycmd_execstr = ibeis.main_loop(test_locals, rungui=rungui, **kwargs)
-    fig_presenter.present()
+    if not '--noshow' in sys.argv:
+        fig_presenter.present()
     if not isinstance(test_locals, dict):
         test_locals = {}
     locals_execstr = utool.execstr_dict(test_locals, 'test_locals')

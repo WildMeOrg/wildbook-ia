@@ -11,7 +11,7 @@ http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
 export CWD=$(pwd)
 export PYTHONPATH=$PYTHONPATH:$CWD
 
-export ARGV="--quiet $@"
+export ARGV="--quiet --noshow $@"
 
 export DEFAULT=ON
 

@@ -96,18 +96,23 @@ def get_all_qt4_wins():
     return QT4_WINS
 
 
+SLEEP_TIME = .05
+
+
 def all_figures_show():
-    for fig in iter(get_all_figures()):
-        time.sleep(.1)
-        fig.show()
-        fig.canvas.draw()
+    if not '--noshow' in sys.argv:
+        for fig in iter(get_all_figures()):
+            time.sleep(SLEEP_TIME)
+            fig.show()
+            fig.canvas.draw()
 
 
 def all_figures_tight_layout():
-    for fig in iter(get_all_figures()):
-        fig.tight_layout()
-        #adjust_subplots()
-        time.sleep(.1)
+    if not '--noshow' in sys.argv:
+        for fig in iter(get_all_figures()):
+            fig.tight_layout()
+            #adjust_subplots()
+            time.sleep(SLEEP_TIME)
 
 
 def ensure_app_is_running():
@@ -328,13 +333,14 @@ iup = iupdate
 
 def present(*args, **kwargs):
     'execing present should cause IPython magic'
-    #print('[df2] Presenting figures...')
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        all_figures_tile(*args, **kwargs)
-        all_figures_show()
-        all_figures_bring_to_front()
-    # Return an exec string
+    if not '--noshow' in sys.argv:
+        #print('[df2] Presenting figures...')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            all_figures_tile(*args, **kwargs)
+            all_figures_show()
+            all_figures_bring_to_front()
+        # Return an exec string
     execstr = utool.ipython_execstr()
     execstr += textwrap.dedent('''
     if not embedded:
