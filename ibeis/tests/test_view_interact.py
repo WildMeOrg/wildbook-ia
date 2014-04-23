@@ -53,7 +53,7 @@ def TEST_INTERACT(ibs):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='test_big_ibeis')
+    main_locals = __testing__.main(defaultdb='testdb_big')
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = __testing__.run_test(TEST_INTERACT, ibs)
     execstr     = __testing__.main_loop(test_locals)

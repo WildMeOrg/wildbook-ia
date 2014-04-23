@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-#import __sysreq__  # NOQA
+import __sysreq__  # NOQA
 from plottool import draw_func2 as df2
 from plottool import mpl_keypoint
 from plottool import mpl_sift  # NOQA

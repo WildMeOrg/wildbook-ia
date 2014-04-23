@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import __sysreq__  # NOQA
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 import numpy as np

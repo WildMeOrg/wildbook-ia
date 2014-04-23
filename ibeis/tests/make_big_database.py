@@ -6,6 +6,7 @@ import sys
 from os.path import join, exists
 from ibeis.dev import params
 import ibeis
+from ibeis.dev import ibsfuncs
 import multiprocessing
 import utool
 printTEST = __testing__.printTEST
@@ -52,7 +53,7 @@ def MAKE_BIG_DB():
     gid_list = ibs.add_images(gpath_list)
 
     #with utool.Timer('Convert %d Images to rois' % nImages):
-    rid_list = ibs.use_images_as_rois(gid_list)
+    rid_list = ibsfuncs.use_images_as_rois(ibs, gid_list)
 
     #with utool.Timer('Compute %d chips' % nImages):
     cid_list = ibs.add_chips(rid_list)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+import __sysreq__  # NOQA
 import os
 import sys
 sys.path.append(os.getcwd())

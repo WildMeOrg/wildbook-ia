@@ -7,6 +7,10 @@ http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
 # TODO: MAKE SURE IBS DATABASE CAN HANDLE WHEN IMAGE PATH IS NOT WHERE IT EXPECTED
 # TODO: ADD CACHE / LOCALIZE IMAGES IN IBEIS CONTROL
 
+# Win32 path hacks
+export CWD=$(pwd)
+export PYTHONPATH=$PYTHONPATH:$CWD
+
 export ARGV="--quiet $@"
 
 export DEFAULT=ON

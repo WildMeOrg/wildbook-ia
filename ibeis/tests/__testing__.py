@@ -111,7 +111,7 @@ def main(defaultdb='testdb', allow_newdir=False, gui=False, **kwargs):
     # TODO remove all of this fluff
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
     #from ibeis import params
-    #known_testdbs = ['testdb', 'test_big_ibeis']
+    #known_testdbs = ['testdb', 'testdb_big']
     #if defaultdb in known_testdbs:
         #allow_newdir = True
         #defaultdbdir = join(params.get_workdir(), defaultdb)
