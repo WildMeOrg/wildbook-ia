@@ -513,9 +513,7 @@ class IBEISControl(object):
     @setter
     def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
         """ Sets names of a list of chips by cid """
-        print('!!!!!!!!!!!!!!')
-        print('[ibs]' + str(utool.func_str(ibs.set_roi_names, kwargs=locals())))
-        print('!!!!!!!!!!!!!!')
+        #print('[ibs]' + str(utool.func_str(ibs.set_roi_names, kwargs=locals())))
         if nid_list is None:
             assert name_list is not None
             nid_list = ibs.add_names(name_list)
@@ -788,12 +786,19 @@ class IBEISControl(object):
         return fid_list
 
     @getter_numpy
-    def get_roi_nids(ibs, rid_list):
-        """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
+    def get_roi_nids(ibs, rid_list, distinguish_uknowns=True):
+        """
+            Returns the name id of each roi.
+            If distinguish_uknowns is True, returns negative roi uids instead of
+            unknown name id
+        """
         nid_list = ibs.get_roi_properties('name_uid', rid_list)
-        tnid_list = [nid if nid != ibs.UNKNOWN_NID else -rid
-                     for (nid, rid) in izip(nid_list, rid_list)]
-        return tnid_list
+        if distinguish_uknowns:
+            tnid_list = [nid if nid != ibs.UNKNOWN_NID else -rid
+                         for (nid, rid) in izip(nid_list, rid_list)]
+            return tnid_list
+        else:
+            return nid_list
 
     @getter
     def get_roi_gnames(ibs, rid_list):
@@ -867,7 +872,7 @@ class IBEISControl(object):
             identifying the animal
         """
         nid_list  = ibs.get_roi_nids(rid_list)
-        name_list = ibs.get_name_properties('name_text', nid_list)
+        name_list = ibs.get_names(nid_list)
         return name_list
 
     @getter_vector_output
