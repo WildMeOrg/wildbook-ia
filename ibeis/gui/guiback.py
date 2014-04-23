@@ -169,6 +169,9 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_gid(back):
         'selected image id'
         if len(back.sel_gids) == 0:
+            if len(back.sel_rids) == 0:
+                gid = back.ibs.get_roi_gids(back.sel_rids)[0]
+                return gid
             raise AssertionError('There are no selected images')
         gid = back.sel_gids[0]
         return gid
@@ -303,7 +306,9 @@ class MainWindowBackend(QtCore.QObject):
         # Table Click -> Chip Table
         rid = qt_roi_uid_cast(rid)
         print('[back] select rid=%r' % rid)
-        back._set_selection(rids=[rid], **kwargs)
+        gid = back.ibs.get_roi_gids(rid)
+        nid = back.ibs.get_roi_nids(rid)
+        back._set_selection(rids=[rid], gids=[gid], nids=[nid], **kwargs)
         if show_roi:
             back.show_roi(rid, **kwargs)
 
