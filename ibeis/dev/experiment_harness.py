@@ -7,7 +7,7 @@ import sys
 import itertools
 import textwrap
 from itertools import chain
-from os.path import join
+#from os.path import join
 from itertools import imap
 # Scientific
 import numpy as np
@@ -140,37 +140,39 @@ def format_uid_list(uid_list):
 # Big Test Cache
 #-----------
 
-def load_cached_test_results(hs, qreq, qcxs, dcxs, nocache_testres, test_results_verbosity):
-    test_uid = qreq.get_query_uid(hs, qcxs)
-    cache_dir = join(hs.dirs.cache_dir, 'experiment_harness_results')
-    io_kwargs = {'dpath': cache_dir,
-                 'fname': 'test_results',
-                 'uid': test_uid,
-                 'ext': '.cPkl'}
+def load_cached_test_results(ibs, qreq, qrids, dcxs, nocache_testres, test_results_verbosity):
+    pass
+    #test_uid = qreq.get_query_uid(ibs, qrids)
+    #cache_dir = join(ibs.dirs.cache_dir, 'experiment_harness_results')
+    #io_kwargs = {'dpath': cache_dir,
+                 #'fname': 'test_results',
+                 #'uid': test_uid,
+                 #'ext': '.cPkl'}
 
-    if test_results_verbosity == 2:
-        print('[harn] test_uid = %r' % test_uid)
+    #if test_results_verbosity == 2:
+        #print('[harn] test_uid = %r' % test_uid)
 
-    # High level caching
-    if not params.args.nocache_query and (not nocache_testres):
-        qx2_bestranks = io.smart_load(**io_kwargs)
-        if qx2_bestranks is None:
-            print('[harn] qx2_bestranks cache returned None!')
-        elif len(qx2_bestranks) != len(qcxs):
-            print('[harn] Re-Caching qx2_bestranks')
-        else:
-            return qx2_bestranks
+    ## High level caching
+    #if not params.args.nocache_query and (not nocache_testres):
+        #qx2_bestranks = io.smart_load(**io_kwargs)
+        #if qx2_bestranks is None:
+            #print('[harn] qx2_bestranks cache returned None!')
+        #elif len(qx2_bestranks) != len(qrids):
+            #print('[harn] Re-Caching qx2_bestranks')
+        #else:
+            #return qx2_bestranks
 
 
-def cache_test_results(qx2_bestranks, hs, qreq, qcxs, dcxs):
-    test_uid = qreq.get_query_uid(hs, qcxs)
-    cache_dir = join(hs.dirs.cache_dir, 'experiment_harness_results')
-    utool.ensuredir(cache_dir)
-    io_kwargs = {'dpath': cache_dir,
-                 'fname': 'test_results',
-                 'uid': test_uid,
-                 'ext': '.cPkl'}
-    io.smart_save(qx2_bestranks, **io_kwargs)
+def cache_test_results(qx2_bestranks, ibs, qreq, qrids, dcxs):
+    pass
+    #test_uid = qreq.get_query_uid(ibs, qrids)
+    #cache_dir = join(ibs.dirs.cache_dir, 'experiment_harness_results')
+    #utool.ensuredir(cache_dir)
+    #io_kwargs = {'dpath': cache_dir,
+                 #'fname': 'test_results',
+                 #'uid': test_uid,
+                 #'ext': '.cPkl'}
+    #io.smart_save(qx2_bestranks, **io_kwargs)
 
 
 #---------------
@@ -178,12 +180,12 @@ def cache_test_results(qx2_bestranks, hs, qreq, qcxs, dcxs):
 #-----------
 # Run configuration for each query
 @profile
-def get_test_results2(hs, qcxs, qreq, cfgx=0, nCfg=1, nocache_testres=False,
+def get_test_results2(ibs, qrids, qreq, cfgx=0, nCfg=1, nocache_testres=False,
                       test_results_verbosity=2):
     TEST_INFO = True
-    nQuery = len(qcxs)
-    dcxs = hs.get_indexed_sample()
-    qx2_bestranks = load_cached_test_results(hs, qreq, qcxs, dcxs,
+    nQuery = len(qrids)
+    dcxs = ibs.get_indexed_sample()
+    qx2_bestranks = load_cached_test_results(ibs, qreq, qrids, dcxs,
                                              nocache_testres, test_results_verbosity)
     if qx2_bestranks is not None:
         return qx2_bestranks
@@ -195,25 +197,25 @@ def get_test_results2(hs, qcxs, qreq, cfgx=0, nCfg=1, nocache_testres=False,
     #BATCH_MODE = '--batch' in sys.argv
     if BATCH_MODE:
         print('[harn] querying in batch mode')
-        mc3.pre_cache_checks(hs, qreq)
-        mc3.pre_exec_checks(hs, qreq)
-        qx2_bestranks = [None for qcx in qcxs]
+        mc3.pre_cache_checks(ibs, qreq)
+        mc3.pre_exec_checks(ibs, qreq)
+        qx2_bestranks = [None for qrid in qrids]
         # Query Chip / Row Loop
-        qcx2_res = mc3.process_query_request(hs, qreq, safe=False)
-        qcx2_bestranks = {}
-        for qcx, res in qcx2_res.iteritems():
-            gt_ranks = res.get_gt_ranks(hs=hs)
+        qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
+        qrid2_bestranks = {}
+        for qrid, res in qrid2_res.iteritems():
+            gt_ranks = res.get_gt_ranks(ibs=ibs)
             _rank = -1 if len(gt_ranks) == 0 else min(gt_ranks)
-            qcx2_bestranks[qcx] = _rank
+            qrid2_bestranks[qrid] = _rank
         try:
-            for qx, qcx in enumerate(qcxs):
-                qx2_bestranks[qx] = [qcx2_bestranks[qcx]]
+            for qx, qrid in enumerate(qrids):
+                qx2_bestranks[qx] = [qrid2_bestranks[qrid]]
         except Exception as ex:
             print('[harn] ERROR')
             print(ex)
-            print('qcx2_bestranks=%r' % qcx2_bestranks)
-            print('qcx2_res=%r' % qcx2_res)
-            print('qcx=%r' % qcx)
+            print('qrid2_bestranks=%r' % qrid2_bestranks)
+            print('qrid2_res=%r' % qrid2_res)
+            print('qrid=%r' % qrid)
             print('qx=%r' % qx)
             raise
     else:
@@ -226,17 +228,17 @@ def get_test_results2(hs, qcxs, qreq, cfgx=0, nCfg=1, nocache_testres=False,
         mark_progress = utool.simple_progres_func(test_results_verbosity, msg, '.')
         total = nQuery * nCfg
         nPrevQ = nQuery * cfgx
-        mc3.pre_cache_checks(hs, qreq)
-        mc3.pre_exec_checks(hs, qreq)
+        mc3.pre_cache_checks(ibs, qreq)
+        mc3.pre_exec_checks(ibs, qreq)
         # Query Chip / Row Loop
-        for qx, qcx in enumerate(qcxs):
+        for qx, qrid in enumerate(qrids):
             count = qx + nPrevQ + 1
             mark_progress(count, total)
             if TEST_INFO:
-                print('qcx=%r. quid=%r' % (qcx, qreq.get_uid()))
+                print('qrid=%r. quid=%r' % (qrid, qreq.get_uid()))
             try:
-                qreq._qcxs = [qcx]
-                qcx2_res = mc3.process_query_request(hs, qreq, safe=False)
+                qreq._qrids = [qrid]
+                qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
             except mf.QueryException as ex:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
                 print('Harness caught Query Exception: ')
@@ -248,18 +250,18 @@ def get_test_results2(hs, qcxs, qreq, cfgx=0, nCfg=1, nocache_testres=False,
                     qx2_bestranks += [[-1]]
                     continue
 
-            assert len(qcx2_res) == 1
-            res = qcx2_res[qcx]
-            gt_ranks = res.get_gt_ranks(hs=hs)
+            assert len(qrid2_res) == 1
+            res = qrid2_res[qrid]
+            gt_ranks = res.get_gt_ranks(ibs=ibs)
             _rank = -1 if len(gt_ranks) == 0 else min(gt_ranks)
             # record metadata
             qx2_bestranks.append([_rank])
-            if qcx % 4 == 0:
+            if qrid % 4 == 0:
                 sys.stdout.flush()
         print('')
     qx2_bestranks = np.array(qx2_bestranks)
     # High level caching
-    cache_test_results(qx2_bestranks, hs, qreq, qcxs, dcxs)
+    cache_test_results(qx2_bestranks, ibs, qreq, qrids, dcxs)
     return qx2_bestranks
 
 
@@ -272,11 +274,11 @@ def get_varied_params_list(test_cfg_name_list):
     return varied_params_list
 
 
-def get_cfg_list(hs, test_cfg_name_list):
+def get_cfg_list(ibs, test_cfg_name_list):
     print('[harn] building cfg_list: %s' % test_cfg_name_list)
     if 'custom' == test_cfg_name_list:
         print('   * custom cfg_list')
-        cfg_list = [hs.prefs.query_cfg]
+        cfg_list = [ibs.prefs.query_cfg]
         return cfg_list
     varied_params_list = get_varied_params_list(test_cfg_name_list)
     # Add unique configs to the list
@@ -297,7 +299,7 @@ def get_cfg_list(hs, test_cfg_name_list):
 #-----------
 #@utool.indent_decor('[harn]')
 @profile
-def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
+def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     if __QUIET__:
         mc3.print_off()
         from hsapi import HotSpotterAPI as api
@@ -309,13 +311,13 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         [harn]================
         [harn] experiment_harness.test_configurations()""").strip())
 
-    hs.update_samples()
+    ibs.update_samples()
 
     # Grab list of algorithm configurations to test
-    cfg_list = get_cfg_list(hs, test_cfg_name_list)
+    cfg_list = get_cfg_list(ibs, test_cfg_name_list)
     if not __QUIET__:
         print('[harn] Testing %d different parameters' % len(cfg_list))
-        print('[harn]         %d different chips' % len(qcx_list))
+        print('[harn]         %d different chips' % len(qrid_list))
 
     # Preallocate test result aggregation structures
     sel_cols = params.args.sel_cols  # FIXME
@@ -323,7 +325,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     sel_cols = [] if sel_cols is None else sel_cols
     sel_rows = [] if sel_rows is None else sel_rows
     nCfg     = len(cfg_list)
-    nQuery   = len(qcx_list)
+    nQuery   = len(qrid_list)
     #rc2_res = np.empty((nQuery, nCfg), dtype=list)  # row/col -> result
     mat_list = []
     qreq = QueryResult.QueryRequest()
@@ -334,7 +336,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     test_results_verbosity = 2 - (2 * __QUIET__)
     test_cfg_verbosity = 2
 
-    dbname = hs.get_db_name()
+    dbname = ibs.get_db_name()
     testnameid = dbname + ' ' + str(test_cfg_name_list)
     msg = textwrap.dedent('''
     ---------------------
@@ -346,15 +348,15 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
 
     # Run each test configuration
     # Query Config / Col Loop
-    dcxs = hs.get_indexed_sample()
+    dcxs = ibs.get_indexed_sample()
     for cfgx, query_cfg in enumerate(cfg_list):
         if not __QUIET__:
             mark_progress(cfgx + 1, nCfg)
         # Set data to the current config
-        qreq = mc3.prep_query_request(qreq=qreq, qcxs=qcx_list, dcxs=dcxs, query_cfg=query_cfg)
+        qreq = mc3.prep_query_request(qreq=qreq, qrids=qrid_list, dcxs=dcxs, query_cfg=query_cfg)
         # Run the test / read cache
         with utool.Indenter2('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-            qx2_bestranks = get_test_results2(hs, qcx_list, qreq, cfgx,
+            qx2_bestranks = get_test_results2(ibs, qrid_list, qreq, cfgx,
                                               nCfg, nocache_testres,
                                               test_results_verbosity)
         if not nomemory:
@@ -379,8 +381,8 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     # Build row labels
     qx2_lbl = []
     for qx in xrange(nQuery):
-        qcx = qcx_list[qx]
-        label = 'qx=%d) q%s ' % (qx, hs.cidstr(qcx, notes=True))
+        qrid = qrid_list[qx]
+        label = 'qx=%d) q%s ' % (qx, ibs.ridstr(qrid, notes=True))
         qx2_lbl.append(label)
     qx2_lbl = np.array(qx2_lbl)
     #------------
@@ -421,7 +423,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     qx2_min_rank = []
     qx2_argmin_rank = []
     new_hard_qx_list = []
-    new_qcid_list = []
+    new_qrid_list = []
     new_hardtup_list = []
     for qx in xrange(nQuery):
         ranks = rank_mat[qx]
@@ -433,13 +435,13 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         if ranks.max() > 0:
             new_hard_qx_list += [qx]
     for qx in new_hard_qx_list:
-        # New list is in cid format instead of cx format
+        # New list is in rid format instead of cx format
         # because you should be copying and pasting it
         notes = ' ranks = ' + str(rank_mat[qx])
-        qcx = qcx_list[qx]
-        qcid = hs.tables.cx2_cid[qcx]
-        new_hardtup_list += [(qcid, notes)]
-        new_qcid_list += [qcid]
+        qrid = qrid_list[qx]
+        qrid = ibs.tables.cx2_rid[qrid]
+        new_hardtup_list += [(qrid, notes)]
+        new_qrid_list += [qrid]
 
     @argv_flag_dec
     def print_rowscore():
@@ -477,8 +479,8 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
-        hardcids_str = ' '.join(map(str, ['    ', '--qcid'] + new_qcid_list))
-        print(hardcids_str)
+        hardrids_str = ' '.join(map(str, ['    ', '--qrid'] + new_qrid_list))
+        print(hardrids_str)
         print('--- /Echo Hardcase ---')
     echo_hardcase()
 
@@ -518,7 +520,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         print('==========================')
         # Create configuration latex table
         criteria_lbls = ['#ranks < %d' % X for X in X_list]
-        db_name = hs.get_db_name(True)
+        db_name = ibs.get_db_name(True)
         cfg_score_title = db_name + ' rank scores'
         cfgscores = np.array([nLessX_dict[int(X)] for X in X_list]).T
 
@@ -592,13 +594,13 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         print('[harn]-------------')
     print_rankmat()
 
-    row2_cid = hs.cx2_cid(qcx_list)
+    row2_rid = ibs.cx2_rid(qrid_list)
     # Find rows which scored differently over the various configs
     diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
-    diff_cids = row2_cid[diff_rows]
+    diff_rids = row2_rid[diff_rows]
     diff_rank = rank_mat[diff_rows]
-    diff_mat = np.vstack((diff_cids, diff_rank.T)).T
-    col_labels = list(chain(['qcid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
+    diff_mat = np.vstack((diff_rids, diff_rank.T)).T
+    col_labels = list(chain(['qrid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
     col_types  = list(chain([int], [int] * nCfg))
     header = 'rankmat2'
     diff_matstr = utool.numpy_to_csv(diff_mat, col_labels, header, col_types)
@@ -628,9 +630,9 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = range(len(cfg_list))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
-        sel_rows = range(len(qcx_list))
+        sel_rows = range(len(qrid_list))
     if params.args.view_all:
-        sel_rows = range(len(qcx_list))
+        sel_rows = range(len(qrid_list))
         sel_cols = range(len(cfg_list))
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
@@ -644,7 +646,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
     dev_mode = utool.get_arg('--devmode', default=False)
     skip_list = []
     if dev_mode:
-        hs.prefs.display_cfg.N = 3
+        ibs.prefs.display_cfg.N = 3
         df2.FONTS.axtitle = df2.FONTS.smaller
         df2.FONTS.xlabel = df2.FONTS.smaller
         df2.FONTS.figtitle = df2.FONTS.smaller
@@ -658,7 +660,7 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         if count in skip_list:
             continue
         # Get row and column index
-        qcx       = qcx_list[r]
+        qrid       = qrid_list[r]
         query_cfg = cfg_list[c]
         print('\n\n___________________________________')
         print('      --- VIEW %d / %d ---        '
@@ -666,25 +668,25 @@ def test_configurations(hs, qcx_list, test_cfg_name_list, fnum=1):
         print('--------------------------------------')
         print('viewing (r, c) = (%r, %r)' % (r, c))
         # Load / Execute the query
-        qreq = mc3.prep_query_request(qreq=qreq, qcxs=[qcx], dcxs=dcxs, query_cfg=query_cfg)
-        qcx2_res = mc3.process_query_request(hs, qreq, safe=True)
-        res = qcx2_res[qcx]
+        qreq = mc3.prep_query_request(qreq=qreq, qrids=[qrid], dcxs=dcxs, query_cfg=query_cfg)
+        qrid2_res = mc3.process_query_request(ibs, qreq, safe=True)
+        res = qrid2_res[qrid]
         # Print Query UID
         print(res.uid)
         # Draw Result
-        #res.show_top(hs, fnum=fnum)
+        #res.show_top(ibs, fnum=fnum)
         if prev_cfg != query_cfg:
             # This is way too aggro. Needs to be a bit lazier
-            hs.refresh_features()
+            ibs.refresh_features()
         prev_cfg = query_cfg
         fnum = count
         title_uid = res.uid
         title_uid = title_uid.replace('_FEAT', '\n_FEAT')
-        res.show_analysis(hs, fnum=fnum, aug='\n' + title_uid, annote=1,
+        res.show_analysis(ibs, fnum=fnum, aug='\n' + title_uid, annote=1,
                           show_name=False, show_gname=False, time_appart=False)
         df2.adjust_subplots_safe()
         if params.args.save_figures:
             from hsviz import allres_viz
-            allres_viz.dump(hs, 'analysis', quality=True, overwrite=False)
+            allres_viz.dump(ibs, 'analysis', quality=True, overwrite=False)
     if not __QUIET__:
         print('[harn] EXIT EXPERIMENT HARNESS')

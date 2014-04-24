@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import __testing__
+import sys
+from os.path import join, dirname, realpath
+sys.path.append(realpath(join(dirname(__file__), '../..')))
+from ibeis.tests import __testing__
 import multiprocessing
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ADD_ROI]')

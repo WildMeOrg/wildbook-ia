@@ -28,26 +28,31 @@ def is_succesful_convert(dbdir):
     return exists(join(dbdir, injest_hsdb.SUCCESS_FLAG_FNAME))
 
 
-def injest_all_hsdbs_in_workdir(workdir):
-    # TEST
+#is_hsinternals_list = np.array(map(is_hsinternal, dbpath_list))
+#is_ibeis_lsit       = np.array(map(is_ibeisdb, dbpath_list))
+#is_only_hsdb_list = ltool.and_lists(is_hsdb_list, True - is_ibeis_lsit)
+#is_only_hsinternal_list = ltool.and_lists(True - is_hsdb_list, True - is_ibeis_lsit, is_hsinternals_list)
+# TEST
+#only_hsintern_paths = dbpath_list[is_only_hsinternal_list].tolist()
+
+def get_unconverted_hsdbs(workdir=None):
+    if workdir is None:
+        workdir = ibeis.params.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
-
     is_hsdb_list        = np.array(map(is_hsdb, dbpath_list))
-    #is_hsinternals_list = np.array(map(is_hsinternal, dbpath_list))
-    #is_ibeis_lsit       = np.array(map(is_ibeisdb, dbpath_list))
     is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
-
-    #is_only_hsdb_list = ltool.and_lists(is_hsdb_list, True - is_ibeis_lsit)
-    #is_only_hsinternal_list = ltool.and_lists(True - is_hsdb_list, True - is_ibeis_lsit, is_hsinternals_list)
-
     needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
-
     needs_convert_hsdb  = dbpath_list[needs_convert].tolist()
-    #only_hsintern_paths = dbpath_list[is_only_hsinternal_list].tolist()
-
     print('NEEDS CONVERSION:')
     print('\n'.join(needs_convert_hsdb))
+    return needs_convert_hsdb
+
+
+def injest_unconverted_hsdbs_in_workdir(workdir=None):
+    if workdir is None:
+        workdir = ibeis.params.get_workdir()
+    needs_convert_hsdb = get_unconverted_hsdbs(workdir)
 
     for hsdb in needs_convert_hsdb:
         try:
@@ -58,4 +63,4 @@ def injest_all_hsdbs_in_workdir(workdir):
 
 if __name__ == '__main__':
     workdir = params.get_workdir()
-    injest_all_hsdbs_in_workdir(workdir)
+    injest_unconverted_hsdbs_in_workdir(workdir)

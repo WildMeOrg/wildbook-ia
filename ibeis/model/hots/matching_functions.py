@@ -12,7 +12,7 @@ from vtool import keypoint as ktool
 from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import QueryResult
-from ibeis.model.hots import coverage
+from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_filters
 from ibeis.model.hots import voting_rules2 as vr2
 import utool
@@ -586,7 +586,7 @@ def score_chipmatch(ibs, qrid, chipmatch, score_method, qreq=None):
     elif score_method.startswith('coverage'):
         # Method num is at the end of coverage
         method = int(score_method.replace('coverage', '0'))
-        rid2_score = coverage.score_chipmatch_coverage(ibs, qrid, chipmatch, qreq, method=method)
+        rid2_score = coverage_image.score_chipmatch_coverage(ibs, qrid, chipmatch, qreq, method=method)
     else:
         raise Exception('[mf] unknown scoring method:' + score_method)
     return rid2_score

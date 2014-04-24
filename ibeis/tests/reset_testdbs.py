@@ -25,13 +25,14 @@ def delete_testdbs():
     utool.delete(TESTDB_GUIALL)
 
 
-def make_testdbs():
-    from test_gui_import_images import TEST_GUI_IMPORT_IMAGES
-    from test_gui_add_roi import TEST_GUI_ADD_ROI
-    dbdir = TESTDB0
-    main_locals = ibeis.main(dbdir=dbdir, gui=True)
+def make_testdb0():
+    from ibeis.tests.test_gui_import_images import TEST_GUI_IMPORT_IMAGES
+    from ibeis.tests.test_gui_add_roi import TEST_GUI_ADD_ROI
+    main_locals = ibeis.main(dbdir=TESTDB0, gui=True)
     ibs = main_locals['ibs']
     back = main_locals['back']
+    assert back is not None, str(main_locals)
+    assert ibs is not None, str(main_locals)
     TEST_GUI_IMPORT_IMAGES(ibs, back)
     TEST_GUI_ADD_ROI(ibs, back)
     main_commands.set_default_dbdir(TESTDB0)
@@ -40,7 +41,7 @@ def make_testdbs():
 def reset_testdbs():
     grabdata.ensure_testdata()
     delete_testdbs()
-    make_testdbs()
+    make_testdb0()
     injest_testdata.injest_testdata()
 
 

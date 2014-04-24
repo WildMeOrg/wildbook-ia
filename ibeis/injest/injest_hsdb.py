@@ -92,7 +92,9 @@ def convert_hsdb_to_ibeis(hsdb_dir):
 
     # Add Chips Table
     ibs.add_rois(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
-    with open(join(hsdb_dir, SUCCESS_FLAG_FNAME), 'w') as file_:
+
+    # Write file flagging successful conversion
+    with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
         file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
     print('finished injest')
 

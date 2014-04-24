@@ -3,6 +3,8 @@ import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
 # Python
 
+exclude_vars = vars().keys()   # this line is before tests
+
 vsmany_2 = {
     'query_type':      ['vsmany'],
     'checks':          [1024],  # , 8192],
@@ -258,3 +260,9 @@ vsmany_1 = {
     'score_method':    ['csum'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'max_alts':        [1000],
 }
+
+
+include_vars = vars().keys()  # this line is after tests
+
+# List of all valid tests
+TEST_NAMES = set(include_vars) - set(exclude_vars)

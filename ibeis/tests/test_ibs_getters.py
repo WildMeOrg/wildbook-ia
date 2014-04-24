@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-try:
-    import __testing__
-    printTEST = __testing__.printTEST
-except ImportError:
-    printTEST = print
-    pass
+import sys
+from os.path import join, dirname, realpath
+sys.path.append(realpath(join(dirname(__file__), '../..')))
+from ibeis.tests import __testing__
+printTEST = __testing__.printTEST
 # Python
 from os.path import join, exists  # NOQA
 import multiprocessing

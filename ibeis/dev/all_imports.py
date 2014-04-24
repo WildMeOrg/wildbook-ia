@@ -86,7 +86,7 @@ from ibeis.model.hots import NNIndex
 from ibeis.model.hots import QueryResult
 from ibeis.model.hots import QueryRequest
 from ibeis.model.hots import voting_rules2 as vr2
-from ibeis.model.hots import coverage
+from ibeis.model.hots import coverage_image
 from ibeis.model.hots import query_helpers
 # IBEIS VIEW GUI
 from ibeis.gui import guifront

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import __testing__  # Should be imported before any ibeis stuff
+import sys
+from os.path import join, dirname, realpath
+sys.path.append(realpath(join(dirname(__file__), '../..')))
+from ibeis.tests import __testing__
 import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl

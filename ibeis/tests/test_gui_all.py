@@ -2,9 +2,9 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import sys
-import os
-sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
-import __testing__  # Should be imported before any ibeis stuff
+from os.path import join, dirname, realpath
+sys.path.append(realpath(join(dirname(__file__), '../..')))
+from ibeis.tests import __testing__
 import multiprocessing
 import utool
 import numpy as np

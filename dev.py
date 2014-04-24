@@ -6,6 +6,7 @@ This is a hacky script meant to be run interactively
 from __future__ import absolute_import, division, print_function
 import ibeis
 ibeis._preload()
+from _devscript import devcmd,  DEVCMD_FUNCTIONS
 from ibeis.dev.all_imports import *  # NOQA
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
@@ -14,20 +15,22 @@ import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
-
 if not 'back' in vars():
     back = None
 
 
-def vdd(ibs=None):
-    utool.view_directory(ibs.get_dbpath())
+@devcmd
+def vdd(ibs=None, qrid_list=None):
+    utool.view_directory(ibs.get_dbdir())
 
 
+@devcmd('show')
 def show_rids(ibs, qrid_list):
     for rid in qrid_list:
         interact.ishow_chip(ibs, rid, fnum=df2.next_fnum())
 
 
+@devcmd()
 def change_names(ibs, qrid_list):
     #new_name = utool.get_arg('--name', str, default='<name>_the_<species>')
     new_name = utool.get_arg('--name', str, default='glob')
@@ -42,6 +45,7 @@ def change_names(ibs, qrid_list):
         back.select_nid(new_nid)
 
 
+@devcmd('gravity', 'gv')
 def compare_gravity(ibs, qrid_list):
     ibs_nogv = ibs.clone_handle()
     #ibslist = [ibs.clone_handle() for _ in xrange(1000)]
@@ -52,6 +56,7 @@ def compare_gravity(ibs, qrid_list):
         interact.ishow_chip(ibs, rid, fnum=df2.next_fnum(), eig=True)
 
 
+@devcmd('query')
 def query_rids(ibs, qrid_list):
     qrid2_qres = ibs.query_database(qrid_list)
     for qrid in qrid_list:
@@ -60,6 +65,7 @@ def query_rids(ibs, qrid_list):
     return qrid2_qres
 
 
+@devcmd('sver')
 def sver_rids(ibs, qrid_list):
     qrid2_qres = ibs.query_database(qrid_list)
     for qrid in qrid_list:
@@ -69,9 +75,22 @@ def sver_rids(ibs, qrid_list):
     return qrid2_qres
 
 
-def printcfg(ibs):
+@devcmd('cfg')
+def printcfg(ibs, qrid_list):
     ibs.cfg.printme3()
     print(ibs.cfg.query_cfg.get_uid())
+
+
+@devcmd('hsdbs')
+def list_hsdbs(*args):
+    from ibeis.injest.injest_my_hotspotter_dbs import get_unconverted_hsdbs
+    get_unconverted_hsdbs()
+
+
+@devcmd('convert')
+def convert_hsdbs(*args):
+    from ibeis.injest.injest_my_hotspotter_dbs import injest_unconverted_hsdbs_in_workdir
+    injest_unconverted_hsdbs_in_workdir()
 
 
 #@utool.indent_decor('[dev]')
@@ -86,8 +105,11 @@ def run_experiments(ibs, qrid_list):
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
+    valid_test_helpstr_list = []  # for printing
 
-    def intest(*args):
+    def intest(*args, **kwargs):
+        helpstr = kwargs.get('help', '')
+        valid_test_helpstr_list.append('   -t ' + ', '.join(args) + helpstr)
         for testname in args:
             valid_test_list.append(testname)
             ret = testname in input_test_list
@@ -98,6 +120,8 @@ def run_experiments(ibs, qrid_list):
                 return ret
         return False
 
+    valid_test_helpstr_list.append('    # --- Simple Tests ---')
+
     if intest('info'):
         print(ibs.get_infostr())
     if intest('printcfg'):
@@ -106,28 +130,27 @@ def run_experiments(ibs, qrid_list):
         ibs.print_tables()
     if intest('imgtbl'):
         ibs.print_image_table()
-    if intest('query'):
-        qrid2_qres = query_rids(ibs, qrid_list)
-    if intest('sver'):
-        sver_rids(ibs, qrid_list)
-    if intest('show'):
-        show_rids(ibs, qrid_list)
-    if intest('compare_gravity', 'gv'):
-        compare_gravity(ibs, qrid_list)
-    if intest('change_names'):
-        change_names(ibs, qrid_list)
 
-    # Allow any testcfg to be in tests like:
-    # vsone_1 or vsmany_3
-    #testcfg_keys = vars(experiment_configs).keys()
-    #testcfg_locals = [key for key in testcfg_keys if key.find('_') != 0]
-    #for test_cfg_name in testcfg_locals:
-        #if intest(test_cfg_name):
-            #fnum = experiment_harness.test_configurations(ibs, qrid_list, [test_cfg_name], fnum)
+    valid_test_helpstr_list.append('    # --- Decor Tests ---')
+
+    # Run decorated functions
+    for (func_aliases, func) in DEVCMD_FUNCTIONS:
+        if intest(*func_aliases):
+            func(ibs, qrid_list)
+
+    valid_test_helpstr_list.append('    # --- Config Tests ---')
+
+    # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
+    from ibeis.dev import experiment_configs
+    for test_cfg_name in experiment_configs.TEST_NAMES:
+        if intest(test_cfg_name):
+            fnum = experiment_harness.test_configurations(ibs, qrid_list, [test_cfg_name], fnum)
+
+    valid_test_helpstr_list.append('    # --- Help ---')
 
     if intest('help'):
         print('valid tests are:')
-        print(''.join(utool.indent_list('\n -t ', valid_test_list)))
+        print('\n'.join(valid_test_helpstr_list))
         return
 
     if len(input_test_list) > 0:

@@ -10,6 +10,8 @@ TODO: INSERT APACHE LICENCE
 # We hope to support python3
 from __future__ import absolute_import, division, print_function
 
+__version__ = '(.878 + .478i)'
+
 
 # Import each utility module
 from . import util_alg

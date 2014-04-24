@@ -2,8 +2,9 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import sys
-sys.argv.append('--nogui')
-import __testing__
+from os.path import join, dirname, realpath
+sys.path.append(realpath(join(dirname(__file__), '../..')))
+from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from ibeis.viz import interact

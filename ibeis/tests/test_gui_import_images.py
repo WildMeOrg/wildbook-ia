@@ -2,9 +2,9 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import sys
-import os
-sys.path.append(os.path.expanduser('~/code/ibeis/tests'))
-import __testing__
+from os.path import join, dirname, realpath
+sys.path.append(realpath(join(dirname(__file__), '../..')))
+from ibeis.tests import __testing__
 import multiprocessing
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_IMPORT_IMAGES]')

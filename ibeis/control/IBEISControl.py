@@ -102,16 +102,17 @@ class IBEISControl(object):
         ibs._ibsdb   = join(ibs.dbdir, PATH_NAMES._ibsdb)
         ibs.sqldb_fname = join(ibs._ibsdb, PATH_NAMES.sqldb)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
+        ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
+        ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
         # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
-        ibs.chipdir     = join(ibs.cachedir, PATH_NAMES.chips)
         ibs.flanndir    = join(ibs.cachedir, PATH_NAMES.flann)
-        ibs.imgdir      = join(ibs.cachedir, PATH_NAMES.images)
         ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
         ibs.bigcachedir = join(ibs.cachedir,  PATH_NAMES.bigcache)
         if ensure:
             utool.ensuredir(ibs._ibsdb)
             utool.ensuredir(ibs.cachedir)
             utool.ensuredir(ibs.workdir)
+            utool.ensuredir(ibs.imgdir)
             utool.ensuredir(ibs.chipdir)
             utool.ensuredir(ibs.flanndir)
             utool.ensuredir(ibs.qresdir)
@@ -242,8 +243,7 @@ class IBEISControl(object):
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Build parameter list early so we can grab the gids
-        param_list = [tup for tup in
-                      preproc_image.add_images_paramters_gen(gpath_list)]
+        param_list = list(preproc_image.add_images_paramters_gen(gpath_list))
         img_uuid_list   = [tup[0] for tup in param_list]
         ibs.db.executemany(
             operation='''
