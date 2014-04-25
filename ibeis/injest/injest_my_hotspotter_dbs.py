@@ -4,11 +4,13 @@ from __future__ import absolute_import, division, print_function
 import ibeis
 ibeis._preload()
 from ibeis.dev import params
+from ibeis.dev import ibsfuncs
 from ibeis.control.IBEISControl import PATH_NAMES
 from os.path import join, exists
 import os
 import numpy as np
 from vtool import linalg as ltool
+import utool
 from ibeis.injest import injest_hsdb
 
 
@@ -45,7 +47,10 @@ def get_unconverted_hsdbs(workdir=None):
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     is_hsdb_list        = np.array(map(is_hsdb, dbpath_list))
     is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
-    needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
+    if utool.get_flag('--force-hsdb-convert'):
+        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
+    else:
+        needs_convert = is_hsdb_list
     needs_convert_hsdb  = dbpath_list[needs_convert].tolist()
     print('NEEDS CONVERSION:')
     print('\n'.join(needs_convert_hsdb))
@@ -59,6 +64,8 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
 
     for hsdb in needs_convert_hsdb:
         try:
+            if utool.get_flag('--force-hsdb-convert'):
+                ibsfuncs.delete_ibeis_database(hsdb)
             injest_hsdb.convert_hsdb_to_ibeis(hsdb)
         except Exception as ex:
             print(ex)

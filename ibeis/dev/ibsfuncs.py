@@ -1,7 +1,7 @@
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
 from itertools import izip
-from os.path import relpath, split
+from os.path import relpath, split, join, exists
 import utool
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -191,3 +191,11 @@ def delete_all_chips(ibs):
 
 def vd(ibs):
     utool.view_directory(ibs.get_dbdir())
+
+
+def delete_ibeis_database(dbdir):
+    from ibeis.control.IBEISControl import PATH_NAMES
+    _ibsdb      = join(dbdir, PATH_NAMES._ibsdb)
+    print('Deleting _ibsdb=%r' % _ibsdb)
+    if exists(_ibsdb):
+        utool.delete(_ibsdb)

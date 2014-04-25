@@ -100,7 +100,7 @@ class IBEISControl(object):
 
         ibs.dbdir    = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
-        ibs._ibsdb   = join(ibs.dbdir, PATH_NAMES._ibsdb)
+        ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
         ibs.sqldb_fname = join(ibs._ibsdb, PATH_NAMES.sqldb)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)

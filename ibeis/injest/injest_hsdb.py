@@ -14,7 +14,7 @@ print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[injest_hsbd]')
 
 
-SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_succesful'
+SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
 
 
 def convert_hsdb_to_ibeis(hsdb_dir):

@@ -48,7 +48,7 @@ def preprocess_image(gpath):
         pil_img = Image.open(gpath, 'r')      # Open PIL Image
     except IOError as ex:
         print('FAILED TO READ: %r' % gpath)
-        if str(ex) == 'cannot identify image file':
+        if str(ex).startswith('cannot identify image file'):
             param_tup = None
             return param_tup
         else:
