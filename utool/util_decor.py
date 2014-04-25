@@ -13,6 +13,7 @@ from .util_inject import inject
 
 # do not ignore traceback when profiling
 IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv or hasattr(__builtin__, 'profile')
+TRACE = '--trace' in sys.argv
 
 
 def composed(*decs):
@@ -77,6 +78,8 @@ def indent_decor(lbl):
         @wraps(func)
         def indent_decor_inner_wrapper(*args, **kwargs):
             with Indenter(lbl):
+                if TRACE:
+                    print('<trace>')
                 return func(*args, **kwargs)
         return indent_decor_inner_wrapper
     return indent_decor_outer_wrapper
@@ -211,3 +214,19 @@ class lru_cache(object):
         lru_wrapper.func_name = func.func_name
         lru_wrapper.clear_cache = cache.clear_cache
         return lru_wrapper
+
+
+def memorize(func):
+    """
+    Memoization decorator for functions taking one or more arguments.
+    # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+    """
+    class _memorizer(dict):
+        def __init__(self, func):
+            self.func = func
+        def __call__(self, *args):
+            return self[args]
+        def __missing__(self, key):
+            ret = self[key] = self.func(*key)
+            return ret
+    return _memorizer(func)

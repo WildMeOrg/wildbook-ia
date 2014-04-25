@@ -14,9 +14,9 @@ print, print_, printDBG, rrr, profile = utool.inject(
 QUIET = utool.QUIET
 
 
-def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_rows, sel_cols):
+def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, sel_cols):
     nCfg = len(cfg_list)
-    nQuery = len(qrid_list)
+    nQuery = len(qrids)
     qreq = ibs.qreq
     #--------------------
     # Print Best Results
@@ -31,7 +31,7 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
     # Build row labels
     qx2_lbl = []
     for qx in xrange(nQuery):
-        qrid = qrid_list[qx]
+        qrid = qrids[qx]
         label = 'qx=%d) q%s ' % (qx, ibsfuncs.ridstr(qrid, ibs=ibs, notes=True))
         qx2_lbl.append(label)
     qx2_lbl = np.array(qx2_lbl)
@@ -60,7 +60,6 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
 
     @utool.argv_flag_dec
     def print_collbl():
-        print('')
         print('=====================')
         print('[harn] Col/Config Labels: %s' % testnameid)
         print('=====================')
@@ -73,7 +72,7 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
     qx2_min_rank = []
     qx2_argmin_rank = []
     new_hard_qx_list = []
-    new_qrid_list = []
+    new_qrids = []
     new_hardtup_list = []
     for qx in xrange(nQuery):
         ranks = rank_mat[qx]
@@ -88,13 +87,12 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
         # New list is in rid format instead of cx format
         # because you should be copying and pasting it
         notes = ' ranks = ' + str(rank_mat[qx])
-        qrid = qrid_list[qx]
+        qrid = qrids[qx]
         new_hardtup_list += [(qrid, notes)]
-        new_qrid_list += [qrid]
+        new_qrids += [qrid]
 
     @utool.argv_flag_dec
     def print_rowscore():
-        print('')
         print('=======================')
         print('[harn] Scores per Query: %s' % testnameid)
         print('=======================')
@@ -128,7 +126,7 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
-        hardrids_str = ' '.join(map(str, ['    ', '--qrid'] + new_qrid_list))
+        hardrids_str = ' '.join(map(str, ['    ', '--qrid'] + new_qrids))
         print(hardrids_str)
         print('--- /Echo Hardcase ---')
     echo_hardcase()
@@ -147,7 +145,6 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
 
     @utool.argv_flag_dec
     def print_colscore():
-        print('')
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
         print('==================')
@@ -163,7 +160,6 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
 
     @utool.argv_flag_dec
     def print_latexsum():
-        print('')
         print('==========================')
         print('[harn] LaTeX: %s' % testnameid)
         print('==========================')
@@ -204,7 +200,6 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
 
     @utool.argv_flag_dec
     def print_bestcfg():
-        print('')
         print('==========================')
         print('[harn] Best Configurations: %s' % testnameid)
         print('==========================')
@@ -231,7 +226,6 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
 
     @utool.argv_flag_dec
     def print_rankmat():
-        print('')
         print('-------------')
         print('RankMat: %s' % testnameid)
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
@@ -242,7 +236,7 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
         print('[harn]-------------')
     print_rankmat()
 
-    row2_rid = np.array(qrid_list)
+    row2_rid = np.array(qrids)
     # Find rows which scored differently over the various configs
     diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
     diff_rids = row2_rid[diff_rows]
@@ -255,7 +249,6 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
 
     @utool.argv_flag_dec
     def print_diffmat():
-        print('')
         print('-------------')
         print('RankMat2: %s' % testnameid)
         print(diff_matstr)
@@ -279,9 +272,9 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = range(len(cfg_list))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
-        sel_rows = range(len(qrid_list))
+        sel_rows = range(len(qrids))
     if utool.get_arg('--view-all'):
-        sel_rows = range(len(qrid_list))
+        sel_rows = range(len(qrids))
         sel_cols = range(len(cfg_list))
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
@@ -309,7 +302,7 @@ def print_results(ibs, qrid_list, drids, cfg_list, mat_list, testnameid, sel_row
         if count in skip_list:
             continue
         # Get row and column index
-        qrid      = qrid_list[r]
+        qrid      = qrids[r]
         query_cfg = cfg_list[c]
         print('\n\n___________________________________')
         print('      --- VIEW %d / %d ---        '

@@ -106,14 +106,15 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
     """ Computes chips and yeilds results asynchronously for writing  """
     # TODO: Actually make this compute in parallel
     num_chips = len(cfpath_list)
-    mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ')
+    mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ',
+                                              mark_start=True, flush_after=4)
     chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
                          theta_list, newsize_list)
     for count, chipinfo in enumerate(chipinfo_iter):
-        mark_prog(count)
         (cfpath, gfpath, bbox, theta, new_size) = chipinfo
         chipBGR = ctool.compute_chip(gfpath, bbox, theta,
                                      new_size, filter_list)
+        mark_prog(count)
         yield chipBGR, cfpath
     end_prog()
 

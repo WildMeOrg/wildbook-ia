@@ -9,10 +9,12 @@ from utool.util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[hist]', DEBUG=False)
 
 
+@profile
 def hist_edges_to_centers(edges):
     return np.array([(e1 + e2) / 2 for (e1, e2) in izip(edges[:-1], edges[1:])])
 
 
+@profile
 def wrap_histogram(hist, edges):
     low, high = np.diff(edges)[[0, -1]]
     hist_wrap = np.hstack((hist[-1:], hist, hist[0:1]))
@@ -20,12 +22,14 @@ def wrap_histogram(hist, edges):
     return hist_wrap, edge_wrap
 
 
+@profile
 def hist_interpolated_submaxima(hist, centers=None):
     maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
     submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist, centers)
     return submaxima_x, submaxima_y
 
 
+@profile
 def hist_argmaxima(hist, centers=None):
     # FIXME: Not handling general cases
     argmaxima = argrelextrema(hist, np.greater)[0]  # [0] index because argrelmaxima returns a tuple
@@ -36,6 +40,7 @@ def hist_argmaxima(hist, centers=None):
     return maxima_x, maxima_y, argmaxima
 
 
+@profile
 def maxima_neighbors(argmaxima, hist, centers=None):
     neighbs = np.vstack((argmaxima - 1, argmaxima, argmaxima + 1))
     y123 = hist[neighbs]
@@ -43,6 +48,7 @@ def maxima_neighbors(argmaxima, hist, centers=None):
     return x123, y123
 
 
+@profile
 def interpolate_submaxima(argmaxima, hist, centers=None):
     # TODO Use np.polyfit here instead for readability
     x123, y123 = maxima_neighbors(argmaxima, hist, centers)
@@ -58,6 +64,7 @@ def interpolate_submaxima(argmaxima, hist, centers=None):
     return submaxima_x, submaxima_y
 
 
+@profile
 def subbin_bounds(z, radius, low, high):
     '''
     Gets quantized bounds of a sub-bin/pixel point and a radius.

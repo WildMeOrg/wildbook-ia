@@ -22,19 +22,19 @@ FK_DTYPE  = np.int16    # Feature Position datatype
 #=========================
 
 
-def remove_corrupted_queries(ibs, qres, dryrun=True):
+def remove_corrupted_queries(qreq, qres, dryrun=True):
     # This qres must be corrupted!
     uid = qres.uid
     hash_id = utool.hashstr(uid)
-    qres_dir  = ibs.qresdir
-    testres_dir = join(ibs.cachedir, 'experiment_harness_results')
+    qres_dir  = qreq.qresdir
+    testres_dir = join(qreq.qresdir, '..', 'experiment_harness_results')
     utool.remove_files_in_dir(testres_dir, dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + uid + '*', dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(ibs, qrid, uid):
-    qres_dir  = ibs.qresdir
+def query_result_fpath(qreq, qrid, uid):
+    qres_dir  = qreq.qresdir
     fname = 'res_%s_qrid=%d.npz' % (uid, qrid)
     if len(fname) > 64:
         hash_id = utool.hashstr(uid)
@@ -43,8 +43,8 @@ def query_result_fpath(ibs, qrid, uid):
     return fpath
 
 
-def query_result_exists(ibs, qrid, uid):
-    fpath = query_result_fpath(ibs, qrid, uid)
+def query_result_exists(qreq, qrid, uid):
+    fpath = query_result_fpath(qreq, qrid, uid)
     return exists(fpath)
 
 
@@ -80,6 +80,7 @@ class QueryResult(__OBJECT_BASE__):
                  #'weight_time', 'filt_time', 'build_time', 'verify_time',
                  #'rid2_fm', 'rid2_fs', 'rid2_fk', 'rid2_score']
     def __init__(qres, qrid, uid):
+        # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qrid = qrid
@@ -91,24 +92,24 @@ class QueryResult(__OBJECT_BASE__):
         qres.rid2_score = None
         qres.filt2_meta = None  # messy
 
-    def has_cache(qres, ibs):
-        return query_result_exists(ibs, qres.qrid)
+    def has_cache(qres, qreq):
+        return query_result_exists(qreq, qres.qrid)
 
-    def get_fpath(qres, ibs):
-        return query_result_fpath(ibs, qres.qrid, qres.uid)
+    def get_fpath(qres, qreq):
+        return query_result_fpath(qreq, qres.qrid, qres.uid)
 
     @profile
-    def save(qres, ibs):
-        fpath = qres.get_fpath(ibs)
+    def save(qres, qreq):
+        fpath = qres.get_fpath(qreq)
         if utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
             cPickle.dump(qres.__dict__, file_)
 
     @profile
-    def load(qres, ibs):
+    def load(qres, qreq):
         'Loads the result from the given database'
-        fpath = qres.get_fpath(ibs)
+        fpath = qres.get_fpath(qreq)
         qrid_good = qres.qrid
         try:
             print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
@@ -145,13 +146,13 @@ class QueryResult(__OBJECT_BASE__):
             raise
         qres.qrid = qrid_good
 
-    def cache_bytes(qres, ibs):
+    def cache_bytes(qres, qreq):
         """ Size of the cached query result on disk """
-        fpath  = qres.get_fpath(ibs)
+        fpath  = qres.get_fpath(qreq)
         nBytes = utool.file_bytes(fpath)
         return nBytes
 
-    def get_fmatch_index(qres, ibs, rid, qfx):
+    def get_fmatch_index(qres, rid, qfx):
         """ Returns the feature index in rid matching the query's qfx-th feature
             (if it exists)
         """
@@ -214,7 +215,7 @@ class QueryResult(__OBJECT_BASE__):
         """ get ranks of chip indexes in rid_list """
         top_rids = qres.get_top_rids()
         foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
-        ranks_   = [ranks if len(ranks) > 0 else [-1] for ranks in foundpos]
+        ranks_   = [ranks if len(ranks) > 0 else [None] for ranks in foundpos]
         assert all([len(ranks) == 1 for ranks in ranks_]), 'len(rid_ranks) != 1'
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
@@ -230,14 +231,35 @@ class QueryResult(__OBJECT_BASE__):
         #rank_list = [r[0] for r in ranks_]
         #return rank_list
 
-    def get_gt_ranks(qres, gt_rids=None, ibs=None):
+    def get_gt_ranks(qres, gt_rids=None, ibs=None, return_gtrids=False):
         'returns the 0 indexed ranking of each groundtruth chip'
         # Ensure correct input
         if gt_rids is None and ibs is None:
-            raise Exception('[qr] error')
+            raise Exception('[qr] must pass in the gt_rids or ibs object')
         if gt_rids is None:
             gt_rids = ibs.get_roi_groundtruth(qres.qrid)
-        return qres.get_rid_ranks(gt_rids)
+        gt_ranks = qres.get_rid_ranks(gt_rids)
+        if return_gtrids:
+            return gt_ranks, gt_rids
+        else:
+            return gt_ranks
+
+    def get_best_gt_rank(qres, ibs):
+        """ Returns the best rank over all the groundtruth """
+        gt_ranks, gt_rids = qres.get_gt_ranks(ibs=ibs, return_gtrids=True)
+        ridrank_tups = list(izip(gt_rids, gt_ranks))
+        # Get only the rids that placed in the shortlist
+        #valid_gtrids = np.array([ rid for rid, rank in ridrank_tups if rank is not None])
+        valid_ranks  = np.array([rank for rid, rank in ridrank_tups if rank is not None])
+        # Sort so lowest score is first
+        best_rankx = valid_ranks.argsort()
+        #best_gtrids  = best_gtrids[best_rankx]
+        best_gtranks = valid_ranks[best_rankx]
+        if len(best_gtranks) == 0:
+            best_rank = -1
+        else:
+            best_rank = best_gtranks[0]
+        return best_rank
 
     def show_top(qres, ibs, *args, **kwargs):
         return viz.show_qres_top(ibs, qres, *args, **kwargs)

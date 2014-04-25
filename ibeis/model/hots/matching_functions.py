@@ -529,27 +529,29 @@ def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
     return qrid2_res
 
 
-@profile
-def load_resdict(ibs, qreq):
-    # Load the result structures for each query.
-    qrids = qreq.qrids
-    uid = qreq.get_uid()
-    ##IF DICT_COMPREHENSION
-    qrid2_res = {qrid: QueryResult.QueryResult(qrid, uid) for qrid in iter(qrids)}
-    [res.load(ibs) for res in qrid2_res.itervalues()]
+#@profile
+#def load_resdict(qreq):
+    #""" Load the result structures for each query. """
+    #qrids = qreq.qrids
+    #uid = qreq.get_uid()  # this is the correct uid to use
+    ###IF DICT_COMPREHENSION
+    #qrid2_res = {qrid: QueryResult.QueryResult(qrid, uid) for qrid in iter(qrids)}
+    #[res.load(qreq) for res in qrid2_res.itervalues()]
     ##ELSE
     #qrid2_res = {}
     #for qrid in qrids:
         #res = QueryResult.QueryResult(qrid, uid)
-        #res.load(ibs)
+        #res.load(qreq)
         #qrid2_res[qrid] = res
     ##ENDIF
-    return qrid2_res
+    #return qrid2_res
 
 
 @profile
-def try_load_resdict(ibs, qreq):
-    # Load the result structures for each query.
+def try_load_resdict(qreq):
+    """ Try and load the result structures for each query.
+    returns a list of failed qrids
+    """
     qrids = qreq.qrids
     uid = qreq.get_uid()
     qrid2_res = {}
@@ -557,7 +559,7 @@ def try_load_resdict(ibs, qreq):
     for qrid in qrids:
         try:
             res = QueryResult.QueryResult(qrid, uid)
-            res.load(ibs)
+            res.load(qreq)
             qrid2_res[qrid] = res
         except IOError:
             failed_qrids.append(qrid)

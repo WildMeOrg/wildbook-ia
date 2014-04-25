@@ -25,10 +25,12 @@ def version_check(target=None):
     return wrapper1
 
 
-@version_check('1.1.7')
+#@version_check('1.1.7')
+@version_check('2.4.0')
 def pillow_version():
     from PIL import Image
-    return Image.VERSION
+    #return Image.VERSION
+    return Image.PILLOW_VERSION
 
 
 @version_check('1.3.1')

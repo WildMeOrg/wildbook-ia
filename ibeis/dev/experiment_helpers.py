@@ -119,12 +119,17 @@ def get_varied_params_list(test_cfg_name_list):
     return varied_params_list
 
 
-def get_cfg_list(ibs, test_cfg_name_list):
+def get_cfg_list(test_cfg_name_list, ibs=None):
     print('[harn] building cfg_list: %s' % test_cfg_name_list)
     if 'custom' == test_cfg_name_list:
+        # Usee the ibeis config as a custom config
         print('   * custom cfg_list')
         cfg_list = [ibs.prefs.query_cfg]
         return cfg_list
+    return _get_cfg_list(test_cfg_name_list)
+
+
+def _get_cfg_list(test_cfg_name_list):
     varied_params_list = get_varied_params_list(test_cfg_name_list)
     # Add unique configs to the list
     cfg_list = []

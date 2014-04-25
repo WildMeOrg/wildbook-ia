@@ -65,7 +65,7 @@ def get_test_qrids(ibs):
         printDBG('no hard or gt rids. Defaulting to the first ROI')
         test_qrids = valid_rids[0:1]
 
-    printDBG('test_qrids = %r' % test_qrids)
+    print('test_qrids = %r' % test_qrids)
     test_qrids = utool.unique_keep_order2(test_qrids)
     printDBG('test_qrids = %r' % test_qrids)
     printDBG('len(test_qrids) = %d' % len(test_qrids))

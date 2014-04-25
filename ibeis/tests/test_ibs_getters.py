@@ -7,15 +7,11 @@ sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 printTEST = __testing__.printTEST
 # Python
-from os.path import join, exists  # NOQA
 import multiprocessing
 # Tools
 import utool
 #IBEIS
-from ibeis.dev import params  # NOQA
 import numpy as np
-from ibeis.model.hots import QueryRequest  # NOQA
-from ibeis.model.hots import NNIndex  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[TEST_IBS_GETTERS]')
 

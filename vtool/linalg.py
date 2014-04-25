@@ -17,6 +17,7 @@ TRANSFORM_DTYPE = np.float64
 from numpy.core.umath_tests import matrix_multiply  # NOQA
 
 
+@profile
 def svd(M):
     # V is actually Vt
     flags = cv2.SVD_FULL_UV
@@ -25,6 +26,7 @@ def svd(M):
     return U, s, Vt
 
 
+@profile
 def OLD_pdf_norm2d(x_, y_):
     # DEPRICATED
     import math
@@ -44,6 +46,7 @@ def OLD_pdf_norm2d(x_, y_):
     return norm_const * result
 
 
+@profile
 def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     '''
     Input: x and y coordinate of a 2D gaussian
@@ -70,6 +73,7 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     return result
 
 
+@profile
 def rotation_mat3x3(radians):
     sin_ = sin(radians)
     cos_ = cos(radians)
@@ -79,6 +83,7 @@ def rotation_mat3x3(radians):
     return R
 
 
+@profile
 def rotation_mat2x2(theta):
     sin_ = sin(theta)
     cos_ = cos(theta)
@@ -87,6 +92,7 @@ def rotation_mat2x2(theta):
     return rot_
 
 
+@profile
 def rotation_around_mat3x3(theta, x, y):
     sin_ = sin(theta)
     cos_ = cos(theta)
@@ -103,6 +109,7 @@ def rotation_around_mat3x3(theta, x, y):
     return rot
 
 
+@profile
 def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     T = array([[1, 0,  x],
                [0, 1,  y],
@@ -110,6 +117,7 @@ def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     return T
 
 
+@profile
 def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     sy = sx if sy is None else sy
     S = array([[sx, 0, 0],
@@ -118,6 +126,7 @@ def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     return S
 
 
+@profile
 def scaleedoffset_mat3x3(offset, scale_factor):
     sfy = sfx = scale_factor
     T = translation_mat3x3(*offset)
@@ -132,6 +141,7 @@ def scaleedoffset_mat3x3(offset, scale_factor):
 
 
 #PYX DEFINE
+@profile
 def det_ltri(ltri):
     #cdef det_ltri(FLOAT_2D ltri):
     'Lower triangular determinant'
@@ -141,6 +151,7 @@ def det_ltri(ltri):
 
 
 #PYX DEFINE
+@profile
 def inv_ltri(ltri, det):
     #cdef inv_ltri(FLOAT_2D ltri, FLOAT_1D det):
     'Lower triangular inverse'
@@ -150,6 +161,7 @@ def inv_ltri(ltri, det):
 
 
 #PYX BEGIN
+@profile
 def dot_ltri(ltri1, ltri2):
     #cdef dot_ltri(FLOAT_2D ltri1, FLOAT_2D ltri2):
     'Lower triangular dot product'
@@ -168,6 +180,7 @@ def dot_ltri(ltri1, ltri2):
 # PYX END CDEF
 
 
+@profile
 def nearest_point(x, y, pts, mode='random'):
     """ finds the nearest point(s) in pts to (x, y) """
     dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
@@ -185,6 +198,7 @@ def nearest_point(x, y, pts, mode='random'):
     return fx, mindist
 
 
+@profile
 def and_lists(*args):
     """ Like np.logical_and, but can take more than 2 arguments """
     # TODO: Cython
@@ -204,6 +218,7 @@ def and_lists(*args):
     return flags
 
 
+@profile
 def ori_distance(ori1, ori2):
     """ Returns how far off determinants are from one another """
     # TODO: Cython
@@ -212,6 +227,7 @@ def ori_distance(ori1, ori2):
     return ori_dist
 
 
+@profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another """
     # TODO: Cython
@@ -222,11 +238,13 @@ def det_distance(det1, det2):
     return det_dist
 
 
+@profile
 def L1(hist1, hist2):
     """ returns L1 (aka manhatten or grid) distance between two histograms """
     return (np.abs(hist1 - hist2)).sum(-1)
 
 
+@profile
 def L2_sqrd(hist1, hist2):
     """ returns the squared L2 distance
     seealso L2
@@ -235,11 +253,13 @@ def L2_sqrd(hist1, hist2):
     return (np.abs(hist1 - hist2) ** 2).sum(-1)
 
 
+@profile
 def L2(hist1, hist2):
     """ returns L2 (aka euclidean or standard) distance between two histograms """
     return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
 
 
+@profile
 def hist_isect(hist1, hist2):
     """ returns histogram intersection distance between two histograms """
     numer = (np.dstack([hist1, hist2])).min(-1).sum(-1)
@@ -250,6 +270,7 @@ def hist_isect(hist1, hist2):
     return hisect_dist
 
 
+@profile
 def whiten_xy_points(xy_m):
     """
     whitens points to mean=0, stddev=1 and returns transformation
@@ -273,6 +294,7 @@ def homogonize(_xyzs):
     return _xys
 
 
+@profile
 def rowwise_operation(arr1, arr2, op):
     """
     performs an operation between an
@@ -287,6 +309,7 @@ def rowwise_operation(arr1, arr2, op):
     return op(arr1, arr2_)
 
 
+@profile
 def rowwise_division(arr1, arr2):
     return rowwise_operation(arr1, arr2, np.divide)
 
@@ -298,6 +321,7 @@ def compare_matrix_columns(matrix, columns):
     return compare_matrix_to_rows(matrix.T, columns.T).T
 
 
+@profile
 def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
     # FIXME: Generalize
     '''

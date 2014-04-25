@@ -6,16 +6,12 @@ from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 # Python
-from os.path import join, exists  # NOQA
 import multiprocessing
 # Tools
 import utool
 from plottool import draw_func2 as df2
 #IBEIS
-from ibeis.dev import params  # NOQA
 from ibeis.viz import interact
-from ibeis.model.hots import QueryRequest  # NOQA
-from ibeis.model.hots import NNIndex  # NOQA
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_QUERY]')
 
 

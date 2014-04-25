@@ -6,6 +6,7 @@ print, print_,  printDBG, rrr, profile = utool.inject(
 
 ConfigBase = utool.Pref
 #ConfigBase = utool.DynStruct
+#ConfigBase = object
 
 
 def make_feasible(query_cfg):
@@ -223,17 +224,19 @@ class AggregateConfig(ConfigBase):
 
 
 class QueryConfig(ConfigBase):
-    def __init__(query_cfg, ibs=None, **kwargs):
+    def __init__(query_cfg, feat_cfg=None, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg   = NNConfig(**kwargs)
         query_cfg.filt_cfg = FilterConfig(**kwargs)
         query_cfg.sv_cfg   = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg  = AggregateConfig(**kwargs)
-        # Queries depend on features # creating without ibs delays crash
-        query_cfg._feat_cfg = FeatureConfig(**kwargs) if ibs is None else ibs.cfg.feat_cfg
         query_cfg.use_cache = False
-        if ibs is not None:
-            query_cfg.update_cfg(**kwargs)
+        # Depends on feature config
+        if feat_cfg is None:
+            query_cfg._feat_cfg = FeatureConfig(**kwargs)
+        else:
+            query_cfg._feat_cfg = feat_cfg
+        query_cfg.update_cfg(**kwargs)
 
     def update_cfg(query_cfg, **kwargs):
         # Each config paramater should be unique
@@ -303,7 +306,7 @@ class QueryConfig(ConfigBase):
 
 
 class FeatureConfig(ConfigBase):
-    def __init__(feat_cfg, ibs=None, **kwargs):
+    def __init__(feat_cfg, chip_cfg=None, **kwargs):
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg.feat_type = 'hesaff+sift'
         feat_cfg.whiten = False
@@ -311,10 +314,10 @@ class FeatureConfig(ConfigBase):
         feat_cfg.scale_max = 9001  # 9001 # 80
         feat_cfg.use_adaptive_scale = False  # 9001 # 80
         feat_cfg.nogravity_hack = False  # 9001 # 80
-        if ibs is None:
-            feat_cfg._chip_cfg = ChipConfig(**kwargs)  # creating without ibs delays crash
+        if chip_cfg is None:
+            feat_cfg._chip_cfg = ChipConfig(**kwargs)
         else:
-            feat_cfg._chip_cfg = ibs.cfg.chip_cfg  # Features depend on chips
+            feat_cfg._chip_cfg = chip_cfg  # Features depend on chips
         feat_cfg.update(**kwargs)
 
     def get_dict_args(feat_cfg):
@@ -404,19 +407,9 @@ def default_display_cfg(**kwargs):
     return display_cfg
 
 
-def default_chip_cfg(**kwargs):
-    chip_cfg = ChipConfig(**kwargs)
-    return chip_cfg
-
-
-def default_feat_cfg(ibs, **kwargs):
-    feat_cfg = FeatureConfig(ibs, **kwargs)
-    return feat_cfg
-
-
-def default_query_cfg(ibs, **kwargs):
+def default_query_cfg(**kwargs):
     kwargs['query_type'] = 'vsmany'
-    query_cfg = QueryConfig(ibs, **kwargs)
+    query_cfg = QueryConfig(**kwargs)
     return query_cfg
 
 
@@ -429,5 +422,5 @@ def default_vsone_cfg(ibs, **kwargs):
     kwargs_set('Knorm', 1)
     kwargs_set('ratio_weight', 1.0)
     kwargs_set('ratio_thresh', 1.5)
-    query_cfg = QueryConfig(ibs, **kwargs)
+    query_cfg = QueryConfig(**kwargs)
     return query_cfg

@@ -60,6 +60,7 @@ LOC_DIMS   = np.array([XDIM, YDIM])
 SHAPE_DIMS = np.array([SCAX_DIM, SKEW_DIM, SCAY_DIM])
 
 
+@profile
 def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, **kwargs):
     """ Returns a regular grid of keypoints """
     (w, h) = wh
@@ -81,12 +82,14 @@ def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, **kwargs):
 
 
 # --- raw keypoint components ---
+@profile
 def get_xys(kpts):
     """ Keypoint locations in chip space """
     _xys = kpts.T[0:2]
     return _xys
 
 
+@profile
 def get_homog_xyzs(kpts_):
     """ Keypoint locations in chip space """
     _xys = get_xys(kpts_)
@@ -95,12 +98,14 @@ def get_homog_xyzs(kpts_):
     return _xyzs
 
 
+@profile
 def get_invVs(kpts):
     """ Keypoint shapes (oriented with the gravity vector) """
     _invVs = kpts.T[2:5]
     return _invVs
 
 
+@profile
 def get_oris(kpts):
     """ Keypoint orientations
     (in isotropic guassian space relative to the gravity vector)
@@ -117,6 +122,7 @@ def get_oris(kpts):
 
 # --- keypoint properties ---
 
+@profile
 def get_sqrd_scales(kpts):
     """ gets average squared scale (does not take into account elliptical shape """
     _iv11s, _iv21s, _iv22s = get_invVs(kpts)
@@ -124,6 +130,7 @@ def get_sqrd_scales(kpts):
     return _scales_sqrd
 
 
+@profile
 def get_scales(kpts):
     """  Gets average scale (does not take into account elliptical shape """
     _scales = sqrt(get_sqrd_scales(kpts))
@@ -132,6 +139,7 @@ def get_scales(kpts):
 
 # --- keypoint matrixes ---
 
+@profile
 def get_ori_mats(kpts):
     """ Returns keypoint orientation matrixes """
     _oris = get_oris(kpts)
@@ -139,6 +147,7 @@ def get_ori_mats(kpts):
     return R_mats
 
 
+@profile
 def get_invV_mats2x2(kpts, with_ori=False):
     """ Returns keypoint shape matrixes
         (default orientation is down)
@@ -162,6 +171,7 @@ def get_invV_mats2x2(kpts, with_ori=False):
     return invV_mats
 
 
+@profile
 def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, ascontiguous=False):
     """ packs keypoint shapes into affine invV matrixes
         (default is just the 2x2 shape. But translation, orientation,
@@ -193,6 +203,7 @@ def get_invV_mats(kpts, with_trans=False, with_ori=False, ashomog=False, asconti
 # --- scaled and offset keypoint components ---
 
 
+@profile
 def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     """ Transforms keypoints so they are plotable in imagespace
         kpts   - xyacdo keypoints
@@ -211,6 +222,7 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
     return imgkpts
 
 
+@profile
 def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
     if offset == (0.0, 0.0) and scale_factor == 1.0:
         return kpts
@@ -219,6 +231,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
     return kpts_
 
 
+@profile
 def transform_kpts(kpts, M):
     invV_mats = get_invV_mats(kpts, with_trans=True, with_ori=True)
     MinvV_mats = matrix_multiply(M, invV_mats)
@@ -237,11 +250,13 @@ def transform_kpts(kpts, M):
 #---------------------
 
 
+@profile
 def get_invVR_mats_sqrd_scale(invVR_mats):
     """ Returns the squared scale of the invVR keyponts """
     return npl.det(invVR_mats[:, 0:2, 0:2])
 
 
+@profile
 def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components """
     _iv11s = invVR_mats[:, 0, 0]
@@ -251,12 +266,14 @@ def get_invVR_mats_shape(invVR_mats):
     return (_iv11s, _iv12s, _iv21s, _iv22s)
 
 
+@profile
 def get_invVR_mats_xys(invVR_mats):
     """ extracts xys from matrix encoding """
     _xys = invVR_mats[:, 0:2, 2].T
     return _xys
 
 
+@profile
 def get_invVR_mats_oris(invVR_mats):
     """ extracts orientation from matrix encoding """
     # Extract only the needed shape components
@@ -267,6 +284,7 @@ def get_invVR_mats_oris(invVR_mats):
     return _oris
 
 
+@profile
 def rectify_invV_mats_are_up(invVR_mats):
     """
     Useful if invVR_mats is no longer lower triangular
@@ -293,6 +311,7 @@ def rectify_invV_mats_are_up(invVR_mats):
     return invV_mats, _oris
 
 
+@profile
 def flatten_invV_mats_to_kpts(invV_mats):
     """ flattens invV matrices into kpts format """
     invV_mats, _oris = rectify_invV_mats_are_up(invV_mats)
@@ -306,12 +325,14 @@ def flatten_invV_mats_to_kpts(invV_mats):
     return kpts
 
 
+@profile
 def get_V_mats(kpts, **kwargs):
     invV_mats = get_invV_mats(kpts, **kwargs)
     V_mats = npl.inv(invV_mats)
     return V_mats
 
 
+@profile
 def get_Z_mats(V_mats):
     """
         transform into conic matrix Z
@@ -322,11 +343,13 @@ def get_Z_mats(V_mats):
     return Z_mats
 
 
+@profile
 def invert_invV_mats(invV_mats):
     V_mats = npl.inv(invV_mats)
     return V_mats
 
 
+@profile
 def get_invV_xy_axis_extents(invV_mats):
     """ gets the scales of the major and minor elliptical axis.
         from invV_mats (faster)
@@ -342,6 +365,7 @@ def get_invV_xy_axis_extents(invV_mats):
     return xyexnts
 
 
+@profile
 def get_xy_axis_extents(kpts):
     """ gets the scales of the major and minor elliptical axis
         from kpts (slower due to conversion to invV_mats)
@@ -350,6 +374,7 @@ def get_xy_axis_extents(kpts):
     return get_invV_xy_axis_extents(invV_mats)
 
 
+@profile
 def get_kpts_bounds(kpts):
     """ returns the width and height of keypoint bounding box """
     xs, ys = get_xys(kpts)
@@ -359,6 +384,7 @@ def get_kpts_bounds(kpts):
     return (width, height)
 
 
+@profile
 def get_diag_extent_sqrd(kpts):
     """ Returns the diagonal extent of keypoint locations """
     xs, ys = get_xys(kpts)
@@ -368,6 +394,7 @@ def get_diag_extent_sqrd(kpts):
     return extent_sqrd
 
 
+@profile
 def cast_split(kpts, dtype=KPTS_DTYPE):
     """ breakup keypoints into location, shape, and orientation """
     kptsT = kpts.T
@@ -383,6 +410,7 @@ def cast_split(kpts, dtype=KPTS_DTYPE):
 
 # --- strings ---
 
+@profile
 def get_xy_strs(kpts):
     """ strings debugging and output """
     _xs, _ys   = get_xys(kpts)
@@ -390,6 +418,7 @@ def get_xy_strs(kpts):
     return xy_strs
 
 
+@profile
 def get_shape_strs(kpts):
     """ strings debugging and output """
     invVs = get_invVs(kpts)
@@ -400,12 +429,14 @@ def get_shape_strs(kpts):
     return shape_strs
 
 
+@profile
 def get_ori_strs(kpts):
     _oris = get_oris(kpts)
     ori_strs = ['ori=' + utool.theta_str(ori) for ori in _oris]
     return ori_strs
 
 
+@profile
 def get_kpts_strs(kpts):
     xy_strs = get_xy_strs(kpts)
     shape_strs = get_shape_strs(kpts)

@@ -4,6 +4,7 @@ UTool
 
 TODO: INSERT APACHE LICENCE
 """
+# TODO: Separate this into a dynamic import module / script / template / tool
 # disable syntax checking
 # flake8: noqa
 # We hope to support python3
@@ -54,7 +55,7 @@ if __DYNAMIC__:
                             'flatten']),
         ('util_num',       None),
         ('util_path',      ['checkpath', 'ensuredir', 'assertpath', 'truepath',
-                            'list_images']),
+                            'list_images', 'copy']),
         ('util_print',     ['horiz_print', 'printshape', 'Indenter']),
         ('util_progress',  ['progress_func']),
         ('util_str',       ['byte_str2', 'horiz_string', 'theta_str']),
@@ -120,8 +121,9 @@ if __DYNAMIC__:
                 member_val = getattr(tmp, member)
                 try:
                     # Disallow importing modules
-                    if getattr(member_val, '__name__') in sys.modules:
-                        print(str(member_val))
+                    forced = member in fromset
+                    if not forced and getattr(member_val, '__name__') in sys.modules:
+                        #print(str(member_val))
                         continue
                 except AttributeError:
                     pass
@@ -244,15 +246,16 @@ else:
                            format_, int_comma_str, num2_sigfig, num_fmt,
                            order_of_magnitude_ceil, sigfig_str,)
     from .util_path import (BadZipfile, IMG_EXTENSIONS, assertpath, checkpath,
-                            copy_all, copy_list, copy_task, delete, dirname,
-                            dirsplit, download_url, ensuredir, ensurepath, ext,
-                            file_bytes, file_megabytes, fnames_to_fpaths,
-                            fpaths_to_fnames, get_module_dir, glob, isdir, isfile,
-                            islink, ismount, list_images, longest_existing_path,
-                            matches_image, move_list, num_images_in_dir,
-                            path_ndir_split, progress_func, realpath, relpath,
-                            remove_dirs, remove_file, remove_files_in_dir, split,
-                            symlink, truepath, unixpath, unzip_file, win_shortcut,)
+                            copy, copy_all, copy_list, copy_task, delete,
+                            dirname, dirsplit, download_url, ensuredir,
+                            ensurepath, ext, file_bytes, file_megabytes,
+                            fnames_to_fpaths, fpaths_to_fnames, get_module_dir,
+                            glob, isdir, isfile, islink, ismount, list_images,
+                            longest_existing_path, matches_image, move_list,
+                            num_images_in_dir, path_ndir_split, progress_func,
+                            realpath, relpath, remove_dirs, remove_file,
+                            remove_files_in_dir, split, symlink, truepath,
+                            unixpath, unzip_file, win_shortcut,)
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
                              horiz_print, printNOTQUIET, print_filesize,
                              printshape,)

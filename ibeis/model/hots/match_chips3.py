@@ -24,7 +24,6 @@ def quickly_ensure_qreq(ibs, qrids=None, drids=None):
         drids = rids
     qreq = prep_query_request(qreq=qreq, query_cfg=query_cfg,
                               qrids=qrids, drids=drids)
-    #pre_cache_checks(ibs, qreq)
     pre_exec_checks(ibs, qreq)
     return qreq
 
@@ -58,7 +57,8 @@ def prep_query_request(qreq=None, query_cfg=None,
 @utool.indent_func('[pre_exec]')
 #@profile
 def pre_exec_checks(ibs, qreq):
-    """ Builds the NNIndex if not already in cache """
+    """ Builds the NNIndex if feature of the correct configuration are not in
+    the cache """
     print('  --- Pre Exec ---')
     # Get qreq config information
     drids = qreq.get_internal_drids()
@@ -85,14 +85,10 @@ def process_query_request(ibs, qreq, use_cache=True, safe=True):
     The standard query interface
     """
     print(' --- Process QueryRequest --- ')
-    # HotSpotter feature checks
-    #if safe:
-        #qreq = pre_cache_checks(ibs, qreq)
-
     # Try loading as many cached results as possible
     use_cache = not params.args.nocache_query and use_cache
     if use_cache:
-        qrid2_res, failed_qrids = mf.try_load_resdict(ibs, qreq)
+        qrid2_res, failed_qrids = mf.try_load_resdict(qreq)
     else:
         qrid2_res = {}
         failed_qrids = qreq.qrids

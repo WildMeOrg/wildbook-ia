@@ -5,6 +5,7 @@ import sys
 from itertools import izip
 from itertools import product as iprod
 import functools
+import functools32
 # Science
 import cv2
 import numpy as np
@@ -26,6 +27,7 @@ sys.argv.append('--vecfield')
 np.tau = 2 * np.pi  # tauday.com
 
 
+@profile
 def patch_gradient(patch, ksize=1, gaussian_weighted=True):
     patch_ = array(patch, dtype=np.float64)
     gradx = cv2.Sobel(patch_, cv2.CV_64F, 1, 0, ksize=ksize)
@@ -48,10 +50,11 @@ def patch_ori(gradx, grady):
 
 
 #from hscom import tools
-
-
-#@tools.lru_cache()
+@functools32.lru_cache(maxsize=1000)
 def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
+    """
+    It is essential that this function is cached!
+    """
     # Build a list of x and y coordinates
     half_width  = width  / 2.0
     half_height = height / 2.0
@@ -70,7 +73,8 @@ def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
     return gausspatch
 
 
-def get_unwarped_patches(rchip, kpts):
+@profile
+def get_unwarped_patches(chip, kpts):
     """ Returns cropped unwarped patch around a keypoint """
     _xs, _ys = ktool.get_xys(kpts)
     xyexnts = ktool.get_xy_axis_extents(kpts)
@@ -80,12 +84,12 @@ def get_unwarped_patches(rchip, kpts):
     for (kp, x, y, (sfx, sfy)) in izip(kpts, _xs, _ys, xyexnts):
         radius_x = sfx * 1.5
         radius_y = sfy * 1.5
-        (chip_h, chip_w) = rchip.shape[0:2]
+        (chip_h, chip_w) = chip.shape[0:2]
         # Get integer grid coordinates to crop at
         ix1, ix2, xm = htool.subbin_bounds(x, radius_x, 0, chip_w)
         iy1, iy2, ym = htool.subbin_bounds(y, radius_y, 0, chip_h)
         # Crop the keypoint out of the image
-        patch = rchip[iy1:iy2, ix1:ix2]
+        patch = chip[iy1:iy2, ix1:ix2]
         subkp = kp.copy()  # subkeypoint in patch coordinates
         subkp[0:2] = (xm, ym)
         patches.append(patch)
@@ -93,7 +97,8 @@ def get_unwarped_patches(rchip, kpts):
     return patches, subkpts
 
 
-def get_warped_patches(rchip, kpts):
+@profile
+def get_warped_patches(chip, kpts):
     """ Returns warped patch around a keypoint """
     # TODO: CLEAN ME
     warped_patches = []
@@ -107,7 +112,7 @@ def get_warped_patches(rchip, kpts):
     s = 41  # sf
     for x, y, V, ori in kpts_iter:
         ss = sqrt(s) * 3
-        (h, w) = rchip.shape[0:2]
+        (h, w) = chip.shape[0:2]
         # Translate to origin(0,0) = (x,y)
         T = ltool.translation_mat3x3(-x, -y)
         R = ltool.rotation_mat3x3(-ori)
@@ -117,7 +122,7 @@ def get_warped_patches(rchip, kpts):
         # Prepare to warp
         dsize = np.array(np.ceil(np.array([s, s])), dtype=int)
         # Warp
-        warped_patch = gtool.warpAffine(rchip, M, dsize)
+        warped_patch = gtool.warpAffine(chip, M, dsize)
         # Build warped keypoints
         wkp = np.array((s / 2, s / 2, ss, 0., ss, 0))
         warped_patches.append(warped_patch)
@@ -125,6 +130,7 @@ def get_warped_patches(rchip, kpts):
     return warped_patches, warped_subkpts
 
 
+@profile
 def get_warped_patch(imgBGR, kp, gray=False):
     kpts = np.array([kp])
     wpatches, wkpts = get_warped_patches(imgBGR, kpts)
@@ -135,6 +141,7 @@ def get_warped_patch(imgBGR, kp, gray=False):
     return wpatch, wkp
 
 
+@profile
 def get_orientation_histogram(gori):
     # Get wrapped histogram (because we are finding a direction)
     hist_, edges_ = np.histogram(gori.flatten(), bins=8)
@@ -143,6 +150,7 @@ def get_orientation_histogram(gori):
     return hist, centers
 
 
+@profile
 def find_kpts_direction(imgBGR, kpts):
     ori_list = []
     gravity_ori = ktool.GRAVITY_THETA

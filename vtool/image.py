@@ -77,6 +77,7 @@ def get_num_channels(img):
     return nChannels
 
 
+@profile
 def subpixel_values(img, pts):
     """
     adapted from
@@ -137,6 +138,7 @@ def cvt_BGR2L(imgBGR):
     return imgL
 
 
+@profile
 def warpAffine(img, Aff, dsize):
     """
     dsize = (width, height) of return image
@@ -145,6 +147,7 @@ def warpAffine(img, Aff, dsize):
     return warped_img
 
 
+@profile
 def warpHomog(img, Homog, dsize):
     """
     dsize = (width, height) of return image

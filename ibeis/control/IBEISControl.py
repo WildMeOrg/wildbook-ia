@@ -79,6 +79,7 @@ class IBEISControl(object):
         """ Creates a new IBEIS Controller associated with one database """
         if utool.VERBOSE:
             print('[ibs.__init__] new IBEISControl')
+        ibs.qreq = None  # query requestor object
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         ibs._init_sql()
         ibs._init_config()
@@ -169,17 +170,27 @@ class IBEISControl(object):
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
         printDBG('[ibs] _load_config()')
-        ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
-        if not ibs.cfg.load() is True:
+        try:
+            ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
+            if not ibs.cfg.load() is True:
+                raise Exception('did not load')
+        except Exception:
             ibs._default_config()
 
     def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
         printDBG('[ibs] _default_config()')
         # TODO: Detector config
-        ibs.cfg.chip_cfg   = Config.default_chip_cfg()
-        ibs.cfg.feat_cfg   = Config.default_feat_cfg(ibs)
-        ibs.cfg.query_cfg  = Config.default_query_cfg(ibs)
+        query_cfg  = Config.default_query_cfg()
+        ibs.set_query_cfg(query_cfg)
+
+    @utool.indent_func
+    def set_query_cfg(ibs, query_cfg):
+        if ibs.qreq is not None:
+            ibs.qreq.set_cfg(query_cfg)
+        ibs.cfg.query_cfg = query_cfg
+        ibs.cfg.feat_cfg  = query_cfg._feat_cfg
+        ibs.cfg.chip_cfg  = query_cfg._feat_cfg._chip_cfg
 
     @utool.indent_func
     def update_cfg(ibs, **kwargs):
@@ -915,8 +926,9 @@ class IBEISControl(object):
             FROM rois
             WHERE name_uid=?
             AND name_uid!=?
+            AND roi_uid!=?
             ''',
-            params_iter=((nid, ibs.UNKNOWN_NID) for nid in nid_list),
+            params_iter=((nid, ibs.UNKNOWN_NID, rid) for nid, rid in izip(nid_list, rid_list)),
             unpack_scalars=False)
         return groundtruth_list
 
@@ -1282,10 +1294,10 @@ class IBEISControl(object):
         qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
-    @utool.indent_decor('[query_db]')
+    @utool.indent_func('[query_db]')
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
-        if not hasattr(ibs, 'qreq'):
+        if ibs.qreq is None:
             ibs._init_query_requestor()
         drid_list = ibs.get_recognition_database_rois()
         qrid2_res = ibs._query_chips(qrid_list, drid_list, **kwargs)
@@ -1294,7 +1306,7 @@ class IBEISControl(object):
     @utool.indent_func
     def _init_query_requestor(ibs):
         from ibeis.model.hots import QueryRequest
-        ibs.qreq = QueryRequest.QueryRequest()  # Query Data
+        ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir)  # Query Data
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
     @utool.indent_func

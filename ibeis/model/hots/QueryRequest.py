@@ -12,7 +12,7 @@ __REQUEST_BASE__ = utool.DynStruct if utool.get_flag('--debug') else object
 
 class QueryRequest(__REQUEST_BASE__):
     # This will allow for a pipelining structure of requests and results
-    def __init__(qreq):
+    def __init__(qreq, qresdir):
         super(QueryRequest, qreq).__init__()
         qreq.cfg = None  # Query config pointer
         qreq.qrids = []
@@ -20,7 +20,8 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.data_index = None  # current index
         qreq.dftup2_index = {}  # cached indexes
         qreq.vsmany = False
-        qreq.vsone = False
+        qreq.vsone  = False
+        qreq.qresdir = qresdir
 
     def set_rids(qreq, qrids, drids):
         qreq.qrids = qrids

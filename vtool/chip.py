@@ -11,6 +11,7 @@ from utool.util_inject import inject
 (print, print_, printDBG, rrr, profile) = inject(__name__, '[chip]', DEBUG=False)
 
 
+@profile
 def _get_image_to_chip_transform(bbox, chipsz, theta):
     """ transforms image space into chipspace
         bbox   - bounding box of chip in image space
@@ -38,6 +39,7 @@ def _get_image_to_chip_transform(bbox, chipsz, theta):
     return C
 
 
+@profile
 def _get_chip_to_image_transform(bbox, chipsz, theta):
     """ transforms chip space into imgspace
         bbox   - bounding box of chip in image space
@@ -49,6 +51,7 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
     return invC
 
 
+@profile
 def _extract_chip(gfpath, bbox, theta, new_size):
     """ Crops chip from image ; Rotates and scales; """
     imgBGR = gtool.imread(gfpath)  # Read parent image
@@ -57,6 +60,7 @@ def _extract_chip(gfpath, bbox, theta, new_size):
     return chipBGR
 
 
+@profile
 def _filter_chip(chipBGR, filter_funcs):
     """ applies a list of preprocessing filters to a chip """
     chipBGR_ = chipBGR
@@ -65,6 +69,7 @@ def _filter_chip(chipBGR, filter_funcs):
     return chipBGR_
 
 
+@profile
 def get_scaled_size_with_area(target_area, w, h):
     """ returns new_size which scales (w, h) as close to target_area as possible
     and maintains aspect ratio
@@ -75,10 +80,12 @@ def get_scaled_size_with_area(target_area, w, h):
     return new_size
 
 
+@profile
 def get_scaled_sizes_with_area(target_area, size_list):
     return [get_scaled_size_with_area(target_area, w, h) for (w, h) in size_list]
 
 
+@profile
 def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
     """ Extracts a chip and applies filters """
     chipBGR = _extract_chip(gfpath, bbox, theta, new_size)
@@ -86,6 +93,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
     return chipBGR
 
 
+@profile
 def get_filter_list(chipcfg_dict):
     filter_list = []
     if chipcfg_dict.get('adapteq'):
