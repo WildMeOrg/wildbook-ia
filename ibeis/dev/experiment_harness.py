@@ -241,7 +241,7 @@ def get_test_results2(ibs, qrids, qreq, cfgx=0, nCfg=1, nocache_testres=False,
             if TEST_INFO:
                 print('qrid=%r. quid=%r' % (qrid, qreq.get_uid()))
             try:
-                qreq._qrids = [qrid]
+                qreq.qrids = [qrid]
                 qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
             except mf.QueryException as ex:
                 print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -254,7 +254,11 @@ def get_test_results2(ibs, qrids, qreq, cfgx=0, nCfg=1, nocache_testres=False,
                     qx2_bestranks += [[-1]]
                     continue
 
-            assert len(qrid2_res) == 1
+            try:
+                assert len(qrid2_res) == 1, ''
+            except AssertionError as ex:
+                utool.printex(ex, key_list=['qrid2_res'])
+                raise
             qres = qrid2_res[qrid]
             gt_ranks = qres.get_gt_ranks(ibs=ibs)
             _rank = -1 if len(gt_ranks) == 0 else min(gt_ranks)
