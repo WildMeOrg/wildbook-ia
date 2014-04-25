@@ -52,7 +52,7 @@ def add_chips_parameters_gen(ibs, rid_list):
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
-        yield (rid, width, height, chip_config_uid)
+        yield (rid, cfpath, width, height, chip_config_uid)
 
 
 #--------------
@@ -65,6 +65,8 @@ def delete_chips(ibs, cid_list):
     chip_fpath_list = ibs.get_chip_paths(cid_list)
     print('[preproc_chip] deleting %d chips' % len(cid_list))
     for chip_fpath in chip_fpath_list:
+        if chip_fpath is None:
+            continue
         try:
             os.remove(chip_fpath)
         except OSError:
@@ -77,20 +79,22 @@ def delete_chips(ibs, cid_list):
 #---------------
 
 
-def get_chip_fname_fmt(ibs):
+def get_chip_fname_fmt(ibs=None, suffix=None):
     """ Returns format of chip file names """
-    chip_cfg = ibs.cfg.chip_cfg
-    chipcfg_uid = chip_cfg.get_uid()   # algo settings uid
-    chipcfg_fmt = chip_cfg['chipfmt']  # png / jpeg
+    if suffix is None:
+        chip_cfg = ibs.cfg.chip_cfg
+        chipcfg_uid = chip_cfg.get_uid()   # algo settings uid
+        chipcfg_fmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
+        suffix = chipcfg_uid + chipcfg_fmt
     # Chip filenames are a function of roi_uid and cfg_uid
-    _cfname_fmt = ('rid_%s' + chipcfg_uid + chipcfg_fmt)
+    _cfname_fmt = ('rid_%s' + suffix)
     return _cfname_fmt
 
 
-def get_roi_cfpath_list(ibs, rid_list):
+def get_roi_cfpath_list(ibs, rid_list, suffix=None):
     """ Returns chip path list """
     utool.assert_all_not_None(rid_list, 'rid_list')
-    _cfname_fmt = get_chip_fname_fmt(ibs)
+    _cfname_fmt = get_chip_fname_fmt(ibs=ibs, suffix=suffix)
     cfname_iter = (_cfname_fmt  % rid for rid in iter(rid_list))
     cfpath_list = [join(ibs.chipdir, cfname) for cfname in cfname_iter]
     return cfpath_list

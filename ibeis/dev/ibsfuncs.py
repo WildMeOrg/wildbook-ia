@@ -177,3 +177,17 @@ def ridstr(rid, ibs=None, notes=False):
         notes = ibs.get_roi_notes(rid)
         name  = ibs.get_roi_names(rid)
         return 'rid%d-%r-%r' % (rid, str(name), str(notes))
+
+
+def delete_all_features(ibs):
+    all_fids = ibs._get_all_fids()
+    ibs.delete_features(all_fids)
+
+
+def delete_all_chips(ibs):
+    all_cids = ibs._get_all_cids()
+    ibs.delete_chips(all_cids)
+
+
+def vd(ibs):
+    utool.view_directory(ibs.get_dbdir())

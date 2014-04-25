@@ -95,6 +95,16 @@ def convert_hsdbs(*args):
     injest_unconverted_hsdbs_in_workdir()
 
 
+@devcmd
+def delete_all_feats(ibs, *args):
+    ibsfuncs.delete_all_features(ibs)
+
+
+@devcmd
+def delete_all_chips(ibs, *args):
+    ibsfuncs.delete_all_chips(ibs)
+
+
 #@utool.indent_decor('[dev]')
 @profile
 def run_experiments(ibs, qrid_list):

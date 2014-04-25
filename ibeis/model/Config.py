@@ -366,6 +366,7 @@ class ChipConfig(ConfigBase):
 
     def get_uid_list(cc_cfg):
         chip_uid = []
+        #assert cc_cfg.chipfmt[0] == '.'
         chip_uid += [cc_cfg.chipfmt[1:].lower()] * (cc_cfg.chipfmt != '.png')
         chip_uid += ['histeq']  * cc_cfg.histeq
         chip_uid += ['adapteq'] * cc_cfg.adapteq

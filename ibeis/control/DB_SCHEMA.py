@@ -51,6 +51,7 @@ def define_IBEIS_schema(ibs):
         ('chip_uid',                     'INTEGER PRIMARY KEY'),
         ('roi_uid',                      '%s NOT NULL' % ROI_UID_TYPE),
         ('config_uid',                   'INTEGER DEFAULT 0'),
+        ('chip_uri',                     'TEXT'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
     ), ['CONSTRAINT superkey UNIQUE (roi_uid, config_uid)']  # TODO: constraint needs modify

@@ -382,11 +382,12 @@ class IBEISControl(object):
                 (
                     chip_uid,
                     roi_uid,
+                    chip_uri,
                     chip_width,
                     chip_height,
                     config_uid
                 )
-                VALUES (NULL, ?, ?, ?, ?)
+                VALUES (NULL, ?, ?, ?, ?, ?)
                 ''',
                 params_iter=params_iter)
             # Ensure must be false, otherwise an infinite loop occurs
@@ -971,6 +972,17 @@ class IBEISControl(object):
             parameters=(chip_config_uid,))
         return cid_list
 
+    @getter_general
+    def _get_all_cids(ibs):
+        """ Returns computed chips for every configuration
+        (you probably should not use this)"""
+        all_cids = ibs.db.executeone(
+            operation='''
+            SELECT chip_uid
+            FROM chips
+            ''')
+        return all_cids
+
     @getter
     def get_chips(ibs, cid_list):
         """ Returns a list cropped images in numpy array form by their cid """
@@ -986,11 +998,14 @@ class IBEISControl(object):
     @getter
     def get_chip_paths(ibs, cid_list):
         """ Returns a list of chip paths by their rid """
-        # FIXME: This does not take into account that there may be multiple
-        # config settings for a chip. Need to take into account config suffix
-        # as well
-        cfpath_list = ibs.get_roi_cpaths(ibs.get_chip_rids(cid_list))
-        return cfpath_list
+        chip_fpath_list = ibs.db.executemany(
+            operation='''
+            SELECT chip_uri
+            FROM chips
+            WHERE chip_uid=?
+            ''',
+            params_iter=((cid,) for cid in cid_list))
+        return chip_fpath_list
 
     @getter
     def get_chip_sizes(ibs, cid_list):
@@ -1013,6 +1028,17 @@ class IBEISControl(object):
             ''',
             params_iter=((cid, feat_config_uid) for cid in cid_list))
         return fid_list
+
+    @getter
+    def get_chip_cfgids(ibs, cid_list):
+        cfgid_list = ibs.db.executemany(
+            operation='''
+            SELECT config_uid
+            FROM chips
+            WHERE chip_uid=?
+            ''',
+            params_iter=((cid) for cid in cid_list))
+        return cfgid_list
 
     @getter_numpy_vector_output
     def get_chip_desc(ibs, cid_list, ensure=True):
@@ -1055,14 +1081,25 @@ class IBEISControl(object):
     @getter_general
     def get_valid_fids(ibs):
         feat_config_uid = ibs.get_feat_config_uid()
-        cid_list = ibs.db.executeone(
+        fid_list = ibs.db.executeone(
             operation='''
             SELECT feature_uid
             FROM features
             WHERE config_uid=?
             ''',
             parameters=(feat_config_uid,))
-        return cid_list
+        return fid_list
+
+    @getter_general
+    def _get_all_fids(ibs):
+        """ Returns computed features for every configuration
+        (you probably should not use this)"""
+        all_fids = ibs.db.executeone(
+            operation='''
+            SELECT feature_uid
+            FROM features
+            ''')
+        return all_fids
 
     @getter_vector_output
     def get_feat_kpts(ibs, fid_list):
@@ -1080,6 +1117,20 @@ class IBEISControl(object):
     def get_num_feats(ibs, fid_list):
         nFeats_list = ibs.get_feat_properties('feature_num_feats', fid_list)
         return nFeats_list
+
+    #
+    # GETTERS: CONFIG
+
+    def get_config_suffixes(ibs, cfgid_list):
+        # TODO: This can be massively optimized if it ever gets slow
+        cfgsuffix_list = ibs.db.executemany(
+            operation='''
+            SELECT config_suffix
+            FROM configs
+            WHERE config_uid=?
+            ''',
+            params_iter=((cfgid,) for cfgid in cfgid_list))
+        return cfgsuffix_list
 
     #
     # GETTERS::Mask
@@ -1221,10 +1272,12 @@ class IBEISControl(object):
     @deleter
     def delete_chips(ibs, cid_list):
         """ deletes images from the database that belong to gids"""
+        # Delete the chips from disk fist
         preproc_chip.delete_chips(ibs, cid_list)
 
         _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         fid_list = utool.filter_Nones(_fid_list)
+        ibs.delete_features(fid_list)
 
         ibs.db.executemany(
             operation='''
@@ -1234,7 +1287,6 @@ class IBEISControl(object):
             ''',
             params_iter=((cid,) for cid in cid_list))
 
-        ibs.delete_features(fid_list)
     #
     #
     #----------------
