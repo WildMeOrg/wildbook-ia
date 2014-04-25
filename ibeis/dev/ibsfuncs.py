@@ -169,8 +169,11 @@ def assert_valid_rids(ibs, rid_list):
     assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
 
 
-def ridstr(rid, notes=False):
+def ridstr(rid, ibs=None, notes=False):
     if not notes:
         return 'rid%d' % (rid,)
     else:
-        return 'rid%d-todonotes' % (rid,)
+        assert ibs is not None
+        notes = ibs.get_roi_notes(rid)
+        name  = ibs.get_roi_names(rid)
+        return 'rid%d-%r-%r' % (rid, str(name), str(notes))

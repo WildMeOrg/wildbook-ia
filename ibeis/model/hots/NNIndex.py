@@ -48,8 +48,11 @@ def aggregate_descriptors(ibs, rid_list):
     return ax2_desc, ax2_rid, ax2_fx
 
 
-@utool.indent_func
+@utool.indent_func('[build_invx]')
 def build_flann_inverted_index(ibs, rid_list):
+    """
+    Build a inverted index (using FLANN)
+    """
     try:
         ax2_desc, ax2_rid, ax2_fx = aggregate_descriptors(ibs, rid_list)
     except Exception as ex:
@@ -64,7 +67,7 @@ def build_flann_inverted_index(ibs, rid_list):
                       'uid': flann_uid,
                       'flann_params': flann_params,
                       'force_recompute': params.args.nocache_flann}
-    flann = nntool.cached_flann(ax2_desc, **precomp_kwargs)
+    flann = nntool.flann_cache(ax2_desc, **precomp_kwargs)
     return ax2_desc, ax2_rid, ax2_fx, flann
 
 

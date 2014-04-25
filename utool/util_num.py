@@ -12,11 +12,12 @@ def order_of_magnitude_ceil(num):
     return np.ceil(num / scalefactor) * scalefactor
 
 
-def format(num, n=8):
-    '''makes numbers pretty e.g.
-    nums = [9001, 9.053]
-    print([format(num) for num in nums])
-    '''
+def format_(num, n=8):
+    """
+        makes numbers pretty e.g.
+        nums = [9001, 9.053]
+        print([format_(num) for num in nums])
+    """
     if num is None:
         return 'None'
     if is_float(num):

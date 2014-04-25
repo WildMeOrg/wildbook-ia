@@ -52,18 +52,20 @@ def truncate_str(str_, maxlen=110):
         return str_[:lowerb] + truncmsg + str_[-upperb:]
 
 
-def pack_into(instr, textwidth=160, breakchars=' ', break_words=True):
-    newlines = ['']
+def pack_into(instr, textwidth=160, breakchars=' ', break_words=True, newline_prefix=''):
+    textwidth_ = textwidth
+    line_list = ['']
     word_list = instr.split(breakchars)
     for word in word_list:
-        if len(newlines[-1]) + len(word) > textwidth:
-            newlines.append('')
-        while break_words and len(word) > textwidth:
-            newlines[-1] += word[:textwidth]
-            newlines.append('')
-            word = word[textwidth:]
-        newlines[-1] += word + ' '
-    return '\n'.join(newlines)
+        if len(line_list[-1]) + len(word) > textwidth_:
+            line_list.append('')
+            textwidth_ = textwidth - len(newline_prefix)
+        while break_words and len(word) > textwidth_:
+            line_list[-1] += word[:textwidth_]
+            line_list.append('')
+            word = word[textwidth_:]
+        line_list[-1] += word + ' '
+    return ('\n' + newline_prefix).join(line_list)
 
 
 def newlined_list(list_, joinstr=', ', textwidth=160):

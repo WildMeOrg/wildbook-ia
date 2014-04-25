@@ -82,13 +82,22 @@ def indent_decor(lbl):
     return indent_decor_outer_wrapper
 
 
-def indent_func(func):
-    @wraps(func)
-    @indent_decor('[' + func.func_name + ']')
-    @ignores_exc_tb
-    def wrapper_indent_func(*args, **kwargs):
-        return func(*args, **kwargs)
-    return wrapper_indent_func
+def indent_func(input_):
+    """
+    Takes either no arguments or an alias label
+    """
+    if not isinstance(input_, str):
+        func = input_
+        # No arguments were passed
+        @wraps(func)
+        @indent_decor('[' + func.func_name + ']')
+        @ignores_exc_tb
+        def wrapper_indent_func(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper_indent_func
+    else:
+        lbl = input_
+        return indent_decor(lbl)
 
 
 def accepts_scalar_input(func):

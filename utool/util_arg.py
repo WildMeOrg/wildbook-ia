@@ -155,8 +155,10 @@ def __argv_flag_dec(func, default=False, quiet=False):
     def GaurdWrapper(*args, **kwargs):
         if get_flag(flag, default):
             indent_lbl = flag.replace('--', '').replace('print-', '')
+            print('')
             with Indenter('[%s]' % indent_lbl):
                 return func(*args, **kwargs)
+            print('')
         else:
             if not quiet:
                 print('\n~~~ %s ~~~\n' % flag)

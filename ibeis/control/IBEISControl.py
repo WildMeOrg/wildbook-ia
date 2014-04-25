@@ -41,7 +41,7 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
 
 class PATH_NAMES(object):
     sqldb  = '_ibeis_database.sqlite3'
-    _ibsdb  = '_ibsdb'
+    _ibsdb = '_ibsdb'
     cache  = '_ibeis_cache'
     chips  = 'chips'
     flann  = 'flann'

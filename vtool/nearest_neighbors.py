@@ -20,10 +20,10 @@ def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
 
 
 @utool.indent_func
-def cached_flann(data, cache_dir=None, uid='', flann_params=None,
-                 force_recompute=False):
+def flann_cache(data, cache_dir=None, uid='', flann_params=None,
+                force_recompute=False):
     """ Tries to load a cached flann index before doing anything """
-    print('[flann] precompute_flann(%r): ' % uid)
+    print('...check flann_uuid(%r): ' % uid)
     flann_fpath = get_flann_fpath(data, cache_dir, uid, flann_params)
     flann = pyflann.FLANN()
     load_success = False
@@ -31,15 +31,17 @@ def cached_flann(data, cache_dir=None, uid='', flann_params=None,
     if exists(flann_fpath) and not force_recompute:
         try:
             flann.load_index(flann_fpath, data)
-            print('[flann]...flann cache hit')
+            print('...flann cache hit')
             load_success = True
         except Exception as ex:
-            print('[flann] ...cannot load index')
-            print('[flann] ...caught ex=\n%r' % (ex,))
+            print('...cannot load index')
+            print('...caught ex=\n%r' % (ex,))
     # Rebuild the index otherwise
     if not load_success:
+        print('...flann cache miss.')
+        print('...building (this may take a sec).')
         flann.build_index(data, **flann_params)
-        print('[flann] save_index(%r)' % split(flann_fpath)[1])
+        print('flann.save_index(%r)' % split(flann_fpath)[1])
         flann.save_index(flann_fpath)
     return flann
 

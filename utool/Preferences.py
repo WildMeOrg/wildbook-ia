@@ -130,7 +130,7 @@ class PrefChoice(DynStruct):
 
 
 class Pref(PrefNode):
-    '''
+    """
     Structure for Creating Preferences.
     Caveats:
         When using a value call with ['valname'] to be safe
@@ -138,7 +138,7 @@ class Pref(PrefNode):
       * Can be saved and loaded.
       * Can be nested
       * Dynamically add/remove
-    '''
+    """
     def __init__(self,
                  default=PrefNode,  # Default value for a Pref is to be itself
                  doc='empty docs',  # Documentation for a preference

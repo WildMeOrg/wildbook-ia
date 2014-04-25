@@ -19,10 +19,6 @@ from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import matching_functions as mf
 from ibeis.dev import params
 from plottool import draw_func2 as df2
-#from hscom import fileio as io
-#from hscom import util
-#from hscom import latex_formater
-#from hscom import csvtool
 #from match_chips3 import *
 #import draw_func2 as df2
 # What are good ways we can divide up FLANN indexes instead of having one
@@ -34,56 +30,24 @@ from plottool import draw_func2 as df2
 # of the database index?
 
 
-def get_valid_testcfg_names():
-    testcfg_keys = vars(experiment_configs).keys()
-    testcfg_locals = [key for key in testcfg_keys if key.find('_') != 0]
-    valid_cfg_names = utool.indent('\n'.join(testcfg_locals), '  * ')
-    return valid_cfg_names
-
-
 def get_vary_dicts(test_cfg_name_list):
     vary_dicts = []
     for cfg_name in test_cfg_name_list:
         test_cfg = experiment_configs.__dict__[cfg_name]
         vary_dicts.append(test_cfg)
     if len(vary_dicts) == 0:
-        valid_cfg_names = get_valid_testcfg_names()
+        valid_cfg_names = experiment_configs.TEST_NAMES
         raise Exception('Choose a valid testcfg:\n' + valid_cfg_names)
     return vary_dicts
 
-
 __QUIET__ = '--quiet' in sys.argv
+BATCH_MODE = '--batch' in sys.argv
+NOMEMORY = utool.get_flag('--nomemory')
 
 #---------
-# Helpers
+#
 #---------------
 # Display Test Results
-
-
-def argv_flag_dec(func):
-    return __argv_flag_dec(func, default=False)
-
-
-def argv_flag_dec_true(func):
-    return __argv_flag_dec(func, default=True)
-
-
-def __argv_flag_dec(func, default=False):
-    flag = func.func_name
-    if flag.find('no') == 0:
-        flag = flag[2:]
-    flag = '--' + flag.replace('_', '-')
-
-    def GaurdWrapper(*args, **kwargs):
-        if utool.get_flag(flag, default):
-            indent_lbl = flag.replace('--', '').replace('print-', '')
-            with utool.Indenter('[%s]' % indent_lbl):
-                return func(*args, **kwargs)
-        else:
-            if not __QUIET__:
-                print('\n~~~ %s ~~~\n' % flag)
-    GaurdWrapper.func_name = func.func_name
-    return GaurdWrapper
 
 
 def rankscore_str(thresh, nLess, total):
@@ -193,8 +157,6 @@ def get_test_results2(ibs, qrids, qreq, cfgx=0, nCfg=1, nocache_testres=False,
     qx2_bestranks = []
 
     # Perform queries
-    BATCH_MODE = '--batch' in sys.argv
-    #BATCH_MODE = '--batch' in sys.argv
     if BATCH_MODE:
         print('[harn] querying in batch mode')
         #mc3.pre_cache_checks(ibs, qreq)
@@ -308,11 +270,6 @@ def get_cfg_list(ibs, test_cfg_name_list):
 #@utool.indent_decor('[harn]')
 @profile
 def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
-    if __QUIET__:
-        mc3.print_off()
-        from hsapi import HotSpotterAPI as api
-        api.print_off()
-
     # Test Each configuration
     if not __QUIET__:
         print(textwrap.dedent("""
@@ -352,8 +309,6 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     ---------------------''')
     mark_progress = utool.simple_progres_func(test_cfg_verbosity, msg, '+')
 
-    nomemory = utool.get_flag('--nomemory')
-
     # Run each test configuration
     # Query Config / Col Loop
     drids = ibs.get_recognition_database_rids()
@@ -363,17 +318,17 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
         # Set data to the current config
         qreq = mc3.prep_query_request(qreq=qreq, qrids=qrid_list, drids=drids, query_cfg=query_cfg)
         # Run the test / read cache
-        #with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-        qx2_bestranks = get_test_results2(ibs, qrid_list, qreq, cfgx,
-                                          nCfg, nocache_testres,
-                                          test_results_verbosity)
-        if not nomemory:
+        with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
+            qx2_bestranks = get_test_results2(ibs, qrid_list, qreq, cfgx,
+                                              nCfg, nocache_testres,
+                                              test_results_verbosity)
+        if not NOMEMORY:
             mat_list.append(qx2_bestranks)
         # Store the results
 
     if not __QUIET__:
         print('[harn] Finished testing parameters')
-    if nomemory:
+    if NOMEMORY:
         print('ran tests in memory savings mode. exiting')
         return
     #--------------------
@@ -390,7 +345,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     qx2_lbl = []
     for qx in xrange(nQuery):
         qrid = qrid_list[qx]
-        label = 'qx=%d) q%s ' % (qx, ibsfuncs.ridstr(qrid, notes=True))
+        label = 'qx=%d) q%s ' % (qx, ibsfuncs.ridstr(qrid, ibs=ibs, notes=True))
         qx2_lbl.append(label)
     qx2_lbl = np.array(qx2_lbl)
     #------------
@@ -405,7 +360,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     #------------
     indent = utool.indent
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_rowlbl():
         print('=====================')
         print('[harn] Row/Query Labels: %s' % testnameid)
@@ -416,7 +371,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
 
     #------------
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_collbl():
         print('')
         print('=====================')
@@ -450,7 +405,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
         new_hardtup_list += [(qrid, notes)]
         new_qrid_list += [qrid]
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_rowscore():
         print('')
         print('=======================')
@@ -472,7 +427,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
 
     #------------
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_hardcase():
         print('===')
         print('--- hard new_hardtup_list (w.r.t these configs): %s' % testnameid)
@@ -482,7 +437,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
         print('--- /Print Hardcase ---')
     print_hardcase()
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
@@ -503,7 +458,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
             nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
             nLessX_dict[int(X)][cfgx] = nLessX_
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_colscore():
         print('')
         print('==================')
@@ -519,7 +474,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
 
     #------------
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_latexsum():
         print('')
         print('==========================')
@@ -560,7 +515,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     for ix in xrange(1, len(to_intersect_list)):
         intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_bestcfg():
         print('')
         print('==========================')
@@ -588,7 +543,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
 
     #------------
 
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_rankmat():
         print('')
         print('-------------')
@@ -611,7 +566,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     col_types  = list(chain([int], [int] * nCfg))
     header = 'rankmat2'
     diff_matstr = utool.numpy_to_csv(diff_mat, col_labels, header, col_types)
-    @argv_flag_dec
+    @utool.argv_flag_dec
     def print_diffmat():
         print('')
         print('-------------')
@@ -667,7 +622,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
         if count in skip_list:
             continue
         # Get row and column index
-        qrid       = qrid_list[r]
+        qrid      = qrid_list[r]
         query_cfg = cfg_list[c]
         print('\n\n___________________________________')
         print('      --- VIEW %d / %d ---        '
@@ -694,7 +649,8 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
                            show_name=False, show_gname=False, time_appart=False)
         df2.adjust_subplots_safe()
         if utool.get_flag('--save-figures'):
-            from hsviz import allres_viz
-            allres_viz.dump(ibs, 'analysis', quality=True, overwrite=False)
+            raise NotImplementedError('fixme')
+            #from hsviz import allres_viz
+            #allres_viz.dump(ibs, 'analysis', quality=True, overwrite=False)
     if not __QUIET__:
         print('[harn] EXIT EXPERIMENT HARNESS')

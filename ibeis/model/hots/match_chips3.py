@@ -29,7 +29,7 @@ def quickly_ensure_qreq(ibs, qrids=None, drids=None):
     return qreq
 
 
-@utool.indent_func
+@utool.indent_func('[prep_qreq]')
 def prep_query_request(qreq=None, query_cfg=None,
                        qrids=None, drids=None, **kwargs):
     """  Builds or modifies a query request object """
@@ -55,7 +55,7 @@ def prep_query_request(qreq=None, query_cfg=None,
 #----------------------
 
 
-@utool.indent_func
+@utool.indent_func('[pre_exec]')
 #@profile
 def pre_exec_checks(ibs, qreq):
     """ Builds the NNIndex if not already in cache """
@@ -79,11 +79,11 @@ def pre_exec_checks(ibs, qreq):
 #----------------------
 
 # Query Level 2
-@utool.indent_decor('[QL2]')
+@utool.indent_func('[QL2]')
 def process_query_request(ibs, qreq, use_cache=True, safe=True):
-    '''
+    """
     The standard query interface
-    '''
+    """
     print(' --- Process QueryRequest --- ')
     # HotSpotter feature checks
     #if safe:
@@ -107,7 +107,7 @@ def process_query_request(ibs, qreq, use_cache=True, safe=True):
 
 
 # Query Level 1
-@utool.indent_decor('[QL1]')
+@utool.indent_func('[QL1]')
 def execute_query_and_save_L1(ibs, qreq, failed_qrids=[]):
     print('[q1] execute_query_and_save_L1()')
     orig_qrids = qreq.qrids
@@ -121,17 +121,17 @@ def execute_query_and_save_L1(ibs, qreq, failed_qrids=[]):
 
 
 # Query Level 0
-@utool.indent_decor('[QL0]')
+@utool.indent_func('[QL0]')
 @profile
 def execute_query_L0(ibs, qreq):
-    '''
+    """
     Driver logic of query pipeline
     Input:
         ibs   - HotSpotter database object to be queried
         qreq - QueryRequest Object   # use prep_qreq to create one
     Output:
         qrid2_res - mapping from query indexes to QueryResult Objects
-    '''
+    """
     # Query Chip Indexes
     # * vsone qrids/drids swapping occurs here
     qrids = qreq.get_internal_qrids()
