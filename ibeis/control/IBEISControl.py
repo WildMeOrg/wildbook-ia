@@ -1273,6 +1273,8 @@ class IBEISControl(object):
         drid_list = ibs.get_valid_rids()
         return drid_list
 
+    get_recognition_database_rids = get_recognition_database_rois
+
     @utool.indent_func
     def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """

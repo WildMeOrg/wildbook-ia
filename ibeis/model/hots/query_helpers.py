@@ -2,17 +2,13 @@
 # TODO: Restructure
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from itertools import izip
 import utool
-from ibeis.model.hots import QueryRequest  # NOQA
-from ibeis.model.hots import NNIndex  # NOQA
-from ibeis.model.hots import matching_functions as mf  # NOQA
-from ibeis.model.hots import match_chips3 as mc3  # NOQA
-from ibeis.model.hots.matching_functions import _apply_filter_scores, progress_func  # NOQA
+from itertools import izip
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
 
 
 def get_roifeat_nn_index(ibs, qrid, qfx):
+    from . import match_chips3 as mc3
     ibs._init_query_requestor()
     qreq = mc3.quickly_ensure_qreq(ibs, [qrid])
     qfx2_desc = ibs.get_roi_desc(qrid)[qfx:(qfx + 1)]
@@ -21,6 +17,8 @@ def get_roifeat_nn_index(ibs, qrid, qfx):
 
 
 def get_query_components(ibs, qrids):
+    from . import matching_functions as mf
+    from . import match_chips3 as mc3
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #print(ibs.get_infostr())
@@ -105,6 +103,8 @@ def data_index_integrity(ibs, qreq):
 
 def find_matchable_chips(ibs):
     """ quick and dirty test to score by number of assignments """
+    from . import match_chips3 as mc3
+    from . import matching_functions as mf
     qreq = ibs.qreq
     qrids = ibs.get_valid_rids()
     qreq = mc3.prep_query_request(qreq=qreq, qrids=qrids, drids=qrids)

@@ -167,3 +167,10 @@ def assert_valid_rids(ibs, rid_list):
     valid_rids = set(ibs.get_valid_rids())
     invalid_rids = [rid for rid in rid_list if not rid in valid_rids]
     assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
+
+
+def ridstr(rid, notes=False):
+    if not notes:
+        return 'rid%d' % (rid,)
+    else:
+        return 'rid%d-todonotes' % (rid,)

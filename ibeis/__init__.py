@@ -14,6 +14,10 @@ def import_subs():
     from . import model
     __LOADED__ = True
 
+def ensure_subs():
+    if not __LOADED__:
+        import_subs()
+
 
 def reload_subs():
     if not __LOADED__:

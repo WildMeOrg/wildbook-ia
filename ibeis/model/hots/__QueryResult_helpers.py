@@ -7,26 +7,8 @@ from itertools import izip
 import numpy as np
 
 
-def get_gt_ranks(qres, gt_cids=None, ibs=None):
-    'returns the 0 indexed ranking of each groundtruth chip'
-    # Ensure correct input
-    if gt_cids is None and ibs is None:
-        raise Exception('[qr] error')
-    if gt_cids is None:
-        gt_cids = ibs.get_other_indexed_cids(qres.qcid)
-    return qres.get_cid_ranks(gt_cids)
 
 
-def get_cid_ranks(qres, cid_list):
-    'get ranks of chip indexes in cid_list'
-    score_list = np.array(qres.cid2_score.values())
-    cid_list   = np.array(qres.cid2_score.keys())
-    top_cids = cid_list[score_list.argsort()[::-1]]
-    foundpos = [np.where(top_cids == cid)[0] for cid in cid_list]
-    ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
-    assert all([len(r) == 1 for r in ranks_])
-    rank_list = [r[0] for r in ranks_]
-    return rank_list
 
 
 def get_cid2_score(qres):
@@ -103,11 +85,6 @@ def show_query(qres, ibs, **kwargs):
 def show_analysis(qres, ibs, *args, **kwargs):
     from ibeis import viz
     return viz.res_show_analysis(qres, ibs, *args, **kwargs)
-
-
-def show_top(qres, ibs, *args, **kwargs):
-    from ibeis import viz
-    return viz.show_top(qres, ibs, *args, **kwargs)
 
 
 def show_gt_matches(qres, ibs, *args, **kwargs):

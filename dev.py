@@ -11,6 +11,8 @@ from ibeis.dev.all_imports import *  # NOQA
 from plottool import draw_func2 as df2
 from ibeis.dev import main_helpers
 from ibeis.viz import interact
+from ibeis.dev import experiment_configs
+from ibeis.dev import experiment_harness
 import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
@@ -141,10 +143,9 @@ def run_experiments(ibs, qrid_list):
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
     # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
-    from ibeis.dev import experiment_configs
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
-            fnum = experiment_harness.test_configurations(ibs, qrid_list, [test_cfg_name], fnum)
+            experiment_harness.test_configurations(ibs, qrid_list, [test_cfg_name],  df2.next_fnum())
 
     valid_test_helpstr_list.append('    # --- Help ---')
 

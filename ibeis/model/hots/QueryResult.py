@@ -9,9 +9,8 @@ from zipfile import error as BadZipFile  # Screwy naming convention.
 import os
 # Scientific
 import numpy as np
-# HotSpotter
-#import voting_rules2 as vr2
-
+# IBEIS
+from ibeis import viz
 
 FM_DTYPE  = np.uint32   # Feature Match datatype
 FS_DTYPE  = np.float32  # Feature Score datatype
@@ -49,7 +48,7 @@ def query_result_exists(ibs, qrid, uid):
     return exists(fpath)
 
 
-__OBJECT_BASE__ = utool.util_dev.get_object_base()
+__OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
 
 
 def assert_qres(qres):
@@ -183,15 +182,6 @@ class QueryResult(__OBJECT_BASE__):
     def get_rid_scores(qres, rid_list):
         return [qres.rid2_score[rid] for rid in rid_list]
 
-    def get_rid_ranks(qres, rid_list):
-        """ get ranks of chip indexes in rid_list """
-        top_rids = qres.get_top_rids()
-        foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
-        ranks_   = [ranks if len(ranks) > 0 else [-1] for ranks in foundpos]
-        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(rid_ranks) != 1'
-        rank_list = [ranks[0] for ranks in ranks_]
-        return rank_list
-
     def get_inspect_str(qres):
         assert_qres(qres)
         nFeatMatch_list = get_num_feats_in_matches(qres)
@@ -219,3 +209,38 @@ class QueryResult(__OBJECT_BASE__):
         ])
         inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str
+
+    def get_rid_ranks(qres, rid_list):
+        """ get ranks of chip indexes in rid_list """
+        top_rids = qres.get_top_rids()
+        foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
+        ranks_   = [ranks if len(ranks) > 0 else [-1] for ranks in foundpos]
+        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(rid_ranks) != 1'
+        rank_list = [ranks[0] for ranks in ranks_]
+        return rank_list
+
+    #def get_rid_ranks(qres, rid_list):
+        #'get ranks of chip indexes in rid_list'
+        #score_list = np.array(qres.rid2_score.values())
+        #rid_list   = np.array(qres.rid2_score.keys())
+        #top_rids = rid_list[score_list.argsort()[::-1]]
+        #foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
+        #ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
+        #assert all([len(r) == 1 for r in ranks_])
+        #rank_list = [r[0] for r in ranks_]
+        #return rank_list
+
+    def get_gt_ranks(qres, gt_rids=None, ibs=None):
+        'returns the 0 indexed ranking of each groundtruth chip'
+        # Ensure correct input
+        if gt_rids is None and ibs is None:
+            raise Exception('[qr] error')
+        if gt_rids is None:
+            gt_rids = ibs.get_roi_groundtruth(qres.qrid)
+        return qres.get_rid_ranks(gt_rids)
+
+    def show_top(qres, ibs, *args, **kwargs):
+        return viz.show_qres_top(ibs, qres, *args, **kwargs)
+
+    def show_analysis(qres, ibs, *args, **kwargs):
+        return viz.show_qres_analysis(ibs, qres, *args, **kwargs)

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from plottool import draw_func2 as df2
 import numpy as np
+from ibeis.dev import ibsfuncs
 from . import viz_helpers as vh
 from . import viz_chip
 from . import viz_matches
@@ -14,7 +15,7 @@ import utool
 def show_qres_top(ibs, qres, **kwargs):
     top_rids = qres.get_top_rids(ibs)
     N = len(top_rids)
-    ridstr = ibs.ridstr(qres.qrid)
+    ridstr = ibsfuncs.ridstr(qres.qrid)
     figtitle = kwargs.pop('figtitle', 'q%s -- TOP %r' % (ridstr, N))
     return show_qres(ibs, qres, top_rids=top_rids, figtitle=figtitle,
                      draw_kpts=False, draw_ell=False,
@@ -42,15 +43,15 @@ def show_qres_analysis(ibs, qres, **kwargs):
             top_rids = qres.get_top_rids(ibs)
             if figtitle is None:
                 if len(top_rids) == 0:
-                    figtitle = 'WARNING: no top scores!' + ibs.ridstr(qres.qrid)
+                    figtitle = 'WARNING: no top scores!' + ibsfuncs.ridstr(qres.qrid)
                 else:
-                    topscore = qres.get_rid2_score()[top_rids][0]
-                    figtitle = ('q%s -- topscore=%r' % (ibs.ridstr(qres.qrid), topscore))
+                    topscore = qres.get_rid_scores(top_rids)[0]
+                    figtitle = ('q%s -- topscore=%r' % (ibsfuncs.ridstr(qres.qrid), topscore))
         else:
             print('[analysis] showing a given list of rids')
             top_rids = rid_list
             if figtitle is None:
-                figtitle = 'comparing to ' + ibs.ridstr(top_rids) + figtitle
+                figtitle = 'comparing to ' + ibsfuncs.ridstr(top_rids) + figtitle
 
         # Do we show the ground truth?
         def missed_rids():
@@ -198,7 +199,7 @@ def show_qres(ibs, qres, **kwargs):
         # Plot Ground Truth
         _plot_matches_rids(gt_rids, nQuerySubplts, (nRows, nGTCols))
         _plot_matches_rids(top_rids, shift_topN, (nRows, nTopNCols))
-        #figtitle += ' q%s name=%s' % (ibs.ridstr(qres.qrid), ibs.rid2_name(qres.qrid))
+        #figtitle += ' q%s name=%s' % (ibsfuncs.ridstr(qres.qrid), ibs.rid2_name(qres.qrid))
         figtitle += aug
         df2.set_figtitle(figtitle, incanvas=not vh.NO_LABEL_OVERRIDE)
 
