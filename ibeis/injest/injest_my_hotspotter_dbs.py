@@ -13,7 +13,10 @@ from ibeis.injest import injest_hsdb
 
 
 def is_hsdb(dbdir):
-    return exists(join(dbdir, '_hsdb'))
+    return (exists(join(dbdir, '_hsdb')) and
+            exists(join(dbdir, '_hsdb', 'name_table.csv')) and
+            exists(join(dbdir, '_hsdb', 'image_table.csv')) and
+            exists(join(dbdir, '_hsdb', 'chip_table.csv')))
 
 
 def is_hsinternal(dbdir):
@@ -25,7 +28,7 @@ def is_ibeisdb(dbdir):
 
 
 def is_succesful_convert(dbdir):
-    return exists(join(dbdir, injest_hsdb.SUCCESS_FLAG_FNAME))
+    return exists(join(dbdir, PATH_NAMES._ibsdb, injest_hsdb.SUCCESS_FLAG_FNAME))
 
 
 #is_hsinternals_list = np.array(map(is_hsinternal, dbpath_list))

@@ -41,15 +41,15 @@ def indentjoin(strlist, indent='\n    '):
     return indent + indent.join(map(str, strlist))
 
 
-def truncate_str(str, maxlen=110):
-    if len(str) < maxlen:
-        return str
+def truncate_str(str_, maxlen=110):
+    if len(str_) < maxlen:
+        return str_
     else:
         truncmsg = ' ~~~TRUNCATED~~~ '
         maxlen_ = maxlen - len(truncmsg)
         lowerb  = int(maxlen_ * .8)
         upperb  = maxlen_ - lowerb
-        return str[:lowerb] + truncmsg + str[-upperb:]
+        return str_[:lowerb] + truncmsg + str_[-upperb:]
 
 
 def pack_into(instr, textwidth=160, breakchars=' ', break_words=True):

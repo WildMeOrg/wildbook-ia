@@ -1,5 +1,7 @@
 #!/bin/sh
 # Globals
+echo "==========="
+echo "PROFILER.sh"
 export TIMESTAMP=$(date -d "today" +"%Y-%m-%d_%H-%M-%S")
 export RAW_SUFFIX=raw.prof
 export CLEAN_SUFFIX=clean.prof
@@ -15,14 +17,17 @@ remove_profiles()
     echo "Finshed removing profiles"
 }
 
-# Input
-export pyscript=$(echo $1 | sed -e 's/.*\///g')
+# Input (get only the filename)
+
+export pyscript=$(python -c "import os; print(os.path.split(r'$1')[1])")
+#export pyscript=$(echo $1 | sed -e 's/.*[\/\\]//g')
 
 if [ "$pyscript" = "clean" ]; then
     remove_profiles
     exit
 fi 
 
+#echo $pyscript
 #set -e
 #/bin/command-that-fails
 

@@ -11,7 +11,7 @@ from guitool import drawing, slot_, signal_
 # PlotTool
 from plottool import fig_presenter
 # IBEIS
-from ibeis.dev import params
+from ibeis.dev import params, ibsfuncs
 from ibeis.gui import guifront
 from ibeis.gui import gui_item_tables as item_table
 from ibeis.viz import interact
@@ -567,6 +567,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def precompute_feats(back):
         """ Batch -> Precompute Feats"""
+        ibsfuncs.compute_all_features(back.ibs)
         print('[back] precompute_feats')
         pass
 
@@ -648,6 +649,8 @@ class MainWindowBackend(QtCore.QObject):
     def dev_reload(back):
         """ Help -> Developer Reload"""
         print('[back] dev_reload')
+        from ibeis.dev.all_imports import reload_all
+        reload_all()
         #from ibeis.dev import debug_imports
         #ibeis_modules = debug_imports.get_ibeis_modules()
         #for module in ibeis_modules:

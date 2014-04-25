@@ -40,24 +40,33 @@ def get_image_uuid(img_bytes_):
     return uuid_
 
 
+def preprocess_image(gpath):
+    """
+    This function should be called in parallel
+    """
+    try:
+        pil_img = Image.open(gpath, 'r')      # Open PIL Image
+    except IOError as ex:
+        print('FAILED TO READ: %r' % gpath)
+        if str(ex) == 'cannot identify image file':
+            param_tup = None
+            return param_tup
+        else:
+            raise
+    width, height  = pil_img.size         # Read width, height
+    time, lat, lon = get_exif(pil_img)    # Read exif tags
+    img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
+    image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
+    param_tup  = (image_uuid, gpath, width, height, time, lat, lon)
+    return param_tup
+
+
 @profile
 def add_images_paramters_gen(gpath_list):
     """ generates values for add_images sqlcommands """
     mark_prog, end_prog = utool.progress_func(len(gpath_list), lbl='imgs: ')
     for count, gpath in enumerate(gpath_list):
         mark_prog(count)
-        try:
-            pil_img = Image.open(gpath, 'r')      # Open PIL Image
-        except IOError as ex:
-            print(ex)
-            print('FAILED TO READ: %r' % gpath)
-            if str(ex) == 'cannot identify image file':
-                continue
-            else:
-                raise
-        width, height  = pil_img.size         # Read width, height
-        time, lat, lon = get_exif(pil_img)    # Read exif tags
-        img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
-        image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
-        yield (image_uuid, gpath, width, height, time, lat, lon)
+        param_tup = preprocess_image(gpath)
+        yield param_tup
     end_prog()

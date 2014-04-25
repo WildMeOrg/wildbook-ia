@@ -123,9 +123,14 @@ from ibeis.viz import interact
 from ibeis.model import hots
 from ibeis.model import preproc
 
+
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[all_imports]', DEBUG=False)
+
+
 def reload_all():
+    rrr()
     ibeis.reload_subs()
     utool.reload_subs()
     #vtool.reload_subs()
     #guitool.reload_subs()
-    #plottool.reload_subs()
+    plottool.reload_subs()

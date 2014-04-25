@@ -30,8 +30,8 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     name_nid_list   = [0]
     with open(join(hsdb_dir, '_hsdb', 'name_table.csv'), 'rb') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
-        for i, row in enumerate(name_reader):
-            if i >= 3:
+        for ix, row in enumerate(name_reader):
+            if ix >= 3:
                 nid = int(row[0])
                 name = row[1].strip()
                 names_name_list.append(name)
@@ -42,8 +42,8 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     image_aif_list   = []
     with open(join(hsdb_dir, '_hsdb/image_table.csv'), 'rb') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
-        for i, row in enumerate(image_reader):
-            if i >= 3:
+        for ix, row in enumerate(image_reader):
+            if ix >= 3:
                 gid = int(row[0])
                 gname = row[1].strip()
                 aif = bool(row[2])
@@ -55,7 +55,7 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     assert all(map(exists, image_gpath_list)), 'some images dont exist'
 
     # Add Images and Names Table
-    gid_list = ibs.add_images(image_gpath_list)
+    gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None
     nid_list = ibs.add_names(names_name_list)
     # Build mappings to new indexes
     names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in izip(name_nid_list, nid_list)}
@@ -70,8 +70,8 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     chip_note_list   = []
     with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl:
         chip_reader = csv.reader(chiptbl)
-        for i, row in enumerate(chip_reader):
-            if i >= 3:
+        for ix, row in enumerate(chip_reader):
+            if ix >= 3:
                 images_gid = int(row[1])
                 names_nid = int(row[2])
                 bbox_text = row[3]
@@ -83,6 +83,9 @@ def convert_hsdb_to_ibeis(hsdb_dir):
                 bbox_text = re.sub('  *', ' ', bbox_text)
                 bbox_strlist = bbox_text.split(' ')
                 bbox = map(int, bbox_strlist)
+                if gid is None:
+                    print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
+                    continue
                 #bbox = [int(item) for item in bbox_strlist]
                 chip_nid_list.append(nid)
                 chip_gid_list.append(gid)

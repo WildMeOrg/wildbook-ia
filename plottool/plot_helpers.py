@@ -14,9 +14,17 @@ def draw():
     df2.draw()
 
 
-def get_square_row_cols(nSubplots, max_cols=5):
+def get_square_row_cols(nSubplots, max_cols=None):
     if nSubplots == 0:
         return 0, 0
+    if max_cols is None:
+        max_cols = 5
+        if nSubplots in [4]:
+            max_cols = 2
+        if nSubplots in [5, 6, 7]:
+            max_cols = 3
+        if nSubplots in [8]:
+            max_cols = 4
     nCols = int(min(nSubplots, max_cols))
     #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
     nRows = int(np.ceil(nSubplots / nCols))

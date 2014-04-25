@@ -1,13 +1,34 @@
+# flake8: noqa
 from __future__ import absolute_import, division, print_function
+from . import plot_helpers as ph
+from . import plot_helpers
+from . import mpl_keypoint
+from . import mpl_keypoint as mpl_kp
+from . import mpl_sift as mpl_sift
+from . import draw_func2
+from . import draw_func2 as df2
+from . import draw_sv
+from . import viz_featrow
+from . import viz_keypoints
 
-from . import mpl_keypoint  # NOQA
-from . import mpl_keypoint as mpl_kp  # NOQA
-from . import mpl_sift as mpl_sift  # NOQA
-from . import draw_func2  # NOQA
-from . import draw_func2 as df2  # NOQA
 # The other module shouldn't exist.
 # Functions in it need to be organized
-from .plots import draw_hist_subbin_maxima  # NOQA
-from .draw_func2 import *  # NOQA
-from .mpl_keypoint import draw_keypoints  # NOQA
-from .mpl_sift import draw_sifts  # NOQA
+from .plots import draw_hist_subbin_maxima
+from .draw_func2 import *
+from .mpl_keypoint import draw_keypoints
+from .mpl_sift import draw_sifts
+import utool
+
+
+
+def reload_subs():
+    rrr()
+    df2.rrr()
+    plot_helpers.rrr()
+    draw_sv.rrr()
+    viz_keypoints.rrr()
+
+rrrr = reload_subs
+
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[plottool]')
+

@@ -547,13 +547,12 @@ def formatex(ex, msg='[!?] Caught exception',
             key = key[1]
             assert key in locals_
             val = locals_[key]
-            funcval = func(val)
-            append_exstr('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcval))
+            funcvalstr = str(func(val))
+            append_exstr('%s %s(%s) = %s' % (prefix, get_func_name(func), key, funcvalstr))
         elif key in locals_:
-            val = repr(locals_[key])
-            append_exstr('%s %s = %s' % (prefix, key, val))
+            valstr = truncate_str(repr(locals_[key]), maxlen=200)
+            append_exstr('%s %s = %s' % (prefix, key, valstr))
         else:
-            val = '???'
             append_exstr('%s !!! %s not populated!' % (prefix, key))
     append_exstr('</!!! EXCEPTION !!!>')
     return '\n'.join(ex_str)

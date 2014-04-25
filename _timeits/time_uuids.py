@@ -1,5 +1,9 @@
+"""
+Script to help time determenistic uuid creation
+"""
 from __future__ import absolute_import, division, print_function
 import __builtin__
+import os
 import time
 import timeit
 from PIL import Image
@@ -13,7 +17,9 @@ elephant  = grabdata.get_testimg_path('elephant.jpg')
 lena  = grabdata.get_testimg_path('lena.jpg')
 zebra = grabdata.get_testimg_path('zebra.jpg')
 jeff  = grabdata.get_testimg_path('jeff.png')
-gpath = elephant
+gpath = zebra
+if not os.path.exists(gpath):
+    gpath = zebra
 
 
 try:
@@ -109,7 +115,6 @@ def make_uuid_CONTIG_NUMPY_STRIDE_64_bytes(gpath):
 
 
 if __name__ == '__main__':
-    # cool trick
     test_funcs = [
         make_uuid_PIL_bytes,
         make_uuid_NUMPY_bytes,
@@ -120,9 +125,10 @@ if __name__ == '__main__':
         make_uuid_CONTIG_NUMPY_STRIDE_64_bytes,
     ]
     func_strs = ', '.join([func.func_name for func in test_funcs])
+    # cool trick
     setup = 'from __main__ import (gpath, %s) ' % (func_strs,)
 
-    number = 2
+    number = 10
 
     for func in test_funcs:
         func_name = func.func_name

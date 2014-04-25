@@ -243,8 +243,11 @@ class IBEISControl(object):
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Build parameter list early so we can grab the gids
-        param_list = list(preproc_image.add_images_paramters_gen(gpath_list))
-        img_uuid_list   = [tup[0] for tup in param_list]
+        tried_param_list = list(preproc_image.add_images_paramters_gen(gpath_list))
+        # Get only the params that succeded
+        index_list = [index for index, tup in enumerate(tried_param_list) if tup is not None]
+        param_list = [tried_param_list[index] for index in index_list]
+        img_uuid_list = [tup[0] for tup in param_list]
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
@@ -266,7 +269,18 @@ class IBEISControl(object):
             WHERE image_uuid=?
             ''',
             params_iter=[(img_uuid,) for img_uuid in img_uuid_list])
-        return gid_list
+        # The number of passed_gids might be less than the size of the input
+        # Build list corresponding to the size of the input
+        tried_gid_list = [None for _ in xrange(len(gpath_list))]
+        # Insert the passing gids into the return list. Any failures will have a None value
+        for (index, gid) in izip(index_list, gid_list):
+            tried_gid_list[index] = gid
+        assert len(tried_gid_list) == len(tried_param_list), 'bug in add_images'
+        assert len(tried_gid_list) == len(gpath_list), 'bug in add_images'
+        assert len(gid_list) == len(param_list), 'bug in add_images'
+        assert len(gid_list) == len(index_list), 'bug in add_images'
+        assert len(gid_list) == len(img_uuid_list), 'bug in add_images'
+        return tried_gid_list
 
     @adder
     def add_rois(ibs, gid_list, bbox_list, theta_list,

@@ -33,6 +33,7 @@ def reload_subs():
     if not __LOADED__:
         import_subs()
     viz_helpers.rrr()
+    viz_name.rrr()
     viz_image.rrr()
     viz_chip.rrr()
     viz_matches.rrr()
