@@ -18,8 +18,7 @@ printTEST = __testing__.printTEST
 
 
 def TEST_PARALLEL():
-
-    gpath_list = __testing__.get_test_gpaths()
+    gpath_list = __testing__.get_test_gpaths(ndata=10, zebra=True, lena=True, jeff=True)
     args_list  = [(gpath,) for gpath in gpath_list]
 
     @utool.argv_flag_dec

@@ -17,7 +17,8 @@ SKIP_TO = utool.get_arg('--skip-to', default=None)
 DEV_MODE = utool.get_arg('--devmode', default=False)
 
 
-def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, sel_cols):
+def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows,
+                  sel_cols, cfgx2_lbl=None):
     nCfg = len(cfg_list)
     nQuery = len(qrids)
     qreq = ibs.qreq
@@ -40,13 +41,13 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, s
     qx2_lbl = np.array(qx2_lbl)
     #------------
     # Build col labels
-    cfgx2_lbl = []
-    for cfgx in xrange(nCfg):
-        test_uid  = cfg_list[cfgx].get_uid()
-        test_uid  = cfg_list[cfgx].get_uid()
-        cfg_label = 'cfgx=(%3d) %s' % (cfgx, test_uid)
-        cfgx2_lbl.append(cfg_label)
-    cfgx2_lbl = np.array(cfgx2_lbl)
+    if cfgx2_lbl is None:
+        cfgx2_lbl = []
+        for cfgx in xrange(nCfg):
+            test_uid  = cfg_list[cfgx].get_uid()
+            cfg_label = 'cfgx=(%3d) %s' % (cfgx, test_uid)
+            cfgx2_lbl.append(cfg_label)
+        cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
     indent = utool.indent
 
@@ -308,29 +309,30 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, s
         # Get row and column index
         qrid      = qrids[r]
         query_cfg = cfg_list[c]
+        query_lbl = cfgx2_lbl[c]
         print('\n\n___________________________________')
         print('      --- VIEW %d / %d ---        '
               % (count + 1, total))
         print('--------------------------------------')
         print('viewing (r, c) = (%r, %r)' % (r, c))
-        # Load / Execute the query
+        # Load / Execute the query w/ correct config
         qreq = mc3.prep_query_request(qreq=qreq, qrids=[qrid], drids=drids, query_cfg=query_cfg)
         qrid2_res = mc3.process_query_request(ibs, qreq, safe=True)
         qres = qrid2_res[qrid]
         # Print Query UID
         print(qres.uid)
         # Draw Result
-        qres.show_top(ibs, fnum=df2.next_fnum())
+        qres.show_top(ibs, fnum=df2.next_fnum(), figtitle=query_lbl, N=3, ori=True)
         if prev_cfg != query_cfg:
             # This is way too aggro. Needs to be a bit lazier
             #ibs.refresh_features()
             print('change')
         prev_cfg = query_cfg
-        fnum = count
-        title_uid = qres.uid
-        title_uid = title_uid.replace('_FEAT', '\n_FEAT')
-        qres.show_analysis(ibs, fnum=fnum, aug='\n' + title_uid, annote=1,
-                           show_name=False, show_gname=False, time_appart=False)
+        #fnum = count
+        #title_uid = qres.uid
+        #title_uid = title_uid.replace('_FEAT', '\n_FEAT')
+        #qres.show_analysis(ibs, fnum=fnum, aug='\n' + title_uid, annote=1,
+                           #show_name=False, show_gname=False, time_appart=False)
         df2.adjust_subplots_safe()
         if utool.get_flag('--save-figures'):
             raise NotImplementedError('fixme')

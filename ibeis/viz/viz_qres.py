@@ -13,11 +13,14 @@ import utool
 @utool.indent_func
 @profile
 def show_qres_top(ibs, qres, **kwargs):
-    top_rids = qres.get_top_rids(ibs)
-    N = len(top_rids)
+    N = kwargs.get('N', 6)
+    top_rids = qres.get_top_rids(num=N)
     ridstr = ibsfuncs.ridstr(qres.qrid)
-    figtitle = kwargs.pop('figtitle', 'q%s -- TOP %r' % (ridstr, N))
-    return show_qres(ibs, qres, top_rids=top_rids, figtitle=figtitle,
+    figtitle = kwargs.get('figtitle', '')
+    if len(figtitle) > 0:
+        figtitle = ' ' + figtitle
+    kwargs['figtitle'] = ('q%s -- TOP %r' % (ridstr, N)) + figtitle
+    return show_qres(ibs, qres, top_rids=top_rids,
                      draw_kpts=False, draw_ell=False,
                      all_kpts=False, **kwargs)
 
@@ -67,15 +70,16 @@ def show_qres_analysis(ibs, qres, **kwargs):
 def show_qres(ibs, qres, **kwargs):
     """ Displays query chip, groundtruth matches, and top 5 matches """
     annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
-    fnum       = kwargs.get('fnum', 3)
-    figtitle   = kwargs.get('figtitle', '')
-    aug        = kwargs.get('aug', '')
-    top_rids   = kwargs.get('top_rids', 6)
-    gt_rids    = kwargs.get('gt_rids',   [])
-    all_kpts   = kwargs.get('all_kpts', False)
-    show_query = kwargs.get('show_query', False)
-    dosquare   = kwargs.get('dosquare', False)
-    in_image   = kwargs.get('in_image', False)
+    figtitle    = kwargs.get('figtitle', '')
+    aug         = kwargs.get('aug', '')
+    top_rids    = kwargs.get('top_rids', 6)
+    gt_rids     = kwargs.get('gt_rids',   [])
+    all_kpts    = kwargs.get('all_kpts', False)
+    show_query  = kwargs.get('show_query', False)
+    in_image    = kwargs.get('in_image', False)
+    fnum = df2.kwargs_fnum(kwargs)
+
+    fig = df2.figure(fnum=fnum, docla=True, doclf=True)
 
     if isinstance(top_rids, int):
         top_rids = qres.get_top_rids(num=top_rids)
@@ -174,22 +178,13 @@ def show_qres(ibs, qres, **kwargs):
             orank = oranks[0] + 1
             _show_matches_fn(rid, orank, pnum)
 
-    if dosquare:
-        # HACK
-        nSubplots = nGtSubplts + nTopNSubplts
-        nRows, nCols = vh.get_square_row_cols(nSubplots, 3)
-        nTopNCols = nGTCols = nCols
-        shift_topN = 1
-        printDBG('nRows, nCols = (%r, %r)' % (nRows, nCols))
-    else:
-        shift_topN = nGtCells
+    shift_topN = nGtCells
 
     if nGtSubplts == 1:
         nGTCols = 1
 
     if nRows == 0:
         df2.imshow_null(fnum=fnum)
-        fig = df2.gcf()
     else:
         fig = df2.figure(fnum=fnum, pnum=(nRows, nGTCols, 1), docla=True, doclf=True)
         #df2.disconnect_callback(fig, 'button_press_event')

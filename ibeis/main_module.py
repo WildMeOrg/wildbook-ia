@@ -105,6 +105,7 @@ def __import_parallel_modules():
     from utool import util_sysreq
     util_sysreq.ensure_in_pythonpath('hesaff')
     import pyhesaff  # NOQA
+    from ibeis.model.preproc import preproc_chip  # NOQA
 
 
 def _init_parallel():

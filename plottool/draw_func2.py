@@ -54,6 +54,14 @@ def get_pnum_func(nRows, nCols, base=0):
     return pnum_
 
 
+def kwargs_fnum(kwargs):
+    fnum = kwargs.get('fnum', None)
+    if fnum is None:
+        fnum = next_fnum()
+        kwargs['fnum'] = fnum
+    return fnum
+
+
 def next_fnum(new_base=None):
     global base_fnum
     if new_base is not None:

@@ -231,8 +231,14 @@ def get_object_size(obj):
     return _get_object_size(obj)
 
 
+def get_object_size_str(obj, lbl=''):
+    nBytes = get_object_size(obj)
+    sizestr = lbl + byte_str2(nBytes)
+    return sizestr
+
+
 def print_object_size(obj, lbl=''):
-    print(lbl + byte_str2(get_object_size(obj)))
+    print(get_object_size_str(obj, lbl=lbl))
 
 
 def get_object_base():

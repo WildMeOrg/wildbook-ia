@@ -70,6 +70,7 @@ import guitool
 from ibeis.dev import main_commands
 from ibeis.dev import params
 from ibeis.dev import ibsfuncs
+from ibeis.dev import result_organizer
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc

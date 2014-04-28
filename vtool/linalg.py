@@ -297,16 +297,32 @@ def homogonize(_xyzs):
 @profile
 def rowwise_operation(arr1, arr2, op):
     """
+    Is the rowwise name correct? Should it be colwise?
+
     performs an operation between an
     (N x A x B ... x Z) array with an
     (N x 1) array
     """
     # FIXME: not sure this is the correct terminology
     assert arr1.shape[0] == arr2.shape[0]
-    broadcast_dimensions = arr1.shape[1:]
+    broadcast_dimensions = arr1.shape[1:]  # need padding for
     tileshape = tuple(list(broadcast_dimensions) + [1])
     arr2_ = np.rollaxis(np.tile(arr2, tileshape), -1)
-    return op(arr1, arr2_)
+    rowwise_result = op(arr1, arr2_)
+    return rowwise_result
+
+
+def colwise_operation(arr1, arr2, op):
+    arr1T = arr1.T
+    arr2T = arr2.T
+    rowwise_result = rowwise_operation(arr1T, arr2T, op)
+    colwise_result = rowwise_result.T
+    return colwise_result
+
+
+def rowwise_oridist(arr1, arr2):
+    op = ori_distance
+    return rowwise_operation(arr1, arr2, op)
 
 
 @profile

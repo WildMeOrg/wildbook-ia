@@ -104,23 +104,45 @@ def get_roi_cfpath_list(ibs, rid_list, suffix=None):
 # Chip computing
 #---------------
 
+def gen_chip(cfpath, gfpath, bbox, theta, new_size, filter_list=[]):
+    """ worker function for parallel process """
+    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    return chipBGR, cfpath
+
+
+def gen_chip2(tup):
+    """ worker function for parallel generator """
+    cfpath, gfpath, bbox, theta, new_size, filter_list = tup
+    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    return chipBGR, cfpath
+
 
 def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
                     newsize_list, filter_list=[]):
     """ Computes chips and yeilds results asynchronously for writing  """
     # TODO: Actually make this compute in parallel
-    num_chips = len(cfpath_list)
-    mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ',
-                                              mark_start=True, flush_after=4)
-    chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
-                         theta_list, newsize_list)
-    for count, chipinfo in enumerate(chipinfo_iter):
-        (cfpath, gfpath, bbox, theta, new_size) = chipinfo
-        chipBGR = ctool.compute_chip(gfpath, bbox, theta,
-                                     new_size, filter_list)
-        mark_prog(count)
-        yield chipBGR, cfpath
-    end_prog()
+    #chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
+                         #theta_list, newsize_list)
+    #num_chips = len(cfpath_list)
+    #mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ',
+                                              #mark_start=True, flush_after=4)
+    #for count, chipinfo in enumerate(chipinfo_iter):
+        #(cfpath, gfpath, bbox, theta, new_size) = chipinfo
+        #chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+        #mark_prog(count)
+        #yield chipBGR, cfpath
+    #end_prog()
+
+    # Try a parallel thing
+    util_parallel = utool.util_parallel
+    #arg_list = list(chipinfo_iter)
+    #args_dict = {'filter_list': filter_list}
+    #result_list = util_parallel.process(gen_chip, arg_list, args_dict)
+    #for result in result_list:
+        #yield result
+    arg_list = [(list(tup) + [filter_list]) for tup in
+                izip(cfpath_list, gfpath_list, bbox_list, theta_list, newsize_list)]
+    return util_parallel.generate(gen_chip2, arg_list)
 
 
 def compute_and_write_chips(ibs, rid_list):

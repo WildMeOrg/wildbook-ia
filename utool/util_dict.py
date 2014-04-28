@@ -7,10 +7,21 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[dict]')
 
 
 def all_dict_combinations(varied_dict):
-    viter = varied_dict.iteritems()
-    tups_list = [[(key, val) for val in val_list] for (key, val_list) in viter]
+    """
+    Input: a dict with lists of possible parameter settings
+    Output: a list of dicts correpsonding to all combinations of params settings
+    """
+    tups_list = [[(key, val) for val in val_list]
+                 for (key, val_list) in varied_dict.iteritems()]
     dict_list = [{key: val for (key, val) in tups} for tups in iprod(*tups_list)]
     return dict_list
+
+
+def all_dict_combinations_labels(varied_dict):
+    """ returns what parameters are varied"""
+    multitups_list = [[(key, val) for val in val_list] for key, val_list in varied_dict.iteritems() if len(val_list) > 1]
+    comb_lbls = map(str, list(iprod(*multitups_list)))
+    return comb_lbls
 
 
 def dict_union2(dict1, dict2):

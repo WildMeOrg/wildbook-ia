@@ -125,8 +125,10 @@ class IBEISControl(object):
         printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
-    def clone_handle(ibs):
+    def clone_handle(ibs, **kwargs):
         ibs2 = IBEISControl(dbdir=ibs.get_dbdir(), ensure=False)
+        if len(kwargs) > 0:
+            ibs2.update_cfg(**kwargs)
         return ibs2
 
     def get_dbname(ibs):

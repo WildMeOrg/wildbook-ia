@@ -22,6 +22,12 @@ QUIET      = '--quiet' in sys.argv
 TESTRES_VERBOSITY = 2 - (2 * QUIET)
 NOCACHE_TESTRES =  utool.get_flag('--nocache-testres', False)
 TEST_INFO = True
+STRICT = '--strict' in sys.argv
+
+
+def _get_query_results(ibs, qrid_list):
+    qrid2_res = ibs.query_database(qrid_list)
+    return qrid2_res
 
 
 def _get_qx2_besrank_batch(ibs, qreq):
@@ -34,47 +40,52 @@ def _get_qx2_besrank_batch(ibs, qreq):
     return qx2_bestranks
 
 
-def _get_qx2_besrank_iterative(ibs, qreq, cfgx, nCfg, nTotalQueries, nPrevQueries):
+def print_test_info(qrid, qreq):
+    if TEST_INFO:
+        print('qrid=%r. quid=%r' % (qrid, qreq.get_uid()))
+
+
+def assert_one_result(qrid2_res):
+    try:
+        assert len(qrid2_res) == 1, ''
+    except AssertionError as ex:
+        utool.printex(ex, key_list=['qrid2_res'])
+        raise
+
+
+def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''):
     print('[harn] querying one query at a time')
     # Make progress message
     msg = textwrap.dedent('''
     ---------------------
-    [harn] TEST %d/%d
+    [harn] TEST %d/%d ''' + cfglbl + '''
     ---------------------''')
-    mark_progress = utool.simple_progres_func(TESTRES_VERBOSITY, msg, '.')
-    # Query Chip / Row Loop
     qx2_bestranks = []
-    qrids = qreq.qrids
+    qrids = qreq.qrids  # Query one ROI at a time
+    mark_prog = utool.simple_progres_func(TESTRES_VERBOSITY, msg, '.')
+    # Query Chip / Row Loop
     for qx, qrid in enumerate(qrids):
-        count = qx + nPrevQueries + 1
-        mark_progress(count, nTotalQueries)
-        if TEST_INFO:
-            print('qrid=%r. quid=%r' % (qrid, qreq.get_uid()))
+        mark_prog(qx + nPrevQueries, nTotalQueries)
+        #print_test_info(qrid, qreq)
         try:
             qreq.qrids = [qrid]  # hacky
             qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
         except mf.QueryException as ex:
             utool.printex(ex, 'Harness caught Query Exception')
-            if params.args.strict:
-                raise
-            else:
-                qx2_bestranks.append([-1])
+            qx2_bestranks.append([-1])
+            if not STRICT:
                 continue
-        try:
-            assert len(qrid2_res) == 1, ''
-        except AssertionError as ex:
-            utool.printex(ex, key_list=['qrid2_res'])
             raise
-        # record metadata
-        qx2_bestranks.append([qrid2_res[qrid].get_best_gt_rank(ibs)])
-        if qrid % 4 == 0:
-            sys.stdout.flush()
+        assert_one_result(qrid2_res)
+        # record the best rank from this groundtruth
+        best_rank = qrid2_res[qrid].get_best_gt_rank(ibs)
+        qx2_bestranks.append([best_rank])
     qreq.qrids = qrids  # fix previous hack
     return qx2_bestranks
 
 
 @profile
-def get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries):
+def get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries, cfglbl):
     """
     Runs queries of a specific configuration returns the best rank of each query
 
@@ -92,7 +103,7 @@ def get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries):
     if BATCH_MODE:
         qx2_bestranks = _get_qx2_besrank_batch(ibs, qreq)
     else:
-        qx2_bestranks = _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries)
+        qx2_bestranks = _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl)
     qx2_bestranks = np.array(qx2_bestranks)
     # High level cache save
     #eh.cache_test_results(qx2_bestranks, ibs, qrids, drids)
@@ -100,7 +111,7 @@ def get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries):
 
 
 #-----------
-@utool.indent_func('[harn]')
+#@utool.indent_func('[harn]')
 @profile
 def test_configurations(ibs, qrids, test_cfg_name_list, fnum=1):
     # Test Each configuration
@@ -110,7 +121,9 @@ def test_configurations(ibs, qrids, test_cfg_name_list, fnum=1):
         [harn] experiment_harness.test_configurations()""").strip())
 
     # Grab list of algorithm configurations to test
-    cfg_list = eh.get_cfg_list(test_cfg_name_list, ibs=ibs)
+    #cfg_list = eh.get_cfg_list(test_cfg_name_list, ibs=ibs)
+    cfg_list, cfgx2_lbl = eh.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+    cfgx2_lbl = np.array(cfgx2_lbl)
     if not QUIET:
         print('[harn] Testing %d different parameters' % len(cfg_list))
         print('[harn]         %d different chips' % len(qrids))
@@ -133,29 +146,30 @@ def test_configurations(ibs, qrids, test_cfg_name_list, fnum=1):
     ---------------------
     [harn] TEST_CFG %d/%d: ''' + testnameid + '''
     ---------------------''')
-    mark_progress = utool.simple_progres_func(TESTRES_VERBOSITY, msg, '+')
-
+    mark_prog = utool.simple_progres_func(TESTRES_VERBOSITY, msg, '+')
     # Run each test configuration
     # Query Config / Col Loop
     drids = ibs.get_recognition_database_rids()
     nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     for cfgx, query_cfg in enumerate(cfg_list):
         if not QUIET:
-            mark_progress(cfgx + 1, nCfg)
+            mark_prog(cfgx + 1, nCfg)
             print(query_cfg.get_uid())
+        cfglbl = cfgx2_lbl[cfgx]
         ibs.set_query_cfg(query_cfg)
         # Set data to the current config
         nPrevQueries = nQuery * cfgx  # number of pervious queries
         # Run the test / read cache
         with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-            qx2_bestranks = get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries)
+            qx2_bestranks = get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries, cfglbl)
         if not NOMEMORY:
             mat_list.append(qx2_bestranks)
         # Store the results
-
     if not QUIET:
         print('[harn] Finished testing parameters')
     if NOMEMORY:
         print('ran tests in memory savings mode. exiting')
         return
-    report_experiment_results.print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, sel_cols)
+    report_experiment_results.print_results(ibs, qrids, drids, cfg_list,
+                                            mat_list, testnameid, sel_rows,
+                                            sel_cols, cfgx2_lbl=cfgx2_lbl)

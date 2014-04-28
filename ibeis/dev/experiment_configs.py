@@ -119,6 +119,7 @@ best = vsmany_best
 gv_test = vsmany_best.copy()
 gv_test.update({
     'nogravity_hack': [False, True],
+    'gravity_weighting': [False, True],
     #'use_adaptive_scale': [True, False],
 })
 

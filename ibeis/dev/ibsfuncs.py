@@ -199,3 +199,12 @@ def delete_ibeis_database(dbdir):
     print('Deleting _ibsdb=%r' % _ibsdb)
     if exists(_ibsdb):
         utool.delete(_ibsdb)
+
+
+def get_roi_desc_cache(ibs, rids):
+    """ When you have a list with duplicates and you dont want to copy data
+    creates a reference to each data object idnexed by a dict """
+    unique_rids = list(set(rids))
+    unique_desc = ibs.get_roi_desc(unique_rids)
+    desc_cache = dict(list(izip(unique_rids, unique_desc)))
+    return desc_cache

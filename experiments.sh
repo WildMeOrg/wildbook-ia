@@ -1,7 +1,9 @@
+export TESTS=""
+#export TESTS="-t gv_test"
 export AUG=""
-#export AUG="--cmd"$AUG
-export AUG="--batch --allgt --print-rankmat --print-rowlbl --print-rowscore --print-hardcase --echo-hardcase"
-export TESTS="-t gv_test"
+export AUG="$AUG --allgt"
+export AUG="$AUG --cmd"
+#export AUG="--print-rankmat --print-rowlbl --print-rowscore --print-hardcase --echo-hardcase"
 export DEVPY="python dev.py --db testdb1 --setdb $AUG $TESTS"
 $DEVPY $@
 

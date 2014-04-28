@@ -86,10 +86,10 @@ class QueryResult(__OBJECT_BASE__):
         qres.qrid = qrid
         qres.uid = uid
         # Assigned features matches
-        qres.rid2_fm = None
-        qres.rid2_fs = None
-        qres.rid2_fk = None
-        qres.rid2_score = None
+        qres.rid2_fm = None  # {}
+        qres.rid2_fs = None  # {}
+        qres.rid2_fk = None  # {}
+        qres.rid2_score = None  # {}
         qres.filt2_meta = None  # messy
 
     def has_cache(qres, qreq):

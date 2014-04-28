@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from itertools import izip
 import re
 from itertools import imap
-from . import experiment_configs
+from ibeis.dev import experiment_configs
 from ibeis.model import Config
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_helpers]', DEBUG=False)
@@ -112,11 +113,28 @@ def cache_test_results(qx2_bestranks, ibs, qreq, qrids, drids):
 
 def get_varied_params_list(test_cfg_name_list):
     vary_dicts = get_vary_dicts(test_cfg_name_list)
-    get_all_dict_comb = utool.all_dict_combinations
-    dict_comb_list = [get_all_dict_comb(_dict) for _dict in vary_dicts]
-    varied_params_list = [comb for dict_comb in dict_comb_list for comb in dict_comb]
-    #map(lambda x: print('\n' + str(x)), varied_params_list)
-    return varied_params_list
+    dict_comb_list = [utool.all_dict_combinations(dict_) for dict_ in vary_dicts]
+    dict_comb_lbls = [utool.all_dict_combinations_labels(dict_) for dict_ in vary_dicts]
+    varied_params_list = utool.flatten(dict_comb_list)  # [comb for dict_comb in dict_comb_list for comb in dict_comb]
+    varied_param_lbls = utool.flatten(dict_comb_lbls)
+    return varied_params_list, varied_param_lbls
+
+
+def _get_cfg_list(test_cfg_name_list):
+    varied_params_list, varied_param_lbls = get_varied_params_list(test_cfg_name_list)
+    # Add unique configs to the list
+    cfg_list = []
+    cfgx2_lbl = []
+    cfg_set = set([])
+    for dict_, lbl in izip(varied_params_list, varied_param_lbls):
+        cfg = Config.QueryConfig(**dict_)
+        if not cfg in cfg_set:
+            cfgx2_lbl.append(lbl)
+            cfg_list.append(cfg)
+            cfg_set.add(cfg)
+    if not QUIET:
+        print('[harn] return %d / %d unique configs' % (len(cfg_list), len(varied_params_list)))
+    return cfg_list, cfgx2_lbl
 
 
 def get_cfg_list(test_cfg_name_list, ibs=None):
@@ -125,20 +143,12 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
         # Usee the ibeis config as a custom config
         print('   * custom cfg_list')
         cfg_list = [ibs.prefs.query_cfg]
-        return cfg_list
+        cfgx2_lbl = ['custom']
+        return cfg_list, cfgx2_lbl
     return _get_cfg_list(test_cfg_name_list)
 
 
-def _get_cfg_list(test_cfg_name_list):
-    varied_params_list = get_varied_params_list(test_cfg_name_list)
-    # Add unique configs to the list
-    cfg_list = []
-    cfg_set = set([])
-    for _dict in varied_params_list:
-        cfg = Config.QueryConfig(**_dict)
-        if not cfg in cfg_set:
-            cfg_list.append(cfg)
-            cfg_set.add(cfg)
-    if not QUIET:
-        print('[harn] return %d / %d unique configs' % (len(cfg_list), len(varied_params_list)))
-    return cfg_list
+def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
+    cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list)
+    print(cfgx2_lbl)
+    return cfg_list, cfgx2_lbl

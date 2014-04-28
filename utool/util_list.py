@@ -44,6 +44,10 @@ def random_indexes(max_index, subset_size):
 # --- List Searching --- #
 
 
+def list_getat(list_, index_list):
+    return [list_[index] for index in index_list]
+
+
 def safe_listget(list_, index, default='?'):
     if index >= len(list_):
         return default

@@ -18,6 +18,7 @@ __self_module__ = sys.modules[__name__]
 __version__ = '(.878 + .478i)'
 
 __DYNAMIC__ = not '--nodyn' in sys.argv
+#__DYNAMIC__ = '--dyn' in sys.argv
 
 if __DYNAMIC__:
     __DEVELOPING__ = True
@@ -63,7 +64,7 @@ if __DYNAMIC__:
         ('util_regex',     ['regex_search']),
         ('util_time',      ['tic', 'toc', 'Timer']),
         ('util_type',      None),
-        ('DynStruct',      ['DynStruct']),
+        ('DynamicStructure',  ['DynStruct']),
         ('Preferences',    ['Pref']),
         ]
 
@@ -311,7 +312,6 @@ else:
         util_regex.rrr()
         util_time.rrr()
         util_type.rrr()
-        DynStruct.rrr()
         Preferences.rrr()
     rrrr = reload_subs
 

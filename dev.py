@@ -16,6 +16,7 @@ from ibeis.dev import experiment_harness
 import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
+from ibeis.dev import results
 
 if not 'back' in vars():
     back = None
@@ -45,17 +46,6 @@ def change_names(ibs, qrid_list):
     new_nid = ibs.get_name_nids(new_name, ensure=False)
     if back is not None:
         back.select_nid(new_nid)
-
-
-@devcmd('gravity', 'gv')
-def compare_gravity(ibs, qrid_list):
-    ibs_nogv = ibs.clone_handle()
-    #ibslist = [ibs.clone_handle() for _ in xrange(1000)]
-    ibs_nogv.update_cfg(nogravity_hack=True)
-    for rid in qrid_list:
-        interact.ishow_chip(ibs_nogv, rid, fnum=df2.next_fnum(), eig=True)
-    for rid in qrid_list:
-        interact.ishow_chip(ibs, rid, fnum=df2.next_fnum(), eig=True)
 
 
 @devcmd('query')
@@ -128,7 +118,7 @@ def run_experiments(ibs, qrid_list):
             if ret:
                 input_test_list.remove(testname)
                 print('+===================')
-                print('| running testname=%s' % testname)
+                print('| running testname = %s' % (args,))
                 return ret
         return False
 
@@ -171,6 +161,54 @@ def run_experiments(ibs, qrid_list):
     return locals()
 
 
+def get_allres(ibs, qrid_list):
+    qrid2_qres = ibs.query_database(qrid_list)
+    allres = results.init_allres(ibs, qrid2_qres)
+    return allres
+
+
+def devfunc(ibs, qrid_list):
+    """ Function for developing something """
+    allres = get_allres(ibs, qrid_list)
+    orgtype_ = 'false'
+    orgres = allres.get_orgtype(orgtype_)
+    qrids = orgres.qrids
+    rids  = orgres.rids
+
+    qdesc_cache = ibsfuncs.get_roi_desc_cache(ibs, qrids)
+    rdesc_cache = ibsfuncs.get_roi_desc_cache(ibs, rids)
+
+    fm = allres.get_fm(qrid, rid)
+
+    desc1_m = qdesc_cache[qrid][fm.T[0]]
+    desc2_m = rdesc_cache[rid][fm.T[1]]
+
+    qrid = qrids[0]
+    rid = rids[0]
+    return locals()
+
+
+@devcmd('gv')
+def gvcomp(ibs, qrid_list):
+    """
+    GV = With gravity vector
+    RI = With rotation invariance
+    """
+    def testcomp(ibs, qrid_list):
+        qrid2_qres = ibs.query_database(qrid_list)
+        allres = results.init_allres(ibs, qrid2_qres)
+        for qrid in qrid_list:
+            qres = allres.get_qres(qrid)
+            interact.ishow_qres(ibs, qres, annote_mode=2)
+        return allres
+    ibs_GV = ibs
+    ibs_RI = ibs.clone_handle(nogravity_hack=True)
+
+    allres_GV = testcomp(ibs_GV, qrid_list)
+    allres_RI = testcomp(ibs_RI, qrid_list)
+    return locals()
+
+
 @profile
 def dev_main():
     global back
@@ -182,6 +220,9 @@ def dev_main():
     fnum = 1
     qrid_list = main_helpers.get_test_qrids(ibs)
     expt_locals = run_experiments(ibs, qrid_list)
+
+    #devfunc_locals = devfunc(ibs, qrid_list)
+    #exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
     if not '--nopresent' in sys.argv:
         df2.present()

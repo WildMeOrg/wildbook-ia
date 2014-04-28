@@ -9,6 +9,7 @@ import sys
 # Scientific
 import numpy as np
 from vtool import keypoint as ktool
+from vtool import linalg as ltool
 from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import QueryResult
@@ -20,6 +21,7 @@ print, print_,  printDBG, rrr, profile =\
     utool.inject(__name__, '[mf]', DEBUG=False)
 
 
+np.tau = 2 * np.pi  # tauday.com
 QUIET = utool.QUIET or utool.get_flag('--quiet-query')
 
 
@@ -173,7 +175,7 @@ def _apply_filter_scores(qrid, qfx2_nnax, filt2_weights, filt_cfg):
     # Apply the filter weightings to determine feature validity and scores
     for filt, rid2_weights in filt2_weights.iteritems():
         qfx2_weights = rid2_weights[qrid]
-        sign, thresh, weight = filt_cfg.get_stw(filt)
+        sign, thresh, weight = filt_cfg.get_stw(filt)  # stw = sign, thresh, weight
         if thresh is not None and thresh != 'None':
             thresh = float(thresh)  # corrects for thresh being strings sometimes
             if isinstance(thresh, (int, float)):
@@ -181,6 +183,7 @@ def _apply_filter_scores(qrid, qfx2_nnax, filt2_weights, filt_cfg):
                 qfx2_valid  = np.logical_and(qfx2_valid, qfx2_passed)
         if not weight == 0:
             qfx2_score += weight * qfx2_weights
+
     return qfx2_score, qfx2_valid
 
 
@@ -194,9 +197,13 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
     K = qreq.cfg.nn_cfg.K
     if not QUIET:
         print('[mf] Step 3) Filter neighbors: ')
-    #+ filt_cfg.get_uid())
-    # NNIndex
-    # Database feature index to chip index
+    if filt_cfg.gravity_weighting:
+        # We dont have an easy way to access keypoints from nearest neighbors yet
+        rid_list = np.unique(qreq.data_index.ax2_rid)  # FIXME: Highly inefficient
+        kpts_list = ibs.get_roi_kpts(rid_list)
+        ax2_kpts = np.vstack(kpts_list)
+        ax2_oris = ktool.get_oris(ax2_kpts)
+        assert len(ax2_oris) == len(qreq.data_index.ax2_data)
     # Filter matches based on config and weights
     mark_prog, end_prog = progress_func(len(qrid2_nns))
     for count, qrid in enumerate(qrid2_nns.iterkeys()):
@@ -210,6 +217,16 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
         if not QUIET:
             print('[mf] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
+        if filt_cfg.gravity_weighting:
+            qfx2_nnori = ax2_oris[qfx2_nnax]
+            qfx2_kpts  = ibs.get_roi_kpts(qrid)  # FIXME: Highly inefficient
+            qfx2_oris  = ktool.get_oris(qfx2_kpts)
+            # Get the orientation distance
+            qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
+            # Normalize into a weight (close orientations are 1, far are 0)
+            qfx2_gvweight = (np.tau - qfx2_oridist) / np.tau
+            # Apply gravity vector weight to the score
+            qfx2_score *= qfx2_gvweight
         # Remove Impossible Votes:
         # dont vote for yourself or another chip in the same image
         cant_match_self = not cant_match_sameimg

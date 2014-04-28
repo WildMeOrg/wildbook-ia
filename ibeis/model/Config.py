@@ -15,6 +15,7 @@ def make_feasible(query_cfg):
     '''
     filt_cfg = query_cfg.filt_cfg
     nn_cfg   = query_cfg.nn_cfg
+    feat_cfg = query_cfg._feat_cfg
 
     # Ensure the list of on filters is valid given the weight and thresh
     if filt_cfg.ratio_thresh <= 1:
@@ -23,6 +24,9 @@ def make_feasible(query_cfg):
         filt_cfg.roidist_thresh = None
     if filt_cfg.bursty_thresh   <= 1:
         filt_cfg.bursty_thresh = None
+
+    if feat_cfg.nogravity_hack is False:
+        filt_cfg.gravity_weighting = False
 
     # normalizer rule depends on Knorm
     if nn_cfg.Knorm == 1:
@@ -60,6 +64,7 @@ class FilterConfig(ConfigBase):
         filt_cfg.Krecip = 0  # 0 := off
         filt_cfg.can_match_sameimg = False
         filt_cfg.can_match_samename = True
+        filt_cfg.gravity_weighting = False
         filt_cfg._valid_filters = []
         def addfilt(sign, filt, thresh, weight, depends=None):
             'dynamically adds filters'
@@ -138,6 +143,8 @@ class FilterConfig(ConfigBase):
             filt_uid += 'same_img'
         if not filt_cfg.can_match_samename:
             filt_uid += 'notsame_name'
+        if filt_cfg.gravity_weighting:
+            filt_uid += [',gvweight']
         filt_uid += [')']
         return filt_uid
 
