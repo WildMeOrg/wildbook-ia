@@ -1,3 +1,4 @@
+# mv experiment_report_results.py
 from __future__ import absolute_import, division, print_function
 import itertools
 from itertools import chain, imap
@@ -12,6 +13,8 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 
 QUIET = utool.QUIET
+SKIP_TO = utool.get_arg('--skip-to', default=None)
+DEV_MODE = utool.get_arg('--devmode', default=False)
 
 
 def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, sel_cols):
@@ -88,7 +91,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, s
         # because you should be copying and pasting it
         notes = ' ranks = ' + str(rank_mat[qx])
         qrid = qrids[qx]
-        new_hardtup_list += [(qrid, notes)]
+        name = ibs.get_roi_names(qrid)
+        new_hardtup_list += [(qrid, name + " - " + notes)]
         new_qrids += [qrid]
 
     @utool.argv_flag_dec
@@ -118,7 +122,11 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, s
         print('--- hard new_hardtup_list (w.r.t these configs): %s' % testnameid)
         print('\n'.join(map(repr, new_hardtup_list)))
         print('There are %d hard cases ' % len(new_hardtup_list))
-        print(sorted([x[0] for x in new_hardtup_list]))
+        rid_list = [rid_notes[0] for rid_notes in new_hardtup_list]
+        name_list = ibs.get_roi_names(rid_list)
+        name_set = set(name_list)
+        print(sorted(rid_list))
+        print('Names: %r' % (name_set,))
         print('--- /Print Hardcase ---')
     print_hardcase()
 
@@ -282,12 +290,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, s
     rciter = itertools.product(sel_rows, sel_cols)
 
     prev_cfg = None
-
-    skip_to = utool.get_arg('--skip-to', default=None)
-
-    dev_mode = utool.get_arg('--devmode', default=False)
     skip_list = []
-    if dev_mode:
+    if DEV_MODE:
         ibs.prefs.display_cfg.N = 3
         df2.FONTS.axtitle = df2.FONTS.smaller
         df2.FONTS.xlabel = df2.FONTS.smaller
@@ -296,8 +300,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows, s
         df2.SAFE_POS['bottom'] = .01
 
     for count, (r, c) in enumerate(rciter):
-        if skip_to is not None:
-            if count < skip_to:
+        if SKIP_TO is not None:
+            if count < SKIP_TO:
                 continue
         if count in skip_list:
             continue

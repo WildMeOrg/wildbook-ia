@@ -1253,5 +1253,5 @@ def remove_patches(ax=None):
 
 
 def imshow_null(**kwargs):
-    df2.imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
-    df2.draw_boxedX()
+    imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
+    draw_boxedX()

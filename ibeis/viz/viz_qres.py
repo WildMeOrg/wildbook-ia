@@ -189,6 +189,7 @@ def show_qres(ibs, qres, **kwargs):
 
     if nRows == 0:
         df2.imshow_null(fnum=fnum)
+        fig = df2.gcf()
     else:
         fig = df2.figure(fnum=fnum, pnum=(nRows, nGTCols, 1), docla=True, doclf=True)
         #df2.disconnect_callback(fig, 'button_press_event')

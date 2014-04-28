@@ -243,9 +243,7 @@ def init_score_matrix(allres):
     cx_sorted = [x for (y, x) in sorted(nx_cxs_tuples)]
     # Subsort by chip
     cx_sorted = map(sorted, cx_sorted)
-    # Flattten
-    from itertools import chain
-    cx_sorted = list(chain.from_iterable(cx_sorted))  # very fast flatten
+    cx_sorted = utool.flatten(cx_sorted)
     row_label_cx = []
     row_scores = []
     qcx_set = set(qcx_list)

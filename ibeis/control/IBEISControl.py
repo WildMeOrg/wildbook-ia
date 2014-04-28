@@ -39,6 +39,9 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
     __name__, '[ibs]', DEBUG=False)
 
 
+__USTRCAST__ = str  # change to unicode if needed
+
+
 class PATH_NAMES(object):
     sqldb  = '_ibeis_database.sqlite3'
     _ibsdb = '_ibsdb'
@@ -1181,6 +1184,7 @@ class IBEISControl(object):
         nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
         name_list_ = ibs.get_name_properties('name_text', nid_list_)
         name_list  = [name if nid > 0 else name + str(-nid) for (name, nid) in izip(name_list_, nid_list)]
+        name_list  = map(__USTRCAST__, name_list)
         return name_list
 
     @getter_vector_output
