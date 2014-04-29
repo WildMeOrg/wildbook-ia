@@ -21,13 +21,7 @@ def gen_feat2(tup):
     return cid, len(kpts), kpts, desc, feat_config_uid
 
 
-def add_feat_params_gen(ibs, cid_list):
-    """ Computes features and yields results asynchronously """
-    # TODO: Actually make this compute in parallel
-    feat_cfg  = ibs.cfg.feat_cfg
-    dict_args = feat_cfg.get_dict_args()
-    feat_config_uid = ibs.get_feat_config_uid()
-    cfpath_list = ibs.get_chip_paths(cid_list)
+#def add_feat_params_gen_OLD(ibs, cid_list, nFeat):
     #num_feats = len(cid_list)
     #mark_prog, end_prog = utool.progress_func(num_feats, lbl='hesaff: ',
                                               #flush_after=1, mark_start=True)
@@ -38,9 +32,21 @@ def add_feat_params_gen(ibs, cid_list):
         #mark_prog(count)
         #yield cid, len(kpts), kpts, desc, feat_config_uid
     #end_prog()
-    util_parallel = utool.util_parallel
     #arg_list = list(izip(cid_list, cfpath_list))
-    #args_dict = {'feat_config_uid': feat_config_uid,
-                 #'dict_args': dict_args}
-    arg_list = [(list(tup) + [dict_args, feat_config_uid]) for tup in izip(cid_list, cfpath_list)]
-    return util_parallel.generate(gen_feat2, arg_list)
+    #args_dict = {'feat_config_uid': feat_config_uid, #'dict_args': dict_args}
+
+
+def add_feat_params_gen(ibs, cid_list, nFeat=None):
+    """ Computes features and yields results asynchronously """
+    # TODO: Actually make this compute in parallel
+    if nFeat is None:
+        nFeat = len(cid_list)
+    feat_cfg  = ibs.cfg.feat_cfg
+    dict_args = feat_cfg.get_dict_args()
+    feat_config_uid = ibs.get_feat_config_uid()
+    cfpath_list = ibs.get_chip_paths(cid_list)
+    dictargs_iter = (dict_args for _ in xrange(nFeat))
+    featcfg_iter = (feat_config_uid for _ in xrange(nFeat))
+    arg_iter = izip(cid_list, cfpath_list, dictargs_iter, featcfg_iter)
+    arg_list = list(arg_iter)
+    return utool.util_parallel.generate(gen_feat2, arg_list)

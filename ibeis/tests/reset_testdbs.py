@@ -46,4 +46,6 @@ def reset_testdbs():
 
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # For windows
     reset_testdbs()

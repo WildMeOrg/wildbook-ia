@@ -60,7 +60,7 @@ def close_pool():
     if __POOL__ is not None:
         if not QUIET and VERBOSE:
             print('[parallel] closing pool')
-        if __POOL__ != 1:
+        if not isinstance(__POOL__, int):
             # Must join after close to avoid runtime errors
             __POOL__.close()
             __POOL__.join()
@@ -106,16 +106,21 @@ def _process_parallel(func, args_list, args_dict={}):
 
 
 def generate(func, args_list, force_serial=False):
+    assert __POOL__ is not None, 'must init_pool() first'
     num_tasks = len(args_list)
     mark_prog, end_prog = progress_func(max_val=num_tasks, lbl=func.func_name + ': ')
+    args_list
+    _tup = (len(args_list), func.func_name)
     if __TIME__:
         tt = tic(func.func_name)
-    if __POOL__ == 1 or force_serial:
+    if isinstance(__POOL__, int) or force_serial:
+        print('[parallel] executing %d %s tasks in serial' % _tup)
         for count, args in enumerate(args_list):
             mark_prog(count)
             result = func(args)
             yield result
     else:
+        print('[parallel] executing %d %s tasks using %d processes' % _tup)
         for count, result in enumerate(__POOL__.imap_unordered(func, args_list)):
             mark_prog(count)
             yield result

@@ -30,6 +30,8 @@ def injest_named_folder(ibs, img_dir):
     return rid_list
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # win32
     from ibeis.dev.all_imports import *  # NOQA
     # TODO: be able to injest more than polar bears
     img_dirname = utool.get_arg('--db', str, None)

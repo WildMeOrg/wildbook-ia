@@ -31,4 +31,6 @@ def injest_testdata():
     ibs.print_roi_table()
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # win32
     injest_testdata()

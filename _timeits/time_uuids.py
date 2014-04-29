@@ -4,6 +4,7 @@ Script to help time determenistic uuid creation
 from __future__ import absolute_import, division, print_function
 import __builtin__
 import os
+import multiprocessing
 import time
 import timeit
 from PIL import Image
@@ -115,6 +116,7 @@ def make_uuid_CONTIG_NUMPY_STRIDE_64_bytes(gpath):
 
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()  # win32
     test_funcs = [
         make_uuid_PIL_bytes,
         make_uuid_NUMPY_bytes,

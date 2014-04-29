@@ -67,4 +67,6 @@ def assert_modules():
             print(ex)
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # win32
     assert_modules()

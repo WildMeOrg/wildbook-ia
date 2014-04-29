@@ -103,6 +103,7 @@ def convert_hsdb_to_ibeis(hsdb_dir):
 
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()  # win32
     import sys
     dbdir = sys.argv[1]
     convert_hsdb_to_ibeis(dbdir)

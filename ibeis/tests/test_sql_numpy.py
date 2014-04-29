@@ -68,6 +68,8 @@ def TEST_SQL_NUMPY():
 
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # For windows
     test_locals = __testing__.run_test(TEST_SQL_NUMPY)
     execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

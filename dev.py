@@ -231,6 +231,7 @@ def dev_main():
     return locals(), main_execstr
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()  # for win32
     """
         The Developer Script
             A command line interface to almost everything
@@ -242,7 +243,6 @@ if __name__ == '__main__':
             Examples:
                 ./dev.py -t query -w
     """
-    multiprocessing.freeze_support()  # for win32
     dev_locals, main_execstr = dev_main()
     dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
     execstr = dev_execstr + '\n' + main_execstr

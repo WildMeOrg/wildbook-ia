@@ -64,14 +64,14 @@ def delete_chips(ibs, cid_list):
     # TODO: Fixme, depends on current algo config
     chip_fpath_list = ibs.get_chip_paths(cid_list)
     print('[preproc_chip] deleting %d chips' % len(cid_list))
-    for chip_fpath in chip_fpath_list:
-        if chip_fpath is None:
+    for cpath in chip_fpath_list:
+        if cpath is None:
             continue
         try:
-            os.remove(chip_fpath)
+            os.remove(cpath)
         except OSError:
-            if exists(chip_fpath):
-                print('[preproc_chip] cannot remove: %r ' % chip_fpath)
+            if exists(cpath):
+                print('[preproc_chip] cannot remove: %r ' % cpath)
 
 
 #---------------
@@ -110,16 +110,38 @@ def gen_chip(cfpath, gfpath, bbox, theta, new_size, filter_list=[]):
     return chipBGR, cfpath
 
 
-def gen_chip2(tup):
+def gen_chip2_no_write(tup):
     """ worker function for parallel generator """
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
     chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
     return chipBGR, cfpath
 
 
+def gen_chip2_and_write(tup):
+    """ worker function for parallel generator """
+    cfpath, gfpath, bbox, theta, new_size, filter_list = tup
+    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    gtool.imwrite(cfpath, chipBGR)
+    return cfpath
+
+gen_chip2 = gen_chip2_and_write
+
+
 def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
-                    newsize_list, filter_list=[]):
+                    newsize_list, filter_list=[], nChips=None):
     """ Computes chips and yeilds results asynchronously for writing  """
+    # Compute and write chips in asychronous process
+    if nChips is None:
+        nChips = len(cfpath_list)
+    filtlist_iter = (filter_list for _ in xrange(nChips))
+    arg_prepend_iter = izip(cfpath_list, gfpath_list, bbox_list, theta_list,
+                            newsize_list, filtlist_iter)
+    arg_list = list(arg_prepend_iter)
+    return utool.util_parallel.generate(gen_chip2, arg_list)
+
+
+#def gen_chips_async_OLD(cfpath_list, gfpath_list, bbox_list, theta_list,
+                    #newsize_list, filter_list=[]):
     # TODO: Actually make this compute in parallel
     #chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
                          #theta_list, newsize_list)
@@ -133,16 +155,12 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
         #yield chipBGR, cfpath
     #end_prog()
 
-    # Try a parallel thing
-    util_parallel = utool.util_parallel
     #arg_list = list(chipinfo_iter)
     #args_dict = {'filter_list': filter_list}
-    #result_list = util_parallel.process(gen_chip, arg_list, args_dict)
+    #result_list = utool.util_parallel.process(gen_chip, arg_list, args_dict)
     #for result in result_list:
         #yield result
-    arg_list = [(list(tup) + [filter_list]) for tup in
-                izip(cfpath_list, gfpath_list, bbox_list, theta_list, newsize_list)]
-    return util_parallel.generate(gen_chip2, arg_list)
+
 
 
 def compute_and_write_chips(ibs, rid_list):
@@ -161,13 +179,14 @@ def compute_and_write_chips(ibs, rid_list):
     bbox_size_iter = ((w, h) for (x, y, w, h) in bbox_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, bbox_size_iter)
     # Define "Asynchronous" generator
-    chip_async_iter = gen_chips_async(cfpath_list, gfpath_list,
-                                      bbox_list, theta_list,
+    chip_async_iter = gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
                                       newsize_list, filter_list)
+    for cfpath in chip_async_iter:
+        yield cfpath
     # Write results to disk as they come back from parallel processess
-    for chipBGR, chip_fpath in chip_async_iter:
-        printDBG('write chip: %r' % chip_fpath)
-        gtool.imwrite(chip_fpath, chipBGR)
+    #for chipBGR, cpath in chip_async_iter:
+        #printDBG('write chip: %r' % cpath)
+        #gtool.imwrite(cpath, chipBGR)
 
 
 def compute_and_write_chips_lazy(ibs, rid_list):

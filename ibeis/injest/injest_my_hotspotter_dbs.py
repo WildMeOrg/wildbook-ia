@@ -72,5 +72,6 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
             raise
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()  # win32
     workdir = params.get_workdir()
     injest_unconverted_hsdbs_in_workdir(workdir)

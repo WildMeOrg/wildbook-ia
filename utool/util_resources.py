@@ -42,6 +42,8 @@ def memstats():
     print('[psutil] current   = %s' % byte_str2(current_memory_usage()))
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
     memstats()
 
 
