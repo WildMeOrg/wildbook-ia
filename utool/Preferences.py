@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
                       QString, Qt, QObject, pyqtSlot)
 # Util
-from .DynStruct import DynStruct
+from .DynamicStruct import DynStruct
 from .util_inject import inject
 from .util_type import is_str, is_dict, try_cast
 print, print_, printDBG, rrr, profile = inject(__name__, '[pref]')

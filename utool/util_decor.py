@@ -79,7 +79,7 @@ def indent_decor(lbl):
         def indent_decor_inner_wrapper(*args, **kwargs):
             with Indenter(lbl):
                 if TRACE:
-                    print('<trace>')
+                    print('    ...trace')
                 return func(*args, **kwargs)
         return indent_decor_inner_wrapper
     return indent_decor_outer_wrapper

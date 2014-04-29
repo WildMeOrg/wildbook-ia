@@ -62,7 +62,7 @@ def preprocess_image(gpath):
 
 
 @profile
-def add_images_paramters_gen(gpath_list):
+def add_images_params_gen(gpath_list):
     """ generates values for add_images sqlcommands """
     mark_prog, end_prog = utool.progress_func(len(gpath_list), lbl='imgs: ',
                                               mark_start=True, flush_after=4)

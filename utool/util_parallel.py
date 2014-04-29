@@ -110,17 +110,18 @@ def generate(func, args_list, force_serial=False):
     num_tasks = len(args_list)
     mark_prog, end_prog = progress_func(max_val=num_tasks, lbl=func.func_name + ': ')
     args_list
-    _tup = (len(args_list), func.func_name)
     if __TIME__:
         tt = tic(func.func_name)
     if isinstance(__POOL__, int) or force_serial:
-        print('[parallel] executing %d %s tasks in serial' % _tup)
+        print('[parallel] executing %d %s tasks in serial' %
+              (len(args_list), func.func_name))
         for count, args in enumerate(args_list):
             mark_prog(count)
             result = func(args)
             yield result
     else:
-        print('[parallel] executing %d %s tasks using %d processes' % _tup)
+        print('[parallel] executing %d %s tasks using %d processes' %
+              (len(args_list), func.func_name, __POOL__._processes))
         for count, result in enumerate(__POOL__.imap_unordered(func, args_list)):
             mark_prog(count)
             yield result
@@ -132,13 +133,13 @@ def generate(func, args_list, force_serial=False):
 def process(func, args_list, args_dict={}, force_serial=False):
     assert __POOL__ is not None, 'must init_pool() first'
     if __POOL__ == 1 or force_serial:
-        _tup = (len(args_list), func.func_name)
         if not QUIET:
-            print('[parallel] executing %d %s tasks in serial' % _tup)
+            print('[parallel] executing %d %s tasks in serial' %
+                  (len(args_list), func.func_name))
         result_list = _process_serial(func, args_list, args_dict)
     else:
-        _tup = (len(args_list), func.func_name, __POOL__._processes)
-        print('[parallel] executing %d %s tasks using %d processes' % _tup)
+        print('[parallel] executing %d %s tasks using %d processes' %
+              (len(args_list), func.func_name, __POOL__._processes))
         result_list = _process_parallel(func, args_list, args_dict)
     return result_list
 

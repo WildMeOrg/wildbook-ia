@@ -6,7 +6,7 @@ import numpy as np
 from .util_str import byte_str2
 from .util_inject import inject
 from .Printable import printableVal
-from .DynStruct import DynStruct
+from .DynamicStruct import DynStruct
 print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
 
 

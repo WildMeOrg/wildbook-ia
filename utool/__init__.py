@@ -64,7 +64,7 @@ if __DYNAMIC__:
         ('util_regex',     ['regex_search']),
         ('util_time',      ['tic', 'toc', 'Timer']),
         ('util_type',      None),
-        ('DynamicStructure',  ['DynStruct']),
+        ('DynamicStruct',  ['DynStruct']),
         ('Preferences',    ['Pref']),
         ]
 

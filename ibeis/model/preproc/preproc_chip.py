@@ -18,15 +18,16 @@ import vtool.image as gtool
 
 
 #@utool.lru_cache(16)  # TODO: LRU cache needs to handle cfg_uids first
+@utool.indent_func
 def compute_or_read_roi_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
-    printDBG('[preproc_chip] compute_or_read_chips')
+    print('[preproc_chip] compute_or_read_chips')
     try:
         utool.assert_all_not_None(rid_list, 'rid_list')
     except AssertionError as ex:
         utool.printex(ex, key_list=['rid_list'])
         raise
-    cfpath_list = ibs.get_roi_cpaths(rid_list)
+    cfpath_list = get_roi_cfpath_list(ibs, rid_list)
     try:
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
@@ -44,14 +45,16 @@ def compute_or_read_roi_chips(ibs, rid_list):
     return chip_list
 
 
-def add_chips_parameters_gen(ibs, rid_list):
+@utool.indent_func
+def add_chips_params_gen(ibs, rid_list):
     """ computes chips if they do not exist.
     generates values for add_chips sqlcommands """
-    cfpath_list = ibs.get_roi_cpaths(rid_list)
+    cfpath_list = get_roi_cfpath_list(ibs, rid_list)
     chip_config_uid = ibs.get_chip_config_uid()
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
+        print('Yeild Chip Param: rid=%r, cpath=%r' % (rid, cfpath))
         yield (rid, cfpath, width, height, chip_config_uid)
 
 
@@ -59,19 +62,20 @@ def add_chips_parameters_gen(ibs, rid_list):
 # Chip deleters
 #--------------
 
+@utool.indent_func
 def delete_chips(ibs, cid_list):
     """ Removes chips from disk (not SQL)"""
     # TODO: Fixme, depends on current algo config
     chip_fpath_list = ibs.get_chip_paths(cid_list)
     print('[preproc_chip] deleting %d chips' % len(cid_list))
-    for cpath in chip_fpath_list:
-        if cpath is None:
+    for cfpath in chip_fpath_list:
+        if cfpath is None:
             continue
         try:
-            os.remove(cpath)
+            os.remove(cfpath)
         except OSError:
-            if exists(cpath):
-                print('[preproc_chip] cannot remove: %r ' % cpath)
+            if exists(cfpath):
+                print('[preproc_chip] cannot remove: %r ' % cfpath)
 
 
 #---------------
@@ -79,6 +83,7 @@ def delete_chips(ibs, cid_list):
 #---------------
 
 
+@utool.indent_func
 def get_chip_fname_fmt(ibs=None, suffix=None):
     """ Returns format of chip file names """
     if suffix is None:
@@ -91,6 +96,7 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
     return _cfname_fmt
 
 
+@utool.indent_func
 def get_roi_cfpath_list(ibs, rid_list, suffix=None):
     """ Returns chip path list """
     utool.assert_all_not_None(rid_list, 'rid_list')
@@ -121,12 +127,14 @@ def gen_chip2_and_write(tup):
     """ worker function for parallel generator """
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
     chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    printDBG('write chip: %r' % cfpath)
     gtool.imwrite(cfpath, chipBGR)
     return cfpath
 
 gen_chip2 = gen_chip2_and_write
 
 
+@utool.indent_func
 def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
                     newsize_list, filter_list=[], nChips=None):
     """ Computes chips and yeilds results asynchronously for writing  """
@@ -162,7 +170,7 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
         #yield result
 
 
-
+@utool.indent_func
 def compute_and_write_chips(ibs, rid_list):
     utool.ensuredir(ibs.chipdir)
     # Get chip configuration information
@@ -181,24 +189,29 @@ def compute_and_write_chips(ibs, rid_list):
     # Define "Asynchronous" generator
     chip_async_iter = gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
                                       newsize_list, filter_list)
+    print('Computing %d chips asynchronously' % (len(cfpath_list)))
     for cfpath in chip_async_iter:
-        yield cfpath
+        print('Wrote chip: %r' % cfpath)
+        pass
+    print('Done computing chips')
+        #yield cfpath
     # Write results to disk as they come back from parallel processess
-    #for chipBGR, cpath in chip_async_iter:
-        #printDBG('write chip: %r' % cpath)
-        #gtool.imwrite(cpath, chipBGR)
+    #for chipBGR, cfpath in chip_async_iter:
+        #printDBG('write chip: %r' % cfpath)
+        #gtool.imwrite(cfpath, chipBGR)
 
 
+@utool.indent_func
 def compute_and_write_chips_lazy(ibs, rid_list):
     """
     Will write a chip if it does not exist on disk, regardless of if it exists
     in the SQL database
     """
-    printDBG('[preproc_chip] compute_and_write_chips_lazy')
+    print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which rid's need their chips computed
     cfpath_list = get_roi_cfpath_list(ibs, rid_list)
     exists_flags = [exists(cfpath) for cfpath in cfpath_list]
     invalid_rids = utool.get_dirty_items(rid_list, exists_flags)
-    printDBG('[preproc_chip] %d / %d chips need to be computed' %
-             (len(invalid_rids), len(rid_list)))
+    print('[preproc_chip] %d / %d chips need to be computed' %
+          (len(invalid_rids), len(rid_list)))
     compute_and_write_chips(ibs, invalid_rids)

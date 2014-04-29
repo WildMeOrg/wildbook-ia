@@ -40,7 +40,7 @@ def change_names(ibs, qrid_list):
     for rid in qrid_list:
         ibs.print_name_table()
         #(nid,) = ibs.add_names((new_name,))
-        ibs.set_roi_properties((rid,), 'name', (new_name,))
+        ibs.set_roi_props((rid,), 'name', (new_name,))
         ibs.print_name_table()
         ibs.print_roi_table()
     new_nid = ibs.get_name_nids(new_name, ensure=False)
@@ -90,7 +90,7 @@ def delete_all_feats(ibs, *args):
     ibsfuncs.delete_all_features(ibs)
 
 
-@devcmd
+@devcmdz
 def delete_all_chips(ibs, *args):
     ibsfuncs.delete_all_chips(ibs)
 
@@ -188,8 +188,8 @@ def devfunc(ibs, qrid_list):
     return locals()
 
 
-@devcmd('gv')
-def gvcomp(ibs, qrid_list):
+@devcmd('dist')
+def desc_dists(ibs, qrid_list):
     qrid2_qres = ibs.query_database(qrid_list)
     allres = results.init_allres(ibs, qrid2_qres)
     # Get the descriptor distances of true matches

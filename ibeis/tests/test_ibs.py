@@ -23,7 +23,7 @@ def TEST_IBS(ibs):
     gpaths_list = ibs.get_image_paths(gid_list)
     print(' * gpaths_list=%r' % gpaths_list)
 
-    printTEST('[TEST] 3. get_image_properties')
+    printTEST('[TEST] 3. get_image_props')
     uri_list   = ibs.get_image_uris(gid_list)
     path_list  = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_size(gid_list)
@@ -35,8 +35,8 @@ def TEST_IBS(ibs):
     print(' * time_list=%r' % time_list)
     print(' * gps_list=%r' % gps_list)
 
-    printTEST('[TEST] 4. get_image_properties')
-    mult_cols_list = ibs.get_table_properties('images', ('image_uri', 'image_width', 'image_height'), gid_list)
+    printTEST('[TEST] 4. get_image_props')
+    mult_cols_list = ibs.get_table_props('images', ('image_uri', 'image_width', 'image_height'), gid_list)
     print(' * gps_list=%r' % mult_cols_list)
 
     printTEST('[TEST] 5. add_rois')
@@ -47,7 +47,7 @@ def TEST_IBS(ibs):
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list)
     print(' * rid_list=%r' % rid_list)
 
-    printTEST('[TEST] 6. get_roi_properties')
+    printTEST('[TEST] 6. get_roi_props')
     gid_list    = ibs.get_roi_gids(rid_list)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
