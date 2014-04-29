@@ -35,17 +35,18 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
 
     def get_uid_list(qreq, use_drids=True, use_qrids=False, **kwargs):
-        uid_list = qreq.cfg.get_uid_list(**kwargs)
+        uid_list = []
         if use_drids:
             # Append a hash of the database rois
             assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
             drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
-            uid_list += [drids_uid]
+            uid_list.append(drids_uid)
         if use_qrids:
             # Append a hash of the query rois
             assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
             qrids_uid = utool.hashstr_arr(qreq.qrids, '_qrids')
-            uid_list += [qrids_uid]
+            uid_list.append(qrids_uid)
+        uid_list.extend(qreq.cfg.get_uid_list(**kwargs))
         return uid_list
 
     def get_uid(qreq, **kwargs):
