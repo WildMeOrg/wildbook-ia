@@ -190,6 +190,17 @@ def devfunc(ibs, qrid_list):
 
 @devcmd('gv')
 def gvcomp(ibs, qrid_list):
+    qrid2_qres = ibs.query_database(qrid_list)
+    allres = results.init_allres(ibs, qrid2_qres)
+    # Get the descriptor distances of true matches
+    true_desc_distances = results.get_matching_distances(allres, 'true')
+    false_desc_distances = results.get_matching_distances(allres, 'true')
+    print(true_desc_distances)
+    print(false_desc_distances)
+
+
+@devcmd('gv')
+def gvcomp(ibs, qrid_list):
     """
     GV = With gravity vector
     RI = With rotation invariance
