@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
-# Standard
+from collections import OrderedDict
 import re
-# Science
 import numpy as np
 
 MAX_VALSTR = -1
@@ -87,7 +86,7 @@ class AbstractPrintable(object):
 
 
 def npArrInfo(arr):
-    from .DynStruct import DynStruct
+    from .DynamicStruct import DynStruct
     info = DynStruct()
     info.shapestr  = '[' + ' x '.join([str(x) for x in arr.shape]) + ']'
     info.dtypestr  = str(arr.dtype)
@@ -130,8 +129,10 @@ def printableVal(val, type_bit=True, justlength=False):
     # NUMPY ARRAY
     if type(val) is np.ndarray:
         info = npArrInfo(val)
-        if info.dtypestr == 'bool':
+        if info.dtypestr.startswith('bool'):
             _valstr = '{ shape:' + info.shapestr + ' bittotal: ' + info.bittotal + '}'  # + '\n  |_____'
+        elif info.dtypestr.startswith('float'):
+            _valstr = printable_mystats(val)
         else:
             _valstr = '{ shape:' + info.shapestr + ' mM:' + info.minmaxstr + ' }'  # + '\n  |_____'
     # String
@@ -158,3 +159,36 @@ def printableVal(val, type_bit=True, justlength=False):
         _valstr = '\n    ' + _valstr
     _valstr = re.sub('\n *$', '', _valstr)  # Replace empty lines
     return _valstr
+
+
+def printable_mystats(_list, newlines=False):
+    stat_dict = mystats(_list)
+    stat_strs = ['%r: %s' % (key, val) for key, val in stat_dict.iteritems()]
+    if newlines:
+        indent = '    '
+        head = '{\n' + indent
+        sep  = ',\n' + indent
+        tail = '\n}'
+    else:
+        head = '{'
+        sep = ', '
+        tail = '}'
+    ret = head + sep.join(stat_strs) + tail
+    return ret
+
+
+def mystats(_list):
+    if len(_list) == 0:
+        return {'empty_list': True}
+    nparr = np.array(_list)
+    min_val = nparr.min()
+    max_val = nparr.max()
+    nMin = np.sum(nparr == min_val)  # number of entries with min val
+    nMax = np.sum(nparr == max_val)  # number of entries with min val
+    return OrderedDict([('max',   np.float32(max_val)),
+                        ('min',   np.float32(min_val)),
+                        ('mean',  np.float32(nparr.mean())),
+                        ('std',   np.float32(nparr.std())),
+                        ('nMin',  np.int32(nMin)),
+                        ('nMax',  np.int32(nMax)),
+                        ('shape', repr(nparr.shape))])

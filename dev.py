@@ -6,17 +6,20 @@ This is a hacky script meant to be run interactively
 from __future__ import absolute_import, division, print_function
 import ibeis
 ibeis._preload()
+# Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS
 from ibeis.dev.all_imports import *  # NOQA
+# Tools
 from plottool import draw_func2 as df2
+# IBEIS
 from ibeis.dev import main_helpers
 from ibeis.viz import interact
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
+from ibeis.dev import results_all
 import utool
 import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
-from ibeis.dev import results
 
 if not 'back' in vars():
     back = None
@@ -90,10 +93,14 @@ def delete_all_feats(ibs, *args):
     ibsfuncs.delete_all_features(ibs)
 
 
-@devcmdz
+@devcmd
 def delete_all_chips(ibs, *args):
     ibsfuncs.delete_all_chips(ibs)
 
+
+#--------------------
+# RUN DEV EXPERIMENTS
+#--------------------
 
 #@utool.indent_decor('[dev]')
 @profile
@@ -161,42 +168,76 @@ def run_experiments(ibs, qrid_list):
     return locals()
 
 
+#-------------------
+# CUSTOM DEV FUNCS
+#-------------------
+
+
+__ALLRES_CACHE__ = {}
+
+
 def get_allres(ibs, qrid_list):
-    qrid2_qres = ibs.query_database(qrid_list)
-    allres = results.init_allres(ibs, qrid2_qres)
+    allres_uid = ibs.qreq.get_uid()
+    try:
+        allres = __ALLRES_CACHE__[allres_uid]
+    except KeyError:
+        qrid2_qres = ibs.query_database(qrid_list)
+        allres = results_all.init_allres(ibs, qrid2_qres)
+    # Cache save
+    __ALLRES_CACHE__[allres_uid] = allres
     return allres
+
+
+#------------------
+# DEV DEVELOPMENT
+#------------------
 
 
 def devfunc(ibs, qrid_list):
     """ Function for developing something """
     allres = get_allres(ibs, qrid_list)
-    orgtype_ = 'false'
-    orgres = allres.get_orgtype(orgtype_)
-    qrids = orgres.qrids
-    rids  = orgres.rids
+    locals_ = locals()
+    #locals_.update(chipmatch_scores(ibs, qrid_list))
+    return locals_
 
-    qdesc_cache = ibsfuncs.get_roi_desc_cache(ibs, qrids)
-    rdesc_cache = ibsfuncs.get_roi_desc_cache(ibs, rids)
 
-    fm = allres.get_fm(qrid, rid)
-
-    desc1_m = qdesc_cache[qrid][fm.T[0]]
-    desc2_m = rdesc_cache[rid][fm.T[1]]
-
-    qrid = qrids[0]
-    rid = rids[0]
+@devcmd('desc_dists')
+def desc_dists(ibs, qrid_list):
+    """ Plots the distances between matching descriptors
+    labeled with groundtruth (true/false) data """
+    allres = get_allres(ibs, qrid_list)
+    # Get the descriptor distances of true matches
+    orgtype_list = ['top_false', 'true']
+    disttype = 'L2'
+    desc_distances_map = allres.get_desc_match_dists(orgtype_list, orgtype_list)
+    results_analyzer.print_desc_distances_map(desc_distances_map)
+    #true_desc_dists  = desc_distances_map['true']['L2']
+    #false_desc_dists = desc_distances_map['false']['L2']
+    #scores_list = [false_desc_dists, true_desc_dists]
+    scores_list = [desc_distances_map[orgtype][disttype] for orgtype in orgtype_list]
+    scores_lbls = orgtype_list
+    scores_markers = ['x', 'o--']
+    plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
+    df2.set_figtitle('Descriptor Distances')
     return locals()
 
 
-@devcmd('dist')
-def desc_dists(ibs, qrid_list):
-    qrid2_qres = ibs.query_database(qrid_list)
-    allres = results.init_allres(ibs, qrid2_qres)
+@devcmd('scores')
+def chipmatch_scores(ibs, qrid_list):
+    allres = get_allres(ibs, qrid_list)
     # Get the descriptor distances of true matches
-    true_desc_distances = results.get_matching_distances(allres, 'true')
-    false_desc_distances = results.get_matching_distances(allres, 'true')
-    print(true_desc_distances)
-    print(false_desc_distances)
+    orgtype_list = ['false', 'true']
+    markers_map = {'false': 'x', 'true': 'o-'}
+    cmatch_scores_map = allres.get_chipmatch_scores(orgtype_list)
+    results_analyzer.print_chipmatch_scores_map(cmatch_scores_map)
+    true_cmatch_scores  = cmatch_scores_map['true']
+    false_cmatch_scores = cmatch_scores_map['false']
+    scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
+    scores_lbls = orgtype_list
+    scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
+    plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
+    df2.set_figtitle('Chipmatch Scores ' + ibs.qreq.get_uid())
+    return locals()
 
 
 @devcmd('gv')
@@ -206,8 +247,7 @@ def gvcomp(ibs, qrid_list):
     RI = With rotation invariance
     """
     def testcomp(ibs, qrid_list):
-        qrid2_qres = ibs.query_database(qrid_list)
-        allres = results.init_allres(ibs, qrid2_qres)
+        allres = get_allres(ibs, qrid_list)
         for qrid in qrid_list:
             qres = allres.get_qres(qrid)
             interact.ishow_qres(ibs, qres, annote_mode=2)
@@ -220,6 +260,26 @@ def gvcomp(ibs, qrid_list):
     return locals()
 
 
+def get_ibslist(ibs):
+    ibs_GV  = ibs
+    ibs_RI  = ibs.clone_handle(nogravity_hack=True)
+    ibs_RIW = ibs.clone_handle(nogravity_hack=True, gravity_weighting=True)
+    ibs_list = [ibs_GV, ibs_RI, ibs_RIW]
+    return ibs_list
+
+
+@devcmd('gv_scores')
+def compgrav_chipmatch_scores(ibs, qrid_list):
+    ibs_list = get_ibslist(ibs)
+    for ibs_ in ibs_list:
+        chipmatch_scores(ibs_, qrid_list)
+
+
+#------------------
+# DEV MAIN
+#------------------
+
+
 @profile
 def dev_main():
     global back
@@ -230,10 +290,13 @@ def dev_main():
 
     fnum = 1
     qrid_list = main_helpers.get_test_qrids(ibs)
+    ibs.prep_qreq_db(qrid_list)
+
     expt_locals = run_experiments(ibs, qrid_list)
 
-    #devfunc_locals = devfunc(ibs, qrid_list)
-    #exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
+    if '--devmode' in sys.argv:
+        devfunc_locals = devfunc(ibs, qrid_list)
+        exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
     if not '--nopresent' in sys.argv:
         df2.present()
@@ -254,9 +317,12 @@ if __name__ == '__main__':
             Examples:
                 ./dev.py -t query -w
     """
+    utool.print_resource_usage()
     dev_locals, main_execstr = dev_main()
     dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
     execstr = dev_execstr + '\n' + main_execstr
+
+    utool.print_resource_usage()
     exec(execstr)
 
 

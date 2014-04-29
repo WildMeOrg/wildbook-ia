@@ -22,7 +22,7 @@ def get_query_components(ibs, qrids):
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #print(ibs.get_infostr())
-    drids = ibs.get_recognition_database_rois()
+    drids = ibs.get_recognition_database_rids()
     qrid = qrids[0]
     assert len(drids) > 0, '!!! nothing to search'
     assert len(qrids) > 0, '!!! nothing to query'

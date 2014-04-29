@@ -17,7 +17,7 @@ def quickly_ensure_qreq(ibs, qrids=None, drids=None):
     ibs._init_query_requestor()
     qreq = ibs.qreq
     query_cfg = ibs.cfg.query_cfg
-    rids = ibs.get_recognition_database_rois()
+    rids = ibs.get_recognition_database_rids()
     if qrids is None:
         qrids = rids
     if drids is None:
@@ -79,45 +79,61 @@ def pre_exec_checks(ibs, qreq):
 #----------------------
 
 # Query Level 2
-@utool.indent_func('[QL2]')
-def process_query_request(ibs, qreq, use_cache=True, safe=True):
+@utool.indent_func('[Q2]')
+@profile
+def process_query_request(ibs, qreq, use_cache=not params.args.nocache_query, safe=True):
     """
-    The standard query interface
+    The standard query interface.
+    INPUT:
+        ibs  - ibeis control object
+        qreq - query request object (should be the same as ibs.qreq)
+    Checks a big cache for qrid2_qres.
+    If cache miss, tries to load each qres individually.
+    On an individual cache miss, it preforms the query.
     """
     print(' --- Process QueryRequest --- ')
-    # Try loading as many cached results as possible
-    use_cache = not params.args.nocache_query and use_cache
+    # Try and load directly from a big cache
     if use_cache:
-        qrid2_res, failed_qrids = mf.try_load_resdict(qreq)
+        try:
+            qrid2_qres = utool.load_cPkl(qreq.get_bigcache_fpath(ibs))
+            print('... qrid2_qres bigcache hit')
+            return qrid2_qres
+        except IOError:
+            print('... qrid2_qres bigcache miss')
+    # Try loading as many cached results as possible
+    if use_cache:
+        qrid2_qres, failed_qrids = mf.try_load_resdict(qreq)
     else:
-        qrid2_res = {}
+        qrid2_qres = {}
         failed_qrids = qreq.qrids
 
     # Execute and save queries
     if len(failed_qrids) > 0:
         if safe:
             qreq = pre_exec_checks(ibs, qreq)
-        computed_qrid2_res = execute_query_and_save_L1(ibs, qreq, failed_qrids)
-        qrid2_res.update(computed_qrid2_res)  # Update cached results
-    return qrid2_res
+        computed_qrid2_qres = execute_query_and_save_L1(ibs, qreq, failed_qrids)
+        qrid2_qres.update(computed_qrid2_qres)  # Update cached results
+    utool.save_cPkl(qreq.get_bigcache_fpath(ibs), qrid2_qres)
+    return qrid2_qres
 
 
 # Query Level 1
-@utool.indent_func('[QL1]')
+@utool.indent_func('[Q1]')
+@profile
 def execute_query_and_save_L1(ibs, qreq, failed_qrids=[]):
     print('[q1] execute_query_and_save_L1()')
     orig_qrids = qreq.qrids
     if len(failed_qrids) > 0:
         qreq.qrids = failed_qrids
-    qrid2_res = execute_query_L0(ibs, qreq)  # Execute Queries
-    for qrid, res in qrid2_res.iteritems():  # Cache Save
+    qrid2_qres = execute_query_L0(ibs, qreq)  # Execute Queries
+    for qrid, res in qrid2_qres.iteritems():  # Cache Save
         res.save(ibs)
     qreq.qrids = orig_qrids
-    return qrid2_res
+    return qrid2_qres
 
 
 # Query Level 0
-@utool.indent_func('[QL0]')
+@utool.indent_func('[Q0]')
 @profile
 def execute_query_L0(ibs, qreq):
     """
@@ -126,7 +142,7 @@ def execute_query_L0(ibs, qreq):
         ibs   - HotSpotter database object to be queried
         qreq - QueryRequest Object   # use prep_qreq to create one
     Output:
-        qrid2_res - mapping from query indexes to QueryResult Objects
+        qrid2_qres - mapping from query indexes to QueryResult Objects
     """
     # Query Chip Indexes
     # * vsone qrids/drids swapping occurs here
@@ -160,10 +176,10 @@ def execute_query_L0(ibs, qreq):
     qrid2_chipmatch_SVER = mf.spatial_verification(
         ibs, qrid2_chipmatch_FILT, qreq, dbginfo=False)
 
-    # Query results format (qrid2_res) (TODO: SQL / Json Encoding)
+    # Query results format (qrid2_qres) (TODO: SQL / Json Encoding)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qrid2_res = mf.chipmatch_to_resdict(
+    qrid2_qres = mf.chipmatch_to_resdict(
         ibs, qrid2_chipmatch_SVER, filt2_meta, qreq)
 
-    return qrid2_res
+    return qrid2_qres

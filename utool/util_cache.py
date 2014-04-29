@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import shelve
+import cPickle
 import atexit
 from os.path import join, normpath
 from . import util_inject
@@ -9,8 +10,9 @@ from . import util_cplat
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
-__PRINT_WRITES__ = False
-__PRINT_READS__ = False
+__PRINT_IO__ = False
+__PRINT_WRITES__ = False or __PRINT_IO__
+__PRINT_READS__  = False or __PRINT_IO__
 
 __SHELF__ = None  # GLOBAL CACHE
 
@@ -18,25 +20,40 @@ __SHELF__ = None  # GLOBAL CACHE
 def read_from(fpath):
     verbose = __PRINT_READS__
     if verbose:
-        print('[util] * Reading text file: %r ' % util_path.split(fpath)[1])
+        print('[cache] * Reading text file: %r ' % util_path.split(fpath)[1])
     try:
         if not util_path.checkpath(fpath, verbose=verbose):
-            raise IOError('[util] * FILE DOES NOT EXIST!')
+            raise IOError('[cache] * FILE DOES NOT EXIST!')
         with open(fpath, 'r') as file_:
             text = file_.read()
     except IOError as ex:
         print('!!!!!!!')
         print('IOError: %s' % (ex,))
-        print('[util] * Error reading fpath=%r' % fpath)
+        print('[cache] * Error reading fpath=%r' % fpath)
         raise
     return text
 
 
 def write_to(fpath, to_write):
     if __PRINT_WRITES__:
-        print('[util] * Writing to text file: %r ' % fpath)
+        print('[cache] * Writing to text file: %r ' % fpath)
     with open(fpath, 'w') as file_:
         file_.write(to_write)
+
+
+def save_cPkl(fpath, data):
+    if __PRINT_WRITES__:
+        print('[cache] * save_cPkl(%r, data)' % (fpath,))
+    with open(fpath, 'wb') as file_:
+        cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
+
+
+def load_cPkl(fpath):
+    if __PRINT_READS__:
+        print('[cache] * load_cPkl(%r, data)' % (fpath,))
+    with open(fpath, 'rb') as file_:
+        data = cPickle.load(file_)
+    return data
 
 
 # --- Global Cache ---

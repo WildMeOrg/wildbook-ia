@@ -14,11 +14,10 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 QUIET = utool.QUIET
 SKIP_TO = utool.get_arg('--skip-to', default=None)
-DEV_MODE = utool.get_arg('--devmode', default=False)
 
 
-def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows,
-                  sel_cols, cfgx2_lbl=None):
+def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
+                  sel_rows, sel_cols, cfgx2_lbl=None):
     nCfg = len(cfg_list)
     nQuery = len(qrids)
     qreq = ibs.qreq
@@ -292,13 +291,6 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid, sel_rows,
 
     prev_cfg = None
     skip_list = []
-    if DEV_MODE:
-        ibs.prefs.display_cfg.N = 3
-        df2.FONTS.axtitle = df2.FONTS.smaller
-        df2.FONTS.xlabel = df2.FONTS.smaller
-        df2.FONTS.figtitle = df2.FONTS.smaller
-        df2.SAFE_POS['top']    = .8
-        df2.SAFE_POS['bottom'] = .01
 
     for count, (r, c) in enumerate(rciter):
         if SKIP_TO is not None:

@@ -108,7 +108,10 @@ class NNIndex(object):
         """ Ensure flann is propertly removed """
         printDBG('deleting NNIndex')
         if getattr(nn_index, 'flann', None) is not None:
-            nn_index.flann.delete_index()
+            try:
+                nn_index.flann.delete_index()
+            except Exception as ex:
+                utool.printex(ex)
             nn_index.flann = None
 
     def nn_index2(nn_index, qreq, qfx2_desc):

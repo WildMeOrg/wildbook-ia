@@ -51,7 +51,7 @@ def _init_matplotlib():
             backend = matplotlib.get_backend()
             if not utool.QUIET and utool.VERBOSE:
                 print('[main] current backend is: %r' % backend)
-        if utool.get_flag('--notoolbar') or utool.get_flag('--devmode'):
+        if utool.get_flag('--notoolbar'):
             toolbar = 'None'
         else:
             toolbar = 'toolbar2'

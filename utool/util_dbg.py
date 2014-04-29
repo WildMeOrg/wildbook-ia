@@ -3,6 +3,7 @@ import fnmatch
 import inspect
 import numpy as np
 import sys
+import shelve
 import textwrap
 import types
 from . import util_inject
@@ -160,19 +161,17 @@ def execstr_src(func):
 
 
 def save_testdata(*args, **kwargs):
-    import shelve
     uid = kwargs.get('uid', '')
     shelf_fname = 'test_data_%s.shelf' % uid
     shelf = shelve.open(shelf_fname)
     locals_ = get_parent_locals()
+    print('save_testdata(%r)' % (args,))
     for key in args:
-        print('Stashing key=%r' % key)
         shelf[key] = locals_[key]
     shelf.close()
 
 
 def load_testdata(*args, **kwargs):
-    import shelve
     uid = kwargs.get('uid', '')
     shelf_fname = 'test_data_%s.shelf' % uid
     shelf = shelve.open(shelf_fname)
@@ -180,11 +179,11 @@ def load_testdata(*args, **kwargs):
     shelf.close()
     if len(ret) == 1:
         ret = ret[0]
+    print('load_testdata(%r)' % (args,))
     return ret
 
 
 def import_testdata():
-    import shelve
     shelf = shelve.open('test_data.shelf')
     print('importing\n * ' + '\n * '.join(shelf.keys()))
     shelf_exec = execstr_dict(shelf, 'shelf')

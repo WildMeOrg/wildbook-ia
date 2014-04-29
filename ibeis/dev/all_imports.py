@@ -70,7 +70,13 @@ import guitool
 from ibeis.dev import main_commands
 from ibeis.dev import params
 from ibeis.dev import ibsfuncs
-from ibeis.dev import result_organizer
+from ibeis.dev import results_organizer
+from ibeis.dev import results_analyzer
+from ibeis.dev import results_all
+from ibeis.dev import experiment_configs
+from ibeis.dev import experiment_harness
+from ibeis.dev import experiment_printresults
+from ibeis.dev import experiment_helpers as eh
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc

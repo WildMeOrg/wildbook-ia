@@ -1,13 +1,41 @@
+#
+#-----------------
+# DEFAULT DATABASE 
+#-----------------
+export DEFDB="--db testdb1 --setdb"
+
+#
+#-----------------
+# DEFINE TESTS 
+#-----------------
 export TESTS=""
 #export TESTS="-t gv_test"
+
+#
+#-----------------
+# AUGMENT
+#-----------------
 export AUG=""
-export AUG="--num-proc 1"
 export AUG="$AUG --allgt"
+export AUG="$AUG --devmode"
+#export AUG="$AUG --num-proc 1"
 #export AUG="$AUG --cmd"
-#export AUG="--print-rankmat --print-rowlbl --print-rowscore --print-hardcase --echo-hardcase"
-export DEVPY="python dev.py --db testdb1 --setdb $AUG $TESTS"
+#export AUG="$AUG --print-rankmat --print-rowlbl --print-rowscore --print-hardcase --echo-hardcase"
+
+#
+#-----------------
+# BUILD DEVPY CMD
+#-----------------
+export DEVPY="python dev.py $DEFDB $AUG $TESTS"
+
+#
+#-----------------
+# RUN DEVPY CMD
+#-----------------
 $DEVPY $@
 
+#_______________________
+# ARCHIVED FUNCS / NOTES
 RESET(){
     sh reset_dbs.sh
 }
@@ -16,8 +44,6 @@ RESET(){
 UNUSED() {
     #python dev.py --db PZ_MOTHERS -t gv_test
     python dev.py --db PZ_MOTHERS -t tables
-
-
     python dev.py --db PZ_MOTHERS -t gv_test --print-rowscore --print-collbl --print-rowlbl
 }
 

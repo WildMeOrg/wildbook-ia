@@ -123,14 +123,16 @@ class IBEISControl(object):
             utool.ensuredir(ibs.flanndir)
             utool.ensuredir(ibs.qresdir)
             utool.ensuredir(ibs.bigcachedir)
-        printDBG('[ibs._init_dirs] ibs.dbname = %r' % ibs.dbname)
-        printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
+        #OFF printDBG('[ibs._init_dirs] ibs.dbname = %r' % ibs.dbname)
+        #OFF printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISControl(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
             ibs2.update_cfg(**kwargs)
+        if ibs.qreq is not None:
+            ibs2._prep_qreq(ibs.qreq.qrids, ibs.qreq.drids)
         return ibs2
 
     def get_dbname(ibs):
@@ -164,9 +166,9 @@ class IBEISControl(object):
         """ Load or create sql database """
         ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbdir(),
                                                        ibs.sqldb_fname)
-        printDBG('[ibs._init_sql] Define the schema.')
+        #OFF printDBG('[ibs._init_sql] Define the schema.')
         DB_SCHEMA.define_IBEIS_schema(ibs)
-        printDBG('[ibs._init_sql] Add default names.')
+        #OFF printDBG('[ibs._init_sql] Add default names.')
         ibs.UNKNOWN_NAME = '____'
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
         try:
@@ -177,7 +179,7 @@ class IBEISControl(object):
 
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
-        printDBG('[ibs] _load_config()')
+        #OFF printDBG('[ibs] _load_config()')
         try:
             ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
             if not ibs.cfg.load() is True:
@@ -187,7 +189,7 @@ class IBEISControl(object):
 
     def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
-        printDBG('[ibs] _default_config()')
+        #OFF printDBG('[ibs] _default_config()')
         # TODO: Detector config
         query_cfg  = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
@@ -221,6 +223,13 @@ class IBEISControl(object):
         query_cfg_suffix = ibs.cfg.query_cfg.get_uid()
         query_cfg_uid = ibs.add_config(query_cfg_suffix)
         return query_cfg_uid
+
+    @utool.indent_func
+    def get_qreq_uid(ibs):
+        assert ibs.qres is not None
+        qreq_uid = ibs.qreq.get_uid()
+        return qreq_uid
+
     #
     #
     #---------------
@@ -369,14 +378,14 @@ class IBEISControl(object):
         return cid_list
         """
         # Ensure must be false, otherwise an infinite loop occurs
-        printDBG('ADD_CHIPS(rid_list=%r)' % (rid_list,))
+        #OFF printDBG('ADD_CHIPS(rid_list=%r)' % (rid_list,))
         cid_list = ibs.get_roi_cids(rid_list, ensure=False)
-        printDBG('ADD_CHIPS(cid_list=%r)' % (cid_list,))
+        #OFF printDBG('ADD_CHIPS(cid_list=%r)' % (cid_list,))
         dirty_rids = utool.get_dirty_items(rid_list, cid_list)
-        printDBG('ADD_CHIPS(dirty_rids=%r)' % (dirty_rids,))
+        #OFF printDBG('ADD_CHIPS(dirty_rids=%r)' % (dirty_rids,))
         if len(dirty_rids) > 0:
             try:
-                printDBG('ADD_CHIPS(dirty_rids=%r)' % (rid_list,))
+                #OFF printDBG('ADD_CHIPS(dirty_rids=%r)' % (rid_list,))
                 # FIXME:
                 # Need to not be lazy here for now, until we fix the chip config
                 # / delete issue
@@ -466,11 +475,9 @@ class IBEISControl(object):
 
     @setter
     def set_table_props(ibs, table, prop_key, uid_list, val_list):
-        printDBG('------------------------')
-        printDBG('[ibs] set_table_props(table=%r, prop_key=%r)' %
-                 (table, prop_key))
-        printDBG('[ibs] set_table_props(uid_list=%r, val_list=%r)' %
-                 (uid_list, val_list))
+        #OFF printDBG('------------------------')
+        #OFF printDBG('set_table_props(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('set_table_props(uid_list=%r, val_list=%r)' % (uid_list, val_list))
         # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
         # Potentially UNSAFE SQL
@@ -600,8 +607,7 @@ class IBEISControl(object):
         return get_valid_tblname_ids()
 
     def get_table_props(ibs, table, prop_key, uid_list):
-        printDBG('get_table_props(table=%r, prop_key=%r)' %
-                 (table, prop_key))
+        #OFF printDBG('get_table_props(table=%r, prop_key=%r)' % (table, prop_key))
         # Input to table props must be a list
         if isinstance(prop_key, str):
             prop_key = (prop_key,)
@@ -1353,12 +1359,10 @@ class IBEISControl(object):
         return detection_list
 
     @utool.indent_func
-    def get_recognition_database_rois(ibs):
+    def get_recognition_database_rids(ibs):
         """ returns persitent recognition database rois """
         drid_list = ibs.get_valid_rids()
         return drid_list
-
-    get_recognition_database_rids = get_recognition_database_rois
 
     @utool.indent_func
     def query_intra_encounter(ibs, qrid_list, **kwargs):
@@ -1367,33 +1371,47 @@ class IBEISControl(object):
         qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
         return qres_list
 
-    @utool.indent_func('[query_db]')
+    @utool.indent_func((False, '[query_db]'))
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         if ibs.qreq is None:
             ibs._init_query_requestor()
-        drid_list = ibs.get_recognition_database_rois()
+        drid_list = ibs.get_recognition_database_rids()
         qrid2_res = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_res
 
     @utool.indent_func
     def _init_query_requestor(ibs):
         from ibeis.model.hots import QueryRequest
-        ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir)  # Query Data
+        # Create query request object
+        ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
-    @utool.indent_func
+    @utool.indent_func(False)
+    def prep_qreq_db(ibs, qrid_list):
+        drid_list = ibs.get_recognition_database_rids()
+        ibs._prep_qreq(qrid_list, drid_list)
+
+    @utool.indent_func(False)
+    def _prep_qreq(ibs, qrid_list, drid_list, **kwargs):
+        from ibeis.model.hots import match_chips3 as mc3
+        if ibs.qreq is None:
+            ibs._init_query_requestor()
+        qreq = mc3.prep_query_request(qreq=ibs.qreq,
+                                      qrids=qrid_list,
+                                      drids=drid_list,
+                                      query_cfg=ibs.cfg.query_cfg,
+                                      **kwargs)
+        return qreq
+
+    @utool.indent_func('[query]')
     def _query_chips(ibs, qrid_list, drid_list, **kwargs):
         """
         qrid_list - query chip ids
         drid_list - database chip ids
         """
         from ibeis.model.hots import match_chips3 as mc3
-        qreq = mc3.prep_query_request(qreq=ibs.qreq,
-                                      qrids=qrid_list,
-                                      drids=drid_list,
-                                      query_cfg=ibs.cfg.query_cfg,
-                                      **kwargs)
+        qreq = ibs._prep_qreq(qrid_list, drid_list, **kwargs)
         qrid2_qres = mc3.process_query_request(ibs, qreq)
         return qrid2_qres
 

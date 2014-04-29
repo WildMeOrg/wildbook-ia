@@ -23,6 +23,7 @@ print, print_,  printDBG, rrr, profile =\
 
 np.tau = 2 * np.pi  # tauday.com
 QUIET = utool.QUIET or utool.get_flag('--quiet-query')
+VERBOSE = utool.VERBOSE or utool.get_flag('--verbose-query')
 
 
 #=================
@@ -214,7 +215,7 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
         qfx2_score, qfx2_valid = _apply_filter_scores(
             qrid, qfx2_nnax, filt2_weights, filt_cfg)
         qfx2_rid = qreq.data_index.ax2_rid[qfx2_nnax]
-        if not QUIET:
+        if VERBOSE:
             print('[mf] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
         if filt_cfg.gravity_weighting:
@@ -233,9 +234,9 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
         if cant_match_self:
             ####DBG
             qfx2_notsamechip = qfx2_rid != qrid
-            nChip_all_invalid = ((True - qfx2_notsamechip)).sum()
-            nChip_new_invalid = (qfx2_valid * (True - qfx2_notsamechip)).sum()
-            if not QUIET:
+            if VERBOSE:
+                nChip_all_invalid = ((True - qfx2_notsamechip)).sum()
+                nChip_new_invalid = (qfx2_valid * (True - qfx2_notsamechip)).sum()
                 print('[mf] * %d assignments are invalid by self' % nChip_all_invalid)
                 print('[mf] * %d are newly invalided by self' % nChip_new_invalid)
             ####
@@ -245,9 +246,9 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
             qgid     = ibs.get_roi_gids(qrid)
             qfx2_notsameimg = qfx2_gid != qgid
             ####DBG
-            nImg_all_invalid = ((True - qfx2_notsameimg)).sum()
-            nImg_new_invalid = (qfx2_valid * (True - qfx2_notsameimg)).sum()
-            if not QUIET:
+            if VERBOSE:
+                nImg_all_invalid = ((True - qfx2_notsameimg)).sum()
+                nImg_new_invalid = (qfx2_valid * (True - qfx2_notsameimg)).sum()
                 print('[mf] * %d assignments are invalid by gid' % nImg_all_invalid)
                 print('[mf] * %d are newly invalided by gid' % nImg_new_invalid)
             ####
@@ -257,9 +258,9 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
             qnid = ibs.get_roi_nids(qrid)
             qfx2_notsamename = qfx2_nid != qnid
             ####DBG
-            nName_all_invalid = ((True - qfx2_notsamename)).sum()
-            nName_new_invalid = (qfx2_valid * (True - qfx2_notsamename)).sum()
-            if not QUIET:
+            if VERBOSE:
+                nName_all_invalid = ((True - qfx2_notsamename)).sum()
+                nName_new_invalid = (qfx2_valid * (True - qfx2_notsamename)).sum()
                 print('[mf] * %d assignments are invalid by nid' % nName_all_invalid)
                 print('[mf] * %d are newly invalided by nid' % nName_new_invalid)
             ####

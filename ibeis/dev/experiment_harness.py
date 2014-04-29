@@ -11,23 +11,18 @@ from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import matching_functions as mf
 from ibeis.dev import params
 from ibeis.dev import experiment_helpers as eh
-from ibeis.dev import report_experiment_results
+from ibeis.dev import experiment_printresults
 
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]', DEBUG=False)
 
-BATCH_MODE = '--batch' in sys.argv
+BATCH_MODE = not '--nobatch' in sys.argv
 NOMEMORY   = '--nomemory' in sys.argv
 QUIET      = '--quiet' in sys.argv
 TESTRES_VERBOSITY = 2 - (2 * QUIET)
 NOCACHE_TESTRES =  utool.get_flag('--nocache-testres', False)
 TEST_INFO = True
 STRICT = '--strict' in sys.argv
-
-
-def _get_query_results(ibs, qrid_list):
-    qrid2_res = ibs.query_database(qrid_list)
-    return qrid2_res
 
 
 def _get_qx2_besrank_batch(ibs, qreq):
@@ -40,20 +35,8 @@ def _get_qx2_besrank_batch(ibs, qreq):
     return qx2_bestranks
 
 
-def print_test_info(qrid, qreq):
-    if TEST_INFO:
-        print('qrid=%r. quid=%r' % (qrid, qreq.get_uid()))
-
-
-def assert_one_result(qrid2_res):
-    try:
-        assert len(qrid2_res) == 1, ''
-    except AssertionError as ex:
-        utool.printex(ex, key_list=['qrid2_res'])
-        raise
-
-
 def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''):
+    # TODO: INCORPORATE MINIBATCH SIZE TO MATCH_CHIPS3 AND DEPRICATE THIS
     print('[harn] querying one query at a time')
     # Make progress message
     msg = textwrap.dedent('''
@@ -66,7 +49,6 @@ def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''
     # Query Chip / Row Loop
     for qx, qrid in enumerate(qrids):
         mark_prog(qx + nPrevQueries, nTotalQueries)
-        #print_test_info(qrid, qreq)
         try:
             qreq.qrids = [qrid]  # hacky
             qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
@@ -76,7 +58,11 @@ def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''
             if not STRICT:
                 continue
             raise
-        assert_one_result(qrid2_res)
+        try:
+            assert len(qrid2_res) == 1, ''
+        except AssertionError as ex:
+            utool.printex(ex, key_list=['qrid2_res'])
+            raise
         # record the best rank from this groundtruth
         best_rank = qrid2_res[qrid].get_best_gt_rank(ibs)
         qx2_bestranks.append([best_rank])
@@ -170,6 +156,6 @@ def test_configurations(ibs, qrids, test_cfg_name_list, fnum=1):
     if NOMEMORY:
         print('ran tests in memory savings mode. exiting')
         return
-    report_experiment_results.print_results(ibs, qrids, drids, cfg_list,
-                                            mat_list, testnameid, sel_rows,
-                                            sel_cols, cfgx2_lbl=cfgx2_lbl)
+    experiment_printresults.print_results(ibs, qrids, drids, cfg_list,
+                                          mat_list, testnameid, sel_rows,
+                                          sel_cols, cfgx2_lbl=cfgx2_lbl)

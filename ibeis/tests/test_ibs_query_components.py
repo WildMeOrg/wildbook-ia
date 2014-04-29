@@ -27,7 +27,7 @@ def TEST_QUERY_COMP(ibs, qrid_list=None):
 
     #query_helpers.find_matchable_chips(ibs)
 
-    rids = ibs.get_recognition_database_rois()
+    rids = ibs.get_recognition_database_rids()
     #nn_index = NNIndex.NNIndex(ibs, rid_list)
     index = 0
     index = utool.get_arg('--index', type_=int, default=index)

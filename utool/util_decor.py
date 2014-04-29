@@ -72,6 +72,10 @@ def ignores_exc_tb(func):
         return func
 
 
+def identity_decor(func):
+    return func
+
+
 def indent_decor(lbl):
     def indent_decor_outer_wrapper(func):
         @ignores_exc_tb
@@ -89,6 +93,11 @@ def indent_func(input_):
     """
     Takes either no arguments or an alias label
     """
+    if isinstance(input_, str):
+        lbl = input_
+        return indent_decor(lbl)
+    elif isinstance(input_, (bool, tuple)):
+        return identity_decor
     if not isinstance(input_, str):
         func = input_
         # No arguments were passed
@@ -98,9 +107,6 @@ def indent_func(input_):
         def wrapper_indent_func(*args, **kwargs):
             return func(*args, **kwargs)
         return wrapper_indent_func
-    else:
-        lbl = input_
-        return indent_decor(lbl)
 
 
 def accepts_scalar_input(func):

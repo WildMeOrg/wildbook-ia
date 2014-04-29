@@ -4,6 +4,7 @@ import utool
     __name__, '[qreq]', DEBUG=False)
 # Standard
 from itertools import izip
+from os.path import join
 # Scientific
 import utool
 
@@ -12,7 +13,7 @@ __REQUEST_BASE__ = utool.DynStruct if utool.get_flag('--debug') else object
 
 class QueryRequest(__REQUEST_BASE__):
     # This will allow for a pipelining structure of requests and results
-    def __init__(qreq, qresdir):
+    def __init__(qreq, qresdir, bigcachedir):
         super(QueryRequest, qreq).__init__()
         qreq.cfg = None  # Query config pointer
         qreq.qrids = []
@@ -21,7 +22,8 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.dftup2_index = {}  # cached indexes
         qreq.vsmany = False
         qreq.vsone  = False
-        qreq.qresdir = qresdir
+        qreq.qresdir = qresdir  # Where to cache individual results
+        qreq.bigcachedir = bigcachedir  # Where to cache large results
 
     def set_rids(qreq, qrids, drids):
         qreq.qrids = qrids
@@ -32,25 +34,30 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.vsmany = query_cfg.agg_cfg.query_type == 'vsmany'
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
 
-    def get_uid_list(qreq, *args, **kwargs):
-        uid_list = qreq.cfg.get_uid_list(*args, **kwargs)
-        if not 'noDCXS' in args:
-            if len(qreq.drids) == 0:
-                raise Exception('QueryRequest not populated. len(drids)=0')
-            # In case you don't search the entire dataset
+    def get_uid_list(qreq, use_drids=True, use_qrids=False, **kwargs):
+        uid_list = qreq.cfg.get_uid_list(**kwargs)
+        if use_drids:
+            # Append a hash of the database rois
+            assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
             drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
             uid_list += [drids_uid]
+        if use_qrids:
+            # Append a hash of the query rois
+            assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
+            qrids_uid = utool.hashstr_arr(qreq.qrids, '_qrids')
+            uid_list += [qrids_uid]
         return uid_list
 
-    def get_uid(qreq, *args, **kwargs):
-        return ''.join(qreq.get_uid_list(*args, **kwargs))
+    def get_uid(qreq, **kwargs):
+        return ''.join(qreq.get_uid_list(**kwargs))
 
-    def get_query_uid(qreq, ibs, qrids):
-        query_uid = qreq.get_uid()
-        hs_uid    = ibs.get_db_name()
-        qrids_uid  = utool.hashstr_arr(qrids, lbl='_qids')
-        test_uid  = hs_uid + query_uid + qrids_uid
-        return test_uid
+    def get_bigcache_fpath(qreq, ibs):
+        query_uid = qreq.get_uid(use_drids=True, use_qrids=True)
+        dbname    = ibs.get_dbname()
+        bigcache_fname = 'qrid2_qres_' + dbname + query_uid
+        bigcache_dpath = ibs.bigcachedir
+        bigcache_fpath = join(bigcache_dpath, bigcache_fname)
+        return bigcache_fpath
 
     def get_internal_drids(qreq):
         """ These are not the users drids in vsone mode """

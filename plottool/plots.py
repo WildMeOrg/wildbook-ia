@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Standard
 from itertools import izip
+from plottool import draw_func2 as df2
 # Matplotlib
 import matplotlib.pyplot as plt
 import vtool.histogram as htool
@@ -28,3 +29,53 @@ def draw_hist_subbin_maxima(hist, centers=None):
     plt.plot(submaxima_x, submaxima_y, 'rx')  # Draw maxsubbin
     for x_pts, y_pts in izip(xpoints, ypoints):
         plt.plot(x_pts, y_pts, 'g--')         # Draw parabola
+
+
+def draw_scores_cdf(scores_list,
+                    scores_lbls=None,
+                    score_markers=None,
+                    score_colors=None,
+                    fnum=None):
+    """
+    Input: a list of scores (either chip or descriptor)
+
+    Concatenates and sorts the scores
+    Plots them in a CDF with different types of scores labeled
+    """
+    if scores_lbls is None:
+        scores_lbls = [lblx for lblx in xrange(len(scores_list))]
+    if score_markers is None:
+        score_markers = ['o' for lbl in xrange(len(scores_list))]
+    if score_colors is None:
+        score_colors = df2.distinct_colors(len(scores_list))[::-1]
+    labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
+    agg_scores  = np.hstack(scores_list)
+    agg_labelx  = np.hstack(labelx_list)
+
+    agg_sortx = agg_scores.argsort()
+
+    sorted_scores = agg_scores[agg_sortx]
+    sorted_labelx = agg_labelx[agg_sortx]
+
+    if fnum is None:
+        fnum = df2.next_fnum()
+
+    df2.figure(fnum=fnum, doclf=True, docla=True)
+
+    for lblx in xrange(len(scores_list)):
+        label = scores_lbls[lblx]
+        color = score_colors[lblx]
+        marker = score_markers[lblx]
+        xdata = np.where(sorted_labelx == lblx)[0]
+        ydata = sorted_scores[xdata]
+        print('[scores_cdf] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
+        df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7)
+
+    df2.set_logyscale_from_data(sorted_scores)
+
+    df2.set_xlabel('sorted scores')
+    df2.set_ylabel('scores')
+    df2.dark_background()
+    df2.set_figtitle('draw_scores_cdf')
+    df2.legend(loc='upper left')
+    df2.iup()

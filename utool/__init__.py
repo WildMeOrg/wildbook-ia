@@ -59,6 +59,7 @@ if __DYNAMIC__:
                             'list_images', 'copy']),
         ('util_print',     ['horiz_print', 'printshape', 'Indenter']),
         ('util_progress',  ['progress_func']),
+        ('util_resources', ['print_resource_usage']),
         ('util_str',       ['byte_str2', 'horiz_string', 'theta_str']),
         ('util_sysreq',    None),
         ('util_regex',     ['regex_search']),
@@ -173,7 +174,7 @@ else:
     from . import util_regex
     from . import util_time
     from . import util_type
-    from . import DynStruct
+    from . import DynamicStruct
     from . import Preferences
     from .util_alg import (almost_eq, cartesian, choose, find_std_inliers,
                            norm_zero_one, normalize, xywh_to_tlbr,)
@@ -277,7 +278,7 @@ else:
     from .util_time import (Timer, exiftime_to_unixtime, get_timestamp, tic, toc,)
     from .util_type import (VALID_FLOAT_TYPES, VALID_INT_TYPES, assert_int, is_bool,
                             is_dict, is_type,)
-    from .DynStruct import (AbstractPrintable, DynStruct,)
+    from .DynamicStruct import (AbstractPrintable, DynStruct,)
     from .Preferences import (EditPrefWidget, Pref, PrefChoice, PrefInternal,
                               PrefNode, PrefTree, QAbstractItemModel, QModelIndex,
                               QObject, QPreferenceModel, QString, QVariant, QWidget,

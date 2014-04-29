@@ -10,6 +10,7 @@ from . import draw_func2 as df2
 from . import draw_sv
 from . import viz_featrow
 from . import viz_keypoints
+from . import plots
 
 # The other module shouldn't exist.
 # Functions in it need to be organized

@@ -1,12 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import sys
 import warnings
-from collections import OrderedDict
 import numpy as np
-from .util_str import byte_str2
 from .util_inject import inject
-from .Printable import printableVal
-from .DynamicStruct import DynStruct
+from .Printable import printableVal, printable_mystats, mystats  # NOQA
 print, print_, printDBG, rrr, profile = inject(__name__, '[dev]')
 
 
@@ -32,64 +29,29 @@ def stats_str(*args, **kwargs):
     return printable_mystats(*args, **kwargs)
 
 
-def printable_mystats(_list, newlines=False):
-    stat_dict = mystats(_list)
-    stat_strs = ['%r: %s' % (key, val) for key, val in stat_dict.iteritems()]
-    if newlines:
-        indent = '    '
-        head = '{\n' + indent
-        sep  = ',\n' + indent
-        tail = '\n}'
-    else:
-        head = '{'
-        sep = ', '
-        tail = '}'
-    ret = head + sep.join(stat_strs) + tail
-    return ret
-#def mystats2_latex(mystats):
-    #statdict_ = eval(mystats)
-
-
-def mystats(_list):
-    if len(_list) == 0:
-        return {'empty_list': True}
-    nparr = np.array(_list)
-    min_val = nparr.min()
-    max_val = nparr.max()
-    nMin = np.sum(nparr == min_val)  # number of entries with min val
-    nMax = np.sum(nparr == max_val)  # number of entries with min val
-    return OrderedDict([('max',   np.float32(max_val)),
-                        ('min',   np.float32(min_val)),
-                        ('mean',  np.float32(nparr.mean())),
-                        ('std',   np.float32(nparr.std())),
-                        ('nMin',  np.int32(nMin)),
-                        ('nMax',  np.int32(nMax)),
-                        ('shape', repr(nparr.shape))])
-
-
-def myprint(input=None, prefix='', indent='', lbl=''):
+def myprint(input_=None, prefix='', indent='', lbl=''):
     if len(lbl) > len(prefix):
         prefix = lbl
     if len(prefix) > 0:
         prefix += ' '
-    print_(indent + prefix + str(type(input)) + ' ')
-    if isinstance(input, list):
+    print_(indent + prefix + str(type(input_)) + ' ')
+    if isinstance(input_, list):
         print(indent + '[')
-        for item in iter(input):
+        for item in iter(input_):
             myprint(item, indent=indent + '  ')
         print(indent + ']')
-    elif isinstance(input, str):
-        print(input)
-    elif isinstance(input, dict):
-        print(printableVal(input))
+    elif isinstance(input_, str):
+        print(input_)
+    elif isinstance(input_, dict):
+        print(printableVal(input_))
     else:
         print(indent + '{')
-        attribute_list = dir(input)
+        attribute_list = dir(input_)
         for attr in attribute_list:
             if attr.find('__') == 0:
                 continue
-            val = str(input.__getattribute__(attr))
-            #val = input[attr]
+            val = str(input_.__getattribute__(attr))
+            #val = input_[attr]
             # Format methods nicer
             #if val.find('built-in method'):
                 #val = '<built-in method>'
@@ -170,6 +132,7 @@ def runprofile(cmd, globals_=globals(), locals_=locals()):
 
 def memory_profile(with_gc=False):
     #http://stackoverflow.com/questions/2629680/deciding-between-subprocess-multiprocessing-and-thread-in-python
+    from . import util_str
     import guppy
     if with_gc:
         garbage_collect()
@@ -177,7 +140,7 @@ def memory_profile(with_gc=False):
     print('[hpy] Waiting for heap output...')
     heap_output = hp.heap()
     print(heap_output)
-    print('[hpy] total heap size: ' + byte_str2(heap_output.size))
+    print('[hpy] total heap size: ' + util_str.byte_str2(heap_output.size))
     import resources2
     resources2.memstats()
     # Graphical Browser
@@ -219,8 +182,8 @@ def get_object_size(obj):
         elif isinstance(obj, dict):
             try:
                 for key, val in obj.iteritems():
-                        totalsize += _get_object_size(key)
-                        totalsize += _get_object_size(val)
+                    totalsize += _get_object_size(key)
+                    totalsize += _get_object_size(val)
             except RuntimeError:
                 print(key)
                 raise
@@ -232,8 +195,9 @@ def get_object_size(obj):
 
 
 def get_object_size_str(obj, lbl=''):
+    from . import util_str
     nBytes = get_object_size(obj)
-    sizestr = lbl + byte_str2(nBytes)
+    sizestr = lbl + util_str.byte_str2(nBytes)
     return sizestr
 
 
@@ -242,6 +206,7 @@ def print_object_size(obj, lbl=''):
 
 
 def get_object_base():
+    from .DynamicStruct import DynStruct
     if '--dyn' in sys.argv:
         return DynStruct
     else:

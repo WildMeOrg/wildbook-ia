@@ -263,7 +263,7 @@ class QueryConfig(ConfigBase):
         copy_.update_cfg(**kwargs)
         return copy_
 
-    def get_uid_list(query_cfg, *args, **kwargs):
+    def get_uid_list(query_cfg, **kwargs):
         if query_cfg._feat_cfg is None:
             raise Exception('Feat / chip config is required')
 
@@ -272,20 +272,20 @@ class QueryConfig(ConfigBase):
 
         # Build uid
         uid_list = []
-        if not 'noNN' in args:
+        if kwargs.get('use_nn', True):
             uid_list += query_cfg.nn_cfg.get_uid_list(**kwargs)
-        if not 'noFILT' in args:
+        if kwargs.get('use_filt', True):
             uid_list += query_cfg.filt_cfg.get_uid_list(**kwargs)
-        if not 'noSV' in args:
+        if kwargs.get('use_sv', True):
             uid_list += query_cfg.sv_cfg.get_uid_list(**kwargs)
-        if not 'noAGG' in args:
+        if kwargs.get('use_agg', True):
             uid_list += query_cfg.agg_cfg.get_uid_list(**kwargs)
-        if not 'noCHIP' in args:
+        if kwargs.get('use_chip', True):
             uid_list += query_cfg._feat_cfg.get_uid_list()
         return uid_list
 
-    def get_uid(query_cfg, *args, **kwargs):
-        uid_list = query_cfg.get_uid_list(*args, **kwargs)
+    def get_uid(query_cfg, **kwargs):
+        uid_list = query_cfg.get_uid_list(**kwargs)
         uid = ''.join(uid_list)
         return uid
 
