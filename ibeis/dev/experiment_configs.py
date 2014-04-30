@@ -106,7 +106,7 @@ vsmany_best = {
     'ratio_thresh':    [None],  # 1.2, 1.6
     'lnbnn_thresh':    [None],  #
     'lnrat_thresh':    [None],  #
-    'xy_thresh':       [.002],
+    'xy_thresh':       [.01],  # [.002],
     'nShortlist':      [50],
     'sv_on':           [True],  # True, False],
     'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']

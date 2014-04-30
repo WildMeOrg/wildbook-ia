@@ -168,7 +168,7 @@ def dict_itemstr_list(dict_, strvals=False):
     if strvals:
         itemstr_iter = ('%s : %s,' % (key, val) for (key, val) in dict_.iteritems())
     else:
-        itemstr_iter = ('%s : %r,' % (key, val) for (key, val) in dict_.iteritems())
+        itemstr_iter = ('%r : %r,' % (key, val) for (key, val) in dict_.iteritems())
     return list(itemstr_iter)
 
 

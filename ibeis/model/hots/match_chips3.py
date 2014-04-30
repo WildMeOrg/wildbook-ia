@@ -95,9 +95,15 @@ def process_query_request(ibs, qreq, use_cache=not NOCACHE_QUERY, safe=True):
     """
     print(' --- Process QueryRequest --- ')
     # Try and load directly from a big cache
+    bigcache_dpath = qreq.bigcachedir
+    bigcache_fname = (ibs.get_dbname() + '_QRESMAP' +
+                      qreq.get_qrids_uid() + qreq.get_drids_uid())
+    bigcache_uid = qreq.cfg.get_uid()
     if use_cache:
         try:
-            qrid2_qres = utool.load_cPkl(qreq.get_bigcache_fpath(ibs))
+            qrid2_qres = utool.load_cache(bigcache_dpath,
+                                          bigcache_fname,
+                                          bigcache_uid)
             print('... qrid2_qres bigcache hit')
             return qrid2_qres
         except IOError:
@@ -115,7 +121,9 @@ def process_query_request(ibs, qreq, use_cache=not NOCACHE_QUERY, safe=True):
             qreq = pre_exec_checks(ibs, qreq)
         computed_qrid2_qres = execute_query_and_save_L1(ibs, qreq, failed_qrids)
         qrid2_qres.update(computed_qrid2_qres)  # Update cached results
-    utool.save_cPkl(qreq.get_bigcache_fpath(ibs), qrid2_qres)
+    utool.save_cache(bigcache_dpath,
+                     bigcache_fname,
+                     bigcache_uid, qrid2_qres)
     return qrid2_qres
 
 

@@ -4,13 +4,14 @@ import cPickle
 import atexit
 from os.path import join, normpath
 from . import util_inject
+from . import util_hash
 from . import util_path
 from . import util_str
 from . import util_cplat
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 
 
-__PRINT_IO__ = False
+__PRINT_IO__ = True
 __PRINT_WRITES__ = False or __PRINT_IO__
 __PRINT_READS__  = False or __PRINT_IO__
 
@@ -39,6 +40,48 @@ def write_to(fpath, to_write):
         print('[cache] * Writing to text file: %r ' % fpath)
     with open(fpath, 'w') as file_:
         file_.write(to_write)
+
+
+def text_dict_write(fpath, key, val):
+    try:
+        dict_text = read_from(fpath)
+    except IOError:
+        dict_text = '{}'
+    dict_ = eval(dict_text)
+    dict_[key] = val
+    dict_text2 = util_str.dict_str(dict_, strvals=False)
+    print(dict_text2)
+    write_to(fpath, dict_text2)
+
+
+def _args2_fpath(dpath, fname, uid, ext, write_hashtbl=False):
+    """
+    Ensures that the filename is not too long (looking at you windows)
+    Windows MAX_PATH=260 characters
+    Absolute length is limited to 32,000 characters
+    Each filename component is limited to 255 characters
+    """
+    if len(ext) > 0 and ext[0] != '.':
+        raise Exception('Fatal Error: Please be explicit and use a dot in ext')
+    fname_uid = fname + uid
+    if len(fname_uid) > 128:
+        hashed_uid = util_hash.hashstr(uid, 8)
+        if write_hashtbl:
+            text_dict_write(join(dpath, 'hashtbl.txt'), hashed_uid, uid)
+        fname_uid = fname + '_' + hashed_uid
+    fpath = join(dpath, fname_uid + ext)
+    fpath = normpath(fpath)
+    return fpath
+
+
+def save_cache(dpath, fname, uid, data):
+    fpath = _args2_fpath(dpath, fname, uid, '.cPkl', write_hashtbl=True)
+    save_cPkl(fpath, data)
+
+
+def load_cache(dpath, fname, uid):
+    fpath = _args2_fpath(dpath, fname, uid, '.cPkl')
+    return load_cPkl(fpath)
 
 
 def save_cPkl(fpath, data):

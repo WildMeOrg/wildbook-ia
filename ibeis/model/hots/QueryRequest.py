@@ -34,31 +34,27 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.vsmany = query_cfg.agg_cfg.query_type == 'vsmany'
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
 
+    def get_qrids_uid(qreq):
+        assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
+        drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
+        return drids_uid
+
+    def get_drids_uid(qreq):
+        assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
+        qrids_uid = utool.hashstr_arr(qreq.qrids, '_qrids')
+        return qrids_uid
+
     def get_uid_list(qreq, use_drids=True, use_qrids=False, **kwargs):
         uid_list = []
         if use_drids:
-            # Append a hash of the database rois
-            assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
-            drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
-            uid_list.append(drids_uid)
+            uid_list.append(qreq.get_drids_uid())
         if use_qrids:
-            # Append a hash of the query rois
-            assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
-            qrids_uid = utool.hashstr_arr(qreq.qrids, '_qrids')
-            uid_list.append(qrids_uid)
+            uid_list.append(qreq.get_qrids_uid())
         uid_list.extend(qreq.cfg.get_uid_list(**kwargs))
         return uid_list
 
     def get_uid(qreq, **kwargs):
         return ''.join(qreq.get_uid_list(**kwargs))
-
-    def get_bigcache_fpath(qreq, ibs):
-        query_uid = qreq.get_uid(use_drids=True, use_qrids=True)
-        dbname    = ibs.get_dbname()
-        bigcache_fname = 'qrid2_qres_' + dbname + query_uid
-        bigcache_dpath = ibs.bigcachedir
-        bigcache_fpath = join(bigcache_dpath, bigcache_fname)
-        return bigcache_fpath
 
     def get_internal_drids(qreq):
         """ These are not the users drids in vsone mode """
