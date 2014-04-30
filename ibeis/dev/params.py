@@ -192,7 +192,7 @@ def parse_args(defaultdb='cache', allow_newdir=False, **kwargs):
     def postprocess(args):
         args.gui = not args.nogui
         if args.serial:
-            args.num_proces = 1
+            args.num_procs = 1
         if args.dbdir is not None:
             # The full path is specified
             args.dbdir = realpath(args.dbdir)

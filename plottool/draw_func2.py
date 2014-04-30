@@ -8,11 +8,11 @@
 from __future__ import absolute_import, division, print_function
 import utool
 # Matplotlib
+import matplotlib as mpl
+mpl.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib as mpl
-mpl.use('Qt4Agg')
 
 # Python
 import colorsys

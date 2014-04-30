@@ -9,8 +9,6 @@ from zipfile import error as BadZipFile  # Screwy naming convention.
 import os
 # Scientific
 import numpy as np
-# IBEIS
-from ibeis import viz
 
 FM_DTYPE  = np.uint32   # Feature Match datatype
 FS_DTYPE  = np.float32  # Feature Score datatype
@@ -112,16 +110,17 @@ class QueryResult(__OBJECT_BASE__):
         fpath = qres.get_fpath(qreq)
         qrid_good = qres.qrid
         try:
-            print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
+            #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
                 qres.__dict__.update(loaded_dict)
             if not isinstance(qres.filt2_meta, dict):
                 print('[qr] loading old result format')
                 qres.filt2_meta = {}
+            print('... qres cache hit: %r' % (split(fpath)[1],))
         except IOError as ex:
             if not exists(fpath):
-                print('[qr] query result cache miss')
+                print('... qres cache miss: %r' % (split(fpath)[1],))
                 raise
             else:
                 msg_list = ['[!qr] QueryResult(qrid=%d) is corrupted' % (qres.qrid),
@@ -262,7 +261,9 @@ class QueryResult(__OBJECT_BASE__):
         return best_rank
 
     def show_top(qres, ibs, *args, **kwargs):
+        import ibeis.viz as viz
         return viz.show_qres_top(ibs, qres, *args, **kwargs)
 
     def show_analysis(qres, ibs, *args, **kwargs):
+        import ibeis.viz as viz
         return viz.show_qres_analysis(ibs, qres, *args, **kwargs)

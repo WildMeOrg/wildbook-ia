@@ -22,6 +22,7 @@ from .viz_sver import show_sver, _compute_svvars
 from .viz_nearest_descriptors import show_nearest_descriptors
 
 __LOADED__ = False
+#from . import interact  # WIN32!!!
 
 def import_subs():
     global __LOADED__

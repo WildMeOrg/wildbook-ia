@@ -1,39 +1,5 @@
 
 
-#----------------------
-
-
-def get_bigcache_io_kwargs(ibs, qreq):
-    query_uid = qreq.get_query_uid(ibs, qreq.qcids)
-    cache_dir = join(ibs.cachedir, 'bigcache_query')
-    io_kwargs = {
-        'dpath': cache_dir,
-        'fname': 'bigcache_query',
-        'uid':  query_uid,
-        'ext': '.cPkl'}
-    return io_kwargs
-
-
-def load_bigcache_query(ibs, qreq, verbose):
-    # High level caching
-    io_kwargs = get_bigcache_io_kwargs(ibs, qreq)
-    qcid2_res = utool.smart_load(**io_kwargs)
-    if verbose:
-        print('query_uid = %r' % io_kwargs['uid'])
-    if qcid2_res is None:
-        raise IOError('bigcache_query ... miss')
-    elif len(qcid2_res) != len(qreq.qcids):
-        raise IOError('bigcache_query ... outdated')
-    else:
-        return qcid2_res
-
-
-def save_bigcache_query(qx2_res, ibs, qreq):
-    io_kwargs = get_bigcache_io_kwargs(ibs, qreq)
-    utool.ensuredir(io_kwargs['dpath'])
-    utool.smart_save(qx2_res, **io_kwargs)
-
-
 def bigcache_query(ibs, qreq, batch_size=10, use_bigcache=True,
                    limit_memory=False, verbose=True):
     qcids = qreq.qcids

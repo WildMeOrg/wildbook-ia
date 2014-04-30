@@ -1,2 +1,4 @@
-python dev.py -t gv_scores --allgt --db GZ
-python dev.py -t test_gv --allgt --db GZ
+#export TESTDB="GZ"
+export TESTDB="testdb1"
+python dev.py -t gv_scores --allgt --db $TESTDB
+python dev.py -t gv_test --allgt --db $TESTDB

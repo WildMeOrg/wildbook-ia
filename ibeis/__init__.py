@@ -5,6 +5,7 @@ from . import main_module
 from .main_module import main, _preload, main_loop
 
 __LOADED__ = False
+#from . import viz  # WIN32!!!
 
 def import_subs():
     global __LOADED__

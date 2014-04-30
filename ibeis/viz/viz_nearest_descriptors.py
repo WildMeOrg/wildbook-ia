@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
-import plottool.draw_func2 as df2
 import utool
-from ibeis.model.hots import query_helpers
-from . import viz_helpers as vh
+from plottool import draw_func2 as df2
 from plottool.viz_featrow import draw_feat_row
+from . import viz_helpers as vh
+from ibeis.model.hots import query_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_nndesc]', DEBUG=False)
 
 

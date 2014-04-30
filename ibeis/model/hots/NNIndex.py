@@ -1,16 +1,17 @@
 from __future__ import absolute_import, division, print_function
 # Standard
 from itertools import izip, chain, imap
+import sys
 # Science
 import numpy as np
 # UTool
 import utool
 # VTool
 import vtool.nearest_neighbors as nntool
-# IBEIS
-from ibeis.dev import params
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[nnindex]', DEBUG=False)
+
+NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 
 @utool.indent_func
@@ -66,7 +67,7 @@ def build_flann_inverted_index(ibs, rid_list):
     precomp_kwargs = {'cache_dir': ibs.cachedir,
                       'uid': flann_uid,
                       'flann_params': flann_params,
-                      'force_recompute': params.args.nocache_flann}
+                      'force_recompute': NOCACHE_FLANN}
     flann = nntool.flann_cache(ax2_desc, **precomp_kwargs)
     return ax2_desc, ax2_rid, ax2_fx, flann
 

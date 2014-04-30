@@ -1,12 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import utool
-# HotSpotter
-from ibeis.dev import params
+import sys
 from ibeis.model.hots import QueryRequest
 from ibeis.model.hots import NNIndex
 from ibeis.model.hots import matching_functions as mf
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[mc3]', DEBUG=False)
+
+
+NOCACHE_QUERY = '--nocache-query' in sys.argv
 
 
 @utool.indent_func
@@ -81,7 +83,7 @@ def pre_exec_checks(ibs, qreq):
 # Query Level 2
 @utool.indent_func('[Q2]')
 @profile
-def process_query_request(ibs, qreq, use_cache=not params.args.nocache_query, safe=True):
+def process_query_request(ibs, qreq, use_cache=not NOCACHE_QUERY, safe=True):
     """
     The standard query interface.
     INPUT:

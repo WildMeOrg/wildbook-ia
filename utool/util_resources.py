@@ -37,9 +37,9 @@ def print_resource_usage():
     print('+______________________')
     print('|    RESOURCE_USAGE    ')
     print('|  * current_memory = %s' % byte_str2(current_memory_usage()))
-    print('|  * peak_memory    = %s' % byte_str2(peak_memory()))
-    print('|  * user_time      = %s' % time_str2(time_in_usermode()))
-    print('|  * system_time    = %s' % time_str2(time_in_systemmode()))
+    #print('|  * peak_memory    = %s' % byte_str2(peak_memory()))
+    #print('|  * user_time      = %s' % time_str2(time_in_usermode()))
+    #print('|  * system_time    = %s' % time_str2(time_in_systemmode()))
     print('L______________________')
 
 

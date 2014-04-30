@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import sys
 import __builtin__
+import multiprocessing
 
 sys.argv.append('--strict')  # do not supress any errors
 
@@ -38,7 +39,6 @@ def _parse_args(**kwargs):
 @profile
 def _init_matplotlib():
     import matplotlib
-    import multiprocessing
     import utool
     backend = matplotlib.get_backend()
     if  multiprocessing.current_process().name == 'MainProcess':
@@ -258,3 +258,7 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
 def main_close(main_locals=None):
     _close_parallel()
     _reset_signals()
+
+
+if __name__ == '__main__':
+    multiprocessing.freeze_support()

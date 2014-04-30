@@ -4,11 +4,14 @@ This is a hacky script meant to be run interactively
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import ibeis
-ibeis._preload()
+import multiprocessing
 # Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS
-from ibeis.dev.all_imports import *  # NOQA
+import ibeis
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    ibeis._preload()
+    from ibeis.dev.all_imports import *  # NOQA
 # Tools
 from plottool import draw_func2 as df2
 # IBEIS
@@ -18,7 +21,6 @@ from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import results_all
 import utool
-import multiprocessing
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
 if not 'back' in vars():
