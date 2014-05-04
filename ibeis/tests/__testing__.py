@@ -5,6 +5,11 @@ try:
 except Exception:
     import __sysreq__  # NOQA
 import ibeis
+import multiprocessing  # for win32
+
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+
 ibeis._preload()
 import utool
 import sys

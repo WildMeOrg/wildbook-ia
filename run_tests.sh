@@ -18,11 +18,11 @@ echo $PYTHONPATH
 
 export ARGV="--quiet --noshow $@"
 
-export DEFAULT=ON
+export DEFAULT=OFF
 
-export GUI_TESTS=$DEFAULT
-export IBS_TESTS=$DEFAULT
-export SQL_TESTS=$DEFAULT
+export GUI_TESTS=OFF  # $DEFAULT
+export IBS_TESTS=OFF  # $DEFAULT
+export SQL_TESTS=ON  # $DEFAULT
 export MISC_TESTS=$DEFAULT
 export VIEW_TESTS=$DEFAULT
 export VTOOL_TESTS=$DEFAULT
