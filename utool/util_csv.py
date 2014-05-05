@@ -10,7 +10,8 @@ def numpy_to_csv(arr, col_labels=None, header='', col_type=None):
     return make_csv_table(col_labels, col_list, header, col_type)
 
 
-def make_csv_table(column_labels=None, column_list=[], header='', column_type=None):
+def make_csv_table(column_labels=None, column_list=[], header='',
+                   column_type=None):
     """
     Creates a csv table with aligned columns
     """
@@ -57,15 +58,16 @@ def make_csv_table(column_labels=None, column_list=[], header='', column_type=No
 
     for col, lbl, coltype in iter(zip(column_list, column_labels, column_type)):
         if coltype is list or is_list(coltype):
-            col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
+            #col_str = [str(c).replace(',', '<comma>').replace('.', '<dot>') for c in iter(col)]
+            col_str = [str(c).replace(',', ' ').replace('.', '<dot>') for c in iter(col)]
         elif coltype is float or is_float(coltype):
             col_str = [('%.2f') % float(c) for c in iter(col)]
         elif coltype is int or is_int(coltype):
             col_str = [_toint(c) for c in iter(col)]
         elif coltype is str or is_str(coltype):
-            col_str = [str(c) for c in iter(col)]
+            col_str = [str(c).replace(',', '<comma>') for c in iter(col)]
         else:
-            col_str  = [str(c) for c in iter(col)]
+            col_str = [str(c) for c in iter(col)]
         col_lens = [len(s) for s in iter(col_str)]
         max_len  = max(col_lens)
         max_len  = max(len(lbl), max_len)

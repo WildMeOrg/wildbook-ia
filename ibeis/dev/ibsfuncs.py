@@ -168,11 +168,11 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
     pct = adjust_percent  # Alias
     gsize_list = ibs.get_image_size(gid_list)
     # Build bounding boxes as images size minus padding
-    bbox_list  = [
-        ( 0 + (gw * pct),      0 + (gh * pct),
-         gw - (gw * pct * 2), gh - (gh * pct * 2))
-        for (gw, gh) in gsize_list
-    ]
+    bbox_list  = [(int( 0 + (gw * pct)),
+                   int( 0 + (gh * pct)),
+                   int(gw - (gw * pct * 2)),
+                   int(gh - (gh * pct * 2)))
+                  for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
                             name_list=name_list, nid_list=nid_list, notes_list=notes_list)

@@ -804,8 +804,8 @@ class IBEISControl(object):
     @getter_numpy_vector_output
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        cols = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
-        bbox_list = ibs.get_roi_props(cols, rid_list)
+        bbox_list = ibs.get_roi_props(
+            ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height'), rid_list)
         return bbox_list
 
     @getter
@@ -1489,3 +1489,38 @@ class IBEISControl(object):
         ibs.print_name_table()
         ibs.print_config_table()
         print('\n')
+
+    def get_flat_table(ibs):
+        rid_list = ibs.get_valid_rids()
+        column_tups = [
+            (int,   'rids',       rid_list,),
+            (str,   'names',  ibs.get_roi_names(rid_list),),
+            (list,  'bbox',   map(list, ibs.get_roi_bboxes(rid_list),)),
+            (float, 'theta',  ibs.get_roi_thetas(rid_list),),
+            (str,   'gpaths', ibs.get_roi_gpaths(rid_list),),
+            (str,   'notes',  ibs.get_roi_notes(rid_list),),
+            (str,   'uuids',  ibs.get_roi_uuids(rid_list),),
+        ]
+        column_type   = [tup[0] for tup in column_tups]
+        column_labels = [tup[1] for tup in column_tups]
+        column_list   = [tup[2] for tup in column_tups]
+        header = '\n'.join([
+            '# Roi Flat Table',
+            '# rid   - internal roi index (not gaurenteed unique)',
+            '# name  - animal identity',
+            '# bbox  - bounding box [tlx tly w h] in image',
+            '# theta - bounding box orientation',
+            '# gpath - image filepath',
+            '# notes - user defined notes',
+            '# uuids - unique universal ids (gaurenteed unique)',
+        ])
+        flat_table_str = utool.make_csv_table(column_labels, column_list, header,
+                                          column_type)
+        return flat_table_str
+
+    def dump_flat_table(ibs):
+        flat_table_fpath = join(ibs.dbdir, 'flat_table.csv')
+        flat_table_str = ibs.get_flat_table()
+        print('[ibs] dumping flat table to: %r' % flat_table_fpath)
+        with open(flat_table_fpath, 'w') as file_:
+            file_.write(flat_table_str)
