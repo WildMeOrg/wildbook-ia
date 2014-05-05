@@ -1,7 +1,7 @@
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
 from itertools import izip
-from os.path import relpath, split, join, exists
+from os.path import relpath, split, join, exists, isabs, splitext
 import utool
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -224,3 +224,18 @@ def get_roi_desc_cache(ibs, rids):
     unique_desc = ibs.get_roi_desc(unique_rids)
     desc_cache = dict(list(izip(unique_rids, unique_desc)))
     return desc_cache
+
+
+def localize_images(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list  = ibs.get_valid_gids()
+    gpath_list = ibs.get_image_paths(gid_list)
+    guuid_list = ibs.get_image_uuids(gid_list)
+    gext_list  = ibs.get_image_exts(gid_list)
+    # Build list of image names based on uuid in the ibeis imgdir
+    local_gname_list = [str(guuid) + splitext(gpath)[1] for guuid, gpath, in izip(guuid_list, gpath_list)]
+    local_gpath_list = [join(ibs.imgdir, gname) for gname in local_gname_list]
+    utool.copy_list(gpath_list, local_gpath_list, lbl='Localizing Images: ')
+    ibs.set_image_uris(gid_list, local_gname_list)
+
+    assert all(map(exists, local_gpath_list)), 'not all images copied'

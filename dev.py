@@ -291,6 +291,7 @@ def dev_main():
 
     fnum = 1
     qrid_list = main_helpers.get_test_qrids(ibs)
+    print('[dev] qrid_list = %r' % qrid_list)
     ibs.prep_qreq_db(qrid_list)
 
     expt_locals = run_experiments(ibs, qrid_list)

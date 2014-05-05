@@ -18,8 +18,10 @@ if __name__ == '__main__':
     back = main_locals.get('back', None)
     fmtkey = 'snails'
     injest_named_images(ibs, img_dir, fmtkey, adjust_percent=.20)
+    ibsfuncs.localize_images(ibs)
 
     # Print to show success
     ibs.print_name_table()
-    ibs.print_name_table()
+    ibs.print_image_table()
     ibs.print_roi_table()
+

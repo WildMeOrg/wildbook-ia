@@ -233,7 +233,7 @@ class IBEISControl(object):
     #
     #
     #---------------
-    # --- Adders ---
+    # --- ADDERS ---
     #---------------
 
     def add_config(ibs, config_suffix):
@@ -277,18 +277,21 @@ class IBEISControl(object):
                       if tup is not None]
         param_list = [tried_param_list[index] for index in index_list]
         img_uuid_list = [tup[0] for tup in param_list]
+        # TODO: image original name
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
                 image_uid,
                 image_uuid,
                 image_uri,
+                image_original_name,
+                image_ext,
                 image_width,
                 image_height,
                 image_exif_time_posix,
                 image_exif_gps_lat,
                 image_exif_gps_lon
-            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
         gid_list = ibs.db.executemany(
@@ -468,7 +471,7 @@ class IBEISControl(object):
     #
     #
     #----------------
-    # --- Setters ---
+    # --- SETTERS ---
     #----------------
 
     # SETTERS::General
@@ -476,10 +479,10 @@ class IBEISControl(object):
     @setter
     def set_table_props(ibs, table, prop_key, uid_list, val_list):
         #OFF printDBG('------------------------')
-        #OFF printDBG('set_table_props(table=%r, prop_key=%r)' % (table, prop_key))
-        #OFF printDBG('set_table_props(uid_list=%r, val_list=%r)' % (uid_list, val_list))
+        #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('set_(uid_list=%r, val_list=%r)' % (uid_list, val_list))
         # Sanatize input to be only lowercase alphabet and underscores
-        table, prop_key = ibs.db.sanatize_sql(table, prop_key)
+        table, (prop_key,) = ibs.db.sanatize_sql(table, (prop_key,))
         # Potentially UNSAFE SQL
         ibs.db.executemany(
             operation='''
@@ -494,9 +497,19 @@ class IBEISControl(object):
     # SETTERS::Image
 
     @setter
-    def set_image_paths(ibs, gid_list, gpath_list):
-        """ Do we want to do caching here? """
-        pass
+    def set_image_uris(ibs, gid_list, new_gpath_list):
+        """ Sets the image URIs to a new local path.
+        This is used when localizing or unlocalizing images.
+        TODO: We need to maintain the original image name.
+
+        An absolute path can either be on this machine or on the cloud
+        A relative path is relative to the ibeis image cache on this machine.
+        """
+        table='images'
+        prop_key='image_uri'
+        uid_list=gid_list
+        val_list=new_gpath_list
+        ibs.set_table_props('images', 'image_uri', gid_list, new_gpath_list)
 
     @setter
     def set_image_eid(ibs, gid_list, eids_list):
@@ -598,16 +611,8 @@ class IBEISControl(object):
     #
     # GETTERS::General
 
-    def get_valid_ids(ibs, tblname):
-        get_valid_tblname_ids = {
-            'images': ibs.get_valid_gids,
-            'rois': ibs.get_valid_rids,
-            'names': ibs.get_valid_nids,
-        }[tblname]
-        return get_valid_tblname_ids()
-
     def get_table_props(ibs, table, prop_key, uid_list):
-        #OFF printDBG('get_table_props(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('get_(table=%r, prop_key=%r)' % (table, prop_key))
         # Input to table props must be a list
         if isinstance(prop_key, str):
             prop_key = (prop_key,)
@@ -624,6 +629,15 @@ class IBEISControl(object):
             errmsg='[ibs.get_table_props] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
         return list(property_list)
+
+
+    def get_valid_ids(ibs, tblname):
+        get_valid_tblname_ids = {
+            'images': ibs.get_valid_gids,
+            'rois': ibs.get_valid_rids,
+            'names': ibs.get_valid_nids,
+        }[tblname]
+        return get_valid_tblname_ids()
 
     def get_chip_props(ibs, prop_key, cid_list):
         """ general chip property getter """
@@ -670,6 +684,13 @@ class IBEISControl(object):
         image_uuid_list = ibs.get_table_props('images', 'image_uuid', gid_list)
         return image_uuid_list
 
+
+    @getter
+    def get_image_exts(ibs, gid_list):
+        """ Returns a list of image uuids by gid """
+        image_uuid_list = ibs.get_table_props('images', 'image_ext', gid_list)
+        return image_uuid_list
+
     @getter
     def get_image_uris(ibs, gid_list):
         """ Returns a list of image uris by gid """
@@ -688,15 +709,13 @@ class IBEISControl(object):
         """ Returns a list of image paths relative to img_dir? by gid """
         uri_list = ibs.get_image_uris(gid_list)
         utool.assert_all_not_None(uri_list, 'uri_list')
-        img_dir = join(ibs.dbdir, 'images')
-        gpath_list = [join(img_dir, uri) for uri in uri_list]
+        gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
         return gpath_list
 
     @getter
     def get_image_gnames(ibs, gid_list):
-        """ Returns a list of image names """
-        gpath_list = ibs.get_image_paths(gid_list)
-        gname_list = [split(gpath)[1] for gpath in gpath_list]
+        """ Returns a list of original image names """
+        gname_list = ibs.get_table_props('images', 'image_original_name', gid_list)
         return gname_list
 
     @getter
@@ -1253,7 +1272,7 @@ class IBEISControl(object):
     #
     #
     #-----------------
-    # --- Deleters ---
+    # --- DELETERS ---
     #-----------------
 
     @deleter
@@ -1317,7 +1336,7 @@ class IBEISControl(object):
     #
     #
     #----------------
-    # --- Writers ---
+    # --- WRITERS ---
     #----------------
 
     @utool.indent_func
