@@ -68,10 +68,19 @@ def get_resource_dir():
         return expanduser('~/Library/Application Support')
 
 
+def shell(*args, **kwargs):
+    """
+    Dangerous. Take out of production code
+    """
+    kwargs['shell'] = True
+    return cmd(*args, **kwargs)
+
+
 def cmd(*args, **kwargs):
     sys.stdout.flush()
     verbose = kwargs.get('verbose', True)
     detatch = kwargs.get('detatch', False)
+    shell = kwargs.get('shell', False)
     sudo = kwargs.get('sudo', False)
     if len(args) == 1 and isinstance(args[0], list):
         args = args[0]
@@ -84,7 +93,7 @@ def cmd(*args, **kwargs):
         args = ['sudo'] + args
     print('[cplat] Running: %r' % (args,))
     PIPE = subprocess.PIPE
-    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE, shell=False)
+    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE, shell=shell)
     if detatch:
         return None, None, 1
     if verbose and not detatch:

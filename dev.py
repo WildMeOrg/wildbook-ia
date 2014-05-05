@@ -281,7 +281,6 @@ def compgrav_chipmatch_scores(ibs, qrid_list):
 # DEV MAIN
 #------------------
 
-
 @profile
 def dev_main():
     global back
@@ -306,8 +305,8 @@ def dev_main():
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
     return locals(), main_execstr
 
+
 if __name__ == '__main__':
-    multiprocessing.freeze_support()  # for win32
     """
         The Developer Script
             A command line interface to almost everything
@@ -319,12 +318,13 @@ if __name__ == '__main__':
             Examples:
                 ./dev.py -t query -w
     """
-    utool.print_resource_usage()
+    multiprocessing.freeze_support()  # for win32
     dev_locals, main_execstr = dev_main()
     dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
     execstr = dev_execstr + '\n' + main_execstr
-
-    utool.print_resource_usage()
+    if '--memprof' in sys.argv:
+        utool.print_resource_usage()
+        utool.memory_profile()
     exec(execstr)
 
 
@@ -334,5 +334,4 @@ Snippets:
 rid_list = ibs.get_valid_rids()
 gid_list = ibs.get_valid_gids()
 nid_list = ibs.get_valid_nids()
-
 """

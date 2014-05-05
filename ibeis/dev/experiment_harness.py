@@ -11,7 +11,7 @@ from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import matching_functions as mf
 from ibeis.dev import params
 from ibeis.dev import experiment_helpers as eh
-from ibeis.dev import experiment_printresults
+from ibeis.dev import experiment_printres
 
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]', DEBUG=False)
@@ -156,6 +156,6 @@ def test_configurations(ibs, qrids, test_cfg_name_list, fnum=1):
     if NOMEMORY:
         print('ran tests in memory savings mode. exiting')
         return
-    experiment_printresults.print_results(ibs, qrids, drids, cfg_list,
+    experiment_printres.print_results(ibs, qrids, drids, cfg_list,
                                           mat_list, testnameid, sel_rows,
                                           sel_cols, cfgx2_lbl=cfgx2_lbl)

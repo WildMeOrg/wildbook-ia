@@ -44,17 +44,19 @@ def path_ndir_split(path, n):
 
 
 def remove_file(fpath, verbose=True, dryrun=False, **kwargs):
-    try:
-        if dryrun:
-            if verbose:
-                print('[util] Dryrem %r' % fpath)
-        else:
-            if verbose:
-                print('[util] Removing %r' % fpath)
+    if dryrun:
+        if verbose:
+            print('[util] Dryrem %r' % fpath)
+        return
+    else:
+        try:
             os.remove(fpath)
-    except OSError as e:
-        warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
-        return False
+            if verbose:
+                print('[util] Removed %r' % fpath)
+        except OSError as e:
+            print('[util] Misrem %r' % fpath)
+            #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
+            return False
     return True
 
 
@@ -441,3 +443,7 @@ def get_module_dir(module, *args):
     if len(args) > 0:
         module_dir = join(module_dir, *args)
     return module_dir
+
+
+def tail(fpath):
+    return split(fpath)[1]

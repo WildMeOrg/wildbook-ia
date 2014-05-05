@@ -75,7 +75,7 @@ from ibeis.dev import results_analyzer
 from ibeis.dev import results_all
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
-from ibeis.dev import experiment_printresults
+from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
 # IBEIS MODEL
 from ibeis.model import Config

@@ -121,11 +121,6 @@ def memstats():
     print('[psutil] used      = %s' % byte_str2(used_memory()))
     print('[psutil] current   = %s' % byte_str2(current_memory_usage()))
 
-if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    memstats()
-
 
 #psutil.virtual_memory()
 #psutil.swap_memory()

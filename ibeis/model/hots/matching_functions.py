@@ -65,9 +65,9 @@ MARK_AFTER = 2
 #=================
 
 
-def progress_func(maxval=0):
+def progress_func(maxval=0, lbl='Match Progress: '):
     mark_prog, end_prog = utool.progress_func(
-        maxval, mark_after=MARK_AFTER, progress_type='fmtstr')
+        maxval, mark_after=MARK_AFTER, progress_type='fmtstr', lbl=lbl)
     return mark_prog, end_prog
 
 
@@ -106,7 +106,7 @@ def nearest_neighbors(ibs, qrids, qreq):
     # Output
     qrid2_nns = {}
     nNN, nDesc = 0, 0
-    mark_prog, end_prog = progress_func(len(qrids))
+    mark_prog, end_prog = progress_func(len(qrids), lbl='Assign NN: ')
     for count, qrid in enumerate(qrids):
         mark_prog(count)
         qfx2_desc = qdesc_list[count]
@@ -206,7 +206,7 @@ def filter_neighbors(ibs, qrid2_nns, filt2_weights, qreq):
         ax2_oris = ktool.get_oris(ax2_kpts)
         assert len(ax2_oris) == len(qreq.data_index.ax2_data)
     # Filter matches based on config and weights
-    mark_prog, end_prog = progress_func(len(qrid2_nns))
+    mark_prog, end_prog = progress_func(len(qrid2_nns), lbl='Filter NN: ')
     for count, qrid in enumerate(qrid2_nns.iterkeys()):
         mark_prog(count)
         (qfx2_ax, _) = qrid2_nns[qrid]
@@ -349,7 +349,7 @@ def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
         rid2_fm, rid2_fs, rid2_fk = new_fmfsfk()
 
     # Iterate over chips with nearest neighbors
-    mark_prog, end_prog = progress_func(len(qrid2_nns))
+    mark_prog, end_prog = progress_func(len(qrid2_nns), 'Build Chipmatch: ')
     for count, qrid in enumerate(qrid2_nns.iterkeys()):
         mark_prog(count)
         (qfx2_ax, _) = qrid2_nns[qrid]
@@ -363,6 +363,9 @@ def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator
         valid_lists = [qfx2[qfx2_valid] for qfx2 in (qfx2_qfx, qfx2_rid, qfx2_fx, qfx2_fs, qfx2_k,)]
+        # TODO: Sorting the valid lists by rid might help the speed of this
+        # code. Also, consolidating fm, fs, and fk into one vector will reduce
+        # the amount of appends.
         match_iter = izip(*valid_lists)
         # Vsmany - Append query feature matches to database rids
         if not is_vsone:

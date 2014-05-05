@@ -4,7 +4,6 @@ import utool
     __name__, '[qreq]', DEBUG=False)
 # Standard
 from itertools import izip
-from os.path import join
 # Scientific
 import utool
 

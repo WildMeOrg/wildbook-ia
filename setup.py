@@ -14,9 +14,10 @@ def chmod_tests():
     st = os.stat(__file__)
     print(st)
     test_dirs = [
-        ('test_', join(cwd, 'ibeis', 'tests')),
         ('injest', join(cwd, 'ibeis', 'injest')),
         ('test_', join(cwd, 'vtool', 'tests')),
+        ('test_', join(cwd, 'ibeis', 'tests')),
+        ('test_', join(cwd, 'utool', 'tests')),
     ]
     for prefix, test_dir in test_dirs:
         for pyscript_fpath in util_path.glob(test_dir, prefix + '*.py'):
@@ -33,6 +34,60 @@ def get_project_repo_dir():
     assert exists('_setup'), 'must be run in ibeis directory'
     assert fname == 'setup.py', 'this file is not setup.py'
     return cwd
+
+
+CYTHON_FILES = [
+    'vtool/chip.py',
+    'vtool/image.py',
+    'vtool/exif.py',
+    'vtool/histogram.py',
+    'vtool/ellipse.py',
+    'vtool/keypoint.py',
+    'vtool/linalg.py',
+    'vtool/math.py',
+    'vtool/patch.py',
+    'vtool/segmentation.py',
+    'vtool/spatial_verification.py',
+
+    'ibeis/model/hots/QueryRequest.py',
+    'ibeis/model/hots/QueryResult.py',
+    'ibeis/model/hots/voting_rules2.py',
+    'ibeis/model/hots/nn_filters.py',
+    'ibeis/model/hots/matching_functions.py'
+]
+
+def build_cython():
+    from utool.util_dev import compile_cython
+    for fpath in CYTHON_FILES:
+        utool.util_dev.compile_cython(fpath)
+
+
+def build_pyo():
+    from utool import util_cplat
+    PROJECT_DIRS = [
+        '.'
+        'guitool',
+        'plotool',
+        'vtool',
+        'utool'
+        'ibeis',
+        'ibeis/control',
+        'ibeis/dev',
+        'ibeis/gui',
+        'ibeis/injest',
+        'ibeis/model',
+        'ibeis/hots',
+        'ibeis/preproc',
+        'ibeis/viz',
+        'ibeis/viz/interact',
+    ]
+    for projdir in PROJECT_DIRS:
+        util_cplat.shell('python -O -m compileall ' + projdir + '/*.py')
+    #util_cplat.shell('python -O -m compileall ibeis/*.py')
+    #util_cplat.shell('python -O -m compileall utool/*.py')
+    #util_cplat.shell('python -O -m compileall vtool/*.py')
+    #util_cplat.shell('python -O -m compileall plottool/*.py')
+    #util_cplat.shell('python -O -m compileall guitool/*.py')
 
 
 def compile_ui():
@@ -60,6 +115,12 @@ def clean():
     pattern_list = ['*.dump.txt', '*.sqlite3', '*.pyc', '*.pyo', '*.prof',
                     '*.prof.txt', '*.lprof', '\'']
     util_path.remove_files_in_dir(cwd, pattern_list, recursive=True, verbose=VERBOSE)
+    # Remove cython compiled files
+    for fpath in CYTHON_FILES:
+        fname, ext = splitext(fpath)
+        util_path.remove_file(fname + '.so')
+        #util_path.remove_file(fname + '.dll')
+        util_path.remove_file(fname + '.c')
     # Remove logs
     util_path.remove_files_in_dir(join(cwd, 'logs'), verbose=VERBOSE)
     # Remove misc
@@ -67,14 +128,31 @@ def clean():
 
 
 if __name__ == '__main__':
+    import utool
+    utool.inject_colored_exceptions()
     print('[setup] Entering IBEIS setup')
     for arg in iter(sys.argv[1:]):
+
         # Build PyQt UI files
         if arg in ['clean']:
             clean()
             sys.exit(0)
-        if arg in ['chmod']:
-            chmod_tests()
+
+        if arg in ['clean']:
+            clean()
+            sys.exit(0)
+
+        # Build PyQt UI files
         if arg in ['buildui', 'ui', 'compile_ui']:
             compile_ui()
             sys.exit(0)
+
+        # Build optimized files
+        if arg in ['o', 'pyo']:
+            build_pyo()
+
+        if arg in ['c', 'cython']:
+            build_cython()
+
+        if arg in ['chmod']:
+            chmod_tests()

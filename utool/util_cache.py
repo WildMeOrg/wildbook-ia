@@ -14,35 +14,36 @@ print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[cache]')
 __PRINT_IO__ = True
 __PRINT_WRITES__ = False or __PRINT_IO__
 __PRINT_READS__  = False or __PRINT_IO__
-
 __SHELF__ = None  # GLOBAL CACHE
 
 
 def read_from(fpath):
-    verbose = __PRINT_READS__
-    if verbose:
-        print('[cache] * Reading text file: %r ' % util_path.split(fpath)[1])
+    if __PRINT_READS__:
+        print('[cache] * Reading text file: %r ' % util_path.tail(fpath))
     try:
-        if not util_path.checkpath(fpath, verbose=verbose):
+        if not util_path.checkpath(fpath, verbose=__PRINT_READS__):
             raise IOError('[cache] * FILE DOES NOT EXIST!')
         with open(fpath, 'r') as file_:
             text = file_.read()
     except IOError as ex:
         print('!!!!!!!')
         print('IOError: %s' % (ex,))
-        print('[cache] * Error reading fpath=%r' % fpath)
+        print('[cache] * Error reading fpath=%r' % util_path.tail(fpath))
         raise
     return text
 
 
 def write_to(fpath, to_write):
     if __PRINT_WRITES__:
-        print('[cache] * Writing to text file: %r ' % fpath)
+        print('[cache] * Writing to text file: %r ' % util_path.tail(fpath))
     with open(fpath, 'w') as file_:
         file_.write(to_write)
 
 
 def text_dict_write(fpath, key, val):
+    """
+    Very naive, but readable way of storing a dictionary on disk
+    """
     try:
         dict_text = read_from(fpath)
     except IOError:
@@ -60,6 +61,8 @@ def _args2_fpath(dpath, fname, uid, ext, write_hashtbl=False):
     Windows MAX_PATH=260 characters
     Absolute length is limited to 32,000 characters
     Each filename component is limited to 255 characters
+
+    if write_hashtbl is True, hashed values expaneded and written to a text file
     """
     if len(ext) > 0 and ext[0] != '.':
         raise Exception('Fatal Error: Please be explicit and use a dot in ext')
@@ -84,16 +87,21 @@ def load_cache(dpath, fname, uid):
     return load_cPkl(fpath)
 
 
+#------------------------------
+# TODO: Split into utool.util_io
+
 def save_cPkl(fpath, data):
+    # TODO: Split into utool.util_io
     if __PRINT_WRITES__:
-        print('[cache] * save_cPkl(%r, data)' % (fpath,))
+        print('[cache] * save_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'wb') as file_:
         cPickle.dump(data, file_, cPickle.HIGHEST_PROTOCOL)
 
 
 def load_cPkl(fpath):
+    # TODO: Split into utool.util_io
     if __PRINT_READS__:
-        print('[cache] * load_cPkl(%r, data)' % (fpath,))
+        print('[cache] * load_cPkl(%r, data)' % (util_path.tail(fpath),))
     with open(fpath, 'rb') as file_:
         data = cPickle.load(file_)
     return data

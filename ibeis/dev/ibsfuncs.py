@@ -54,9 +54,16 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='testdata'):
     Output: names based on the parent folder of each image
     """
     FORMATS = {
-        'testdata': utool.named_field_regex( [
-            ('name', r'[a-zA-Z]+'),
-            ('id',  r'\d*'),
+        'testdata': utool.named_field_regex([
+            ('name', r'[a-zA-Z]+'), # all alpha characters
+            ('id',   r'\d*'),       # first numbers (if existant)
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
+
+        'snails': utool.named_field_regex([
+            ('name', r'[a-zA-Z]+\d\d'),  # species and 2 numbers
+            ('id',   r'\d\d'),  # 2 more numbers
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
@@ -153,10 +160,19 @@ def convert_empty_images_to_rois(ibs):
 
 
 @utool.indent_func
-def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None, notes_list=None):
-    """ Adds an roi the size of the entire image to each image."""
+def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
+                       notes_list=None, adjust_percent=0.0):
+    """ Adds an roi the size of the entire image to each image.
+    adjust_percent - shrinks the ROI by percentage on each side
+    """
+    pct = adjust_percent  # Alias
     gsize_list = ibs.get_image_size(gid_list)
-    bbox_list  = [(0, 0, w, h) for (w, h) in gsize_list]
+    # Build bounding boxes as images size minus padding
+    bbox_list  = [
+        ( 0 + (gw * pct),      0 + (gh * pct),
+         gw - (gw * pct * 2), gh - (gh * pct * 2))
+        for (gw, gh) in gsize_list
+    ]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
                             name_list=name_list, nid_list=nid_list, notes_list=notes_list)
