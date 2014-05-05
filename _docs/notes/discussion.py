@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 
 '''
       Why don't we adopt a general SQL function that wraps around insert, update, ect.
