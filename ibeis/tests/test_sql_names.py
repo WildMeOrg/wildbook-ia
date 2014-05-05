@@ -3,12 +3,9 @@ from __future__ import absolute_import, division, print_function
 import sys
 from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
-from ibeis.tests import __testing__
 import utool
 from ibeis.control import SQLDatabaseControl
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NAMES]')
-
-printTEST = __testing__.printTEST
 
 
 def __define_schema(db):
@@ -97,6 +94,8 @@ def TEST_SQL_NAMES():
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
+    from ibeis.tests import __testing__
+    printTEST = __testing__.printTEST
     test_locals = __testing__.run_test(TEST_SQL_NAMES)
     execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

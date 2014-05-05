@@ -1,15 +1,15 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
+
+if __name__ == '__main__':
+    import multiprocessing  # for win32
+    multiprocessing.freeze_support()
+
 try:
     from . import __sysreq__
 except Exception:
     import __sysreq__  # NOQA
 import ibeis
-import multiprocessing  # for win32
-
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-
 ibeis._preload()
 import utool
 import sys

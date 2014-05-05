@@ -21,8 +21,8 @@ export ARGV="--quiet --noshow $@"
 export DEFAULT=OFF
 
 export GUI_TESTS=OFF  # $DEFAULT
-export IBS_TESTS=OFF  # $DEFAULT
-export SQL_TESTS=ON  # $DEFAULT
+export IBS_TESTS=ON  # $DEFAULT
+export SQL_TESTS=OFF  # $DEFAULT
 export MISC_TESTS=$DEFAULT
 export VIEW_TESTS=$DEFAULT
 export VTOOL_TESTS=$DEFAULT
