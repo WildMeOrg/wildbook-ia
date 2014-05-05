@@ -48,9 +48,9 @@ def get_unconverted_hsdbs(workdir=None):
     is_hsdb_list        = np.array(map(is_hsdb, dbpath_list))
     is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
     if utool.get_flag('--force-hsdb-convert'):
-        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
-    else:
         needs_convert = is_hsdb_list
+    else:
+        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
     needs_convert_hsdb  = dbpath_list[needs_convert].tolist()
     print('NEEDS CONVERSION:')
     print('\n'.join(needs_convert_hsdb))

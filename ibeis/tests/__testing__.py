@@ -1,5 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
+
+if __name__ == '__main__':
+    import multiprocessing  # for win32
+    multiprocessing.freeze_support()
+
 try:
     from . import __sysreq__
 except Exception:

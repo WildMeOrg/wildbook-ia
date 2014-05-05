@@ -54,9 +54,16 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='testdata'):
     Output: names based on the parent folder of each image
     """
     FORMATS = {
-        'testdata': utool.named_field_regex( [
-            ('name', r'[a-zA-Z]+'),
-            ('id',  r'\d*'),
+        'testdata': utool.named_field_regex([
+            ('name', r'[a-zA-Z]+'),  # all alpha characters
+            ('id',   r'\d*'),        # first numbers (if existant)
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
+
+        'snails': utool.named_field_regex([
+            ('name', r'[a-zA-Z]+\d\d'),  # species and 2 numbers
+            ('id',   r'\d\d'),  # 2 more numbers
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
@@ -153,10 +160,19 @@ def convert_empty_images_to_rois(ibs):
 
 
 @utool.indent_func
-def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None, notes_list=None):
-    """ Adds an roi the size of the entire image to each image."""
+def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
+                       notes_list=None, adjust_percent=0.0):
+    """ Adds an roi the size of the entire image to each image.
+    adjust_percent - shrinks the ROI by percentage on each side
+    """
+    pct = adjust_percent  # Alias
     gsize_list = ibs.get_image_size(gid_list)
-    bbox_list  = [(0, 0, w, h) for (w, h) in gsize_list]
+    # Build bounding boxes as images size minus padding
+    bbox_list  = [(int( 0 + (gw * pct)),
+                   int( 0 + (gh * pct)),
+                   int(gw - (gw * pct * 2)),
+                   int(gh - (gh * pct * 2)))
+                  for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
                             name_list=name_list, nid_list=nid_list, notes_list=notes_list)
@@ -215,3 +231,18 @@ def get_roi_is_hard(ibs, rid_list):
     is_hard_list = ['hard' in notes.lower().split() for (notes)
                     in notes_list]
     return is_hard_list
+
+
+def localize_images(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list  = ibs.get_valid_gids()
+    gpath_list = ibs.get_image_paths(gid_list)
+    guuid_list = ibs.get_image_uuids(gid_list)
+    gext_list  = ibs.get_image_exts(gid_list)
+    # Build list of image names based on uuid in the ibeis imgdir
+    local_gname_list = [str(guuid) + ext for guuid, ext, in izip(guuid_list, gext_list)]
+    local_gpath_list = [join(ibs.imgdir, gname) for gname in local_gname_list]
+    utool.copy_list(gpath_list, local_gpath_list, lbl='Localizing Images: ')
+    ibs.set_image_uris(gid_list, local_gname_list)
+
+    assert all(map(exists, local_gpath_list)), 'not all images copied'

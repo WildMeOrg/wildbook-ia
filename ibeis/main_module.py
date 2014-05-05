@@ -243,6 +243,8 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     print('[main] ibeis.main_module.main_loop()')
     from ibeis.dev import params
     import utool
+    print('current process = %r' % (multiprocessing.current_process().name,))
+    #== 'MainProcess':
     if rungui and not params.args.nogui:
         try:
             _guitool_loop(main_locals, ipy=ipy)

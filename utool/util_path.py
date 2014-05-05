@@ -44,17 +44,19 @@ def path_ndir_split(path, n):
 
 
 def remove_file(fpath, verbose=True, dryrun=False, **kwargs):
-    try:
-        if dryrun:
-            if verbose:
-                print('[util] Dryrem %r' % fpath)
-        else:
-            if verbose:
-                print('[util] Removing %r' % fpath)
+    if dryrun:
+        if verbose:
+            print('[util] Dryrem %r' % fpath)
+        return
+    else:
+        try:
             os.remove(fpath)
-    except OSError as e:
-        warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
-        return False
+            if verbose:
+                print('[util] Removed %r' % fpath)
+        except OSError as e:
+            print('[util] Misrem %r' % fpath)
+            #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
+            return False
     return True
 
 
@@ -207,7 +209,7 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     if not test:
         print('[util]... Copying')
         for (src, dst) in iter(_cp_tasks):
-            shutil.copy(src, dst)
+            shutil.copy2(src, dst)
         print('[util]... Finished copying')
     else:
         print('[util]... In test mode. Nothing was copied.')
@@ -226,7 +228,7 @@ def copy(src, dst):
         if isdir(src):
             shutil.copytree(src, dst)
         else:
-            shutil.copy(src, dst)
+            shutil.copy2(src, dst)
     else:
         prefix = 'Miss'
         print('[util] [Cannot Copy]: ')
@@ -255,18 +257,20 @@ def copy_all(src_dir, dest_dir, glob_str_list, recursive=False):
             break
 
 
-def copy_list(src_list, dst_list, lbl='Copying'):
+def copy_list(src_list, dst_list, lbl='Copying: ', ):
     # Feb - 6 - 2014 Copy function
-    def domove(src, dst, count):
-        try:
-            shutil.copy(src, dst)
-        except OSError:
-            return False
-        mark_progress(count)
-        return True
     task_iter = izip(src_list, dst_list)
     mark_progress, end_progress = progress_func(len(src_list), lbl=lbl)
-    success_list = [domove(src, dst, count) for count, (src, dst) in enumerate(task_iter)]
+    def docopy(src, dst, count):
+        try:
+            shutil.copy2(src, dst)
+        except OSError:
+            return False
+        except shutil.Error:
+            pass
+        mark_progress(count)
+        return True
+    success_list = [docopy(src, dst, count) for count, (src, dst) in enumerate(task_iter)]
     end_progress()
     return success_list
 
@@ -441,3 +445,7 @@ def get_module_dir(module, *args):
     if len(args) > 0:
         module_dir = join(module_dir, *args)
     return module_dir
+
+
+def tail(fpath):
+    return split(fpath)[1]

@@ -4,6 +4,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 import vtool.exif as exif
 from PIL import Image
+from os.path import split, splitext
 import numpy as np
 import hashlib
 import uuid
@@ -57,7 +58,11 @@ def preprocess_image(gpath):
     time, lat, lon = get_exif(pil_img)    # Read exif tags
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
     image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
-    param_tup  = (image_uuid, gpath, width, height, time, lat, lon)
+    orig_gname = split(gpath)[1]
+    ext = splitext(gpath)[1].lower()
+    if ext == '.jpeg':
+        ext = '.jpg'
+    param_tup  = (image_uuid, gpath, orig_gname, ext, width, height, time, lat, lon)
     return param_tup
 
 

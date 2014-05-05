@@ -216,7 +216,6 @@ def compgrav_chipmatch_scores(ibs, qrid_list):
 # DEV MAIN
 #------------------
 
-
 @profile
 def dev_main():
     global back
@@ -247,8 +246,8 @@ def rundev(main_locals):
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
     return locals(), main_execstr
 
+
 if __name__ == '__main__':
-    multiprocessing.freeze_support()  # for win32
     """
         The Developer Script
             A command line interface to almost everything
@@ -260,15 +259,18 @@ if __name__ == '__main__':
             Examples:
                 ./dev.py -t query -w
     """
-    utool.print_resource_usage()
-    main_locals = dev_main()
+    multiprocessing.freeze_support()  # for win32
+    #
+    # IBEIS Main
+    dev_locals, main_execstr = dev_main()
     #
     # ______________________________
     # + Common variables for IPython
     SNIPPITS = True
     if SNIPPITS:
+        # Get snippet variables
         ibs = main_locals['ibs']
-        ibs.dump_tables()
+        #ibs.dump_tables()
         valid_rids = ibs.get_valid_rids()
         valid_gids = ibs.get_valid_gids()
         valid_nids = ibs.get_valid_nids()
@@ -278,19 +280,14 @@ if __name__ == '__main__':
     # L___________________________
     #
     #
-    RUN_DEV = True
-    #RUN_DEV = '__IPYTHON__' in vars()
+    # Development code
+    RUN_DEV = True  # RUN_DEV = '__IPYTHON__' in vars()
     if RUN_DEV:
         dev_locals, main_execstr = rundev(main_locals)
         dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
         execstr = dev_execstr + '\n' + main_execstr
-        utool.print_resource_usage()
         exec(execstr)
-
-
-#DEV TODO
-"""
-export
-
-
-"""
+    # Memory profile
+    if '--memprof' in sys.argv:
+        utool.print_resource_usage()
+        utool.memory_profile()

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
-                     expanduser, relpath)
+                     expanduser, relpath, isabs)
 from itertools import izip, chain, imap, cycle
 from itertools import product as iprod
 import imp
@@ -75,7 +75,7 @@ from ibeis.dev import results_analyzer
 from ibeis.dev import results_all
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
-from ibeis.dev import experiment_printresults
+from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
 # IBEIS MODEL
 from ibeis.model import Config

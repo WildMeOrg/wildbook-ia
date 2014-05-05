@@ -24,6 +24,7 @@ def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
 
 
 def get_exif_dict(pil_img):
+    """ Returns exif dictionary by TAGID """
     try:
         exif_dict = pil_img._getexif()
         if exif_dict is None:
@@ -34,6 +35,21 @@ def get_exif_dict(pil_img):
     except OverflowError:
         exif_dict = {}
     return exif_dict
+
+
+def get_exif_dict2(pil_img):
+    """ Returns exif dictionary by TAG (less efficient)"""
+    try:
+        exif_dict = pil_img._getexif()
+        if exif_dict is None:
+            raise AttributeError
+        assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
+        exif_dict2 = {TAGS.get(key, key): val for (key, val) in exif_dict.iteritems()}
+    except AttributeError:
+        exif_dict2 = {}
+    except OverflowError:
+        exif_dict2 = {}
+    return exif_dict2
 
 
 def check_exif_keys(pil_img):
