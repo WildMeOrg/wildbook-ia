@@ -28,7 +28,7 @@ from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_feat
 # IBEIS
 from ibeis.control import DB_SCHEMA
-from ibeis.control import SQLDatabaseControl
+from ibeis.control import SQLDatabaseControl as sqldbc
 from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy,
                                            getter_numpy_vector_output,
@@ -87,8 +87,7 @@ class IBEISControl(object):
         ibs._init_sql()
         ibs._init_config()
 
-    def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
-                   workdir='~/ibeis_databases', ensure=True):
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
         if ensure:
             print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
@@ -96,17 +95,16 @@ class IBEISControl(object):
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
+        ibs.sqldb_fname = PATH_NAMES.sqldb
 
         # Make sure you are not nesting databases
         assert PATH_NAMES._ibsdb != utool.dirsplit(ibs.workdir), \
             'cannot work in _ibsdb internals'
         assert PATH_NAMES._ibsdb != dbname,\
             'cannot create db in _ibsdb internals'
-
         ibs.dbdir    = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
         ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
-        ibs.sqldb_fname = join(ibs._ibsdb, PATH_NAMES.sqldb)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
         ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
@@ -141,7 +139,8 @@ class IBEISControl(object):
 
     def get_dbdir(ibs):
         """ Returns database dir with ibs internal directory """
-        return join(ibs.workdir, ibs.dbname)
+        #return join(ibs.workdir, ibs.dbname)
+        return ibs.dbdir
 
     def get_ibsdir(ibs):
         """ Returns ibs internal directory """
@@ -164,8 +163,7 @@ class IBEISControl(object):
 
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbdir(),
-                                                       ibs.sqldb_fname)
+        ibs.db = sqldbc.SQLDBControl(ibs.get_ibsdir(), ibs.sqldb_fname)
         #OFF printDBG('[ibs._init_sql] Define the schema.')
         DB_SCHEMA.define_IBEIS_schema(ibs)
         #OFF printDBG('[ibs._init_sql] Add default names.')
@@ -700,12 +698,14 @@ class IBEISControl(object):
         return gname_list
 
     @getter
-    def get_image_size(ibs, gid_list):
+    def get_image_sizes(ibs, gid_list):
         """ Returns a list of (width, height) tuples """
         gwidth_list = ibs.get_image_props('image_width', gid_list)
         gheight_list = ibs.get_image_props('image_height', gid_list)
         gsize_list = [(w, h) for (w, h) in izip(gwidth_list, gheight_list)]
         return gsize_list
+
+    get_image_size = get_image_sizes  # TODO SP
 
     @getter
     def get_image_unixtime(ibs, gid_list):
@@ -973,13 +973,6 @@ class IBEISControl(object):
         numgts_list = ibs.get_roi_num_groundtruth(rid_list)
         has_gt_list = [num_gts > 0 for num_gts in numgts_list]
         return has_gt_list
-
-    @getter
-    def get_roi_is_hard(ibs, rid_list):
-        notes_list = ibs.get_roi_notes(rid_list)
-        is_hard_list = ['hard' in notes.lower().split() for (notes)
-                        in notes_list]
-        return is_hard_list
 
     #
     # GETTERS::Chips
@@ -1368,17 +1361,27 @@ class IBEISControl(object):
     def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = qrid_list
-        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
+        qres_list = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qres_list
+
+    @utool.indent_func(False)
+    def prep_qreq_db(ibs, qrid_list):
+        """ Puts IBEIS into intra-encounter mode """
+        drid_list = qrid_list
+        ibs._prep_qreq(qrid_list, drid_list)
 
     @utool.indent_func((False, '[query_db]'))
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
-        if ibs.qreq is None:
-            ibs._init_query_requestor()
         drid_list = ibs.get_recognition_database_rids()
         qrid2_res = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_res
+
+    @utool.indent_func(False)
+    def prep_qreq_db(ibs, qrid_list):
+        """ Puts IBEIS into query database mode """
+        drid_list = ibs.get_recognition_database_rids()
+        ibs._prep_qreq(qrid_list, drid_list)
 
     @utool.indent_func
     def _init_query_requestor(ibs):
@@ -1386,11 +1389,6 @@ class IBEISControl(object):
         # Create query request object
         ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
-
-    @utool.indent_func(False)
-    def prep_qreq_db(ibs, qrid_list):
-        drid_list = ibs.get_recognition_database_rids()
-        ibs._prep_qreq(qrid_list, drid_list)
 
     @utool.indent_func(False)
     def _prep_qreq(ibs, qrid_list, drid_list, **kwargs):
@@ -1470,3 +1468,19 @@ class IBEISControl(object):
         ibs.print_name_table()
         ibs.print_config_table()
         print('\n')
+
+    def dump_tables(ibs):
+        """ Dumps hotspotter like tables to disk """
+        ibsdir = ibs.get_ibsdir()
+        gtbl_name = join(ibsdir, 'IBEIS_DUMP_images_table.csv')
+        ntbl_name = join(ibsdir, 'IBEIS_DUMP_names_table.csv')
+        rtbl_name = join(ibsdir, 'IBEIS_DUMP_rois_table.csv')
+        with open(gtbl_name, 'w') as file_:
+            gtbl_str = ibs.db.get_table_csv('images', exclude_columns=['image_uuid'])
+            file_.write(gtbl_str)
+        with open(ntbl_name, 'w') as file_:
+            ntbl_str = ibs.db.get_table_csv('names',  exclude_columns=[])
+            file_.write(ntbl_str)
+        with open(rtbl_name, 'w') as file_:
+            rtbl_str = ibs.db.get_table_csv('rois',   exclude_columns=['roi_uuid'])
+            file_.write(rtbl_str)

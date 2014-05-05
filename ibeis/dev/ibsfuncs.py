@@ -208,3 +208,10 @@ def get_roi_desc_cache(ibs, rids):
     unique_desc = ibs.get_roi_desc(unique_rids)
     desc_cache = dict(list(izip(unique_rids, unique_desc)))
     return desc_cache
+
+
+def get_roi_is_hard(ibs, rid_list):
+    notes_list = ibs.get_roi_notes(rid_list)
+    is_hard_list = ['hard' in notes.lower().split() for (notes)
+                    in notes_list]
+    return is_hard_list

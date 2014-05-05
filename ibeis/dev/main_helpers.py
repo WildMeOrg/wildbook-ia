@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.dev import params
+from ibeis.dev import ibsfuncs
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[main_helpers]', DEBUG=False)
@@ -28,22 +29,22 @@ def get_test_qrids(ibs):
     #print('[main_helpers]')
     test_qrids = []
     valid_rids = ibs.get_valid_rids()
-    #printDBG('1. valid_rids = %r' % valid_rids[0:5])
+    printDBG('1. valid_rids = %r' % valid_rids[0:5])
     #print(utool.dict_str(vars(params.args)))
 
     if params.args.qrid is not None:
-        #printDBG('Testing qrid=%r' % params.args.qrid)
+        printDBG('Testing qrid=%r' % params.args.qrid)
         test_qrids.extend(params.args.qrid)
 
     if params.args.all_cases:
-        #printDBG('Testing all %d cases' % (len(valid_rids),))
-        #printDBG('1. test_qrids = %r' % test_qrids[0:5])
+        printDBG('Testing all %d cases' % (len(valid_rids),))
+        printDBG('1. test_qrids = %r' % test_qrids[0:5])
         test_qrids.extend(valid_rids)
-        #printDBG('2. test_qrids = %r' % test_qrids[0:5])
+        printDBG('2. test_qrids = %r' % test_qrids[0:5])
     else:
-        is_hard_list = ibs.get_roi_is_hard(valid_rids)
+        is_hard_list = ibsfuncs.get_roi_is_hard(ibs, valid_rids)
         hard_rids = utool.filter_items(valid_rids, is_hard_list)
-        #printDBG('Testing %d known hard cases' % len(hard_rids))
+        printDBG('Testing %d known hard cases' % len(hard_rids))
         test_qrids.extend(hard_rids)
 
     if params.args.all_gt_cases:
@@ -67,6 +68,4 @@ def get_test_qrids(ibs):
 
     #print('test_qrids = %r' % test_qrids)
     test_qrids = utool.unique_keep_order2(test_qrids)
-    #printDBG('test_qrids = %r' % test_qrids)
-    #printDBG('len(test_qrids) = %d' % len(test_qrids))
     return test_qrids

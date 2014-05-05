@@ -12,10 +12,12 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     ibeis._preload()
     from ibeis.dev.all_imports import *  # NOQA
+from _devcmds_ibeis import *  # NOQA
 # Tools
 from plottool import draw_func2 as df2
 # IBEIS
 from ibeis.dev import main_helpers
+from ibeis.dev import dbinfo
 from ibeis.viz import interact
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
@@ -27,82 +29,11 @@ if not 'back' in vars():
     back = None
 
 
-@devcmd
-def vdd(ibs=None, qrid_list=None):
-    utool.view_directory(ibs.get_dbdir())
-
-
-@devcmd('show')
-def show_rids(ibs, qrid_list):
-    for rid in qrid_list:
-        interact.ishow_chip(ibs, rid, fnum=df2.next_fnum())
-
-
-@devcmd()
-def change_names(ibs, qrid_list):
-    #new_name = utool.get_arg('--name', str, default='<name>_the_<species>')
-    new_name = utool.get_arg('--name', str, default='glob')
-    for rid in qrid_list:
-        ibs.print_name_table()
-        #(nid,) = ibs.add_names((new_name,))
-        ibs.set_roi_props((rid,), 'name', (new_name,))
-        ibs.print_name_table()
-        ibs.print_roi_table()
-    new_nid = ibs.get_name_nids(new_name, ensure=False)
-    if back is not None:
-        back.select_nid(new_nid)
-
-
-@devcmd('query')
-def query_rids(ibs, qrid_list):
-    qrid2_qres = ibs.query_database(qrid_list)
-    for qrid in qrid_list:
-        qres = qrid2_qres[qrid]
-        interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
-    return qrid2_qres
-
-
-@devcmd('sver')
-def sver_rids(ibs, qrid_list):
-    qrid2_qres = ibs.query_database(qrid_list)
-    for qrid in qrid_list:
-        qres = qrid2_qres[qrid]
-        rid2 = qres.get_top_rids()[0]
-        interact.ishow_sver(ibs, qrid, rid2, fnum=df2.next_fnum(), annote_mode=1)
-    return qrid2_qres
-
-
-@devcmd('cfg')
-def printcfg(ibs, qrid_list):
-    ibs.cfg.printme3()
-    print(ibs.cfg.query_cfg.get_uid())
-
-
-@devcmd('hsdbs')
-def list_hsdbs(*args):
-    from ibeis.injest.injest_my_hotspotter_dbs import get_unconverted_hsdbs
-    get_unconverted_hsdbs()
-
-
-@devcmd('convert')
-def convert_hsdbs(*args):
-    from ibeis.injest.injest_my_hotspotter_dbs import injest_unconverted_hsdbs_in_workdir
-    injest_unconverted_hsdbs_in_workdir()
-
-
-@devcmd
-def delete_all_feats(ibs, *args):
-    ibsfuncs.delete_all_features(ibs)
-
-
-@devcmd
-def delete_all_chips(ibs, *args):
-    ibsfuncs.delete_all_chips(ibs)
-
-
+dbinfo.rrr()
 #--------------------
 # RUN DEV EXPERIMENTS
 #--------------------
+
 
 #@utool.indent_decor('[dev]')
 @profile
@@ -133,8 +64,12 @@ def run_experiments(ibs, qrid_list):
 
     valid_test_helpstr_list.append('    # --- Simple Tests ---')
 
+    if intest('export'):
+        export(ibs)
     if intest('info'):
         print(ibs.get_infostr())
+    if intest('dbinfo'):
+        dbinfo.get_dbinfo(ibs)
     if intest('printcfg'):
         printcfg(ibs)
     if intest('tables'):
@@ -287,11 +222,17 @@ def dev_main():
     global back
     print('++dev')
     main_locals = ibeis.main(gui='--gui' in sys.argv)
-    ibs  = main_locals['ibs']
-    back = main_locals['back']
+    return main_locals
 
+
+def rundev(main_locals):
+    ibs = main_locals['ibs']
+    back = main_locals['back']
     fnum = 1
     qrid_list = main_helpers.get_test_qrids(ibs)
+    print('test_qrids = %r' % qrid_list)
+    print('len(test_qrids) = %d' % len(qrid_list))
+    assert len(qrid_list) > 0, 'assert!'
     ibs.prep_qreq_db(qrid_list)
 
     expt_locals = run_experiments(ibs, qrid_list)
@@ -320,19 +261,36 @@ if __name__ == '__main__':
                 ./dev.py -t query -w
     """
     utool.print_resource_usage()
-    dev_locals, main_execstr = dev_main()
-    dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
-    execstr = dev_execstr + '\n' + main_execstr
+    main_locals = dev_main()
+    #
+    # ______________________________
+    # + Common variables for IPython
+    SNIPPITS = True
+    if SNIPPITS:
+        ibs = main_locals['ibs']
+        ibs.dump_tables()
+        valid_rids = ibs.get_valid_rids()
+        valid_gids = ibs.get_valid_gids()
+        valid_nids = ibs.get_valid_nids()
+        valid_nid_list  = ibs.get_roi_nids(valid_rids)
+        valid_rid_names = ibs.get_roi_names(valid_rids)
+        valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
+    # L___________________________
+    #
+    #
+    RUN_DEV = True
+    #RUN_DEV = '__IPYTHON__' in vars()
+    if RUN_DEV:
+        dev_locals, main_execstr = rundev(main_locals)
+        dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
+        execstr = dev_execstr + '\n' + main_execstr
+        utool.print_resource_usage()
+        exec(execstr)
 
-    utool.print_resource_usage()
-    exec(execstr)
 
-
+#DEV TODO
 """
-Snippets:
+export
 
-rid_list = ibs.get_valid_rids()
-gid_list = ibs.get_valid_gids()
-nid_list = ibs.get_valid_nids()
 
 """

@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
 # Science
-from PIL import Image
 import numpy as np
 from collections import OrderedDict
 from utool import util_latex as latex_formatter
@@ -11,40 +10,41 @@ from vtool import keypoint as ktool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
 
 
-def db_info(ibs):
+def get_dbinfo(ibs):
     # Name Info
-    rid_list = ibs.get_valid_rids()
-    nid_list = ibs.get_valid_nids()
-    rids_in_nids_list = ibs.get_rids_in_nids(nid_list)
-    unknown_rids = ibs.get_rids_in_nids(ibs.UNKNOWN_NID)
+    rrr()
+    valid_rids = ibs.get_valid_rids()
+    valid_nids = ibs.get_valid_nids()
+    valid_gids = ibs.get_valid_gids()
 
-    gid_list = ibs.get_valid_gids()
-    gname_list = ibs.get_image_gnames(gid_list)
-    cx2_gx = ibs.tables.cx2_gx
+    num_chips = len(valid_rids)
+    num_images = len(valid_gids)
 
-    nx2_cxs    = np.array(ibs.get_nx2_cxs())
-    nx2_nRois = np.array(map(len, nx2_cxs))
+    name_rids_list = ibs.get_name_rids(valid_nids)
+    nx2_rids = np.array(name_rids_list)
+    unknown_rids = ibs.get_name_rids(ibs.UNKNOWN_NID)
+
+    gname_list = ibs.get_image_gnames(valid_gids)
+    nx2_nRois = np.asarray(map(len, nx2_rids))
     num_uniden = len(unknown_rids)
     # Seperate singleton / multitons
-    multiton_nxs,  = np.where(nx2_nRois > 1)
-    singleton_nxs, = np.where(nx2_nRois == 1)
+    multiton_nxs  = np.where(nx2_nRois > 1)[0]
+    singleton_nxs = np.where(nx2_nRois == 1)[0]
     valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
     num_names_with_gt = len(multiton_nxs)
     # Chip Info
-    cx2_roi = ibs.tables.cx2_roi
-    multiton_cx_lists = nx2_cxs[multiton_nxs]
-    multiton_cxs = np.hstack(multiton_cx_lists)
-    singleton_cxs = nx2_cxs[singleton_nxs]
-    multiton_nx2_nchips = map(len, multiton_cx_lists)
-    valid_cxs = ibs.get_valid_cxs()
-    num_chips = len(valid_cxs)
+    multiton_rids_list = nx2_rids[multiton_nxs]
+    multiton_cxs = np.hstack(multiton_rids_list)
+    singleton_cxs = nx2_rids[singleton_nxs]
+    multiton_nx2_nchips = map(len, multiton_rids_list)
     # Image info
-    num_images = len(gid_list)
-    gpath_list = utool.list_images(ibs.imgdir, fullpath=True)
+    gpath_list = ibs.get_image_paths(valid_gids)
+    #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True)
 
     def wh_print_stats(wh_list):
         if len(wh_list) == 0:
             return '{empty}'
+        wh_list = np.asarray(wh_list)
         stat_dict = OrderedDict(
             [( 'max', wh_list.max(0)),
              ( 'min', wh_list.min(0)),
@@ -54,23 +54,14 @@ def db_info(ibs):
         ret = (',\n    '.join(['%r:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
         return '{\n    ' + ret + '}'
 
-    def get_img_size_list(gpath_list):
-        ret = []
-        for img_fpath in gpath_list:
-            try:
-                size = Image.open(img_fpath).size
-                ret.append(size)
-            except Exception as ex:
-                print(repr(ex))
-                pass
-        return ret
-
     print('reading image sizes')
-    if len(cx2_roi) == 0:
+    roi_bbox_list = ibs.get_roi_bboxes(valid_rids)
+    roi_bbox_arr = np.array(roi_bbox_list)
+    if len(roi_bbox_arr) == 0:
         roi_size_list = []
     else:
-        roi_size_list = cx2_roi[:, 2:4]
-    img_size_list  = np.array(get_img_size_list(gpath_list))
+        roi_size_list = roi_bbox_arr[:, 2:4]
+    img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(roi_size_list)
     multiton_stats  = utool.printable_mystats(multiton_nx2_nchips)
@@ -78,7 +69,7 @@ def db_info(ibs):
     num_names = len(valid_nxs)
     # print
     info_str = '\n'.join([
-        (' DB Info: ' + ibs.get_db_name()),
+        (' DB Info: ' + ibs.get_dbname()),
         (' * #Img   = %d' % num_images),
         (' * #Chips = %d' % num_chips),
         (' * #Names = %d' % len(valid_nxs)),
@@ -95,11 +86,11 @@ def db_info(ibs):
 
 
 def get_keypoint_stats(ibs):
-    from hscom import latex_formater as pytex
-    from hsdev import dev_consistency
-    dev_consistency.check_keypoint_consistency(ibs)
+    from utool import util_latex as pytex
+    #from hsdev import dev_consistency
+    #dev_consistency.check_keypoint_consistency(ibs)
     # Keypoint stats
-    ibs.refresh_features()
+    #ibs.refresh_features()
     cx2_kpts = ibs.feats.cx2_kpts
     # Check cx2_kpts
     cx2_nFeats = map(len, cx2_kpts)
@@ -122,8 +113,8 @@ def get_keypoint_stats(ibs):
 
 def dbstats(ibs):
     # Chip / Name / Image stats
-    dbinfo_locals = db_info(ibs)
-    db_name = ibs.get_db_name()
+    dbinfo_locals = get_dbinfo(ibs)
+    db_name = ibs.get_dbname()
     #num_images = dbinfo_locals['num_images']
     num_chips = dbinfo_locals['num_chips']
     num_names = len(dbinfo_locals['valid_nxs'])
@@ -141,8 +132,8 @@ def dbstats(ibs):
     tex_multi_stats = latex_formatter.latex_mystats(r'\# multistats', multiton_nx2_nchips)
 
     tex_kpts_scale_thresh = latex_formatter.latex_multicolumn('Scale Threshold (%d %d)' %
-                                                             (ibs.prefs.feat_cfg.scale_min,
-                                                              ibs.prefs.feat_cfg.scale_max)) + r'\\' + '\n'
+                                                             (ibs.cfg.feat_cfg.scale_min,
+                                                              ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
 
     (tex_nKpts, tex_kpts_stats, tex_scale_stats) = get_keypoint_stats(ibs)
     tex_title = latex_formatter.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
@@ -166,11 +157,11 @@ def dbstats(ibs):
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):
-    from hscom import latex_formater
+    from util import util_latex as latex_formater
     print('[dev stats] cache_memory_stats()')
-    kpts_list = ibs.get_kpts(cid_list)
-    desc_list = ibs.get_desc(cid_list)
-    nFeats_list = map(len, kpts_list)
+    #kpts_list = ibs.get_roi_kpts(cid_list)
+    #desc_list = ibs.get_roi_desc(cid_list)
+    #nFeats_list = map(len, kpts_list)
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 
     bytes_map = {
