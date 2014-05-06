@@ -1396,8 +1396,8 @@ class IBEISControl(object):
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = ibs.get_recognition_database_rids()
-        qrid2_res = ibs._query_chips(qrid_list, drid_list, **kwargs)
-        return qrid2_res
+        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        return qrid2_qres
 
     @utool.indent_func(False)
     def prep_qreq_db(ibs, qrid_list):

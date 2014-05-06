@@ -39,7 +39,7 @@ def get_query_components(ibs, qrids):
     _tup = mf.spatial_verification(ibs, qrid2_chipmatch_FILT, qreq, dbginfo=True)
     qrid2_chipmatch_SVER, qrid2_svtups = _tup
     #---
-    qrid2_res = mf.chipmatch_to_resdict(ibs, qrid2_chipmatch_SVER, filt2_meta, qreq)
+    qrid2_qres = mf.chipmatch_to_resdict(ibs, qrid2_chipmatch_SVER, filt2_meta, qreq)
     #####################
     # Testing components
     #####################
@@ -52,16 +52,16 @@ def get_query_components(ibs, qrids):
         qfx2_score, qfx2_valid = qrid2_nnfilt[qrid]
         qrid2_nnfilt_ORIG    = mf.identity_filter(qrid2_nns, qreq)
         qrid2_chipmatch_ORIG = mf.build_chipmatches(qrid2_nns, qrid2_nnfilt_ORIG, qreq)
-        qrid2_res_ORIG = mf.chipmatch_to_resdict(ibs, qrid2_chipmatch_ORIG, filt2_meta, qreq)
-        qrid2_res_FILT = mf.chipmatch_to_resdict(ibs, qrid2_chipmatch_FILT, filt2_meta, qreq)
-        qrid2_res_SVER = qrid2_res
+        qrid2_qres_ORIG = mf.chipmatch_to_resdict(ibs, qrid2_chipmatch_ORIG, filt2_meta, qreq)
+        qrid2_qres_FILT = mf.chipmatch_to_resdict(ibs, qrid2_chipmatch_FILT, filt2_meta, qreq)
+        qrid2_qres_SVER = qrid2_qres
     #####################
     # Relevant components
     #####################
     qrid = qrids[0]
-    qres_ORIG = qrid2_res_ORIG[qrid]
-    qres_FILT = qrid2_res_FILT[qrid]
-    qres_SVER = qrid2_res_SVER[qrid]
+    qres_ORIG = qrid2_qres_ORIG[qrid]
+    qres_FILT = qrid2_qres_FILT[qrid]
+    qres_SVER = qrid2_qres_SVER[qrid]
 
     return locals()
 
