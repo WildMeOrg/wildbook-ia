@@ -9,7 +9,7 @@ import multiprocessing
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ADD_ROI]')
 
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_GUI_ADD_ROI(ibs, back):

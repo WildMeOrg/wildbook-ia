@@ -8,7 +8,7 @@ from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from ibeis import viz
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS]')
 
 

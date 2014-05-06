@@ -11,7 +11,7 @@ import ibeis
 from ibeis.dev import ibsfuncs
 import multiprocessing
 import utool
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[MAKE_BIG_DB]')
 
 sys.argv.append('--nogui')

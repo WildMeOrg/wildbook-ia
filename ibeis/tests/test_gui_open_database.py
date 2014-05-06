@@ -10,7 +10,7 @@ import utool
 from ibeis.dev import params
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_OPEN_DATABASE]')
 
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_GUI_OPEN_DATABASE(ibs, back):

@@ -7,7 +7,7 @@ sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 import multiprocessing
 import utool
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ADD_IMAGES]')
 
 

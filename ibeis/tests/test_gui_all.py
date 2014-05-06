@@ -11,7 +11,7 @@ import numpy as np
 from ibeis.dev import params
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ALL]')
 np.tau = 2 * np.pi
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_GUI_ALL(ibs, back):

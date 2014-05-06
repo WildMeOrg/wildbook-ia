@@ -14,7 +14,7 @@ import pyhesaff
 from utool import util_parallel
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_PARALLEL]')
 #utool.inject_all()
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_PARALLEL():

@@ -40,7 +40,7 @@ def TEST_SQL_NAMES():
     #
     # Create new temp database
     printTEST('New Temp Database')
-    db = SQLDatabaseControl.SQLDatabaseControl(database_path='.', database_file='temp.sqlite3')
+    db = SQLDatabaseControl.SQLDatabaseControl(sqldb_dpath='.', sqldb_fname='temp.sqlite3')
     #
     # Define the schema
     __define_schema(db)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
     from ibeis.tests import __testing__
-    printTEST = __testing__.printTEST
+    from __testing__ import printTEST
     test_locals = __testing__.run_test(TEST_SQL_NAMES)
     execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

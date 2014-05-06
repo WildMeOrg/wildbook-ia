@@ -8,7 +8,7 @@ from ibeis.tests import __testing__
 import multiprocessing
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_SELECTION]')
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_GUI_SELECTION(ibs, back):

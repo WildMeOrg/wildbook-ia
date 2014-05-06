@@ -5,7 +5,7 @@ import sys
 from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 # Python
 import multiprocessing
 # Tools

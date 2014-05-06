@@ -9,7 +9,7 @@ import multiprocessing
 import utool
 from ibeis.viz import interact
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_INTERACT]')
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_INTERACT(ibs):

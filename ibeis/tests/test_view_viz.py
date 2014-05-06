@@ -10,7 +10,7 @@ import utool
 from ibeis import viz
 from plottool import draw_func2 as df2
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_VIZ]')
-printTEST = __testing__.printTEST
+from __testing__ import printTEST
 
 
 def TEST_VIZ(ibs):

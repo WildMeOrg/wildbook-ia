@@ -2,13 +2,14 @@ from __future__ import absolute_import, division, print_function
 import __builtin__
 
 if __name__ == '__main__':
-    import multiprocessing  # for win32
-    multiprocessing.freeze_support()
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
 
 try:
     from . import __sysreq__
 except Exception:
     import __sysreq__  # NOQA
+
 import ibeis
 ibeis._preload()
 import utool

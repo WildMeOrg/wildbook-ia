@@ -1,6 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import sys
 from os.path import  realpath, dirname, join, exists, expanduser
+
+if __name__ == '__main__':
+    import multiprocessing  # for win32
+    multiprocessing.freeze_support()
+
 import matplotlib
 matplotlib.use('Qt4Agg', warn=True, force=True)
 
