@@ -9,7 +9,6 @@ import multiprocessing
 import utool
 from ibeis.viz import interact
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_INTERACT]')
-from __testing__ import printTEST
 
 
 def TEST_INTERACT(ibs):
@@ -17,7 +16,7 @@ def TEST_INTERACT(ibs):
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
 
-    printTEST('''
+    print('''
     * len(valid_rids) = %r
     * len(valid_gids) = %r
     ''' % (len(valid_rids), len(valid_gids)))
@@ -29,17 +28,17 @@ def TEST_INTERACT(ibs):
     rid = rid_list[cindex]
 
     #----------------------
-    #printTEST('Show Image')
+    #print('Show Image')
     sel_rids = rid_list[1:3]
     interact.ishow_image(ibs, gid, sel_rids=sel_rids, fnum=1)
 
     #----------------------
-    #printTEST('Show Chip')
+    #print('Show Chip')
     interact.ishow_chip(ibs, rid, in_image=False, fnum=2)
     #interact.ishow_chip(ibs, rid, in_image=True, fnum=3)
 
     #----------------------
-    #printTEST('Show Query')
+    #print('Show Query')
     #rid1 = rid
     #qcid2_qres = ibs.query_database([rid1])
     #qres = qcid2_qres.values()[0]

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
 #from os.path import join, dirname, realpath
 #sys.path.append(realpath(join(dirname(__file__), '../..')))
 import multiprocessing
@@ -62,7 +61,6 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     rid_list = ibs.get_valid_rids()
     print('\n'.join('  * rid_list[%d] = %r' % (count, rid) for count, rid in enumerate(rid_list)))
 
-
     #back.select_rid(rid_list[1])
     #back.select_rid(rid_list[2])
 
@@ -84,12 +82,10 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     back.set_image_prop(gid_list[1], 'aif', False)
     assert ibs.get_image_aifs(gid_list) == [1, 0, 0]
 
-
     back.select_rid(rid_list[0], show_image=True)
     assert ibs.get_roi_bboxes(rid_list[0]) == (50, 50, 100, 100)
     back.reselect_roi(bbox=[51, 52, 103, 104])
     assert ibs.get_roi_bboxes(rid_list[0]) == (51, 52, 103, 104)
-
 
     # Change some ROIs
 

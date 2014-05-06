@@ -10,15 +10,13 @@ import utool
 from ibeis.dev import sysres
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_OPEN_DATABASE]')
 
-from __testing__ import printTEST
-
 
 def TEST_GUI_OPEN_DATABASE(ibs, back):
     testdb0 = sysres.db_to_dbdir('testdb0')
     testdb1 = sysres.db_to_dbdir('testdb1')
-    printTEST('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
+    print('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
     back.open_database(testdb1)
-    printTEST('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
+    print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
     back.open_database(testdb0)
     return locals()
 

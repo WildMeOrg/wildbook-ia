@@ -14,7 +14,6 @@ import pyhesaff
 from utool import util_parallel
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_PARALLEL]')
 #utool.inject_all()
-from __testing__ import printTEST
 
 
 def TEST_PARALLEL():
@@ -37,7 +36,7 @@ def TEST_PARALLEL():
     # Run parallel tasks
     @utool.indent_decor('[test_task]')
     def run_parallel_task(num_procs=None):
-        printTEST('run_parallel_task. num_procs=%r' % None)
+        print('run_parallel_task. num_procs=%r' % None)
         if num_procs is not None:
             util_parallel.close_pool()
             util_parallel.init_pool(num_procs)
@@ -54,7 +53,7 @@ def TEST_PARALLEL():
     # Compare to serial if needed
     @utool.argv_flag_dec
     def compare_serial():
-        printTEST('compare_serial')
+        print('compare_serial')
         run_parallel_task(1)
     compare_serial()
     return locals()

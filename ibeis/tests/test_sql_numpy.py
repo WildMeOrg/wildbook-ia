@@ -25,7 +25,7 @@ def TEST_SQL_NUMPY():
     feats_list = __testing__.get_test_numpy_data(shape=(3e3, 128), dtype=np.uint8)
     print(' * numpy.new time=%r sec' % utool.toc(tt))
 
-    printTEST('[TEST] insert numpy arrays')
+    print('[TEST] insert numpy arrays')
     tt = utool.tic()
     feats_iter = ((feats, ) for feats in feats_list)
     db.executemany(operation='''
@@ -38,12 +38,12 @@ def TEST_SQL_NUMPY():
         ''', params_iter=feats_iter)
     print(' * execute insert time=%r sec' % utool.toc(tt))
 
-    printTEST('[TEST] save sql database')
+    print('[TEST] save sql database')
     tt = utool.tic()
     db.commit()
     print(' * commit time=%r sec' % utool.toc(tt))
 
-    printTEST('[TEST] read from sql database')
+    print('[TEST] read from sql database')
 
     tt = utool.tic()
     db.execute('SELECT temp_hash FROM temp', [])
@@ -56,7 +56,7 @@ def TEST_SQL_NUMPY():
     del result_list
     #print('[TEST] result_list=%r' % result_list)
 
-    printTEST('[TEST] dump sql database')
+    print('[TEST] dump sql database')
     tt = utool.tic()
     db.dump('temp.dump.txt')
     print(' * dump time=%r sec' % utool.toc(tt))
@@ -69,7 +69,6 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
     from ibeis.tests import __testing__
-    from __testing__ import printTEST
     test_locals = __testing__.run_test(TEST_SQL_NUMPY)
     execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

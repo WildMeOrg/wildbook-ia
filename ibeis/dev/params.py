@@ -1,10 +1,9 @@
 from __future__ import absolute_import, division, print_function
-from os.path import exists, join, realpath, dirname
 from utool import util_arg
-
 
 # Global command line arguments
 args = None
+
 
 def parse_args():
     # TODO: Port more from hotspotter/hsdev/argparse2.py
@@ -73,8 +72,8 @@ def parse_args():
         parser2.add_flag(('--view-database-directory', '--vdd'),
                          help='opens the database directory')
         parser2.add_strs(('--update-cfg', '--set-cfg', '--cfg'), default=None,
-                            help=('set cfg dict via strings: e.g. '
-                                  '--cfg xy_thresh=.01 score_method=csum'))
+                         help=('set cfg dict via strings: e.g. '
+                               '--cfg xy_thresh=.01 score_method=csum'))
         parser2.add_flag('--postload-exit', help='exit after posload commands')
 
     behavior_argparse(parser2)
@@ -93,4 +92,5 @@ def parse_args():
 parse_args()
 
 if __name__ == '__main__':
+    import multiprocessing
     multiprocessing.freeze_support()

@@ -5,7 +5,6 @@ import sys
 from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
-from __testing__ import printTEST
 # Python
 import multiprocessing
 # Tools
@@ -49,7 +48,7 @@ def TEST_IBS_GETTERS(ibs=None):
     assert_getter_output(kpts_list, kpts_scalar, kpts_numpy, 'kpts')
 
     # Run Qt Loop to use the GUI
-    printTEST('[TEST] MAIN_LOOP')
+    print('[TEST] MAIN_LOOP')
     if main_locals is None:
         main_locals.update(locals())
         __testing__.main_loop(main_locals, rungui=False)

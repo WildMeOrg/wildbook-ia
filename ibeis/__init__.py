@@ -31,3 +31,7 @@ def reload_subs():
     #injest.reload_subs()
     #gui.reload_subs()
     #tests.reload_subs()
+
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32

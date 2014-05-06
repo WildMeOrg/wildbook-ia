@@ -1,10 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
 
-if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-
 try:
     from . import __sysreq__
 except Exception:
@@ -157,3 +153,7 @@ def printTEST(msg, wait=False):
     __builtin__.print('**' + msg)
     if INTERACTIVE and wait:
         raw_input('press enter to continue')
+
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32

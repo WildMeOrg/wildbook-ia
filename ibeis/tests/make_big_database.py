@@ -6,12 +6,11 @@ from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 from os.path import join, exists
-from ibeis.dev import params
 import ibeis
 from ibeis.dev import ibsfuncs
+from ibeis.dev import sysres
 import multiprocessing
 import utool
-from __testing__ import printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[MAKE_BIG_DB]')
 
 sys.argv.append('--nogui')

@@ -10,12 +10,11 @@ import utool
 # IBEIST
 from ibeis.model.preproc import preproc_feat
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_COMPUTE_FEATS]')
-from __testing__ import printTEST
 
 
 def TEST_COMPUTE_FEATS(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
-    printTEST('get_valid_ROIS')
+    print('get_valid_ROIS')
     rid_list = ibs.get_valid_rids()
     cid_list = ibs.add_chips(rid_list)
     assert len(cid_list) > 0, 'database chips cannot be empty for TEST_COMPUTE_FEATS'

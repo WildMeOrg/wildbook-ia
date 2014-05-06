@@ -10,7 +10,6 @@ import utool
 # IBEIST
 from ibeis.model.preproc import preproc_chip
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_COMPUTE_CHIPS]')
-#from __testing__ import printTEST
 
 
 def TEST_COMPUTE_CHIPS(ibs):

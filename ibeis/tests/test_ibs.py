@@ -8,22 +8,21 @@ from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from ibeis import viz
-from __testing__ import printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS]')
 
 
 def TEST_IBS(ibs):
     gpath_list = __testing__.get_test_gpaths(ndata=1)
 
-    printTEST('[TEST] 1.ibs.add_images(gpath_list=%r)' % gpath_list)
+    print('[TEST] 1.ibs.add_images(gpath_list=%r)' % gpath_list)
     gid_list = ibs.add_images(gpath_list)
     print(' * gid_list=%r' % gid_list)
 
-    printTEST('[TEST] 2. ibs.get_image_paths(gid_list)')
+    print('[TEST] 2. ibs.get_image_paths(gid_list)')
     gpaths_list = ibs.get_image_paths(gid_list)
     print(' * gpaths_list=%r' % gpaths_list)
 
-    printTEST('[TEST] 3. get_image_props')
+    print('[TEST] 3. get_image_props')
     uri_list   = ibs.get_image_uris(gid_list)
     path_list  = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_size(gid_list)
@@ -35,11 +34,11 @@ def TEST_IBS(ibs):
     print(' * time_list=%r' % time_list)
     print(' * gps_list=%r' % gps_list)
 
-    printTEST('[TEST] 4. get_image_props')
+    print('[TEST] 4. get_image_props')
     mult_cols_list = ibs.get_table_props('images', ('image_uri', 'image_width', 'image_height'), gid_list)
     print(' * gps_list=%r' % mult_cols_list)
 
-    printTEST('[TEST] 5. add_rois')
+    print('[TEST] 5. add_rois')
     gid = gid_list[0]
     gid_list = [gid, gid]
     bbox_list = [(50, 50, 100, 100), (75, 75, 102, 101)]
@@ -47,7 +46,7 @@ def TEST_IBS(ibs):
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list)
     print(' * rid_list=%r' % rid_list)
 
-    printTEST('[TEST] 6. get_roi_props')
+    print('[TEST] 6. get_roi_props')
     gid_list    = ibs.get_roi_gids(rid_list)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)

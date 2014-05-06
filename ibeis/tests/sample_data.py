@@ -12,7 +12,6 @@ from plottool.viz_keypoints import show_keypoints
 from ibeis.dev.all_imports import *  # NOQA
 import vtool.tests.dummy as dummy
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
-from __testing__ import printTEST
 
 
 def get_test_kpts(ibs, n=11):

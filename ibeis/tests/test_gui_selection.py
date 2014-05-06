@@ -8,20 +8,19 @@ from ibeis.tests import __testing__
 import multiprocessing
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_SELECTION]')
-from __testing__ import printTEST
 
 
 def TEST_GUI_SELECTION(ibs, back):
-    printTEST('''
+    print('''
               get_valid_gids
               ''')
     valid_gids = ibs.get_valid_gids()
-    printTEST('''
+    print('''
               get_valid_rids
               ''')
     valid_rids = ibs.get_valid_rids()
 
-    printTEST('''
+    print('''
     * len(valid_rids) = %r
     * len(valid_gids) = %r
     ''' % (len(valid_rids), len(valid_gids)))

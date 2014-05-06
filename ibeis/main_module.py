@@ -208,7 +208,9 @@ def _preload():
     import utool
     from ibeis.dev import main_helpers
     from ibeis.dev import params
-    _parse_args()
+    if  multiprocessing.current_process().name != 'MainProcess':
+        return
+    #_parse_args()
     # matplotlib backends
     _init_matplotlib()
     # numpy print settings
