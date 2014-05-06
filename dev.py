@@ -89,7 +89,9 @@ def run_experiments(ibs, qrid_list):
     # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
-            experiment_harness.test_configurations(ibs, qrid_list, [test_cfg_name],  df2.next_fnum())
+            test_cfg_name_list = [test_cfg_name]
+            fnum = df2.next_fnum()
+            experiment_harness.test_configurations(ibs, qrid_list, test_cfg_name_list, fnum)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -227,6 +229,9 @@ def rundev(main_locals):
     ibs.prep_qreq_db(qrid_list)
 
     expt_locals = run_experiments(ibs, qrid_list)
+
+    if '--cmd' in sys.argv:
+        exec(utool.execstr_dict(expt_locals, 'expt_locals'))
 
     if '--devmode' in sys.argv:
         devfunc_locals = devfunc(ibs, qrid_list)

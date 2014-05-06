@@ -309,8 +309,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         print('viewing (r, c) = (%r, %r)' % (r, c))
         # Load / Execute the query w/ correct config
         qreq = mc3.prep_query_request(qreq=qreq, qrids=[qrid], drids=drids, query_cfg=query_cfg)
-        qrid2_res = mc3.process_query_request(ibs, qreq, safe=True)
-        qres = qrid2_res[qrid]
+        qrid2_qres = mc3.process_query_request(ibs, qreq, safe=True)
+        qres = qrid2_qres[qrid]
         # Print Query UID
         print(qres.uid)
         # Draw Result

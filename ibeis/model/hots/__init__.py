@@ -28,6 +28,7 @@ def reload_subs():
 rrrr = reload_subs
 
 # HotSpotter User Interface
+# MAKE A WALL HERE (NOT YET IMPLEMENTED)
 
 __QUERY_REQUESTOR__ = None  # THERE IS ONLY ONE QUERY REQUESTOR
 
