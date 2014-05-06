@@ -190,9 +190,9 @@ class MainWindowFrontend(QtGui.QMainWindow):
     selectRidSignal  = signal_(QT_UUID_TYPE)
     selectNidSignal  = signal_(QT_UUID_TYPE)
     selectResSignal  = signal_(QT_UUID_TYPE)
-    changeRidSignal  = signal_(QT_UUID_TYPE, str, str)
+    setRoiPropSignal = signal_(QT_UUID_TYPE, str, str)
     aliasNidSignal   = signal_(QT_UUID_TYPE, str, str)
-    changeGidSignal  = signal_(QT_UUID_TYPE, str, bool)
+    setGidPropSignal = signal_(QT_UUID_TYPE, str, bool)
     querySignal      = signal_()
 
     def __init__(front, back):
@@ -230,9 +230,9 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.selectRidSignal.connect(back.select_rid)
         front.selectNidSignal.connect(back.select_nid)
         front.selectResSignal.connect(back.select_res_rid)
-        front.changeRidSignal.connect(back.change_roi_property)
+        front.setRoiPropSignal.connect(back.set_roi_prop)
         front.aliasNidSignal.connect(back.alias_name)
-        front.changeGidSignal.connect(back.change_image_property)
+        front.setGidPropSignal.connect(back.set_image_prop)
         front.querySignal.connect(back.query)
 
         # Menubar signals
@@ -375,7 +375,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         sel_gid = front.get_imgtbl_gid(row)
         header_lbl = front.get_imgtbl_header(col)
         new_val = item.checkState() == Qt.Checked
-        front.changeGidSignal.emit(sel_gid, header_lbl, new_val)
+        front.setGidPropSignal.emit(sel_gid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def roi_tbl_changed(front, item):
@@ -384,7 +384,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         sel_rid = front.get_roitbl_rid(row)  # Get selected roiid
         new_val = item.text()
         header_lbl = front.get_roitbl_header(col)  # Get changed column
-        front.changeRidSignal.emit(sel_rid, header_lbl, new_val)
+        front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def res_tbl_changed(front, item):
@@ -393,7 +393,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         sel_rid  = front.get_restbl_rid(row)  # The changed row's roi id
         new_val  = item.text()
         header_lbl = front.get_restbl_header(col)  # Get changed column
-        front.changeRidSignal.emit(sel_rid, header_lbl, new_val)
+        front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
     def name_tbl_changed(front, item):

@@ -11,7 +11,7 @@ if __name__ == '__main__':
     ibeis._preload()
     from ibeis.dev import ibsfuncs
     img_dir = expanduser('~/data/raw/snails_drop1')
-    dbdir = join(ibeis.params.get_workdir(), 'snails_drop1')
+    dbdir = join(ibeis.sysres.get_workdir(), 'snails_drop1')
     ibsfuncs.delete_ibeis_database(dbdir)
     main_locals = ibeis.main(dbdir=dbdir)
     ibs = main_locals['ibs']

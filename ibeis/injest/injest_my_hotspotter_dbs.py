@@ -42,7 +42,7 @@ def is_succesful_convert(dbdir):
 
 def get_unconverted_hsdbs(workdir=None):
     if workdir is None:
-        workdir = ibeis.params.get_workdir()
+        workdir = ibeis.sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     is_hsdb_list        = np.array(map(is_hsdb, dbpath_list))
@@ -59,7 +59,7 @@ def get_unconverted_hsdbs(workdir=None):
 
 def injest_unconverted_hsdbs_in_workdir(workdir=None):
     if workdir is None:
-        workdir = ibeis.params.get_workdir()
+        workdir = ibeis.sysres.get_workdir()
     needs_convert_hsdb = get_unconverted_hsdbs(workdir)
 
     for hsdb in needs_convert_hsdb:
@@ -73,5 +73,5 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # win32
-    workdir = params.get_workdir()
+    workdir = sysres.get_workdir()
     injest_unconverted_hsdbs_in_workdir(workdir)

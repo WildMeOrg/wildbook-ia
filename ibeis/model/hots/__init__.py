@@ -29,7 +29,7 @@ rrrr = reload_subs
 
 # HotSpotter User Interface
 
-__QUERY_REQUESTOR__  # THERE IS ONLY ONE QUERY REQUESTOR
+__QUERY_REQUESTOR__ = None  # THERE IS ONLY ONE QUERY REQUESTOR
 
 def query(ibs, qrid_list, drid_list):
     pass

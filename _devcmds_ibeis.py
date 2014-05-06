@@ -1,8 +1,12 @@
 from _devscript import devcmd
-import utool
-from ibeis.viz import interact
+from itertools import izip
+from os.path import split, join
 from plottool import draw_func2 as df2
+import numpy as np
+import utool
+import vtool.keypoint as ktool
 from ibeis.dev import ibsfuncs
+from ibeis.viz import interact
 
 
 @devcmd
@@ -86,7 +90,6 @@ def export(ibs, rid_list=[], nid_list=[], gid_list=[]):
     matching keypoint coordinates on each roi
     """
     # MOTHERS EG:
-    import numpy as np
     enctr1_rids = [162, 163]  # Mothers encounter 1
     qrid2_qres = ibs.query_intra_encounter(enctr1_rids)
     mrids_list = []
@@ -97,8 +100,6 @@ def export(ibs, rid_list=[], nid_list=[], gid_list=[]):
         posrid_list = utool.ensure_iterable(qres.get_classified_pos())
         mrids_list.extend([(qrid, posrid) for posrid in posrid_list])
         mkpts_list.extend(qres.get_matching_keypoints(ibs, posrid_list))
-
-    from itertools import izip
 
     mkey2_kpts = {}
     for mrids_tup, mkpts_tup in izip(mrids_list, mkpts_list):
@@ -121,7 +122,6 @@ def export(ibs, rid_list=[], nid_list=[], gid_list=[]):
 
     mkeys_list = mkey2_kpts.keys()
     mkeys_keypoints = mkey2_kpts.values()
-    import vtool.keypoint as ktool
 
     for mkeys, mkpts_list in izip(mkeys_list, mkeys_keypoints):
         print(mkeys)
@@ -141,7 +141,6 @@ def export(ibs, rid_list=[], nid_list=[], gid_list=[]):
         export_path = r'C:\Users\jon.crall\Dropbox\Assignments\dataset'
 
         mcpaths_list = ibs.get_roi_cpaths(mkeys)
-        from os.path import split, join
         fnames_list = map(lambda x: split(x)[1], mcpaths_list)
         for path in mcpaths_list:
             utool.copy(path, export_path)
@@ -151,12 +150,11 @@ def export(ibs, rid_list=[], nid_list=[], gid_list=[]):
         header_lines += ['# img%d = %r' % (count, fname) for count, fname in enumerate(fnames_list)]
         header_lines += ['# LINE FORMAT: match_pts = [(img1_xy, img2_xy) ... ]']
         header_text = '\n'.join(header_lines)
-        match_text = '\n'.join(['match_pts = ['] + match_lines + [']'])
+        match_text  = '\n'.join(['match_pts = ['] + match_lines + [']'])
         matchfile_text = '\n'.join([header_text, match_text])
         matchfile_name = ('match_rids(%d,%d).txt' % mkey)
         matchfile_path = join(export_path, matchfile_name)
-        with open(matchfile_path, 'w') as file_:
-            file_.write(matchfile_text)
+        utool.write_to(matchfile_path, matchfile_text)
         print(header_text)
         print(utool.truncate_str(match_text, maxlen=500))
         utool.view_directory(export_path)

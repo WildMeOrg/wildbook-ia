@@ -30,7 +30,7 @@ def qt_cast(qtinput):
     if isinstance(qtinput, QtCore.QString):
         qtoutput = str(qtinput)
     #elif isinstance(qtinput, (int, long, str, float)):
-    elif isinstance(qtinput, int):
+    elif isinstance(qtinput, (int, str)):
         return qtinput
     else:
         raise ValueError('Unknown QtType: type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
@@ -82,12 +82,12 @@ fancy_headers = {
     'cid':        'Chip ID',
     'aif':        'All Detected',
     'gname':      'Image Name',
-    'nRids':       '#ROIs',
+    'nRids':      '#ROIs',
     'name':       'Name',
     'nGt':        '#GT',
     'nFeats':     '#Features',
     'theta':      'Theta',
-    'bbox':        'BBOX (x, y, w, h)',
+    'bbox':       'BBOX (x, y, w, h)',
     'rank':       'Rank',
     'score':      'Confidence',
     'match_name': 'Matching Name',

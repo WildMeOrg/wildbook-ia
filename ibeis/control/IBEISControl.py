@@ -495,22 +495,31 @@ class IBEISControl(object):
     # SETTERS::Image
 
     @setter
+    def set_image_props(ibs, gid_list, key, value_list):
+        print('[ibs] set_image_props')
+        if key == 'aif':
+            return ibs.set_image_aifs(gid_list, value_list)
+        if key == 'eid':
+            return ibs.set_image_eids(gid_list, value_list)
+        else:
+            raise KeyError('UNKOWN key=%r' % (key,))
+
+    @setter
     def set_image_uris(ibs, gid_list, new_gpath_list):
         """ Sets the image URIs to a new local path.
         This is used when localizing or unlocalizing images.
-        TODO: We need to maintain the original image name.
-
         An absolute path can either be on this machine or on the cloud
         A relative path is relative to the ibeis image cache on this machine.
         """
-        table='images'
-        prop_key='image_uri'
-        uid_list=gid_list
-        val_list=new_gpath_list
         ibs.set_table_props('images', 'image_uri', gid_list, new_gpath_list)
 
     @setter
-    def set_image_eid(ibs, gid_list, eids_list):
+    def set_image_aifs(ibs, gid_list, aif_list):
+        """ Sets the image all instances found bit """
+        ibs.set_table_props('images', 'image_toggle_aif', gid_list, aif_list)
+
+    @setter
+    def set_image_eids(ibs, gid_list, eids_list):
         """ Sets the encounter id that a list of images is tied to, deletes old
         encounters.  eid_list is a list of tuples, each represents the set of
         encounters a tuple should belong to.
@@ -543,6 +552,8 @@ class IBEISControl(object):
             return ibs.set_roi_names(rid_list, value_list)
         elif key == 'viewpoint':
             return ibs.set_roi_viewpoints(rid_list, value_list)
+        elif key == 'notes':
+            return ibs.set_roi_notes(rid_list, value_list)
         else:
             raise KeyError('UNKOWN key=%r' % (key,))
 
@@ -565,26 +576,18 @@ class IBEISControl(object):
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
         """ Sets thetas of a list of chips by rid """
-        ibs.delete_roi_chips(rid_list)
-        ibs.db.executemany(
-            operation='''
-            UPDATE rois SET
-                roi_theta=?,
-            WHERE roi_uid=?
-            ''',
-            params_iter=izip(theta_list, rid_list))
+        ibs.delete_roi_chips(rid_list)  # Changing theta redefines the chips
+        ibs.set_table_props('rois', 'roi_theta', rid_list, theta_list)
 
     @setter
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
         """ Sets viewpoints of a list of chips by rid """
-        ibs.db.executemany(
-            operation='''
-            UPDATE rois
-            SET
-                roi_viewpoint=?,
-            WHERE roi_uid=?
-            ''',
-            params_iter=izip(viewpoint_list, rid_list))
+        ibs.set_table_props('rois', 'roi_viewpoint', rid_list, viewpoint_list)
+
+    @setter
+    def set_roi_notes(ibs, rid_list, notes_list):
+        """ Sets viewpoints of a list of chips by rid """
+        ibs.set_table_props('rois', 'roi_notes', rid_list, notes_list)
 
     @setter
     def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
@@ -592,12 +595,12 @@ class IBEISControl(object):
         if nid_list is None:
             assert name_list is not None
             nid_list = ibs.add_names(name_list)
+        # Cannot use set_table_props for cross-table setters.
         ibs.db.executemany(
             operation='''
             UPDATE rois
             SET name_uid=?
-            WHERE roi_uid=?
-            ''',
+            WHERE roi_uid=?''',
             params_iter=izip(nid_list, rid_list))
 
     #

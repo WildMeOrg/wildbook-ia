@@ -34,7 +34,7 @@ def get_big_imgdir(workdir):
 
 
 def MAKE_BIG_DB():
-    workdir = params.get_workdir()
+    workdir = sysres.get_workdir()
     dbname = 'testdb_big'
     dbdir  = join(workdir, dbname)
     utool.delete(dbdir)

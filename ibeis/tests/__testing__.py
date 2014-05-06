@@ -125,7 +125,7 @@ def main(defaultdb='testdb', allow_newdir=False, gui=False, **kwargs):
     #known_testdbs = ['testdb', 'testdb_big']
     #if defaultdb in known_testdbs:
         #allow_newdir = True
-        #defaultdbdir = join(params.get_workdir(), defaultdb)
+        #defaultdbdir = join(sysres.get_workdir(), defaultdb)
         #utool.ensuredir(defaultdbdir)
         #if utool.get_flag('--clean'):
             #utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)

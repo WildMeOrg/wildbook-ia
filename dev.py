@@ -216,14 +216,6 @@ def compgrav_chipmatch_scores(ibs, qrid_list):
 # DEV MAIN
 #------------------
 
-@profile
-def dev_main():
-    global back
-    print('++dev')
-    main_locals = ibeis.main(gui='--gui' in sys.argv)
-    return main_locals
-
-
 def rundev(main_locals):
     ibs = main_locals['ibs']
     back = main_locals['back']
@@ -262,7 +254,8 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     #
     # IBEIS Main
-    dev_locals, main_execstr = dev_main()
+    print('++dev')
+    main_locals = ibeis.main(gui='--gui' in sys.argv)
     #
     # ______________________________
     # + Common variables for IPython

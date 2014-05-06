@@ -11,7 +11,7 @@ from os.path import join
 from ibeis.injest import injest_testdata
 from vtool.tests import grabdata
 
-workdir = ibeis.params.get_workdir()
+workdir = ibeis.sysres.get_workdir()
 
 
 TESTDB0 = join(workdir, 'testdb0')

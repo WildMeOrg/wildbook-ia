@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
-import sys
 import __builtin__
+import sys
 import multiprocessing
 
 sys.argv.append('--strict')  # do not supress any errors
@@ -31,9 +31,9 @@ def _reset_signals():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
-def _parse_args(**kwargs):
+def _parse_args():
     from ibeis.dev import params
-    params.parse_args(**kwargs)
+    params.parse_args()
 
 
 @profile
@@ -41,13 +41,14 @@ def _init_matplotlib():
     import matplotlib
     import utool
     backend = matplotlib.get_backend()
+    TARGET_BACKEND = 'Qt4Agg'
     if  multiprocessing.current_process().name == 'MainProcess':
         if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
-            print('[main]  current backend is: %r' % backend)
-            print('[main]  matplotlib.use(Qt4Agg)')
-        if backend != 'Qt4Agg':
-            matplotlib.use('Qt4Agg', warn=True, force=True)
+            print('[main] current backend is: %r' % backend)
+            print('[main] matplotlib.use(%r)' % TARGET_BACKEND)
+        if backend != TARGET_BACKEND:
+            matplotlib.use(TARGET_BACKEND, warn=True, force=True)
             backend = matplotlib.get_backend()
             if not utool.QUIET and utool.VERBOSE:
                 print('[main] current backend is: %r' % backend)
@@ -82,18 +83,18 @@ def _init_gui():
 
 
 @profile
-def _init_ibeis(**kwargs):
+def _init_ibeis(dbdir=None, defaultdb='cache', allow_newdir=False):
     import utool
     from ibeis.control import IBEISControl
-    from ibeis.dev import params
+    from ibeis.dev import sysres
+    ibs = None
     if not utool.QUIET:
         print('[main] _init_ibeis()')
-    dbdir = kwargs.get('dbdir', None)
+    # Use command line dbdir unless user specifies it
     if dbdir is None:
-        dbdir = params.args.dbdir
+        dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir)
     if dbdir is None:
-        print('[main!] WARNING args.dbdir is None')
-        ibs = None
+        utool.printWARN('[main!] WARNING args.dbdir is None')
     else:
         ibs = IBEISControl.IBEISControl(dbdir=dbdir)
     return ibs
@@ -186,8 +187,8 @@ def main(gui=True, **kwargs):
     back = None
     if not '--quiet' in sys.argv:
         print('[main] ibeis.main_module.main()')
-    _preload(**kwargs)
-    _preload_commands(**kwargs)
+    _preload()
+    _preload_commands()
     try:
         ibs = _init_ibeis(**kwargs)
         if gui and ('--gui' in sys.argv or not '--nogui' in sys.argv):
@@ -202,11 +203,12 @@ def main(gui=True, **kwargs):
 
 
 @profile
-def _preload(**kwargs):
+def _preload():
+    """ Sets up python environment """
     import utool
     from ibeis.dev import main_helpers
     from ibeis.dev import params
-    _parse_args(**kwargs)
+    _parse_args()
     # matplotlib backends
     _init_matplotlib()
     # numpy print settings
@@ -222,12 +224,12 @@ def _preload(**kwargs):
     return params.args
 
 
-def _preload_commands(**kwargs):
+def _preload_commands():
     from ibeis.dev import main_commands
     main_commands.preload_commands()  # PRELOAD CMDS
 
 
-def _postload_commands(ibs, back, **kwargs):
+def _postload_commands(ibs, back):
     from ibeis.dev import main_commands
     main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
 

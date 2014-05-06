@@ -14,9 +14,9 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[cplat]')
 
 COMPUTER_NAME = platform.node()
 
-WIN32         = sys.platform.startswith('win32')
-LINUX         = sys.platform.startswith('linux')
-DARWIN        = sys.platform.startswith('darwin')
+WIN32  = sys.platform.startswith('win32')
+LINUX  = sys.platform.startswith('linux')
+DARWIN = sys.platform.startswith('darwin')
 
 
 def get_computer_name():
