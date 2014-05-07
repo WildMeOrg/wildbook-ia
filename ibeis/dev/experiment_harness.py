@@ -27,11 +27,9 @@ STRICT = '--strict' in sys.argv
 
 def _get_qx2_besrank_batch(ibs, qreq):
     print('[harn] querying in batch mode')
-    #mc3.pre_cache_checks(ibs, qreq)
     # Query Chip / Row Loop
-    qrids = qreq.qrids
-    qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
-    qx2_bestranks = [[qrid2_res[qrid].get_best_gt_rank(ibs)] for qrid in qrids]
+    qrid2_qres = mc3.process_query_request(ibs, qreq, safe=False)
+    qx2_bestranks = [[qrid2_qres[qrid].get_best_gt_rank(ibs)] for qrid in qreq.qrids]
     return qx2_bestranks
 
 
@@ -51,7 +49,7 @@ def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''
         mark_prog(qx + nPrevQueries, nTotalQueries)
         try:
             qreq.qrids = [qrid]  # hacky
-            qrid2_res = mc3.process_query_request(ibs, qreq, safe=False)
+            qrid2_qres = mc3.process_query_request(ibs, qreq, safe=False)
         except mf.QueryException as ex:
             utool.printex(ex, 'Harness caught Query Exception')
             qx2_bestranks.append([-1])
@@ -59,12 +57,12 @@ def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''
                 continue
             raise
         try:
-            assert len(qrid2_res) == 1, ''
+            assert len(qrid2_qres) == 1, ''
         except AssertionError as ex:
-            utool.printex(ex, key_list=['qrid2_res'])
+            utool.printex(ex, key_list=['qrid2_qres'])
             raise
         # record the best rank from this groundtruth
-        best_rank = qrid2_res[qrid].get_best_gt_rank(ibs)
+        best_rank = qrid2_qres[qrid].get_best_gt_rank(ibs)
         qx2_bestranks.append([best_rank])
     qreq.qrids = qrids  # fix previous hack
     return qx2_bestranks
@@ -99,12 +97,14 @@ def get_qx2_bestrank(ibs, qrids, nTotalQueries, nPrevQueries, cfglbl):
 #-----------
 #@utool.indent_func('[harn]')
 @profile
-def test_configurations(ibs, qrids, test_cfg_name_list, fnum=1):
+def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     # Test Each configuration
     if not QUIET:
         print(textwrap.dedent("""
         [harn]================
         [harn] experiment_harness.test_configurations()""").strip())
+
+    qrids = qrid_list
 
     # Grab list of algorithm configurations to test
     #cfg_list = eh.get_cfg_list(test_cfg_name_list, ibs=ibs)

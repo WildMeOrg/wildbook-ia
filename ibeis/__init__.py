@@ -1,6 +1,7 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 from .dev import params
+from .dev import sysres
 from . import main_module
 from .main_module import main, _preload, main_loop
 
@@ -30,3 +31,7 @@ def reload_subs():
     #injest.reload_subs()
     #gui.reload_subs()
     #tests.reload_subs()
+
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32

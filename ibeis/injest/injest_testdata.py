@@ -11,7 +11,7 @@ from vtool.tests import grabdata
 def injest_testdata():
     print('INJEST TESTDATA')
     # Clean up testdata in work directory
-    workdir = ibeis.params.get_workdir()
+    workdir = ibeis.sysres.get_workdir()
     testdb1 = join(workdir, 'testdb1')
     utool.delete(testdb1)
     # Copy testdata images
@@ -27,7 +27,7 @@ def injest_testdata():
 
     # Print to show success
     ibs.print_name_table()
-    ibs.print_name_table()
+    ibs.print_image_table()
     ibs.print_roi_table()
 
 if __name__ == '__main__':

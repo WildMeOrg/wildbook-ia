@@ -26,3 +26,11 @@ def reload_subs():
     voting_rules2.rrr()
 
 rrrr = reload_subs
+
+# HotSpotter User Interface
+# MAKE A WALL HERE (NOT YET IMPLEMENTED)
+
+__QUERY_REQUESTOR__ = None  # THERE IS ONLY ONE QUERY REQUESTOR
+
+def query(ibs, qrid_list, drid_list):
+    pass

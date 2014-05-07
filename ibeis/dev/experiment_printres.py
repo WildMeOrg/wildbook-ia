@@ -4,6 +4,7 @@ import itertools
 from itertools import chain, imap
 import utool
 from plottool import draw_func2 as df2
+from plottool import plot_helpers as ph
 import numpy as np
 from ibeis.dev import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
@@ -309,8 +310,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         print('viewing (r, c) = (%r, %r)' % (r, c))
         # Load / Execute the query w/ correct config
         qreq = mc3.prep_query_request(qreq=qreq, qrids=[qrid], drids=drids, query_cfg=query_cfg)
-        qrid2_res = mc3.process_query_request(ibs, qreq, safe=True)
-        qres = qrid2_res[qrid]
+        qrid2_qres = mc3.process_query_request(ibs, qreq, safe=True)
+        qres = qrid2_qres[qrid]
         # Print Query UID
         print(qres.uid)
         # Draw Result
@@ -327,8 +328,6 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
                            #show_name=False, show_gname=False, time_appart=False)
         df2.adjust_subplots_safe()
         if utool.get_flag('--save-figures'):
-            raise NotImplementedError('fixme')
-            #from hsviz import allres_viz
-            #allres_viz.dump(ibs, 'analysis', quality=True, overwrite=False)
+            ph.dump(ibs.get_ibsdir(), 'figures_analysis', quality=True, overwrite=False)
     if not QUIET:
         print('[harn] EXIT EXPERIMENT HARNESS')

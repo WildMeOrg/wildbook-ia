@@ -55,8 +55,8 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='testdata'):
     """
     FORMATS = {
         'testdata': utool.named_field_regex([
-            ('name', r'[a-zA-Z]+'), # all alpha characters
-            ('id',   r'\d*'),       # first numbers (if existant)
+            ('name', r'[a-zA-Z]+'),  # all alpha characters
+            ('id',   r'\d*'),        # first numbers (if existant)
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
@@ -168,11 +168,11 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
     pct = adjust_percent  # Alias
     gsize_list = ibs.get_image_size(gid_list)
     # Build bounding boxes as images size minus padding
-    bbox_list  = [
-        ( 0 + (gw * pct),      0 + (gh * pct),
-         gw - (gw * pct * 2), gh - (gh * pct * 2))
-        for (gw, gh) in gsize_list
-    ]
+    bbox_list  = [(int( 0 + (gw * pct)),
+                   int( 0 + (gh * pct)),
+                   int(gw - (gw * pct * 2)),
+                   int(gh - (gh * pct * 2)))
+                  for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
                             name_list=name_list, nid_list=nid_list, notes_list=notes_list)
@@ -224,3 +224,25 @@ def get_roi_desc_cache(ibs, rids):
     unique_desc = ibs.get_roi_desc(unique_rids)
     desc_cache = dict(list(izip(unique_rids, unique_desc)))
     return desc_cache
+
+
+def get_roi_is_hard(ibs, rid_list):
+    notes_list = ibs.get_roi_notes(rid_list)
+    is_hard_list = ['hard' in notes.lower().split() for (notes)
+                    in notes_list]
+    return is_hard_list
+
+
+def localize_images(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list  = ibs.get_valid_gids()
+    gpath_list = ibs.get_image_paths(gid_list)
+    guuid_list = ibs.get_image_uuids(gid_list)
+    gext_list  = ibs.get_image_exts(gid_list)
+    # Build list of image names based on uuid in the ibeis imgdir
+    local_gname_list = [str(guuid) + ext for guuid, ext, in izip(guuid_list, gext_list)]
+    local_gpath_list = [join(ibs.imgdir, gname) for gname in local_gname_list]
+    utool.copy_list(gpath_list, local_gpath_list, lbl='Localizing Images: ')
+    ibs.set_image_uris(gid_list, local_gname_list)
+
+    assert all(map(exists, local_gpath_list)), 'not all images copied'

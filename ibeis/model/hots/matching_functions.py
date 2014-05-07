@@ -532,7 +532,7 @@ def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
     uid = qreq.get_uid()
     score_method = qreq.cfg.agg_cfg.score_method
     # Create the result structures for each query.
-    qrid2_res = {}
+    qrid2_qres = {}
     for qrid in qrid2_chipmatch.iterkeys():
         # For each query's chipmatch
         chipmatch = qrid2_chipmatch[qrid]
@@ -545,9 +545,9 @@ def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
         res.filt2_meta = {}  # dbgstats
         for filt, qrid2_meta in filt2_meta.iteritems():
             res.filt2_meta[filt] = qrid2_meta[qrid]  # things like k+1th
-        qrid2_res[qrid] = res
+        qrid2_qres[qrid] = res
     # Retain original score method
-    return qrid2_res
+    return qrid2_qres
 
 
 #@profile
@@ -556,16 +556,16 @@ def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
     #qrids = qreq.qrids
     #uid = qreq.get_uid()  # this is the correct uid to use
     ###IF DICT_COMPREHENSION
-    #qrid2_res = {qrid: QueryResult.QueryResult(qrid, uid) for qrid in iter(qrids)}
-    #[res.load(qreq) for res in qrid2_res.itervalues()]
+    #qrid2_qres = {qrid: QueryResult.QueryResult(qrid, uid) for qrid in iter(qrids)}
+    #[res.load(qreq) for res in qrid2_qres.itervalues()]
     ##ELSE
-    #qrid2_res = {}
+    #qrid2_qres = {}
     #for qrid in qrids:
         #res = QueryResult.QueryResult(qrid, uid)
         #res.load(qreq)
-        #qrid2_res[qrid] = res
+        #qrid2_qres[qrid] = res
     ##ENDIF
-    #return qrid2_res
+    #return qrid2_qres
 
 
 @profile
@@ -575,16 +575,16 @@ def try_load_resdict(qreq):
     """
     qrids = qreq.qrids
     uid = qreq.get_uid()
-    qrid2_res = {}
+    qrid2_qres = {}
     failed_qrids = []
     for qrid in qrids:
         try:
             res = QueryResult.QueryResult(qrid, uid)
             res.load(qreq)
-            qrid2_res[qrid] = res
+            qrid2_qres[qrid] = res
         except IOError:
             failed_qrids.append(qrid)
-    return qrid2_res, failed_qrids
+    return qrid2_qres, failed_qrids
 
 
 #============================

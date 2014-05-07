@@ -10,14 +10,13 @@ import utool
 from ibeis import viz
 from plottool import draw_func2 as df2
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_VIZ]')
-printTEST = __testing__.printTEST
 
 
 def TEST_VIZ(ibs):
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
 
-    printTEST('''
+    print('''
     * len(valid_rids) = %r
     * len(valid_gids) = %r
     ''' % (len(valid_rids), len(valid_gids)))
@@ -42,12 +41,12 @@ def TEST_VIZ(ibs):
         utool.printex(ex, 'QUERY FAILED!')
 
     #----------------------
-    #printTEST('Show Image')
+    #print('Show Image')
     viz.show_image(ibs, gid, sel_rids=sel_rids, fnum=1)
     df2.set_figtitle('Show Image')
 
     #----------------------
-    #printTEST('Show Chip')
+    #print('Show Chip')
     kpts_kwgs = dict(ell=True, ori=True, rect=True,
                      eig=True, pts=False, kpts_subset=10)
     viz.show_chip(ibs, rid, in_image=False, fnum=2, **kpts_kwgs)
@@ -57,7 +56,7 @@ def TEST_VIZ(ibs):
 
     #----------------------
     if not query_failed:
-        printTEST('Show Query')
+        print('Show Query')
         viz.show_matches(ibs, qres, rid2, fnum=4)
         df2.set_figtitle('Show Chipres')
 
@@ -65,7 +64,7 @@ def TEST_VIZ(ibs):
         df2.set_figtitle('Show QRes')
 
     ##----------------------
-    printTEST('return test locals')
+    print('return test locals')
     return locals()
 
 

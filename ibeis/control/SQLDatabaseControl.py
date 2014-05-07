@@ -27,7 +27,7 @@ def get_operation_type(operation):
 
 
 class SQLDatabaseControl(object):
-    def __init__(db, database_path, database_file='database.sqlite3'):
+    def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3'):
         """
             SQLite3 Documentation: http://www.sqlite.org/docs.html
             -------------------------------------------------------
@@ -42,8 +42,8 @@ class SQLDatabaseControl(object):
         """
         printDBG('[sql.__init__]')
         # Get SQL file path
-        db.dir_  = database_path
-        db.fname = database_file
+        db.dir_  = sqldb_dpath
+        db.fname = sqldb_fname
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
         fpath    = join(db.dir_, db.fname)
         if not exists(fpath):
@@ -382,3 +382,6 @@ class SQLDatabaseControl(object):
                 db.commit(verbose=False)
             for line in db.connection.iterdump():
                 file_.write('%s\n' % line)
+
+
+SQLDBControl = SQLDatabaseControl

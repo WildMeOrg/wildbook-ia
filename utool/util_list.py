@@ -58,8 +58,8 @@ def safe_listget(list_, index, default='?'):
 
 
 def list_index(search_list, to_find_list):
-    ''' Keep this function
-    Searches search_list for each element in to_find_list'''
+    """ Keep this function
+    Searches search_list for each element in to_find_list"""
     try:
         toret = [np.where(search_list == item)[0][0] for item in to_find_list]
     except IndexError as ex1:
@@ -221,7 +221,9 @@ def filter_Nones(list_):
 
 
 def intersect_ordered(list1, list2):
-    'returns list1 elements that are also in list2 preserves order of list1'
+    """
+    returns list1 elements that are also in list2 preserves order of list1
+    """
     set2 = set(list2)
     new_list = [item for item in iter(list1) if item in set2]
     #new_list =[]

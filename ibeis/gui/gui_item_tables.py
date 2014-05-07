@@ -30,7 +30,7 @@ def qt_cast(qtinput):
     if isinstance(qtinput, QtCore.QString):
         qtoutput = str(qtinput)
     #elif isinstance(qtinput, (int, long, str, float)):
-    elif isinstance(qtinput, int):
+    elif isinstance(qtinput, (int, str)):
         return qtinput
     else:
         raise ValueError('Unknown QtType: type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
@@ -82,30 +82,36 @@ fancy_headers = {
     'cid':        'Chip ID',
     'aif':        'All Detected',
     'gname':      'Image Name',
-    'nRids':       '#ROIs',
+    'nRids':      '#ROIs',
     'name':       'Name',
     'nGt':        '#GT',
     'nFeats':     '#Features',
     'theta':      'Theta',
-    'bbox':        'BBOX (x, y, w, h)',
+    'bbox':       'BBOX (x, y, w, h)',
     'rank':       'Rank',
     'score':      'Confidence',
     'match_name': 'Matching Name',
+    'notes':      'Notes',
 }
 reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 
 # A list of default internal headers to display
 table_headers = {
     IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif'],
-    ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta'],
+    ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     NAME_TABLE:  ['nid', 'name', 'nRids'],
     RES_TABLE:   ['rank', 'score', 'name', 'rid']
 }
 
+USER_MODE = utool.get_flag('--usermode')
+
+if USER_MODE:
+    table_headers[ROI_TABLE] = ['rid', 'name', 'gname', 'nGt', 'notes']
+
 # Lists internal headers whos items are editable
 table_editable = {
     IMAGE_TABLE: [],
-    ROI_TABLE:   ['name'],
+    ROI_TABLE:   ['name', 'notes'],
     NAME_TABLE:  ['name'],
     RES_TABLE:   ['name'],
 }
@@ -140,17 +146,19 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'unixtime': lambda gids: ibs.get_image_unixtime(gids),
         }
     elif tblname in [ROI_TABLE, RES_TABLE]:
-
+        # ROI_TBL_COLS \subset RES_TBL_COLS
         cols = {
             'rid':    lambda rids: rids,
             'name':   lambda rids: ibs.get_roi_names(rids),
             'gname':  lambda rids: ibs.get_roi_gnames(rids),
             'nGt':    lambda rids: ibs.get_roi_num_groundtruth(rids),
             'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
-            'bbox':    lambda rids: map(str, ibs.get_roi_bboxes(rids)),
-            'nFeats':  lambda rids: ibs.get_roi_num_feats(rids),
+            'bbox':   lambda rids: map(str, ibs.get_roi_bboxes(rids)),
+            'nFeats': lambda rids: ibs.get_roi_num_feats(rids),
+            'notes':  lambda rids: ibs.get_roi_notes(rids),
         }
         if tblname == RES_TABLE:
+            # But result table has extra cols
             cols.update({
                 'rank':   lambda cxs:  range(1, len(cxs) + 1),
             })

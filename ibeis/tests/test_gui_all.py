@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
-from ibeis.tests import __testing__
+#from os.path import join, dirname, realpath
+#sys.path.append(realpath(join(dirname(__file__), '../..')))
 import multiprocessing
 import utool
 import numpy as np
-from ibeis.dev import params
+from ibeis.dev import sysres
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ALL]')
 np.tau = 2 * np.pi
-printTEST = __testing__.printTEST
 
 
-def TEST_GUI_ALL(ibs, back):
+def TEST_GUI_ALL(ibs, back, gpath_list):
     """
     Creates a new database
     Adds test images
@@ -22,8 +19,8 @@ def TEST_GUI_ALL(ibs, back):
     Selects things
     """
     # DELETE OLD
-    printTEST('[TEST] DELETE_OLD_DATABASE')
-    work_dir   = params.get_workdir()
+    print('[TEST] DELETE_OLD_DATABASE')
+    work_dir   = sysres.get_workdir()
     new_dbname = 'testdb_guiall'
     new_dbdir = utool.truepath(utool.join(work_dir, new_dbname))
     ibs_dbdir = utool.truepath(ibs.dbdir)
@@ -34,21 +31,20 @@ def TEST_GUI_ALL(ibs, back):
     #
     #
     # CREATE NEW
-    printTEST('[TEST] CREATE_NEW_DATABASE')
+    print('[TEST] CREATE_NEW_DATABASE')
     back.new_database(new_dbdir)
     ibs = back.ibs  # The backend has a new ibeis do not use the old one
     #
     #
     # IMPORT IMAGES
-    printTEST('[TEST] IMPORT_TEST_GPATHS', wait=True)
-    gpath_list = __testing__.get_test_gpaths(zebra=True, lena=True, jeff=True)
+    print('[TEST] IMPORT_TEST_GPATHS')
     gid_list = back.import_images(gpath_list=gpath_list)
     print('\n'.join('  * gid_list[%d] = %r' % (count, gid) for count, gid in enumerate(gid_list)))
     assert len(gid_list) == len(gpath_list)
     #
     #
     # ADD ROIS
-    printTEST('[TEST] ADD_ROIS', wait=True)
+    print('[TEST] ADD_ROIS')
     def add_roi(gid, bbox, theta=0.0):
         rid = back.add_roi(gid=gid, bbox=bbox, theta=theta)
         return rid
@@ -61,13 +57,37 @@ def TEST_GUI_ALL(ibs, back):
     #
     #
     # SELECT ROIS
-    printTEST('[TEST] SELECT ROI / Add Chips')
+    print('[TEST] SELECT ROI / Add Chips')
     rid_list = ibs.get_valid_rids()
     print('\n'.join('  * rid_list[%d] = %r' % (count, rid) for count, rid in enumerate(rid_list)))
 
     #back.select_rid(rid_list[1])
     #back.select_rid(rid_list[2])
+
+    # Keys for propname come from gui_item_tables.fancy_headers
+    back.set_roi_prop(rid_list[0], 'name', 'testname1')
+    back.set_roi_prop(rid_list[1], 'name', 'testname2')
+    back.set_roi_prop(rid_list[0], 'name', 'testname1')
+    back.set_roi_prop(rid_list[2], 'name', '____')
+
+    assert ibs.get_roi_names(rid_list) == ['testname1', 'testname2', '____3', '____4', '____5']
+
+    back.set_view(1)
+
+    back.set_roi_prop(rid_list[1], 'notes', 'Lena')
+    back.set_roi_prop(rid_list[2], 'notes', 'This is, a small ROI on jeff')
+    assert ibs.get_roi_notes(rid_list) == [u'', u'Lena', u'This is, a small ROI on jeff', u'', u'']
+
+    back.set_image_prop(gid_list[0], 'aif', True)
+    back.set_image_prop(gid_list[1], 'aif', False)
+    assert ibs.get_image_aifs(gid_list) == [1, 0, 0]
+
     back.select_rid(rid_list[0], show_image=True)
+    assert ibs.get_roi_bboxes(rid_list[0]) == (50, 50, 100, 100)
+    back.reselect_roi(bbox=[51, 52, 103, 104])
+    assert ibs.get_roi_bboxes(rid_list[0]) == (51, 52, 103, 104)
+
+    # Change some ROIs
 
     #add_roi(gid_list[2], None)  # user selection
     #add_roi(None, [42, 42, 8, 8])  # back selection
@@ -76,9 +96,11 @@ def TEST_GUI_ALL(ibs, back):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
+    from ibeis.tests import __testing__
     main_locals = __testing__.main(defaultdb='testdb0', gui=True)
+    gpath_list = __testing__.get_test_gpaths(zebra=True, lena=True, jeff=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
-    test_locals = __testing__.run_test(TEST_GUI_ALL, ibs, back)
+    test_locals = __testing__.run_test(TEST_GUI_ALL, ibs, back, gpath_list)
     execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

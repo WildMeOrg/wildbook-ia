@@ -8,7 +8,8 @@ from ibeis.model.hots import matching_functions as mf
     __name__, '[mc3]', DEBUG=False)
 
 
-NOCACHE_QUERY = '--nocache-query' in sys.argv
+USE_CACHE_QUERY = not '--nocache-query' in sys.argv
+USE_CACHE_BIG = not '--nocache-big' in sys.argv
 
 
 @utool.indent_func
@@ -83,7 +84,7 @@ def pre_exec_checks(ibs, qreq):
 # Query Level 2
 @utool.indent_func('[Q2]')
 @profile
-def process_query_request(ibs, qreq, use_cache=not NOCACHE_QUERY, safe=True):
+def process_query_request(ibs, qreq, safe=True):
     """
     The standard query interface.
     INPUT:
@@ -99,7 +100,7 @@ def process_query_request(ibs, qreq, use_cache=not NOCACHE_QUERY, safe=True):
     bigcache_fname = (ibs.get_dbname() + '_QRESMAP' +
                       qreq.get_qrids_uid() + qreq.get_drids_uid())
     bigcache_uid = qreq.cfg.get_uid()
-    if use_cache:
+    if USE_CACHE_QUERY and USE_CACHE_BIG:
         try:
             qrid2_qres = utool.load_cache(bigcache_dpath,
                                           bigcache_fname,
@@ -109,7 +110,7 @@ def process_query_request(ibs, qreq, use_cache=not NOCACHE_QUERY, safe=True):
         except IOError:
             print('... qrid2_qres bigcache miss')
     # Try loading as many cached results as possible
-    if use_cache:
+    if USE_CACHE_QUERY:
         qrid2_qres, failed_qrids = mf.try_load_resdict(qreq)
     else:
         qrid2_qres = {}

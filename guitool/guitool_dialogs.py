@@ -6,6 +6,19 @@ from os.path import split
 from utool import util_cache, util_path
 
 
+SELDIR_CACHEID = 'guitool_selected_directory'
+
+
+def _guitool_cache_write(key, val):
+    """ Writes to global IBEIS cache """
+    utool.global_cache_write(key, val, appname='ibeis')  # HACK, user should specify appname
+
+def _guitool_cache_read(key, **kwargs):
+    """ Reads from global IBEIS cache """
+    return utool.global_cache_read(key, appname='ibeis', **kwargs)  # HACK, user should specify appname
+
+
+
 def user_option(parent=None, msg='msg', title='user_option',
                 options=['No', 'Yes'], use_cache=False):
     'Prompts user with several options with ability to save decision'
@@ -14,7 +27,7 @@ def user_option(parent=None, msg='msg', title='user_option',
     print('[*guitools] asking user: %r %r' % (msg, title))
     cache_id = title + msg
     if use_cache:
-        reply = util_cache.global_cache_read(cache_id, default=None)
+        reply = _guitool_cache_read(cache_id, default=None)
         if reply is not None:
             return reply
     # Create message box
@@ -40,7 +53,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         raise
     # Remember decision if caching is on
     if use_cache and dontPrompt.isChecked():
-        util_cache.global_cache_write(cache_id, reply)
+       _guitool_cache_write(cache_id, reply)
     # Close the message box
     del msgBox
     return reply
@@ -72,7 +85,7 @@ def user_question(msg):
 def select_directory(caption='Select Directory', directory=None):
     print(caption)
     if directory is None:
-        directory_ = util_cache.global_cache_read('guitool_selected_directory', default='.')
+        directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
     else:
         directory = directory_
     qdlg = QtGui.QFileDialog()
@@ -87,7 +100,7 @@ def select_directory(caption='Select Directory', directory=None):
         dpath = None
         return dpath
     else:
-        util_cache.global_cache_write('guitool_selected_directory', split(dpath)[0])
+        _guitool_cache_write(SELDIR_CACHEID, split(dpath)[0])
     print('Selected Directory: %r' % dpath)
     return dpath
 
@@ -101,12 +114,12 @@ def select_files(caption='Select Files:', directory=None, name_filter=None):
     'Selects one or more files from disk using a qt dialog'
     print(caption)
     if directory is None:
-        directory = util_cache.global_cache_read('select_directory', default='.')
+        directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
     qdlg = QtGui.QFileDialog()
     qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
     file_list = map(str, qfile_list)
     print('Selected %d files' % len(file_list))
-    util_cache.global_cache_write('select_directory', directory)
+    _guitool_cache_write(SELDIR_CACHEID, directory)
     return file_list
 
 

@@ -109,5 +109,16 @@ def printNOTQUIET(msg):
         print(msg)
 
 
+def printWARN(msg):
+    try:
+        import colorama
+        from colorama import Fore, Back, Style
+        colorama.init()
+        print(Fore.RED + msg + Style.RESET_ALL)
+        colorama.deinit()
+    except ImportError:
+        print(msg)
+
+
 def print_filesize(fpath):
     print(filesize_str(fpath))

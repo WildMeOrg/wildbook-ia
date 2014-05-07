@@ -7,19 +7,18 @@ sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 import multiprocessing
 import utool
-printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ADD_IMAGES]')
 
 
 def TEST_ADD_IMAGES(ibs):
-    printTEST('[TEST] GET_TEST_IMAGE_PATHS')
+    print('[TEST] GET_TEST_IMAGE_PATHS')
     # The test api returns a list of interesting chip indexes
     gpath_list = __testing__.get_test_gpaths(ndata=None)
 
-    printTEST('[TEST] IMPORT IMAGES FROM FILE\ngpath_list=%r' % gpath_list)
+    print('[TEST] IMPORT IMAGES FROM FILE\ngpath_list=%r' % gpath_list)
     gid_list = ibs.add_images(gpath_list)
     valid_gpaths = list(ibs.get_image_paths(gid_list))
-    printTEST('[TEST] valid_gpaths=%r' % valid_gpaths)
+    print('[TEST] valid_gpaths=%r' % valid_gpaths)
     return locals()
 
 

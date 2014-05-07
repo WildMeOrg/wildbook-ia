@@ -11,15 +11,17 @@ if __name__ == '__main__':
     ibeis._preload()
     from ibeis.dev import ibsfuncs
     img_dir = expanduser('~/data/raw/snails_drop1')
-    dbdir = join(ibeis.params.get_workdir(), 'snails_drop1')
+    dbdir = join(ibeis.sysres.get_workdir(), 'snails_drop1')
     ibsfuncs.delete_ibeis_database(dbdir)
     main_locals = ibeis.main(dbdir=dbdir)
     ibs = main_locals['ibs']
     back = main_locals.get('back', None)
     fmtkey = 'snails'
     injest_named_images(ibs, img_dir, fmtkey, adjust_percent=.20)
+    ibsfuncs.localize_images(ibs)
 
     # Print to show success
     ibs.print_name_table()
-    ibs.print_name_table()
+    ibs.print_image_table()
     ibs.print_roi_table()
+

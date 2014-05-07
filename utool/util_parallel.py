@@ -106,7 +106,10 @@ def _process_parallel(func, args_list, args_dict={}):
 
 
 def generate(func, args_list, force_serial=False):
-    assert __POOL__ is not None, 'must init_pool() first'
+    try:
+        assert __POOL__ is not None, 'must init_pool() first'
+    except AssertionError:
+        init_pool()
     num_tasks = len(args_list)
     mark_prog, end_prog = progress_func(max_val=num_tasks, lbl=func.func_name + ': ')
     args_list

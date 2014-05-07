@@ -115,6 +115,8 @@ def get_varied_params_list(test_cfg_name_list):
     vary_dicts = get_vary_dicts(test_cfg_name_list)
     dict_comb_list = [utool.all_dict_combinations(dict_) for dict_ in vary_dicts]
     dict_comb_lbls = [utool.all_dict_combinations_labels(dict_) for dict_ in vary_dicts]
+    # Append testname
+    dict_comb_lbls = [[name_lbl + lbl for lbl in comb_lbls] for name_lbl, comb_lbls in izip(test_cfg_name_list, dict_comb_lbls)]
     varied_params_list = utool.flatten(dict_comb_list)  # [comb for dict_comb in dict_comb_list for comb in dict_comb]
     varied_param_lbls = utool.flatten(dict_comb_lbls)
     return varied_params_list, varied_param_lbls
@@ -151,4 +153,6 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
 def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
     cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list)
     print(cfgx2_lbl)
+    # cfgx2_lbl denotes which parameters are being varied.
+    # If there is just one config then nothing is varied
     return cfg_list, cfgx2_lbl

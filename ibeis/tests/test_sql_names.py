@@ -35,18 +35,18 @@ def __insert_names(db, name_list):
 
 def TEST_SQL_NAMES():
     # -------- INIT DATABASE ------------
-    printTEST('Remove Old Temp Database')
+    print('Remove Old Temp Database')
     utool.util_path.remove_file('temp.sqlite3', dryrun=False)
     #
     # Create new temp database
-    printTEST('New Temp Database')
-    db = SQLDatabaseControl.SQLDatabaseControl(database_path='.', database_file='temp.sqlite3')
+    print('New Temp Database')
+    db = SQLDatabaseControl.SQLDatabaseControl(sqldb_dpath='.', sqldb_fname='temp.sqlite3')
     #
     # Define the schema
     __define_schema(db)
     #
     # -------- RUN INSERTS --------------
-    printTEST('[TEST] --- INSERT NAMES --- ')
+    print('[TEST] --- INSERT NAMES --- ')
     test_names = [
         'fred',
         'sue',
@@ -58,13 +58,13 @@ def TEST_SQL_NAMES():
     __insert_names(db, test_names[2:3])
     #
     # -------- RUN SELECT NAMES --------------
-    printTEST('[TEST] --- SELECT NAMES ---')
+    print('[TEST] --- SELECT NAMES ---')
     name_text_results = db.executeone('SELECT name_text FROM names', [])
     print(' * name_text_results=%r' % name_text_results)
     #assert name_text_results == test_names, 'unexpected results from select names'
     #
     # -------- RUN SELECT NIDS --------------
-    printTEST('[TEST] --- SELECT NIDS ---')
+    print('[TEST] --- SELECT NIDS ---')
     query_names = test_names[::2] + ['missingno']
     nid_list = db.executemany(
         operation='''
@@ -95,7 +95,6 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
     from ibeis.tests import __testing__
-    printTEST = __testing__.printTEST
     test_locals = __testing__.run_test(TEST_SQL_NAMES)
     execstr     = __testing__.main_loop(test_locals)
     exec(execstr)

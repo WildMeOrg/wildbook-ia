@@ -35,7 +35,7 @@ if __name__ == '__main__':
     from ibeis.dev.all_imports import *  # NOQA
     # TODO: be able to injest more than polar bears
     img_dirname = utool.get_arg('--db', str, None)
-    img_dir = join(params.get_workdir(), img_dirname)
+    img_dir = join(sysres.get_workdir(), img_dirname)
     main_locals = ibeis.main(dbdir=img_dir)
     ibs = main_locals['ibs']
     back = main_locals.get('back', None)

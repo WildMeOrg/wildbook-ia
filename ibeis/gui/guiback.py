@@ -11,7 +11,7 @@ from guitool import drawing, slot_, signal_
 # PlotTool
 from plottool import fig_presenter
 # IBEIS
-from ibeis.dev import params, ibsfuncs
+from ibeis.dev import ibsfuncs, sysres
 from ibeis.gui import guifront
 from ibeis.gui import gui_item_tables as item_table
 from ibeis.viz import interact
@@ -161,6 +161,12 @@ class MainWindowBackend(QtCore.QObject):
         interact.ishow_qres(back.ibs, qres, rid, **kwargs)
         pass
 
+
+    def set_view(back, index):
+        """ Sets the current tab index """
+        back.front.ui.tablesTabWidget.setCurrentIndex(index)
+
+
     #----------------------
     # State Management Functions (ewww... state)
     #----------------------
@@ -274,9 +280,10 @@ class MainWindowBackend(QtCore.QObject):
         return guitool.user_option(parent=back.front, **kwargs)
 
     def get_work_directory(back):
-        return params.get_workdir()
+        return sysres.get_workdir()
 
     def user_select_new_dbdir(back):
+        raise NotImplementedError()
         pass
 
     #--------------------------------------------------------------------------
@@ -339,24 +346,24 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def clear_selection(back, **kwargs):
         print('[back] clear selection')
+        raise NotImplementedError()
 
     @blocking_slot()
     def default_preferences(back):
         # Button Click -> Preferences Defaults
         print('[back] default preferences')
+        raise NotImplementedError()
 
     @blocking_slot(QT_ROI_UID_TYPE, str, str)
-    def change_roi_property(back, rid, key, val):
+    def set_roi_prop(back, rid, key, val):
+        """ Keys for propname come from gui_item_tables.fancy_headers """
         # Table Edit -> Change Chip Property
         rid = qt_roi_uid_cast(rid)
         val = qt_cast(val)
         key = str(key)
-        print('[back] change_roi_property(rid=%r, key=%r, val=%r)' % (rid, key, val))
-        back.ibs.set_roi_properties((rid,), key, (val,))
+        print('[back] set_roi_prop(rid=%r, key=%r, val=%r)' % (rid, key, val))
+        back.ibs.set_roi_props((rid,), key, (val,))
         back.refresh_state()
-
-    def change_roi_name(back, rid, val):
-        back.change_roi_property(rid, 'name', val)
 
     @blocking_slot(QT_NAME_UID_TYPE, str, str)
     def alias_name(back, nid, key, val):
@@ -365,12 +372,17 @@ class MainWindowBackend(QtCore.QObject):
         key = str(key)
         val = str(val)
         print('[back] alias_name(nid=%r, key=%r, val=%r)' % (nid, key, val))
+        raise NotImplementedError()
 
     @blocking_slot(QT_IMAGE_UID_TYPE, str, bool)
-    def change_image_property(back, gid, key, val):
+    def set_image_prop(back, gid, key, val):
         # Table Edit -> Change Image Property
         gid = qt_image_uid_cast(gid)
-        print('[back] alias_name(gid=%r, key=%r, val=%r)' % (gid, key, val))
+        val = qt_cast(val)
+        key = str(key)
+        print('[back] set_image_prop(gid=%r, key=%r, val=%r)' % (gid, key, val))
+        back.ibs.set_image_props((gid,), key, (val,))
+        back.refresh_state()
 
     #--------------------------------------------------------------------------
     # File Slots
@@ -424,7 +436,7 @@ class MainWindowBackend(QtCore.QObject):
             print('[guiback] Caught: %s: %s' % (type(ex), ex))
             raise
         else:
-            utool.global_cache_write('cached_dbdir', dbdir)
+            sysres.set_default_dbdir(dbdir)
 
     @blocking_slot()
     def save_database(back):
@@ -432,6 +444,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] ')
         # Depricate
         pass
+        raise NotImplementedError()
 
     @blocking_slot()
     def import_images(back, gpath_list=None, dir_=None):
@@ -490,6 +503,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> New Chip Property"""
         # Depricate
         print('[back] new_prop')
+        raise NotImplementedError()
         pass
 
     @blocking_slot()
@@ -513,8 +527,8 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> Reselect ROI"""
         if rid is None:
             rid = back.get_selected_rid()
+        gid = back.ibs.get_roi_gids(rid)
         if bbox is None:
-            gid = back.ibs.get_roi_gids(rid)
             bbox = back.select_bbox(gid)
         print('[back] reselect_roi')
         back.ibs.set_roi_bboxes([rid], [bbox])
@@ -527,15 +541,25 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] query(rid=%r)' % (rid,))
         if rid is None:
             rid = back.get_selected_rid()
-        qrid_list = [rid]
-        qrid2_qres = back.ibs.query_database(qrid_list)
+        qrid2_qres = back.ibs.query_database([rid])
         qres = qrid2_qres[rid]
         back.show_qres(qres)
+
+    @blocking_slot()
+    def detect_grevys(back):
+        print('[back] detect_grevys()')
+        ibs = backk.ibs
+        gid_list = ibs.get_valid_gids()
+        path_list = ibs.get_image_paths(gid_list)
+        #back.ibs.detect(gid_list, 'grevys')
+        back.populate_tables()
+
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
         """ Action -> Reselect ORI"""
         print('[back] reselect_ori')
+        raise NotImplementedError()
         pass
 
     @blocking_slot()
@@ -552,12 +576,14 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> Delete Images"""
         print('[back] delete_image')
         gid = qt_image_uid_cast(gid)
+        raise NotImplementedError()
         pass
 
     @blocking_slot()
     def select_next(back):
         """ Action -> Next"""
         print('[back] select_next')
+        raise NotImplementedError()
         pass
 
     #--------------------------------------------------------------------------
@@ -575,6 +601,7 @@ class MainWindowBackend(QtCore.QObject):
     def precompute_queries(back):
         """ Batch -> Precompute Queries"""
         print('[back] precompute_queries')
+        raise NotImplementedError()
         pass
 
     #--------------------------------------------------------------------------
@@ -592,6 +619,7 @@ class MainWindowBackend(QtCore.QObject):
     def edit_preferences(back):
         """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
+        raise NotImplementedError()
         pass
         #back.edit_prefs = back.ibs.cfg.createQWidget()
         #epw = back.edit_prefs
@@ -608,6 +636,7 @@ class MainWindowBackend(QtCore.QObject):
     def view_docs(back):
         """ Help -> View Documentation"""
         print('[back] view_docs')
+        raise NotImplementedError()
         pass
 
     @slot_()
@@ -620,29 +649,34 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def view_computed_dir(back):
         print('[back] view_computed_dir')
+        raise NotImplementedError()
         pass
 
     @slot_()
     def view_global_dir(back):
         print('[back] view_global_dir')
+        raise NotImplementedError()
         pass
 
     @slot_()
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
+        raise NotImplementedError()
         pass
 
     @slot_()
     def delete_global_prefs(back):
         # RCOS TODO: Add are you sure dialog?
         print('[back] delete_global_prefs')
+        raise NotImplementedError()
         pass
 
     @slot_()
     def delete_queryresults_dir(back):
         # RCOS TODO: Add are you sure dialog?
         print('[back] delete_queryresults_dir')
+        raise NotImplementedError()
         pass
 
     @blocking_slot()
@@ -663,4 +697,5 @@ class MainWindowBackend(QtCore.QObject):
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
+        raise NotImplementedError()
         pass

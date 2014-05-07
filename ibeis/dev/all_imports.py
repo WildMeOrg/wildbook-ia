@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
-                     expanduser, relpath)
+                     expanduser, relpath, isabs)
 from itertools import izip, chain, imap, cycle
 from itertools import product as iprod
 import imp
@@ -85,6 +85,7 @@ from ibeis.model import hots
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
+from ibeis.model.preproc import preproc_detectimg
 # IBEIS MODEL HOTSPOTTER
 from ibeis.model.hots import matching_functions as mf
 from ibeis.model.hots import match_chips3 as mc3

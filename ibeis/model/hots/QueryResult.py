@@ -20,6 +20,23 @@ FK_DTYPE  = np.int16    # Feature Position datatype
 #=========================
 
 
+def qres_get_matching_keypoints(qres, ibs, rid2_list):  # rid2 is a name. 2 != 2 to here
+    rid1 = qres.qrid
+    kpts1 = ibs.get_roi_kpts(rid1)
+    kpts2_list = ibs.get_roi_kpts(rid2_list)
+    matching_kpts_list = []
+    empty_fm = np.empty((0, 2))
+    for rid2, kpts2 in izip(rid2_list, kpts2_list):
+        fm = qres.rid2_fm.get(rid2, empty_fm)
+        if len(fm) == 0:
+            continue
+        kpts1_m = kpts1[fm.T[0]]
+        kpts2_m = kpts2[fm.T[1]]
+        kpts_match = (kpts1_m, kpts2_m)
+        matching_kpts_list.append(kpts_match)
+    return matching_kpts_list
+
+
 def remove_corrupted_queries(qreq, qres, dryrun=True):
     # This qres must be corrupted!
     uid = qres.uid
@@ -260,6 +277,11 @@ class QueryResult(__OBJECT_BASE__):
             best_rank = best_gtranks[0]
         return best_rank
 
+    def get_classified_pos(qres):
+        top_rids = np.array(qres.get_top_rids())
+        pos_rids = top_rids[0:1]
+        return pos_rids
+
     def show_top(qres, ibs, *args, **kwargs):
         import ibeis.viz as viz
         return viz.show_qres_top(ibs, qres, *args, **kwargs)
@@ -267,3 +289,6 @@ class QueryResult(__OBJECT_BASE__):
     def show_analysis(qres, ibs, *args, **kwargs):
         import ibeis.viz as viz
         return viz.show_qres_analysis(ibs, qres, *args, **kwargs)
+
+    def get_matching_keypoints(qres, ibs, rid2_list):
+        return qres_get_matching_keypoints(qres, ibs, rid2_list)

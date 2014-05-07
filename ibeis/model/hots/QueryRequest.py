@@ -33,12 +33,12 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.vsmany = query_cfg.agg_cfg.query_type == 'vsmany'
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
 
-    def get_qrids_uid(qreq):
+    def get_drids_uid(qreq):
         assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
         drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
         return drids_uid
 
-    def get_drids_uid(qreq):
+    def get_qrids_uid(qreq):
         assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
         qrids_uid = utool.hashstr_arr(qreq.qrids, '_qrids')
         return qrids_uid

@@ -1,14 +1,11 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
 
-if __name__ == '__main__':
-    import multiprocessing  # for win32
-    multiprocessing.freeze_support()
-
 try:
     from . import __sysreq__
 except Exception:
     import __sysreq__  # NOQA
+
 import ibeis
 ibeis._preload()
 import utool
@@ -124,7 +121,7 @@ def main(defaultdb='testdb', allow_newdir=False, gui=False, **kwargs):
     #known_testdbs = ['testdb', 'testdb_big']
     #if defaultdb in known_testdbs:
         #allow_newdir = True
-        #defaultdbdir = join(params.get_workdir(), defaultdb)
+        #defaultdbdir = join(sysres.get_workdir(), defaultdb)
         #utool.ensuredir(defaultdbdir)
         #if utool.get_flag('--clean'):
             #utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
@@ -156,3 +153,7 @@ def printTEST(msg, wait=False):
     __builtin__.print('**' + msg)
     if INTERACTIVE and wait:
         raw_input('press enter to continue')
+
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32

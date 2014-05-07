@@ -109,31 +109,34 @@ def load_cPkl(fpath):
 
 # --- Global Cache ---
 
-def get_global_cache_dir(appname='ibeis', ensure=False, **kwargs):
+def get_global_cache_dir(appname='utool', ensure=False):
     """
-        Returns a cache directory for a project in the correct location for each
-        operating system: IE: '~/.config, '~/AppData/Roaming', or
-        '~/Library/Application Support'
+        Returns a cache directory for an application in a directory oked by the
+        operating system: IE:
+            '~/.config', '~/AppData/Roaming', or '~/Library/Application Support'
     """
     # TODO: Make a decoupled way to set the application name
     os_resource_dpath = util_cplat.get_resource_dir()
     project_cache_dname = '%s_cache' % appname
     global_cache_dir = normpath(join(os_resource_dpath, project_cache_dname))
-    util_path.ensuredir(global_cache_dir)
+    if ensure:
+        util_path.ensuredir(global_cache_dir)
     return global_cache_dir
 
 
-def get_global_shelf_fpath(**kwargs):
-    global_cache_dir = get_global_cache_dir(ensure=True, **kwargs)
+def get_global_shelf_fpath(appname=None, ensure=False):
+    """ Returns the filepath to the global shelf """
+    global_cache_dir = get_global_cache_dir(appname, ensure=ensure)
     shelf_fpath = join(global_cache_dir, 'global_cache.shelf')
     return shelf_fpath
 
 
-def get_global_shelf(**kwargs):
+def get_global_shelf(appname=None):
+    """ Returns the global shelf object """
     global __SHELF__
     if __SHELF__ is None:
         try:
-            shelf_fpath = get_global_shelf_fpath(**kwargs)
+            shelf_fpath = get_global_shelf_fpath(appname, ensure=True)
             __SHELF__ = shelve.open(shelf_fpath)
         except Exception as ex:
             from . import util_dbg
@@ -144,39 +147,43 @@ def get_global_shelf(**kwargs):
     return __SHELF__
 
 
-def close_global_shelf(**kwargs):
+def close_global_shelf(appname=None):
     global __SHELF__
     if __SHELF__ is not None:
         __SHELF__.close()
     __SHELF__ = None
 
 
-def global_cache_read(key, **kwargs):
-    shelf = get_global_shelf(**kwargs)
-    if not 'default' in kwargs:
-        return shelf[key]
-    else:
+def global_cache_read(key, appname=None, **kwargs):
+    shelf = get_global_shelf(appname)
+    if 'default' in kwargs:
         return shelf.get(key, kwargs['default'])
+    else:
+        return shelf[key]
 
 
-def global_cache_dump(**kwargs):
-    shelf_fpath = get_global_shelf_fpath(**kwargs)
-    shelf = get_global_shelf(**kwargs)
+def global_cache_dump(appname=None):
+    shelf_fpath = get_global_shelf_fpath(appname)
+    shelf = get_global_shelf(appname)
     print('shelf_fpath = %r' % shelf_fpath)
     print(util_str.dict_str(shelf))
 
 
-def global_cache_write(key, val, **kwargs):
+def global_cache_write(key, val, appname=None):
     """ Writes cache files to a safe place in each operating system """
-    shelf = get_global_shelf(**kwargs)
+    shelf = get_global_shelf(appname)
     shelf[key] = val
 
 
-def delete_global_cache(**kwargs):
+def delete_global_cache(appname=None):
     """ Reads cache files to a safe place in each operating system """
-    close_global_shelf(**kwargs)
-    shelf_fpath = get_global_shelf_fpath(**kwargs)
+    close_global_shelf(appname)
+    shelf_fpath = get_global_shelf_fpath(appname)
     util_path.remove_file(shelf_fpath, verbose=True, dryrun=False)
 
 
 atexit.register(close_global_shelf)  # ensure proper cleanup when exiting python
+
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32

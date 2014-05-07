@@ -26,9 +26,10 @@ from ibeis.model import Config
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_feat
+from ibeis.model.preproc import preproc_detectimg
 # IBEIS
 from ibeis.control import DB_SCHEMA
-from ibeis.control import SQLDatabaseControl
+from ibeis.control import SQLDatabaseControl as sqldbc
 from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy,
                                            getter_numpy_vector_output,
@@ -51,6 +52,7 @@ class PATH_NAMES(object):
     images = 'images'
     qres   = 'qres'
     bigcache = 'bigcache'
+    detectimg = 'detectimg'
 
 
 #
@@ -87,8 +89,7 @@ class IBEISControl(object):
         ibs._init_sql()
         ibs._init_config()
 
-    def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
-                   workdir='~/ibeis_databases', ensure=True):
+    def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
         if ensure:
             print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
@@ -96,17 +97,16 @@ class IBEISControl(object):
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
+        ibs.sqldb_fname = PATH_NAMES.sqldb
 
         # Make sure you are not nesting databases
         assert PATH_NAMES._ibsdb != utool.dirsplit(ibs.workdir), \
             'cannot work in _ibsdb internals'
         assert PATH_NAMES._ibsdb != dbname,\
             'cannot create db in _ibsdb internals'
-
         ibs.dbdir    = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
         ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
-        ibs.sqldb_fname = join(ibs._ibsdb, PATH_NAMES.sqldb)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
         ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
@@ -141,7 +141,8 @@ class IBEISControl(object):
 
     def get_dbdir(ibs):
         """ Returns database dir with ibs internal directory """
-        return join(ibs.workdir, ibs.dbname)
+        #return join(ibs.workdir, ibs.dbname)
+        return ibs.dbdir
 
     def get_ibsdir(ibs):
         """ Returns ibs internal directory """
@@ -149,6 +150,15 @@ class IBEISControl(object):
 
     def get_workdir(ibs):
         return ibs.workdir
+
+    def get_cachedir(ibs):
+        return ibs.cachedir
+
+    def get_detectimg_cachedir(ibs):
+        return join(ibs.cachedir, PATH_NAMES.detectimg)
+
+    def get_flann_cachedir(ibs):
+        return ibs.flanndir
 
     def get_num_images(ibs):
         gid_list = ibs.get_valid_gids()
@@ -164,8 +174,7 @@ class IBEISControl(object):
 
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = SQLDatabaseControl.SQLDatabaseControl(ibs.get_dbdir(),
-                                                       ibs.sqldb_fname)
+        ibs.db = sqldbc.SQLDBControl(ibs.get_ibsdir(), ibs.sqldb_fname)
         #OFF printDBG('[ibs._init_sql] Define the schema.')
         DB_SCHEMA.define_IBEIS_schema(ibs)
         #OFF printDBG('[ibs._init_sql] Add default names.')
@@ -233,7 +242,7 @@ class IBEISControl(object):
     #
     #
     #---------------
-    # --- Adders ---
+    # --- ADDERS ---
     #---------------
 
     def add_config(ibs, config_suffix):
@@ -277,18 +286,21 @@ class IBEISControl(object):
                       if tup is not None]
         param_list = [tried_param_list[index] for index in index_list]
         img_uuid_list = [tup[0] for tup in param_list]
+        # TODO: image original name
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
                 image_uid,
                 image_uuid,
                 image_uri,
+                image_original_name,
+                image_ext,
                 image_width,
                 image_height,
                 image_exif_time_posix,
                 image_exif_gps_lat,
                 image_exif_gps_lon
-            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
         gid_list = ibs.db.executemany(
@@ -468,7 +480,7 @@ class IBEISControl(object):
     #
     #
     #----------------
-    # --- Setters ---
+    # --- SETTERS ---
     #----------------
 
     # SETTERS::General
@@ -476,10 +488,10 @@ class IBEISControl(object):
     @setter
     def set_table_props(ibs, table, prop_key, uid_list, val_list):
         #OFF printDBG('------------------------')
-        #OFF printDBG('set_table_props(table=%r, prop_key=%r)' % (table, prop_key))
-        #OFF printDBG('set_table_props(uid_list=%r, val_list=%r)' % (uid_list, val_list))
+        #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('set_(uid_list=%r, val_list=%r)' % (uid_list, val_list))
         # Sanatize input to be only lowercase alphabet and underscores
-        table, prop_key = ibs.db.sanatize_sql(table, prop_key)
+        table, (prop_key,) = ibs.db.sanatize_sql(table, (prop_key,))
         # Potentially UNSAFE SQL
         ibs.db.executemany(
             operation='''
@@ -494,12 +506,31 @@ class IBEISControl(object):
     # SETTERS::Image
 
     @setter
-    def set_image_paths(ibs, gid_list, gpath_list):
-        """ Do we want to do caching here? """
-        pass
+    def set_image_props(ibs, gid_list, key, value_list):
+        print('[ibs] set_image_props')
+        if key == 'aif':
+            return ibs.set_image_aifs(gid_list, value_list)
+        if key == 'eid':
+            return ibs.set_image_eids(gid_list, value_list)
+        else:
+            raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
-    def set_image_eid(ibs, gid_list, eids_list):
+    def set_image_uris(ibs, gid_list, new_gpath_list):
+        """ Sets the image URIs to a new local path.
+        This is used when localizing or unlocalizing images.
+        An absolute path can either be on this machine or on the cloud
+        A relative path is relative to the ibeis image cache on this machine.
+        """
+        ibs.set_table_props('images', 'image_uri', gid_list, new_gpath_list)
+
+    @setter
+    def set_image_aifs(ibs, gid_list, aif_list):
+        """ Sets the image all instances found bit """
+        ibs.set_table_props('images', 'image_toggle_aif', gid_list, aif_list)
+
+    @setter
+    def set_image_eids(ibs, gid_list, eids_list):
         """ Sets the encounter id that a list of images is tied to, deletes old
         encounters.  eid_list is a list of tuples, each represents the set of
         encounters a tuple should belong to.
@@ -532,6 +563,8 @@ class IBEISControl(object):
             return ibs.set_roi_names(rid_list, value_list)
         elif key == 'viewpoint':
             return ibs.set_roi_viewpoints(rid_list, value_list)
+        elif key == 'notes':
+            return ibs.set_roi_notes(rid_list, value_list)
         else:
             raise KeyError('UNKOWN key=%r' % (key,))
 
@@ -554,26 +587,18 @@ class IBEISControl(object):
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
         """ Sets thetas of a list of chips by rid """
-        ibs.delete_roi_chips(rid_list)
-        ibs.db.executemany(
-            operation='''
-            UPDATE rois SET
-                roi_theta=?,
-            WHERE roi_uid=?
-            ''',
-            params_iter=izip(theta_list, rid_list))
+        ibs.delete_roi_chips(rid_list)  # Changing theta redefines the chips
+        ibs.set_table_props('rois', 'roi_theta', rid_list, theta_list)
 
     @setter
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
         """ Sets viewpoints of a list of chips by rid """
-        ibs.db.executemany(
-            operation='''
-            UPDATE rois
-            SET
-                roi_viewpoint=?,
-            WHERE roi_uid=?
-            ''',
-            params_iter=izip(viewpoint_list, rid_list))
+        ibs.set_table_props('rois', 'roi_viewpoint', rid_list, viewpoint_list)
+
+    @setter
+    def set_roi_notes(ibs, rid_list, notes_list):
+        """ Sets viewpoints of a list of chips by rid """
+        ibs.set_table_props('rois', 'roi_notes', rid_list, notes_list)
 
     @setter
     def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
@@ -581,12 +606,12 @@ class IBEISControl(object):
         if nid_list is None:
             assert name_list is not None
             nid_list = ibs.add_names(name_list)
+        # Cannot use set_table_props for cross-table setters.
         ibs.db.executemany(
             operation='''
             UPDATE rois
             SET name_uid=?
-            WHERE roi_uid=?
-            ''',
+            WHERE roi_uid=?''',
             params_iter=izip(nid_list, rid_list))
 
     #
@@ -598,16 +623,8 @@ class IBEISControl(object):
     #
     # GETTERS::General
 
-    def get_valid_ids(ibs, tblname):
-        get_valid_tblname_ids = {
-            'images': ibs.get_valid_gids,
-            'rois': ibs.get_valid_rids,
-            'names': ibs.get_valid_nids,
-        }[tblname]
-        return get_valid_tblname_ids()
-
     def get_table_props(ibs, table, prop_key, uid_list):
-        #OFF printDBG('get_table_props(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('get_(table=%r, prop_key=%r)' % (table, prop_key))
         # Input to table props must be a list
         if isinstance(prop_key, str):
             prop_key = (prop_key,)
@@ -624,6 +641,15 @@ class IBEISControl(object):
             errmsg='[ibs.get_table_props] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
         return list(property_list)
+
+
+    def get_valid_ids(ibs, tblname):
+        get_valid_tblname_ids = {
+            'images': ibs.get_valid_gids,
+            'rois': ibs.get_valid_rids,
+            'names': ibs.get_valid_nids,
+        }[tblname]
+        return get_valid_tblname_ids()
 
     def get_chip_props(ibs, prop_key, cid_list):
         """ general chip property getter """
@@ -670,6 +696,13 @@ class IBEISControl(object):
         image_uuid_list = ibs.get_table_props('images', 'image_uuid', gid_list)
         return image_uuid_list
 
+
+    @getter
+    def get_image_exts(ibs, gid_list):
+        """ Returns a list of image uuids by gid """
+        image_uuid_list = ibs.get_table_props('images', 'image_ext', gid_list)
+        return image_uuid_list
+
     @getter
     def get_image_uris(ibs, gid_list):
         """ Returns a list of image uris by gid """
@@ -688,24 +721,30 @@ class IBEISControl(object):
         """ Returns a list of image paths relative to img_dir? by gid """
         uri_list = ibs.get_image_uris(gid_list)
         utool.assert_all_not_None(uri_list, 'uri_list')
-        img_dir = join(ibs.dbdir, 'images')
-        gpath_list = [join(img_dir, uri) for uri in uri_list]
+        gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
         return gpath_list
 
     @getter
+    def get_image_detectpaths(ibs, gid_list):
+        """ Returns a list of image paths resized to a constant area for detection """
+        new_gfpath_list = preproc_detectimg.compute_and_write_detectimg_lazy(ibs, gid_list)
+        return new_gfpath_list
+
+    @getter
     def get_image_gnames(ibs, gid_list):
-        """ Returns a list of image names """
-        gpath_list = ibs.get_image_paths(gid_list)
-        gname_list = [split(gpath)[1] for gpath in gpath_list]
+        """ Returns a list of original image names """
+        gname_list = ibs.get_table_props('images', 'image_original_name', gid_list)
         return gname_list
 
     @getter
-    def get_image_size(ibs, gid_list):
+    def get_image_sizes(ibs, gid_list):
         """ Returns a list of (width, height) tuples """
         gwidth_list = ibs.get_image_props('image_width', gid_list)
         gheight_list = ibs.get_image_props('image_height', gid_list)
         gsize_list = [(w, h) for (w, h) in izip(gwidth_list, gheight_list)]
         return gsize_list
+
+    get_image_size = get_image_sizes  # TODO SP
 
     @getter
     def get_image_unixtime(ibs, gid_list):
@@ -785,8 +824,8 @@ class IBEISControl(object):
     @getter_numpy_vector_output
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        cols = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
-        bbox_list = ibs.get_roi_props(cols, rid_list)
+        bbox_list = ibs.get_roi_props(
+            ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height'), rid_list)
         return bbox_list
 
     @getter
@@ -973,13 +1012,6 @@ class IBEISControl(object):
         numgts_list = ibs.get_roi_num_groundtruth(rid_list)
         has_gt_list = [num_gts > 0 for num_gts in numgts_list]
         return has_gt_list
-
-    @getter
-    def get_roi_is_hard(ibs, rid_list):
-        notes_list = ibs.get_roi_notes(rid_list)
-        is_hard_list = ['hard' in notes.lower().split() for (notes)
-                        in notes_list]
-        return is_hard_list
 
     #
     # GETTERS::Chips
@@ -1253,7 +1285,7 @@ class IBEISControl(object):
     #
     #
     #-----------------
-    # --- Deleters ---
+    # --- DELETERS ---
     #-----------------
 
     @deleter
@@ -1317,7 +1349,7 @@ class IBEISControl(object):
     #
     #
     #----------------
-    # --- Writers ---
+    # --- WRITERS ---
     #----------------
 
     @utool.indent_func
@@ -1368,17 +1400,27 @@ class IBEISControl(object):
     def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = qrid_list
-        qres_list = ibs._query_chips(ibs, qrid_list, drid_list, **kwargs)
+        qres_list = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qres_list
+
+    @utool.indent_func(False)
+    def prep_qreq_db(ibs, qrid_list):
+        """ Puts IBEIS into intra-encounter mode """
+        drid_list = qrid_list
+        ibs._prep_qreq(qrid_list, drid_list)
 
     @utool.indent_func((False, '[query_db]'))
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
-        if ibs.qreq is None:
-            ibs._init_query_requestor()
         drid_list = ibs.get_recognition_database_rids()
-        qrid2_res = ibs._query_chips(qrid_list, drid_list, **kwargs)
-        return qrid2_res
+        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        return qrid2_qres
+
+    @utool.indent_func(False)
+    def prep_qreq_db(ibs, qrid_list):
+        """ Puts IBEIS into query database mode """
+        drid_list = ibs.get_recognition_database_rids()
+        ibs._prep_qreq(qrid_list, drid_list)
 
     @utool.indent_func
     def _init_query_requestor(ibs):
@@ -1386,11 +1428,6 @@ class IBEISControl(object):
         # Create query request object
         ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
-
-    @utool.indent_func(False)
-    def prep_qreq_db(ibs, qrid_list):
-        drid_list = ibs.get_recognition_database_rids()
-        ibs._prep_qreq(qrid_list, drid_list)
 
     @utool.indent_func(False)
     def _prep_qreq(ibs, qrid_list, drid_list, **kwargs):
@@ -1470,3 +1507,54 @@ class IBEISControl(object):
         ibs.print_name_table()
         ibs.print_config_table()
         print('\n')
+
+    def dump_tables(ibs):
+        """ Dumps hotspotter like tables to disk """
+        ibsdir = ibs.get_ibsdir()
+        gtbl_name = join(ibsdir, 'IBEIS_DUMP_images_table.csv')
+        ntbl_name = join(ibsdir, 'IBEIS_DUMP_names_table.csv')
+        rtbl_name = join(ibsdir, 'IBEIS_DUMP_rois_table.csv')
+        with open(gtbl_name, 'w') as file_:
+            gtbl_str = ibs.db.get_table_csv('images', exclude_columns=['image_uuid'])
+            file_.write(gtbl_str)
+        with open(ntbl_name, 'w') as file_:
+            ntbl_str = ibs.db.get_table_csv('names',  exclude_columns=[])
+            file_.write(ntbl_str)
+        with open(rtbl_name, 'w') as file_:
+            rtbl_str = ibs.db.get_table_csv('rois',   exclude_columns=['roi_uuid'])
+            file_.write(rtbl_str)
+
+    def get_flat_table(ibs):
+        rid_list = ibs.get_valid_rids()
+        column_tups = [
+            (int,   'rids',       rid_list,),
+            (str,   'names',  ibs.get_roi_names(rid_list),),
+            (list,  'bbox',   map(list, ibs.get_roi_bboxes(rid_list),)),
+            (float, 'theta',  ibs.get_roi_thetas(rid_list),),
+            (str,   'gpaths', ibs.get_roi_gpaths(rid_list),),
+            (str,   'notes',  ibs.get_roi_notes(rid_list),),
+            (str,   'uuids',  ibs.get_roi_uuids(rid_list),),
+        ]
+        column_type   = [tup[0] for tup in column_tups]
+        column_labels = [tup[1] for tup in column_tups]
+        column_list   = [tup[2] for tup in column_tups]
+        header = '\n'.join([
+            '# Roi Flat Table',
+            '# rid   - internal roi index (not gaurenteed unique)',
+            '# name  - animal identity',
+            '# bbox  - bounding box [tlx tly w h] in image',
+            '# theta - bounding box orientation',
+            '# gpath - image filepath',
+            '# notes - user defined notes',
+            '# uuids - unique universal ids (gaurenteed unique)',
+        ])
+        flat_table_str = utool.make_csv_table(column_labels, column_list,
+                                              header, column_type)
+        return flat_table_str
+
+    def dump_flat_table(ibs):
+        flat_table_fpath = join(ibs.dbdir, 'IBEIS_DUMP_flat_table.csv')
+        flat_table_str = ibs.get_flat_table()
+        print('[ibs] dumping flat table to: %r' % flat_table_fpath)
+        with open(flat_table_fpath, 'w') as file_:
+            file_.write(flat_table_str)

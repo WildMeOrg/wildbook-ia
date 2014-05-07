@@ -64,7 +64,7 @@ def build_flann_inverted_index(ibs, rid_list):
     # Build/Load the flann index
     flann_uid = get_flann_uid(ibs, rid_list)
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
-    precomp_kwargs = {'cache_dir': ibs.cachedir,
+    precomp_kwargs = {'cache_dir': ibs.get_flann_cachedir(),
                       'uid': flann_uid,
                       'flann_params': flann_params,
                       'force_recompute': NOCACHE_FLANN}

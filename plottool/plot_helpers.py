@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import plottool.draw_func2 as df2
+from plottool import custom_figure
 import utool
 import vtool.keypoint as ktool
+from os.path import join
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[plot_helpers]', DEBUG=False)
 
 
@@ -12,6 +14,24 @@ SIFT_OR_VECFIELD = utool.get_arg('--vecfield', type_=bool)
 def draw():
     df2.adjust_subplots_safe()
     df2.draw()
+
+
+def dump(dumpdir, subdir=None, quality=False, overwrite=False):
+    if quality is True:
+        custom_figure.FIGSIZE = df2.golden_wh2(12)
+        custom_figure.DPI = 120
+        custom_figure.FONTS.figtitle = df2.FONTS.small
+    elif quality is False:
+        custom_figure.FIGSIZE = df2.golden_wh2(8)
+        custom_figure.DPI = 90
+        custom_figure.FONTS.figtitle = df2.FONTS.smaller
+    #print('[viz] Dumping Image')
+    fpath = dumpdir
+    if subdir is not None:
+        fpath = join(fpath, subdir)
+        utool.ensurepath(fpath)
+    df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite)
+    df2.reset()
 
 
 def get_square_row_cols(nSubplots, max_cols=None):

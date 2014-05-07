@@ -5,13 +5,13 @@ import sys
 import os
 sys.path.append(os.getcwd())  # for windows
 import ibeis
-from ibeis.dev import main_commands
+from ibeis.dev import sysres
 import utool
 from os.path import join
 from ibeis.injest import injest_testdata
 from vtool.tests import grabdata
 
-workdir = ibeis.params.get_workdir()
+workdir = ibeis.sysres.get_workdir()
 
 
 TESTDB0 = join(workdir, 'testdb0')
@@ -35,7 +35,7 @@ def make_testdb0():
     assert ibs is not None, str(main_locals)
     TEST_GUI_IMPORT_IMAGES(ibs, back)
     TEST_GUI_ADD_ROI(ibs, back)
-    main_commands.set_default_dbdir(TESTDB0)
+    sysres.set_default_dbdir(TESTDB0)
 
 
 def reset_testdbs():

@@ -6,12 +6,11 @@ from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 from os.path import join, exists
-from ibeis.dev import params
 import ibeis
 from ibeis.dev import ibsfuncs
+from ibeis.dev import sysres
 import multiprocessing
 import utool
-printTEST = __testing__.printTEST
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[MAKE_BIG_DB]')
 
 sys.argv.append('--nogui')
@@ -34,7 +33,7 @@ def get_big_imgdir(workdir):
 
 
 def MAKE_BIG_DB():
-    workdir = params.get_workdir()
+    workdir = sysres.get_workdir()
     dbname = 'testdb_big'
     dbdir  = join(workdir, dbname)
     utool.delete(dbdir)

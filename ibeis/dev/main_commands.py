@@ -3,6 +3,7 @@ import utool
 import sys
 from ibeis.dev import params
 from ibeis.dev import ibsfuncs
+from ibeis.dev import sysres
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[main_cmds]')
 
 
@@ -20,7 +21,7 @@ def vdd(ibs):
 
 def vwd():
     """ view work dir """
-    utool.util_cplat.view_directory(params.get_workdir())
+    utool.util_cplat.view_directory(sysres.get_workdir())
 
 
 def parse_cfgstr_list(cfgstr_list):
@@ -40,13 +41,12 @@ def parse_cfgstr_list(cfgstr_list):
 
 
 def preload_commands():
+    """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
     if params.args.dump_global_cache:
-        utool.global_cache_dump()
+        utool.global_cache_dump()  # debug command, dumps to stdout
     if params.args.workdir is not None:
         params.set_workdir(params.args.workdir)
-    if params.args.set_default_dbdir:
-        set_default_dbdir(params.args.dbdir)
     if utool.get_flag('--vwd'):
         vwd()
     if utool.get_flag('--vdq'):
@@ -55,6 +55,7 @@ def preload_commands():
 
 
 def postload_commands(ibs, back):
+    """ Postload commands deal with a specific ibeis database """
     print('[main_cmd] postload_commands')
     args = params.args
     if args.dump_argv:
@@ -62,6 +63,8 @@ def postload_commands(ibs, back):
     if args.view_database_directory:
         print('got arg --vdd')
         vdd(ibs)
+    if params.args.set_default_dbdir:
+        sysres.set_default_dbdir(ibs.get_dbdir())
     if args.update_cfg is not None:
         cfgdict = parse_cfgstr_list(params.args.update_cfg)
         ibs.update_cfg(**cfgdict)
@@ -79,8 +82,3 @@ def postload_commands(ibs, back):
     if args.postload_exit:
         print('[main_cmd] postload exit')
         sys.exit(1)
-
-
-def set_default_dbdir(dbdir):
-    print('seting default database directory to: %r' % dbdir)
-    utool.global_cache_write('cached_dbdir', dbdir)
