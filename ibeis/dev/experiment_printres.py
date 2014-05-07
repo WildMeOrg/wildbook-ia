@@ -4,6 +4,7 @@ import itertools
 from itertools import chain, imap
 import utool
 from plottool import draw_func2 as df2
+from plottool import plot_helpers as ph
 import numpy as np
 from ibeis.dev import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
@@ -327,8 +328,6 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
                            #show_name=False, show_gname=False, time_appart=False)
         df2.adjust_subplots_safe()
         if utool.get_flag('--save-figures'):
-            raise NotImplementedError('fixme')
-            #from hsviz import allres_viz
-            df2.dump(ibs.cachedir, 'analysis', quality=True, overwrite=False)
+            ph.dump(ibs.get_ibsdir(), 'figures_analysis', quality=True, overwrite=False)
     if not QUIET:
         print('[harn] EXIT EXPERIMENT HARNESS')

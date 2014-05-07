@@ -135,7 +135,7 @@ def sanatize_img_fpath(fpath, defaultext):
     [dpath, fname] = split(fpath)
     fname_clean = sanatize_img_fname(fname, defaultext)
     fpath_clean = join(dpath, fname_clean)
-    fpath_clean = utool.truthpath(fpath_clean)
+    fpath_clean = utool.truepath(fpath_clean)
     return fpath_clean
 
 

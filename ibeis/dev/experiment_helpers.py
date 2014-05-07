@@ -115,6 +115,8 @@ def get_varied_params_list(test_cfg_name_list):
     vary_dicts = get_vary_dicts(test_cfg_name_list)
     dict_comb_list = [utool.all_dict_combinations(dict_) for dict_ in vary_dicts]
     dict_comb_lbls = [utool.all_dict_combinations_labels(dict_) for dict_ in vary_dicts]
+    # Append testname
+    dict_comb_lbls = [[name_lbl + lbl for lbl in comb_lbls] for name_lbl, comb_lbls in izip(test_cfg_name_list, dict_comb_lbls)]
     varied_params_list = utool.flatten(dict_comb_list)  # [comb for dict_comb in dict_comb_list for comb in dict_comb]
     varied_param_lbls = utool.flatten(dict_comb_lbls)
     return varied_params_list, varied_param_lbls
