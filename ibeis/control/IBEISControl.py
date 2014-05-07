@@ -642,7 +642,6 @@ class IBEISControl(object):
             (table, prop_key))
         return list(property_list)
 
-
     def get_valid_ids(ibs, tblname):
         get_valid_tblname_ids = {
             'images': ibs.get_valid_gids,
@@ -695,7 +694,6 @@ class IBEISControl(object):
         """ Returns a list of image uuids by gid """
         image_uuid_list = ibs.get_table_props('images', 'image_uuid', gid_list)
         return image_uuid_list
-
 
     @getter
     def get_image_exts(ibs, gid_list):
@@ -1405,7 +1403,7 @@ class IBEISControl(object):
         return qres_list
 
     @utool.indent_func(False)
-    def prep_qreq_db(ibs, qrid_list):
+    def prep_qreq_encounter(ibs, qrid_list):
         """ Puts IBEIS into intra-encounter mode """
         drid_list = qrid_list
         ibs._prep_qreq(qrid_list, drid_list)

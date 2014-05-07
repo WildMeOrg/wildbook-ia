@@ -161,11 +161,9 @@ class MainWindowBackend(QtCore.QObject):
         interact.ishow_qres(back.ibs, qres, rid, **kwargs)
         pass
 
-
     def set_view(back, index):
         """ Sets the current tab index """
         back.front.ui.tablesTabWidget.setCurrentIndex(index)
-
 
     #----------------------
     # State Management Functions (ewww... state)
@@ -548,12 +546,11 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def detect_grevys(back):
         print('[back] detect_grevys()')
-        ibs = backk.ibs
-        gid_list = ibs.get_valid_gids()
-        path_list = ibs.get_image_paths(gid_list)
+        #ibs = back.ibs
+        #gid_list = ibs.get_valid_gids()
+        #path_list = ibs.get_image_paths(gid_list)
         #back.ibs.detect(gid_list, 'grevys')
         back.populate_tables()
-
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
@@ -685,6 +682,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] dev_reload')
         from ibeis.dev.all_imports import reload_all
         reload_all()
+        """
         #from ibeis.dev import debug_imports
         #ibeis_modules = debug_imports.get_ibeis_modules()
         #for module in ibeis_modules:
@@ -692,6 +690,7 @@ class MainWindowBackend(QtCore.QObject):
                 #utool.inject_reload_function(module=module)
             #if hasattr(module, 'rrr'):
                 #module.rrr()
+        """
 
     @blocking_slot()
     def dev_mode(back):
