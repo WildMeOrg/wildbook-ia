@@ -541,10 +541,19 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] query(rid=%r)' % (rid,))
         if rid is None:
             rid = back.get_selected_rid()
-        qrid_list = [rid]
-        qrid2_qres = back.ibs.query_database(qrid_list)
+        qrid2_qres = back.ibs.query_database([rid])
         qres = qrid2_qres[rid]
         back.show_qres(qres)
+
+    @blocking_slot()
+    def detect_grevys(back):
+        print('[back] detect_grevys()')
+        ibs = backk.ibs
+        gid_list = ibs.get_valid_gids()
+        path_list = ibs.get_image_paths(gid_list)
+        #back.ibs.detect(gid_list, 'grevys')
+        back.populate_tables()
+
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):

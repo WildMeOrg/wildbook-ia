@@ -26,6 +26,7 @@ from ibeis.model import Config
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_feat
+from ibeis.model.preproc import preproc_detectimg
 # IBEIS
 from ibeis.control import DB_SCHEMA
 from ibeis.control import SQLDatabaseControl as sqldbc
@@ -51,6 +52,7 @@ class PATH_NAMES(object):
     images = 'images'
     qres   = 'qres'
     bigcache = 'bigcache'
+    detectimg = 'detectimg'
 
 
 #
@@ -148,6 +150,15 @@ class IBEISControl(object):
 
     def get_workdir(ibs):
         return ibs.workdir
+
+    def get_cachedir(ibs):
+        return ibs.cachedir
+
+    def get_detectimg_cachedir(ibs):
+        return join(ibs.cachedir, PATH_NAMES.detectimg)
+
+    def get_flann_cachedir(ibs):
+        return ibs.flanndir
 
     def get_num_images(ibs):
         gid_list = ibs.get_valid_gids()
@@ -712,6 +723,12 @@ class IBEISControl(object):
         utool.assert_all_not_None(uri_list, 'uri_list')
         gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
         return gpath_list
+
+    @getter
+    def get_image_detectpaths(ibs, gid_list):
+        """ Returns a list of image paths resized to a constant area for detection """
+        new_gfpath_list = preproc_detectimg.compute_and_write_detectimg_lazy(ibs, gid_list)
+        return new_gfpath_list
 
     @getter
     def get_image_gnames(ibs, gid_list):

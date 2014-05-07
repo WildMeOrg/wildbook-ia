@@ -209,6 +209,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
                         #text='Detect Duplicate Images', slot_fn=back.detect_dupimg)
 
         new_menu_action(front, 'menuActions', 'Query2', slot_fn=back.query)
+        new_menu_action(front, 'menuBatch', 'Detect Grevys', slot_fn=back.detect_grevys)
         # Progress bar is not hooked up yet
         front.ui.progressBar.setVisible(False)
         front.connect_signals()

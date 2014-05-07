@@ -329,6 +329,6 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         if utool.get_flag('--save-figures'):
             raise NotImplementedError('fixme')
             #from hsviz import allres_viz
-            #allres_viz.dump(ibs, 'analysis', quality=True, overwrite=False)
+            df2.dump(ibs.cachedir, 'analysis', quality=True, overwrite=False)
     if not QUIET:
         print('[harn] EXIT EXPERIMENT HARNESS')

@@ -85,6 +85,7 @@ from ibeis.model import hots
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
+from ibeis.model.preproc import preproc_detectimg
 # IBEIS MODEL HOTSPOTTER
 from ibeis.model.hots import matching_functions as mf
 from ibeis.model.hots import match_chips3 as mc3

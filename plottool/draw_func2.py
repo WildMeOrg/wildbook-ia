@@ -1263,3 +1263,21 @@ def remove_patches(ax=None):
 def imshow_null(**kwargs):
     imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
     draw_boxedX()
+
+
+def dump(dumpdir, subdir=None, quality=False, overwrite=False):
+    if quality is True:
+        df2.FIGSIZE = df2.golden_wh2(12)
+        df2.DPI = 120
+        df2.FONTS.figtitle = df2.FONTS.small
+    if quality is False:
+        df2.FIGSIZE = df2.golden_wh2(8)
+        df2.DPI = 90
+        df2.FONTS.figtitle = df2.FONTS.smaller
+    #print('[viz] Dumping Image')
+    fpath = ibs.dirs.result_dir
+    if subdir is not None:
+        fpath = join(fpath, subdir)
+        utool.ensurepath(fpath)
+    df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite)
+    df2.reset()
