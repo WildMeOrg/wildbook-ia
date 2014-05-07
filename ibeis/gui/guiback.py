@@ -546,10 +546,10 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def detect_grevys(back):
         print('[back] detect_grevys()')
-        #ibs = back.ibs
-        #gid_list = ibs.get_valid_gids()
-        #path_list = ibs.get_image_paths(gid_list)
-        #back.ibs.detect(gid_list, 'grevys')
+        ibs = back.ibs
+        gid_list = ibs.get_valid_gids()
+        path_list = ibs.get_image_detectpaths(gid_list)
+        ibs.detect_random_forest(path_list, 'zebra_grevys')
         back.populate_tables()
 
     @blocking_slot()

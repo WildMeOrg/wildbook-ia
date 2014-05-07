@@ -1379,12 +1379,12 @@ class IBEISControl(object):
         return probexist_list
 
     @utool.indent_func
-    def detect_rois_and_masks(ibs, gid_list, **kwargs):
+    def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
         # Should this function just return rois and no masks???
         from ibeis.model.detect import randomforest
 
-        detection_list = randomforest.detect_rois(ibs, gid_list, **kwargs)
+        detection_list = randomforest.detect_rois(ibs, gid_list, species, **kwargs)
         # detections should be a list of [(gid, roi, theta, mask), ...] tuples
         # Return for user inspection
         return detection_list

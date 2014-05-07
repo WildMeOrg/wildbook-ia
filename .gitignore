@@ -50,3 +50,4 @@ nosetests.xml
 # Test data
 vtool/tests/testdata*
 test_data*.shelf
+ibeis/model/detect/rf
