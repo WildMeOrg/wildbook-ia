@@ -22,9 +22,17 @@ def define_IBEIS_schema(ibs):
         ('image_exif_gps_lat',           'REAL'),
         ('image_exif_gps_lon',           'REAL'),
         ('image_confidence',             'REAL',),  # Move to algocfg table?
+        ('image_notes',                  'TEXT',),
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
     ), ['CONSTRAINT superkey UNIQUE (image_uuid)']
+    )
+    # Used to store individual chip identieis (Fred, Sue, ...)
+    ibs.db.schema('names', (
+        ('name_uid',                     '%s PRIMARY KEY' % NAME_UID_TYPE),
+        ('name_text',                    'TEXT NOT NULL'),
+        ('name_notes',                   'TEXT',),
+    ), ['CONSTRAINT superkey UNIQUE (name_text)']
     )
     # Used to store the detected ROIs
     ibs.db.schema('rois', (
@@ -67,12 +75,6 @@ def define_IBEIS_schema(ibs):
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
     ), ['CONSTRAINT superkey UNIQUE (chip_uid, config_uid)']
-    )
-    # Used to store individual chip identieis (Fred, Sue, ...)
-    ibs.db.schema('names', (
-        ('name_uid',                     '%s PRIMARY KEY' % NAME_UID_TYPE),
-        ('name_text',                    'TEXT NOT NULL'),
-    ), ['CONSTRAINT superkey UNIQUE (name_text)']
     )
     # Detection and identification algorithm configurations, populated
     # with caching information
