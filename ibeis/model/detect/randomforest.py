@@ -8,6 +8,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[detect_randomforest]', DEBUG=False)
 
+from . import grabmodels
 from pyrf import Random_Forest_Detector
 
 
@@ -16,6 +17,9 @@ __LOCATION__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 @utool.indent_func
 def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
+	# Ensure all models downloaded and accounted for
+	grabmodels.ensure_models()
+
 	# Create detector
 	detector = Random_Forest_Detector(rebuild=False)
 
