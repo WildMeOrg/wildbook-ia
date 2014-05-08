@@ -58,12 +58,6 @@ def _tee_logging(front):
 #=================
 
 
-def init_ui(front):
-    ui = Ui_mainSkel()
-    ui.setupUi(front)
-    return ui
-
-
 def connect_file_signals(front):
     ui = front.ui
     back = front.back
@@ -79,7 +73,6 @@ def connect_action_signals(front):
     ui = front.ui
     back = front.back
     ui.actionAdd_ROI.triggered.connect(back.add_roi)
-    ui.actionNew_ROI_Property.triggered.connect(back.new_prop)
     ui.actionQuery.triggered.connect(back.query)
     ui.actionReselect_Ori.triggered.connect(back.reselect_ori)
     ui.actionReselect_ROI.triggered.connect(back.reselect_roi)
@@ -101,14 +94,11 @@ def connect_help_signals(front):
     msg_event = lambda title, msg: lambda: guitool.msgbox(title, msg)
     ui.actionView_Docs.triggered.connect(back.view_docs)
     ui.actionView_DBDir.triggered.connect(back.view_database_dir)
-    ui.actionView_Computed_Dir.triggered.connect(back.view_computed_dir)
-    ui.actionView_Global_Dir.triggered.connect(back.view_global_dir)
 
     ui.actionAbout.triggered.connect(msg_event('About', 'hotspotter'))
     ui.actionDelete_computed_directory.triggered.connect(back.delete_cache)
     ui.actionDelete_global_preferences.triggered.connect(back.delete_global_prefs)
     ui.actionDelete_Precomputed_Results.triggered.connect(back.delete_queryresults_dir)
-    ui.actionDev_Mode_IPython.triggered.connect(back.dev_mode)
     ui.actionDeveloper_Reload.triggered.connect(back.dev_reload)
 
 
@@ -131,7 +121,7 @@ def set_tabwidget_text(front, tblname, text):
         item_table.IMAGE_TABLE: front.ui.image_view,
         item_table.ROI_TABLE: front.ui.roi_view,
         item_table.NAME_TABLE: front.ui.name_view,
-        item_table.RES_TABLE: front.ui.result_view,
+        item_table.RES_TABLE: front.ui.qres_view,
     }
     ui = front.ui
     tab_widget = tablename2_tabwidget[tblname]
@@ -150,7 +140,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
     selectGidSignal  = signal_(QT_UUID_TYPE)
     selectRidSignal  = signal_(QT_UUID_TYPE)
     selectNidSignal  = signal_(QT_UUID_TYPE)
-    selectResSignal  = signal_(QT_UUID_TYPE)
+    selectQResSignal = signal_(QT_UUID_TYPE)
     setRoiPropSignal = signal_(QT_UUID_TYPE, str, str)
     aliasNidSignal   = signal_(QT_UUID_TYPE, str, str)
     setGidPropSignal = signal_(QT_UUID_TYPE, str, bool)
@@ -162,20 +152,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.prev_tbl_item = None
         front.logging_handler = None
         front.back = back
-        front.ui = init_ui(front)
+        front.ui = Ui_mainSkel()
+        front.ui.setupUi(front)
         # Programatially Defined Actions
-        front.retranslatable_fns = []
-        front.connect_fns = []
-        #new_menu_action(front, 'menuHelp', 'actionDetect_Duplicate_Images',
+        #newMenuAction(front, 'menuHelp', 'actionDetect_Duplicate_Images',
         #text='Detect Duplicate Images', slot_fn=back.detect_dupimg)
-        fh.new_tab_tables(front)
-
-        fh.new_output_edit(front)
-
-        fh.new_progress_bar(front)
-
-        fh.new_menu_action(front, 'menuActions', 'Query2', slot_fn=back.query)
-        fh.new_menu_action(front, 'menuBatch', 'Detect Grevys', slot_fn=back.detect_grevys)
+        fh.newMenuAction(front, 'menuActions', 'Query2', slot_fn=back.query)
+        fh.newMenuAction(front, 'menuBatch', 'Detect Grevys', slot_fn=back.detect_grevys)
         # Progress bar is not hooked up yet
         front.ui.progressBar.setVisible(False)
         front.connect_signals()
@@ -196,7 +179,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.selectGidSignal.connect(back.select_gid)
         front.selectRidSignal.connect(back.select_rid)
         front.selectNidSignal.connect(back.select_nid)
-        front.selectResSignal.connect(back.select_res_rid)
+        front.selectQResSignal.connect(back.select_qres_rid)
         front.setRoiPropSignal.connect(back.set_roi_prop)
         front.aliasNidSignal.connect(back.alias_name)
         front.setGidPropSignal.connect(back.set_image_prop)
@@ -209,7 +192,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         connect_batch_signals(front)
         #connect_experimental_signals(front)
         connect_help_signals(front)
-        for func in front.connect_fns:
+        for func in front.ui.connect_fns:
             func()
         #
         # Gui Components
@@ -218,14 +201,14 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui.rids_TBL.itemChanged.connect(front.roi_tbl_changed)
         ui.gids_TBL.itemClicked.connect(front.img_tbl_clicked)
         ui.gids_TBL.itemChanged.connect(front.img_tbl_changed)
-        ui.res_TBL.itemClicked.connect(front.res_tbl_clicked)
-        ui.res_TBL.itemChanged.connect(front.res_tbl_changed)
+        ui.qres_TBL.itemClicked.connect(front.qres_tbl_clicked)
+        ui.qres_TBL.itemChanged.connect(front.qres_tbl_changed)
         ui.nids_TBL.itemClicked.connect(front.name_tbl_clicked)
         ui.nids_TBL.itemChanged.connect(front.name_tbl_changed)
         # Tab Widget
         ui.tablesTabWidget.currentChanged.connect(front.change_view)
         ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
-        ui.res_TBL.sortByColumn(0, Qt.AscendingOrder)
+        ui.qres_TBL.sortByColumn(0, Qt.AscendingOrder)
         ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
 
     def print(front, msg):
@@ -264,7 +247,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
             item_table.IMAGE_TABLE: front.ui.gids_TBL,
             item_table.ROI_TABLE:   front.ui.rids_TBL,
             item_table.NAME_TABLE:  front.ui.nids_TBL,
-            item_table.RES_TABLE:   front.ui.res_TBL,
+            item_table.RES_TABLE:   front.ui.qres_TBL,
         }[tblname]
         item_table.populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
         # Set the tab text to show the number of items listed
@@ -310,14 +293,14 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_imgtbl_header(front, col):
         return front.get_tbl_header(front.ui.gids_TBL, col)
 
-    def get_restbl_header(front, col):
-        return front.get_tbl_header(front.ui.res_TBL, col)
+    def get_qrestbl_header(front, col):
+        return front.get_tbl_header(front.ui.qres_TBL, col)
 
     def get_nametbl_header(front, col):
         return front.get_tbl_header(front.ui.nids_TBL, col)
 
-    def get_restbl_rid(front, row):
-        return QT_UUID_TYPE(front.get_header_val(front.ui.res_TBL, 'rid', row))
+    def get_qrestbl_rid(front, row):
+        return QT_UUID_TYPE(front.get_header_val(front.ui.qres_TBL, 'rid', row))
 
     def get_roitbl_rid(front, row):
         return QT_UUID_TYPE(front.get_header_val(front.ui.rids_TBL, 'rid', row))
@@ -354,12 +337,12 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
-    def res_tbl_changed(front, item):
-        front.print('res_tbl_changed()')
+    def qres_tbl_changed(front, item):
+        front.print('qres_tbl_changed()')
         row, col = (item.row(), item.column())
-        sel_rid  = front.get_restbl_rid(row)  # The changed row's roi id
+        sel_rid  = front.get_qrestbl_rid(row)  # The changed row's roi id
         new_val  = item.text()
-        header_lbl = front.get_restbl_header(col)  # Get changed column
+        header_lbl = front.get_qrestbl_header(col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)
@@ -385,9 +368,9 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.selectRidSignal.emit(sel_rid)
 
     @clicked
-    def res_tbl_clicked(front, row, col):
-        sel_rid = front.get_restbl_rid(row)
-        front.selectResSignal.emit(sel_rid)
+    def qres_tbl_clicked(front, row, col):
+        sel_rid = front.get_qrestbl_rid(row)
+        front.selectQResSignal.emit(sel_rid)
 
     @clicked
     def name_tbl_clicked(front, row, col):

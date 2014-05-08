@@ -23,8 +23,9 @@ __TIME__ = '--time' in sys.argv
 
 def get_default_numprocs():
     if WIN32:
+        num_procs = 2  # default windows to 2 processes for now
+    else:
         num_procs = max(multiprocessing.cpu_count() - 2, 1)
-    #num_procs = 1
     return num_procs
 
 
@@ -54,7 +55,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     __POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker,
                                     maxtasksperchild=maxtasksperchild)
     #for key, val in __POOL__.__dict__.iteritems():
-        #print('%s = %r' % (key, val))
+    #    print('%s = %r' % (key, val))
 
 
 def close_pool():

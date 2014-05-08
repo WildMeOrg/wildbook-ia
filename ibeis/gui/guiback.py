@@ -231,37 +231,37 @@ class MainWindowBackend(QtCore.QObject):
 
     @utool.indent_func
     def populate_result_table(back, **kwargs):
-        #res = back.current_res
-        res = None
+        #qres = back.current_res
+        qres = None
         return
-        if res is None:
+        if qres is None:
             # Clear the table if there are no results
             print('[back] no results available')
             return
         #item_table.emit_populate_table(back, item_table.RES_TABLE, index_list=[])
-        top_cxs = res.topN_cxs(back.ibs, N='all')
-        qrid = res.qrid
+        top_cxs = qres.topN_cxs(back.ibs, N='all')
+        qrid = qres.qrid
         # The ! mark is used for ascii sorting. TODO: can we work around this?
         prefix_cols = [{'rank': '!Query',
                         'score': '---',
                         'name': back.ibs.get_roi_name(qrid),
                         'rid': qrid, }]
         extra_cols = {
-            'score':  lambda cxs:  [res.cx2_score[rid] for rid in iter(cxs)],
+            'score':  lambda cxs:  [qres.cx2_score[rid] for rid in iter(cxs)],
         }
         back.emit_populate_table(item_table.RES_TABLE, index_list=top_cxs,
                                  prefix_cols=prefix_cols,
                                  extra_cols=extra_cols,
                                  **kwargs)
 
-    def populate_tables(back, image=True, roi=True, name=True, res=True):
+    def populate_tables(back, image=True, roi=True, name=True, qres=True):
         if image:
             back.populate_image_table()
         if roi:
             back.populate_roi_table()
         if name:
             back.populate_name_table()
-        if res:
+        if qres:
             back.populate_result_table()
 
     #--------------------------------------------------------------------------
@@ -327,7 +327,7 @@ class MainWindowBackend(QtCore.QObject):
             back.show_name(nid, **kwargs)
 
     @slot_(QT_ROI_UID_TYPE)
-    def select_res_rid(back, rid, **kwargs):
+    def select_qres_rid(back, rid, **kwargs):
         # Table Click -> Result Table
         print('[back] select result rid=%r' % rid)
         rid = qt_roi_uid_cast(rid)
