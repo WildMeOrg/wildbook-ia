@@ -12,6 +12,7 @@ import signal
 from .util_progress import progress_func
 from .util_time import tic, toc
 from . import util_arg
+from .util_cplat import WIN32
 
 
 QUIET   = util_arg.QUIET
@@ -21,7 +22,8 @@ __TIME__ = '--time' in sys.argv
 
 
 def get_default_numprocs():
-    num_procs = max(multiprocessing.cpu_count() - 2, 1)
+    if WIN32:
+        num_procs = max(multiprocessing.cpu_count() - 2, 1)
     #num_procs = 1
     return num_procs
 
