@@ -325,11 +325,14 @@ class IBEISControl(object):
         return tried_gid_list
 
     @adder
-    def add_rois(ibs, gid_list, bbox_list, theta_list, viewpoint_list=None,
+    def add_rois(ibs, gid_list, bbox_list, theta_list=None, viewpoint_list=None,
                  nid_list=None, name_list=None, notes_list=None):
         """ Adds oriented ROI bounding boxes to images """
         assert name_list is None or nid_list is None,\
             'cannot specify both names and nids'
+
+        if theta_list is None:
+            theta_list = [0.0 for _ in xrange(len(gid_list))]
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
         if nid_list is None:
@@ -1379,15 +1382,12 @@ class IBEISControl(object):
         return probexist_list
 
     @utool.indent_func
-    def detect_random_forest(ibs, gid_list, species, **kwargs):
+    def detect_random_forest(ibs, gid_list, gpath_list, species, **kwargs):
         """ Runs animal detection in each image """
         # Should this function just return rois and no masks???
         from ibeis.model.detect import randomforest
-
-        detection_list = randomforest.detect_rois(ibs, gid_list, species, **kwargs)
-        # detections should be a list of [(gid, roi, theta, mask), ...] tuples
-        # Return for user inspection
-        return detection_list
+        gids, rois = randomforest.detect_rois(ibs, gid_list, gpath_list, species, **kwargs)
+        ibs.add_rois(gids, rois)
 
     @utool.indent_func
     def get_recognition_database_rids(ibs):
