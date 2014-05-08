@@ -11,12 +11,12 @@ SELDIR_CACHEID = 'guitool_selected_directory'
 
 def _guitool_cache_write(key, val):
     """ Writes to global IBEIS cache """
-    utool.global_cache_write(key, val, appname='ibeis')  # HACK, user should specify appname
+    util_cache.global_cache_write(key, val, appname='ibeis')  # HACK, user should specify appname
+
 
 def _guitool_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
-    return utool.global_cache_read(key, appname='ibeis', **kwargs)  # HACK, user should specify appname
-
+    return util_cache.global_cache_read(key, appname='ibeis', **kwargs)  # HACK, user should specify appname
 
 
 def user_option(parent=None, msg='msg', title='user_option',
