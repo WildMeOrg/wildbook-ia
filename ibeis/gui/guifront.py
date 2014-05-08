@@ -10,7 +10,7 @@ import utool
 import guitool
 from guitool import slot_, signal_
 from ibeis.gui import gui_item_tables as item_table
-from ibeis.gui.frontend_helpers import new_menu_action
+import ibeis.gui.frontend_helpers as fh
 from ibeis.gui.MainSkel import Ui_mainSkel
 
 QUIET   = utool.get_flag('--quiet')
@@ -168,9 +168,14 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.connect_fns = []
         #new_menu_action(front, 'menuHelp', 'actionDetect_Duplicate_Images',
         #text='Detect Duplicate Images', slot_fn=back.detect_dupimg)
+        fh.new_tab_tables(front)
 
-        new_menu_action(front, 'menuActions', 'Query2', slot_fn=back.query)
-        new_menu_action(front, 'menuBatch', 'Detect Grevys', slot_fn=back.detect_grevys)
+        fh.new_output_edit(front)
+
+        fh.new_progress_bar(front)
+
+        fh.new_menu_action(front, 'menuActions', 'Query2', slot_fn=back.query)
+        fh.new_menu_action(front, 'menuBatch', 'Detect Grevys', slot_fn=back.detect_grevys)
         # Progress bar is not hooked up yet
         front.ui.progressBar.setVisible(False)
         front.connect_signals()
