@@ -21,6 +21,14 @@ def gen_feat2(tup):
     return cid, len(kpts), kpts, desc, feat_config_uid
 
 
+def gen_feat3(cid_list, cfpath_list, dict_args, feat_config_uid):
+    print('Detecting %r features in parallel: ' % len(cid_list))
+    kpts_list, desc_list = pyhesaff.detect_kpts_list(cfpath_list, **dict_args)
+    for cid, kpts, desc in izip(cid_list, kpts_list, desc_list):
+        yield cid, len(kpts), kpts, desc, feat_config_uid
+
+
+"""
 #def add_feat_params_gen_OLD(ibs, cid_list, nFeat):
     #num_feats = len(cid_list)
     #mark_prog, end_prog = utool.progress_func(num_feats, lbl='hesaff: ',
@@ -34,6 +42,7 @@ def gen_feat2(tup):
     #end_prog()
     #arg_list = list(izip(cid_list, cfpath_list))
     #args_dict = {'feat_config_uid': feat_config_uid, #'dict_args': dict_args}
+"""
 
 
 def add_feat_params_gen(ibs, cid_list, nFeat=None):
@@ -45,8 +54,12 @@ def add_feat_params_gen(ibs, cid_list, nFeat=None):
     dict_args = feat_cfg.get_dict_args()
     feat_config_uid = ibs.get_feat_config_uid()
     cfpath_list = ibs.get_chip_paths(cid_list)
-    dictargs_iter = (dict_args for _ in xrange(nFeat))
-    featcfg_iter = (feat_config_uid for _ in xrange(nFeat))
-    arg_iter = izip(cid_list, cfpath_list, dictargs_iter, featcfg_iter)
-    arg_list = list(arg_iter)
-    return utool.util_parallel.generate(gen_feat2, arg_list)
+    # Use Avi's parallelization
+    return gen_feat3(cid_list, cfpath_list, dict_args, feat_config_uid)
+
+    # Multiprocessing parallelization
+    #featcfg_iter = (feat_config_uid for _ in xrange(nFeat))
+    #dictargs_iter = (dict_args for _ in xrange(nFeat))
+    #arg_iter = izip(cid_list, cfpath_list, dictargs_iter, featcfg_iter)
+    #arg_list = list(arg_iter)
+    #return utool.util_parallel.generate(gen_feat2, arg_list)

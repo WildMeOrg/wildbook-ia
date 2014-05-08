@@ -178,6 +178,7 @@ EOF
     RUN_TEST $HESAFF_DIR/tests/test_patch_orientation.py
     RUN_TEST $HESAFF_DIR/tests/test_pyhesaff.py
     RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple.py
+    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_parallel_simple.py
 fi
 
 #---------------------------------------------
