@@ -53,7 +53,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         raise
     # Remember decision if caching is on
     if use_cache and dontPrompt.isChecked():
-       _guitool_cache_write(cache_id, reply)
+        _guitool_cache_write(cache_id, reply)
     # Close the message box
     del msgBox
     return reply

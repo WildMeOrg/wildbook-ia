@@ -7,7 +7,6 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 # IBEIS
 import utool
-import guitool
 from guitool import slot_, signal_
 from ibeis.gui import gui_item_tables as item_table
 import ibeis.gui.frontend_helpers as fh
@@ -58,65 +57,7 @@ def _tee_logging(front):
 #=================
 
 
-def connect_file_signals(front):
-    ui = front.ui
-    back = front.back
-    ui.actionNew_Database.triggered.connect(back.new_database)
-    ui.actionOpen_Database.triggered.connect(back.open_database)
-    ui.actionSave_Database.triggered.connect(back.save_database)
-    ui.actionImport_Img_file.triggered.connect(back.import_images_from_file)
-    ui.actionImport_Img_dir.triggered.connect(back.import_images_from_dir)
-    ui.actionQuit.triggered.connect(back.quit)
-
-
-def connect_action_signals(front):
-    ui = front.ui
-    back = front.back
-    ui.actionAdd_ROI.triggered.connect(back.add_roi)
-    ui.actionQuery.triggered.connect(back.query)
-    ui.actionReselect_Ori.triggered.connect(back.reselect_ori)
-    ui.actionReselect_ROI.triggered.connect(back.reselect_roi)
-    ui.actionDelete_ROI.triggered.connect(back.delete_roi)
-    ui.actionDelete_Image.triggered.connect(back.delete_image)
-    ui.actionNext.triggered.connect(back.select_next)
-
-
-def connect_option_signals(front):
-    ui = front.ui
-    back = front.back
-    ui.actionLayout_Figures.triggered.connect(back.layout_figures)
-    ui.actionPreferences.triggered.connect(back.edit_preferences)
-
-
-def connect_help_signals(front):
-    ui = front.ui
-    back = front.back
-    msg_event = lambda title, msg: lambda: guitool.msgbox(title, msg)
-    ui.actionView_Docs.triggered.connect(back.view_docs)
-    ui.actionView_DBDir.triggered.connect(back.view_database_dir)
-
-    ui.actionAbout.triggered.connect(msg_event('About', 'hotspotter'))
-    ui.actionDelete_computed_directory.triggered.connect(back.delete_cache)
-    ui.actionDelete_global_preferences.triggered.connect(back.delete_global_prefs)
-    ui.actionDelete_Precomputed_Results.triggered.connect(back.delete_queryresults_dir)
-    ui.actionDeveloper_Reload.triggered.connect(back.dev_reload)
-
-
-def connect_batch_signals(front):
-    ui = front.ui
-    back = front.back
-    ui.actionPrecomputeROIFeatures.triggered.connect(back.precompute_feats)
-    ui.actionPrecompute_Queries.triggered.connect(back.precompute_queries)
-
-
-def connect_experimental_signals(front):
-    ui = front.ui
-    back = front.back
-    ui.actionMatching_Experiment.triggered.connect(back.actionRankErrorExpt)
-    ui.actionName_Consistency_Experiment.triggered.connect(back.autoassign)
-
-
-def set_tabwidget_text(front, tblname, text):
+def update_tabwidget_text(front, tblname, text):
     tablename2_tabwidget = {
         item_table.IMAGE_TABLE: front.ui.image_view,
         item_table.ROI_TABLE: front.ui.roi_view,
@@ -126,7 +67,7 @@ def set_tabwidget_text(front, tblname, text):
     ui = front.ui
     tab_widget = tablename2_tabwidget[tblname]
     tab_index = ui.tablesTabWidget.indexOf(tab_widget)
-    tab_text = QtGui.QApplication.translate("mainSkel", text, None,
+    tab_text = QtGui.QApplication.translate(front.objectName(), text, None,
                                             QtGui.QApplication.UnicodeUTF8)
     ui.tablesTabWidget.setTabText(tab_index, tab_text)
 
@@ -185,13 +126,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.setGidPropSignal.connect(back.set_image_prop)
         front.querySignal.connect(back.query)
 
-        # Menubar signals
-        connect_file_signals(front)
-        connect_action_signals(front)
-        connect_option_signals(front)
-        connect_batch_signals(front)
-        #connect_experimental_signals(front)
-        connect_help_signals(front)
+        # Connect all signals from GUI
         for func in front.ui.connect_fns:
             func()
         #
@@ -253,7 +188,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         # Set the tab text to show the number of items listed
         fancy_tablename = item_table.fancy_tablenames[tblname]
         text = fancy_tablename + ' : %d' % len(row_list)
-        set_tabwidget_text(front, tblname, text)
+        update_tabwidget_text(front, tblname, text)
 
     def isItemEditable(self, item):
         return int(Qt.ItemIsEditable & item.flags()) == int(Qt.ItemIsEditable)

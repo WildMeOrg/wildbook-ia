@@ -25,7 +25,7 @@ from ibeis.dev import results_all
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
-if not 'back' in vars():
+if 'back' not in vars():
     back = None
 
 
@@ -237,9 +237,9 @@ def rundev(main_locals):
         devfunc_locals = devfunc(ibs, qrid_list)
         exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
-    if not '--nopresent' in sys.argv:
+    if '--nopresent' not in sys.argv:
         df2.present()
-    ipy = (not '--gui' in sys.argv) or ('--cmd' in sys.argv)
+    ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
     return locals(), main_execstr
 
@@ -268,6 +268,10 @@ if __name__ == '__main__':
     if SNIPPITS:
         # Get snippet variables
         ibs = main_locals['ibs']
+        if 'back' in main_locals:
+            back = main_locals['back']
+            front = back.front
+            ui = front.ui
         #ibs.dump_tables()
         valid_rids = ibs.get_valid_rids()
         valid_gids = ibs.get_valid_gids()

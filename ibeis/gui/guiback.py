@@ -583,6 +583,13 @@ class MainWindowBackend(QtCore.QObject):
         raise NotImplementedError()
         pass
 
+    @blocking_slot()
+    def select_prev(back):
+        """ Action -> Prev"""
+        print('[back] select_prev')
+        raise NotImplementedError()
+        pass
+
     #--------------------------------------------------------------------------
     # Batch menu slots
     #--------------------------------------------------------------------------

@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import functools
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import QSizePolicy
+import guitool
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -91,95 +92,136 @@ def newCentralLayout(front):
     return centralwidget, verticalLayout
 
 
-def newSplitter(centralwidget, verticalLayout):
+def newVerticalSplitter(centralwidget, verticalLayout, name='splitter'):
     splitter = QtGui.QSplitter(centralwidget)
     splitter.setOrientation(QtCore.Qt.Vertical)
-    splitter.setObjectName(_fromUtf8('splitter'))
+    splitter.setObjectName(_fromUtf8(name))
     verticalLayout.addWidget(splitter)
     return splitter
 
 
-def newMenubar(front):
+def newMenubar(front, name):
+    """ Defines the menubar on top of the main widget """
     menubar = QtGui.QMenuBar(front)
     menubar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
     menubar.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
     menubar.setDefaultUp(False)
     menubar.setNativeMenuBar(False)
-    menubar.setObjectName(_fromUtf8("menubar"))
+    menubar.setObjectName(_fromUtf8(name))
     front.setMenuBar(menubar)
     return menubar
 
 
 def newMenu(front, menubar, name, text):
+    """ Defines each menu category in the menubar """
     menu = QtGui.QMenu(menubar)
     menu.setObjectName(_fromUtf8(name))
-    newAction = functools.partial(newMenuAction, front, name)
     @func_name_aug(name)
     def retranslate_fn():
         menu.setTitle(QTRANSLATE(front.objectName(), text, None, QUTF8))
     front.ui.retranslatable_fns.append(retranslate_fn)
-    return menu, newAction
+    @func_name_aug(name)
+    def postsetup_fn():
+        menubar.addAction(menu.menuAction())
+    front.ui.postsetup_fns.append(postsetup_fn)
+    # Define a custom newAction function for the menu
+    # The QT function is called addAction
+    newAction = functools.partial(newMenuAction, front, name)
+    setattr(menu, 'newAction', newAction)
+    return menu
 
 
-def newTabWidget(front, parent, name, **kwargs):
+def newTable(front, parent, tblname):
+    table = QtGui.QTableWidget(parent)
+    table.setDragEnabled(False)
+    table.setObjectName(_fromUtf8(tblname))
+    table.setColumnCount(0)
+    table.setRowCount(0)
+    @func_name_aug(tblname)
+    def retranslate_fn():
+        table.setSortingEnabled(True)
+    front.ui.retranslatable_fns.append(retranslate_fn)
+    return table
+
+
+# TABS TABS TABS
+
+def newTabWidget(front, parent, name, vstretch=10):
     tabWidget = QtGui.QTabWidget(parent)
-    sizePolicy = _new_size_policy(tabWidget, vstretch=10)
+    sizePolicy = _new_size_policy(tabWidget, vstretch=vstretch)
     tabWidget.setSizePolicy(sizePolicy)
     tabWidget.setMinimumSize(QtCore.QSize(0, 0))
     tabWidget.setObjectName(_fromUtf8(name))
+    # Custom new tab function
     # Partial function to create a new tab in this widget
-    newTab = functools.partial(newTabView, front, tabWidget)
-    return tabWidget, newTab
+    newTabbedTable_ = functools.partial(newTabbedTable, front, tabWidget)
+    setattr(tabWidget, 'newTabbedTable', newTabbedTable_)
+    setattr(front.ui, name, tabWidget)
+    return tabWidget
 
 
-def newTabView(front, tabWidget, viewname, tblname, text=''):
-    """ Builds view, uidTBL, gridLayout, verticalLayout """
-    # IMG / ROI/ NAME / RES VIEW
+def newTabbedView(front, tabWidget, viewname, text):
+    """ ANY TAB IS A VIEW WITH AN OBJECT IN IT """
     view = QtGui.QWidget()
     view.setObjectName(_fromUtf8(viewname))
-    # NEXT LAYOUT
     gridLayout     = _new_gridLayout(view)
     verticalLayout = _new_verticalLayout()
     # Keep references to layout
     setattr(front.ui, str(verticalLayout.objectName()), verticalLayout)
     setattr(front.ui, str(gridLayout.objectName()), gridLayout)
-    # G/R/N/Q-ID TABLE
-    uid_TBL = QtGui.QTableWidget(view)
-    uid_TBL.setDragEnabled(False)
-    uid_TBL.setObjectName(_fromUtf8(tblname))
-    uid_TBL.setColumnCount(0)
-    uid_TBL.setRowCount(0)
-    verticalLayout.addWidget(uid_TBL)
     gridLayout.addLayout(verticalLayout, 0, 0, 1, 1)
     tabWidget.addTab(view, _fromUtf8(''))
-
-    @func_name_aug(tblname)
     def retranslate_fn():
-        uid_TBL.setSortingEnabled(True)
         qtext = QTRANSLATE(front.objectName(), text, None, QUTF8)
         tabWidget.setTabText(tabWidget.indexOf(view), qtext)
-
     front.ui.retranslatable_fns.append(retranslate_fn)
-    return view, uid_TBL
+    setattr(front.ui, viewname, view)
+    return view, verticalLayout
 
 
-def newOutputEdit(parent):
+def newTabbedTable(front, tabWidget, viewname, tblname, text=''):
+    """ Builds view, uidTBL, gridLayout, verticalLayout """
+    # IMG / ROI/ NAME / RES VIEW
+    view, verticalLayout = newTabbedView(front, tabWidget, viewname, text)
+    # G/R/N/Q-ID TABLE
+    table = newTable(front, view, tblname)
+    setattr(front.ui, tblname, table)
+    verticalLayout.addWidget(table)
+    return view, table
+
+
+def newTabbedTabWidget(front, tabWidget, viewname, name, text='', **kwargs):
+    """ Builds view, uidTBL, gridLayout, verticalLayout """
+    # IMG / ROI/ NAME / RES VIEW
+    view, verticalLayout = newTabbedView(front, tabWidget, viewname, text)
+    # G/R/N/Q-ID TABLE
+    tabWidget2 = newTabWidget(front, view, name, **kwargs)
+    verticalLayout.addWidget(tabWidget2)
+    return tabWidget2
+
+
+def newOutputEdit(parent, name='outputEdit'):
     outputEdit = QtGui.QTextEdit(parent)
     sizePolicy = _new_size_policy(outputEdit, vstretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
-    outputEdit.setObjectName(_fromUtf8("outputEdit"))
+    outputEdit.setObjectName(_fromUtf8(name))
     return outputEdit
 
 
-def newProgressBar(parent, visible=True):
+def newProgressBar(parent, name='progressBar', visible=True):
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = _new_size_policy(progressBar, vpolicy=QSizePolicy.Fixed, vstretch=1)
     progressBar.setSizePolicy(sizePolicy)
     progressBar.setProperty('value', 24)
-    progressBar.setObjectName(_fromUtf8('progressBar'))
+    progressBar.setObjectName(_fromUtf8(name))
     progressBar.setVisible(visible)
     return progressBar
+
+
+def msg_event(title, msg):
+    """ Returns a message event slot """
+    return lambda: guitool.msgbox(title, msg)
 
 
 def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
