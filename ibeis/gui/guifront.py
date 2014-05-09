@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 # Python
 import functools
 # Qt
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 # IBEIS
 import utool
@@ -84,7 +84,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
     selectQResSignal = signal_(QT_UUID_TYPE)
     setRoiPropSignal = signal_(QT_UUID_TYPE, str, str)
     aliasNidSignal   = signal_(QT_UUID_TYPE, str, str)
-    setGidPropSignal = signal_(QT_UUID_TYPE, str, bool)
+    setGidPropSignal = signal_(QT_UUID_TYPE, str, QtCore.QVariant)
     querySignal      = signal_()
 
     def __init__(front, back):
@@ -122,7 +122,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.selectNidSignal.connect(back.select_nid)
         front.selectQResSignal.connect(back.select_qres_rid)
         front.setRoiPropSignal.connect(back.set_roi_prop)
-        front.aliasNidSignal.connect(back.alias_name)
+        front.aliasNidSignal.connect(back.set_name_prop)
         front.setGidPropSignal.connect(back.set_image_prop)
         front.querySignal.connect(back.query)
 
@@ -259,7 +259,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
         row, col = (item.row(), item.column())
         sel_gid = front.get_imgtbl_gid(row)
         header_lbl = front.get_imgtbl_header(col)
-        new_val = item.checkState() == Qt.Checked
+        if header_lbl == 'aif':
+            new_val = item.checkState() == Qt.Checked
+        else:
+            new_val = item.text()
         front.setGidPropSignal.emit(sel_gid, header_lbl, new_val)
 
     @slot_(QtGui.QTableWidgetItem)

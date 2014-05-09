@@ -247,3 +247,16 @@ def localize_images(ibs, gid_list=None):
     ibs.set_image_uris(gid_list, local_gname_list)
 
     assert all(map(exists, local_gpath_list)), 'not all images copied'
+
+
+def delete_invalid_nids(ibs):
+    """ Removes names that have no Rois from the database """
+    invalid_nids = ibs.get_invalid_nids()
+    ibs.delete_names(invalid_nids)
+
+
+def assert_valid_names(name_list):
+    valid_namecheck = [not (name.startswith('____') and len(name) > 4)
+                        for name in name_list]
+    assert all(valid_namecheck),\
+        'User defined names cannot start with four underscores'

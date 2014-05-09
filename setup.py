@@ -56,8 +56,8 @@ CYTHON_FILES = [
     'ibeis/model/hots/matching_functions.py'
 ]
 
+
 def build_cython():
-    from utool.util_dev import compile_cython
     for fpath in CYTHON_FILES:
         utool.util_dev.compile_cython(fpath)
 

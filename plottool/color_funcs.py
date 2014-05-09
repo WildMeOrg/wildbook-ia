@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import colorsys
-import numpy as np
+import numpy as np  # NOQA
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
 

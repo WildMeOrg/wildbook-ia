@@ -27,7 +27,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     msg = 'must start in different dir new_dbdir=%r != ibs_dbdir=%r,' % (new_dbdir, ibs_dbdir)
     assert new_dbdir != ibs_dbdir, msg
     print('passed: ' + msg)
-    utool.delete(new_dbdir)
+    utool.delete(new_dbdir, ignore_errors=False)
     #
     #
     # CREATE NEW
@@ -70,7 +70,22 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     back.set_roi_prop(rid_list[0], 'name', 'testname1')
     back.set_roi_prop(rid_list[2], 'name', '____')
 
-    assert ibs.get_roi_names(rid_list) == ['testname1', 'testname2', '____3', '____4', '____5']
+    name_list = ibs.get_roi_names(rid_list)
+    target_name_list = ['testname1', 'testname2', '____3', '____4', '____5']
+    try:
+        assert name_list == target_name_list
+    except AssertionError as ex:
+        utool.printex(ex, key_list=['name_list', 'target_name_list'])
+        raise
+
+    # Test name props
+    nid_list = ibs.get_valid_nids()
+    back.set_name_prop(nid_list[0], 'notes', 'notes of a name')
+    back.set_name_prop(nid_list[0], 'name', 'aliased name')
+
+    # Test image props
+    back.set_image_prop(gid_list[0], 'notes', 'notes of an image')
+    back.set_image_prop(gid_list[1], 'aif', True)
 
     back.set_view(1)
 

@@ -11,7 +11,7 @@ sys.path.append(os.getcwd())  # Windows fix
 from os.path import join
 import ibeis
 from ibeis.dev import ibsfuncs
-from ibeis.dev import params
+from ibeis.dev import sysres
 
 
 def injest_named_folder(ibs, img_dir):

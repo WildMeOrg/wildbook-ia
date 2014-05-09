@@ -112,7 +112,7 @@ def printNOTQUIET(msg):
 def printWARN(msg):
     try:
         import colorama
-        from colorama import Fore, Back, Style
+        from colorama import Fore, Style
         colorama.init()
         print(Fore.RED + msg + Style.RESET_ALL)
         colorama.deinit()

@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 import ibeis
 ibeis._preload()
-from ibeis.dev import params
+from ibeis.dev import sysres
 from ibeis.dev import ibsfuncs
 from ibeis.control.IBEISControl import PATH_NAMES
 from os.path import join, exists
@@ -40,6 +40,18 @@ def is_succesful_convert(dbdir):
 # TEST
 #only_hsintern_paths = dbpath_list[is_only_hsinternal_list].tolist()
 
+def get_ibsdb_list(workdir=None):
+    if workdir is None:
+        workdir = ibeis.sysres.get_workdir()
+    dbname_list = os.listdir(workdir)
+    dbpath_list = np.array([join(workdir, name) for name in dbname_list])
+    is_ibs_list = np.array(map(is_ibeisdb, dbpath_list))
+    ibsdb_list  = dbpath_list[is_ibs_list].tolist()
+    print('IBEIS Databases:')
+    print('\n'.join(ibsdb_list))
+    return ibsdb_list
+
+
 def get_unconverted_hsdbs(workdir=None):
     if workdir is None:
         workdir = ibeis.sysres.get_workdir()
@@ -72,6 +84,7 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
             raise
 
 if __name__ == '__main__':
+    import multiprocessing
     multiprocessing.freeze_support()  # win32
     workdir = sysres.get_workdir()
     injest_unconverted_hsdbs_in_workdir(workdir)

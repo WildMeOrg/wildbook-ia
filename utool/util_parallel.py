@@ -109,6 +109,7 @@ def _process_parallel(func, args_list, args_dict={}):
 
 
 def generate(func, args_list, force_serial=False):
+    """ Returns a generator which asynchronously returns results """
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError:

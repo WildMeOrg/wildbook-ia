@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
-from os.path import exists, join, split
+#from itertools import izip  # UNUSED
+#from os.path import exists, join, split  # UNUSED
 import os
 # UTool
 import utool
@@ -17,47 +17,47 @@ __LOCATION__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 @utool.indent_func
 def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
-	# Ensure all models downloaded and accounted for
-	grabmodels.ensure_models()
+    # Ensure all models downloaded and accounted for
+    grabmodels.ensure_models()
 
-	# Create detector
-	detector = Random_Forest_Detector(rebuild=False)
+    # Create detector
+    detector = Random_Forest_Detector(rebuild=False)
 
-	detect_path = ''
-	trees_path 	= os.path.join(__LOCATION__, 'rf', species)
-	tree_prefix = species + '-'
+    detect_path = ''
+    trees_path     = os.path.join(__LOCATION__, 'rf', species)
+    tree_prefix = species + '-'
 
-	detect_config = {
-		'percentage_top':	0.40,
-	}
-		
-	# Load forest, so we don't have to reload every time
-	forest = detector.load(trees_path, tree_prefix)
+    detect_config = {
+        'percentage_top':    0.40,
+    }
 
-	gids = []
-	rois = []
-	for i in range(len(gpath_list)):
-		print('Processing: ' + gpath_list[i])
-		src_fpath = gpath_list[i]
-		dst_fpath = os.path.join(detect_path, gpath_list[i].split('/')[-1])
+    # Load forest, so we don't have to reload every time
+    forest = detector.load(trees_path, tree_prefix)
 
-		results, timing = detector.detect(forest, src_fpath, dst_fpath, **detect_config)
+    gids = []
+    rois = []
+    for ix in xrange(len(gpath_list)):
+        print('Processing: ' + gpath_list[ix])
+        src_fpath = gpath_list[ix]
+        dst_fpath = os.path.join(detect_path, gpath_list[ix].split('/')[-1])
 
-		for res in results:
-			# 0 centerx
-			# 1 centery
-			# 2 minx
-			# 3 miny
-			# 4 maxx
-			# 5 maxy
-			# 6 0.0 [UNUSED]
-			# 7 supressed flag
+        results, timing = detector.detect(forest, src_fpath, dst_fpath, **detect_config)
 
-			if res[7] == 0:
-				gids.append(gid_list[i])
-				rois.append((int(res[2]), int(res[3]), int(res[4] - res[2]), int(res[5] - res[3])))
+        for res in results:
+            # 0 centerx
+            # 1 centery
+            # 2 minx
+            # 3 miny
+            # 4 maxx
+            # 5 maxy
+            # 6 0.0 [UNUSED]
+            # 7 supressed flag
 
-	return gids, rois
+            if res[7] == 0:
+                gids.append(gid_list[ix])
+                rois.append((int(res[2]), int(res[3]), int(res[4] - res[2]), int(res[5] - res[3])))
+
+    return gids, rois
 
 
 # @utool.indent_func
@@ -81,7 +81,7 @@ def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
 #     detect_config = {
 #         'percentage_top':    0.40,
 #     }
-        
+
 #     # Run Asynchronously
 #     dpath_list = [os.path.join(detect_path, gpath.split('/')[-1]) for gpath in gpath_list]
 #     arg_list = list(izip(gid_list, gpath_list, dpath_list))
@@ -103,7 +103,7 @@ def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
 #             # 7 supressed flag
 
 #             if res[7] == 0:
-#                 gids.append(gid_list[i])
+#                 gids.append(gid_list[ix])
 #                 rois.append((int(res[2]), int(res[3]), int(res[4] - res[2]), int(res[5] - res[3])))
 #         pass
 

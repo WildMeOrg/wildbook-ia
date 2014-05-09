@@ -50,6 +50,7 @@ def backblock(func):
             back.front.blockSignals(wasBlocked_)  # unblock signals on exception
             #print(traceback.format_exc())
             msg = ('caught exception in %r' % func.func_name)
+            msg += '\n' + str(ex)
             print('\n\n\n')
             utool.printex(ex, msg)
             print('\n\n\n')
@@ -364,20 +365,21 @@ class MainWindowBackend(QtCore.QObject):
         back.refresh_state()
 
     @blocking_slot(QT_NAME_UID_TYPE, str, str)
-    def alias_name(back, nid, key, val):
+    def set_name_prop(back, nid, key, val):
         # Table Edit -> Change name
         nid = qt_name_uid_cast(nid)
         key = str(key)
         val = str(val)
-        print('[back] alias_name(nid=%r, key=%r, val=%r)' % (nid, key, val))
-        raise NotImplementedError()
+        print('[back] set_name_prop(nid=%r, key=%r, val=%r)' % (nid, key, val))
+        back.ibs.set_name_props((nid,), key, (val,))
+        back.refresh_state()
 
-    @blocking_slot(QT_IMAGE_UID_TYPE, str, bool)
+    @blocking_slot(QT_IMAGE_UID_TYPE, str, QtCore.QVariant)
     def set_image_prop(back, gid, key, val):
         # Table Edit -> Change Image Property
         gid = qt_image_uid_cast(gid)
-        val = qt_cast(val)
         key = str(key)
+        val = qt_cast(val)
         print('[back] set_image_prop(gid=%r, key=%r, val=%r)' % (gid, key, val))
         back.ibs.set_image_props((gid,), key, (val,))
         back.refresh_state()
@@ -597,8 +599,9 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def precompute_feats(back):
         """ Batch -> Precompute Feats"""
-        ibsfuncs.compute_all_features(back.ibs)
         print('[back] precompute_feats')
+        ibsfuncs.compute_all_features(back.ibs)
+        back.refresh_state()
         pass
 
     @blocking_slot()

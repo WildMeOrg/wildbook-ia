@@ -24,4 +24,3 @@ if __name__ == '__main__':
     ibs.print_name_table()
     ibs.print_image_table()
     ibs.print_roi_table()
-

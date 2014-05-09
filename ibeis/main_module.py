@@ -4,6 +4,7 @@ import sys
 import multiprocessing
 
 sys.argv.append('--strict')  # do not supress any errors
+__PREINIT_MULTIPROCESSING_POOLS__ = False
 
 try:
     profile = getattr(__builtin__, 'profile')
@@ -115,7 +116,8 @@ def _init_parallel():
     from utool import util_parallel
     from ibeis.dev import params
     __import_parallel_modules()
-    util_parallel.init_pool(params.args.num_procs)
+    if __PREINIT_MULTIPROCESSING_POOLS__:
+        util_parallel.init_pool(params.args.num_procs)
 
 
 def _close_parallel():

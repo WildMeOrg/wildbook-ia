@@ -120,7 +120,7 @@ def cmd(*args, **kwargs):
 
 
 def get_flops():
-    from sys import stderr, stdout
+    from sys import stdout
     from re import compile
 
     filename = "linpack.out"

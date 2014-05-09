@@ -270,8 +270,9 @@ if __name__ == '__main__':
         ibs = main_locals['ibs']
         if 'back' in main_locals:
             back = main_locals['back']
-            front = back.front
-            ui = front.ui
+            if back is not None:
+                front = back.front
+                ui = front.ui
         #ibs.dump_tables()
         valid_rids = ibs.get_valid_rids()
         valid_gids = ibs.get_valid_gids()

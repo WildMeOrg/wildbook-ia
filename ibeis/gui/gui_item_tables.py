@@ -26,8 +26,14 @@ def uuid_cast(qtuuid):
 
 
 def qt_cast(qtinput):
+    """ Cast from Qt types to Python types """
     #printDBG('Casting qtinput=%r' % (qtinput,))
-    if isinstance(qtinput, QtCore.QString):
+    if isinstance(qtinput, QtCore.QVariant):
+        if qtinput.typeName() == 'bool':
+            qtoutput = bool(qtinput.toBool())
+        if qtinput.typeName() == 'QString':
+            qtoutput = str(qtinput.toString())
+    elif isinstance(qtinput, QtCore.QString):
         qtoutput = str(qtinput)
     #elif isinstance(qtinput, (int, long, str, float)):
     elif isinstance(qtinput, (int, str)):

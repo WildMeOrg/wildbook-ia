@@ -4,7 +4,7 @@ Module for dealing with system resoureces in the context of IBEIS
 from __future__ import absolute_import, division, print_function
 import os
 import sys
-from os.path import exists, join
+from os.path import exists, join, realpath, dirname
 import utool
 from utool import util_cache, util_list, util_cplat
 from ibeis.dev import params
@@ -12,12 +12,15 @@ from ibeis.dev import params
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
 
+
 def _ibeis_cache_dump():
     util_cache.global_cache_dump(appname='ibeis')
+
 
 def _ibeis_cache_write(key, val):
     """ Writes to global IBEIS cache """
     util_cache.global_cache_write(key, val, appname='ibeis')
+
 
 def _ibeis_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """

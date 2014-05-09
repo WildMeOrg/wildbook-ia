@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function
+
+
 def make_header_lists(tbl_headers, editable_list, prop_keys=[]):
     col_headers = tbl_headers[:] + prop_keys
     col_editable = [False] * len(tbl_headers) + [True] * len(prop_keys)

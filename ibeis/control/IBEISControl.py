@@ -462,21 +462,22 @@ class IBEISControl(object):
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
-            valid_namecheck = [not (name.startswith('____') and len(name) > 4)
-                               for name in name_list]
-            assert all(valid_namecheck),\
-                'User defined names cannot start with four underscores'
+            ibsfuncs.assert_valid_names(name_list)
+            notes_list = ['' for _ in xrange(len(dirty_names))]
+            param_iter = izip(dirty_names, notes_list)
+            param_list = list(param_iter)
             ibs.db.executemany(
                 operation='''
                 INSERT OR IGNORE
                 INTO names
                 (
                     name_uid,
-                    name_text
+                    name_text,
+                    name_notes
                 )
-                VALUES (NULL, ?)
+                VALUES (NULL, ?, ?)
                 ''',
-                params_iter=((name,) for name in dirty_names))
+                params_iter=param_list)
             nid_list = ibs.get_name_nids(name_list, ensure=False)
         return nid_list
 
@@ -626,9 +627,25 @@ class IBEISControl(object):
 
     # SETTERS::NAME
     @setter
+    def set_name_props(ibs, nid_list, key, value_list):
+        print('[ibs] set_name_props')
+        if key == 'name':
+            return ibs.set_name_names(nid_list, value_list)
+        elif key == 'notes':
+            return ibs.set_name_notes(nid_list, value_list)
+        else:
+            raise KeyError('UNKOWN key=%r' % (key,))
+
+    @setter
     def set_name_notes(ibs, nid_list, notes_list):
         """ Sets notes of names (groups of animals) """
         ibs.set_table_props('names', 'name_notes', nid_list, notes_list)
+
+    @setter
+    def set_name_names(ibs, nid_list, name_list):
+        """ Changes the name text. Does not affect the animals of this name """
+        ibsfuncs.assert_valid_names(name_list)
+        ibs.set_table_props('names', 'name_text', nid_list, name_list)
 
     #
     #
@@ -1221,7 +1238,8 @@ class IBEISControl(object):
 
     @getter_general
     def get_valid_nids(ibs):
-        """ Returns all valid names (does not include unknown names """
+        """ Returns all valid names with at least one animal
+        (does not include unknown names) """
         _nid_list = ibs.db.executeone(
             operation='''
             SELECT name_uid
@@ -1232,6 +1250,21 @@ class IBEISControl(object):
         nRois_list = ibs.get_name_num_rois(_nid_list)
         nid_list = [nid for nid, nRois in izip(_nid_list, nRois_list)
                     if nRois > 0]
+        return nid_list
+
+    @getter_general
+    def get_invalid_nids(ibs):
+        """ Returns all names without any animals (does not include unknown names) """
+        _nid_list = ibs.db.executeone(
+            operation='''
+            SELECT name_uid
+            FROM names
+            WHERE name_text != ?
+            ''',
+            parameters=(ibs.UNKNOWN_NAME,))
+        nRois_list = ibs.get_name_num_rois(_nid_list)
+        nid_list = [nid for nid, nRois in izip(_nid_list, nRois_list)
+                    if nRois <= 0]
         return nid_list
 
     @getter
@@ -1311,6 +1344,20 @@ class IBEISControl(object):
     #-----------------
     # --- DELETERS ---
     #-----------------
+
+    @deleter
+    def delete_names(ibs, nid_list):
+        """ deletes names from the database
+        (CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
+        ENSURE THAT NONE OF THE NIDS HAVE ROIS)
+        """
+        ibs.db.executemany(
+            operation='''
+            DELETE
+            FROM names
+            WHERE name_uid=?
+            ''',
+            params_iter=((nid,) for nid in nid_list))
 
     @deleter
     def delete_rois(ibs, rid_list):
