@@ -38,6 +38,11 @@ def get_default_dbdir():
     return _ibeis_cache_read(DEFAULTDB_CAHCEID, default=None)
 
 
+def get_syncdir():
+    # TODO: Allow dirs in syncdir to count as in workdir
+    secret = 'AFETDAKURTJ6WH3PXYOTJDBO3KBC2KJJP'  # NOQA
+
+
 def get_workdir(allow_gui=True):
     """ Returns the work directory set for this computer.  If allow_gui is true,
     a dialog will ask a user to specify the workdir if it does not exist. """
@@ -118,14 +123,21 @@ def get_dbalias_dict():
 
 
 def db_to_dbdir(db, allow_newdir=False):
-    "Implicitly gets dbdir. Searches for db inside of workdir"""
+    """ Implicitly gets dbdir. Searches for db inside of workdir """
     work_dir = get_workdir()
-    dbdir = join(work_dir, db)
     dbalias_dict = get_dbalias_dict()
 
-    # Use db aliases
-    if not exists(dbdir) and db.upper() in dbalias_dict:
-        dbdir = join(work_dir, dbalias_dict[db.upper()])
+    workdir_list = [work_dir]  # TODO: Allow multiple workdirs
+    sync_dir = join(work_dir, '../sync')
+    if exists(sync_dir):
+        workdir_list.append(sync_dir)
+
+    # Check all of your work directories for the database
+    for _dir in workdir_list:
+        dbdir = realpath(join(_dir, db))
+        # Use db aliases
+        if not exists(dbdir) and db.upper() in dbalias_dict:
+            dbdir = join(_dir, dbalias_dict[db.upper()])
 
     # Create the database if newdbs are allowed in the workdir
     if not exists(dbdir) and allow_newdir:
@@ -163,7 +175,7 @@ def db_to_dbdir(db, allow_newdir=False):
 
 def get_args_dbdir(defaultdb=None, allow_newdir=False):
     """ Machinery for finding a database directory """
-    if not utool.QUIET:
+    if not utool.QUIET and utool.VERBOSE:
         print('[sysres] parsing commandline for dbdir')
         print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
     dbdir = params.args.dbdir
@@ -179,8 +191,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False):
         # Try a cached / commandline / default db
         if db is None and defaultdb == 'cache' and not params.args.nocache_db:
             dbdir = get_default_dbdir()
-            print('[sysres] Loading dbdir from cache.')
-            print('[sysres] dbdir=%r' % (dbdir,))
+            if not utool.QUIET and utool.VERBOSE:
+                print('[sysres] Loading dbdir from cache.')
+                print('[sysres] dbdir=%r' % (dbdir,))
         elif db is not None:
             dbdir = db_to_dbdir(db, allow_newdir=allow_newdir)
         elif defaultdb is not None:

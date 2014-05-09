@@ -12,7 +12,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
 
 def get_dbinfo(ibs):
     # Name Info
-    rrr()
+    #rrr()
     valid_rids = ibs.get_valid_rids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()

@@ -2,12 +2,14 @@ from __future__ import absolute_import, division, print_function
 from utool import util_arg
 
 # Global command line arguments
-args = None
+args = None     # Parsed arguments
+unknown = None  # Unparsed arguments
 
 
 def parse_args():
     # TODO: Port more from hotspotter/hsdev/argparse2.py
     global args
+    global unknown
     if args is not None:
         # Only parse arguments once
         print('[!params] ALREADY INITIALIZED ARGS')

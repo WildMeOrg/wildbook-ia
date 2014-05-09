@@ -299,8 +299,9 @@ class IBEISControl(object):
                 image_height,
                 image_exif_time_posix,
                 image_exif_gps_lat,
-                image_exif_gps_lon
-            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                image_exif_gps_lon,
+                image_notes
+            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
         gid_list = ibs.db.executemany(
@@ -458,10 +459,10 @@ class IBEISControl(object):
     @adder
     def add_names(ibs, name_list):
         """ Adds a list of names. Returns their nids """
-        print('add_names %r' % (name_list,))
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
+            print('add_names %r' % (name_list,))
             ibsfuncs.assert_valid_names(name_list)
             notes_list = ['' for _ in xrange(len(dirty_names))]
             param_iter = izip(dirty_names, notes_list)

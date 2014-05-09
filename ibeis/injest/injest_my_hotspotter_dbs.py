@@ -14,6 +14,9 @@ import utool
 from ibeis.injest import injest_hsdb
 
 
+FORCE_HSDB_CONVERT = utool.get_flag('--force-hsdb-convert')
+
+
 def is_hsdb(dbdir):
     return (exists(join(dbdir, '_hsdb')) and
             exists(join(dbdir, '_hsdb', 'name_table.csv')) and
@@ -59,7 +62,7 @@ def get_unconverted_hsdbs(workdir=None):
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     is_hsdb_list        = np.array(map(is_hsdb, dbpath_list))
     is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
-    if utool.get_flag('--force-hsdb-convert'):
+    if FORCE_HSDB_CONVERT:
         needs_convert = is_hsdb_list
     else:
         needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
@@ -76,7 +79,7 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
 
     for hsdb in needs_convert_hsdb:
         try:
-            if utool.get_flag('--force-hsdb-convert'):
+            if FORCE_HSDB_CONVERT:
                 ibsfuncs.delete_ibeis_database(hsdb)
             injest_hsdb.convert_hsdb_to_ibeis(hsdb)
         except Exception as ex:

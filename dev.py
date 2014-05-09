@@ -29,7 +29,6 @@ if 'back' not in vars():
     back = None
 
 
-dbinfo.rrr()
 #--------------------
 # RUN DEV EXPERIMENTS
 #--------------------
@@ -42,7 +41,7 @@ def run_experiments(ibs, qrid_list):
     print('==========================')
     print('RUN INVESTIGATIONS %s' % ibs.get_dbname())
     print('==========================')
-    input_test_list = params.args.tests[:]
+    input_test_list = params.args.tests[:] + params.unknown[:]  # Let unparsed args count towards tests
     print('input_test_list = %r' % (input_test_list,))
     # fnum = 1
 

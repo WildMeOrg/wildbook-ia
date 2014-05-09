@@ -87,7 +87,8 @@ def define_IBEIS_schema(ibs):
     # image. Hence, egpairs stands for encounter-image-pairs.  This table
     # exists for the sole purpose of defining multiple encounters to
     # a single image without the need to duplicate an image's record
-    # in the images table.
+    # in the images table. The encounter text identifies the encounter
+    # The encounter_uid is just a counter denoting entries
     ibs.db.schema('encounters', (
         ('encounter_uid',               'INTEGER PRIMARY KEY'),
         ('image_uid',                   '%s NOT NULL' % IMAGE_UID_TYPE),
