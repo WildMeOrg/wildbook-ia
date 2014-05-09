@@ -177,8 +177,8 @@ EOF
     RUN_TEST $HESAFF_DIR/tests/test_exhaustive_ori_extract.py
     RUN_TEST $HESAFF_DIR/tests/test_patch_orientation.py
     RUN_TEST $HESAFF_DIR/tests/test_pyhesaff.py
-    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple.py
-    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_parallel_simple.py
+    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple_iterative.py
+    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple_parallel.py
 fi
 
 #---------------------------------------------

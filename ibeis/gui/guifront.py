@@ -10,7 +10,7 @@ import utool
 from guitool import slot_, signal_
 from ibeis.gui import gui_item_tables as item_table
 import ibeis.gui.frontend_helpers as fh
-from ibeis.gui.MainSkel import Ui_mainSkel
+from ibeis.gui.Skeleton import Ui_mainSkel
 
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')

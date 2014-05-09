@@ -506,7 +506,7 @@ class IBEISControl(object):
             errmsg='[ibs.set_table_props] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
 
-    # SETTERS::Image
+    # SETTERS::IMAGE
 
     @setter
     def set_image_props(ibs, gid_list, key, value_list):
@@ -515,6 +515,8 @@ class IBEISControl(object):
             return ibs.set_image_aifs(gid_list, value_list)
         if key == 'eid':
             return ibs.set_image_eids(gid_list, value_list)
+        if key == 'notes':
+            return ibs.set_image_notes(gid_list, value_list)
         else:
             raise KeyError('UNKOWN key=%r' % (key,))
 
@@ -531,6 +533,11 @@ class IBEISControl(object):
     def set_image_aifs(ibs, gid_list, aif_list):
         """ Sets the image all instances found bit """
         ibs.set_table_props('images', 'image_toggle_aif', gid_list, aif_list)
+
+    @setter
+    def set_image_notes(ibs, gid_list, notes_list):
+        """ Sets the image all instances found bit """
+        ibs.set_table_props('images', 'image_notes', gid_list, notes_list)
 
     @setter
     def set_image_eids(ibs, gid_list, eids_list):
@@ -617,6 +624,12 @@ class IBEISControl(object):
             WHERE roi_uid=?''',
             params_iter=izip(nid_list, rid_list))
 
+    # SETTERS::NAME
+    @setter
+    def set_name_notes(ibs, nid_list, notes_list):
+        """ Sets notes of names (groups of animals) """
+        ibs.set_table_props('names', 'name_notes', nid_list, notes_list)
+
     #
     #
     #----------------
@@ -624,7 +637,7 @@ class IBEISControl(object):
     #----------------
 
     #
-    # GETTERS::General
+    # GETTERS::GENERAL
 
     def get_table_props(ibs, table, prop_key, uid_list):
         #OFF printDBG('get_(table=%r, prop_key=%r)' % (table, prop_key))
@@ -674,7 +687,7 @@ class IBEISControl(object):
         return ibs.get_table_props('features', prop_key, fid_list)
 
     #
-    # GETTERS::Image
+    # GETTERS::IMAGE
 
     @getter_general
     def get_valid_gids(ibs):
@@ -745,8 +758,6 @@ class IBEISControl(object):
         gsize_list = [(w, h) for (w, h) in izip(gwidth_list, gheight_list)]
         return gsize_list
 
-    get_image_size = get_image_sizes  # TODO SP
-
     @getter
     def get_image_unixtime(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
@@ -770,6 +781,12 @@ class IBEISControl(object):
         (animals) have an ROI in the image """
         aif_list = ibs.get_image_props('image_toggle_aif', gid_list)
         return aif_list
+
+    @getter
+    def get_image_notes(ibs, gid_list):
+        """ Returns image notes """
+        notes_list = ibs.get_image_props('image_notes', gid_list)
+        return notes_list
 
     @getter
     def get_image_eid(ibs, gid_list):
@@ -1015,7 +1032,7 @@ class IBEISControl(object):
         return has_gt_list
 
     #
-    # GETTERS::Chips
+    # GETTERS::CHIPS
 
     @getter_general
     def get_valid_cids(ibs):
@@ -1134,7 +1151,7 @@ class IBEISControl(object):
         return gid_list
 
     #
-    # GETTERS::Features
+    # GETTERS::FEATS
     @getter_general
     def get_valid_fids(ibs):
         feat_config_uid = ibs.get_feat_config_uid()
@@ -1190,7 +1207,7 @@ class IBEISControl(object):
         return cfgsuffix_list
 
     #
-    # GETTERS::Mask
+    # GETTERS::MASK
 
     @getter
     def get_chip_masks(ibs, rid_list, ensure=True):
@@ -1200,7 +1217,7 @@ class IBEISControl(object):
         return mask_list
 
     #
-    # GETTERS::Name
+    # GETTERS::NAME
 
     @getter_general
     def get_valid_nids(ibs):
@@ -1263,8 +1280,14 @@ class IBEISControl(object):
         """ returns the number of detections for each name """
         return map(len, ibs.get_name_rids(nid_list))
 
+    @getter
+    def get_name_notes(ibs, gid_list):
+        """ Returns image notes """
+        notes_list = ibs.get_name_props('name_notes', gid_list)
+        return notes_list
+
     #
-    # GETTERS::Encounter
+    # GETTERS::ENCOUNTER
 
     @getter_general
     def get_valid_eids(ibs):
@@ -1376,8 +1399,7 @@ class IBEISControl(object):
     def detect_existence(ibs, gid_list, **kwargs):
         """ Detects the probability of animal existence in each image """
         from ibeis.model.detect import randomforest
-        probexist_list = jason_detector.detect_existence(ibs,
-                                                         gid_list, **kwargs)
+        probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
         # Return for user inspection
         return probexist_list
 

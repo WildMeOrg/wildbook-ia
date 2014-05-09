@@ -97,9 +97,9 @@ reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 
 # A list of default internal headers to display
 table_headers = {
-    IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif'],
+    IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif', 'notes', 'unixtime'],
     ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-    NAME_TABLE:  ['nid', 'name', 'nRids'],
+    NAME_TABLE:  ['nid', 'name', 'nRids', 'notes'],
     RES_TABLE:   ['rank', 'score', 'name', 'rid']
 }
 
@@ -110,9 +110,9 @@ if USER_MODE:
 
 # Lists internal headers whos items are editable
 table_editable = {
-    IMAGE_TABLE: [],
+    IMAGE_TABLE: ['notes'],
     ROI_TABLE:   ['name', 'notes'],
-    NAME_TABLE:  ['name'],
+    NAME_TABLE:  ['name', 'notes'],
     RES_TABLE:   ['name'],
 }
 
@@ -131,19 +131,22 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
     '''
     printDBG('[gui] _datatup_cols()')
     # Return requested columns
+    # TODO: Use partials here?
     if tblname == NAME_TABLE:
         cols = {
-            'nid':   lambda nids: nids,
-            'name':  lambda nids: ibs.get_names(nids),
+            'nid':    lambda nids: nids,
+            'name':   lambda nids: ibs.get_names(nids),
             'nRids':  lambda nids: ibs.get_name_num_rois(nids),
+            'notes':  lambda nids: ibs.get_name_notes(nids),
         }
     elif tblname == IMAGE_TABLE:
         cols = {
-            'gid':   lambda gids: gids,
-            'aif':   lambda gids: ibs.get_image_aifs(gids),
-            'gname': lambda gids: ibs.get_image_gnames(gids),
-            'nRids':  lambda gids: ibs.get_image_num_rois(gids),
+            'gid':      lambda gids: gids,
+            'aif':      lambda gids: ibs.get_image_aifs(gids),
+            'gname':    lambda gids: ibs.get_image_gnames(gids),
+            'nRids':    lambda gids: ibs.get_image_num_rois(gids),
             'unixtime': lambda gids: ibs.get_image_unixtime(gids),
+            'notes':    lambda nids: ibs.get_image_notes(nids),
         }
     elif tblname in [ROI_TABLE, RES_TABLE]:
         # ROI_TBL_COLS \subset RES_TBL_COLS
