@@ -19,6 +19,10 @@ def theta_str(theta, taustr=('tau' if '--myway' in sys.argv else '2pi')):
     return ('%.2f * ' % coeff) + taustr
 
 
+def tupstr(tuple_):
+    """ maps each item in tuple to a string and doesnt include parens """
+    return ', '.join(map(str, tuple_))
+
 # --- Strings ----
 
 

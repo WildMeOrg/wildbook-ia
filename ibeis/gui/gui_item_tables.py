@@ -103,7 +103,7 @@ reverse_fancy = {v: k for (k, v) in fancy_headers.items()}
 
 # A list of default internal headers to display
 table_headers = {
-    IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif', 'notes', 'unixtime'],
+    IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif', 'notes', 'encounter', 'unixtime'],
     ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     NAME_TABLE:  ['nid', 'name', 'nRids', 'notes'],
     RES_TABLE:   ['rank', 'score', 'name', 'rid']
@@ -147,12 +147,14 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         }
     elif tblname == IMAGE_TABLE:
         cols = {
-            'gid':      lambda gids: gids,
-            'aif':      lambda gids: ibs.get_image_aifs(gids),
-            'gname':    lambda gids: ibs.get_image_gnames(gids),
-            'nRids':    lambda gids: ibs.get_image_num_rois(gids),
-            'unixtime': lambda gids: ibs.get_image_unixtime(gids),
-            'notes':    lambda nids: ibs.get_image_notes(nids),
+            'gid':       lambda gids: gids,
+            'eid':       lambda gids: ibs.get_image_eids(gids),
+            'encounter': lambda gids: map(utool.tupstr, ibs.get_image_encounters(gids)),
+            'aif':       lambda gids: ibs.get_image_aifs(gids),
+            'gname':     lambda gids: ibs.get_image_gnames(gids),
+            'nRids':     lambda gids: ibs.get_image_num_rois(gids),
+            'unixtime':  lambda gids: ibs.get_image_unixtime(gids),
+            'notes':     lambda nids: ibs.get_image_notes(nids),
         }
     elif tblname in [ROI_TABLE, RES_TABLE]:
         # ROI_TBL_COLS \subset RES_TBL_COLS

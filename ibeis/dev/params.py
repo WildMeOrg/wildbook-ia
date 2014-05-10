@@ -31,6 +31,7 @@ def parse_args():
         parser2.add_int(('--select-nid', '--nid'), help='view col')
         parser2.add_int(('--select-gid', '--gid'), help='view col')
         parser2.add_int(('--select-rid', '--rid'), help='view col')
+        parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
 
     def behavior_argparse(parser2):
         # Program behavior

@@ -67,13 +67,19 @@ def preprocess_image(gpath):
     return param_tup
 
 
+#@profile
+#def add_images_params_gen_OLD(gpath_list):
+    #""" generates values for add_images sqlcommands """
+    #mark_prog, end_prog = utool.progress_func(len(gpath_list), lbl='imgs: ',
+                                              #mark_start=True, flush_after=4)
+    #for count, gpath in enumerate(gpath_list):
+        #param_tup = preprocess_image(gpath)
+        #mark_prog(count)
+        #yield param_tup
+    #end_prog()
+
+
 @profile
 def add_images_params_gen(gpath_list):
-    """ generates values for add_images sqlcommands """
-    mark_prog, end_prog = utool.progress_func(len(gpath_list), lbl='imgs: ',
-                                              mark_start=True, flush_after=4)
-    for count, gpath in enumerate(gpath_list):
-        param_tup = preprocess_image(gpath)
-        mark_prog(count)
-        yield param_tup
-    end_prog()
+    """ generates values for add_images sqlcommands asychronously """
+    return utool.util_parallel.generate(preprocess_image, gpath_list)

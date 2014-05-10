@@ -22,7 +22,7 @@ __PRINT_FUNC__     = __builtin__.print
 __PRINT_DBG_FUNC__ = __builtin__.print
 __WRITE_FUNC__ = __STDOUT__.write
 __FLUSH_FUNC__ = __STDOUT__.flush
-__RELOAD_OK__ = '--reload-ok' in sys.argv
+__RELOAD_OK__  = not '--noreloadable' in sys.argv
 
 
 __INJECTED_MODULES__ = set([])

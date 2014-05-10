@@ -32,7 +32,6 @@ def parse_cfgstr_list(cfgstr_list):
     """
     cfgdict = {}
     for item in cfgstr_list:
-
         varval_tup = item.replace('=', ':').split(':')
         assert len(varval_tup) == 2, '[!] Invalid cfgitem=%r' % (item,)
         var, val = varval_tup
@@ -40,9 +39,22 @@ def parse_cfgstr_list(cfgstr_list):
     return cfgdict
 
 
-def preload_commands():
+def preload_convert(dbdir, defaultdb):
+    """ Convert the database before loading (A bit hacky) """
+    # HACKY: Copied code from _init_ibeis to get the
+    # dbdir before creating an IBEISControl
+    # Use command line dbdir unless user specifies it
+    if dbdir is None:
+        dbdir = sysres.get_args_dbdir(defaultdb, False)
+    from ibeis.injest.injest_my_hotspotter_dbs import my_convert_hsdb_to_ibeis
+    my_convert_hsdb_to_ibeis(dbdir, force=True)
+
+
+def preload_commands(dbdir, defaultdb):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
+    if params.args.dump_argv:
+        print(utool.dict_str(vars(params.args)))
     if params.args.dump_global_cache:
         utool.global_cache_dump()  # debug command, dumps to stdout
     if params.args.workdir is not None:
@@ -52,33 +64,32 @@ def preload_commands():
     if utool.get_flag('--vdq'):
         print('got arg --vdq')
         vdq()
+    if params.args.convert:
+        preload_convert(dbdir, defaultdb)
 
 
 def postload_commands(ibs, back):
     """ Postload commands deal with a specific ibeis database """
     print('[main_cmd] postload_commands')
-    args = params.args
-    if args.dump_argv:
-        print(utool.dict_str(vars(params.args)))
-    if args.view_database_directory:
+    if params.args.view_database_directory:
         print('got arg --vdd')
         vdd(ibs)
     if params.args.set_default_dbdir:
         sysres.set_default_dbdir(ibs.get_dbdir())
-    if args.update_cfg is not None:
+    if params.args.update_cfg is not None:
         cfgdict = parse_cfgstr_list(params.args.update_cfg)
         ibs.update_cfg(**cfgdict)
-    if args.select_rid is not None:
+    if params.args.select_rid is not None:
         try:
-            ibsfuncs.assert_valid_rids(ibs, (args.select_rid,))
+            ibsfuncs.assert_valid_rids(ibs, (params.args.select_rid,))
         except AssertionError:
             print('Valid RIDs are: %r' % (ibs.get_valid_rids(),))
             raise
-        back.select_rid(args.select_rid)
-    if args.select_gid is not None:
-        back.select_gid(args.select_gid)
-    if args.select_nid is not None:
-        back.select_nid(args.select_nid)
-    if args.postload_exit:
+        back.select_rid(params.args.select_rid)
+    if params.args.select_gid is not None:
+        back.select_gid(params.args.select_gid)
+    if params.args.select_nid is not None:
+        back.select_nid(params.args.select_nid)
+    if params.args.postload_exit:
         print('[main_cmd] postload exit')
         sys.exit(1)

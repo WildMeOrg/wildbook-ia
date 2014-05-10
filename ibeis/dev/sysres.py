@@ -138,6 +138,8 @@ def db_to_dbdir(db, allow_newdir=False):
         # Use db aliases
         if not exists(dbdir) and db.upper() in dbalias_dict:
             dbdir = join(_dir, dbalias_dict[db.upper()])
+        if exists(dbdir):
+            break
 
     # Create the database if newdbs are allowed in the workdir
     if not exists(dbdir) and allow_newdir:

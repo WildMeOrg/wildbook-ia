@@ -17,11 +17,15 @@ from .util_cplat import WIN32
 
 QUIET   = util_arg.QUIET
 VERBOSE = util_arg.VERBOSE
+
 __POOL__ = None
 __TIME__ = '--time' in sys.argv
+__NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
 
 
 def get_default_numprocs():
+    if __NUM_PROCS__ is not None:
+        return __NUM_PROCS__
     if WIN32:
         num_procs = 2  # default windows to 2 processes for now
     else:

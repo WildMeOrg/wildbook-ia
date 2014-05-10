@@ -7,71 +7,10 @@ from itertools import izip
 # Science
 import networkx as netx
 import numpy as np
-from scipy.cluster.hierarchy import fclusterdata
 # HotSpotter
 from ibeis.model.hots import match_chips3 as mc3
 
 import utool
-
-
-def compute_encounters(ibs, seconds_thresh=15):
-    '''
-    clusters encounters togethers (by time, not space)
-    An encounter is a meeting, localized in time and space between a camera and
-    a group of animals.  Animals are identified within each encounter.
-    '''
-    if not 'seconds_thresh' in vars():
-        seconds_thresh = 3
-
-    # For each image
-    gid_list = ibs.get_valid_gxs()
-
-    # TODO: Get image GPS location
-    #gps_info_list = ibs.gid2_exif(gid_list, tag='GPSInfo')
-    #gps_lat_list = ibs.gid2_exif(gid_list, tag='GPSLatitude')
-    #gps_lon_list = ibs.gid2_exif(gid_list, tag='GPSLongitude')
-    #gps_latref_list = ibs.gid2_exif(gid_list, tag='GPSLatitudeRef')
-    #gps_lonref_list = ibs.gid2_exif(gid_list, tag='GPSLongitudeRef')
-
-    # Get image timestamps
-    datetime_list = ibs.gid2_exif(gid_list, tag='DateTime')
-
-    nImgs = len(datetime_list)
-    valid_listx = [ix for ix, dt in enumerate(datetime_list) if dt is not None]
-    nWithExif = len(valid_listx)
-    nWithoutExif = nImgs - nWithExif
-    print('[encounter] %d / %d images with exif data' % (nWithExif, nImgs))
-    print('[encounter] %d / %d images without exif data' % (nWithoutExif, nImgs))
-
-    # Convert datetime objects to unixtime scalars
-    unixtime_list = [utool.exiftime_to_unixtime(datetime_str) for datetime_str in datetime_list]
-    unixtime_list = np.array(unixtime_list)
-
-    # Agglomerative clustering of unixtimes
-    print('[encounter] clustering')
-    X_data = np.vstack([unixtime_list, np.zeros(len(unixtime_list))]).T
-    gid2_clusterid = fclusterdata(X_data, seconds_thresh, criterion='distance')
-
-    # Reverse the image to cluster index mapping
-    clusterx2_gxs = [[] for _ in xrange(gid2_clusterid.max())]
-    for gid, clusterx in enumerate(gid2_clusterid):
-        clusterx2_gxs[clusterx - 1].append(gid)  # IDS are 1 based
-
-    # Print images per encouter statistics
-    clusterx2_nGxs = np.array(map(len, clusterx2_gxs))
-    print('[encounter] image per encounter stats:\n %s'
-          % utool.pstats(clusterx2_nGxs, True))
-
-    # Sort encounters by images per encounter
-    ex2_clusterx = clusterx2_nGxs.argsort()
-    gid2_ex  = [None] * len(gid2_clusterid)
-    ex2_gxs = [None] * len(ex2_clusterx)
-    for ex, clusterx in enumerate(ex2_clusterx):
-        gids = clusterx2_gxs[clusterx]
-        ex2_gxs[ex] = gids
-        for gid in gids:
-            gid2_ex[gid] = ex
-    return gid2_ex, ex2_gxs
 
 
 def build_encounter_ids(ex2_gxs, gid2_clusterid):
@@ -86,7 +25,7 @@ def build_encounter_ids(ex2_gxs, gid2_clusterid):
 
 
 def get_chip_encounters(ibs):
-    gid2_ex, ex2_gxs = compute_encounters(ibs)
+    gid2_ex, ex2_gxs = compute_encounters(ibs)  # NOQA
     # Build encounter to chips from encounter to images
     ex2_cxs = [None for _ in xrange(len(ex2_gxs))]
     for ex, gids in enumerate(ex2_gxs):

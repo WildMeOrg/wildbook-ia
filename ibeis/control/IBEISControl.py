@@ -276,7 +276,13 @@ class IBEISControl(object):
 
     @adder
     def add_images(ibs, gpath_list):
-        """ Adds a list of image paths to the database. Returns gids """
+        """
+        Adds a list of image paths to the database.  Returns gids
+
+        Initially we set the image_uri to exactely the given gpath.
+        Later we change the uri, but keeping it the same here lets
+        us process images asychronously.
+        """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Build parameter list early so we can grab the gids
@@ -285,7 +291,7 @@ class IBEISControl(object):
         index_list = [index for index, tup in enumerate(tried_param_list)
                       if tup is not None]
         param_list = [tried_param_list[index] for index in index_list]
-        img_uuid_list = [tup[0] for tup in param_list]
+        #img_uuid_list = [tup[0] for tup in param_list]
         # TODO: image original name
         ibs.db.executemany(
             operation='''
@@ -304,13 +310,21 @@ class IBEISControl(object):
             ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
+        #gid_list = ibs.db.executemany(
+            #operation='''
+            #SELECT image_uid
+            #FROM images
+            #WHERE image_uuid=?
+            #''',
+            #params_iter=[(img_uuid,) for img_uuid in img_uuid_list])
+        # This should solve the ordering issue
         gid_list = ibs.db.executemany(
             operation='''
             SELECT image_uid
             FROM images
-            WHERE image_uuid=?
+            WHERE image_uri=?
             ''',
-            params_iter=[(img_uuid,) for img_uuid in img_uuid_list])
+            params_iter=[(gpath,) for gpath in gpath_list])
         # The number of passed_gids might be less than the size of the input
         # Build list corresponding to the size of the input
         tried_gid_list = [None for _ in xrange(len(gpath_list))]
@@ -322,7 +336,7 @@ class IBEISControl(object):
         assert len(tried_gid_list) == len(gpath_list), 'bug in add_images'
         assert len(gid_list) == len(param_list), 'bug in add_images'
         assert len(gid_list) == len(index_list), 'bug in add_images'
-        assert len(gid_list) == len(img_uuid_list), 'bug in add_images'
+        #assert len(gid_list) == len(img_uuid_list), 'bug in add_images'
         return tried_gid_list
 
     @adder
@@ -482,6 +496,29 @@ class IBEISControl(object):
             nid_list = ibs.get_name_nids(name_list, ensure=False)
         return nid_list
 
+    @adder
+    def add_encounters(ibs, encountertext_list):
+        """ Adds a list of names. Returns their nids """
+        # FIXME: This is probably buggy
+        print('add_encounters %r' % (encountertext_list,))
+        notes_list = ['' for _ in xrange(len(encountertext_list))]
+        param_iter = izip(encountertext_list, notes_list)
+        param_list = list(param_iter)
+        ibs.db.executemany(
+            operation='''
+            INSERT OR IGNORE
+            INTO encounters
+            (
+                encounter_uid,
+                encounter_text,
+                encounter_notes
+            )
+            VALUES (NULL, ?, ?)
+            ''',
+            params_iter=param_list)
+        eid_list = ibs.get_encounter_eids(encountertext_list, ensure=False)
+        return eid_list
+
     #
     #
     #----------------
@@ -515,8 +552,8 @@ class IBEISControl(object):
         print('[ibs] set_image_props')
         if key == 'aif':
             return ibs.set_image_aifs(gid_list, value_list)
-        if key == 'eid':
-            return ibs.set_image_eids(gid_list, value_list)
+        if key == 'encountertext':
+            return ibs.set_image_encounters(gid_list, value_list)
         if key == 'notes':
             return ibs.set_image_notes(gid_list, value_list)
         else:
@@ -542,25 +579,19 @@ class IBEISControl(object):
         ibs.set_table_props('images', 'image_notes', gid_list, notes_list)
 
     @setter
-    def set_image_eids(ibs, gid_list, eids_list):
-        """ Sets the encounter id that a list of images is tied to, deletes old
-        encounters.  eid_list is a list of tuples, each represents the set of
-        encounters a tuple should belong to.
-        """
-        ibs.db.executemany(
-            operation='''
-            DELETE FROM egpairs WHERE image_uid=?
-            ''',
-            params_iter=gid_list)
-
+    def set_image_encounters(ibs, gid_list, encountertext_list):
+        """ Sets the encoutertext of each image """
+        print('[ibs] setting encounter ids')
+        eid_list = ibs.add_encounters(encountertext_list)
         ibs.db.executemany(
             operation='''
             INSERT OR IGNORE INTO egpairs(
-                encounter_uid,
-                image_uid
-            ) VALUES (?, ?)'
+                egpair_uid,
+                image_uid,
+                encounter_uid
+            ) VALUES (NULL, ?, ?)
             ''',
-            params_iter=flatten_items(izip(eids_list, gid_list)))
+            params_iter=izip(gid_list, eid_list))
 
     # SETTERS::ROI
 
@@ -776,7 +807,7 @@ class IBEISControl(object):
         gsize_list = [(w, h) for (w, h) in izip(gwidth_list, gheight_list)]
         return gsize_list
 
-    @getter
+    @getter_numpy
     def get_image_unixtime(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
@@ -807,10 +838,27 @@ class IBEISControl(object):
         return notes_list
 
     @getter
-    def get_image_eid(ibs, gid_list):
+    def get_image_eids(ibs, gid_list):
         """ Returns a list of encounter ids for each image by gid """
-        eid_list = [-1 for gid in gid_list]
-        return eid_list
+        eids_list = ibs.db.executemany(
+            operation='''
+            SELECT encounter_uid
+            FROM egpairs
+            WHERE image_uid=?
+            ''',
+            params_iter=((gid,) for gid in gid_list),
+            unpack_scalars=False)
+        return eids_list
+
+    @getter
+    def get_image_encounters(ibs, gid_list):
+        """ Returns a list of encountertexts for each image by gid """
+        eids_list = ibs.get_image_eids(gid_list)
+        # TODO: maybe incorporate into a decorator?
+        flat_eids, reverse_indexes = utool.invertable_flatten(eids_list)
+        flat_encountertext_list = ibs.get_encounter_text(flat_eids)
+        encounters_list = utool.unflatten(flat_encountertext_list, reverse_indexes)
+        return encounters_list
 
     @getter_vector_output
     def get_image_rids(ibs, gid_list):
@@ -1326,7 +1374,12 @@ class IBEISControl(object):
     @getter_general
     def get_valid_eids(ibs):
         """ returns list of all encounter ids """
-        return []
+        eid_list = ibs.db.executeone(
+            operation='''
+            SELECT encounter_uid
+            FROM encounters
+            ''')
+        return eid_list
 
     @getter_vector_output
     def get_encounter_rids(ibs, eid_list):
@@ -1339,6 +1392,32 @@ class IBEISControl(object):
         """ returns a list of list of gids in each encounter """
         gids_list = [[] for eid in eid_list]
         return gids_list
+
+    @getter
+    def get_encounter_text(ibs, eid_list):
+        encountertext_list = ibs.db.executemany(
+            operation='''
+            SELECT encounter_text
+            FROM encounters
+            WHERE encounter_uid=?
+            ''',
+            params_iter=((text,) for text in eid_list))
+        encountertext_list = map(__USTRCAST__, encountertext_list)
+        return encountertext_list
+
+    @getter
+    def get_encounter_eids(ibs, encountertext_list, ensure=True):
+        """ returns a list of list of gids in each encounter """
+        if ensure:
+            ibs.add_encounters(encountertext_list)
+        eid_list = ibs.db.executemany(
+            operation='''
+            SELECT encounter_uid
+            FROM encounters
+            WHERE encounter_text=?
+            ''',
+            params_iter=((text,) for text in encountertext_list))
+        return eid_list
 
     #
     #
@@ -1436,12 +1515,12 @@ class IBEISControl(object):
     #--------------
 
     @utool.indent_func
-    def cluster_encounters(ibs, gid_list):
+    def compute_encounters(ibs):
         """ Finds encounters """
-        from ibeis.model import encounter_cluster
-        eid_list = encounter_cluster.cluster(ibs, gid_list)
-        #ibs.set_image_eids(gid_list, eid_list)
-        return eid_list
+        from ibeis.model.preproc import preproc_encounter
+        flat_eids, flat_gids = preproc_encounter.compute_encounters(ibs)
+        encountertext_list = ['encounter_%r' % eid for eid in flat_eids]
+        ibs.set_image_encounters(flat_gids, encountertext_list)
 
     @utool.indent_func
     def detect_existence(ibs, gid_list, **kwargs):

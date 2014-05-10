@@ -79,6 +79,7 @@ def setup_ui(ui, front, back):
     setup_batch_menu(ui, front, back)
     setup_option_menu(ui, front, back)
     setup_help_menu(ui, front, back)
+    setup_developer_menu(ui, front, back)
 
     ui.postsetupUI()
 
@@ -194,6 +195,12 @@ def setup_batch_menu(ui, front, back):
         shortcut='',
         slot_fn=back.precompute_queries)
     ui.menuBatch.addSeparator()
+    ui.menuBatch.newAction(
+        name='actionCompute_Encounters',
+        text='Compute Encounters',
+        shortcut='Ctrl+E',
+        slot_fn=back.compute_encounters)
+    ui.menuBatch.addSeparator()
 
 
 def setup_option_menu(ui, front, back):
@@ -253,14 +260,21 @@ def setup_help_menu(ui, front, back):
         text='Delete Global Preferences',
         shortcut='',
         slot_fn=back.delete_global_prefs)
-    # ---
-    ui.menuHelp.addSeparator()
-    # ---
-    ui.menuHelp.newAction(
+
+
+def setup_developer_menu(ui, front, back):
+    """ DEV MENU """
+    ui.menuDev = newMenu(front, ui.menubar, 'menuDev', 'Dev')
+    ui.menuDev.newAction(
         name='actionDeveloper_reload',
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
+    ui.menuDev.newAction(
+        name='actionDeveloper_mode',
+        text='Developer IPython',
+        shortcut='Ctrl+Shift+I',
+        slot_fn=back.dev_mode)
 
 
 def setup_main_layout(ui, front, back):

@@ -611,6 +611,13 @@ class MainWindowBackend(QtCore.QObject):
         raise NotImplementedError()
         pass
 
+    @blocking_slot()
+    def compute_encounters(back):
+        """ Batch -> Compute Encounters """
+        print('[back] compute_encounters')
+        back.ibs.compute_encounters()
+        back.refresh_state()
+
     #--------------------------------------------------------------------------
     # Option menu slots
     #--------------------------------------------------------------------------
@@ -706,5 +713,7 @@ class MainWindowBackend(QtCore.QObject):
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
-        raise NotImplementedError()
-        pass
+        from ibeis.dev.all_imports import *  # NOQA
+        ibs = back.ibs  # NOQA
+        front = back.front  # NOQA
+        utool.embed()

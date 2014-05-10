@@ -41,7 +41,7 @@ def run_experiments(ibs, qrid_list):
     print('==========================')
     print('RUN INVESTIGATIONS %s' % ibs.get_dbname())
     print('==========================')
-    input_test_list = params.args.tests[:] + params.unknown[:]  # Let unparsed args count towards tests
+    input_test_list = params.args.tests[:]
     print('input_test_list = %r' % (input_test_list,))
     # fnum = 1
 
@@ -54,8 +54,12 @@ def run_experiments(ibs, qrid_list):
         for testname in args:
             valid_test_list.append(testname)
             ret = testname in input_test_list
-            if ret:
-                input_test_list.remove(testname)
+            ret2 = testname in params.unknown  # Let unparsed args count towards tests
+            if ret or ret2:
+                if ret:
+                    input_test_list.remove(testname)
+                else:
+                    ret = ret2
                 print('+===================')
                 print('| running testname = %s' % (args,))
                 return ret

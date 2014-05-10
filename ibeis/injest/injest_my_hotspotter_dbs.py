@@ -72,6 +72,13 @@ def get_unconverted_hsdbs(workdir=None):
     return needs_convert_hsdb
 
 
+def my_convert_hsdb_to_ibeis(hsdb, force=False):
+    assert(is_hsdb(hsdb)), 'not a hotspotter database. cannot even force convert'
+    if force:
+        ibsfuncs.delete_ibeis_database(hsdb)
+    injest_hsdb.convert_hsdb_to_ibeis(hsdb)
+
+
 def injest_unconverted_hsdbs_in_workdir(workdir=None):
     if workdir is None:
         workdir = ibeis.sysres.get_workdir()
@@ -79,9 +86,7 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
 
     for hsdb in needs_convert_hsdb:
         try:
-            if FORCE_HSDB_CONVERT:
-                ibsfuncs.delete_ibeis_database(hsdb)
-            injest_hsdb.convert_hsdb_to_ibeis(hsdb)
+            my_convert_hsdb_to_ibeis(hsdb, force=FORCE_HSDB_CONVERT)
         except Exception as ex:
             print(ex)
             raise
