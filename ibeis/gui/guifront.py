@@ -8,15 +8,14 @@ from PyQt4.QtCore import Qt
 # IBEIS
 import utool
 from guitool import slot_, signal_
-from ibeis.gui import gui_item_tables as item_table
-import ibeis.gui.frontend_helpers as fh
+from ibeis.gui import gui_item_tables
 from ibeis.gui.Skeleton import Ui_mainSkel
 
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')
 
 
-QT_UUID_TYPE = item_table.QT_UUID_TYPE
+UUID_TYPE = gui_item_tables.UUID_TYPE
 QUTF8      = QtGui.QApplication.UnicodeUTF8
 QTRANSLATE = QtGui.QApplication.translate
 
@@ -25,9 +24,10 @@ QTRANSLATE = QtGui.QApplication.translate
 #=================
 
 
-def clicked(func):
-    """ Decorator which adds the decorated function as a slot and passes
-    the row and column of the item clicked instead of the item itself
+def uid_tbl_clicked(func):
+    """
+    Wrapper around item_clicked slot, which takes only the item.
+    This extract the row, column, and table and passes that instead.
     Also provies debugging prints
     """
     @slot_(QtGui.QTableWidgetItem)
@@ -36,19 +36,56 @@ def clicked(func):
         if front.isItemEditable(item):
             front.print('[front] does not select when clicking editable column')
             return
-        if item == front.prev_tbl_item:
+        if item == front._prev_tbl_item:
             return
-        front.prev_tbl_item = item
+        front._prev_tbl_item = item
+        tbl = item.tableWidget()
         row, col = (item.row(), item.column())
-        front.print('%s(%r, %r)' % (func.func_name, row, col))
-        return func(front, row, col)
+        #front.print('Clicked ' + tbl.objectName() + ' at ' + str((row, col)) +
+                    #'--> ' + func.func_name)
+        return func(front, row, col, tbl)
     # Hacky decorator
     return clicked_wrapper
 
 
+def uid_tbl_changed(func):
+    """
+    Wrapper around item_changed slot, which takes only the item.
+    This extract the row, column, and table and passes that instead.
+    Also provies debugging prints
+    """
+    @slot_(QtGui.QTableWidgetItem)
+    @functools.wraps(func)
+    def changed_wrapper(front, item):
+        front._prev_tbl_item = item
+        tbl = item.tableWidget()
+        row, col = (item.row(), item.column())
+        #front.print('Changed ' + tbl.objectName() + ' at ' + str((row, col)) +
+                    #'--> ' + func.func_name)
+        state = item.checkState()
+        text  = str(item.text())
+        #_pressed_state = front._pressed_item_state
+        _pressed_text  = str(front._pressed_item_text)
+        print(_pressed_text)
+        isCheckableItem = text in ['true', 'false']  # HUGE HACK!
+        if isCheckableItem:
+            new_val = state == Qt.Checked
+            #try:
+                #assert text == _pressed_text, 'cannot change text and state at the same time'
+            #except AssertionError as ex:
+                #utool.printex(ex, key_list=['state', 'text', '_pressed_state',
+                                            #'_pressed_text'])
+                #raise
+        else:
+            new_val = text
+        return func(front, row, col, tbl, new_val)
+    # Hacky decorator
+    return changed_wrapper
+
+
 def _tee_logging(front):
     if VERBOSE:
-        print('[front] teeing log output')
+        front.print('teeing log output')
     # Connect a StreamStealer object to the GUI output window
     #if __common__.__LOGGING__:
         #front.logging_handler = guitool.GUILoggingHandler(front.gui_write)
@@ -63,9 +100,8 @@ def _tee_logging(front):
 
 
 def update_tabwidget_text(front, tblname, text, suffix=''):
-    ui = front.ui
-    tabWidget = ui.__dict__[tblname + '_view' + suffix]
-    tabTable  = ui.__dict__['tablesTabWidget' + suffix]
+    tabTable  = front.get_tabWidget(suffix)
+    tabWidget = front.get_tabView(tblname, suffix)
     index     = tabTable.indexOf(tabWidget)
     tab_text  = QTRANSLATE(front.objectName(), text, None, QUTF8)
     tabTable.setTabText(index, tab_text)
@@ -73,20 +109,22 @@ def update_tabwidget_text(front, tblname, text, suffix=''):
 
 class MainWindowFrontend(QtGui.QMainWindow):
     printSignal      = signal_(str)
+    raiseExceptionSignal = signal_(Exception)
     quitSignal       = signal_()
-    selectGidSignal  = signal_(QT_UUID_TYPE)
-    selectRidSignal  = signal_(QT_UUID_TYPE)
-    selectNidSignal  = signal_(QT_UUID_TYPE)
-    selectQResSignal = signal_(QT_UUID_TYPE)
-    setRoiPropSignal = signal_(QT_UUID_TYPE, str, str)
-    aliasNidSignal   = signal_(QT_UUID_TYPE, str, str)
-    setGidPropSignal = signal_(QT_UUID_TYPE, str, QtCore.QVariant)
-    querySignal      = signal_()
+    selectGidSignal  = signal_(UUID_TYPE)
+    selectRidSignal  = signal_(UUID_TYPE)
+    selectNidSignal  = signal_(UUID_TYPE)
+    selectQResSignal = signal_(UUID_TYPE)
+    setRoiPropSignal = signal_(UUID_TYPE, str, str)
+    aliasNidSignal   = signal_(UUID_TYPE, str, str)
+    setGidPropSignal = signal_(UUID_TYPE, str, QtCore.QVariant)
 
     def __init__(front, back):
         super(MainWindowFrontend, front).__init__()
         #print('[*front] creating frontend')
-        front.prev_tbl_item = None
+        front._prev_tbl_item = None
+        front._pressed_item_state = None
+        front._pressed_item_text = None
         front.logging_handler = None
         front.back = back
         front.ui = Ui_mainSkel()
@@ -94,10 +132,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         # Programatially Defined Actions
         #newMenuAction(front, 'menuHelp', 'actionDetect_Duplicate_Images',
         #text='Detect Duplicate Images', slot_fn=back.detect_dupimg)
-        fh.newMenuAction(front, 'menuActions', 'Query2', slot_fn=back.query)
-        fh.newMenuAction(front, 'menuBatch', 'Detect Grevys', slot_fn=back.detect_grevys)
         # Progress bar is not hooked up yet
-        front.ui.progressBar.setVisible(False)
         front.connect_signals()
         _tee_logging(front)
 
@@ -112,6 +147,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui = front.ui
         # Frontend Signals
         front.printSignal.connect(back.backend_print)
+        front.raiseExceptionSignal.connect(back.backend_exception)
         front.quitSignal.connect(back.quit)
         front.selectGidSignal.connect(back.select_gid)
         front.selectRidSignal.connect(back.select_rid)
@@ -120,22 +156,22 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.setRoiPropSignal.connect(back.set_roi_prop)
         front.aliasNidSignal.connect(back.set_name_prop)
         front.setGidPropSignal.connect(back.set_image_prop)
-        front.querySignal.connect(back.query)
 
         # Connect all signals from GUI
         for func in front.ui.connect_fns:
+            #printDBG('Connecting: %r' % func.func_name)
             func()
         #
         # Gui Components
         # Tables Widgets
-        ui.rids_TBL.itemClicked.connect(front.roi_tbl_clicked)
-        ui.rids_TBL.itemChanged.connect(front.roi_tbl_changed)
-        ui.gids_TBL.itemClicked.connect(front.img_tbl_clicked)
-        ui.gids_TBL.itemChanged.connect(front.img_tbl_changed)
-        ui.qres_TBL.itemClicked.connect(front.qres_tbl_clicked)
-        ui.qres_TBL.itemChanged.connect(front.qres_tbl_changed)
-        ui.nids_TBL.itemClicked.connect(front.name_tbl_clicked)
-        ui.nids_TBL.itemChanged.connect(front.name_tbl_changed)
+        #ui.rids_TBL.itemClicked.connect(front.rids_tbl_clicked)
+        #ui.rids_TBL.itemChanged.connect(front.rids_tbl_changed)
+        #ui.gids_TBL.itemClicked.connect(front.gids_tbl_clicked)
+        #ui.gids_TBL.itemChanged.connect(front.gids_tbl_changed)
+        #ui.qres_TBL.itemClicked.connect(front.qres_tbl_clicked)
+        #ui.qres_TBL.itemChanged.connect(front.qres_tbl_changed)
+        #ui.nids_TBL.itemClicked.connect(front.nids_tbl_clicked)
+        #ui.nids_TBL.itemChanged.connect(front.nids_tbl_changed)
         # Tab Widget
         ui.tablesTabWidget.currentChanged.connect(front.change_view)
         ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
@@ -153,7 +189,6 @@ class MainWindowFrontend(QtGui.QMainWindow):
         for uikey in ui.__dict__.keys():
             if uikey.find('action') == 0:
                 ui.__dict__[uikey].setEnabled(flag)
-
         # The following options are always enabled
         ui.actionOpen_Database.setEnabled(True)
         ui.actionNew_Database.setEnabled(True)
@@ -162,28 +197,50 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui.actionView_Docs.setEnabled(True)
         ui.actionDelete_global_preferences.setEnabled(True)
 
-        # The following options are no implemented. Disable them
-        ui.actionConvert_all_images_into_chips.setEnabled(False)
-        ui.actionBatch_Change_Name.setEnabled(False)
-        ui.actionScale_all_ROIS.setEnabled(False)
-        ui.actionWriteLogs.setEnabled(False)
-        ui.actionAbout.setEnabled(False)
-
-    @slot_(str, list, list, list, list)
-    def populate_tbl(front, tblname, col_fancyheaders, col_editable,
-                     row_list, datatup_list, suffix=''):
+    @slot_(str, list, list, list, list, list, str)
+    def populate_tbl(front, tblname,
+                     col_fancyheaders,
+                     col_editable,
+                     col_types,
+                     row_list,
+                     datatup_list,
+                     suffix=''):
         tblname = str(tblname)
         front.print('populate_tbl(%s)' % tblname)
-        tbl = front.ui.__dict__[tblname + '_TBL' + suffix]
+        tbl = front.get_tabTable(tblname, suffix)
 
-        item_table.populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
+        try:
+            gui_item_tables.populate_item_table(tbl, col_fancyheaders, col_editable,
+                                                col_types, row_list, datatup_list)
+        except Exception as ex:
+            front.raiseExceptionSignal.emit(ex)
+            raise
         # Set the tab text to show the number of items listed
-        fancy_tablename = item_table.fancy_tablenames[tblname]
+        fancy_tablename = gui_item_tables.fancy_tablenames[tblname]
         text = fancy_tablename + ' : %d' % len(row_list)
         update_tabwidget_text(front, tblname, text, suffix)
 
     def isItemEditable(self, item):
         return int(Qt.ItemIsEditable & item.flags()) == int(Qt.ItemIsEditable)
+
+    #====================
+    # Encounter Widget / View / Table getters
+    #====================
+
+    def get_tabWidget(front, suffix):
+        """ Returns the widget of the <suffix> encounter tab """
+        tabWidget  = front.ui.__dict__[str('tablesTabWidget' + suffix)]
+        return tabWidget
+
+    def get_tabView(front, tblname, suffix):
+        """ Returns the view containting the uid table """
+        view = front.ui.__dict__[str(tblname + '_view' + suffix)]
+        return view
+
+    def get_tabTable(front, tblname, suffix):
+        """ tblname in ['gids', 'rids', 'nids', 'qres'] """
+        tableWidget = front.ui.__dict__[str(tblname + '_TBL' + suffix)]
+        return tableWidget
 
     #=======================
     # General Table Getters
@@ -192,8 +249,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_header(front, tbl, col):
         # Map the fancy header back to the internal one.
         fancy_header = str(tbl.horizontalHeaderItem(col).text())
-        header = (item_table.reverse_fancy[fancy_header]
-                  if fancy_header in item_table.reverse_fancy else fancy_header)
+        header = (gui_item_tables.reverse_fancy[fancy_header]
+                  if fancy_header in gui_item_tables.reverse_fancy else fancy_header)
         return header
 
     def get_tbl_int(front, tbl, row, col):
@@ -205,13 +262,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_header_val(front, tbl, header, row):
         # RCOS TODO: This is hacky. These just need to be
         # in dicts to begin with.
-        tblname = str(tbl.objectName())
-        tblpos = tblname.find('_TBL')
-        header = tblname[0:tblpos]
-        suffix = tblname[tblpos + 4, :]
+        objectName = str(tbl.objectName())
+        tblpos  = objectName.find('_TBL')
+        tblname = objectName[0:tblpos]
+        #suffix = tblname[tblpos + 4, :]
+        #print(suffix)
         #tblname, suffix = str(tbl.objectName()).split('_TBL')
-        tblname = item_table.sqltable_names[tblname]
-        col = item_table.table_headers[tblname].index(header)
+        col = gui_item_tables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
     #=======================
@@ -219,7 +276,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
     #=======================
 
     def get_roitbl_header(front, col):
-        return front.get_tbl_header(front.ui.rids_TBL, col)
+        return front.get_tbl_header(front.get_tabTable('rids'), col)
 
     def get_imgtbl_header(front, col):
         return front.get_tbl_header(front.ui.gids_TBL, col)
@@ -230,85 +287,71 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_nametbl_header(front, col):
         return front.get_tbl_header(front.ui.nids_TBL, col)
 
-    def get_qrestbl_rid(front, row):
-        return QT_UUID_TYPE(front.get_header_val(front.ui.qres_TBL, 'rid', row))
-
-    def get_roitbl_rid(front, row):
-        return QT_UUID_TYPE(front.get_header_val(front.ui.rids_TBL, 'rid', row))
-
-    def get_nametbl_name(front, row):
-        return str(front.get_header_val(front.ui.nids_TBL, 'name', row))
-
-    def get_nametbl_nid(front, row):
-        return QT_UUID_TYPE(front.get_header_val(front.ui.nids_TBL, 'nid', row))
-
-    def get_imgtbl_gid(front, row):
-        return QT_UUID_TYPE(front.get_header_val(front.ui.gids_TBL, 'gid', row))
+    @slot_(QtGui.QTableWidgetItem)
+    def uid_tbl_pressed(front, item):
+        """ Keeps track of item state: i.e. if text or check value is changed """
+        #front.print('')
+        #front.print('>>>>>>>>>>>>>>>>>> PRESSED')
+        #front.print('!!!!-Pressed')
+        #front.print('Pressed _uid_tbl_pressed, tbl=%r' % str(item.tableWidget().objectName()))
+        _pressed_state = item.checkState()
+        _pressed_text = item.text()
+        front._pressed_item_state = _pressed_state
+        front._pressed_item_text = _pressed_text
 
     #=======================
     # Table Changed Functions
     #=======================
 
-    @slot_(QtGui.QTableWidgetItem)
-    def img_tbl_changed(front, item):
-        front.print('img_tbl_changed()')
-        row, col = (item.row(), item.column())
-        sel_gid = front.get_imgtbl_gid(row)
+    @uid_tbl_changed
+    def gids_tbl_changed(front, row, col, tbl, new_val):
+        front.print('gids_tbl_changed()')
+        sel_gid = UUID_TYPE(front.get_header_val(tbl, 'gid', row))
         header_lbl = front.get_imgtbl_header(col)
-        if header_lbl == 'aif':
-            new_val = item.checkState() == Qt.Checked
-        else:
-            new_val = item.text()
         front.setGidPropSignal.emit(sel_gid, header_lbl, new_val)
 
-    @slot_(QtGui.QTableWidgetItem)
-    def roi_tbl_changed(front, item):
-        front.print('roi_tbl_changed()')
-        row, col = (item.row(), item.column())
-        sel_rid = front.get_roitbl_rid(row)  # Get selected roiid
-        new_val = item.text()
+    @uid_tbl_changed
+    def rids_tbl_changed(front, row, col, tbl, new_val):
+        front.print('rids_tbl_changed()')
+        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))  # Get selected roiid
         header_lbl = front.get_roitbl_header(col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
-    @slot_(QtGui.QTableWidgetItem)
-    def qres_tbl_changed(front, item):
+    @uid_tbl_changed
+    def qres_tbl_changed(front, row, col, tbl, new_val):
         front.print('qres_tbl_changed()')
-        row, col = (item.row(), item.column())
-        sel_rid  = front.get_qrestbl_rid(row)  # The changed row's roi id
-        new_val  = item.text()
+        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))  # The changed row's roi id
         header_lbl = front.get_qrestbl_header(col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
-    @slot_(QtGui.QTableWidgetItem)
-    def name_tbl_changed(front, item):
-        front.print('name_tbl_changed()')
-        row, col = (item.row(), item.column())
-        sel_nid = front.get_nametbl_nid(row)    # The changed row's name index
-        new_val  = item.text()
+    @uid_tbl_changed
+    def nids_tbl_changed(front, row, col, tbl, new_val):
+        front.print('nids_tbl_changed()')
+        sel_nid = UUID_TYPE(front.get_header_val(tbl, 'nid', row))    # The changed row's name index
         header_lbl = front.get_nametbl_header(col)  # Get changed column
         front.aliasNidSignal.emit(sel_nid, header_lbl, new_val)
 
     #=======================
     # Table Clicked Functions
     #=======================
-    @clicked
-    def img_tbl_clicked(front, row, col):
-        sel_gid = front.get_imgtbl_gid(row)
+    @uid_tbl_clicked
+    def gids_tbl_clicked(front, row, col, tbl):
+        sel_gid = UUID_TYPE(front.get_header_val(tbl, 'gid', row))
         front.selectGidSignal.emit(sel_gid)
 
-    @clicked
-    def roi_tbl_clicked(front, row, col):
-        sel_rid = front.get_roitbl_rid(row)
+    @uid_tbl_clicked
+    def rids_tbl_clicked(front, row, col, tbl):
+        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))
         front.selectRidSignal.emit(sel_rid)
 
-    @clicked
-    def qres_tbl_clicked(front, row, col):
-        sel_rid = front.get_qrestbl_rid(row)
+    @uid_tbl_clicked
+    def qres_tbl_clicked(front, row, col, tbl):
+        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))
         front.selectQResSignal.emit(sel_rid)
 
-    @clicked
-    def name_tbl_clicked(front, row, col):
-        sel_nid = front.get_nametbl_nid(row)
+    @uid_tbl_clicked
+    def nids_tbl_clicked(front, row, col, tbl):
+        sel_nid = UUID_TYPE(front.get_header_val(tbl, 'nid', row))
         front.selectNidSignal.emit(sel_nid)
 
     #=======================
@@ -322,7 +365,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         prevBlock = front.ui.tablesTabWidget.blockSignals(True)
         front.ui.tablesTabWidget.blockSignals(prevBlock)
         if tab_name.startswith('Query Results Table'):
-            print(front.back.cfg)
+            front.print(front.back.cfg)
 
     @slot_(str)
     def gui_write(front, msg_):

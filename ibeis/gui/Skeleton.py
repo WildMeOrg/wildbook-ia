@@ -35,18 +35,22 @@ def newEncounterTabs(front, parent, suffix=None):
                                    'tablesTabWidget' + suffix,
                                    tab_text,
                                    vstretch=10)
-    tabWidget.newTabbedTable('gids_view' + suffix,
-                             'gids_TBL' + suffix,
-                             'Image Table' + suffix)
-    tabWidget.newTabbedTable('rids_view' + suffix,
-                             'rids_TBL' + suffix,
-                             'ROI Table' + suffix)
-    tabWidget.newTabbedTable('nids_view' + suffix,
-                             'nids_TBL' + suffix,
-                             'Name Table' + suffix)
-    tabWidget.newTabbedTable('qres_view' + suffix,
-                             'qres_TBL' + suffix,
-                             'Query Result Table' + suffix)
+    tabWidget.newTabbedTable('gids', suffix, 'Image Table',
+                             clicked_slot_fn=front.gids_tbl_clicked,
+                             pressed_slot_fn=front.uid_tbl_pressed,
+                             changed_slot_fn=front.gids_tbl_changed)
+    tabWidget.newTabbedTable('rids', suffix, 'ROI Table',
+                             clicked_slot_fn=front.rids_tbl_clicked,
+                             pressed_slot_fn=front.uid_tbl_pressed,
+                             changed_slot_fn=front.rids_tbl_changed)
+    tabWidget.newTabbedTable('nids', suffix, 'Name Table',
+                             clicked_slot_fn=front.nids_tbl_clicked,
+                             pressed_slot_fn=front.uid_tbl_pressed,
+                             changed_slot_fn=front.nids_tbl_clicked)
+    tabWidget.newTabbedTable('qres', suffix, 'Query Result Table',
+                             clicked_slot_fn=front.qres_tbl_clicked,
+                             pressed_slot_fn=front.uid_tbl_pressed,
+                             changed_slot_fn=front.qres_tbl_changed)
 
 
 def setup_ui(ui, front, back):
@@ -194,6 +198,10 @@ def setup_batch_menu(ui, front, back):
                     allows multiple queries to be rapidly inspected later.''',
         shortcut='',
         slot_fn=back.precompute_queries)
+    ui.menuBatch.newAction(
+        name='actionDetect_Grevys',
+        text='Detect Grevys',
+        slot_fn=back.detect_grevys)
     ui.menuBatch.addSeparator()
     ui.menuBatch.newAction(
         name='actionCompute_Encounters',
@@ -275,6 +283,11 @@ def setup_developer_menu(ui, front, back):
         text='Developer IPython',
         shortcut='Ctrl+Shift+I',
         slot_fn=back.dev_mode)
+    ui.menuDev.newAction(
+        name='actionDeveloper_CLS',
+        text='CLS',
+        shortcut='Ctrl+Shift+C',
+        slot_fn=back.dev_cls)
 
 
 def setup_main_layout(ui, front, back):

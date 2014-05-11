@@ -60,16 +60,40 @@ def _new_verticalLayout(parent=None, _numtrick=[0]):
     verticalLayout.setObjectName(next_vlname)
     return verticalLayout
 
+
+# --------
+# Decorators which append jobs to be executed by the ui later
+#
+
+def define_retranslatable(name, front):
+    """ Decorator which augments a function name and connects """
+    def retrans_wrapper(func):
+        func.func_name = name + '_' + func.func_name
+        front.ui.retranslatable_fns.append(func)
+        return func
+    return retrans_wrapper
+
+
+def define_postsetup(name, front):
+    """ Decorator which augments a function name and connects """
+    def postsetup_wrapper(func):
+        func.func_name = name + '_' + func.func_name
+        front.ui.postsetup_fns.append(func)
+        return func
+    return postsetup_wrapper
+
+
+def define_connection(name, front):
+    """ Decorator which augments a function name and connects """
+    def connect_wrapper(func):
+        func.func_name = name + '_' + func.func_name
+        #print('Will connect: ' + func.func_name)
+        front.ui.connect_fns.append(func)
+        return func
+    return connect_wrapper
+
 # ____________
 # COMPONENTS
-
-
-def func_name_aug(name):
-    """ Decorator which augments a function name """
-    def augment_wrapper(func):
-        func.func_name = name + '_' + func.func_name
-        return func
-    return augment_wrapper
 
 
 def initMainWidget(front, name, size=(500, 300), title=''):
@@ -77,10 +101,9 @@ def initMainWidget(front, name, size=(500, 300), title=''):
     (w, h) = size
     front.resize(w, h)
     front.setUnifiedTitleAndToolBarOnMac(False)
-    @func_name_aug(name)
+    @define_retranslatable(name, front)
     def retranslate_fn():
         front.setWindowTitle(QTRANSLATE(name, title, None, QUTF8))
-    front.ui.retranslatable_fns.append(retranslate_fn)
     return front
 
 
@@ -116,14 +139,12 @@ def newMenu(front, menubar, name, text):
     """ Defines each menu category in the menubar """
     menu = QtGui.QMenu(menubar)
     menu.setObjectName(_fromUtf8(name))
-    @func_name_aug(name)
+    @define_retranslatable(name, front)
     def retranslate_fn():
         menu.setTitle(QTRANSLATE(front.objectName(), text, None, QUTF8))
-    front.ui.retranslatable_fns.append(retranslate_fn)
-    @func_name_aug(name)
+    @define_postsetup(name, front)
     def postsetup_fn():
         menubar.addAction(menu.menuAction())
-    front.ui.postsetup_fns.append(postsetup_fn)
     # Define a custom newAction function for the menu
     # The QT function is called addAction
     newAction = functools.partial(newMenuAction, front, name)
@@ -137,10 +158,9 @@ def newTable(front, parent, tblname):
     table.setObjectName(_fromUtf8(tblname))
     table.setColumnCount(0)
     table.setRowCount(0)
-    @func_name_aug(tblname)
+    @define_retranslatable(tblname, front)
     def retranslate_fn():
         table.setSortingEnabled(True)
-    front.ui.retranslatable_fns.append(retranslate_fn)
     return table
 
 
@@ -171,22 +191,40 @@ def newTabbedView(front, tabWidget, viewname, text):
     setattr(front.ui, str(gridLayout.objectName()), gridLayout)
     gridLayout.addLayout(verticalLayout, 0, 0, 1, 1)
     tabWidget.addTab(view, _fromUtf8(''))
+    @define_retranslatable(viewname, front)
     def retranslate_fn():
         qtext = QTRANSLATE(front.objectName(), text, None, QUTF8)
         tabWidget.setTabText(tabWidget.indexOf(view), qtext)
-    front.ui.retranslatable_fns.append(retranslate_fn)
     setattr(front.ui, viewname, view)
     return view, verticalLayout
 
 
-def newTabbedTable(front, tabWidget, viewname, tblname, text=''):
+def newTabbedTable(front, tabWidget, name, suffix, text='',
+                   clicked_slot_fn=None,
+                   pressed_slot_fn=None,
+                   changed_slot_fn=None):
     """ Builds view, uidTBL, gridLayout, verticalLayout """
     # IMG / ROI/ NAME / RES VIEW
+    viewname = name + '_view' + suffix
+    tblname  = name + '_TBL' + suffix
+    text = text + suffix
     view, verticalLayout = newTabbedView(front, tabWidget, viewname, text)
     # G/R/N/Q-ID TABLE
     table = newTable(front, view, tblname)
     setattr(front.ui, tblname, table)
     verticalLayout.addWidget(table)
+    if clicked_slot_fn is not None:
+        @define_connection(tblname, front)
+        def connect_clicked_fn():
+            table.itemClicked.connect(clicked_slot_fn)
+    if pressed_slot_fn is not None:
+        @define_connection(tblname, front)
+        def connect_pressed_fn():
+            table.itemPressed.connect(pressed_slot_fn)
+    if changed_slot_fn is not None:
+        @define_connection(tblname, front)
+        def connect_changed_fn():
+            table.itemChanged.connect(changed_slot_fn)
     return view, table
 
 
@@ -248,7 +286,7 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     if action_text is None:
         action_text = action_name
     # TODO: Have ui.retranslateUi call this
-    @func_name_aug(name)
+    @define_retranslatable(name, front)
     def retranslate_fn():
         if action_text is not None:
             qtext    = QTRANSLATE(front.objectName(), action_text, None, QUTF8)
@@ -259,11 +297,9 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
         if action_shortcut is not None:
             qshortcut = QTRANSLATE(front.objectName(), action_shortcut, None, QUTF8)
             action.setShortcut(qshortcut)
-    front.ui.retranslatable_fns.append(retranslate_fn)
     if slot_fn is not None:
-        @func_name_aug(name)
+        @define_connection(name, front)
         def connect_fn():
             action.triggered.connect(slot_fn)
-        front.ui.connect_fns.append(connect_fn)
     return action
     #retranslate_fn()

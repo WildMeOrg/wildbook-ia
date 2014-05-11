@@ -28,13 +28,6 @@ QT_IMAGE_UID_TYPE = item_table.QT_IMAGE_UID_TYPE
 QT_ROI_UID_TYPE   = item_table.QT_ROI_UID_TYPE
 QT_NAME_UID_TYPE  = item_table.QT_NAME_UID_TYPE
 
-qt_cast = item_table.qt_cast
-
-# For UUIDs the cast is special
-qt_roi_uid_cast   = item_table.qt_roi_uid_cast
-qt_image_uid_cast = item_table.qt_image_uid_cast
-qt_name_uid_cast  = item_table.qt_name_uid_cast
-
 
 # BLOCKING DECORATOR
 # TODO: This decorator has to be specific to either front or back. Is there a
@@ -87,7 +80,7 @@ class MainWindowBackend(QtCore.QObject):
     Sends and recieves signals to and from the frontend
     '''
     # Backend Signals
-    populateTableSignal = signal_(str, list, list, list, list, str)
+    populateTableSignal = signal_(str, list, list, list, list, list, str)
     setEnabledSignal = signal_(bool)
 
     #------------------------
@@ -309,7 +302,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(QT_IMAGE_UID_TYPE)
     def select_gid(back, gid, sel_rids=[], **kwargs):
         # Table Click -> Image Table
-        gid = qt_image_uid_cast(gid)
+        gid = item_table.qt_cast(gid)
         print('[back] select_gid(gid=%r, sel_rids=%r)' % (gid, sel_rids))
         back._set_selection(gids=(gid,), rids=sel_rids, **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
@@ -317,7 +310,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(QT_ROI_UID_TYPE)
     def select_rid(back, rid, show_roi=True, **kwargs):
         # Table Click -> Chip Table
-        rid = qt_roi_uid_cast(rid)
+        rid = item_table.qt_cast(rid)
         print('[back] select rid=%r' % rid)
         gid = back.ibs.get_roi_gids(rid)
         nid = back.ibs.get_roi_nids(rid)
@@ -328,7 +321,7 @@ class MainWindowBackend(QtCore.QObject):
     @slot_(QT_NAME_UID_TYPE)
     def select_nid(back, nid, show_name=True, **kwargs):
         # Table Click -> Name Table
-        nid = qt_name_uid_cast(nid)
+        nid = item_table.qt_cast(nid)
         print('[back] select nid=%r' % nid)
         back._set_selection(nids=[nid], **kwargs)
         if show_name:
@@ -338,7 +331,7 @@ class MainWindowBackend(QtCore.QObject):
     def select_qres_rid(back, rid, **kwargs):
         # Table Click -> Result Table
         print('[back] select result rid=%r' % rid)
-        rid = qt_roi_uid_cast(rid)
+        rid = item_table.qt_cast(rid)
 
     #--------------------------------------------------------------------------
     # Misc Slots
@@ -348,6 +341,11 @@ class MainWindowBackend(QtCore.QObject):
     def backend_print(back, msg):
         'slot so guifront can print'
         print(msg)
+
+    @slot_(Exception)
+    def backend_exception(back, ex):
+        """ FIXME: This doesn't work """
+        raise ex
 
     @slot_()
     def clear_selection(back, **kwargs):
@@ -364,8 +362,8 @@ class MainWindowBackend(QtCore.QObject):
     def set_roi_prop(back, rid, key, val):
         """ Keys for propname come from gui_item_tables.fancy_headers """
         # Table Edit -> Change Chip Property
-        rid = qt_roi_uid_cast(rid)
-        val = qt_cast(val)
+        rid = item_table.qt_cast(rid)
+        val = item_table.qt_cast(val)
         key = str(key)
         print('[back] set_roi_prop(rid=%r, key=%r, val=%r)' % (rid, key, val))
         back.ibs.set_roi_props((rid,), key, (val,))
@@ -374,7 +372,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(QT_NAME_UID_TYPE, str, str)
     def set_name_prop(back, nid, key, val):
         # Table Edit -> Change name
-        nid = qt_name_uid_cast(nid)
+        nid = item_table.qt_cast(nid)
         key = str(key)
         val = str(val)
         print('[back] set_name_prop(nid=%r, key=%r, val=%r)' % (nid, key, val))
@@ -384,9 +382,9 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(QT_IMAGE_UID_TYPE, str, QtCore.QVariant)
     def set_image_prop(back, gid, key, val):
         # Table Edit -> Change Image Property
-        gid = qt_image_uid_cast(gid)
+        gid = item_table.qt_cast(gid)
         key = str(key)
-        val = qt_cast(val)
+        val = item_table.qt_cast(val)
         print('[back] set_image_prop(gid=%r, key=%r, val=%r)' % (gid, key, val))
         back.ibs.set_image_props((gid,), key, (val,))
         back.refresh_state()
@@ -581,7 +579,7 @@ class MainWindowBackend(QtCore.QObject):
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
         print('[back] delete_image')
-        gid = qt_image_uid_cast(gid)
+        gid = item_table.qt_cast(gid)
         raise NotImplementedError()
         pass
 
@@ -720,7 +718,11 @@ class MainWindowBackend(QtCore.QObject):
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
-        from ibeis.dev.all_imports import *  # NOQA
-        ibs = back.ibs  # NOQA
-        front = back.front  # NOQA
-        utool.embed()
+        from ibeis.dev import all_imports  # NOQA
+        all_imports.embed(back)
+
+    @blocking_slot()
+    def dev_cls(back):
+        """ Help -> Developer Mode"""
+        print('[back] dev_cls')
+        print('\n'.join([''] * 100))

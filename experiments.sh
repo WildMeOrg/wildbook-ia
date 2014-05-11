@@ -63,3 +63,8 @@ SNAILS()
     # Visualize hard cases
     python dev.py --db snails_drop1 -t best $HARD_SNAILS --echo-hardcase
 }
+
+
+ENCOUNTER_TAB()
+{
+    python dev.py --db PZ_MOTHERS --gui --cmd
