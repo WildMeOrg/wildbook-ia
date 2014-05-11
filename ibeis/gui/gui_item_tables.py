@@ -67,16 +67,16 @@ qt_image_uid_cast = schema_qt_castmap[DB_SCHEMA.IMAGE_UID_TYPE]
 qt_name_uid_cast  = schema_qt_castmap[DB_SCHEMA.NAME_UID_TYPE]
 
 # Table names (should reflect SQL tables)
-IMAGE_TABLE = 'images'
-ROI_TABLE   = 'rois'
-NAME_TABLE  = 'names'
-RES_TABLE   = 'res'
+IMAGE_TABLE = 'gids'
+ROI_TABLE   = 'rids'
+NAME_TABLE  = 'nids'
+QRES_TABLE   = 'qres'
 
 sqltable_names = {
-    'nids': NAME_TABLE,
-    'rids': ROI_TABLE,
     'gids': IMAGE_TABLE,
-    'res':  RES_TABLE,
+    'rids': ROI_TABLE,
+    'nids': NAME_TABLE,
+    'qres':  QRES_TABLE,
 }
 
 
@@ -106,7 +106,7 @@ table_headers = {
     IMAGE_TABLE: ['gid', 'gname', 'nRids', 'aif', 'notes', 'encounter', 'unixtime'],
     ROI_TABLE:   ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     NAME_TABLE:  ['nid', 'name', 'nRids', 'notes'],
-    RES_TABLE:   ['rank', 'score', 'name', 'rid']
+    QRES_TABLE:   ['rank', 'score', 'name', 'rid']
 }
 
 USER_MODE = utool.get_flag('--usermode')
@@ -119,14 +119,14 @@ table_editable = {
     IMAGE_TABLE: ['notes'],
     ROI_TABLE:   ['name', 'notes'],
     NAME_TABLE:  ['name', 'notes'],
-    RES_TABLE:   ['name'],
+    QRES_TABLE:   ['name'],
 }
 
 fancy_tablenames = {
     IMAGE_TABLE: 'Image Table',
     ROI_TABLE:   'ROIs Table',
     NAME_TABLE:  'Name Table',
-    RES_TABLE:   'Query Results Table',
+    QRES_TABLE:   'Query Results Table',
 }
 
 
@@ -156,7 +156,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'unixtime':  lambda gids: ibs.get_image_unixtime(gids),
             'notes':     lambda nids: ibs.get_image_notes(nids),
         }
-    elif tblname in [ROI_TABLE, RES_TABLE]:
+    elif tblname in [ROI_TABLE, QRES_TABLE]:
         # ROI_TBL_COLS \subset RES_TBL_COLS
         cols = {
             'rid':    lambda rids: rids,
@@ -168,7 +168,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
             'nFeats': lambda rids: ibs.get_roi_num_feats(rids),
             'notes':  lambda rids: ibs.get_roi_notes(rids),
         }
-        if tblname == RES_TABLE:
+        if tblname == QRES_TABLE:
             # But result table has extra cols
             cols.update({
                 'rank':   lambda cxs:  range(1, len(cxs) + 1),
@@ -242,11 +242,12 @@ def emit_populate_table(back, tblname, *args, **kwargs):
     col_fancyheaders = [fancy_headers[key]
                         if key in fancy_headers else key
                         for key in col_headers]
-    printDBG('[gui] populateSignal.emit(%r, len=%r, len=%r, len=%r, len=%r)' %
+    suffix = kwargs.get('suffix', '')
+    printDBG('[gui] populateTableSignal.emit(%r, len=%r, len=%r, len=%r, len=%r)' %
              ((tblname, len(col_fancyheaders), len(col_editable), len(row_list),
                len(datatup_list))))
-    back.populateSignal.emit(tblname, col_fancyheaders, col_editable,
-                             row_list, datatup_list)
+    back.populateTableSignal.emit(tblname, col_fancyheaders, col_editable,
+                                  row_list, datatup_list, suffix)
 
 
 def populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list):
@@ -308,3 +309,7 @@ def populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_l
     tbl.sortByColumn(sort_col, sort_ord)  # Move back to old sorting
     tbl.show()
     tbl.blockSignals(tblWasBlocked)
+
+
+def populate_encounter_tab(suffix):
+    pass

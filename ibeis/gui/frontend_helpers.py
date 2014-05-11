@@ -200,12 +200,13 @@ def newTabbedTabWidget(front, tabWidget, viewname, name, text='', **kwargs):
     return tabWidget2
 
 
-def newOutputEdit(parent, name='outputEdit'):
+def newOutputEdit(parent, name='outputEdit', visible=True):
     outputEdit = QtGui.QTextEdit(parent)
     sizePolicy = _new_size_policy(outputEdit, vstretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
     outputEdit.setObjectName(_fromUtf8(name))
+    outputEdit.setVisible(visible)
     return outputEdit
 
 

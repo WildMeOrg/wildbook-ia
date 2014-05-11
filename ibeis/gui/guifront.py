@@ -15,6 +15,11 @@ from ibeis.gui.Skeleton import Ui_mainSkel
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')
 
+
+QT_UUID_TYPE = item_table.QT_UUID_TYPE
+QUTF8      = QtGui.QApplication.UnicodeUTF8
+QTRANSLATE = QtGui.QApplication.translate
+
 #=================
 # Decorators / Helpers
 #=================
@@ -57,22 +62,13 @@ def _tee_logging(front):
 #=================
 
 
-def update_tabwidget_text(front, tblname, text):
-    tablename2_tabwidget = {
-        item_table.IMAGE_TABLE: front.ui.image_view,
-        item_table.ROI_TABLE: front.ui.roi_view,
-        item_table.NAME_TABLE: front.ui.name_view,
-        item_table.RES_TABLE: front.ui.qres_view,
-    }
+def update_tabwidget_text(front, tblname, text, suffix=''):
     ui = front.ui
-    tab_widget = tablename2_tabwidget[tblname]
-    tab_index = ui.tablesTabWidget.indexOf(tab_widget)
-    tab_text = QtGui.QApplication.translate(front.objectName(), text, None,
-                                            QtGui.QApplication.UnicodeUTF8)
-    ui.tablesTabWidget.setTabText(tab_index, tab_text)
-
-
-QT_UUID_TYPE = item_table.QT_UUID_TYPE
+    tabWidget = ui.__dict__[tblname + '_view' + suffix]
+    tabTable  = ui.__dict__['tablesTabWidget' + suffix]
+    index     = tabTable.indexOf(tabWidget)
+    tab_text  = QTRANSLATE(front.objectName(), text, None, QUTF8)
+    tabTable.setTabText(index, tab_text)
 
 
 class MainWindowFrontend(QtGui.QMainWindow):
@@ -175,20 +171,16 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     @slot_(str, list, list, list, list)
     def populate_tbl(front, tblname, col_fancyheaders, col_editable,
-                     row_list, datatup_list):
+                     row_list, datatup_list, suffix=''):
         tblname = str(tblname)
         front.print('populate_tbl(%s)' % tblname)
-        tbl = {
-            item_table.IMAGE_TABLE: front.ui.gids_TBL,
-            item_table.ROI_TABLE:   front.ui.rids_TBL,
-            item_table.NAME_TABLE:  front.ui.nids_TBL,
-            item_table.RES_TABLE:   front.ui.qres_TBL,
-        }[tblname]
+        tbl = front.ui.__dict__[tblname + '_TBL' + suffix]
+
         item_table.populate_item_table(tbl, col_fancyheaders, col_editable, row_list, datatup_list)
         # Set the tab text to show the number of items listed
         fancy_tablename = item_table.fancy_tablenames[tblname]
         text = fancy_tablename + ' : %d' % len(row_list)
-        update_tabwidget_text(front, tblname, text)
+        update_tabwidget_text(front, tblname, text, suffix)
 
     def isItemEditable(self, item):
         return int(Qt.ItemIsEditable & item.flags()) == int(Qt.ItemIsEditable)
@@ -213,7 +205,11 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_header_val(front, tbl, header, row):
         # RCOS TODO: This is hacky. These just need to be
         # in dicts to begin with.
-        tblname = str(tbl.objectName()).replace('_TBL', '')
+        tblname = str(tbl.objectName())
+        tblpos = tblname.find('_TBL')
+        header = tblname[0:tblpos]
+        suffix = tblname[tblpos + 4, :]
+        #tblname, suffix = str(tbl.objectName()).split('_TBL')
         tblname = item_table.sqltable_names[tblname]
         col = item_table.table_headers[tblname].index(header)
         return tbl.item(row, col).text()

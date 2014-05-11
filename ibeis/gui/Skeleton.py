@@ -35,13 +35,13 @@ def newEncounterTabs(front, parent, suffix=None):
                                    'tablesTabWidget' + suffix,
                                    tab_text,
                                    vstretch=10)
-    tabWidget.newTabbedTable('image_view' + suffix,
+    tabWidget.newTabbedTable('gids_view' + suffix,
                              'gids_TBL' + suffix,
                              'Image Table' + suffix)
-    tabWidget.newTabbedTable('roi_view' + suffix,
+    tabWidget.newTabbedTable('rids_view' + suffix,
                              'rids_TBL' + suffix,
                              'ROI Table' + suffix)
-    tabWidget.newTabbedTable('name_view' + suffix,
+    tabWidget.newTabbedTable('nids_view' + suffix,
                              'nids_TBL' + suffix,
                              'Name Table' + suffix)
     tabWidget.newTabbedTable('qres_view' + suffix,
@@ -71,7 +71,7 @@ def setup_ui(ui, front, back):
 
     # Split Panes
     ui.progressBar = newProgressBar(ui.splitter, visible=False)
-    ui.outputEdit  = newOutputEdit(ui.splitter)
+    ui.outputEdit  = newOutputEdit(ui.splitter, visible=False)
 
     # Menus
     setup_file_menu(ui, front, back)

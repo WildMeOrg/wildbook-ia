@@ -87,7 +87,7 @@ class MainWindowBackend(QtCore.QObject):
     Sends and recieves signals to and from the frontend
     '''
     # Backend Signals
-    populateSignal = signal_(str, list, list, list, list)
+    populateTableSignal = signal_(str, list, list, list, list, str)
     setEnabledSignal = signal_(bool)
 
     #------------------------
@@ -106,7 +106,7 @@ class MainWindowBackend(QtCore.QObject):
 
         # connect signals and other objects
         back.front = guifront.MainWindowFrontend(back=back)
-        back.populateSignal.connect(back.front.populate_tbl)
+        back.populateTableSignal.connect(back.front.populate_tbl)
         back.setEnabledSignal.connect(back.front.setEnabled)
         fig_presenter.register_qt4_win(back.front)
 
@@ -217,6 +217,13 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
     # Populate functions
     #----------------------1----------------------------------------------------
+    @utool.indent_func
+    def populate_encounter_tabs(back, **kwargs):
+        valid_eids = back.ibs.get_valid_eids()
+        suffix_list = back.ibs.get_encounter_text(valid_eids)
+        suffix_list.append('')
+        for suffix in suffix_list:
+            item_table.populate_encounter_tab(suffix)
 
     @utool.indent_func
     def populate_image_table(back, **kwargs):
@@ -239,7 +246,7 @@ class MainWindowBackend(QtCore.QObject):
             # Clear the table if there are no results
             print('[back] no results available')
             return
-        #item_table.emit_populate_table(back, item_table.RES_TABLE, index_list=[])
+        #item_table.emit_populate_table(back, item_table.QRES_TABLE, index_list=[])
         top_cxs = qres.topN_cxs(back.ibs, N='all')
         qrid = qres.qrid
         # The ! mark is used for ascii sorting. TODO: can we work around this?
@@ -250,7 +257,7 @@ class MainWindowBackend(QtCore.QObject):
         extra_cols = {
             'score':  lambda cxs:  [qres.cx2_score[rid] for rid in iter(cxs)],
         }
-        back.emit_populate_table(item_table.RES_TABLE, index_list=top_cxs,
+        back.emit_populate_table(item_table.QRES_TABLE, index_list=top_cxs,
                                  prefix_cols=prefix_cols,
                                  extra_cols=extra_cols,
                                  **kwargs)
@@ -351,7 +358,7 @@ class MainWindowBackend(QtCore.QObject):
     def default_preferences(back):
         # Button Click -> Preferences Defaults
         print('[back] default preferences')
-        raise NotImplementedError()
+        back.ibs._default_config()
 
     @blocking_slot(QT_ROI_UID_TYPE, str, str)
     def set_roi_prop(back, rid, key, val):
@@ -616,6 +623,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
         back.ibs.compute_encounters()
+        back.populate_encounters()
         back.refresh_state()
 
     #--------------------------------------------------------------------------
@@ -633,11 +641,10 @@ class MainWindowBackend(QtCore.QObject):
     def edit_preferences(back):
         """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
-        raise NotImplementedError()
-        pass
-        #back.edit_prefs = back.ibs.cfg.createQWidget()
-        #epw = back.edit_prefs
-        #epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
+        epw = back.ibs.cfg.createQWidget()
+        epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
+        epw.show()
+        back.edit_prefs = epw
         #query_uid = ''.join(back.ibs.cfg.query_cfg.get_uid())
         #print('[back] query_uid = %s' % query_uid)
         #print('')

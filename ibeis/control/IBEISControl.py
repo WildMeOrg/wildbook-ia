@@ -709,9 +709,9 @@ class IBEISControl(object):
 
     def get_valid_ids(ibs, tblname):
         get_valid_tblname_ids = {
-            'images': ibs.get_valid_gids,
-            'rois': ibs.get_valid_rids,
-            'names': ibs.get_valid_nids,
+            'gids': ibs.get_valid_gids,
+            'rids': ibs.get_valid_rids,
+            'nids': ibs.get_valid_nids,
         }[tblname]
         return get_valid_tblname_ids()
 
