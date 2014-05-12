@@ -36,7 +36,7 @@ if __DYNAMIC__:
         ('util_arg',       ['get_arg', 'get_flag', 'argv_flag_dec', 'QUIET',
                             'VERBOSE']),
         ('util_cache',     ['global_cache_read', 'global_cache_write']),
-        ('util_classes',   ['AutoReloader']),
+        #('util_classes',   ['AutoReloader']),
         ('util_cplat',     ['cmd', 'view_directory',]),
         ('util_csv',       None),
         ('util_dbg',       ['execstr_dict', 'save_testdata', 'load_testdata',
