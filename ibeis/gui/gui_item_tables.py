@@ -224,9 +224,10 @@ def _get_table_headers_editable(tblname):
 
 
 def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols={},
-                            index_list=None, prefix_cols=[]):
+                            index_list=None, prefix_cols=[], **kwargs):
+    suffix = kwargs.get('suffix')
     if index_list is None:
-        index_list = ibs.get_valid_ids(tblname)
+        index_list = ibs.get_valid_ids(tblname, suffix=suffix)
     printDBG('[tables] len(index_list) = %r' % len(index_list))
     # Prefix datatup
     prefix_datatup = [[prefix_col.get(header, 'error')
@@ -240,22 +241,22 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols=
 
 def emit_populate_table(back, tblname, *args, **kwargs):
     printDBG('>>>>>>>>>>>>>>>>>>>>>')
-    printDBG('[gui_item_tables] _populate_table(%r)' % tblname)
+    printDBG('[table_data] _populate_table(%r)' % tblname)
     col_headers, col_editable = _get_table_headers_editable(tblname)
-    #printDBG('[gui_item_tables] col_headers = %r' % col_headers)
-    #printDBG('[gui_item_tables] col_editable = %r' % col_editable)
+    #printDBG('[table_data] col_headers = %r' % col_headers)
+    #printDBG('[table_data] col_editable = %r' % col_editable)
+    suffix = kwargs.get('suffix', '')
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
-    #printDBG('[gui_item_tables] datatup_list = %r' % datatup_list)
+    #printDBG('[table_data] datatup_list = %r' % datatup_list)
     row_list = range(len(datatup_list))
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers.get(key, key) for key in col_headers]
     col_types = [header_typemap.get(key) for key in col_headers]
-    suffix = kwargs.get('suffix', '')
-    #printDBG('[gui] populateTableSignal.emit(%r, len=%r, len=%r, len=%r, len=%r, len=%r)' %
+    #printDBG('[table_data] populateTableSignal.emit(%r, len=%r, len=%r, len=%r, len=%r, len=%r)' %
              #((tblname, len(col_fancyheaders), len(col_types), len(col_editable), len(row_list),
                #len(datatup_list))))
-    printDBG('[gui] populateTableSignal.emit(%r, len=%r)' % (tblname, len(col_fancyheaders)))
+    printDBG('[table_data] populateTableSignal.emit(%r, len=%r)' % (tblname, len(col_fancyheaders)))
     back.populateTableSignal.emit(tblname,
                                   col_fancyheaders,
                                   col_editable,
@@ -354,5 +355,6 @@ def populate_item_table(tbl,
     tbl.blockSignals(tblWasBlocked)
 
 
-def populate_encounter_tab(suffix):
-    pass
+def populate_encounter_tab(front, suffix):
+    print('[table_data] popultate_encounter_tab')
+    front.ui.ensureEncounterTab(front, suffix)

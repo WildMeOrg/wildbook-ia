@@ -210,25 +210,36 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
     # Populate functions
     #----------------------1----------------------------------------------------
+
+    def encounter_suffix_generator(back):
+        valid_eids = back.ibs.get_valid_eids()
+        suffix_list = [''] + back.ibs.get_encounter_text(valid_eids)
+        for suffix in suffix_list:
+            yield suffix
+
     @utool.indent_func
     def populate_encounter_tabs(back, **kwargs):
-        valid_eids = back.ibs.get_valid_eids()
-        suffix_list = back.ibs.get_encounter_text(valid_eids)
-        suffix_list.append('')
-        for suffix in suffix_list:
-            item_table.populate_encounter_tab(suffix)
+        for suffix in back.encounter_suffix_generator():
+            item_table.populate_encounter_tab(back.front,
+                                              suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_image_table(back, **kwargs):
-        item_table.emit_populate_table(back, item_table.IMAGE_TABLE, **kwargs)
+        for suffix in back.encounter_suffix_generator():
+            item_table.emit_populate_table(back, item_table.IMAGE_TABLE,
+                                           suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_name_table(back, **kwargs):
-        item_table.emit_populate_table(back, item_table.NAME_TABLE, **kwargs)
+        for suffix in back.encounter_suffix_generator():
+            item_table.emit_populate_table(back, item_table.NAME_TABLE,
+                                           suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_roi_table(back, **kwargs):
-        item_table.emit_populate_table(back, item_table.ROI_TABLE, **kwargs)
+        for suffix in back.encounter_suffix_generator():
+            item_table.emit_populate_table(back, item_table.ROI_TABLE,
+                                           suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_result_table(back, **kwargs):
@@ -255,7 +266,10 @@ class MainWindowBackend(QtCore.QObject):
                                  extra_cols=extra_cols,
                                  **kwargs)
 
-    def populate_tables(back, image=True, roi=True, name=True, qres=True):
+    def populate_tables(back, image=True, roi=True, name=True, qres=True,
+                        encounter=True):
+        if encounter:
+            back.populate_encounter_tabs()
         if image:
             back.populate_image_table()
         if roi:
@@ -621,7 +635,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
         back.ibs.compute_encounters()
-        back.populate_encounters()
+        back.populate_encounter_tabs()
         back.refresh_state()
 
     #--------------------------------------------------------------------------

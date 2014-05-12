@@ -206,8 +206,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
                      datatup_list,
                      suffix=''):
         tblname = str(tblname)
-        front.print('populate_tbl(%s)' % tblname)
-        tbl = front.get_tabTable(tblname, suffix)
+        suffix = str(suffix)
+        print('populate_tbl(%r, %r)' % (tblname, suffix,))
+        try:
+            tbl = front.get_tabTable(tblname, suffix)
+        except KeyError:
+            print('tbl not found')
+            return
 
         try:
             gui_item_tables.populate_item_table(tbl, col_fancyheaders, col_editable,
@@ -239,7 +244,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     def get_tabTable(front, tblname, suffix):
         """ tblname in ['gids', 'rids', 'nids', 'qres'] """
-        tableWidget = front.ui.__dict__[str(tblname + '_TBL' + suffix)]
+        try:
+            tableWidget = front.ui.__dict__[str(tblname + '_TBL' + suffix)]
+        except KeyError:
+            raise
         return tableWidget
 
     #=======================
@@ -271,22 +279,6 @@ class MainWindowFrontend(QtGui.QMainWindow):
         col = gui_item_tables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
-    #=======================
-    # Specific Item Getters
-    #=======================
-
-    def get_roitbl_header(front, col):
-        return front.get_tbl_header(front.get_tabTable('rids'), col)
-
-    def get_imgtbl_header(front, col):
-        return front.get_tbl_header(front.ui.gids_TBL, col)
-
-    def get_qrestbl_header(front, col):
-        return front.get_tbl_header(front.ui.qres_TBL, col)
-
-    def get_nametbl_header(front, col):
-        return front.get_tbl_header(front.ui.nids_TBL, col)
-
     @slot_(QtGui.QTableWidgetItem)
     def uid_tbl_pressed(front, item):
         """ Keeps track of item state: i.e. if text or check value is changed """
@@ -307,28 +299,28 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def gids_tbl_changed(front, row, col, tbl, new_val):
         front.print('gids_tbl_changed()')
         sel_gid = UUID_TYPE(front.get_header_val(tbl, 'gid', row))
-        header_lbl = front.get_imgtbl_header(col)
+        header_lbl = front.get_tbl_header(tbl, col)
         front.setGidPropSignal.emit(sel_gid, header_lbl, new_val)
 
     @uid_tbl_changed
     def rids_tbl_changed(front, row, col, tbl, new_val):
         front.print('rids_tbl_changed()')
         sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))  # Get selected roiid
-        header_lbl = front.get_roitbl_header(col)  # Get changed column
+        header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @uid_tbl_changed
     def qres_tbl_changed(front, row, col, tbl, new_val):
         front.print('qres_tbl_changed()')
         sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))  # The changed row's roi id
-        header_lbl = front.get_qrestbl_header(col)  # Get changed column
+        header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @uid_tbl_changed
     def nids_tbl_changed(front, row, col, tbl, new_val):
         front.print('nids_tbl_changed()')
         sel_nid = UUID_TYPE(front.get_header_val(tbl, 'nid', row))    # The changed row's name index
-        header_lbl = front.get_nametbl_header(col)  # Get changed column
+        header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
         front.aliasNidSignal.emit(sel_nid, header_lbl, new_val)
 
     #=======================

@@ -707,13 +707,13 @@ class IBEISControl(object):
             (table, prop_key))
         return list(property_list)
 
-    def get_valid_ids(ibs, tblname):
+    def get_valid_ids(ibs, tblname, suffix=''):
         get_valid_tblname_ids = {
             'gids': ibs.get_valid_gids,
             'rids': ibs.get_valid_rids,
             'nids': ibs.get_valid_nids,
         }[tblname]
-        return get_valid_tblname_ids()
+        return get_valid_tblname_ids(suffix)
 
     def get_chip_props(ibs, prop_key, cid_list):
         """ general chip property getter """
@@ -738,13 +738,28 @@ class IBEISControl(object):
     #
     # GETTERS::IMAGE
 
-    @getter_general
-    def get_valid_gids(ibs):
-        gid_list = ibs.db.executeone(
+    def _get_all_gids(ibs):
+        return ibs.db.executeone(
             operation='''
             SELECT image_uid
             FROM images
             ''')
+
+    @getter_general
+    def get_valid_gids(ibs, suffix=''):
+        eid = ibs.get_encounter_eids(suffix)
+        all_gids = ibs._get_all_gids()
+        if (suffix == '' or suffix is None or suffix == 'None'):
+            gid_list = all_gids
+        else:
+            gid_in_suffix = ibs.db.executeone(
+                operation='''
+                SELECT image_uid
+                FROM egpairs
+                WHERE encounter_uid=?
+                ''',
+                parameters=(eid,))
+            gid_list = utool.intersect_ordered(gid_in_suffix, all_gids)
         return gid_list
 
     @getter
@@ -884,7 +899,7 @@ class IBEISControl(object):
     #@getter_general
 
     @getter_general
-    def get_valid_rids(ibs):
+    def get_valid_rids(ibs, suffix=''):
         """ returns a list of vaoid ROI unique ids """
         rid_list = ibs.db.executeone(
             operation='''
@@ -1286,7 +1301,7 @@ class IBEISControl(object):
     # GETTERS::NAME
 
     @getter_general
-    def get_valid_nids(ibs):
+    def get_valid_nids(ibs, suffix=''):
         """ Returns all valid names with at least one animal
         (does not include unknown names) """
         _nid_list = ibs.db.executeone(

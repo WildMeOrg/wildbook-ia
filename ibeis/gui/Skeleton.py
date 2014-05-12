@@ -11,7 +11,12 @@ from ibeis.gui.frontend_helpers import *  # NOQA
 
 class Ui_mainSkel(object):
     def setupUi(ui, front):
+        ui.suffix_dict = {}
         setup_ui(ui, front, front.back)
+        ui.postsetupUI()
+        ui.tablesTabWidget.setCurrentIndex(0)
+        QtCore.QMetaObject.connectSlotsByName(front)
+        ui.retranslateUi(front)
 
     def postsetupUI(ui):
         print('[skel] Calling Postsetup')
@@ -23,13 +28,23 @@ class Ui_mainSkel(object):
         for func in ui.retranslatable_fns:
             func()
 
+    def ensureEncounterTab(ui, front, suffix):
+        """ Ensure encounter tab for specific suffix """
+        parent = ui.encountersTabWidget
+        if suffix == '' or suffix == 'None':
+            suffix = None
+        if not suffix in ui.suffix_dict:
+            tabWidget = newEncounterTabs(front, parent, suffix=suffix)
+            ui.suffix_dict[suffix] = tabWidget
+        ui.retranslateUi(front)
+
 
 def newEncounterTabs(front, parent, suffix=None):
-    if suffix is None:
+    if suffix is None or suffix == 'None' or suffix == '':
         tab_text = 'database'
         suffix = ''
     else:
-        tab_text = 'encounter' + suffix
+        tab_text = 'encounter' + str(suffix)
     tabWidget = newTabbedTabWidget(front, parent,
                                    'tablesView' + suffix,
                                    'tablesTabWidget' + suffix,
@@ -63,8 +78,8 @@ def setup_ui(ui, front, back):
     setup_main_layout(ui, front, back)
 
     # ENCOUNTER SUPERTABS
-    encountersTabWidget  = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
-    newEncounterTabs(front, encountersTabWidget, suffix=None)
+    ui.encountersTabWidget  = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
+    ui.ensureEncounterTab(front, suffix=None)
     #newEncounterTabs(front, encountersTabWidget, suffix='1')
     #newEncounterTabs(front, encountersTabWidget, suffix='2')
 
@@ -84,12 +99,6 @@ def setup_ui(ui, front, back):
     setup_option_menu(ui, front, back)
     setup_help_menu(ui, front, back)
     setup_developer_menu(ui, front, back)
-
-    ui.postsetupUI()
-
-    ui.tablesTabWidget.setCurrentIndex(0)
-    QtCore.QMetaObject.connectSlotsByName(front)
-    ui.retranslateUi(front)
 
 
 def setup_file_menu(ui, front, back):
