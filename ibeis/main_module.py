@@ -106,7 +106,7 @@ def __import_parallel_modules():
     # so they are accessable when the program forks
     from utool import util_sysreq
     util_sysreq.ensure_in_pythonpath('hesaff')
-    util_sysreq.ensure_in_pythonpath('rf')
+    util_sysreq.ensure_in_pythonpath('pyrf')
     import pyhesaff  # NOQA
     #import pyrf  # NOQA
     from ibeis.model.preproc import preproc_chip  # NOQA
