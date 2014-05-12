@@ -174,7 +174,7 @@ class IBEISControl(object):
 
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = sqldbc.SQLDBControl(ibs.get_ibsdir(), ibs.sqldb_fname)
+        ibs.db = sqldbc.SQLDatabaseControl(ibs.get_ibsdir(), ibs.sqldb_fname)
         #OFF printDBG('[ibs._init_sql] Define the schema.')
         DB_SCHEMA.define_IBEIS_schema(ibs)
         #OFF printDBG('[ibs._init_sql] Add default names.')
@@ -579,6 +579,10 @@ class IBEISControl(object):
     def set_image_notes(ibs, gid_list, notes_list):
         """ Sets the image all instances found bit """
         ibs.set_table_props('images', 'image_notes', gid_list, notes_list)
+
+    def set_image_unixtime(ibs, gid_list, unixtime_list):
+        """ Sets the image unixtime (does not modify exif yet) """
+        ibs.set_table_props('images', 'image_exif_time_posix', gid_list, unixtime_list)
 
     @setter
     def set_image_encounters(ibs, gid_list, encountertext_list):

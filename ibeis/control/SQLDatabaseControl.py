@@ -57,7 +57,7 @@ class SQLDatabaseControl(object):
         """ Sanatizes an sql table and column. Use sparingly """
         table = re.sub('[^a-z_]', '', table)
         valid_tables = db.get_tables()
-        if not table in valid_tables:
+        if table not in valid_tables:
             raise Exception('UNSAFE TABLE: table=%r' % table)
         if columns is None:
             return table
@@ -65,7 +65,7 @@ class SQLDatabaseControl(object):
             def _sanitize_sql_helper(column):
                 column = re.sub('[^a-z_]', '', column)
                 valid_columns = db.get_column_names(table)
-                if not column in valid_columns:
+                if column not in valid_columns:
                     raise Exception('UNSAFE COLUMN: table=%r column=%r' %
                                     (table, column))
                     return None
@@ -180,8 +180,8 @@ class SQLDatabaseControl(object):
                     slots of the sql operation string
         """
         #if verbose:
-            #caller_name = utool.util_dbg.get_caller_name()
-            #print('[sql] %r called execute' % caller_name)
+        #    caller_name = utool.util_dbg.get_caller_name()
+        #    print('[sql] %r called execute' % caller_name)
         status = False
         try:
             status = db.executor.execute(operation, parameters)
@@ -197,8 +197,8 @@ class SQLDatabaseControl(object):
                    verbose=VERBOSE):
         """ Runs execute and returns results """
         #if verbose:
-            #caller_name = utool.util_dbg.get_caller_name()
-            #print('[sql] %r called executeone' % caller_name)
+        #    caller_name = utool.util_dbg.get_caller_name()
+        #    print('[sql] %r called executeone' % caller_name)
         operation_type = get_operation_type(operation)
         operation_label = '[sql] executeone %s: ' % (operation_type)
         if not QUIET:
@@ -235,13 +235,13 @@ class SQLDatabaseControl(object):
                     column_N=?
                 )
                 '''
-            parameter_list - an iterable of parameters
+            params_iter - an iterable of parameters
                 e.g.
-                parameter_list = [(col1, colN),
-                                  ...,
-                                   (col1, ... colN),
-                                    ]
-
+                params_iter = [
+                    (col1, ..., colN),
+                           ...,
+                    (col1, ..., colN),
+                ]
 
         same as execute but takes a iterable of parameters instead of just one
         This function is a bit messy right now. Needs cleaning up
@@ -383,5 +383,12 @@ class SQLDatabaseControl(object):
             for line in db.connection.iterdump():
                 file_.write('%s\n' % line)
 
-
-SQLDBControl = SQLDatabaseControl
+    def dump_tables_to_csv(db):
+        """ Dumps all csv database files to disk """
+        dump_dir = join(db.dir_, 'CSV_DUMP')
+        utool.ensuredir(dump_dir)
+        for table in db.table_columns.iterkeys():
+            table_fname = table + '.csv'
+            table_csv = db.get_table_csv(table)
+            with open(join(dump_dir, table_fname), 'w') as file_:
+                file_.write(table_csv)

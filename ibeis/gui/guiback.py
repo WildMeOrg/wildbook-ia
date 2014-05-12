@@ -373,7 +373,7 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs._default_config()
 
     @blocking_slot(QT_ROI_UID_TYPE, str, str)
-    def set_roi_prop(back, rid, key, val):
+    def set_roi_prop(back, rid, key, val, refresh=True):
         """ Keys for propname come from gui_item_tables.fancy_headers """
         # Table Edit -> Change Chip Property
         rid = item_table.qt_cast(rid)
@@ -381,27 +381,30 @@ class MainWindowBackend(QtCore.QObject):
         key = str(key)
         print('[back] set_roi_prop(rid=%r, key=%r, val=%r)' % (rid, key, val))
         back.ibs.set_roi_props((rid,), key, (val,))
-        back.refresh_state()
+        if refresh:
+            back.refresh_state()
 
     @blocking_slot(QT_NAME_UID_TYPE, str, str)
-    def set_name_prop(back, nid, key, val):
+    def set_name_prop(back, nid, key, val, refresh=True):
         # Table Edit -> Change name
         nid = item_table.qt_cast(nid)
         key = str(key)
         val = str(val)
         print('[back] set_name_prop(nid=%r, key=%r, val=%r)' % (nid, key, val))
         back.ibs.set_name_props((nid,), key, (val,))
-        back.refresh_state()
+        if refresh:
+            back.refresh_state()
 
     @blocking_slot(QT_IMAGE_UID_TYPE, str, QtCore.QVariant)
-    def set_image_prop(back, gid, key, val):
+    def set_image_prop(back, gid, key, val, refresh=True):
         # Table Edit -> Change Image Property
         gid = item_table.qt_cast(gid)
         key = str(key)
         val = item_table.qt_cast(val)
         print('[back] set_image_prop(gid=%r, key=%r, val=%r)' % (gid, key, val))
         back.ibs.set_image_props((gid,), key, (val,))
-        back.refresh_state()
+        if refresh:
+            back.refresh_state()
 
     #--------------------------------------------------------------------------
     # File Slots
@@ -466,7 +469,7 @@ class MainWindowBackend(QtCore.QObject):
         raise NotImplementedError()
 
     @blocking_slot()
-    def import_images(back, gpath_list=None, dir_=None):
+    def import_images(back, gpath_list=None, dir_=None, refresh=True):
         """ File -> Import Images (ctrl + i)"""
         print('[back] import_images')
         reply = None
@@ -477,13 +480,14 @@ class MainWindowBackend(QtCore.QObject):
                 options=['Files', 'Directory'],
                 use_cache=False)
         if reply == 'Files' or gpath_list is not None:
-            gid_list = back.import_images_from_file(gpath_list=gpath_list)
+            gid_list = back.import_images_from_file(gpath_list=gpath_list,
+                                                    refresh=refresh)
         if reply == 'Directory' or dir_ is not None:
-            gid_list = back.import_images_from_dir(dir_=dir_)
+            gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh)
         return gid_list
 
     @blocking_slot()
-    def import_images_from_file(back, gpath_list=None):
+    def import_images_from_file(back, gpath_list=None, refresh=True):
         print('[back] import_images_from_file')
         """ File -> Import Images From File"""
         if back.ibs is None:
@@ -491,11 +495,12 @@ class MainWindowBackend(QtCore.QObject):
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list)
-        back.populate_image_table()
+        if refresh:
+            back.populate_image_table()
         return gid_list
 
     @blocking_slot()
-    def import_images_from_dir(back, dir_=None):
+    def import_images_from_dir(back, dir_=None, refresh=True):
         print('[back] import_images_from_dir')
         """ File -> Import Images From Directory"""
         if dir_ is None:
@@ -503,7 +508,8 @@ class MainWindowBackend(QtCore.QObject):
         printDBG('[back] dir=%r' % dir_)
         gpath_list = utool.list_images(dir_, fullpath=True)
         gid_list = back.ibs.add_images(gpath_list)
-        back.populate_image_table()
+        if refresh:
+            back.populate_image_table()
         return gid_list
         #print('')
 
@@ -526,7 +532,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def add_roi(back, gid=None, bbox=None, theta=0.0):
+    def add_roi(back, gid=None, bbox=None, theta=0.0, refresh=True):
         """ Action -> Add ROI"""
         print('[back] add_roi')
         if gid is None:
@@ -536,13 +542,14 @@ class MainWindowBackend(QtCore.QObject):
         printDBG('[back.add_roi] * adding bbox=%r' % bbox)
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
         printDBG('[back.add_roi] * added rid=%r' % rid)
-        back.populate_tables()
-        back.show_image(gid)
+        if refresh:
+            back.populate_tables()
+            back.show_image(gid)
         #back.select_gid(gid, rids=[rid])
         return rid
 
     @blocking_slot()
-    def reselect_roi(back, rid=None, bbox=None, **kwargs):
+    def reselect_roi(back, rid=None, bbox=None, refresh=True, **kwargs):
         """ Action -> Reselect ROI"""
         if rid is None:
             rid = back.get_selected_rid()
@@ -551,8 +558,9 @@ class MainWindowBackend(QtCore.QObject):
             bbox = back.select_bbox(gid)
         print('[back] reselect_roi')
         back.ibs.set_roi_bboxes([rid], [bbox])
-        back.populate_tables()
-        back.show_image(gid)
+        if refresh:
+            back.populate_tables()
+            back.show_image(gid)
 
     @blocking_slot()
     def query(back, rid=None, **kwargs):
@@ -565,13 +573,14 @@ class MainWindowBackend(QtCore.QObject):
         back.show_qres(qres)
 
     @blocking_slot()
-    def detect_grevys(back):
+    def detect_grevys(back, refresh=True):
         print('[back] detect_grevys()')
         ibs = back.ibs
         gid_list = ibs.get_valid_gids()
         path_list = ibs.get_image_detectpaths(gid_list)
         ibs.detect_random_forest(gid_list, path_list, 'zebra_grevys')
-        back.populate_tables()
+        if refresh:
+            back.populate_tables()
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
@@ -616,11 +625,12 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def precompute_feats(back):
+    def precompute_feats(back, refresh=True):
         """ Batch -> Precompute Feats"""
         print('[back] precompute_feats')
         ibsfuncs.compute_all_features(back.ibs)
-        back.refresh_state()
+        if refresh:
+            back.refresh_state()
         pass
 
     @blocking_slot()
@@ -631,12 +641,12 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def compute_encounters(back):
+    def compute_encounters(back, refresh=True):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
         back.ibs.compute_encounters()
-        back.populate_encounter_tabs()
-        back.refresh_state()
+        if refresh:
+            back.refresh_state()
 
     #--------------------------------------------------------------------------
     # Option menu slots
@@ -747,3 +757,4 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] dev_dumpdb')
         back.ibs.db.dump()
         utool.view_directory(back.ibs._ibsdb)
+        back.ibs.db.dump_tables_to_csv()

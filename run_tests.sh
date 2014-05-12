@@ -124,6 +124,8 @@ EOF
 
     RUN_TEST ibeis/tests/test_ibs_add_images.py
 
+    RUN_TEST ibeis/tests/test_ibs_encounters.py
+
     RUN_TEST ibeis/tests/test_ibs_chip_compute.py
 
     RUN_TEST ibeis/tests/test_ibs_feat_compute.py

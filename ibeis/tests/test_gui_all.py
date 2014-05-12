@@ -34,11 +34,14 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     print('[TEST] CREATE_NEW_DATABASE')
     back.new_database(new_dbdir)
     ibs = back.ibs  # The backend has a new ibeis do not use the old one
+
+    # Dont refresh for speed
+    _kwargs = {'refresh': False}
     #
     #
     # IMPORT IMAGES
     print('[TEST] IMPORT_TEST_GPATHS')
-    gid_list = back.import_images(gpath_list=gpath_list)
+    gid_list = back.import_images(gpath_list=gpath_list, **_kwargs)
     print('\n'.join('  * gid_list[%d] = %r' % (count, gid) for count, gid in enumerate(gid_list)))
     assert len(gid_list) == len(gpath_list)
     #
@@ -46,7 +49,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     # ADD ROIS
     print('[TEST] ADD_ROIS')
     def add_roi(gid, bbox, theta=0.0):
-        rid = back.add_roi(gid=gid, bbox=bbox, theta=theta)
+        rid = back.add_roi(gid=gid, bbox=bbox, theta=theta, **_kwargs)
         return rid
 
     rid1 = add_roi(gid_list[0], [50, 50, 100, 100], (np.tau / 8))
@@ -65,10 +68,10 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     #back.select_rid(rid_list[2])
 
     # Keys for propname come from gui_item_tables.fancy_headers
-    back.set_roi_prop(rid_list[0], 'name', 'testname1')
-    back.set_roi_prop(rid_list[1], 'name', 'testname2')
-    back.set_roi_prop(rid_list[0], 'name', 'testname1')
-    back.set_roi_prop(rid_list[2], 'name', '____')
+    back.set_roi_prop(rid_list[0], 'name', 'testname1', **_kwargs)
+    back.set_roi_prop(rid_list[1], 'name', 'testname2', **_kwargs)
+    back.set_roi_prop(rid_list[0], 'name', 'testname1', **_kwargs)
+    back.set_roi_prop(rid_list[2], 'name', '____', **_kwargs)
 
     name_list = ibs.get_roi_names(rid_list)
     target_name_list = ['testname1', 'testname2', '____3', '____4', '____5']
@@ -80,27 +83,34 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
 
     # Test name props
     nid_list = ibs.get_valid_nids()
-    back.set_name_prop(nid_list[0], 'notes', 'notes of a name')
-    back.set_name_prop(nid_list[0], 'name', 'aliased name')
+    back.set_name_prop(nid_list[0], 'notes', 'notes of a name', **_kwargs)
+    back.set_name_prop(nid_list[0], 'name', 'aliased name', **_kwargs)
 
     # Test image props
-    back.set_image_prop(gid_list[0], 'notes', 'notes of an image')
-    back.set_image_prop(gid_list[1], 'aif', True)
+    back.set_image_prop(gid_list[0], 'notes', 'notes of an image', **_kwargs)
+    back.set_image_prop(gid_list[1], 'aif', True, **_kwargs)
 
     back.set_view(1)
 
-    back.set_roi_prop(rid_list[1], 'notes', 'Lena')
-    back.set_roi_prop(rid_list[2], 'notes', 'This is, a small ROI on jeff')
+    back.set_roi_prop(rid_list[1], 'notes', 'Lena', **_kwargs)
+    back.set_roi_prop(rid_list[2], 'notes', 'This is, a small ROI on jeff', **_kwargs)
     assert ibs.get_roi_notes(rid_list) == [u'', u'Lena', u'This is, a small ROI on jeff', u'', u'']
 
-    back.set_image_prop(gid_list[0], 'aif', True)
-    back.set_image_prop(gid_list[1], 'aif', False)
+    back.set_image_prop(gid_list[0], 'aif', True, **_kwargs)
+    back.set_image_prop(gid_list[1], 'aif', False, **_kwargs)
     assert ibs.get_image_aifs(gid_list) == [1, 0, 0]
 
-    back.select_rid(rid_list[0], show_image=True)
+    back.select_rid(rid_list[0], show_image=True, **_kwargs)
     assert ibs.get_roi_bboxes(rid_list[0]) == (50, 50, 100, 100)
     back.reselect_roi(bbox=[51, 52, 103, 104])
     assert ibs.get_roi_bboxes(rid_list[0]) == (51, 52, 103, 104)
+
+    back.compute_encounters()
+
+    unixtime_list = [100, 23, 24]
+    ibs.set_image_unixtime(gid_list, unixtime_list)
+
+    back.compute_encounters()
 
     # Change some ROIs
 

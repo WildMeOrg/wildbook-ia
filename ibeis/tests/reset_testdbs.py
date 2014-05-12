@@ -9,7 +9,7 @@ sys.path.append(expanduser('~/code/hesaff'))
 import ibeis
 from ibeis.dev import sysres
 import utool
-from ibeis.injest import injest_testdata
+from ibeis.injest import injest_testdb1
 from vtool.tests import grabdata
 
 workdir = ibeis.sysres.get_workdir()
@@ -43,7 +43,7 @@ def reset_testdbs():
     grabdata.ensure_testdata()
     delete_testdbs()
     make_testdb0()
-    injest_testdata.injest_testdata()
+    injest_testdb1.injest_testdb1()
 
 
 if __name__ == '__main__':

@@ -15,10 +15,10 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_COMPUTE_DE
 def TEST_COMPUTE_DETECTIMG(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
     print('get_valid_ROIS')
-    rid_list = ibs.get_valid_rids()
-    assert len(rid_list) > 0, 'database rois cannot be empty for TEST_COMPUTE_DETECTIMG'
-    print(' * len(rid_list) = %r' % len(rid_list))
-    preproc_detectimg.compute_and_write_detectimg(ibs, rid_list)
+    gid_list = ibs.get_valid_gids()
+    assert len(gid_list) > 0, 'database rois cannot be empty for TEST_COMPUTE_DETECTIMG'
+    print(' * len(gid_list) = %r' % len(gid_list))
+    preproc_detectimg.compute_and_write_detectimg(ibs, gid_list)
     return locals()
 
 

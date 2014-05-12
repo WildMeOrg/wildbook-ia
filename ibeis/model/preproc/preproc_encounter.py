@@ -22,6 +22,10 @@ def compute_encounters(ibs, seconds_thresh=15):
     valid_gid_list = gid_list[isvalid_list]
     valid_unixtimes = unixtime_list[isvalid_list]
 
+    if len(valid_gid_list) == 0:
+        print('WARNING: No unixtime data to compute encounters with')
+        return [], []
+
     # Agglomerative clustering of unixtimes
     # fclusterdata requires 2d input
     X_data = np.vstack([valid_unixtimes, np.zeros(valid_unixtimes.size)]).T
