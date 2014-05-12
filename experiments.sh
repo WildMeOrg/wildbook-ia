@@ -67,4 +67,7 @@ SNAILS()
 
 ENCOUNTER_TAB()
 {
+    #python dev.py --db PZ_MOTHERS --convert --cmd 
+    #ibs.compute_encounters()
     python dev.py --db PZ_MOTHERS --gui --cmd
+}
