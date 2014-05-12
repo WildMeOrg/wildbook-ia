@@ -310,6 +310,7 @@ class IBEISControl(object):
             ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
+        """
         #gid_list = ibs.db.executemany(
             #operation='''
             #SELECT image_uid
@@ -317,6 +318,7 @@ class IBEISControl(object):
             #WHERE image_uuid=?
             #''',
             #params_iter=[(img_uuid,) for img_uuid in img_uuid_list])
+        """
         # This should solve the ordering issue
         gid_list = ibs.db.executemany(
             operation='''

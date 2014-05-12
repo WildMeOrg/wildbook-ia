@@ -128,6 +128,8 @@ EOF
 
     RUN_TEST ibeis/tests/test_ibs_feat_compute.py
 
+    RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py
+
     RUN_TEST ibeis/tests/test_ibs_query.py
 
     RUN_TEST ibeis/tests/test_ibs_query_components.py

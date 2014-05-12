@@ -13,6 +13,7 @@ from .util_progress import progress_func
 from .util_time import tic, toc
 from . import util_arg
 from .util_cplat import WIN32
+from .util_dbg import printex
 
 
 QUIET   = util_arg.QUIET
@@ -20,7 +21,9 @@ VERBOSE = util_arg.VERBOSE
 
 __POOL__ = None
 __TIME__ = '--time' in sys.argv
+__SERIAL_FALLBACK__ = '--noserial-fallback' not in sys.argv
 __NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
+__FORCE_SERIAL__ = util_arg.get_flag('--utool-force-serial')
 
 
 def get_default_numprocs():
@@ -42,11 +45,10 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     if num_procs is None:
         # Get number of cpu cores
         num_procs = get_default_numprocs()
-    if not QUIET and VERBOSE:
+    if not QUIET:
         print('[parallel] initializing pool with %d processes' % num_procs)
     if num_procs == 1:
-        if VERBOSE:
-            print('[parallel] num_procs=1, Will process in serial')
+        print('[parallel] num_procs=1, Will process in serial')
         __POOL__ = 1
         return
     if '--strict' in sys.argv:
@@ -65,7 +67,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
 def close_pool():
     global __POOL__
     if __POOL__ is not None:
-        if not QUIET and VERBOSE:
+        if not QUIET:
             print('[parallel] closing pool')
         if not isinstance(__POOL__, int):
             # Must join after close to avoid runtime errors
@@ -112,37 +114,59 @@ def _process_parallel(func, args_list, args_dict={}):
     return result_list
 
 
-def generate(func, args_list, force_serial=False):
-    """ Returns a generator which asynchronously returns results """
+def _generate_parallel(func, args_list, mark_prog):
+    print('[parallel] executing %d %s tasks using %d processes' %
+            (len(args_list), func.func_name, __POOL__._processes))
+    generator = __POOL__.imap_unordered(func, args_list)
+    try:
+        for count, result in enumerate(generator):
+            mark_prog(count)
+            yield result
+    except Exception as ex:
+        printex(ex, 'Parallel Generation Failed!', '[utool]')
+        print('__SERIAL_FALLBACK__ = %r' % __SERIAL_FALLBACK__)
+        if __SERIAL_FALLBACK__:
+            for result in _generate_serial(func, args_list, mark_prog):
+                yield result
+        else:
+            raise
+
+
+def _generate_serial(func, args_list, mark_prog):
+    print('[parallel] executing %d %s tasks in serial' %
+            (len(args_list), func.func_name))
+    for count, args in enumerate(args_list):
+        mark_prog(count)
+        result = func(args)
+        yield result
+
+
+def ensure_pool():
     try:
         assert __POOL__ is not None, 'must init_pool() first'
-    except AssertionError:
+    except AssertionError as ex:
+        print('(WARNING) AssertionError: ' + str(ex))
         init_pool()
+
+
+def generate(func, args_list, force_serial=__FORCE_SERIAL__):
+    """ Returns a generator which asynchronously returns results """
+    ensure_pool()
     num_tasks = len(args_list)
     mark_prog, end_prog = progress_func(max_val=num_tasks, lbl=func.func_name + ': ')
-    args_list
     if __TIME__:
         tt = tic(func.func_name)
     if isinstance(__POOL__, int) or force_serial:
-        print('[parallel] executing %d %s tasks in serial' %
-              (len(args_list), func.func_name))
-        for count, args in enumerate(args_list):
-            mark_prog(count)
-            result = func(args)
-            yield result
+        return _generate_serial(func, args_list, mark_prog)
     else:
-        print('[parallel] executing %d %s tasks using %d processes' %
-              (len(args_list), func.func_name, __POOL__._processes))
-        for count, result in enumerate(__POOL__.imap_unordered(func, args_list)):
-            mark_prog(count)
-            yield result
+        return _generate_parallel(func, args_list, mark_prog)
     if __TIME__:
         toc(tt)
     end_prog()
 
 
-def process(func, args_list, args_dict={}, force_serial=False):
-    assert __POOL__ is not None, 'must init_pool() first'
+def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):
+    ensure_pool()
     if __POOL__ == 1 or force_serial:
         if not QUIET:
             print('[parallel] executing %d %s tasks in serial' %

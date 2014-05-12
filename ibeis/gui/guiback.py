@@ -740,3 +740,10 @@ class MainWindowBackend(QtCore.QObject):
         """ Help -> Developer Mode"""
         print('[back] dev_cls')
         print('\n'.join([''] * 100))
+
+    @blocking_slot()
+    def dev_dumpdb(back):
+        """ Help -> Developer Mode"""
+        print('[back] dev_dumpdb')
+        back.ibs.db.dump()
+        utool.view_directory(back.ibs._ibsdb)

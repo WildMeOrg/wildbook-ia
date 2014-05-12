@@ -14,9 +14,9 @@ import vtool.image as gtool
 def gen_detectimg_and_write(tup):
     """ worker function for parallel generator """
     gid, gfpath, new_gfpath, new_size = tup
+    print('[preproc] writing detectimg: %r' % new_gfpath)
     img = gtool.imread(gfpath)
     new_img = gtool.resize(img, new_size)
-    #printDBG('write detectimg: %r' % new_gfpath)
     gtool.imwrite(new_gfpath, new_img)
     return gid, new_gfpath
 
@@ -25,17 +25,17 @@ def gen_detectimg_and_write(tup):
 def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
                         newsize_list, nImgs=None):
     """ Resizes images and yeilds results asynchronously  """
-    # Compute and write chips in asychronous process
+    # Compute and write detectimg in asychronous process
     if nImgs is None:
         nImgs = len(gid_list)
-    arg_iter = izip(gfpath_list, new_gfpath_list, newsize_list)
+    arg_iter = izip(gid_list, gfpath_list, new_gfpath_list, newsize_list)
     arg_list = list(arg_iter)
     return utool.util_parallel.generate(gen_detectimg_and_write, arg_list)
 
 
 @utool.indent_func
 def get_image_detectimg_fpath_list(ibs, gid_list):
-    """ Returns chip path list """
+    """ Returns detectimg path list """
     utool.assert_all_not_None(gid_list, 'gid_list')
     gext_list    = ibs.get_image_exts(gid_list)
     guuid_list   = ibs.get_image_uuids(gid_list)
@@ -48,33 +48,33 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
 @utool.indent_func
 def compute_and_write_detectimg(ibs, gid_list):
     utool.ensuredir(ibs.get_detectimg_cachedir())
-    # Get chip dest information (output path)
+    # Get img dest information (output path)
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
-    # Get chip configuration information
+    # Get img configuration information
     sqrt_area   = 800
     target_area = sqrt_area ** 2
-    # Get chip source information (image, roi_bbox, theta)
+    # Get img source information (image, roi_bbox, theta)
     gfpath_list  = ibs.get_image_paths(gid_list)
     gsize_list   = ibs.get_image_sizes(gid_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, gsize_list)
     # Define "Asynchronous" generator
     detectimg_async_iter = gen_detectimg_async(gid_list, gfpath_list,
                                                new_gfpath_list, newsize_list)
-    print('Computing %d chips asynchronously' % (len(gfpath_list)))
+    print('Computing %d imgs asynchronously' % (len(gfpath_list)))
     for gid, new_gfpath in detectimg_async_iter:
         print('Wrote detectimg: %r' % new_gfpath)
         pass
     print('Done computing detectimgs')
 
 
-@utool.indent_func
+@utool.indent_func('[PREPROC_DETECTIMG]')
 def compute_and_write_detectimg_lazy(ibs, gid_list):
     """
-    Will write a chip if it does not exist on disk, regardless of if it exists
+    Will write a img if it does not exist on disk, regardless of if it exists
     in the SQL database
     """
-    print('[preproc_chip] compute_and_write_chips_lazy')
-    # Mark which rid's need their chips computed
+    print('[preproc] compute_and_write_detectimg_lazy')
+    # Mark which rid's need their detectimg computed
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
     exists_flags = [exists(gfpath) for gfpath in new_gfpath_list]
     invalid_gids = utool.get_dirty_items(gid_list, exists_flags)

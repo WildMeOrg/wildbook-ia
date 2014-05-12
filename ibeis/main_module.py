@@ -4,7 +4,7 @@ import sys
 import multiprocessing
 
 sys.argv.append('--strict')  # do not supress any errors
-__PREINIT_MULTIPROCESSING_POOLS__ = False
+__PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
 
 try:
     profile = getattr(__builtin__, 'profile')
@@ -185,17 +185,17 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
       |   |_____] |______   |   |______
     __|__ |_____] |______ __|__ ______|
     '''
-    print(msg2 if not '--myway' in sys.argv else msg1)
+    print(msg2 if '--myway' not in sys.argv else msg1)
     # Init the only two main system api handles
     ibs = None
     back = None
-    if not '--quiet' in sys.argv:
+    if '--quiet' not in sys.argv:
         print('[main] ibeis.main_module.main()')
     _preload()
     _preload_commands(dbdir, defaultdb)
     try:
         ibs = _init_ibeis(dbdir, defaultdb, allow_newdir)
-        if gui and ('--gui' in sys.argv or not '--nogui' in sys.argv):
+        if gui and ('--gui' in sys.argv or '--nogui' not in sys.argv):
             back = _init_gui()
             back.connect_ibeis_control(ibs)
     except Exception as ex:

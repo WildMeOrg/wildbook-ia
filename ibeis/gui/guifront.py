@@ -41,8 +41,10 @@ def uid_tbl_clicked(func):
         front._prev_tbl_item = item
         tbl = item.tableWidget()
         row, col = (item.row(), item.column())
+        """
         #front.print('Clicked ' + tbl.objectName() + ' at ' + str((row, col)) +
                     #'--> ' + func.func_name)
+        """
         return func(front, row, col, tbl)
     # Hacky decorator
     return clicked_wrapper
@@ -60,8 +62,10 @@ def uid_tbl_changed(func):
         front._prev_tbl_item = item
         tbl = item.tableWidget()
         row, col = (item.row(), item.column())
+        """
         #front.print('Changed ' + tbl.objectName() + ' at ' + str((row, col)) +
                     #'--> ' + func.func_name)
+        """
         state = item.checkState()
         text  = str(item.text())
         #_pressed_state = front._pressed_item_state
@@ -70,12 +74,14 @@ def uid_tbl_changed(func):
         isCheckableItem = text in ['true', 'false']  # HUGE HACK!
         if isCheckableItem:
             new_val = state == Qt.Checked
+            """
             #try:
                 #assert text == _pressed_text, 'cannot change text and state at the same time'
             #except AssertionError as ex:
                 #utool.printex(ex, key_list=['state', 'text', '_pressed_state',
                                             #'_pressed_text'])
                 #raise
+            """
         else:
             new_val = text
         return func(front, row, col, tbl, new_val)

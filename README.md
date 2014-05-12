@@ -14,6 +14,6 @@ git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/opencv.git
 git clone https://github.com/Erotemic/flann.git
 
-git clone https://github.com/bluemellophone/rf.git
+git clone https://github.com/bluemellophone/pyrf.git
 git clone https://github.com/bluemellophone/detecttools.git
-git clone https://github.com/bluemellophone/IBEIS2014.git
+<!--git clone https://github.com/bluemellophone/IBEIS2014.git-->

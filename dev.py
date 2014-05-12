@@ -228,20 +228,23 @@ def rundev(main_locals):
     qrid_list = main_helpers.get_test_qrids(ibs)
     print('test_qrids = %r' % qrid_list)
     print('len(test_qrids) = %d' % len(qrid_list))
-    assert len(qrid_list) > 0, 'assert!'
-    ibs.prep_qreq_db(qrid_list)
+    try:
+        assert len(qrid_list) > 0, 'assert!'
+    except AssertionError as ex:
+        utool.printex(ex)
+        #qrid_list = ibs.get_valid_rids()[0]
 
-    expt_locals = run_experiments(ibs, qrid_list)
+    if len(qrid_list) > 0:
+        ibs.prep_qreq_db(qrid_list)
+        expt_locals = run_experiments(ibs, qrid_list)
+        if '--cmd' in sys.argv:
+            exec(utool.execstr_dict(expt_locals, 'expt_locals'))
+        if '--devmode' in sys.argv:
+            devfunc_locals = devfunc(ibs, qrid_list)
+            exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
+        if '--nopresent' not in sys.argv:
+            df2.present()
 
-    if '--cmd' in sys.argv:
-        exec(utool.execstr_dict(expt_locals, 'expt_locals'))
-
-    if '--devmode' in sys.argv:
-        devfunc_locals = devfunc(ibs, qrid_list)
-        exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
-
-    if '--nopresent' not in sys.argv:
-        df2.present()
     ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
     return locals(), main_execstr

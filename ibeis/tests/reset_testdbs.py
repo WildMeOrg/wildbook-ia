@@ -3,11 +3,12 @@
 from __future__ import absolute_import, division, print_function
 import sys
 import os
+from os.path import expanduser, join
 sys.path.append(os.getcwd())  # for windows
+sys.path.append(expanduser('~/code/hesaff'))
 import ibeis
 from ibeis.dev import sysres
 import utool
-from os.path import join
 from ibeis.injest import injest_testdata
 from vtool.tests import grabdata
 

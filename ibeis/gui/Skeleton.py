@@ -33,7 +33,7 @@ class Ui_mainSkel(object):
         parent = ui.encountersTabWidget
         if suffix == '' or suffix == 'None':
             suffix = None
-        if not suffix in ui.suffix_dict:
+        if suffix not in ui.suffix_dict:
             tabWidget = newEncounterTabs(front, parent, suffix=suffix)
             ui.suffix_dict[suffix] = tabWidget
         ui.retranslateUi(front)
@@ -78,15 +78,8 @@ def setup_ui(ui, front, back):
     setup_main_layout(ui, front, back)
 
     # ENCOUNTER SUPERTABS
-    ui.encountersTabWidget  = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
+    ui.encountersTabWidget = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
     ui.ensureEncounterTab(front, suffix=None)
-    #newEncounterTabs(front, encountersTabWidget, suffix='1')
-    #newEncounterTabs(front, encountersTabWidget, suffix='2')
-
-    #ui.database_view = ui.encountersTabWidget.newTabView('database_view'
-
-    # TAB TABLES
-    #ui.tablesTabWidget  = newTabWidget(front, , 'tablesTabWidget', vstretch=10)
 
     # Split Panes
     ui.progressBar = newProgressBar(ui.splitter, visible=False)
@@ -297,6 +290,10 @@ def setup_developer_menu(ui, front, back):
         text='CLS',
         shortcut='Ctrl+Shift+C',
         slot_fn=back.dev_cls)
+    ui.menuDev.newAction(
+        name='actionDeveloper_DumpDB',
+        text='Dump SQL Database',
+        slot_fn=back.dev_dumpdb)
 
 
 def setup_main_layout(ui, front, back):

@@ -44,9 +44,10 @@ from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
                       Qt, QObject, pyqtSlot, QKeyEvent)
 # UTool
 import utool
-from utool import *
 # A bit of a hack right now
 utool.util_sysreq.ensure_in_pythonpath('hesaff')
+utool.util_sysreq.ensure_in_pythonpath('pyrf')
+
 # VTool
 import vtool
 from vtool import chip as ctool
@@ -58,14 +59,15 @@ from vtool import linalg as ltool
 from vtool import segmentation
 from vtool import spatial_verification as sverif
 
-from vtool import *
 # DrawTool
 import plottool
 from plottool import draw_func2 as df2
 from plottool import interact_helpers as ih
 from plottool import viz_keypoints
+
 # GUITool
 import guitool
+
 # IBEIS DEV
 from ibeis.dev import main_commands
 from ibeis.dev import params
