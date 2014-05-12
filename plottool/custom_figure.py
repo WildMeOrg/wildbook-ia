@@ -8,7 +8,7 @@ from .custom_constants import FIGSIZE, DPI, FONTS
 
 
 def customize_figure(fig, docla):
-    if not 'user_stat_list' in fig.__dict__.keys() or docla:
+    if 'user_stat_list' not in fig.__dict__.keys() or docla:
         fig.user_stat_list = []
         fig.user_notes = []
     fig.df2_closed = False
@@ -78,7 +78,7 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     # Get the subplot
     if docla or len(axes_list) == 0:
         printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
-        if not pnum is None:
+        if pnum is not None:
             assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
             #ax = plt.subplot(*pnum)
@@ -88,20 +88,20 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
             ax = gca()
     else:
         printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
-        if not pnum is None:
+        if pnum is not None:
             ax = plt.subplot(*pnum)  # fig.add_subplot fails here
             #ax = fig.add_subplot(*pnum)
         else:
             ax = gca()
         #ax  = axes_list[0]
     # Set the title
-    if not title is None:
+    if title is not None:
         ax = gca()
         set_title(title, ax=ax)
         # Add title to figure
         if figtitle is None and pnum == (1, 1, 1):
             figtitle = title
-        if not figtitle is None:
+        if figtitle is not None:
             set_figtitle(figtitle, incanvas=False)
     return fig
 

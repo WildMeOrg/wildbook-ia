@@ -15,7 +15,7 @@ def ishow_name(ibs, nid, sel_rids=[], select_rid_callback=None, fnum=5, **kwargs
 
     def _on_name_click(event):
         print_('[inter] clicked name')
-        ax, x, y = event.inaxes, event.xdata, event.ydata
+        ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')
             print_(' viztype=%r' % viztype)

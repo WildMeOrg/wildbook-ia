@@ -13,8 +13,8 @@ def TEST_SQL_NUMPY():
     dbfilename = '__temp.sqlite3'
     utool.util_path.remove_file(dbfilename, dryrun=False)
 
-    db = SQLDatabaseControl.SQLDatabaseControl(sqldb_dpath='.',
-                                               sqldb_fname=dbfilename)
+    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath='.',
+                                                  sqldb_fname=dbfilename)
 
     db.schema('temp',    [
         ('temp_id',      'INTEGER PRIMARY KEY'),
@@ -61,7 +61,7 @@ def TEST_SQL_NUMPY():
     db.dump('temp.dump.txt')
     print(' * dump time=%r sec' % utool.toc(tt))
     #with open('temp.dump.txt') as file_:
-        #print(file_.read())
+    #    print(file_.read())
     return locals()
 
 

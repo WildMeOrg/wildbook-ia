@@ -24,7 +24,7 @@ def convert_hsdb_to_ibeis(hsdb_dir):
 
     #main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=False, gui=False)
     #ibs = main_locals['ibs']  # IBEIS Control
-    ibs = IBEISControl.IBEISControl(dbdir=hsdb_dir)
+    ibs = IBEISControl.IBEISController(dbdir=hsdb_dir)
 
     # READ NAME TABLE
     #names = open(join(workdir,'wildebeest/_hsdb/name_table.csv'),'rb')
@@ -53,10 +53,10 @@ def convert_hsdb_to_ibeis(hsdb_dir):
                 continue
             else:
                 gid = int(row[0])
-                gname = row[1].strip()
+                gname_ = row[1].strip()
                 aif = bool(row[2])
                 image_gid_list.append(gid)
-                image_gname_list.append(gname)
+                image_gname_list.append(gname_)
                 image_aif_list.append(aif)
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
@@ -82,7 +82,6 @@ def convert_hsdb_to_ibeis(hsdb_dir):
             if len(row) == 0 or row[0].strip().startswith('#'):
                 continue
             else:
-            #if ix >= 3:
                 images_gid = int(row[1])
                 names_nid = int(row[2])
                 bbox_text = row[3]

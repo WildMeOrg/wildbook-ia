@@ -4,7 +4,7 @@ from .Printable import AbstractPrintable
 
 
 class DynStruct(AbstractPrintable):
-    ' dynamical add and remove members '
+    """ dynamically add and remove members """
     def __init__(self, child_exclude_list=[], copy_dict=None, copy_class=None):
         super(DynStruct, self).__init__(child_exclude_list)
         if isinstance(copy_dict, dict):
@@ -59,7 +59,7 @@ class DynStruct(AbstractPrintable):
         '''Converts dynstruct to a dictionary.  '''
         dyn_dict = {}
         for (key, val) in self.__dict__.iteritems():
-            if not key in self._printable_exclude:
+            if key not in self._printable_exclude:
                 dyn_dict[key] = val
         return dyn_dict
 
@@ -89,6 +89,6 @@ class DynStruct(AbstractPrintable):
         '''
         execstr = ''
         for (key, val) in self.__dict__.iteritems():
-            if not key in self._printable_exclude:
+            if key not in self._printable_exclude:
                 execstr += key + ' = ' + local_name + '.' + key + '\n'
         return execstr

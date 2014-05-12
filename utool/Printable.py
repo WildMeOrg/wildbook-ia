@@ -2,12 +2,16 @@ from __future__ import absolute_import, division, print_function
 from collections import OrderedDict
 import re
 import numpy as np
+#from .util_classes import AutoReloader
 
 MAX_VALSTR = -1
 #100000
 
+#__BASE_CLASS__ = AutoReloader
+__BASE_CLASS__ = object
 
-class AbstractPrintable(object):
+
+class AbstractPrintable(__BASE_CLASS__):
     'A base class that prints its attributes instead of the memory address'
 
     def __init__(self, child_print_exclude=[]):

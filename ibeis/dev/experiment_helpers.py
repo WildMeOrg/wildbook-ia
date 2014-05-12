@@ -75,42 +75,6 @@ def format_uid_list(uid_list):
 # Big Test Cache
 #-----------
 
-
-def load_cached_test_results(ibs, qreq, qrids, drids, nocache_testres, test_results_verbosity):
-    pass
-    #test_uid = qreq.get_query_uid(ibs, qrids)
-    #cache_dir = join(ibs.dirs.cache_dir, 'experiment_harness_results')
-    #io_kwargs = {'dpath': cache_dir,
-                 #'fname': 'test_results',
-                 #'uid': test_uid,
-                 #'ext': '.cPkl'}
-
-    #if test_results_verbosity == 2:
-        #print('[harn] test_uid = %r' % test_uid)
-
-    ## High level caching
-    #if not params.args.nocache_query and (not nocache_testres):
-        #qx2_bestranks = io.smart_load(**io_kwargs)
-        #if qx2_bestranks is None:
-            #print('[harn] qx2_bestranks cache returned None!')
-        #elif len(qx2_bestranks) != len(qrids):
-            #print('[harn] Re-Caching qx2_bestranks')
-        #else:
-            #return qx2_bestranks
-
-
-def cache_test_results(qx2_bestranks, ibs, qreq, qrids, drids):
-    pass
-    #test_uid = qreq.get_query_uid(ibs, qrids)
-    #cache_dir = join(ibs.dirs.cache_dir, 'experiment_harness_results')
-    #utool.ensuredir(cache_dir)
-    #io_kwargs = {'dpath': cache_dir,
-                 #'fname': 'test_results',
-                 #'uid': test_uid,
-                 #'ext': '.cPkl'}
-    #io.smart_save(qx2_bestranks, **io_kwargs)
-
-
 def get_varied_params_list(test_cfg_name_list):
     vary_dicts = get_vary_dicts(test_cfg_name_list)
     dict_comb_list = [utool.all_dict_combinations(dict_) for dict_ in vary_dicts]
@@ -130,7 +94,7 @@ def _get_cfg_list(test_cfg_name_list):
     cfg_set = set([])
     for dict_, lbl in izip(varied_params_list, varied_param_lbls):
         cfg = Config.QueryConfig(**dict_)
-        if not cfg in cfg_set:
+        if cfg not in cfg_set:
             cfgx2_lbl.append(lbl)
             cfg_list.append(cfg)
             cfg_set.add(cfg)

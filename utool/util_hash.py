@@ -51,22 +51,24 @@ def hashstr(data, hashlen=HASH_LEN):
     return hashstr
 
 
-#def valid_filename_ascii_chars():
-    ## Find invalid chars
-    #ntfs_inval = '< > : " / \ | ? *'.split(' ')
-    #other_inval = [' ', '\'', '.']
-    ##case_inval = map(chr, xrange(97, 123))
-    #case_inval = map(chr, xrange(65, 91))
-    #invalid_chars = set(ntfs_inval + other_inval + case_inval)
-    ## Find valid chars
-    #valid_chars = []
-    #for index in xrange(32, 127):
-        #char = chr(index)
-        #if not char in invalid_chars:
-            #print index, chr(index)
-            #valid_chars.append(chr(index))
-    #return valid_chars
-#valid_filename_ascii_chars()
+"""
+def valid_filename_ascii_chars():
+    # Find invalid chars
+    ntfs_inval = '< > : " / \ | ? *'.split(' ')
+    other_inval = [' ', '\'', '.']
+    #case_inval = map(chr, xrange(97, 123))
+    case_inval = map(chr, xrange(65, 91))
+    invalid_chars = set(ntfs_inval + other_inval + case_inval)
+    # Find valid chars
+    valid_chars = []
+    for index in xrange(32, 127):
+        char = chr(index)
+        if not char in invalid_chars:
+            print index, chr(index)
+            valid_chars.append(chr(index))
+    return valid_chars
+valid_filename_ascii_chars()
+"""
 
 
 def convert_hexstr_to_bigbase(hexstr):

@@ -8,8 +8,8 @@ from ibeis.model.hots import matching_functions as mf
     __name__, '[mc3]', DEBUG=False)
 
 
-USE_CACHE_QUERY = not '--nocache-query' in sys.argv
-USE_CACHE_BIG = not '--nocache-big' in sys.argv
+USE_CACHE_QUERY = '--nocache-query' not in sys.argv
+USE_CACHE_BIG = '--nocache-big' not in sys.argv
 
 
 @utool.indent_func
@@ -69,7 +69,7 @@ def pre_exec_checks(ibs, qreq):
     drids_uid = utool.hashstr_arr(drids, 'drids')
     # Ensure the index / inverted index exist for this config
     dftup_uid = drids_uid + feat_uid
-    if not dftup_uid in qreq.dftup2_index:
+    if dftup_uid not in qreq.dftup2_index:
         # Compute the FLANN Index
         data_index = NNIndex.NNIndex(ibs, drids)
         qreq.dftup2_index[dftup_uid] = data_index

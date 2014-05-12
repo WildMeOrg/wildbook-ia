@@ -1,4 +1,4 @@
-''' Lots of functions for drawing and plotting visiony things '''
+""" Lots of functions for drawing and plotting visiony things """
 # TODO: New naming scheme
 # viz_<func_name> will clear everything. The current axes and fig: clf, cla.  # Will add annotations
 # interact_<func_name> will clear everything and start user interactions.
@@ -267,7 +267,7 @@ SAFE_POS = {
 
 def adjust_subplots_safe(**kwargs):
     for key in SAFE_POS.iterkeys():
-        if not key in kwargs:
+        if key not in kwargs:
             kwargs[key] = SAFE_POS[key]
     adjust_subplots(**kwargs)
 
@@ -504,7 +504,7 @@ def plot_pdf(data, draw_support=True, scale_to=None, label=None, color=0,
     x_data = np.linspace(0, data.max(), 500)
     y_data = data_pdf(x_data)
     # Scale if requested
-    if not scale_to is None:
+    if scale_to is not None:
         scale_factor = scale_to / y_data.max()
         y_data *= scale_factor
         prob_x *= scale_factor
@@ -766,8 +766,6 @@ def colorbar(scalars, colors):
 
     cb = plt.colorbar(sm, cax=cax)
 
-    #, orientation=orientation, shrink=COLORBAR_SHRINK,
-                      #pad=COLORBAR_PAD, aspect=COLORBAR_ASPECT)
     ## Add the colorbar to the correct label
     axis = cb.ax.yaxis  # if orientation == 'horizontal' else cb.ax.yaxis
     #position = 'bottom' if orientation == 'horizontal' else 'right'
@@ -961,13 +959,6 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 cmap = plt.get_cmap('gray')
             if isinstance(cmap, str):
                 cmap = plt.get_cmap(cmap)
-            #if imgGRAY.dtype == np.float32 and False:
-                #if imgGRAY.max() <= 1:
-                    #printDBG('Drawing Float Grey Image < 1')
-                    #imgGRAY = np.array(np.round(imgGRAY * 255), dtype=np.uint8)
-                #else:
-                    #printDBG('Drawing Float Grey Image > 1')
-                    #imgGRAY = np.array(np.round(imgGRAY), dtype=np.uint8)
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
             raise Exception('unknown image format')
@@ -994,13 +985,6 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         scores = np.unique(img.flatten())
         colors = scores_to_color(scores, cmap)
         colorbar(scores, colors)
-    #ax.set_autoscale(False)
-    #try:
-        #if pnum == 111:
-            #fig.tight_layout()
-    #except Exception as ex:
-        #print('[df2] !! Exception durring fig.tight_layout: '+repr(ex))
-        #raise
     return fig, ax
 
 

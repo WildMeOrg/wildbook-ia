@@ -40,7 +40,7 @@ def TEST_SQL_NAMES():
     #
     # Create new temp database
     print('New Temp Database')
-    db = SQLDatabaseControl.SQLDatabaseControl(sqldb_dpath='.', sqldb_fname='temp.sqlite3')
+    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath='.', sqldb_fname='temp.sqlite3')
     #
     # Define the schema
     __define_schema(db)

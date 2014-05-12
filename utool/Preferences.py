@@ -155,8 +155,8 @@ class Pref(PrefNode):
         self._intern = PrefInternal(name, doc, default, hidden, fpath, depeq, choices)
         self._tree = PrefTree(parent)
         #if default is PrefNode:
-            #printDBG('----------')
-            #printDBG('new Pref(default=PrefNode)')
+        #    printDBG('----------')
+        #    printDBG('new Pref(default=PrefNode)')
 
     def get_type(self):
         return self._intern.get_type()
@@ -197,7 +197,7 @@ class Pref(PrefNode):
             else:
                 child_type = child._intern.get_type()
                 attr_type  = type(attr)
-                if not child_type is attr_type:
+                if child_type is not attr_type:
                     #print('WARNING TYPE DIFFERENCE! %r, %r' % (child_type, attr_type))
                     attr = try_cast(attr, child_type, attr)
                 child._intern.value = attr
@@ -385,7 +385,7 @@ class Pref(PrefNode):
         further_aug = print_exclude_aug[:]
         for child_name in self._tree.child_names:
             depeq = self[child_name + '_internal']._intern.depeq
-            if not depeq is None and depeq[0].value() != depeq[1]:
+            if depeq is not None and depeq[0].value() != depeq[1]:
                 further_aug.append(child_name)
         return super(Pref, self).get_printable(type_bit, print_exclude_aug=further_aug)
 
@@ -508,7 +508,7 @@ class Pref(PrefNode):
                     new_val = True
                 elif new_val.upper() == 'FALSE':
                     new_val = False
-             # save to disk after modifying data
+            # save to disk after modifying data
             print('[pref] qt_set_leaf_data: new_val=%r' % new_val)
             print('[pref] qt_set_leaf_data: type(new_val)=%r' % type(new_val))
             # TODO Add ability to set a callback function when certain

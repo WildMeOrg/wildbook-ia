@@ -203,18 +203,6 @@ def and_lists(*args):
     """ Like np.logical_and, but can take more than 2 arguments """
     # TODO: Cython
     flags =  reduce(np.logical_and, args)
-    #assert len(args) >= 1
-    #flags_ = args[0]
-    #for arg in args[1:]:
-        #flags_ = np.logical_and(flags_, arg)
-    #try:
-        #print('fixme')
-        #assert np.all(flags_ == flags), 'reduce has problems'
-    #except Exception as ex:
-        #utool.printex(ex)
-        #print(flags_)
-        #print(flags)
-        #raise
     return flags
 
 

@@ -4,7 +4,7 @@ import utool
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QAbstractItemView
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[guitables]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[uidtables]', DEBUG=False)
 
 from ibeis.control import DB_SCHEMA
 
@@ -22,7 +22,7 @@ COLUMN_DEFS = [
     (int,   'nFeats',     '#Features'),
     (int,   'rank',       'Rank'),
     (float, 'unixtime',   'unixtime'),
-    (str,   'encounter',  'Encounter'),
+    (str,   'enctext',    'Encounter'),
     (str,   'gname',      'Image Name'),
     (str,   'name',       'Name'),
     (str,   'notes',      'Notes'),
@@ -53,7 +53,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         cols = {
             'gid':       lambda gids: gids,
             'eid':       lambda gids: ibs.get_image_eids(gids),
-            'encounter': lambda gids: map(utool.tupstr, ibs.get_image_encounters(gids)),
+            'enctext': lambda gids: map(utool.tupstr, ibs.get_image_enctext(gids)),
             'aif':       lambda gids: ibs.get_image_aifs(gids),
             'gname':     lambda gids: ibs.get_image_gnames(gids),
             'nRids':     lambda gids: ibs.get_image_num_rois(gids),
@@ -135,7 +135,7 @@ QRES_TABLE  = 'qres'
 # tblname, fancyname, headers, editable_headers
 TABLE_DEF = [
     (IMAGE_TABLE, 'Image Table',
-     ['gid', 'gname', 'nRids', 'aif', 'notes', 'encounter', 'unixtime'],
+     ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext', 'unixtime'],
      ['notes', 'aif']),
 
     (ROI_TABLE, 'ROIs Table',
@@ -161,31 +161,8 @@ table_headers    = dict(izip(tblname_list, tblheaders_list))
 table_editable   = dict(izip(tblname_list, tbleditables_list))
 fancy_tablenames = dict(izip(tblname_list, fancytblname_list))
 
-
-#{
-    #IMAGE_TABLE:  ['gid', 'gname', 'nRids', 'aif', 'notes', 'encounter', 'unixtime'],
-    #ROI_TABLE:    ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-    #NAME_TABLE:   ['nid', 'name', 'nRids', 'notes'],
-    #QRES_TABLE:   ['rank', 'score', 'name', 'rid']
-#}
-
 if USER_MODE:
     table_headers[ROI_TABLE] = ['rid', 'name', 'gname', 'nGt', 'notes']
-
-# Lists internal headers whos items are editable
-#table_editable = {
-    #IMAGE_TABLE: ['notes', 'aif'],
-    #ROI_TABLE:   ['name', 'notes'],
-    #NAME_TABLE:  ['name', 'notes'],
-    #QRES_TABLE:  ['name'],
-#}
-
-#fancy_tablenames = {
-    #IMAGE_TABLE: 'Image Table',
-    #ROI_TABLE:   'ROIs Table',
-    #NAME_TABLE:  'Name Table',
-    #QRES_TABLE:  'Query Results Table',
-#}
 
 
 def _get_datatup_list(ibs, tblname, index_list, header_order, extra_cols):
@@ -225,9 +202,13 @@ def _get_table_headers_editable(tblname):
 
 def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols={},
                             index_list=None, prefix_cols=[], **kwargs):
-    suffix = kwargs.get('suffix')
+    enctext = kwargs.get('enctext')
     if index_list is None:
-        index_list = ibs.get_valid_ids(tblname, suffix=suffix)
+        if enctext is None or enctext == '' or enctext == 'None':
+            eid = None
+        else:
+            eid = ibs.get_encounter_eids(enctext)
+        index_list = ibs.get_valid_ids(tblname, eid=eid)
     printDBG('[tables] len(index_list) = %r' % len(index_list))
     # Prefix datatup
     prefix_datatup = [[prefix_col.get(header, 'error')
@@ -241,29 +222,26 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols=
 
 def emit_populate_table(back, tblname, *args, **kwargs):
     printDBG('>>>>>>>>>>>>>>>>>>>>>')
-    printDBG('[table_data] _populate_table(%r)' % tblname)
+    printDBG('[uidtbls] _populate_table(%r)' % tblname)
     col_headers, col_editable = _get_table_headers_editable(tblname)
-    #printDBG('[table_data] col_headers = %r' % col_headers)
-    #printDBG('[table_data] col_editable = %r' % col_editable)
-    suffix = kwargs.get('suffix', '')
+    #printDBG('[uidtbls] col_headers = %r' % col_headers)
+    #printDBG('[uidtbls] col_editable = %r' % col_editable)
+    enctext = kwargs.get('enctext', '')
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
-    #printDBG('[table_data] datatup_list = %r' % datatup_list)
+    #printDBG('[uidtbls] datatup_list = %r' % datatup_list)
     row_list = range(len(datatup_list))
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers.get(key, key) for key in col_headers]
     col_types = [header_typemap.get(key) for key in col_headers]
-    #printDBG('[table_data] populateTableSignal.emit(%r, len=%r, len=%r, len=%r, len=%r, len=%r)' %
-             #((tblname, len(col_fancyheaders), len(col_types), len(col_editable), len(row_list),
-               #len(datatup_list))))
-    printDBG('[table_data] populateTableSignal.emit(%r, len=%r)' % (tblname, len(col_fancyheaders)))
+    printDBG('[uidtbls] populateTableSignal.emit(%r, len=%r)' % (tblname, len(col_fancyheaders)))
     back.populateTableSignal.emit(tblname,
                                   col_fancyheaders,
                                   col_editable,
                                   col_types,
                                   row_list,
                                   datatup_list,
-                                  suffix)
+                                  enctext)
 
 
 def _type_from_data(data):
@@ -311,7 +289,6 @@ def populate_item_table(tbl,
     # Add items for each row and column
     for row in iter(row_list):
         datatup = datatup_list[row]
-        #print('pop data: %r' % (datatup,))
         for col, data in enumerate(datatup):
             #type_ = _type_from_data(data)
             type_ = col_types[col]
@@ -355,6 +332,6 @@ def populate_item_table(tbl,
     tbl.blockSignals(tblWasBlocked)
 
 
-def populate_encounter_tab(front, suffix):
-    print('[table_data] popultate_encounter_tab')
-    front.ui.ensureEncounterTab(front, suffix)
+def populate_encounter_tab(front, enctext):
+    #print('[uidtbls] populate_encounter_tab')
+    front.ui.ensureEncounterTab(front, enctext)

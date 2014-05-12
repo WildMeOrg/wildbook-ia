@@ -75,7 +75,11 @@ def run_test(func, *args, **kwargs):
                 ibs.db.dump()
             if '--strict' in sys.argv:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                raise exc_type, exc_value, exc_traceback.tb_next
+                # PYTHON 2.7 DEPRICATED:
+                #raise exc_type, exc_value, exc_traceback.tb_next.tb_next  # noqa
+                # PYTHON 3.3 NEW METHODS
+                ex = exc_type(exc_value)
+                ex.__traceback__ = exc_traceback.tb_next.tb_next
 
 
 def get_testdata_dir():
@@ -117,16 +121,6 @@ def get_test_numpy_data(shape=(3e3, 128), dtype=np.uint8):
 def main(defaultdb='testdb', allow_newdir=False, gui=False, **kwargs):
     # TODO remove all of this fluff
     printTEST('[TEST] Executing main. defaultdb=%r' % defaultdb)
-    #from ibeis import params
-    #known_testdbs = ['testdb', 'testdb_big']
-    #if defaultdb in known_testdbs:
-        #allow_newdir = True
-        #defaultdbdir = join(sysres.get_workdir(), defaultdb)
-        #utool.ensuredir(defaultdbdir)
-        #if utool.get_flag('--clean'):
-            #utool.util_path.remove_files_in_dir(defaultdbdir, dryrun=False)
-    #if utool.get_flag('--clean'):
-        #sys.exit(0)
     main_locals = ibeis.main(defaultdb=defaultdb, allow_newdir=allow_newdir, gui=gui, **kwargs)
     return main_locals
 
@@ -139,7 +133,7 @@ def main_loop(test_locals, rungui=False, **kwargs):
     printTEST('[TEST] TEST_LOOP')
     # Build big execstring that you return in the locals dict
     ipycmd_execstr = ibeis.main_loop(test_locals, rungui=rungui, **kwargs)
-    if not '--noshow' in sys.argv:
+    if '--noshow' not in sys.argv:
         fig_presenter.present()
     if not isinstance(test_locals, dict):
         test_locals = {}

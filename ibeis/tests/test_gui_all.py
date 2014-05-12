@@ -67,7 +67,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     #back.select_rid(rid_list[1])
     #back.select_rid(rid_list[2])
 
-    # Keys for propname come from gui_item_tables.fancy_headers
+    # Keys for propname come from uidtables.fancy_headers
     back.set_roi_prop(rid_list[0], 'name', 'testname1', **_kwargs)
     back.set_roi_prop(rid_list[1], 'name', 'testname2', **_kwargs)
     back.set_roi_prop(rid_list[0], 'name', 'testname1', **_kwargs)

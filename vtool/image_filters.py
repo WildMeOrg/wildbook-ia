@@ -77,7 +77,7 @@ def grabcut_fn(chipBGR):
     seg_chipBGR = cv2.cvtColor(chipHSV, cv2.COLOR_HSV2BGR)
     return seg_chipBGR
 
-
+"""
 #def maxcontr_fn(chip):
     #with warnings.catch_warnings():
         #warnings.simplefilter("ignore")
@@ -118,3 +118,4 @@ def grabcut_fn(chipBGR):
         #chip_ = skimage.exposure.rescale_intensity(chip_, in_range=(p2, p98))
         #retchip = Image.fromarray(skimage.utool.img_as_ubyte(chip_)).convert('L')
     #return retchip
+"""

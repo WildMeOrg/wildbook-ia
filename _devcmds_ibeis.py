@@ -151,7 +151,6 @@ def export(ibs, rid_pairs=None):
         for mkeys, mkpts_list in izip(mkeys_list, mkeys_keypoints):
             print(mkeys)
             print(len(kpts_list))
-            mkpts = utool.flatten(mkpts_list)
             kpts1_m = np.vstack([mkpts[0] for mkpts in mkpts_list])
             kpts2_m = np.vstack([mkpts[1] for mkpts in mkpts_list])
             match_lines = [

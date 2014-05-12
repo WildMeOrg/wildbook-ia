@@ -12,7 +12,7 @@ from .util_inject import inject
 
 
 # do not ignore traceback when profiling
-IGNORE_EXC_TB = not '--noignore-exctb' in sys.argv or hasattr(__builtin__, 'profile')
+IGNORE_EXC_TB = '--noignore-exctb' not in sys.argv or hasattr(__builtin__, 'profile')
 TRACE = '--trace' in sys.argv
 
 
@@ -66,7 +66,14 @@ def ignores_exc_tb(func):
                 # Code to remove this decorator from traceback
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 # Remove two levels to remove this one as well
-                raise exc_type, exc_value, exc_traceback.tb_next.tb_next
+                # https://github.com/jcrocholl/pep8/issues/34  # NOQA
+                # http://legacy.python.org/dev/peps/pep-3109/
+                # PYTHON 2.7 DEPRICATED:
+                #raise exc_type, exc_value, exc_traceback.tb_next.tb_next  # noqa
+                # PYTHON 3.3 NEW METHODS
+                ex = exc_type(exc_value)
+                ex.__traceback__ = exc_traceback.tb_next.tb_next
+                raise ex
         return wrapper_ignore_exctb
     else:
         return func

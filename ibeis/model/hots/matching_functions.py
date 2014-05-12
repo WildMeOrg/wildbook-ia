@@ -378,8 +378,8 @@ def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
             chipmatch = _fix_fmfsfk(rid2_fm, rid2_fs, rid2_fk)
             qrid2_chipmatch[qrid] = chipmatch
             #if not QUIET:
-                #nFeats_in_matches = [len(fm) for fm in rid2_fm.itervalues()]
-                #print('nFeats_in_matches_stats = ' + utool.dict_str(utool.mystats(nFeats_in_matches)))
+            #    nFeats_in_matches = [len(fm) for fm in rid2_fm.itervalues()]
+            #    print('nFeats_in_matches_stats = ' + utool.dict_str(utool.mystats(nFeats_in_matches)))
         # Vsone - Append database feature matches to query rids
         else:
             for qfx, rid, fx, fs, fk in match_iter:
@@ -548,24 +548,6 @@ def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
         qrid2_qres[qrid] = res
     # Retain original score method
     return qrid2_qres
-
-
-#@profile
-#def load_resdict(qreq):
-    #""" Load the result structures for each query. """
-    #qrids = qreq.qrids
-    #uid = qreq.get_uid()  # this is the correct uid to use
-    ###IF DICT_COMPREHENSION
-    #qrid2_qres = {qrid: QueryResult.QueryResult(qrid, uid) for qrid in iter(qrids)}
-    #[res.load(qreq) for res in qrid2_qres.itervalues()]
-    ##ELSE
-    #qrid2_qres = {}
-    #for qrid in qrids:
-        #res = QueryResult.QueryResult(qrid, uid)
-        #res.load(qreq)
-        #qrid2_qres[qrid] = res
-    ##ENDIF
-    #return qrid2_qres
 
 
 @profile

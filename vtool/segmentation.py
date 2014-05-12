@@ -1,4 +1,3 @@
-#from __init__ import *
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import cv2
@@ -14,12 +13,6 @@ def printDBG(msg):
     if DEBUG_SEGM:
         print(msg)
     pass
-
-
-def im(img, fnum=0):
-    from hsviz import draw_func2 as df2
-    df2.imshow(img, fnum=fnum)
-    df2.update()
 
 
 def resize_img_and_roi(img_fpath, roi_, new_size=None, sqrt_area=400.0):
@@ -52,29 +45,6 @@ def resize_img_and_roi(img_fpath, roi_, new_size=None, sqrt_area=400.0):
     return img_resz, roi_resz
 
 
-def test(ibs, cid=0):
-    from hsviz import draw_func2 as df2
-    import os
-    if not 'cid' in vars():
-        cid = 0
-    # READ IMAGE AND ROI
-    cid2_roi = ibs.tables.cid2_roi
-    cid2_gx = ibs.tables.cid2_gx
-    gid2_gname = ibs.tables.gid2_gname
-    #---
-    roi_ = cid2_roi[cid]
-    gid  = cid2_gx[cid]
-    img_fname = gid2_gname[gid]
-    img_fpath = os.path.join(ibs.dirs.img_dir, img_fname)
-    #---
-    print('testing segment')
-    seg_chip, img_mask = segment(img_fpath, roi_, new_size=None)
-    from hsviz import viz
-    viz.show_image(ibs, gid, fnum=1, pnum=131, title='original', docla=True)
-    df2.imshow(img_mask, fnum=1, pnum=132, title='mask')
-    df2.imshow(seg_chip, fnum=1, pnum=133, title='segmented')
-
-
 def clean_mask(mask, num_dilate=3, num_erode=3, window_frac=.025):
     '''Clean the mask
     (num_erode, num_dilate) = (1, 1)
@@ -96,33 +66,6 @@ def fill_holes(mask):
     image, contours, hierarchy = cv2.findContours(mask, mode, method)
     out = cv2.drawContours(image, contours, -1, (1, 0, 0))
     return out
-
-
-def test_clean_mask(chip_mask):
-    from hsviz import draw_func2 as df2
-    mask = chip_mask
-    print('Cleaning')
-    mask2 = clean_mask(mask, 0, 3, .020)
-    mask3 = clean_mask(mask, 3, 0, .023)
-    mask4 = clean_mask(mask, 3, 3, .025)
-    mask5 = clean_mask(mask4, 2, 3, .025)
-    mask6 = clean_mask(mask5, 1, 0, .025)
-    mask7 = clean_mask(mask6, 1, 0, .025)
-    mask8 = clean_mask(mask7, 1, 0, .025)
-    mask9 = clean_mask(mask8, 1, 3, .025)
-    print('Drawing')
-    df2.imshow(mask,  pnum=331)
-    df2.imshow(mask2, pnum=332)
-    df2.imshow(mask3, pnum=333)
-    df2.imshow(mask4, pnum=334)
-    df2.imshow(mask5, pnum=335)
-    df2.imshow(mask6, pnum=336)
-    df2.imshow(mask7, pnum=337)
-    df2.imshow(mask8, pnum=338)
-    df2.imshow(mask9, pnum=339)
-    print('Updating')
-    df2.update()
-    print('Done')
 
 
 # Open CV relevant values:

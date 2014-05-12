@@ -101,7 +101,7 @@ from ibeis.model.hots import query_helpers
 # IBEIS VIEW GUI
 from ibeis.gui import guifront
 from ibeis.gui import guiback
-from ibeis.gui import gui_item_tables
+from ibeis.gui import uidtables
 # IBEIS VIEW VIZ
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
@@ -144,6 +144,25 @@ def reload_all():
     #vtool.reload_subs()
     #guitool.reload_subs()
     plottool.reload_subs()
+
+def class_reload():
+    ibs.change_class(IBEISControl.IBEISController)
+    IBEISControl.__ALL_CONTROLLERS__
+
+    mod_id_0   = id(IBEISControl)
+    class_id_0 = id(IBEISControl.IBEISController)
+    utool.printvar2('mod_id_0')
+    utool.printvar2('class_id_0')
+
+    reload_all()
+
+    mod_id_1   = id(IBEISControl)
+    class_id_1 = id(IBEISControl.IBEISController)
+    utool.printvar2('mod_id_1')
+    utool.printvar2('class_id_1')
+    utool.printvar2('mod_id_0')
+    utool.printvar2('class_id_0')
+
 
 
 def embed(back):

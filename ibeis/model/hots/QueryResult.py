@@ -91,9 +91,11 @@ def get_num_feats_in_matches(qres):
 
 
 class QueryResult(__OBJECT_BASE__):
-    #__slots__ = ['qrid', 'uid', 'nn_time',
-                 #'weight_time', 'filt_time', 'build_time', 'verify_time',
-                 #'rid2_fm', 'rid2_fs', 'rid2_fk', 'rid2_score']
+    """
+    __slots__ = ['qrid', 'uid', 'nn_time',
+                 'weight_time', 'filt_time', 'build_time', 'verify_time',
+                 'rid2_fm', 'rid2_fs', 'rid2_fk', 'rid2_score']
+    """
     def __init__(qres, qrid, uid):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK

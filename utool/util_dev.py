@@ -55,7 +55,7 @@ def myprint(input_=None, prefix='', indent='', lbl=''):
             #val = input_[attr]
             # Format methods nicer
             #if val.find('built-in method'):
-                #val = '<built-in method>'
+            #    val = '<built-in method>'
             print(indent + '  ' + attr + ' : ' + val)
         print(indent + '}')
 
@@ -96,7 +96,7 @@ def numpy_list_num_bits(nparr_list, expected_type, expected_dims):
     }[expected_type]
     for nparr in iter(nparr_list):
         arr_len, arr_dims = nparr.shape
-        if not nparr.dtype.type is expected_type:
+        if nparr.dtype.type is not expected_type:
             msg = 'Expected Type: ' + repr(expected_type)
             msg += 'Got Type: ' + repr(nparr.dtype)
             raise Exception(msg)
@@ -208,10 +208,13 @@ def print_object_size(obj, lbl=''):
 
 def get_object_base():
     from .DynamicStruct import DynStruct
-    if '--dyn' in sys.argv:
-        return DynStruct
-    else:
+    from .util_classes import AutoReloader
+    if '--min-base' in sys.argv:
         return object
+    elif '--noreload-base' not in sys.argv:
+        return AutoReloader
+    elif '--dyn-base' in sys.argv:
+        return DynStruct
 
 
 def compile_cython(fpath):

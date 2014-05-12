@@ -237,6 +237,7 @@ def sample_uniform(kpts, nSamples=128):
     num_steps_list[-1] += np.round((perimeter - dist_walked) / step_size)
     assert np.all(array(num_steps_list).sum(0) == nSamples)
 
+    """
     #offset_iter1 = zip(num_steps_list, distsT, offset_list)
     #offset_list = [((step_size - offset) / dist, ((num * step_size) - offset) / dist, num)
                    #for num, dist, offset in zip(num_steps_list, distsT, offset_list)]
@@ -249,6 +250,7 @@ def sample_uniform(kpts, nSamples=128):
     #]
     # store the percent location at each line segment where
     # the cut will be made
+    """
     # HERE IS NEXT
     cut_list = []
     # This loops over the pt samples and performs the operation for every keypoint
@@ -284,6 +286,7 @@ def sample_uniform(kpts, nSamples=128):
     # =================
     # =================
     # METHOD 2
+    """
     #from itertools import cycle as icycle
     #from itertools import islice
 
@@ -295,6 +298,7 @@ def sample_uniform(kpts, nSamples=128):
     #new_locations = [[[((1 - cut) * pt1) + ((cut) * pt2) for cut in cuts]
                       #for (pt1, pt2, cuts) in cutPtsIter]
                      #for cutPtsIter in cutptsIter_list]
+    """
     # =================
 
     # assert new_locations.shape == (nKp, nSamples, 3)
@@ -354,8 +358,8 @@ def kpts_to_invV(kpts):
     ## Start with
     ##     invV.shape = (3, 3, nKp)
     #invV = array([[iv11, iv12, iv13],
-                  #[iv21, iv22, iv23],
-                  #[iv31, iv32, iv33]])
+    #              [iv21, iv22, iv23],
+    #              [iv31, iv32, iv33]])
     ## And roll into
     #invV = np.rollaxis(invV, 2)
     #invV = np.ascontiguousarray(invV)

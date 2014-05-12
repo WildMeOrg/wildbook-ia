@@ -16,7 +16,7 @@ from ibeis.dev import experiment_printres
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]', DEBUG=False)
 
-BATCH_MODE = not '--nobatch' in sys.argv
+BATCH_MODE = '--nobatch' not in sys.argv
 NOMEMORY   = '--nomemory' in sys.argv
 QUIET      = '--quiet' in sys.argv
 TESTRES_VERBOSITY = 2 - (2 * QUIET)

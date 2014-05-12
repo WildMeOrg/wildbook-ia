@@ -148,6 +148,7 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
     return utool.util_parallel.generate(gen_chip2, arg_list)
 
 
+"""
 #def gen_chips_async_OLD(cfpath_list, gfpath_list, bbox_list, theta_list,
                     #newsize_list, filter_list=[]):
     # TODO: Actually make this compute in parallel
@@ -168,6 +169,7 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
     #result_list = utool.util_parallel.process(gen_chip, arg_list, args_dict)
     #for result in result_list:
         #yield result
+"""
 
 
 @utool.indent_func
@@ -194,11 +196,13 @@ def compute_and_write_chips(ibs, rid_list):
         print('Wrote chip: %r' % cfpath)
         pass
     print('Done computing chips')
+    """
         #yield cfpath
     # Write results to disk as they come back from parallel processess
     #for chipBGR, cfpath in chip_async_iter:
         #printDBG('write chip: %r' % cfpath)
-        #gtool.imwrite(cfpath, chipBGR)
+       #gtool.imwrite(cfpath, chipBGR)
+    """
 
 
 @utool.indent_func

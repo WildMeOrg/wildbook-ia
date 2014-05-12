@@ -405,7 +405,7 @@ class DisplayConfig(ConfigBase):
 def __dict_default_func(dict_):
     # Sets keys only if they dont exist
     def set_key(key, val):
-        if not key in dict_:
+        if key not in dict_:
             dict_[key] = val
     return set_key
 

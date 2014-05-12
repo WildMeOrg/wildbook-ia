@@ -67,7 +67,7 @@ def tune_flann(data, **kwargs):
     flann.delete_index()
     return tuned_params
 
-
+"""
 #def __tune():
     #tune_flann(sample_fraction=.03, target_precision=.9, build_weight=.01)
     #tune_flann(sample_fraction=.03, target_precision=.8, build_weight=.5)
@@ -157,3 +157,4 @@ def tune_flann(data, **kwargs):
                    #"kl"               : 8 }
 
 #pyflann.set_distance_type('hellinger', order=0)
+"""

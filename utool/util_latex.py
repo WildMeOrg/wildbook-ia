@@ -15,12 +15,14 @@ from . import util_cache
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[latex]')
 
+"""
 #def ensure_latex_environ():
     #paths = os.environ['PATH'].split(os.pathsep)
     #mpl.rc('font',**{'family':'serif'})
     #mpl.rc('text', usetex=True)
     #mpl.rc('text.latex',unicode=True)
     #mpl.rc('text.latex',preamble='\usepackage[utf8]{inputenc}')
+"""
 
 
 def make_full_document(text):
@@ -42,9 +44,6 @@ def render(input_text, fnum=1):
     import matplotlib as mpl
     verbose = False
     text = make_full_document(input_text)
-    #text = (r'\begin{document}' + '\n' +
-            #text + '\n' +
-            #r'\end{document}')
     cwd = os.getcwd()
     text_dir = join(cwd, 'tmptex')
     text_fname = 'latex_formatter_temp.tex'
@@ -181,12 +180,12 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
         bigger_is_better = not bigger_is_better
         flip_repltups = [('<', '>'), ('score', 'error')]
         col_lbls = [replace_all(lbl, flip_repltups) for lbl in col_lbls]
-        if not title is None:
+        if title is not None:
             title = replace_all(title, flip_repltups)
-        if not out_of is None:
+        if out_of is not None:
             scores = out_of - scores
 
-    if not replace_rowlbl is None:
+    if replace_rowlbl is not None:
         for ser, rep in replace_rowlbl:
             row_lbls = [re.sub(ser, rep, lbl) for lbl in row_lbls]
 
@@ -248,7 +247,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
         for c in xrange(len(body[0])):
             # In data land
             if r > 0 and c > 0:
-                if not out_of is None:
+                if out_of is not None:
                     body[r][c] = body[r][c] + '/' + str(out_of)
                     if DO_PERCENT:
                         percent = ' = %.1f%%' % float(100 * scores[r - 1, c - 1] / out_of)
@@ -278,7 +277,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
         rowsep = hline + '\n'
     rowstr_list = [colsep.join(row) + endl for row in body]
     # Insert title
-    if not title is None:
+    if title is not None:
         tex_title = latex_multicolumn(title, len(body[0])) + endl
         rowstr_list = [tex_title] + rowstr_list
         extra_rowsep_pos_list += [2]
@@ -300,7 +299,7 @@ def make_score_tabular(row_lbls, col_lbls, scores, title=None,
 
     tabular_str = rowsep.join([tabular_head, tabular_body, tabular_tail])
 
-    if not common_rowlbl is None:
+    if common_rowlbl is not None:
         #tabular_str += escape_latex('\n\nThe following parameters were held fixed:\n' + common_rowlbl)
         pass
     return tabular_str

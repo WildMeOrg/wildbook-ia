@@ -22,7 +22,7 @@ __PRINT_FUNC__     = __builtin__.print
 __PRINT_DBG_FUNC__ = __builtin__.print
 __WRITE_FUNC__ = __STDOUT__.write
 __FLUSH_FUNC__ = __STDOUT__.flush
-__RELOAD_OK__  = not '--noreloadable' in sys.argv
+__RELOAD_OK__  = '--noreloadable' not in sys.argv
 
 
 __INJECTED_MODULES__ = set([])
@@ -35,7 +35,7 @@ def _inject_funcs(module, *func_list):
     for func in func_list:
         if (module is not None and
                 hasattr(module, '__name__') and
-                not module.__name__ in __INJECT_BLACKLIST__ and
+                module.__name__ not in __INJECT_BLACKLIST__ and
                 not module.__name__.startswith('six') and
                 not module.__name__.startswith('sys')):
             #print('setting: %s.%s = %r' % (module.__name__, func.func_name, func))
@@ -189,5 +189,6 @@ def inject_all(DEBUG=False):
             print('[util_inject] module=%r' % module)
             print('</!!!>')
             raise
+
 
 print, print_, printDBG, rrr, profile = inject(__name__, '[inject]')

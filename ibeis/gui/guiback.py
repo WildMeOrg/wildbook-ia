@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import sys
-from os.path import split, exists, join
+from os.path import exists, join
 import functools
 # Qt
 from PyQt4 import QtCore
@@ -13,7 +13,7 @@ from plottool import fig_presenter
 # IBEIS
 from ibeis.dev import ibsfuncs, sysres
 from ibeis.gui import guifront
-from ibeis.gui import gui_item_tables as item_table
+from ibeis.gui import uidtables as item_table
 from ibeis.viz import interact
 # Utool
 import utool
@@ -191,9 +191,9 @@ class MainWindowBackend(QtCore.QObject):
         if back.ibs.dbdir is None:
             title = 'IBEIS - invalid database'
         else:
-            dbdir = back.ibs.dbdir
-            db_name = split(dbdir)[1]
-            title = 'IBEIS - %r - %s' % (db_name, dbdir)
+            dbdir = back.ibs.get_dbdir()
+            dbname = back.ibs.get_dbname()
+            title = 'IBEIS - %r - %s' % (dbname, dbdir)
         back.front.setWindowTitle(title)
 
     #@utool.indent_func
@@ -211,35 +211,35 @@ class MainWindowBackend(QtCore.QObject):
     # Populate functions
     #----------------------1----------------------------------------------------
 
-    def encounter_suffix_generator(back):
+    def enctext_generator(back):
         valid_eids = back.ibs.get_valid_eids()
-        suffix_list = [''] + back.ibs.get_encounter_text(valid_eids)
-        for suffix in suffix_list:
-            yield suffix
+        enctext_list = [''] + back.ibs.get_encounter_enctext(valid_eids)
+        for enctext in enctext_list:
+            yield enctext
 
     @utool.indent_func
     def populate_encounter_tabs(back, **kwargs):
-        for suffix in back.encounter_suffix_generator():
+        for enctext in back.enctext_generator():
             item_table.populate_encounter_tab(back.front,
-                                              suffix=suffix, **kwargs)
+                                              enctext=enctext, **kwargs)
 
     @utool.indent_func
     def populate_image_table(back, **kwargs):
-        for suffix in back.encounter_suffix_generator():
+        for enctext in back.enctext_generator():
             item_table.emit_populate_table(back, item_table.IMAGE_TABLE,
-                                           suffix=suffix, **kwargs)
+                                           enctext=enctext, **kwargs)
 
     @utool.indent_func
     def populate_name_table(back, **kwargs):
-        for suffix in back.encounter_suffix_generator():
+        for enctext in back.enctext_generator():
             item_table.emit_populate_table(back, item_table.NAME_TABLE,
-                                           suffix=suffix, **kwargs)
+                                           enctext=enctext, **kwargs)
 
     @utool.indent_func
     def populate_roi_table(back, **kwargs):
-        for suffix in back.encounter_suffix_generator():
+        for enctext in back.enctext_generator():
             item_table.emit_populate_table(back, item_table.ROI_TABLE,
-                                           suffix=suffix, **kwargs)
+                                           enctext=enctext, **kwargs)
 
     @utool.indent_func
     def populate_result_table(back, **kwargs):
@@ -374,7 +374,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot(QT_ROI_UID_TYPE, str, str)
     def set_roi_prop(back, rid, key, val, refresh=True):
-        """ Keys for propname come from gui_item_tables.fancy_headers """
+        """ Keys for propname come from uidtables.fancy_headers """
         # Table Edit -> Change Chip Property
         rid = item_table.qt_cast(rid)
         val = item_table.qt_cast(val)
@@ -452,7 +452,7 @@ class MainWindowBackend(QtCore.QObject):
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
         try:
-            ibs = IBEISControl.IBEISControl(dbdir=dbdir)
+            ibs = IBEISControl.IBEISController(dbdir=dbdir)
             back.connect_ibeis_control(ibs)
         except Exception as ex:
             print('[guiback] Caught: %s: %s' % (type(ex), ex))

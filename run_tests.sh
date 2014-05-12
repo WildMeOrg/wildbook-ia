@@ -19,9 +19,20 @@ echo $PYTHONPATH
 export ARGV="--quiet --noshow $@"
 
 export DEFAULT=ON
+export IBS_TESTS=$DEFAULT
+
+# Parse for bash commandline args
+for i in "$@"
+do
+case $i in
+    --just-ibeis)
+    export DEFAULT=OFF  # 
+    export IBS_TESTS=ON
+    ;;
+esac
+done
 
 export GUI_TESTS=$DEFAULT
-export IBS_TESTS=$DEFAULT
 export SQL_TESTS=$DEFAULT
 export MISC_TESTS=$DEFAULT
 export VIEW_TESTS=$DEFAULT

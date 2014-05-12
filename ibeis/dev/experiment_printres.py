@@ -1,4 +1,3 @@
-# mv experiment_report_results.py
 from __future__ import absolute_import, division, print_function
 import itertools
 from itertools import chain, imap
@@ -325,7 +324,7 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         #title_uid = qres.uid
         #title_uid = title_uid.replace('_FEAT', '\n_FEAT')
         #qres.show_analysis(ibs, fnum=fnum, aug='\n' + title_uid, annote=1,
-                           #show_name=False, show_gname=False, time_appart=False)
+        #                   show_name=False, show_gname=False, time_appart=False)
         df2.adjust_subplots_safe()
         if utool.get_flag('--save-figures'):
             ph.dump(ibs.get_ibsdir(), 'figures_analysis', quality=True, overwrite=False)

@@ -57,7 +57,7 @@ class Indenter(object):
         #for mod in self.old_printDBG_dict.keys():
             #@functools.wraps(self.old_printDBG_dict[mod])
             #def indent_printDBG(msg):
-                #self.old_printDBG_dict[mod](indent_msg(msg))
+            #    self.old_printDBG_dict[mod](indent_msg(msg))
             #setattr(mod, 'printDBG', indent_printDBG)
 
     def stop(self):
@@ -69,9 +69,9 @@ class Indenter(object):
         pop_module_functions(self.old_print_dict, 'print')
         #pop_module_functions(self.old_printDBG_dict, 'printDBG')
         #for mod in self.old_print_dict.iterkeys():
-            #setattr(mod, 'print', self.old_print_dict[mod])
+        #    setattr(mod, 'print', self.old_print_dict[mod])
         #for mod in self.old_printDBG_dict.iterkeys():
-            #setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
+        #    setattr(mod, 'printDBG', self.old_printDBG_dict[mod])
 
     def __enter__(self):
         self.start()

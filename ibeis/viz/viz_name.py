@@ -46,7 +46,7 @@ def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, sel_rids=[], subt
     figtitle = 'Name View nid=%r name=%r' % (nid, name)
     df2.set_figtitle(figtitle)
     #if not annote:
-        #title += ' noannote'
+    #    title += ' noannote'
     #gs2.tight_layout(fig)
     #gs2.update(top=df2.TOP_SUBPLOT_ADJUST)
     #df2.set_figtitle(title, subtitle)

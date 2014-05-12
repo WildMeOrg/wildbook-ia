@@ -182,7 +182,7 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
 
 def assert_valid_rids(ibs, rid_list):
     valid_rids = set(ibs.get_valid_rids())
-    invalid_rids = [rid for rid in rid_list if not rid in valid_rids]
+    invalid_rids = [rid for rid in rid_list if rid not in valid_rids]
     assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
 
 
@@ -260,3 +260,19 @@ def assert_valid_names(name_list):
                         for name in name_list]
     assert all(valid_namecheck),\
         'User defined names cannot start with four underscores'
+
+
+def unflat_lookup(ibs_method, unflat_uids):
+    """ Uses an ibeis lookup function with a non-flat uid list.
+    """
+    # First flatten the list
+    flat_uids, reverse_list = utool.invertable_flatten(unflat_uids)
+    # Then preform the lookup
+    flat_vals = ibs_method(flat_uids)
+    # Then unflatten the list
+    unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
+    return unflat_vals
+
+
+def is_database_enctext(enctext):
+    return (enctext == '' or enctext is None or enctext == 'None')

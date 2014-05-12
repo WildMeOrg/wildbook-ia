@@ -85,7 +85,7 @@ def get_all_figures():
     all_figures = []
     # Make sure you dont show figures that this module closed
     for fig in iter(all_figures_):
-        if not 'df2_closed' in fig.__dict__.keys() or not fig.df2_closed:
+        if 'df2_closed' not in fig.__dict__.keys() or not fig.df2_closed:
             all_figures.append(fig)
     # Return all the figures sorted by their number
     all_figures = sorted(all_figures, key=lambda fig: fig.number)
@@ -100,7 +100,7 @@ SLEEP_TIME = .05
 
 
 def all_figures_show():
-    if not '--noshow' in sys.argv:
+    if '--noshow' not in sys.argv:
         for fig in iter(get_all_figures()):
             time.sleep(SLEEP_TIME)
             fig.show()
@@ -108,7 +108,7 @@ def all_figures_show():
 
 
 def all_figures_tight_layout():
-    if not '--noshow' in sys.argv:
+    if '--noshow' not in sys.argv:
         for fig in iter(get_all_figures()):
             fig.tight_layout()
             #adjust_subplots()
@@ -333,7 +333,7 @@ iup = iupdate
 
 def present(*args, **kwargs):
     'execing present should cause IPython magic'
-    if not '--noshow' in sys.argv:
+    if '--noshow' not in sys.argv:
         #print('[df2] Presenting figures...')
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -344,11 +344,11 @@ def present(*args, **kwargs):
     execstr = utool.ipython_execstr()
     execstr += textwrap.dedent('''
     if not embedded:
-        if not '--quiet' in sys.argv:
+        if '--quiet' not in sys.argv:
             print('[df2] Presenting in normal shell.')
             print('[df2] ... plt.show()')
         import matplotlib.pyplot as plt
-        if not '--noshow' in sys.argv:
+        if '--noshow' not in sys.argv:
             plt.show()
     ''')
     return execstr

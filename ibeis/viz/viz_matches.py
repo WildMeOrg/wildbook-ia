@@ -89,5 +89,5 @@ def annotate_matches(ibs, qres, rid2,
         theta2 = 0
         df2.draw_border(ax, truth_color, 4, offset=offset2)
         # No matches draw a red box
-    if not rid2 in qres.rid2_fm or len(qres.rid2_fm[rid2]) == 0:
+    if rid2 not in qres.rid2_fm or len(qres.rid2_fm[rid2]) == 0:
         df2.draw_boxedX(bbox2, theta=theta2)

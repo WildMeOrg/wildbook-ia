@@ -35,9 +35,9 @@ def injest_testdb1():
     ibs.set_image_unixtime(gid_list, unixtime_list)
 
     # Print to show success
-    ibs.print_name_table()
-    ibs.print_image_table()
-    ibs.print_roi_table()
+    #ibs.print_name_table()
+    #ibs.print_image_table()
+    #ibs.print_roi_table()
 
 if __name__ == '__main__':
     import multiprocessing

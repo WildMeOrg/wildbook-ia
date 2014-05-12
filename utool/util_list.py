@@ -122,16 +122,13 @@ def unflatten(flat_list, reverse_list):
 
 
 def tuplize(list_):
+    """ Converts each scalar item in a list to a dimension-1 tuple """
     tup_list = [item if isiterable(item) else (item,) for item in list_]
     return tup_list
 
 
-def scalarflatten(list_):
-    return flatten(map(tuplize, list_))
-
-
-def flatten_items(list_):
-    """ maps iflatten to a list
+def flattenize(list_):
+    """ maps flatten to a tuplized list
     list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
     """
     #return imap(iflatten, list_)
@@ -249,14 +246,15 @@ def intersect_ordered(list1, list2):
     new_list = [item for item in iter(list1) if item in set2]
     #new_list =[]
     #for item in iter(list1):
-        #if item in set2:
-            #new_list.append(item)
+    #    if item in set2:
+    #        new_list.append(item)
     return new_list
 
 
 def intersect2d_numpy(A, B):
     #http://stackoverflow.com/questions/8317022/
     #get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
+    # TODO: MOVE to numpy libs
     nrows, ncols = A.shape
     # HACK to get consistent dtypes
     assert A.dtype is B.dtype, 'A and B must have the same dtypes'
@@ -271,6 +269,7 @@ def intersect2d_numpy(A, B):
 
 
 def intersect2d(A, B):
+    # TODO: MOVE to numpy libs
     Cset  =  set(tuple(x) for x in A).intersection(set(tuple(x) for x in B))
     Ax = np.array([x for x, item in enumerate(A) if tuple(item) in Cset], dtype=np.int)
     Bx = np.array([x for x, item in enumerate(B) if tuple(item) in Cset], dtype=np.int)
@@ -280,6 +279,7 @@ def intersect2d(A, B):
 
 def unique_keep_order(arr):
     """ pandas.unique preseves order and seems to be faster due to index overhead """
+    # TODO: MOVE to numpy libs
     import pandas as pd
     return pd.unique(arr)
     #_, idx = np.unique(arr, return_index=True)
@@ -296,6 +296,12 @@ def unique_keep_order2(list_):
         return True
     unique_list = [item for item in list_ if unseen(item)]
     return unique_list
+
+unique_ordered = unique_keep_order2
+
+
+def unique_unordered(list_):
+    return tuple(set(list_))
 
 
 def deterministic_shuffle(list_):

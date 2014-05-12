@@ -132,8 +132,8 @@ def dbstats(ibs):
     tex_multi_stats = latex_formatter.latex_mystats(r'\# multistats', multiton_nx2_nchips)
 
     tex_kpts_scale_thresh = latex_formatter.latex_multicolumn('Scale Threshold (%d %d)' %
-                                                             (ibs.cfg.feat_cfg.scale_min,
-                                                              ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
+                                                              (ibs.cfg.feat_cfg.scale_min,
+                                                               ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
 
     (tex_nKpts, tex_kpts_stats, tex_scale_stats) = get_keypoint_stats(ibs)
     tex_title = latex_formatter.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'

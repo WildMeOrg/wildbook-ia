@@ -36,6 +36,7 @@ if __DYNAMIC__:
         ('util_arg',       ['get_arg', 'get_flag', 'argv_flag_dec', 'QUIET',
                             'VERBOSE']),
         ('util_cache',     ['global_cache_read', 'global_cache_write']),
+        ('util_classes',   ['AutoReloader']),
         ('util_cplat',     ['cmd', 'view_directory',]),
         ('util_csv',       None),
         ('util_dbg',       ['execstr_dict', 'save_testdata', 'load_testdata',
@@ -245,7 +246,7 @@ else:
                               _inject_funcs, argv, get_injected_modules, inject,
                               inject_all, inject_colored_exceptions,
                               inject_print_functions, inject_profile_function,
-                              inject_reload_function,)
+                              inject_reload_function, AutoReloader)
     from .util_iter import (chain, cycle, ensure_iterable, ichunks, iflatten,
                             iflatten_scalars, interleave,)
     from .util_list import (alloc_lists, alloc_nones, assert_all_not_None,

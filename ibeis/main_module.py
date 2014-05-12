@@ -97,7 +97,7 @@ def _init_ibeis(dbdir=None, defaultdb='cache', allow_newdir=False):
     if dbdir is None:
         utool.printWARN('[main!] WARNING args.dbdir is None')
     else:
-        ibs = IBEISControl.IBEISControl(dbdir=dbdir)
+        ibs = IBEISControl.IBEISController(dbdir=dbdir)
     return ibs
 
 

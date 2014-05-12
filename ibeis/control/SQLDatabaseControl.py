@@ -26,7 +26,7 @@ def get_operation_type(operation):
     return operation_type
 
 
-class SQLDatabaseControl(object):
+class SQLDatabaseController(object):
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3'):
         """
             SQLite3 Documentation: http://www.sqlite.org/docs.html
@@ -161,7 +161,7 @@ class SQLDatabaseControl(object):
         # Append to internal storage
         db.table_columns[table] = schema_list
 
-    def execute(db, operation, parameters=(), auto_commit=False, errmsg=None,
+    def execute(db, operation, params=(), auto_commit=False, errmsg=None,
                 verbose=VERBOSE):
         """
             operation - parameterized SQL operation string.
@@ -169,7 +169,7 @@ class SQLDatabaseControl(object):
                 representation ( ? ) or by using an ordered, text representation
                 name ( :value )
 
-            parameters - list of values or a dictionary of representations and
+            params - list of values or a dictionary of representations and
                          corresponding values
                 * Ordered Representation -
                     List of values in the order the question marks appear in the
@@ -184,7 +184,7 @@ class SQLDatabaseControl(object):
         #    print('[sql] %r called execute' % caller_name)
         status = False
         try:
-            status = db.executor.execute(operation, parameters)
+            status = db.executor.execute(operation, params)
             if auto_commit:
                 db.commit(verbose=False)
         except Exception as ex:
@@ -193,7 +193,7 @@ class SQLDatabaseControl(object):
             raise
         return status
 
-    def executeone(db, operation, parameters=(), auto_commit=True, errmsg=None,
+    def executeone(db, operation, params=(), auto_commit=True, errmsg=None,
                    verbose=VERBOSE):
         """ Runs execute and returns results """
         #if verbose:
@@ -204,12 +204,12 @@ class SQLDatabaseControl(object):
         if not QUIET:
             tt = utool.tic(operation_label)
         #print(operation)
-        #print(parameters)
-        db.executor.execute(operation, parameters)
+        #print(params)
+        db.executor.execute(operation, params)
         # JON: For some reason the top line works and the bottom line doesn't
         # in test_query.py I don't know if removing the bottom line breaks
         # anything else.
-        #db.execute(operation, parameters, auto_commit, errmsg, verbose=False)
+        #db.execute(operation, params, auto_commit, errmsg, verbose=False)
         if auto_commit:
             db.commit(verbose=False)
         result_list = db.result_list(verbose=False)
@@ -235,7 +235,7 @@ class SQLDatabaseControl(object):
                     column_N=?
                 )
                 '''
-            params_iter - an iterable of parameters
+            params_iter - an iterable of params
                 e.g.
                 params_iter = [
                     (col1, ..., colN),
@@ -243,7 +243,7 @@ class SQLDatabaseControl(object):
                     (col1, ..., colN),
                 ]
 
-        same as execute but takes a iterable of parameters instead of just one
+        same as execute but takes a iterable of params instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
         # Do any preprocesing on the SQL command / query
@@ -252,10 +252,10 @@ class SQLDatabaseControl(object):
         if num_params is None:
             params_iter = list(params_iter)
             num_params = len(params_iter)
-        # Do not compute executemany without parameters
+        # Do not compute executemany without params
         if num_params == 0:
             if VERBOSE:
-                print('[sql] cannot executemany with no parameters.' +
+                print('[sql] cannot executemany with no params.' +
                       'use executeone instead')
             return []
         operation_label = '[sql] execute %d %s: ' % (num_params, operation_type)
@@ -263,9 +263,9 @@ class SQLDatabaseControl(object):
             tt = utool.tic(operation_label)
         #
         # Define helper functions
-        def _executor(parameters):
+        def _executor(params):
             # Send command to SQL (all other results will be invalided)
-            db.executor.execute(operation, parameters)
+            db.executor.execute(operation, params)
             # Read all results
             results_ = [result for result in db.result_iter(verbose=False)]
             return results_

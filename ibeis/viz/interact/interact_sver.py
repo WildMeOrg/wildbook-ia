@@ -20,7 +20,7 @@ def ishow_sver(ibs, rid1, rid2, chipmatch_FILT=None, rid2_svtup=None, fnum=None,
 
     def _on_sv_click(event):
         print_('[inter] clicked sv')
-        ax, x, y = event.inaxes, event.xdata, event.ydata
+        ax = event.inaxes
         if ih.clicked_outside_axis(event):
             print('... out of axis')
             mode_ptr[0] = (mode_ptr[0] + 1) % 3

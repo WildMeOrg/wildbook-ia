@@ -157,7 +157,7 @@ def db_to_dbdir(db, allow_newdir=False):
         index = util_list.listfind(lower_list, db.lower())
         if index is not None:
             print('[workdir] WARNING: db capitalization seems to be off')
-            if not '--strict' in sys.argv:
+            if '--strict' not in sys.argv:
                 print('[workdir] attempting to fix it')
                 db = fname_list[index]
                 dbdir = join(work_dir, db)

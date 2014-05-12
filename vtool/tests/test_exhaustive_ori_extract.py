@@ -6,11 +6,6 @@ import os
 sys.path.append(os.getcwd())
 import utool
 utool.ensure_in_pythonpath('hesaff')
-#from hscom import __common__
-#(print, print_, print_on, print_off,
- #rrr, profile, printDBG) = __common__.init(__name__, '[util]', DEBUG=False)
-# Standard
-# Scientific
 import numpy as np
 # Hotspotter
 from plottool import draw_func2 as df2

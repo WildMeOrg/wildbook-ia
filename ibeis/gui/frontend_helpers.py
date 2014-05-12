@@ -199,15 +199,15 @@ def newTabbedView(front, tabWidget, viewname, text):
     return view, verticalLayout
 
 
-def newTabbedTable(front, tabWidget, name, suffix, text='',
+def newTabbedTable(front, tabWidget, name, enctext, text='',
                    clicked_slot_fn=None,
                    pressed_slot_fn=None,
                    changed_slot_fn=None):
     """ Builds view, uidTBL, gridLayout, verticalLayout """
     # IMG / ROI/ NAME / RES VIEW
-    viewname = name + '_view' + suffix
-    tblname  = name + '_TBL' + suffix
-    text = text + suffix
+    viewname = name + '_view' + enctext
+    tblname  = name + '_TBL' + enctext
+    text = text + enctext
     view, verticalLayout = newTabbedView(front, tabWidget, viewname, text)
     # G/R/N/Q-ID TABLE
     table = newTable(front, view, tblname)

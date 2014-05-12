@@ -8,14 +8,14 @@ from PyQt4.QtCore import Qt
 # IBEIS
 import utool
 from guitool import slot_, signal_
-from ibeis.gui import gui_item_tables
+from ibeis.gui import uidtables
 from ibeis.gui.Skeleton import Ui_mainSkel
 
 QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag('--verbose')
 
 
-UUID_TYPE = gui_item_tables.UUID_TYPE
+UUID_TYPE = uidtables.UUID_TYPE
 QUTF8      = QtGui.QApplication.UnicodeUTF8
 QTRANSLATE = QtGui.QApplication.translate
 
@@ -105,9 +105,9 @@ def _tee_logging(front):
 #=================
 
 
-def update_tabwidget_text(front, tblname, text, suffix=''):
-    tabTable  = front.get_tabWidget(suffix)
-    tabWidget = front.get_tabView(tblname, suffix)
+def update_tabwidget_text(front, tblname, text, enctext=''):
+    tabTable  = front.get_tabWidget(enctext)
+    tabWidget = front.get_tabView(tblname, enctext)
     index     = tabTable.indexOf(tabWidget)
     tab_text  = QTRANSLATE(front.objectName(), text, None, QUTF8)
     tabTable.setTabText(index, tab_text)
@@ -210,26 +210,26 @@ class MainWindowFrontend(QtGui.QMainWindow):
                      col_types,
                      row_list,
                      datatup_list,
-                     suffix=''):
+                     enctext=''):
         tblname = str(tblname)
-        suffix = str(suffix)
-        print('populate_tbl(%r, %r)' % (tblname, suffix,))
+        enctext = str(enctext)
+        #print('populate_tbl(%r, %r)' % (tblname, enctext,))
         try:
-            tbl = front.get_tabTable(tblname, suffix)
+            tbl = front.get_tabTable(tblname, enctext)
         except KeyError:
             print('tbl not found')
             return
 
         try:
-            gui_item_tables.populate_item_table(tbl, col_fancyheaders, col_editable,
+            uidtables.populate_item_table(tbl, col_fancyheaders, col_editable,
                                                 col_types, row_list, datatup_list)
         except Exception as ex:
             front.raiseExceptionSignal.emit(ex)
             raise
         # Set the tab text to show the number of items listed
-        fancy_tablename = gui_item_tables.fancy_tablenames[tblname]
+        fancy_tablename = uidtables.fancy_tablenames[tblname]
         text = fancy_tablename + ' : %d' % len(row_list)
-        update_tabwidget_text(front, tblname, text, suffix)
+        update_tabwidget_text(front, tblname, text, enctext)
 
     def isItemEditable(self, item):
         return int(Qt.ItemIsEditable & item.flags()) == int(Qt.ItemIsEditable)
@@ -238,20 +238,20 @@ class MainWindowFrontend(QtGui.QMainWindow):
     # Encounter Widget / View / Table getters
     #====================
 
-    def get_tabWidget(front, suffix):
-        """ Returns the widget of the <suffix> encounter tab """
-        tabWidget  = front.ui.__dict__[str('tablesTabWidget' + suffix)]
+    def get_tabWidget(front, enctext):
+        """ Returns the widget of the <enctext> encounter tab """
+        tabWidget  = front.ui.__dict__[str('tablesTabWidget' + enctext)]
         return tabWidget
 
-    def get_tabView(front, tblname, suffix):
+    def get_tabView(front, tblname, enctext):
         """ Returns the view containting the uid table """
-        view = front.ui.__dict__[str(tblname + '_view' + suffix)]
+        view = front.ui.__dict__[str(tblname + '_view' + enctext)]
         return view
 
-    def get_tabTable(front, tblname, suffix):
+    def get_tabTable(front, tblname, enctext):
         """ tblname in ['gids', 'rids', 'nids', 'qres'] """
         try:
-            tableWidget = front.ui.__dict__[str(tblname + '_TBL' + suffix)]
+            tableWidget = front.ui.__dict__[str(tblname + '_TBL' + enctext)]
         except KeyError:
             raise
         return tableWidget
@@ -263,8 +263,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_header(front, tbl, col):
         # Map the fancy header back to the internal one.
         fancy_header = str(tbl.horizontalHeaderItem(col).text())
-        header = (gui_item_tables.reverse_fancy[fancy_header]
-                  if fancy_header in gui_item_tables.reverse_fancy else fancy_header)
+        header = (uidtables.reverse_fancy[fancy_header]
+                  if fancy_header in uidtables.reverse_fancy else fancy_header)
         return header
 
     def get_tbl_int(front, tbl, row, col):
@@ -279,10 +279,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
         objectName = str(tbl.objectName())
         tblpos  = objectName.find('_TBL')
         tblname = objectName[0:tblpos]
-        #suffix = tblname[tblpos + 4, :]
-        #print(suffix)
-        #tblname, suffix = str(tbl.objectName()).split('_TBL')
-        col = gui_item_tables.table_headers[tblname].index(header)
+        #enctext = tblname[tblpos + 4, :]
+        #print(enctext)
+        #tblname, enctext = str(tbl.objectName()).split('_TBL')
+        col = uidtables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
     @slot_(QtGui.QTableWidgetItem)

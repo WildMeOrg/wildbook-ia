@@ -17,6 +17,7 @@ print, print_, printDBG, rrr, profile = inject(__name__, '[path]')
 
 
 __VERBOSE__ = '--verbose' in sys.argv
+__QUIET__ = '--quiet' in sys.argv
 
 
 __IMG_EXTS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.ppm']
@@ -46,15 +47,15 @@ def path_ndir_split(path, n):
 def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs):
     if dryrun:
         if verbose:
-            print('[util] Dryrem %r' % fpath)
+            print('[path] Dryrem %r' % fpath)
         return
     else:
         try:
             os.remove(fpath)
-            if verbose:
-                print('[util] Removed %r' % fpath)
+            if verbose and not __QUIET__:
+                print('[path] Removed %r' % fpath)
         except OSError:
-            print('[util] Misrem %r' % fpath)
+            print('[path] Misrem %r' % fpath)
             #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
             if not ignore_errors:
                 raise
@@ -63,7 +64,7 @@ def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs)
 
 
 def remove_dirs(dpath, dryrun=False, **kwargs):
-    print('[util] Removing directory: %r' % dpath)
+    print('[path] Removing directory: %r' % dpath)
     try:
         shutil.rmtree(dpath)
     except OSError as e:
@@ -76,10 +77,11 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
                         dryrun=False, ignore_errors=False, **kwargs):
     if isinstance(fname_pattern_list, str):
         fname_pattern_list = [fname_pattern_list]
-    print('[util] Removing files:')
-    print('  * in dpath = %r ' % dpath)
-    print('  * matching patterns = %r' % fname_pattern_list)
-    print('  * recursive = %r' % recursive)
+    if not __QUIET__:
+        print('[path] Removing files:')
+        print('  * in dpath = %r ' % dpath)
+        print('  * matching patterns = %r' % fname_pattern_list)
+        print('  * recursive = %r' % recursive)
     num_removed, num_matched = (0, 0)
     kwargs.update({
         'dryrun': dryrun,
@@ -87,7 +89,8 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     })
     if not exists(dpath):
         msg = ('!!! dir = %r does not exist!' % dpath)
-        print(msg)
+        if not __QUIET__:
+            print(msg)
         warnings.warn(msg, category=UserWarning)
     for root, dname_list, fname_list in os.walk(dpath):
         for fname_pattern in fname_pattern_list:
@@ -96,18 +99,19 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
                 num_removed += remove_file(join(root, fname), **kwargs)
         if not recursive:
             break
-    print('[util] ... Removed %d/%d files' % (num_removed, num_matched))
+    print('[path] ... Removed %d/%d files' % (num_removed, num_matched))
     return True
 
 
 def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True, **kwargs):
     # Deletes regardless of what the path is
-    print('[util] Deleting path=%r' % path)
+    print('[path] Deleting path=%r' % path)
     rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
                   ignore_errors=ignore_errors, **kwargs)
     if not exists(path):
         msg = ('..does not exist!')
-        print(msg)
+        if not __QUIET__:
+            print(msg)
         return False
     if isdir(path):
         flag = remove_files_in_dir(path, **rmargs)
@@ -153,9 +157,9 @@ def checkpath(path_, verbose=__VERBOSE__):
         else:
             print_('... does not exist\n')
             if __VERBOSE__:
-                print_('[util] \n  ! Does not exist\n')
+                print_('[path] \n  ! Does not exist\n')
                 _longest_path = longest_existing_path(path_)
-                print_('[util] ... The longest existing path is: %r\n' % _longest_path)
+                print_('[path] ... The longest existing path is: %r\n' % _longest_path)
             return False
         return True
     else:
@@ -164,7 +168,8 @@ def checkpath(path_, verbose=__VERBOSE__):
 
 def ensurepath(path_, **kwargs):
     if not checkpath(path_, **kwargs):
-        print('[util] mkdir(%r)' % path_)
+        if not __QUIET__:
+            print('[path] mkdir(%r)' % path_)
         os.makedirs(path_)
     return True
 
@@ -188,44 +193,44 @@ def copy_task(cp_list, test=False, nooverwrite=False, print_tasks=True):
     num_overwrite = 0
     _cp_tasks = []  # Build this list with the actual tasks
     if nooverwrite:
-        print('[util] Removed: copy task ')
+        print('[path] Removed: copy task ')
     else:
-        print('[util] Begining copy + overwrite task.')
+        print('[path] Begining copy + overwrite task.')
     for (src, dst) in iter(cp_list):
         if exists(dst):
             num_overwrite += 1
             if print_tasks:
-                print('[util] !!! Overwriting ')
+                print('[path] !!! Overwriting ')
             if not nooverwrite:
                 _cp_tasks.append((src, dst))
         else:
             if print_tasks:
-                print('[util] ... Copying ')
+                print('[path] ... Copying ')
                 _cp_tasks.append((src, dst))
         if print_tasks:
-            print('[util]    ' + src + ' -> \n    ' + dst)
-    print('[util] About to copy %d files' % len(cp_list))
+            print('[path]    ' + src + ' -> \n    ' + dst)
+    print('[path] About to copy %d files' % len(cp_list))
     if nooverwrite:
-        print('[util] Skipping %d tasks which would have overwriten files' % num_overwrite)
+        print('[path] Skipping %d tasks which would have overwriten files' % num_overwrite)
     else:
-        print('[util] There will be %d overwrites' % num_overwrite)
+        print('[path] There will be %d overwrites' % num_overwrite)
     if not test:
-        print('[util]... Copying')
+        print('[path]... Copying')
         for (src, dst) in iter(_cp_tasks):
             shutil.copy2(src, dst)
-        print('[util]... Finished copying')
+        print('[path]... Finished copying')
     else:
-        print('[util]... In test mode. Nothing was copied.')
+        print('[path]... In test mode. Nothing was copied.')
 
 
 def copy(src, dst):
     if exists(src):
         if exists(dst):
             prefix = 'C+O'
-            print('[util] [Copying + Overwrite]:')
+            print('[path] [Copying + Overwrite]:')
         else:
             prefix = 'C'
-            print('[util] [Copying]: ')
+            print('[path] [Copying]: ')
         print('[%s] | %s' % (prefix, src))
         print('[%s] ->%s' % (prefix, dst))
         if isdir(src):
@@ -234,7 +239,7 @@ def copy(src, dst):
             shutil.copy2(src, dst)
     else:
         prefix = 'Miss'
-        print('[util] [Cannot Copy]: ')
+        print('[path] [Cannot Copy]: ')
         print('[%s] src=%s does not exist!' % (prefix, src))
         print('[%s] dst=%s' % (prefix, dst))
 
@@ -302,7 +307,7 @@ def win_shortcut(source, link_name):
     flags = 1 if isdir(source) else 0
     retval = csl(link_name, source, flags)
     if retval == 0:
-        #warn_msg = '[util] Unable to create symbolic link on windows.'
+        #warn_msg = '[path] Unable to create symbolic link on windows.'
         #print(warn_msg)
         #warnings.warn(warn_msg, category=UserWarning)
         if checkpath(link_name):
@@ -312,9 +317,9 @@ def win_shortcut(source, link_name):
 
 def symlink(source, link_name, noraise=False):
     if os.path.islink(link_name):
-        print('[util] symlink %r exists' % (link_name))
+        print('[path] symlink %r exists' % (link_name))
         return
-    print('[util] Creating symlink: source=%r link_name=%r' % (source, link_name))
+    print('[path] Creating symlink: source=%r link_name=%r' % (source, link_name))
     try:
         os_symlink = getattr(os, "symlink", None)
         if callable(os_symlink):
@@ -371,7 +376,8 @@ def dirsplit(path):
 
 
 def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
-    print(ignore_list)
+    if not __QUIET__:
+        print(ignore_list)
     ignore_set = set(ignore_list)
     gname_list_ = []
     assertpath(img_dpath)
@@ -389,8 +395,8 @@ def list_images(img_dpath, ignore_list=[], recursive=True, fullpath=False):
         if not recursive:
             break
     # Filter out non images or ignorables
-    gname_list = [gname for gname in iter(gname_list_)
-                  if not gname in ignore_set and matches_image(gname)]
+    gname_list = [gname_ for gname_ in iter(gname_list_)
+                  if gname_ not in ignore_set and matches_image(gname_)]
     return gname_list
 
 
@@ -419,7 +425,8 @@ def unzip_file(zip_fpath):
         (dname, fname) = split(member)
         dpath = join(zip_dir, dname)
         ensurepath(dpath)
-        print('[utool] Unzip ' + fname + ' in ' + dpath)
+        if not __QUIET__:
+            print('[utool] Unzip ' + fname + ' in ' + dpath)
         zip_file.extract(member, path=zip_dir)
 
 
@@ -437,7 +444,7 @@ def download_url(url, filename):
         speed = int(progress_size / (1024 * duration))
         percent = int(count * block_size * 100 / total_size)
         sys.stdout.write('\r...%d%%, %d MB, %d KB/s, %d seconds passed' %
-                        (percent, progress_size / (1024 * 1024), speed, duration))
+                         (percent, progress_size / (1024 * 1024), speed, duration))
         sys.stdout.flush()
     print('[utool] Downloading url=%r to filename=%r' % (url, filename))
     urllib.urlretrieve(url, filename=filename, reporthook=reporthook)

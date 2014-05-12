@@ -44,9 +44,9 @@ def score_chipmatch_coverage(ibs, qcx, chipmatch, qreq, method=0):
 def get_match_coverage_score(ibs, rid1, rid2, fm, fs, **kwargs):
     if len(fm) == 0:
         return 0
-    if not 'scale_factor' in kwargs:
+    if 'scale_factor' not in kwargs:
         kwargs['scale_factor'] = SCALE_FACTOR_DEFAULT
-    if not 'method' in kwargs:
+    if 'method' not in kwargs:
         kwargs['method'] = METHOD_DEFAULT
     sel_fx1, sel_fx2 = fm.T
     method = kwargs.get('method', 0)

@@ -93,13 +93,6 @@ def read_one_exif_tag(pil_img, tag):
         invalid_str = 'Invalid EXIF Key: exif_key=%r, tag=%r' % (exif_key, tag)
         exif_val = info_.get(exif_key, invalid_str)
     return exif_val
-    #try:
-        #exif_val = info_[exif_key]
-    #except KeyError:
-        #exif_val = 'Invalid EXIF Key: exif_key=%r, tag=%r' % (exif_key, tag)
-        #print('')
-        #print(exif_val)
-        #check_exif_keys(pil_img)
 
 
 def read_exif(fpath, tag=None):
@@ -118,33 +111,6 @@ def read_exif(fpath, tag=None):
         exif = read_one_exif_tag(pil_img, tag)
     del pil_img
     return exif
-
-
-#def get_exif(image, ext):
-    #"""Returns a dictionary from the exif data of an PIL Image item. Also converts the GPS Tags"""
-    #exif_data = {}
-    #if ext in EXIF_EXTENSIONS:
-        #info = image._getexif()
-        #if info:
-            #for tag, value in info.items():
-                #decoded = TAGS.get(tag, tag)
-                #if decoded == "GPSInfo":
-                    #gps_data = {}
-                    #for t in value:
-                        #sub_decoded = GPSTAGS.get(t, t)
-                        #gps_data[sub_decoded] = value[t]
-
-                    #exif_data[decoded] = gps_data
-                #elif decoded == "DateTimeOriginal":
-                    #exif_data[decoded] = calendar.timegm(tuple(map(int, value.replace(" ", ":").split(":")) + [0,0,0]))
-                #else:
-                    #exif_data[decoded] = value
-    #if EXIF_TAG_GPS not in exif_data:
-        #exif_data[EXIF_TAG_GPS] = [-1.0, -1.0]
-    #if EXIF_TAG_DATETIME not in exif_data:
-        #exif_data[EXIF_TAG_DATETIME] = -1.0
-
-    #return [exif_data[EXIF_TAG_DATETIME], exif_data[EXIF_TAG_GPS][0], exif_data[EXIF_TAG_GPS][1]]
 
 
 def get_exist(data, key):
@@ -191,5 +157,4 @@ def get_lat_lon(exif_data):
             lon = convert_degrees(gps_longitude)
             if gps_longitude_ref != 'E':
                 lon = 0 - lon
-
     return lat, lon

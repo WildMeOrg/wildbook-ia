@@ -62,7 +62,7 @@ def get_plotdat(ax, key, default=None):
 
 def set_plotdat(ax, key, val):
     """ sets internal property to a matplotlib axis """
-    if not '_ibsdat' in ax.__dict__:
+    if '_ibsdat' not in ax.__dict__:
         ax.__dict__['_ibsdat'] = {}
     _ibsdat = ax.__dict__['_ibsdat']
     _ibsdat[key] = val

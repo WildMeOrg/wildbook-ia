@@ -11,13 +11,13 @@ def register_utool_aliases():
     #print('REGISTER UTOOL ALIASES')
     import utool
     import matplotlib as mpl
-    from ibeis.control.IBEISControl import IBEISControl
-    from ibeis.gui.guiback import MainWindowBackend
-    from ibeis.gui.guifront import MainWindowFrontend
+    from ibeis.control import IBEISControl
+    from ibeis.gui import guiback
+    from ibeis.gui import guifront
     utool.extend_global_aliases([
-        (IBEISControl, 'ibs'),
-        (MainWindowBackend, 'back'),
-        (MainWindowFrontend, 'front'),
+        (IBEISControl.IBEISController, 'ibs'),
+        (guiback.MainWindowBackend, 'back'),
+        (guifront.MainWindowFrontend, 'front'),
         (mpl.figure.Figure, 'fig')
     ])
 

@@ -211,7 +211,7 @@ def embed(parent_locals=None, parent_globals=None, exec_lines=None):
         print(ex)
     config_dict = {}
     #if exec_lines is not None:
-        #config_dict['exec_lines'] = exec_lines
+    #    config_dict['exec_lines'] = exec_lines
     IPython.embed(**config_dict)
 
 
@@ -277,7 +277,7 @@ def search_stack_for_localvar(varname):
     curr_frame = inspect.currentframe()
     print(' * Searching parent frames for: ' + str(varname))
     frame_no = 0
-    while not curr_frame.f_back is None:
+    while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
             print(' * Found in frame: ' + str(frame_no))
             return curr_frame.f_locals[varname]
@@ -291,7 +291,7 @@ def search_stack_for_var(varname):
     curr_frame = inspect.currentframe()
     print(' * Searching parent frames for: ' + str(varname))
     frame_no = 0
-    while not curr_frame.f_back is None:
+    while curr_frame.f_back is not None:
         if varname in curr_frame.f_locals.keys():
             print(' * Found local in frame: ' + str(frame_no))
             return curr_frame.f_locals[varname]
@@ -406,7 +406,7 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
                         ret +=  truncstr
                     continue
                 childname = str(child.__name__)
-                if not seen is None:
+                if seen is not None:
                     if childname in seen:
                         continue
                     elif maxdepth is None:
@@ -421,7 +421,7 @@ def explore_module(module_, seen=None, maxdepth=2, nonmodules=False):
         # print_(depth)
         ret += indent + modname + '\n'
         # Recurse
-        if not maxdepth is None and depth >= maxdepth:
+        if maxdepth is not None and depth >= maxdepth:
             return ret
         ret += ''.join([__explore_module(child,
                                          indent + '    ',

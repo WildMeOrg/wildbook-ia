@@ -11,7 +11,7 @@ from ibeis.gui.frontend_helpers import *  # NOQA
 
 class Ui_mainSkel(object):
     def setupUi(ui, front):
-        ui.suffix_dict = {}
+        ui.enctext_dict = {}
         setup_ui(ui, front, front.back)
         ui.postsetupUI()
         ui.tablesTabWidget.setCurrentIndex(0)
@@ -19,50 +19,50 @@ class Ui_mainSkel(object):
         ui.retranslateUi(front)
 
     def postsetupUI(ui):
-        print('[skel] Calling Postsetup')
+        #print('[skel] Calling Postsetup')
         for func in ui.postsetup_fns:
             func()
 
     def retranslateUi(ui, front):
-        print('[skel] Calling Retranslate')
+        #print('[skel] Calling Retranslate')
         for func in ui.retranslatable_fns:
             func()
 
-    def ensureEncounterTab(ui, front, suffix):
-        """ Ensure encounter tab for specific suffix """
+    def ensureEncounterTab(ui, front, enctext):
+        """ Ensure encounter tab for specific enctext """
         parent = ui.encountersTabWidget
-        if suffix == '' or suffix == 'None':
-            suffix = None
-        if suffix not in ui.suffix_dict:
-            tabWidget = newEncounterTabs(front, parent, suffix=suffix)
-            ui.suffix_dict[suffix] = tabWidget
+        if enctext == '' or enctext == 'None':
+            enctext = None
+        if enctext not in ui.enctext_dict:
+            tabWidget = newEncounterTabs(front, parent, enctext=enctext)
+            ui.enctext_dict[enctext] = tabWidget
         ui.retranslateUi(front)
 
 
-def newEncounterTabs(front, parent, suffix=None):
-    if suffix is None or suffix == 'None' or suffix == '':
+def newEncounterTabs(front, parent, enctext=None):
+    if enctext is None or enctext == 'None' or enctext == '':
         tab_text = 'database'
-        suffix = ''
+        enctext = ''
     else:
-        tab_text = 'encounter' + str(suffix)
+        tab_text = str(enctext)
     tabWidget = newTabbedTabWidget(front, parent,
-                                   'tablesView' + suffix,
-                                   'tablesTabWidget' + suffix,
+                                   'tablesView' + enctext,
+                                   'tablesTabWidget' + enctext,
                                    tab_text,
                                    vstretch=10)
-    tabWidget.newTabbedTable('gids', suffix, 'Image Table',
+    tabWidget.newTabbedTable('gids', enctext, 'Image Table',
                              clicked_slot_fn=front.gids_tbl_clicked,
                              pressed_slot_fn=front.uid_tbl_pressed,
                              changed_slot_fn=front.gids_tbl_changed)
-    tabWidget.newTabbedTable('rids', suffix, 'ROI Table',
+    tabWidget.newTabbedTable('rids', enctext, 'ROI Table',
                              clicked_slot_fn=front.rids_tbl_clicked,
                              pressed_slot_fn=front.uid_tbl_pressed,
                              changed_slot_fn=front.rids_tbl_changed)
-    tabWidget.newTabbedTable('nids', suffix, 'Name Table',
+    tabWidget.newTabbedTable('nids', enctext, 'Name Table',
                              clicked_slot_fn=front.nids_tbl_clicked,
                              pressed_slot_fn=front.uid_tbl_pressed,
                              changed_slot_fn=front.nids_tbl_clicked)
-    tabWidget.newTabbedTable('qres', suffix, 'Query Result Table',
+    tabWidget.newTabbedTable('qres', enctext, 'Query Result Table',
                              clicked_slot_fn=front.qres_tbl_clicked,
                              pressed_slot_fn=front.uid_tbl_pressed,
                              changed_slot_fn=front.qres_tbl_changed)
@@ -79,7 +79,7 @@ def setup_ui(ui, front, back):
 
     # ENCOUNTER SUPERTABS
     ui.encountersTabWidget = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
-    ui.ensureEncounterTab(front, suffix=None)
+    ui.ensureEncounterTab(front, enctext=None)
 
     # Split Panes
     ui.progressBar = newProgressBar(ui.splitter, visible=False)
