@@ -5,6 +5,8 @@
 #
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from collections import defaultdict
+from itertools import izip
 from . import util_inject
 print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[alg]')
 
@@ -94,3 +96,54 @@ def xywh_to_tlbr(bbox, img_wh):
     x2 = min(x + w, img_w - 1)
     y2 = min(y + h, img_h - 1)
     return (x1, y1, x2, y2)
+
+
+def build_reverse_mapping(uid_list, cluster_list):
+    """
+    Given a list of ids (uid_list) and a corresponding cluster index list
+    (cluster_list), this builds a mapping from cluster index to uids
+    """
+    # Sort by clusterid for cache efficiency
+    sortx = cluster_list.argsort()
+    cluster_list = cluster_list[sortx]
+    uid_list = uid_list[sortx]
+    # Initialize dict of lists
+    cluster2_uids = defaultdict(list)
+    for uid, cluster in izip(uid_list, cluster_list):
+        cluster2_uids[cluster].append(uid)
+    return cluster2_uids
+
+
+def unpack_items_sorted(dict_, sortfn, reverse=True):
+    """ Unpacks and sorts the dictionary by sortfn """
+    items = dict_.items()
+    sorted_items = sorted(items, key=sortfn, reverse=reverse)
+    sorted_keys, sorted_vals = list(izip(*sorted_items))
+    return sorted_keys, sorted_vals
+
+
+def unpack_items_sorted_by_lenvalue(dict_, reverse=True):
+    """ Unpacks and sorts the dictionary by key """
+    def sort_lenvalue(item):
+        return len(item[1])
+    return unpack_items_sorted(dict_, sort_lenvalue)
+
+
+def unpack_items_sorted_by_value(dict_, reverse=True):
+    """ Unpacks and sorts the dictionary by key """
+    def sort_value(item):
+        return item[1]
+    return unpack_items_sorted(dict_, sort_value)
+
+
+def flatten_membership_mapping(uid_list, members_list):
+    num_members = sum(map(len, members_list))
+    flat_uids = [None for _ in xrange(num_members)]
+    flat_members = [None for _ in xrange(num_members)]
+    count = 0
+    for uid, members in izip(uid_list, members_list):
+        for member in members:
+            flat_uids[count]    = uid
+            flat_members[count] = member
+            count += 1
+    return flat_uids, flat_members

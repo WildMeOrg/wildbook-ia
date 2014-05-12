@@ -22,6 +22,7 @@ __PRINT_FUNC__     = __builtin__.print
 __PRINT_DBG_FUNC__ = __builtin__.print
 __WRITE_FUNC__ = __STDOUT__.write
 __FLUSH_FUNC__ = __STDOUT__.flush
+__RELOAD_OK__  = not '--noreloadable' in sys.argv
 
 
 __INJECTED_MODULES__ = set([])
@@ -123,7 +124,9 @@ def inject_reload_function(module_name=None, module_prefix='[???]', module=None)
     if module_name is None:
         module_name = str(module.__name__)
     def rrr():
-        'Dynamic module reloading'
+        """ Dynamic module reloading """
+        if not __RELOAD_OK__:
+            raise Exception('Reloading has been forced off')
         try:
             import imp
             __builtin__.print('RELOAD: ' + str(module_prefix) + ' __name__=' + module_name)

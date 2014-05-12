@@ -28,13 +28,6 @@ QT_IMAGE_UID_TYPE = item_table.QT_IMAGE_UID_TYPE
 QT_ROI_UID_TYPE   = item_table.QT_ROI_UID_TYPE
 QT_NAME_UID_TYPE  = item_table.QT_NAME_UID_TYPE
 
-qt_cast = item_table.qt_cast
-
-# For UUIDs the cast is special
-qt_roi_uid_cast   = item_table.qt_roi_uid_cast
-qt_image_uid_cast = item_table.qt_image_uid_cast
-qt_name_uid_cast  = item_table.qt_name_uid_cast
-
 
 # BLOCKING DECORATOR
 # TODO: This decorator has to be specific to either front or back. Is there a
@@ -50,6 +43,7 @@ def backblock(func):
             back.front.blockSignals(wasBlocked_)  # unblock signals on exception
             #print(traceback.format_exc())
             msg = ('caught exception in %r' % func.func_name)
+            msg += '\n' + str(ex)
             print('\n\n\n')
             utool.printex(ex, msg)
             print('\n\n\n')
@@ -86,7 +80,7 @@ class MainWindowBackend(QtCore.QObject):
     Sends and recieves signals to and from the frontend
     '''
     # Backend Signals
-    populateSignal = signal_(str, list, list, list, list)
+    populateTableSignal = signal_(str, list, list, list, list, list, str)
     setEnabledSignal = signal_(bool)
 
     #------------------------
@@ -105,7 +99,7 @@ class MainWindowBackend(QtCore.QObject):
 
         # connect signals and other objects
         back.front = guifront.MainWindowFrontend(back=back)
-        back.populateSignal.connect(back.front.populate_tbl)
+        back.populateTableSignal.connect(back.front.populate_tbl)
         back.setEnabledSignal.connect(back.front.setEnabled)
         fig_presenter.register_qt4_win(back.front)
 
@@ -217,51 +211,72 @@ class MainWindowBackend(QtCore.QObject):
     # Populate functions
     #----------------------1----------------------------------------------------
 
+    def encounter_suffix_generator(back):
+        valid_eids = back.ibs.get_valid_eids()
+        suffix_list = [''] + back.ibs.get_encounter_text(valid_eids)
+        for suffix in suffix_list:
+            yield suffix
+
+    @utool.indent_func
+    def populate_encounter_tabs(back, **kwargs):
+        for suffix in back.encounter_suffix_generator():
+            item_table.populate_encounter_tab(back.front,
+                                              suffix=suffix, **kwargs)
+
     @utool.indent_func
     def populate_image_table(back, **kwargs):
-        item_table.emit_populate_table(back, item_table.IMAGE_TABLE, **kwargs)
+        for suffix in back.encounter_suffix_generator():
+            item_table.emit_populate_table(back, item_table.IMAGE_TABLE,
+                                           suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_name_table(back, **kwargs):
-        item_table.emit_populate_table(back, item_table.NAME_TABLE, **kwargs)
+        for suffix in back.encounter_suffix_generator():
+            item_table.emit_populate_table(back, item_table.NAME_TABLE,
+                                           suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_roi_table(back, **kwargs):
-        item_table.emit_populate_table(back, item_table.ROI_TABLE, **kwargs)
+        for suffix in back.encounter_suffix_generator():
+            item_table.emit_populate_table(back, item_table.ROI_TABLE,
+                                           suffix=suffix, **kwargs)
 
     @utool.indent_func
     def populate_result_table(back, **kwargs):
-        #res = back.current_res
-        res = None
+        #qres = back.current_res
+        qres = None
         return
-        if res is None:
+        if qres is None:
             # Clear the table if there are no results
             print('[back] no results available')
             return
-        #item_table.emit_populate_table(back, item_table.RES_TABLE, index_list=[])
-        top_cxs = res.topN_cxs(back.ibs, N='all')
-        qrid = res.qrid
+        #item_table.emit_populate_table(back, item_table.QRES_TABLE, index_list=[])
+        top_cxs = qres.topN_cxs(back.ibs, N='all')
+        qrid = qres.qrid
         # The ! mark is used for ascii sorting. TODO: can we work around this?
         prefix_cols = [{'rank': '!Query',
                         'score': '---',
                         'name': back.ibs.get_roi_name(qrid),
                         'rid': qrid, }]
         extra_cols = {
-            'score':  lambda cxs:  [res.cx2_score[rid] for rid in iter(cxs)],
+            'score':  lambda cxs:  [qres.cx2_score[rid] for rid in iter(cxs)],
         }
-        back.emit_populate_table(item_table.RES_TABLE, index_list=top_cxs,
+        back.emit_populate_table(item_table.QRES_TABLE, index_list=top_cxs,
                                  prefix_cols=prefix_cols,
                                  extra_cols=extra_cols,
                                  **kwargs)
 
-    def populate_tables(back, image=True, roi=True, name=True, res=True):
+    def populate_tables(back, image=True, roi=True, name=True, qres=True,
+                        encounter=True):
+        if encounter:
+            back.populate_encounter_tabs()
         if image:
             back.populate_image_table()
         if roi:
             back.populate_roi_table()
         if name:
             back.populate_name_table()
-        if res:
+        if qres:
             back.populate_result_table()
 
     #--------------------------------------------------------------------------
@@ -301,7 +316,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(QT_IMAGE_UID_TYPE)
     def select_gid(back, gid, sel_rids=[], **kwargs):
         # Table Click -> Image Table
-        gid = qt_image_uid_cast(gid)
+        gid = item_table.qt_cast(gid)
         print('[back] select_gid(gid=%r, sel_rids=%r)' % (gid, sel_rids))
         back._set_selection(gids=(gid,), rids=sel_rids, **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
@@ -309,7 +324,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(QT_ROI_UID_TYPE)
     def select_rid(back, rid, show_roi=True, **kwargs):
         # Table Click -> Chip Table
-        rid = qt_roi_uid_cast(rid)
+        rid = item_table.qt_cast(rid)
         print('[back] select rid=%r' % rid)
         gid = back.ibs.get_roi_gids(rid)
         nid = back.ibs.get_roi_nids(rid)
@@ -320,17 +335,17 @@ class MainWindowBackend(QtCore.QObject):
     @slot_(QT_NAME_UID_TYPE)
     def select_nid(back, nid, show_name=True, **kwargs):
         # Table Click -> Name Table
-        nid = qt_name_uid_cast(nid)
+        nid = item_table.qt_cast(nid)
         print('[back] select nid=%r' % nid)
         back._set_selection(nids=[nid], **kwargs)
         if show_name:
             back.show_name(nid, **kwargs)
 
     @slot_(QT_ROI_UID_TYPE)
-    def select_res_rid(back, rid, **kwargs):
+    def select_qres_rid(back, rid, **kwargs):
         # Table Click -> Result Table
         print('[back] select result rid=%r' % rid)
-        rid = qt_roi_uid_cast(rid)
+        rid = item_table.qt_cast(rid)
 
     #--------------------------------------------------------------------------
     # Misc Slots
@@ -341,6 +356,11 @@ class MainWindowBackend(QtCore.QObject):
         'slot so guifront can print'
         print(msg)
 
+    @slot_(Exception)
+    def backend_exception(back, ex):
+        """ FIXME: This doesn't work """
+        raise ex
+
     @slot_()
     def clear_selection(back, **kwargs):
         print('[back] clear selection')
@@ -350,34 +370,35 @@ class MainWindowBackend(QtCore.QObject):
     def default_preferences(back):
         # Button Click -> Preferences Defaults
         print('[back] default preferences')
-        raise NotImplementedError()
+        back.ibs._default_config()
 
     @blocking_slot(QT_ROI_UID_TYPE, str, str)
     def set_roi_prop(back, rid, key, val):
         """ Keys for propname come from gui_item_tables.fancy_headers """
         # Table Edit -> Change Chip Property
-        rid = qt_roi_uid_cast(rid)
-        val = qt_cast(val)
+        rid = item_table.qt_cast(rid)
+        val = item_table.qt_cast(val)
         key = str(key)
         print('[back] set_roi_prop(rid=%r, key=%r, val=%r)' % (rid, key, val))
         back.ibs.set_roi_props((rid,), key, (val,))
         back.refresh_state()
 
     @blocking_slot(QT_NAME_UID_TYPE, str, str)
-    def alias_name(back, nid, key, val):
+    def set_name_prop(back, nid, key, val):
         # Table Edit -> Change name
-        nid = qt_name_uid_cast(nid)
+        nid = item_table.qt_cast(nid)
         key = str(key)
         val = str(val)
-        print('[back] alias_name(nid=%r, key=%r, val=%r)' % (nid, key, val))
-        raise NotImplementedError()
+        print('[back] set_name_prop(nid=%r, key=%r, val=%r)' % (nid, key, val))
+        back.ibs.set_name_props((nid,), key, (val,))
+        back.refresh_state()
 
-    @blocking_slot(QT_IMAGE_UID_TYPE, str, bool)
+    @blocking_slot(QT_IMAGE_UID_TYPE, str, QtCore.QVariant)
     def set_image_prop(back, gid, key, val):
         # Table Edit -> Change Image Property
-        gid = qt_image_uid_cast(gid)
-        val = qt_cast(val)
+        gid = item_table.qt_cast(gid)
         key = str(key)
+        val = item_table.qt_cast(val)
         print('[back] set_image_prop(gid=%r, key=%r, val=%r)' % (gid, key, val))
         back.ibs.set_image_props((gid,), key, (val,))
         back.refresh_state()
@@ -572,7 +593,7 @@ class MainWindowBackend(QtCore.QObject):
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
         print('[back] delete_image')
-        gid = qt_image_uid_cast(gid)
+        gid = item_table.qt_cast(gid)
         raise NotImplementedError()
         pass
 
@@ -583,6 +604,13 @@ class MainWindowBackend(QtCore.QObject):
         raise NotImplementedError()
         pass
 
+    @blocking_slot()
+    def select_prev(back):
+        """ Action -> Prev"""
+        print('[back] select_prev')
+        raise NotImplementedError()
+        pass
+
     #--------------------------------------------------------------------------
     # Batch menu slots
     #--------------------------------------------------------------------------
@@ -590,8 +618,9 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def precompute_feats(back):
         """ Batch -> Precompute Feats"""
-        ibsfuncs.compute_all_features(back.ibs)
         print('[back] precompute_feats')
+        ibsfuncs.compute_all_features(back.ibs)
+        back.refresh_state()
         pass
 
     @blocking_slot()
@@ -600,6 +629,14 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] precompute_queries')
         raise NotImplementedError()
         pass
+
+    @blocking_slot()
+    def compute_encounters(back):
+        """ Batch -> Compute Encounters """
+        print('[back] compute_encounters')
+        back.ibs.compute_encounters()
+        back.populate_encounter_tabs()
+        back.refresh_state()
 
     #--------------------------------------------------------------------------
     # Option menu slots
@@ -616,11 +653,10 @@ class MainWindowBackend(QtCore.QObject):
     def edit_preferences(back):
         """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
-        raise NotImplementedError()
-        pass
-        #back.edit_prefs = back.ibs.cfg.createQWidget()
-        #epw = back.edit_prefs
-        #epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
+        epw = back.ibs.cfg.createQWidget()
+        epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
+        epw.show()
+        back.edit_prefs = epw
         #query_uid = ''.join(back.ibs.cfg.query_cfg.get_uid())
         #print('[back] query_uid = %s' % query_uid)
         #print('')
@@ -696,5 +732,11 @@ class MainWindowBackend(QtCore.QObject):
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
-        raise NotImplementedError()
-        pass
+        from ibeis.dev import all_imports  # NOQA
+        all_imports.embed(back)
+
+    @blocking_slot()
+    def dev_cls(back):
+        """ Help -> Developer Mode"""
+        print('[back] dev_cls')
+        print('\n'.join([''] * 100))

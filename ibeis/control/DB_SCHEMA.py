@@ -83,13 +83,18 @@ def define_IBEIS_schema(ibs):
         ('config_suffix',                'TEXT NOT NULL'),
     ),  ['CONSTRAINT superkey UNIQUE (config_suffix)']
     )
-    # This table defines the pairing between an encounter and an
-    # image. Hence, egpairs stands for encounter-image-pairs.  This table
-    # exists for the sole purpose of defining multiple encounters to
-    # a single image without the need to duplicate an image's record
-    # in the images table.
+    # List of all encounters
     ibs.db.schema('encounters', (
         ('encounter_uid',               'INTEGER PRIMARY KEY'),
-        ('image_uid',                   '%s NOT NULL' % IMAGE_UID_TYPE),
         ('encounter_text',              'TEXT NOT NULL'),
-    ))
+        ('encounter_notes',             'TEXT NOT NULL'),
+    ),  ['CONSTRAINT superkey UNIQUE (encounter_text)']
+    )
+    # Relationship between encounters and images (many to many mapping)
+    # egpairs stands for encounter-image-pairs.
+    ibs.db.schema('egpairs', (
+        ('egpair_uid',                  'INTEGER PRIMARY KEY'),
+        ('image_uid',                   '%s NOT NULL' % IMAGE_UID_TYPE),
+        ('encounter_uid',               'INTEGER'),
+    ),  ['CONSTRAINT superkey UNIQUE (image_uid, encounter_uid)']
+    )

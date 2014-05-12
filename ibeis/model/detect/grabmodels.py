@@ -10,8 +10,9 @@ MODEL_DIRS = {
 }
 
 URLS = {
-    'rf': 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip'    
+    'rf': 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip'
 }
+
 
 def assert_models():
     for MODEL_DIR in MODEL_DIRS.values():
@@ -34,8 +35,8 @@ def get_model_dir(TYPE, ensure=True):
 
 
 def download_model(TYPE, MODEL_DIR):
-    zip_fpath = realpath(join(MODEL_DIR, '..', TYPE+'.zip'))
-   
+    zip_fpath = realpath(join(MODEL_DIR, '..', TYPE + '.zip'))
+
     # Download and unzip model
     print('[grabmodels] Downloading MODEL_DIR=%s' % MODEL_DIR)
 

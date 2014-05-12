@@ -1,3 +1,7 @@
+"""
+This file is in a state of disarray. It is not included anywhere. Yet it might
+have useful code in it
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 (print, print_,  rrr, profile,
@@ -49,12 +53,12 @@ def train_classifier(ibs):
 
     pos_train = pos_vec[0:len(pos_vec) // 2]
     neg_train = neg_vec[0:len(neg_vec) // 2]
-    pos_test = pos_vec[len(pos_vec) // 2:]
-    neg_test = neg_vec[len(neg_vec) // 2:]
     pos_lbl = np.ones((len(pos_train), 1), dtype=np.int32)
     neg_lbl = np.zeros((len(neg_train), 1), dtype=np.int32)
-    train_data = np.vstack((pos_train, neg_train))
-    train_lbl = np.vstack((pos_lbl, neg_lbl))
+    pos_test = pos_vec[len(pos_vec) // 2:]  # NOQA
+    neg_test = neg_vec[len(neg_vec) // 2:]  # NOQA
+    train_data = np.vstack((pos_train, neg_train))  # NOQA
+    train_lbl = np.vstack((pos_lbl, neg_lbl))  # NOQA
 
 
 def test_classifier(classifier, pos_test, neg_test):

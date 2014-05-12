@@ -100,6 +100,27 @@ def flatten(list_):
     return list(iflatten(list_))
 
 
+def invertable_flatten(unflat_list):
+    """
+    Flattens list but remember how to reconstruct the unflat list
+    Returns flat list and the unflat list with indexes into the flat list
+    """
+    def nextnum(trick_=[0]):
+        num = trick_[0]
+        trick_[0] += 1
+        return num
+    # Build an unflat list of flat indexes
+    reverse_list = [tuple((nextnum() for _ in tup)) for tup in unflat_list]
+    flat_list = flatten(unflat_list)
+    return flat_list, reverse_list
+
+
+def unflatten(flat_list, reverse_list):
+    """ Rebuilds unflat list from invertable_flatten """
+    unflat_list2 = [tuple((flat_list[index] for index in tup)) for tup in reverse_list]
+    return unflat_list2
+
+
 def tuplize(list_):
     tup_list = [item if isiterable(item) else (item,) for item in list_]
     return tup_list

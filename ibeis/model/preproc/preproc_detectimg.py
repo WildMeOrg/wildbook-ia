@@ -1,8 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
-from os.path import exists, join, split
-import os
+from os.path import exists, join
 # UTool
 import utool
 # VTool
@@ -11,23 +10,26 @@ import vtool.image as gtool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[preproc_detectimg]', DEBUG=False)
 
+
 def gen_detectimg_and_write(tup):
     """ worker function for parallel generator """
-    gfpath, new_gfpath, new_size = tup
+    gid, gfpath, new_gfpath, new_size = tup
     img = gtool.imread(gfpath)
     new_img = gtool.resize(img, new_size)
     #printDBG('write detectimg: %r' % new_gfpath)
     gtool.imwrite(new_gfpath, new_img)
-    return new_gfpath
+    return gid, new_gfpath
 
 
 @utool.indent_func
-def gen_detectimg_async(gfpath_list, new_gfpath_list, newsize_list, nImgs=None):
-    """ Computes chips and yeilds results asynchronously for writing  """
+def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
+                        newsize_list, nImgs=None):
+    """ Resizes images and yeilds results asynchronously  """
     # Compute and write chips in asychronous process
     if nImgs is None:
-        nImgs = len(gfpath_list)
-    arg_list = list(izip(gfpath_list, new_gfpath_list, newsize_list))
+        nImgs = len(gid_list)
+    arg_iter = izip(gfpath_list, new_gfpath_list, newsize_list)
+    arg_list = list(arg_iter)
     return utool.util_parallel.generate(gen_detectimg_and_write, arg_list)
 
 
@@ -56,9 +58,10 @@ def compute_and_write_detectimg(ibs, gid_list):
     gsize_list   = ibs.get_image_sizes(gid_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, gsize_list)
     # Define "Asynchronous" generator
-    detectimg_async_iter = gen_detectimg_async(gfpath_list, new_gfpath_list, newsize_list)
+    detectimg_async_iter = gen_detectimg_async(gid_list, gfpath_list,
+                                               new_gfpath_list, newsize_list)
     print('Computing %d chips asynchronously' % (len(gfpath_list)))
-    for new_gfpath in detectimg_async_iter:
+    for gid, new_gfpath in detectimg_async_iter:
         print('Wrote detectimg: %r' % new_gfpath)
         pass
     print('Done computing detectimgs')

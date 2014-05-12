@@ -79,13 +79,17 @@ if __DYNAMIC__:
 
 
     # Injection and Reload String Defs
-    module_rrr_strings = [name + '.rrr()' for name in IMPORTS]
+    def make_rrrstr(name):
+        return '''
+    if hasattr(%s, 'rrr'):
+        %s.rrr() ''' % (name, name)
+
+    module_rrr_strings = [make_rrrstr(name) for name in IMPORTS]
     reload_subs_head = textwrap.dedent('''
     def reload_subs():
         """Reloads %s and submodules """
-        rrr()
-    ''') % __name__
-    reload_subs_body = '\n    ' + ('\n    '.join(module_rrr_strings))
+        rrr()''') % __name__
+    reload_subs_body = (''.join(module_rrr_strings))
     reload_subs_footer = textwrap.dedent('''
     rrrr = reload_subs
     ''')
@@ -134,7 +138,12 @@ if __DYNAMIC__:
             FROM_IMPORTS.append((name, valid_fromlist_))
 
     # Print what this module should look like
-    if __PRINT_IMPORTS__:
+    import multiprocessing
+    current_process = multiprocessing.current_process().name
+    print('[utool] current_process = %r' % current_process)
+    is_main_proc = current_process == 'MainProcess'
+
+    if __PRINT_IMPORTS__ and is_main_proc:
         print('')
         pack_into = util_str.pack_into
         import_str = '\n'.join(['from . import %s' % (name,) for name in IMPORTS])
@@ -169,6 +178,7 @@ else:
     from . import util_path
     from . import util_print
     from . import util_progress
+    from . import util_resources
     from . import util_str
     from . import util_sysreq
     from . import util_regex
@@ -181,14 +191,16 @@ else:
     from .util_arg import (ArgumentParser2, Indenter, QUIET, VERBOSE, argv_flag,
                            argv_flag_dec, argv_flag_dec_true, get_arg, get_flag,
                            inject, make_argparse2, switch_sanataize, try_cast,)
-    from .util_cache import (close_global_shelf, delete_global_cache,
+    from .util_cache import (_args2_fpath, close_global_shelf, delete_global_cache,
                              get_global_cache_dir, get_global_shelf,
                              get_global_shelf_fpath, global_cache_dump,
-                             global_cache_read, global_cache_write, join, normpath,
-                             read_from, write_to,)
+                             global_cache_read, global_cache_write, join, load_cPkl,
+                             load_cache, normpath, read_from, save_cPkl, save_cache,
+                             text_dict_write, write_to,)
     from .util_cplat import (COMPUTER_NAME, DARWIN, LINUX, WIN32, cmd, exists,
                              expanduser, get_computer_name, get_flops,
-                             get_resource_dir, getroot, startfile, view_directory,)
+                             get_resource_dir, getroot, shell, startfile,
+                             view_directory,)
     from .util_csv import (is_float, is_int, is_list, is_str, make_csv_table,
                            numpy_to_csv,)
     from .util_dbg import (IPYTHON_EMBED_STR, all_rrr, debug_exception,
@@ -207,25 +219,26 @@ else:
                            public_attributes, qflag, quit, quitflag, save_testdata,
                            search_stack_for_localvar, search_stack_for_var,
                            truncate_str,)
-    from .util_dev import (DEPRICATED, OrderedDict, byte_str2,
-                           disable_garbage_collection, enable_garbage_collection,
-                           garbage_collect, get_object_base, get_object_size, info,
-                           listinfo, memory_profile, myprint, mystats, npinfo,
+    from .util_dev import (DEPRICATED, compile_cython, disable_garbage_collection,
+                           enable_garbage_collection, garbage_collect,
+                           get_object_base, get_object_size, get_object_size_str,
+                           info, listinfo, memory_profile, myprint, mystats, npinfo,
                            numpy_list_num_bits, print_object_size, printableVal,
-                           printable_mystats, runprofile, stats_str,)
-    from .util_decor import (DISABLE_WRAPPERS, IGNORE_EXC_TB, UNIQUE_NUMPY,
+                           printable_mystats, runprofile, splitext, stats_str,)
+    from .util_decor import (DISABLE_WRAPPERS, IGNORE_EXC_TB, TRACE, UNIQUE_NUMPY,
                              accepts_numpy, accepts_scalar_input,
                              accepts_scalar_input_vector_output, common_wrapper,
-                             composed, ignores_exc_tb, imap, indent_decor,
-                             indent_func, isiterable, islice, lru_cache,
-                             printVERBOSE, wraps,)
+                             composed, identity_decor, ignores_exc_tb, imap,
+                             indent_decor, indent_func, isiterable, islice,
+                             lru_cache, memorize, printVERBOSE, wraps,)
     from .util_distances import (L1, L2, L2_sqrd, compute_distances, emd,
                                  hist_isect, izip, nearest_point,)
-    from .util_dict import (all_dict_combinations, build_conflict_dict, defaultdict,
-                            dict_union, dict_union2, iprod, items_sorted_by_value,
+    from .util_dict import (all_dict_combinations, all_dict_combinations_labels,
+                            build_conflict_dict, defaultdict, dict_union,
+                            dict_union2, iprod, items_sorted_by_value,
                             keys_sorted_by_value,)
     from .util_hash import (ALPHABET, BIGBASE, HASH_LEN, augment_uuid,
-                            convert_hexstr_to_base57, get_zero_uuid, hash_to_uuid,
+                            convert_hexstr_to_bigbase, get_zero_uuid, hash_to_uuid,
                             hashstr, hashstr_arr, hashstr_md5, hashstr_sha1,
                             image_uuid,)
     from .util_inject import (ARGV_DEBUG_FLAGS, _add_injected_module, _get_module,
@@ -239,30 +252,35 @@ else:
                             deterministic_shuffle, ensure_list_size, filter_Nones,
                             filter_items, flatten, flatten_items, get_dirty_items,
                             inbounds, index_of, intersect2d, intersect2d_numpy,
-                            intersect_ordered, list_index, list_replace, listfind,
-                            npfind, random_indexes, safe_listget, safe_slice,
-                            scalarflatten, spaced_indexes, spaced_items,
+                            intersect_ordered, list_getat, list_index, list_replace,
+                            listfind, npfind, random_indexes, safe_listget,
+                            safe_slice, scalarflatten, spaced_indexes, spaced_items,
                             tiled_range, tuplize, unique_keep_order,
                             unique_keep_order2,)
     from .util_num import (commas, fewest_digits_float_str, float_to_decimal,
                            format_, int_comma_str, num2_sigfig, num_fmt,
                            order_of_magnitude_ceil, sigfig_str,)
-    from .util_path import (BadZipfile, IMG_EXTENSIONS, assertpath, checkpath,
-                            copy, copy_all, copy_list, copy_task, delete,
-                            dirname, dirsplit, download_url, ensuredir,
-                            ensurepath, ext, file_bytes, file_megabytes,
-                            fnames_to_fpaths, fpaths_to_fnames, get_module_dir,
-                            glob, isdir, isfile, islink, ismount, list_images,
-                            longest_existing_path, matches_image, move_list,
-                            num_images_in_dir, path_ndir_split, progress_func,
-                            realpath, relpath, remove_dirs, remove_file,
-                            remove_files_in_dir, split, symlink, truepath,
-                            unixpath, unzip_file, win_shortcut,)
+    from .util_path import (BadZipfile, IMG_EXTENSIONS, assertpath, checkpath, copy,
+                            copy_all, copy_list, copy_task, delete, dirname,
+                            dirsplit, download_url, ensuredir, ensurepath, ext,
+                            file_bytes, file_megabytes, fnames_to_fpaths,
+                            fpaths_to_fnames, get_module_dir, glob, isdir, isfile,
+                            islink, ismount, list_images, longest_existing_path,
+                            matches_image, move_list, num_images_in_dir,
+                            path_ndir_split, progress_func, realpath, relpath,
+                            remove_dirs, remove_file, remove_files_in_dir, split,
+                            symlink, tail, truepath, unixpath, unzip_file,
+                            win_shortcut,)
     from .util_print import (Indenter, NO_INDENT, NpPrintOpts, filesize_str,
-                             horiz_print, printNOTQUIET, print_filesize,
+                             horiz_print, printNOTQUIET, printWARN, print_filesize,
                              printshape,)
     from .util_progress import (VALID_PROGRESS_TYPES, prog_func, progress_func,
                                 progress_str, simple_progres_func,)
+    from .util_resources import (available_memory, byte_str2, current_memory_usage,
+                                 get_resource_limits, memstats, num_cpus,
+                                 peak_memory, print_resource_usage,
+                                 time_in_systemmode, time_in_usermode, time_str2,
+                                 total_memory, used_memory,)
     from .util_str import (GLOBAL_TYPE_ALIASES, byte_str, byte_str2,
                            dict_aliased_repr, dict_itemstr_list, dict_str,
                            extend_global_aliases, file_megabytes_str,
@@ -285,36 +303,66 @@ else:
                               Qt, Ui_editPrefSkel, _encoding, _fromUtf8, _translate,
                               pyqtSlot, report_thread_error,)
     print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[utool]')
-
     def reload_subs():
         """Reloads utool and submodules """
         rrr()
-
-        util_alg.rrr()
-        util_arg.rrr()
-        util_cache.rrr()
-        util_cplat.rrr()
-        util_csv.rrr()
-        util_dbg.rrr()
-        util_dev.rrr()
-        util_decor.rrr()
-        util_distances.rrr()
-        util_dict.rrr()
-        util_hash.rrr()
-        util_inject.rrr()
-        util_iter.rrr()
-        util_list.rrr()
-        util_num.rrr()
-        util_path.rrr()
-        util_print.rrr()
-        util_progress.rrr()
-        util_str.rrr()
-        util_sysreq.rrr()
-        util_regex.rrr()
-        util_time.rrr()
-        util_type.rrr()
-        Preferences.rrr()
+        if hasattr(util_alg, 'rrr'):
+            util_alg.rrr()
+        if hasattr(util_arg, 'rrr'):
+            util_arg.rrr()
+        if hasattr(util_cache, 'rrr'):
+            util_cache.rrr()
+        if hasattr(util_cplat, 'rrr'):
+            util_cplat.rrr()
+        if hasattr(util_csv, 'rrr'):
+            util_csv.rrr()
+        if hasattr(util_dbg, 'rrr'):
+            util_dbg.rrr()
+        if hasattr(util_dev, 'rrr'):
+            util_dev.rrr()
+        if hasattr(util_decor, 'rrr'):
+            util_decor.rrr()
+        if hasattr(util_distances, 'rrr'):
+            util_distances.rrr()
+        if hasattr(util_dict, 'rrr'):
+            util_dict.rrr()
+        if hasattr(util_hash, 'rrr'):
+            util_hash.rrr()
+        if hasattr(util_inject, 'rrr'):
+            util_inject.rrr()
+        if hasattr(util_iter, 'rrr'):
+            util_iter.rrr()
+        if hasattr(util_list, 'rrr'):
+            util_list.rrr()
+        if hasattr(util_num, 'rrr'):
+            util_num.rrr()
+        if hasattr(util_path, 'rrr'):
+            util_path.rrr()
+        if hasattr(util_print, 'rrr'):
+            util_print.rrr()
+        if hasattr(util_progress, 'rrr'):
+            util_progress.rrr()
+        if hasattr(util_resources, 'rrr'):
+            util_resources.rrr()
+        if hasattr(util_str, 'rrr'):
+            util_str.rrr()
+        if hasattr(util_sysreq, 'rrr'):
+            util_sysreq.rrr()
+        if hasattr(util_regex, 'rrr'):
+            util_regex.rrr()
+        if hasattr(util_time, 'rrr'):
+            util_time.rrr()
+        if hasattr(util_type, 'rrr'):
+            util_type.rrr()
+        if hasattr(DynamicStruct, 'rrr'):
+            DynamicStruct.rrr()
+        if hasattr(Preferences, 'rrr'):
+            Preferences.rrr()
     rrrr = reload_subs
+
+
+
+print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[utool]')
 
 # Aliases
 getflag = util_arg.get_flag

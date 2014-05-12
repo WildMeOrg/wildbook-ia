@@ -1,3 +1,4 @@
+# flake8: noqa
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from plottool import draw_func2 as df2

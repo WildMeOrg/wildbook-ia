@@ -36,7 +36,7 @@ def injest_named_images(ibs, img_dir, fmtkey='testdata', adjust_percent=0.0):
 if __name__ == '__main__':
     from ibeis.dev.all_imports import *  # NOQA
     from os.path import join
-    from ibeis.dev import params
+    from ibeis.dev import sysres
     import ibeis
     # TODO: be able to injest more than polar bears
     img_dirname = utool.get_arg('--db', str, None)

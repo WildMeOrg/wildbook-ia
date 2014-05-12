@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 import ibeis
 ibeis._preload()
-from ibeis.dev import params
+from ibeis.dev import sysres
 from ibeis.dev import ibsfuncs
 from ibeis.control.IBEISControl import PATH_NAMES
 from os.path import join, exists
@@ -12,6 +12,9 @@ import numpy as np
 from vtool import linalg as ltool
 import utool
 from ibeis.injest import injest_hsdb
+
+
+FORCE_HSDB_CONVERT = utool.get_flag('--force-hsdb-convert')
 
 
 def is_hsdb(dbdir):
@@ -40,6 +43,18 @@ def is_succesful_convert(dbdir):
 # TEST
 #only_hsintern_paths = dbpath_list[is_only_hsinternal_list].tolist()
 
+def get_ibsdb_list(workdir=None):
+    if workdir is None:
+        workdir = ibeis.sysres.get_workdir()
+    dbname_list = os.listdir(workdir)
+    dbpath_list = np.array([join(workdir, name) for name in dbname_list])
+    is_ibs_list = np.array(map(is_ibeisdb, dbpath_list))
+    ibsdb_list  = dbpath_list[is_ibs_list].tolist()
+    print('IBEIS Databases:')
+    print('\n'.join(ibsdb_list))
+    return ibsdb_list
+
+
 def get_unconverted_hsdbs(workdir=None):
     if workdir is None:
         workdir = ibeis.sysres.get_workdir()
@@ -47,7 +62,7 @@ def get_unconverted_hsdbs(workdir=None):
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     is_hsdb_list        = np.array(map(is_hsdb, dbpath_list))
     is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
-    if utool.get_flag('--force-hsdb-convert'):
+    if FORCE_HSDB_CONVERT:
         needs_convert = is_hsdb_list
     else:
         needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
@@ -57,6 +72,13 @@ def get_unconverted_hsdbs(workdir=None):
     return needs_convert_hsdb
 
 
+def my_convert_hsdb_to_ibeis(hsdb, force=False):
+    assert(is_hsdb(hsdb)), 'not a hotspotter database. cannot even force convert'
+    if force:
+        ibsfuncs.delete_ibeis_database(hsdb)
+    injest_hsdb.convert_hsdb_to_ibeis(hsdb)
+
+
 def injest_unconverted_hsdbs_in_workdir(workdir=None):
     if workdir is None:
         workdir = ibeis.sysres.get_workdir()
@@ -64,14 +86,13 @@ def injest_unconverted_hsdbs_in_workdir(workdir=None):
 
     for hsdb in needs_convert_hsdb:
         try:
-            if utool.get_flag('--force-hsdb-convert'):
-                ibsfuncs.delete_ibeis_database(hsdb)
-            injest_hsdb.convert_hsdb_to_ibeis(hsdb)
+            my_convert_hsdb_to_ibeis(hsdb, force=FORCE_HSDB_CONVERT)
         except Exception as ex:
             print(ex)
             raise
 
 if __name__ == '__main__':
+    import multiprocessing
     multiprocessing.freeze_support()  # win32
     workdir = sysres.get_workdir()
     injest_unconverted_hsdbs_in_workdir(workdir)

@@ -12,17 +12,24 @@ import signal
 from .util_progress import progress_func
 from .util_time import tic, toc
 from . import util_arg
+from .util_cplat import WIN32
 
 
 QUIET   = util_arg.QUIET
 VERBOSE = util_arg.VERBOSE
+
 __POOL__ = None
 __TIME__ = '--time' in sys.argv
+__NUM_PROCS__ = util_arg.get_arg('--num-procs', int, default=None)
 
 
 def get_default_numprocs():
-    num_procs = max(multiprocessing.cpu_count() - 2, 1)
-    #num_procs = 1
+    if __NUM_PROCS__ is not None:
+        return __NUM_PROCS__
+    if WIN32:
+        num_procs = 2  # default windows to 2 processes for now
+    else:
+        num_procs = max(multiprocessing.cpu_count() - 2, 1)
     return num_procs
 
 
@@ -52,7 +59,7 @@ def init_pool(num_procs=None, maxtasksperchild=None):
     __POOL__ = multiprocessing.Pool(processes=num_procs, initializer=init_worker,
                                     maxtasksperchild=maxtasksperchild)
     #for key, val in __POOL__.__dict__.iteritems():
-        #print('%s = %r' % (key, val))
+    #    print('%s = %r' % (key, val))
 
 
 def close_pool():
@@ -106,6 +113,7 @@ def _process_parallel(func, args_list, args_dict={}):
 
 
 def generate(func, args_list, force_serial=False):
+    """ Returns a generator which asynchronously returns results """
     try:
         assert __POOL__ is not None, 'must init_pool() first'
     except AssertionError:

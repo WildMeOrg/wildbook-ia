@@ -5,7 +5,8 @@ Converts a hotspostter database to IBEIS
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from os.path import join, exists
-import ibeis
+#import ibeis
+from ibeis.control import IBEISControl
 from itertools import izip
 import utool
 import re
@@ -21,8 +22,9 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     print('Injesting: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
 
-    main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=False, gui=False)
-    ibs = main_locals['ibs']  # IBEIS Control
+    #main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=False, gui=False)
+    #ibs = main_locals['ibs']  # IBEIS Control
+    ibs = IBEISControl.IBEISControl(dbdir=hsdb_dir)
 
     # READ NAME TABLE
     #names = open(join(workdir,'wildebeest/_hsdb/name_table.csv'),'rb')
@@ -31,7 +33,10 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     with open(join(hsdb_dir, '_hsdb', 'name_table.csv'), 'rb') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
         for ix, row in enumerate(name_reader):
-            if ix >= 3:
+            #if ix >= 3:
+            if len(row) == 0 or row[0].strip().startswith('#'):
+                continue
+            else:
                 nid = int(row[0])
                 name = row[1].strip()
                 names_name_list.append(name)
@@ -43,7 +48,10 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     with open(join(hsdb_dir, '_hsdb/image_table.csv'), 'rb') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
         for ix, row in enumerate(image_reader):
-            if ix >= 3:
+            #if ix >= 3:
+            if len(row) == 0 or row[0].strip().startswith('#'):
+                continue
+            else:
                 gid = int(row[0])
                 gname = row[1].strip()
                 aif = bool(row[2])
@@ -71,7 +79,10 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl:
         chip_reader = csv.reader(chiptbl)
         for ix, row in enumerate(chip_reader):
-            if ix >= 3:
+            if len(row) == 0 or row[0].strip().startswith('#'):
+                continue
+            else:
+            #if ix >= 3:
                 images_gid = int(row[1])
                 names_nid = int(row[2])
                 bbox_text = row[3]

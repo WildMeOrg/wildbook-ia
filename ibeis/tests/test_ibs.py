@@ -25,7 +25,7 @@ def TEST_IBS(ibs):
     print('[TEST] 3. get_image_props')
     uri_list   = ibs.get_image_uris(gid_list)
     path_list  = ibs.get_image_paths(gid_list)
-    gsize_list = ibs.get_image_size(gid_list)
+    gsize_list = ibs.get_image_sizes(gid_list)
     time_list  = ibs.get_image_unixtime(gid_list)
     gps_list   = ibs.get_image_gps(gid_list)
     print(' * uri_list=%r' % uri_list)

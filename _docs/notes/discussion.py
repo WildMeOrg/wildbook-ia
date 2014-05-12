@@ -1,3 +1,4 @@
+#flake8:noqa
 from __future__ import absolute_import, division, print_function
 
 '''
@@ -60,4 +61,3 @@ from __future__ import absolute_import, division, print_function
 
         # Jason: That's fine, it will just be a bigger memory footprint
         # Speed vs Footprint
-

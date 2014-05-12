@@ -43,7 +43,7 @@ def path_ndir_split(path, n):
     return ndirs
 
 
-def remove_file(fpath, verbose=True, dryrun=False, **kwargs):
+def remove_file(fpath, verbose=True, dryrun=False, ignore_errors=True, **kwargs):
     if dryrun:
         if verbose:
             print('[util] Dryrem %r' % fpath)
@@ -53,9 +53,11 @@ def remove_file(fpath, verbose=True, dryrun=False, **kwargs):
             os.remove(fpath)
             if verbose:
                 print('[util] Removed %r' % fpath)
-        except OSError as e:
+        except OSError:
             print('[util] Misrem %r' % fpath)
             #warnings.warn('OSError: %s,\n Could not delete %s' % (str(e), fpath))
+            if not ignore_errors:
+                raise
             return False
     return True
 
@@ -71,7 +73,7 @@ def remove_dirs(dpath, dryrun=False, **kwargs):
 
 
 def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=True,
-                        dryrun=False, **kwargs):
+                        dryrun=False, ignore_errors=False, **kwargs):
     if isinstance(fname_pattern_list, str):
         fname_pattern_list = [fname_pattern_list]
     print('[util] Removing files:')
@@ -98,10 +100,11 @@ def remove_files_in_dir(dpath, fname_pattern_list='*', recursive=False, verbose=
     return True
 
 
-def delete(path, dryrun=False, recursive=True, verbose=True, **kwargs):
+def delete(path, dryrun=False, recursive=True, verbose=True, ignore_errors=True, **kwargs):
     # Deletes regardless of what the path is
     print('[util] Deleting path=%r' % path)
-    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose, **kwargs)
+    rmargs = dict(dryrun=dryrun, recursive=recursive, verbose=verbose,
+                  ignore_errors=ignore_errors, **kwargs)
     if not exists(path):
         msg = ('..does not exist!')
         print(msg)

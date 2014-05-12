@@ -113,7 +113,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
         # Get projection components
         _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-        _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  #ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
+        _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
         _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
         # Check for projection errors
         xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)

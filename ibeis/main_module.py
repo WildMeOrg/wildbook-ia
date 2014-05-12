@@ -4,6 +4,7 @@ import sys
 import multiprocessing
 
 sys.argv.append('--strict')  # do not supress any errors
+__PREINIT_MULTIPROCESSING_POOLS__ = False
 
 try:
     profile = getattr(__builtin__, 'profile')
@@ -115,7 +116,8 @@ def _init_parallel():
     from utool import util_parallel
     from ibeis.dev import params
     __import_parallel_modules()
-    util_parallel.init_pool(params.args.num_procs)
+    if __PREINIT_MULTIPROCESSING_POOLS__:
+        util_parallel.init_pool(params.args.num_procs)
 
 
 def _close_parallel():
@@ -165,7 +167,7 @@ def _guitool_loop(main_locals, ipy=False):
 
 
 @profile
-def main(gui=True, **kwargs):
+def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
     """
     Program entry point
     Inits the system environment, an IBEISControl, and a GUI if requested
@@ -190,9 +192,9 @@ def main(gui=True, **kwargs):
     if not '--quiet' in sys.argv:
         print('[main] ibeis.main_module.main()')
     _preload()
-    _preload_commands()
+    _preload_commands(dbdir, defaultdb)
     try:
-        ibs = _init_ibeis(**kwargs)
+        ibs = _init_ibeis(dbdir, defaultdb, allow_newdir)
         if gui and ('--gui' in sys.argv or not '--nogui' in sys.argv):
             back = _init_gui()
             back.connect_ibeis_control(ibs)
@@ -228,9 +230,9 @@ def _preload():
     return params.args
 
 
-def _preload_commands():
+def _preload_commands(dbdir, defaultdb):
     from ibeis.dev import main_commands
-    main_commands.preload_commands()  # PRELOAD CMDS
+    main_commands.preload_commands(dbdir, defaultdb)  # PRELOAD CMDS
 
 
 def _postload_commands(ibs, back):

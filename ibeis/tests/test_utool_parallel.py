@@ -33,6 +33,9 @@ def TEST_PARALLEL():
         'nogravity_hack': False
     }
 
+    with utool.Timer('c++ parallel'):
+        kpts_list, desc_list = pyhesaff.detect_kpts_list(gpath_list, **hesaff_kwargs)
+
     # Run parallel tasks
     @utool.indent_decor('[test_task]')
     def run_parallel_task(num_procs=None):

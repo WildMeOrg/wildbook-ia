@@ -1,6 +1,6 @@
 from _devscript import devcmd
 from itertools import izip
-from os.path import split, join
+from os.path import split, join, expanduser
 from plottool import draw_func2 as df2
 import numpy as np
 import utool
@@ -63,8 +63,13 @@ def printcfg(ibs, qrid_list):
 
 
 @devcmd('hsdbs')
-def list_hsdbs(*args):
+def list_unconverted_hsdbs(*args):
     injest_my_hotspotter_dbs.get_unconverted_hsdbs()
+
+
+@devcmd('list_dbs')
+def list_dbs(*args):
+    injest_my_hotspotter_dbs.get_ibsdb_list()
 
 
 @devcmd('convert')
@@ -157,7 +162,6 @@ def export(ibs, rid_pairs=None):
                     )
                 ) + ', '
                 for kp1, kp2 in izip(kpts1_m, kpts2_m)]
-
 
             mcpaths_list = ibs.get_roi_cpaths(mkeys)
             fnames_list = map(lambda x: split(x)[1], mcpaths_list)

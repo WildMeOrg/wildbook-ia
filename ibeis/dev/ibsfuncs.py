@@ -114,7 +114,7 @@ def resolve_name_conflicts(gid_list, name_list):
 
 
 def get_image_bboxes(ibs, gid_list):
-    size_list = ibs.get_image_size(gid_list)
+    size_list = ibs.get_image_sizes(gid_list)
     bbox_list  = [(0, 0, w, h) for (w, h) in size_list]
     return bbox_list
 
@@ -153,6 +153,7 @@ def get_empty_gids(ibs):
 
 
 def convert_empty_images_to_rois(ibs):
+
     """ images without chips are given an ROI over the entire image """
     gid_list = ibs.get_empty_gids()
     rid_list = ibs.use_images_as_rois(gid_list)
@@ -166,7 +167,7 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
     adjust_percent - shrinks the ROI by percentage on each side
     """
     pct = adjust_percent  # Alias
-    gsize_list = ibs.get_image_size(gid_list)
+    gsize_list = ibs.get_image_sizes(gid_list)
     # Build bounding boxes as images size minus padding
     bbox_list  = [(int( 0 + (gw * pct)),
                    int( 0 + (gh * pct)),
@@ -246,3 +247,16 @@ def localize_images(ibs, gid_list=None):
     ibs.set_image_uris(gid_list, local_gname_list)
 
     assert all(map(exists, local_gpath_list)), 'not all images copied'
+
+
+def delete_invalid_nids(ibs):
+    """ Removes names that have no Rois from the database """
+    invalid_nids = ibs.get_invalid_nids()
+    ibs.delete_names(invalid_nids)
+
+
+def assert_valid_names(name_list):
+    valid_namecheck = [not (name.startswith('____') and len(name) > 4)
+                        for name in name_list]
+    assert all(valid_namecheck),\
+        'User defined names cannot start with four underscores'
