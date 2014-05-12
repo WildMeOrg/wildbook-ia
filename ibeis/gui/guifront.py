@@ -94,10 +94,10 @@ def _tee_logging(front):
         front.print('teeing log output')
     # Connect a StreamStealer object to the GUI output window
     #if __common__.__LOGGING__:
-        #front.logging_handler = guitool.GUILoggingHandler(front.gui_write)
-        #__common__.add_logging_handler(front.logging_handler)
+    #    front.logging_handler = guitool.GUILoggingHandler(front.gui_write)
+    #    __common__.add_logging_handler(front.logging_handler)
     #else:
-        #front.ostream = StreamStealer(front, share=not noshare)
+    #    front.ostream = StreamStealer(front, share=not noshare)
 
 
 #=================
@@ -135,10 +135,6 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.back = back
         front.ui = Ui_mainSkel()
         front.ui.setupUi(front)
-        # Programatially Defined Actions
-        #newMenuAction(front, 'menuHelp', 'actionDetect_Duplicate_Images',
-        #text='Detect Duplicate Images', slot_fn=back.detect_dupimg)
-        # Progress bar is not hooked up yet
         front.connect_signals()
         _tee_logging(front)
 
@@ -169,15 +165,6 @@ class MainWindowFrontend(QtGui.QMainWindow):
             func()
         #
         # Gui Components
-        # Tables Widgets
-        #ui.rids_TBL.itemClicked.connect(front.rids_tbl_clicked)
-        #ui.rids_TBL.itemChanged.connect(front.rids_tbl_changed)
-        #ui.gids_TBL.itemClicked.connect(front.gids_tbl_clicked)
-        #ui.gids_TBL.itemChanged.connect(front.gids_tbl_changed)
-        #ui.qres_TBL.itemClicked.connect(front.qres_tbl_clicked)
-        #ui.qres_TBL.itemChanged.connect(front.qres_tbl_changed)
-        #ui.nids_TBL.itemClicked.connect(front.nids_tbl_clicked)
-        #ui.nids_TBL.itemChanged.connect(front.nids_tbl_changed)
         # Tab Widget
         ui.tablesTabWidget.currentChanged.connect(front.change_view)
         ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)

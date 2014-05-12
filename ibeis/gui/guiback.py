@@ -184,11 +184,10 @@ class MainWindowBackend(QtCore.QObject):
 
     #@utool.indent_func
     def update_window_title(back):
-        if VERBOSE:
-            print('[back] update_window_title()')
+        print('[back] update_window_title()')
         if back.ibs is None:
             title = 'IBEIS - No Database Open'
-        if back.ibs.dbdir is None:
+        elif back.ibs.dbdir is None:
             title = 'IBEIS - invalid database'
         else:
             dbdir = back.ibs.get_dbdir()
@@ -372,6 +371,10 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] default preferences')
         back.ibs._default_config()
 
+    #--------------------------------------------------------------------------
+    # Setter Slots
+    #--------------------------------------------------------------------------
+
     @blocking_slot(QT_ROI_UID_TYPE, str, str)
     def set_roi_prop(back, rid, key, val, refresh=True):
         """ Keys for propname come from uidtables.fancy_headers """
@@ -522,14 +525,6 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
     # Action menu slots
     #--------------------------------------------------------------------------
-
-    @blocking_slot()
-    def new_prop(back):
-        """ Action -> New Chip Property"""
-        # Depricate
-        print('[back] new_prop')
-        raise NotImplementedError()
-        pass
 
     @blocking_slot()
     def add_roi(back, gid=None, bbox=None, theta=0.0, refresh=True):
@@ -750,6 +745,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Help -> Developer Mode"""
         print('[back] dev_cls')
         print('\n'.join([''] * 100))
+        back.refresh_state()
 
     @blocking_slot()
     def dev_dumpdb(back):
