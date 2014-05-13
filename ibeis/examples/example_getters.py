@@ -15,6 +15,7 @@ import utool  # Useful Utility Tools
 def run_example(ibs):
     # Print IBEIS Database info
     print(ibs.get_infostr())
+    # ibs.print_tables()  # uncomment if you want to see a lot of text
     #
     #
     # Each table in the database is indexed with a unique id (uid)
