@@ -74,12 +74,13 @@ def run_test(func, *args, **kwargs):
             if ibs is not None:
                 ibs.db.dump()
             if '--strict' in sys.argv:
+                # Remove this function from stack strace
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 # PYTHON 2.7 DEPRICATED:
-                raise exc_type, exc_value, exc_traceback.tb_next.tb_next
+                raise exc_type, exc_value, exc_traceback.tb_next
                 # PYTHON 3.3 NEW METHODS
                 #ex = exc_type(exc_value)
-                #ex.__traceback__ = exc_traceback.tb_next.tb_next
+                #ex.__traceback__ = exc_traceback.tb_next
                 #raise ex
 
 
