@@ -82,6 +82,7 @@ class MainWindowBackend(QtCore.QObject):
     # Backend Signals
     populateTableSignal = signal_(str, list, list, list, list, list, str)
     setEnabledSignal = signal_(bool)
+    updateWindowTitleSignal = signal_(str)
 
     #------------------------
     # Constructor
@@ -101,6 +102,7 @@ class MainWindowBackend(QtCore.QObject):
         back.front = guifront.MainWindowFrontend(back=back)
         back.populateTableSignal.connect(back.front.populate_tbl)
         back.setEnabledSignal.connect(back.front.setEnabled)
+        back.updateWindowTitleSignal.connect(back.front.updateWindowTitle)
         fig_presenter.register_qt4_win(back.front)
 
     #------------------------
@@ -183,8 +185,8 @@ class MainWindowBackend(QtCore.QObject):
         return rid
 
     #@utool.indent_func
+    @utool.interested
     def update_window_title(back):
-        print('[back] update_window_title()')
         if back.ibs is None:
             title = 'IBEIS - No Database Open'
         elif back.ibs.dbdir is None:
@@ -193,6 +195,9 @@ class MainWindowBackend(QtCore.QObject):
             dbdir = back.ibs.get_dbdir()
             dbname = back.ibs.get_dbname()
             title = 'IBEIS - %r - %s' % (dbname, dbdir)
+        print('[back] update_window_title: tile = %r' % (title,))
+        back.updateWindowTitleSignal.emit(title)
+        print('[back] back.front.setWindowTitle(title=%r)' % (title,))
         back.front.setWindowTitle(title)
 
     #@utool.indent_func

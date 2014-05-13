@@ -51,14 +51,14 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         }
     elif tblname == IMAGE_TABLE:
         cols = {
-            'gid':       lambda gids: gids,
-            'eid':       lambda gids: ibs.get_image_eids(gids),
-            'enctext': lambda gids: map(utool.tupstr, ibs.get_image_enctext(gids)),
-            'aif':       lambda gids: ibs.get_image_aifs(gids),
-            'gname':     lambda gids: ibs.get_image_gnames(gids),
-            'nRids':     lambda gids: ibs.get_image_num_rois(gids),
-            'unixtime':  lambda gids: ibs.get_image_unixtime(gids),
-            'notes':     lambda nids: ibs.get_image_notes(nids),
+            'gid':      lambda gids: gids,
+            'eid':      lambda gids: ibs.get_image_eids(gids),
+            'enctext':  lambda gids: map(utool.tupstr, ibs.get_image_enctext(gids)),
+            'aif':      lambda gids: ibs.get_image_aifs(gids),
+            'gname':    lambda gids: ibs.get_image_gnames(gids),
+            'nRids':    lambda gids: ibs.get_image_num_rois(gids),
+            'unixtime': lambda gids: ibs.get_image_unixtime(gids),
+            'notes':    lambda nids: ibs.get_image_notes(nids),
         }
     elif tblname in [ROI_TABLE, QRES_TABLE]:
         # ROI_TBL_COLS \subset RES_TBL_COLS

@@ -31,11 +31,26 @@ class Ui_mainSkel(object):
     def ensureEncounterTab(ui, front, enctext):
         """ Ensure encounter tab for specific enctext """
         parent = ui.encountersTabWidget
+        # EncounterText Sanitization
         if enctext == '' or enctext == 'None':
             enctext = None
         if enctext not in ui.enctext_dict:
+            # Create the encounter tab
             tabWidget = newEncounterTabs(front, parent, enctext=enctext)
             ui.enctext_dict[enctext] = tabWidget
+        ui.retranslateUi(front)
+
+    def deleteEncounterTab(ui, front, enctext):
+        """ Delete encounter tab for specific enctext """
+        # EncounterText Sanitization
+        if enctext == '' or enctext == 'None':
+            enctext = None
+        try:  # Remove the encounter tab
+            tabWiget = ui.enctext_dict[enctext]
+            ui.deleteEncounterTab(front, enctext)
+            del tabWiget
+        except KeyError:
+            pass
         ui.retranslateUi(front)
 
 

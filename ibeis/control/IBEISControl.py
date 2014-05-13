@@ -1595,7 +1595,8 @@ class IBEISController(object):
         """ Finds encounters """
         from ibeis.model.preproc import preproc_encounter
         flat_eids, flat_gids = preproc_encounter.compute_encounters(ibs)
-        enctext_list = ['encounter_%r' % eid for eid in flat_eids]
+        ENCTEXT_PREFIX = 'enc_'
+        enctext_list = [ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
         ibs.set_image_enctext(flat_gids, enctext_list)
 
     @utool.indent_func

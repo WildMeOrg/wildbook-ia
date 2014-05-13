@@ -11,8 +11,12 @@ from guitool import slot_, signal_
 from ibeis.gui import uidtables
 from ibeis.gui.Skeleton import Ui_mainSkel
 
+
+print, print_, printDBG, profile, rrr = utool.inject(__name__, '[front*]', DEBUG=True)
+
 QUIET   = utool.get_flag('--quiet')
-VERBOSE = utool.get_flag('--verbose')
+#VERBOSE = not utool.get_flag(('--noverbose', '--verbose-front', '--vf'))
+VERBOSE = True
 
 
 UUID_TYPE = uidtables.UUID_TYPE
@@ -127,7 +131,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     def __init__(front, back):
         super(MainWindowFrontend, front).__init__()
-        #print('[*front] creating frontend')
+        print('[*front] creating frontend')
         front._prev_tbl_item = None
         front._pressed_item_state = None
         front._pressed_item_text = None
@@ -189,6 +193,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui.actionAbout.setEnabled(True)
         ui.actionView_Docs.setEnabled(True)
         ui.actionDelete_global_preferences.setEnabled(True)
+
+    @slot_(str)
+    @utool.interested
+    def updateWindowTitle(front, title):
+        front.print('front.setWindowTitle(title=%r)' % (title,))
+        front.setWindowTitle(title)
+        front.ui.retranslateUi(front)
 
     @slot_(str, list, list, list, list, list, str)
     def populate_tbl(front, tblname,
