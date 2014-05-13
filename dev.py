@@ -296,7 +296,4 @@ if __name__ == '__main__':
     if '--memprof' in sys.argv:
         utool.print_resource_usage()
         utool.memory_profile()
-
-    import gc
-    gc.collect()
     print('exiting dev')
