@@ -185,7 +185,6 @@ class MainWindowBackend(QtCore.QObject):
         return rid
 
     #@utool.indent_func
-    @utool.interested
     def update_window_title(back):
         if back.ibs is None:
             title = 'IBEIS - No Database Open'
@@ -195,15 +194,16 @@ class MainWindowBackend(QtCore.QObject):
             dbdir = back.ibs.get_dbdir()
             dbname = back.ibs.get_dbname()
             title = 'IBEIS - %r - %s' % (dbname, dbdir)
-        print('[back] update_window_title: tile = %r' % (title,))
-        back.updateWindowTitleSignal.emit(title)
-        print('[back] back.front.setWindowTitle(title=%r)' % (title,))
+        #print('[back] update_window_title: tile = %r' % (title,))
+        #back.updateWindowTitleSignal.emit(title)
+        #print('[back] back.front.setWindowTitle(title=%r)' % (str(title),))
         back.front.setWindowTitle(title)
 
     #@utool.indent_func
     def refresh_state(back):
-        back.update_window_title()
+        print('[back] REFRESH')
         back.populate_tables()
+        back.update_window_title()
 
     @utool.indent_func
     def connect_ibeis_control(back, ibs):

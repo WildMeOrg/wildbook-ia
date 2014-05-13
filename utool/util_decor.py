@@ -69,7 +69,7 @@ def ignores_exc_tb(func):
                 # https://github.com/jcrocholl/pep8/issues/34  # NOQA
                 # http://legacy.python.org/dev/peps/pep-3109/
                 # PYTHON 2.7 DEPRICATED:
-                raise exc_type, exc_value, exc_traceback.tb_next.tb_next  # noqa
+                raise exc_type, exc_value, exc_traceback.tb_next.tb_next
                 # PYTHON 3.3 NEW METHODS
                 #ex = exc_type(exc_value)
                 #ex.__traceback__ = exc_traceback.tb_next.tb_next
@@ -251,8 +251,8 @@ def interested(func):
     @wraps(func)
     def interested_wrapper(*args, **kwargs):
         sys.stdout.write('#\n')
-        sys.stdout.write('<!INTERESTED>: ' + func.func_name + '\n')
         sys.stdout.write('#\n')
-        print('INTERESTING... ' + (' ' * 60) + ' <----')
+        sys.stdout.write('<!INTERESTED>: ' + func.func_name + '\n')
+        print('INTERESTING... ' + (' ' * 30) + ' <----')
         return func(*args, **kwargs)
     return interested_wrapper

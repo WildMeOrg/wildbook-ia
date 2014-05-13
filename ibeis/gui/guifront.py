@@ -195,11 +195,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
         ui.actionDelete_global_preferences.setEnabled(True)
 
     @slot_(str)
-    @utool.interested
     def updateWindowTitle(front, title):
-        front.print('front.setWindowTitle(title=%r)' % (title,))
+        #front.print('front.setWindowTitle(title=%r)' % (str(title),))
         front.setWindowTitle(title)
-        front.ui.retranslateUi(front)
+        #front.ui.retranslateUi(front)
 
     @slot_(str, list, list, list, list, list, str)
     def populate_tbl(front, tblname,

@@ -32,6 +32,8 @@ def ensure_qtapp():
         if not QUIET:
             print('[guitool] Init new QApplication')
         QAPP = QtGui.QApplication(sys.argv)
+        print('QAPP = %r' % QAPP)
+        assert QAPP is not None
         IS_ROOT = True
     else:
         if not QUIET:
@@ -72,7 +74,7 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
 def qtapp_loop(back=None, ipy=False, **kwargs):
     global QAPP
     if not QUIET:
-        print('[guitool] qtapp_loop()')
+        print('[guitool.qtapp_loop()]')
     if back is not None:
         activate_qwindow(back)
         back.timer = ping_python_interpreter(**kwargs)
