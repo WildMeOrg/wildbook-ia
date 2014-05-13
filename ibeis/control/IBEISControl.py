@@ -133,16 +133,12 @@ class IBEISController(object):
             utool.ensuredir(ibs.flanndir)
             utool.ensuredir(ibs.qresdir)
             utool.ensuredir(ibs.bigcachedir)
-        #OFF printDBG('[ibs._init_dirs] ibs.dbname = %r' % ibs.dbname)
-        #OFF printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
     def _init_sql(ibs):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
-        #OFF printDBG('[ibs._init_sql] Define the schema.')
         DB_SCHEMA.define_IBEIS_schema(ibs)
-        #OFF printDBG('[ibs._init_sql] Add default names.')
         ibs.UNKNOWN_NAME = '____'
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
         try:
@@ -210,7 +206,6 @@ class IBEISController(object):
 
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
-        #OFF printDBG('[ibs] _load_config()')
         try:
             ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
             if not ibs.cfg.load() is True:
@@ -220,7 +215,6 @@ class IBEISController(object):
 
     def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
-        #OFF printDBG('[ibs] _default_config()')
         # TODO: Detector config
         query_cfg  = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
@@ -268,7 +262,6 @@ class IBEISController(object):
     #---------------
 
     def add_config(ibs, config_suffix):
-        #print('ADD CONFIG: %r' % config_suffix)
         ibs.db.executeone(
             operation='''
             INSERT OR IGNORE INTO configs
@@ -293,7 +286,6 @@ class IBEISController(object):
                 config_uid = config_uid[0]
         except AttributeError:
             pass
-        #print('ADD CONFIG: config_uid = %r' % (config_uid,))
         return config_uid
 
     @adder
@@ -313,8 +305,6 @@ class IBEISController(object):
         index_list = [index for index, tup in enumerate(tried_param_list)
                       if tup is not None]
         param_list = [tried_param_list[index] for index in index_list]
-        #img_uuid_list = [tup[0] for tup in param_list]
-        # TODO: image original name
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
@@ -332,15 +322,6 @@ class IBEISController(object):
             ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
-        """
-        #gid_list = ibs.db.executemany(
-            #operation='''
-            #SELECT image_uid
-            #FROM images
-            #WHERE image_uuid=?
-            #''',
-            #params_iter=[(img_uuid,) for img_uuid in img_uuid_list])
-        """
         # This should solve the ordering issue
         gid_list = ibs.db.executemany(
             operation='''
@@ -369,7 +350,6 @@ class IBEISController(object):
         """ Adds oriented ROI bounding boxes to images """
         assert name_list is None or nid_list is None,\
             'cannot specify both names and nids'
-
         if theta_list is None:
             theta_list = [0.0 for _ in xrange(len(gid_list))]
         if viewpoint_list is None:
@@ -432,17 +412,11 @@ class IBEISController(object):
         return cid_list
         """
         # Ensure must be false, otherwise an infinite loop occurs
-        #OFF printDBG('ADD_CHIPS(rid_list=%r)' % (rid_list,))
         cid_list = ibs.get_roi_cids(rid_list, ensure=False)
-        #OFF printDBG('ADD_CHIPS(cid_list=%r)' % (cid_list,))
         dirty_rids = utool.get_dirty_items(rid_list, cid_list)
-        #OFF printDBG('ADD_CHIPS(dirty_rids=%r)' % (dirty_rids,))
         if len(dirty_rids) > 0:
             try:
-                #OFF printDBG('ADD_CHIPS(dirty_rids=%r)' % (rid_list,))
-                # FIXME:
-                # Need to not be lazy here for now, until we fix the chip config
-                # / delete issue
+                # FIXME: Cant be lazy until chip config / delete issue is fixed
                 preproc_chip.compute_and_write_chips(ibs, rid_list)
                 #preproc_chip.compute_and_write_chips_lazy(ibs, rid_list)
                 params_iter = preproc_chip.add_chips_params_gen(ibs, dirty_rids)
@@ -500,7 +474,6 @@ class IBEISController(object):
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
-            print('add_names %r' % (name_list,))
             ibsfuncs.assert_valid_names(name_list)
             notes_list = ['' for _ in xrange(len(dirty_names))]
             param_iter = izip(dirty_names, notes_list)
@@ -523,7 +496,6 @@ class IBEISController(object):
     @adder
     def add_encounters(ibs, enctext_list):
         """ Adds a list of names. Returns their nids """
-        #print('add_encounters %r' % (enctext_list,))
         notes_list = ['' for _ in xrange(len(enctext_list))]
         param_iter = izip(enctext_list, notes_list)
         param_list = list(param_iter)
@@ -608,7 +580,6 @@ class IBEISController(object):
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
         """ Sets the encoutertext of each image """
-        print('[ibs] setting encounter ids')
         eid_list = ibs.add_encounters(enctext_list)
         ibs.db.executemany(
             operation='''
@@ -767,11 +738,12 @@ class IBEISController(object):
 
     @getter_general
     def _get_all_gids(ibs):
-        return ibs.db.executeone(
+        all_gids = ibs.db.executeone(
             operation='''
             SELECT image_uid
             FROM images
             ''')
+        return all_gids
 
     @getter_general
     def get_valid_gids(ibs, eid=None):
@@ -1153,7 +1125,8 @@ class IBEISController(object):
     @getter_general
     def _get_all_cids(ibs):
         """ Returns computed chips for every configuration
-        (you probably should not use this)"""
+            (you probably should not use this)
+        """
         all_cids = ibs.db.executeone(
             operation='''
             SELECT chip_uid
@@ -1218,22 +1191,6 @@ class IBEISController(object):
             params_iter=((cid) for cid in cid_list))
         return cfgid_list
 
-    @getter_numpy_vector_output
-    def get_chip_desc(ibs, cid_list, ensure=True):
-        """ Returns chip descriptors """
-        # FIXME: DEPRICATE (recognition uses this, fix there first)
-        fid_list = ibs.get_chip_fids(cid_list, ensure)
-        desc_list = ibs.get_feat_desc(fid_list)
-        return desc_list
-
-    @getter_numpy_vector_output
-    def get_chip_kpts(ibs, cid_list, ensure=True):
-        """ Returns chip keypoints """
-        # FIXME: DEPRICATE (recognition uses this, fix there first)
-        fid_list = ibs.get_chip_fids(cid_list, ensure)
-        kpts_list = ibs.get_feat_kpts(fid_list)
-        return kpts_list
-
     @getter_numpy
     def get_chip_nids(ibs, cid_list):
         """ Returns name ids. (negative roi uids if UNKONWN_NAME) """
@@ -1245,14 +1202,6 @@ class IBEISController(object):
         nid_list = ibs.get_chip_nids(cid_list)
         name_list = ibs.get_names(nid_list)
         return name_list
-
-    @getter_numpy
-    def get_chip_gids(ibs, cid_list):
-        """ Returns chip descriptors """
-        # FIXME: DEPRICATE (recognition uses this, fix there first)
-        rid_list = ibs.get_chip_rids(cid_list)
-        gid_list = ibs.get_roi_gids(rid_list)
-        return gid_list
 
     #
     # GETTERS::FEATS
@@ -1281,18 +1230,18 @@ class IBEISController(object):
 
     @getter_vector_output
     def get_feat_kpts(ibs, fid_list):
-        """ Returns chip keypoints """
+        """ Returns chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
         kpts_list = ibs.get_feat_props('feature_keypoints', fid_list)
-        #DEBUG: kpts_list = [kpts[-4:-1] for kpts in kpts_list]
         return kpts_list
 
     @getter_vector_output
     def get_feat_desc(ibs, fid_list):
-        """ Returns chip descriptors """
+        """ Returns chip SIFT descriptors """
         desc_list = ibs.get_feat_props('feature_sifts', fid_list)
         return desc_list
 
     def get_num_feats(ibs, fid_list):
+        """ Returns the number of keypoint / descriptor pairs """
         nFeats_list = ibs.get_feat_props('feature_num_feats', fid_list)
         return nFeats_list
 
@@ -1300,7 +1249,8 @@ class IBEISController(object):
     # GETTERS: CONFIG
 
     def get_config_suffixes(ibs, cfgid_list):
-        # TODO: This can be massively optimized if it ever gets slow
+        """ Gets suffixes for algorithm configs """
+        # TODO: This can be massively optimized with a unique if it ever gets slow
         cfgsuffix_list = ibs.db.executemany(
             operation='''
             SELECT config_suffix
@@ -1314,10 +1264,11 @@ class IBEISController(object):
     # GETTERS::MASK
 
     @getter
-    def get_chip_masks(ibs, rid_list, ensure=True):
-        # Should this function exist? Yes. -Jon
+    def get_roi_masks(ibs, rid_list, ensure=True):
+        """ Returns segmentation masks for an roi """
         roi_list  = ibs.get_roi_bboxes(rid_list)
         mask_list = [np.empty((w, h)) for (x, y, w, h) in roi_list]
+        raise NotImplementedError('FIXME!')
         return mask_list
 
     #
@@ -1392,7 +1343,6 @@ class IBEISController(object):
     @getter_vector_output
     def get_name_rids(ibs, nid_list):
         """ returns a list of list of cids in each name """
-        # for each name return chips in that name
         rids_list = ibs.db.executemany(
             operation='''
             SELECT roi_uid
@@ -1401,7 +1351,6 @@ class IBEISController(object):
             ''',
             params_iter=utool.tuplize(nid_list),
             unpack_scalars=False)
-        #rids_list = [[] for _ in xrange(len(nid_list))]
         return rids_list
 
     @getter
@@ -1411,7 +1360,7 @@ class IBEISController(object):
 
     @getter
     def get_name_notes(ibs, gid_list):
-        """ Returns image notes """
+        """ Returns name notes """
         notes_list = ibs.get_name_props('name_notes', gid_list)
         return notes_list
 
@@ -1518,16 +1467,14 @@ class IBEISController(object):
     @deleter
     def delete_images(ibs, gid_list):
         """ deletes images from the database that belong to gids"""
-        # Delete from images
-        ibs.db.executemany(
+        ibs.db.executemany(  # remove from images
             operation='''
             DELETE
             FROM images
             WHERE image_uid=?
             ''',
             params_iter=utool.tuplize(gid_list))
-        # remove from egpairs
-        ibs.db.executemany(
+        ibs.db.executemany(  # remove from egpairs
             operation='''
             DELETE
             FROM egpairs
@@ -1574,16 +1521,14 @@ class IBEISController(object):
     @deleter
     def delete_encounters(ibs, eid_list):
         """ Removes encounters (but not any other data) """
-        # remove from encounters
-        ibs.db.executemany(
+        ibs.db.executemany(  # remove from encounters
             operation='''
             DELETE
             FROM encounters
             WHERE encounter_uid=?
             ''',
             params_iter=utool.tuplize(eid_list))
-        # remove from egpairs
-        ibs.db.executemany(
+        ibs.db.executemany(  # remove from egpairs
             operation='''
             DELETE
             FROM egpairs
@@ -1600,6 +1545,7 @@ class IBEISController(object):
     @utool.indent_func
     def export_to_wildbook(ibs, rid_list):
         """ Exports identified chips to wildbook """
+        raise NotImplementedError()
         return None
 
     #
@@ -1610,7 +1556,7 @@ class IBEISController(object):
 
     @utool.indent_func
     def compute_encounters(ibs):
-        """ Finds encounters """
+        """ Clusters images into encounters """
         from ibeis.model.preproc import preproc_encounter
         flat_eids, flat_gids = preproc_encounter.compute_encounters(ibs)
         ENCTEXT_PREFIX = 'enc_'
@@ -1630,6 +1576,7 @@ class IBEISController(object):
         """ Runs animal detection in each image """
         from ibeis.model.detect import randomforest
         path_list = ibs.get_image_detectpaths(gid_list)
+        # TODO: Return confidence here as well
         gids, rois = randomforest.detect_rois(ibs, gid_list, path_list,
                                               species, **kwargs)
         ibs.add_rois(gids, rois)
