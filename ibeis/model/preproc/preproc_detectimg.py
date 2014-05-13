@@ -14,7 +14,7 @@ import vtool.image as gtool
 def gen_detectimg_and_write(tup):
     """ worker function for parallel generator """
     gid, gfpath, new_gfpath, new_size = tup
-    print('[preproc] writing detectimg: %r' % new_gfpath)
+    #print('[preproc] writing detectimg: %r' % new_gfpath)
     img = gtool.imread(gfpath)
     new_img = gtool.resize(img, new_size)
     gtool.imwrite(new_gfpath, new_img)

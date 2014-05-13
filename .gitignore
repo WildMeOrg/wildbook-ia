@@ -51,3 +51,7 @@ nosetests.xml
 vtool/tests/testdata*
 test_data*.shelf
 ibeis/model/detect/rf
+tmp.py
+
+*.flann
+*.npz

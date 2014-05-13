@@ -153,7 +153,7 @@ def __argv_flag_dec(func, default=False, quiet=False):
     flag = '--' + flag.replace('_', '-')
 
     def GaurdWrapper(*args, **kwargs):
-        if get_flag(flag, default):
+        if get_flag(flag, default) or get_flag('--print-all'):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
             with Indenter('[%s]' % indent_lbl):

@@ -11,6 +11,7 @@ import utool
 
 
 USE_OPENMP = not utool.WIN32
+USE_OPENMP = False  # do not use openmp until we have the gravity vector
 
 
 def gen_feat_worker(tup):

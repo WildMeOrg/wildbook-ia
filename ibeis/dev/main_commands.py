@@ -7,10 +7,9 @@ from ibeis.dev import sysres
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[main_cmds]')
 
 
-def vdq():
+def vdq(dbdir):
     """view directory and quit"""
-    dbdir = params.args.dbdir
-    utool.util_cplat.view_directory(dbdir)
+    utool.util_cplat.view_directory(dbdir + '/_ibsdb')
     sys.exit(1)
 
 
@@ -39,13 +38,8 @@ def parse_cfgstr_list(cfgstr_list):
     return cfgdict
 
 
-def preload_convert(dbdir, defaultdb):
+def preload_convert(dbdir):
     """ Convert the database before loading (A bit hacky) """
-    # HACKY: Copied code from _init_ibeis to get the
-    # dbdir before creating an IBEISControl
-    # Use command line dbdir unless user specifies it
-    if dbdir is None:
-        dbdir = sysres.get_args_dbdir(defaultdb, False)
     from ibeis.injest.injest_my_hotspotter_dbs import my_convert_hsdb_to_ibeis
     my_convert_hsdb_to_ibeis(dbdir, force=True)
 
@@ -53,6 +47,14 @@ def preload_convert(dbdir, defaultdb):
 def preload_commands(dbdir, defaultdb):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
+
+    def get_dbdir_hack(dbdir, defaultdb):
+        # HACKY: Copied code from _init_ibeis to get the
+        # dbdir before creating an IBEISControl
+        # Use command line dbdir unless user specifies it
+        if dbdir is None:
+            dbdir = sysres.get_args_dbdir(defaultdb, False)
+        return dbdir
     if params.args.dump_argv:
         print(utool.dict_str(vars(params.args)))
     if params.args.dump_global_cache:
@@ -63,9 +65,9 @@ def preload_commands(dbdir, defaultdb):
         vwd()
     if utool.get_flag('--vdq'):
         print('got arg --vdq')
-        vdq()
+        vdq(get_dbdir_hack(dbdir, defaultdb))
     if params.args.convert:
-        preload_convert(dbdir, defaultdb)
+        preload_convert(get_dbdir_hack(dbdir, defaultdb))
 
 
 def postload_commands(ibs, back):

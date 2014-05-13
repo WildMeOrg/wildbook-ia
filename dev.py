@@ -25,10 +25,6 @@ from ibeis.dev import results_all
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
-if 'back' not in vars():
-    back = None
-
-
 #--------------------
 # RUN DEV EXPERIMENTS
 #--------------------
@@ -300,3 +296,7 @@ if __name__ == '__main__':
     if '--memprof' in sys.argv:
         utool.print_resource_usage()
         utool.memory_profile()
+
+    import gc
+    gc.collect()
+    print('exiting dev')

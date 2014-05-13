@@ -285,12 +285,20 @@ class QueryResult(__OBJECT_BASE__):
         return pos_rids
 
     def show_top(qres, ibs, *args, **kwargs):
-        import ibeis.viz as viz
-        return viz.show_qres_top(ibs, qres, *args, **kwargs)
+        from ibeis.viz import viz_qres
+        return viz_qres.show_qres_top(ibs, qres, *args, **kwargs)
 
     def show_analysis(qres, ibs, *args, **kwargs):
-        import ibeis.viz as viz
-        return viz.show_qres_analysis(ibs, qres, *args, **kwargs)
+        from ibeis.viz import viz_qres
+        return viz_qres.show_qres_analysis(ibs, qres, *args, **kwargs)
+
+    def show(qres, ibs, type_, *args, **kwargs):
+        if type_ == 'top':
+            return qres.show_top(ibs, *args, **kwargs)
+        elif type_ == 'analysis':
+            return qres.show_analysis(ibs, *args, **kwargs)
+        else:
+            raise AssertionError('Uknown type=%r' % type_)
 
     def get_matching_keypoints(qres, ibs, rid2_list):
         return qres_get_matching_keypoints(qres, ibs, rid2_list)

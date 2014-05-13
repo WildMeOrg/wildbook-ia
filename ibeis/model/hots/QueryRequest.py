@@ -24,6 +24,11 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.qresdir = qresdir  # Where to cache individual results
         qreq.bigcachedir = bigcachedir  # Where to cache large results
 
+    #def __del__(qreq):
+    #    for key in qreq.dftup2_index.keys():
+    #         del qreq.dftup2_index[key]
+    #    qreq.data_index = None
+
     def set_rids(qreq, qrids, drids):
         qreq.qrids = qrids
         qreq.drids = drids

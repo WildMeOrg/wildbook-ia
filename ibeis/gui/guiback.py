@@ -577,8 +577,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] detect_grevys()')
         ibs = back.ibs
         gid_list = ibs.get_valid_gids()
-        path_list = ibs.get_image_detectpaths(gid_list)
-        ibs.detect_random_forest(gid_list, path_list, 'zebra_grevys')
+        ibs.detect_random_forest(gid_list, 'zebra_grevys')
         if refresh:
             back.populate_tables()
 

@@ -93,7 +93,6 @@ class NNIndex(object):
         nn_index.ax2_rid  = ax2_rid
         nn_index.ax2_fx   = ax2_fx
         nn_index.ax2_data = ax2_desc
-
         # Grab the keypoints names and image ids before query time
         #nn_index.rx2_kpts = ibs.get_roi_kpts(drid_list)
         #nn_index.rx2_gid  = ibs.get_roi_gids(drid_list)
@@ -105,15 +104,13 @@ class NNIndex(object):
         printDBG('get state NNIndex')
         return None
 
-    def __del__(nn_index):
-        """ Ensure flann is propertly removed """
-        printDBG('deleting NNIndex')
-        if getattr(nn_index, 'flann', None) is not None:
-            try:
-                nn_index.flann.delete_index()
-            except Exception as ex:
-                utool.printex(ex)
-            nn_index.flann = None
+    #def __del__(nn_index):
+    #    """ Ensure flann is propertly removed """
+    #    printDBG('deleting NNIndex')
+    #    if getattr(nn_index, 'flann', None) is not None:
+    #        nn_index.flann.delete_index()
+    #        #del nn_index.flann
+    #    nn_index.flann = None
 
     def nn_index2(nn_index, qreq, qfx2_desc):
         """ return nearest neighbors from this data_index's flann object """

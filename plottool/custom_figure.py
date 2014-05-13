@@ -156,7 +156,7 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
 
 
 def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
-                defaultext='.jpg'):
+                defaultext='.jpg', verbose=2):
     fig, fnum = prepare_figure_for_save(fnum)
     fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
     #fname_clean = split(fpath_clean)[1]
@@ -164,7 +164,10 @@ def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         if overwrite or not exists(fpath_clean):
-            print('[df2] save_figure() %r' % (fpath_clean,))
+            if verbose == 2:
+                print('[df2] save_figure() %r' % (fpath_clean,))
+            elif verbose == 1:
+                print('[df2] save_figure() %r' % (split(fpath_clean)[1],))
             fig.savefig(fpath_clean, dpi=DPI)
         else:
             print('[df2] not overwriteing')

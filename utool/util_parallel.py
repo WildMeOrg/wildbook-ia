@@ -151,6 +151,9 @@ def ensure_pool():
 
 def generate(func, args_list, force_serial=__FORCE_SERIAL__):
     """ Returns a generator which asynchronously returns results """
+    if len(args_list) == 0:
+        print('[parallel] submitted 0 tasks')
+        return []
     ensure_pool()
     num_tasks = len(args_list)
     mark_prog, end_prog = progress_func(max_val=num_tasks, lbl=func.func_name + ': ')

@@ -16,7 +16,8 @@ def draw():
     df2.draw()
 
 
-def dump(dumpdir, subdir=None, quality=False, overwrite=False):
+def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2):
+    """ Dumps figure to disk based on the figurename """
     if quality is True:
         custom_figure.FIGSIZE = df2.golden_wh2(12)
         custom_figure.DPI = 120
@@ -30,7 +31,7 @@ def dump(dumpdir, subdir=None, quality=False, overwrite=False):
     if subdir is not None:
         fpath = join(fpath, subdir)
         utool.ensurepath(fpath)
-    df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite)
+    df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
     df2.reset()
 
 

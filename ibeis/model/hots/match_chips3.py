@@ -8,8 +8,8 @@ from ibeis.model.hots import matching_functions as mf
     __name__, '[mc3]', DEBUG=False)
 
 
-USE_CACHE_QUERY = '--nocache-query' not in sys.argv
-USE_CACHE_BIG = '--nocache-big' not in sys.argv
+USE_CACHE = '--nocache-query' not in sys.argv
+USE_BIGCACHE = '--nocache-big' not in sys.argv
 
 
 @utool.indent_func
@@ -60,8 +60,8 @@ def prep_query_request(qreq=None, query_cfg=None,
 @utool.indent_func('[pre_exec]')
 #@profile
 def pre_exec_checks(ibs, qreq):
-    """ Builds the NNIndex if feature of the correct configuration are not in
-    the cache """
+    """ Ensures that the NNIndex's data_index is pointing to the correct
+    set of feature descriptors """
     print('  --- Pre Exec ---')
     # Get qreq config information
     drids = qreq.get_internal_drids()
@@ -84,7 +84,10 @@ def pre_exec_checks(ibs, qreq):
 # Query Level 2
 @utool.indent_func('[Q2]')
 @profile
-def process_query_request(ibs, qreq, safe=True):
+def process_query_request(ibs, qreq,
+                          safe=True,
+                          use_cache=USE_CACHE,
+                          use_bigcache=USE_BIGCACHE):
     """
     The standard query interface.
     INPUT:
@@ -95,12 +98,16 @@ def process_query_request(ibs, qreq, safe=True):
     On an individual cache miss, it preforms the query.
     """
     print(' --- Process QueryRequest --- ')
+    if len(qreq.qrids) <= 1:
+        # Do not use bigcache single queries
+        use_bigcache = False
     # Try and load directly from a big cache
-    bigcache_dpath = qreq.bigcachedir
-    bigcache_fname = (ibs.get_dbname() + '_QRESMAP' +
-                      qreq.get_qrids_uid() + qreq.get_drids_uid())
-    bigcache_uid = qreq.cfg.get_uid()
-    if USE_CACHE_QUERY and USE_CACHE_BIG:
+    if use_bigcache:
+        bigcache_dpath = qreq.bigcachedir
+        bigcache_fname = (ibs.get_dbname() + '_QRESMAP' +
+                          qreq.get_qrids_uid() + qreq.get_drids_uid())
+        bigcache_uid = qreq.cfg.get_uid()
+    if use_cache and use_bigcache:
         try:
             qrid2_qres = utool.load_cache(bigcache_dpath,
                                           bigcache_fname,
@@ -110,7 +117,7 @@ def process_query_request(ibs, qreq, safe=True):
         except IOError:
             print('... qrid2_qres bigcache miss')
     # Try loading as many cached results as possible
-    if USE_CACHE_QUERY:
+    if use_cache:
         qrid2_qres, failed_qrids = mf.try_load_resdict(qreq)
     else:
         qrid2_qres = {}
@@ -122,9 +129,10 @@ def process_query_request(ibs, qreq, safe=True):
             qreq = pre_exec_checks(ibs, qreq)
         computed_qrid2_qres = execute_query_and_save_L1(ibs, qreq, failed_qrids)
         qrid2_qres.update(computed_qrid2_qres)  # Update cached results
-    utool.save_cache(bigcache_dpath,
-                     bigcache_fname,
-                     bigcache_uid, qrid2_qres)
+    if use_bigcache:
+        utool.save_cache(bigcache_dpath,
+                         bigcache_fname,
+                         bigcache_uid, qrid2_qres)
     return qrid2_qres
 
 

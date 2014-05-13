@@ -9,6 +9,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 # only and tripple single quotes for python multiline strings only
 from __future__ import absolute_import, division, print_function
 # Python
+import atexit
 from itertools import izip
 from os.path import join, split
 # Science
@@ -92,6 +93,12 @@ class IBEISController(object):
         ibs._init_sql()
         ibs._init_config()
         __ALL_CONTROLLERS__.append(ibs)
+
+    #def __del__(ibs):
+    #    """ Ensure nnindex is properly removed """
+    #    if ibs.qreq is not None:
+    #        del ibs.qreq
+    #    ibs.qreq = None
 
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
@@ -1608,11 +1615,12 @@ class IBEISController(object):
         return probexist_list
 
     @utool.indent_func
-    def detect_random_forest(ibs, gid_list, gpath_list, species, **kwargs):
+    def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
-        # Should this function just return rois and no masks???
         from ibeis.model.detect import randomforest
-        gids, rois = randomforest.detect_rois(ibs, gid_list, gpath_list, species, **kwargs)
+        path_list = ibs.get_image_detectpaths(gid_list)
+        gids, rois = randomforest.detect_rois(ibs, gid_list, path_list,
+                                              species, **kwargs)
         ibs.add_rois(gids, rois)
 
     @utool.indent_func
@@ -1793,3 +1801,10 @@ class IBEISController(object):
         ibs.print_name_table()
         ibs.print_config_table()
         print('\n')
+
+
+def __cleanup():
+    global __ALL_CONTROLLERS__
+    del __ALL_CONTROLLERS__
+
+atexit.register(__cleanup)

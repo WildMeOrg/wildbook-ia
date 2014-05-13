@@ -13,6 +13,9 @@ import utool
 @utool.indent_func
 @profile
 def show_qres_top(ibs, qres, **kwargs):
+    """
+    Wrapper around show_qres.
+    """
     N = kwargs.get('N', 6)
     top_rids = qres.get_top_rids(num=N)
     ridstr = ibsfuncs.ridstr(qres.qrid)
@@ -28,47 +31,57 @@ def show_qres_top(ibs, qres, **kwargs):
 @utool.indent_func
 @profile
 def show_qres_analysis(ibs, qres, **kwargs):
-        print('[show_qres] qres.show_analysis()')
-        # Parse arguments
-        noshow_gt  = kwargs.pop('noshow_gt', True)
-        show_query = kwargs.pop('show_query', False)
-        rid_list   = kwargs.pop('rid_list', None)
-        figtitle   = kwargs.pop('figtitle', None)
+    """
+    Wrapper around show_qres.
 
-        # Debug printing
-        #print('[analysis] noshow_gt  = %r' % noshow_gt)
-        #print('[analysis] show_query = %r' % show_query)
-        #print('[analysis] rid_list    = %r' % rid_list)
+    KWARGS:
+        rid_list - show matches against rid_list (default top 5)
+    """
+    print('[show_qres] qres.show_analysis()')
+    # Parse arguments
+    N = kwargs.get('N', 3)
+    show_gt  = kwargs.pop('show_gt', True)
+    show_query = kwargs.pop('show_query', False)
+    rid_list   = kwargs.pop('rid_list', None)
+    figtitle   = kwargs.pop('figtitle', None)
 
+    # Debug printing
+    #print('[analysis] noshow_gt  = %r' % noshow_gt)
+    #print('[analysis] show_query = %r' % show_query)
+    #print('[analysis] rid_list    = %r' % rid_list)
+
+    if rid_list is None:
         # Compare to rid_list instead of using top ranks
-        if rid_list is None:
-            print('[analysis] showing top rids')
-            top_rids = qres.get_top_rids(ibs)
-            if figtitle is None:
-                if len(top_rids) == 0:
-                    figtitle = 'WARNING: no top scores!' + ibsfuncs.ridstr(qres.qrid)
-                else:
-                    topscore = qres.get_rid_scores(top_rids)[0]
-                    figtitle = ('q%s -- topscore=%r' % (ibsfuncs.ridstr(qres.qrid), topscore))
-        else:
-            print('[analysis] showing a given list of rids')
-            top_rids = rid_list
-            if figtitle is None:
-                figtitle = 'comparing to ' + ibsfuncs.ridstr(top_rids) + figtitle
+        print('[analysis] showing top rids')
+        top_rids = qres.get_top_rids(num=N)
+        if figtitle is None:
+            if len(top_rids) == 0:
+                figtitle = 'WARNING: no top scores!' + ibsfuncs.ridstr(qres.qrid)
+            else:
+                topscore = qres.get_rid_scores(top_rids)[0]
+                figtitle = ('q%s -- topscore=%r' % (ibsfuncs.ridstr(qres.qrid), topscore))
+    else:
+        print('[analysis] showing a given list of rids')
+        top_rids = rid_list
+        if figtitle is None:
+            figtitle = 'comparing to ' + ibsfuncs.ridstr(top_rids) + figtitle
 
-        # Do we show the ground truth?
-        def missed_rids():
-            showgt_rids = ibs.get_roi_groundtruth(qres.qrid)
-            return np.setdiff1d(showgt_rids, top_rids)
-        showgt_rids = [] if noshow_gt else missed_rids()
+    # Get any groundtruth if you are showing it
+    showgt_rids = []
+    if show_gt:
+        showgt_rids = ibs.get_roi_groundtruth(qres.qrid)
+        showgt_rids = np.setdiff1d(showgt_rids, top_rids)
 
-        return show_qres(ibs, qres, gt_rids=showgt_rids, top_rids=top_rids,
-                         figtitle=figtitle, show_query=show_query, **kwargs)
+    return show_qres(ibs, qres, gt_rids=showgt_rids, top_rids=top_rids,
+                        figtitle=figtitle, show_query=show_query, **kwargs)
 
 
 @utool.indent_func
 def show_qres(ibs, qres, **kwargs):
-    """ Displays query chip, groundtruth matches, and top 5 matches """
+    """
+    Display Query Result Logic
+    Defaults to: query chip, groundtruth matches, and top 5 matches
+    """
     annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
     aug         = kwargs.get('aug', '')

@@ -54,7 +54,7 @@ def add_chips_params_gen(ibs, rid_list):
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
-        print('Yeild Chip Param: rid=%r, cpath=%r' % (rid, cfpath))
+        #print('Yeild Chip Param: rid=%r, cpath=%r' % (rid, cfpath))
         yield (rid, cfpath, width, height, chip_config_uid)
 
 
@@ -127,7 +127,7 @@ def gen_chip2_and_write(tup):
     """ worker function for parallel generator """
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
     chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
-    printDBG('write chip: %r' % cfpath)
+    #printDBG('write chip: %r' % cfpath)
     gtool.imwrite(cfpath, chipBGR)
     return cfpath
 
@@ -193,7 +193,7 @@ def compute_and_write_chips(ibs, rid_list):
                                       newsize_list, filter_list)
     print('Computing %d chips asynchronously' % (len(cfpath_list)))
     for cfpath in chip_async_iter:
-        print('Wrote chip: %r' % cfpath)
+        #print('Wrote chip: %r' % cfpath)
         pass
     print('Done computing chips')
     """

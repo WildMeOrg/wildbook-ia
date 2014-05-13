@@ -61,7 +61,17 @@ SNAILS()
     # Find the hard cases
     export HARD_SNAILS="--qrid 1 14 15 16 17 31 32 34 35 36 37 38 40 45 52 53 57 59 62 63 68 72 73 75 77"
     # Visualize hard cases
-    python dev.py --db snails_drop1 -t best $HARD_SNAILS --echo-hardcase
+    python dev.py --db snails_drop1 -t best $HARD_SNAILS --echo-hardcase --save-figures -c 0
+    python dev.py --db snails_drop1 -t best --qrid 1 14 --echo-hardcase --save-figures -c 0
+}
+
+MOTHERS()
+{
+    python dev.py --db PZ_MOTHERS -t best --allgt --echo-hardcase
+    python dev.py --db PZ_MOTHERS -t gv_test --qrid 49 --save-figures -c 0 1
+    python dev.py --db PZ_MOTHERS -t gv_test --allgt
+    python dev.py --db PZ_MOTHERS -t gv_test --qrid 27 28 45 71 90 109 --print-all
+    python dev.py --db PZ_MOTHERS -t gv_test --qrid 49 --save-figures -c 0 1 2 
 }
 
 

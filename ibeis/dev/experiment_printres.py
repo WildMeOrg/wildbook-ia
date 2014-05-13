@@ -14,13 +14,27 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 QUIET = utool.QUIET
 SKIP_TO = utool.get_arg('--skip-to', default=None)
+SAVE_FIGURES = utool.get_flag(('--save-figures', '--sf'))
+
+
+def get_diffmat_str(rank_mat, qrids, nCfg):
+    # Find rows which scored differently over the various configs
+    row2_rid = np.array(qrids)
+    diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
+    diff_rids = row2_rid[diff_rows]
+    diff_rank = rank_mat[diff_rows]
+    diff_mat = np.vstack((diff_rids, diff_rank.T)).T
+    col_labels = list(chain(['qrid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
+    col_types  = list(chain([int], [int] * nCfg))
+    header = 'diffmat'
+    diff_matstr = utool.numpy_to_csv(diff_mat, col_labels, header, col_types)
+    return diff_matstr
 
 
 def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
                   sel_rows, sel_cols, cfgx2_lbl=None):
     nCfg = len(cfg_list)
     nQuery = len(qrids)
-    qreq = ibs.qreq
     #--------------------
     # Print Best Results
     rank_mat = np.hstack(mat_list)  # concatenate each query rank across configs
@@ -111,7 +125,6 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
             print(' best_rank = %d ' % min_rank)
             if len(cfgx2_lbl) != 1:
                 print(' minimizing_cfg_x\'s = %s ' % minimizing_cfg_str)
-
     print_rowscore()
 
     #------------
@@ -173,8 +186,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         print('==========================')
         # Create configuration latex table
         criteria_lbls = ['#ranks < %d' % X for X in X_list]
-        db_name = ibs.get_dbname(True)
-        cfg_score_title = db_name + ' rank scores'
+        dbname = ibs.get_dbname()
+        cfg_score_title = dbname + ' rank scores'
         cfgscores = np.array([nLessX_dict[int(X)] for X in X_list]).T
 
         replace_rowlbl = [(' *cfgx *', ' ')]
@@ -223,7 +236,6 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
             #indent('\n'.join(uid_list), '    ')
             print(best_rankscore)
             print(best_rankcfg)
-
         print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nCfg))
         print(eh.format_uid_list(intersected))
 
@@ -244,21 +256,11 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         print('[harn]-------------')
     print_rankmat()
 
-    row2_rid = np.array(qrids)
-    # Find rows which scored differently over the various configs
-    diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
-    diff_rids = row2_rid[diff_rows]
-    diff_rank = rank_mat[diff_rows]
-    diff_mat = np.vstack((diff_rids, diff_rank.T)).T
-    col_labels = list(chain(['qrid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
-    col_types  = list(chain([int], [int] * nCfg))
-    header = 'rankmat2'
-    diff_matstr = utool.numpy_to_csv(diff_mat, col_labels, header, col_types)
-
     @utool.argv_flag_dec
     def print_diffmat():
         print('-------------')
-        print('RankMat2: %s' % testnameid)
+        print('Diffmat: %s' % testnameid)
+        diff_matstr = get_diffmat_str(rank_mat, qrids, nCfg)
         print(diff_matstr)
         print('[harn]-------------')
     print_diffmat()
@@ -289,8 +291,17 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
     total = len(sel_cols) * len(sel_rows)
     rciter = itertools.product(sel_rows, sel_cols)
 
-    prev_cfg = None
     skip_list = []
+
+    def load_qres(ibs, qrid, drids, query_cfg):
+        # Load / Execute the query w/ correct config
+        ibs.set_query_cfg(query_cfg)
+        qreq = mc3.prep_query_request(qreq=ibs.qreq, qrids=[qrid], drids=drids, query_cfg=query_cfg)
+        qrid2_qres = mc3.process_query_request(ibs, qreq, safe=True,
+                                               use_bigcache=True,
+                                               use_cache=True)
+        qres = qrid2_qres[qrid]
+        return qres
 
     for count, (r, c) in enumerate(rciter):
         if SKIP_TO is not None:
@@ -302,31 +313,25 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
         qrid      = qrids[r]
         query_cfg = cfg_list[c]
         query_lbl = cfgx2_lbl[c]
-        print('\n\n___________________________________')
-        print('      --- VIEW %d / %d ---        '
-              % (count + 1, total))
-        print('--------------------------------------')
-        print('viewing (r, c) = (%r, %r)' % (r, c))
-        # Load / Execute the query w/ correct config
-        qreq = mc3.prep_query_request(qreq=qreq, qrids=[qrid], drids=drids, query_cfg=query_cfg)
-        qrid2_qres = mc3.process_query_request(ibs, qreq, safe=True)
-        qres = qrid2_qres[qrid]
-        # Print Query UID
-        print(qres.uid)
+        print(utool.unindent('''
+        __________________________________
+        --- VIEW %d / %d --- (r=%r, c=%r)
+        ----------------------------------
+        ''')  % (count + 1, total, r, c))
+        qres = load_qres(ibs, qrid, drids, query_cfg)
         # Draw Result
-        qres.show_top(ibs, fnum=df2.next_fnum(), figtitle=query_lbl, N=3, ori=True)
-        if prev_cfg != query_cfg:
-            # This is way too aggro. Needs to be a bit lazier
-            #ibs.refresh_features()
-            print('change')
-        prev_cfg = query_cfg
-        #fnum = count
-        #title_uid = qres.uid
-        #title_uid = title_uid.replace('_FEAT', '\n_FEAT')
-        #qres.show_analysis(ibs, fnum=fnum, aug='\n' + title_uid, annote=1,
-        #                   show_name=False, show_gname=False, time_appart=False)
+        show_kwargs = {
+            'N': 3,
+            'ori': True,
+            'ell_alpha': .9,
+        }
+        qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
         df2.adjust_subplots_safe()
-        if utool.get_flag('--save-figures'):
-            ph.dump(ibs.get_ibsdir(), 'figures_analysis', quality=True, overwrite=False)
+        if SAVE_FIGURES:
+            ph.dump_figure(ibs.get_ibsdir(),
+                           subdir='figures_analysis',
+                           quality=False,
+                           overwrite=True,
+                           verbose=1)
     if not QUIET:
         print('[harn] EXIT EXPERIMENT HARNESS')
