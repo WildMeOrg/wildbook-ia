@@ -1,5 +1,5 @@
 """
-UTool
+UTool - Useful Utility Tools
    Your friendly neighborhood utility tools
 
 TODO: INSERT APACHE LICENCE

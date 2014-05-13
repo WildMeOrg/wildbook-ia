@@ -41,9 +41,17 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
 
 
 __USTRCAST__ = str  # change to unicode if needed
+__ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
+
+
+def __cleanup():
+    """ prevents flann errors (not for cleaning up individual objects) """
+    global __ALL_CONTROLLERS__
+    del __ALL_CONTROLLERS__
 
 
 class PATH_NAMES(object):
+    """ global IBEIS path names """
     sqldb  = '_ibeis_database.sqlite3'
     _ibsdb = '_ibsdb'
     cache  = '_ibeis_cache'
@@ -61,9 +69,6 @@ class PATH_NAMES(object):
 # IBEIS CONTROLLER
 #-----------------
 
-__ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
-
-
 class IBEISController(object):
     """
     IBEISController docstring
@@ -80,7 +85,7 @@ class IBEISController(object):
     #
     #
     #-------------------------------
-    # --- Constructor / Privates ---
+    # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
     def __init__(ibs, dbdir=None, ensure=True):
@@ -93,12 +98,6 @@ class IBEISController(object):
         ibs._init_sql()
         ibs._init_config()
         __ALL_CONTROLLERS__.append(ibs)
-
-    #def __del__(ibs):
-    #    """ Ensure nnindex is properly removed """
-    #    if ibs.qreq is not None:
-    #        del ibs.qreq
-    #    ibs.qreq = None
 
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
@@ -138,6 +137,20 @@ class IBEISController(object):
         #OFF printDBG('[ibs._init_dirs] ibs.cachedir = %r' % ibs.cachedir)
         assert dbdir is not None, 'must specify database directory'
 
+    def _init_sql(ibs):
+        """ Load or create sql database """
+        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
+        #OFF printDBG('[ibs._init_sql] Define the schema.')
+        DB_SCHEMA.define_IBEIS_schema(ibs)
+        #OFF printDBG('[ibs._init_sql] Add default names.')
+        ibs.UNKNOWN_NAME = '____'
+        ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
+        try:
+            assert ibs.UNKNOWN_NID == 1
+        except AssertionError:
+            print('[!ibs] ERROR: ibs.UNKNOWN_NID = %r' % ibs.UNKNOWN_NID)
+            raise
+
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
@@ -145,6 +158,12 @@ class IBEISController(object):
         if ibs.qreq is not None:
             ibs2._prep_qreq(ibs.qreq.qrids, ibs.qreq.drids)
         return ibs2
+
+    #
+    #
+    #--------------
+    # --- DIRS ----
+    #--------------
 
     def get_dbname(ibs):
         """ Returns database name """
@@ -183,19 +202,11 @@ class IBEISController(object):
         nid_list = ibs.get_valid_nids()
         return len(nid_list)
 
-    def _init_sql(ibs):
-        """ Load or create sql database """
-        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
-        #OFF printDBG('[ibs._init_sql] Define the schema.')
-        DB_SCHEMA.define_IBEIS_schema(ibs)
-        #OFF printDBG('[ibs._init_sql] Add default names.')
-        ibs.UNKNOWN_NAME = '____'
-        ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
-        try:
-            assert ibs.UNKNOWN_NID == 1
-        except AssertionError:
-            print('[!ibs] ERROR: ibs.UNKNOWN_NID = %r' % ibs.UNKNOWN_NID)
-            raise
+    #
+    #
+    #----------------
+    # --- Configs ---
+    #----------------
 
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
@@ -1594,7 +1605,7 @@ class IBEISController(object):
     #
     #
     #--------------
-    # --- Model ---
+    # --- MODEL ---
     #--------------
 
     @utool.indent_func
@@ -1684,6 +1695,12 @@ class IBEISController(object):
         qreq = ibs._prep_qreq(qrid_list, drid_list, **kwargs)
         qrid2_qres = mc3.process_query_request(ibs, qreq)
         return qrid2_qres
+
+    #
+    #
+    #--------------
+    # --- MISC ---
+    #--------------
 
     def get_infostr(ibs):
         """ Returns printable database information """
@@ -1801,10 +1818,5 @@ class IBEISController(object):
         ibs.print_name_table()
         ibs.print_config_table()
         print('\n')
-
-
-def __cleanup():
-    global __ALL_CONTROLLERS__
-    del __ALL_CONTROLLERS__
 
 atexit.register(__cleanup)

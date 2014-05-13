@@ -22,8 +22,8 @@ def TEST_IBS_GETTERS(ibs=None):
     gid_list = ibs.get_valid_gids()
     rid_list = ibs.get_valid_rids()
 
-    # Ensure even number or rids
-    rid_list = rid_list[0:(len(rid_list) // 2) * 2]
+    # Ensure we grab an even number of rids
+    rid_list   = rid_list[0:(len(rid_list) // 2) * 2]
     rid_scalar = rid_list[0]
     rid_numpy  = np.array(rid_list).reshape((len(rid_list) / 2, 2))
 

@@ -279,8 +279,8 @@ if __name__ == '__main__':
         valid_rids = ibs.get_valid_rids()
         valid_gids = ibs.get_valid_gids()
         valid_nids = ibs.get_valid_nids()
-        valid_nid_list  = ibs.get_roi_nids(valid_rids)
-        valid_rid_names = ibs.get_roi_names(valid_rids)
+        valid_nid_list   = ibs.get_roi_nids(valid_rids)
+        valid_rid_names  = ibs.get_roi_names(valid_rids)
         valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
     # L___________________________
     #

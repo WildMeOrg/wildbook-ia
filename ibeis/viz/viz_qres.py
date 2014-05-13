@@ -41,7 +41,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
     # Parse arguments
     N = kwargs.get('N', 3)
     show_gt  = kwargs.pop('show_gt', True)
-    show_query = kwargs.pop('show_query', False)
+    show_query = kwargs.pop('show_query', True)
     rid_list   = kwargs.pop('rid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
 
@@ -90,6 +90,7 @@ def show_qres(ibs, qres, **kwargs):
     all_kpts    = kwargs.get('all_kpts', False)
     show_query  = kwargs.get('show_query', False)
     in_image    = kwargs.get('in_image', False)
+    sidebyside  = kwargs.get('sidebyside', True)
     fnum = df2.kwargs_fnum(kwargs)
 
     fig = df2.figure(fnum=fnum, docla=True, doclf=True)
@@ -147,7 +148,7 @@ def show_qres(ibs, qres, **kwargs):
         _kwshow['pnum'] = pnum
         _kwshow['rid2_color'] = rid2_color
         _kwshow['draw_ell'] = annote_mode >= 1
-        viz_chip.show_chip(ibs, qres.qrid, **_kwshow)
+        viz_chip.show_chip(ibs, qres.qrid, annote=False, **_kwshow)
 
     def _plot_matches_rids(rid_list, plotx_shift, rowcols):
         """ helper for show_qres to draw many rids """
@@ -162,7 +163,7 @@ def show_qres(ibs, qres, **kwargs):
             _kwshow['pnum'] = pnum
             _kwshow['title_aug'] = aug
             # If we already are showing the query dont show it here
-            if not show_query:
+            if sidebyside:
                 _kwshow['draw_ell'] = annote_mode == 1
                 _kwshow['draw_lines'] = annote_mode >= 1
                 viz_matches.show_matches(ibs, qres, rid, in_image=in_image, **_kwshow)
@@ -172,7 +173,7 @@ def show_qres(ibs, qres, **kwargs):
                     # TODO Find a better name
                     _kwshow['color'] = rid2_color[rid]
                     _kwshow['sel_fx2'] = qres.rid2_fm[rid][:, 1]
-                viz_chip.show_chip(ibs, rid, in_image=in_image, **_kwshow)
+                viz_chip.show_chip(ibs, rid, in_image=in_image, annote=False, **_kwshow)
                 viz_matches.annotate_matches(ibs, qres, rid, in_image=in_image, show_query=not show_query)
 
         printDBG('[show_qres()] Plotting Chips %s:' % vh.get_ridstrs(rid_list))

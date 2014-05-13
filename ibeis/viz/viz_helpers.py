@@ -161,7 +161,7 @@ def get_chip_labels(ibs, rid_list, **kwargs):
     if kwargs.get('show_ridstr', True):
         ridstr_list = get_ridstrs(rid_list)
         label_strs.append(ridstr_list)
-    if kwargs.get('show_gname', True):
+    if kwargs.get('show_gname', False):
         gname_list = ibs.get_roi_gnames(rid_list)
         label_strs.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):

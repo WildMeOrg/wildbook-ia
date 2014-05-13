@@ -21,20 +21,20 @@ def define_IBEIS_schema(ibs):
         ('image_exif_time_posix',        'INTEGER'),
         ('image_exif_gps_lat',           'REAL'),
         ('image_exif_gps_lon',           'REAL'),
-        ('image_confidence',             'REAL',),  # Move to algocfg table?
-        ('image_notes',                  'TEXT',),
+        ('image_confidence',             'REAL DEFAULT 0.0',),  # Move to an algocfg table?
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
+        ('image_notes',                  'TEXT',),
     ), ['CONSTRAINT superkey UNIQUE (image_uuid)']
     )
-    # Used to store individual chip identieis (Fred, Sue, ...)
+    # Used to store individual chip identities (Fred, Sue, ...)
     ibs.db.schema('names', (
         ('name_uid',                     '%s PRIMARY KEY' % NAME_UID_TYPE),
         ('name_text',                    'TEXT NOT NULL'),
         ('name_notes',                   'TEXT',),
     ), ['CONSTRAINT superkey UNIQUE (name_text)']
     )
-    # Used to store the detected ROIs
+    # Used to store the detected ROIs / bboxed annotations
     ibs.db.schema('rois', (
         ('roi_uid',                      '%s PRIMARY KEY' % ROI_UID_TYPE),
         ('roi_uuid',                     'UUID NOT NULL'),
@@ -46,6 +46,7 @@ def define_IBEIS_schema(ibs):
         ('roi_height',                   'INTEGER NOT NULL'),
         ('roi_theta',                    'REAL DEFAULT 0.0'),
         ('roi_viewpoint',                'INTEGER DEFAULT 0'),
+        ('roi_detect_confidence',        'REAL DEFAULT 0.0'),
         ('roi_notes',                    'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (roi_uuid)']
     )
@@ -76,19 +77,23 @@ def define_IBEIS_schema(ibs):
         ('feature_sifts',                'NUMPY'),
     ), ['CONSTRAINT superkey UNIQUE (chip_uid, config_uid)']
     )
-    # Detection and identification algorithm configurations, populated
-    # with caching information
-    ibs.db.schema('configs', (
-        ('config_uid',                   'INTEGER PRIMARY KEY'),
-        ('config_suffix',                'TEXT NOT NULL'),
-    ),  ['CONSTRAINT superkey UNIQUE (config_suffix)']
-    )
     # List of all encounters
     ibs.db.schema('encounters', (
         ('encounter_uid',               'INTEGER PRIMARY KEY'),
         ('encounter_text',              'TEXT NOT NULL'),
         ('encounter_notes',             'TEXT NOT NULL'),
     ),  ['CONSTRAINT superkey UNIQUE (encounter_text)']
+    )
+    # List of recognition directed edges (roi_1) --score--> (roi_2)
+    ibs.db.schema('recognitions', (
+        ('recognition_uid',             'INTEGER PRIMARY KEY'),
+        ('roi_uid1',                    'INTEGER NOT NULL'),
+        ('roi_uid2',                    'INTEGER NOT NULL'),
+        ('recognition_score',           'REAL NOT NULL'),
+        ('recognition_roirank',         'INTEGER NOT NULL'),
+        ('recognition_namerank',        'INTEGER NOT NULL'),
+        ('recognition_notes',           'TEXT'),
+    ),  ['CONSTRAINT superkey UNIQUE (roi_uid1, roi_uid2)']
     )
     # Relationship between encounters and images (many to many mapping)
     # egpairs stands for encounter-image-pairs.
@@ -97,4 +102,11 @@ def define_IBEIS_schema(ibs):
         ('image_uid',                   '%s NOT NULL' % IMAGE_UID_TYPE),
         ('encounter_uid',               'INTEGER'),
     ),  ['CONSTRAINT superkey UNIQUE (image_uid, encounter_uid)']
+    )
+    # Detection and identification algorithm configurations, populated
+    # with caching information
+    ibs.db.schema('configs', (
+        ('config_uid',                   'INTEGER PRIMARY KEY'),
+        ('config_suffix',                'TEXT NOT NULL'),
+    ),  ['CONSTRAINT superkey UNIQUE (config_suffix)']
     )

@@ -153,6 +153,7 @@ def __argv_flag_dec(func, default=False, quiet=False):
     flag = '--' + flag.replace('_', '-')
 
     def GaurdWrapper(*args, **kwargs):
+        # FIXME: the --print-all is a hack
         if get_flag(flag, default) or get_flag('--print-all'):
             indent_lbl = flag.replace('--', '').replace('print-', '')
             print('')
