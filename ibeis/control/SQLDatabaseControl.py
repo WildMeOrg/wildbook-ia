@@ -288,7 +288,7 @@ class SQLDatabaseController(object):
             if num_results != 0 and num_results != num_params:
                 raise lite.Error('num_params=%r != num_results=%r'
                                  % (num_params, num_results))
-        except lite.Error as ex:
+        except Exception as ex:
             utool.printex(ex, 'Execute Many Error', '[!sql]', key_list=[
                 (str, 'operation'), 'params', 'params_iter'])
             db.dump()

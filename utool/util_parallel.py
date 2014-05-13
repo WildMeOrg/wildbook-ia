@@ -114,10 +114,13 @@ def _process_parallel(func, args_list, args_dict={}):
     return result_list
 
 
-def _generate_parallel(func, args_list, mark_prog):
+def _generate_parallel(func, args_list, mark_prog, ordered=False, chunksize=1):
     print('[parallel] executing %d %s tasks using %d processes' %
             (len(args_list), func.func_name, __POOL__._processes))
-    generator = __POOL__.imap_unordered(func, args_list)
+    if ordered:
+        generator = __POOL__.imap_unordered(func, args_list, chunksize)
+    else:
+        generator = __POOL__.imap(func, args_list, chunksize)
     try:
         for count, result in enumerate(generator):
             mark_prog(count)
@@ -149,7 +152,7 @@ def ensure_pool():
         init_pool()
 
 
-def generate(func, args_list, force_serial=__FORCE_SERIAL__):
+def generate(func, args_list, ordered=False, force_serial=__FORCE_SERIAL__):
     """ Returns a generator which asynchronously returns results """
     if len(args_list) == 0:
         print('[parallel] submitted 0 tasks')
@@ -160,7 +163,7 @@ def generate(func, args_list, force_serial=__FORCE_SERIAL__):
     if __TIME__:
         tt = tic(func.func_name)
     if isinstance(__POOL__, int) or force_serial:
-        return _generate_serial(func, args_list, mark_prog)
+        return _generate_serial(func, args_list, mark_prog, ordered=ordered)
     else:
         return _generate_parallel(func, args_list, mark_prog)
     if __TIME__:

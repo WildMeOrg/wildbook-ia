@@ -4,7 +4,7 @@ This file has helpers for both lists and numpy arrays
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from itertools import izip
-from .util_iter import iflatten, isiterable
+from .util_iter import iflatten, isiterable, ifilter_Nones, ifilter_items
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[list]')
 
@@ -224,15 +224,13 @@ def get_dirty_items(item_list, flag_list):
 
 def filter_items(item_list, flag_list):
     assert len(item_list) == len(flag_list)
-    filtered_items = [item for (item, flag) in
-                      izip(item_list, flag_list)
-                      if flag]
+    filtered_items = list(ifilter_items(item_list, flag_list))
     return filtered_items
 
 
 def filter_Nones(list_):
     """ Removes any nones from the list """
-    return [item for item in list_ if item is not None]
+    return list(ifilter_Nones)
 
 
 # --- List combinations --- #

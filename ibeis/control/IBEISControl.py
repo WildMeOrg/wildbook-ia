@@ -299,12 +299,11 @@ class IBEISController(object):
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-        # Build parameter list early so we can grab the gids
-        tried_param_list = list(preproc_image.add_images_params_gen(gpath_list))
-        # Get only the params that succeded
-        index_list = [index for index, tup in enumerate(tried_param_list)
-                      if tup is not None]
-        param_list = [tried_param_list[index] for index in index_list]
+        # Processing an image might fail, yeilding a None instead of a tup
+        raw_param_iter = preproc_image.add_images_params_gen(gpath_list)
+        # Filter out None values before passing to SQL
+        param_iter = utool.ifilter_Nones(raw_param_iter)
+        param_list = list(param_iter)
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
@@ -322,7 +321,8 @@ class IBEISController(object):
             ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
-        # This should solve the ordering issue
+        # This should solve the ordering and failure issue
+        # Any gpaths that failed to insert will have None as a gid
         gid_list = ibs.db.executemany(
             operation='''
             SELECT image_uid
@@ -330,19 +330,8 @@ class IBEISController(object):
             WHERE image_uri=?
             ''',
             params_iter=[(gpath,) for gpath in gpath_list])
-        # The number of passed_gids might be less than the size of the input
-        # Build list corresponding to the size of the input
-        tried_gid_list = [None for _ in xrange(len(gpath_list))]
-        # Insert the passing gids into the return list.
-        # Any failures will have a None value
-        for (index, gid) in izip(index_list, gid_list):
-            tried_gid_list[index] = gid
-        assert len(tried_gid_list) == len(tried_param_list), 'bug in add_images'
-        assert len(tried_gid_list) == len(gpath_list), 'bug in add_images'
-        assert len(gid_list) == len(param_list), 'bug in add_images'
-        assert len(gid_list) == len(index_list), 'bug in add_images'
-        #assert len(gid_list) == len(img_uuid_list), 'bug in add_images'
-        return tried_gid_list
+        assert len(gid_list) == len(gpath_list), 'bug in add_images'
+        return gid_list
 
     @adder
     def add_rois(ibs, gid_list, bbox_list, theta_list=None, viewpoint_list=None,

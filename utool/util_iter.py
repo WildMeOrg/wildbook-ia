@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from itertools import chain, cycle
+from itertools import chain, cycle, izip
 from .util_inject import inject
 print, print_, printDBG, rrr, profile = inject(__name__, '[iter]')
 
@@ -10,6 +10,18 @@ def ensure_iterable(obj):
         return obj
     else:
         return [obj]
+
+
+def ifilter_items(item_iter, flag_iter):
+    filtered_items = (item for (item, flag) in
+                      izip(item_iter, flag_iter)
+                      if flag)
+    return filtered_items
+
+
+def ifilter_Nones(iter_):
+    """ Removes any nones from the iterable """
+    return (item for item in iter_ if item is not None)
 
 
 def isiterable(obj):
