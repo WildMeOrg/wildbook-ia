@@ -14,6 +14,8 @@ cd ~/code
 git clone https://github.com:Erotemic/utool.git
 git clone https://github.com:Erotemic/vtool.git
 git clone https://github.com/Erotemic/hesaff.git
+git clone https://github.com/Erotemic/plottool.git
+git clone https://github.com/Erotemic/guitool.git
 git clone https://github.com/Erotemic/ibeis.git
 # Set the previous repos up for development by running this
 # command in each directory
