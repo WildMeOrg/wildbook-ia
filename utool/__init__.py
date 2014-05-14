@@ -141,7 +141,7 @@ if __DYNAMIC__:
     # Print what this module should look like
     import multiprocessing
     current_process = multiprocessing.current_process().name
-    print('[utool] current_process = %r' % current_process)
+    #print('[utool] current_process = %r' % current_process)
     is_main_proc = current_process == 'MainProcess'
 
     if __PRINT_IMPORTS__ and is_main_proc:

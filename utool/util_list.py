@@ -230,7 +230,7 @@ def filter_items(item_list, flag_list):
 
 def filter_Nones(list_):
     """ Removes any nones from the list """
-    return list(ifilter_Nones)
+    return list(ifilter_Nones(list_))
 
 
 # --- List combinations --- #

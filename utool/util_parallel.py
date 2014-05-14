@@ -30,7 +30,7 @@ def get_default_numprocs():
     if __NUM_PROCS__ is not None:
         return __NUM_PROCS__
     if WIN32:
-        num_procs = 2  # default windows to 2 processes for now
+        num_procs = 3  # default windows to 3 processes for now
     else:
         num_procs = max(multiprocessing.cpu_count() - 2, 1)
     return num_procs
@@ -114,9 +114,10 @@ def _process_parallel(func, args_list, args_dict={}):
     return result_list
 
 
-def _generate_parallel(func, args_list, mark_prog, ordered=False, chunksize=1):
+def _generate_parallel(func, args_list, ordered=False, chunksize=1):
     print('[parallel] executing %d %s tasks using %d processes' %
             (len(args_list), func.func_name, __POOL__._processes))
+    mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
     if ordered:
         generator = __POOL__.imap_unordered(func, args_list, chunksize)
     else:
@@ -133,15 +134,18 @@ def _generate_parallel(func, args_list, mark_prog, ordered=False, chunksize=1):
                 yield result
         else:
             raise
+    end_prog()
 
 
-def _generate_serial(func, args_list, mark_prog):
+def _generate_serial(func, args_list):
     print('[parallel] executing %d %s tasks in serial' %
             (len(args_list), func.func_name))
+    mark_prog, end_prog = progress_func(max_val=len(args_list), lbl=func.func_name + ': ')
     for count, args in enumerate(args_list):
         mark_prog(count)
         result = func(args)
         yield result
+    end_prog()
 
 
 def ensure_pool():
@@ -158,17 +162,14 @@ def generate(func, args_list, ordered=False, force_serial=__FORCE_SERIAL__):
         print('[parallel] submitted 0 tasks')
         return []
     ensure_pool()
-    num_tasks = len(args_list)
-    mark_prog, end_prog = progress_func(max_val=num_tasks, lbl=func.func_name + ': ')
     if __TIME__:
         tt = tic(func.func_name)
     if isinstance(__POOL__, int) or force_serial:
-        return _generate_serial(func, args_list, mark_prog, ordered=ordered)
+        return _generate_serial(func, args_list, ordered=ordered)
     else:
-        return _generate_parallel(func, args_list, mark_prog)
+        return _generate_parallel(func, args_list)
     if __TIME__:
         toc(tt)
-    end_prog()
 
 
 def process(func, args_list, args_dict={}, force_serial=__FORCE_SERIAL__):

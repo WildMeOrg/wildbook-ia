@@ -11,6 +11,194 @@ import utool
 UNKNOWN_NAMES = set(['Unassigned'])
 
 
+def get_image_bboxes(ibs, gid_list):
+    size_list = ibs.get_image_sizes(gid_list)
+    bbox_list  = [(0, 0, w, h) for (w, h) in size_list]
+    return bbox_list
+
+
+@utool.indent_func
+def compute_all_chips(ibs):
+    print('[ibs] compute_all_chips')
+    rid_list = ibs.get_valid_rids()
+    cid_list = ibs.add_chips(rid_list)
+    return cid_list
+
+
+@utool.indent_func
+def compute_all_features(ibs):
+    print('[ibs] compute_all_features')
+    rid_list = ibs.get_valid_rids()
+    cid_list = ibs.get_roi_cids(rid_list, ensure=True)
+    fid_list = ibs.add_feats(cid_list)
+    return fid_list
+
+
+def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
+    if chips or feats:
+        cid_list = ibs.add_chips(rid_list)
+    if feats:
+        ibs.add_feats(cid_list)
+
+
+@utool.indent_func
+def get_empty_gids(ibs):
+    """ returns gid list without any chips """
+    gid_list = ibs.get_valid_gids()
+    nRois_list = ibs.get_num_rids_in_gids(gid_list)
+    empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
+    return empty_gids
+
+
+def convert_empty_images_to_rois(ibs):
+
+    """ images without chips are given an ROI over the entire image """
+    gid_list = ibs.get_empty_gids()
+    rid_list = ibs.use_images_as_rois(gid_list)
+    return rid_list
+
+
+@utool.indent_func
+def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
+                       notes_list=None, adjust_percent=0.0):
+    """ Adds an roi the size of the entire image to each image.
+    adjust_percent - shrinks the ROI by percentage on each side
+    """
+    pct = adjust_percent  # Alias
+    gsize_list = ibs.get_image_sizes(gid_list)
+    # Build bounding boxes as images size minus padding
+    bbox_list  = [(int( 0 + (gw * pct)),
+                   int( 0 + (gh * pct)),
+                   int(gw - (gw * pct * 2)),
+                   int(gh - (gh * pct * 2)))
+                  for (gw, gh) in gsize_list]
+    theta_list = [0.0 for _ in xrange(len(gsize_list))]
+    rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
+                            name_list=name_list, nid_list=nid_list, notes_list=notes_list)
+    return rid_list
+
+
+def assert_valid_rids(ibs, rid_list):
+    valid_rids = set(ibs.get_valid_rids())
+    invalid_rids = [rid for rid in rid_list if rid not in valid_rids]
+    assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
+
+
+def delete_all_features(ibs):
+    all_fids = ibs._get_all_fids()
+    ibs.delete_features(all_fids)
+
+
+def delete_all_chips(ibs):
+    all_cids = ibs._get_all_cids()
+    ibs.delete_chips(all_cids)
+
+
+def vd(ibs):
+    utool.view_directory(ibs.get_dbdir())
+
+
+def get_roi_desc_cache(ibs, rids):
+    """ When you have a list with duplicates and you dont want to copy data
+    creates a reference to each data object idnexed by a dict """
+    unique_rids = list(set(rids))
+    unique_desc = ibs.get_roi_desc(unique_rids)
+    desc_cache = dict(list(izip(unique_rids, unique_desc)))
+    return desc_cache
+
+
+def get_roi_is_hard(ibs, rid_list):
+    notes_list = ibs.get_roi_notes(rid_list)
+    is_hard_list = ['hard' in notes.lower().split() for (notes)
+                    in notes_list]
+    return is_hard_list
+
+
+def localize_images(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list  = ibs.get_valid_gids()
+    gpath_list = ibs.get_image_paths(gid_list)
+    guuid_list = ibs.get_image_uuids(gid_list)
+    gext_list  = ibs.get_image_exts(gid_list)
+    # Build list of image names based on uuid in the ibeis imgdir
+    local_gname_list = [str(guuid) + ext for guuid, ext, in izip(guuid_list, gext_list)]
+    local_gpath_list = [join(ibs.imgdir, gname) for gname in local_gname_list]
+    utool.copy_list(gpath_list, local_gpath_list, lbl='Localizing Images: ')
+    ibs.set_image_uris(gid_list, local_gname_list)
+
+    assert all(map(exists, local_gpath_list)), 'not all images copied'
+
+
+def delete_invalid_nids(ibs):
+    """ Removes names that have no Rois from the database """
+    invalid_nids = ibs.get_invalid_nids()
+    ibs.delete_names(invalid_nids)
+
+
+def unflat_lookup(method, unflat_uids, **kwargs):
+    """ Uses an ibeis lookup function with a non-flat uid list.
+    """
+    # First flatten the list
+    flat_uids, reverse_list = utool.invertable_flatten(unflat_uids)
+    # Then preform the lookup
+    flat_vals = method(flat_uids, **kwargs)
+    # Then unflatten the list
+    unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
+    return unflat_vals
+
+
+def patch_in_unflats(ibs):
+    """ Play with dynamically adding functions to ibs
+    shady code living here.
+    """
+    import types
+    from ibeis.dev import ibsfuncs
+    from functools import wraps
+
+    def unflat_getter(method):
+        assert isinstance(method, types.MethodType)
+        @wraps(method)
+        def unflat_wrapper(*args, **kwargs):
+            return ibsfuncs.unflat_lookup(method, *args, **kwargs)
+        unflat_wrapper.func_name = unflat_wrapper.func_name.replace('get_', 'get_unflat_')
+        return unflat_wrapper
+
+    ibs.get_unflat_roi_uuids = unflat_getter(ibs.get_roi_uuids)
+    ibs.get_unflat_image_uuids = unflat_getter(ibs.get_image_uuids)
+    ibs.get_unflat_names = unflat_getter(ibs.get_names)
+    ibs.get_unflat_image_unixtime = unflat_getter(ibs.get_image_unixtime)
+
+
+
+def delete_ibeis_database(dbdir):
+    from ibeis.control.IBEISControl import PATH_NAMES
+    _ibsdb      = join(dbdir, PATH_NAMES._ibsdb)
+    print('Deleting _ibsdb=%r' % _ibsdb)
+    if exists(_ibsdb):
+        utool.delete(_ibsdb)
+
+
+def assert_valid_names(name_list):
+    valid_namecheck = [not (name.startswith('____') and len(name) > 4)
+                        for name in name_list]
+    assert all(valid_namecheck),\
+        'User defined names cannot start with four underscores'
+
+
+def is_database_enctext(enctext):
+    return (enctext == '' or enctext is None or enctext == 'None')
+
+
+def ridstr(rid, ibs=None, notes=False):
+    if not notes:
+        return 'rid%d' % (rid,)
+    else:
+        assert ibs is not None
+        notes = ibs.get_roi_notes(rid)
+        name  = ibs.get_roi_names(rid)
+        return 'rid%d-%r-%r' % (rid, str(name), str(notes))
+
+
 def list_images(img_dir, fullpath=True, recursive=True):
     """ lists images that are not in an internal cache """
     ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
@@ -113,166 +301,3 @@ def resolve_name_conflicts(gid_list, name_list):
     return unique_gids, unique_names, unique_notes
 
 
-def get_image_bboxes(ibs, gid_list):
-    size_list = ibs.get_image_sizes(gid_list)
-    bbox_list  = [(0, 0, w, h) for (w, h) in size_list]
-    return bbox_list
-
-
-@utool.indent_func
-def compute_all_chips(ibs):
-    print('[ibs] compute_all_chips')
-    rid_list = ibs.get_valid_rids()
-    cid_list = ibs.add_chips(rid_list)
-    return cid_list
-
-
-@utool.indent_func
-def compute_all_features(ibs):
-    print('[ibs] compute_all_features')
-    rid_list = ibs.get_valid_rids()
-    cid_list = ibs.get_roi_cids(rid_list, ensure=True)
-    fid_list = ibs.add_feats(cid_list)
-    return fid_list
-
-
-def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
-    if chips or feats:
-        cid_list = ibs.add_chips(rid_list)
-    if feats:
-        ibs.add_feats(cid_list)
-
-
-@utool.indent_func
-def get_empty_gids(ibs):
-    """ returns gid list without any chips """
-    gid_list = ibs.get_valid_gids()
-    nRois_list = ibs.get_num_rids_in_gids(gid_list)
-    empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
-    return empty_gids
-
-
-def convert_empty_images_to_rois(ibs):
-
-    """ images without chips are given an ROI over the entire image """
-    gid_list = ibs.get_empty_gids()
-    rid_list = ibs.use_images_as_rois(gid_list)
-    return rid_list
-
-
-@utool.indent_func
-def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
-                       notes_list=None, adjust_percent=0.0):
-    """ Adds an roi the size of the entire image to each image.
-    adjust_percent - shrinks the ROI by percentage on each side
-    """
-    pct = adjust_percent  # Alias
-    gsize_list = ibs.get_image_sizes(gid_list)
-    # Build bounding boxes as images size minus padding
-    bbox_list  = [(int( 0 + (gw * pct)),
-                   int( 0 + (gh * pct)),
-                   int(gw - (gw * pct * 2)),
-                   int(gh - (gh * pct * 2)))
-                  for (gw, gh) in gsize_list]
-    theta_list = [0.0 for _ in xrange(len(gsize_list))]
-    rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
-                            name_list=name_list, nid_list=nid_list, notes_list=notes_list)
-    return rid_list
-
-
-def assert_valid_rids(ibs, rid_list):
-    valid_rids = set(ibs.get_valid_rids())
-    invalid_rids = [rid for rid in rid_list if rid not in valid_rids]
-    assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
-
-
-def ridstr(rid, ibs=None, notes=False):
-    if not notes:
-        return 'rid%d' % (rid,)
-    else:
-        assert ibs is not None
-        notes = ibs.get_roi_notes(rid)
-        name  = ibs.get_roi_names(rid)
-        return 'rid%d-%r-%r' % (rid, str(name), str(notes))
-
-
-def delete_all_features(ibs):
-    all_fids = ibs._get_all_fids()
-    ibs.delete_features(all_fids)
-
-
-def delete_all_chips(ibs):
-    all_cids = ibs._get_all_cids()
-    ibs.delete_chips(all_cids)
-
-
-def vd(ibs):
-    utool.view_directory(ibs.get_dbdir())
-
-
-def delete_ibeis_database(dbdir):
-    from ibeis.control.IBEISControl import PATH_NAMES
-    _ibsdb      = join(dbdir, PATH_NAMES._ibsdb)
-    print('Deleting _ibsdb=%r' % _ibsdb)
-    if exists(_ibsdb):
-        utool.delete(_ibsdb)
-
-
-def get_roi_desc_cache(ibs, rids):
-    """ When you have a list with duplicates and you dont want to copy data
-    creates a reference to each data object idnexed by a dict """
-    unique_rids = list(set(rids))
-    unique_desc = ibs.get_roi_desc(unique_rids)
-    desc_cache = dict(list(izip(unique_rids, unique_desc)))
-    return desc_cache
-
-
-def get_roi_is_hard(ibs, rid_list):
-    notes_list = ibs.get_roi_notes(rid_list)
-    is_hard_list = ['hard' in notes.lower().split() for (notes)
-                    in notes_list]
-    return is_hard_list
-
-
-def localize_images(ibs, gid_list=None):
-    if gid_list is None:
-        gid_list  = ibs.get_valid_gids()
-    gpath_list = ibs.get_image_paths(gid_list)
-    guuid_list = ibs.get_image_uuids(gid_list)
-    gext_list  = ibs.get_image_exts(gid_list)
-    # Build list of image names based on uuid in the ibeis imgdir
-    local_gname_list = [str(guuid) + ext for guuid, ext, in izip(guuid_list, gext_list)]
-    local_gpath_list = [join(ibs.imgdir, gname) for gname in local_gname_list]
-    utool.copy_list(gpath_list, local_gpath_list, lbl='Localizing Images: ')
-    ibs.set_image_uris(gid_list, local_gname_list)
-
-    assert all(map(exists, local_gpath_list)), 'not all images copied'
-
-
-def delete_invalid_nids(ibs):
-    """ Removes names that have no Rois from the database """
-    invalid_nids = ibs.get_invalid_nids()
-    ibs.delete_names(invalid_nids)
-
-
-def assert_valid_names(name_list):
-    valid_namecheck = [not (name.startswith('____') and len(name) > 4)
-                        for name in name_list]
-    assert all(valid_namecheck),\
-        'User defined names cannot start with four underscores'
-
-
-def unflat_lookup(ibs_method, unflat_uids):
-    """ Uses an ibeis lookup function with a non-flat uid list.
-    """
-    # First flatten the list
-    flat_uids, reverse_list = utool.invertable_flatten(unflat_uids)
-    # Then preform the lookup
-    flat_vals = ibs_method(flat_uids)
-    # Then unflatten the list
-    unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
-    return unflat_vals
-
-
-def is_database_enctext(enctext):
-    return (enctext == '' or enctext is None or enctext == 'None')
