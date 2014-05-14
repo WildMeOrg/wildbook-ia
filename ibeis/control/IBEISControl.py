@@ -88,17 +88,34 @@ class IBEISController(object):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
-    def __init__(ibs, dbdir=None, ensure=True):
+    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None):
         """ Creates a new IBEIS Controller associated with one database """
         global __ALL_CONTROLLERS__
         if utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.qreq = None  # query requestor object
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
+        ibs._init_wb(wbaddr) # this will do nothing if no wildbook address is specified
         ibs._init_sql()
         ibs._init_config()
         ibsfuncs.inject_ibeis(ibs)
         __ALL_CONTROLLERS__.append(ibs)
+
+    def _init_wb(ibs, wbaddr):
+        if wbaddr == None:
+            return
+        #TODO: Clean this up to use like utool and such
+        import requests
+        try:
+            requests.get(wbaddr)
+        except Requests.MissingSchema as msa:
+            print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
+            raise msa
+        except requests.ConnectionError as coe:
+            print('[ibs._init_wb] Could not connect to Wildbook server at %r' % wbaddr)
+            raise coe
+        ibs.wbaddr = wbaddr
+
 
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
