@@ -83,7 +83,7 @@ def TEST_ENCOUNTERS(ibs):
             except AssertionError:
                 sorted1 = sorted(list1)
                 sorted2 = sorted(list2)
-                for jx, item1, item2 in enumerate(izip(sorted1, sorted2)):
+                for jx, (item1, item2) in enumerate(izip(sorted1, sorted2)):
                     if item1 != item2:
                         print('Failed sorted at position ix=%r, jx=%r' % (ix, jx))
                         raise AssertionError('%r != %r' % (item1, item2))
