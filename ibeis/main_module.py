@@ -107,7 +107,7 @@ def __import_parallel_modules():
     from utool import util_sysreq
     util_sysreq.ensure_in_pythonpath('hesaff')
     util_sysreq.ensure_in_pythonpath('pyrf')
-    util_sysreq.ensure_in_pythonpath('code')
+    #util_sysreq.ensure_in_pythonpath('code')
     import pyhesaff  # NOQA
     #import pyrf  # NOQA
     from ibeis.model.preproc import preproc_chip  # NOQA
