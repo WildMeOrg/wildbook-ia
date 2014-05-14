@@ -6,6 +6,7 @@ from os.path import join, dirname, realpath
 sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 from ibeis.dev import ibsfuncs
+from itertools import izip
 # Python
 import multiprocessing
 import numpy as np
@@ -69,9 +70,33 @@ def TEST_ENCOUNTERS(ibs):
     target_names = [('polar', 'zebra', 'jeff', 'lena', 'occl'),
                     ('easy', 'elephant', 'hard')]
 
+    def assert_unflat_eq(unflat_list1, unflat_list2, lbl=''):
+        print('testing %r' % lbl)
+        passed_unsorted = True
+        for ix, (list1, list2) in enumerate(izip(unflat_list1, unflat_list2)):
+            try:
+                for jx, (item1, item2) in enumerate(izip(list1, list2)):
+                    if item1 != item2:
+                        print('Failed unsorted at position ix=%r, jx=%r' % (ix, jx))
+                        passed_unsorted = False
+                        raise AssertionError('%r != %r' % (item1, item2))
+            except AssertionError:
+                sorted1 = sorted(list1)
+                sorted2 = sorted(list2)
+                for jx, item1, item2 in enumerate(izip(sorted1, sorted2)):
+                    if item1 != item2:
+                        print('Failed sorted at position ix=%r, jx=%r' % (ix, jx))
+                        raise AssertionError('%r != %r' % (item1, item2))
+        if passed_unsorted:
+            print('%r passed unsorted' % lbl)
+        else:
+            print('%r passed sorted' % lbl)
+
     if ibs.get_dbname() == 'testdb1':
         print('testing assertions')
         try:
+            assert_unflat_eq(roi_uuids_list, target_roi_uuids)
+            assert_unflat_eq(names_list, target_names)
             assert enctext_list  == target_enctexts
             assert gid_uuids_list == target_gid_uuids
             assert map(set, roi_uuids_list) == map(set, target_roi_uuids)
