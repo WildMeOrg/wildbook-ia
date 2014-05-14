@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-from utool import util_setup
+from utool.util_setup import setuptools_setup
 
 PROJECT_NAME = 'IBEIS'
 
@@ -51,12 +51,12 @@ CLUTTER_DIRS = ['logs']
 
 if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
-    util_setup.presetup(
-        __file__,
+    setuptools_setup(
+        setup_fpath=__file__,
         project_name=PROJECT_NAME,
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,
         clutter_patterns=CLUTTER_PATTERNS,
-        cython_files=CYTHON_FILES,
+        #cython_files=CYTHON_FILES,
     )
