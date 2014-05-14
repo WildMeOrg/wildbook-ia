@@ -1536,6 +1536,10 @@ class IBEISController(object):
     def export_to_wildbook(ibs, rid_list):
         """ Exports identified chips to wildbook """
         raise NotImplementedError()
+        # compute encounters
+        # get encounters by id
+        # get ROIs by encounter id
+        # submit requests to wildbook
         return None
 
     #
