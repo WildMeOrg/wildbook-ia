@@ -63,6 +63,7 @@ def getter_numpy(func):
     getter_func = getter(func)
     @utool.accepts_numpy
     @utool.ignores_exc_tb
+    @utool.wraps(func)
     def getter_numpy_wrapper(*args, **kwargs):
         return getter_func(*args, **kwargs)
     return getter_numpy_wrapper

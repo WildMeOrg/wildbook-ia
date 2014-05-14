@@ -79,6 +79,13 @@ from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
+# IBEIS EXPORT
+from ibeis.export import export_hsdb
+# IBEIS INJEST
+from ibeis.injest import injest_hsdb
+from ibeis.injest import injest_my_hotspotter_dbs
+from ibeis.injest import injest_named_folders
+from ibeis.injest import injest_named_images
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc

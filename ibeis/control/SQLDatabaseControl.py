@@ -53,21 +53,21 @@ class SQLDatabaseController(object):
         db.executor   = db.connection.cursor()
         db.table_columns = {}
 
-    def sanatize_sql(db, table, columns=None):
-        """ Sanatizes an sql table and column. Use sparingly """
-        table = re.sub('[^a-z_]', '', table)
+    def sanatize_sql(db, tablename, columns=None):
+        """ Sanatizes an sql tablename and column. Use sparingly """
+        tablename = re.sub('[^a-z_]', '', tablename)
         valid_tables = db.get_tables()
-        if table not in valid_tables:
-            raise Exception('UNSAFE TABLE: table=%r' % table)
+        if tablename not in valid_tables:
+            raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
         if columns is None:
-            return table
+            return tablename
         else:
             def _sanitize_sql_helper(column):
                 column = re.sub('[^a-z_]', '', column)
-                valid_columns = db.get_column_names(table)
+                valid_columns = db.get_column_names(tablename)
                 if column not in valid_columns:
-                    raise Exception('UNSAFE COLUMN: table=%r column=%r' %
-                                    (table, column))
+                    raise Exception('UNSAFE COLUMN: tablename=%r column=%r' %
+                                    (tablename, column))
                     return None
                 else:
                     return column
@@ -75,20 +75,29 @@ class SQLDatabaseController(object):
             columns = [_sanitize_sql_helper(column) for column in columns]
             columns = [column for column in columns if columns is not None]
 
-            return table, columns
+            return tablename, columns
 
-    def get_column_names(db, table):
-        """ Returns the sql table columns """
-        column_names = [name for name, type_ in  db.table_columns[table]]
+    def get_column_names(db, tablename):
+        """ Returns the sql tablename columns """
+        column_names = [name for name, type_ in  db.table_columns[tablename]]
         return column_names
 
     def get_tables(db):
         return db.table_columns.keys()
 
-    def get_table_csv(db, table, exclude_columns=[]):
-        """ Converts a table to csv format """
-        header_name  = '# TABLENAME: %r' % table
-        column_nametypes = db.table_columns[table]
+    def get_column(db, tablename, name):
+        _table, (_column,) = db.sanatize_sql(tablename, (name,))
+        column_vals = db.executeone(
+            operation='''
+            SELECT %s
+            FROM %s
+            ''' % (_column, _table))
+        return column_vals
+
+    def get_table_csv(db, tablename, exclude_columns=[]):
+        """ Converts a tablename to csv format """
+        header_name  = '# TABLENAME: %r' % tablename
+        column_nametypes = db.table_columns[tablename]
         column_names = [name for (name, type_) in column_nametypes]
         header_types = utool.indentjoin(column_nametypes, '\n# ')
         column_list = []
@@ -96,14 +105,9 @@ class SQLDatabaseController(object):
         for name in column_names:
             if name in exclude_columns:
                 continue
-            _table, (_column,) = db.sanatize_sql(table, (name,))
-            column_vals = db.executeone(
-                operation='''
-                SELECT %s
-                FROM %s
-                ''' % (_column, _table))
+            column_vals = db.get_column(tablename, name)
             column_list.append(column_vals)
-            column_labels.append(name.replace(table[:-1] + '_', ''))
+            column_labels.append(name.replace(tablename[:-1] + '_', ''))
         # remove column prefix for more compact csvs
 
         #=None, column_list=[], header='', column_type=None
@@ -124,9 +128,9 @@ class SQLDatabaseController(object):
         print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
         return sql_version
 
-    def schema(db, table, schema_list, table_constraints=[]):
+    def schema(db, tablename, schema_list, table_constraints=[]):
         """
-            schema_list - list of table columns tuples
+            schema_list - list of tablename columns tuples
                 {
                     (column_1_name, column_1_type),
                     (column_2_name, column_2_type),
@@ -137,29 +141,29 @@ class SQLDatabaseController(object):
             column_n_name - string name of column heading
             column_n_type - NULL | INTEGER | REAL | TEXT | BLOB | NUMPY
                 The column type can be appended with ' PRIMARY KEY' to indicate
-                the unique id for the table.  It can also specify a default
+                the unique id for the tablename.  It can also specify a default
                 value for the column with ' DEFAULT [VALUE]'.  It can also
                 specify ' NOT NULL' to indicate the column cannot be empty.
             ---------------------------------------------
-            The table will only be created if it does not exist.  Therefore,
-            this can be done on every table without fear of deleting old data.
+            The tablename will only be created if it does not exist.  Therefore,
+            this can be done on every tablename without fear of deleting old data.
             ---------------------------------------------
             TODO: Add handling for column addition between software versions.
             Column deletions will not be removed from the database schema.
         """
-        printDBG('[sql] schema ensuring table=%r' % table)
+        printDBG('[sql] schema ensuring tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
         body_list = ['%s %s' % (name, type_)
                      for (name, type_) in schema_list]
-        op_head = 'CREATE TABLE IF NOT EXISTS %s (' % table
+        op_head = 'CREATE TABLE IF NOT EXISTS %s (' % tablename
         op_body = ', '.join(body_list + table_constraints)
         op_foot = ')'
         operation = op_head + op_body + op_foot
         db.execute(operation, [], verbose=False)
         # Append to internal storage
-        db.table_columns[table] = schema_list
+        db.table_columns[tablename] = schema_list
 
     def execute(db, operation, params=(), auto_commit=False, errmsg=None,
                 verbose=VERBOSE):
@@ -227,7 +231,7 @@ class SQLDatabaseController(object):
                 e.g.
                 operation = '''
                 SELECT column
-                FROM table
+                FROM tablename
                 WHERE
                 (
                     column_1=?,
@@ -387,8 +391,8 @@ class SQLDatabaseController(object):
         """ Dumps all csv database files to disk """
         dump_dir = join(db.dir_, 'CSV_DUMP')
         utool.ensuredir(dump_dir)
-        for table in db.table_columns.iterkeys():
-            table_fname = table + '.csv'
-            table_csv = db.get_table_csv(table)
+        for tablename in db.table_columns.iterkeys():
+            table_fname = tablename + '.csv'
+            table_csv = db.get_table_csv(tablename)
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)

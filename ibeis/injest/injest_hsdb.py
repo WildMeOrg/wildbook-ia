@@ -76,8 +76,8 @@ def convert_hsdb_to_ibeis(hsdb_dir):
     chip_nid_list    = []
     chip_gid_list    = []
     chip_note_list   = []
-    with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl:
-        chip_reader = csv.reader(chiptbl)
+    with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl_file:
+        chip_reader = csv.reader(chiptbl_file)
         for ix, row in enumerate(chip_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):
                 continue

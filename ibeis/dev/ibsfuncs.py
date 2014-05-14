@@ -1,8 +1,11 @@
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
+import types
 from itertools import izip
 from os.path import relpath, split, join, exists
 import utool
+from ibeis.export import export_hsdb
+
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibsfuncs]', DEBUG=False)
@@ -10,14 +13,38 @@ import utool
 
 UNKNOWN_NAMES = set(['Unassigned'])
 
+__INJECTABLE_FUNCS__ = []
 
+
+def __injectable(func):
+    global __INJECTABLE_FUNCS__
+    func_ = utool.indent_func(func)
+    __INJECTABLE_FUNCS__.append(func_)
+    return func_
+
+
+@__injectable
+def refresh(ibs):
+    from ibeis.dev import ibsfuncs
+    from ibeis.dev import all_imports
+    ibsfuncs.rrr()
+    all_imports.reload_all()
+    ibsfuncs.inject_ibeis(ibs)
+
+
+@__injectable
+def export_to_hotspotter(ibs):
+    export_hsdb.export_ibeis_to_hotspotter(ibs)
+
+
+@__injectable
 def get_image_bboxes(ibs, gid_list):
     size_list = ibs.get_image_sizes(gid_list)
     bbox_list  = [(0, 0, w, h) for (w, h) in size_list]
     return bbox_list
 
 
-@utool.indent_func
+@__injectable
 def compute_all_chips(ibs):
     print('[ibs] compute_all_chips')
     rid_list = ibs.get_valid_rids()
@@ -25,7 +52,7 @@ def compute_all_chips(ibs):
     return cid_list
 
 
-@utool.indent_func
+@__injectable
 def compute_all_features(ibs):
     print('[ibs] compute_all_features')
     rid_list = ibs.get_valid_rids()
@@ -34,6 +61,7 @@ def compute_all_features(ibs):
     return fid_list
 
 
+@__injectable
 def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
     if chips or feats:
         cid_list = ibs.add_chips(rid_list)
@@ -41,7 +69,7 @@ def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
         ibs.add_feats(cid_list)
 
 
-@utool.indent_func
+@__injectable
 def get_empty_gids(ibs):
     """ returns gid list without any chips """
     gid_list = ibs.get_valid_gids()
@@ -50,15 +78,15 @@ def get_empty_gids(ibs):
     return empty_gids
 
 
+@__injectable
 def convert_empty_images_to_rois(ibs):
-
     """ images without chips are given an ROI over the entire image """
     gid_list = ibs.get_empty_gids()
     rid_list = ibs.use_images_as_rois(gid_list)
     return rid_list
 
 
-@utool.indent_func
+@__injectable
 def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
                        notes_list=None, adjust_percent=0.0):
     """ Adds an roi the size of the entire image to each image.
@@ -78,26 +106,31 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
     return rid_list
 
 
+@__injectable
 def assert_valid_rids(ibs, rid_list):
     valid_rids = set(ibs.get_valid_rids())
     invalid_rids = [rid for rid in rid_list if rid not in valid_rids]
     assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
 
 
+@__injectable
 def delete_all_features(ibs):
     all_fids = ibs._get_all_fids()
     ibs.delete_features(all_fids)
 
 
+@__injectable
 def delete_all_chips(ibs):
     all_cids = ibs._get_all_cids()
     ibs.delete_chips(all_cids)
 
 
+@__injectable
 def vd(ibs):
     utool.view_directory(ibs.get_dbdir())
 
 
+@__injectable
 def get_roi_desc_cache(ibs, rids):
     """ When you have a list with duplicates and you dont want to copy data
     creates a reference to each data object idnexed by a dict """
@@ -107,6 +140,7 @@ def get_roi_desc_cache(ibs, rids):
     return desc_cache
 
 
+@__injectable
 def get_roi_is_hard(ibs, rid_list):
     notes_list = ibs.get_roi_notes(rid_list)
     is_hard_list = ['hard' in notes.lower().split() for (notes)
@@ -114,6 +148,7 @@ def get_roi_is_hard(ibs, rid_list):
     return is_hard_list
 
 
+@__injectable
 def localize_images(ibs, gid_list=None):
     if gid_list is None:
         gid_list  = ibs.get_valid_gids()
@@ -129,6 +164,7 @@ def localize_images(ibs, gid_list=None):
     assert all(map(exists, local_gpath_list)), 'not all images copied'
 
 
+@__injectable
 def delete_invalid_nids(ibs):
     """ Removes names that have no Rois from the database """
     invalid_nids = ibs.get_invalid_nids()
@@ -147,27 +183,52 @@ def unflat_lookup(method, unflat_uids, **kwargs):
     return unflat_vals
 
 
-def patch_in_unflats(ibs):
-    """ Play with dynamically adding functions to ibs
-    shady code living here.
-    """
-    import types
-    from ibeis.dev import ibsfuncs
-    from functools import wraps
+def inject_func(ibs, func):
+    method_name = func.func_name
+    print('Injecting method_name=%r' % method_name)
+    method = types.MethodType(func, ibs)
+    old_method = getattr(ibs, method_name, None)
+    if old_method:
+        del old_method
+    setattr(ibs, method_name, method)
 
-    def unflat_getter(method):
-        assert isinstance(method, types.MethodType)
-        @wraps(method)
-        def unflat_wrapper(*args, **kwargs):
-            return ibsfuncs.unflat_lookup(method, *args, **kwargs)
-        unflat_wrapper.func_name = unflat_wrapper.func_name.replace('get_', 'get_unflat_')
-        return unflat_wrapper
 
-    ibs.get_unflat_roi_uuids = unflat_getter(ibs.get_roi_uuids)
-    ibs.get_unflat_image_uuids = unflat_getter(ibs.get_image_uuids)
-    ibs.get_unflat_names = unflat_getter(ibs.get_names)
-    ibs.get_unflat_image_unixtime = unflat_getter(ibs.get_image_unixtime)
+def _make_unflat_getter_func(flat_getter):
+    if isinstance(flat_getter, types.MethodType):
+        # Unwrap fmethods
+        func = flat_getter.im_func
+    else:
+        func = flat_getter
+    func_name = func.func_name
+    assert func_name.startswith('get_'), 'only works on getters, not: ' + func_name
+    # Create new function
+    def unflat_getter(self, unflat_uids, *args, **kwargs):
+        # First flatten the list
+        flat_uids, reverse_list = utool.invertable_flatten(unflat_uids)
+        # Then preform the lookup
+        flat_vals = func(self, flat_uids, *args, **kwargs)
+        # Then unflatten the list
+        unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
+        return unflat_vals
+    unflat_getter.func_name = func_name.replace('get_', 'get_unflat_')
+    return unflat_getter
 
+
+def inject_ibeis(ibs):
+    """ Injects custom functions into an IBEISController """
+    inject_func(ibs, inject_func)
+    # List of getters to unflatten
+    to_unflatten = [
+        ibs.get_roi_uuids,
+        ibs.get_image_uuids,
+        ibs.get_names,
+        ibs.get_image_unixtime
+    ]
+    for flat_getter in to_unflatten:
+        unflat_getter = _make_unflat_getter_func(flat_getter)
+        ibs.inject_func(unflat_getter)
+    for func in __INJECTABLE_FUNCS__:
+        ibs.inject_func(func)
 
 
 def delete_ibeis_database(dbdir):
@@ -299,5 +360,3 @@ def resolve_name_conflicts(gid_list, name_list):
         unique_notes.append(unique_note)
 
     return unique_gids, unique_names, unique_notes
-
-
