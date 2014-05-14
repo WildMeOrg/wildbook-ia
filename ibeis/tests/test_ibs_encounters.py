@@ -77,16 +77,18 @@ def TEST_ENCOUNTERS(ibs):
             try:
                 for jx, (item1, item2) in enumerate(izip(list1, list2)):
                     if item1 != item2:
-                        print('Failed unsorted at position ix=%r, jx=%r' % (ix, jx))
+                        msg = ('Failed unsorted at pos ix=%r, jx=%r\n' % (ix, jx)
+                               ('%r != %r' % (item1, item2)))
                         passed_unsorted = False
-                        raise AssertionError('%r != %r' % (item1, item2))
+                        raise AssertionError(msg)
             except AssertionError:
                 sorted1 = sorted(list1)
                 sorted2 = sorted(list2)
                 for jx, (item1, item2) in enumerate(izip(sorted1, sorted2)):
                     if item1 != item2:
-                        print('Failed sorted at position ix=%r, jx=%r' % (ix, jx))
-                        raise AssertionError('%r != %r' % (item1, item2))
+                        msg = ('Failed sorted at pos ix=%r, jx=%r\n' % (ix, jx)
+                               ('%r != %r' % (item1, item2)))
+                        raise AssertionError(msg)
         if passed_unsorted:
             print('%r passed unsorted' % lbl)
         else:
