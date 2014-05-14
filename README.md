@@ -9,6 +9,8 @@ Environment Setup:
 cd %USERPROFILE%\code
 cd ~/code
 
+git clone https://github.com:Erotemic/utool.git
+git clone https://github.com:Erotemic/vtool.git
 git clone https://github.com/Erotemic/ibeis.git
 git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/opencv.git
