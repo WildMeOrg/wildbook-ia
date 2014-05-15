@@ -183,16 +183,6 @@ def unflat_lookup(method, unflat_uids, **kwargs):
     return unflat_vals
 
 
-def inject_func(ibs, func):
-    method_name = func.func_name
-    printDBG('Injecting method_name=%r' % method_name)
-    method = types.MethodType(func, ibs)
-    old_method = getattr(ibs, method_name, None)
-    if old_method:
-        del old_method
-    setattr(ibs, method_name, method)
-
-
 def _make_unflat_getter_func(flat_getter):
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
@@ -216,7 +206,8 @@ def _make_unflat_getter_func(flat_getter):
 
 def inject_ibeis(ibs):
     """ Injects custom functions into an IBEISController """
-    inject_func(ibs, inject_func)
+    # Give the ibeis object the inject_func_as_method
+    utool.inject_func_as_method(ibs, utool.inject_func_as_method)
     # List of getters to unflatten
     to_unflatten = [
         ibs.get_roi_uuids,
@@ -226,9 +217,9 @@ def inject_ibeis(ibs):
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
-        ibs.inject_func(unflat_getter)
+        ibs.inject_func_as_method(unflat_getter)
     for func in __INJECTABLE_FUNCS__:
-        ibs.inject_func(func)
+        ibs.inject_func_as_method(func)
 
 
 def delete_ibeis_database(dbdir):
