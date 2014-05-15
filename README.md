@@ -29,3 +29,31 @@ git clone https://github.com/bluemellophone/pyrf.git
 # you dont need to build detecttools
 git clone https://github.com/bluemellophone/detecttools.git
 <!--git clone https://github.com/bluemellophone/IBEIS2014.git-->
+
+
+# Main Commands
+python main.py <optional-arguments> [--help]
+# Richer developer main command
+python dev.py <optional-arguments> [--help]
+
+# Useful commands. Read code comments in dev.py
+# Careful some commands don't work. Most do. 
+# --cmd          # shows ipython prompt with useful variables populated
+# -w, --wait     # waits (useful for showing plots)
+# --gui          # starts the gui as well (dev.py does not show gui by default, main does)
+# -t [test]
+
+
+# PSA: Workdirs: 
+# IBEIS uses the idea of a work directory for databases.
+# Use --set-workdir <path> to set your own, or a gui will popup and ask you about it
+
+# use --db to specify a database in your WorkDir
+# --setdb makes that directory your default directory
+python dev.py --db <dbname> --setdb
+
+# Or just use the absolute path
+python dev.py --dbdir <full-dbpath>
+
+# Example
+python dev.py --db GZ --allgt -t best

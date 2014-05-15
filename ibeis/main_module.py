@@ -105,7 +105,7 @@ def __import_parallel_modules():
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
     from utool import util_sysreq
-    util_sysreq.ensure_in_pythonpath('hesaff')
+    #util_sysreq.ensure_in_pythonpath('hesaff')
     util_sysreq.ensure_in_pythonpath('pyrf')
     #util_sysreq.ensure_in_pythonpath('code')
     import pyhesaff  # NOQA

@@ -1,11 +1,5 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
-
-try:
-    from . import __sysreq__
-except Exception:
-    import __sysreq__  # NOQA
-
 import ibeis
 ibeis._preload()
 import utool

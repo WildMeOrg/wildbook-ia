@@ -1,25 +1,20 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
 from ibeis.tests import __testing__
 import multiprocessing
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ADD_ROI]')
 
-from __testing__ import printTEST
-
 
 def TEST_GUI_ADD_ROI(ibs, back):
     valid_gids = ibs.get_valid_gids()
     gid = valid_gids[0]
-    printTEST('[TEST] SELECT GID=%r' % gid)
+    print('[TEST] SELECT GID=%r' % gid)
     back.select_gid(gid)
     bbox = [0, 0, 100, 100] if not __testing__.INTERACTIVE else None
     rid = back.add_roi(bbox=bbox)
-    printTEST('[TEST] NEW RID=%r' % rid)
+    print('[TEST] NEW RID=%r' % rid)
     return locals()
 
 

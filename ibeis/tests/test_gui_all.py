@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#from os.path import join, dirname, realpath
-#sys.path.append(realpath(join(dirname(__file__), '../..')))
 import multiprocessing
 import utool
 import numpy as np

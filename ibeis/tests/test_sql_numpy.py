@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
 import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl
