@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 from utool.util_setup import setuptools_setup
+import ibeis
 
-PROJECT_NAME = 'IBEIS'
 
 CHMOD_PATTERNS = [
     'run_tests.sh',
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
     setuptools_setup(
         setup_fpath=__file__,
-        project_name=PROJECT_NAME,
+        module=ibeis,
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,

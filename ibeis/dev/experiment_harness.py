@@ -22,7 +22,7 @@ QUIET      = '--quiet' in sys.argv
 TESTRES_VERBOSITY = 2 - (2 * QUIET)
 NOCACHE_TESTRES =  utool.get_flag('--nocache-testres', False)
 TEST_INFO = True
-STRICT = '--strict' in sys.argv
+STRICT = utool.STRICT
 
 
 def _get_qx2_besrank_batch(ibs, qreq):

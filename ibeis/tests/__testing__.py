@@ -66,7 +66,7 @@ def run_test(func, *args, **kwargs):
             ibs = locals_.get('ibs', None)
             if ibs is not None:
                 ibs.db.dump()
-            if '--strict' in sys.argv:
+            if utool.STRICT:
                 # Remove this function from stack strace
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 # PYTHON 2.7 DEPRICATED:

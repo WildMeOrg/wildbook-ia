@@ -3,7 +3,6 @@ import __builtin__
 import sys
 import multiprocessing
 
-sys.argv.append('--strict')  # do not supress any errors
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
 
 try:
