@@ -14,10 +14,10 @@ signal_ = QtCore.pyqtSignal
 
 # SLOT DECORATOR
 def slot_(*types):  # This is called at wrap time to get args
-    '''
+    """
     wrapper around pyqtslot decorator
     *args = types
-    '''
+    """
     def pyqtSlotWrapper(func):
         printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.func_name)
         @QtCore.pyqtSlot(*types, name=func.func_name)
@@ -32,7 +32,9 @@ def slot_(*types):  # This is called at wrap time to get args
 
 # DRAWING DECORATOR
 def drawing(func):
-    'Wraps a class function and draws windows on completion'
+    """
+    Wraps a class function and draws windows on completion
+    """
     @utool.ignores_exc_tb
     @functools.wraps(func)
     def drawing_wrapper(self, *args, **kwargs):
