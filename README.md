@@ -20,7 +20,14 @@ git clone https://github.com/Erotemic/guitool.git
 git clone https://github.com/Erotemic/ibeis.git
 # Set the previous repos up for development by running this
 # command in each directory
-sudo python setup.py develop
+
+sudo python ~/code/utool/setup.py develop
+sudo python ~/code/vtool/setup.py develop
+sudo python ~/code/hesaff/setup.py develop
+sudo python ~/code/plottool/setup.py develop
+sudo python ~/code/guitool/setup.py develop
+sudo python ~/code/ibeis/setup.py develop
+
 
 # Clone these repos
 git clone https://github.com/Erotemic/opencv.git
