@@ -185,7 +185,7 @@ def unflat_lookup(method, unflat_uids, **kwargs):
 
 def inject_func(ibs, func):
     method_name = func.func_name
-    print('Injecting method_name=%r' % method_name)
+    printDBG('Injecting method_name=%r' % method_name)
     method = types.MethodType(func, ibs)
     old_method = getattr(ibs, method_name, None)
     if old_method:
