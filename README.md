@@ -11,7 +11,7 @@ I.B.E.I.S. = Image Based Ecological Information System
 # Navigate to your code directory
 cd ~/code
 
-# Clone the IBEIS repos
+# First clone the IBEIS repos
 git clone https://github.com:Erotemic/utool.git
 git clone https://github.com:Erotemic/vtool.git
 git clone https://github.com/Erotemic/hesaff.git
@@ -21,6 +21,9 @@ git clone https://github.com/Erotemic/ibeis.git
 # Set the previous repos up for development by running this
 # command in each directory
 
+sudo python setup.py develop
+
+# e.g.
 sudo python ~/code/utool/setup.py develop
 sudo python ~/code/vtool/setup.py develop
 sudo python ~/code/hesaff/setup.py develop
@@ -29,15 +32,20 @@ sudo python ~/code/guitool/setup.py develop
 sudo python ~/code/ibeis/setup.py develop
 
 
-# Clone these repos
+# Then clone these repos (these do not have setup.py files)
+git clone https://github.com/bluemellophone/detecttools.git
 git clone https://github.com/Erotemic/opencv.git
 git clone https://github.com/Erotemic/flann.git
 git clone https://github.com/bluemellophone/pyrf.git
-# Use the build scripts in their for either unix or mingw
-# you dont need to build detecttools
-git clone https://github.com/bluemellophone/detecttools.git
-<!--git clone https://github.com/bluemellophone/IBEIS2014.git-->
+# For repos with C++ code use the unix/mingw build script in the repo: 
+# e.g.
+sudo ~/code/opencv/unix_opencv_build.sh
+sudo ~/code/flann/unix_flann_build.sh
+sudo ~/code/pyrf/unix_pyrf_build.sh
 
+# If you want to train random forests with pyrf clone
+# https://github.com/bluemellophone/IBEIS2014.git
+# otherwise you dont need this
 
 #--------------------
 # Main Commands
