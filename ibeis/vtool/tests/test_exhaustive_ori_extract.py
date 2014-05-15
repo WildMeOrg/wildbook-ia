@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import utool
-utool.ensure_in_pythonpath('hesaff')
 import numpy as np
 # Hotspotter
 from plottool import draw_func2 as df2
