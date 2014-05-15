@@ -9,7 +9,8 @@ I.B.E.I.S. = Image Based Ecological Information System
 #--------------------
 
 # Navigate to your code directory
-cd ~/code
+export CODE_DIR=~/code
+cd $CODE_DIR
 
 # First clone the IBEIS repos
 git clone https://github.com:Erotemic/utool.git
@@ -18,18 +19,20 @@ git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/plottool.git
 git clone https://github.com/Erotemic/guitool.git
 git clone https://github.com/Erotemic/ibeis.git
-# Set the previous repos up for development by running this
-# command in each directory
+# Set the previous repos up for development by running 
+#
+# > sudo python setup.py develop
+#
+# in each directory
 
-sudo python setup.py develop
 
 # e.g.
-sudo python ~/code/utool/setup.py develop
-sudo python ~/code/vtool/setup.py develop
-sudo python ~/code/hesaff/setup.py develop
-sudo python ~/code/plottool/setup.py develop
-sudo python ~/code/guitool/setup.py develop
-sudo python ~/code/ibeis/setup.py develop
+sudo python $CODE_DIR/utool/setup.py develop
+sudo python $CODE_DIR/vtool/setup.py develop
+sudo python $CODE_DIR/hesaff/setup.py develop
+sudo python $CODE_DIR/plottool/setup.py develop
+sudo python $CODE_DIR/guitool/setup.py develop
+sudo python $CODE_DIR/ibeis/setup.py develop
 
 
 # Then clone these repos (these do not have setup.py files)

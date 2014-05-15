@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-__test__ = False  # This is not a test
-from ibeis.tests import __testing__
 from os.path import join, exists
 import ibeis
 from ibeis.dev import ibsfuncs
 from ibeis.dev import sysres
 import multiprocessing
 import utool
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[MAKE_BIG_DB]')
+
+
+__test__ = False  # This is not a test
 
 
 def get_big_imgdir(workdir):
@@ -36,7 +38,7 @@ def MAKE_BIG_DB():
 
     main_locals = ibeis.main(dbdir=dbdir, gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
-    gpath_list = __testing__.get_test_gpaths(ndata=1)
+    gpath_list = grabdata.get_test_gpaths(ndata=1)
 
     imgdir = get_big_imgdir(workdir)
     gname_list = utool.list_images(imgdir)
@@ -67,6 +69,6 @@ def MAKE_BIG_DB():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    test_locals = __testing__.run_test(MAKE_BIG_DB)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(MAKE_BIG_DB)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec('execstr')

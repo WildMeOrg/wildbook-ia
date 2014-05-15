@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 from ibeis.dev import ibsfuncs
 from itertools import izip
 # Python
@@ -21,8 +20,7 @@ def TEST_ENCOUNTERS(ibs):
     rids_list = ibs.get_encounter_rids(eid_list)
     nids_list = ibs.get_encounter_nids(eid_list)
 
-    ibsfuncs.patch_in_unflats(ibs)
-
+    #ibsfuncs.patch_in_unflats(ibs)
     ibsfuncs.unflat_lookup(ibs.get_roi_uuids, rids_list)
 
     enctext_list = ibs.get_encounter_enctext(eid_list)
@@ -126,8 +124,9 @@ def TEST_ENCOUNTERS(ibs):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb1')
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']
-    test_locals = __testing__.run_test(TEST_ENCOUNTERS, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_ENCOUNTERS, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

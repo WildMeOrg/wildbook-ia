@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ADD_IMAGES]')
 
 
 def TEST_ADD_IMAGES(ibs):
     print('[TEST] GET_TEST_IMAGE_PATHS')
     # The test api returns a list of interesting chip indexes
-    gpath_list = __testing__.get_test_gpaths(ndata=None)
+    gpath_list = grabdata.get_test_gpaths(ndata=None)
 
     print('[TEST] IMPORT IMAGES FROM FILE\ngpath_list=%r' % gpath_list)
     gid_list = ibs.add_images(gpath_list)
@@ -20,9 +20,10 @@ def TEST_ADD_IMAGES(ibs):
 
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb0')
+    multiprocessing.freeze_support()  # For win32
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
-    test_locals = __testing__.run_test(TEST_ADD_IMAGES, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_ADD_IMAGES, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

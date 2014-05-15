@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-__test__ = False  # This is not a test
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from plottool import draw_func2 as df2
 from plottool.viz_keypoints import show_keypoints
-from ibeis.dev.all_imports import *  # NOQA
+import numpy as np
 import vtool.tests.dummy as dummy
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[%s]' % TEST_NAME)
+print, print_, printDBG, rrr, profile = utool.inject(__name__,
+                                                     '[%s]' % 'SAMPLE_DATA')
+
+__test__ = False  # This is not a test
 
 
 def get_test_kpts(ibs, n=11):
@@ -53,8 +54,9 @@ def SAMPLE_DATA(ibs):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main()
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
     ibs = main_locals['ibs']
-    test_locals = __testing__.run_test(SAMPLE_DATA, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(SAMPLE_DATA, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

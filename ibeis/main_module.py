@@ -262,7 +262,10 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
             raise
     if not persist or params.args.cmd:
         main_close()
-    execstr = utool.ipython_execstr()
+    # Put locals in the exec namespace
+    ipycmd_execstr = utool.ipython_execstr()
+    locals_execstr = utool.execstr_dict(main_locals, 'main_locals')
+    execstr = locals_execstr + '\n' + ipycmd_execstr
     return execstr
 
 

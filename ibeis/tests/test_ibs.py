@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from ibeis import viz
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS]')
 
 
 def TEST_IBS(ibs):
-    gpath_list = __testing__.get_test_gpaths(ndata=1)
+    gpath_list = grabdata.get_test_gpaths(ndata=1)
 
     print('[TEST] 1.ibs.add_images(gpath_list=%r)' % gpath_list)
     gid_list = ibs.add_images(gpath_list)
@@ -58,10 +58,11 @@ def TEST_IBS(ibs):
 
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()  # For windows
+    multiprocessing.freeze_support()  # For win32
+    import ibeis
     # Initialize database
-    main_locals = __testing__.main(defaultdb='testdb0')
+    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
     ibs = main_locals['ibs']
-    test_locals = __testing__.run_test(TEST_IBS, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_IBS, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

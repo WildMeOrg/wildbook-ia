@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 # Python
 import multiprocessing
 # Tools
@@ -39,8 +38,9 @@ def TEST_QUERY(ibs, qrid_list=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb1')
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']
-    test_locals = __testing__.run_test(TEST_QUERY, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_QUERY, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

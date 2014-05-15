@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-__test__ = False  # This is not a test
 from ibeis.dev import sysres
 from ibeis.injest import injest_testdb1
 from os.path import join
 from vtool.tests import grabdata
 import ibeis
 import utool
+
+__test__ = False  # This is not a test
+
 
 workdir = ibeis.sysres.get_workdir()
 

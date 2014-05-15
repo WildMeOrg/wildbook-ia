@@ -4,17 +4,17 @@
 Tests IBEIS parallel
 '''
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
 import pyhesaff
 from utool import util_parallel
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_PARALLEL]')
 #utool.inject_all()
 
 
 def TEST_PARALLEL():
-    gpath_list = __testing__.get_test_gpaths(ndata=10, zebra=True, lena=True, jeff=True)
+    gpath_list = grabdata.get_test_gpaths(ndata=10, zebra=True, lena=True, jeff=True)
     args_list  = [(gpath,) for gpath in gpath_list]
 
     @utool.argv_flag_dec
@@ -61,6 +61,6 @@ def TEST_PARALLEL():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-    test_locals = __testing__.run_test(TEST_PARALLEL)
-    execstr = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_PARALLEL)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

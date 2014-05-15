@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
 # IBEIST
@@ -22,8 +21,9 @@ def TEST_COMPUTE_FEATS(ibs):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb0')
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
-    test_locals = __testing__.run_test(TEST_COMPUTE_FEATS, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_COMPUTE_FEATS, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

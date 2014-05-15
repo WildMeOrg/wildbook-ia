@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from ibeis.dev import sysres
@@ -20,9 +19,10 @@ def TEST_GUI_OPEN_DATABASE(ibs, back):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb0', gui=True)
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb0', gui=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
-    test_locals = __testing__.run_test(TEST_GUI_OPEN_DATABASE, ibs, back)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_GUI_OPEN_DATABASE, ibs, back)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

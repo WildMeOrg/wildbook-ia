@@ -76,8 +76,7 @@ def TEST_SQL_NUMPY():
 
 if __name__ == '__main__':
     import multiprocessing
-    multiprocessing.freeze_support()  # For windows
-    from ibeis.tests import __testing__
-    test_locals = __testing__.run_test(TEST_SQL_NUMPY)
-    execstr     = __testing__.main_loop(test_locals)
+    multiprocessing.freeze_support()  # For win32
+    test_locals = utool.run_test(TEST_SQL_NUMPY)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
