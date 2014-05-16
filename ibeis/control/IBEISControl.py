@@ -1611,6 +1611,13 @@ class IBEISController(object):
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_qres
 
+    @utool.indent_func((False, '[query_enc]'))
+    def query_encounter(ibs, qrid_list, eid, **kwargs):
+        """ _query_chips wrapper """
+        drid_list = ibs.get_encounter_rids(eid)  # encounter database chips
+        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        return qrid2_qres
+
     @utool.indent_func(False)
     def prep_qreq_db(ibs, qrid_list):
         """ Puts IBEIS into query database mode """
