@@ -1579,9 +1579,13 @@ class IBEISController(object):
     #----------------
 
     @utool.indent_func
-    def export_to_wildbook(ibs, rid_list):
+    def export_to_wildbook(ibs):
         """ Exports identified chips to wildbook """
-        raise NotImplementedError()
+        import ibeis.export.export_wb as wb
+        eid_list = ibs.get_valid_eids()
+        ibs._init_wb("http://127.0.0.1:8080/wildbook-4.1.0-RELEASE")
+        wb.export_ibeis_to_wildbook(ibs, eid_list)
+        #raise NotImplementedError()
         # compute encounters
         # get encounters by id
         # get ROIs by encounter id
