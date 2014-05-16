@@ -87,7 +87,7 @@ def define_connection(name, front):
     """ Decorator which augments a function name and connects """
     def connect_wrapper(func):
         func.func_name = name + '_' + func.func_name
-        #print('Will connect: ' + func.func_name)
+        print('Will connect: ' + func.func_name)
         front.ui.connect_fns.append(func)
         return func
     return connect_wrapper

@@ -100,6 +100,7 @@ class MainWindowBackend(QtCore.QObject):
     # Constructor
     #------------------------
     def __init__(back, ibs=None):
+        """ Create GUIBackend object """
         print('[back] MainWindowBackend.__init__()')
         super(MainWindowBackend, back).__init__()
         back.ibs  = None
@@ -110,8 +111,10 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_gids = []
         back.sel_qres = []
 
-        # connect signals and other objects
+        # Create GUIFrontend object
         back.front = guifront.MainWindowFrontend(back=back)
+
+        # connect signals and other objects
         back.populateTableSignal.connect(back.front.populate_tbl)
         back.setEnabledSignal.connect(back.front.setEnabled)
         back.updateWindowTitleSignal.connect(back.front.updateWindowTitle)
