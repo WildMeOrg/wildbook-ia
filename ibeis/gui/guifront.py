@@ -158,17 +158,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.aliasNidSignal.connect(back.set_name_prop)
         front.setGidPropSignal.connect(back.set_image_prop)
 
-        # Connect all signals from GUI
-        for func in front.ui.connect_fns:
-            #printDBG('Connecting: %r' % func.func_name)
-            func()
         #
         # Gui Components
         # Tab Widget
         ui.tablesTabWidget.currentChanged.connect(front.change_view)
-        ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
-        ui.qres_TBL.sortByColumn(0, Qt.AscendingOrder)
-        ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
+        #ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
+        #ui.qres_TBL.sortByColumn(0, Qt.AscendingOrder)
+        #ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
 
     def print(front, msg):
         if VERBOSE:
@@ -213,8 +209,12 @@ class MainWindowFrontend(QtGui.QMainWindow):
             return
 
         try:
-            uidtables.populate_item_table(tbl, col_fancyheaders, col_editable,
-                                                col_types, row_list, datatup_list)
+            uidtables.populate_item_table(tbl,
+                                          col_fancyheaders,
+                                          col_editable,
+                                          col_types,
+                                          row_list,
+                                          datatup_list)
         except Exception as ex:
             front.raiseExceptionSignal.emit(ex)
             raise
@@ -350,6 +350,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     @slot_(int)
     def change_view(front, new_state):
+        """ Function called whenever the veiw is changed """
         tab_name = str(front.ui.tablesTabWidget.tabText(new_state))
         front.print('change_view(%r)' % new_state)
         prevBlock = front.ui.tablesTabWidget.blockSignals(True)

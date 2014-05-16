@@ -30,6 +30,13 @@ QT_ROI_UID_TYPE   = uidtables.UID_TYPE
 QT_NAME_UID_TYPE  = uidtables.UID_TYPE
 
 
+if '--verbose-back' in sys.argv:
+    pass
+else:
+    def print(msg):
+        pass
+
+
 # BLOCKING DECORATOR
 # TODO: This decorator has to be specific to either front or back. Is there a
 # way to make it more general?
@@ -76,7 +83,7 @@ def blocking_slot(*types_):
 # TODO: Inject functions into backend rather than use unreloadable classmethods
 def _select_rid(back, rid, show_roi, **kwargs):
     # Table Click -> Chip Table
-    print('[back] !@!!select rid=%r' % rid)
+    print('[back] select rid=%r' % rid)
     rid = uidtables.qt_cast(rid)
     gid = back.ibs.get_roi_gids(rid)
     nid = back.ibs.get_roi_nids(rid)
@@ -229,7 +236,7 @@ class MainWindowBackend(QtCore.QObject):
     #----------------------1----------------------------------------------------
 
     def enctext_generator(back):
-        valid_eids = back.ibs.get_valid_eids()
+        valid_eids = back.ibs.get_valid_eids(min_num_gids=2)
         enctext_list = [''] + back.ibs.get_encounter_enctext(valid_eids)
         for enctext in enctext_list:
             yield enctext
@@ -239,6 +246,7 @@ class MainWindowBackend(QtCore.QObject):
         for enctext in back.enctext_generator():
             uidtables.populate_encounter_tab(back.front,
                                               enctext=enctext, **kwargs)
+        back.front.ui.connectUi()
 
     @utool.indent_func
     def populate_image_table(back, **kwargs):

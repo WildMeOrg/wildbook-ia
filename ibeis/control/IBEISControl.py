@@ -1365,7 +1365,7 @@ class IBEISController(object):
     # GETTERS::ENCOUNTER
 
     @getter_general
-    def get_valid_eids(ibs, min_num_gids=2):
+    def get_valid_eids(ibs, min_num_gids=0):
         """ returns list of all encounter ids """
         eid_list = ibs.db.executeone(
             operation='''
