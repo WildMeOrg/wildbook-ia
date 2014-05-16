@@ -351,6 +351,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot(QT_IMAGE_UID_TYPE, ENC_TYPE)
     def select_gid(back, gid, enctext=None, sel_rids=None, **kwargs):
+        # Table Click -> Image Table
         # Select the first ROI in the image if unspecified
         if sel_rids is None:
             rids = back.ibs.get_image_rids(gid)
@@ -358,7 +359,6 @@ class MainWindowBackend(QtCore.QObject):
                 sel_rids = rids[0:1]
             else:
                 sel_rids = []
-        # Table Click -> Image Table
         gid = uidtables.qt_cast(gid)
         eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
         print('[back] select_gid(gid=%r, eid=%r, sel_rids=%r)' % (gid, eid, sel_rids))
