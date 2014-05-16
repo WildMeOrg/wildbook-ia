@@ -116,7 +116,6 @@ class IBEISController(object):
             raise coe
         ibs.wbaddr = wbaddr
 
-
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1', workdir='~/ibeis_workdir', ensure=True):
         """ Define ibs directories """
         if ensure:
