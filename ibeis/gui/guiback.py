@@ -18,10 +18,11 @@ from ibeis.viz import interact
 # Utool
 import utool
 from ibeis.control import IBEISControl
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[back]', DEBUG=False)
 
 
-VERBOSE = utool.get_flag('--verbose')
+VERBOSE = utool.VERBOSE
 
 # Wrapped QT UUID type (usually string or long)
 QT_IMAGE_UID_TYPE = uidtables.UID_TYPE

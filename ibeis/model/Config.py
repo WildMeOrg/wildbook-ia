@@ -401,6 +401,13 @@ class DisplayConfig(ConfigBase):
         display_cfg.show_results_in_image = False  # None
 
 
+class EncounterConfig(ConfigBase):
+    def __init__(enc_cfg, **kwargs):
+        super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
+        enc_cfg.seconds_thresh = 60
+        enc_cfg.min_imgs_per_encounter = 1
+
+
 # Convinience
 def __dict_default_func(dict_):
     # Sets keys only if they dont exist
@@ -432,3 +439,8 @@ def default_vsone_cfg(ibs, **kwargs):
     kwargs_set('ratio_thresh', 1.5)
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
+
+
+def default_encounter_cfg(**kwargs):
+    enc_cfg = EncounterConfig(**kwargs)
+    return enc_cfg

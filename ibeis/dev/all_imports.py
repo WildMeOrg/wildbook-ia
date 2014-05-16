@@ -31,12 +31,12 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 import cv2
 from scipy.cluster.hierarchy import fclusterdata
-import networkx as netx
-try:
-    import graph_tool
-except ImportError as ex:
-    #print('Warning: %r' % ex)
-    pass
+#import networkx as netx
+#try:
+#    import graph_tool
+#except ImportError as ex:
+#    #print('Warning: %r' % ex)
+#    pass
 # Qt
 import PyQt4
 from PyQt4 import QtCore, QtGui

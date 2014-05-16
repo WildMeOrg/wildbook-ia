@@ -10,7 +10,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 from __future__ import absolute_import, division, print_function
 # Python
 import atexit
-from itertools import izip
+from itertools import izip, imap
 from os.path import join, split
 # Science
 import numpy as np
@@ -218,7 +218,14 @@ class IBEISController(object):
         """ Resets the databases's algorithm configuration """
         # TODO: Detector config
         query_cfg  = Config.default_query_cfg()
+        enc_cfg    = Config.default_encounter_cfg()
         ibs.set_query_cfg(query_cfg)
+        ibs.set_encounter_cfg(enc_cfg)
+        ibs.set_query_cfg(query_cfg)
+
+    @utool.indent_func
+    def set_encounter_cfg(ibs, enc_cfg):
+        ibs.cfg.enc_cfg = enc_cfg
 
     @utool.indent_func
     def set_query_cfg(ibs, query_cfg):
@@ -870,7 +877,7 @@ class IBEISController(object):
     @getter
     def get_image_num_rois(ibs, gid_list):
         """ Returns the number of chips in each image """
-        return map(len, ibs.get_image_rids(gid_list))
+        return list(imap(len, ibs.get_image_rids(gid_list)))
 
     #
     # GETTERS::ROI
@@ -1082,7 +1089,7 @@ class IBEISController(object):
     @getter
     def get_roi_num_groundtruth(ibs, rid_list):
         """ Returns number of other chips with the same name """
-        return map(len, ibs.get_roi_groundtruth(rid_list))
+        return list(imap(len, ibs.get_roi_groundtruth(rid_list)))
 
     @getter
     def get_roi_num_feats(ibs, rid_list, ensure=False):
@@ -1327,7 +1334,7 @@ class IBEISController(object):
         name_list_ = ibs.get_name_props('name_text', nid_list_)
         name_list  = [name if nid > 0 else name + str(-nid) for (name, nid)
                       in izip(name_list_, nid_list)]
-        name_list  = map(__USTRCAST__, name_list)
+        name_list  = list(imap(__USTRCAST__, name_list))
         return name_list
 
     @getter_vector_output
@@ -1346,7 +1353,7 @@ class IBEISController(object):
     @getter
     def get_name_num_rois(ibs, nid_list):
         """ returns the number of detections for each name """
-        return map(len, ibs.get_name_rids(nid_list))
+        return list(imap(len, ibs.get_name_rids(nid_list)))
 
     @getter
     def get_name_notes(ibs, gid_list):
@@ -1358,21 +1365,30 @@ class IBEISController(object):
     # GETTERS::ENCOUNTER
 
     @getter_general
-    def get_valid_eids(ibs):
+    def get_valid_eids(ibs, min_num_gids=2):
         """ returns list of all encounter ids """
         eid_list = ibs.db.executeone(
             operation='''
             SELECT encounter_uid
             FROM encounters
             ''')
+        if min_num_gids > 0:
+            num_gids_list = ibs.get_encounter_num_gids(eid_list)
+            flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
+            eid_list  = utool.filter_items(eid_list, flag_list)
         return eid_list
+
+    @getter
+    def get_encounter_num_gids(ibs, eid_list):
+        """ Returns number of images in each encounter """
+        return list(imap(len, ibs.get_encounter_gids(eid_list)))
 
     @getter_vector_output
     def get_encounter_rids(ibs, eid_list):
         """ returns a list of list of rids in each encounter """
         gids_list = ibs.get_encounter_gids(eid_list)
         rids_list_ = ibsfuncs.unflat_lookup(ibs.get_image_rids, gids_list)
-        rids_list = map(utool.flatten, rids_list_)
+        rids_list = list(imap(utool.flatten, rids_list_))
         return rids_list
 
     @getter_vector_output
@@ -1393,7 +1409,7 @@ class IBEISController(object):
         """ returns a list of list of nids in each encounter """
         rids_list = ibs.get_encounter_rids(eid_list)
         nids_list_ = ibsfuncs.unflat_lookup(ibs.get_roi_nids, rids_list)
-        nids_list = map(utool.unique_unordered, nids_list_)
+        nids_list = list(imap(utool.unique_unordered, nids_list_))
         return nids_list
 
     @getter
@@ -1406,7 +1422,7 @@ class IBEISController(object):
             WHERE encounter_uid=?
             ''',
             params_iter=((enctext,) for enctext in eid_list))
-        enctext_list = map(__USTRCAST__, enctext_list)
+        enctext_list = list(imap(__USTRCAST__, enctext_list))
         return enctext_list
 
     @getter
@@ -1548,9 +1564,7 @@ class IBEISController(object):
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         from ibeis.model.preproc import preproc_encounter
-        flat_eids, flat_gids = preproc_encounter.compute_encounters(ibs)
-        ENCTEXT_PREFIX = 'enc_'
-        enctext_list = [ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
+        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs)
         ibs.set_image_enctext(flat_gids, enctext_list)
 
     @utool.indent_func

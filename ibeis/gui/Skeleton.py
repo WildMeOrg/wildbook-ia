@@ -85,15 +85,16 @@ def newEncounterTabs(front, parent, enctext=None):
 
 def setup_ui(ui, front, back):
     ui.retranslatable_fns = []  # A list of retranslatable functions
-    ui.connect_fns = []  # A list of signals / slots to connect
-    ui.postsetup_fns = []
+    ui.connect_fns        = []  # A list of signals / slots to connect
+    ui.postsetup_fns      = []
 
     back = front.back
 
     setup_main_layout(ui, front, back)
 
     # ENCOUNTER SUPERTABS
-    ui.encountersTabWidget = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
+    ui.encountersTabWidget = newTabWidget(front, ui.splitter,
+                                          'encountersTabWidget', vstretch=10)
     ui.ensureEncounterTab(front, enctext=None)
 
     # Split Panes
@@ -249,11 +250,12 @@ def setup_option_menu(ui, front, back):
 def setup_help_menu(ui, front, back):
     """ HELP MENU """
     ui.menuHelp = newMenu(front, ui.menubar, 'menuHelp', 'Help')
+    about_msg = 'IBEIS = Image Based Ecological Information System'
     ui.menuHelp.newAction(
         name='actionAbout',
         text='About',
         shortcut='',
-        slot_fn=msg_event('About', 'IBEIS = Image Based Ecological Information System'))
+        slot_fn=msg_event('About', about_msg))
     ui.menuHelp.newAction(
         name='actionView_Docs',
         text='View Documentation',
@@ -312,7 +314,8 @@ def setup_developer_menu(ui, front, back):
 
 
 def setup_main_layout(ui, front, back):
-    initMainWidget(front, 'mainSkel', size=(1000, 600), title='IBEIS - No Database Opened')
+    default_title = 'IBEIS - No Database Opened'
+    initMainWidget(front, 'mainSkel', size=(1000, 600), title=default_title)
     ui.centralwidget, ui.verticalLayout = newCentralLayout(front)
     ui.splitter = newVerticalSplitter(ui.centralwidget, ui.verticalLayout)
     ui.menubar = newMenubar(front, 'menubar')
