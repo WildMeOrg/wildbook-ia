@@ -11,8 +11,8 @@ from guitool import slot_, signal_
 from ibeis.gui import uidtables
 from ibeis.gui.Skeleton import Ui_mainSkel
 
-
-print, print_, printDBG, profile, rrr = utool.inject(__name__, '[front*]', DEBUG=True)
+print, print_, printDBG, profile, rrr = utool.inject(
+    __name__, '[front*]', DEBUG=True)
 
 QUIET   = utool.get_flag('--quiet')
 #VERBOSE = not utool.get_flag(('--noverbose', '--verbose-front', '--vf'))
@@ -20,6 +20,7 @@ VERBOSE = True
 
 
 UID_TYPE = uidtables.UID_TYPE
+ENC_TYPE = str  # encounters are ided with enctext right now
 QUTF8      = QtGui.QApplication.UnicodeUTF8
 QTRANSLATE = QtGui.QApplication.translate
 
@@ -45,10 +46,8 @@ def uid_tbl_clicked(func):
         front._prev_tbl_item = item
         tbl = item.tableWidget()
         row, col = (item.row(), item.column())
-        """
-        #front.print('Clicked ' + tbl.objectName() + ' at ' + str((row, col)) +
-                    #'--> ' + func.func_name)
-        """
+        front.print('Clicked ' + tbl.objectName() + ' at ' + str((row, col)) +
+                    '--> ' + func.func_name)
         return func(front, row, col, tbl)
     # Hacky decorator
     return clicked_wrapper
@@ -66,10 +65,8 @@ def uid_tbl_changed(func):
         front._prev_tbl_item = item
         tbl = item.tableWidget()
         row, col = (item.row(), item.column())
-        """
-        #front.print('Changed ' + tbl.objectName() + ' at ' + str((row, col)) +
-                    #'--> ' + func.func_name)
-        """
+        front.print('Changed ' + tbl.objectName() + ' at ' + str((row, col)) +
+                    '--> ' + func.func_name)
         state = item.checkState()
         text  = str(item.text())
         #_pressed_state = front._pressed_item_state
@@ -78,14 +75,13 @@ def uid_tbl_changed(func):
         isCheckableItem = text in ['true', 'false']  # HUGE HACK!
         if isCheckableItem:
             new_val = state == Qt.Checked
-            """
             #try:
-                #assert text == _pressed_text, 'cannot change text and state at the same time'
+            #    assert text == _pressed_text, \
+            #        'cannot change text and state at the same time'
             #except AssertionError as ex:
-                #utool.printex(ex, key_list=['state', 'text', '_pressed_state',
-                                            #'_pressed_text'])
-                #raise
-            """
+            #    utool.printex(ex, key_list=[
+            #        'state', 'text', '_pressed_state', '_pressed_text'])
+            #    raise
         else:
             new_val = text
         return func(front, row, col, tbl, new_val)
@@ -121,10 +117,10 @@ class MainWindowFrontend(QtGui.QMainWindow):
     printSignal      = signal_(str)
     raiseExceptionSignal = signal_(Exception)
     quitSignal       = signal_()
-    selectGidSignal  = signal_(UID_TYPE)
-    selectRidSignal  = signal_(UID_TYPE)
-    selectNidSignal  = signal_(UID_TYPE)
-    selectQResSignal = signal_(UID_TYPE)
+    selectGidSignal  = signal_(UID_TYPE, ENC_TYPE)
+    selectRidSignal  = signal_(UID_TYPE, ENC_TYPE)
+    selectNidSignal  = signal_(UID_TYPE, ENC_TYPE)
+    selectQResSignal = signal_(UID_TYPE, ENC_TYPE)
     setRoiPropSignal = signal_(UID_TYPE, str, str)
     aliasNidSignal   = signal_(UID_TYPE, str, str)
     setGidPropSignal = signal_(UID_TYPE, str, QtCore.QVariant)
@@ -163,17 +159,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
         front.aliasNidSignal.connect(back.set_name_prop)
         front.setGidPropSignal.connect(back.set_image_prop)
 
-        # Connect all signals from GUI
-        for func in front.ui.connect_fns:
-            #printDBG('Connecting: %r' % func.func_name)
-            func()
         #
         # Gui Components
         # Tab Widget
         ui.tablesTabWidget.currentChanged.connect(front.change_view)
-        ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
-        ui.qres_TBL.sortByColumn(0, Qt.AscendingOrder)
-        ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
+        #ui.rids_TBL.sortByColumn(0, Qt.AscendingOrder)
+        #ui.qres_TBL.sortByColumn(0, Qt.AscendingOrder)
+        #ui.gids_TBL.sortByColumn(0, Qt.AscendingOrder)
 
     def print(front, msg):
         if VERBOSE:
@@ -218,8 +210,12 @@ class MainWindowFrontend(QtGui.QMainWindow):
             return
 
         try:
-            uidtables.populate_item_table(tbl, col_fancyheaders, col_editable,
-                                                col_types, row_list, datatup_list)
+            uidtables.populate_item_table(tbl,
+                                          col_fancyheaders,
+                                          col_editable,
+                                          col_types,
+                                          row_list,
+                                          datatup_list)
         except Exception as ex:
             front.raiseExceptionSignal.emit(ex)
             raise
@@ -270,6 +266,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_str(front, tbl, row, col):
         return str(tbl.item(row, col).text())
 
+    def get_tbl_enctext(front, tbl):
+        objectName = str(tbl.objectName())
+        tblpos  = objectName.find('_TBL')
+        #tblname = objectName[0:tblpos]
+        enctext = objectName[tblpos + 4:]
+        return enctext
+
     def get_header_val(front, tbl, header, row):
         # RCOS TODO: This is hacky. These just need to be
         # in dicts to begin with.
@@ -284,11 +287,12 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     @slot_(QtGui.QTableWidgetItem)
     def uid_tbl_pressed(front, item):
-        """ Keeps track of item state: i.e. if text or check value is changed """
+        """ Keeps track of item state: if text or check value is changed """
         #front.print('')
         #front.print('>>>>>>>>>>>>>>>>>> PRESSED')
         #front.print('!!!!-Pressed')
-        #front.print('Pressed _uid_tbl_pressed, tbl=%r' % str(item.tableWidget().objectName()))
+        #front.print('Pressed _uid_tbl_pressed, tbl=%r' %
+        #            str(item.tableWidget().objectName()))
         _pressed_state = item.checkState()
         _pressed_text = item.text()
         front._pressed_item_state = _pressed_state
@@ -308,22 +312,28 @@ class MainWindowFrontend(QtGui.QMainWindow):
     @uid_tbl_changed
     def rids_tbl_changed(front, row, col, tbl, new_val):
         front.print('rids_tbl_changed()')
-        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))  # Get selected roiid
-        header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
+        # Get selected roid
+        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
+        # Get changed column
+        header_lbl = front.get_tbl_header(tbl, col)
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @uid_tbl_changed
     def qres_tbl_changed(front, row, col, tbl, new_val):
         front.print('qres_tbl_changed()')
-        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))  # The changed row's roi id
-        header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
+        # The changed row's roi id
+        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
+        # Get changed column
+        header_lbl = front.get_tbl_header(tbl, col)
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @uid_tbl_changed
     def nids_tbl_changed(front, row, col, tbl, new_val):
         front.print('nids_tbl_changed()')
-        sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))    # The changed row's name index
-        header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
+        # The changed row's name index
+        sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))
+        # Get changed column
+        header_lbl = front.get_tbl_header(tbl, col)
         front.aliasNidSignal.emit(sel_nid, header_lbl, new_val)
 
     #=======================
@@ -332,22 +342,26 @@ class MainWindowFrontend(QtGui.QMainWindow):
     @uid_tbl_clicked
     def gids_tbl_clicked(front, row, col, tbl):
         sel_gid = UID_TYPE(front.get_header_val(tbl, 'gid', row))
-        front.selectGidSignal.emit(sel_gid)
+        enctext = front.get_tbl_enctext(tbl)
+        front.selectGidSignal.emit(sel_gid, enctext)
 
     @uid_tbl_clicked
     def rids_tbl_clicked(front, row, col, tbl):
         sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
-        front.selectRidSignal.emit(sel_rid)
+        enctext = front.get_tbl_enctext(tbl)
+        front.selectRidSignal.emit(sel_rid, enctext)
 
     @uid_tbl_clicked
     def qres_tbl_clicked(front, row, col, tbl):
         sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
-        front.selectQResSignal.emit(sel_rid)
+        enctext = front.get_tbl_enctext(tbl)
+        front.selectQResSignal.emit(sel_rid, enctext)
 
     @uid_tbl_clicked
     def nids_tbl_clicked(front, row, col, tbl):
         sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))
-        front.selectNidSignal.emit(sel_nid)
+        enctext = front.get_tbl_enctext(tbl)
+        front.selectNidSignal.emit(sel_nid, enctext)
 
     #=======================
     # Other
@@ -355,6 +369,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
 
     @slot_(int)
     def change_view(front, new_state):
+        """ Function called whenever the veiw is changed """
         tab_name = str(front.ui.tablesTabWidget.tabText(new_state))
         front.print('change_view(%r)' % new_state)
         prevBlock = front.ui.tablesTabWidget.blockSignals(True)

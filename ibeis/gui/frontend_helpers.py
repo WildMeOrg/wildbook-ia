@@ -11,10 +11,6 @@ except AttributeError:
     _fromUtf8 = lambda s: s
 
 
-QTRANSLATE = QtGui.QApplication.translate
-QUTF8      = QtGui.QApplication.UnicodeUTF8
-
-
 # ____________
 # HELPERS
 
@@ -65,16 +61,20 @@ def _new_verticalLayout(parent=None, _numtrick=[0]):
 # Decorators which append jobs to be executed by the ui later
 #
 
-def define_retranslatable(name, front):
-    """ Decorator which augments a function name and connects """
-    def retrans_wrapper(func):
-        func.func_name = name + '_' + func.func_name
-        front.ui.retranslatable_fns.append(func)
-        return func
-    return retrans_wrapper
+def __define_retranslatable2(front, obj, setter, text):
+    """ Appends a obj, text pair to be translated """
+    if text is None:
+        return
+    assert hasattr(obj, setter), '%s has no setter %s' % (obj.objectName(), setter)
+    key = (obj, setter)
+    #print('WILL TRANSLATE %s.%s to %r' %
+    #        (obj.objectName(), setter, text))
+    if key in front.ui.retranslate_dict:
+        raise AssertionError('Already have text for %r' % (key,))
+    front.ui.retranslate_dict[key] = text
 
 
-def define_postsetup(name, front):
+def __define_postsetup(name, front):
     """ Decorator which augments a function name and connects """
     def postsetup_wrapper(func):
         func.func_name = name + '_' + func.func_name
@@ -83,14 +83,17 @@ def define_postsetup(name, front):
     return postsetup_wrapper
 
 
-def define_connection(name, front):
-    """ Decorator which augments a function name and connects """
-    def connect_wrapper(func):
-        func.func_name = name + '_' + func.func_name
-        print('Will connect: ' + func.func_name)
-        front.ui.connect_fns.append(func)
-        return func
-    return connect_wrapper
+def __define_connection2(front, obj, attr, slot_fn):
+    """ Appends a signal, slot pair to be connected """
+    if slot_fn is None:
+        return
+    assert hasattr(obj, attr), '%s has no signal %s' % (obj.objectName(), attr)
+    key = (obj, attr)
+    #print('WILL CONNECT %s.%s to %r' %
+    #      (obj.objectName(), attr, slot_fn.func_name))
+    if key in front.ui.connection_dict:
+        raise AssertionError('Already have slot connected to %r' % (key,))
+    front.ui.connection_dict[key] = slot_fn
 
 # ____________
 # COMPONENTS
@@ -101,9 +104,7 @@ def initMainWidget(front, name, size=(500, 300), title=''):
     (w, h) = size
     front.resize(w, h)
     front.setUnifiedTitleAndToolBarOnMac(False)
-    @define_retranslatable(name, front)
-    def retranslate_fn():
-        front.setWindowTitle(QTRANSLATE(name, title, None, QUTF8))
+    __define_retranslatable2(front, front, 'setWindowTitle', title)
     return front
 
 
@@ -139,10 +140,8 @@ def newMenu(front, menubar, name, text):
     """ Defines each menu category in the menubar """
     menu = QtGui.QMenu(menubar)
     menu.setObjectName(_fromUtf8(name))
-    @define_retranslatable(name, front)
-    def retranslate_fn():
-        menu.setTitle(QTRANSLATE(front.objectName(), text, None, QUTF8))
-    @define_postsetup(name, front)
+    __define_retranslatable2(front, menu, 'setTitle', text)
+    @__define_postsetup(name, front)
     def postsetup_fn():
         menubar.addAction(menu.menuAction())
     # Define a custom newAction function for the menu
@@ -155,12 +154,10 @@ def newMenu(front, menubar, name, text):
 def newTable(front, parent, tblname):
     table = QtGui.QTableWidget(parent)
     table.setDragEnabled(False)
+    table.setSortingEnabled(True)
     table.setObjectName(_fromUtf8(tblname))
     table.setColumnCount(0)
     table.setRowCount(0)
-    @define_retranslatable(tblname, front)
-    def retranslate_fn():
-        table.setSortingEnabled(True)
     return table
 
 
@@ -191,11 +188,17 @@ def newTabbedView(front, tabWidget, viewname, text):
     setattr(front.ui, str(gridLayout.objectName()), gridLayout)
     gridLayout.addLayout(verticalLayout, 0, 0, 1, 1)
     tabWidget.addTab(view, _fromUtf8(''))
-    @define_retranslatable(viewname, front)
-    def retranslate_fn():
-        qtext = QTRANSLATE(front.objectName(), text, None, QUTF8)
-        tabWidget.setTabText(tabWidget.indexOf(view), qtext)
+    # Create a conforming tabText setter
+    def setter_func(qtext):
+        """ helper to let setTabText conform with retranslatable """
+        index = tabWidget.indexOf(view)
+        tabWidget.setTabText(index, qtext)
+    setter_name = 'setTabText_of' + viewname
+    setter_func.func_name = setter_name
+    setattr(tabWidget, setter_name, setter_func)
     setattr(front.ui, viewname, view)
+    # Pass in conforming tabText setter
+    __define_retranslatable2(front, tabWidget, setter_name, text)
     return view, verticalLayout
 
 
@@ -213,18 +216,9 @@ def newTabbedTable(front, tabWidget, name, enctext, text='',
     table = newTable(front, view, tblname)
     setattr(front.ui, tblname, table)
     verticalLayout.addWidget(table)
-    if clicked_slot_fn is not None:
-        @define_connection(tblname, front)
-        def connect_clicked_fn():
-            table.itemClicked.connect(clicked_slot_fn)
-    if pressed_slot_fn is not None:
-        @define_connection(tblname, front)
-        def connect_pressed_fn():
-            table.itemPressed.connect(pressed_slot_fn)
-    if changed_slot_fn is not None:
-        @define_connection(tblname, front)
-        def connect_changed_fn():
-            table.itemChanged.connect(changed_slot_fn)
+    __define_connection2(front, table, 'itemClicked', clicked_slot_fn)
+    __define_connection2(front, table, 'itemPressed', pressed_slot_fn)
+    __define_connection2(front, table, 'itemChanged', changed_slot_fn)
     return view, table
 
 
@@ -285,21 +279,9 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     menu.addAction(action)
     if action_text is None:
         action_text = action_name
-    # TODO: Have ui.retranslateUi call this
-    @define_retranslatable(name, front)
-    def retranslate_fn():
-        if action_text is not None:
-            qtext    = QTRANSLATE(front.objectName(), action_text, None, QUTF8)
-            action.setText(qtext)
-        if action_tooltip is not None:
-            qtooltip = QTRANSLATE(front.objectName(), action_tooltip, None, QUTF8)
-            action.setToolTip(qtooltip)
-        if action_shortcut is not None:
-            qshortcut = QTRANSLATE(front.objectName(), action_shortcut, None, QUTF8)
-            action.setShortcut(qshortcut)
-    if slot_fn is not None:
-        @define_connection(name, front)
-        def connect_fn():
-            action.triggered.connect(slot_fn)
+    __define_retranslatable2(front, action, 'setText', action_text)
+    __define_retranslatable2(front, action, 'setToolTip', action_tooltip)
+    __define_retranslatable2(front, action, 'setShortcut', action_shortcut)
+    __define_connection2(front, action, 'triggered', slot_fn)
     return action
     #retranslate_fn()

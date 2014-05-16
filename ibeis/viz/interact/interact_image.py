@@ -43,7 +43,7 @@ def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
             rid = rid_list[centx]
             print(' ...clicked rid=%r' % rid)
             if select_callback is not None:
-                select_callback(gid, [rid])
+                select_callback(gid, sel_rids=[rid])
             else:
                 _image_view(sel_rids=[rid])
 

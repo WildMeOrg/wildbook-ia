@@ -18,15 +18,24 @@ from ibeis.viz import interact
 # Utool
 import utool
 from ibeis.control import IBEISControl
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[back]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[back]', DEBUG=False)
 
 
-VERBOSE = utool.get_flag('--verbose')
+VERBOSE = utool.VERBOSE
 
 # Wrapped QT UUID type (usually string or long)
 QT_IMAGE_UID_TYPE = uidtables.UID_TYPE
 QT_ROI_UID_TYPE   = uidtables.UID_TYPE
 QT_NAME_UID_TYPE  = uidtables.UID_TYPE
+ENC_TYPE = str
+
+
+if '--verbose-back' in sys.argv:
+    pass
+else:
+    def print(msg):
+        pass
 
 
 # BLOCKING DECORATOR
@@ -70,18 +79,6 @@ def blocking_slot(*types_):
         printDBG('blocking slot: %r, types=%r' % (wrap3.func_name, types_))
         return wrap3
     return wrap1
-
-
-# TODO: Inject functions into backend rather than use unreloadable classmethods
-def _select_rid(back, rid, show_roi, **kwargs):
-    # Table Click -> Chip Table
-    print('[back] !@!!select rid=%r' % rid)
-    rid = uidtables.qt_cast(rid)
-    gid = back.ibs.get_roi_gids(rid)
-    nid = back.ibs.get_roi_nids(rid)
-    back._set_selection(rids=[rid], gids=[gid], nids=[nid], **kwargs)
-    if show_roi:
-        back.show_roi(rid, **kwargs)
 
 
 #------------------------
@@ -182,7 +179,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @utool.indent_func
     def get_selected_gid(back):
-        'selected image id'
+        """ selected image id """
         if len(back.sel_gids) == 0:
             if len(back.sel_rids) == 0:
                 gid = back.ibs.get_roi_gids(back.sel_rids)[0]
@@ -193,11 +190,27 @@ class MainWindowBackend(QtCore.QObject):
 
     @utool.indent_func
     def get_selected_rid(back):
-        'selected roi id'
+        """ selected roi id """
         if len(back.sel_rids) == 0:
             raise AssertionError('There are no selected ROIs')
         rid = back.sel_rids[0]
         return rid
+
+    @utool.indent_func
+    def get_selected_eid(back):
+        """ selected encounter id """
+        if len(back.sel_rids) == 0:
+            raise AssertionError('There are no selected Encounters')
+        eid = back.sel_eids[0]
+        return eid
+
+    @utool.indent_func
+    def get_selected_qres(back):
+        """ selected query result """
+        if len(back.sel_rids) == 0:
+            return None
+        qres = back.sel_qres[0]
+        return qres
 
     #@utool.indent_func
     def update_window_title(back):
@@ -231,7 +244,7 @@ class MainWindowBackend(QtCore.QObject):
     #----------------------1----------------------------------------------------
 
     def enctext_generator(back):
-        valid_eids = back.ibs.get_valid_eids()
+        valid_eids = back.ibs.get_valid_eids(min_num_gids=2)
         enctext_list = [''] + back.ibs.get_encounter_enctext(valid_eids)
         for enctext in enctext_list:
             yield enctext
@@ -241,6 +254,7 @@ class MainWindowBackend(QtCore.QObject):
         for enctext in back.enctext_generator():
             uidtables.populate_encounter_tab(back.front,
                                               enctext=enctext, **kwargs)
+        back.front.ui.connectUi()
 
     @utool.indent_func
     def populate_image_table(back, **kwargs):
@@ -262,40 +276,43 @@ class MainWindowBackend(QtCore.QObject):
 
     @utool.indent_func
     def populate_result_table(back, **kwargs):
-        #qres = back.current_res
-        qres = None
-        return
+        qres = back.get_selected_qres()
         if qres is None:
             # Clear the table if there are no results
             print('[back] no results available')
             return
         #uidtables.emit_populate_table(back, uidtables.QRES_TABLE, index_list=[])
-        top_cxs = qres.topN_cxs(back.ibs, N='all')
-        qrid = qres.qrid
+        top_rids = qres.get_top_rids()
         # The ! mark is used for ascii sorting. TODO: can we work around this?
         prefix_cols = [{'rank': '!Query',
                         'score': '---',
-                        'name': back.ibs.get_roi_name(qrid),
-                        'rid': qrid, }]
+                        'name': back.ibs.get_roi_names(qres.qrid),
+                        'rid': qres.qrid, }]
         extra_cols = {
-            'score':  lambda cxs:  [qres.cx2_score[rid] for rid in iter(cxs)],
+            'score':  lambda rids:  [qres.rid2_score[rid] for rid in rids],
         }
-        back.emit_populate_table(uidtables.QRES_TABLE, index_list=top_cxs,
-                                 prefix_cols=prefix_cols,
-                                 extra_cols=extra_cols,
-                                 **kwargs)
+        enctext = back.ibs.get_encounter_enctext(qres.eid)
+        if enctext is None or enctext == 'None':
+            enctext = ''
+        uidtables.emit_populate_table(back,
+                                      uidtables.QRES_TABLE,
+                                      enctext=enctext,
+                                      index_list=top_rids,
+                                      prefix_cols=prefix_cols,
+                                      extra_cols=extra_cols,
+                                      **kwargs)
 
-    def populate_tables(back, image=True, roi=True, name=True, qres=True,
-                        encounter=True):
-        if encounter:
+    def populate_tables(back, **kwargs):
+        default = kwargs.get('all', True)
+        if kwargs.get('encounter', default):
             back.populate_encounter_tabs()
-        if image:
+        if kwargs.get('image', default):
             back.populate_image_table()
-        if roi:
+        if kwargs.get('roi', default):
             back.populate_roi_table()
-        if name:
+        if kwargs.get('name', default):
             back.populate_name_table()
-        if qres:
+        if kwargs.get('qres', default):
             back.populate_result_table()
 
     #--------------------------------------------------------------------------
@@ -322,7 +339,8 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
-    def _set_selection(back, gids=None, rids=None, nids=None, qres=None, **kwargs):
+    def _set_selection(back, gids=None, rids=None, nids=None,
+                       qres=None, eids=None, **kwargs):
         if gids is not None:
             back.sel_gids = gids
         if rids is not None:
@@ -331,33 +349,53 @@ class MainWindowBackend(QtCore.QObject):
             back.sel_nids = nids
         if qres is not None:
             back.sel_qres = qres
+        if eids is not None:
+            back.sel_eids = eids
 
-    @blocking_slot(QT_IMAGE_UID_TYPE)
-    def select_gid(back, gid, sel_rids=[], **kwargs):
+    @blocking_slot(QT_IMAGE_UID_TYPE, ENC_TYPE)
+    def select_gid(back, gid, enctext=None, sel_rids=None, **kwargs):
         # Table Click -> Image Table
+        # Select the first ROI in the image if unspecified
+        if sel_rids is None:
+            rids = back.ibs.get_image_rids(gid)
+            if len(rids) > 0:
+                sel_rids = rids[0:1]
+            else:
+                sel_rids = []
         gid = uidtables.qt_cast(gid)
-        print('[back] select_gid(gid=%r, sel_rids=%r)' % (gid, sel_rids))
-        back._set_selection(gids=(gid,), rids=sel_rids, **kwargs)
+        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
+        print('[back] select_gid(gid=%r, eid=%r, sel_rids=%r)' % (gid, eid, sel_rids))
+        back._set_selection(gids=(gid,), rids=sel_rids, eids=[eid], **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
 
-    @blocking_slot(QT_ROI_UID_TYPE)
-    def select_rid(back, rid, show_roi=True, **kwargs):
-        _select_rid(back, rid, show_roi, **kwargs)
+    @blocking_slot(QT_ROI_UID_TYPE, ENC_TYPE)
+    def select_rid(back, rid, enctext=None, show_roi=True, **kwargs):
+        # Table Click -> Chip Table
+        rid = uidtables.qt_cast(rid)
+        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
+        print('[back] select rid=%r, eid=%r' % (rid, eid))
+        gid = back.ibs.get_roi_gids(rid)
+        nid = back.ibs.get_roi_nids(rid)
+        back._set_selection(rids=[rid], gids=[gid], nids=[nid], eids=[eid], **kwargs)
+        if show_roi:
+            back.show_roi(rid, **kwargs)
 
-    @slot_(QT_NAME_UID_TYPE)
-    def select_nid(back, nid, show_name=True, **kwargs):
+    @slot_(QT_NAME_UID_TYPE, ENC_TYPE)
+    def select_nid(back, nid, enctext=None, show_name=True, **kwargs):
         # Table Click -> Name Table
         nid = uidtables.qt_cast(nid)
-        print('[back] select nid=%r' % nid)
-        back._set_selection(nids=[nid], **kwargs)
+        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
+        print('[back] select nid=%r, eid=%r' % (nid, eid))
+        back._set_selection(nids=[nid], eids=[eid], **kwargs)
         if show_name:
             back.show_name(nid, **kwargs)
 
-    @slot_(QT_ROI_UID_TYPE)
-    def select_qres_rid(back, rid, **kwargs):
+    @slot_(QT_ROI_UID_TYPE, ENC_TYPE)
+    def select_qres_rid(back, rid, enctext=None, **kwargs):
         # Table Click -> Result Table
-        print('[back] select result rid=%r' % rid)
+        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
         rid = uidtables.qt_cast(rid)
+        print('[back] select result rid=%r, eid=%r' % (rid, eid))
 
     #--------------------------------------------------------------------------
     # Misc Slots
@@ -571,14 +609,24 @@ class MainWindowBackend(QtCore.QObject):
             back.show_image(gid)
 
     @blocking_slot()
-    def query(back, rid=None, **kwargs):
+    def query(back, rid=None, refresh=True, **kwargs):
         """ Action -> Query"""
-        print('[back] query(rid=%r)' % (rid,))
         if rid is None:
             rid = back.get_selected_rid()
-        qrid2_qres = back.ibs.query_database([rid])
+        if 'eid' not in kwargs:
+            eid = back.get_selected_eid()
+        if eid is None:
+            print('[back] query_database(rid=%r)' % (rid,))
+            qrid2_qres = back.ibs.query_database([rid])
+            qrid2_qres = back.ibs.query_database([rid])
+        else:
+            print('[back] query_encounter(rid=%r, eid=%r)' % (rid, eid))
+            qrid2_qres = back.ibs.query_encounter([rid], eid)
         qres = qrid2_qres[rid]
-        back.show_qres(qres)
+        back._set_selection(qres=[qres])
+        if refresh:
+            back.populate_tables(qres=True)
+            back.show_qres(qres)
 
     @blocking_slot()
     def detect_grevys(back, refresh=True):
