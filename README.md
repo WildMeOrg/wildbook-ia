@@ -13,11 +13,11 @@ export CODE_DIR=~/code
 cd $CODE_DIR
 
 # First clone the IBEIS repos
-git clone https://github.com:Erotemic/utool.git
-git clone https://github.com:Erotemic/vtool.git
-git clone https://github.com/Erotemic/hesaff.git
+git clone https://github.com/Erotemic/utool.git
+git clone https://github.com/Erotemic/vtool.git
 git clone https://github.com/Erotemic/plottool.git
 git clone https://github.com/Erotemic/guitool.git
+git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/ibeis.git
 # Set the previous repos up for development by running 
 #
