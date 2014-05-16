@@ -16,24 +16,22 @@ def export_ibeis_to_wildbook(ibs, eid_list):
     target_url_encounter = ibs.wbaddr + '/rest/org.ecocean.Encounter'
     target_url_image = ibs.wbaddr + '/EncounterAddImage'
     # list of tuples, each has the names associated with the encounter
-    names_list = ibs.get_encounter_nids(eid_list)
-    # list of lists, each has the rois associated with an encounter
-    rids_list = ibs.get_encounter_rids(eid_list)
-    images_list = ibs.get_encounter_gids(eid_list)
+    nids_list = ibs.get_encounter_nids(eid_list)
+    #images_list = ibs.get_encounter_gids(eid_list)
 
-    assert len(names_list) == len(rids_list) == len(images_list) == len(eid_list)
-    for eid, nids, rois, images in izip(eid_list, names_list, rids_list, images_list):
+    assert len(nids_list) == len(eid_list)
+    for eid, nids in izip(eid_list, nids_list):
         # the actual names corresponding to the name ids
         names_text = ibs.get_names(nids)
         # list of list of images that correspond to each name id
-        images_lists = ibs.get_name_gids(nids)
+        gids_lists = ibs.get_name_gids(nids)
 
-        assert len(nids) == len(names_text) == len(images_lists)
+        assert len(nids) == len(names_text) == len(gids_lists)
         # creates wildbook encounters for each name in an ibeis encounter
-        for name_id, name_text, images in izip(nids, names_text, images_lists):
+        for nid, name_text, gids in izip(nids, names_text, gids_lists):
             # the actual text encounter name corresponding to the encounter id
             enctext = ibs.get_encounter_enctext(eid)
-            wbenc_name = enctext + '_' + str(name_id)
+            wbenc_name = enctext + '_' + str(nid)
             payload_encounter = {'dwcImageURL': ibs.wbaddr + '/encounters/encounter.jsp?number=' + wbenc_name,
                                  'state': 'unapproved',
                                  'dateInMilliseconds': 100,
@@ -49,7 +47,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
             response = requests.post(target_url_encounter, data=json.dumps(payload_encounter))
             print ('POSTed %s to %s with status %d' % (wbenc_name, target_url_encounter, response.status_code))
             # get the paths to all the images in which this name id appears
-            paths = ibs.get_image_paths(images)
+            paths = ibs.get_image_paths(gids)
             payload_image = {'number': wbenc_name}
             # upload the images one by one
             for path in paths:
