@@ -9,14 +9,18 @@ import utool  # NOQA
 from ibeis.gui.frontend_helpers import *  # NOQA
 
 
+QTRANSLATE = QtGui.QApplication.translate
+QUTF8      = QtGui.QApplication.UnicodeUTF8
+
+
 class Ui_mainSkel(object):
     def setupUi(ui, front):
-        ui.enctext_dict = {}
         setup_ui(ui, front, front.back)
         ui.postsetupUI()
         ui.tablesTabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(front)
         ui.retranslateUi(front)
+        ui.connectUi()
 
     def postsetupUI(ui):
         #print('[skel] Calling Postsetup')
@@ -25,8 +29,27 @@ class Ui_mainSkel(object):
 
     def retranslateUi(ui, front):
         #print('[skel] Calling Retranslate')
-        for func in ui.retranslatable_fns:
-            func()
+        for key, text in ui.retranslate_dict.iteritems():
+            obj, setter = key
+            frontname = front.objectName()
+            #print('TRANSLATE %s.%s to %r' % (objname, setter,
+            #                                 text))
+            qtext = QTRANSLATE(frontname, text, None, QUTF8)
+            getattr(obj, setter)(qtext)
+
+    def connectUi(ui):
+        # Connect all signals from GUI
+        for key, slot_fn in ui.connection_dict.iteritems():
+            obj, attr = key
+            key_sig = (obj.objectName(), attr, slot_fn.func_name)
+            # Do not connect signals more than once
+            if key_sig in ui.connected_signals:
+                ui.connected_signals
+                continue
+            ui.connected_signals.add(key_sig)
+            print('CONNECT %s.%s to %r' % (obj.objectName(), attr,
+                                           slot_fn.func_name))
+            getattr(obj, attr).connect(slot_fn)
 
     def ensureEncounterTab(ui, front, enctext):
         """ Ensure encounter tab for specific enctext """
@@ -52,6 +75,36 @@ class Ui_mainSkel(object):
         except KeyError:
             pass
         ui.retranslateUi(front)
+
+
+def setup_ui(ui, front, back):
+    ui.enctext_dict = {}
+    ui.connected_signals = set()
+    ui.connection_dict  = {}  # dict of signal / slots to connect
+    ui.retranslate_dict = {}
+    ui.retranslatable_fns = []  # A list of retranslatable functions
+    ui.postsetup_fns      = []
+
+    back = front.back
+
+    setup_main_layout(ui, front, back)
+
+    # ENCOUNTER SUPERTABS
+    ui.encountersTabWidget = newTabWidget(front, ui.splitter,
+                                          'encountersTabWidget', vstretch=10)
+    ui.ensureEncounterTab(front, enctext=None)
+
+    # Split Panes
+    ui.progressBar = newProgressBar(ui.splitter, visible=False)
+    ui.outputEdit  = newOutputEdit(ui.splitter, visible=False)
+
+    # Menus
+    setup_file_menu(ui, front, back)
+    setup_actions_menu(ui, front, back)
+    setup_batch_menu(ui, front, back)
+    setup_option_menu(ui, front, back)
+    setup_help_menu(ui, front, back)
+    setup_developer_menu(ui, front, back)
 
 
 def newEncounterTabs(front, parent, enctext=None):
@@ -81,32 +134,6 @@ def newEncounterTabs(front, parent, enctext=None):
                              clicked_slot_fn=front.qres_tbl_clicked,
                              pressed_slot_fn=front.uid_tbl_pressed,
                              changed_slot_fn=front.qres_tbl_changed)
-
-
-def setup_ui(ui, front, back):
-    ui.retranslatable_fns = []  # A list of retranslatable functions
-    ui.connect_fns = []  # A list of signals / slots to connect
-    ui.postsetup_fns = []
-
-    back = front.back
-
-    setup_main_layout(ui, front, back)
-
-    # ENCOUNTER SUPERTABS
-    ui.encountersTabWidget = newTabWidget(front, ui.splitter, 'encountersTabWidget', vstretch=10)
-    ui.ensureEncounterTab(front, enctext=None)
-
-    # Split Panes
-    ui.progressBar = newProgressBar(ui.splitter, visible=False)
-    ui.outputEdit  = newOutputEdit(ui.splitter, visible=False)
-
-    # Menus
-    setup_file_menu(ui, front, back)
-    setup_actions_menu(ui, front, back)
-    setup_batch_menu(ui, front, back)
-    setup_option_menu(ui, front, back)
-    setup_help_menu(ui, front, back)
-    setup_developer_menu(ui, front, back)
 
 
 def setup_file_menu(ui, front, back):
@@ -249,11 +276,12 @@ def setup_option_menu(ui, front, back):
 def setup_help_menu(ui, front, back):
     """ HELP MENU """
     ui.menuHelp = newMenu(front, ui.menubar, 'menuHelp', 'Help')
+    about_msg = 'IBEIS = Image Based Ecological Information System'
     ui.menuHelp.newAction(
         name='actionAbout',
         text='About',
         shortcut='',
-        slot_fn=msg_event('About', 'IBEIS = Image Based Ecological Information System'))
+        slot_fn=msg_event('About', about_msg))
     ui.menuHelp.newAction(
         name='actionView_Docs',
         text='View Documentation',
@@ -312,7 +340,8 @@ def setup_developer_menu(ui, front, back):
 
 
 def setup_main_layout(ui, front, back):
-    initMainWidget(front, 'mainSkel', size=(1000, 600), title='IBEIS - No Database Opened')
+    default_title = 'IBEIS - No Database Opened'
+    initMainWidget(front, 'mainSkel', size=(1000, 600), title=default_title)
     ui.centralwidget, ui.verticalLayout = newCentralLayout(front)
     ui.splitter = newVerticalSplitter(ui.centralwidget, ui.verticalLayout)
     ui.menubar = newMenubar(front, 'menubar')

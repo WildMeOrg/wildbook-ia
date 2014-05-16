@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
 import utool
 from ibeis.control import SQLDatabaseControl
+from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NAMES]')
 
 
@@ -35,12 +33,16 @@ def __insert_names(db, name_list):
 
 def TEST_SQL_NAMES():
     # -------- INIT DATABASE ------------
-    print('Remove Old Temp Database')
-    utool.util_path.remove_file('temp.sqlite3', dryrun=False)
     #
     # Create new temp database
+    sqldb_fname = 'temp_test_sql_names.sqlite3'
+    sqldb_dpath = utool.util_cplat.get_project_resource_dir('ibeis', 'testfiles')
+    utool.ensuredir(sqldb_dpath)
+    print('Remove Old Temp Database')
+    utool.util_path.remove_file(join(sqldb_dpath, sqldb_fname), dryrun=False)
     print('New Temp Database')
-    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath='.', sqldb_fname='temp.sqlite3')
+    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
+                                                  sqldb_fname=sqldb_fname)
     #
     # Define the schema
     __define_schema(db)
@@ -94,7 +96,6 @@ def TEST_SQL_NAMES():
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # For windows
-    from ibeis.tests import __testing__
-    test_locals = __testing__.run_test(TEST_SQL_NAMES)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_SQL_NAMES)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

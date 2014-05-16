@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
-import os
-from os.path import expanduser, join
-sys.path.append(os.getcwd())  # for windows
-sys.path.append(expanduser('~/code/hesaff'))
-import ibeis
 from ibeis.dev import sysres
-import utool
 from ibeis.injest import injest_testdb1
+from os.path import join
 from vtool.tests import grabdata
+import ibeis
+import utool
+
+__test__ = False  # This is not a test
+
 
 workdir = ibeis.sysres.get_workdir()
 

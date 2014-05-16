@@ -113,7 +113,7 @@ def nearest_neighbors(ibs, qrids, qreq):
         # Check that we can query this chip
         if len(qfx2_desc) == 0:
             # Raise error if strict
-            if '--strict' in sys.argv:
+            if utool.STRICT:
                 raise NoDescriptorsException(ibs, qrid)
             else:
                 # Assign empty nearest neighbors

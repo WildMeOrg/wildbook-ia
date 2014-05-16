@@ -3,7 +3,6 @@ import __builtin__
 import sys
 import multiprocessing
 
-sys.argv.append('--strict')  # do not supress any errors
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
 
 try:
@@ -105,7 +104,7 @@ def __import_parallel_modules():
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
     from utool import util_sysreq
-    util_sysreq.ensure_in_pythonpath('hesaff')
+    #util_sysreq.ensure_in_pythonpath('hesaff')
     util_sysreq.ensure_in_pythonpath('pyrf')
     #util_sysreq.ensure_in_pythonpath('code')
     import pyhesaff  # NOQA
@@ -263,7 +262,10 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
             raise
     if not persist or params.args.cmd:
         main_close()
-    execstr = utool.ipython_execstr()
+    # Put locals in the exec namespace
+    ipycmd_execstr = utool.ipython_execstr()
+    locals_execstr = utool.execstr_dict(main_locals, 'main_locals')
+    execstr = locals_execstr + '\n' + ipycmd_execstr
     return execstr
 
 

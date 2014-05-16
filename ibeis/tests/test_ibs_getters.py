@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
-from ibeis.tests import __testing__
 # Python
 import multiprocessing
 # Tools
@@ -46,19 +42,14 @@ def TEST_IBS_GETTERS(ibs=None):
 
     assert_getter_output(bboxes_list, bboxes_scalar, bboxes_numpy, 'bboxes')
     assert_getter_output(kpts_list, kpts_scalar, kpts_numpy, 'kpts')
-
-    # Run Qt Loop to use the GUI
-    print('[TEST] MAIN_LOOP')
-    if main_locals is None:
-        main_locals.update(locals())
-        __testing__.main_loop(main_locals, rungui=False)
     return locals()
 
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb0')
+    multiprocessing.freeze_support()  # For win32
+    import ibeis
+    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
-    test_locals = __testing__.run_test(TEST_IBS_GETTERS, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_IBS_GETTERS, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

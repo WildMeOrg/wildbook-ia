@@ -93,12 +93,16 @@ reverse_fancy = dict(izip(col_fancyheader_list, col_header_list))
 header_typemap = dict(izip(col_header_list, col_type_list))
 
 # Different python types uuids can be
-UUID_TYPE    = str
-INTEGER_TYPE = int
+
+
+# We are basically just using int as the UID type now
+# We aren't even messing with UUIDs here anymore
+# TODO: Clean this section of code up!
+UID_TYPE = int
 
 schema_qt_typemap = {
-    'INTEGER': INTEGER_TYPE,
-    'UUID': UUID_TYPE,
+    'INTEGER': int,
+    'UUID': str,
 }
 
 # Specialize table uid types
@@ -121,8 +125,17 @@ def qt_cast(qtinput):
     elif isinstance(qtinput, (int, str)):
         return qtinput
     else:
-        raise ValueError('Unknown QtType: type(qtinput)=%r, qtinput=%r' % (type(qtinput), qtinput))
+        raise ValueError('Unknown QtType: type(qtinput)=%r, qtinput=%r' %
+                         (type(qtinput), qtinput))
     return qtoutput
+
+
+def qt_enctext_cast(enctext):
+    enctext = qt_cast(enctext)
+    # Sanatize enctext
+    if enctext in ['None', '', 'database']:
+        enctext = None
+    return enctext
 
 # Table names (should reflect SQL tables)
 IMAGE_TABLE = 'gids'
@@ -200,8 +213,9 @@ def _get_table_headers_editable(tblname):
     return col_headers, col_editable
 
 
-def _get_table_datatup_list(ibs, tblname, col_headers, col_editable, extra_cols={},
-                            index_list=None, prefix_cols=[], **kwargs):
+def _get_table_datatup_list(ibs, tblname, col_headers, col_editable,
+                            extra_cols={}, index_list=None, prefix_cols=[],
+                            **kwargs):
     enctext = kwargs.get('enctext')
     if index_list is None:
         if enctext is None or enctext == '' or enctext == 'None':
@@ -234,7 +248,8 @@ def emit_populate_table(back, tblname, *args, **kwargs):
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers.get(key, key) for key in col_headers]
     col_types = [header_typemap.get(key) for key in col_headers]
-    printDBG('[uidtbls] populateTableSignal.emit(%r, len=%r)' % (tblname, len(col_fancyheaders)))
+    printDBG('[uidtbls] populateTableSignal.emit(%r, len=%r)' %
+             (tblname, len(col_fancyheaders)))
     back.populateTableSignal.emit(tblname,
                                   col_fancyheaders,
                                   col_editable,

@@ -11,9 +11,11 @@ http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
 export CWD=$(pwd)
 
 # FIXME: Weird directory dependency
-export PATHSEP=$(python -c "import os; print(os.pathsep)")
-export HESAFF_DIR=../hesaff
-export PYTHONPATH=$PYTHONPATH$PATHSEP$CWD$PATHSEP$HESAFF_DIR$PATHSEP$HESAFF_DIR/pyhesaff
+#export PATHSEP=$(python -c "import os; print(os.pathsep)")
+export PYHESAFF_DIR=$(python -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
+export VTOOL_DIR=$(python -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
+echo $VTOOL_DIR
+
 echo $PYTHONPATH
 
 export ARGV="--quiet --noshow $@"
@@ -91,13 +93,13 @@ cat <<EOF
      \/   |  |__| |__| |___     |  |___ ___]  |  ___] 
 EOF
 
-    RUN_TEST vtool/tests/test_draw_keypoint.py --noshow 
+    RUN_TEST $VTOOL_DIR/tests/test_draw_keypoint.py --noshow 
 
-    RUN_TEST vtool/tests/test_spatial_verification.py --noshow 
+    RUN_TEST $VTOOL_DIR/tests/test_spatial_verification.py --noshow 
 
-    RUN_TEST vtool/tests/test_exhaustive_ori_extract.py --noshow 
+    RUN_TEST $VTOOL_DIR/tests/test_exhaustive_ori_extract.py --noshow 
 
-    RUN_TEST vtool/tests/test_vtool.py 
+    RUN_TEST $VTOOL_DIR/tests/test_vtool.py 
 
 fi
 
@@ -186,14 +188,14 @@ cat <<EOF
     |  | |___ ___] |  | |    |        |  |___ ___]  |  ___] 
 EOF
     
-    RUN_TEST $HESAFF_DIR/tests/test_adaptive_scale.py
-    RUN_TEST $HESAFF_DIR/tests/test_draw_keypoint.py
-    RUN_TEST $HESAFF_DIR/tests/test_ellipse.py
-    RUN_TEST $HESAFF_DIR/tests/test_exhaustive_ori_extract.py
-    RUN_TEST $HESAFF_DIR/tests/test_patch_orientation.py
-    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff.py
-    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple_iterative.py
-    RUN_TEST $HESAFF_DIR/tests/test_pyhesaff_simple_parallel.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_adaptive_scale.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_draw_keypoint.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_ellipse.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_exhaustive_ori_extract.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_patch_orientation.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_pyhesaff.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_pyhesaff_simple_iterative.py
+    RUN_TEST $PYHESAFF_DIR/tests/test_pyhesaff_simple_parallel.py
 fi
 
 #---------------------------------------------

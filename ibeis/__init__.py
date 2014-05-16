@@ -6,7 +6,7 @@ from . import main_module
 from .main_module import main, _preload, main_loop
 
 __LOADED__ = False
-#from . import viz  # WIN32!!!
+__version__ = '0.1.0.dev1'
 
 def import_subs():
     global __LOADED__

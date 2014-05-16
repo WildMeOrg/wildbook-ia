@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#from os.path import join, dirname, realpath
-#sys.path.append(realpath(join(dirname(__file__), '../..')))
 import multiprocessing
 import utool
 import numpy as np
 from ibeis.dev import sysres
+from vtool.tests import grabdata
+import ibeis
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ALL]')
 np.tau = 2 * np.pi
 
@@ -121,11 +121,10 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
-    from ibeis.tests import __testing__
-    main_locals = __testing__.main(defaultdb='testdb0', gui=True)
-    gpath_list = __testing__.get_test_gpaths(zebra=True, lena=True, jeff=True)
+    main_locals = ibeis.main(defaultdb='testdb0', gui=True)
+    gpath_list = grabdata.get_test_gpaths(zebra=True, lena=True, jeff=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
-    test_locals = __testing__.run_test(TEST_GUI_ALL, ibs, back, gpath_list)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_GUI_ALL, ibs, back, gpath_list)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

@@ -146,6 +146,7 @@ from ibeis.model import preproc
 
 def reload_all():
     rrr()
+    guiback.rrr()
     ibeis.reload_subs()
     utool.reload_subs()
     #vtool.reload_subs()

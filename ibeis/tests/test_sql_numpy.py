@@ -1,20 +1,29 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
 import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl
+from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NUMPY] ')
 
 
-def TEST_SQL_NUMPY():
-    dbfilename = '__temp.sqlite3'
-    utool.util_path.remove_file(dbfilename, dryrun=False)
+# list of 10,000 chips with 3,000 features apeice.
+def grab_numpy_testdata(shape=(3e3, 128), dtype=np.uint8):
+    ndata = utool.get_arg('--ndata', type_=int, default=2)
+    print('[TEST] build ndata=%d numpy arrays with shape=%r' % (ndata, shape))
+    print(' * expected_memory(table_list) = %s' % utool.byte_str2(ndata * np.product(shape)))
+    table_list = [np.empty(shape, dtype=dtype) for i in xrange(ndata)]
+    print(' * memory+overhead(table_list) = %s' % utool.byte_str2(utool.get_object_size(table_list)))
+    return table_list
 
-    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath='.',
-                                                  sqldb_fname=dbfilename)
+
+def TEST_SQL_NUMPY():
+    sqldb_fname = 'temp_test_sql_numpy.sqlite3'
+    sqldb_dpath = utool.util_cplat.get_project_resource_dir('ibeis', 'testfiles')
+    utool.ensuredir(sqldb_dpath)
+    utool.util_path.remove_file(join(sqldb_dpath, sqldb_fname), dryrun=False)
+    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
+                                                  sqldb_fname=sqldb_fname)
 
     db.schema('temp',    [
         ('temp_id',      'INTEGER PRIMARY KEY'),
@@ -22,7 +31,7 @@ def TEST_SQL_NUMPY():
     ])
 
     tt = utool.tic()
-    feats_list = __testing__.get_test_numpy_data(shape=(3e3, 128), dtype=np.uint8)
+    feats_list = grab_numpy_testdata(shape=(3e3, 128), dtype=np.uint8)
     print(' * numpy.new time=%r sec' % utool.toc(tt))
 
     print('[TEST] insert numpy arrays')
@@ -67,8 +76,7 @@ def TEST_SQL_NUMPY():
 
 if __name__ == '__main__':
     import multiprocessing
-    multiprocessing.freeze_support()  # For windows
-    from ibeis.tests import __testing__
-    test_locals = __testing__.run_test(TEST_SQL_NUMPY)
-    execstr     = __testing__.main_loop(test_locals)
+    multiprocessing.freeze_support()  # For win32
+    test_locals = utool.run_test(TEST_SQL_NUMPY)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

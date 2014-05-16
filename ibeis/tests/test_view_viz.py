@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import sys
-from os.path import join, dirname, realpath
-sys.path.append(realpath(join(dirname(__file__), '../..')))
-from ibeis.tests import __testing__
 import multiprocessing
 import utool
 from ibeis import viz
@@ -69,9 +65,10 @@ def TEST_VIZ(ibs):
 
 
 if __name__ == '__main__':
+    import ibeis
     multiprocessing.freeze_support()  # For windows
-    main_locals = __testing__.main(defaultdb='testdb0')
+    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
-    test_locals = __testing__.run_test(TEST_VIZ, ibs)
-    execstr     = __testing__.main_loop(test_locals)
+    test_locals = utool.run_test(TEST_VIZ, ibs)
+    execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
