@@ -102,11 +102,12 @@ class QueryResult(__OBJECT_BASE__):
         super(QueryResult, qres).__init__()
         qres.qrid = qrid
         qres.uid = uid
+        qres.eid = None  # encounter id
         # Assigned features matches
-        qres.rid2_fm = None  # {}
-        qres.rid2_fs = None  # {}
-        qres.rid2_fk = None  # {}
-        qres.rid2_score = None  # {}
+        qres.rid2_fm = None  # feat_match_list
+        qres.rid2_fs = None  # feat_score_list
+        qres.rid2_fk = None  # feat_rank_list
+        qres.rid2_score = None  # roi score
         qres.filt2_meta = None  # messy
 
     def has_cache(qres, qreq):

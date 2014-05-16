@@ -1,11 +1,23 @@
 Write hard tags to notes w/ experiment_harness
-Keypoint viewpoint exporter
-
-Add notes column for names and images
-
-Fix the analysis qres view
 
 Encounter tests is failing oddly (different results different machines)
 
 
-Write hotspotter format 
++----------------------------
+|  [TYPE]
+|  GUI / Style Issue
+|  
+|  [EXPLINATION]
+|  IBIES attempts to conform to a "what you see is what you get" coding style. 
+|  Ideally this means that there are no unexplicit aliases or weird conditionals
+|  based on names. The ecnounter implementation does not conform to this. 
+|  An encounter in ['', 'database', 'None', None] all mean the same thing, and 
+|  they shouldn't. Yet there needs to be a notion of no encounters. This is
+|  tricky when using Qt, because you need to send signals with predetermined
+|  types. I don't believe None can be one. 
+|  
+|  [TASK]
+|  Figure out way to make encounters conform to the  "what you see is what you get" 
+|  coding style. Maybe there should be a default "database" encounter. But I
+|  don't like that either. I don't know what the answer is yet
+L----------------------------

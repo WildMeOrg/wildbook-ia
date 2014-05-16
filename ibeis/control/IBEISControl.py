@@ -1651,6 +1651,8 @@ class IBEISController(object):
         """ _query_chips wrapper """
         drid_list = ibs.get_encounter_rids(eid)  # encounter database chips
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        for qres in qrid2_qres.itervalues():
+            qres.eid = eid
         return qrid2_qres
 
     @utool.indent_func(False)

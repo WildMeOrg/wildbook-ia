@@ -47,8 +47,8 @@ class Ui_mainSkel(object):
                 ui.connected_signals
                 continue
             ui.connected_signals.add(key_sig)
-            print('CONNECT %s.%s to %r' % (obj.objectName(), attr,
-                                           slot_fn.func_name))
+            #print('CONNECT %s.%s to %r' % (obj.objectName(), attr,
+            #                               slot_fn.func_name))
             getattr(obj, attr).connect(slot_fn)
 
     def ensureEncounterTab(ui, front, enctext):
