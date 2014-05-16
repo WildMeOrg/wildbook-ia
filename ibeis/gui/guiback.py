@@ -207,10 +207,11 @@ class MainWindowBackend(QtCore.QObject):
     @utool.indent_func
     def get_selected_qres(back):
         """ selected query result """
-        if len(back.sel_rids) == 0:
+        if len(back.sel_qres) > 0:
+            qres = back.sel_qres[0]
+            return qres
+        else:
             return None
-        qres = back.sel_qres[0]
-        return qres
 
     #@utool.indent_func
     def update_window_title(back):
@@ -303,7 +304,7 @@ class MainWindowBackend(QtCore.QObject):
                                       **kwargs)
 
     def populate_tables(back, **kwargs):
-        default = kwargs.get('all', True)
+        default = kwargs.get('default', True)
         if kwargs.get('encounter', default):
             back.populate_encounter_tabs()
         if kwargs.get('image', default):
@@ -589,7 +590,7 @@ class MainWindowBackend(QtCore.QObject):
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
         printDBG('[back.add_roi] * added rid=%r' % rid)
         if refresh:
-            back.populate_tables()
+            back.populate_tables(qres=False, encounter=False)
             back.show_image(gid)
         #back.select_gid(gid, rids=[rid])
         return rid
@@ -605,7 +606,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] reselect_roi')
         back.ibs.set_roi_bboxes([rid], [bbox])
         if refresh:
-            back.populate_tables()
+            back.populate_tables(roi=True, default=False)
             back.show_image(gid)
 
     @blocking_slot()
@@ -625,7 +626,7 @@ class MainWindowBackend(QtCore.QObject):
         qres = qrid2_qres[rid]
         back._set_selection(qres=[qres])
         if refresh:
-            back.populate_tables(qres=True)
+            back.populate_tables(qres=True, default=False)
             back.show_qres(qres)
 
     @blocking_slot()
@@ -635,7 +636,7 @@ class MainWindowBackend(QtCore.QObject):
         gid_list = ibs.get_valid_gids()
         ibs.detect_random_forest(gid_list, 'zebra_grevys')
         if refresh:
-            back.populate_tables()
+            back.populate_tables(encounter=False, qres=False)
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
