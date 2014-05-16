@@ -20,7 +20,7 @@ COLUMN_DEFS = [
     (int,   'nRids',      '#ROIs'),
     (int,   'nGt',        '#GT'),
     (int,   'nFeats',     '#Features'),
-    (int,   'rank',       'Rank'),
+    (str,   'rank',       'Rank'),  # needs to be a string for !Query
     (float, 'unixtime',   'unixtime'),
     (str,   'enctext',    'Encounter'),
     (str,   'gname',      'Image Name'),
@@ -75,7 +75,7 @@ def _datatup_cols(ibs, tblname, cx2_score=None):
         if tblname == QRES_TABLE:
             # But result table has extra cols
             cols.update({
-                'rank':   lambda cxs:  range(1, len(cxs) + 1),
+                'rank':  lambda rids: utool.padded_str_range(1, len(rids) + 1),
             })
     else:
         cols = {}
@@ -131,6 +131,8 @@ def qt_cast(qtinput):
 
 
 def qt_enctext_cast(enctext):
+    if enctext is None:
+        return None
     enctext = qt_cast(enctext)
     # Sanatize enctext
     if enctext in ['None', '', 'database']:

@@ -283,18 +283,21 @@ class MainWindowBackend(QtCore.QObject):
         # The ! mark is used for ascii sorting. TODO: can we work around this?
         prefix_cols = [{'rank': '!Query',
                         'score': '---',
-                        'name': back.ibs.get_roi_name(qres.qrid),
+                        'name': back.ibs.get_roi_names(qres.qrid),
                         'rid': qres.qrid, }]
         extra_cols = {
             'score':  lambda rids:  [qres.rid2_score[rid] for rid in rids],
         }
         enctext = back.ibs.get_encounter_enctext(qres.eid)
-        back.emit_populate_table(uidtables.QRES_TABLE,
-                                    enctext=enctext,
-                                    index_list=top_rids,
-                                    prefix_cols=prefix_cols,
-                                    extra_cols=extra_cols,
-                                    **kwargs)
+        if enctext is None or enctext == 'None':
+            enctext = ''
+        uidtables.emit_populate_table(back,
+                                      uidtables.QRES_TABLE,
+                                      enctext=enctext,
+                                      index_list=top_rids,
+                                      prefix_cols=prefix_cols,
+                                      extra_cols=extra_cols,
+                                      **kwargs)
 
     def populate_tables(back, **kwargs):
         default = kwargs.get('all', True)
@@ -617,6 +620,7 @@ class MainWindowBackend(QtCore.QObject):
             print('[back] query_encounter(rid=%r, eid=%r)' % (rid, eid))
             qrid2_qres = back.ibs.query_encounter([rid], eid)
         qres = qrid2_qres[rid]
+        back._set_selection(qres=[qres])
         if refresh:
             back.populate_tables(qres=True)
             back.show_qres(qres)
