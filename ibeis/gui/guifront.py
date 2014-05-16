@@ -19,7 +19,7 @@ QUIET   = utool.get_flag('--quiet')
 VERBOSE = True
 
 
-UUID_TYPE = uidtables.UUID_TYPE
+UID_TYPE = uidtables.UID_TYPE
 QUTF8      = QtGui.QApplication.UnicodeUTF8
 QTRANSLATE = QtGui.QApplication.translate
 
@@ -121,13 +121,13 @@ class MainWindowFrontend(QtGui.QMainWindow):
     printSignal      = signal_(str)
     raiseExceptionSignal = signal_(Exception)
     quitSignal       = signal_()
-    selectGidSignal  = signal_(UUID_TYPE)
-    selectRidSignal  = signal_(UUID_TYPE)
-    selectNidSignal  = signal_(UUID_TYPE)
-    selectQResSignal = signal_(UUID_TYPE)
-    setRoiPropSignal = signal_(UUID_TYPE, str, str)
-    aliasNidSignal   = signal_(UUID_TYPE, str, str)
-    setGidPropSignal = signal_(UUID_TYPE, str, QtCore.QVariant)
+    selectGidSignal  = signal_(UID_TYPE)
+    selectRidSignal  = signal_(UID_TYPE)
+    selectNidSignal  = signal_(UID_TYPE)
+    selectQResSignal = signal_(UID_TYPE)
+    setRoiPropSignal = signal_(UID_TYPE, str, str)
+    aliasNidSignal   = signal_(UID_TYPE, str, str)
+    setGidPropSignal = signal_(UID_TYPE, str, QtCore.QVariant)
 
     def __init__(front, back):
         super(MainWindowFrontend, front).__init__()
@@ -301,28 +301,28 @@ class MainWindowFrontend(QtGui.QMainWindow):
     @uid_tbl_changed
     def gids_tbl_changed(front, row, col, tbl, new_val):
         front.print('gids_tbl_changed()')
-        sel_gid = UUID_TYPE(front.get_header_val(tbl, 'gid', row))
+        sel_gid = UID_TYPE(front.get_header_val(tbl, 'gid', row))
         header_lbl = front.get_tbl_header(tbl, col)
         front.setGidPropSignal.emit(sel_gid, header_lbl, new_val)
 
     @uid_tbl_changed
     def rids_tbl_changed(front, row, col, tbl, new_val):
         front.print('rids_tbl_changed()')
-        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))  # Get selected roiid
+        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))  # Get selected roiid
         header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @uid_tbl_changed
     def qres_tbl_changed(front, row, col, tbl, new_val):
         front.print('qres_tbl_changed()')
-        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))  # The changed row's roi id
+        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))  # The changed row's roi id
         header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
     @uid_tbl_changed
     def nids_tbl_changed(front, row, col, tbl, new_val):
         front.print('nids_tbl_changed()')
-        sel_nid = UUID_TYPE(front.get_header_val(tbl, 'nid', row))    # The changed row's name index
+        sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))    # The changed row's name index
         header_lbl = front.get_tbl_header(tbl, col)  # Get changed column
         front.aliasNidSignal.emit(sel_nid, header_lbl, new_val)
 
@@ -331,22 +331,22 @@ class MainWindowFrontend(QtGui.QMainWindow):
     #=======================
     @uid_tbl_clicked
     def gids_tbl_clicked(front, row, col, tbl):
-        sel_gid = UUID_TYPE(front.get_header_val(tbl, 'gid', row))
+        sel_gid = UID_TYPE(front.get_header_val(tbl, 'gid', row))
         front.selectGidSignal.emit(sel_gid)
 
     @uid_tbl_clicked
     def rids_tbl_clicked(front, row, col, tbl):
-        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))
+        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
         front.selectRidSignal.emit(sel_rid)
 
     @uid_tbl_clicked
     def qres_tbl_clicked(front, row, col, tbl):
-        sel_rid = UUID_TYPE(front.get_header_val(tbl, 'rid', row))
+        sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
         front.selectQResSignal.emit(sel_rid)
 
     @uid_tbl_clicked
     def nids_tbl_clicked(front, row, col, tbl):
-        sel_nid = UUID_TYPE(front.get_header_val(tbl, 'nid', row))
+        sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))
         front.selectNidSignal.emit(sel_nid)
 
     #=======================

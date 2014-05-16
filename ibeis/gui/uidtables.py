@@ -93,12 +93,16 @@ reverse_fancy = dict(izip(col_fancyheader_list, col_header_list))
 header_typemap = dict(izip(col_header_list, col_type_list))
 
 # Different python types uuids can be
-UUID_TYPE    = str
-INTEGER_TYPE = int
+
+
+# We are basically just using int as the UID type now
+# We aren't even messing with UUIDs here anymore
+# TODO: Clean this section of code up!
+UID_TYPE = int
 
 schema_qt_typemap = {
-    'INTEGER': INTEGER_TYPE,
-    'UUID': UUID_TYPE,
+    'INTEGER': int,
+    'UUID': str,
 }
 
 # Specialize table uid types
