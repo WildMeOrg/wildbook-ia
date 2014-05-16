@@ -95,20 +95,20 @@ class IBEISController(object):
             print('[ibs.__init__] new IBEISController')
         ibs.qreq = None  # query requestor object
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
-        ibs._init_wb(wbaddr) # this will do nothing if no wildbook address is specified
+        ibs._init_wb(wbaddr)  # this will do nothing if no wildbook address is specified
         ibs._init_sql()
         ibs._init_config()
         ibsfuncs.inject_ibeis(ibs)
         __ALL_CONTROLLERS__.append(ibs)
 
     def _init_wb(ibs, wbaddr):
-        if wbaddr == None:
+        if wbaddr is None:
             return
         #TODO: Clean this up to use like utool and such
         import requests
         try:
             requests.get(wbaddr)
-        except Requests.MissingSchema as msa:
+        except requests.MissingSchema as msa:
             print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
             raise msa
         except requests.ConnectionError as coe:
@@ -849,6 +849,20 @@ class IBEISController(object):
         """ Returns image notes """
         notes_list = ibs.get_image_props('image_notes', gid_list)
         return notes_list
+
+    @getter
+    def get_image_nids(ibs, gid_list):
+        """ Returns the name ids associated with an image id """
+        rids_list = ibs.get_image_rids(gid_list)
+        nids_list = ibsfuncs.unflat_lookup(ibs.get_roi_nids, rids_list)
+        return nids_list
+
+    @getter
+    def get_name_gids(ibs, nid_list):
+        """ Returns the image ids associated with name ids"""
+        rids_list = ibs.get_name_rids(nid_list)
+        gids_list = ibsfuncs.unflat_lookup(ibs.get_roi_gids, rids_list)
+        return gids_list
 
     @getter
     def get_image_eids(ibs, gid_list):
