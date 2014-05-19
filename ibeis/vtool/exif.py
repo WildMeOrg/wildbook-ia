@@ -30,6 +30,8 @@ def get_exif_dict(pil_img):
         if exif_dict is None:
             raise AttributeError
         assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
+    except IndexError:
+        exif_dict = {}
     except AttributeError:
         exif_dict = {}
     except OverflowError:
