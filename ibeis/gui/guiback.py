@@ -100,6 +100,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_nids = []
         back.sel_gids = []
         back.sel_qres = []
+        back.active_enc = 0
 
         # Create GUIFrontend object
         back.front = guifront.MainWindowFrontend(back=back)
@@ -237,14 +238,21 @@ class MainWindowBackend(QtCore.QObject):
     # Populate functions
     #----------------------1----------------------------------------------------
 
-    def enctext_generator(back):
+    def enctext_generator(back, index=None):
         if back.ibs is None:
             raise StopIteration('no database opened')
         valid_eids = back.ibs.get_valid_eids(min_num_gids=2)
         enctext_list = [''] + back.ibs.get_encounter_enctext(valid_eids)
-        for enctext in enctext_list:
-            yield enctext
-
+        if index is None:
+            for enctext in enctext_list:
+                yield enctext
+        else:
+            try:
+                yield enctext_list[index]
+            except IndexError as ex:
+                utool.printex(ex, "Encounter population out of bounds")
+                raise
+            
     @utool.indent_func
     def populate_encounter_tabs(back, **kwargs):
         for enctext in back.enctext_generator():
@@ -254,19 +262,19 @@ class MainWindowBackend(QtCore.QObject):
 
     @utool.indent_func
     def populate_image_table(back, **kwargs):
-        for enctext in back.enctext_generator():
+        for enctext in back.enctext_generator(back.active_enc):
             uidtables.emit_populate_table(back, uidtables.IMAGE_TABLE,
                                            enctext=enctext, **kwargs)
 
     @utool.indent_func
     def populate_name_table(back, **kwargs):
-        for enctext in back.enctext_generator():
+        for enctext in back.enctext_generator(back.active_enc):
             uidtables.emit_populate_table(back, uidtables.NAME_TABLE,
                                            enctext=enctext, **kwargs)
 
     @utool.indent_func
     def populate_roi_table(back, **kwargs):
-        for enctext in back.enctext_generator():
+        for enctext in back.enctext_generator(back.active_enc):
             uidtables.emit_populate_table(back, uidtables.ROI_TABLE,
                                            enctext=enctext, **kwargs)
 

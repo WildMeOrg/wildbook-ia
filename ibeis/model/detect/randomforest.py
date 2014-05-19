@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function
 import os
 # UTool
 import utool
+from vtool import image
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[detect_randomforest]', DEBUG=False)
 
@@ -34,13 +35,15 @@ def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
     # Load forest, so we don't have to reload every time
     forest = detector.load(trees_path, tree_prefix)
 
-    gids = []
-    rois = []
+    # Get scales from the database
+    old_sizes_list = ibs.get_image_sizes(gid_list)
+
     for ix in xrange(len(gpath_list)):
-        print('Processing: ' + gpath_list[ix])
         src_fpath = gpath_list[ix]
         dst_fpath = os.path.join(detect_path, gpath_list[ix].split('/')[-1])
+        scale = old_sizes_list[ix][0] / image.open_image_size(src_fpath)[0]
 
+        print('Processing [at scale %.2f]: ' %(scale) + gpath_list[ix])
         results, timing = detector.detect(forest, src_fpath, dst_fpath, **detect_config)
 
         for res in results:
@@ -54,7 +57,10 @@ def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
             # 7 supressed flag
 
             if res[7] == 0:
-                gids.append(gid_list[ix])
-                rois.append((int(res[2]), int(res[3]), int(res[4] - res[2]), int(res[5] - res[3])))
-
-    return gids, rois
+                gid = [gid_list[ix]]
+                roi = [(int(res[2] * scale), 
+                        int(res[3] * scale), 
+                        int((res[4] - res[2]) * scale), 
+                        int((res[5] - res[3]) * scale)
+                        )]
+                ibs.add_rois(gid, roi)

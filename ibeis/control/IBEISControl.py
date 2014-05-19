@@ -1648,9 +1648,8 @@ class IBEISController(object):
         from ibeis.model.detect import randomforest
         path_list = ibs.get_image_detectpaths(gid_list)
         # TODO: Return confidence here as well
-        gids, rois = randomforest.detect_rois(ibs, gid_list, path_list,
+        randomforest.detect_rois(ibs, gid_list, path_list,
                                               species, **kwargs)
-        ibs.add_rois(gids, rois)
 
     @utool.indent_func
     def get_recognition_database_rids(ibs):
