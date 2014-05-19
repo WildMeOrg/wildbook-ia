@@ -12,11 +12,10 @@ from ibeis.gui import uidtables
 from ibeis.gui.Skeleton import Ui_mainSkel
 
 print, print_, printDBG, profile, rrr = utool.inject(
-    __name__, '[front*]', DEBUG=True)
+    __name__, '[front*]', DEBUG=False)
 
 QUIET   = utool.get_flag('--quiet')
-#VERBOSE = not utool.get_flag(('--noverbose', '--verbose-front', '--vf'))
-VERBOSE = True
+VERBOSE = utool.get_flag(('--verbose', '--verbose-front', '--vf'))
 
 
 UID_TYPE = uidtables.UID_TYPE

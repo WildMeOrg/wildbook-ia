@@ -219,71 +219,6 @@ def compgrav_roimatch_scores(ibs, qrid_list):
         roimatch_scores(ibs_, qrid_list)
 
 
-def get_species_dbs(species_prefix):
-    ibs_dblist = injest_my_hotspotter_dbs.get_ibsdb_list()
-    isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
-    return utool.filter_items(ibs_dblist, isvalid_list)
-
-
-def merge_species_databases(species_prefix='JAG_'):
-    species_prefix = 'JAG_'
-    all_db = '__ALL_' + species_prefix + '_'
-    species_dbdir_list = get_species_dbs(species_prefix)
-    all_dbdir = ibeis.sysres.db_to_dbdir(all_db, allow_newdir=True)
-    ibs_target = IBEISControl.IBEISController(all_dbdir)
-    ibs_merge_list = []
-    for dbdir in species_dbdir_list:
-        ibs_ = IBEISControl.IBEISController(dbdir)
-        ibs_merge_list.append(ibs_)
-    merge_databases(ibs_target, ibs_merge_list)
-
-
-def merge_databases(ibs_target, ibs_merge_list):
-    for ibs_ in ibs_merge_list:
-        def merge_images():
-            gid_list1   = ibs_.get_valid_gids()
-            uuid_list1  = ibs_.get_image_uuids(gid_list1)
-            gpath_list1 = ibs_.get_image_paths(gid_list1)
-            aif_list1   = ibs_.get_image_aifs(gid_list1)
-            # Add images to target
-            ibs_target.add_images(gpath_list1)
-            # Merge properties
-            gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
-            ibs_target.set_image_aifs(gid_list2, aif_list1)
-
-        merge_images()
-
-        def merge_rois():
-            rid_list1   = ibs_.get_valid_rids()
-            uuid_list1  = ibs_.get_roi_uuids(rid_list1)
-            # Get the images in target_db
-            gid_list1   = ibs_.get_roi_gids(rid_list1)
-            bbox_list1  = ibs_.get_roi_bboxes(rid_list1)
-            theta_list1 = ibs_.get_roi_thetas(rid_list1)
-            name_list1  = ibs_.get_roi_names(rid_list1, distinguish_unknowns=False)
-            notes_list1 = ibs_.get_roi_notes(rid_list1)
-
-            image_uuid_list1 = ibs_.get_image_uuids(gid_list1)
-            gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
-            image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
-            assert image_uuid_list1 == image_uuid_list2
-            rid_list2 = ibs_target.add_rois(gid_list2,
-                                            bbox_list1,
-                                            theta_list=theta_list1,
-                                            name_list=name_list1,
-                                            notes_list=notes_list1)
-
-            uuid_list2 = ibs_target.get_roi_uuids(rid_list2)
-            assert uuid_list2 == uuid_list1
-            rid_list   = rid_list1
-            bbox_list  = bbox_list1
-            theta_list = theta_list1
-            name_list  = name_list1
-            notes_list = notes_list1
-            gid_list   = gid_list2
-        merge_rois()
-
-
 #------------------
 # DEV MAIN
 #------------------
@@ -292,25 +227,26 @@ def rundev(main_locals):
     ibs = main_locals['ibs']
     back = main_locals['back']
     fnum = 1
-    qrid_list = main_helpers.get_test_qrids(ibs)
-    print('test_qrids = %r' % qrid_list)
-    print('len(test_qrids) = %d' % len(qrid_list))
-    try:
-        assert len(qrid_list) > 0, 'assert!'
-    except AssertionError as ex:
-        utool.printex(ex, 'len(qrid_list) = 0', iswarning=True)
-        #qrid_list = ibs.get_valid_rids()[0]
+    if ibs is not None:
+        qrid_list = main_helpers.get_test_qrids(ibs)
+        print('test_qrids = %r' % qrid_list)
+        print('len(test_qrids) = %d' % len(qrid_list))
+        try:
+            assert len(qrid_list) > 0, 'assert!'
+        except AssertionError as ex:
+            utool.printex(ex, 'len(qrid_list) = 0', iswarning=True)
+            #qrid_list = ibs.get_valid_rids()[0]
 
-    if len(qrid_list) > 0:
-        ibs.prep_qreq_db(qrid_list)
-        expt_locals = run_experiments(ibs, qrid_list)
-        if '--cmd' in sys.argv:
-            exec(utool.execstr_dict(expt_locals, 'expt_locals'))
-        if '--devmode' in sys.argv:
-            devfunc_locals = devfunc(ibs, qrid_list)
-            exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
-        if '--nopresent' not in sys.argv:
-            df2.present()
+        if len(qrid_list) > 0:
+            ibs.prep_qreq_db(qrid_list)
+            expt_locals = run_experiments(ibs, qrid_list)
+            if '--cmd' in sys.argv:
+                exec(utool.execstr_dict(expt_locals, 'expt_locals'))
+            if '--devmode' in sys.argv:
+                devfunc_locals = devfunc(ibs, qrid_list)
+                exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
+            if '--nopresent' not in sys.argv:
+                df2.present()
 
     ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
@@ -346,13 +282,14 @@ if __name__ == '__main__':
             if back is not None:
                 front = back.front
                 ui = front.ui
-        #ibs.dump_tables()
-        valid_rids = ibs.get_valid_rids()
-        valid_gids = ibs.get_valid_gids()
-        valid_nids = ibs.get_valid_nids()
-        valid_nid_list   = ibs.get_roi_nids(valid_rids)
-        valid_rid_names  = ibs.get_roi_names(valid_rids)
-        valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
+        if ibs is not None:
+            #ibs.dump_tables()
+            valid_rids = ibs.get_valid_rids()
+            valid_gids = ibs.get_valid_gids()
+            valid_nids = ibs.get_valid_nids()
+            valid_nid_list   = ibs.get_roi_nids(valid_rids)
+            valid_rid_names  = ibs.get_roi_names(valid_rids)
+            valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
     # L___________________________
     #
     #

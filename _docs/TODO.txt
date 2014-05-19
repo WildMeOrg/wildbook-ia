@@ -42,3 +42,20 @@ find a cuttoff to assign scores as a very probable match scores above this are
 marked as true, or use this to build a real make a function mapping the score
 to a PDF
 L----------------
+
+
+
+
+
+* adjust layout (let user specify settings)
+* make new figures not pop up behind old ones
+* refresh figures on database change
+* show relevant info in qres figure (config id?)
+* quick way of inspecting encounters 
+
+* quick way of tagging images (implement next / prev) 
+* integrate the new ROI selection ability
+
+* Select more than one image to view together (in encounter tabs)
+
+* Quick option of linking identities

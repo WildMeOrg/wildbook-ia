@@ -7,6 +7,9 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 #import ibeis
 from ibeis.control import IBEISControl
+from ibeis import sysres
+from ibeis import constants
+from ibeis.dev import ibsfuncs
 from itertools import izip
 import utool
 import re
@@ -17,17 +20,52 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
 
+FORCE_DELETE = utool.get_flag('--force-delete')
 
-def convert_hsdb_to_ibeis(hsdb_dir):
-    print('Injesting: %r' % hsdb_dir)
+
+def is_succesful_convert(dbdir):
+    return exists(join(dbdir, constants.PATH_NAMES._ibsdb, SUCCESS_FLAG_FNAME))
+
+
+def get_unconverted_hsdbs(workdir=None):
+    import os
+    import numpy as np
+    from vtool import linalg as ltool
+    if workdir is None:
+        workdir = sysres.get_workdir()
+    dbname_list = os.listdir(workdir)
+    dbpath_list = np.array([join(workdir, name) for name in dbname_list])
+    is_hsdb_list        = np.array(map(sysres.is_hsdb, dbpath_list))
+    is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
+    if FORCE_DELETE:
+        needs_convert = is_hsdb_list
+    else:
+        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
+    needs_convert_hsdbs  = dbpath_list[needs_convert].tolist()
+    return needs_convert_hsdbs
+
+
+def injest_unconverted_hsdbs_in_workdir():
+    workdir = sysres.get_workdir()
+    needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
+    for hsdb in needs_convert_hsdbs:
+        try:
+            convert_hsdb_to_ibeis(hsdb, force=FORCE_DELETE)
+        except Exception as ex:
+            utool.printex(ex)
+            raise
+
+
+def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
+    assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert'
+    if force_delete:
+        ibsfuncs.delete_ibeis_database(hsdb_dir)
+    print('[injest] Injesting hsdb: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
 
-    #main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=False, gui=False)
-    #ibs = main_locals['ibs']  # IBEIS Control
     ibs = IBEISControl.IBEISController(dbdir=hsdb_dir)
 
     # READ NAME TABLE
-    #names = open(join(workdir,'wildebeest/_hsdb/name_table.csv'),'rb')
     names_name_list = ['____']
     name_nid_list   = [0]
     with open(join(hsdb_dir, '_hsdb', 'name_table.csv'), 'rb') as nametbl_file:
@@ -92,7 +130,7 @@ def convert_hsdb_to_ibeis(hsdb_dir):
                 bbox_text = bbox_text.replace('[', '').replace(']', '').strip()
                 bbox_text = re.sub('  *', ' ', bbox_text)
                 bbox_strlist = bbox_text.split(' ')
-                bbox = map(int, bbox_strlist)
+                bbox = tuple(map(int, bbox_strlist))
                 if gid is None:
                     print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
                     continue
@@ -115,6 +153,6 @@ def convert_hsdb_to_ibeis(hsdb_dir):
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # win32
-    import sys
-    dbdir = sys.argv[1]
+    db = utool.get_arg('--db', str, None)
+    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
     convert_hsdb_to_ibeis(dbdir)

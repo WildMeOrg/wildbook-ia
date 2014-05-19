@@ -104,4 +104,9 @@ python dev.py --prequit --dump-argv
 #---------
 # Injest examples
 #---------
+
+# Injest raw images
 python ibeis/injest/injest_database.py --db JAG_Kieryn
+
+# Injest an hsdb
+python ibeis/injest/injest_hsdb.py --db JAG_Kelly --force-delete

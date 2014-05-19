@@ -18,8 +18,8 @@ import numpy as np
 from vtool import image as gtool
 # UTool
 import utool
-from utool import util_hash
 # IBEIS DEV
+from ibeis import constants
 from ibeis.dev import ibsfuncs
 # IBEIS MODEL
 from ibeis.model import Config
@@ -48,19 +48,6 @@ def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global __ALL_CONTROLLERS__
     del __ALL_CONTROLLERS__
-
-
-class PATH_NAMES(object):
-    """ global IBEIS path names """
-    sqldb  = '_ibeis_database.sqlite3'
-    _ibsdb = '_ibsdb'
-    cache  = '_ibeis_cache'
-    chips  = 'chips'
-    flann  = 'flann'
-    images = 'images'
-    qres   = 'qres'
-    bigcache = 'bigcache'
-    detectimg = 'detectimg'
 
 
 #
@@ -124,6 +111,7 @@ class IBEISController(object):
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
+        PATH_NAMES = constants.PATH_NAMES
         ibs.sqldb_fname = PATH_NAMES.sqldb
 
         # Make sure you are not nesting databases
@@ -143,20 +131,20 @@ class IBEISController(object):
         ibs.bigcachedir = join(ibs.cachedir,  PATH_NAMES.bigcache)
         if ensure:
             utool.ensuredir(ibs._ibsdb)
-            utool.ensuredir(ibs.cachedir)
-            utool.ensuredir(ibs.workdir)
-            utool.ensuredir(ibs.imgdir)
-            utool.ensuredir(ibs.chipdir)
-            utool.ensuredir(ibs.flanndir)
-            utool.ensuredir(ibs.qresdir)
-            utool.ensuredir(ibs.bigcachedir)
+            utool.ensuredir(ibs.cachedir, verbose=False)
+            utool.ensuredir(ibs.workdir, verbose=False)
+            utool.ensuredir(ibs.imgdir, verbose=False)
+            utool.ensuredir(ibs.chipdir, verbose=False)
+            utool.ensuredir(ibs.flanndir, verbose=False)
+            utool.ensuredir(ibs.qresdir, verbose=False)
+            utool.ensuredir(ibs.bigcachedir, verbose=False)
         assert dbdir is not None, 'must specify database directory'
 
     def _init_sql(ibs):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
         DB_SCHEMA.define_IBEIS_schema(ibs)
-        ibs.UNKNOWN_NAME = ibsfuncs.UNKNOWN_NAME
+        ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
         try:
             assert ibs.UNKNOWN_NID == 1
@@ -198,7 +186,7 @@ class IBEISController(object):
         return ibs.cachedir
 
     def get_detectimg_cachedir(ibs):
-        return join(ibs.cachedir, PATH_NAMES.detectimg)
+        return join(ibs.cachedir, constants.PATH_NAMES.detectimg)
 
     def get_flann_cachedir(ibs):
         return ibs.flanndir
@@ -333,7 +321,7 @@ class IBEISController(object):
         # Filter out None values before passing to SQL
         param_iter = utool.ifilter_Nones(raw_param_iter)
         param_list = list(param_iter)
-        print(utool.list_str(enumerate(param_list)))
+        #print(utool.list_str(enumerate(param_list)))
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
@@ -386,15 +374,8 @@ class IBEISController(object):
             notes_list = ['' for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
-        try:
-            roi_uuid_list = [util_hash.augment_uuid(img_uuid, bbox, theta)
-                             for img_uuid, bbox, theta
-                             in izip(image_uuid_list, bbox_list, theta_list)]
-        except Exception as ex:
-            utool.printex(ex, '[add_roi]')
-            print('[!add_rois] ' + utool.list_dbgstr('image_uuid_list'))
-            print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
-            raise
+        roi_uuid_list = ibsfuncs.make_roi_uuids(image_uuid_list, bbox_list,
+                                                theta_list)
         # Define arguments to insert
         params_iter = utool.flattenize(izip(roi_uuid_list,
                                             gid_list,
@@ -1077,6 +1058,12 @@ class IBEISController(object):
         gid_list = ibs.get_roi_gids(rid_list)
         image_list = ibs.get_images(gid_list)
         return image_list
+
+    @getter
+    def get_roi_image_uuids(ibs, rid_list):
+        gid_list = ibs.get_roi_gids(rid_list)
+        image_uuid_list = ibs.get_image_uuids(gid_list)
+        return image_uuid_list
 
     @getter
     def get_roi_gpaths(ibs, rid_list):
