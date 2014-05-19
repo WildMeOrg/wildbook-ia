@@ -62,7 +62,7 @@ def compute_and_write_detectimg(ibs, gid_list):
                                                new_gfpath_list, newsize_list)
     print('Computing %d imgs asynchronously' % (len(gfpath_list)))
     for gid, new_gfpath in detectimg_async_iter:
-        print('Wrote detectimg: %r' % new_gfpath)
+        # print('Wrote detectimg: %r' % new_gfpath)
         pass
     print('Done computing detectimgs')
 

@@ -41,7 +41,7 @@ def parse_cfgstr_list(cfgstr_list):
 def preload_convert_hsdb(dbdir):
     """ Convert the database before loading (A bit hacky) """
     from ibeis.injest import injest_hsdb
-    injest_hsdb.convert_hsdb_to_ibeis(dbdir, force=True)
+    injest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=False)
 
 
 def preload_commands(dbdir, defaultdb):

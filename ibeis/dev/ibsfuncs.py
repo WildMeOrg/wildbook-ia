@@ -73,7 +73,7 @@ def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
 def get_empty_gids(ibs):
     """ returns gid list without any chips """
     gid_list = ibs.get_valid_gids()
-    nRois_list = ibs.get_num_rids_in_gids(gid_list)
+    nRois_list = ibs.get_image_num_rois(gid_list)
     empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
     return empty_gids
 

@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-from vtool.tests import __sysreq__  # NOQA
 import utool
 from os.path import exists, dirname, join, realpath
 
