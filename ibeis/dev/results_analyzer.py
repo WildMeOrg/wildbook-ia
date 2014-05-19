@@ -91,3 +91,26 @@ def get_matching_descriptors(allres, qrids, rids):
     aggdesc1 = np.vstack(desc1_list)
     aggdesc2 = np.vstack(desc2_list)
     return aggdesc1, aggdesc2
+
+
+def get_score_stuff_pdfish(allres):
+    """ In development """
+    true_orgres  = allres.get_orgtype('true')
+    false_orgres = allres.get_orgtype('false')
+
+    orgres = true_orgres
+    orgres = false_orgres
+
+    def get_interesting_roipairs(orgres):
+        # Remove None ranks
+        allranks  = orgres.ranks
+        allscores = orgres.scores
+        allqrids  = orgres.qrids
+        allrids   = orgres.rids
+        isvalid = [rank is not None for rank in allranks]
+        rank_list  = np.array(utool.filter_items(allranks, isvalid))
+        score_list = np.array(utool.filter_items(allscores, isvalid))
+        qrid_list  = np.array(utool.filter_items(allqrids, isvalid))
+        rid_list   = np.array(utool.filter_items(allrids, isvalid))
+
+        sortx = score_list.argsort()[::-1]

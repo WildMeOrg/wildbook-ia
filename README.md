@@ -114,3 +114,11 @@ python ibeis/injest/injest_hsdb.py --db JAG_Kelly --force-delete
 
 # Merge all jaguar databases into single big database
 python main.py --merge-species JAG_
+
+
+
+#---------------
+# Technical Demo
+#---------------
+python dev.py --db PZ_MOTHERS --setdb
+python dev.py --allgt -t scores

@@ -81,10 +81,14 @@ def run_experiments(ibs, qrid_list):
 
     valid_test_helpstr_list.append('    # --- Decor Tests ---')
 
+    locals_ = locals()
+
     # Run decorated functions
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
-            func(ibs, qrid_list)
+            ret = func(ibs, qrid_list)
+            if isinstance(ret, dict):
+                locals_.update(ret)
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
@@ -106,7 +110,7 @@ def run_experiments(ibs, qrid_list):
         print('valid tests are: \n')
         print('\n'.join(valid_test_list))
         raise Exception('Unknown tests: %r ' % input_test_list)
-    return locals()
+    return locals_
 
 
 #-------------------
@@ -165,17 +169,24 @@ def desc_dists(ibs, qrid_list):
     return locals()
 
 
+def get_examples(ibs, qrid_list):
+    allres = get_allres(ibs, qrid_list)
+    true_orgres  = allres.get_orgtype('true')
+    false_orgres = allres.get_orgtype('true')
+
+
 @devcmd('scores', 'score')
 def roimatch_scores(ibs, qrid_list):
     allres = get_allres(ibs, qrid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
-    markers_map = {'false': 'x', 'true': 'o-'}
-    results_analyzer
+    orgtype_list = ['top_false', 'top_true']
+    #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
+    markers_map = defaultdict(lambda: 'o')
     cmatch_scores_map = results_analyzer.get_orgres_roimatch_scores(allres, orgtype_list)
     results_analyzer.print_roimatch_scores_map(cmatch_scores_map)
-    true_cmatch_scores  = cmatch_scores_map['true']
-    false_cmatch_scores = cmatch_scores_map['false']
+    #true_cmatch_scores  = cmatch_scores_map['true']
+    #false_cmatch_scores = cmatch_scores_map['false']
     scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
     scores_lbls = orgtype_list
     scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
