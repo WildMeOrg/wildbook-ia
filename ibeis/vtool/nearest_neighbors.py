@@ -6,7 +6,7 @@ import utool
     __name__, '[nneighbs]', DEBUG=False)
 
 
-@utool.indent_func
+#@utool.indent_func
 def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
     cache_dir = '.' if cache_dir is None else cache_dir
     # Generate a unique filename for data and flann parameters
@@ -19,7 +19,7 @@ def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
     return flann_fpath
 
 
-@utool.indent_func
+#@utool.indent_func
 def flann_cache(data, cache_dir=None, uid='', flann_params=None,
                 force_recompute=False):
     """ Tries to load a cached flann index before doing anything """
