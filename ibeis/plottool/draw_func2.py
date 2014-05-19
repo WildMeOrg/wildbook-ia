@@ -921,7 +921,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     #printDBG('[df2] ----- IMSHOW ------ ')
     #printDBG('[***df2.imshow] fnum=%r pnum=%r title=%r *** ' % (fnum, pnum, title))
     #printDBG('[***df2.imshow] img.shape = %r ' % (img.shape,))
-    #printDBG('[***df2.imshow] img.stats = %r ' % (utool.printable_mystats(img),))
+    #printDBG('[***df2.imshow] img.stats = %r ' % (utool.common_stats(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
     if darken is not None:
@@ -957,7 +957,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             imgGRAY = img
             if cmap is None:
                 cmap = plt.get_cmap('gray')
-            if isinstance(cmap, str):
+            if isinstance(cmap, (str, unicode)):
                 cmap = plt.get_cmap(cmap)
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
