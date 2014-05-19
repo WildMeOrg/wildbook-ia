@@ -19,7 +19,7 @@ SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
 
 
 def convert_hsdb_to_ibeis(hsdb_dir):
-    print('Injesting: %r' % hsdb_dir)
+    print('[injest] Injesting hsdb: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
 
     #main_locals = ibeis.main(dbdir=hsdb_dir, allow_newdir=False, gui=False)
@@ -92,7 +92,7 @@ def convert_hsdb_to_ibeis(hsdb_dir):
                 bbox_text = bbox_text.replace('[', '').replace(']', '').strip()
                 bbox_text = re.sub('  *', ' ', bbox_text)
                 bbox_strlist = bbox_text.split(' ')
-                bbox = map(int, bbox_strlist)
+                bbox = tuple(map(int, bbox_strlist))
                 if gid is None:
                     print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
                     continue

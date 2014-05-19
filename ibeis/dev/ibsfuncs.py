@@ -358,3 +358,20 @@ def resolve_name_conflicts(gid_list, name_list):
         unique_notes.append(unique_note)
 
     return unique_gids, unique_names, unique_notes
+
+
+def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
+    try:
+        # Check to make sure bbox input is a tuple-list, not a list-list
+        if len(bbox_list) > 0:
+            assert(isinstance(bbox_list[0], tuple))
+            assert(isinstance(bbox_list[0][0], int))
+        roi_uuid_list = [utool.util_hash.augment_uuid(img_uuid, bbox, theta)
+                            for img_uuid, bbox, theta
+                            in izip(image_uuid_list, bbox_list, theta_list)]
+    except Exception as ex:
+        utool.printex(ex, 'Error building roi_uuids', '[add_roi]')
+        print('[!add_rois] ' + utool.list_dbgstr('image_uuid_list'))
+        print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
+        raise
+    return roi_uuid_list
