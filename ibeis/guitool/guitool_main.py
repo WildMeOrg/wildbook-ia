@@ -32,7 +32,7 @@ def ensure_qtapp():
         if not QUIET:
             print('[guitool] Init new QApplication')
         QAPP = QtGui.QApplication(sys.argv)
-        print('QAPP = %r' % QAPP)
+        #print('QAPP = %r' % QAPP)
         assert QAPP is not None
         IS_ROOT = True
     else:
@@ -73,27 +73,27 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
 @profile
 def qtapp_loop(back=None, ipy=False, **kwargs):
     global QAPP
-    if not QUIET:
+    if not QUIET and VERBOSE:
         print('[guitool.qtapp_loop()]')
     if back is not None:
         activate_qwindow(back)
         back.timer = ping_python_interpreter(**kwargs)
     if IS_ROOT:
-        if not QUIET:
+        if not QUIET and VERBOSE:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
         if ipy:
             pass
         else:
             QAPP.exec_()
     else:
-        if not QUIET:
+        if not QUIET and VERBOSE:
             print('[guitool.qtapp_loop()] not execing')
 
 
 @profile
 def ping_python_interpreter(frequency=4200):  # 4200):
     'Create a QTimer which lets the python catch ctrl+c'
-    if not QUIET:
+    if not QUIET and VERBOSE:
         print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
     timer.timeout.connect(lambda: None)
