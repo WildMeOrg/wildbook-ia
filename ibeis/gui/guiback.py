@@ -31,13 +31,6 @@ QT_NAME_UID_TYPE  = uidtables.UID_TYPE
 ENC_TYPE = str
 
 
-if '--verbose-back' in sys.argv:
-    pass
-else:
-    def print(msg):
-        pass
-
-
 # BLOCKING DECORATOR
 # TODO: This decorator has to be specific to either front or back. Is there a
 # way to make it more general?
@@ -282,7 +275,7 @@ class MainWindowBackend(QtCore.QObject):
         qres = back.get_selected_qres()
         if qres is None:
             # Clear the table if there are no results
-            print('[back] no results available')
+            #print('[back] no results available')
             return
         #uidtables.emit_populate_table(back, uidtables.QRES_TABLE, index_list=[])
         top_rids = qres.get_top_rids()
@@ -614,13 +607,13 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def query(back, rid=None, refresh=True, **kwargs):
         """ Action -> Query"""
+        print('\n\n[back] query')
         if rid is None:
             rid = back.get_selected_rid()
         if 'eid' not in kwargs:
             eid = back.get_selected_eid()
         if eid is None:
             print('[back] query_database(rid=%r)' % (rid,))
-            qrid2_qres = back.ibs.query_database([rid])
             qrid2_qres = back.ibs.query_database([rid])
         else:
             print('[back] query_encounter(rid=%r, eid=%r)' % (rid, eid))
@@ -633,6 +626,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def detect_grevys(back, refresh=True):
+        print('\n\n')
         print('[back] detect_grevys()')
         ibs = back.ibs
         gid_list = ibs.get_valid_gids()
@@ -714,7 +708,7 @@ class MainWindowBackend(QtCore.QObject):
     def layout_figures(back):
         """ Options -> Layout Figures"""
         print('[back] layout_figures')
-        fig_presenter.present()
+        fig_presenter.all_figures_tile()
         pass
 
     @slot_()

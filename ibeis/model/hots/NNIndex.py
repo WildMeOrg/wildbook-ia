@@ -14,7 +14,7 @@ import vtool.nearest_neighbors as nntool
 NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 
-@utool.indent_func
+#@utool.indent_func
 def get_flann_uid(ibs, rid_list):
     feat_uid   = ibs.cfg.feat_cfg.get_uid()
     sample_uid = utool.hashstr_arr(rid_list, 'drids')
@@ -22,7 +22,7 @@ def get_flann_uid(ibs, rid_list):
     return uid
 
 
-@utool.indent_func
+#@utool.indent_func
 def aggregate_descriptors(ibs, rid_list):
     """ Aggregates descriptors with inverted information
      Return agg_index to(2) -> desc (descriptor)

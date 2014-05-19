@@ -7,6 +7,7 @@ import os
 from os.path import exists, join, realpath
 import utool
 from utool import util_cache, util_list, util_cplat
+from ibeis import constants
 from ibeis.dev import params
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
@@ -154,7 +155,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
             break
 
     # Create the database if newdbs are allowed in the workdir
-    print('allow_newdir=%r' % allow_newdir)
+    #print('allow_newdir=%r' % allow_newdir)
     if allow_newdir:
         utool.ensuredir(dbdir, verbose=True)
 
@@ -219,3 +220,30 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False):
         elif defaultdb is not None:
             dbdir = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
     return dbdir
+
+
+def is_ibeisdb(path):
+    """ Checks to see if path contains the IBEIS internal dir """
+    return exists(join(path, constants.PATH_NAMES._ibsdb))
+
+
+def is_hsdb(dbdir):
+    return (exists(join(dbdir, '_hsdb')) and
+            exists(join(dbdir, '_hsdb', 'name_table.csv')) and
+            exists(join(dbdir, '_hsdb', 'image_table.csv')) and
+            exists(join(dbdir, '_hsdb', 'chip_table.csv')))
+
+
+def is_hsinternal(dbdir):
+    return exists(join(dbdir, '.hs_internals'))
+
+
+def get_ibsdb_list(workdir=None):
+    import numpy as np
+    if workdir is None:
+        workdir = get_workdir()
+    dbname_list = os.listdir(workdir)
+    dbpath_list = np.array([join(workdir, name) for name in dbname_list])
+    is_ibs_list = np.array(map(is_ibeisdb, dbpath_list))
+    ibsdb_list  = dbpath_list[is_ibs_list].tolist()
+    return ibsdb_list

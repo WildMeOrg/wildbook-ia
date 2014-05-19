@@ -31,7 +31,7 @@ def quickly_ensure_qreq(ibs, qrids=None, drids=None):
     return qreq
 
 
-@utool.indent_func('[prep_qreq]')
+#@utool.indent_func('[prep_qreq]')
 def prep_query_request(qreq=None, query_cfg=None,
                        qrids=None, drids=None, **kwargs):
     """  Builds or modifies a query request object """
@@ -57,7 +57,7 @@ def prep_query_request(qreq=None, query_cfg=None,
 #----------------------
 
 
-@utool.indent_func('[pre_exec]')
+#@utool.indent_func('[pre_exec]')
 #@profile
 def pre_exec_checks(ibs, qreq):
     """ Ensures that the NNIndex's data_index is pointing to the correct
@@ -82,7 +82,7 @@ def pre_exec_checks(ibs, qreq):
 #----------------------
 
 # Query Level 2
-@utool.indent_func('[Q2]')
+#@utool.indent_func('[Q2]')
 @profile
 def process_query_request(ibs, qreq,
                           safe=True,
@@ -137,10 +137,10 @@ def process_query_request(ibs, qreq,
 
 
 # Query Level 1
-@utool.indent_func('[Q1]')
-@profile
+#@utool.indent_func('[Q1]')
+#@profile
 def execute_query_and_save_L1(ibs, qreq, failed_qrids=[]):
-    print('[q1] execute_query_and_save_L1()')
+    #print('[q1] execute_query_and_save_L1()')
     orig_qrids = qreq.qrids
     if len(failed_qrids) > 0:
         qreq.qrids = failed_qrids
@@ -152,8 +152,8 @@ def execute_query_and_save_L1(ibs, qreq, failed_qrids=[]):
 
 
 # Query Level 0
-@utool.indent_func('[Q0]')
-@profile
+#@utool.indent_func('[Q0]')
+#@profile
 def execute_query_L0(ibs, qreq):
     """
     Driver logic of query pipeline

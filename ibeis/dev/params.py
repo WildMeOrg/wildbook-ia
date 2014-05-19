@@ -28,10 +28,8 @@ def parse_args():
         parser2.add_ints(('--sel-rows', '-r'), help='view row')
         parser2.add_ints(('--sel-cols', '-c'), help='view col')
         parser2.add_ints('--qrid', default=[], help='investigate match cx')
-        parser2.add_int(('--select-nid', '--nid'), help='view col')
-        parser2.add_int(('--select-gid', '--gid'), help='view col')
-        parser2.add_int(('--select-rid', '--rid'), help='view col')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
+        parser2.add_str(('--merge-species'), help='merges all databases of given species')
 
     def behavior_argparse(parser2):
         # Program behavior
@@ -80,10 +78,17 @@ def parse_args():
         parser2.add_flag(('--preload-exit', '--postquit'), help='exit after preload commands')
         parser2.add_flag(('--postload-exit', '--prequit'), help='exit after postload commands')
 
+    def postload_gui_commands_argparse(parser2):
+        parser2 = parser2.add_argument_group('Postload GUI Commands')
+        parser2.add_int(('--select-nid', '--nid'), help='view col')
+        parser2.add_int(('--select-gid', '--gid'), help='view col')
+        parser2.add_int(('--select-rid', '--rid'), help='view col')
+
     behavior_argparse(parser2)
     database_argparse(parser2)
     dev_argparse(parser2)
     commands_argparse(parser2)
+    postload_gui_commands_argparse(parser2)
 
     args, unknown = parser2.parser.parse_known_args()
 

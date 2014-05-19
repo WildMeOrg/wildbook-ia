@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from .dev import params
 from .dev import sysres
+from . import constants
 from . import main_module
 from .main_module import main, _preload, main_loop
 from .control.IBEISControl import IBEISController

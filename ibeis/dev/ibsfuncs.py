@@ -4,16 +4,14 @@ import types
 from itertools import izip
 from os.path import relpath, split, join, exists
 import utool
+from ibeis import constants
+from ibeis import sysres
 from ibeis.export import export_hsdb
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibsfuncs]', DEBUG=False)
 
-
-UNKNOWN_NAMES = set(['Unassigned'])
-
-UNKNOWN_NAME = '____'
 
 __INJECTABLE_FUNCS__ = []
 
@@ -225,8 +223,7 @@ def inject_ibeis(ibs):
 
 
 def delete_ibeis_database(dbdir):
-    from ibeis.control.IBEISControl import PATH_NAMES
-    _ibsdb      = join(dbdir, PATH_NAMES._ibsdb)
+    _ibsdb = join(dbdir, constants.PATH_NAMES._ibsdb)
     print('Deleting _ibsdb=%r' % _ibsdb)
     if exists(_ibsdb):
         utool.delete(_ibsdb)
@@ -267,7 +264,7 @@ def normalize_name(name):
     """
     Maps unknonwn names to the standard ____
     """
-    if name in UNKNOWN_NAMES:
+    if name in constants.ACCEPTED_UNKNOWN_NAMES:
         name = '____'
     return name
 
@@ -375,3 +372,84 @@ def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
         print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
         raise
     return roi_uuid_list
+
+
+def get_species_dbs(species_prefix):
+    ibs_dblist = sysres.get_ibsdb_list()
+    isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
+    return utool.filter_items(ibs_dblist, isvalid_list)
+
+
+def merge_species_databases(species_prefix):
+    """ Build a merged database """
+    from ibeis.control import IBEISControl
+    print('[ibsfuncs] Merging species with prefix: %r' % species_prefix)
+    utool.util_parallel.ensure_pool(warn=False)
+    with utool.Indenter('    '):
+        # Build / get target database
+        all_db = '__ALL_' + species_prefix + '_'
+        all_dbdir = sysres.db_to_dbdir(all_db, allow_newdir=True)
+        ibs_target = IBEISControl.IBEISController(all_dbdir)
+        # Build list of databases to merge
+        species_dbdir_list = get_species_dbs(species_prefix)
+        ibs_source_list = []
+        for dbdir in species_dbdir_list:
+            ibs_source = IBEISControl.IBEISController(dbdir)
+            ibs_source_list.append(ibs_source)
+    print('[ibsfuncs] Destination database: %r' % all_db)
+    print('[ibsfuncs] Source databases:' +
+          utool.indentjoin(species_dbdir_list, '\n *   '))
+    #Merge the databases into ibs_target
+    merge_databases(ibs_target, ibs_source_list)
+    return ibs_target
+
+
+def merge_databases(ibs_target, ibs_source_list):
+    """ Merges a list of databases into a target """
+
+    def merge_images(ibs_target, ibs_source):
+        """ merge image helper """
+        gid_list1   = ibs_source.get_valid_gids()
+        uuid_list1  = ibs_source.get_image_uuids(gid_list1)
+        gpath_list1 = ibs_source.get_image_paths(gid_list1)
+        aif_list1   = ibs_source.get_image_aifs(gid_list1)
+        # Add images to target
+        ibs_target.add_images(gpath_list1)
+        # Merge properties
+        gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
+        ibs_target.set_image_aifs(gid_list2, aif_list1)
+
+    def merge_rois(ibs_target, ibs_source):
+        """ merge rois helper """
+        rid_list1   = ibs_source.get_valid_rids()
+        uuid_list1  = ibs_source.get_roi_uuids(rid_list1)
+        # Get the images in target_db
+        gid_list1   = ibs_source.get_roi_gids(rid_list1)
+        bbox_list1  = ibs_source.get_roi_bboxes(rid_list1)
+        theta_list1 = ibs_source.get_roi_thetas(rid_list1)
+        name_list1  = ibs_source.get_roi_names(rid_list1, distinguish_unknowns=False)
+        notes_list1 = ibs_source.get_roi_notes(rid_list1)
+
+        image_uuid_list1 = ibs_source.get_image_uuids(gid_list1)
+        gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
+        image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
+        # Assert that the image uuids have not changed
+        assert image_uuid_list1 == image_uuid_list2, 'error merging roi image uuids'
+        rid_list2 = ibs_target.add_rois(gid_list2,
+                                        bbox_list1,
+                                        theta_list=theta_list1,
+                                        name_list=name_list1,
+                                        notes_list=notes_list1)
+        uuid_list2 = ibs_target.get_roi_uuids(rid_list2)
+        assert uuid_list2 == uuid_list1, 'error merging roi uuids'
+
+    # Do the merging
+    for ibs_source in ibs_source_list:
+        try:
+            print('Merging ' + ibs_source.get_dbname() +
+                  ' into ' + ibs_target.get_dbname())
+            merge_images(ibs_target, ibs_source)
+            merge_rois(ibs_target, ibs_source)
+        except Exception as ex:
+            utool.printex(ex, 'error merging ' + ibs_source.get_dbname() +
+                          ' into ' + ibs_target.get_dbname())

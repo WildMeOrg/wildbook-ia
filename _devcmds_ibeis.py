@@ -7,9 +7,10 @@ from plottool import draw_func2 as df2
 import numpy as np
 import utool
 import vtool.keypoint as ktool
+from ibeis import sysres
 from ibeis.dev import ibsfuncs
 from ibeis.viz import interact
-from ibeis.injest import injest_my_hotspotter_dbs
+from ibeis.injest import injest_hsdb
 
 
 @devcmd
@@ -64,21 +65,23 @@ def printcfg(ibs, qrid_list):
     print(ibs.cfg.query_cfg.get_uid())
 
 
-@devcmd('hsdbs')
-def list_unconverted_hsdbs(*args):
-    injest_my_hotspotter_dbs.get_unconverted_hsdbs()
-
-
 @devcmd('list_dbs')
 def list_dbs(*args):
-    ibsdb_list = injest_my_hotspotter_dbs.get_ibsdb_list()
+    ibsdb_list = sysres.get_ibsdb_list()
     print('IBEIS Databases:')
     print('\n'.join(ibsdb_list))
 
 
+@devcmd('list_hsdbs')
+def list_unconverted_hsdbs(*args):
+    needs_convert_hsdbs = injest_hsdb.get_unconverted_hsdbs()
+    print('NEEDS CONVERSION:')
+    print('\n'.join(needs_convert_hsdbs))
+
+
 @devcmd('convert')
 def convert_hsdbs(*args):
-    injest_my_hotspotter_dbs.injest_unconverted_hsdbs_in_workdir()
+    injest_hsdb.injest_unconverted_hsdbs_in_workdir()
 
 
 @devcmd

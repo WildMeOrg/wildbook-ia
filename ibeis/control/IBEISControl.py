@@ -19,6 +19,7 @@ from vtool import image as gtool
 # UTool
 import utool
 # IBEIS DEV
+from ibeis import constants
 from ibeis.dev import ibsfuncs
 # IBEIS MODEL
 from ibeis.model import Config
@@ -47,19 +48,6 @@ def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global __ALL_CONTROLLERS__
     del __ALL_CONTROLLERS__
-
-
-class PATH_NAMES(object):
-    """ global IBEIS path names """
-    sqldb  = '_ibeis_database.sqlite3'
-    _ibsdb = '_ibsdb'
-    cache  = '_ibeis_cache'
-    chips  = 'chips'
-    flann  = 'flann'
-    images = 'images'
-    qres   = 'qres'
-    bigcache = 'bigcache'
-    detectimg = 'detectimg'
 
 
 #
@@ -123,6 +111,7 @@ class IBEISController(object):
             workdir, dbname = split(dbdir)
         ibs.workdir  = utool.truepath(workdir)
         ibs.dbname = dbname
+        PATH_NAMES = constants.PATH_NAMES
         ibs.sqldb_fname = PATH_NAMES.sqldb
 
         # Make sure you are not nesting databases
@@ -155,7 +144,7 @@ class IBEISController(object):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
         DB_SCHEMA.define_IBEIS_schema(ibs)
-        ibs.UNKNOWN_NAME = ibsfuncs.UNKNOWN_NAME
+        ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
         try:
             assert ibs.UNKNOWN_NID == 1
@@ -197,7 +186,7 @@ class IBEISController(object):
         return ibs.cachedir
 
     def get_detectimg_cachedir(ibs):
-        return join(ibs.cachedir, PATH_NAMES.detectimg)
+        return join(ibs.cachedir, constants.PATH_NAMES.detectimg)
 
     def get_flann_cachedir(ibs):
         return ibs.flanndir

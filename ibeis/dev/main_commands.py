@@ -38,10 +38,10 @@ def parse_cfgstr_list(cfgstr_list):
     return cfgdict
 
 
-def preload_convert(dbdir):
+def preload_convert_hsdb(dbdir):
     """ Convert the database before loading (A bit hacky) """
-    from ibeis.injest.injest_my_hotspotter_dbs import my_convert_hsdb_to_ibeis
-    my_convert_hsdb_to_ibeis(dbdir, force=True)
+    from ibeis.injest import injest_hsdb
+    injest_hsdb.convert_hsdb_to_ibeis(dbdir, force=True)
 
 
 def preload_commands(dbdir, defaultdb):
@@ -63,11 +63,13 @@ def preload_commands(dbdir, defaultdb):
         sysres.set_workdir(params.args.workdir)
     if utool.get_flag('--vwd'):
         vwd()
-    if params.args.convert:
-        preload_convert(get_dbdir_hack(dbdir, defaultdb))
     if utool.get_flag('--vdq'):
         print('got arg --vdq')
         vdq(get_dbdir_hack(dbdir, defaultdb))
+    if params.args.convert:
+        preload_convert_hsdb(get_dbdir_hack(dbdir, defaultdb))
+    if params.args.merge_species is not None:
+        ibsfuncs.merge_species_databases(params.args.merge_species)
     if params.args.preload_exit:
         print('[main_cmd] preload exit')
         sys.exit(1)
