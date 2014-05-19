@@ -235,6 +235,7 @@ def merge_species_databases(species_prefix='JAG_'):
     for dbdir in species_dbdir_list:
         ibs_ = IBEISControl.IBEISController(dbdir)
         ibs_merge_list.append(ibs_)
+    merge_databases(ibs_target, ibs_merge_list)
 
 
 def merge_databases(ibs_target, ibs_merge_list):
@@ -249,6 +250,8 @@ def merge_databases(ibs_target, ibs_merge_list):
             # Merge properties
             gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
             ibs_target.set_image_aifs(gid_list2, aif_list1)
+
+        merge_images()
 
         def merge_rois():
             rid_list1   = ibs_.get_valid_rids()
@@ -278,6 +281,7 @@ def merge_databases(ibs_target, ibs_merge_list):
             name_list  = name_list1
             notes_list = notes_list1
             gid_list   = gid_list2
+        merge_rois()
 
 
 #------------------
