@@ -59,7 +59,9 @@ def get_monitor_geometries():
 def get_stdpxls():
     if sys.platform.startswith('win32'):
         stdpxls = WIN7_SIZES
-    if sys.platform.startswith('linux'):
+    elif sys.platform.startswith('linux'):
+        stdpxls = GNOME3_SIZES
+    else:
         stdpxls = GNOME3_SIZES
     return stdpxls
 
