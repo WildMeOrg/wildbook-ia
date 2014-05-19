@@ -64,7 +64,7 @@ def get_dbinfo(ibs):
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(roi_size_list)
-    multiton_stats  = utool.printable_mystats(multiton_nx2_nchips)
+    multiton_stats  = utool.common_stats(multiton_nx2_nchips)
 
     num_names = len(valid_nxs)
     # print

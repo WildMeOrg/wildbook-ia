@@ -89,7 +89,7 @@ class FilterConfig(ConfigBase):
 
     def get_stw(filt_cfg, filt):
         # stw = sign, thresh, weight
-        if not isinstance(filt, str):
+        if not isinstance(filt, (str, unicode)):
             raise AssertionError('Global cache seems corrupted')
         sign   = filt_cfg['_' + filt + '_sign']
         thresh = filt_cfg[filt + '_thresh']

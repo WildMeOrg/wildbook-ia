@@ -122,7 +122,7 @@ def qt_cast(qtinput):
     elif isinstance(qtinput, QtCore.QString):
         qtoutput = str(qtinput)
     #elif isinstance(qtinput, (int, long, str, float)):
-    elif isinstance(qtinput, (int, str)):
+    elif isinstance(qtinput, (int, str, unicode)):
         return qtinput
     else:
         raise ValueError('Unknown QtType: type(qtinput)=%r, qtinput=%r' %

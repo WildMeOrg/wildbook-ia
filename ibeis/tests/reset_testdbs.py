@@ -2,7 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from ibeis.dev import sysres
-from ibeis.injest import injest_testdb1
+from ibeis.injest import injest_database
 from os.path import join
 from vtool.tests import grabdata
 import ibeis
@@ -42,7 +42,7 @@ def reset_testdbs():
     grabdata.ensure_testdata()
     delete_testdbs()
     make_testdb0()
-    injest_testdb1.injest_testdb1()
+    injest_database.injest_standard_database('testdb1')
 
 
 if __name__ == '__main__':

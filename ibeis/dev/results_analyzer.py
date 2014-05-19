@@ -16,26 +16,26 @@ def get_feat_matches(allres, qrid, rid):
     return fm
 
 
-def print_desc_distances_map(desc_distances_map):
+def print_desc_distances_map(orgres2_distmap):
     print('+-----------------------------')
     print('| DESCRIPTOR MATCHE DISTANCES:')
-    for orgtype, distmap in desc_distances_map.iteritems():
+    for orgtype, distmap in orgres2_distmap.iteritems():
         print('| orgtype(%r)' % (orgtype,))
         for disttype, dists in distmap.iteritems():
-            print('|     disttype(%12r): %s' % (disttype, utool.printable_mystats(dists)))
+            print('|     disttype(%12r): %s' % (disttype, utool.common_stats(dists)))
     print('L-----------------------------')
 
 
-def print_chipmatch_scores_map(desc_distances_map):
+def print_roimatch_scores_map(orgres2_scores):
     print('+-----------------------------')
     print('| CHIPMATCH SCORES:')
-    for orgtype, scores in desc_distances_map.iteritems():
+    for orgtype, scores in orgres2_scores.iteritems():
         print('| orgtype(%r)' % (orgtype,))
-        print('|     scores: %s' % (utool.printable_mystats(scores)))
+        print('|     scores: %s' % (utool.common_stats(scores)))
     print('L-----------------------------')
 
 
-def get_orgres_chipmatch_scores(allres, orgtype_list=['false', 'true']):
+def get_orgres_roimatch_scores(allres, orgtype_list=['false', 'true']):
     orgres2_scores = {}
     for orgtype in orgtype_list:
         printDBG('[rr2] getting orgtype=%r distances between sifts' % orgtype)

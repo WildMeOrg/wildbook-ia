@@ -407,13 +407,13 @@ def spatial_verification(ibs, qrid2_chipmatch, qreq, dbginfo=False):
     sv_cfg = qreq.cfg.sv_cfg
     if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
         print('[mf] Step 5) Spatial verification: off')
-        return qrid2_chipmatch, {} if dbginfo else qrid2_chipmatch
+        return (qrid2_chipmatch, {}) if dbginfo else qrid2_chipmatch
     else:
-        return spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=dbginfo)
+        return _spatial_verification(ibs, qrid2_chipmatch, qreq, dbginfo=dbginfo)
 
 
 @profile
-def spatial_verification_(ibs, qrid2_chipmatch, qreq, dbginfo=False):
+def _spatial_verification(ibs, qrid2_chipmatch, qreq, dbginfo=False):
     sv_cfg = qreq.cfg.sv_cfg
     print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_uid())
     prescore_method = sv_cfg.prescore_method

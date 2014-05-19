@@ -156,7 +156,7 @@ class IBEISController(object):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
         DB_SCHEMA.define_IBEIS_schema(ibs)
-        ibs.UNKNOWN_NAME = '____'
+        ibs.UNKNOWN_NAME = ibsfuncs.UNKNOWN_NAME
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
         try:
             assert ibs.UNKNOWN_NID == 1
@@ -323,11 +323,17 @@ class IBEISController(object):
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
+        for count, gpath in enumerate(gpath_list):
+            assert gpath.find('\\') == -1, (('gpath_list must not contain'
+                                             'backslashes. It must be in unix'
+                                             'format. Failed on %d-th gpath=%r') %
+                                            (count, gpath))
         # Processing an image might fail, yeilding a None instead of a tup
         raw_param_iter = preproc_image.add_images_params_gen(gpath_list)
         # Filter out None values before passing to SQL
         param_iter = utool.ifilter_Nones(raw_param_iter)
         param_list = list(param_iter)
+        print(utool.list_str(enumerate(param_list)))
         ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
@@ -354,6 +360,11 @@ class IBEISController(object):
             WHERE image_uri=?
             ''',
             params_iter=[(gpath,) for gpath in gpath_list])
+        num_invalid = sum((gid is None for gid in gid_list))
+        if num_invalid > 0:
+            print(('[ibs!] There were %d invalid gpaths ' % num_invalid) +
+                  '(probably duplicates if no other error was thrown)')
+
         assert len(gid_list) == len(gpath_list), 'bug in add_images'
         return gid_list
 
@@ -367,10 +378,10 @@ class IBEISController(object):
             theta_list = [0.0 for _ in xrange(len(gid_list))]
         if viewpoint_list is None:
             viewpoint_list = ['UNKNOWN' for _ in xrange(len(gid_list))]
-        if nid_list is None:
-            nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
         if name_list is not None:
             nid_list = ibs.add_names(name_list)
+        if nid_list is None:
+            nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
         if notes_list is None:
             notes_list = ['' for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
@@ -385,8 +396,12 @@ class IBEISController(object):
             print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
             raise
         # Define arguments to insert
-        params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
-                                            bbox_list, theta_list, viewpoint_list,
+        params_iter = utool.flattenize(izip(roi_uuid_list,
+                                            gid_list,
+                                            nid_list,
+                                            bbox_list,
+                                            theta_list,
+                                            viewpoint_list,
                                             notes_list))
         # Insert the new ROIs into the SQL database
         ibs.db.executemany(
@@ -702,7 +717,7 @@ class IBEISController(object):
     def get_table_props(ibs, table, prop_key, uid_list):
         #OFF printDBG('get_(table=%r, prop_key=%r)' % (table, prop_key))
         # Input to table props must be a list
-        if isinstance(prop_key, str):
+        if isinstance(prop_key, (str, unicode)):
             prop_key = (prop_key,)
         # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
@@ -797,6 +812,19 @@ class IBEISController(object):
             params_iter=utool.tuplize(gid_list),
             unpack_scalars=True)
         return uri_list
+
+    @getter
+    def get_image_gids_from_uuid(ibs, uuid_list):
+        """ Returns a list of original image names """
+        gid_list = ibs.db.executemany(
+            operation='''
+            SELECT image_uid
+            FROM images
+            WHERE image_uuid=?
+            ''',
+            params_iter=utool.tuplize(uuid_list),
+            unpack_scalars=True)
+        return gid_list
 
     @getter
     def get_image_paths(ibs, gid_list):
@@ -935,6 +963,19 @@ class IBEISController(object):
         """ Returns a list of image uuids by gid """
         roi_uuid_list = ibs.get_table_props('rois', 'roi_uuid', rid_list)
         return roi_uuid_list
+
+    @getter
+    def get_roi_rids_from_uuid(ibs, uuid_list):
+        """ Returns a list of original image names """
+        rid_list = ibs.db.executemany(
+            operation='''
+            SELECT roi_uid
+            FROM rois
+            WHERE roi_uuid=?
+            ''',
+            params_iter=utool.tuplize(uuid_list),
+            unpack_scalars=True)
+        return rid_list
 
     @getter
     def get_roi_notes(ibs, rid_list):
@@ -1091,12 +1132,12 @@ class IBEISController(object):
         return cfpath_list
 
     @getter
-    def get_roi_names(ibs, rid_list):
+    def get_roi_names(ibs, rid_list, distinguish_unknowns=True):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
         nid_list  = ibs.get_roi_nids(rid_list)
-        name_list = ibs.get_names(nid_list)
+        name_list = ibs.get_names(nid_list, distinguish_unknowns=distinguish_unknowns)
         return name_list
 
     @getter_vector_output
@@ -1356,14 +1397,15 @@ class IBEISController(object):
         return nid_list
 
     @getter
-    def get_names(ibs, nid_list):
+    def get_names(ibs, nid_list, distinguish_unknowns=True):
         """ Returns text names """
         # Change the temporary negative indexes back to the unknown NID for the
         # SQL query. Then augment the name list to distinguish unknown names
         nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
-        name_list_ = ibs.get_name_props('name_text', nid_list_)
-        name_list  = [name if nid > 0 else name + str(-nid) for (name, nid)
-                      in izip(name_list_, nid_list)]
+        name_list  = ibs.get_name_props('name_text', nid_list_)
+        if distinguish_unknowns:
+            name_list  = [name if nid > 0 else name + str(-nid) for (name, nid)
+                          in izip(name_list, nid_list)]
         name_list  = list(imap(__USTRCAST__, name_list))
         return name_list
 
@@ -1735,7 +1777,8 @@ class IBEISController(object):
     def print_image_table(ibs):
         """ Dumps chip table to stdout """
         print('\n')
-        print(ibs.db.get_table_csv('images', exclude_columns=['image_uid']))
+        print(ibs.db.get_table_csv('images'))
+        #, exclude_columns=['image_uid']))
 
     def print_name_table(ibs):
         """ Dumps chip table to stdout """

@@ -4,6 +4,7 @@ from .dev import params
 from .dev import sysres
 from . import main_module
 from .main_module import main, _preload, main_loop
+from .control.IBEISControl import IBEISController
 
 __LOADED__ = False
 __version__ = '0.1.0.dev1'

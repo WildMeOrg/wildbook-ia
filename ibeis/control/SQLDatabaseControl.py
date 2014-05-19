@@ -371,7 +371,7 @@ class SQLDatabaseController(object):
             file. The default will store a dump parallel to the current
             database file.
         """
-        if file_ is None or isinstance(file_, str):
+        if file_ is None or isinstance(file_, (str, unicode)):
             if file_ is None:
                 dump_dir = db.dir_
                 dump_fname = db.fname + '.dump.txt'

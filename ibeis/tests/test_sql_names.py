@@ -36,7 +36,7 @@ def TEST_SQL_NAMES():
     #
     # Create new temp database
     sqldb_fname = 'temp_test_sql_names.sqlite3'
-    sqldb_dpath = utool.util_cplat.get_project_resource_dir('ibeis', 'testfiles')
+    sqldb_dpath = utool.util_cplat.get_app_resource_dir('ibeis', 'testfiles')
     utool.ensuredir(sqldb_dpath)
     print('Remove Old Temp Database')
     utool.util_path.remove_file(join(sqldb_dpath, sqldb_fname), dryrun=False)

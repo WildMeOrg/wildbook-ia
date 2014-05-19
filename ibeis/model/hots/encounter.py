@@ -107,6 +107,6 @@ def inter_encounter_match(ibs, eid2_names=None, **kwargs):
 
 def print_encounter_stats(ex2_cxs):
     ex2_nCxs = map(len, ex2_cxs)
-    ex_statstr = utool.printable_mystats(ex2_nCxs)
+    ex_statstr = utool.common_stats(ex2_nCxs)
     print('num_encounters = %r' % len(ex2_nCxs))
     print('encounter_stats = %r' % (ex_statstr,))

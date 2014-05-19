@@ -77,7 +77,8 @@ def parse_args():
         parser2.add_strs(('--update-cfg', '--set-cfg', '--cfg'), default=None,
                          help=('set cfg dict via strings: e.g. '
                                '--cfg xy_thresh=.01 score_method=csum'))
-        parser2.add_flag('--postload-exit', help='exit after posload commands')
+        parser2.add_flag(('--preload-exit', '--postquit'), help='exit after preload commands')
+        parser2.add_flag(('--postload-exit', '--prequit'), help='exit after postload commands')
 
     behavior_argparse(parser2)
     database_argparse(parser2)

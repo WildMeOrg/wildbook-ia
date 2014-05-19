@@ -19,7 +19,7 @@ git clone https://github.com/Erotemic/plottool.git
 git clone https://github.com/Erotemic/guitool.git
 git clone https://github.com/Erotemic/hesaff.git
 git clone https://github.com/Erotemic/ibeis.git
-# Set the previous repos up for development by running 
+# Set the previous repos up for development by running
 #
 # > sudo python setup.py develop
 #
@@ -40,7 +40,7 @@ git clone https://github.com/bluemellophone/detecttools.git
 git clone https://github.com/Erotemic/opencv.git
 git clone https://github.com/Erotemic/flann.git
 git clone https://github.com/bluemellophone/pyrf.git
-# For repos with C++ code use the unix/mingw build script in the repo: 
+# For repos with C++ code use the unix/mingw build script in the repo:
 # e.g.
 sudo ~/code/opencv/unix_opencv_build.sh
 sudo ~/code/flann/unix_flann_build.sh
@@ -60,7 +60,7 @@ python dev.py <optional-arguments> [--help]
 
 # Useful flags.
 # Read code comments in dev.py for more info.
-# Careful some commands don't work. Most do. 
+# Careful some commands don't work. Most do.
 # --cmd          # shows ipython prompt with useful variables populated
 # -w, --wait     # waits (useful for showing plots)
 # --gui          # starts the gui as well (dev.py does not show gui by default, main does)
@@ -68,7 +68,7 @@ python dev.py <optional-arguments> [--help]
 
 
 #--------------------
-# PSA: Workdirs: 
+# PSA: Workdirs:
 #--------------------
 # IBEIS uses the idea of a work directory for databases.
 # Use --set-workdir <path> to set your own, or a gui will popup and ask you about it
@@ -88,3 +88,20 @@ python dev.py --dbdir <full-dbpath>
 # Run the queries for each roi with groundtruth in the PZ_MOTHERS database
 # using the best known configuration of parameters
 python dev.py --db PZ_MOTHERS --allgt -t best
+
+
+# View work dir
+python dev.py --vwd --prequit
+
+# List known databases
+python dev.py -t list_dbs
+
+
+# Dump contents of params.args
+python dev.py --prequit --dump-argv
+
+
+#---------
+# Injest examples
+#---------
+python ibeis/injest/injest_database.py --db JAG_Kieryn

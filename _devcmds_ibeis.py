@@ -1,3 +1,5 @@
+# This is supposed to be pristine, it turns out to be mostly clutter
+from __future__ import absolute_import, division, print_function
 from _devscript import devcmd
 from itertools import izip
 from os.path import split, join, expanduser
@@ -69,7 +71,9 @@ def list_unconverted_hsdbs(*args):
 
 @devcmd('list_dbs')
 def list_dbs(*args):
-    injest_my_hotspotter_dbs.get_ibsdb_list()
+    ibsdb_list = injest_my_hotspotter_dbs.get_ibsdb_list()
+    print('IBEIS Databases:')
+    print('\n'.join(ibsdb_list))
 
 
 @devcmd('convert')

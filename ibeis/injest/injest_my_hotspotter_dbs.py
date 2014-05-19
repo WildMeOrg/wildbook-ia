@@ -50,8 +50,6 @@ def get_ibsdb_list(workdir=None):
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
     is_ibs_list = np.array(map(is_ibeisdb, dbpath_list))
     ibsdb_list  = dbpath_list[is_ibs_list].tolist()
-    print('IBEIS Databases:')
-    print('\n'.join(ibsdb_list))
     return ibsdb_list
 
 

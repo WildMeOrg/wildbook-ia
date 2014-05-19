@@ -42,9 +42,7 @@ def get_image_uuid(img_bytes_):
 
 
 def preprocess_image(gpath):
-    """
-    This function should be called in parallel
-    """
+    """ Called in parallel. gpath must be in UNIX-PATH format! """
     try:
         pil_img = Image.open(gpath, 'r')      # Open PIL Image
     except IOError as ex:

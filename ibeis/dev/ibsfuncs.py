@@ -13,6 +13,8 @@ from ibeis.export import export_hsdb
 
 UNKNOWN_NAMES = set(['Unassigned'])
 
+UNKNOWN_NAME = '____'
+
 __INJECTABLE_FUNCS__ = []
 
 
@@ -277,7 +279,7 @@ def normalize_names(name_list):
     return map(normalize_name, name_list)
 
 
-def get_names_from_parent_folder(gpath_list, img_dir):
+def get_names_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
@@ -288,27 +290,32 @@ def get_names_from_parent_folder(gpath_list, img_dir):
     return name_list
 
 
-def get_names_from_gnames(gpath_list, img_dir, fmtkey='testdata'):
+class FMT_KEYS:
+    name_fmt = '{name:*}[id:d].{ext}'
+    snails_fmt  = '{name:*dd}{id:dd}.{ext}'
+
+
+def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
     """
-    FORMATS = {
-        'testdata': utool.named_field_regex([
+    INJEST_FORMATS = {
+        FMT_KEYS.name_fmt: utool.named_field_regex([
             ('name', r'[a-zA-Z]+'),  # all alpha characters
             ('id',   r'\d*'),        # first numbers (if existant)
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
 
-        'snails': utool.named_field_regex([
+        FMT_KEYS.snails_fmt: utool.named_field_regex([
             ('name', r'[a-zA-Z]+\d\d'),  # species and 2 numbers
             ('id',   r'\d\d'),  # 2 more numbers
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
     }
-    regex = FORMATS.get(fmtkey, fmtkey)
+    regex = INJEST_FORMATS.get(fmtkey, fmtkey)
     gname_list = utool.fpaths_to_fnames(gpath_list)
     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
 

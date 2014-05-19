@@ -8,6 +8,7 @@ from ibeis.injest.injest_named_folders import injest_named_folder
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # win32
+    img_dir = ibeis.sysres.db_to_dbdir('polar_bears')
     img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
     main_locals = ibeis.main(dbdir=img_dir)
     ibs = main_locals['ibs']

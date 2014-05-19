@@ -12,12 +12,12 @@ import utool
 from ibeis.dev import ibsfuncs
 
 
-def injest_named_images(ibs, img_dir, fmtkey='testdata', adjust_percent=0.0):
+def injest_named_images(ibs, img_dir, fmtkey='{name:*}[id:d].{ext}', adjust_percent=0.0):
     """
     Converts a folder structure where folders = names of animals to an ibeis
     database
     """
-    gpath_list = ibsfuncs.list_images(img_dir)
+    gpath_list = ibsfuncs.list_images(img_dir, recursive=True)
     name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
     # Add Images
     gid_list = ibs.add_images(gpath_list)

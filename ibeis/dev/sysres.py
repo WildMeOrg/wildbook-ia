@@ -1,10 +1,10 @@
 """
+sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
 """
 from __future__ import absolute_import, division, print_function
 import os
-import sys
-from os.path import exists, join, realpath, dirname
+from os.path import exists, join, realpath
 import utool
 from utool import util_cache, util_list, util_cplat
 from ibeis.dev import params
@@ -62,6 +62,13 @@ def set_workdir(work_dir=None, allow_gui=True):
     if work_dir is None or not exists(work_dir):
         raise AssertionError('invalid workdir=%r' % work_dir)
     _ibeis_cache_write(WORKDIR_CACHEID, work_dir)
+
+
+def get_rawdir():
+    """ Returns the standard raw data directory """
+    workdir = get_workdir()
+    rawdir = utool.truepath(join(workdir, '../raw'))
+    return rawdir
 
 
 def guiselect_workdir():
@@ -122,15 +129,20 @@ def get_dbalias_dict():
     return dbalias_dict
 
 
-def db_to_dbdir(db, allow_newdir=False):
+def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     """ Implicitly gets dbdir. Searches for db inside of workdir """
     work_dir = get_workdir()
     dbalias_dict = get_dbalias_dict()
 
-    workdir_list = [work_dir]  # TODO: Allow multiple workdirs
-    sync_dir = join(work_dir, '../sync')
-    if exists(sync_dir):
-        workdir_list.append(sync_dir)
+    workdir_list = []
+    for extra_dir in extra_workdirs:
+        if exists(extra_dir):
+            workdir_list.append(extra_dir)
+    if use_sync:
+        sync_dir = join(work_dir, '../sync')
+        if exists(sync_dir):
+            workdir_list.append(sync_dir)
+    workdir_list.append(work_dir)  # TODO: Allow multiple workdirs
 
     # Check all of your work directories for the database
     for _dir in workdir_list:
@@ -142,35 +154,37 @@ def db_to_dbdir(db, allow_newdir=False):
             break
 
     # Create the database if newdbs are allowed in the workdir
-    if not exists(dbdir) and allow_newdir:
-        if exists(dirname(dbdir)):
-            print('[workdir] MAKE DIR: %r' % dbdir)
-            os.mkdir(dbdir)
+    print('allow_newdir=%r' % allow_newdir)
+    if allow_newdir:
+        utool.ensuredir(dbdir, verbose=True)
 
     # Complain if the implicit dbdir does not exist
     if not exists(dbdir):
         print('!!!')
-        print('[workdir] WARNING: db=%r not found in work_dir=%r' %
+        print('[sysres] WARNING: db=%r not found in work_dir=%r' %
               (db, work_dir))
         fname_list = os.listdir(work_dir)
         lower_list = [fname.lower() for fname in fname_list]
         index = util_list.listfind(lower_list, db.lower())
         if index is not None:
-            print('[workdir] WARNING: db capitalization seems to be off')
+            print('[sysres] WARNING: db capitalization seems to be off')
             if not utool.STRICT:
-                print('[workdir] attempting to fix it')
+                print('[sysres] attempting to fix it')
                 db = fname_list[index]
                 dbdir = join(work_dir, db)
-                print('[workdir] dbdir=%r' % dbdir)
-                print('[workdir] db=%r' % db)
+                print('[sysres] dbdir=%r' % dbdir)
+                print('[sysres] db=%r' % db)
         if not exists(dbdir):
-            print('[workdir] Valid DBs:')
-            print('\n'.join(fname_list))
-            print('[workdir] dbdir=%r' % dbdir)
-            print('[workdir] db=%r' % db)
-            print('[workdir] work_dir=%r' % work_dir)
-
-            raise AssertionError('[workdir] FATAL ERROR. Cannot load database')
+            msg = '[sysres!] ERROR: Database does not exist'
+            print('<!!!>')
+            print(msg)
+            print('[sysres!] Here is a list of valid dbs: ' +
+                  utool.indentjoin(fname_list, '\n  * '))
+            print('[sysres!] dbdir=%r' % dbdir)
+            print('[sysres!] db=%r' % db)
+            print('[sysres!] work_dir=%r' % work_dir)
+            print('</!!!>')
+            raise AssertionError(msg)
         print('!!!')
     return dbdir
 

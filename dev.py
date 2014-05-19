@@ -33,6 +33,9 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 #@utool.indent_decor('[dev]')
 @profile
 def run_experiments(ibs, qrid_list):
+    """
+    This function runs tests passed in with the -t flag
+    """
     print('\n')
     print('==========================')
     print('RUN INVESTIGATIONS %s' % ibs.get_dbname())
@@ -65,10 +68,10 @@ def run_experiments(ibs, qrid_list):
 
     if intest('export'):
         export(ibs)
-    if intest('info'):
-        print(ibs.get_infostr())
     if intest('dbinfo'):
         dbinfo.get_dbinfo(ibs)
+    if intest('info'):
+        print(ibs.get_infostr())
     if intest('printcfg'):
         printcfg(ibs)
     if intest('tables'):
@@ -129,17 +132,19 @@ def get_allres(ibs, qrid_list):
 #------------------
 # DEV DEVELOPMENT
 #------------------
+# This is where you write all of the functions that will become pristine
+# and then go in _devcmds_ibeis.py
 
 
 def devfunc(ibs, qrid_list):
     """ Function for developing something """
     allres = get_allres(ibs, qrid_list)
     locals_ = locals()
-    #locals_.update(chipmatch_scores(ibs, qrid_list))
+    #locals_.update(roimatch_scores(ibs, qrid_list))
     return locals_
 
 
-@devcmd('desc_dists')
+@devcmd('dists', 'dist', 'desc_dists')
 def desc_dists(ibs, qrid_list):
     """ Plots the distances between matching descriptors
     labeled with groundtruth (true/false) data """
@@ -147,27 +152,28 @@ def desc_dists(ibs, qrid_list):
     # Get the descriptor distances of true matches
     orgtype_list = ['top_false', 'true']
     disttype = 'L2'
-    desc_distances_map = allres.get_desc_match_dists(orgtype_list, orgtype_list)
-    results_analyzer.print_desc_distances_map(desc_distances_map)
-    #true_desc_dists  = desc_distances_map['true']['L2']
-    #false_desc_dists = desc_distances_map['false']['L2']
+    orgres2_distmap = results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
+    results_analyzer.print_desc_distances_map(orgres2_distmap)
+    #true_desc_dists  = orgres2_distmap['true']['L2']
+    #false_desc_dists = orgres2_distmap['false']['L2']
     #scores_list = [false_desc_dists, true_desc_dists]
-    scores_list = [desc_distances_map[orgtype][disttype] for orgtype in orgtype_list]
-    scores_lbls = orgtype_list
-    scores_markers = ['x', 'o--']
-    plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
-    df2.set_figtitle('Descriptor Distances')
+    dists_list = [orgres2_distmap[orgtype][disttype] for orgtype in orgtype_list]
+    dists_lbls = orgtype_list
+    dists_markers = ['x', 'o--']
+    plottool.plots.draw_scores_cdf(dists_list, dists_lbls, dists_markers)
+    df2.set_figtitle('Descriptor Distance CDF d(x)' + ibs.qreq.get_uid())
     return locals()
 
 
-@devcmd('scores')
-def chipmatch_scores(ibs, qrid_list):
+@devcmd('scores', 'score')
+def roimatch_scores(ibs, qrid_list):
     allres = get_allres(ibs, qrid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     markers_map = {'false': 'x', 'true': 'o-'}
-    cmatch_scores_map = allres.get_chipmatch_scores(orgtype_list)
-    results_analyzer.print_chipmatch_scores_map(cmatch_scores_map)
+    results_analyzer
+    cmatch_scores_map = results_analyzer.get_orgres_roimatch_scores(allres, orgtype_list)
+    results_analyzer.print_roimatch_scores_map(cmatch_scores_map)
     true_cmatch_scores  = cmatch_scores_map['true']
     false_cmatch_scores = cmatch_scores_map['false']
     scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
@@ -207,10 +213,71 @@ def get_ibslist(ibs):
 
 
 @devcmd('gv_scores')
-def compgrav_chipmatch_scores(ibs, qrid_list):
+def compgrav_roimatch_scores(ibs, qrid_list):
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
-        chipmatch_scores(ibs_, qrid_list)
+        roimatch_scores(ibs_, qrid_list)
+
+
+def get_species_dbs(species_prefix):
+    ibs_dblist = injest_my_hotspotter_dbs.get_ibsdb_list()
+    isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
+    return utool.filter_items(ibs_dblist, isvalid_list)
+
+
+def merge_species_databases(species_prefix='JAG_'):
+    species_prefix = 'JAG_'
+    all_db = '__ALL_' + species_prefix + '_'
+    species_dbdir_list = get_species_dbs(species_prefix)
+    all_dbdir = ibeis.sysres.db_to_dbdir(all_db, allow_newdir=True)
+    ibs_target = IBEISControl.IBEISController(all_dbdir)
+    ibs_merge_list = []
+    for dbdir in species_dbdir_list:
+        ibs_ = IBEISControl.IBEISController(dbdir)
+        ibs_merge_list.append(ibs_)
+
+
+def merge_databases(ibs_target, ibs_merge_list):
+    for ibs_ in ibs_merge_list:
+        def merge_images():
+            gid_list1   = ibs_.get_valid_gids()
+            uuid_list1  = ibs_.get_image_uuids(gid_list1)
+            gpath_list1 = ibs_.get_image_paths(gid_list1)
+            aif_list1   = ibs_.get_image_aifs(gid_list1)
+            # Add images to target
+            ibs_target.add_images(gpath_list1)
+            # Merge properties
+            gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
+            ibs_target.set_image_aifs(gid_list2, aif_list1)
+
+        def merge_rois():
+            rid_list1   = ibs_.get_valid_rids()
+            uuid_list1  = ibs_.get_roi_uuids(rid_list1)
+            # Get the images in target_db
+            gid_list1   = ibs_.get_roi_gids(rid_list1)
+            bbox_list1  = ibs_.get_roi_bboxes(rid_list1)
+            theta_list1 = ibs_.get_roi_thetas(rid_list1)
+            name_list1  = ibs_.get_roi_names(rid_list1, distinguish_unknowns=False)
+            notes_list1 = ibs_.get_roi_notes(rid_list1)
+
+            image_uuid_list1 = ibs_.get_image_uuids(gid_list1)
+            gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
+            image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
+            assert image_uuid_list1 == image_uuid_list2
+            rid_list2 = ibs_target.add_rois(gid_list2,
+                                            bbox_list1,
+                                            theta_list=theta_list1,
+                                            name_list=name_list1,
+                                            notes_list=notes_list1)
+
+            uuid_list2 = ibs_target.get_roi_uuids(rids_list2)
+            assert uuid_list2 == uuid_list1
+            rid_list   = rid_list1
+            bbox_list  = bbox_list1
+            theta_list = theta_list1
+            name_list  = name_list1
+            notes_list = notes_list1
+            gid_list   = gid_list2
 
 
 #------------------
@@ -227,7 +294,7 @@ def rundev(main_locals):
     try:
         assert len(qrid_list) > 0, 'assert!'
     except AssertionError as ex:
-        utool.printex(ex)
+        utool.printex(ex, 'len(qrid_list) = 0', iswarning=True)
         #qrid_list = ibs.get_valid_rids()[0]
 
     if len(qrid_list) > 0:

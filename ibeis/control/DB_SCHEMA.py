@@ -46,6 +46,7 @@ def define_IBEIS_schema(ibs):
         ('roi_height',                   'INTEGER NOT NULL'),
         ('roi_theta',                    'REAL DEFAULT 0.0'),
         ('roi_viewpoint',                'INTEGER DEFAULT 0'),
+        ('roi_species_text',             'TEXT'),
         ('roi_detect_confidence',        'REAL DEFAULT 0.0'),
         ('roi_notes',                    'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (roi_uuid)']

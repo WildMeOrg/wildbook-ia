@@ -63,11 +63,14 @@ def preload_commands(dbdir, defaultdb):
         params.set_workdir(params.args.workdir)
     if utool.get_flag('--vwd'):
         vwd()
+    if params.args.convert:
+        preload_convert(get_dbdir_hack(dbdir, defaultdb))
     if utool.get_flag('--vdq'):
         print('got arg --vdq')
         vdq(get_dbdir_hack(dbdir, defaultdb))
-    if params.args.convert:
-        preload_convert(get_dbdir_hack(dbdir, defaultdb))
+    if params.args.preload_exit:
+        print('[main_cmd] preload exit')
+        sys.exit(1)
 
 
 def postload_commands(ibs, back):

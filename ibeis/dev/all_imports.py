@@ -84,8 +84,7 @@ from ibeis.export import export_hsdb
 # IBEIS INJEST
 from ibeis.injest import injest_hsdb
 from ibeis.injest import injest_my_hotspotter_dbs
-from ibeis.injest import injest_named_folders
-from ibeis.injest import injest_named_images
+from ibeis.injest import injest_database
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc

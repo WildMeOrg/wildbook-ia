@@ -72,12 +72,93 @@ MOTHERS()
     python dev.py --db PZ_MOTHERS -t gv_test --allgt
     python dev.py --db PZ_MOTHERS -t gv_test --qrid 27 28 45 71 90 109 --print-all
     python dev.py --db PZ_MOTHERS -t gv_test --qrid 49 --save-figures -c 0 1 2 
+
+
+
+
+    
 }
 
 
-ENCOUNTER_TAB()
+TECHINCAL_DEVELOPER_DEMO()
 {
-    #python dev.py --db PZ_MOTHERS --convert --cmd 
-    #ibs.compute_encounters()
-    python dev.py --db PZ_MOTHERS --gui --cmd
+    # Make a code directory
+    export CODE_DIR=~/code
+    mkdir $CODE_DIR
+    cd $CODE_DIR
+
+    # Download the modules
+    git clone https://github.com/Erotemic/utool.git
+    git clone https://github.com/Erotemic/vtool.git
+    git clone https://github.com/Erotemic/plottool.git
+    git clone https://github.com/Erotemic/guitool.git
+    git clone https://github.com/Erotemic/hesaff.git
+    git clone https://github.com/Erotemic/ibeis.git
+    git clone https://github.com/bluemellophone/detecttools.git
+    git clone https://github.com/Erotemic/opencv.git
+    git clone https://github.com/Erotemic/flann.git
+    git clone https://github.com/bluemellophone/pyrf.git
+    
+    # Install the modules
+    sudo $CODE_DIR/opencv/unix_opencv_build.sh
+    sudo $CODE_DIR/flann/unix_opencv_build.sh   # OpenCV 2.4.8
+    sudo $CODE_DIR/hesaff/unix_hesaff_build.sh
+    sudo $CODE_DIR/pyrf/unix_pyrf_build.sh
+    sudo python $CODE_DIR/utool/setup.py develop
+    sudo python $CODE_DIR/vtool/setup.py develop
+    sudo python $CODE_DIR/hesaff/setup.py develop
+    sudo python $CODE_DIR/plottool/setup.py develop
+    sudo python $CODE_DIR/guitool/setup.py develop
+    sudo python $CODE_DIR/ibeis/setup.py develop
+
+    # Get ready to develop
+    cd $CODE_DIR/ibeis
+
+    # -----
+    # Now that you have IBEIS
+    # Download test databases
+    sh reset_dbs.sh
+
+    # Set a workdir
+    python dev.py --set-workdir F:/data
+    # View workdir
+    python dev.py --vwd
+    # Set a database as your default
+    python dev.py --db testdb1 --setdb
+
+    # List the databases available to you
+    python dev.py -t list_dbs
+
+    #
+    #
+    # -----
+    # Now that you have a DATA
+    # Set your database
+    python dev.py --db PZ_MOTHERS --setdb
+    python dev.py --db GZ_ALL --setdb
+
+    # Database info
+    python dev.py -t dbinfo info --allgt
+
+    # Find hard cases
+    python dev.py -t best --allgt --echo-hardcase -w
+    # Show roi-match scores
+    python dev.py -t scores --allgt -w
+    # Show desc-match scores
+    python dev.py -t dists --allgt -w
+    # Find 
+    python dev.py -t scores --allgt -w
+
+    # Info
+    python dev.py -t sver --qrids 1 -w
+    python dev.py -w -qrid 1 -t gvcomp
+    python dev.py -w -h 1 -t sver
+
+    #
+    # -----
+    # Now that you have your KNOWLEDGE
+    # Develop
+
+    python dev.py --help
+
 }
