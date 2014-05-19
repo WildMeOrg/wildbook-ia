@@ -87,13 +87,13 @@ def _init_ibeis(dbdir=None, defaultdb='cache', allow_newdir=False):
     import utool
     from ibeis.control import IBEISControl
     from ibeis.dev import sysres
-    ibs = None
     if not utool.QUIET:
         print('[main] _init_ibeis()')
     # Use command line dbdir unless user specifies it
     if dbdir is None:
         dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir)
     if dbdir is None:
+        ibs = None
         utool.printWARN('[main!] WARNING args.dbdir is None')
     else:
         ibs = IBEISControl.IBEISController(dbdir=dbdir)

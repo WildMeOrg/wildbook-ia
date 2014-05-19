@@ -196,6 +196,10 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False):
         print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
     dbdir = params.args.dbdir
     db = params.args.db
+    if dbdir == 'None' or db == 'None':
+        print('Forcing no dbdir')
+        # If specified as the string none, the user forces no db
+        return None
     # Force absolute path
     if dbdir is not None:
         dbdir = realpath(dbdir)

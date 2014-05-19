@@ -245,6 +245,8 @@ class MainWindowBackend(QtCore.QObject):
     #----------------------1----------------------------------------------------
 
     def enctext_generator(back):
+        if back.ibs is None:
+            raise StopIteration('no database opened')
         valid_eids = back.ibs.get_valid_eids(min_num_gids=2)
         enctext_list = [''] + back.ibs.get_encounter_enctext(valid_eids)
         for enctext in enctext_list:

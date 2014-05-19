@@ -302,25 +302,26 @@ def rundev(main_locals):
     ibs = main_locals['ibs']
     back = main_locals['back']
     fnum = 1
-    qrid_list = main_helpers.get_test_qrids(ibs)
-    print('test_qrids = %r' % qrid_list)
-    print('len(test_qrids) = %d' % len(qrid_list))
-    try:
-        assert len(qrid_list) > 0, 'assert!'
-    except AssertionError as ex:
-        utool.printex(ex, 'len(qrid_list) = 0', iswarning=True)
-        #qrid_list = ibs.get_valid_rids()[0]
+    if ibs is not None:
+        qrid_list = main_helpers.get_test_qrids(ibs)
+        print('test_qrids = %r' % qrid_list)
+        print('len(test_qrids) = %d' % len(qrid_list))
+        try:
+            assert len(qrid_list) > 0, 'assert!'
+        except AssertionError as ex:
+            utool.printex(ex, 'len(qrid_list) = 0', iswarning=True)
+            #qrid_list = ibs.get_valid_rids()[0]
 
-    if len(qrid_list) > 0:
-        ibs.prep_qreq_db(qrid_list)
-        expt_locals = run_experiments(ibs, qrid_list)
-        if '--cmd' in sys.argv:
-            exec(utool.execstr_dict(expt_locals, 'expt_locals'))
-        if '--devmode' in sys.argv:
-            devfunc_locals = devfunc(ibs, qrid_list)
-            exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
-        if '--nopresent' not in sys.argv:
-            df2.present()
+        if len(qrid_list) > 0:
+            ibs.prep_qreq_db(qrid_list)
+            expt_locals = run_experiments(ibs, qrid_list)
+            if '--cmd' in sys.argv:
+                exec(utool.execstr_dict(expt_locals, 'expt_locals'))
+            if '--devmode' in sys.argv:
+                devfunc_locals = devfunc(ibs, qrid_list)
+                exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
+            if '--nopresent' not in sys.argv:
+                df2.present()
 
     ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
@@ -356,13 +357,14 @@ if __name__ == '__main__':
             if back is not None:
                 front = back.front
                 ui = front.ui
-        #ibs.dump_tables()
-        valid_rids = ibs.get_valid_rids()
-        valid_gids = ibs.get_valid_gids()
-        valid_nids = ibs.get_valid_nids()
-        valid_nid_list   = ibs.get_roi_nids(valid_rids)
-        valid_rid_names  = ibs.get_roi_names(valid_rids)
-        valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
+        if ibs is not None:
+            #ibs.dump_tables()
+            valid_rids = ibs.get_valid_rids()
+            valid_gids = ibs.get_valid_gids()
+            valid_nids = ibs.get_valid_nids()
+            valid_nid_list   = ibs.get_roi_nids(valid_rids)
+            valid_rid_names  = ibs.get_roi_names(valid_rids)
+            valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
     # L___________________________
     #
     #
