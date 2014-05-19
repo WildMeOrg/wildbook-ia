@@ -273,7 +273,7 @@ def merge_databases(ibs_target, ibs_merge_list):
                                             name_list=name_list1,
                                             notes_list=notes_list1)
 
-            uuid_list2 = ibs_target.get_roi_uuids(rids_list2)
+            uuid_list2 = ibs_target.get_roi_uuids(rid_list2)
             assert uuid_list2 == uuid_list1
             rid_list   = rid_list1
             bbox_list  = bbox_list1
