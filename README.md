@@ -88,6 +88,7 @@ python dev.py --dbdir <full-dbpath>
 # Run the queries for each roi with groundtruth in the PZ_MOTHERS database
 # using the best known configuration of parameters
 python dev.py --db PZ_MOTHERS --allgt -t best
+python dev.py --db PZ_MOTHERS --allgt -t score
 
 
 # View work dir
@@ -110,3 +111,6 @@ python ibeis/injest/injest_database.py --db JAG_Kieryn
 
 # Injest an hsdb
 python ibeis/injest/injest_hsdb.py --db JAG_Kelly --force-delete
+
+# Merge all jaguar databases into single big database
+python main.py --merge-species JAG_
