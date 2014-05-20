@@ -361,15 +361,14 @@ def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
     try:
         # Check to make sure bbox input is a tuple-list, not a list-list
         if len(bbox_list) > 0:
-            assert(isinstance(bbox_list[0], tuple))
-            assert(isinstance(bbox_list[0][0], int))
+            assert isinstance(bbox_list[0], tuple), 'Bounding boxes must be tuples of ints!'
+            assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
         roi_uuid_list = [utool.util_hash.augment_uuid(img_uuid, bbox, theta)
                             for img_uuid, bbox, theta
                             in izip(image_uuid_list, bbox_list, theta_list)]
     except Exception as ex:
-        utool.printex(ex, 'Error building roi_uuids', '[add_roi]')
-        print('[!add_rois] ' + utool.list_dbgstr('image_uuid_list'))
-        print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
+        utool.printex(ex, 'Error building roi_uuids', '[add_roi]',
+                      key_list=['image_uuid_list'])
         raise
     return roi_uuid_list
 

@@ -11,7 +11,7 @@ def TEST_GUI_ADD_ROI(ibs, back):
     gid = valid_gids[0]
     print('[TEST] SELECT GID=%r' % gid)
     back.select_gid(gid)
-    bbox = [0, 0, 100, 100]
+    bbox = (0, 0, 100, 100)
     rid = back.add_roi(bbox=bbox)
     print('[TEST] NEW RID=%r' % rid)
     return locals()
