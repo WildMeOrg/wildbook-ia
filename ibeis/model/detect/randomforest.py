@@ -26,7 +26,7 @@ def detect_rois(ibs, gid_list, gpath_list, species, quick=True, **kwargs):
         config = {}
     else:
         config = {
-            'scales': '10 2.0 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20'
+            'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20'
         }
 
     detector = Random_Forest_Detector(rebuild=False, **config)
