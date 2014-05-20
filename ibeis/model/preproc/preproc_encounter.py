@@ -2,11 +2,9 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
+from ibeis import constants
 (print, print_,  rrr, profile,
  printDBG) = utool.inject(__name__, '[preproc_encounter]', DEBUG=False)
-
-
-ENCTEXT_PREFIX = 'enc_'
 
 
 def _cluster_encounters_by_time(valid_gids, valid_unixtimes, seconds_thresh):
@@ -68,5 +66,5 @@ def ibeis_compute_encounters(ibs):
     # Flatten gids list by enounter
     flat_eids, flat_gids = utool.flatten_membership_mapping(encounter_ids, gids_in_eid)
     # Create enctext for each image
-    enctext_list = [ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
+    enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
     return enctext_list, flat_gids

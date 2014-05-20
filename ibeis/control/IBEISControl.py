@@ -311,12 +311,8 @@ class IBEISController(object):
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-        for count, gpath in enumerate(gpath_list):
-            assert gpath.find('\\') == -1, (('gpath_list must not contain'
-                                             'backslashes. It must be in unix'
-                                             'format. Failed on %d-th gpath=%r') %
-                                            (count, gpath))
         # Processing an image might fail, yeilding a None instead of a tup
+        gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
         raw_param_iter = preproc_image.add_images_params_gen(gpath_list)
         # Filter out None values before passing to SQL
         param_iter = utool.ifilter_Nones(raw_param_iter)

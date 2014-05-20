@@ -3,6 +3,7 @@ import utool
 import numpy as np
 from itertools import izip
 from ibeis.dev import ibsfuncs
+from ibeis.dev import results_organizer
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG=False)
 
 
@@ -102,15 +103,4 @@ def get_score_stuff_pdfish(allres):
     orgres = false_orgres
 
     def get_interesting_roipairs(orgres):
-        # Remove None ranks
-        allranks  = orgres.ranks
-        allscores = orgres.scores
-        allqrids  = orgres.qrids
-        allrids   = orgres.rids
-        isvalid = [rank is not None for rank in allranks]
-        rank_list  = np.array(utool.filter_items(allranks, isvalid))
-        score_list = np.array(utool.filter_items(allscores, isvalid))
-        qrid_list  = np.array(utool.filter_items(allqrids, isvalid))
-        rid_list   = np.array(utool.filter_items(allrids, isvalid))
-
-        sortx = score_list.argsort()[::-1]
+        orgres2 = results_organizer._score_sorted_ranks_lt(orgres, 2)

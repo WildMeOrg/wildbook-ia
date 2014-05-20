@@ -230,17 +230,34 @@ def delete_ibeis_database(dbdir):
 
 
 def assert_valid_names(name_list):
-    valid_namecheck = [not (name.startswith('____') and len(name) > 4)
-                        for name in name_list]
-    assert all(valid_namecheck),\
-        'User defined names cannot start with four underscores'
+    """ Asserts that user specified names do not conflict with
+    the standard unknown name """
+    def isconflict(name, other):
+        return name.startswith(other) and len(name) > len(other)
+    valid_namecheck = [not isconflict(name, constants.UNKNOWN_NAME)
+                       for name in name_list]
+    assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
+                                  'cannot start a name with four underscores')
 
 
-def is_database_enctext(enctext):
-    return (enctext == '' or enctext is None or enctext == 'None')
+def assert_and_fix_gpath_slashes(gpath_list):
+    """
+    Asserts that all paths are given with forward slashes.
+    If not it fixes them
+    """
+    try:
+        msg = ('gpath_list must be in unix format (no backslashes).'
+               'Failed on %d-th gpath=%r')
+        for count, gpath in enumerate(gpath_list):
+            assert gpath.find('\\') == -1, (msg % (count, gpath))
+    except AssertionError as ex:
+        utool.printex(ex, iswarning=True)
+        gpath_list = map(utool.unixpath, gpath_list)
+    return gpath_list
 
 
 def ridstr(rid, ibs=None, notes=False):
+    """ Helper to make a string from an RID """
     if not notes:
         return 'rid%d' % (rid,)
     else:

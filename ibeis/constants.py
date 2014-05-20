@@ -16,3 +16,4 @@ ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
 # Name used to denote that idkwtfthisis
 UNKNOWN_NAME = '____'
+ENCTEXT_PREFIX = 'enc_'

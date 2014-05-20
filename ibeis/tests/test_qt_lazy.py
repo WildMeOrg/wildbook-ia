@@ -1,7 +1,5 @@
-
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
@@ -11,7 +9,6 @@ import string
 import random
 
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_LAZY] ')
-
 
 
 def create_databse():
@@ -24,7 +21,7 @@ def create_databse():
     utool.util_path.remove_file(join(sqldb_dpath, sqldb_fname), dryrun=False)
     db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
                                                   sqldb_fname=sqldb_fname)
-    
+
     headers = [
         ('temp_id',      'INTEGER PRIMARY KEY'),
         ('temp_float',   'FLOAT'),
@@ -42,10 +39,10 @@ def create_databse():
     ]
     db.schema('temp', headers)
 
-    rows = 1*(10**5)
-    feats_iter = ( (random.uniform(0.0,1.0), random.randint(0,100), _randstr(), _randstr()) 
+    rows = 1 * (10 ** 5)
+    feats_iter = ((random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
                         for i in xrange(rows) )
-    
+
     print('[TEST] insert numpy arrays')
     tt = utool.tic()
     db.executemany(operation='''
@@ -64,8 +61,8 @@ def create_databse():
     return headers_name, headers_nice, db
 
 
-class TableModel(QtCore.QAbstractTableModel): 
-    def __init__(self, headers_name, headers_nice, db, parent=None, *args): 
+class TableModel(QtCore.QAbstractTableModel):
+    def __init__(self, headers_name, headers_nice, db, parent=None, *args):
         super(TableModel, self).__init__()
         self.headers_name = headers_name
         self.headers_nice = headers_nice
@@ -84,10 +81,10 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.row_indices)
-        
+
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.headers_name) 
-        
+        return len(self.headers_name)
+
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole:
             row = index.row()
@@ -107,7 +104,7 @@ class TableModel(QtCore.QAbstractTableModel):
             return self.headers_nice[index]
         else:
             return QtCore.QVariant()
-    
+
     def sort(self, index, order):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         self.db_sort_index = index
@@ -117,10 +114,10 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         return QtCore.Qt.ItemIsEnabled
-            
- 
+
+
 class TableView(QtGui.QTableView):
-    
+
     def __init__(self, *args, **kwargs):
         QtGui.QTableView.__init__(self, *args, **kwargs)
         self.setSortingEnabled(True)
@@ -131,26 +128,21 @@ class TableView(QtGui.QTableView):
         self.resizeColumnsToContents()
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     from sys import argv, exit
-    
+
     class Widget(QtGui.QWidget):
-        
         def __init__(self, parent=None):
             QtGui.QWidget.__init__(self, parent)
-            
             headers_name, headers_nice, db = create_databse()
-
-            l=QtGui.QVBoxLayout(self)
-            self._tm=TableModel(headers_name, headers_nice, db, parent=self)
-            self._tv=TableView(self)
+            self.vlayout = QtGui.QVBoxLayout(self)
+            self._tm = TableModel(headers_name, headers_nice, db, parent=self)
+            self._tv = TableView(self)
             self._tv.setModel(self._tm)
-            l.addWidget(self._tv)
-            
- 
-    a=QtGui.QApplication(argv)
-    w=Widget()
+            self.vlayout.addWidget(self._tv)
+
+    a = QtGui.QApplication(argv)
+    w = Widget()
     w.show()
     w.raise_()
     exit(a.exec_())

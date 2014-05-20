@@ -43,6 +43,11 @@ class OrganizedResult(DynStruct):
         self.scores = np.array(self.scores)
         self.ranks  = np.array(self.ranks)
 
+    def where_ranks_lt(orgres, num):
+        """ get new orgres where all the ranks are less or equal to """
+        # Remove None ranks
+        return _where_ranks_lt(orgres, num)
+
     def __len__(self):
         num_qcxs   = len(self.qrids)
         num_rids   = len(self.rids)
@@ -64,6 +69,36 @@ class OrganizedResult(DynStruct):
         column_labels = ['qrids', 'rids', 'scores', 'ranks']
         header = 'Orgres %s' % (self.orgtype)
         print(utool.make_csv_table(column_labels, column_list, header, column_type=None))
+
+
+def _where_ranks_lt(orgres, num):
+    """ get new orgres where all the ranks are less or equal to """
+    # Remove None ranks
+    isvalid = [rank is not None and rank <= num and rank != -1
+                for rank in orgres.ranks]
+    orgres2 = OrganizedResult(orgres.orgtype + ' < %d' % num)
+    orgres2.qrids  = utool.filter_items(orgres.qrids, isvalid)
+    orgres2.rids   = utool.filter_items(orgres.rids, isvalid)
+    orgres2.scores = utool.filter_items(orgres.scores, isvalid)
+    orgres2.ranks  = utool.filter_items(orgres.ranks, isvalid)
+    return orgres2
+
+
+def _sorted_by_score(orgres):
+    """ get new orgres where arrays are sorted by score """
+    orgres2 = OrganizedResult(orgres.orgtype + ' score-sorted')
+    sortx = np.array(orgres.scores).argsort()[::-1]
+    orgres2.qrids  = np.array(orgres.qrids)[sortx]
+    orgres2.rids   = np.array(orgres.rids)[sortx]
+    orgres2.scores = np.array(orgres.scores)[sortx]
+    orgres2.ranks  = np.array(orgres.ranks)[sortx]
+    return orgres2
+
+
+def _score_sorted_ranks_lt(orgres, num):
+    orgres2 = _where_ranks_lt(orgres, num)
+    orgres3 = _sorted_by_score(orgres2)
+    return orgres3
 
 
 def qres2_true_and_false(ibs, qres):
@@ -162,3 +197,43 @@ def organize_results(ibs, qrid2_qres):
     for org in allorg.itervalues():
         org.freeze()
     return allorg
+
+
+def get_automatch_candidates(qrid2_qres, maxrank=5):
+    """ Returns a list of matches that should be inspected
+    This function is more lightweight than orgres or allres
+    and will be used in production.
+    """
+    qrids_stack  = []
+    rids_stack   = []
+    ranks_stack  = []
+    scores_stack = []
+
+    # Extract inspectable candidate matches from each query result
+    for qrid, qres in qrid2_qres.iteritems():
+        assert qrid == qres.qrid, 'qrid2_qres and qres disagree on qrid'
+        rids   = np.array(qres.rid2_score.keys())
+        scores = np.array(qres.rid2_score.values())
+        qrids  = np.full(rids.shape, qrid, dtype=rids.dtype)
+        ranks  = np.arange(rids.size)
+        isvalid = ranks < maxrank
+        qrids_stack.append(qrids[isvalid])
+        rids_stack.append(rids[isvalid])
+        ranks_stack.append(ranks[isvalid])
+        scores_stack.append(scores[isvalid])
+
+    # Stack them into a giant array
+    qrid_arr  = np.hstack(qrids_stack)
+    rid_arr   = np.hstack(rids_stack)
+    score_arr = np.hstack(scores_stack)
+    rank_arr  = np.hstack(ranks_stack)
+
+    # Sort by scores
+    sortx = score_arr.argsort()[::-1]
+    qrid_arr  = qrid_arr[sortx]
+    rid_arr   = rid_arr[sortx]
+    score_arr = score_arr[sortx]
+    rank_arr  = rank_arr[sortx]
+
+    candidate_matches = (qrid_arr, rid_arr, rank_arr, score_arr)
+    return candidate_matches
