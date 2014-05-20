@@ -243,7 +243,7 @@ class MainWindowBackend(QtCore.QObject):
             raise StopIteration('no database opened')
         valid_eids = back.ibs.get_valid_eids(min_num_gids=2)
         enctext_list = [''] + back.ibs.get_encounter_enctext(valid_eids)
-        if index is None or True:
+        if index is None:
             for enctext in enctext_list:
                 yield enctext
         else:
