@@ -17,12 +17,19 @@ __LOCATION__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 
 @utool.indent_func
-def detect_rois(ibs, gid_list, gpath_list, species, **kwargs):
+def detect_rois(ibs, gid_list, gpath_list, species, quick=True, **kwargs):
     # Ensure all models downloaded and accounted for
     grabmodels.ensure_models()
 
     # Create detector
-    detector = Random_Forest_Detector(rebuild=False)
+    if quick:
+        config = {}
+    else:
+        config = {
+            'scales': '10 2.0 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20'
+        }
+
+    detector = Random_Forest_Detector(rebuild=False, **config)
 
     detect_path = ''
     trees_path     = os.path.join(__LOCATION__, 'rf', species)

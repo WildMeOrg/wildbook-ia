@@ -243,9 +243,13 @@ def setup_batch_menu(ui, front, back):
         shortcut='',
         slot_fn=back.precompute_queries)
     ui.menuBatch.newAction(
-        name='actionDetect_Grevys',
-        text='Detect Grevys',
-        slot_fn=back.detect_grevys)
+        name='actionDetect_Grevys_Quick',
+        text='Detect Grevys Quick',
+        slot_fn=back.detect_grevys_quick)
+    ui.menuBatch.newAction(
+        name='actionDetect_Grevys_Fine',
+        text='Detect Grevys Fine',
+        slot_fn=back.detect_grevys_fine)
     ui.menuBatch.addSeparator()
     ui.menuBatch.newAction(
         name='actionCompute_Encounters',

@@ -633,14 +633,25 @@ class MainWindowBackend(QtCore.QObject):
             back.show_qres(qres)
 
     @blocking_slot()
-    def detect_grevys(back, refresh=True):
+    def _detect_grevys(back, quick=True, refresh=True):
         print('\n\n')
-        print('[back] detect_grevys()')
+        if quick:
+            print('[back] detect_grevys(quick)')
+        else:
+            print('[back] detect_grevys(fine)')
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs)
-        ibs.detect_random_forest(gid_list, 'zebra_grevys')
+        ibs.detect_random_forest(gid_list, 'zebra_grevys', quick)
         if refresh:
             back.populate_tables(encounter=False, qres=False)
+
+    @blocking_slot()
+    def detect_grevys_quick(back, refresh=True):
+        back._detect_grevys()
+
+    @blocking_slot()
+    def detect_grevys_fine(back, refresh=True):
+        back._detect_grevys(quick=False)
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
