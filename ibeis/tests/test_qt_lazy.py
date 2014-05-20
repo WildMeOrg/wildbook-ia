@@ -61,19 +61,22 @@ def create_databse():
     return headers_name, headers_nice, db
 
 
-class TableModel(QtCore.QAbstractTableModel):
+class TableModel_SQL(QtCore.QAbstractTableModel):
+    """ Does the lazy loading magic """
     def __init__(self, headers_name, headers_nice, db, parent=None, *args):
-        super(TableModel, self).__init__()
+        super(TableModel_SQL, self).__init__()
         self.headers_name = headers_name
         self.headers_nice = headers_nice
 
         self.db = db
         self.db_sort_index = 0
         self.db_sort_reversed = False
+        self.row_indices = []
 
-        self._get_row_indices()
+        self._refresh_row_indicies()
 
-    def _get_row_indices(self):
+    def _refresh_row_indicies(self):
+        """ NonQT """
         column = self.headers_name[self.db_sort_index]
         order = (' DESC' if self.db_sort_reversed else ' ASC')
         self.db.execute('SELECT temp_id FROM temp ORDER BY ' + column + order, [])
@@ -92,9 +95,6 @@ class TableModel(QtCore.QAbstractTableModel):
 
             self.db.execute('SELECT * FROM temp WHERE temp_id=?', [self.row_indices[row]])
             row_data = list(self.db.result())
-            self.cache_row_data = row_data[:]
-            self.cache_row = row
-
             return str(row_data[column])
         else:
             return QtCore.QVariant()
@@ -109,7 +109,7 @@ class TableModel(QtCore.QAbstractTableModel):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         self.db_sort_index = index
         self.db_sort_reversed = order == QtCore.Qt.DescendingOrder
-        self._get_row_indices()
+        self._refresh_row_indicies()
         self.emit(QtCore.SIGNAL("layoutChanged()"))
 
     def flags(self, index):
@@ -117,7 +117,7 @@ class TableModel(QtCore.QAbstractTableModel):
 
 
 class TableView(QtGui.QTableView):
-
+    """ The table view houses the AbstractItemModel """
     def __init__(self, *args, **kwargs):
         QtGui.QTableView.__init__(self, *args, **kwargs)
         self.setSortingEnabled(True)
@@ -128,21 +128,21 @@ class TableView(QtGui.QTableView):
         self.resizeColumnsToContents()
 
 
+class DummyWidget(QtGui.QWidget):
+    """ Test Main Window """
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        headers_name, headers_nice, db = create_databse()
+        self.vlayout = QtGui.QVBoxLayout(self)
+        self._tm = TableModel_SQL(headers_name, headers_nice, db, parent=self)
+        self._tv = TableView(self)
+        self._tv.setModel(self._tm)
+        self.vlayout.addWidget(self._tv)
+
 if __name__ == '__main__':
-    from sys import argv, exit
-
-    class Widget(QtGui.QWidget):
-        def __init__(self, parent=None):
-            QtGui.QWidget.__init__(self, parent)
-            headers_name, headers_nice, db = create_databse()
-            self.vlayout = QtGui.QVBoxLayout(self)
-            self._tm = TableModel(headers_name, headers_nice, db, parent=self)
-            self._tv = TableView(self)
-            self._tv.setModel(self._tm)
-            self.vlayout.addWidget(self._tv)
-
-    a = QtGui.QApplication(argv)
-    w = Widget()
-    w.show()
-    w.raise_()
-    exit(a.exec_())
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    widget = DummyWidget()
+    widget.show()
+    widget.raise_()
+    sys.exit(app.exec_())
