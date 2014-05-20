@@ -121,4 +121,12 @@ python main.py --merge-species JAG_
 # Technical Demo
 #---------------
 python dev.py --db PZ_MOTHERS --setdb
-python dev.py --allgt -t scores
+
+# See a list of tests
+python dev.py -t help
+
+# See a plot of scores
+python dev.py --allgt -t scores -w
+
+# Run the best configuration and print out the hard cases
+python dev.py --allgt -t best --echo-hardcase

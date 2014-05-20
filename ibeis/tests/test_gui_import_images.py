@@ -12,7 +12,8 @@ def TEST_GUI_IMPORT_IMAGES(ibs, back):
     # The test api returns a list of interesting chip indexes
     mode = 'FILE'
     if mode == 'FILE':
-        gpath_list = grabdata.get_test_gpaths()
+        gpath_list = map(utool.unixpath, grabdata.get_test_gpaths())
+
         # else:
         #    dir_ = utool.truepath(join(sysres.get_workdir(), 'PZ_MOTHERS/images'))
         #    gpath_list = utool.list_images(dir_, fullpath=True)[::4]

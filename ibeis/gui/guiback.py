@@ -538,6 +538,7 @@ class MainWindowBackend(QtCore.QObject):
                 options=['Files', 'Directory'],
                 use_cache=False)
         if reply == 'Files' or gpath_list is not None:
+            gpath_list = map(utool.unixpath, gpath_list)
             gid_list = back.import_images_from_file(gpath_list=gpath_list,
                                                     refresh=refresh)
         if reply == 'Directory' or dir_ is not None:
@@ -552,6 +553,7 @@ class MainWindowBackend(QtCore.QObject):
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
+        gpath_list = map(utool.unixpath, gpath_list)
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
             back.populate_image_table()
