@@ -62,7 +62,9 @@ def create_databse():
 
 
 class TableModel_SQL(QtCore.QAbstractTableModel):
-    """ Does the lazy loading magic """
+    """ Does the lazy loading magic
+    http://qt-project.org/doc/qt-5/QAbstractItemModel.html
+    """
     def __init__(self, headers_name, headers_nice, db, parent=None, *args):
         super(TableModel_SQL, self).__init__()
         self.headers_name = headers_name
@@ -99,6 +101,11 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         else:
             return QtCore.QVariant()
 
+    def setData(self, index, data, role=QtCore.Qt.EditRole):
+        """ Sets the role data for the item at index to value. """
+        if role != QtCore.Qt.EditRole:
+            return False
+
     def headerData(self, index, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
             return self.headers_nice[index]
@@ -113,11 +120,35 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         self.emit(QtCore.SIGNAL("layoutChanged()"))
 
     def flags(self, index):
-        return QtCore.Qt.ItemIsEnabled
+        #return QtCore.Qt.ItemIsEnabled
+        return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        #return Qt.ItemFlag(0)
 
 
 class TableView(QtGui.QTableView):
-    """ The table view houses the AbstractItemModel """
+    """ The table view houses the AbstractItemModel
+
+    Public Signals:
+        activated(QModelIndex index)
+        clicked(QModelIndex index)
+        doubleClicked( QModelIndex index )
+        entered(QModelIndex index)
+        pressed(QModelIndex index)
+        viewportEntered()
+        customContextMenuRequested(QPoint pos)
+
+    Public Slots:
+        clearSelection ()
+        edit(QModelIndex index)
+        reset()
+        scrollToBottom()
+        scrollToTop()
+        selectAll()
+        setCurrentIndex(QModelIndex index)
+        setRootIndex(QModelIndex index)
+        update(QModelIndex index)
+
+    """
     def __init__(self, *args, **kwargs):
         QtGui.QTableView.__init__(self, *args, **kwargs)
         self.setSortingEnabled(True)

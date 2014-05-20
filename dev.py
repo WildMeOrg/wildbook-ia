@@ -172,7 +172,7 @@ def desc_dists(ibs, qrid_list):
 def inspect_matches(ibs, qrid_list):
     from ibeis.dev import results_organizer
     allres = get_allres(ibs, qrid_list)
-    qrid2_qres = allres.qrid2_qres
+    qrid2_qres = allres.qrid2_res
 
     candidate_matches = results_organizer.get_automatch_candidates(qrid2_qres)
     (qrid_arr, rid_arr, rank_arr, score_arr) = candidate_matches
@@ -180,12 +180,17 @@ def inspect_matches(ibs, qrid_list):
     istrue = (ibs.get_roi_nids(qrid_arr) - ibs.get_roi_nids(rid_arr)) == 0
     column_headers = ('qrid', 'rid', 'rank', 'score', 'truth')
     column_values = list(candidate_matches) + [istrue]
-    print(utool.make_csv_table(column_headers, column_values))
+    #print(utool.make_csv_table(column_headers, column_values))
 
     qrid = qrid_arr[0]
     rid  = rid_arr[0]
 
     interact.ishow_matches(ibs, qrid2_qres[qrid], rid)
+
+    from guitool import guitool_tables
+    imp.reload(guitool_tables)
+    widget = guitool_tables.make_dummy_table_widget(column_values, column_headers)
+    allres.widget = widget
 
 
 @devcmd('scores', 'score')
