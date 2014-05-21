@@ -156,6 +156,7 @@ class TableView(QtGui.QTableView):
         vh = self.verticalHeader()
         vh.setVisible(False)
 
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.resizeColumnsToContents()
 
 
