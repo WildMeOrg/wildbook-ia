@@ -283,7 +283,8 @@ class TabWidget(QtGui.QTabWidget):
         self._tb.setMovable(True)
         self.tabCloseRequested.connect(self._onClose)
         self.currentChanged.connect(self._onChange)
-        self.setStyleSheet("border: none;");
+        self.setStyleSheet("border: none;")
+        self._tb.setStyleSheet("border: none;")
 
         self.id_list = []
         self.tm = tm
