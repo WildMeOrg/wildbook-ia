@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import Qt
 from . import qtype
 import utool
 
@@ -39,18 +40,18 @@ class ListTableModel(QtCore.QAbstractTableModel):
     """
     debug_qindex = QtCore.pyqtSignal(QtCore.QModelIndex)
 
-    def __init__(self, column_list, headers_name, headers_nice=None,
-                 column_types=None, parent=None, *args):
+    def __init__(self, column_list, header_names, header_nicenames=None,
+                 column_types=None, editable_headers=None, parent=None, *args):
         super(ListTableModel, self).__init__()
         # Internal header names
-        self.headers_name = headers_name
+        self.header_names = header_names
         # Set the data to display (list of lists)
         self.column_list = column_list
         # Set user readable "nice" headers, default to internal ones
-        if headers_nice is None:
-            self.headers_nice = headers_name
+        if header_nicenames is None:
+            self.header_nicenames = header_names
         else:
-            self.headers_nice = headers_nice
+            self.header_nicenames = header_nicenames
         # Column datatypes
         if column_types is None:
             try:
@@ -59,7 +60,12 @@ class ListTableModel(QtCore.QAbstractTableModel):
                 self.column_types = [str] * len(self.column_list)
         else:
             self.column_types = column_types
-        assert len(self.headers_name) == len(self.column_list)
+        # Is editable
+        if editable_headers is None:
+            self.column_editable = [False] * len(self.column_list)
+        else:
+            self.column_editable = [header in editable_headers for header in self.header_names]
+        assert len(self.header_names) == len(self.column_list)
         self.db_sort_index = 0
         self.db_sort_reversed = False
         self.row_sortx = []
@@ -84,13 +90,20 @@ class ListTableModel(QtCore.QAbstractTableModel):
         data = row_data[self.row_sortx[row]]
         return data
 
+    def set_data(self, index, data):
+        """ Non-Qt Helper """
+        row = index.row()
+        column = index.column()
+        row_data = self.column_list[column]
+        row_data[self.row_sortx[row]] = data
+
     def get_header(self, column):
         """ Non-Qt Helper """
-        return self.headers_name[column]
+        return self.header_names[column]
 
     def get_header_data(self, header, row):
         """ Non-Qt Helper """
-        column = self.headers_name.index(header)
+        column = self.header_names.index(header)
         index  = self.index(row, column)
         data   = self.get_data(index)
         return data
@@ -99,68 +112,86 @@ class ListTableModel(QtCore.QAbstractTableModel):
         return len(self.row_sortx)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.headers_name)
+        return len(self.header_names)
 
     def index(self, row, column, parent=QtCore.QModelIndex()):
         return self.createIndex(row, column)
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """ Returns the data to display """
-        if role == QtCore.Qt.DisplayRole:
+        flags = self.flags(index)
+        if index.isValid() and role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable):
+            return QtCore.QVariant(QtGui.QColor(Qt.red))
+        if role == Qt.DisplayRole or (role == Qt.CheckStateRole ):
             data = self.get_data(index)
-            var = qtype.cast_into_qt(data)
-            return var
+            value = qtype.cast_into_qt(data, role, flags)
+            return value
+        #    data = self.get_data(index)
+        #    return QtCore.QVariant(Qt.CheckState(data))
         else:
             return QtCore.QVariant()
 
-    def setData(self, index, var, role=QtCore.Qt.EditRole):
+    def setData(self, index, value, role=Qt.EditRole):
         """ Sets the role data for the item at index to value.
-        var is a QVariant (called data in documentation)
+        value is a QVariant (called data in documentation)
         """
+        print('About to set data: %r' % (str(qtype.qindexinfo(index))))
         self.debug_qindex.emit(index)
-        if role != QtCore.Qt.EditRole:
-            return False
-        row    = index.row()
-        column = index.column()
-        type_ = self.column_types[column]
         try:
-            # Cast var into datatype
-            data = utool.smart_cast(str(var.toString()), type_)
+            row    = index.row()
+            column = index.column()
+            if role == Qt.CheckStateRole:
+                type_ = 'QtCheckState'
+                data = value == Qt.Checked
+            elif role != Qt.EditRole:
+                return False
+            else:
+                # Cast value into datatype
+                type_ = self.column_types[column]
+                data = utool.smart_cast(str(value.toString()), type_)
             # Do actual setting of data
-            self.column_list[column][row] = data
-            print('Setting Data: %r, %r' % (str(qtype.qindexinfo(index)), data))
+            print(' * %s new_data = %r' % (utool.type_str(type_), data,))
+            self.set_data(index, data)
             # Emit that data was changed and return succcess
             self.dataChanged.emit(index, index)
             return True
         except Exception as ex:
             print('<!!! ERROR !!!>')
             print(ex)
-            print('row = %r' % (row,))
-            print('column = %r' % (column,))
-            print('type_ = %r' % (type_,))
-            print('var.toString() = %r' % (str(var.toString()),))
+            try:
+                print('row = %r' % (row,))
+                print('column = %r' % (column,))
+                print('type_ = %r' % (type_,))
+                print('value.toString() = %r' % (str(value.toString()),))
+            except Exception:
+                pass
             print('</!!! ERROR !!!>')
             raise
-        #if result is True:
-        #    self.dataChanged.emit(index, index)
-        #return result
 
-    def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
-            return self.headers_nice[section]
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.header_nicenames[section]
         else:
             return QtCore.QVariant()
 
     def sort(self, index, order):
         self.layoutAboutToBeChanged.emit()
         self.db_sort_index = index
-        self.db_sort_reversed = order == QtCore.Qt.DescendingOrder
+        self.db_sort_reversed = order == Qt.DescendingOrder
         self._refresh_row_indicies()
         self.layoutChanged.emit()
 
     def flags(self, index):
-        #return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        #return Qt.ItemIsEnabled
+        col = index.column()
+        if self.column_editable[col]:
+            if self.column_types[col] in utool.VALID_BOOL_TYPES:
+                #print(col)
+                return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
+            else:
+                return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
+        else:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         #return Qt.ItemFlag(0)
 
 
@@ -197,17 +228,18 @@ class TableView(QtGui.QTableView):
         vh.setVisible(False)
 
         self.resizeColumnsToContents()
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        #self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
 
 class DummyListTableWidget(QtGui.QWidget):
     """ Test Main Window """
-    def __init__(self, column_values, column_headers, parent=None):
+    def __init__(self, column_values, column_headers, editable_headers=None, parent=None):
         super(DummyListTableWidget, self).__init__(parent)
         # Create vertical layout for the table to go into
         self.vlayout = QtGui.QVBoxLayout(self)
         # Instansiate the AbstractItemModel
-        self.list_table_model = ListTableModel(column_values, column_headers, parent=self)
+        self.list_table_model = ListTableModel(column_values, column_headers,
+                                               editable_headers=editable_headers, parent=self)
         # Create a TableView for the AbstractItemModel
         self.table_view = TableView(self)
         self.table_view.setModel(self.list_table_model)
@@ -239,9 +271,10 @@ def _receive_global_index(index):
     """
 
 
-def dummy_list_table(column_values, column_headers, show=True, raise_=True,
+def dummy_list_table(column_values, column_headers, editable_headers=None, show=True, raise_=True,
                      on_click=None):
-    widget = DummyListTableWidget(column_values, column_headers)
+    widget = DummyListTableWidget(column_values, column_headers,
+                                  editable_headers=editable_headers)
 
     def on_doubleclick(index):
         # This is actually a release
@@ -260,6 +293,7 @@ def dummy_list_table(column_values, column_headers, show=True, raise_=True,
     widget.table_view.doubleClicked.connect(on_doubleclick)
     widget.table_view.pressed.connect(on_doubleclick)
     widget.table_view.activated.connect(on_activated)
+    widget.setGeometry(20, 50, 600, 800)
 
     widget.list_table_model.debug_qindex.connect(_receive_global_index)
 
