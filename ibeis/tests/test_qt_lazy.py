@@ -191,7 +191,9 @@ class ListModel_SQL(QtCore.QAbstractListModel):
         self.db.execute('SELECT * FROM encounters WHERE encounter_id=?', [self.row_indices[row]])
         row_data = list(self.db.result())
         encounter_id = str(row_data[0])
+        encounter_name = str(row_data[1])
         self.tm._change_encounter(encounter_id)
+        return encounter_id, encounter_name
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.row_indices)
@@ -266,16 +268,34 @@ class ListView(QtGui.QListView):
 
     def mouseDoubleClickEvent(self, event):
         index = self.selectedIndexes()[0]
-        self.model()._change_encounter(index)
-        self.parent()._addWidget(index.row())
+        enc_id, enc_name = self.model()._change_encounter(index)
+        self.parent()._addWidget(enc_id, enc_name)
 
 
 class TabWidget(QtGui.QTabWidget):
-    def __init__(self, parent=None):
+    def __init__(self, tm, parent=None):
         QtGui.QTabWidget.__init__(self, parent)
+        self.setTabsClosable(True)
+        self.setMaximumSize (9999, 21)
+        self._tb = self.tabBar()
+        self._tb.setMovable(True)
+        self.tabCloseRequested.connect(self.onClose)
+        self.currentChanged.connect(self.onChange)
+
+        self.id_list = []
+        self.tm = tm
 
     def onChange(self, index):
-        print("changed")
+        self.tm._change_encounter(self.id_list[index])
+
+    def onClose(self, index):
+        if len(self.id_list) > 0:
+            self.id_list.pop(index)
+            self.removeTab(index)
+
+    def addID(self, _id):
+        self.id_list.append(_id)
+        self.setCurrentIndex(len(self.id_list) - 1)
 
 
 class DummyWidget(QtGui.QWidget):
@@ -286,24 +306,31 @@ class DummyWidget(QtGui.QWidget):
         
         headers_name, headers_nice, db = create_databse()
 
-        self._tw = TabWidget() 
-        self._addWidget("Database")
-        self.vlayout.addWidget(self._tw) 
-
         self._tm = TableModel_SQL(headers_name, headers_nice, db, parent=self)
         self._tv = TableView(self)
         self._tv.setModel(self._tm)
-        self.vlayout.addWidget(self._tv)
 
         self._lm = ListModel_SQL(db, self._tm, parent=self)
         self._lv = ListView(self)
         self._lv.setModel(self._lm)
+
+        self._tw = TabWidget(self._tm) 
+        self._addWidget(-1, "Database")
+
+        self.vlayout.addWidget(self._tw) 
+        self.vlayout.addWidget(self._tv)
         self.vlayout.addWidget(self._lv)
 
-    def _addWidget(self, name):
-        temp = QtGui.QWidget() 
-        self._tw.addTab(temp, str(name))
-
+    def _addWidget(self, enc_id, enc_name):
+        if enc_id not in self._tw.id_list:
+            temp = QtGui.QWidget() 
+            self._tw.addTab(temp, str(enc_id) + " - " + str(enc_name))
+            self._tw.addID(enc_id)
+        else:
+            for i in range(len(self._tw.id_list)):
+                if enc_id == self._tw.id_list[i]:
+                    self._tw.setCurrentIndex(i)
+                    break
 
 
 
