@@ -179,6 +179,7 @@ def inspect_matches(ibs, qrid_list):
     (qrid_arr, rid_arr, rank_arr, score_arr) = candidate_matches
 
     istrue = (ibs.get_roi_nids(qrid_arr) - ibs.get_roi_nids(rid_arr)) == 0
+    editable_headers = ('truth', 'rank')
     column_headers = ('qrid', 'rid', 'rank', 'score', 'truth')
     column_values = list(candidate_matches) + [istrue]
     #print(utool.make_csv_table(column_values, column_headers))
@@ -192,6 +193,8 @@ def inspect_matches(ibs, qrid_list):
 
     def on_click(index):
         model  = index.model()
+        if not (model.flags(index) & QtCore.Qt.ItemIsSelectable):
+            return
         data   = model.get_data(index)
         header = model.get_header(index.column())
         rid    = model.get_header_data('rid', index.row())
@@ -204,6 +207,7 @@ def inspect_matches(ibs, qrid_list):
         pass
 
     widget = guitool_tables.dummy_list_table(column_values, column_headers,
+                                             editable_headers=editable_headers,
                                              on_click=on_click)
 
     allres.widget = widget
