@@ -171,46 +171,14 @@ def desc_dists(ibs, qrid_list):
 
 @devcmd('inspect')
 def inspect_matches(ibs, qrid_list):
-    from ibeis.dev import results_organizer
+    from ibeis.gui import inspect_gui
     allres = get_allres(ibs, qrid_list)
+    guitool.ensure_qapp()
     qrid2_qres = allres.qrid2_qres
 
-    candidate_matches = results_organizer.get_automatch_candidates(qrid2_qres)
-    (qrid_arr, rid_arr, rank_arr, score_arr) = candidate_matches
-
-    istrue = (ibs.get_roi_nids(qrid_arr) - ibs.get_roi_nids(rid_arr)) == 0
-    editable_headers = ('truth', 'rank')
-    column_headers = ('qrid', 'rid', 'rank', 'score', 'truth')
-    column_values = list(candidate_matches) + [istrue]
-    #print(utool.make_csv_table(column_values, column_headers))
-
-    #qrid = qrid_arr[0]
-    #rid  = rid_arr[0]
-
-    from guitool import guitool_tables
-    guitool.ensure_qtapp()
-    imp.reload(guitool_tables)
-
-    def on_click(index):
-        model  = index.model()
-        if not (model.flags(index) & QtCore.Qt.ItemIsSelectable):
-            return
-        data   = model.get_data(index)
-        header = model.get_header(index.column())
-        rid    = model.get_header_data('rid', index.row())
-        qrid   = model.get_header_data('qrid', index.row())
-        # This is an initial click
-        print('Clicked on header=%r, data=%r' % (header, data))
-        print('Clicked on qrid=%r, rid=%r' % (qrid, rid))
-        interact.ishow_matches(ibs, qrid2_qres[qrid], rid)
-        #+ str(qtype.qindexinfo(index)))
-        pass
-
-    widget = guitool_tables.dummy_list_table(column_values, column_headers,
-                                             editable_headers=editable_headers,
-                                             on_click=on_click)
-
-    allres.widget = widget
+    qrw = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, maxrank=5)
+    qrw.show()
+    qrw.raise_()
     return locals()
 
 
@@ -290,7 +258,7 @@ def rundev(main_locals):
         if len(qrid_list) > 0:
             ibs.prep_qreq_db(qrid_list)
             expt_locals = run_experiments(ibs, qrid_list)
-            if '--cmd' in sys.argv:
+            if '--cmd' in sys.argv or utool.inIPython():
                 exec(utool.execstr_dict(expt_locals, 'expt_locals'))
             if '--devmode' in sys.argv:
                 devfunc_locals = devfunc(ibs, qrid_list)

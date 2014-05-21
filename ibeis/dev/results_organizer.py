@@ -235,5 +235,5 @@ def get_automatch_candidates(qrid2_qres, maxrank=5):
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
-    candidate_matches = (qrid_arr, rid_arr, rank_arr, score_arr)
+    candidate_matches = (qrid_arr, rid_arr, score_arr, rank_arr)
     return candidate_matches

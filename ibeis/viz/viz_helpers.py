@@ -89,16 +89,15 @@ def get_bboxes(ibs, rid_list, offset_list=None):
     return bbox_list
 
 
-def get_ridstrs(rid_list):
-    fmtstr = 'rid=%r'
+def get_ridstrs(rid_list, **kwargs):
     if utool.isiterable(rid_list):
-        return [fmtstr % rid for rid in rid_list]
+        return [ibsfuncs.ridstr(rid, **kwargs) for rid in rid_list]
     else:
-        return fmtstr % rid_list
+        return ibsfuncs.ridstr(rid_list, **kwargs)
 
 
 def get_vsstr(qrid, rid):
-    return 'qrid%d-vs-rid%d' % (qrid, rid)
+    return ibsfuncs.vsstr(qrid, rid)
 
 
 def get_bbox_centers(bbox_list):

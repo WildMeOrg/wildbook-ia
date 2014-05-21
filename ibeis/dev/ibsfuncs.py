@@ -267,6 +267,13 @@ def ridstr(rid, ibs=None, notes=False):
         return 'rid%d-%r-%r' % (rid, str(name), str(notes))
 
 
+def vsstr(qrid, rid, lite=False):
+    if lite:
+        return '%d-vs-%d' % (qrid, rid)
+    else:
+        return 'qrid%d-vs-rid%d' % (qrid, rid)
+
+
 def list_images(img_dir, fullpath=True, recursive=True):
     """ lists images that are not in an internal cache """
     ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
