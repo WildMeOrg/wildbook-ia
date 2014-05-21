@@ -94,7 +94,7 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         super(TableModel_SQL, self).__init__()
         self.headers_name = headers_name
         self.headers_nice = headers_nice
-        self.encounter = -1
+        self.encounter = '-1'
 
         self.db = db
         self.db_sort_index = 0
@@ -107,7 +107,7 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         """ NonQT """
         column = self.headers_name[self.db_sort_index]
         order = (' DESC' if self.db_sort_reversed else ' ASC')
-        query = 'SELECT data_id FROM data WHERE (? IS -1 OR encounter_id=?) ORDER BY ' + column + order
+        query = 'SELECT data_id FROM data WHERE (? IS "-1" OR encounter_id=?) ORDER BY ' + column + order
         self.db.execute(query, [self.encounter, self.encounter])
         self.row_indices = [result for result in self.db.result_iter()]
 
@@ -173,10 +173,11 @@ class ListModel_SQL(QtCore.QAbstractListModel):
     """ Does the lazy loading magic
     http://qt-project.org/doc/qt-5/QAbstractItemModel.html
     """
-    def __init__(self, db, tm, parent=None, *args):
+    def __init__(self, db, tm, tw, parent=None, *args):
         super(ListModel_SQL, self).__init__()
         self.db = db
         self.tm = tm
+        self.tw = tw
         self.row_indices = []
 
         self._refresh_row_indicies()
@@ -218,6 +219,7 @@ class ListModel_SQL(QtCore.QAbstractListModel):
                 query = 'UPDATE encounters SET encounter_name=? WHERE encounter_id=?'
                 self.db.execute(query, [value, self.row_indices[row]])
 
+                self.tw._updateName(str(self.row_indices[row]), value)
                 self.emit(QtCore.SIGNAL("dataChanged()"))
                 return True
 
@@ -279,24 +281,32 @@ class TabWidget(QtGui.QTabWidget):
         self.setMaximumSize (9999, 21)
         self._tb = self.tabBar()
         self._tb.setMovable(True)
-        self.tabCloseRequested.connect(self.onClose)
-        self.currentChanged.connect(self.onChange)
+        self.tabCloseRequested.connect(self._onClose)
+        self.currentChanged.connect(self._onChange)
         self.setStyleSheet("border: none;");
 
         self.id_list = []
         self.tm = tm
 
-    def onChange(self, index):
-        self.tm._change_encounter(self.id_list[index])
+    def _onChange(self, index):
+        if index == '-1':
+            self.tm._change_encounter(self.id_list[index])
+        else:
+            self.tm._change_encounter(index)
 
-    def onClose(self, index):
+    def _onClose(self, index):
         if len(self.id_list) > 0:
             self.id_list.pop(index)
             self.removeTab(index)
 
-    def addID(self, _id):
+    def _addID(self, _id):
         self.id_list.append(_id)
         self.setCurrentIndex(len(self.id_list) - 1)
+
+    def _updateName(self, _id, name):
+        for i in range(len(self.id_list)):
+            if self.id_list[i] == _id:
+                self.setTabText(i, name)
 
 
 class DummyWidget(QtGui.QWidget):
@@ -311,12 +321,12 @@ class DummyWidget(QtGui.QWidget):
         self._tv = TableView(self)
         self._tv.setModel(self._tm)
 
-        self._lm = ListModel_SQL(db, self._tm, parent=self)
+        self._tw = TabWidget(self._tm) 
+        self._addWidget("-1", "Database")
+
+        self._lm = ListModel_SQL(db, self._tm, self._tw, parent=self)
         self._lv = ListView(self)
         self._lv.setModel(self._lm)
-
-        self._tw = TabWidget(self._tm) 
-        self._addWidget(-1, "Database")
 
         self.vlayout.addWidget(self._tw) 
         self.vlayout.addWidget(self._tv)
@@ -326,7 +336,7 @@ class DummyWidget(QtGui.QWidget):
         if enc_id not in self._tw.id_list:
             temp = QtGui.QWidget() 
             self._tw.addTab(temp, str(enc_id) + " - " + str(enc_name))
-            self._tw.addID(enc_id)
+            self._tw._addID(enc_id)
         else:
             for i in range(len(self._tw.id_list)):
                 if enc_id == self._tw.id_list[i]:
