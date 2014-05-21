@@ -15,19 +15,41 @@ def create_databse():
     def _randstr(size=6, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
 
-    sqldb_fname = 'temp_test_sql_numpy.sqlite3'
+    sqldb_fname = 'data_test_qt.sqlite3'
     sqldb_dpath = utool.util_cplat.get_app_resource_dir('ibeis', 'testfiles')
     utool.ensuredir(sqldb_dpath)
     utool.util_path.remove_file(join(sqldb_dpath, sqldb_fname), dryrun=False)
     db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
                                                   sqldb_fname=sqldb_fname)
 
+    encounters = [
+        ('encounter_id',      'INTEGER PRIMARY KEY'),
+        ('encounter_name',    'TEXT'),
+    ]
+    db.schema('encounters', encounters)
+
+    rows = 1 * (10 ** 3)
+    feats_iter = ( (_randstr(), ) for i in xrange(rows) )
+
+    print('[TEST] insert encounters')
+    tt = utool.tic()
+    db.executemany(operation='''
+        INSERT
+        INTO encounters
+        (
+            encounter_name
+        )
+        VALUES (?)
+        ''', params_iter=feats_iter)
+    print(' * execute insert time=%r sec' % utool.toc(tt))
+
+    ##############################################
     headers = [
-        ('temp_id',      'INTEGER PRIMARY KEY'),
-        ('temp_float',   'FLOAT'),
-        ('temp_int',     'INT'),
-        ('temp_text',    'TEXT'),
-        ('temp_text2',   'TEXT'),
+        ('data_id',      'INTEGER PRIMARY KEY'),
+        ('data_float',   'FLOAT'),
+        ('data_int',     'INT'),
+        ('data_text',    'TEXT'),
+        ('data_text2',   'TEXT'),
     ]
     headers_name = [ column[0] for column in headers ]
     headers_nice = [
@@ -37,22 +59,22 @@ def create_databse():
         'TEST String 1',
         'TEST String 2',
     ]
-    db.schema('temp', headers)
+    db.schema('data', headers)
 
     rows = 1 * (10 ** 5)
     feats_iter = ((random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
                         for i in xrange(rows) )
 
-    print('[TEST] insert numpy arrays')
+    print('[TEST] insert data')
     tt = utool.tic()
     db.executemany(operation='''
         INSERT
-        INTO temp
+        INTO data
         (
-            temp_float,
-            temp_int,
-            temp_text,
-            temp_text2
+            data_float,
+            data_int,
+            data_text,
+            data_text2
         )
         VALUES (?,?,?,?)
         ''', params_iter=feats_iter)
@@ -81,7 +103,7 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         """ NonQT """
         column = self.headers_name[self.db_sort_index]
         order = (' DESC' if self.db_sort_reversed else ' ASC')
-        self.db.execute('SELECT temp_id FROM temp ORDER BY ' + column + order, [])
+        self.db.execute('SELECT data_id FROM data ORDER BY ' + column + order, [])
         self.row_indices = [result for result in self.db.result_iter()]
 
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -95,16 +117,27 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
             row = index.row()
             column = index.column()
 
-            self.db.execute('SELECT * FROM temp WHERE temp_id=?', [self.row_indices[row]])
+            self.db.execute('SELECT * FROM data WHERE data_id=?', [self.row_indices[row]])
             row_data = list(self.db.result())
             return str(row_data[column])
         else:
             return QtCore.QVariant()
 
-    def setData(self, index, data, role=QtCore.Qt.EditRole):
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
         """ Sets the role data for the item at index to value. """
-        if role != QtCore.Qt.EditRole:
-            return False
+        if role == QtCore.Qt.EditRole:
+            value = str(value.toString())
+            if value != "":
+                row = index.row()
+                column = index.column()
+
+                query = 'UPDATE data SET ' + self.headers_name[column] + '=? WHERE data_id=?'
+                self.db.execute(query, [value, self.row_indices[row]])
+
+                self.emit(QtCore.SIGNAL("dataChanged()"))
+                return True
+
+        return False
 
     def headerData(self, index, orientation, role=QtCore.Qt.DisplayRole):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
@@ -120,10 +153,58 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         self.emit(QtCore.SIGNAL("layoutChanged()"))
 
     def flags(self, index):
-        #return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-        #return Qt.ItemFlag(0)
+        if index.column() > 0:
+            return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        else:
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
+class ListModel_SQL(QtCore.QAbstractListModel):
+    """ Does the lazy loading magic
+    http://qt-project.org/doc/qt-5/QAbstractItemModel.html
+    """
+    def __init__(self, db, parent=None, *args):
+        super(ListModel_SQL, self).__init__()
+        self.db = db
+        self.row_indices = []
+
+        self._refresh_row_indicies()
+
+    def _refresh_row_indicies(self):
+        """ NonQT """
+        self.db.execute('SELECT encounter_id FROM encounters ORDER BY encounter_id ASC', [])
+        self.row_indices = [result for result in self.db.result_iter()]
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.row_indices)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if role == QtCore.Qt.DisplayRole:
+            row = index.row()
+
+            self.db.execute('SELECT * FROM encounters WHERE encounter_id=?', [self.row_indices[row]])
+            row_data = list(self.db.result())
+            return str(row_data[1])
+        else:
+            return QtCore.QVariant()
+    
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        """ Sets the role data for the item at index to value. """
+        if role == QtCore.Qt.EditRole:
+            value = str(value.toString())
+            if value != "":
+                row = index.row()
+
+                query = 'UPDATE encounters SET encounter_name=? WHERE encounter_id=?'
+                self.db.execute(query, [value, self.row_indices[row]])
+
+                self.emit(QtCore.SIGNAL("dataChanged()"))
+                return True
+
+        return False
+
+    def flags(self, index):
+        return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        
 
 class TableView(QtGui.QTableView):
     """ The table view houses the AbstractItemModel
@@ -159,6 +240,11 @@ class TableView(QtGui.QTableView):
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.resizeColumnsToContents()
 
+class ListView(QtGui.QListView):
+    
+    def __init__(self, *args, **kwargs):
+        QtGui.QListView.__init__(self, *args, **kwargs)
+        
 
 class DummyWidget(QtGui.QWidget):
     """ Test Main Window """
@@ -170,6 +256,12 @@ class DummyWidget(QtGui.QWidget):
         self._tv = TableView(self)
         self._tv.setModel(self._tm)
         self.vlayout.addWidget(self._tv)
+
+        self._lm = ListModel_SQL(db, parent=self)
+        self._lv = ListView(self)
+        self._lv.setModel(self._lm)
+        self.vlayout.addWidget(self._lv)
+
 
 if __name__ == '__main__':
     import sys
