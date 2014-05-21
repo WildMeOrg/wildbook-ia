@@ -46,6 +46,7 @@ def create_databse():
     ##############################################
     headers = [
         ('data_id',      'INTEGER PRIMARY KEY'),
+        ('encounter_id', 'INT'),
         ('data_float',   'FLOAT'),
         ('data_int',     'INT'),
         ('data_text',    'TEXT'),
@@ -54,6 +55,7 @@ def create_databse():
     headers_name = [ column[0] for column in headers ]
     headers_nice = [
         'ID',
+        'Encounter ID',
         'TEST Float',
         'TEST Int',
         'TEST String 1',
@@ -62,7 +64,7 @@ def create_databse():
     db.schema('data', headers)
 
     rows = 1 * (10 ** 5)
-    feats_iter = ((random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
+    feats_iter = ((random.randint(0, 1000), random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
                         for i in xrange(rows) )
 
     print('[TEST] insert data')
@@ -71,12 +73,13 @@ def create_databse():
         INSERT
         INTO data
         (
+            encounter_id,
             data_float,
             data_int,
             data_text,
             data_text2
         )
-        VALUES (?,?,?,?)
+        VALUES (?,?,?,?,?)
         ''', params_iter=feats_iter)
     print(' * execute insert time=%r sec' % utool.toc(tt))
 
@@ -91,6 +94,7 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         super(TableModel_SQL, self).__init__()
         self.headers_name = headers_name
         self.headers_nice = headers_nice
+        self.encounter = -1
 
         self.db = db
         self.db_sort_index = 0
@@ -103,8 +107,15 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         """ NonQT """
         column = self.headers_name[self.db_sort_index]
         order = (' DESC' if self.db_sort_reversed else ' ASC')
-        self.db.execute('SELECT data_id FROM data ORDER BY ' + column + order, [])
+        query = 'SELECT data_id FROM data WHERE (? IS -1 OR encounter_id=?) ORDER BY ' + column + order
+        self.db.execute(query, [self.encounter, self.encounter])
         self.row_indices = [result for result in self.db.result_iter()]
+
+    def _change_encounter(self, encounter):
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.encounter = encounter
+        self._refresh_row_indicies()
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.row_indices)
@@ -162,9 +173,10 @@ class ListModel_SQL(QtCore.QAbstractListModel):
     """ Does the lazy loading magic
     http://qt-project.org/doc/qt-5/QAbstractItemModel.html
     """
-    def __init__(self, db, parent=None, *args):
+    def __init__(self, db, tm, parent=None, *args):
         super(ListModel_SQL, self).__init__()
         self.db = db
+        self.tm = tm
         self.row_indices = []
 
         self._refresh_row_indicies()
@@ -173,6 +185,13 @@ class ListModel_SQL(QtCore.QAbstractListModel):
         """ NonQT """
         self.db.execute('SELECT encounter_id FROM encounters ORDER BY encounter_id ASC', [])
         self.row_indices = [result for result in self.db.result_iter()]
+
+    def _change_encounter(self, index):
+        row = index.row()
+        self.db.execute('SELECT * FROM encounters WHERE encounter_id=?', [self.row_indices[row]])
+        row_data = list(self.db.result())
+        encounter_id = str(row_data[0])
+        self.tm._change_encounter(encounter_id)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.row_indices)
@@ -242,25 +261,50 @@ class TableView(QtGui.QTableView):
 
 class ListView(QtGui.QListView):
     
-    def __init__(self, *args, **kwargs):
-        QtGui.QListView.__init__(self, *args, **kwargs)
-        
+    def __init__(self, parent=None):
+        QtGui.QListView.__init__(self, parent)
+
+    def mouseDoubleClickEvent(self, event):
+        index = self.selectedIndexes()[0]
+        self.model()._change_encounter(index)
+        self.parent()._addWidget(index.row())
+
+
+class TabWidget(QtGui.QTabWidget):
+    def __init__(self, parent=None):
+        QtGui.QTabWidget.__init__(self, parent)
+
+    def onChange(self, index):
+        print("changed")
+
 
 class DummyWidget(QtGui.QWidget):
     """ Test Main Window """
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        headers_name, headers_nice, db = create_databse()
         self.vlayout = QtGui.QVBoxLayout(self)
+        
+        headers_name, headers_nice, db = create_databse()
+
+        self._tw = TabWidget() 
+        self._addWidget("Database")
+        self.vlayout.addWidget(self._tw) 
+
         self._tm = TableModel_SQL(headers_name, headers_nice, db, parent=self)
         self._tv = TableView(self)
         self._tv.setModel(self._tm)
         self.vlayout.addWidget(self._tv)
 
-        self._lm = ListModel_SQL(db, parent=self)
+        self._lm = ListModel_SQL(db, self._tm, parent=self)
         self._lv = ListView(self)
         self._lv.setModel(self._lm)
         self.vlayout.addWidget(self._lv)
+
+    def _addWidget(self, name):
+        temp = QtGui.QWidget() 
+        self._tw.addTab(temp, str(name))
+
+
 
 
 if __name__ == '__main__':
