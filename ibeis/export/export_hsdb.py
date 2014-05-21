@@ -29,16 +29,16 @@ def export_ibeis_to_hotspotter(ibs):
     gpath_list      = ibs.get_hsdb_image_gpaths(gid_list)
     aif_list        = ibs.get_image_aifs(gid_list)
     image_table_csv = utool.make_csv_table(
-        ['gid', 'gname', 'aif'],
         [gid_list, gpath_list, aif_list],
+        ['gid', 'gname', 'aif'],
         '# image table')
 
     # Build Name Table
     nid_list       =  ibs.get_valid_nids()
     name_list      = ibs.get_names(nid_list)
     name_table_csv = utool.make_csv_table(
-        ['nid', 'name'],
         [nid_list, name_list],
+        ['nid', 'name'],
         '# name table')
 
     # Build Chip Table
@@ -52,8 +52,10 @@ def export_ibeis_to_hotspotter(ibs):
     chip_column_list = [rid_list, roigid_list, roinid_list, bbox_list, theta_list, notes_list]
     chip_column_lbls = ['cid', 'gid', 'nid', '[tlx tly w h]', 'theta', 'notes']
     chip_column_types = [int, int, int, list, float, str]
-    chip_table_csv = utool.make_csv_table(chip_column_lbls, chip_column_list,
-                                          '# chip table', chip_column_types)
+    chip_table_csv = utool.make_csv_table(
+        chip_column_list,
+        chip_column_lbls,
+        '# chip table', chip_column_types)
 
     if utool.VERBOSE:
         if len(rid_list) < 87:
@@ -114,8 +116,8 @@ def get_flat_table(ibs):
         '# notes - user defined notes',
         '# uuids - unique universal ids (gaurenteed unique)',
     ])
-    flat_table_str = utool.make_csv_table(column_labels, column_list,
-                                            header, column_type)
+    flat_table_str = utool.make_csv_table(column_list, column_labels, header,
+                                          column_type)
     return flat_table_str
 
 

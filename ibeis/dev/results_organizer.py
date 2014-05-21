@@ -68,7 +68,7 @@ class OrganizedResult(DynStruct):
         column_list = [self.qrids, self.rids, self.scores, self.ranks]
         column_labels = ['qrids', 'rids', 'scores', 'ranks']
         header = 'Orgres %s' % (self.orgtype)
-        print(utool.make_csv_table(column_labels, column_list, header, column_type=None))
+        print(utool.make_csv_table(column_list, column_labels, header, column_type=None))
 
 
 def _where_ranks_lt(orgres, num):
