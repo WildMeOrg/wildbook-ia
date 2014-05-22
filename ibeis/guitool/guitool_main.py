@@ -48,6 +48,7 @@ def ensure_qtapp():
     return QAPP, IS_ROOT
 
 init_qtapp = ensure_qtapp
+ensure_qapp = ensure_qtapp
 
 
 @profile
