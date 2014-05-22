@@ -1,0 +1,15 @@
+<annotation>
+	<folder>_^_FOLDER_^_</folder>
+	<filename>_^_FILENAME_^_</filename>
+	<source>
+		<database>_^_DARABASE_NAME_^_</database>
+		<annotation>_^_DATABASE_YEAR_^_</annotation>
+		<image>_^_SOURCE_^_</image>
+	</source>
+	<size>
+		<width>_^_WIDTH_^_</width>
+		<height>_^_HEIGHT_^_</height>
+		<depth>_^_CHANNELS_^_</depth>
+	</size>
+	<segmented>_^_SEGMENTED_^_</segmented>_^_OBJECT_MULTIPLE_^_
+</annotation>

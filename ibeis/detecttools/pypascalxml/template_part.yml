@@ -1,0 +1,7 @@
+
+        - name: "_^_NAME_^_"
+          bndbox:
+            xmin: "_^_XMAX_^_"
+            ymin: "_^_XMIN_^_"
+            xmax: "_^_YMAX_^_"
+            ymax: "_^_YMIN_^_"

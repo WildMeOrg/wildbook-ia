@@ -1,0 +1,14 @@
+%YAML:1.0
+
+annotation:
+  folder: "_^_FOLDER_^_"
+  filename: "_^_FILENAME_^_"
+  source:
+    database: "_^_DARABASE_NAME_^_"
+    annotation: "_^_DATABASE_YEAR_^_"
+    image: "_^_SOURCE_^_"
+  size:
+    width: "_^_WIDTH_^_"
+    height: "_^_HEIGHT_^_"
+    depth: "_^_CHANNELS_^_"
+  segmented: "_^_SEGMENTED_^_"_^_OBJECT_MULTIPLE_^_
