@@ -74,3 +74,4 @@ def ishow_qres(ibs, qres, **kwargs):
     vh.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
     printDBG('[ishow_qres] Finished')
+    return fig

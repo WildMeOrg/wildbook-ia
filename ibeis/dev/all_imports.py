@@ -40,13 +40,15 @@ from scipy.cluster.hierarchy import fclusterdata
 # Qt
 import PyQt4
 from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
-                      Qt, QObject, pyqtSlot, QKeyEvent)
+from PyQt4.QtCore import Qt
 # UTool
 import utool
 # A bit of a hack right now
 utool.util_sysreq.ensure_in_pythonpath('hesaff')
 utool.util_sysreq.ensure_in_pythonpath('pyrf')
+
+import pyrf
+import pyhesaff
 
 # VTool
 import vtool
@@ -103,6 +105,8 @@ from ibeis.model.hots import QueryRequest
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import coverage_image
 from ibeis.model.hots import query_helpers
+# IBEIS MODEL DETECT
+from ibeis.model.detect import randomforest
 # IBEIS VIEW GUI
 from ibeis.gui import guifront
 from ibeis.gui import guiback

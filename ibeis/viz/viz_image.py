@@ -4,7 +4,8 @@ import utool
 import plottool.draw_func2 as df2
 import numpy as np
 from ibeis.viz import viz_helpers as vh
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[viz_img]', DEBUG=False)
 
 
 def annotate_roi(ax, bbox, theta, label, is_sel):
@@ -35,7 +36,8 @@ def annotate_image(ibs, ax, gid, sel_rids, draw_lbls=True, annote=True):
 
 
 @utool.indent_decor('[show_image]')
-def show_image(ibs, gid, sel_rids=[], fnum=1, annote=True, draw_lbls=True, **kwargs):
+def show_image(ibs, gid, sel_rids=[], fnum=1,
+               annote=True, draw_lbls=True, **kwargs):
     """ Driver function to show images """
     # Shows an image with annotations
     title = vh.get_image_titles(ibs, gid)

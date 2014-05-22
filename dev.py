@@ -176,7 +176,7 @@ def inspect_matches(ibs, qrid_list):
     guitool.ensure_qapp()
     qrid2_qres = allres.qrid2_qres
 
-    qrw = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, maxrank=5)
+    qrw = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=5)
     qrw.show()
     qrw.raise_()
     return locals()

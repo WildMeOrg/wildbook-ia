@@ -1642,10 +1642,13 @@ class IBEISController(object):
     def detect_random_forest(ibs, gid_list, species, quick=True, **kwargs):
         """ Runs animal detection in each image """
         from ibeis.model.detect import randomforest
-        path_list = ibs.get_image_detectpaths(gid_list)
         # TODO: Return confidence here as well
-        randomforest.detect_rois(ibs, gid_list, path_list,
-                                              species, quick, **kwargs)
+        detections = randomforest.detect_rois(ibs, gid_list, species,
+                                              quick, **kwargs)
+        detected_gid_list, detected_bbox_list = detections
+        notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+        ibs.add_rois(detected_gid_list, detected_bbox_list,
+                     notes_list=notes_list)
 
     @utool.indent_func
     def get_recognition_database_rids(ibs):

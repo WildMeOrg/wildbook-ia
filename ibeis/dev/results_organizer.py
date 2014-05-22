@@ -199,7 +199,7 @@ def organize_results(ibs, qrid2_qres):
     return allorg
 
 
-def get_automatch_candidates(qrid2_qres, maxrank=5):
+def get_automatch_candidates(qrid2_qres, ranks_lt=5):
     """ Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres
     and will be used in production.
@@ -216,7 +216,7 @@ def get_automatch_candidates(qrid2_qres, maxrank=5):
         scores = np.array(qres.rid2_score.values())
         qrids  = np.full(rids.shape, qrid, dtype=rids.dtype)
         ranks  = np.arange(rids.size)
-        isvalid = ranks < maxrank
+        isvalid = ranks < ranks_lt
         qrids_stack.append(qrids[isvalid])
         rids_stack.append(rids[isvalid])
         ranks_stack.append(ranks[isvalid])

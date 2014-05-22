@@ -1,24 +1,24 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from itertools import izip
 #utool.rrrr()
 from ibeis.viz import interact
-from PyQt4 import QtCore
+from ibeis.dev import results_organizer
 #from ibeis.dev import ibsfuncs
-import guitool
-from itertools import izip
-from guitool import guitool_tables, qtype
 from plottool import fig_presenter
+from guitool import guitool_tables, qtype
+from PyQt4 import QtCore
+import guitool
 #import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[back]', DEBUG=False)
 
 
-def make_query_result_column_dict(ibs, qrid2_qres, maxrank=5):
+def make_query_result_column_dict(ibs, qrid2_qres, ranks_lt=5):
     """
     Builds columns which are displayable in a ColumnListTableWidget
     """
-    from ibeis.dev import results_organizer
-    candidate_matches = results_organizer.get_automatch_candidates(qrid2_qres, maxrank=maxrank)
+    candidate_matches = results_organizer.get_automatch_candidates(qrid2_qres, ranks_lt=ranks_lt)
     # Get extra info
     (qrids, rids, scores, ranks) = candidate_matches
     truths = (ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0
@@ -44,23 +44,24 @@ def make_query_result_column_dict(ibs, qrid2_qres, maxrank=5):
         'header_list':       header_list,
         'column_list':       column_list,
         'coltype_list':      coltype_list,
+        'sortby': 'score'
     }
     return column_dict
 
 
 class QueryResultsWidget(guitool_tables.ColumnListTableWidget):
     """ Window for gui inspection """
-    def __init__(qrw, ibs, qrid2_qres, maxrank=5, parent=None):
+    def __init__(qrw, ibs, qrid2_qres, ranks_lt=5, parent=None):
         super(QueryResultsWidget, qrw).__init__(parent=parent)
-        qrw.change_data(ibs, qrid2_qres, maxrank)
+        qrw.change_data(ibs, qrid2_qres, ranks_lt)
         fig_presenter.register_qt4_win(qrw)
         qrw.connect_signals_and_slots()
         qrw.setWindowTitle('QueryResultView')
 
-    def change_data(qrw, ibs, qrid2_qres, maxrank=5):
+    def change_data(qrw, ibs, qrid2_qres, ranks_lt=5):
         qrw.ibs = ibs
         qrw.qrid2_qres = qrid2_qres
-        column_dict = make_query_result_column_dict(ibs, qrid2_qres, maxrank)
+        column_dict = make_query_result_column_dict(ibs, qrid2_qres, ranks_lt)
         super(QueryResultsWidget, qrw).change_data(**column_dict)
 
     def connect_signals_and_slots(qrw):
@@ -97,4 +98,5 @@ def on_click(qrw, index):
         return
     rid  = qrw.get_index_header_data('rid', index)
     qrid = qrw.get_index_header_data('qrid', index)
-    interact.ishow_matches(qrw.ibs, qrw.qrid2_qres[qrid], rid)
+    fig = interact.ishow_matches(qrw.ibs, qrw.qrid2_qres[qrid], rid)
+    fig_presenter.bring_to_front(fig)
