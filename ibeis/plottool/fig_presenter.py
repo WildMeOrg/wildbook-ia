@@ -17,19 +17,25 @@ from . import screeninfo
 
 
 SLEEP_TIME = .05
-QT4_WINS = []
+__QT4_WINDOW_LIST__ = []
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[fig_presenter]', DEBUG=False)
 
 
 def unregister_qt4_win(win):
-    global QT4_WINS
+    global __QT4_WINDOW_LIST__
     if win == 'all':
-        QT4_WINS = []
+        __QT4_WINDOW_LIST__ = []
+    else:
+        try:
+            #index = __QT4_WINDOW_LIST__.index(win)
+            __QT4_WINDOW_LIST__.remove(win)
+        except ValueError:
+            pass
 
 
 def register_qt4_win(win):
-    global QT4_WINS
-    QT4_WINS.append(win)
+    global __QT4_WINDOW_LIST__
+    __QT4_WINDOW_LIST__.append(win)
 
 
 # ---- GENERAL FIGURE COMMANDS ----
@@ -77,7 +83,7 @@ def get_all_figures():
 
 
 def get_all_qt4_wins():
-    return QT4_WINS
+    return __QT4_WINDOW_LIST__
 
 
 def all_figures_show():
@@ -143,9 +149,10 @@ def all_figures_tile(max_rows=None,
         QMainWin = get_main_win_base()
         isqt4_mpl = isinstance(win, QMainWin)
         isqt4_back = isinstance(win, QtGui.QMainWindow)
+        isqt4_widget = isinstance(win, QtGui.QWidget)
         (x, y, w, h) = valid_positions[ix]
         printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
-        if not isqt4_mpl and not isqt4_back:
+        if not isqt4_mpl and not isqt4_back and not isqt4_widget:
             raise NotImplementedError('%r-th Backend %r is not a Qt Window' %
                                       (ix, win))
         try:
@@ -180,6 +187,9 @@ def bring_to_front(fig):
     #what is difference between show and show normal?
     qtwin = fig.canvas.manager.window
     qtwin.raise_()
+    #if not utool.WIN32:
+    # NOT sure on the correct order of these
+    # can cause the figure geometry to be unset
     qtwin.activateWindow()
     qtwin.setWindowFlags(Qt.WindowStaysOnTopHint)
     qtwin.setWindowFlags(Qt.WindowFlags(0))

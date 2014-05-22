@@ -16,6 +16,7 @@ from . import draw_func2 as df2
 from . import draw_sv
 from . import viz_featrow
 from . import viz_keypoints
+from . import viz_image2
 from . import plots
 
 # The other module shouldn't exist.
@@ -24,9 +25,9 @@ from .plots import draw_hist_subbin_maxima
 from .draw_func2 import *
 from .mpl_keypoint import draw_keypoints
 from .mpl_sift import draw_sifts
+from . import fig_presenter
+
 import utool
-
-
 
 def reload_subs():
     rrr()
@@ -34,6 +35,7 @@ def reload_subs():
     plot_helpers.rrr()
     draw_sv.rrr()
     viz_keypoints.rrr()
+    viz_image2.rrr()
 
 rrrr = reload_subs
 
