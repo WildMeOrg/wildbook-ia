@@ -169,6 +169,7 @@ class TableModel_SQL(QtCore.QAbstractTableModel):
         else:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
+
 class ListModel_SQL(QtCore.QAbstractListModel):
     """ Does the lazy loading magic
     http://qt-project.org/doc/qt-5/QAbstractItemModel.html
@@ -208,7 +209,7 @@ class ListModel_SQL(QtCore.QAbstractListModel):
             return str(row_data[1])
         else:
             return QtCore.QVariant()
-    
+
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         """ Sets the role data for the item at index to value. """
         if role == QtCore.Qt.EditRole:
@@ -227,7 +228,7 @@ class ListModel_SQL(QtCore.QAbstractListModel):
 
     def flags(self, index):
         return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-        
+
 
 class TableView(QtGui.QTableView):
     """ The table view houses the AbstractItemModel
@@ -263,8 +264,8 @@ class TableView(QtGui.QTableView):
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.resizeColumnsToContents()
 
+
 class ListView(QtGui.QListView):
-    
     def __init__(self, parent=None):
         QtGui.QListView.__init__(self, parent)
 
@@ -278,7 +279,7 @@ class TabWidget(QtGui.QTabWidget):
     def __init__(self, tm, parent=None):
         QtGui.QTabWidget.__init__(self, parent)
         self.setTabsClosable(True)
-        self.setMaximumSize (9999, 21)
+        self.setMaximumSize(9999, 21)
         self._tb = self.tabBar()
         self._tb.setMovable(True)
         self.tabCloseRequested.connect(self._onClose)
@@ -315,27 +316,27 @@ class DummyWidget(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.vlayout = QtGui.QVBoxLayout(self)
-        
+
         headers_name, headers_nice, db = create_databse()
 
         self._tm = TableModel_SQL(headers_name, headers_nice, db, parent=self)
         self._tv = TableView(self)
         self._tv.setModel(self._tm)
 
-        self._tw = TabWidget(self._tm) 
+        self._tw = TabWidget(self._tm)
         self._addWidget("-1", "Database")
 
         self._lm = ListModel_SQL(db, self._tm, self._tw, parent=self)
         self._lv = ListView(self)
         self._lv.setModel(self._lm)
 
-        self.vlayout.addWidget(self._tw) 
+        self.vlayout.addWidget(self._tw)
         self.vlayout.addWidget(self._tv)
         self.vlayout.addWidget(self._lv)
 
     def _addWidget(self, enc_id, enc_name):
         if enc_id not in self._tw.id_list:
-            temp = QtGui.QWidget() 
+            temp = QtGui.QWidget()
             self._tw.addTab(temp, str(enc_id) + " - " + str(enc_name))
             self._tw._addID(enc_id)
         else:
@@ -343,7 +344,6 @@ class DummyWidget(QtGui.QWidget):
                 if enc_id == self._tw.id_list[i]:
                     self._tw.setCurrentIndex(i)
                     break
-
 
 
 if __name__ == '__main__':

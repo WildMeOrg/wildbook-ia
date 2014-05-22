@@ -4,49 +4,14 @@ from itertools import izip
 #utool.rrrr()
 from ibeis.viz import interact
 from ibeis.dev import results_organizer
-#from ibeis.dev import ibsfuncs
+from ibeis.dev import ibsfuncs
 from plottool import fig_presenter
 from guitool import guitool_tables, qtype
 from PyQt4 import QtCore
 import guitool
-#import numpy as np
+import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[back]', DEBUG=False)
-
-
-def make_query_result_column_dict(ibs, qrid2_qres, ranks_lt=5):
-    """
-    Builds columns which are displayable in a ColumnListTableWidget
-    """
-    candidate_matches = results_organizer.get_automatch_candidates(qrid2_qres, ranks_lt=ranks_lt)
-    # Get extra info
-    (qrids, rids, scores, ranks) = candidate_matches
-    truths = (ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0
-    #views  = ['view ' + ibsfuncs.vsstr(qrid, rid, lite=True)
-              #for qrid, rid in izip(qrids, rids)]
-    #opts  = np.zeros(len(qrids))
-    # Define column information
-    column_tuples = [
-        ('qrid',  qrids,  int),
-        ('rid',   rids,   int),
-        ('score', scores, float),
-        ('rank',  ranks,  int),
-        #('opt',   opts,   ('COMBO', int)),
-        ('truth', truths, bool),
-        #('view',  views, ('BUTTON', str)),
-    ]
-    # Unpack the tuple into flat lists
-    header_list, column_list, coltype_list = list(izip(*column_tuples))
-    editable_headers = ['truth', 'notes', 'Opt']
-    # Insert info into dict
-    column_dict = {
-        'editable_headers':  editable_headers,
-        'header_list':       header_list,
-        'column_list':       column_list,
-        'coltype_list':      coltype_list,
-        'sortby': 'score'
-    }
-    return column_dict
 
 
 class QueryResultsWidget(guitool_tables.ColumnListTableWidget):
@@ -100,3 +65,38 @@ def on_click(qrw, index):
     qrid = qrw.get_index_header_data('qrid', index)
     fig = interact.ishow_matches(qrw.ibs, qrw.qrid2_qres[qrid], rid)
     fig_presenter.bring_to_front(fig)
+
+
+def make_query_result_column_dict(ibs, qrid2_qres, ranks_lt=5):
+    """
+    Builds columns which are displayable in a ColumnListTableWidget
+    """
+    candidate_matches = results_organizer.get_automatch_candidates(qrid2_qres, ranks_lt=ranks_lt)
+    # Get extra info
+    (qrids, rids, scores, ranks) = candidate_matches
+    truths = (ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0
+    views  = ['view ' + ibsfuncs.vsstr(qrid, rid, lite=True)
+              for qrid, rid in izip(qrids, rids)]
+    opts = np.zeros(len(qrids))
+    # Define column information
+    column_tuples = [
+        ('qrid',  qrids,  int),
+        ('rid',   rids,   int),
+        ('score', scores, float),
+        ('rank',  ranks,  int),
+        ('opt',   opts,   ('COMBO', int)),
+        ('truth', truths, bool),
+        ('view',  views, ('BUTTON', str)),
+    ]
+    # Unpack the tuple into flat lists
+    header_list, column_list, coltype_list = list(izip(*column_tuples))
+    editable_headers = ['truth', 'notes', 'Opt']
+    # Insert info into dict
+    column_dict = {
+        'editable_headers':  editable_headers,
+        'header_list':       header_list,
+        'column_list':       column_list,
+        'coltype_list':      coltype_list,
+        'sortby': 'score'
+    }
+    return column_dict
