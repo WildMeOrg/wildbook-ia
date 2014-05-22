@@ -1608,7 +1608,9 @@ class IBEISController(object):
         """ Exports identified chips to wildbook """
         import ibeis.export.export_wb as wb
         eid_list = ibs.get_valid_eids()
-        ibs._init_wb("http://127.0.0.1:8080/wildbook-4.1.0-RELEASE")
+        addr = "http://127.0.0.1:8080/wildbook-4.1.0-RELEASE"
+        #addr = "http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL"
+        ibs._init_wb(addr)
         wb.export_ibeis_to_wildbook(ibs, eid_list)
         #raise NotImplementedError()
         # compute encounters

@@ -43,7 +43,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
         # create a Wildbook Occurrence to represent this IBEIS Encounter
         response = requests.post(target_url_occurrence, data=json.dumps(payload_create_occurrence))
         print ('POSTed IBEIS Encounter / Wildbook Occurrence %s to %s with status %d' % (enctext, target_url_occurrence, response.status_code))
-
+        
         # creates wildbook encounters for each name in an ibeis encounter
         for nid, name_text, gids in izip(nids, names_text, gids_lists):
             # create a unique name for this inidividual by concatenating the encounter and name
@@ -66,12 +66,12 @@ def export_ibeis_to_wildbook(ibs, eid_list):
             print ('POSTed Wildbook Encounter %s to %s with status %d' % (wbenc_name, target_url_encounter, response.status_code))
             
             payload_occurrence_add_encounter = {'number': wbenc_name,
-                                                'occurrenceID': occurrence_id}
+                                                'occurrence': occurrence_id}
 
             # link the wildbook encounter to the wildbook occurrence / ibeis encounter
-            response = requests.post(target_url_occurrence_add_encounter, data=payload_occurrence_add_encounter)
+            response = requests.post(target_url_occurrence_add_encounter, data=json.dumps(payload_occurrence_add_encounter))
             print ('Linked Wildbook Encounter %s to Wildbook Occurrence %s with status %s' % (wbenc_name, occurrence_id, response.status_code))
-            
+            print (response.url)
             # get the paths to all the images in which this name id appears
             paths = ibs.get_image_paths(gids)
             payload_encounter_add_image = {'number': wbenc_name}
