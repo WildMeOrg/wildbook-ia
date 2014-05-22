@@ -4,9 +4,9 @@ from itertools import izip
 from PIL.ExifTags import TAGS
 from PIL import Image
 #from utool import util_progress
-from utool.util_inject import inject
+import utool
 from . import image as gtool
-(print, print_, printDBG, rrr, profile) = inject(
+(print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[exif]', DEBUG=False)
 
 
@@ -36,6 +36,9 @@ def get_exif_dict(pil_img):
         exif_dict = {}
     except OverflowError:
         exif_dict = {}
+    except Exception as ex:
+        utool.printex(ex, 'get_exif_dict failed in an unexpected way')
+        raise
     return exif_dict
 
 

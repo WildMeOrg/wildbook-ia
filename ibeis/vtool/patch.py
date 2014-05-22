@@ -157,6 +157,7 @@ def find_kpts_direction(imgBGR, kpts):
         patch, wkp = get_warped_patch(imgBGR, kp, gray=True)
         gradx, grady = patch_gradient(patch)
         gori = patch_ori(gradx, grady)
+        # FIXME: Not taking account to gmag
         hist, centers = get_orientation_histogram(gori)
         # Find submaxima
         submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers)
