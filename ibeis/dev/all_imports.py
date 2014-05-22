@@ -11,6 +11,7 @@ import argparse
 import atexit
 import cPickle
 import copy
+import colorsys
 import datetime
 import decimal
 import fnmatch
@@ -51,9 +52,9 @@ import numpy as np
 import numpy.linalg as npl
 from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
 from numpy.core.umath_tests import matrix_multiply
+import cv2
 from PIL import Image
 from PIL.ExifTags import TAGS
-import cv2
 from scipy.cluster.hierarchy import fclusterdata
 #import networkx as netx
 #try:
@@ -65,14 +66,19 @@ from scipy.cluster.hierarchy import fclusterdata
 import PyQt4
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
-# UTool
+import sip
+
+# Tools
+import detecttools
+import guitool
 import utool
-# A bit of a hack right now
-utool.util_sysreq.ensure_in_pythonpath('hesaff')
-utool.util_sysreq.ensure_in_pythonpath('pyrf')
+import vtool
+import plottool
+import guitool
 
 import pyrf
 import pyhesaff
+import pyflann
 
 # VTool
 import vtool
@@ -91,8 +97,6 @@ from plottool import draw_func2 as df2
 from plottool import interact_helpers as ih
 from plottool import viz_keypoints
 
-# GUITool
-import guitool
 
 # IBEIS DEV
 from ibeis.dev import main_commands
