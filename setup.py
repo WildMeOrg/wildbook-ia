@@ -48,6 +48,22 @@ CLUTTER_PATTERNS = [
 
 CLUTTER_DIRS = ['logs']
 
+INSTALL_REQUIRES = [
+    'utool >= 1.0.0.dev1',
+    'vtool >= 1.0.0.dev1',
+    'pyhesaff >= 1.0.0.dev1',
+    'pyrf >= 1.0.0.dev1',
+    'guitool >= 1.0.0.dev1',
+    'plottool >= 1.0.0.dev1',
+    'matplotlib >= 1.3.1',
+    'scipy >= 0.13.2',
+    'numpy >= 1.8.0',
+    'Pillow >= 2.4.0',
+    'Pillow >= 2.4.0',
+    'functools32 >= 3.2.3-1',
+    'psutil',
+    #'PyQt4 >= 4.9.1', # cannot include because pyqt4 is not in pip
+]
 
 if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
@@ -58,5 +74,6 @@ if __name__ == '__main__':
         chmod_patterns=CHMOD_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,
         clutter_patterns=CLUTTER_PATTERNS,
+        install_requires=INSTALL_REQUIRES
         #cython_files=CYTHON_FILES,
     )

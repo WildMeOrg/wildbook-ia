@@ -39,6 +39,12 @@ def matplotlib_version():
     return mpl.__version__
 
 
+@version_check('2.4.8')
+def opencv_version():
+    import cv2
+    return cv2.__version__
+
+
 @version_check('0.13.2')
 def scipy_version():
     import scipy

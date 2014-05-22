@@ -17,7 +17,7 @@ import vtool.image as gtool
 #-------------
 
 
-#@utool.lru_cache(16)  # TODO: LRU cache needs to handle cfg_uids first
+#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfg_uids first
 @utool.indent_func
 def compute_or_read_roi_chips(ibs, rid_list):
     """ Reads chips and tries to compute them if they do not exist """
