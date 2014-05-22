@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 __version__ = '1.0.0.dev1'
 
 import matplotlib as mpl
-mpl.use('Qt4Agg')
+#mpl.use('Qt4Agg')
 
 from . import plot_helpers as ph
 from . import plot_helpers
