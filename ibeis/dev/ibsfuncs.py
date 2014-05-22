@@ -230,17 +230,34 @@ def delete_ibeis_database(dbdir):
 
 
 def assert_valid_names(name_list):
-    valid_namecheck = [not (name.startswith('____') and len(name) > 4)
-                        for name in name_list]
-    assert all(valid_namecheck),\
-        'User defined names cannot start with four underscores'
+    """ Asserts that user specified names do not conflict with
+    the standard unknown name """
+    def isconflict(name, other):
+        return name.startswith(other) and len(name) > len(other)
+    valid_namecheck = [not isconflict(name, constants.UNKNOWN_NAME)
+                       for name in name_list]
+    assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
+                                  'cannot start a name with four underscores')
 
 
-def is_database_enctext(enctext):
-    return (enctext == '' or enctext is None or enctext == 'None')
+def assert_and_fix_gpath_slashes(gpath_list):
+    """
+    Asserts that all paths are given with forward slashes.
+    If not it fixes them
+    """
+    try:
+        msg = ('gpath_list must be in unix format (no backslashes).'
+               'Failed on %d-th gpath=%r')
+        for count, gpath in enumerate(gpath_list):
+            assert gpath.find('\\') == -1, (msg % (count, gpath))
+    except AssertionError as ex:
+        utool.printex(ex, iswarning=True)
+        gpath_list = map(utool.unixpath, gpath_list)
+    return gpath_list
 
 
 def ridstr(rid, ibs=None, notes=False):
+    """ Helper to make a string from an RID """
     if not notes:
         return 'rid%d' % (rid,)
     else:
@@ -248,6 +265,13 @@ def ridstr(rid, ibs=None, notes=False):
         notes = ibs.get_roi_notes(rid)
         name  = ibs.get_roi_names(rid)
         return 'rid%d-%r-%r' % (rid, str(name), str(notes))
+
+
+def vsstr(qrid, rid, lite=False):
+    if lite:
+        return '%d-vs-%d' % (qrid, rid)
+    else:
+        return 'qrid%d-vs-rid%d' % (qrid, rid)
 
 
 def list_images(img_dir, fullpath=True, recursive=True):
@@ -361,15 +385,14 @@ def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
     try:
         # Check to make sure bbox input is a tuple-list, not a list-list
         if len(bbox_list) > 0:
-            assert(isinstance(bbox_list[0], tuple))
-            assert(isinstance(bbox_list[0][0], int))
+            assert isinstance(bbox_list[0], tuple), 'Bounding boxes must be tuples of ints!'
+            assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
         roi_uuid_list = [utool.util_hash.augment_uuid(img_uuid, bbox, theta)
                             for img_uuid, bbox, theta
                             in izip(image_uuid_list, bbox_list, theta_list)]
     except Exception as ex:
-        utool.printex(ex, 'Error building roi_uuids', '[add_roi]')
-        print('[!add_rois] ' + utool.list_dbgstr('image_uuid_list'))
-        print('[!add_rois] ' + utool.list_dbgstr('gid_list'))
+        utool.printex(ex, 'Error building roi_uuids', '[add_roi]',
+                      key_list=['image_uuid_list'])
         raise
     return roi_uuid_list
 

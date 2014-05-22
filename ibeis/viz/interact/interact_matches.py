@@ -185,3 +185,4 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
     guitool.popup_menu(fig.canvas, opt2_callback, fig.canvas)
     ih.connect_callback(fig, 'button_press_event', _click_matches_click)
     viz.draw()
+    return fig

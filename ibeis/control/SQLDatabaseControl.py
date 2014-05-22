@@ -112,7 +112,7 @@ class SQLDatabaseController(object):
 
         #=None, column_list=[], header='', column_type=None
         header = header_name + header_types
-        csv_table = utool.make_csv_table(column_labels, column_list, header)
+        csv_table = utool.make_csv_table(column_list, column_labels, header)
         return csv_table
 
     def get_sql_version(db):

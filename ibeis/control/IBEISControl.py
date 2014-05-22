@@ -311,12 +311,8 @@ class IBEISController(object):
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-        for count, gpath in enumerate(gpath_list):
-            assert gpath.find('\\') == -1, (('gpath_list must not contain'
-                                             'backslashes. It must be in unix'
-                                             'format. Failed on %d-th gpath=%r') %
-                                            (count, gpath))
         # Processing an image might fail, yeilding a None instead of a tup
+        gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
         raw_param_iter = preproc_image.add_images_params_gen(gpath_list)
         # Filter out None values before passing to SQL
         param_iter = utool.ifilter_Nones(raw_param_iter)
@@ -1648,10 +1644,13 @@ class IBEISController(object):
     def detect_random_forest(ibs, gid_list, species, quick=True, **kwargs):
         """ Runs animal detection in each image """
         from ibeis.model.detect import randomforest
-        path_list = ibs.get_image_detectpaths(gid_list)
         # TODO: Return confidence here as well
-        randomforest.detect_rois(ibs, gid_list, path_list,
-                                              species, quick, **kwargs)
+        detections = randomforest.detect_rois(ibs, gid_list, species,
+                                              quick, **kwargs)
+        detected_gid_list, detected_bbox_list = detections
+        notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+        ibs.add_rois(detected_gid_list, detected_bbox_list,
+                     notes_list=notes_list)
 
     @utool.indent_func
     def get_recognition_database_rids(ibs):

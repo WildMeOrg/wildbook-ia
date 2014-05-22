@@ -4,15 +4,38 @@ from __future__ import absolute_import, division, print_function
 import utool
 import ibeis
 import multiprocessing
+from ibeis.model.detect import randomforest
 # IBEIS
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DETECT]')
+
+SPECIAL = utool.get_flag('--special') or utool.inIPython()
 
 
 def TEST_DETECT(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
     print('get_valid_ROIS')
     gid_list = ibs.get_valid_gids()[0:1]
-    ibs.detect_random_forest(gid_list, 'zebra_grevys')
+    if SPECIAL:
+        gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)
+    species = 'zebra_grevys'
+    detectkw = {
+        'quick': True,
+        'save_detection_images': SPECIAL,
+    }
+    detections = randomforest.detect_rois(ibs, gid_list, species, **detectkw)
+    gid_list2, bbox_list2 = detections
+    if SPECIAL:
+        from plottool import viz_image2, fig_presenter
+        #from plottool import draw_func2 as df2
+        for gid in gid_list:
+            isthisgid = [gid == gid2 for gid2 in gid_list2]
+            bbox_list = utool.filter_items(bbox_list2, isthisgid)
+            img = ibs.get_images(gid)
+            fig = viz_image2.show_image(img, bbox_list=bbox_list)
+        fig_presenter.present()
+    #fig_presenter.all_figures_bring_to_front()
+
+        #ibs.detect_random_forest(gid_list, 'zebra_grevys')
     return locals()
 
 

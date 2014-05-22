@@ -52,11 +52,11 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
         rid = back.add_roi(gid=gid, bbox=bbox, theta=theta, **_kwargs)
         return rid
 
-    rid1 = add_roi(gid_list[0], [50, 50, 100, 100], (np.tau / 8))
-    rid2 = add_roi(gid_list[1], [50, 50, 100, 100])
-    rid3 = add_roi(gid_list[2], [50, 50, 64, 64])
-    rid4 = add_roi(gid_list[2], [50, 50, 200, 200])
-    rid5 = add_roi(gid_list[1], [0, 0, 400, 400])
+    rid1 = add_roi(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
+    rid2 = add_roi(gid_list[1], (50, 50, 100, 100))
+    rid3 = add_roi(gid_list[2], (50, 50, 64, 64))
+    rid4 = add_roi(gid_list[2], (50, 50, 200, 200))
+    rid5 = add_roi(gid_list[1], (0, 0, 400, 400))
     #
     #
     # SELECT ROIS

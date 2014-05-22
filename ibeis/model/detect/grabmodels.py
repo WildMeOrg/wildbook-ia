@@ -1,45 +1,45 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from os.path import exists, dirname, join, realpath
+from os.path import exists, join, realpath
 
-RF_MODEL_DIR = realpath(join(dirname(__file__), 'rf'))
+#DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
+DETECTMODELS_DIR = utool.get_app_resource_dir('ibeis', 'detectmodels')
 
 MODEL_DIRS = {
-    'rf': RF_MODEL_DIR,
+    'rf': join(DETECTMODELS_DIR, 'rf'),
 }
 
-URLS = {
+MODEL_URLS = {
     'rf': 'https://dl.dropboxusercontent.com/s/9814r3d2rkiq5t3/rf.zip'
 }
 
 
 def assert_models():
-    for MODEL_DIR in MODEL_DIRS.values():
-        assert exists(MODEL_DIR), ('MODEL_DIR=%r does not exist' % MODEL_DIR)
+    for model_dir in MODEL_DIRS.values():
+        assert exists(model_dir), ('model_dir=%r does not exist' % model_dir)
 
 
 def ensure_models():
-    for TYPE, MODEL_DIR in MODEL_DIRS.items():
-        if not exists(MODEL_DIR):
-            download_model(TYPE, MODEL_DIR)
+    utool.ensuredir(DETECTMODELS_DIR)
+    for algo, model_dir in MODEL_DIRS.items():
+        if not exists(model_dir):
+            download_model(algo, model_dir)
     assert_models()
 
 
-def get_model_dir(TYPE, ensure=True):
+def get_model_dir(algo, ensure=True):
     if ensure:
         ensure_models()
     else:
         assert_models()
-    return MODEL_DIRS[TYPE]
+    return MODEL_DIRS[algo]
 
 
-def download_model(TYPE, MODEL_DIR):
-    zip_fpath = realpath(join(MODEL_DIR, '..', TYPE + '.zip'))
-
+def download_model(algo, model_dir):
+    zip_fpath = realpath(join(DETECTMODELS_DIR, algo + '.zip'))
     # Download and unzip model
-    print('[grabmodels] Downloading MODEL_DIR=%s' % MODEL_DIR)
-
-    dropbox_link = URLS[TYPE]
+    print('[grabmodels] Downloading model_dir=%s' % zip_fpath)
+    dropbox_link = MODEL_URLS[algo]
     utool.download_url(dropbox_link, zip_fpath)
     utool.unzip_file(zip_fpath)
     # Cleanup

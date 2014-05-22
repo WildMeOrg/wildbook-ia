@@ -252,7 +252,7 @@ class MainWindowBackend(QtCore.QObject):
             except IndexError as ex:
                 utool.printex(ex, "Encounter population out of bounds")
                 raise
-            
+
     @utool.indent_func
     def populate_encounter_tabs(back, **kwargs):
         for enctext in back.enctext_generator():
@@ -589,9 +589,9 @@ class MainWindowBackend(QtCore.QObject):
             gid = back.get_selected_gid()
         if bbox is None:
             bbox = back.select_bbox(gid)
-        printDBG('[back.add_roi] * adding bbox=%r' % bbox)
+        printDBG('[back.add_roi] * adding bbox=%r' % (bbox,))
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
-        printDBG('[back.add_roi] * added rid=%r' % rid)
+        printDBG('[back.add_roi] * added rid=%r' % (rid,))
         if refresh:
             back.populate_tables(qres=False, encounter=False)
             back.show_image(gid)

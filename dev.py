@@ -169,10 +169,17 @@ def desc_dists(ibs, qrid_list):
     return locals()
 
 
-def get_examples(ibs, qrid_list):
+@devcmd('inspect')
+def inspect_matches(ibs, qrid_list):
+    from ibeis.gui import inspect_gui
     allres = get_allres(ibs, qrid_list)
-    true_orgres  = allres.get_orgtype('true')
-    false_orgres = allres.get_orgtype('true')
+    guitool.ensure_qapp()
+    qrid2_qres = allres.qrid2_qres
+
+    qrw = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=5)
+    qrw.show()
+    qrw.raise_()
+    return locals()
 
 
 @devcmd('scores', 'score')
@@ -251,7 +258,7 @@ def rundev(main_locals):
         if len(qrid_list) > 0:
             ibs.prep_qreq_db(qrid_list)
             expt_locals = run_experiments(ibs, qrid_list)
-            if '--cmd' in sys.argv:
+            if '--cmd' in sys.argv or utool.inIPython():
                 exec(utool.execstr_dict(expt_locals, 'expt_locals'))
             if '--devmode' in sys.argv:
                 devfunc_locals = devfunc(ibs, qrid_list)

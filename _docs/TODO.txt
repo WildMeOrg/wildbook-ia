@@ -59,3 +59,136 @@ L----------------
 * Select more than one image to view together (in encounter tabs)
 
 * Quick option of linking identities
+
+
+
+
+
+
+
+
+
+
+* Review list of matches (given within-encounter names)
+* Mark matches as correct
+* Mark viewpoints as similar or different (don't add two of the same view into
+* the database)
+* Need concept for ROIs marked for recognition database
+
+
+* Ol' Pejeta plains datasets
+
+* Encounter tab reworking
+
+* Verify detection 
+
+* Location data from EXIF
+- bugs
+- missing
+
+
+* Definition of primary encounter - computation 
+
+
+Current workflow 
+- import goes into database (consider prefilter)
+- Can launch detect (several species) 
+- need to review (current review each with old code)
+
+- Reconfigure encounter
+*(encounter click generates tab) 
+
+
+Add view of detection internals
+
+900 giraffes /manual semiautomatic rois
+
+-managable view of encouner and matching including nameing 
+
+maybe threshold for scores
+
+tests case failure interation betweeen rois and encounters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-=--------
+
+
+
+Software and Test:
+
+Data: 
+ - Rose Mary's Ol Pej Plains 
+ - Giraffes
+ - Anything else from Dan and Tanya
+
+
+Packaging: 
+ - software tools 
+ - matlab
+ - download and install
+ - install scripts
+
+Detector interfcae and review internals
+ - Visualization of detector results
+ - Integrate Dan's adjust ROIs 
+ - Integrate Jon's painting code. 
+ - Review interface
+
+
+Encounter id/ interface
+- Table or list of valid encounters
+- Open / close encounters in tabs
+- Review matches within encounter / database
+- Final decision interface
+- Fix failed ibeis/tests/test_ibs_encounters.py
+
+
+Export to wildbook: 
+- Packaging of annotations 
+- Translation of terminology / data schemas
+- security issues with Jason Holmberg
+
+Testing: 
+- Across systems 
+- Usability
+
+
+
+
+-------
+
+Alg size:
+
+Preprocessing: 
+-GIST
+-EXIF for location MK
+-Change and add EXIF Data
+-GoPros (headcams)
+- needs encounter algorithm which uses time and space. 
+(Assigned to MK)
+
+
+Detection: 
+ - Non-max supression
+ - Viewpoint integration of DPM (detectors that work on butts and heads)
+ - Integration of Bing
+ - Labeling of keypoints
+
+
+HS ID:
+- Gravity Vector
+- Name Scoring
