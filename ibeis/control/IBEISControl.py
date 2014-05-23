@@ -342,6 +342,7 @@ class IBEISController(object):
             SELECT image_uid
             FROM images
             WHERE image_uri=?
+            ORDER BY image_uid ASC
             ''',
             params_iter=[(gpath,) for gpath in gpath_list])
         num_invalid = sum((gid is None for gid in gid_list))
@@ -550,14 +551,15 @@ class IBEISController(object):
     @setter
     def set_image_props(ibs, gid_list, key, value_list):
         print('[ibs] set_image_props')
-        if key == 'aif':
-            return ibs.set_image_aifs(gid_list, value_list)
-        if key == 'enctext':
-            return ibs.set_image_enctext(gid_list, value_list)
-        if key == 'notes':
-            return ibs.set_image_notes(gid_list, value_list)
-        else:
-            raise KeyError('UNKOWN key=%r' % (key,))
+        ibs.set_table_props('images', key, gid_list, value_list)
+        # if key == 'aif':
+        #     return ibs.set_image_aifs(gid_list, value_list)
+        # if key == 'enctext':
+        #     return ibs.set_image_enctext(gid_list, value_list)
+        # if key == 'notes':
+        #     return ibs.set_image_notes(gid_list, value_list)
+        # else:
+        #     raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_image_uris(ibs, gid_list, new_gpath_list):
@@ -601,18 +603,19 @@ class IBEISController(object):
     @setter
     def set_roi_props(ibs, rid_list, key, value_list):
         print('[ibs] set_roi_props')
-        if key == 'bbox':
-            return ibs.set_roi_bboxes(rid_list, value_list)
-        elif key == 'theta':
-            return ibs.set_roi_thetas(rid_list, value_list)
-        elif key == 'name':
-            return ibs.set_roi_names(rid_list, value_list)
-        elif key == 'viewpoint':
-            return ibs.set_roi_viewpoints(rid_list, value_list)
-        elif key == 'notes':
-            return ibs.set_roi_notes(rid_list, value_list)
-        else:
-            raise KeyError('UNKOWN key=%r' % (key,))
+        ibs.set_table_props('rois', key, rid_list, value_list)
+        # if key == 'bbox':
+        #     return ibs.set_roi_bboxes(rid_list, value_list)
+        # elif key == 'theta':
+        #     return ibs.set_roi_thetas(rid_list, value_list)
+        # elif key == 'name':
+        #     return ibs.set_roi_names(rid_list, value_list)
+        # elif key == 'viewpoint':
+        #     return ibs.set_roi_viewpoints(rid_list, value_list)
+        # elif key == 'notes':
+        #     return ibs.set_roi_notes(rid_list, value_list)
+        # else:
+        #     raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_roi_bboxes(ibs, rid_list, bbox_list):
@@ -742,20 +745,23 @@ class IBEISController(object):
     # GETTERS::IMAGE
 
     @getter_general
-    def _get_all_gids(ibs):
+    def _get_all_gids(ibs, sort=None):
+        if sort is None:
+            sort = 'image_uid'
         all_gids = ibs.db.executeone(
             operation='''
             SELECT image_uid
             FROM images
+            ORDER BY ''' + sort + ''' ASC
             ''')
         return all_gids
 
     @getter_general
-    def get_valid_gids(ibs, eid=None):
+    def get_valid_gids(ibs, eid=None, sort=None):
         if eid is None:
-            gid_list = ibs._get_all_gids()
+            gid_list = ibs._get_all_gids(sort=sort)
         else:
-            gid_list = ibs.get_encounter_gids(eid)
+            gid_list = ibs.get_encounter_gids(eid, sort=sort)
         return gid_list
 
     @getter
@@ -798,6 +804,7 @@ class IBEISController(object):
             SELECT image_uid
             FROM images
             WHERE image_uuid=?
+            ORDER BY image_uid ASC
             ''',
             params_iter=utool.tuplize(uuid_list),
             unpack_scalars=True)
@@ -918,21 +925,24 @@ class IBEISController(object):
     # GETTERS::ROI
 
     @getter_general
-    def _get_all_rids(ibs):
+    def _get_all_rids(ibs, sort=None):
         """ returns a all ROI ids """
+        if sort is None:
+            sort = 'roi_uid'
         rid_list = ibs.db.executeone(
             operation='''
             SELECT roi_uid
             FROM rois
+            ORDER BY ''' + sort + ''' ASC
             ''')
         return rid_list
 
-    def get_valid_rids(ibs, eid=None):
+    def get_valid_rids(ibs, eid=None, sort=None):
         """ returns a list of valid ROI unique ids """
         if eid is None:
-            rid_list = ibs._get_all_rids()
+            rid_list = ibs._get_all_rids(sort=None)
         else:
-            rid_list = ibs.get_encounter_rids(eid)
+            rid_list = ibs.get_encounter_rids(eid, sort=None)
         return rid_list
 
     @getter
@@ -981,6 +991,7 @@ class IBEISController(object):
             SELECT image_uid
             FROM rois
             WHERE roi_uid=?
+            ORDER BY image_uid ASC
             ''',
             params_iter=utool.tuplize(rid_list))
         try:
@@ -1439,7 +1450,7 @@ class IBEISController(object):
         return list(imap(len, ibs.get_encounter_gids(eid_list)))
 
     @getter_vector_output
-    def get_encounter_rids(ibs, eid_list):
+    def get_encounter_rids(ibs, eid_list, sort=None):
         """ returns a list of list of rids in each encounter """
         gids_list = ibs.get_encounter_gids(eid_list)
         rids_list_ = ibsfuncs.unflat_lookup(ibs.get_image_rids, gids_list)
@@ -1447,13 +1458,16 @@ class IBEISController(object):
         return rids_list
 
     @getter_vector_output
-    def get_encounter_gids(ibs, eid_list):
+    def get_encounter_gids(ibs, eid_list, sort=None):
         """ returns a list of list of gids in each encounter """
+        if sort is None:
+            sort = 'image_uid'
         gids_list = ibs.db.executemany(
             operation='''
             SELECT image_uid
             FROM egpairs
             WHERE encounter_uid=?
+            ORDER BY ''' + sort + ''' ASC
             ''',
             params_iter=utool.tuplize(eid_list),
             unpack_scalars=False)
