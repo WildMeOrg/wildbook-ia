@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
-
+from guitool import APIItemModel
 from PyQt4 import QtCore, QtGui
 import string
 import random
@@ -52,8 +52,11 @@ def create_databse():
         ('data_text',    'TEXT'),
         ('data_text2',   'TEXT'),
     ]
-    headers_name = [ column[0] for column in headers ]
-    headers_nice = [
+    db.schema('data', headers)
+
+    col_name_list = [ column[0] for column in headers ]
+    col_type_list = [ str ] * len(col_name_list)
+    col_nice_list = [
         'ID',
         'Encounter ID',
         'TEST Float',
@@ -61,7 +64,6 @@ def create_databse():
         'TEST String 1',
         'TEST String 2',
     ]
-    db.schema('data', headers)
 
     rows = 1 * (10 ** 5)
     feats_iter = ((random.randint(0, 1000), random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
@@ -83,91 +85,43 @@ def create_databse():
         ''', params_iter=feats_iter)
     print(' * execute insert time=%r sec' % utool.toc(tt))
 
-    return headers_name, headers_nice, db
+    return col_name_list, col_type_list, col_nice_list, db
 
 
-class TableModel_SQL(QtCore.QAbstractTableModel):
+class TableModel_SQL(APIItemModel.APIItemModel):
     """ Does the lazy loading magic
     http://qt-project.org/doc/qt-5/QAbstractItemModel.html
     """
-    def __init__(self, headers_name, headers_nice, db, parent=None, *args):
-        super(TableModel_SQL, self).__init__()
-        self.headers_name = headers_name
-        self.headers_nice = headers_nice
-        self.encounter = '-1'
-
+    def __init__(self, col_name_list, col_type_list, col_nice_list, db, parent=None, *args):
         self.db = db
-        self.db_sort_index = 0
-        self.db_sort_reversed = False
-        self.row_indices = []
+        self.encounter = '-1'               
 
-        self._refresh_row_indicies()
+        super(TableModel_SQL, self).__init__(col_name_list=col_name_list, 
+            col_type_list=col_type_list, col_getter_list=self._getter, 
+            col_setter_list=self._setter, row_index_callback=self._row_index_callback)
 
-    def _refresh_row_indicies(self):
-        """ NonQT """
-        column = self.headers_name[self.db_sort_index]
-        order = (' DESC' if self.db_sort_reversed else ' ASC')
-        query = 'SELECT data_id FROM data WHERE (? IS "-1" OR encounter_id=?) ORDER BY ' + column + order
+
+    def _row_index_callback(self, col_sort_name, col_sort_reverse):
+        order = (' DESC' if col_sort_reverse else ' ASC')
+        query = 'SELECT data_id FROM data WHERE (? IS "-1" OR encounter_id=?) ORDER BY ' + col_sort_name + order
         self.db.execute(query, [self.encounter, self.encounter])
-        self.row_indices = [result for result in self.db.result_iter()]
+        return [result for result in self.db.result_iter()]
 
     def _change_encounter(self, encounter):
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         self.encounter = encounter
-        self._refresh_row_indicies()
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        self._update_rows()
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.row_indices)
+    def _setter(self, column_name, row_id, value):
+        query = 'UPDATE data SET ' + column_name + '=? WHERE data_id=?'
+        self.db.execute(query, [value, row_id])
+        return True
 
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.headers_name)
+    def _getter(self, column_name, row_id):
+        query = 'SELECT ' + column_name + ' FROM data WHERE data_id=?'
+        self.db.execute(query, [row_id])
+        result_list = list(self.db.result())
+        return str(result_list[0])
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole:
-            row = index.row()
-            column = index.column()
-
-            self.db.execute('SELECT * FROM data WHERE data_id=?', [self.row_indices[row]])
-            row_data = list(self.db.result())
-            return str(row_data[column])
-        else:
-            return QtCore.QVariant()
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        """ Sets the role data for the item at index to value. """
-        if role == QtCore.Qt.EditRole:
-            value = str(value.toString())
-            if value != "":
-                row = index.row()
-                column = index.column()
-
-                query = 'UPDATE data SET ' + self.headers_name[column] + '=? WHERE data_id=?'
-                self.db.execute(query, [value, self.row_indices[row]])
-
-                self.emit(QtCore.SIGNAL("dataChanged()"))
-                return True
-
-        return False
-
-    def headerData(self, index, orientation, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
-            return self.headers_nice[index]
-        else:
-            return QtCore.QVariant()
-
-    def sort(self, index, order):
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        self.db_sort_index = index
-        self.db_sort_reversed = order == QtCore.Qt.DescendingOrder
-        self._refresh_row_indicies()
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
-
-    def flags(self, index):
-        if index.column() > 0:
-            return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-        else:
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
 
 class ListModel_SQL(QtCore.QAbstractListModel):
@@ -317,9 +271,9 @@ class DummyWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.vlayout = QtGui.QVBoxLayout(self)
 
-        headers_name, headers_nice, db = create_databse()
+        col_name_list, col_type_list, col_nice_list, db = create_databse()
 
-        self._tm = TableModel_SQL(headers_name, headers_nice, db, parent=self)
+        self._tm = TableModel_SQL(col_name_list, col_type_list, col_nice_list, db, parent=self)
         self._tv = TableView(self)
         self._tv.setModel(self._tm)
 
