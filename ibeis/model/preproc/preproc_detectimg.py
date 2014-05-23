@@ -21,7 +21,6 @@ def gen_detectimg_and_write(tup):
     return gid, new_gfpath
 
 
-@utool.indent_func
 def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
                         newsize_list, nImgs=None):
     """ Resizes images and yeilds results asynchronously  """
@@ -33,7 +32,6 @@ def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
     return utool.util_parallel.generate(gen_detectimg_and_write, arg_list)
 
 
-@utool.indent_func
 def get_image_detectimg_fpath_list(ibs, gid_list):
     """ Returns detectimg path list """
     utool.assert_all_not_None(gid_list, 'gid_list')
@@ -45,7 +43,6 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
     return new_gfpath_list
 
 
-@utool.indent_func
 def compute_and_write_detectimg(ibs, gid_list):
     utool.ensuredir(ibs.get_detectimg_cachedir())
     # Get img dest information (output path)
@@ -58,16 +55,15 @@ def compute_and_write_detectimg(ibs, gid_list):
     gsize_list   = ibs.get_image_sizes(gid_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, gsize_list)
     # Define "Asynchronous" generator
+    print('[preproc_detectimg] Computing %d imgs asynchronously' % (len(gfpath_list)))
     detectimg_async_iter = gen_detectimg_async(gid_list, gfpath_list,
                                                new_gfpath_list, newsize_list)
-    print('Computing %d imgs asynchronously' % (len(gfpath_list)))
     for gid, new_gfpath in detectimg_async_iter:
         # print('Wrote detectimg: %r' % new_gfpath)
         pass
-    print('Done computing detectimgs')
+    print('[preproc_detectimg] Done computing detectimgs')
 
 
-@utool.indent_func('[PREPROC_DETECTIMG]')
 def compute_and_write_detectimg_lazy(ibs, gid_list):
     """
     Will write a img if it does not exist on disk, regardless of if it exists

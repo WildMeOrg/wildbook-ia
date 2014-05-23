@@ -1645,9 +1645,20 @@ class IBEISController(object):
         """ Runs animal detection in each image """
         from ibeis.model.detect import randomforest
         # TODO: Return confidence here as well
-        detections = randomforest.detect_rois(ibs, gid_list, species,
-                                              quick, **kwargs)
-        detected_gid_list, detected_bbox_list = detections
+        detect_gen = randomforest.generate_detections(ibs, gid_list, species,
+                                                      quick, **kwargs)
+        detected_gid_list, detected_bbox_list = [], []
+        for count, (gid, bbox) in enumerate(detect_gen):
+            detected_gid_list.append(gid)
+            detected_bbox_list.append(bbox)
+            # Save every 100 detections
+            if count > 100:
+                notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+                ibs.add_rois(detected_gid_list, detected_bbox_list,
+                             notes_list=notes_list)
+                detected_gid_list = []
+                detected_bbox_list = []
+
         notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
         ibs.add_rois(detected_gid_list, detected_bbox_list,
                      notes_list=notes_list)

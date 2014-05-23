@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 #from os.path import exists, join, split  # UNUSED
-from os.path import join, splitext
+from os.path import splitext
 # UTool
 from itertools import izip
 import utool
@@ -12,18 +12,37 @@ import pyrf
     __name__, '[detect_randomforest]', DEBUG=False)
 
 
-@utool.indent_func
-def detect_rois(ibs, gid_list, species, quick=True, **kwargs):
+def scale_bbox(bbox, s):
+    (x, y, w, h) = bbox
+    bbox2 = (int(s * x), int(s * y), int(s * w), int(s * h))
+    return bbox2
+
+
+def generate_detections(ibs, gid_list, species, **kwargs):
+    """ kwargs can be: save_detection_images, save_scales, draw_supressed,
+        detection_width, detection_height, percentage_left, percentage_top,
+        nms_margin_percentage """
+    #
+    # Get resized images to detect on
+    src_gpath_list = ibs.get_image_detectpaths(gid_list)
+
+    # Get sizes of the original and resized images for final scale correction
+    neww_list = [gtool.open_image_size(gpath)[0] for gpath in src_gpath_list]
+    oldw_list = [oldw for (oldw, oldh) in ibs.get_image_sizes(gid_list)]
+    scale_list = [oldw / neww for oldw, neww in izip(oldw_list, neww_list)]
+
+    # Detect on scaled images
+    bboxes_list = detect_species_bboxes(src_gpath_list, species, **kwargs)
+
+    for gid, scale, bboxes in izip(gid_list, scale_list, bboxes_list):
+        # Unscale results
+        bboxes2 = [scale_bbox(bbox, scale) for bbox in bboxes]
+        yield gid, bboxes2
+
+
+def detect_species_bboxes(src_gpath_list, species, quick=True, **kwargs):
     """
-    kwargs can be:
-        save_detection_images
-        save_scales
-        draw_supressed
-        detection_width
-        detection_height
-        percentage_left
-        percentage_top
-        nms_margin_percentage
+    Generates bounding boxes for each source image
     """
     # Ensure all models downloaded and accounted for
     grabmodels.ensure_models()
@@ -38,9 +57,7 @@ def detect_rois(ibs, gid_list, species, quick=True, **kwargs):
 
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
 
-    rf_model_dir   = grabmodels.MODEL_DIRS['rf']
-    trees_path     = join(rf_model_dir, species)
-    tree_prefix = species + '-'
+    trees_path = grabmodels.get_species_trees_paths(species)
 
     detect_config = {
         'percentage_top':    0.40,
@@ -48,44 +65,23 @@ def detect_rois(ibs, gid_list, species, quick=True, **kwargs):
     detect_config.update(kwargs)
 
     # Load forest, so we don't have to reload every time
-    forest = detector.load(trees_path, tree_prefix)
+    forest = detector.load(trees_path, species + '-')
 
-    # Get resized images to detect on
-    src_gpath_list = ibs.get_image_detectpaths(gid_list)
-
-    # Get sizes of the original and resized images for final scale correction
-    new_sizes_list = [gtool.open_image_size(src_fpath)
-                      for src_fpath in src_gpath_list]
-    old_sizes_list = ibs.get_image_sizes(gid_list)
-    scale_list = [oldsize[0] / newsize[0] for oldsize, newsize in
-                  izip(old_sizes_list, new_sizes_list)]
-
-    detected_gid_list  = []
-    detected_bbox_list = []
-
+    print('')
+    print('Begining detection')
+    detect_lbl = 'detect %s ' % species
+    nImgs = len(src_gpath_list)
+    mark_prog, end_prog = utool.progress_func(nImgs, detect_lbl, flush_after=1)
     for ix in xrange(len(src_gpath_list)):
-        gid = gid_list[ix]
+        mark_prog(ix)
         src_fpath = str(src_gpath_list[ix])
         dst_fpath = str(splitext(src_fpath)[0])
-        scale = scale_list[ix]
 
-        print('Processing [at scale %.2f]: ' % (scale) + src_fpath)
         results, timing = detector.detect(forest, src_fpath, dst_fpath,
                                           **detect_config)
-        for res in results:
-            # 0 centerx, 1 centery, 2 minx, 3 miny,
-            # 4 maxx, 5 maxy, 6 0.0 [UNUSED], 7 supressed flag
-            (centerx, centery, minx, miny, maxx, maxy, unused, supressed) = res
-            if supressed == 0:
-                # Perform final scale correction
-                x = int(scale * (minx))
-                y = int(scale * (miny))
-                w = int(scale * (maxx - minx))
-                h = int(scale * (maxy - miny))
-                bbox = (x, y, w, h)
-                # Append results
-                detected_gid_list.append(gid)
-                detected_bbox_list.append(bbox)
-
-    detections = (detected_gid_list, detected_bbox_list)
-    return detections
+        # Unpack unsupressed bounding boxes
+        bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
+                  for (centx, centy, minx, miny, maxx, maxy, _, supressed)
+                  in results if supressed == 0]
+        yield bboxes
+    end_prog()

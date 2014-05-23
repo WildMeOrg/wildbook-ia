@@ -45,5 +45,12 @@ def download_model(algo, model_dir):
     # Cleanup
     utool.delete(zip_fpath)
 
+
+def get_species_trees_paths(species):
+    rf_model_dir   = MODEL_DIRS['rf']
+    trees_path     = join(rf_model_dir, species)
+    return trees_path
+
+
 if __name__ == '__main__':
     ensure_models()
