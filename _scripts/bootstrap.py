@@ -10,6 +10,7 @@ NON_PYTHON_PREREQ = [
     'libpng',
     'zlib',
     'freetype',
+    #'zmq',
 ]
 
 PYTHON_PREREQ = [
@@ -24,8 +25,7 @@ PYTHON_PREREQ = [
     'sip',
     'pyqt4',
     'Pillow',
-    'zmq',
-    'pyzmq',
+    #'pyzmq',
     'numpy',
     'scipy',
     'ipython',
