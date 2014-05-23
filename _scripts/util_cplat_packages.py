@@ -144,6 +144,7 @@ def __ensure_output_file():
             print('# wrote: %r' % os.path.realpath(filename))
             file_.close()
             os.system('chmod +x ' + filename)
+            #os.system('cat ' + filename)
         INSTALL_PREREQ_FILE = file_
         atexit.register(close_file)
 
