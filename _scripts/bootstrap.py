@@ -24,7 +24,7 @@ PYTHON_PREREQ = [
     'Pygments',
     'six',
     #'openpyxl',
-    'dateutil',
+    'dateutils',
     'readline',
     'sip',
     'pyqt4',
