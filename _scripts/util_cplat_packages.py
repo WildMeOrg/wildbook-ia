@@ -61,8 +61,8 @@ def __install_command_apt_get(pkg):
 
 def __install_command_pip(pkg):
     if WIN32:
-        return 'pip install %s' % pkg
-    return 'sudo pip install %s' % pkg
+        return 'pip install %s --upgrade' % pkg
+    return 'sudo pip install %s --upgrade' % pkg
 
 
 def __update_macports():
@@ -126,6 +126,7 @@ def cmd(command):
         filename = 'install_prereqs.sh'
         file_ = open(filename, 'w')
         def close_file():
+            print('# wrote: %r' % os.path.realpath(filename))
             file_.close()
             os.system('chmod +x ' + filename)
         INSTALL_PREREQ_FILE = file_

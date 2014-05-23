@@ -13,6 +13,7 @@ NON_PYTHON_PREREQ = [
 ]
 
 PYTHON_PREREQ = [
+    'distribute',
     'setuptools',
     'pip',
     'Pygments',
