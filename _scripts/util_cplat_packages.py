@@ -1,3 +1,4 @@
+# HELPS GENERATE CROSS PLATFORM INSTALL SCRIPTS
 import sys
 import platform
 
@@ -16,6 +17,8 @@ def parse_args():
 ARG_DICT = parse_args()
 
 
+
+# GET SYSTEM CONFIGURATION (OR DESIRED CONFIGURATION)
 __OS__ = ''.join(ARG_DICT.get('os', sys.platform))
 
 distro_tup = platform.dist()
@@ -70,7 +73,7 @@ def __update_macports():
 
 
 def __update_apt_get():
-    return 'sudo apt-get update && sudo apt-get upgrade'
+    return 'sudo apt-get update && sudo apt-get upgrade -y'
 
 
 def upgrade():
