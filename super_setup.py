@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+from os.path import dirname, realpath
 """
 PREREQS:
     git
 """
 
-CODE_DIR = '~/code'
-print('__IBEIS_SUPER_SETUP__')
+CODE_DIR = dirname(dirname(realpath(__file__)))   # '~/code'
+print('__IBEIS_SUPER_SETUP__: %r' % CODE_DIR)
 
 # HACK IN A WAY TO ENSURE UTOOL
 try:
@@ -17,7 +18,8 @@ except ImportError:
     os.chdir(os.path.expanduser(CODE_DIR))
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
-    os.chdir('python setup.py develop')
+    os.system('git pull')
+    os.system('python setup.py develop')
 
 #
 from utool._internal.meta_util_git import repo_list, set_userid
@@ -39,6 +41,8 @@ try:
 except ImportError:
     print('need to build opencv')
     TPL_REPO_URLS.append('https://github.com/Erotemic/opencv.git')
+
+
 try:
     import pyflann  # NOQA
     print('found pyflann=%r' % (pyflann,))
@@ -75,7 +79,7 @@ except ImportError:
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
 PROJECT_REPO_DIRS = IBEIS_REPO_DIRS + TPL_REPO_DIRS
 
-utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+utool.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
 utool.gg_command('ensure')
 

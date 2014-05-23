@@ -187,7 +187,7 @@ def _utilities2_pairwise_breaking(qfx2_utilities):
     hstack = np.hstack
     cartesian = utool.cartesian
     tnxs = [util[1] for utils in qfx2_utilities for util in utils]
-    altx2_tnx = utool.unique_keep_order(tnxs)
+    altx2_tnx = utool.unique_keep_order2(tnxs)
     tnx2_altx = {nid: altx for altx, nid in enumerate(altx2_tnx)}
     nUtilities = len(qfx2_utilities)
     nAlts   = len(altx2_tnx)
@@ -207,7 +207,7 @@ def _utilities2_pairwise_breaking(qfx2_utilities):
     nVoters = 0
     for qfx in xrange(nUtilities):
         # partial and compliment order over alternatives
-        porder = utool.unique_keep_order(qfx2_porder[qfx])
+        porder = utool.unique_keep_order2(qfx2_porder[qfx])
         nReport = len(porder)
         if nReport == 0:
             continue
@@ -235,7 +235,7 @@ def _utilities2_pairwise_breaking(qfx2_utilities):
 def _get_alts_from_utilities(qfx2_utilities):
     """ get temp name indexes """
     tnxs = [utool[1] for utils in qfx2_utilities for utool in utils]
-    altx2_tnx = utool.unique_keep_order(tnxs)
+    altx2_tnx = utool.unique_keep_order2(tnxs)
     tnx2_altx = {nid: altx for altx, nid in enumerate(altx2_tnx)}
     nUtilities = len(qfx2_utilities)
     nAlts   = len(altx2_tnx)
