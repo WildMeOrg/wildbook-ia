@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-from util_cplat_packages import upgrade, ensure_packages, ensure_python_packages, APPLE
+from util_cplat_packages import upgrade, ensure_packages, ensure_python_packages, APPLE, UBUNTU
 
 NON_PYTHON_PREREQ = [
     'git',
     'cmake',
+    'gcc',  # need a C compiler for numpy
     'g++',
+    'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
     'ffmpeg',
     #'zmq',
 ]
@@ -15,6 +17,12 @@ if APPLE:
         'libpng',
         'zlib',
         'freetype',
+    ])
+
+if UBUNTU:
+    NON_PYTHON_PREREQ.extend([
+        'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
+        'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
     ])
 
 PYTHON_PREREQ = [

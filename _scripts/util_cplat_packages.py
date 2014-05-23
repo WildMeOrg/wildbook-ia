@@ -119,7 +119,7 @@ APPLE_PYPKG_MAP = {
 
 def ensure_python_package(pkg):
     if LINUX and UBUNTU:
-        if pkg in ['pip', 'setuptools', 'pyqt4', 'sip']:
+        if pkg in ['pip', 'setuptools', 'pyqt4', 'sip', 'scipy']:
             return cmd(__install_command_apt_get('python-' + pkg))
     if APPLE:
         if pkg in APPLE_PYPKG_MAP:
