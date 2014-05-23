@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+from os.path import dirname
 """
 PREREQS:
     git
 """
 
-CODE_DIR = '~/code'
+CODE_DIR = dirname(dirname(__file__))   # '~/code'
 print('__IBEIS_SUPER_SETUP__')
 
 # HACK IN A WAY TO ENSURE UTOOL
