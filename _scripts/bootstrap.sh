@@ -8,6 +8,8 @@ export CODE_DIR=~/code
 
 portable_install git
 
+# TODO: PORTS
+
 mkdir $CODE_DIR
 cd $CODE_DIR
 

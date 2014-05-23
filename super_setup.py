@@ -18,6 +18,7 @@ except ImportError:
     os.chdir(os.path.expanduser(CODE_DIR))
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
+    os.system('git pull')
     os.system('python setup.py develop')
 
 #
