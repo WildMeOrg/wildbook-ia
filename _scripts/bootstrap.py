@@ -18,8 +18,8 @@ if APPLE:
     ])
 
 PYTHON_PREREQ = [
-    'distribute',
-    'setuptools',
+    #'distribute',
+    #'setuptools',
     'pip',
     'Pygments',
     'six',
