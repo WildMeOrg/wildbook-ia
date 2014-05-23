@@ -98,8 +98,8 @@ def ensure_package(pkg):
 def ensure_python_package(pkg):
     if LINUX and UBUNTU:
         if pkg in ['pip', 'setuptools', 'pyqt4', 'sip']:
-            return cmd(__install_command_apt_get(pkg))
-    return cmd(__install_command_pip('python-' + pkg))
+            return cmd(__install_command_apt_get('python-' + pkg))
+    return cmd(__install_command_pip(pkg))
 
 
 def ensure_python_packages(pkg_list):
@@ -121,7 +121,7 @@ def ensure_packages(pkg_list):
 INSTALL_PREREQ_FILE = None
 
 
-def cmd(command):
+def __ensure_output_file():
     global INSTALL_PREREQ_FILE
     if INSTALL_PREREQ_FILE is None:
         import atexit
@@ -134,6 +134,13 @@ def cmd(command):
             os.system('chmod +x ' + filename)
         INSTALL_PREREQ_FILE = file_
         atexit.register(close_file)
+
+
+def cmd(command):
+    __ensure_output_file()
+    delim = 'echo "************"'
+    INSTALL_PREREQ_FILE.write(delim + '\n')
     INSTALL_PREREQ_FILE.write(command + '\n')
+    INSTALL_PREREQ_FILE.write(delim + '\n')
     print(command)
     #os.system(command)
