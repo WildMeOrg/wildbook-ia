@@ -7,7 +7,7 @@ PREREQS:
 """
 
 CODE_DIR = dirname(dirname(__file__))   # '~/code'
-print('__IBEIS_SUPER_SETUP__')
+print('__IBEIS_SUPER_SETUP__: %r' % CODE_DIR)
 
 # HACK IN A WAY TO ENSURE UTOOL
 try:
