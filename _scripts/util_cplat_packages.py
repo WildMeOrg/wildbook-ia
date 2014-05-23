@@ -148,11 +148,20 @@ def __ensure_output_file():
         atexit.register(close_file)
 
 
+CRASH_ON_FAIL = True
+
+
 def cmd(command):
     __ensure_output_file()
-    delim = 'echo "************"'
-    INSTALL_PREREQ_FILE.write(delim + '\n')
-    INSTALL_PREREQ_FILE.write(command + '\n')
-    INSTALL_PREREQ_FILE.write(delim + '\n')
     print(command)
+    delim = 'echo "************"'
+    write_list = []
+    write_list += [delim]
+    if CRASH_ON_FAIL:
+        fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % command
+        write_list += [command + fail_extra]
+    else:
+        write_list += [command]
+    write_list += [delim]
+    INSTALL_PREREQ_FILE.write('\n'.join(write_list) + '\n')
     #os.system(command)
