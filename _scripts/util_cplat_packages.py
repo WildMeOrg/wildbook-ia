@@ -115,6 +115,21 @@ def ensure_packages(pkg_list):
     return output_list
 
 
+INSTALL_PREREQ_FILE = None
+
+
 def cmd(command):
+    global INSTALL_PREREQ_FILE
+    if INSTALL_PREREQ_FILE is None:
+        import atexit
+        import os
+        filename = 'install_prereqs.sh'
+        file_ = open(filename, 'w')
+        def close_file():
+            file_.close()
+            os.system('chmod +x ' + filename)
+        INSTALL_PREREQ_FILE = file_
+        atexit.register(close_file)
+    INSTALL_PREREQ_FILE.write(command + '\n')
     print(command)
     #os.system(command)
