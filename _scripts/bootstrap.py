@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from util_cplat_packages import upgrade, ensure_packages
 
 NON_PYTHON_PREREQ = [
