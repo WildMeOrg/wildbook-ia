@@ -5,16 +5,16 @@ from . import qtype
 import utool
 import types
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[APIItemModel]', DEBUG=False)
+    __name__, '[APITableModel]', DEBUG=False)
 
 
-class APIItemModel(QtCore.QAbstractTableModel):
+class APITableModel(QtCore.QAbstractTableModel):
     """ Item model for displaying a list of columns """
 
     #
     # Non-Qt Init Functions
 
-    def __init__(model, qtabstractitemmodel_type=None, col_name_list=None, col_type_list=None, col_nice_list=None,
+    def __init__(model, col_name_list=None, col_type_list=None, col_nice_list=None,
                  col_edit_list=None, col_setter_list=None, col_getter_list=None,
                  col_sort_name=None, col_sort_reverse=None, 
                  row_index_callback=None, parent=None, **kwargs):
@@ -41,7 +41,7 @@ class APIItemModel(QtCore.QAbstractTableModel):
                 col_getter_list
                 row_index_callback
         '''
-        super(APIItemModel, model).__init__()
+        super(APITableModel, model).__init__()
         
         model.layoutAboutToBeChanged.emit()
         
@@ -162,7 +162,6 @@ class APIItemModel(QtCore.QAbstractTableModel):
             The setter function should return a boolean, if setting the value
             was successfull or not
         ''' 
-        row, col = model._row_col(qtindex)
         setter = model._get_col_setter(column=col)
         col_name = model._get_col_name(column=col)
         row_id = model._get_row_id(row)
@@ -295,7 +294,7 @@ class APIItemModel(QtCore.QAbstractTableModel):
                 _type = model._get_col_type(column=col)
                 data = qtype.cast_from_qt(value, _type)
             # Do actual setting of data
-            model._set_data_qt(qtindex, data)
+            model._set_cell_qt(qtindex, data)
             # Emit that data was changed and return succcess
             model.dataChanged.emit(qtindex, qtindex)
             return True
