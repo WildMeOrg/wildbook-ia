@@ -109,10 +109,20 @@ def ensure_package(pkg):
     cmd(command)
 
 
+APPLE_PYPKG_MAP = {
+    'dateutils': 'dateutil',
+    'pyreadline': 'readline',
+}
+
+
 def ensure_python_package(pkg):
     if LINUX and UBUNTU:
         if pkg in ['pip', 'setuptools', 'pyqt4', 'sip']:
             return cmd(__install_command_apt_get('python-' + pkg))
+    if APPLE:
+        if pkg in APPLE_PYPKG_MAP:
+            pkg = APPLE_PYPKG_MAP[pkg]
+            return cmd(__install_command_macports('python-' + pkg))
     return cmd(__install_command_pip(pkg))
 
 

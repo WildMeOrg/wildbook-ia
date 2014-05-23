@@ -25,7 +25,7 @@ PYTHON_PREREQ = [
     'six',
     #'openpyxl',
     'dateutils',
-    'readline',
+    'pyreadline',
     'sip',
     'pyqt4',
     'Pillow',
