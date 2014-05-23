@@ -46,6 +46,8 @@ PYTHON_PREREQ = [
     'ipython',
     #'pandas',
     'matplotlib'
+    'tornado'
+    'matplotlib'
 ]
 
 #upgrade()
