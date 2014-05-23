@@ -4,7 +4,7 @@ import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
 from guitool import APITableModel
-from PyQt4 import QtCore, QtGui
+from PyQt4 import  QtGui
 import string
 import random
 
@@ -66,7 +66,7 @@ def create_databse():
         'TEST String 2',
     ]
 
-    rows = 1 * (10 ** 5)
+    rows = 1 * (10 ** 4)
     feats_iter = ((random.randint(0, 1000), random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
                         for i in xrange(rows) )
 
@@ -92,21 +92,20 @@ def create_databse():
 class ImageModelSQL(APITableModel.APITableModel):
     def __init__(model, col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=None, *args):
         model.db = db
-        model.encounter_id = '-1'               
-        super(ImageModelSQL, model).__init__(col_name_list=col_name_list, 
-            col_type_list=col_type_list, col_nice_list=col_nice_list, 
-            col_edit_list=col_edit_list,
-            col_getter_list=model._getter, col_setter_list=model._setter, 
-            row_index_callback=model._row_index_callback,
-            paernt=parent)
+        model.encounter_id = '-1'
+        super(ImageModelSQL, model).__init__(col_name_list=col_name_list,
+                                             col_type_list=col_type_list, col_nice_list=col_nice_list,
+                                             col_edit_list=col_edit_list,
+                                             col_getter_list=model._getter, col_setter_list=model._setter,
+                                             row_index_callback=model._row_index_callback,
+                                             paernt=parent)
 
     def _change_encounter(model, encounter_id):
         model.encounter_id = encounter_id
         model._update_rows()
 
-    def _row_index_callback(model, col_sort_name, col_sort_reverse):
-        order = (' DESC' if col_sort_reverse else ' ASC')
-        query = 'SELECT data_id FROM data WHERE (? IS "-1" OR encounter_id=?) ORDER BY ' + col_sort_name + order
+    def _row_index_callback(model, col_sort_name):
+        query = 'SELECT data_id FROM data WHERE (? IS "-1" OR encounter_id=?) ORDER BY ' + col_sort_name + ' ASC'
         model.db.execute(query, [model.encounter_id, model.encounter_id])
         return [result for result in model.db.result_iter()]
 
@@ -126,20 +125,24 @@ class ImageModelSQL(APITableModel.APITableModel):
 class EncounterModelSQL(APITableModel.APITableModel):
     def __init__(model, col_name_list, col_type_list, col_edit_list, db, parent=None, *args):
         model.db = db
-        super(EncounterModelSQL, model).__init__(col_name_list=col_name_list, 
-            col_type_list=col_type_list, col_getter_list=model._getter, 
-            col_edit_list=col_edit_list,
-            col_setter_list=model._setter, row_index_callback=model._row_index_callback,
-            parent=parent)
+        super(EncounterModelSQL, model).__init__(col_name_list=col_name_list,
+                                                 col_type_list=col_type_list,
+                                                 col_getter_list=model._getter,
+                                                 col_edit_list=col_edit_list,
+                                                 col_setter_list=model._setter,
+                                                 row_index_callback=model._row_index_callback,
+                                                 parent=parent)
 
     def _get_encounter_id_name(model, qtindex):
         row, col = model._row_col(qtindex)
         encounter_id = model._get_row_id(row)
-        encounter_name = model._get_cell_qt(qtindex)
+        encounter_name = model._get_cell(row, 0)
         return encounter_id, encounter_name
 
-    def _row_index_callback(model, col_sort_name, col_sort_reverse):
-        model.db.execute('SELECT encounter_id FROM encounters ORDER BY encounter_id ASC', [])
+    def _row_index_callback(model, col_sort_name):
+        if col_sort_name == 'num_images':
+            col_sort_name = 'encounter_id'
+        model.db.execute('SELECT encounter_id FROM encounters ORDER BY ' + col_sort_name + ' ASC', [])
         return [result for result in model.db.result_iter()]
 
     def _setter(model, column_name, row_id, value):
@@ -150,6 +153,8 @@ class EncounterModelSQL(APITableModel.APITableModel):
         return True
 
     def _getter(model, column_name, row_id):
+        if column_name == 'num_images':
+            return 0
         query = 'SELECT ' + column_name + ' FROM encounters WHERE encounter_id=?'
         model.db.execute(query, [row_id])
         result_list = list(model.db.result())
@@ -172,10 +177,11 @@ class ImageView(QtGui.QTableView):
 class EncounterView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
+        view.setSortingEnabled(True)
         vh = view.verticalHeader()
         vh.setVisible(False)
-        hh = view.horizontalHeader()
-        hh.setVisible(False)
+        #hh = view.horizontalHeader()
+        #hh.setVisible(False)
 
     def mouseDoubleClickEvent(view, event):
         index = view.selectedIndexes()[0]
@@ -187,7 +193,11 @@ class TabWidget(QtGui.QTabWidget):
     def __init__(widget, parent=None):
         QtGui.QTabWidget.__init__(widget, parent)
         widget.setTabsClosable(True)
-        widget.setMaximumSize(9999, 21)
+        if sys.platform.startswith('darwin'):
+            tab_height = 21
+        else:
+            tab_height = 30
+        widget.setMaximumSize(9999, tab_height)
         widget._tb = widget.tabBar()
         widget._tb.setMovable(True)
         widget.setStyleSheet('border: none;')
@@ -195,10 +205,10 @@ class TabWidget(QtGui.QTabWidget):
 
         widget.tabCloseRequested.connect(widget._close_tab)
         widget.currentChanged.connect(widget._on_change)
-        
+
         widget.encounter_id_list = []
         widget._add_encounter_tab('-1', 'Database')
-        
+
     def _on_change(widget, index):
         if 0 <= index and index < len(widget.encounter_id_list):
             widget.parent()._change_encounter(widget.encounter_id_list[index])
@@ -238,7 +248,13 @@ class DummyWidget(QtGui.QWidget):
         widget._image_view = ImageView(parent=widget)
         widget._image_view.setModel(widget._image_model)
 
-        col_name_list, col_type_list, col_edit_list = ['encounter_name'], [str], [True]
+        col_name_list = ['encounter_name', 'num_images']
+        col_type_list = [str, int]
+        col_edit_list = [True, False]
+
+        #splitter = QtGui.QSplitter(centralwidget)
+        #splitter.setOrientation(QtCore.Qt.Vertical)
+
         widget._encounter_model = EncounterModelSQL(col_name_list, col_type_list, col_edit_list, db, parent=widget)
         widget._encounter_view = EncounterView(parent=widget)
         widget._encounter_view.setModel(widget._encounter_model)
@@ -261,8 +277,16 @@ class DummyWidget(QtGui.QWidget):
 
 if __name__ == '__main__':
     import sys
+    import signal
+    import guitool
+    def _on_ctrl_c(signal, frame):
+        print('Caught ctrl+c')
+        sys.exit(0)
+    signal.signal(signal.SIGINT, _on_ctrl_c)
     app = QtGui.QApplication(sys.argv)
     widget = DummyWidget()
     widget.show()
+    widget.timer = guitool.ping_python_interpreter()
     widget.raise_()
     sys.exit(app.exec_())
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
