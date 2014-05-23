@@ -72,6 +72,8 @@ def __update_macports():
 
 
 def __install_command_apt_get(pkg):
+    if pkg == 'python-pyqt4':
+        pkg = 'python-qt4'
     return 'sudo apt-get install -y %s' % pkg
 
 
