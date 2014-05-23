@@ -22,7 +22,7 @@ if APPLE:
 if UBUNTU:
     NON_PYTHON_PREREQ.extend([
         'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
-        'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
+        #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
     ])
 
 PYTHON_PREREQ = [
