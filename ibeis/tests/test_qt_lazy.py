@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
-from guitool import APIItemModel
+from guitool import APITableModel
 from PyQt4 import QtCore, QtGui
 import string
 import random
@@ -56,6 +56,7 @@ def create_databse():
 
     col_name_list = [ column[0] for column in headers ]
     col_type_list = [ str ] * len(col_name_list)
+    col_edit_list = [ False, True, True, True, True, True ]
     col_nice_list = [
         'ID',
         'Encounter ID',
@@ -85,219 +86,177 @@ def create_databse():
         ''', params_iter=feats_iter)
     print(' * execute insert time=%r sec' % utool.toc(tt))
 
-    return col_name_list, col_type_list, col_nice_list, db
+    return col_name_list, col_type_list, col_edit_list, col_nice_list, db
 
 
-class TableModel_SQL(APIItemModel.APIItemModel):
-    """ Does the lazy loading magic
-    http://qt-project.org/doc/qt-5/QAbstractItemModel.html
-    """
-    def __init__(self, col_name_list, col_type_list, col_nice_list, db, parent=None, *args):
-        self.db = db
-        self.encounter = '-1'               
+class ImageModelSQL(APITableModel.APITableModel):
+    def __init__(model, col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=None, *args):
+        model.db = db
+        model.encounter_id = '-1'               
+        super(ImageModelSQL, model).__init__(col_name_list=col_name_list, 
+            col_type_list=col_type_list, col_nice_list=col_nice_list, 
+            col_edit_list=col_edit_list,
+            col_getter_list=model._getter, col_setter_list=model._setter, 
+            row_index_callback=model._row_index_callback,
+            paernt=parent)
 
-        super(TableModel_SQL, self).__init__(col_name_list=col_name_list, 
-            col_type_list=col_type_list, col_getter_list=self._getter, 
-            col_setter_list=self._setter, row_index_callback=self._row_index_callback)
+    def _change_encounter(model, encounter_id):
+        model.encounter_id = encounter_id
+        model._update_rows()
 
-
-    def _row_index_callback(self, col_sort_name, col_sort_reverse):
+    def _row_index_callback(model, col_sort_name, col_sort_reverse):
         order = (' DESC' if col_sort_reverse else ' ASC')
         query = 'SELECT data_id FROM data WHERE (? IS "-1" OR encounter_id=?) ORDER BY ' + col_sort_name + order
-        self.db.execute(query, [self.encounter, self.encounter])
-        return [result for result in self.db.result_iter()]
+        model.db.execute(query, [model.encounter_id, model.encounter_id])
+        return [result for result in model.db.result_iter()]
 
-    def _change_encounter(self, encounter):
-        self.encounter = encounter
-        self._update_rows()
-
-    def _setter(self, column_name, row_id, value):
-        query = 'UPDATE data SET ' + column_name + '=? WHERE data_id=?'
-        self.db.execute(query, [value, row_id])
+    def _setter(model, column_name, row_id, value):
+        if value != '':
+            query = 'UPDATE data SET ' + column_name + '=? WHERE data_id=?'
+            model.db.execute(query, [value, row_id])
         return True
 
-    def _getter(self, column_name, row_id):
+    def _getter(model, column_name, row_id):
         query = 'SELECT ' + column_name + ' FROM data WHERE data_id=?'
-        self.db.execute(query, [row_id])
-        result_list = list(self.db.result())
+        model.db.execute(query, [row_id])
+        result_list = list(model.db.result())
         return str(result_list[0])
 
 
+class EncounterModelSQL(APITableModel.APITableModel):
+    def __init__(model, col_name_list, col_type_list, col_edit_list, db, parent=None, *args):
+        model.db = db
+        super(EncounterModelSQL, model).__init__(col_name_list=col_name_list, 
+            col_type_list=col_type_list, col_getter_list=model._getter, 
+            col_edit_list=col_edit_list,
+            col_setter_list=model._setter, row_index_callback=model._row_index_callback,
+            parent=parent)
 
-class ListModel_SQL(QtCore.QAbstractListModel):
-    """ Does the lazy loading magic
-    http://qt-project.org/doc/qt-5/QAbstractItemModel.html
-    """
-    def __init__(self, db, tm, tw, parent=None, *args):
-        super(ListModel_SQL, self).__init__()
-        self.db = db
-        self.tm = tm
-        self.tw = tw
-        self.row_indices = []
-
-        self._refresh_row_indicies()
-
-    def _refresh_row_indicies(self):
-        """ NonQT """
-        self.db.execute('SELECT encounter_id FROM encounters ORDER BY encounter_id ASC', [])
-        self.row_indices = [result for result in self.db.result_iter()]
-
-    def _change_encounter(self, index):
-        row = index.row()
-        self.db.execute('SELECT * FROM encounters WHERE encounter_id=?', [self.row_indices[row]])
-        row_data = list(self.db.result())
-        encounter_id = str(row_data[0])
-        encounter_name = str(row_data[1])
-        self.tm._change_encounter(encounter_id)
+    def _get_encounter_id_name(model, qtindex):
+        row, col = model._row_col(qtindex)
+        encounter_id = model._get_row_id(row)
+        encounter_name = model._get_cell_qt(qtindex)
         return encounter_id, encounter_name
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.row_indices)
+    def _row_index_callback(model, col_sort_name, col_sort_reverse):
+        model.db.execute('SELECT encounter_id FROM encounters ORDER BY encounter_id ASC', [])
+        return [result for result in model.db.result_iter()]
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if role == QtCore.Qt.DisplayRole:
-            row = index.row()
+    def _setter(model, column_name, row_id, value):
+        if value != '':
+            query = 'UPDATE encounters SET ' + column_name + '=? WHERE encounter_id=?'
+            model.db.execute(query, [value, row_id])
+            # model.parent()._update_encounter_tab_name(row_id, value)
+        return True
 
-            self.db.execute('SELECT * FROM encounters WHERE encounter_id=?', [self.row_indices[row]])
-            row_data = list(self.db.result())
-            return str(row_data[1])
-        else:
-            return QtCore.QVariant()
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        """ Sets the role data for the item at index to value. """
-        if role == QtCore.Qt.EditRole:
-            value = str(value.toString())
-            if value != "":
-                row = index.row()
-
-                query = 'UPDATE encounters SET encounter_name=? WHERE encounter_id=?'
-                self.db.execute(query, [value, self.row_indices[row]])
-
-                self.tw._updateName(str(self.row_indices[row]), value)
-                self.emit(QtCore.SIGNAL("dataChanged()"))
-                return True
-
-        return False
-
-    def flags(self, index):
-        return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+    def _getter(model, column_name, row_id):
+        query = 'SELECT ' + column_name + ' FROM encounters WHERE encounter_id=?'
+        model.db.execute(query, [row_id])
+        result_list = list(model.db.result())
+        return str(result_list[0])
 
 
-class TableView(QtGui.QTableView):
-    """ The table view houses the AbstractItemModel
-
-    Public Signals:
-        activated(QModelIndex index)
-        clicked(QModelIndex index)
-        doubleClicked( QModelIndex index )
-        entered(QModelIndex index)
-        pressed(QModelIndex index)
-        viewportEntered()
-        customContextMenuRequested(QPoint pos)
-
-    Public Slots:
-        clearSelection ()
-        edit(QModelIndex index)
-        reset()
-        scrollToBottom()
-        scrollToTop()
-        selectAll()
-        setCurrentIndex(QModelIndex index)
-        setRootIndex(QModelIndex index)
-        update(QModelIndex index)
-
-    """
-    def __init__(self, *args, **kwargs):
-        QtGui.QTableView.__init__(self, *args, **kwargs)
-        self.setSortingEnabled(True)
-
-        vh = self.verticalHeader()
+class ImageView(QtGui.QTableView):
+    def __init__(view, parent=None):
+        QtGui.QTableView.__init__(view, parent)
+        view.setSortingEnabled(True)
+        vh = view.verticalHeader()
         vh.setVisible(False)
+        view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        view.resizeColumnsToContents()
 
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.resizeColumnsToContents()
+    def _change_encounter(view, encounter_id):
+        view.model()._change_encounter(encounter_id)
 
 
-class ListView(QtGui.QListView):
-    def __init__(self, parent=None):
-        QtGui.QListView.__init__(self, parent)
+class EncounterView(QtGui.QTableView):
+    def __init__(view, parent=None):
+        QtGui.QTableView.__init__(view, parent)
+        vh = view.verticalHeader()
+        vh.setVisible(False)
+        hh = view.horizontalHeader()
+        hh.setVisible(False)
 
-    def mouseDoubleClickEvent(self, event):
-        index = self.selectedIndexes()[0]
-        enc_id, enc_name = self.model()._change_encounter(index)
-        self.parent()._addWidget(enc_id, enc_name)
+    def mouseDoubleClickEvent(view, event):
+        index = view.selectedIndexes()[0]
+        encounter_id, encounter_name = view.model()._get_encounter_id_name(index)
+        view.parent()._add_encounter_tab(encounter_id, encounter_name)
 
 
 class TabWidget(QtGui.QTabWidget):
-    def __init__(self, tm, parent=None):
-        QtGui.QTabWidget.__init__(self, parent)
-        self.setTabsClosable(True)
-        self.setMaximumSize(9999, 21)
-        self._tb = self.tabBar()
-        self._tb.setMovable(True)
-        self.tabCloseRequested.connect(self._onClose)
-        self.currentChanged.connect(self._onChange)
-        self.setStyleSheet("border: none;")
-        self._tb.setStyleSheet("border: none;")
+    def __init__(widget, parent=None):
+        QtGui.QTabWidget.__init__(widget, parent)
+        widget.setTabsClosable(True)
+        widget.setMaximumSize(9999, 21)
+        widget._tb = widget.tabBar()
+        widget._tb.setMovable(True)
+        widget.setStyleSheet('border: none;')
+        widget._tb.setStyleSheet('border: none;')
 
-        self.id_list = []
-        self.tm = tm
+        widget.tabCloseRequested.connect(widget._close_tab)
+        widget.currentChanged.connect(widget._on_change)
+        
+        widget.encounter_id_list = []
+        widget._add_encounter_tab('-1', 'Database')
+        
+    def _on_change(widget, index):
+        if 0 <= index and index < len(widget.encounter_id_list):
+            widget.parent()._change_encounter(widget.encounter_id_list[index])
 
-    def _onChange(self, index):
-        if index == '-1':
-            self.tm._change_encounter(self.id_list[index])
+    def _close_tab(widget, index):
+        if widget.encounter_id_list[index] != '-1':
+            widget.encounter_id_list.pop(index)
+            widget.removeTab(index)
+
+    def _add_encounter_tab(widget, encounter_id, encounter_name):
+        if encounter_id not in widget.encounter_id_list:
+            tab_name = str(encounter_id) + ' - ' + str(encounter_name)
+            widget.addTab(QtGui.QWidget(), tab_name)
+
+            widget.encounter_id_list.append(encounter_id)
+            index = len(widget.encounter_id_list) - 1
         else:
-            self.tm._change_encounter(index)
+            index = widget.encounter_id_list.index(encounter_id)
 
-    def _onClose(self, index):
-        if len(self.id_list) > 0:
-            self.id_list.pop(index)
-            self.removeTab(index)
+        widget.setCurrentIndex(index)
+        widget._on_change(index)
 
-    def _addID(self, _id):
-        self.id_list.append(_id)
-        self.setCurrentIndex(len(self.id_list) - 1)
-
-    def _updateName(self, _id, name):
-        for i in range(len(self.id_list)):
-            if self.id_list[i] == _id:
-                self.setTabText(i, name)
+    def _update_encounter_tab_name(widget, encounter_id, encounter_name):
+        for index, _id in enumerate(widget.encounter_id_list):
+            if encounter_id == _id:
+                widget.setTabText(index, encounter_name)
 
 
 class DummyWidget(QtGui.QWidget):
-    """ Test Main Window """
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self.vlayout = QtGui.QVBoxLayout(self)
+    ''' Test Main Window '''
+    def __init__(widget, parent=None):
+        QtGui.QWidget.__init__(widget, parent)
+        widget.vlayout = QtGui.QVBoxLayout(widget)
 
-        col_name_list, col_type_list, col_nice_list, db = create_databse()
+        col_name_list, col_type_list, col_edit_list, col_nice_list, db = create_databse()
+        widget._image_model = ImageModelSQL(col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=widget)
+        widget._image_view = ImageView(parent=widget)
+        widget._image_view.setModel(widget._image_model)
 
-        self._tm = TableModel_SQL(col_name_list, col_type_list, col_nice_list, db, parent=self)
-        self._tv = TableView(self)
-        self._tv.setModel(self._tm)
+        col_name_list, col_type_list, col_edit_list = ['encounter_name'], [str], [True]
+        widget._encounter_model = EncounterModelSQL(col_name_list, col_type_list, col_edit_list, db, parent=widget)
+        widget._encounter_view = EncounterView(parent=widget)
+        widget._encounter_view.setModel(widget._encounter_model)
 
-        self._tw = TabWidget(self._tm)
-        self._addWidget("-1", "Database")
+        widget._tab_widget = TabWidget(parent=widget)
 
-        self._lm = ListModel_SQL(db, self._tm, self._tw, parent=self)
-        self._lv = ListView(self)
-        self._lv.setModel(self._lm)
+        widget.vlayout.addWidget(widget._tab_widget)
+        widget.vlayout.addWidget(widget._image_view)
+        widget.vlayout.addWidget(widget._encounter_view)
 
-        self.vlayout.addWidget(self._tw)
-        self.vlayout.addWidget(self._tv)
-        self.vlayout.addWidget(self._lv)
+    def _change_encounter(widget, encounter_id):
+        widget._image_view._change_encounter(encounter_id)
 
-    def _addWidget(self, enc_id, enc_name):
-        if enc_id not in self._tw.id_list:
-            temp = QtGui.QWidget()
-            self._tw.addTab(temp, str(enc_id) + " - " + str(enc_name))
-            self._tw._addID(enc_id)
-        else:
-            for i in range(len(self._tw.id_list)):
-                if enc_id == self._tw.id_list[i]:
-                    self._tw.setCurrentIndex(i)
-                    break
+    def _add_encounter_tab(widget, encounter_id, encounter_name):
+        widget._tab_widget._add_encounter_tab(encounter_id, encounter_name)
+
+    def _update_encounter_tab_name(widget, encounter_id, encounter_name):
+        widget._tab_widget._update_encounter_tab_name(encounter_id, encounter_name)
 
 
 if __name__ == '__main__':
