@@ -6,14 +6,16 @@ NON_PYTHON_PREREQ = [
     'cmake',
     'g++',
     'ffmpeg',
-    'libpng',
     'zlib',
     'freetype',
     #'zmq',
 ]
 
 if APPLE:
-    NON_PYTHON_PREREQ += ['opencv']
+    NON_PYTHON_PREREQ.extend([
+        'opencv',
+        'libpng',
+    ])
 
 PYTHON_PREREQ = [
     'distribute',
