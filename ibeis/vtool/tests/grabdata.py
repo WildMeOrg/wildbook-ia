@@ -9,7 +9,7 @@ def get_testdata_dir(ensure=True):
     Gets test img directory and downloads it if it doesn't exist
     """
     zipped_testdata_url = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
-    testdata_dir = utool.grab_downloaded_testdata(zipped_testdata_url, ensure=ensure)
+    testdata_dir = utool.grab_zipped_url(zipped_testdata_url, ensure=ensure)
     return testdata_dir
 
 
