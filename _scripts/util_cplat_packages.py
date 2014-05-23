@@ -79,13 +79,16 @@ def __install_command_apt_get(pkg):
 
 # PIP COMMANDS
 
+UPGRADE_PIP = False
 
 def __install_command_pip(pkg):
     if WIN32:
         command = 'pip install %s' % pkg
     else:
         command = 'sudo pip install %s' % pkg
-    return command + ' && ' + command + ' --upgrade'
+    if UPGRADE_PIP:
+        return command + ' && ' + command + ' --upgrade'
+    return command
 
 
 def __update_apt_get():

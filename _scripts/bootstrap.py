@@ -23,6 +23,8 @@ if UBUNTU:
     NON_PYTHON_PREREQ.extend([
         'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
         #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
+        'libfreetype6-dev',  # for matplotlib
+        'libpng-dev',
     ])
 
 PYTHON_PREREQ = [
@@ -34,6 +36,7 @@ PYTHON_PREREQ = [
     #'openpyxl',
     'dateutils',
     'pyreadline',
+    'pyparsing',
     'sip',
     'pyqt4',
     'Pillow',
