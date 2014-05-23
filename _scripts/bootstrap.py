@@ -19,7 +19,7 @@ PYTHON_PREREQ = [
     'pip',
     'Pygments',
     'six',
-    'openpyxl',
+    #'openpyxl',
     'dateutil',
     'readline',
     'sip',
@@ -29,7 +29,7 @@ PYTHON_PREREQ = [
     'numpy',
     'scipy',
     'ipython',
-    'pandas',
+    #'pandas',
     'matplotlib'
 ]
 

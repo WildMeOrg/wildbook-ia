@@ -1,5 +1,7 @@
 # HELPS GENERATE CROSS PLATFORM INSTALL SCRIPTS
 import sys
+import atexit
+import os
 import platform
 
 
@@ -32,12 +34,18 @@ LINUX = __OS__.startswith('linux')
 UBUNTU = (DISTRO == 'Ubuntu')
 MACPORTS = APPLE  # We force macports right now
 
+
+# PRINT WHAT WE ARE WORKING WITH
 print('Working on: %r %r %r ' % (__OS__, DISTRO, DISTRO_VERSION,))
 
+
+# TARGET PYTHON PLATFORM
 TARGET_PY_VERSION = '2.7.6'
 MACPORTS_PY_SUFFIX = TARGET_PY_VERSION.replace('.', '')[0:2]
 MACPORTS_PY_PREFIX = 'py' + MACPORTS_PY_SUFFIX + '-'
 
+
+# MACPORTS COMMANDS
 
 def __install_command_macports(pkg):
     pkg = pkg.replace('python-', MACPORTS_PY_PREFIX)
@@ -56,8 +64,18 @@ def __install_command_macports(pkg):
     return command
 
 
+def __update_macports():
+    return 'sudo port selfupdate && sudo port upgrade outdated'
+
+
+# APT_GET COMMANDS
+
+
 def __install_command_apt_get(pkg):
     return 'sudo apt-get install -y %s' % pkg
+
+
+# PIP COMMANDS
 
 
 def __install_command_pip(pkg):
@@ -66,10 +84,6 @@ def __install_command_pip(pkg):
     else:
         command = 'sudo pip install %s' % pkg
     return command + ' && ' + command + ' --upgrade'
-
-
-def __update_macports():
-    return 'sudo port selfupdate && sudo port upgrade outdated'
 
 
 def __update_apt_get():
@@ -124,8 +138,6 @@ INSTALL_PREREQ_FILE = None
 def __ensure_output_file():
     global INSTALL_PREREQ_FILE
     if INSTALL_PREREQ_FILE is None:
-        import atexit
-        import os
         filename = 'install_prereqs.sh'
         file_ = open(filename, 'w')
         def close_file():
