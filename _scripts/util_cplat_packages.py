@@ -1,50 +1,110 @@
 import sys
-import os
 import platform
 
-OPERATING_SYSTEM = sys.platform
-APPLE = OPERATING_SYSTEM.startswith('darwin')
-WIN32 = OPERATING_SYSTEM.startswith('win32')
-LINUX = OPERATING_SYSTEM.startswith('linux')
-(DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
+
+def parse_args():
+    arg_dict = {}
+    key = None
+    for arg in sys.argv:
+        if arg.startswith('--'):
+            key = arg.replace('--', '').lower().replace('-', '_')
+            arg_dict[key] = []
+        elif key is not None:
+            arg_dict[key].append(arg)
+    return arg_dict
+
+ARG_DICT = parse_args()
+
+
+__OS__ = ''.join(ARG_DICT.get('os', sys.platform))
+
+distro_tup = platform.dist()
+DISTRO = ''.join(ARG_DICT.get('distro', [distro_tup[0]]))
+DISTRO_VERSION = ''.join(ARG_DICT.get('distro_verions', [distro_tup[1]]))
+DISTRO_TAG = ''.join(ARG_DICT.get('distro_tag', [distro_tup[2]]))
+del distro_tup
+
+APPLE = __OS__.startswith('darwin')
+WIN32 = __OS__.startswith('win32')
+LINUX = __OS__.startswith('linux')
 
 UBUNTU = (DISTRO == 'Ubuntu')
 MACPORTS = APPLE  # We force macports right now
 
-print('Working on: %r %r %r ' % OPERATING_SYSTEM, DISTRO, DISTRO_VERSION)
+print('Working on: %r %r %r ' % (__OS__, DISTRO, DISTRO_VERSION,))
 
-TARGET_PY_VERSION = '2.7'
-MACPORTS_PY_VERSION = TARGET_PY_VERSION.replace('.', '')
-MACPORTS_PY_PREFIX = 'py' + MACPORTS_PY_VERSION + '-'
+TARGET_PY_VERSION = '2.7.6'
+MACPORTS_PY_SUFFIX = TARGET_PY_VERSION.replace('.', '')[0:2]
+MACPORTS_PY_PREFIX = 'py' + MACPORTS_PY_SUFFIX + '-'
 
 
-def __fix_pkg_macports(pkg):
+def __install_command_macports(pkg):
     pkg = pkg.replace('python-', MACPORTS_PY_PREFIX)
+    extra = ''
     if pkg == 'python':
-        pkg += MACPORTS_PY_VERSION
-    if pkg == 'opencv':
+        pkg += MACPORTS_PY_SUFFIX
+        pyselect_inst = __install_command_macports('python_select')
+        pyselect_set1 = 'sudo python_select python' + MACPORTS_PY_SUFFIX
+        pyselect_set2 = 'sudo select python python' + MACPORTS_PY_SUFFIX + ' @' +  TARGET_PY_VERSION
+        extra = ' && ' + pyselect_inst + ' && ' + pyselect_set1 + ' && ' + pyselect_set2
+    elif pkg == 'opencv':
         pkg += ' +python27'
-    if pkg == 'py27-matplotlib':
+    elif pkg == 'py27-matplotlib':
         pkg += ' +qt +tkinter'
-    return pkg
+    command = ('sudo port install %s' % pkg) + extra
+    return command
 
 
-def __install_macports_python():
-    install_package('python')
-    install_package('python_select')
-    cmd('sudo port install python_select')
-    cmd('sudo python_select python27')
-    cmd('sudo select python python27 @2.7.6')
+def __install_command_apt_get(pkg):
+    return 'sudo apt-get install -y %s' % pkg
+
+
+def __install_command_pip(pkg):
+    if WIN32:
+        return 'pip install %s' % pkg
+    return 'sudo pip install %s' % pkg
 
 
 def __update_macports():
-    cmd('sudo port selfupdate')
-    cmd('sudo port upgrade outdated')
+    return 'sudo port selfupdate && sudo port upgrade outdated'
 
 
 def __update_apt_get():
-    cmd('sudo apt-get update')
-    cmd('sudo apt-get upgrade')
+    return 'sudo apt-get update && sudo apt-get upgrade'
+
+
+def upgrade():
+    if LINUX and UBUNTU:
+        return cmd(__update_apt_get())
+    if APPLE and MACPORTS:
+        return cmd(__update_macports())
+
+
+def ensure_package(pkg):
+    #if isinstance(pkg, (list, tuple)):
+    #    return install_packages(pkg)
+    if LINUX and UBUNTU:
+        command = __install_command_apt_get(pkg)
+    if APPLE and MACPORTS:
+        command = __install_command_macports(pkg)
+    if WIN32:
+        raise Exception('hahahaha, not a chance.')
+    cmd(command)
+
+
+def ensure_python_package(pkg):
+    if LINUX and UBUNTU:
+        if pkg in ['pip', 'setuptools', 'pyqt4', 'sip']:
+            return cmd(__install_command_apt_get(pkg))
+    return cmd(__install_command_pip('python-' + pkg))
+
+
+def ensure_python_packages(pkg_list):
+    output_list = []
+    for pkg_ in pkg_list:
+        output = ensure_python_package(pkg_)
+        output_list.append(output)
+    return output_list
 
 
 def ensure_packages(pkg_list):
@@ -53,26 +113,6 @@ def ensure_packages(pkg_list):
         output = ensure_package(pkg_)
         output_list.append(output)
     return output_list
-
-
-def ensure_package(pkg):
-    #if isinstance(pkg, (list, tuple)):
-    #    return install_packages(pkg)
-    if LINUX and UBUNTU:
-        command = 'sudo apt-get install -y %s' % pkg
-    if APPLE and MACPORTS:
-        pkg = __fix_pkg_macports(pkg)
-        command = 'sudo port install %' % pkg
-    if WIN32:
-        raise Exception('hahahaha, not a chance.')
-    cmd(command)
-
-
-def upgrade():
-    if LINUX and UBUNTU:
-        __update_apt_get()
-    if APPLE and MACPORTS:
-        __update_macports()
 
 
 def cmd(command):
