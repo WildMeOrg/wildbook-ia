@@ -16,9 +16,9 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     def __init__(model, col_name_list=None, col_type_list=None, col_nice_list=None,
                  col_edit_list=None, col_setter_list=None, col_getter_list=None,
-                 col_sort_name=None, col_sort_reverse=None, 
+                 col_sort_name=None, col_sort_reverse=None,
                  row_index_callback=None, parent=None, **kwargs):
-        ''' 
+        """
             col_name_list -> list of keys or SQL-like name for column to reference
                              abstracted data storage using getters and setters
             col_type_list -> list of column value (Python) types
@@ -40,11 +40,11 @@ class APITableModel(QtCore.QAbstractTableModel):
                 col_setter_list
                 col_getter_list
                 row_index_callback
-        '''
+        """
         super(APITableModel, model).__init__()
-        
+
         model.layoutAboutToBeChanged.emit()
-        
+
         model._set_col_name_type(col_name_list, col_type_list)
         model._set_col_nice(col_nice_list)
         model._set_col_edit(col_edit_list)
@@ -52,7 +52,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._set_col_getter(col_getter_list)
         model._set_row_index_callback(row_index_callback)
 
-        model._set_sort(col_sort_name, col_sort_reverse) # calls model._update_rows()
+        model._set_sort(col_sort_name, col_sort_reverse)  # calls model._update_rows()
 
         model.layoutChanged.emit()
 
@@ -65,14 +65,15 @@ class APITableModel(QtCore.QAbstractTableModel):
                 #    data will need to be sorted on
                 # sort_reverse is a boolean to denote the order of the sorting
 
-            The callback function should return the ordered list of keys or SQL-like 
+            The callback function should return the ordered list of keys or SQL-like
             ids that correspond to the rows in the abstracted data storage
-        ''' 
+        '''
         model.layoutAboutToBeChanged.emit()
-        temp = model.row_index_callback(col_sort_name=model.col_sort_name, 
-                                  col_sort_reverse=model.col_sort_reverse)
-        assert temp is not None
-        model.row_index_list = temp
+        row_indices = model.row_index_callback(col_sort_name=model.col_sort_name)
+        assert row_indices is not None, 'no indices'
+        if model.col_sort_reverse:
+            row_indices = row_indices[::-1]
+        model.row_index_list = row_indices
         model.layoutChanged.emit()
 
     def _qtindex(model, row, column, parent=QtCore.QModelIndex()):
@@ -87,27 +88,27 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     def _set_col_name_type(model, col_name_list=None, col_type_list=None):
         model.layoutAboutToBeChanged.emit()
-        
-        if col_name_list == None:
+
+        if col_name_list is None:
             col_name_list = []
-        if col_type_list == None:
+        if col_type_list is None:
             col_type_list = []
         assert len(col_name_list) == len(col_type_list)
         model.col_name_list = col_name_list
         model.col_type_list = col_type_list
-        
+
         model.layoutChanged.emit()
 
     def _set_col_nice(model, col_nice_list=None):
         model.layoutAboutToBeChanged.emit()
-        if col_nice_list == None:
+        if col_nice_list is None:
             col_nice_list = model.col_name_list[:]
         assert len(model.col_name_list) == len(col_nice_list)
         model.col_nice_list = col_nice_list
         model.layoutChanged.emit()
 
     def _set_col_edit(model, col_edit_list=None):
-        if col_edit_list == None:
+        if col_edit_list is None:
             col_edit_list = [False] * len(model.col_name_list)
         assert len(model.col_name_list) == len(col_edit_list)
         model.col_edit_list = col_edit_list
@@ -116,7 +117,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         if isinstance(col_setter_list, types.FunctionType) or \
            isinstance(col_setter_list, types.MethodType):
             col_setter_list = [col_setter_list] * len(model.col_name_list)
-        if col_setter_list == None:
+        if col_setter_list is None:
             col_setter_list = []
         assert len(model.col_name_list) == len(col_setter_list)
         model.col_setter_list = col_setter_list
@@ -125,7 +126,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         if isinstance(col_getter_list, types.FunctionType) or \
            isinstance(col_getter_list, types.MethodType):
             col_getter_list = [col_getter_list] * len(model.col_name_list)
-        if col_getter_list == None:
+        if col_getter_list is None:
             col_getter_list = []
         assert len(model.col_name_list) == len(col_getter_list)
         model.col_getter_list = col_getter_list
@@ -134,17 +135,17 @@ class APITableModel(QtCore.QAbstractTableModel):
         if col_sort_name is None:
             col_sort_name = model.col_name_list[0]
         if not isinstance(col_sort_reverse, bool):
-            sort_reverse = False
-        assert col_sort_name in model.col_name_list
+            col_sort_reverse = False
+        assert col_sort_name in model.col_name_list, 'cannot sort by: %r' % col_sort_name
         model.col_sort_name = col_sort_name
         model.col_sort_reverse = col_sort_reverse
         model._update_rows()
 
     def _set_row_index_callback(model, row_index_callback):
         assert isinstance(row_index_callback, types.FunctionType) or \
-               isinstance(row_index_callback, types.MethodType)
+            isinstance(row_index_callback, types.MethodType)
         model.row_index_callback = row_index_callback
-        
+
     def _set_cell_qt(model, qtindex, value):
         row, col = model._row_col(qtindex)
         return model._set_cell(row, col, value)
@@ -155,18 +156,18 @@ class APITableModel(QtCore.QAbstractTableModel):
 
             def setter(column_name, row_id, value)
                 # column_name is the key or SQL-like name for the column
-                # row_id is the corresponding row key or SQL-like id that the 
+                # row_id is the corresponding row key or SQL-like id that the
                 #    row call back returned
                 # value is the value that needs to be stored
 
             The setter function should return a boolean, if setting the value
             was successfull or not
-        ''' 
+        '''
         setter = model._get_col_setter(column=col)
         col_name = model._get_col_name(column=col)
         row_id = model._get_row_id(row)
         return setter(col_name, row_id, value)
-    
+
     #############################
     ###### Getter Functions #####
     #############################
@@ -196,7 +197,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             return Qt.AlignRight
         else:
             return Qt.AlignHCenter
-    
+
     def _get_col_name(model, column):
         return model._get_col_general(model.col_name_list, column)
 
@@ -211,7 +212,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     def _get_col_setter(model, column=None, name=None):
         return model._get_col_general(model.col_setter_list, column, name)
-    
+
     def _get_col_getter(model, column=None, name=None):
         return model._get_col_general(model.col_getter_list, column, name)
 
@@ -234,12 +235,12 @@ class APITableModel(QtCore.QAbstractTableModel):
 
             def getter(column_name, row_id)
                 # column_name is the key or SQL-like name for the column
-                # row_id is the corresponding row key or SQL-like id that the 
+                # row_id is the corresponding row key or SQL-like id that the
                 #    row call back returned
 
             The getter function should return the corresponding value that belongs
             to row_id for column_name
-        ''' 
+        '''
         getter = model._get_col_getter(column=col)
         col_name = model._get_col_name(column=col)
         row_id = model._get_row_id(row)
@@ -291,8 +292,8 @@ class APITableModel(QtCore.QAbstractTableModel):
                 return False
             else:
                 # Cast value into datatype
-                _type = model._get_col_type(column=col)
-                data = qtype.cast_from_qt(value, _type)
+                type_ = model._get_col_type(column=col)
+                data = qtype.cast_from_qt(value, type_)
             # Do actual setting of data
             model._set_cell_qt(qtindex, data)
             # Emit that data was changed and return succcess
@@ -325,4 +326,3 @@ class APITableModel(QtCore.QAbstractTableModel):
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
-
