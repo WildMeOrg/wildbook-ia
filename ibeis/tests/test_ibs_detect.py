@@ -16,12 +16,13 @@ def TEST_DETECT(ibs):
     print('get_valid_ROIS')
     gid_list = ibs.get_valid_gids()[0:1]
     if SPECIAL:
-        gid_list = utool.safe_slice(ibs.get_valid_gids(), 1)
+        gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)
     #gid_list.extend(ibs.add_images([utool.unixpath('~/Dropbox/Chuck/detect_testimg/testgrevy.jpg')]))
     species = 'zebra_grevys'
     detectkw = {
         'quick': True,
         'save_detection_images': SPECIAL,
+        'save_scales': SPECIAL,
     }
     detect_gen = randomforest.generate_detections(ibs, gid_list, species, **detectkw)
     gid_list2 = []

@@ -41,6 +41,8 @@ try:
 except ImportError:
     print('need to build opencv')
     TPL_REPO_URLS.append('https://github.com/Erotemic/opencv.git')
+
+
 try:
     import pyflann  # NOQA
     print('found pyflann=%r' % (pyflann,))
@@ -77,7 +79,7 @@ except ImportError:
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
 PROJECT_REPO_DIRS = IBEIS_REPO_DIRS + TPL_REPO_DIRS
 
-utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+utool.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
 utool.gg_command('ensure')
 
