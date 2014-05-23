@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-from util_cplat_packages import upgrade, ensure_packages, ensure_python_packages
+from util_cplat_packages import upgrade, ensure_packages, ensure_python_packages, APPLE
 
 NON_PYTHON_PREREQ = [
     'git',
     'cmake',
     'g++',
     'ffmpeg',
-    'opencv',
     'libpng',
     'zlib',
     'freetype',
     #'zmq',
 ]
+
+if APPLE:
+    NON_PYTHON_PREREQ += ['opencv']
 
 PYTHON_PREREQ = [
     'distribute',
