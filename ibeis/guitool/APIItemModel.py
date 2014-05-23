@@ -14,11 +14,10 @@ class APIItemModel(QtCore.QAbstractTableModel):
     #
     # Non-Qt Init Functions
 
-    def __init__(model, col_name_list=None, col_type_list=None, col_nice_list=None,
+    def __init__(model, qtabstractitemmodel_type=None, col_name_list=None, col_type_list=None, col_nice_list=None,
                  col_edit_list=None, col_setter_list=None, col_getter_list=None,
                  col_sort_name=None, col_sort_reverse=None, 
                  row_index_callback=None, parent=None, **kwargs):
-        super(ColumnListItemModel, model).__init__()
         ''' 
             col_name_list -> list of keys or SQL-like name for column to reference
                              abstracted data storage using getters and setters
@@ -34,7 +33,16 @@ class APIItemModel(QtCore.QAbstractTableModel):
             ----
             row_index_callback -> a function that expects a call back for sort order,
                                   it should return a list of row indices.
+
+            REQUIRED:
+                col_name_list
+                col_type_list
+                col_setter_list
+                col_getter_list
+                row_index_callback
         '''
+        super(APIItemModel, model).__init__()
+        
         model.layoutAboutToBeChanged.emit()
         
         model._set_col_name_type(col_name_list, col_type_list)
@@ -42,11 +50,9 @@ class APIItemModel(QtCore.QAbstractTableModel):
         model._set_col_edit(col_edit_list)
         model._set_col_setter(col_setter_list)
         model._set_col_getter(col_getter_list)
-        model._set_sort_name(col_sort_name)
-        model._set_sort_reverse(col_sort_reverse)
         model._set_row_index_callback(row_index_callback)
 
-        model._update_rows()
+        model._set_sort(col_sort_name, col_sort_reverse) # calls model._update_rows()
 
         model.layoutChanged.emit()
 
@@ -62,10 +68,12 @@ class APIItemModel(QtCore.QAbstractTableModel):
             The callback function should return the ordered list of keys or SQL-like 
             ids that correspond to the rows in the abstracted data storage
         ''' 
-        temp = model.row_index_callback(sort_name=self.col_sort_name, 
-                                  sort_reverse=self.col_sort_reverse)
+        model.layoutAboutToBeChanged.emit()
+        temp = model.row_index_callback(col_sort_name=model.col_sort_name, 
+                                  col_sort_reverse=model.col_sort_reverse)
         assert temp is not None
-        self.row_index_list = temp
+        model.row_index_list = temp
+        model.layoutChanged.emit()
 
     def _qtindex(model, row, column, parent=QtCore.QModelIndex()):
         return model.createIndex(row, column)
@@ -77,59 +85,66 @@ class APIItemModel(QtCore.QAbstractTableModel):
     ###### Setter Functions #####
     #############################
 
-    def _set_col_name_type(model, col_name_list, col_type_list):
+    def _set_col_name_type(model, col_name_list=None, col_type_list=None):
         model.layoutAboutToBeChanged.emit()
         
         if col_name_list == None:
             col_name_list = []
         if col_type_list == None:
             col_type_list = []
-        assert len(col_type_list) == len(col_name_list)
+        assert len(col_name_list) == len(col_type_list)
         model.col_name_list = col_name_list
         model.col_type_list = col_type_list
         
         model.layoutChanged.emit()
 
-    def _set_col_nice(model, col_nice_list):
+    def _set_col_nice(model, col_nice_list=None):
         model.layoutAboutToBeChanged.emit()
         if col_nice_list == None:
-            col_nice_list = []
-        assert len(col_name_list) == len(col_nice_list)
+            col_nice_list = model.col_name_list[:]
+        assert len(model.col_name_list) == len(col_nice_list)
         model.col_nice_list = col_nice_list
         model.layoutChanged.emit()
 
-    def _set_col_edit(model, col_edit_list):
+    def _set_col_edit(model, col_edit_list=None):
         if col_edit_list == None:
-            col_edit_list = [False] * len(self.col_name_list)
-        assert len(col_name_list) == len(col_edit_list)
+            col_edit_list = [False] * len(model.col_name_list)
+        assert len(model.col_name_list) == len(col_edit_list)
         model.col_edit_list = col_edit_list
 
-    def _set_col_setter(model, col_setter_list):
+    def _set_col_setter(model, col_setter_list=None):
+        if isinstance(col_setter_list, types.FunctionType) or \
+           isinstance(col_setter_list, types.MethodType):
+            col_setter_list = [col_setter_list] * len(model.col_name_list)
         if col_setter_list == None:
             col_setter_list = []
-        assert len(col_name_list) == len(col_setter_list)
+        assert len(model.col_name_list) == len(col_setter_list)
         model.col_setter_list = col_setter_list
 
-    def _set_col_getter(model, col_getter_list):
+    def _set_col_getter(model, col_getter_list=None):
+        if isinstance(col_getter_list, types.FunctionType) or \
+           isinstance(col_getter_list, types.MethodType):
+            col_getter_list = [col_getter_list] * len(model.col_name_list)
         if col_getter_list == None:
             col_getter_list = []
-        assert len(col_name_list) == len(col_getter_list)
+        assert len(model.col_name_list) == len(col_getter_list)
         model.col_getter_list = col_getter_list
 
-    def _set_sort(model, col_sort_name, col_sort_reverse):
+    def _set_sort(model, col_sort_name=None, col_sort_reverse=None):
         if col_sort_name is None:
-            col_sort_name = self.col_name_list[0]
+            col_sort_name = model.col_name_list[0]
         if not isinstance(col_sort_reverse, bool):
             sort_reverse = False
-        assert col_sort_name in self.col_name_list
-        self.col_sort_name = self.col_sort_name
+        assert col_sort_name in model.col_name_list
+        model.col_sort_name = col_sort_name
         model.col_sort_reverse = col_sort_reverse
         model._update_rows()
 
     def _set_row_index_callback(model, row_index_callback):
-        assert isinstance(row_index_callback, types.FunctionType)
+        assert isinstance(row_index_callback, types.FunctionType) or \
+               isinstance(row_index_callback, types.MethodType)
         model.row_index_callback = row_index_callback
-    
+        
     def _set_cell_qt(model, qtindex, value):
         row, col = model._row_col(qtindex)
         return model._set_cell(row, col, value)
@@ -158,7 +173,7 @@ class APIItemModel(QtCore.QAbstractTableModel):
     #############################
 
     def _get_col_index(model, name):
-        for index, col_name in enumerate(self.col_name_list):
+        for index, col_name in enumerate(model.col_name_list):
             if col_name == name:
                 return index
         return None
@@ -169,7 +184,7 @@ class APIItemModel(QtCore.QAbstractTableModel):
             if _column is not None:
                 column = _column
         assert column is not None
-        assert -1 * len(self.col_name_list) <= column and column < len(self.col_name_list)
+        assert -1 * len(model.col_name_list) <= column and column < len(model.col_name_list)
         return _list[column]
 
     def _get_col_align(model, column=None, name=None):
@@ -184,28 +199,28 @@ class APIItemModel(QtCore.QAbstractTableModel):
             return Qt.AlignHCenter
     
     def _get_col_name(model, column):
-        return model._get_col_general(self.col_name_list, column)
+        return model._get_col_general(model.col_name_list, column)
 
     def _get_col_type(model, column=None, name=None):
-        return model._get_col_general(self.col_type_list, column, name)
+        return model._get_col_general(model.col_type_list, column, name)
 
     def _get_col_nice(model, column=None, name=None):
-        return model._get_col_general(self.col_nice_list, column, name)
+        return model._get_col_general(model.col_nice_list, column, name)
 
     def _get_col_edit(model, column=None, name=None):
-        return model._get_col_general(self.col_edit_list, column, name)
+        return model._get_col_general(model.col_edit_list, column, name)
 
     def _get_col_setter(model, column=None, name=None):
-        return model._get_col_general(self.col_setter_list, column, name)
+        return model._get_col_general(model.col_setter_list, column, name)
     
     def _get_col_getter(model, column=None, name=None):
-        return model._get_col_general(self.col_getter_list, column, name)
+        return model._get_col_general(model.col_getter_list, column, name)
 
     def _get_sort_name(model):
-        return self.col_sort_name
+        return model.col_sort_name
 
     def _get_sort_reverse(model):
-        return self.col_sort_reverse
+        return model.col_sort_reverse
 
     def _get_row_id(model, row):
         return model.row_index_list[row]
@@ -305,7 +320,7 @@ class APIItemModel(QtCore.QAbstractTableModel):
 
     def flags(model, qtindex):
         row, col = model._row_col(qtindex)
-        if not model._get_col_edit(column):
+        if not model._get_col_edit(col):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         if model._get_col_type(column=col) in utool.VALID_BOOL_TYPES:
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
