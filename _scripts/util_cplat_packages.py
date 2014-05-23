@@ -167,14 +167,15 @@ CRASH_ON_FAIL = True
 def cmd(command):
     __ensure_output_file()
     print(command)
-    delim = 'echo "************"'
-    write_list = []
-    write_list += [delim]
+    delim1 = 'echo "************"'
+    delim2 = 'echo "command = %r"' % command
+    write_list = [delim1]
+    write_list += [delim2]
     if CRASH_ON_FAIL:
         fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % command
         write_list += [command + fail_extra]
     else:
         write_list += [command]
-    write_list += [delim]
+    write_list += [delim1]
     INSTALL_PREREQ_FILE.write('\n'.join(write_list) + '\n')
     #os.system(command)
