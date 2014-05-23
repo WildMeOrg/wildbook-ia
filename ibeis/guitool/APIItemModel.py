@@ -20,9 +20,9 @@ class APIItemModel(QtCore.QAbstractTableModel):
                  row_index_callback=None, parent=None, **kwargs):
         super(ColumnListItemModel, model).__init__()
         ''' 
-            col_type_list -> list of column value (Python) types
             col_name_list -> list of keys or SQL-like name for column to reference
-                                abstracted data storage using getters and setters
+                             abstracted data storage using getters and setters
+            col_type_list -> list of column value (Python) types
             col_nice_list -> list of well-formatted names of the columns
             col_edit_list -> list of booleans for if column should be editable
             ----
@@ -30,6 +30,10 @@ class APIItemModel(QtCore.QAbstractTableModel):
             col_getter_list -> list of getter functions
             ----
             col_sort_name -> key or SQL-like name to sort the column
+            col_sort_reverse -> boolean of if to reverse the sort ordering
+            ----
+            row_index_callback -> a function that expects a call back for sort order,
+                                  it should return a list of row indices.
         '''
         model.layoutAboutToBeChanged.emit()
         
@@ -47,6 +51,17 @@ class APIItemModel(QtCore.QAbstractTableModel):
         model.layoutChanged.emit()
 
     def _update_rows(model):
+        '''
+            The row_index_callback function should be of the following format:
+
+            def callback(sort_col_name, sort_reverse)
+                # sort_col_name is the key or SQL-like name for the column that the
+                #    data will need to be sorted on
+                # sort_reverse is a boolean to denote the order of the sorting
+
+            The callback function should return the ordered list of keys or SQL-like 
+            ids that correspond to the rows in the abstracted data storage
+        ''' 
         temp = model.row_index_callback(sort_name=self.col_sort_name, 
                                   sort_reverse=self.col_sort_reverse)
         assert temp is not None
@@ -120,6 +135,18 @@ class APIItemModel(QtCore.QAbstractTableModel):
         return model._set_cell(row, col, value)
 
     def _set_cell(model, row, col, value):
+        '''
+            The setter function should be of the following format:
+
+            def setter(column_name, row_id, value)
+                # column_name is the key or SQL-like name for the column
+                # row_id is the corresponding row key or SQL-like id that the 
+                #    row call back returned
+                # value is the value that needs to be stored
+
+            The setter function should return a boolean, if setting the value
+            was successfull or not
+        ''' 
         row, col = model._row_col(qtindex)
         setter = model._get_col_setter(column=col)
         col_name = model._get_col_name(column=col)
@@ -188,6 +215,17 @@ class APIItemModel(QtCore.QAbstractTableModel):
         return model._get_cell(row, col)
 
     def _get_cell(model, row, col):
+        '''
+            The getter function should be of the following format:
+
+            def getter(column_name, row_id)
+                # column_name is the key or SQL-like name for the column
+                # row_id is the corresponding row key or SQL-like id that the 
+                #    row call back returned
+
+            The getter function should return the corresponding value that belongs
+            to row_id for column_name
+        ''' 
         getter = model._get_col_getter(column=col)
         col_name = model._get_col_name(column=col)
         row_id = model._get_row_id(row)
