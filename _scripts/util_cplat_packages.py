@@ -16,8 +16,6 @@ def parse_args():
 
 ARG_DICT = parse_args()
 
-
-
 # GET SYSTEM CONFIGURATION (OR DESIRED CONFIGURATION)
 __OS__ = ''.join(ARG_DICT.get('os', sys.platform))
 
@@ -64,8 +62,10 @@ def __install_command_apt_get(pkg):
 
 def __install_command_pip(pkg):
     if WIN32:
-        return 'pip install %s --upgrade' % pkg
-    return 'sudo pip install %s --upgrade' % pkg
+        command = 'pip install %s' % pkg
+    else:
+        command = 'sudo pip install %s' % pkg
+    return command + ' && ' + command + ' --upgrade'
 
 
 def __update_macports():

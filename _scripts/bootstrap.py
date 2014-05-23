@@ -33,6 +33,6 @@ PYTHON_PREREQ = [
     'matplotlib'
 ]
 
-upgrade()
+#upgrade()
 ensure_packages(NON_PYTHON_PREREQ)
 ensure_python_packages(PYTHON_PREREQ)
