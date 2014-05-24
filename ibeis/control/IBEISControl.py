@@ -667,12 +667,13 @@ class IBEISController(object):
     @setter
     def set_name_props(ibs, nid_list, key, value_list):
         print('[ibs] set_name_props')
-        if key == 'name':
-            return ibs.set_name_names(nid_list, value_list)
-        elif key == 'notes':
-            return ibs.set_name_notes(nid_list, value_list)
-        else:
-            raise KeyError('UNKOWN key=%r' % (key,))
+        ibs.set_table_props('names', key, gid_list, value_list)
+        # if key == 'name':
+        #     return ibs.set_name_names(nid_list, value_list)
+        # elif key == 'notes':
+        #     return ibs.set_name_notes(nid_list, value_list)
+        # else:
+        #     raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_name_notes(ibs, nid_list, notes_list):
@@ -685,6 +686,15 @@ class IBEISController(object):
         ibsfuncs.assert_valid_names(name_list)
         ibs.set_table_props('names', 'name_text', nid_list, name_list)
 
+    @setter
+    def set_encounter_props(ibs, eid_list, key, value_list):
+        print('[ibs] set_encounter_props')
+        ibs.set_table_props('encounters', key, eid_list, value_list)
+
+    def set_encounter_enctext(ibs, eid_list, names_list):
+        """ Sets names of encounters (groups of animals) """
+        ibs.set_table_props('encounters', 'encounter_text', eid_list, names_list)
+    
     #
     #
     #----------------
@@ -741,27 +751,27 @@ class IBEISController(object):
         """ general feature property getter """
         return ibs.get_table_props('features', prop_key, fid_list)
 
+    def get_encounter_props(ibs, prop_key, gid_list):
+        """ general image property getter """
+        return ibs.get_table_props('encounters`', prop_key, gid_list)
     #
     # GETTERS::IMAGE
 
     @getter_general
-    def _get_all_gids(ibs, sort=None):
-        if sort is None:
-            sort = 'image_uid'
+    def _get_all_gids(ibs):
         all_gids = ibs.db.executeone(
             operation='''
             SELECT image_uid
             FROM images
-            ORDER BY ''' + sort + ''' ASC
             ''')
         return all_gids
 
     @getter_general
-    def get_valid_gids(ibs, eid=None, sort=None):
+    def get_valid_gids(ibs, eid=None):
         if eid is None:
-            gid_list = ibs._get_all_gids(sort=sort)
+            gid_list = ibs._get_all_gids()
         else:
-            gid_list = ibs.get_encounter_gids(eid, sort=sort)
+            gid_list = ibs.get_encounter_gids(eid)
         return gid_list
 
     @getter
@@ -925,24 +935,21 @@ class IBEISController(object):
     # GETTERS::ROI
 
     @getter_general
-    def _get_all_rids(ibs, sort=None):
+    def _get_all_rids(ibs):
         """ returns a all ROI ids """
-        if sort is None:
-            sort = 'roi_uid'
         rid_list = ibs.db.executeone(
             operation='''
             SELECT roi_uid
             FROM rois
-            ORDER BY ''' + sort + ''' ASC
             ''')
         return rid_list
 
-    def get_valid_rids(ibs, eid=None, sort=None):
+    def get_valid_rids(ibs, eid=None):
         """ returns a list of valid ROI unique ids """
         if eid is None:
-            rid_list = ibs._get_all_rids(sort=None)
+            rid_list = ibs._get_all_rids()
         else:
-            rid_list = ibs.get_encounter_rids(eid, sort=None)
+            rid_list = ibs.get_encounter_rids(eid)
         return rid_list
 
     @getter
@@ -1450,7 +1457,7 @@ class IBEISController(object):
         return list(imap(len, ibs.get_encounter_gids(eid_list)))
 
     @getter_vector_output
-    def get_encounter_rids(ibs, eid_list, sort=None):
+    def get_encounter_rids(ibs, eid_list):
         """ returns a list of list of rids in each encounter """
         gids_list = ibs.get_encounter_gids(eid_list)
         rids_list_ = ibsfuncs.unflat_lookup(ibs.get_image_rids, gids_list)
@@ -1458,16 +1465,13 @@ class IBEISController(object):
         return rids_list
 
     @getter_vector_output
-    def get_encounter_gids(ibs, eid_list, sort=None):
+    def get_encounter_gids(ibs, eid_list):
         """ returns a list of list of gids in each encounter """
-        if sort is None:
-            sort = 'image_uid'
         gids_list = ibs.db.executemany(
             operation='''
             SELECT image_uid
             FROM egpairs
             WHERE encounter_uid=?
-            ORDER BY ''' + sort + ''' ASC
             ''',
             params_iter=utool.tuplize(eid_list),
             unpack_scalars=False)
