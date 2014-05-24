@@ -20,8 +20,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui] ')
 
 
 class DataTablesModel(APITableModel.APITableModel):
-    def __init__(model, ibs, headers, parent=None, *args):
-        model.ibs = ibs
+    def __init__(model, headers, parent=None, *args):
         model.encounter_id = None
         model.headers=headers
         super(DataTablesModel, model).__init__(col_name_list=gh.header_names(headers),
@@ -57,8 +56,7 @@ class DataTablesModel(APITableModel.APITableModel):
 
 
 class EncModel(APITableModel.APITableModel):
-    def __init__(model, ibs, headers, parent=None, *args):
-        model.ibs = ibs
+    def __init__(model, headers, parent=None, *args):
         model.window = parent
         model.headers=headers
         super(EncModel, model).__init__(col_name_list=gh.header_names(headers),
@@ -198,21 +196,22 @@ class IBEISGuiWidget(QtGui.QWidget):
         wgt.hsplitter = QtGui.QHBoxLayout(wgt)
         
         # Open DB
-        wgt.ibs = IBEISControl.IBEISController(dbdir='~/Desktop/testdb1')
+        # wgt.ibs = IBEISControl.IBEISController(dbdir='~/Desktop/testdb1')
+        wgt.ibs = IBEISControl.IBEISController(dbdir='~/Desktop/GZ_Siva')
         wgt.headers = gh.gui_headers(wgt.ibs)
         # Tabes Tab
         wgt._tab_table_wgt = QtGui.QTabWidget(wgt)
         
         # Images Table
-        wgt._image_model = DataTablesModel(wgt.ibs, wgt.headers['images'], parent=wgt)
+        wgt._image_model = DataTablesModel(wgt.headers['images'], parent=wgt)
         wgt._image_view = DataTablesView(parent=wgt)
         wgt._image_view.setModel(wgt._image_model)
 
-        wgt._roi_model = DataTablesModel(wgt.ibs, wgt.headers['rois'], parent=wgt)
+        wgt._roi_model = DataTablesModel(wgt.headers['rois'], parent=wgt)
         wgt._roi_view = DataTablesView(parent=wgt)
         wgt._roi_view.setModel(wgt._roi_model)
 
-        wgt._name_model = DataTablesModel(wgt.ibs, wgt.headers['names'], parent=wgt)
+        wgt._name_model = DataTablesModel(wgt.headers['names'], parent=wgt)
         wgt._name_view = DataTablesView(parent=wgt)
         wgt._name_view.setModel(wgt._name_model)
 
@@ -222,7 +221,7 @@ class IBEISGuiWidget(QtGui.QWidget):
         wgt._tab_table_wgt.addTab(wgt._name_view, 'Names')
         
         # Enc List
-        wgt._enc_model = EncModel(wgt.ibs, wgt.headers['encounters'], parent=wgt)
+        wgt._enc_model = EncModel(wgt.headers['encounters'], parent=wgt)
         wgt._enc_view = EncView(parent=wgt)
         wgt._enc_view.setModel(wgt._enc_model)
         

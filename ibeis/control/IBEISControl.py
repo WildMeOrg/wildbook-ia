@@ -1312,6 +1312,7 @@ class IBEISController(object):
     def get_num_feats(ibs, fid_list):
         """ Returns the number of keypoint / descriptor pairs """
         nFeats_list = ibs.get_feat_props('feature_num_feats', fid_list)
+        nFeats_list = [ (-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
         return nFeats_list
 
     #
