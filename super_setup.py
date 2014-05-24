@@ -28,9 +28,9 @@ utool.repo_list = repo_list
 
 def userid_prompt():
     # TODO: Make this prompt for the userid
-    return 'Erotemic'
+    return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
 
-set_userid(userid_prompt())
+set_userid(**userid_prompt())
 
 
 TPL_REPO_URLS = []
@@ -73,7 +73,7 @@ except ImportError:
      'https://github.com/Erotemic/hesaff.git',
      'https://github.com/bluemellophone/pyrf.git',
      'https://github.com/Erotemic/ibeis.git',
- ], CODE_DIR)
+ ], CODE_DIR, forcessh=False)
 
 
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
