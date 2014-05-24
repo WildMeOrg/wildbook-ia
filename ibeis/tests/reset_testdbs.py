@@ -35,7 +35,7 @@ def make_testdb0():
     assert ibs is not None, str(main_locals)
     TEST_GUI_IMPORT_IMAGES(ibs, back)
     TEST_GUI_ADD_ROI(ibs, back)
-    sysres.set_default_dbdir(TESTDB0)
+    sysres.set_default_dbdir(TESTDB1)
 
 
 def reset_testdbs():

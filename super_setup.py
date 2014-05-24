@@ -19,7 +19,7 @@ except ImportError:
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
     os.system('git pull')
-    os.system('python setup.py develop')
+    os.system('sudo python setup.py develop')
 
 #
 from utool._internal.meta_util_git import repo_list, set_userid
@@ -28,9 +28,9 @@ utool.repo_list = repo_list
 
 def userid_prompt():
     # TODO: Make this prompt for the userid
-    return 'Erotemic'
+    return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
 
-set_userid(userid_prompt())
+set_userid(**userid_prompt())
 
 
 TPL_REPO_URLS = []
@@ -73,7 +73,7 @@ except ImportError:
      'https://github.com/Erotemic/hesaff.git',
      'https://github.com/bluemellophone/pyrf.git',
      'https://github.com/Erotemic/ibeis.git',
- ], CODE_DIR)
+ ], CODE_DIR, forcessh=False)
 
 
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
@@ -97,11 +97,11 @@ if utool.get_flag('--build'):
         utool.util_git.std_build_command(repo)
     # Build only IBEIS repos with setup.py
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('python setup.py build')
+    utool.gg_command('sudo python setup.py build')
 
 if utool.get_flag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('python setup.py develop')
+    utool.gg_command('sudo python setup.py develop')
 
 
 if utool.get_flag('--test'):

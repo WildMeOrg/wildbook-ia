@@ -54,3 +54,5 @@ tmp.py
 
 *.flann
 *.npz
+
+install_prereqs.sh

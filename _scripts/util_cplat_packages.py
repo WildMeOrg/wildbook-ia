@@ -32,6 +32,7 @@ WIN32 = __OS__.startswith('win32')
 LINUX = __OS__.startswith('linux')
 
 UBUNTU = (DISTRO == 'Ubuntu')
+CENTOS = (DISTRO == 'Centos')
 MACPORTS = APPLE  # We force macports right now
 
 
@@ -80,6 +81,7 @@ def __install_command_apt_get(pkg):
 # PIP COMMANDS
 
 UPGRADE_PIP = False
+
 
 def __install_command_pip(pkg):
     if WIN32:

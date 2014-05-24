@@ -21,6 +21,7 @@ if APPLE:
 
 if UBUNTU:
     NON_PYTHON_PREREQ.extend([
+        #'libeigen3-dev',
         'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
         #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
         'libfreetype6-dev',  # for matplotlib
@@ -45,6 +46,8 @@ PYTHON_PREREQ = [
     'scipy',
     'ipython',
     #'pandas',
+    'matplotlib'
+    'tornado'
     'matplotlib'
 ]
 

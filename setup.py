@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 from utool.util_setup import setuptools_setup
-import ibeis
 
 
 CHMOD_PATTERNS = [
@@ -69,7 +68,8 @@ if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
     setuptools_setup(
         setup_fpath=__file__,
-        module=ibeis,
+        name='ibeis',
+        version='0.1.0.dev1',
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,
