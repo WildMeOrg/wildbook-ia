@@ -22,7 +22,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui] ')
 class DataTablesModel(APITableModel.APITableModel):
     def __init__(model, headers, parent=None, *args):
         model.encounter_id = None
-        model.headers=headers
+        model.window = parent
+        model.headers = headers
         super(DataTablesModel, model).__init__(col_name_list=gh.header_names(headers),
                                              col_type_list=gh.header_types(headers), 
                                              col_nice_list=gh.header_nices(headers),
@@ -52,13 +53,14 @@ class DataTablesModel(APITableModel.APITableModel):
     def _setter(model, column_name, row_id, value):
         if value != '':
             gh.setter_from_name(model.headers, column_name)([row_id], [value])
+            model.window._update_data()
         return True
 
 
 class EncModel(APITableModel.APITableModel):
     def __init__(model, headers, parent=None, *args):
         model.window = parent
-        model.headers=headers
+        model.headers = headers
         super(EncModel, model).__init__(col_name_list=gh.header_names(headers),
                                              col_type_list=gh.header_types(headers), 
                                              col_nice_list=gh.header_nices(headers),
@@ -101,7 +103,7 @@ class EncModel(APITableModel.APITableModel):
 #############################
 
 
-class DataTablesView(QtGui.QTableView):
+class ImageView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
         view.window = parent
@@ -114,6 +116,61 @@ class DataTablesView(QtGui.QTableView):
     def _change_enc(view, encounter_id):
         view.model()._change_enc(encounter_id)
 
+    def _update_data(view):
+        view.model()._update_data()
+
+    def mouseDoubleClickEvent(view, event):
+        qtindex = view.selectedIndexes()[0]
+        row, col = view.model()._row_col(qtindex)
+        row_id = view.model()._get_row_id(row)
+        print("Image Selected, %r (ENC %r)" % (row_id, view.model().encounter_id))
+
+
+class ROIView(QtGui.QTableView):
+    def __init__(view, parent=None):
+        QtGui.QTableView.__init__(view, parent)
+        view.window = parent
+        view.setSortingEnabled(True)
+        vh = view.verticalHeader()
+        vh.setVisible(False)
+        view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        view.resizeColumnsToContents()
+
+    def _change_enc(view, encounter_id):
+        view.model()._change_enc(encounter_id)
+
+    def _update_data(view):
+        view.model()._update_data()
+
+    def mouseDoubleClickEvent(view, event):
+        qtindex = view.selectedIndexes()[0]
+        row, col = view.model()._row_col(qtindex)
+        row_id = view.model()._get_row_id(row)
+        print("ROI Selected, %r (ENC %r)" % (row_id, view.model().encounter_id))
+
+
+class NameView(QtGui.QTableView):
+    def __init__(view, parent=None):
+        QtGui.QTableView.__init__(view, parent)
+        view.window = parent
+        view.setSortingEnabled(True)
+        vh = view.verticalHeader()
+        vh.setVisible(False)
+        view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        view.resizeColumnsToContents()
+
+    def _change_enc(view, encounter_id):
+        view.model()._change_enc(encounter_id)
+
+    def _update_data(view):
+        view.model()._update_data()
+
+    def mouseDoubleClickEvent(view, event):
+        qtindex = view.selectedIndexes()[0]
+        row, col = view.model()._row_col(qtindex)
+        row_id = view.model()._get_row_id(row)
+        print("Name Selected, %r (ENC %r)" % (row_id, view.model().encounter_id))
+
 
 class EncView(QtGui.QTableView):
     def __init__(view, parent=None):
@@ -123,7 +180,7 @@ class EncView(QtGui.QTableView):
         vh = view.verticalHeader()
         vh.setVisible(False)
         view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        view.setMaximumSize(200, 9999)
+        view.setMaximumSize(215, 9999)
         #hh = view.horizontalHeader()
         #hh.setVisible(False)
 
@@ -193,7 +250,7 @@ class IBEISGuiWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(wgt, parent)
         wgt.vlayout = QtGui.QVBoxLayout(wgt)
         # wgt.hsplitter = QtGui.QSplitter(Qt.Horizontal, wgt)
-        wgt.hsplitter = QtGui.QHBoxLayout(wgt)
+        wgt.hsplitter = QtGui.QHBoxLayout()
         
         # Open DB
         # wgt.ibs = IBEISControl.IBEISController(dbdir='~/Desktop/testdb1')
@@ -204,15 +261,15 @@ class IBEISGuiWidget(QtGui.QWidget):
         
         # Images Table
         wgt._image_model = DataTablesModel(wgt.headers['images'], parent=wgt)
-        wgt._image_view = DataTablesView(parent=wgt)
+        wgt._image_view = ImageView(parent=wgt)
         wgt._image_view.setModel(wgt._image_model)
 
         wgt._roi_model = DataTablesModel(wgt.headers['rois'], parent=wgt)
-        wgt._roi_view = DataTablesView(parent=wgt)
+        wgt._roi_view = ROIView(parent=wgt)
         wgt._roi_view.setModel(wgt._roi_model)
 
         wgt._name_model = DataTablesModel(wgt.headers['names'], parent=wgt)
-        wgt._name_view = DataTablesView(parent=wgt)
+        wgt._name_view = NameView(parent=wgt)
         wgt._name_view.setModel(wgt._name_model)
 
         # Add Tabes to Tables Tab
@@ -234,6 +291,11 @@ class IBEISGuiWidget(QtGui.QWidget):
         wgt.hsplitter.addWidget(wgt._tab_table_wgt)
         # wgt.vlayout.addWidget(wgt.hsplitter)
         wgt.vlayout.addLayout(wgt.hsplitter)
+
+    def _update_data(wgt):
+        wgt._image_view._update_data()
+        wgt._roi_view._update_data()
+        wgt._name_view._update_data()
 
     def _change_enc(wgt, encounter_id):
         wgt._image_view._change_enc(encounter_id)

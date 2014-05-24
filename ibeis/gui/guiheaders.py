@@ -12,7 +12,7 @@ USER_MODE = utool.get_flag('--usermode',    )
 
 def gui_headers(ibs):
     HEADERS = {
-    #    SQL-key     Type   Edit    Nice Name           
+    #    SQL-key     Type   Nice Name           
     #       lambda getter function
     #       lambda setter function
     }
@@ -70,7 +70,7 @@ def gui_headers(ibs):
             None 
         ),
         ('bbox',     str,   'BBOX (x, y, w, h)', 
-            lambda rids: map(str, ibs.get_roi_bboxes(rids)),
+            lambda rids        : map(str, ibs.get_roi_bboxes(rids)),
             None 
         ),
         ('theta',    str,   'Theta',             
@@ -107,8 +107,8 @@ def gui_headers(ibs):
             lambda eids        : ibs.get_encounter_enctext(eids),
             lambda eids, values: ibs.set_encounter_enctext(eids, values)
         ), 
-        ('enc_gids', str,   '#Images',      
-            lambda eids        : [len(ibs.get_encounter_gids(eids))],
+        ('enc_gids', str,   'Images',      
+            lambda eids        : ibs.get_encounter_num_gids(eids),
             None
         ),
     ]]
