@@ -19,7 +19,7 @@ except ImportError:
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
     os.system('git pull')
-    os.system('python setup.py develop')
+    os.system('sudo python setup.py develop')
 
 #
 from utool._internal.meta_util_git import repo_list, set_userid
