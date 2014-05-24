@@ -97,11 +97,11 @@ if utool.get_flag('--build'):
         utool.util_git.std_build_command(repo)
     # Build only IBEIS repos with setup.py
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('python setup.py build')
+    utool.gg_command('sudo python setup.py build')
 
 if utool.get_flag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('python setup.py develop')
+    utool.gg_command('sudo python setup.py develop')
 
 
 if utool.get_flag('--test'):
