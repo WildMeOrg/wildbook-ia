@@ -42,6 +42,8 @@ class APITableModel(QtCore.QAbstractTableModel):
                 row_index_callback
         """
         super(APITableModel, model).__init__()
+        model.last_row = None
+        model.last_role = None
 
         model.layoutAboutToBeChanged.emit()
 
@@ -56,6 +58,10 @@ class APITableModel(QtCore.QAbstractTableModel):
 
         model.layoutChanged.emit()
 
+    def _update_data(model):
+        model.layoutAboutToBeChanged.emit()
+        model.layoutChanged.emit()
+        
     def _update_rows(model):
         '''
             The row_index_callback function should be of the following format:
@@ -267,9 +273,12 @@ class APITableModel(QtCore.QAbstractTableModel):
         if role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable or
                                           flags & Qt.ItemIsUserCheckable):
             return QtCore.QVariant(QtGui.QColor(250, 240, 240))
-        if role == Qt.DisplayRole or role == Qt.CheckStateRole:
+        if role == Qt.DisplayRole or (role == Qt.CheckStateRole and \
+                (model.last_row != row or model.last_role != Qt.DisplayRole)):
             data = model._get_cell_qt(qtindex)
             value = qtype.cast_into_qt(data, role, flags)
+            model.last_row = row
+            model.last_role = role
             return value
         else:
             return QtCore.QVariant()
