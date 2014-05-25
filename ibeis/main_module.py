@@ -208,7 +208,7 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
 
 
 @profile
-def _preload():
+def _preload(mpl=True, par=True):
     """ Sets up python environment """
     import utool
     from ibeis.dev import main_helpers
@@ -217,11 +217,13 @@ def _preload():
         return
     #_parse_args()
     # matplotlib backends
-    _init_matplotlib()
+    if mpl:
+        _init_matplotlib()
     # numpy print settings
     _init_numpy()
     # parallel servent processes
-    _init_parallel()
+    if par:
+        _init_parallel()
     # ctrl+c
     _init_signals()
     # inject colored exceptions

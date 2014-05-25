@@ -37,7 +37,9 @@ import textwrap
 import time
 import types
 import uuid
+import urllib
 import warnings
+import zipfile
 if not sys.platform.startswith('win32'):
     import resource
 # PIPI

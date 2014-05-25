@@ -58,7 +58,6 @@ INSTALL_REQUIRES = [
     'scipy >= 0.13.2',
     'numpy >= 1.8.0',
     'Pillow >= 2.4.0',
-    'Pillow >= 2.4.0',
     'functools32 >= 3.2.3-1',
     'psutil',
     #'PyQt4 >= 4.9.1', # cannot include because pyqt4 is not in pip
@@ -69,7 +68,6 @@ if __name__ == '__main__':
     setuptools_setup(
         setup_fpath=__file__,
         name='ibeis',
-        version='0.1.0.dev1',
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,

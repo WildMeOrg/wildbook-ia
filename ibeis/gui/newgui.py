@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import utool
-from ibeis.control import SQLDatabaseControl
-from os.path import join
 from guitool import APITableModel
-from PyQt4 import  QtGui
-from PyQt4.QtCore import Qt
-import string
-import random
-
+from PyQt4 import  QtGui, QtCore
 import guiheaders as gh
 from ibeis.control import IBEISControl
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui] ')
+#from ibeis.control import SQLDatabaseControl
+#from os.path import join
+#import string
+#import random
 
 
 #############################
@@ -25,22 +23,22 @@ class DataTablesModel(APITableModel.APITableModel):
         model.window = parent
         model.headers = headers
         super(DataTablesModel, model).__init__(col_name_list=gh.header_names(headers),
-                                             col_type_list=gh.header_types(headers), 
-                                             col_nice_list=gh.header_nices(headers),
-                                             col_edit_list=gh.header_edits(headers),
-                                             col_getter_list=model._getter, 
-                                             col_setter_list=model._setter,
-                                             row_index_callback=model._row_index_callback,
-                                             paernt=parent)
+                                               col_type_list=gh.header_types(headers),
+                                               col_nice_list=gh.header_nices(headers),
+                                               col_edit_list=gh.header_edits(headers),
+                                               col_getter_list=model._getter,
+                                               col_setter_list=model._setter,
+                                               row_index_callback=model._row_index_callback,
+                                               paernt=parent)
 
     def _change_enc(model, encounter_id):
         model.encounter_id = encounter_id
         model._update_rows()
 
     def _row_index_callback(model, col_sort_name):
-        gids = gh.header_ids(model.headers)(eid=model.encounter_id)
-        values = gh.getter_from_name(model.headers, col_sort_name)(gids)
-        values = zip(values, gids)
+        ids_ = gh.header_ids(model.headers)(eid=model.encounter_id)
+        values = gh.getter_from_name(model.headers, col_sort_name)(ids_)
+        values = zip(values, ids_)
         return [ tup[1] for tup in sorted(values) ]
 
     def _getter(model, column_name, row_id):
@@ -62,14 +60,14 @@ class EncModel(APITableModel.APITableModel):
         model.window = parent
         model.headers = headers
         super(EncModel, model).__init__(col_name_list=gh.header_names(headers),
-                                             col_type_list=gh.header_types(headers), 
+                                             col_type_list=gh.header_types(headers),
                                              col_nice_list=gh.header_nices(headers),
                                              col_edit_list=gh.header_edits(headers),
-                                             col_getter_list=model._getter, 
+                                             col_getter_list=model._getter,
                                              col_setter_list=model._setter,
                                              row_index_callback=model._row_index_callback,
                                              paernt=parent)
-    
+
     def _get_enc_id_name(model, qtindex):
         row, col = model._row_col(qtindex)
         tab_display_name_column_index = 0
@@ -221,7 +219,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             wgt.window._change_enc(wgt.encounter_id_list[index])
 
     def _close_tab(wgt, index):
-        if wgt.encounter_id_list[index] != None:
+        if wgt.encounter_id_list[index] is not None:
             wgt.encounter_id_list.pop(index)
             wgt.removeTab(index)
 
@@ -246,19 +244,35 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
 
 class IBEISGuiWidget(QtGui.QWidget):
-    def __init__(wgt, parent=None):
+    def __init__(wgt, ibs, parent=None):
         QtGui.QWidget.__init__(wgt, parent)
         wgt.vlayout = QtGui.QVBoxLayout(wgt)
-        # wgt.hsplitter = QtGui.QSplitter(Qt.Horizontal, wgt)
-        wgt.hsplitter = QtGui.QHBoxLayout()
-        
+        wgt.hlayout = QtGui.QHBoxLayout(wgt)
+        wgt.hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal, wgt)
+
+        #def newSizePolicy(widget):
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(wgt.sizePolicy().hasHeightForWidth())
+        # This line makes the hsplitter resize with the widget
+        wgt.hsplitter.setSizePolicy(sizePolicy)
+
+        #def newSplitter():
+        #    splitter = QtGui.QSplitter()
+        #    splitter.setOrientation(QtCore.Qt.Vertical)
+        #    layout.addWidget(splitter)
+
         # Open DB
         # wgt.ibs = IBEISControl.IBEISController(dbdir='~/Desktop/testdb1')
-        wgt.ibs = IBEISControl.IBEISController(dbdir='~/Desktop/GZ_Siva')
-        wgt.headers = gh.gui_headers(wgt.ibs)
+        wgt.ibs = ibs
+        wgt.headers = gh.ibeis_gui_headers(wgt.ibs)
+        wgt._init_tables()
+
+    def _init_tables(wgt):
         # Tabes Tab
         wgt._tab_table_wgt = QtGui.QTabWidget(wgt)
-        
+
         # Images Table
         wgt._image_model = DataTablesModel(wgt.headers['images'], parent=wgt)
         wgt._image_view = ImageView(parent=wgt)
@@ -276,21 +290,22 @@ class IBEISGuiWidget(QtGui.QWidget):
         wgt._tab_table_wgt.addTab(wgt._image_view, 'Images')
         wgt._tab_table_wgt.addTab(wgt._roi_view, 'ROIs')
         wgt._tab_table_wgt.addTab(wgt._name_view, 'Names')
-        
+
         # Enc List
         wgt._enc_model = EncModel(wgt.headers['encounters'], parent=wgt)
         wgt._enc_view = EncView(parent=wgt)
         wgt._enc_view.setModel(wgt._enc_model)
-        
+
         # Encs Tabs
         wgt._tab_enc_wgt = EncoutnerTabWidget(parent=wgt)
-        
+
         # Add Other elements to the view
         wgt.vlayout.addWidget(wgt._tab_enc_wgt)
+        wgt.vlayout.addLayout(wgt.hlayout)
+        wgt.hlayout.addWidget(wgt.hsplitter)
         wgt.hsplitter.addWidget(wgt._enc_view)
         wgt.hsplitter.addWidget(wgt._tab_table_wgt)
         # wgt.vlayout.addWidget(wgt.hsplitter)
-        wgt.vlayout.addLayout(wgt.hsplitter)
 
     def _update_data(wgt):
         wgt._image_view._update_data()
@@ -311,16 +326,15 @@ class IBEISGuiWidget(QtGui.QWidget):
 
 if __name__ == '__main__':
     import sys
-    import signal
     import guitool
-    def _on_ctrl_c(signal, frame):
-        print('Caught ctrl+c')
-        sys.exit(0)
-    signal.signal(signal.SIGINT, _on_ctrl_c)
+    import ibeis
+    ibeis._preload(mpl=False, par=False)
+    print('app')
     app = QtGui.QApplication(sys.argv)
-    wgt = IBEISGuiWidget()
+    dbdir = ibeis.sysres.get_args_dbdir(defaultdb='cache')
+    ibs = IBEISControl.IBEISController(dbdir=dbdir)
+    wgt = IBEISGuiWidget(ibs)
     wgt.show()
     wgt.timer = guitool.ping_python_interpreter()
     wgt.raise_()
     sys.exit(app.exec_())
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
