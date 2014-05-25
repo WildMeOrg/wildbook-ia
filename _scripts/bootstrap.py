@@ -26,11 +26,12 @@ if UBUNTU:
         #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
         'libfreetype6-dev',  # for matplotlib
         'libpng-dev',
+	'python-dev',
     ])
 
 PYTHON_PREREQ = [
-    #'distribute',
-    #'setuptools',
+    'distribute',
+    'setuptools',
     'pip',
     'Pygments',
     'six',
@@ -46,10 +47,12 @@ PYTHON_PREREQ = [
     'scipy',
     'ipython',
     #'pandas',
-    'matplotlib'
-    'tornado'
-    'matplotlib'
+    'tornado',
+    'matplotlib',
 ]
+
+# Need to do a distribute upgrade before matplotlib on Ubuntu?
+# not sure if that will work yet
 
 #upgrade()
 ensure_packages(NON_PYTHON_PREREQ)

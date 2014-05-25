@@ -80,7 +80,7 @@ def __install_command_apt_get(pkg):
 
 # PIP COMMANDS
 
-UPGRADE_PIP = False
+UPGRADE_PIP = '--upgrade' in sys.argv
 
 
 def __install_command_pip(pkg):

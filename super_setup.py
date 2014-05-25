@@ -11,6 +11,7 @@ print('__IBEIS_SUPER_SETUP__: %r' % CODE_DIR)
 
 # HACK IN A WAY TO ENSURE UTOOL
 try:
+    print('Checking utool')
     import utool
 except ImportError:
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP')
@@ -28,7 +29,10 @@ utool.repo_list = repo_list
 
 def userid_prompt():
     # TODO: Make this prompt for the userid
-    return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
+    if False:
+	    return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
+    else:
+            return {}
 
 set_userid(**userid_prompt())
 
