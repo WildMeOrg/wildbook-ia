@@ -28,6 +28,7 @@ class DataTablesModel(APITableModel.APITableModel):
         model._update_rows()
 
     def _row_index_callback(model, col_sort_name):
+        # Get subset of ids (depending on selected tab)
         ids_ = gh.header_ids(model.headers)(eid=model.encounter_id)
         values = gh.getter_from_name(model.headers, col_sort_name)(ids_)
         values = zip(values, ids_)

@@ -3,9 +3,6 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
 
-USER_MODE = utool.get_flag('--usermode',    )
-
-
 def ibeis_gui_headers(ibs):
     headers = {}
     #    SQL-key     Type   Nice Name
@@ -25,21 +22,21 @@ def ibeis_gui_headers(ibs):
          lambda gids        : ibs.get_image_num_rois(gids),
          None),
 
-        ('aif',      bool,  'All Detected',
-         lambda gids        : ibs.get_image_aifs(gids),
-         lambda gids, values: ibs.set_image_aifs(gids, values)),
+        #('aif',      bool,  'All Detected',
+        # lambda gids        : ibs.get_image_aifs(gids),
+        # lambda gids, values: ibs.set_image_aifs(gids, values)),
 
-        ('notes',    str,   'Notes',
-         lambda gids        : ibs.get_image_notes(gids),
-         lambda gids, values: ibs.set_image_notes(gids, values)),
+        #('notes',    str,   'Notes',
+        # lambda gids        : ibs.get_image_notes(gids),
+        # lambda gids, values: ibs.set_image_notes(gids, values)),
 
         ('enctext',  str,   'Encounter',
          lambda gids        : map(utool.tupstr, ibs.get_image_enctext(gids)),
          None),
 
-        ('unixtime', float, 'unixtime',
-         lambda gids        : ibs.get_image_unixtime(gids),
-         None),
+        #('unixtime', float, 'unixtime',
+        # lambda gids        : ibs.get_image_unixtime(gids),
+        # None),
     ]]
 
     headers['rois'] = [ibs.get_valid_rids, [
@@ -59,21 +56,21 @@ def ibeis_gui_headers(ibs):
          lambda rids        : ibs.get_roi_num_groundtruth(rids),
          None),
 
-        ('nFeats',   int,   '#Features',
-         lambda rids        : ibs.get_roi_num_feats(rids),
-         None),
+        #('nFeats',   int,   '#Features',
+        # lambda rids        : ibs.get_roi_num_feats(rids),
+        # None),
 
-        ('bbox',     str,   'BBOX (x, y, w, h)',
-         lambda rids        : map(str, ibs.get_roi_bboxes(rids)),
-         None),
+        #('bbox',     str,   'BBOX (x, y, w, h)',
+        # lambda rids        : map(str, ibs.get_roi_bboxes(rids)),
+        # None),
 
-        ('theta',    str,   'Theta',
-         lambda rids        : map(utool.theta_str, ibs.get_roi_thetas(rids)),
-         None),
+        #('theta',    str,   'Theta',
+        # lambda rids        : map(utool.theta_str, ibs.get_roi_thetas(rids)),
+        # None),
 
-        ('notes',    str,   'Notes',
-         lambda rids        : ibs.get_roi_notes(rids),
-         lambda rids, values: ibs.set_roi_notes(rids, values)),
+        #('notes',    str,   'Notes',
+        # lambda rids        : ibs.get_roi_notes(rids),
+        # lambda rids, values: ibs.set_roi_notes(rids, values)),
     ]]
 
     headers['names'] = [ibs.get_valid_nids, [

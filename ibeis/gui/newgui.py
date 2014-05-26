@@ -15,6 +15,13 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 #############################
 
 
+def make_model_and_view(wgt, header, ViewClass):
+    model = newgui_models.DataTablesModel(wgt.headers[header], parent=wgt)
+    view = ViewClass(parent=wgt)
+    view.setModel(model)
+    return model, view
+
+
 class IBEISGuiWidget(QtGui.QWidget):
     def __init__(wgt, ibs, parent=None):
         QtGui.QWidget.__init__(wgt, parent)
@@ -30,22 +37,13 @@ class IBEISGuiWidget(QtGui.QWidget):
 
     def _init_layout(wgt):
         wgt.vlayout = QtGui.QVBoxLayout(wgt)
-        #wgt.hlayout = QtGui.QHBoxLayout(wgt)
         wgt.hsplitter = guitool.newHorizontalSplitter(wgt)
         # Tabes Tab
         wgt._tab_table_wgt = QtGui.QTabWidget(wgt)
-        # Images Table
-        wgt._image_model = newgui_models.DataTablesModel(wgt.headers['images'], parent=wgt)
-        wgt._image_view = newgui_views.ImageView(parent=wgt)
-        wgt._image_view.setModel(wgt._image_model)
-        # ROI Table
-        wgt._roi_model = newgui_models.DataTablesModel(wgt.headers['rois'], parent=wgt)
-        wgt._roi_view = newgui_views.ROIView(parent=wgt)
-        wgt._roi_view.setModel(wgt._roi_model)
-        # Name Table
-        wgt._name_model = newgui_models.DataTablesModel(wgt.headers['names'], parent=wgt)
-        wgt._name_view = newgui_views.NameView(parent=wgt)
-        wgt._name_view.setModel(wgt._name_model)
+        # Images/ROI/Name Table
+        wgt._image_model, wgt._image_view = make_model_and_view(wgt, 'images', newgui_views.ImageView)
+        wgt._roi_model, wgt._roi_view = make_model_and_view(wgt, 'rois', newgui_views.ROIView)
+        wgt._name_model, wgt._name_view = make_model_and_view(wgt, 'names', newgui_views.NameView)
         # Add Tabes to Tables Tab
         wgt._tab_table_wgt.addTab(wgt._image_view, 'Images')
         wgt._tab_table_wgt.addTab(wgt._roi_view, 'ROIs')
@@ -58,7 +56,6 @@ class IBEISGuiWidget(QtGui.QWidget):
         wgt._tab_enc_wgt = newgui_views.EncoutnerTabWidget(parent=wgt)
         # Add Other elements to the view
         wgt.vlayout.addWidget(wgt._tab_enc_wgt)
-        #wgt.vlayout.addLayout(wgt.hlayout)
         wgt.vlayout.addWidget(wgt.hsplitter)
         wgt.hsplitter.addWidget(wgt._enc_view)
         wgt.hsplitter.addWidget(wgt._tab_table_wgt)
