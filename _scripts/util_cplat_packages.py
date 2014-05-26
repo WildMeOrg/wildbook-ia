@@ -238,7 +238,7 @@ def __install_command_pip(pkg):
         try:
             import pip  # noqa
         except ImportError:
-            command = 'easy_install pip'
+            command = 'sudo easy_install pip'
     else:
         # IF not then try and install through pip
         if WIN32:
