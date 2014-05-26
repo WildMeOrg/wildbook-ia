@@ -14,7 +14,7 @@ CYTHON_FILES = [
     'ibeis/model/hots/QueryResult.py',
     'ibeis/model/hots/voting_rules2.py',
     'ibeis/model/hots/nn_filters.py',
-    'ibeis/model/hots/matching_functions.py'
+    'ibeis/model/hots/matching_functions.py',
 ]
 
 
@@ -40,9 +40,9 @@ CLUTTER_PATTERNS = [
     '*.dump.txt',
     '*.sqlite3',
     '*.prof',
-    '*.prof.txt'
+    '*.prof.txt',
     '*.lprof',
-    '\''
+    '\'',
 ]
 
 CLUTTER_DIRS = ['logs']
