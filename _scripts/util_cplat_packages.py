@@ -233,13 +233,13 @@ def __install_command_pip(pkg):
     elif APPLE and pkg in APPLE_PYPKG_MAP:
         pkg = APPLE_PYPKG_MAP[pkg]
         command = __install_command_macports('python-' + pkg)
+    elif pkg == 'pip':
+        # Pip cannot install pip if it doesn't exist
+        try:
+            import pip  # noqa
+        except ImportError:
+            command = 'easy_install pip'
     else:
-        if pkg == 'pip':
-            # Pip cannot install pip if it doesn't exist
-            try:
-                import pip
-            except ImportError:
-                command = 'easy_install pip'
         # IF not then try and install through pip
         if WIN32:
             command = 'pip install %s' % pkg
