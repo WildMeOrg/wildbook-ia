@@ -3,6 +3,8 @@ import sys
 import os
 from util_cplat_packages import make_prereq_script, APPLE, UBUNTU, print_sysinfo
 
+#git clone https://github.com/Erotemic/ibeis.git
+
 DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
 
 PREREQ_PKG_LIST = [
@@ -35,9 +37,9 @@ if UBUNTU:
     ])
 
 PREREQ_PYPKG_LIST = [
+    'pip',
     #'distribute',
     'setuptools',
-    'pip',
     'Pygments',
     'six',
     #'openpyxl',
@@ -70,3 +72,4 @@ elif not DRYRUN:
         file_.write(output)
     os.system('chmod +x ' + filename)
     print('# wrote: %r' % os.path.realpath(filename))
+    #sudo python super_setup.py --build --develop
