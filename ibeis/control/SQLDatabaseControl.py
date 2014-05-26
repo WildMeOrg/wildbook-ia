@@ -53,6 +53,7 @@ class SQLDatabaseController(object):
         db.executor   = db.connection.cursor()
         db.table_columns = {}
 
+    @profile
     def sanatize_sql(db, tablename, columns=None):
         """ Sanatizes an sql tablename and column. Use sparingly """
         tablename = re.sub('[^a-z_]', '', tablename)
@@ -85,6 +86,7 @@ class SQLDatabaseController(object):
     def get_tables(db):
         return db.table_columns.keys()
 
+    @profile
     def get_column(db, tablename, name):
         _table, (_column,) = db.sanatize_sql(tablename, (name,))
         column_vals = db.executeone(
@@ -128,6 +130,7 @@ class SQLDatabaseController(object):
         print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
         return sql_version
 
+    @profile
     def schema(db, tablename, schema_list, table_constraints=[]):
         """
             schema_list - list of tablename columns tuples
@@ -165,6 +168,7 @@ class SQLDatabaseController(object):
         # Append to internal storage
         db.table_columns[tablename] = schema_list
 
+    @profile
     def execute(db, operation, params=(), auto_commit=False, errmsg=None,
                 verbose=VERBOSE):
         """
@@ -197,6 +201,7 @@ class SQLDatabaseController(object):
             raise
         return status
 
+    @profile
     def executeone(db, operation, params=(), auto_commit=True, errmsg=None,
                    verbose=VERBOSE):
         """ Runs execute and returns results """
@@ -221,7 +226,7 @@ class SQLDatabaseController(object):
             printDBG(utool.toc(tt, True))
         return result_list
 
-    #@profile
+    @profile
     def executemany(db, operation, params_iter, auto_commit=True,
                     errmsg=None, verbose=VERBOSE, unpack_scalars=True,
                     num_params=None):
@@ -307,18 +312,21 @@ class SQLDatabaseController(object):
             db.commit(errmsg=errmsg, verbose=False)
         return result_list
 
+    @profile
     def result(db, verbose=VERBOSE):
         #if verbose:
             #caller_name = utool.util_dbg.get_caller_name()
             #print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
 
+    @profile
     def result_list(db, verbose=VERBOSE):
         #if verbose:
             #caller_name = utool.util_dbg.get_caller_name()
             #print('[sql.result_list] caller_name=%r' % caller_name)
         return list(db.result_iter(verbose=False))
 
+    @profile
     def result_iter(db, verbose=VERBOSE):
         #if verbose:
             #caller_name = utool.util_dbg.get_caller_name()
@@ -332,6 +340,7 @@ class SQLDatabaseController(object):
             else:
                 yield result
 
+    @profile
     def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
         """
             Commits staged changes to the database and saves the binary
@@ -359,6 +368,7 @@ class SQLDatabaseController(object):
             print('</!!! ERROR>\n')
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
+    @profile
     def dump(db, file_=None, auto_commit=True):
         """
             Same output as shell command below

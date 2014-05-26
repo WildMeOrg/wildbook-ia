@@ -56,3 +56,4 @@ tmp.py
 *.npz
 
 install_prereqs.sh
+__install_prereqs__.sh

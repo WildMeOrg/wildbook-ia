@@ -476,3 +476,15 @@ def merge_databases(ibs_target, ibs_source_list):
         except Exception as ex:
             utool.printex(ex, 'error merging ' + ibs_source.get_dbname() +
                           ' into ' + ibs_target.get_dbname())
+
+
+def get_title(ibs):
+    if ibs is None:
+        title = 'IBEIS - No Database Open'
+    elif ibs.dbdir is None:
+        title = 'IBEIS - invalid database'
+    else:
+        dbdir = ibs.get_dbdir()
+        dbname = ibs.get_dbname()
+        title = 'IBEIS - %r - %s' % (dbname, dbdir)
+    return title

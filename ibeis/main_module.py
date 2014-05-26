@@ -72,12 +72,16 @@ def _init_matplotlib():
 @profile
 def _init_gui():
     import guitool
-    from ibeis.gui import guiback
     import utool
     if not utool.QUIET:
         print('[main] _init_gui()')
     guitool.ensure_qtapp()
-    back = guiback.MainWindowBackend()
+    if '--old-backend' in sys.argv:
+        from ibeis.gui import guiback
+        back = guiback.MainWindowBackend()
+    else:
+        from ibeis.gui import newgui
+        back = newgui.IBEISGuiWidget()
     guitool.activate_qwindow(back)
     return back
 
@@ -103,11 +107,11 @@ def _init_ibeis(dbdir=None, defaultdb='cache', allow_newdir=False):
 def __import_parallel_modules():
     # Import any modules which parallel process will use here
     # so they are accessable when the program forks
-    from utool import util_sysreq
+    #from utool import util_sysreq
     #util_sysreq.ensure_in_pythonpath('hesaff')
-    util_sysreq.ensure_in_pythonpath('pyrf')
+    #util_sysreq.ensure_in_pythonpath('pyrf')
     #util_sysreq.ensure_in_pythonpath('code')
-    import pyhesaff  # NOQA
+    #import pyhesaff  # NOQA
     #import pyrf  # NOQA
     from ibeis.model.preproc import preproc_chip  # NOQA
 
@@ -211,7 +215,7 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
 def _preload(mpl=True, par=True):
     """ Sets up python environment """
     import utool
-    from ibeis.dev import main_helpers
+    #from ibeis.dev import main_helpers
     from ibeis.dev import params
     if  multiprocessing.current_process().name != 'MainProcess':
         return
@@ -229,7 +233,7 @@ def _preload(mpl=True, par=True):
     # inject colored exceptions
     utool.util_inject.inject_colored_exceptions()
     # register type aliases for debugging
-    main_helpers.register_utool_aliases()
+    #main_helpers.register_utool_aliases()
     return params.args
 
 

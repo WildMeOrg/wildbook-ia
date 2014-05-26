@@ -34,7 +34,8 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy,
                                            getter_numpy_vector_output,
                                            getter_vector_output,
-                                           getter_general, deleter)
+                                           getter_general, deleter,
+                                           otherfunc)
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
@@ -227,11 +228,11 @@ class IBEISController(object):
         ibs.set_encounter_cfg(enc_cfg)
         ibs.set_query_cfg(query_cfg)
 
-    @utool.indent_func
+    @otherfunc
     def set_encounter_cfg(ibs, enc_cfg):
         ibs.cfg.enc_cfg = enc_cfg
 
-    @utool.indent_func
+    @otherfunc
     def set_query_cfg(ibs, query_cfg):
         if ibs.qreq is not None:
             ibs.qreq.set_cfg(query_cfg)
@@ -239,29 +240,29 @@ class IBEISController(object):
         ibs.cfg.feat_cfg  = query_cfg._feat_cfg
         ibs.cfg.chip_cfg  = query_cfg._feat_cfg._chip_cfg
 
-    @utool.indent_func
+    @otherfunc
     def update_cfg(ibs, **kwargs):
         ibs.cfg.query_cfg.update_cfg(**kwargs)
 
-    @utool.indent_func
+    @otherfunc
     def get_chip_config_uid(ibs):
         chip_cfg_suffix = ibs.cfg.chip_cfg.get_uid()
         chip_cfg_uid = ibs.add_config(chip_cfg_suffix)
         return chip_cfg_uid
 
-    @utool.indent_func
+    @otherfunc
     def get_feat_config_uid(ibs):
         feat_cfg_suffix = ibs.cfg.feat_cfg.get_uid()
         feat_cfg_uid = ibs.add_config(feat_cfg_suffix)
         return feat_cfg_uid
 
-    @utool.indent_func
+    @otherfunc
     def get_query_config_uid(ibs):
         query_cfg_suffix = ibs.cfg.query_cfg.get_uid()
         query_cfg_uid = ibs.add_config(query_cfg_suffix)
         return query_cfg_uid
 
-    @utool.indent_func
+    @otherfunc
     def get_qreq_uid(ibs):
         assert ibs.qres is not None
         qreq_uid = ibs.qreq.get_uid()
@@ -667,7 +668,7 @@ class IBEISController(object):
     @setter
     def set_name_props(ibs, nid_list, key, value_list):
         print('[ibs] set_name_props')
-        ibs.set_table_props('names', key, gid_list, value_list)
+        ibs.set_table_props('names', key, nid_list, value_list)
         # if key == 'name':
         #     return ibs.set_name_names(nid_list, value_list)
         # elif key == 'notes':
@@ -694,7 +695,7 @@ class IBEISController(object):
     def set_encounter_enctext(ibs, eid_list, names_list):
         """ Sets names of encounters (groups of animals) """
         ibs.set_table_props('encounters', 'encounter_text', eid_list, names_list)
-    
+
     #
     #
     #----------------
@@ -1622,7 +1623,7 @@ class IBEISController(object):
     # --- WRITERS ---
     #----------------
 
-    @utool.indent_func
+    @otherfunc
     def export_to_wildbook(ibs):
         """ Exports identified chips to wildbook """
         import ibeis.export.export_wb as wb
@@ -1644,14 +1645,14 @@ class IBEISController(object):
     # --- MODEL ---
     #--------------
 
-    @utool.indent_func
+    @otherfunc
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         from ibeis.model.preproc import preproc_encounter
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs)
         ibs.set_image_enctext(flat_gids, enctext_list)
 
-    @utool.indent_func
+    @otherfunc
     def detect_existence(ibs, gid_list, **kwargs):
         """ Detects the probability of animal existence in each image """
         from ibeis.model.detect import randomforest
@@ -1659,7 +1660,7 @@ class IBEISController(object):
         # Return for user inspection
         return probexist_list
 
-    @utool.indent_func
+    @otherfunc
     def detect_random_forest(ibs, gid_list, species, quick=True, **kwargs):
         """ Runs animal detection in each image """
         from ibeis.model.detect import randomforest
@@ -1682,33 +1683,33 @@ class IBEISController(object):
         ibs.add_rois(detected_gid_list, detected_bbox_list,
                      notes_list=notes_list)
 
-    @utool.indent_func
+    @otherfunc
     def get_recognition_database_rids(ibs):
         """ returns persitent recognition database rois """
         drid_list = ibs.get_valid_rids()
         return drid_list
 
-    @utool.indent_func
+    @otherfunc
     def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = qrid_list
         qres_list = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qres_list
 
-    @utool.indent_func(False)
+    @otherfunc
     def prep_qreq_encounter(ibs, qrid_list):
         """ Puts IBEIS into intra-encounter mode """
         drid_list = qrid_list
         ibs._prep_qreq(qrid_list, drid_list)
 
-    @utool.indent_func((False, '[query_db]'))
+    @otherfunc
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = ibs.get_recognition_database_rids()
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_qres
 
-    @utool.indent_func((False, '[query_enc]'))
+    @otherfunc
     def query_encounter(ibs, qrid_list, eid, **kwargs):
         """ _query_chips wrapper """
         drid_list = ibs.get_encounter_rids(eid)  # encounter database chips
@@ -1717,20 +1718,20 @@ class IBEISController(object):
             qres.eid = eid
         return qrid2_qres
 
-    @utool.indent_func(False)
+    @otherfunc
     def prep_qreq_db(ibs, qrid_list):
         """ Puts IBEIS into query database mode """
         drid_list = ibs.get_recognition_database_rids()
         ibs._prep_qreq(qrid_list, drid_list)
 
-    @utool.indent_func
+    @otherfunc
     def _init_query_requestor(ibs):
         from ibeis.model.hots import QueryRequest
         # Create query request object
         ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
-    @utool.indent_func(False)
+    @otherfunc
     def _prep_qreq(ibs, qrid_list, drid_list, **kwargs):
         from ibeis.model.hots import match_chips3 as mc3
         if ibs.qreq is None:
@@ -1742,7 +1743,7 @@ class IBEISController(object):
                                       **kwargs)
         return qreq
 
-    @utool.indent_func('[query]')
+    @otherfunc
     def _query_chips(ibs, qrid_list, drid_list, **kwargs):
         """
         qrid_list - query chip ids
@@ -1825,5 +1826,6 @@ class IBEISController(object):
         ibs.print_name_table()
         ibs.print_config_table()
         print('\n')
+
 
 atexit.register(__cleanup)

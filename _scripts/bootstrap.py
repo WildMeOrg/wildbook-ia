@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-from util_cplat_packages import upgrade, ensure_packages, ensure_python_packages, APPLE, UBUNTU
+import sys
+import os
+from util_cplat_packages import make_prereq_script, APPLE, UBUNTU, print_sysinfo
 
-NON_PYTHON_PREREQ = [
+DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
+
+PREREQ_PKG_LIST = [
     'git',
     'cmake',
     'gcc',  # need a C compiler for numpy
@@ -12,7 +16,7 @@ NON_PYTHON_PREREQ = [
 ]
 
 if APPLE:
-    NON_PYTHON_PREREQ.extend([
+    PREREQ_PKG_LIST.extend([
         'opencv',
         'libpng',
         'zlib',
@@ -20,17 +24,18 @@ if APPLE:
     ])
 
 if UBUNTU:
-    NON_PYTHON_PREREQ.extend([
+    PREREQ_PKG_LIST.extend([
+        'libfftw3-dev',
         #'libeigen3-dev',
         'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
         #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
         'libfreetype6-dev',  # for matplotlib
-        'libpng-dev',
-	'python-dev',
+        'libpng12-dev',
+        'python-dev',
     ])
 
-PYTHON_PREREQ = [
-    'distribute',
+PREREQ_PYPKG_LIST = [
+    #'distribute',
     'setuptools',
     'pip',
     'Pygments',
@@ -54,6 +59,14 @@ PYTHON_PREREQ = [
 # Need to do a distribute upgrade before matplotlib on Ubuntu?
 # not sure if that will work yet
 
+print_sysinfo()
 #upgrade()
-ensure_packages(NON_PYTHON_PREREQ)
-ensure_python_packages(PYTHON_PREREQ)
+output = make_prereq_script(PREREQ_PKG_LIST, PREREQ_PYPKG_LIST)
+if output == '':
+    print('System has all prerequisites!')
+elif not DRYRUN:
+    filename = '__install_prereqs__.sh'
+    with open(filename, 'w') as file_:
+        file_.write(output)
+    os.system('chmod +x ' + filename)
+    print('# wrote: %r' % os.path.realpath(filename))

@@ -1,8 +1,103 @@
 # HELPS GENERATE CROSS PLATFORM INSTALL SCRIPTS
 import sys
-import atexit
-import os
 import platform
+
+# Behavior variables
+
+UPGRADE_PIP     = '--upgrade' in sys.argv
+CHECK_INSTALLED = True
+CRASH_ON_FAIL   = True
+
+
+def get_pip_installed():
+    try:
+        import pip
+        pypkg_list = [item.key for item in pip.get_installed_distributions()]
+        return pypkg_list
+    except ImportError:
+        #out, err, ret = shell('pip list')
+        #if ret == 0:
+        #    pypkg_list = [_.split(' ')[0] for  _ in out.split('\n')]
+        return []
+
+
+# Special cases
+
+APPLE_PYPKG_MAP = {
+    'dateutils': 'dateutil',
+    'pyreadline': 'readline',
+}
+
+PIP_PYPKG_SET = get_pip_installed()
+
+#print('\n'.join(sorted(list(PIP_PYPKG_SET))))
+
+PIP_PYPKG_MAP = {
+    'dateutils': 'python-dateutil',
+    'pyreadline': 'readline',
+    'pyqt4': 'PyQt4',
+}
+
+UBUNTU_NOPIP_PYPKGS = set([
+    'pip',
+    #'setuptools',
+    'pyqt4',
+    'sip',
+    'scipy'
+])
+
+
+# Convience
+
+def shell(*args, **kwargs):
+    """ A really roundabout way to issue a system call """
+    import subprocess
+    sys.stdout.flush()
+    # Parse the keyword arguments
+    verbose = kwargs.get('verbose', False)
+    detatch = kwargs.get('detatch', False)
+    shell   = kwargs.get('shell', True)
+    # Print what you are about to do
+    if verbose:
+        print('[cplat] RUNNING: %r' % (args,))
+    # Open a subprocess with a pipe
+    proc = subprocess.Popen(args,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            shell=shell)
+    if detatch:
+        if verbose:
+            print('[cplat] PROCESS DETATCHING')
+        return None, None, 1
+    if verbose and not detatch:
+        if verbose:
+            print('[cplat] RUNNING WITH VERBOSE OUTPUT')
+        logged_out = []
+        def run_process():
+            while True:
+                # returns None while subprocess is running
+                retcode = proc.poll()
+                line = proc.stdout.readline()
+                yield line
+                if retcode is not None:
+                    raise StopIteration('process finished')
+        for line in run_process():
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            logged_out.append(line)
+        out = '\n'.join(logged_out)
+        (out_, err) = proc.communicate()
+        print(err)
+    else:
+        # Surpress output
+        if verbose:
+            print('[cplat] RUNNING WITH SUPRESSED OUTPUT')
+        (out, err) = proc.communicate()
+    # Make sure process if finished
+    ret = proc.wait()
+    if verbose:
+        print('[cplat] PROCESS FINISHED')
+    return out, err, ret
 
 
 def parse_args():
@@ -37,7 +132,8 @@ MACPORTS = APPLE  # We force macports right now
 
 
 # PRINT WHAT WE ARE WORKING WITH
-print('Working on: %r %r %r ' % (__OS__, DISTRO, DISTRO_VERSION,))
+def print_sysinfo():
+    print('# sysinfo: (%s, %s, %s) ' % (__OS__, DISTRO, DISTRO_VERSION,))
 
 
 # TARGET PYTHON PLATFORM
@@ -72,29 +168,83 @@ def __update_macports():
 # APT_GET COMMANDS
 
 
+def __check_installed_apt_get(pkg):
+    # First try which
+    out, err, ret = shell('which ' + pkg)
+    if ret == 0:
+        return True
+    # Then use dpkg to check if we have it
+    out, err, ret = shell('dpkg -s ' + pkg)
+    if ret == 0:
+        return True
+    else:
+        return False
+
+
 def __install_command_apt_get(pkg):
     if pkg == 'python-pyqt4':
         pkg = 'python-qt4'
     return 'sudo apt-get install -y %s' % pkg
 
 
+def __update_apt_get():
+    return 'sudo apt-get update && sudo apt-get upgrade -y'
+
+
 # PIP COMMANDS
 
-UPGRADE_PIP = '--upgrade' in sys.argv
+def get_pypkg_aliases(pkg):
+    alias1 = PIP_PYPKG_MAP.get(pkg, pkg)
+    alias2 = pkg.lower()
+    return list(set([pkg, alias1, alias2]))
+
+
+def check_python_installed(pkg, target_version=None):
+    if not CHECK_INSTALLED:
+        return False
+    # Get aliases for this pypkg
+    pypkg_aliases = get_pypkg_aliases(pkg)
+    # First check to see if its in our installed set
+    if any([alias in PIP_PYPKG_SET for alias in pypkg_aliases]):
+        return True
+    # Then check to see if we can import it
+    for alias in pypkg_aliases:
+        try:
+            module = __import__(alias, globals(), locals(), fromlist=[], level=0)
+            if target_version is not None:
+                try:
+                    assert module.__version__ == target_version
+                except Exception:
+                    continue
+            return True
+        except ImportError:
+            continue
+    return False
 
 
 def __install_command_pip(pkg):
-    if WIN32:
-        command = 'pip install %s' % pkg
+    # First check if we already have this package
+    if check_python_installed(pkg):
+        return ''
+    # See if this package should be installed through
+    # the os package manager
+    if UBUNTU and pkg in UBUNTU_NOPIP_PYPKGS:
+        command = __install_command_apt_get('python-' + pkg)
+    elif APPLE and pkg in APPLE_PYPKG_MAP:
+        pkg = APPLE_PYPKG_MAP[pkg]
+        command = __install_command_macports('python-' + pkg)
     else:
-        command = 'sudo pip install %s' % pkg
-    if UPGRADE_PIP:
-        return command + ' && ' + command + ' --upgrade'
+        # IF not then try and install through pip
+        if WIN32:
+            command = 'pip install %s' % pkg
+        else:
+            command = 'sudo pip install %s' % pkg
+        if UPGRADE_PIP:
+            return command + ' && ' + command + ' --upgrade'
     return command
 
 
-def __update_apt_get():
-    return 'sudo apt-get update && sudo apt-get upgrade -y'
+# GENERAL COMMANDS
 
 
 def upgrade():
@@ -104,73 +254,42 @@ def upgrade():
         return cmd(__update_macports())
 
 
+def check_installed(pkg):
+    if not CHECK_INSTALLED:
+        return False
+    if UBUNTU:
+        return __check_installed_apt_get(pkg)
+    else:
+        raise NotImplemented('fixme')
+
+
 def ensure_package(pkg):
     #if isinstance(pkg, (list, tuple)):
     #    return install_packages(pkg)
-    if LINUX and UBUNTU:
+    if check_installed(pkg):
+        return ''
+    if UBUNTU:
         command = __install_command_apt_get(pkg)
-    if APPLE and MACPORTS:
+    elif MACPORTS:
         command = __install_command_macports(pkg)
-    if WIN32:
-        raise Exception('hahahaha, not a chance.')
-    cmd(command)
-
-
-APPLE_PYPKG_MAP = {
-    'dateutils': 'dateutil',
-    'pyreadline': 'readline',
-}
+    elif WIN32:
+        raise Exception('not a chance.')
+    if command == '':
+        return ''
+    return cmd(command)
 
 
 def ensure_python_package(pkg):
-    if LINUX and UBUNTU:
-        if pkg in ['pip', 'setuptools', 'pyqt4', 'sip', 'scipy']:
-            return cmd(__install_command_apt_get('python-' + pkg))
-    if APPLE:
-        if pkg in APPLE_PYPKG_MAP:
-            pkg = APPLE_PYPKG_MAP[pkg]
-            return cmd(__install_command_macports('python-' + pkg))
-    return cmd(__install_command_pip(pkg))
+    command = __install_command_pip(pkg)
+    if command == '':
+        return ''
+    return cmd(command)
 
 
-def ensure_python_packages(pkg_list):
-    output_list = []
-    for pkg_ in pkg_list:
-        output = ensure_python_package(pkg_)
-        output_list.append(output)
-    return output_list
-
-
-def ensure_packages(pkg_list):
-    output_list = []
-    for pkg_ in pkg_list:
-        output = ensure_package(pkg_)
-        output_list.append(output)
-    return output_list
-
-
-INSTALL_PREREQ_FILE = None
-
-
-def __ensure_output_file():
-    global INSTALL_PREREQ_FILE
-    if INSTALL_PREREQ_FILE is None:
-        filename = 'install_prereqs.sh'
-        file_ = open(filename, 'w')
-        def close_file():
-            print('# wrote: %r' % os.path.realpath(filename))
-            file_.close()
-            os.system('chmod +x ' + filename)
-            #os.system('cat ' + filename)
-        INSTALL_PREREQ_FILE = file_
-        atexit.register(close_file)
-
-
-CRASH_ON_FAIL = True
+# CONVINENCE COMMANDS
 
 
 def cmd(command):
-    __ensure_output_file()
     print(command)
     delim1 = 'echo "************"'
     delim2 = 'echo "command = %r"' % command
@@ -182,5 +301,15 @@ def cmd(command):
     else:
         write_list += [command]
     write_list += [delim1]
-    INSTALL_PREREQ_FILE.write('\n'.join(write_list) + '\n')
+    output = '\n'.join(write_list) + '\n'
+    #INSTALL_PREREQ_FILE.write(output)
+    return output
     #os.system(command)
+
+
+def make_prereq_script(pkg_list, pypkg_list):
+    output_list = []
+    output_list.extend([ensure_package(pkg) for pkg in pkg_list])
+    output_list.extend([ensure_python_package(pypkg) for pypkg in pypkg_list])
+    output = ''.join(output_list)
+    return output
