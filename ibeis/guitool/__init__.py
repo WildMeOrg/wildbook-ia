@@ -12,6 +12,7 @@ from . import guitool_misc
 from .guitool_tables import *
 from .guitool_dialogs import *
 from .guitool_decorators import *
+from .guitool_components import *
 from .guitool_main import *
 from .guitool_misc import *
 

@@ -3,7 +3,6 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
 import utool
-import types
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
 
@@ -61,7 +60,7 @@ class APITableModel(QtCore.QAbstractTableModel):
     def _update_data(model):
         model.layoutAboutToBeChanged.emit()
         model.layoutChanged.emit()
-        
+
     def _update_rows(model):
         '''
             The row_index_callback function should be of the following format:
@@ -120,8 +119,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.col_edit_list = col_edit_list
 
     def _set_col_setter(model, col_setter_list=None):
-        if isinstance(col_setter_list, types.FunctionType) or \
-           isinstance(col_setter_list, types.MethodType):
+        if utool.is_func_or_method(col_setter_list):
             col_setter_list = [col_setter_list] * len(model.col_name_list)
         if col_setter_list is None:
             col_setter_list = []
@@ -129,8 +127,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.col_setter_list = col_setter_list
 
     def _set_col_getter(model, col_getter_list=None):
-        if isinstance(col_getter_list, types.FunctionType) or \
-           isinstance(col_getter_list, types.MethodType):
+        if utool.is_func_or_method(col_getter_list):
             col_getter_list = [col_getter_list] * len(model.col_name_list)
         if col_getter_list is None:
             col_getter_list = []
@@ -140,7 +137,7 @@ class APITableModel(QtCore.QAbstractTableModel):
     def _set_sort(model, col_sort_name=None, col_sort_reverse=None):
         if col_sort_name is None:
             col_sort_name = model.col_name_list[0]
-        if not isinstance(col_sort_reverse, bool):
+        if not utool.is_bool(col_sort_reverse):
             col_sort_reverse = False
         assert col_sort_name in model.col_name_list, 'cannot sort by: %r' % col_sort_name
         model.col_sort_name = col_sort_name
@@ -148,8 +145,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._update_rows()
 
     def _set_row_index_callback(model, row_index_callback):
-        assert isinstance(row_index_callback, types.FunctionType) or \
-            isinstance(row_index_callback, types.MethodType)
+        assert utool.is_func_or_method(row_index_callback)
         model.row_index_callback = row_index_callback
 
     def _set_cell_qt(model, qtindex, value):
@@ -263,28 +259,39 @@ class APITableModel(QtCore.QAbstractTableModel):
         return len(model.col_name_list)
 
     def data(model, qtindex, role=Qt.DisplayRole):
-        """ Returns the data to display """
+        """
+        Depending on the role, returns either data or how to display data
+        """
         if not qtindex.isValid():
             return None
         flags = model.flags(qtindex)
         row, col = model._row_col(qtindex)
+        #
+        # Specify alignment
         if role == Qt.TextAlignmentRole:
             return model._get_col_align(column=col)
+        #
+        # Editable fields are colored
         if role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable or
                                           flags & Qt.ItemIsUserCheckable):
             return QtCore.QVariant(QtGui.QColor(250, 240, 240))
-        if role == Qt.DisplayRole or (role == Qt.CheckStateRole and \
-                (model.last_row != row or model.last_role != Qt.DisplayRole)):
+        #
+        # Editable fields are colored
+        was_last = (model.last_row == row and model.last_role == Qt.DisplayRole)
+        if role == Qt.DisplayRole or (role == Qt.CheckStateRole and not was_last):
             data = model._get_cell_qt(qtindex)
             value = qtype.cast_into_qt(data, role, flags)
             model.last_row = row
             model.last_role = role
             return value
+        #
+        # else return an empty QVariant
         else:
             return QtCore.QVariant()
 
     def setData(model, qtindex, value, role=Qt.EditRole):
-        """ Sets the role data for the item at qtindex to value.
+        """
+        Sets the role data for the item at qtindex to value.
         value is a QVariant (called data in documentation)
         """
         try:
