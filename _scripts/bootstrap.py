@@ -65,6 +65,7 @@ PREREQ_PYPKG_LIST = [
     #'pandas',
     'tornado',
     'matplotlib',
+    'scikit-learn',
 ]
 
 # Need to do a distribute upgrade before matplotlib on Ubuntu?
