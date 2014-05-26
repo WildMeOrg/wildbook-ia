@@ -1,9 +1,18 @@
 #!/usr/bin/env python
+"""
+git config --global push.default current
+cd ~
+mkdir code
+cd code
+git clone https://github.com/Erotemic/ibeis.git
+cd ibeis/_scripts
+./bootstrap.py
+./__install_prereqs__.sh
+"""
 import sys
 import os
 from util_cplat_packages import make_prereq_script, APPLE, UBUNTU, print_sysinfo
 
-#git clone https://github.com/Erotemic/ibeis.git
 
 DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
 

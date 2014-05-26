@@ -5,7 +5,7 @@ import platform
 # Behavior variables
 
 UPGRADE_PIP     = '--upgrade' in sys.argv
-CHECK_INSTALLED = True
+CHECK_INSTALLED = '--exhaustive' in sys.argv
 CRASH_ON_FAIL   = True
 
 
@@ -39,7 +39,7 @@ PIP_PYPKG_MAP = {
 }
 
 UBUNTU_NOPIP_PYPKGS = set([
-    #'pip',
+    'pip',
     #'setuptools',
     'pyqt4',
     'sip',
@@ -230,17 +230,17 @@ def __install_command_pip(pkg, upgrade=None):
         return ''
     # See if this package should be installed through
     # the os package manager
+    if APPLE:
+        # Apple should prefer macports
+        pkg = APPLE_PYPKG_MAP.get(pkg)
+        command = __install_command_macports('python-' + pkg)
+
     if UBUNTU and pkg in UBUNTU_NOPIP_PYPKGS:
         command = __install_command_apt_get('python-' + pkg)
-    elif APPLE and pkg in APPLE_PYPKG_MAP:
-        pkg = APPLE_PYPKG_MAP[pkg]
-        command = __install_command_macports('python-' + pkg)
-    elif pkg == 'pip':
-        # Pip cannot install pip if it doesn't exist
-        try:
-            import pip  # noqa
-        except ImportError:
-            command = 'sudo easy_install pip'
+        if pkg == 'pip':
+            # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
+            # but then pip can upgrade itself to 1.5.3
+            command += ' && sudo pip install %s --upgrade' % pkg
     else:
         # IF not then try and install through pip
         if WIN32:
