@@ -222,8 +222,10 @@ def check_python_installed(pkg, target_version=None):
     return False
 
 
-def __install_command_pip(pkg):
+def __install_command_pip(pkg, upgrade=None):
     # First check if we already have this package
+    if upgrade is None:
+        upgrade = UPGRADE_PIP
     if check_python_installed(pkg):
         return ''
     # See if this package should be installed through
@@ -245,7 +247,10 @@ def __install_command_pip(pkg):
             command = 'pip install %s' % pkg
         else:
             command = 'sudo pip install %s' % pkg
-        if UPGRADE_PIP:
+        # I dont know why it gets a weird version
+        if pkg == 'setuptools':
+            upgrade = True
+        if upgrade:
             return command + ' && ' + command + ' --upgrade'
     return command
 
