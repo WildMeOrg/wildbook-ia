@@ -39,7 +39,7 @@ PIP_PYPKG_MAP = {
 }
 
 UBUNTU_NOPIP_PYPKGS = set([
-    'pip',
+    #'pip',
     #'setuptools',
     'pyqt4',
     'sip',
@@ -234,6 +234,12 @@ def __install_command_pip(pkg):
         pkg = APPLE_PYPKG_MAP[pkg]
         command = __install_command_macports('python-' + pkg)
     else:
+        if pkg == 'pip':
+            # Pip cannot install pip if it doesn't exist
+            try:
+                import pip
+            except ImportError:
+                command = 'easy_install pip'
         # IF not then try and install through pip
         if WIN32:
             command = 'pip install %s' % pkg
