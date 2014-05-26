@@ -21,11 +21,13 @@ try:
 except ImportError:
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP')
     import os
+    import sys
     os.chdir(os.path.expanduser(CODE_DIR))
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
     os.system('git pull')
     os.system('sudo python setup.py develop')
+    sys.path.append(os.path.realpath(os.getcwd()))
 
 
 def userid_prompt():

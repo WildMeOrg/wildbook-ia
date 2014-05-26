@@ -47,7 +47,6 @@ if UBUNTU:
 
 PREREQ_PYPKG_LIST = [
     'pip',
-    #'distribute',
     'setuptools',
     'Pygments',
     'six',
