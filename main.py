@@ -14,8 +14,8 @@ if __name__ == '__main__':
     ibs = main_locals['ibs']
     if 'back' in main_locals:
         back = main_locals['back']
-        front = back.front
-        ui = front.ui
+        #front = back.front
+        #ui = front.ui
     # </DEBUG CODE>
     execstr = ibeis.main_loop(main_locals)
     exec(execstr)
