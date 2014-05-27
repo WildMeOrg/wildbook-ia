@@ -535,6 +535,9 @@ class IBEISController(object):
         #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
         #OFF printDBG('set_(uid_list=%r, val_list=%r)' % (uid_list, val_list))
         # Sanatize input to be only lowercase alphabet and underscores
+        if not utool.isiterable(uid_list) and not utool.isiterable(val_list):
+            uid_list = (uid_list,)
+            val_list = (val_list,)
         table, (prop_key,) = ibs.db.sanatize_sql(table, (prop_key,))
         # Potentially UNSAFE SQL
         ibs.db.executemany(

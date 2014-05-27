@@ -43,7 +43,7 @@ UBUNTU_NOPIP_PYPKGS = set([
     #'setuptools',
     'pyqt4',
     'sip',
-    'scipy'
+    #'scipy'
 ])
 
 
@@ -239,8 +239,12 @@ def __install_command_pip(pkg, upgrade=None):
         command = __install_command_apt_get('python-' + pkg)
         if pkg == 'pip':
             # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
-            # but then pip can upgrade itself to 1.5.3
+            # but then pip can upgrade itself to 1.5.3, but then we have to
+            # remove the apt-get-pip as well as the apt-get-setuptools which is
+            # ninja installed
             command += ' && sudo pip install %s --upgrade' % pkg
+            command += ' && sudo apt-get remove python-pip'
+            command += ' && sudo apt-get remove python-setuptools'
     else:
         # IF not then try and install through pip
         if WIN32:

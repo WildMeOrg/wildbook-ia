@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
 IMAGE_TABLE = 'images'
@@ -8,85 +9,100 @@ NAME_TABLE  = 'names'
 QRES_TABLE  = 'qres'
 ENCOUNTER_TABLE = 'encounters'
 
+#-----------------
+# Define the tables
+#-----------------
 
-TABLE_DEF = [
+# enabled tables
+TABLENAME_LIST = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE]
 
-    (IMAGE_TABLE, 'Image Table',
-     ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext', 'unixtime'],
-     ['notes', 'aif']),
+# table nice names
+TABLE_NICE = {
+    IMAGE_TABLE     : 'Image Table',
+    ROI_TABLE       : 'ROIs Table',
+    NAME_TABLE      : 'Name Table',
+    QRES_TABLE      : 'Query Results Table',
+    ENCOUNTER_TABLE : 'Encounter Table',
+}
 
-    (ROI_TABLE, 'ROIs Table',
-     ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-     ['name', 'notes']),
+# the columns each ibeis table has
+TABLE_COLNAMES = {
+    #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext', 'unixtime'],
+    IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext'],
+    #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
+    ROI_TABLE       : ['rid', 'name', 'nGt', 'notes'],
+    NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
+    QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
+    ENCOUNTER_TABLE : ['eid', 'nImgs'],
+}
 
-    (NAME_TABLE, 'Name Table',
-     ['nid', 'name', 'nRids', 'notes'],
-     ['name', 'notes']),
+# the columns which are editable
+TABLE_EDITSET = {
+    IMAGE_TABLE     : set(['aif', 'notes']),
+    ROI_TABLE       : set(['name', 'notes']),
+    NAME_TABLE      : set(['name', 'notes']),
+    QRES_TABLE      : set(['name']),
+    ENCOUNTER_TABLE : set([]),
+}
 
-    #(QRES_TABLE, 'Query Results Table',
-    # ['rank', 'score', 'name', 'rid'],
-    # ['name']),
+# Define the valid columns a table could have
+COL_DEF = dict([
+    ('gid',        (int,   'Image ID')),
+    ('rid',        (int,   'ROI ID')),
+    ('nid',        (int,   'Name ID')),
+    ('eid',        (int,   'Encounter ID')),
+    ('nRids',      (int,   '#ROIs')),
+    ('nGt',        (int,   '#GT')),
+    ('nImgs',      (int,   '#Imgs')),
+    ('nFeats',     (int,   '#Features')),
+    ('rank',       (str,   'Rank')),  # needs to be a string for !Query
+    ('unixtime',   (float, 'unixtime')),
+    ('gname',      (str,   'Image Name')),
+    ('name',       (str,   'Name')),
+    ('notes',      (str,   'Notes')),
+    ('match_name', (str,   'Matching Name')),
+    ('bbox',       (str,   'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+    ('score',      (str,   'Confidence')),
+    ('theta',      (str,   'Theta')),
+    ('aif',        (bool,  'All Detected')),
+    ('enctext',    (str,   'Encounter Text')),
+])
 
-    (ENCOUNTER_TABLE, 'Name Table',
-     ['eid', 'nGt'],
-     []),
-]
 
-
-def ibeis_gui_headers(ibs):
-    # Column types and fancy names
-    coldefs = dict([
-        ('gid',        (int,   'Image ID')),
-        ('rid',        (int,   'ROI ID')),
-        ('nid',        (int,   'Name ID')),
-        ('eid',        (int,   'Encounter ID')),
-        ('nRids',      (int,   '#ROIs')),
-        ('nGt',        (int,   '#GT')),
-        ('nFeats',     (int,   '#Features')),
-        ('rank',       (str,   'Rank')),  # needs to be a string for !Query
-        ('unixtime',   (float, 'unixtime')),
-        ('enctext',    (str,   'Encounter')),
-        ('gname',      (str,   'Image Name')),
-        ('name',       (str,   'Name')),
-        ('notes',      (str,   'Notes')),
-        ('match_name', (str,   'Matching Name')),
-        ('bbox',       (str,   'BBOX (x, y, w, h))')),  # Non editables are safe as strs
-        ('score',      (str,   'Confidence')),
-        ('theta',      (str,   'Theta')),
-        ('aif',        (bool,  'All Detected')),
-        ('enc_text',   (str,   'Encounter Text')),
-    ])
-    # Table iders
-    iders = {
-        IMAGE_TABLE: ibs.get_valid_gids,
-        ROI_TABLE: ibs.get_valid_rids,
-        NAME_TABLE: ibs.get_valid_nids,
-        ENCOUNTER_TABLE: ibs.get_valid_eids,
-    }
-    getters, setters = {}, {}
-    # Image Setters/Getters
+def get_ibeis_headers_dict(ibs):
+    simap_func = utool.scalar_input_map_func
+    #
+    # Table Iders/Setters/Getters
+    iders = {}
+    setters = {}
+    getters = {}
+    #
+    # Image Iders/Setters/Getters
+    iders[IMAGE_TABLE] = ibs.get_valid_gids
     getters[IMAGE_TABLE] = {
         'gid':      lambda gids: gids,
-        'eid':      lambda gids: ibs.get_image_eids(gids),
-        'enctext':  lambda gids: map(utool.tupstr, ibs.get_image_enctext(gids)),
-        'aif':      lambda gids: ibs.get_image_aifs(gids),
-        'gname':    lambda gids: ibs.get_image_gnames(gids),
-        'nRids':    lambda gids: ibs.get_image_num_rois(gids),
-        'unixtime': lambda gids: ibs.get_image_unixtime(gids),
-        'notes':    lambda nids: ibs.get_image_notes(nids),
+        'eid':      ibs.get_image_eids,
+        'enctext':  simap_func(utool.tupstr, ibs.get_image_enctext),
+        'aif':      ibs.get_image_aifs,
+        'gname':    ibs.get_image_gnames,
+        'nRids':    ibs.get_image_num_rois,
+        'unixtime': ibs.get_image_unixtime,
+        'notes':    ibs.get_image_notes,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
         'notes': ibs.set_image_notes,
     }
-    # ROI Setters/Getters
+    #
+    # ROI Iders/Setters/Getters
+    iders[ROI_TABLE] = ibs.get_valid_rids
     getters[ROI_TABLE] = {
         'rid':    lambda rids: rids,
         'name':   ibs.get_roi_names,
         'gname':  ibs.get_roi_gnames,
         'nGt':    ibs.get_roi_num_groundtruth,
-        'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
-        'bbox':   lambda rids: map(str, ibs.get_roi_bboxes(rids)),
+        'theta':  simap_func(utool.theta_str, ibs.get_roi_thetas),
+        'bbox':   simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
         'nFeats': ibs.get_roi_num_feats,
         'notes':  ibs.get_roi_notes,
     }
@@ -94,7 +110,9 @@ def ibeis_gui_headers(ibs):
         'names': ibs.set_roi_names,
         'notes': ibs.set_roi_notes,
     }
-    # Name Setters/Getters
+    #
+    # Name Iders/Setters/Getters
+    iders[NAME_TABLE] = ibs.get_valid_nids
     getters[NAME_TABLE] = {
         'nid':    lambda nids: nids,
         'name':   ibs.get_names,
@@ -102,73 +120,55 @@ def ibeis_gui_headers(ibs):
         'notes':  ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
-        'name': ibs.set_name_names,
+        'name':  ibs.set_name_names,
         'notes': ibs.set_name_notes,
     }
-    # Encounter Setters/Getters
+    #
+    # Encounter Iders/Setters/Getters
+    iders[ENCOUNTER_TABLE] = ibs.get_valid_eids
     getters[ENCOUNTER_TABLE] = {
-        'eid': lambda eids: eids,
-        'nGt': ibs.get_encounter_num_gids,
-        'enc_text': ibs.get_encounter_enctext,
+        'eid':     lambda eids: eids,
+        'nImgs':   ibs.get_encounter_num_gids,
+        'enctext': ibs.get_encounter_enctext,
     }
     setters[ENCOUNTER_TABLE] = {
-        'enc_text': ibs.set_encounter_enctext,
+        'enctext': ibs.set_encounter_enctext,
     }
 
-    headers = {}
-    def get_coltup(tblname, colname, iseditable):
-        # Components of a column tuple
+    def make_header(tblname):
+        """
+        Input:
+            table_name - the internal table name
+        """
+        tblnice  = TABLE_NICE[tblname]
+        colnames = TABLE_COLNAMES[tblname]
+        editset  = TABLE_EDITSET[tblname]
+        tblgetters = getters[tblname]
+        tblsetters = setters[tblname]
+
         try:
-            (coltype, colfancy) = coldefs[colname]
-            colgetter = getters[tblname][colname]
-            colsetter = setters[tblname].get(colname, None) if iseditable else None
-            # the column tuple
-            tup = (colname, coltype, colfancy, colgetter, colsetter)
+            coltypes   = [COL_DEF[colname][0] for colname in colnames]
+            colnices   = [COL_DEF[colname][1] for colname in colnames]
+            coledits   = [colname in editset  for colname in colnames]
+            colgetters = [tblgetters[colname] for colname in colnames]
+            colsetters = [None if not edit else
+                          tblsetters.get(colname, None)
+                          for colname, edit in izip(colnames, coledits)]
         except KeyError as ex:
-            utool.printex(ex, 'undefined column', key_list=['tblname',
-                                                            'colname'])
+            utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise
+        header = {
+            'name': tblname,
+            'nice': tblnice,
+            'ider': iders[tblname],
+            'col_name_list': colnames,
+            'col_type_list': coltypes,
+            'col_nice_list': colnices,
+            'col_edit_list': coledits,
+            'col_getter_list': colgetters,
+            'col_setter_list': colsetters,
+        }
+        return header
 
-        return tup
-
-    def get_table_header(tbltup):
-        tblname, tblfancy, colname_list, editable_cols = tbltup
-        header_columns = [get_coltup(tblname, colname, colname in editable_cols) for colname in colname_list]
-        return tblname, (iders[tblname], header_columns)
-
-    headers = dict([get_table_header(tbltup) for tbltup in TABLE_DEF])
-    return headers
-
-
-def header_ids(header):
-    return header[0]
-
-
-def header_names(header):
-    return [ column[0] for column in header[1] ]
-
-
-def header_types(header):
-    return [ column[1] for column in header[1] ]
-
-
-def header_edits(header):
-    return [ column[4] is not None for column in header[1] ]
-
-
-def header_nices(header):
-    return [ column[2] for column in header[1] ]
-
-
-def getter_from_name(header, name):
-    for column in header[1]:
-        if column[0] == name:
-            return column[3]
-    return None
-
-
-def setter_from_name(header, name):
-    for column in header[1]:
-        if column[0] == name:
-            return column[4]
-    return None
+    header_dict = {tblname: make_header(tblname) for tblname in TABLENAME_LIST}
+    return header_dict

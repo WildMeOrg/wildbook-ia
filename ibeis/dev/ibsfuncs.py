@@ -171,6 +171,16 @@ def delete_invalid_nids(ibs):
     ibs.delete_names(invalid_nids)
 
 
+@__injectable
+def delete_invalid_eids(ibs):
+    """ Removes encounters without images """
+    eid_list = ibs.get_valid_eids(min_num_gids=0)
+    nGids_list = ibs.get_encounter_num_gids(eid_list)
+    is_invalid = [nGids == 0 for nGids in nGids_list]
+    invalid_eids = utool.filter_items(eid_list, is_invalid)
+    ibs.delete_encounters(invalid_eids)
+
+
 def unflat_lookup(method, unflat_uids, **kwargs):
     """ Uses an ibeis lookup function with a non-flat uid list.
     """

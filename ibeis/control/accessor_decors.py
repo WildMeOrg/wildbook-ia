@@ -31,9 +31,9 @@ def adder(func):
 def setter(func):
     func = otherfunc(func)
     @wraps(func)
-    def adder_wrapper(*args, **kwargs):
+    def setter_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
-    return adder_wrapper
+    return setter_wrapper
 
 
 # DECORATORS::GETTER

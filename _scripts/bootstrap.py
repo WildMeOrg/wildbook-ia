@@ -42,6 +42,8 @@ if UBUNTU:
         #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
         'libfreetype6-dev',  # for matplotlib
         'libpng12-dev',
+        'libjpeg-dev',
+        'zlib1g-dev',
         'python-dev',
     ])
 
@@ -82,3 +84,22 @@ elif not DRYRUN:
     os.system('chmod +x ' + filename)
     print('# wrote: %r' % os.path.realpath(filename))
     #sudo python super_setup.py --build --develop
+
+
+"""
+
+python -c
+sudo apt-get remove python-pip
+sudo apt-get remove python-setuptools
+sudo apt-get remove python-numpy
+sudo apt-get remove python-scipy
+sudo pip install numpy --upgrade
+sudo pip install scipy --upgrade
+
+
+# sudo pip install distribute --upgrade
+sudo pip remove PIL
+sudo pip remove pillow
+sudo pip install pillow
+
+"""
