@@ -16,7 +16,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
 
 def make_model_and_view(wgt, header, ViewClass):
-    model = newgui_models.DataTablesModel(wgt.headers[header], parent=wgt)
+    model = newgui_models.IBEISTableModel(wgt.headers[header], parent=wgt)
     view = ViewClass(parent=wgt)
     view.setModel(model)
     return model, view

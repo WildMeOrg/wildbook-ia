@@ -2,105 +2,141 @@ from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
+IMAGE_TABLE = 'images'
+ROI_TABLE   = 'rois'
+NAME_TABLE  = 'names'
+QRES_TABLE  = 'qres'
+ENCOUNTER_TABLE = 'encounters'
+
+
+TABLE_DEF = [
+
+    (IMAGE_TABLE, 'Image Table',
+     ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext', 'unixtime'],
+     ['notes', 'aif']),
+
+    (ROI_TABLE, 'ROIs Table',
+     ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
+     ['name', 'notes']),
+
+    (NAME_TABLE, 'Name Table',
+     ['nid', 'name', 'nRids', 'notes'],
+     ['name', 'notes']),
+
+    #(QRES_TABLE, 'Query Results Table',
+    # ['rank', 'score', 'name', 'rid'],
+    # ['name']),
+
+    (ENCOUNTER_TABLE, 'Name Table',
+     ['eid', 'nGt'],
+     []),
+]
+
 
 def ibeis_gui_headers(ibs):
+    # Column types and fancy names
+    coldefs = dict([
+        ('gid',        (int,   'Image ID')),
+        ('rid',        (int,   'ROI ID')),
+        ('nid',        (int,   'Name ID')),
+        ('eid',        (int,   'Encounter ID')),
+        ('nRids',      (int,   '#ROIs')),
+        ('nGt',        (int,   '#GT')),
+        ('nFeats',     (int,   '#Features')),
+        ('rank',       (str,   'Rank')),  # needs to be a string for !Query
+        ('unixtime',   (float, 'unixtime')),
+        ('enctext',    (str,   'Encounter')),
+        ('gname',      (str,   'Image Name')),
+        ('name',       (str,   'Name')),
+        ('notes',      (str,   'Notes')),
+        ('match_name', (str,   'Matching Name')),
+        ('bbox',       (str,   'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+        ('score',      (str,   'Confidence')),
+        ('theta',      (str,   'Theta')),
+        ('aif',        (bool,  'All Detected')),
+        ('enc_text',   (str,   'Encounter Text')),
+    ])
+    # Table iders
+    iders = {
+        IMAGE_TABLE: ibs.get_valid_gids,
+        ROI_TABLE: ibs.get_valid_rids,
+        NAME_TABLE: ibs.get_valid_nids,
+        ENCOUNTER_TABLE: ibs.get_valid_eids,
+    }
+    getters, setters = {}, {}
+    # Image Setters/Getters
+    getters[IMAGE_TABLE] = {
+        'gid':      lambda gids: gids,
+        'eid':      lambda gids: ibs.get_image_eids(gids),
+        'enctext':  lambda gids: map(utool.tupstr, ibs.get_image_enctext(gids)),
+        'aif':      lambda gids: ibs.get_image_aifs(gids),
+        'gname':    lambda gids: ibs.get_image_gnames(gids),
+        'nRids':    lambda gids: ibs.get_image_num_rois(gids),
+        'unixtime': lambda gids: ibs.get_image_unixtime(gids),
+        'notes':    lambda nids: ibs.get_image_notes(nids),
+    }
+    setters[IMAGE_TABLE] = {
+        'aif':   ibs.set_image_aifs,
+        'notes': ibs.set_image_notes,
+    }
+    # ROI Setters/Getters
+    getters[ROI_TABLE] = {
+        'rid':    lambda rids: rids,
+        'name':   ibs.get_roi_names,
+        'gname':  ibs.get_roi_gnames,
+        'nGt':    ibs.get_roi_num_groundtruth,
+        'theta':  lambda rids: map(utool.theta_str, ibs.get_roi_thetas(rids)),
+        'bbox':   lambda rids: map(str, ibs.get_roi_bboxes(rids)),
+        'nFeats': ibs.get_roi_num_feats,
+        'notes':  ibs.get_roi_notes,
+    }
+    setters[ROI_TABLE] = {
+        'names': ibs.set_roi_names,
+        'notes': ibs.set_roi_notes,
+    }
+    # Name Setters/Getters
+    getters[NAME_TABLE] = {
+        'nid':    lambda nids: nids,
+        'name':   ibs.get_names,
+        'nRids':  ibs.get_name_num_rois,
+        'notes':  ibs.get_name_notes,
+    }
+    setters[NAME_TABLE] = {
+        'name': ibs.set_name_names,
+        'notes': ibs.set_name_notes,
+    }
+    # Encounter Setters/Getters
+    getters[ENCOUNTER_TABLE] = {
+        'eid': lambda eids: eids,
+        'nGt': ibs.get_encounter_num_gids,
+        'enc_text': ibs.get_encounter_enctext,
+    }
+    setters[ENCOUNTER_TABLE] = {
+        'enc_text': ibs.set_encounter_enctext,
+    }
+
     headers = {}
-    #    SQL-key     Type   Nice Name
-    #       lambda getter function
-    #       lambda setter function
+    def get_coltup(tblname, colname, iseditable):
+        # Components of a column tuple
+        try:
+            (coltype, colfancy) = coldefs[colname]
+            colgetter = getters[tblname][colname]
+            colsetter = setters[tblname].get(colname, None) if iseditable else None
+            # the column tuple
+            tup = (colname, coltype, colfancy, colgetter, colsetter)
+        except KeyError as ex:
+            utool.printex(ex, 'undefined column', key_list=['tblname',
+                                                            'colname'])
+            raise
 
-    headers['images'] = [ibs.get_valid_gids , [
-        ('gid',      int,   'Image ID',
-         lambda gids        : gids,
-         None),
+        return tup
 
-        ('gname',    str,   'Image Name',
-         lambda gids        : ibs.get_image_gnames(gids),
-         None),
+    def get_table_header(tbltup):
+        tblname, tblfancy, colname_list, editable_cols = tbltup
+        header_columns = [get_coltup(tblname, colname, colname in editable_cols) for colname in colname_list]
+        return tblname, (iders[tblname], header_columns)
 
-        ('nrids',    str,   'ROIs',
-         lambda gids        : ibs.get_image_num_rois(gids),
-         None),
-
-        #('aif',      bool,  'All Detected',
-        # lambda gids        : ibs.get_image_aifs(gids),
-        # lambda gids, values: ibs.set_image_aifs(gids, values)),
-
-        #('notes',    str,   'Notes',
-        # lambda gids        : ibs.get_image_notes(gids),
-        # lambda gids, values: ibs.set_image_notes(gids, values)),
-
-        ('enctext',  str,   'Encounter',
-         lambda gids        : map(utool.tupstr, ibs.get_image_enctext(gids)),
-         None),
-
-        #('unixtime', float, 'unixtime',
-        # lambda gids        : ibs.get_image_unixtime(gids),
-        # None),
-    ]]
-
-    headers['rois'] = [ibs.get_valid_rids, [
-        ('rid',      int,   'ROI ID',
-         lambda rids        : rids,
-         None),
-
-        ('name',     str,   'Name',
-         lambda rids        : ibs.get_roi_names(rids),
-         lambda rids, values: ibs.set_roi_names(rids, values)),
-
-        ('gname',    str,   'Image Name',
-         lambda rids        : ibs.get_roi_gnames(rids),
-         None),
-
-        ('nGt',      int,   '#GT',
-         lambda rids        : ibs.get_roi_num_groundtruth(rids),
-         None),
-
-        #('nFeats',   int,   '#Features',
-        # lambda rids        : ibs.get_roi_num_feats(rids),
-        # None),
-
-        #('bbox',     str,   'BBOX (x, y, w, h)',
-        # lambda rids        : map(str, ibs.get_roi_bboxes(rids)),
-        # None),
-
-        #('theta',    str,   'Theta',
-        # lambda rids        : map(utool.theta_str, ibs.get_roi_thetas(rids)),
-        # None),
-
-        #('notes',    str,   'Notes',
-        # lambda rids        : ibs.get_roi_notes(rids),
-        # lambda rids, values: ibs.set_roi_notes(rids, values)),
-    ]]
-
-    headers['names'] = [ibs.get_valid_nids, [
-        ('nid',      int,   'Name ID',
-         lambda nids        : nids,
-         None),
-
-        ('name',     str,   'Name',
-         lambda nids        : ibs.get_names(nids),
-         lambda nids, values: ibs.set_name_names(nids, values)),
-
-        ('nRids',    int,   '#ROIs',
-         lambda nids        : ibs.get_name_num_rois(nids),
-         None),
-
-        ('notes',    str,   'Notes',
-         lambda nids        : ibs.get_name_notes(nids),
-         lambda nids, values: ibs.set_name_notes(nids, values)),
-    ]]
-
-    headers['encounters'] = [ibs.get_valid_eids, [
-        ('enc_name', str,   'Encounter Name',
-         lambda eids        : ibs.get_encounter_enctext(eids),
-         lambda eids, values: ibs.set_encounter_enctext(eids, values)),
-
-        ('enc_gids', str,   'Images',
-         lambda eids        : ibs.get_encounter_num_gids(eids),
-         None),
-    ]]
-
+    headers = dict([get_table_header(tbltup) for tbltup in TABLE_DEF])
     return headers
 
 

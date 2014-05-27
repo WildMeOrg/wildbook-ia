@@ -9,19 +9,21 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]'
 #############################
 
 
-class DataTablesModel(APITableModel.APITableModel):
+class IBEISTableModel(APITableModel.APITableModel):
     def __init__(model, headers, parent=None, *args):
         model.encounter_id = None
         model.window = parent
         model.headers = headers
-        super(DataTablesModel, model).__init__(col_name_list=gh.header_names(headers),
-                                               col_type_list=gh.header_types(headers),
-                                               col_nice_list=gh.header_nices(headers),
-                                               col_edit_list=gh.header_edits(headers),
-                                               col_getter_list=model._getter,
-                                               col_setter_list=model._setter,
-                                               row_index_callback=model._row_index_callback,
-                                               paernt=parent)
+        kwargs = {
+            'col_name_list'      : gh.header_names(headers),
+            'col_type_list'      : gh.header_types(headers),
+            'col_nice_list'      : gh.header_nices(headers),
+            'col_edit_list'      : gh.header_edits(headers),
+            'col_getter_list'    : model._getter,
+            'col_setter_list'    : model._setter,
+            'row_index_callback' : model._row_index_callback,
+        }
+        APITableModel.APITableModel.__init__(model, parent=parent, **kwargs)
 
     def _change_enc(model, encounter_id):
         model.encounter_id = encounter_id
