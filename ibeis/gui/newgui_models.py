@@ -17,6 +17,7 @@ class IBEISTableModel(APITableModel.APITableModel):
         model._set_ider(model._ider)
 
     def _ider(model):
+        """ Overrides the API model ider to give only selected encounter ids """
         return model.original_ider(eid=model.eid)
 
     @APITableModel.updater
@@ -25,7 +26,7 @@ class IBEISTableModel(APITableModel.APITableModel):
         model._update_rows()
 
 
-class EncTableModel(APITableModel.APITableModel):
+class EncModel(APITableModel.APITableModel):
     def __init__(model, headers, parent=None, *args):
         model.window = parent
         model.headers = headers

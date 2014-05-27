@@ -18,10 +18,20 @@ def default_view_layout(view):
     view.resizeColumnsToContents()
 
 
+class IBEISTableView(QtGui.QTableView):
+    def __init__(view, parent=None):
+        QtGui.QTableView.__init__(view, parent)
+        view.ibswin = parent
+        default_view_layout(view)
+
+    def _change_enc(view, eid):
+        view.model()._change_enc(eid)
+
+
 class ImageView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
-        view.window = parent
+        view.ibswin = parent
         default_view_layout(view)
 
     def _change_enc(view, eid):
@@ -36,12 +46,14 @@ class ImageView(QtGui.QTableView):
             row = qtindex.row()
             row_id = view.model()._get_row_id(row)
             print("Image Selected, %r (ENC %r)" % (row_id, view.model().eid))
+        else:
+            print('!!!!!!!!!!!!!!')
 
 
 class ROIView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
-        view.window = parent
+        view.ibswin = parent
         default_view_layout(view)
 
     def _change_enc(view, eid):
@@ -57,7 +69,7 @@ class ROIView(QtGui.QTableView):
 class NameView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
-        view.window = parent
+        view.ibswin = parent
         default_view_layout(view)
 
     def _change_enc(view, eid):
@@ -73,7 +85,7 @@ class NameView(QtGui.QTableView):
 class EncView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
-        view.window = parent
+        view.ibswin = parent
         default_view_layout(view)
         view.setMaximumSize(600, 9999)
         #hh = view.horizontalHeader()
@@ -84,8 +96,8 @@ class EncView(QtGui.QTableView):
         row = qtindex.row()
         model = view.model()
         eid = model._get_row_id(row)
-        enctext = view.window.ibs.get_encounter_enctext(eid)
-        view.window._add_enc_tab(eid, enctext)
+        enctext = view.ibswin.ibs.get_encounter_enctext(eid)
+        view.ibswin._add_enc_tab(eid, enctext)
 
 
 #############################
@@ -96,7 +108,7 @@ class EncView(QtGui.QTableView):
 class EncoutnerTabWidget(QtGui.QTabWidget):
     def __init__(tabwgt, parent=None):
         QtGui.QTabWidget.__init__(tabwgt, parent)
-        tabwgt.window = parent
+        tabwgt.ibswin = parent
         tabwgt.setTabsClosable(True)
         if sys.platform.startswith('darwin'):
             tab_height = 21
@@ -116,7 +128,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
     def _on_change(tabwgt, index):
         if 0 <= index and index < len(tabwgt.encounter_id_list):
-            tabwgt.window._change_enc(tabwgt.encounter_id_list[index])
+            tabwgt.ibswin._change_enc(tabwgt.encounter_id_list[index])
 
     def _close_tab(tabwgt, index):
         if tabwgt.encounter_id_list[index] is not None:
