@@ -21,7 +21,6 @@ def get_qtapp():
     return QAPP
 
 
-@profile
 def ensure_qtapp():
     global IS_ROOT
     global QAPP
@@ -51,17 +50,17 @@ init_qtapp = ensure_qtapp
 ensure_qapp = ensure_qtapp
 
 
-@profile
-def activate_qwindow(back):
-    if not QUIET:
-        print('[guitool.qtapp_loop()] qapp.setActiveWindow(back.front)')
+def activate_qwindow(qwin):
     global QAPP
-    back.front.show()
-    QAPP.setActiveWindow(back.front)
+    if not QUIET:
+        print('[guitool.qtapp_loop()] qapp.setActiveWindow(qwin)')
+    if hasattr(qwin, 'front'):
+        qwin = qwin.front
+    qwin.show()
+    QAPP.setActiveWindow(qwin)
 
 
-@profile
-def qtapp_loop_nonblocking(back=None, **kwargs):
+def qtapp_loop_nonblocking(qwin=None, **kwargs):
     global QAPP
     from IPython.lib.inputhook import enable_qt4
     from IPython.lib.guisupport import start_event_loop_qt4
@@ -71,27 +70,36 @@ def qtapp_loop_nonblocking(back=None, **kwargs):
     start_event_loop_qt4(QAPP)
 
 
-@profile
-def qtapp_loop(back=None, ipy=False, **kwargs):
+def qtapp_loop(qwin=None, ipy=False, **kwargs):
     global QAPP
     if not QUIET and VERBOSE:
         print('[guitool.qtapp_loop()]')
-    if back is not None:
-        activate_qwindow(back)
-        back.timer = ping_python_interpreter(**kwargs)
+    if qwin is not None:
+        activate_qwindow(qwin)
+        qwin.timer = ping_python_interpreter(**kwargs)
     if IS_ROOT:
         if not QUIET and VERBOSE:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
         if ipy:
             pass
         else:
-            QAPP.exec_()
+            old_excepthook = sys.excepthook
+            def qt_excepthook(type_, value, traceback):
+                print('QT EXCEPTION HOOK')
+                old_excepthook(type_, value, traceback)
+                QAPP.quit()
+                sys.exit(1)
+            sys.excepthook = qt_excepthook
+            try:
+                QAPP.exec_()
+            except Exception as ex:
+                print('QException: %r' % ex)
+                raise
     else:
         if not QUIET and VERBOSE:
             print('[guitool.qtapp_loop()] not execing')
 
 
-@profile
 def ping_python_interpreter(frequency=420):  # 4200):
     'Create a QTimer which lets the python catch ctrl+c'
     if not QUIET and VERBOSE:

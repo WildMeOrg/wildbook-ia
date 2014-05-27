@@ -44,3 +44,23 @@ def drawing(func):
             pass
         return result
     return drawing_wrapper
+
+
+def checks_qt_error(func):
+    """
+    Decorator which reports qt errors
+    which would otherwise be silent
+    """
+    @functools.wraps(func)
+    def checkqterr_wrapper(self, *args, **kwargs):
+        """ Useful if we haven't overriden sys.excepthook but we have, so this
+        isnt useful. """
+        try:
+            result = func(self, *args, **kwargs)
+        except Exception as ex:  # NOQA
+            #utool.printex(ex, 'caught exception in %r' % func.func_name,
+            #              tb=True, separate=True)
+            raise
+            #raise
+        return result
+    return checkqterr_wrapper

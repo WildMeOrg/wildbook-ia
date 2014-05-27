@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore
 from PyQt4.QtCore import Qt
 import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[qtype]', DEBUG=False)
 
 
 def qindexinfo(index):
@@ -12,26 +14,27 @@ def qindexinfo(index):
     return (item, row, col)
 
 
+@profile
 def cast_into_qt(data, role=Qt.DisplayRole, flags=Qt.DisplayRole):
     """ Casts data to a QVariant """
     if role == Qt.CheckStateRole and flags & Qt.ItemIsUserCheckable:
-        var = Qt.Checked if data else Qt.Unchecked
+        return Qt.Checked if data else Qt.Unchecked
     elif role == Qt.DisplayRole:
+        if utool.is_str(data):
+            return QtCore.QVariant(str(data)).toString()
         if utool.is_float(data):
-            var = QtCore.QVariant(QtCore.QString.number(float(data), format='g', precision=8))
+            return QtCore.QVariant(QtCore.QString.number(float(data), format='g', precision=8))
         elif utool.is_bool(data):
-            var = QtCore.QVariant(bool(data)).toString()
+            return QtCore.QVariant(bool(data)).toString()
         elif  utool.is_int(data):
-            var = QtCore.QVariant(int(data)).toString()
-        elif  utool.is_str(data):
-            var = QtCore.QVariant(str(data)).toString()
+            return QtCore.QVariant(int(data)).toString()
         else:
-            var = 'Unknown qtype: %r' % type(data)
+            return 'Unknown qtype: %r for data=%r' % (type(data), data)
     else:
-        var = QtCore.QVariant()
-    return var
+        return QtCore.QVariant()
 
 
+@profile
 def cast_from_qt(var, type_):
     """ Casts a QVariant to data """
     if isinstance(var, QtCore.QVariant):
