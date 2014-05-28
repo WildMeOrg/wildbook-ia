@@ -28,76 +28,12 @@ class IBEISTableView(QtGui.QTableView):
         view.model()._change_enc(eid)
 
 
-class ImageView(QtGui.QTableView):
-    def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
-        view.ibswin = parent
-        default_view_layout(view)
-
-    def _change_enc(view, eid):
-        view.model()._change_enc(eid)
-
-    def mouseDoubleClickEvent(view, event):
-        qtindex_list = view.selectedIndexes()[0]
-        print('[imgview] selected %d ' % len(qtindex_list))
-        print('[imgview] event= %r ' % event)
-        if len(qtindex_list) > 0:
-            qtindex = qtindex_list[0]
-            row = qtindex.row()
-            row_id = view.model()._get_row_id(row)
-            print("Image Selected, %r (ENC %r)" % (row_id, view.model().eid))
-        else:
-            print('!!!!!!!!!!!!!!')
-
-
-class ROIView(QtGui.QTableView):
-    def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
-        view.ibswin = parent
-        default_view_layout(view)
-
-    def _change_enc(view, eid):
-        view.model()._change_enc(eid)
-
-    def mouseDoubleClickEvent(view, event):
-        qtindex = view.selectedIndexes()[0]
-        row = qtindex.row()
-        row_id = view.model()._get_row_id(row)
-        print("ROI Selected, %r (ENC %r)" % (row_id, view.model().eid))
-
-
-class NameView(QtGui.QTableView):
-    def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
-        view.ibswin = parent
-        default_view_layout(view)
-
-    def _change_enc(view, eid):
-        view.model()._change_enc(eid)
-
-    def mouseDoubleClickEvent(view, event):
-        qtindex = view.selectedIndexes()[0]
-        row = qtindex.row()
-        row_id = view.model()._get_row_id(row)
-        print("Name Selected, %r (ENC %r)" % (row_id, view.model().eid))
-
-
 class EncView(QtGui.QTableView):
     def __init__(view, parent=None):
         QtGui.QTableView.__init__(view, parent)
         view.ibswin = parent
         default_view_layout(view)
-        view.setMaximumSize(600, 9999)
-        #hh = view.horizontalHeader()
-        #hh.setVisible(False)
-
-    def mouseDoubleClickEvent(view, event):
-        qtindex = view.selectedIndexes()[0]
-        row = qtindex.row()
-        model = view.model()
-        eid = model._get_row_id(row)
-        enctext = view.ibswin.ibs.get_encounter_enctext(eid)
-        view.ibswin.enc_tabwgt._add_enc_tab(eid, enctext)
+        view.setMaximumSize(500, 9999)
 
 
 #############################

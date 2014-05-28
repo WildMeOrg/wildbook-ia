@@ -3,9 +3,10 @@ from guitool.guitool_components import newMenu, newMenubar, msg_event
 
 class DummyBack(object):
     def __init__(self):
+        print('using dummy back')
         pass
     def __getattr__(self, name):
-        print(name)
+        #print(name)
         if name.startswith('_'):
             return self.__dict__[name]
         return None

@@ -13,6 +13,7 @@ from plottool import fig_presenter
 # IBEIS
 from ibeis.dev import ibsfuncs, sysres
 from ibeis.gui import newgui
+from ibeis.gui import guiheaders as gh
 from ibeis.gui import uidtables as uidtables
 from ibeis.viz import interact
 # Utool
@@ -24,12 +25,6 @@ from ibeis.control import IBEISControl
 
 VERBOSE = utool.VERBOSE
 
-# Wrapped QT UUID type (usually string or long)
-QT_IMAGE_UID_TYPE = uidtables.UID_TYPE
-QT_ROI_UID_TYPE   = uidtables.UID_TYPE
-QT_NAME_UID_TYPE  = uidtables.UID_TYPE
-ENC_TYPE = str
-
 
 def backblock(func):
     """
@@ -38,22 +33,15 @@ def backblock(func):
     way to make it more general?
     """
     @functools.wraps(func)
+    @guitool.checks_qt_error
     def bacblock_wrapper(back, *args, **kwargs):
-        #wasBlocked_ = back.front.blockSignals(True)
-        #try:
-        result = func(back, *args, **kwargs)
-        #except Exception as ex:
-        #    back.front.blockSignals(wasBlocked_)  # unblock signals on exception
-        #    #print(traceback.format_exc())
-        #    msg = ('caught exception in %r' % func.func_name)
-        #    msg += '\n' + str(ex)
-        #    print('\n\n\n')
-        #    utool.printex(ex, msg)
-        #    print('\n\n\n')
-        #    back.user_info(msg=msg, title=str(type(ex)))
-        #    raise
-        #    #raise
-        #back.front.blockSignals(wasBlocked_)
+        _wasBlocked_ = back.front.blockSignals(True)
+        try:
+            result = func(back, *args, **kwargs)
+        except Exception:
+            raise
+        finally:
+            back.front.blockSignals(_wasBlocked_)  # unblock regardless
         return result
     return bacblock_wrapper
 
@@ -265,8 +253,8 @@ class MainWindowBackend(QtCore.QObject):
         if eids is not None:
             back.sel_eids = eids
 
-    @blocking_slot(QT_IMAGE_UID_TYPE, ENC_TYPE)
-    def select_gid(back, gid, enctext=None, sel_rids=None, **kwargs):
+    @backblock
+    def select_gid(back, gid, eid=None, sel_rids=None, **kwargs):
         # Table Click -> Image Table
         # Select the first ROI in the image if unspecified
         if sel_rids is None:
@@ -275,17 +263,13 @@ class MainWindowBackend(QtCore.QObject):
                 sel_rids = rids[0:1]
             else:
                 sel_rids = []
-        gid = uidtables.qt_cast(gid)
-        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
         print('[back] select_gid(gid=%r, eid=%r, sel_rids=%r)' % (gid, eid, sel_rids))
         back._set_selection(gids=(gid,), rids=sel_rids, eids=[eid], **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
 
-    @blocking_slot(QT_ROI_UID_TYPE, ENC_TYPE)
-    def select_rid(back, rid, enctext=None, show_roi=True, **kwargs):
+    @backblock
+    def select_rid(back, rid, eid=None, show_roi=True, **kwargs):
         # Table Click -> Chip Table
-        rid = uidtables.qt_cast(rid)
-        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
         print('[back] select rid=%r, eid=%r' % (rid, eid))
         gid = back.ibs.get_roi_gids(rid)
         nid = back.ibs.get_roi_nids(rid)
@@ -293,17 +277,16 @@ class MainWindowBackend(QtCore.QObject):
         if show_roi:
             back.show_roi(rid, **kwargs)
 
-    @slot_(QT_NAME_UID_TYPE, ENC_TYPE)
-    def select_nid(back, nid, enctext=None, show_name=True, **kwargs):
+    @backblock
+    def select_nid(back, nid, eid=None, show_name=True, **kwargs):
         # Table Click -> Name Table
         nid = uidtables.qt_cast(nid)
-        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
         print('[back] select nid=%r, eid=%r' % (nid, eid))
         back._set_selection(nids=[nid], eids=[eid], **kwargs)
         if show_name:
             back.show_name(nid, **kwargs)
 
-    @slot_(QT_ROI_UID_TYPE, ENC_TYPE)
+    @backblock
     def select_qres_rid(back, rid, enctext=None, **kwargs):
         # Table Click -> Result Table
         eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
@@ -449,8 +432,9 @@ class MainWindowBackend(QtCore.QObject):
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
         printDBG('[back.add_roi] * added rid=%r' % (rid,))
         if refresh:
-            back.populate_tables(qres=False, encounter=False)
-            back.show_image(gid)
+            #back.populate_tables(qres=False, encounter=False)
+            #back.show_image(gid)
+            pass
         #back.select_gid(gid, rids=[rid])
         return rid
 
@@ -465,7 +449,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] reselect_roi')
         back.ibs.set_roi_bboxes([rid], [bbox])
         if refresh:
-            back.populate_tables(roi=True, default=False)
+            #back.populate_tables(roi=True, default=False)
             back.show_image(gid)
 
     @blocking_slot()
@@ -485,25 +469,23 @@ class MainWindowBackend(QtCore.QObject):
         qres = qrid2_qres[rid]
         back._set_selection(qres=[qres])
         if refresh:
-            back.populate_tables(qres=True, default=False)
+            #back.populate_tables(qres=True, default=False)
             back.show_qres(qres)
 
     @blocking_slot()
     def _detect_grevys(back, quick=True, refresh=True):
         print('\n\n')
-        if quick:
-            print('[back] detect_grevys(quick)')
-        else:
-            print('[back] detect_grevys(fine)')
+        print('[back] detect_grevys(quick=%r)' % quick)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs)
         ibs.detect_random_forest(gid_list, 'zebra_grevys', quick)
         if refresh:
-            back.populate_tables(encounter=False, qres=False)
+            back.front.change_models([gh.IMAGE_TABLE, gh.ROI_TABLE])
+            #back.populate_tables(encounter=False, qres=False)
 
     @blocking_slot()
     def detect_grevys_quick(back, refresh=True):
-        back._detect_grevys()
+        back._detect_grevys(quick=True)
 
     @blocking_slot()
     def detect_grevys_fine(back, refresh=True):
@@ -525,7 +507,7 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.delete_rois([rid])
         pass
 
-    @blocking_slot(QT_IMAGE_UID_TYPE)
+    @blocking_slot(int)
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
         print('[back] delete_image')
