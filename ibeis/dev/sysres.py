@@ -31,7 +31,7 @@ def _ibeis_cache_read(key, **kwargs):
 # Specific cache getters / setters
 
 def set_default_dbdir(dbdir):
-    print('seting default database directory to: %r' % dbdir)
+    print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
 
 

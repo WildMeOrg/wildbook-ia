@@ -52,6 +52,7 @@ class SQLDatabaseController(object):
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
         db.table_columns = {}
+        db.is_dirty = False  # used by apitablemodel for cache invalidation
 
     @profile
     def sanatize_sql(db, tablename, columns=None):
@@ -168,6 +169,12 @@ class SQLDatabaseController(object):
         # Append to internal storage
         db.table_columns[tablename] = schema_list
 
+    def about_to_execute(db, operation):
+        operation_type = get_operation_type(operation)
+        if operation_type == 'INSERT':
+            db.isdirty = True
+        return operation_type
+
     @profile
     def execute(db, operation, params=(), auto_commit=False, errmsg=None,
                 verbose=VERBOSE):
@@ -190,6 +197,7 @@ class SQLDatabaseController(object):
         #if verbose:
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql] %r called execute' % caller_name)
+        db.about_to_execute(operation)
         status = False
         try:
             status = db.executor.execute(operation, params)
@@ -208,7 +216,7 @@ class SQLDatabaseController(object):
         #if verbose:
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql] %r called executeone' % caller_name)
-        operation_type = get_operation_type(operation)
+        operation_type = db.about_to_execute(operation)
         operation_label = '[sql] executeone %s: ' % (operation_type)
         if not QUIET:
             tt = utool.tic(operation_label)
@@ -256,7 +264,7 @@ class SQLDatabaseController(object):
         This function is a bit messy right now. Needs cleaning up
         """
         # Do any preprocesing on the SQL command / query
-        operation_type = get_operation_type(operation)
+        operation_type = db.about_to_execute(operation)
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
             params_iter = list(params_iter)
@@ -273,13 +281,14 @@ class SQLDatabaseController(object):
         #
         # Define helper functions
         def _executor(params):
-            # Send command to SQL (all other results will be invalided)
+            """HELPER: Send command to SQL (all other results are invalided)"""
             db.executor.execute(operation, params)
             # Read all results
             results_ = [result for result in db.result_iter(verbose=False)]
             return results_
         #
         def _unpacker(results_):
+            """HELPER: Unpakcks results if unpack_scalars is true"""
             results = None if len(results_) == 0 else results_[0]
             assert len(results_) < 2, 'throwing away results!'
             return results
@@ -298,8 +307,8 @@ class SQLDatabaseController(object):
                 raise lite.Error('num_params=%r != num_results=%r'
                                  % (num_params, num_results))
         except Exception as ex:
-            utool.printex(ex, 'Execute Many Error', '[!sql]', key_list=[
-                (str, 'operation'), 'params', 'params_iter'])
+            utool.printex(ex, 'Execute Many Error', '[!sql]',
+                          key_list=[(str, 'operation'), 'params', 'params_iter'])
             db.dump()
             raise
         #
@@ -307,8 +316,8 @@ class SQLDatabaseController(object):
             printDBG(utool.toc(tt, True))
         #
         if auto_commit:
-            if verbose:
-                print('[sql.executemany] commit')
+            #if verbose:
+            #    print('[sql.executemany] commit')
             db.commit(errmsg=errmsg, verbose=False)
         return result_list
 

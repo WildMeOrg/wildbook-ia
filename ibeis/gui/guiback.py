@@ -393,7 +393,8 @@ class MainWindowBackend(QtCore.QObject):
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
-            back.populate_image_table()
+            pass
+            #back.populate_image_table()
         return gid_list
 
     @blocking_slot()
