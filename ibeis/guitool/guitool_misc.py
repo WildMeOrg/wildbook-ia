@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
+import sys
 import logging
 # Qt
 from PyQt4 import QtCore
@@ -32,3 +33,13 @@ class GUILoggingHandler(logging.StreamHandler):
             raise
         except:
             self.handleError(record)
+
+
+def get_cplat_tab_height():
+    if sys.platform.startswith('darwin'):
+        tab_height = 21
+    else:
+        tab_height = 30
+    return tab_height
+
+

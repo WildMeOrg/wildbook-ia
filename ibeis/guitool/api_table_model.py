@@ -4,13 +4,17 @@ from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error
 from itertools import izip
-from functools import wraps  # noqa
+import functools
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
 
 
 class ChangingModelLayout(object):
+    """
+    Context manager emitting layoutChanged before body,
+    not updating durring body, and then updating after body.
+    """
     @utool.accepts_scalar_input
     def __init__(self, model_list, *args):
         #print('Changing: %r' % (model_list,))
@@ -32,8 +36,8 @@ def updater(func):
     the middle of a layout changed
     """
     func = profile(func)
-    #@wraps(func)
     #@checks_qt_error
+    @functools.wraps(func)
     def updater_wrapper(model, *args, **kwargs):
         #with ChangingModelLayout(model):
         model._about_to_change()
@@ -44,9 +48,7 @@ def updater(func):
 
 
 def otherfunc(func):
-    """
-    Dummy decorator
-    """
+    """ Dummy decorator """
     return checks_qt_error(profile(func))
 
 
@@ -56,25 +58,19 @@ class APITableModel(QtCore.QAbstractTableModel):
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
         """
-            col_name_list -> list of keys or SQL-like name for column to reference
-                             abstracted data storage using getters and setters
-            col_type_list -> list of column value (Python) types
-            col_nice_list -> list of well-formatted names of the columns
-            col_edit_list -> list of booleans for if column should be editable
-            ----
-            col_setter_list -> list of setter functions
-            col_getter_list -> list of getter functions
-            ----
-            col_sort_name -> key or SQL-like name to sort the column
-            col_sort_reverse -> boolean of if to reverse the sort ordering
-            ----
-
-            REQUIRED:
-                ider
-                col_name_list
-                col_type_list
-                col_setter_list
-                col_getter_list
+        ider          : function which returns ids for setters and getters
+        col_name_list : list of keys or SQL-like name for column to reference
+                        abstracted data storage using getters and setters
+        col_type_list : list of column value (Python) types
+        col_nice_list : list of well-formatted names of the columns
+        col_edit_list : list of booleans for if column should be editable
+        ----
+        col_setter_list : list of setter functions
+        col_getter_list : list of getter functions
+        ----
+        col_sort_index : index into col_name_list for sorting
+        col_sort_reverse : boolean of if to reverse the sort ordering
+        ----
         """
         super(APITableModel, model).__init__()
         # Class member variables
@@ -97,21 +93,21 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._about_to_change()
         if headers is None:
             headers = {}
-        model._init_headers(**headers)
+        model._update_headers(**headers)
 
     @updater
-    def _init_headers(model,
-                      ider=None,
-                      name=None,
-                      nice=None,
-                      col_name_list=None,
-                      col_type_list=None,
-                      col_nice_list=None,
-                      col_edit_list=None,
-                      col_setter_list=None,
-                      col_getter_list=None,
-                      col_sort_index=None,
-                      col_sort_reverse=None):
+    def _update_headers(model,
+                        ider=None,
+                        name=None,
+                        nice=None,
+                        col_name_list=None,
+                        col_type_list=None,
+                        col_nice_list=None,
+                        col_edit_list=None,
+                        col_setter_list=None,
+                        col_getter_list=None,
+                        col_sort_index=None,
+                        col_sort_reverse=None):
         model.cache = {}  # FIXME: This is not sustainable
         model.name = name
         model.nice = nice
@@ -122,7 +118,8 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._set_col_edit(col_edit_list)
         model._set_col_setter(col_setter_list)
         model._set_col_getter(col_getter_list)
-        model._set_sort(col_sort_index, col_sort_reverse)  # calls model._update_rows()
+        # calls model._update_rows()
+        model._set_sort(col_sort_index, col_sort_reverse)
 
     def _about_to_change(model):
         N = range(1, 15)  # NOQA
@@ -178,7 +175,8 @@ class APITableModel(QtCore.QAbstractTableModel):
             col_name_list = []
         if col_type_list is None:
             col_type_list = []
-        assert len(col_name_list) == len(col_type_list), 'inconsistent colnametype'
+        assert len(col_name_list) == len(col_type_list), \
+            'inconsistent colnametype'
         model.col_name_list = col_name_list
         model.col_type_list = col_type_list
 
@@ -186,28 +184,32 @@ class APITableModel(QtCore.QAbstractTableModel):
     def _set_col_nice(model, col_nice_list=None):
         if col_nice_list is None:
             col_nice_list = model.col_name_list[:]
-        assert len(model.col_name_list) == len(col_nice_list), 'inconsistent colnice'
+        assert len(model.col_name_list) == len(col_nice_list), \
+            'inconsistent colnice'
         model.col_nice_list = col_nice_list
 
     @otherfunc
     def _set_col_edit(model, col_edit_list=None):
         if col_edit_list is None:
             col_edit_list = [False] * len(model.col_name_list)
-        assert len(model.col_name_list) == len(col_edit_list), 'inconsistent coledit'
+        assert len(model.col_name_list) == len(col_edit_list), \
+            'inconsistent coledit'
         model.col_edit_list = col_edit_list
 
     @otherfunc
     def _set_col_setter(model, col_setter_list=None):
         if col_setter_list is None:
             col_setter_list = []
-        assert len(model.col_name_list) == len(col_setter_list), 'inconsistent colsetter'
+        assert len(model.col_name_list) == len(col_setter_list), \
+            'inconsistent colsetter'
         model.col_setter_list = col_setter_list
 
     @otherfunc
     def _set_col_getter(model, col_getter_list=None):
         if col_getter_list is None:
             col_getter_list = []
-        assert len(model.col_name_list) == len(col_getter_list), 'inconsistent colgetter'
+        assert len(model.col_name_list) == len(col_getter_list), \
+            'inconsistent colgetter'
         model.col_getter_list = col_getter_list
 
     @otherfunc
@@ -215,7 +217,8 @@ class APITableModel(QtCore.QAbstractTableModel):
         if col_sort_index is None:
             col_sort_index = 0
         else:
-            assert col_sort_index < len(model.col_name_list), 'sort index out of bounds by: %r' % col_sort_index
+            assert col_sort_index < len(model.col_name_list), \
+                'sort index out of bounds by: %r' % col_sort_index
         if not utool.is_bool(col_sort_reverse):
             col_sort_reverse = False
         model.col_sort_index = col_sort_index

@@ -30,37 +30,18 @@ def slot_(*types):  # This is called at wrap time to get args
     return pyqtSlotWrapper
 
 
-# DRAWING DECORATOR
-def drawing(func):
-    """
-    Wraps a class function and draws windows on completion
-    """
-    @utool.ignores_exc_tb
-    @functools.wraps(func)
-    def drawing_wrapper(self, *args, **kwargs):
-        #print('[DRAWING]: ' + utool.func_str(func, args, kwargs))
-        result = func(self, *args, **kwargs)
-        if kwargs.get('dodraw', True):
-            pass
-        return result
-    return drawing_wrapper
-
-
 def checks_qt_error(func):
     """
-    Decorator which reports qt errors
-    which would otherwise be silent
+    Decorator which reports qt errors which would otherwise be silent Useful if
+    we haven't overriden sys.excepthook but we have, so this isnt useful.
     """
     @functools.wraps(func)
     def checkqterr_wrapper(self, *args, **kwargs):
-        """ Useful if we haven't overriden sys.excepthook but we have, so this
-        isnt useful. """
         try:
             result = func(self, *args, **kwargs)
-        except Exception as ex:  # NOQA
-            #utool.printex(ex, 'caught exception in %r' % func.func_name,
-            #              tb=True, separate=True)
+        except Exception as ex:
+            utool.printex(ex, 'caught exception in %r' % func.func_name,
+                          tb=True, separate=True)
             raise
-            #raise
         return result
     return checkqterr_wrapper
