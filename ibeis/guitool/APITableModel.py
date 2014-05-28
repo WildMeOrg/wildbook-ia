@@ -125,7 +125,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._set_sort(col_sort_index, col_sort_reverse)  # calls model._update_rows()
 
     def _about_to_change(model):
-        N = range(1, 15)
+        N = range(1, 15)  # NOQA
         if True or not model._abouttochange and model._haschanged:
             model._abouttochange = True
             model._haschanged = False
@@ -137,11 +137,11 @@ class APITableModel(QtCore.QAbstractTableModel):
             return False
 
     def _change(model):
-        N = range(1, 15)
+        N = range(1, 15)  # NOQA
         if True or not model._haschanged or model._abouttochange:
             model._abouttochange = False
             model._haschanged = True
-            print('LAYOUT CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            #print('LAYOUT CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             model.layoutChanged.emit()
             return True
         else:
