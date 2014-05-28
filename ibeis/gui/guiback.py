@@ -95,7 +95,6 @@ class MainWindowBackend(QtCore.QObject):
 
         # Create GUIFrontend object
         back.front = newgui.IBEISGuiWidget(back=back, ibs=ibs)
-
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.front)
 
@@ -188,33 +187,17 @@ class MainWindowBackend(QtCore.QObject):
     #@utool.indent_func
     def update_window_title(back):
         pass
-        #back.front.refresh_state()
-        #if back.ibs is None:
-        #    title = 'IBEIS - No Database Open'
-        #elif back.ibs.dbdir is None:
-        #    title = 'IBEIS - invalid database'
-        #else:
-        #    dbdir = back.ibs.get_dbdir()
-        #    dbname = back.ibs.get_dbname()
-        #    title = 'IBEIS - %r - %s' % (dbname, dbdir)
-        #print('[back] update_window_title: tile = %r' % (title,))
-        #back.updateWindowTitleSignal.emit(title)
-        #print('[back] back.front.setWindowTitle(title=%r)' % (str(title),))
-        #back.front.setWindowTitle(title)
 
     #@utool.indent_func
     def refresh_state(back):
-        pass
-        #print('[back] REFRESH')
-        #back.populate_tables()
-        #back.update_window_title()
+        """ Blanket refresh function. Try not to call this """
+        back.front.update_tables()
 
-    @utool.indent_func
+    #@utool.indent_func
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
         back.front.connect_ibeis_control(ibs)
-        back.refresh_state()
 
     #--------------------------------------------------------------------------
     # Helper functions
@@ -255,7 +238,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @backblock
     def select_gid(back, gid, eid=None, sel_rids=None, **kwargs):
-        # Table Click -> Image Table
+        """ Table Click -> Image Table """
         # Select the first ROI in the image if unspecified
         if sel_rids is None:
             rids = back.ibs.get_image_rids(gid)
@@ -269,7 +252,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @backblock
     def select_rid(back, rid, eid=None, show_roi=True, **kwargs):
-        # Table Click -> Chip Table
+        """ Table Click -> Chip Table """
         print('[back] select rid=%r, eid=%r' % (rid, eid))
         gid = back.ibs.get_roi_gids(rid)
         nid = back.ibs.get_roi_nids(rid)
@@ -279,7 +262,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @backblock
     def select_nid(back, nid, eid=None, show_name=True, **kwargs):
-        # Table Click -> Name Table
+        """ Table Click -> Name Table """
         nid = uidtables.qt_cast(nid)
         print('[back] select nid=%r, eid=%r' % (nid, eid))
         back._set_selection(nids=[nid], eids=[eid], **kwargs)
@@ -288,7 +271,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @backblock
     def select_qres_rid(back, rid, enctext=None, **kwargs):
-        # Table Click -> Result Table
+        """ Table Click -> Result Table """
         eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
         rid = uidtables.qt_cast(rid)
         print('[back] select result rid=%r, eid=%r' % (rid, eid))
@@ -299,7 +282,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def default_preferences(back):
-        # Button Click -> Preferences Defaults
+        """ Button Click -> Preferences Defaults """
         print('[back] default preferences')
         back.ibs._default_config()
 
@@ -393,7 +376,7 @@ class MainWindowBackend(QtCore.QObject):
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
-            pass
+            back.front.update_tables([gh.IMAGE_TABLE])
             #back.populate_image_table()
         return gid_list
 
@@ -433,7 +416,7 @@ class MainWindowBackend(QtCore.QObject):
         rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
         printDBG('[back.add_roi] * added rid=%r' % (rid,))
         if refresh:
-            #back.populate_tables(qres=False, encounter=False)
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
             #back.show_image(gid)
             pass
         #back.select_gid(gid, rids=[rid])
@@ -450,7 +433,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] reselect_roi')
         back.ibs.set_roi_bboxes([rid], [bbox])
         if refresh:
-            #back.populate_tables(roi=True, default=False)
+            back.front.update_tables([gh.ROI_TABLE])
             back.show_image(gid)
 
     @blocking_slot()
@@ -479,10 +462,9 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] detect_grevys(quick=%r)' % quick)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs)
-        ibs.detect_random_forest(gid_list, 'zebra_grevys', quick)
+        ibs.detect_random_forest(gid_list, 'zebra_grevys', quick=quick)
         if refresh:
-            back.front.change_models([gh.IMAGE_TABLE, gh.ROI_TABLE])
-            #back.populate_tables(encounter=False, qres=False)
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
 
     @blocking_slot()
     def detect_grevys_quick(back, refresh=True):
@@ -540,8 +522,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] precompute_feats')
         ibsfuncs.compute_all_features(back.ibs)
         if refresh:
-            back.refresh_state()
-        pass
+            back.front.update_tables()
 
     @blocking_slot()
     def precompute_queries(back):
@@ -556,7 +537,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] compute_encounters')
         back.ibs.compute_encounters()
         if refresh:
-            back.refresh_state()
+            back.front.update_tables()
 
     #--------------------------------------------------------------------------
     # Option menu slots

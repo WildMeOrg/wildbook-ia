@@ -21,7 +21,10 @@ def scale_bbox(bbox, s):
 def generate_detections(ibs, gid_list, species, **kwargs):
     """ kwargs can be: save_detection_images, save_scales, draw_supressed,
         detection_width, detection_height, percentage_left, percentage_top,
-        nms_margin_percentage """
+        nms_margin_percentage
+
+        Yeilds tuples of image ids and bounding boxes
+    """
     #
     # Get resized images to detect on
     src_gpath_list = ibs.get_image_detectpaths(gid_list)
@@ -36,13 +39,15 @@ def generate_detections(ibs, gid_list, species, **kwargs):
 
     for gid, scale, bboxes in izip(gid_list, scale_list, bboxes_list):
         # Unscale results
-        bboxes2 = [scale_bbox(bbox, scale) for bbox in bboxes]
-        yield gid, bboxes2
+        unscaled_bboxes = [scale_bbox(bbox_, scale) for bbox_ in bboxes]
+        for bbox in unscaled_bboxes:
+            yield gid, bbox
 
 
 def detect_species_bboxes(src_gpath_list, species, quick=True, **kwargs):
     """
     Generates bounding boxes for each source image
+    For each image yeilds a list of bounding boxes
     """
     # Ensure all models downloaded and accounted for
     grabmodels.ensure_models()

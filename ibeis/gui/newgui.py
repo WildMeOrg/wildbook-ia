@@ -4,7 +4,7 @@ import utool
 import guitool
 from itertools import izip  # noqa
 from PyQt4 import QtGui, QtCore
-from guitool import slot_, checks_qt_error, ChangingModelLayout
+from guitool import slot_, checks_qt_error, ChangingModelLayout  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
@@ -43,8 +43,6 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
             enc_tabwgt.ibswin._change_enc(eid)
-        enc_tabwgt.ibswin.refresh_state()
-        #enc_tabwgt.setTabText(index,  '?')
 
     def _close_tab(enc_tabwgt, index):
         if enc_tabwgt.eid_list[index] is not None:
@@ -76,9 +74,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 #############################
 
 #class IBEISMainWindow(QtGui.QMainWindow):
-
 class IBEISGuiWidget(QtGui.QMainWindow):
-    @checks_qt_error
+    #@checks_qt_error
     def __init__(ibswin, back=None, ibs=None, parent=None):
         QtGui.QMainWindow.__init__(ibswin, parent)
         ibswin.ibs = ibs
@@ -87,7 +84,7 @@ class IBEISGuiWidget(QtGui.QMainWindow):
         ibswin._connect_signals_and_slots()
         ibswin.connect_ibeis_control(ibswin.ibs)
 
-    @checks_qt_error
+    #@checks_qt_error
     def _init_layout(ibswin):
         """ Layout the widgets, menus, and containers """
         # Define the abstract item models and views for the tables
@@ -131,7 +128,7 @@ class IBEISGuiWidget(QtGui.QMainWindow):
         ibswin.hsplitter.addWidget(ibswin.views[ENCOUNTER_TABLE])
         ibswin.hsplitter.addWidget(ibswin._tab_table_wgt)
 
-    @checks_qt_error
+    #@checks_qt_error
     def _connect_signals_and_slots(ibswin):
         tblslots = {
             IMAGE_TABLE     : ibswin.on_doubleclick_image,
@@ -142,62 +139,66 @@ class IBEISGuiWidget(QtGui.QMainWindow):
         for tblname, slot in tblslots.iteritems():
             view = ibswin.views[tblname]
             view.doubleClicked.connect(slot)
+            model = ibswin.models[tblname]
+            model._rows_updated.connect(ibswin.on_rows_updated)
 
-    def change_model_context(ibswin, tblnames=None):
+    def change_model_context_gen(ibswin, tblnames=None):
+        """
+        Loops over tablenames emitting layoutChanged at the end for each
+        """
         if tblnames is None:
-            tblnames = ibswin.tblname_list
+            tblnames = ibswin.super_tblname_list
         model_list = [ibswin.models[tblname] for tblname in tblnames]
-        return ChangingModelLayout(model_list)
+        with ChangingModelLayout(model_list):
+            for tblname in tblnames:
+                yield tblname
 
-    def change_models(ibs, tblnames=None):
+    def update_tables(ibswin, tblnames=None):
         """ forces changing models """
-        with ibswin.change_model_context():
-            pass
+        for tblname in ibswin.change_model_context_gen(tblnames=tblnames):
+            model = ibswin.models[tblname]
+            model._update()
 
-    @checks_qt_error
     def connect_ibeis_control(ibswin, ibs):
+        """ Connects a new ibscontroler to the models """
         print('[newgui] connecting ibs control')
         if ibs is None:
             print('[newgui] invalid ibs')
+            title = 'No Database Opened'
         else:
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
-            ibs.delete_invalid_eids()
             # Give the frontend the new control
             ibswin.ibs = ibs
             # Update the api models to use the new control
             header_dict = gh.make_ibeis_headers_dict(ibswin.ibs)
-            with ibswin.change_model_context():
-                for tblname in ibswin.super_tblname_list:
-                    model = ibswin.models[tblname]
-                    header = header_dict[tblname]
-                    model._update_headers(**header)
-        ibswin.refresh_state()
-
-    @checks_qt_error
-    def refresh_state(ibswin):
-        print('Refresh State')
-        title = 'No Database Opened'
-        if ibswin.ibs is not None:
+            print('[newgui] Calling model _update_headers')
+            for tblname in ibswin.change_model_context_gen(ibswin.super_tblname_list):
+                model = ibswin.models[tblname]
+                header = header_dict[tblname]
+                model._update_headers(**header)
+            #ibs.delete_invalid_eids()
             title = ibsfuncs.get_title(ibswin.ibs)
-            for index, tblname in enumerate(ibswin.tblname_list):
-                #model = ibswin.models[tblname]
-                #nRows = len(model.ider())
-                nRows = 42
-                ibswin._tab_table_wgt.setTabText(index, tblname + str(nRows))
         ibswin.setWindowTitle(title)
 
-    @checks_qt_error
     def _change_enc(ibswin, eid):
-        for tblname in ibswin.tblname_list:
+        for tblname in ibswin.change_model_context_gen(tblnames=ibswin.tblname_list):
             ibswin.views[tblname]._change_enc(eid)
 
-    @checks_qt_error
     def _update_enc_tab_name(ibswin, eid, enctext):
         ibswin.enc_tabwgt._update_enc_tab_name(eid, enctext)
 
     #------------
     # SLOTS
     #------------
+
+    @slot_(str, int)
+    def on_rows_updated(ibswin, tblname, nRows):
+        print('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
+        if tblname == ENCOUNTER_TABLE:
+            return
+        tblname = str(tblname)
+        index = ibswin._tab_table_wgt.indexOf(ibswin.views[tblname])
+        ibswin._tab_table_wgt.setTabText(index, tblname + ' ' + str(nRows))
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_image(ibswin, qtindex):
@@ -239,19 +240,11 @@ class IBEISGuiWidget(QtGui.QMainWindow):
 
 if __name__ == '__main__':
     import ibeis
-    import guitool  # NOQA
     import sys
     ibeis._preload(mpl=False, par=False)
-    print('app')
-
     guitool.ensure_qtapp()
-
     dbdir = ibeis.sysres.get_args_dbdir(defaultdb='cache')
-
-    dbdir2 = ibeis.sysres.db_to_dbdir('GZ_ALL')
-
     ibs = IBEISControl.IBEISController(dbdir=dbdir)
-
     ibswin = IBEISGuiWidget(ibs=ibs)
 
     if '--cmd' in sys.argv:

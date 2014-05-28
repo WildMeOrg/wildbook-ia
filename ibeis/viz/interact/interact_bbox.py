@@ -29,7 +29,7 @@ def iselect_bbox(ibs, gid, fnum=1,
         xM = max(x1, x2)
         ym = min(y1, y2)
         yM = max(y1, y2)
-        bbox = map(int, map(round, (xm, ym, xM - xm, yM - ym)))
+        bbox = tuple(map(int, map(round, (xm, ym, xM - xm, yM - ym))))
         # Reconnect the old button press events
         print('[*interact] bbox = %r ' % (bbox,))
         return bbox

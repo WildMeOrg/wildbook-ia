@@ -16,13 +16,18 @@ QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 
 
 def get_operation_type(operation):
+    """ Parses the operation type from an SQL operation """
     operation_type = operation.split()[0].strip()
     if operation_type == 'SELECT':
-        operation_args = utool.str_between(operation, 'SELECT', 'FROM').strip()
+        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
         operation_type += ' ' + operation_args
-    if operation_type == 'INSERT':
-        operation_args = utool.str_between(operation, 'INSERT', '(').strip()
+    elif operation_type == 'INSERT':
+        operation_args = utool.str_between(operation, operation_type, '(').strip()
         operation_type += ' ' + operation_args.replace('\n', ' ')
+    elif operation_type == 'UPDATE':
+        pass
+    elif operation_type == 'DELETE':
+        pass
     return operation_type
 
 
@@ -33,8 +38,8 @@ class SQLDatabaseController(object):
             -------------------------------------------------------
             SQL INSERT: http://www.w3schools.com/sql/sql_insert.asp
             SQL UPDATE: http://www.w3schools.com/sql/sql_update.asp
-            SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
             SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
+            SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
             -------------------------------------------------------
             Init the SQLite3 database connection and the execution object.
             If the database does not exist, it will be automatically created
@@ -42,6 +47,7 @@ class SQLDatabaseController(object):
         """
         printDBG('[sql.__init__]')
         # Get SQL file path
+        db.dbchanged_callback = None
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
@@ -52,7 +58,19 @@ class SQLDatabaseController(object):
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
         db.table_columns = {}
-        db.is_dirty = False  # used by apitablemodel for cache invalidation
+        db._isdirty = False  # used by apitablemodel for cache invalidation
+
+    def get_isdirty(db):
+        return db._isdirty
+
+    def set_isdirty(db, flag):
+        db.isdirty = flag
+
+    def connect_dbchanged_callback(db, callback):
+        db.dbchanged_callback = callback
+
+    def disconnect_dbchanged_callback(db):
+        db.dbchanged_callback = None
 
     @profile
     def sanatize_sql(db, tablename, columns=None):
@@ -170,10 +188,23 @@ class SQLDatabaseController(object):
         db.table_columns[tablename] = schema_list
 
     def about_to_execute(db, operation):
+        """ Checks to see if the operating will change the database """
         operation_type = get_operation_type(operation)
-        if operation_type == 'INSERT':
-            db.isdirty = True
-        return operation_type
+        if any([operation_type.startswith(op)
+                for op in ['INSERT', 'UPDATE', 'DELETE']]):
+            is_changing = True
+            db._isdirty = True
+        else:
+            is_changing = False
+        #else:
+        #    print('[sql] executing: %r' % operation_type)
+        return operation_type, is_changing
+
+    def post_execute(db, is_changing):
+        if is_changing:
+            print('[sql] changed database')
+            if db.dbchanged_callback is not None:
+                db.dbchanged_callback()
 
     @profile
     def execute(db, operation, params=(), auto_commit=False, errmsg=None,
@@ -197,7 +228,7 @@ class SQLDatabaseController(object):
         #if verbose:
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql] %r called execute' % caller_name)
-        db.about_to_execute(operation)
+        operation_type, will_change = db.about_to_execute(operation)
         status = False
         try:
             status = db.executor.execute(operation, params)
@@ -207,6 +238,7 @@ class SQLDatabaseController(object):
             print('[sql] Caught Exception: %r' % (ex,))
             status = True
             raise
+        db.post_execute(will_change)
         return status
 
     @profile
@@ -216,7 +248,7 @@ class SQLDatabaseController(object):
         #if verbose:
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql] %r called executeone' % caller_name)
-        operation_type = db.about_to_execute(operation)
+        operation_type, will_change = db.about_to_execute(operation)
         operation_label = '[sql] executeone %s: ' % (operation_type)
         if not QUIET:
             tt = utool.tic(operation_label)
@@ -232,6 +264,7 @@ class SQLDatabaseController(object):
         result_list = db.result_list(verbose=False)
         if not QUIET:
             printDBG(utool.toc(tt, True))
+        db.post_execute(will_change)
         return result_list
 
     @profile
@@ -264,7 +297,7 @@ class SQLDatabaseController(object):
         This function is a bit messy right now. Needs cleaning up
         """
         # Do any preprocesing on the SQL command / query
-        operation_type = db.about_to_execute(operation)
+        operation_type, will_change = db.about_to_execute(operation)
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
             params_iter = list(params_iter)
@@ -319,27 +352,28 @@ class SQLDatabaseController(object):
             #if verbose:
             #    print('[sql.executemany] commit')
             db.commit(errmsg=errmsg, verbose=False)
+        db.post_execute(will_change)
         return result_list
 
     @profile
     def result(db, verbose=VERBOSE):
         #if verbose:
-            #caller_name = utool.util_dbg.get_caller_name()
-            #print('[sql.result] caller_name=%r' % caller_name)
+        #    caller_name = utool.util_dbg.get_caller_name()
+        #    print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
 
     @profile
     def result_list(db, verbose=VERBOSE):
         #if verbose:
-            #caller_name = utool.util_dbg.get_caller_name()
-            #print('[sql.result_list] caller_name=%r' % caller_name)
+        #    caller_name = utool.util_dbg.get_caller_name()
+        #    print('[sql.result_list] caller_name=%r' % caller_name)
         return list(db.result_iter(verbose=False))
 
     @profile
     def result_iter(db, verbose=VERBOSE):
         #if verbose:
-            #caller_name = utool.util_dbg.get_caller_name()
-            #print('[sql.result_iter] caller_name=%r' % caller_name)
+        #    caller_name = utool.util_dbg.get_caller_name()
+        #    print('[sql.result_iter] caller_name=%r' % caller_name)
         while True:
             result = db.executor.fetchone()
             if not result:

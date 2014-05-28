@@ -10,6 +10,7 @@ THIS DEFINES THE ARCHITECTURE OF IBEIS
 from __future__ import absolute_import, division, print_function
 # Python
 import atexit
+import requests
 from itertools import izip, imap
 from os.path import join, split
 # Science
@@ -18,6 +19,8 @@ import numpy as np
 from vtool import image as gtool
 # UTool
 import utool
+# IBEIS EXPORT
+import ibeis.export.export_wb as wb
 # IBEIS DEV
 from ibeis import constants
 from ibeis.dev import ibsfuncs
@@ -27,6 +30,10 @@ from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_image
 from ibeis.model.preproc import preproc_feat
 from ibeis.model.preproc import preproc_detectimg
+from ibeis.model.preproc import preproc_encounter
+from ibeis.model.detect import randomforest
+from ibeis.model.hots import match_chips3 as mc3
+from ibeis.model.hots import QueryRequest
 # IBEIS
 from ibeis.control import DB_SCHEMA
 from ibeis.control import SQLDatabaseControl as sqldbc
@@ -82,6 +89,7 @@ class IBEISController(object):
         if utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.qreq = None  # query requestor object
+        ibs.ibschanged_callback = None
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         ibs._init_wb(wbaddr)  # this will do nothing if no wildbook address is specified
         ibs._init_sql()
@@ -93,7 +101,6 @@ class IBEISController(object):
         if wbaddr is None:
             return
         #TODO: Clean this up to use like utool and such
-        import requests
         try:
             requests.get(wbaddr)
         except requests.MissingSchema as msa:
@@ -144,6 +151,7 @@ class IBEISController(object):
     def _init_sql(ibs):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
+        ibs.db.connect_dbchanged_callback(ibs.__dbchanged_callback)
         DB_SCHEMA.define_IBEIS_schema(ibs)
         ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
@@ -203,6 +211,23 @@ class IBEISController(object):
     def get_num_names(ibs):
         nid_list = ibs.get_valid_nids()
         return len(nid_list)
+
+    def get_dirty(ibs):
+        return ibs.db.get_isdirty()
+
+    def set_dirty(ibs, flag):
+        ibs.db.set_isdirty(flag)
+
+    def __dbchanged_callback(ibs):
+        print('[ibs] sqldb changed')
+        if ibs.ibschanged_callback is not None:
+            ibs.ibschanged_callback()
+
+    def disconnect_ibschanged(ibs):
+        ibs.ibschanged_callback = None
+
+    def connect_ibschanged(ibs, callback):
+        ibs.ibschanged_callback = callback
 
     #
     #
@@ -358,6 +383,7 @@ class IBEISController(object):
     def add_rois(ibs, gid_list, bbox_list, theta_list=None, viewpoint_list=None,
                  nid_list=None, name_list=None, notes_list=None):
         """ Adds oriented ROI bounding boxes to images """
+        print('[ibs] adding rois')
         assert name_list is None or nid_list is None,\
             'cannot specify both names and nids'
         if theta_list is None:
@@ -422,6 +448,7 @@ class IBEISController(object):
         cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         dirty_rids = utool.get_dirty_items(rid_list, cid_list)
         if len(dirty_rids) > 0:
+            print('[ibs] adding chips')
             try:
                 # FIXME: Cant be lazy until chip config / delete issue is fixed
                 preproc_chip.compute_and_write_chips(ibs, rid_list)
@@ -453,6 +480,7 @@ class IBEISController(object):
     @adder
     def add_feats(ibs, cid_list, force=False):
         """ Computes the features for every chip without them """
+        print('[ibs] adding features')
         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
         if len(dirty_cids) > 0:
@@ -481,6 +509,7 @@ class IBEISController(object):
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
+            print('[ibs] adding %d names' % len(dirty_names))
             ibsfuncs.assert_valid_names(name_list)
             notes_list = ['' for _ in xrange(len(dirty_names))]
             param_iter = izip(dirty_names, notes_list)
@@ -503,6 +532,7 @@ class IBEISController(object):
     @adder
     def add_encounters(ibs, enctext_list):
         """ Adds a list of names. Returns their nids """
+        print('[ibs] adding %d encounters' % len(enctext_list))
         notes_list = ['' for _ in xrange(len(enctext_list))]
         param_iter = izip(enctext_list, notes_list)
         param_list = list(param_iter)
@@ -591,6 +621,7 @@ class IBEISController(object):
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
         """ Sets the encoutertext of each image """
+        print('[ibs] Setting %r image encounter ids' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
         ibs.db.executemany(
             operation='''
@@ -1443,13 +1474,18 @@ class IBEISController(object):
     # GETTERS::ENCOUNTER
 
     @getter_general
-    def get_valid_eids(ibs, min_num_gids=0):
-        """ returns list of all encounter ids """
-        eid_list = ibs.db.executeone(
+    def _get_all_eids(ibs):
+        all_eids = ibs.db.executeone(
             operation='''
             SELECT encounter_uid
             FROM encounters
             ''')
+        return all_eids
+
+    @getter_general
+    def get_valid_eids(ibs, min_num_gids=0):
+        """ returns list of all encounter ids """
+        eid_list = ibs._get_all_eids()
         if min_num_gids > 0:
             num_gids_list = ibs.get_encounter_num_gids(eid_list)
             flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
@@ -1529,6 +1565,7 @@ class IBEISController(object):
         (CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
         ENSURE THAT NONE OF THE NIDS HAVE ROIS)
         """
+        print('[ibs] deleting %d names' % len(nid_list))
         ibs.db.executemany(
             operation='''
             DELETE
@@ -1540,6 +1577,7 @@ class IBEISController(object):
     @deleter
     def delete_rois(ibs, rid_list):
         """ deletes rois from the database """
+        print('[ibs] deleting %d rois' % len(rid_list))
         ibs.db.executemany(
             operation='''
             DELETE
@@ -1551,6 +1589,7 @@ class IBEISController(object):
     @deleter
     def delete_images(ibs, gid_list):
         """ deletes images from the database that belong to gids"""
+        print('[ibs] deleting %d images' % len(gid_list))
         ibs.db.executemany(  # remove from images
             operation='''
             DELETE
@@ -1569,6 +1608,7 @@ class IBEISController(object):
     @deleter
     def delete_features(ibs, fid_list):
         """ deletes images from the database that belong to gids"""
+        print('[ibs] deleting %d features' % len(fid_list))
         ibs.db.executemany(
             operation='''
             DELETE
@@ -1587,6 +1627,7 @@ class IBEISController(object):
     @deleter
     def delete_chips(ibs, cid_list):
         """ deletes images from the database that belong to gids"""
+        print('[ibs] deleting %d roi-chips' % len(cid_list))
         # Delete chip-images from disk
         preproc_chip.delete_chips(ibs, cid_list)
         # Delete chip features from sql
@@ -1605,6 +1646,7 @@ class IBEISController(object):
     @deleter
     def delete_encounters(ibs, eid_list):
         """ Removes encounters (but not any other data) """
+        print('[ibs] deleting %d encounters' % len(eid_list))
         ibs.db.executemany(  # remove from encounters
             operation='''
             DELETE
@@ -1629,7 +1671,7 @@ class IBEISController(object):
     @otherfunc
     def export_to_wildbook(ibs):
         """ Exports identified chips to wildbook """
-        import ibeis.export.export_wb as wb
+        print('[ibs] exporting to wildbook')
         eid_list = ibs.get_valid_eids()
         addr = "http://127.0.0.1:8080/wildbook-4.1.0-RELEASE"
         #addr = "http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL"
@@ -1651,40 +1693,45 @@ class IBEISController(object):
     @otherfunc
     def compute_encounters(ibs):
         """ Clusters images into encounters """
-        from ibeis.model.preproc import preproc_encounter
+        print('[ibs] computing encounters')
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs)
         ibs.set_image_enctext(flat_gids, enctext_list)
+        print('[ibs] finished computing encounters')
 
     @otherfunc
     def detect_existence(ibs, gid_list, **kwargs):
         """ Detects the probability of animal existence in each image """
-        from ibeis.model.detect import randomforest
         probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
         # Return for user inspection
         return probexist_list
 
     @otherfunc
-    def detect_random_forest(ibs, gid_list, species, quick=True, **kwargs):
+    def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
-        from ibeis.model.detect import randomforest
         # TODO: Return confidence here as well
-        detect_gen = randomforest.generate_detections(ibs, gid_list, species,
-                                                      quick, **kwargs)
+        print('[ibs] detecting using random forests')
+        detect_gen = randomforest.generate_detections(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list = [], []
+        ADD_AFTER_THRESHOLD = 1
+
+        def commit_detections(detected_gids, detectd_bboxes):
+            """ helper to commit detections on the fly """
+            if len(detected_gids) == 0:
+                return
+            notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+            ibs.add_rois(detected_gids, detectd_bboxes, notes_list=notes_list)
+
         for count, (gid, bbox) in enumerate(detect_gen):
             detected_gid_list.append(gid)
             detected_bbox_list.append(bbox)
-            # Save every 100 detections
-            if count > 100:
-                notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
-                ibs.add_rois(detected_gid_list, detected_bbox_list,
-                             notes_list=notes_list)
-                detected_gid_list = []
+            # Save detections as we go
+            if len(detected_gid_list) >= ADD_AFTER_THRESHOLD:
+                commit_detections(detected_gid_list, detected_bbox_list)
+                detected_gid_list  = []
                 detected_bbox_list = []
-
-        notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
-        ibs.add_rois(detected_gid_list, detected_bbox_list,
-                     notes_list=notes_list)
+        # Save any leftover detections
+        commit_detections(detected_gid_list, detected_bbox_list)
+        print('[ibs] finshed detecting')
 
     @otherfunc
     def get_recognition_database_rids(ibs):
@@ -1729,14 +1776,12 @@ class IBEISController(object):
 
     @otherfunc
     def _init_query_requestor(ibs):
-        from ibeis.model.hots import QueryRequest
         # Create query request object
         ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
     @otherfunc
     def _prep_qreq(ibs, qrid_list, drid_list, **kwargs):
-        from ibeis.model.hots import match_chips3 as mc3
         if ibs.qreq is None:
             ibs._init_query_requestor()
         qreq = mc3.prep_query_request(qreq=ibs.qreq,
@@ -1752,7 +1797,6 @@ class IBEISController(object):
         qrid_list - query chip ids
         drid_list - database chip ids
         """
-        from ibeis.model.hots import match_chips3 as mc3
         qreq = ibs._prep_qreq(qrid_list, drid_list, **kwargs)
         qrid2_qres = mc3.process_query_request(ibs, qreq)
         return qrid2_qres
@@ -1762,73 +1806,7 @@ class IBEISController(object):
     #--------------
     # --- MISC ---
     #--------------
-
-    def get_infostr(ibs):
-        """ Returns printable database information """
-        dbname = ibs.get_dbname()
-        workdir = utool.unixpath(ibs.get_workdir())
-        num_images = ibs.get_num_images()
-        num_rois = ibs.get_num_rois()
-        num_names = ibs.get_num_names()
-        infostr = '''
-        workdir = %r
-        dbname = %r
-        num_images = %r
-        num_rois = %r
-        num_names = %r
-        ''' % (workdir, dbname, num_images, num_rois, num_names)
-        return infostr
-
-    def print_roi_table(ibs):
-        """ Dumps roi table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid']))
-
-    def print_chip_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('chips'))
-
-    def print_feat_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('features', exclude_columns=[
-            'feature_keypoints', 'feature_sifts']))
-
-    def print_image_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('images'))
-        #, exclude_columns=['image_uid']))
-
-    def print_name_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('names'))
-
-    def print_config_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('configs'))
-
-    def print_encounter_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('encounters'))
-
-    def print_egpairs_table(ibs):
-        """ Dumps chip table to stdout """
-        print('\n')
-        print(ibs.db.get_table_csv('egpairs'))
-
-    def print_tables(ibs):
-        ibs.print_image_table()
-        ibs.print_roi_table()
-        ibs.print_chip_table()
-        ibs.print_feat_table()
-        ibs.print_name_table()
-        ibs.print_config_table()
-        print('\n')
-
+    # See ibeis/dev/ibsfuncs.py
+    # there is some sneaky stuff happening there
 
 atexit.register(__cleanup)

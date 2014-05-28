@@ -126,6 +126,12 @@ def delete_all_chips(ibs):
 
 
 @__injectable
+def delete_all_encounters(ibs):
+    all_eids = ibs._get_all_eids()
+    ibs.delete_encounters(all_eids)
+
+
+@__injectable
 def vd(ibs):
     utool.view_directory(ibs.get_dbdir())
 
@@ -395,8 +401,13 @@ def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
     try:
         # Check to make sure bbox input is a tuple-list, not a list-list
         if len(bbox_list) > 0:
-            assert isinstance(bbox_list[0], tuple), 'Bounding boxes must be tuples of ints!'
-            assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
+            try:
+                assert isinstance(bbox_list[0], tuple), 'Bounding boxes must be tuples of ints!'
+                assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
+            except AssertionError as ex:
+                utool.printex(ex)
+                print('bbox_list = %r' % (bbox_list,))
+                raise
         roi_uuid_list = [utool.util_hash.augment_uuid(img_uuid, bbox, theta)
                             for img_uuid, bbox, theta
                             in izip(image_uuid_list, bbox_list, theta_list)]
@@ -498,3 +509,90 @@ def get_title(ibs):
         dbname = ibs.get_dbname()
         title = 'IBEIS - %r - %s' % (dbname, dbdir)
     return title
+
+
+@__injectable
+def get_infostr(ibs):
+    """ Returns printable database information """
+    dbname = ibs.get_dbname()
+    workdir = utool.unixpath(ibs.get_workdir())
+    num_images = ibs.get_num_images()
+    num_rois = ibs.get_num_rois()
+    num_names = ibs.get_num_names()
+    infostr = '''
+    workdir = %r
+    dbname = %r
+    num_images = %r
+    num_rois = %r
+    num_names = %r
+    ''' % (workdir, dbname, num_images, num_rois, num_names)
+    return infostr
+
+
+@__injectable
+def print_roi_table(ibs):
+    """ Dumps roi table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid']))
+
+
+@__injectable
+def print_chip_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('chips'))
+
+
+@__injectable
+def print_feat_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('features', exclude_columns=[
+        'feature_keypoints', 'feature_sifts']))
+
+
+@__injectable
+def print_image_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('images'))
+    #, exclude_columns=['image_uid']))
+
+
+@__injectable
+def print_name_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('names'))
+
+
+@__injectable
+def print_config_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('configs'))
+
+
+@__injectable
+def print_encounter_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('encounters'))
+
+
+@__injectable
+def print_egpairs_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('egpairs'))
+
+
+@__injectable
+def print_tables(ibs):
+    ibs.print_image_table()
+    ibs.print_roi_table()
+    ibs.print_chip_table()
+    ibs.print_feat_table()
+    ibs.print_name_table()
+    ibs.print_config_table()
+    print('\n')
