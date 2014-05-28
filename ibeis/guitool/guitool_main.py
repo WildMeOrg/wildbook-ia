@@ -103,7 +103,7 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
 
 def ping_python_interpreter(frequency=420):  # 4200):
     'Create a QTimer which lets the python catch ctrl+c'
-    if not QUIET and VERBOSE:
+    if not QUIET:  # and VERBOSE:
         print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
     timer.timeout.connect(lambda: None)

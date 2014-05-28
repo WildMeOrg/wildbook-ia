@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
-from .guitool_decorators import checks_qt_error
+from .guitool_decorators import checks_qt_error, signal_
 from itertools import izip
 import functools
 import utool
@@ -23,10 +23,12 @@ class ChangingModelLayout(object):
     def __enter__(self):
         for model in self.model_list:
             model._about_to_change()
+            model._changeblocked = True
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.model_list:
+            model._changeblocked = False
             model._change()
 
 
@@ -38,13 +40,13 @@ def updater(func):
     func = profile(func)
     #@checks_qt_error
     @functools.wraps(func)
-    def updater_wrapper(model, *args, **kwargs):
+    def upd_wrapper(model, *args, **kwargs):
         #with ChangingModelLayout(model):
         model._about_to_change()
         ret = func(model, *args, **kwargs)
         model._change()
         return ret
-    return updater_wrapper
+    return upd_wrapper
 
 
 def otherfunc(func):
@@ -54,6 +56,8 @@ def otherfunc(func):
 
 class APITableModel(QtCore.QAbstractTableModel):
     """ Item model for displaying a list of columns """
+    _rows_updated = signal_(str, int)
+
     #
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
@@ -76,6 +80,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         # Class member variables
         model._abouttochange   = False
         model._haschanged      = True
+        model._changeblocked  = False
         model.name             = None
         model.nice             = None
         model.ider             = None
@@ -97,6 +102,8 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @updater
     def _update_headers(model,
+                        getdirty=None,
+                        setdirty=None,
                         ider=None,
                         name=None,
                         nice=None,
@@ -109,8 +116,10 @@ class APITableModel(QtCore.QAbstractTableModel):
                         col_sort_index=None,
                         col_sort_reverse=None):
         model.cache = {}  # FIXME: This is not sustainable
-        model.name = name
-        model.nice = nice
+        model.name = str(name)
+        model.nice = str(nice)
+        model.getdirty = getdirty if getdirty is not None else lambda: False
+        model.setdirty = setdirty if setdirty is not None else lambda flag: None
         # Initialize class
         model._set_ider(ider)
         model._set_col_name_type(col_name_list, col_type_list)
@@ -121,31 +130,44 @@ class APITableModel(QtCore.QAbstractTableModel):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse)
 
-    def _about_to_change(model):
+    def _about_to_change(model, force=False):
         N = range(1, 15)  # NOQA
-        if True or not model._abouttochange and model._haschanged:
-            model._abouttochange = True
-            model._haschanged = False
+        if force or (model._haschanged and not model._abouttochange):
             #print('ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            model._abouttochange = True
+            #model._haschanged = False
             model.layoutAboutToBeChanged.emit()
             return True
         else:
             #print('NOT ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
 
-    def _change(model):
+    def _change(model, force=False):
         N = range(1, 15)  # NOQA
-        if True or not model._haschanged or model._abouttochange:
+        if force or (not model._haschanged or model._abouttochange and not model._changeblocked):
+            #print('LAYOUT CHANGED:  %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             model._abouttochange = False
             model._haschanged = True
-            #print('LAYOUT CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             model.layoutChanged.emit()
             return True
         else:
             #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
 
-    @otherfunc
+    def _check_if_dirty(model):
+        """ check the api has changed without us knowing """
+        if model.getdirty():
+            model._force_update()
+
+    def _force_update(model):
+        model._about_to_change(force=True)
+        model._change(force=True)
+
+    def _update(model):
+        model._update_rows()
+        model.cache = {}
+        model.setdirty(False)
+
     def _update_rows(model):
         """
         Uses the current ider and col_sort_index to create
@@ -154,13 +176,14 @@ class APITableModel(QtCore.QAbstractTableModel):
         ids_ = model.ider()
         if len(ids_) == 0:
             model.row_index_list = []
-            return
-        values = model.col_getter_list[model.col_sort_index](ids_)
-        row_indices = [tup[1] for tup in sorted(list(izip(values, ids_)))]
-        assert row_indices is not None, 'no indices'
-        if model.col_sort_reverse:
-            row_indices = row_indices[::-1]
-        model.row_index_list = row_indices
+        else:
+            values = model.col_getter_list[model.col_sort_index](ids_)
+            row_indices = [tup[1] for tup in sorted(list(izip(values, ids_)))]
+            assert row_indices is not None, 'no indices'
+            if model.col_sort_reverse:
+                row_indices = row_indices[::-1]
+            model.row_index_list = row_indices
+        model._rows_updated.emit(model.name, len(model.row_index_list))
 
     @updater
     def _set_ider(model, ider=None):
@@ -212,7 +235,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             'inconsistent colgetter'
         model.col_getter_list = col_getter_list
 
-    @otherfunc
+    @updater
     def _set_sort(model, col_sort_index=None, col_sort_reverse=None):
         if col_sort_index is None:
             col_sort_index = 0
