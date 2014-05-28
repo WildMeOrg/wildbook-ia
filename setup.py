@@ -60,6 +60,7 @@ INSTALL_REQUIRES = [
     'Pillow >= 2.4.0',
     'functools32 >= 3.2.3-1',
     'psutil',
+    'requests >= 0.8.2',
     #'PyQt4 >= 4.9.1', # cannot include because pyqt4 is not in pip
 ]
 
