@@ -76,13 +76,13 @@ def _init_gui():
     if not utool.QUIET:
         print('[main] _init_gui()')
     guitool.ensure_qtapp()
-    USE_OLD_BACKEND = '--old-backend' in sys.argv
-    if USE_OLD_BACKEND:
-        from ibeis.gui import guiback
-        back = guiback.MainWindowBackend()
-    else:
-        from ibeis.gui import newgui
-        back = newgui.IBEISGuiWidget()
+    #USE_OLD_BACKEND = '--old-backend' in sys.argv
+    #if USE_OLD_BACKEND:
+    from ibeis.gui import guiback
+    back = guiback.MainWindowBackend()
+    #else:
+        #from ibeis.gui import newgui
+        #back = newgui.IBEISGuiWidget()
     guitool.activate_qwindow(back)
     return back
 

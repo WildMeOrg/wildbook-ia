@@ -12,7 +12,7 @@ from guitool import drawing, slot_, signal_
 from plottool import fig_presenter
 # IBEIS
 from ibeis.dev import ibsfuncs, sysres
-from ibeis.gui import guifront
+from ibeis.gui import newgui
 from ibeis.gui import uidtables as uidtables
 from ibeis.viz import interact
 # Utool
@@ -36,30 +36,30 @@ ENC_TYPE = str
 # way to make it more general?
 def backblock(func):
     @functools.wraps(func)
-    @utool.ignores_exc_tb
+    #@utool.ignores_exc_tb
     def bacblock_wrapper(back, *args, **kwargs):
-        wasBlocked_ = back.front.blockSignals(True)
-        try:
-            result = func(back, *args, **kwargs)
-        except Exception as ex:
-            back.front.blockSignals(wasBlocked_)  # unblock signals on exception
-            #print(traceback.format_exc())
-            msg = ('caught exception in %r' % func.func_name)
-            msg += '\n' + str(ex)
-            print('\n\n\n')
-            utool.printex(ex, msg)
-            print('\n\n\n')
-            back.user_info(msg=msg, title=str(type(ex)))
-            raise
-            #raise
-        back.front.blockSignals(wasBlocked_)
+        #wasBlocked_ = back.front.blockSignals(True)
+        #try:
+        result = func(back, *args, **kwargs)
+        #except Exception as ex:
+        #    back.front.blockSignals(wasBlocked_)  # unblock signals on exception
+        #    #print(traceback.format_exc())
+        #    msg = ('caught exception in %r' % func.func_name)
+        #    msg += '\n' + str(ex)
+        #    print('\n\n\n')
+        #    utool.printex(ex, msg)
+        #    print('\n\n\n')
+        #    back.user_info(msg=msg, title=str(type(ex)))
+        #    raise
+        #    #raise
+        #back.front.blockSignals(wasBlocked_)
         return result
     return bacblock_wrapper
 
 
 def blocking_slot(*types_):
     def wrap1(func):
-        @utool.ignores_exc_tb
+        #@utool.ignores_exc_tb
         def wrap2(*args, **kwargs):
             printDBG('[back*] ' + utool.func_str(func))
             printDBG('[back*] ' + utool.func_str(func, args, kwargs))
@@ -103,12 +103,11 @@ class MainWindowBackend(QtCore.QObject):
         back.active_enc = 0
 
         # Create GUIFrontend object
-        back.front = guifront.MainWindowFrontend(back=back)
+        back.front = newgui.IBEISGuiWidget()
 
         # connect signals and other objects
-        back.populateTableSignal.connect(back.front.populate_tbl)
-        back.setEnabledSignal.connect(back.front.setEnabled)
-        back.updateWindowTitleSignal.connect(back.front.updateWindowTitle)
+        #back.setEnabledSignal.connect(back.front.setEnabled)
+        #back.updateWindowTitleSignal.connect(back.front.updateWindowTitle)
         fig_presenter.register_qt4_win(back.front)
 
     #------------------------
@@ -209,29 +208,33 @@ class MainWindowBackend(QtCore.QObject):
 
     #@utool.indent_func
     def update_window_title(back):
-        if back.ibs is None:
-            title = 'IBEIS - No Database Open'
-        elif back.ibs.dbdir is None:
-            title = 'IBEIS - invalid database'
-        else:
-            dbdir = back.ibs.get_dbdir()
-            dbname = back.ibs.get_dbname()
-            title = 'IBEIS - %r - %s' % (dbname, dbdir)
+        pass
+        #back.front.refresh_state()
+        #if back.ibs is None:
+        #    title = 'IBEIS - No Database Open'
+        #elif back.ibs.dbdir is None:
+        #    title = 'IBEIS - invalid database'
+        #else:
+        #    dbdir = back.ibs.get_dbdir()
+        #    dbname = back.ibs.get_dbname()
+        #    title = 'IBEIS - %r - %s' % (dbname, dbdir)
         #print('[back] update_window_title: tile = %r' % (title,))
         #back.updateWindowTitleSignal.emit(title)
         #print('[back] back.front.setWindowTitle(title=%r)' % (str(title),))
-        back.front.setWindowTitle(title)
+        #back.front.setWindowTitle(title)
 
     #@utool.indent_func
     def refresh_state(back):
-        print('[back] REFRESH')
-        back.populate_tables()
-        back.update_window_title()
+        pass
+        #print('[back] REFRESH')
+        #back.populate_tables()
+        #back.update_window_title()
 
     @utool.indent_func
     def connect_ibeis_control(back, ibs):
         print('[back] connect_ibeis()')
         back.ibs = ibs
+        back.front.connect_ibeis_control(ibs)
         back.refresh_state()
 
     #--------------------------------------------------------------------------
@@ -253,71 +256,72 @@ class MainWindowBackend(QtCore.QObject):
                 utool.printex(ex, "Encounter population out of bounds")
                 raise
 
-    @utool.indent_func
-    def populate_encounter_tabs(back, **kwargs):
-        for enctext in back.enctext_generator():
-            uidtables.populate_encounter_tab(back.front,
-                                              enctext=enctext, **kwargs)
-        back.front.ui.connectUi()
+    #@utool.indent_func
+    #def populate_encounter_tabs(back, **kwargs):
+    #    for enctext in back.enctext_generator():
+    #        uidtables.populate_encounter_tab(back.front,
+    #                                          enctext=enctext, **kwargs)
+    #    back.front.ui.connectUi()
 
-    @utool.indent_func
-    def populate_image_table(back, **kwargs):
-        for enctext in back.enctext_generator(back.active_enc):
-            uidtables.emit_populate_table(back, uidtables.IMAGE_TABLE,
-                                           enctext=enctext, **kwargs)
+    #@utool.indent_func
+    #def populate_image_table(back, **kwargs):
+    #    for enctext in back.enctext_generator(back.active_enc):
+    #        uidtables.emit_populate_table(back, uidtables.IMAGE_TABLE,
+    #                                       enctext=enctext, **kwargs)
 
-    @utool.indent_func
-    def populate_name_table(back, **kwargs):
-        for enctext in back.enctext_generator(back.active_enc):
-            uidtables.emit_populate_table(back, uidtables.NAME_TABLE,
-                                           enctext=enctext, **kwargs)
+    #@utool.indent_func
+    #def populate_name_table(back, **kwargs):
+    #    for enctext in back.enctext_generator(back.active_enc):
+    #        uidtables.emit_populate_table(back, uidtables.NAME_TABLE,
+    #                                       enctext=enctext, **kwargs)
 
-    @utool.indent_func
-    def populate_roi_table(back, **kwargs):
-        for enctext in back.enctext_generator(back.active_enc):
-            uidtables.emit_populate_table(back, uidtables.ROI_TABLE,
-                                           enctext=enctext, **kwargs)
+    #@utool.indent_func
+    #def populate_roi_table(back, **kwargs):
+    #    for enctext in back.enctext_generator(back.active_enc):
+    #        uidtables.emit_populate_table(back, uidtables.ROI_TABLE,
+    #                                       enctext=enctext, **kwargs)
 
-    @utool.indent_func
-    def populate_result_table(back, **kwargs):
-        qres = back.get_selected_qres()
-        if qres is None:
-            # Clear the table if there are no results
-            #print('[back] no results available')
-            return
-        #uidtables.emit_populate_table(back, uidtables.QRES_TABLE, index_list=[])
-        top_rids = qres.get_top_rids()
-        # The ! mark is used for ascii sorting. TODO: can we work around this?
-        prefix_cols = [{'rank': '!Query',
-                        'score': '---',
-                        'name': back.ibs.get_roi_names(qres.qrid),
-                        'rid': qres.qrid, }]
-        extra_cols = {
-            'score':  lambda rids:  [qres.rid2_score[rid] for rid in rids],
-        }
-        enctext = back.ibs.get_encounter_enctext(qres.eid)
-        if enctext is None or enctext == 'None':
-            enctext = ''
-        uidtables.emit_populate_table(back,
-                                      uidtables.QRES_TABLE,
-                                      enctext=enctext,
-                                      index_list=top_rids,
-                                      prefix_cols=prefix_cols,
-                                      extra_cols=extra_cols,
-                                      **kwargs)
+    #@utool.indent_func
+    #def populate_result_table(back, **kwargs):
+    #    qres = back.get_selected_qres()
+    #    if qres is None:
+    #        # Clear the table if there are no results
+    #        #print('[back] no results available')
+    #        return
+    #    #uidtables.emit_populate_table(back, uidtables.QRES_TABLE, index_list=[])
+    #    top_rids = qres.get_top_rids()
+    #    # The ! mark is used for ascii sorting. TODO: can we work around this?
+    #    prefix_cols = [{'rank': '!Query',
+    #                    'score': '---',
+    #                    'name': back.ibs.get_roi_names(qres.qrid),
+    #                    'rid': qres.qrid, }]
+    #    extra_cols = {
+    #        'score':  lambda rids:  [qres.rid2_score[rid] for rid in rids],
+    #    }
+    #    enctext = back.ibs.get_encounter_enctext(qres.eid)
+    #    if enctext is None or enctext == 'None':
+    #        enctext = ''
+    #    uidtables.emit_populate_table(back,
+    #                                  uidtables.QRES_TABLE,
+    #                                  enctext=enctext,
+    #                                  index_list=top_rids,
+    #                                  prefix_cols=prefix_cols,
+    #                                  extra_cols=extra_cols,
+    #                                  **kwargs)
 
     def populate_tables(back, **kwargs):
-        default = kwargs.get('default', True)
-        if kwargs.get('encounter', default):
-            back.populate_encounter_tabs()
-        if kwargs.get('image', default):
-            back.populate_image_table()
-        if kwargs.get('roi', default):
-            back.populate_roi_table()
-        if kwargs.get('name', default):
-            back.populate_name_table()
-        if kwargs.get('qres', default):
-            back.populate_result_table()
+        return None
+        #default = kwargs.get('default', True)
+        #if kwargs.get('encounter', default):
+        #    back.populate_encounter_tabs()
+        #if kwargs.get('image', default):
+        #    back.populate_image_table()
+        #if kwargs.get('roi', default):
+        #    back.populate_roi_table()
+        #if kwargs.get('name', default):
+        #    back.populate_name_table()
+        #if kwargs.get('qres', default):
+        #    back.populate_result_table()
 
     #--------------------------------------------------------------------------
     # Helper functions
@@ -407,7 +411,7 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_(str)
     def backend_print(back, msg):
-        'slot so guifront can print'
+        'slot so newgui can print'
         print(msg)
 
     @slot_(Exception)

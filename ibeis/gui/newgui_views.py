@@ -97,7 +97,7 @@ class EncView(QtGui.QTableView):
         model = view.model()
         eid = model._get_row_id(row)
         enctext = view.ibswin.ibs.get_encounter_enctext(eid)
-        view.ibswin._add_enc_tab(eid, enctext)
+        view.ibswin.enc_tabwgt._add_enc_tab(eid, enctext)
 
 
 #############################
@@ -106,50 +106,54 @@ class EncView(QtGui.QTableView):
 
 
 class EncoutnerTabWidget(QtGui.QTabWidget):
-    def __init__(tabwgt, parent=None):
-        QtGui.QTabWidget.__init__(tabwgt, parent)
-        tabwgt.ibswin = parent
-        tabwgt.setTabsClosable(True)
+    def __init__(enc_tabwgt, parent=None):
+        QtGui.QTabWidget.__init__(enc_tabwgt, parent)
+        enc_tabwgt.ibswin = parent
+        enc_tabwgt.setTabsClosable(True)
         if sys.platform.startswith('darwin'):
             tab_height = 21
         else:
             tab_height = 30
-        tabwgt.setMaximumSize(9999, tab_height)
-        tabwgt.tabbar = tabwgt.tabBar()
-        tabwgt.tabbar.setMovable(True)
-        tabwgt.setStyleSheet('border: none;')
-        tabwgt.tabbar.setStyleSheet('border: none;')
+        enc_tabwgt.setMaximumSize(9999, tab_height)
+        enc_tabwgt.tabbar = enc_tabwgt.tabBar()
+        enc_tabwgt.tabbar.setMovable(True)
+        enc_tabwgt.setStyleSheet('border: none;')
+        enc_tabwgt.tabbar.setStyleSheet('border: none;')
 
-        tabwgt.tabCloseRequested.connect(tabwgt._close_tab)
-        tabwgt.currentChanged.connect(tabwgt._on_change)
+        enc_tabwgt.tabCloseRequested.connect(enc_tabwgt._close_tab)
+        enc_tabwgt.currentChanged.connect(enc_tabwgt._on_change)
 
-        tabwgt.encounter_id_list = []
-        tabwgt._add_enc_tab(None, 'Recognition Database')
+        enc_tabwgt.eid_list = []
+        enc_tabwgt._add_enc_tab(None, 'Recognition Database')
 
-    def _on_change(tabwgt, index):
-        if 0 <= index and index < len(tabwgt.encounter_id_list):
-            tabwgt.ibswin._change_enc(tabwgt.encounter_id_list[index])
+    def _on_change(enc_tabwgt, index):
+        """ Switch to the current encounter tab """
+        if 0 <= index and index < len(enc_tabwgt.eid_list):
+            eid = enc_tabwgt.eid_list[index]
+            enc_tabwgt.ibswin._change_enc(eid)
+        enc_tabwgt.ibswin.refresh_state()
+        #enc_tabwgt.setTabText(index,  '?')
 
-    def _close_tab(tabwgt, index):
-        if tabwgt.encounter_id_list[index] is not None:
-            tabwgt.encounter_id_list.pop(index)
-            tabwgt.removeTab(index)
+    def _close_tab(enc_tabwgt, index):
+        if enc_tabwgt.eid_list[index] is not None:
+            enc_tabwgt.eid_list.pop(index)
+            enc_tabwgt.removeTab(index)
 
-    def _add_enc_tab(tabwgt, eid, enctext):
-        if eid not in tabwgt.encounter_id_list:
+    def _add_enc_tab(enc_tabwgt, eid, enctext):
+        if eid not in enc_tabwgt.eid_list:
             # tab_name = str(eid) + ' - ' + str(enctext)
             tab_name = str(enctext)
-            tabwgt.addTab(QtGui.QWidget(), tab_name)
+            enc_tabwgt.addTab(QtGui.QWidget(), tab_name)
 
-            tabwgt.encounter_id_list.append(eid)
-            index = len(tabwgt.encounter_id_list) - 1
+            enc_tabwgt.eid_list.append(eid)
+            index = len(enc_tabwgt.eid_list) - 1
         else:
-            index = tabwgt.encounter_id_list.index(eid)
+            index = enc_tabwgt.eid_list.index(eid)
 
-        tabwgt.setCurrentIndex(index)
-        tabwgt._on_change(index)
+        enc_tabwgt.setCurrentIndex(index)
+        enc_tabwgt._on_change(index)
 
-    def _update_enc_tab_name(tabwgt, eid, enctext):
-        for index, _id in enumerate(tabwgt.encounter_id_list):
+    def _update_enc_tab_name(enc_tabwgt, eid, enctext):
+        for index, _id in enumerate(enc_tabwgt.eid_list):
             if eid == _id:
-                tabwgt.setTabText(index, enctext)
+                enc_tabwgt.setTabText(index, enctext)
