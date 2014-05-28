@@ -87,7 +87,8 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
             def qt_excepthook(type_, value, traceback):
                 print('QT EXCEPTION HOOK')
                 old_excepthook(type_, value, traceback)
-                QAPP.quit()
+                #QAPP.quit()
+                exit_application()
                 sys.exit(1)
             sys.excepthook = qt_excepthook
             try:

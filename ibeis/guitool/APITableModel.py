@@ -4,10 +4,26 @@ from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error
 from itertools import izip
-from functools import wraps
+from functools import wraps  # noqa
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
+
+
+class ChangingModelLayout(object):
+    @utool.accepts_scalar_input
+    def __init__(self, model_list, *args):
+        #print('Changing: %r' % (model_list,))
+        self.model_list = list(model_list) + list(args)
+
+    def __enter__(self):
+        for model in self.model_list:
+            model._about_to_change()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        for model in self.model_list:
+            model._change()
 
 
 def updater(func):
@@ -16,18 +32,14 @@ def updater(func):
     the middle of a layout changed
     """
     func = profile(func)
-    @checks_qt_error
-    @wraps(func)
+    #@wraps(func)
+    #@checks_qt_error
     def updater_wrapper(model, *args, **kwargs):
-        if not model._isoperating:
-            model.layoutAboutToBeChanged.emit()
-            model._isoperating = True
-            ret = func(model, *args, **kwargs)
-            model._isoperating = False
-            model.layoutChanged.emit()
-            return ret
-        else:
-            return func(model, *args, **kwargs)
+        #with ChangingModelLayout(model):
+        model._about_to_change()
+        ret = func(model, *args, **kwargs)
+        model._change()
+        return ret
     return updater_wrapper
 
 
@@ -42,7 +54,7 @@ class APITableModel(QtCore.QAbstractTableModel):
     """ Item model for displaying a list of columns """
     #
     # Non-Qt Init Functions
-    def __init__(model, parent=None, **kwargs):
+    def __init__(model, headers=None, parent=None):
         """
             col_name_list -> list of keys or SQL-like name for column to reference
                              abstracted data storage using getters and setters
@@ -66,7 +78,8 @@ class APITableModel(QtCore.QAbstractTableModel):
         """
         super(APITableModel, model).__init__()
         # Class member variables
-        model._isoperating = False
+        model._abouttochange   = False
+        model._haschanged      = True
         model.name             = None
         model.nice             = None
         model.ider             = None
@@ -78,9 +91,13 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.col_getter_list  = None
         model.col_sort_index   = None
         model.col_sort_reverse = None
-        model.cache = {}  # FIXME: This is not sustainable
+        model.cache = None  # FIXME: This is not sustainable
+        model.row_index_list = None
         # Initialize member variables
-        model._init_headers(**kwargs)
+        model._about_to_change()
+        if headers is None:
+            headers = {}
+        model._init_headers(**headers)
 
     @updater
     def _init_headers(model,
@@ -95,6 +112,7 @@ class APITableModel(QtCore.QAbstractTableModel):
                       col_getter_list=None,
                       col_sort_index=None,
                       col_sort_reverse=None):
+        model.cache = {}  # FIXME: This is not sustainable
         model.name = name
         model.nice = nice
         # Initialize class
@@ -106,6 +124,30 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._set_col_getter(col_getter_list)
         model._set_sort(col_sort_index, col_sort_reverse)  # calls model._update_rows()
 
+    def _about_to_change(model):
+        N = range(1, 15)
+        if True or not model._abouttochange and model._haschanged:
+            model._abouttochange = True
+            model._haschanged = False
+            #print('ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            model.layoutAboutToBeChanged.emit()
+            return True
+        else:
+            #print('NOT ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            return False
+
+    def _change(model):
+        N = range(1, 15)
+        if True or not model._haschanged or model._abouttochange:
+            model._abouttochange = False
+            model._haschanged = True
+            print('LAYOUT CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            model.layoutChanged.emit()
+            return True
+        else:
+            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            return False
+
     @otherfunc
     def _update_rows(model):
         """
@@ -113,6 +155,9 @@ class APITableModel(QtCore.QAbstractTableModel):
         row_indicies
         """
         ids_ = model.ider()
+        if len(ids_) == 0:
+            model.row_index_list = []
+            return
         values = model.col_getter_list[model.col_sort_index](ids_)
         row_indices = [tup[1] for tup in sorted(list(izip(values, ids_)))]
         assert row_indices is not None, 'no indices'
@@ -121,7 +166,9 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.row_index_list = row_indices
 
     @updater
-    def _set_ider(model, ider):
+    def _set_ider(model, ider=None):
+        if ider is None:
+            ider = lambda: []
         assert utool.is_funclike(ider), 'bad type: %r' % type(ider)
         model.ider = ider
 
@@ -167,9 +214,10 @@ class APITableModel(QtCore.QAbstractTableModel):
     def _set_sort(model, col_sort_index=None, col_sort_reverse=None):
         if col_sort_index is None:
             col_sort_index = 0
+        else:
+            assert col_sort_index < len(model.col_name_list), 'sort index out of bounds by: %r' % col_sort_index
         if not utool.is_bool(col_sort_reverse):
             col_sort_reverse = False
-        assert col_sort_index < len(model.col_name_list), 'sort index out of bounds by: %r' % col_sort_index
         model.col_sort_index = col_sort_index
         model.col_sort_reverse = col_sort_reverse
         model._update_rows()
@@ -321,6 +369,8 @@ class APITableModel(QtCore.QAbstractTableModel):
     @otherfunc
     def headerData(model, column, orientation, role=Qt.DisplayRole):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            if column >= len(model.col_nice_list):
+                return []
             return model.col_nice_list[column]
         else:
             return QtCore.QVariant()
