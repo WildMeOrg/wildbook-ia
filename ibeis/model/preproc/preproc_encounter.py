@@ -67,4 +67,5 @@ def ibeis_compute_encounters(ibs):
     flat_eids, flat_gids = utool.flatten_membership_mapping(encounter_ids, gids_in_eid)
     # Create enctext for each image
     enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
+    print('[encounter] finished clustering')
     return enctext_list, flat_gids

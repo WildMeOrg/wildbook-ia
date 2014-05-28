@@ -81,8 +81,8 @@ def _init_gui():
     from ibeis.gui import guiback
     back = guiback.MainWindowBackend()
     #else:
-        #from ibeis.gui import newgui
-        #back = newgui.IBEISGuiWidget()
+    #    from ibeis.gui import newgui
+    #    back = newgui.IBEISGuiWidget()
     guitool.activate_qwindow(back)
     return back
 
