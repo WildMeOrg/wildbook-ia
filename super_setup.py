@@ -10,6 +10,14 @@ print('[super_setup] __IBEIS_SUPER_SETUP__')
 CODE_DIR = dirname(dirname(realpath(__file__)))   # '~/code'
 print('[super_setup] code_dir: %r' % CODE_DIR)
 
+
+def userid_prompt():
+    # TODO: Make this prompt for the userid
+    if False:
+        return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
+    else:
+        return {}
+
 #################
 ## ENSURING UTOOL
 #################
@@ -18,6 +26,7 @@ print('[super_setup] code_dir: %r' % CODE_DIR)
 try:
     print('Checking utool')
     import utool
+    utool.set_userid(**userid_prompt())
 except ImportError:
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP')
     import os
@@ -28,20 +37,13 @@ except ImportError:
     os.system('git pull')
     os.system('sudo python setup.py develop')
     sys.path.append(os.path.realpath(os.getcwd()))
-
-
-def userid_prompt():
-    # TODO: Make this prompt for the userid
-    if False:
-        return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
-    else:
-        return {}
+    print('Please rerun suepr_setup.py')
+    sys.exit(1)
 
 #-----------
 # Set userid
 #-----------
 
-utool.set_userid(**userid_prompt())
 
 #-----------
 # Third-Party-Libraries

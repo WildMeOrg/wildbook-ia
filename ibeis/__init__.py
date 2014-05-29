@@ -1,11 +1,12 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
-from .dev import params
-from .dev import sysres
 from . import constants
 from . import main_module
+from .dev import params
+from .dev import sysres
 from .main_module import main, _preload, main_loop
 from .control.IBEISControl import IBEISController
+from .dev.sysres import get_workdir, set_workdir
 
 __LOADED__ = False
 __version__ = '0.1.0.dev1'

@@ -223,31 +223,31 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
-    def _set_selection(back, gids=None, rids=None, nids=None,
-                       qres=None, eids=None, **kwargs):
-        if gids is not None:
-            back.sel_gids = gids
-        if rids is not None:
-            back.sel_rids = rids
-        if nids is not None:
-            back.sel_nids = nids
-        if qres is not None:
-            back.sel_qres = qres
-        if eids is not None:
-            back.sel_eids = eids
+    def _set_selection(back, sel_gids=None, sel_rids=None, sel_nids=None,
+                       sel_qres=None, sel_eids=None, **kwargs):
+        if sel_gids is not None:
+            back.sel_gids = sel_gids
+        if sel_rids is not None:
+            back.sel_rids = sel_rids
+        if sel_nids is not None:
+            back.sel_nids = sel_nids
+        if sel_qres is not None:
+            back.sel_sel_qres = sel_qres
+        if sel_eids is not None:
+            back.sel_eids = sel_eids
 
     @backblock
     def select_gid(back, gid, eid=None, sel_rids=None, **kwargs):
         """ Table Click -> Image Table """
         # Select the first ROI in the image if unspecified
         if sel_rids is None:
-            rids = back.ibs.get_image_rids(gid)
-            if len(rids) > 0:
-                sel_rids = rids[0:1]
+            sel_rids = back.ibs.get_image_rids(gid)
+            if len(sel_rids) > 0:
+                sel_rids = sel_rids[0:1]
             else:
                 sel_rids = []
         print('[back] select_gid(gid=%r, eid=%r, sel_rids=%r)' % (gid, eid, sel_rids))
-        back._set_selection(gids=(gid,), rids=sel_rids, eids=[eid], **kwargs)
+        back._set_selection(sel_gids=(gid,), sel_rids=sel_rids, sel_eids=[eid], **kwargs)
         back.show_image(gid, sel_rids=sel_rids)
 
     @backblock
@@ -256,7 +256,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] select rid=%r, eid=%r' % (rid, eid))
         gid = back.ibs.get_roi_gids(rid)
         nid = back.ibs.get_roi_nids(rid)
-        back._set_selection(rids=[rid], gids=[gid], nids=[nid], eids=[eid], **kwargs)
+        back._set_selection(sel_rids=[rid], sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
         if show_roi:
             back.show_roi(rid, **kwargs)
 
@@ -265,7 +265,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Table Click -> Name Table """
         nid = uidtables.qt_cast(nid)
         print('[back] select nid=%r, eid=%r' % (nid, eid))
-        back._set_selection(nids=[nid], eids=[eid], **kwargs)
+        back._set_selection(sel_nids=[nid], sel_eids=[eid], **kwargs)
         if show_name:
             back.show_name(nid, **kwargs)
 
@@ -390,7 +390,7 @@ class MainWindowBackend(QtCore.QObject):
         gpath_list = utool.list_images(dir_, fullpath=True)
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
-            back.populate_image_table()
+            back.front.update_tables([gh.IMAGE_TABLE])
         return gid_list
         #print('')
 
@@ -419,7 +419,7 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
             #back.show_image(gid)
             pass
-        #back.select_gid(gid, rids=[rid])
+        back.select_gid(gid, sel_rids=[rid])
         return rid
 
     @blocking_slot()
@@ -451,7 +451,7 @@ class MainWindowBackend(QtCore.QObject):
             print('[back] query_encounter(rid=%r, eid=%r)' % (rid, eid))
             qrid2_qres = back.ibs.query_encounter([rid], eid)
         qres = qrid2_qres[rid]
-        back._set_selection(qres=[qres])
+        back._set_selection(sel_qres=[qres])
         if refresh:
             #back.populate_tables(qres=True, default=False)
             back.show_qres(qres)
@@ -487,8 +487,12 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_roi')
         if rid is None:
             rid = back.get_selected_rid()
+        # get the image-id of the roi we are deleting
+        gid = back.ibs.get_roi_gids(rid)
+        # delete the roi
         back.ibs.delete_rois([rid])
-        pass
+        # update display, to show image without the deleted roi
+        back.select_gid(gid)
 
     @blocking_slot(int)
     def delete_image(back, gid=None):
@@ -528,8 +532,11 @@ class MainWindowBackend(QtCore.QObject):
     def precompute_queries(back):
         """ Batch -> Precompute Queries"""
         print('[back] precompute_queries')
-        raise NotImplementedError()
-        pass
+        back.precompute_feats(refresh=False)
+        valid_rids = back.ibs.get_valid_rids()
+        qrid2_qres = back.ibs.query_database(valid_rids)
+        #raise NotImplementedError()
+        #pass
 
     @blocking_slot()
     def compute_encounters(back, refresh=True):

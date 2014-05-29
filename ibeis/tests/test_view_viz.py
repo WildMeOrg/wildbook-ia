@@ -23,7 +23,7 @@ def TEST_VIZ(ibs):
     rindex = int(utool.get_arg('--rx', default=0))
     rid = rid_list[rindex]
     qrid = rid
-    sel_rids = rid_list[1:3]
+    rids = rid_list[1:3]
     rid = rid_list[-1]
 
     try:
@@ -38,7 +38,7 @@ def TEST_VIZ(ibs):
 
     #----------------------
     #print('Show Image')
-    viz.show_image(ibs, gid, sel_rids=sel_rids, fnum=1)
+    viz.show_image(ibs, gid, rids=rids, fnum=1)
     df2.set_figtitle('Show Image')
 
     #----------------------

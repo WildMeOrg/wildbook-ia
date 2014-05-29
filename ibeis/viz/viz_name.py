@@ -10,11 +10,11 @@ from .viz_chip import show_chip
 
 def show_name_of(ibs, rid, **kwargs):
     nid = ibs.get_roi_names(rid)
-    show_name(ibs, nid, sel_rids=[rid], **kwargs)
+    show_name(ibs, nid, rids=[rid], **kwargs)
 
 
 @utool.indent_func
-def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, sel_rids=[], subtitle='',
+def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, rids=[], subtitle='',
               annote=False, **kwargs):
     print('[viz] show_name nid=%r' % nid)
     rids = ibs.get_name_rids(nid)
@@ -32,7 +32,7 @@ def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, sel_rids=[], subt
         # Trigger computation of all chips in parallel
         for px, rid in enumerate(rids):
             show_chip(ibs, rid=rid, pnum=pnum_(px), annote=annote, in_image=in_image)
-            if rid in sel_rids:
+            if rid in rids:
                 ax = df2.gca()
                 df2.draw_border(ax, df2.GREEN, 4)
             #plot_rid3(ibs, rid)

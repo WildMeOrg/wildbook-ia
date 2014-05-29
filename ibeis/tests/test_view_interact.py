@@ -25,8 +25,8 @@ def TEST_INTERACT(ibs):
 
     #----------------------
     #print('Show Image')
-    sel_rids = rid_list[1:3]
-    interact.ishow_image(ibs, gid, sel_rids=sel_rids, fnum=1)
+    rids = rid_list[1:3]
+    interact.ishow_image(ibs, gid, rids=rids, fnum=1)
 
     #----------------------
     #print('Show Chip')

@@ -26,7 +26,7 @@ def TEST_GUI_SELECTION(ibs, back):
     gid = valid_gids[0]
     rid_list = ibs.get_image_rids(gid)
     rid = rid_list[-1]
-    back.select_gid(gid, sel_rids=[rid])
+    back.select_gid(gid, rids=[rid])
 
     return locals()
 

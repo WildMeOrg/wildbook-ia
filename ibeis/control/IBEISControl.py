@@ -300,16 +300,19 @@ class IBEISController(object):
     #---------------
 
     def add_config(ibs, config_suffix):
-        ibs.db.executeone(
-            operation='''
-            INSERT OR IGNORE INTO configs
-            (
-                config_uid,
-                config_suffix
-            )
-            VALUES (NULL, ?)
-            ''',
-            params=(config_suffix,))
+        try:
+            ibs.db.executeone(
+                operation='''
+                INSERT INTO configs
+                (
+                    config_uid,
+                    config_suffix
+                )
+                VALUES (NULL, ?)
+                ''',
+                params=(config_suffix,))
+        except sqldbc.lite.IntegrityError:
+            pass
 
         config_uid = ibs.db.executeone(
             operation='''

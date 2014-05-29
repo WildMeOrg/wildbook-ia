@@ -228,7 +228,7 @@ class SQLDatabaseController(object):
         #if verbose:
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql] %r called execute' % caller_name)
-        operation_type, will_change = db.about_to_execute(operation)
+        operation_type, is_changing = db.about_to_execute(operation)
         status = False
         try:
             status = db.executor.execute(operation, params)
@@ -238,7 +238,7 @@ class SQLDatabaseController(object):
             print('[sql] Caught Exception: %r' % (ex,))
             status = True
             raise
-        db.post_execute(will_change)
+        db.post_execute(is_changing)
         return status
 
     @profile
@@ -248,7 +248,7 @@ class SQLDatabaseController(object):
         #if verbose:
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql] %r called executeone' % caller_name)
-        operation_type, will_change = db.about_to_execute(operation)
+        operation_type, is_changing = db.about_to_execute(operation)
         operation_label = '[sql] executeone %s: ' % (operation_type)
         if not QUIET:
             tt = utool.tic(operation_label)
@@ -264,7 +264,7 @@ class SQLDatabaseController(object):
         result_list = db.result_list(verbose=False)
         if not QUIET:
             printDBG(utool.toc(tt, True))
-        db.post_execute(will_change)
+        db.post_execute(is_changing)
         return result_list
 
     @profile
@@ -297,7 +297,7 @@ class SQLDatabaseController(object):
         This function is a bit messy right now. Needs cleaning up
         """
         # Do any preprocesing on the SQL command / query
-        operation_type, will_change = db.about_to_execute(operation)
+        operation_type, is_changing = db.about_to_execute(operation)
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
             params_iter = list(params_iter)
@@ -352,7 +352,7 @@ class SQLDatabaseController(object):
             #if verbose:
             #    print('[sql.executemany] commit')
             db.commit(errmsg=errmsg, verbose=False)
-        db.post_execute(will_change)
+        db.post_execute(is_changing)
         return result_list
 
     @profile

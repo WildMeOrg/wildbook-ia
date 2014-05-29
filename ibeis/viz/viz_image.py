@@ -17,14 +17,14 @@ def annotate_roi(ax, bbox, theta, label, is_sel):
     df2.draw_roi(bbox, label, bbox_color, lbl_color, theta=theta, ax=ax)
 
 
-def annotate_image(ibs, ax, gid, sel_rids, draw_lbls=True, annote=True):
+def annotate_image(ibs, ax, gid, rids, draw_lbls=True, annote=True):
     # draw chips in the image
     rid_list    = ibs.get_image_rids(gid)
     bbox_list   = ibs.get_roi_bboxes(rid_list)
     theta_list  = ibs.get_roi_thetas(rid_list)
     label_list  = vh.get_roi_labels(ibs, rid_list, draw_lbls)
     roi_centers = vh.get_bbox_centers(bbox_list)
-    sel_list    = [rid in sel_rids for rid in rid_list]
+    sel_list    = [rid in rids for rid in rid_list]
     # Draw all chip indexes in the image
     if annote:
         roi_iter = izip(bbox_list, theta_list, label_list, sel_list)
@@ -36,7 +36,7 @@ def annotate_image(ibs, ax, gid, sel_rids, draw_lbls=True, annote=True):
 
 
 @utool.indent_decor('[show_image]')
-def show_image(ibs, gid, sel_rids=[], fnum=1,
+def show_image(ibs, gid, rids=[], fnum=1,
                annote=True, draw_lbls=True, **kwargs):
     """ Driver function to show images """
     # Shows an image with annotations
@@ -45,4 +45,4 @@ def show_image(ibs, gid, sel_rids=[], fnum=1,
     fig, ax = df2.imshow(img, title=title, fnum=fnum, docla=True, **kwargs)
     df2.remove_patches(ax)
     vh.set_ibsdat(ax, 'viztype', 'image')
-    annotate_image(ibs, ax, gid, sel_rids, draw_lbls, annote)
+    annotate_image(ibs, ax, gid, rids, draw_lbls, annote)

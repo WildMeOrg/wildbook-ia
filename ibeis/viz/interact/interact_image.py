@@ -10,14 +10,14 @@ from plottool import interact_helpers as ih
 
 
 @utool.indent_decor('[interact_img]')
-def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
+def ishow_image(ibs, gid, rids=[], fnum=1, select_callback=None,
                 **kwargs):
     fig = ih.begin_interaction('image', fnum)
     #printDBG(utool.func_str(interact_image, [], locals()))
     kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)
 
-    def _image_view(sel_rids=sel_rids, **_kwargs):
-        viz.show_image(ibs, gid, sel_rids, **_kwargs)
+    def _image_view(rids=rids, **_kwargs):
+        viz.show_image(ibs, gid, rids, **_kwargs)
         df2.set_figtitle('Image View')
 
     # Create callback wrapper
@@ -43,9 +43,9 @@ def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
             rid = rid_list[centx]
             print(' ...clicked rid=%r' % rid)
             if select_callback is not None:
-                select_callback(gid, sel_rids=[rid])
+                select_callback(gid, rids=[rid])
             else:
-                _image_view(sel_rids=[rid])
+                _image_view(rids=[rid])
 
         viz.draw()
 
