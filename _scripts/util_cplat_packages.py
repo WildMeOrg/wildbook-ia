@@ -241,12 +241,13 @@ def __install_command_pip(pkg, upgrade=None):
             # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
             # but then pip can upgrade itself to 1.5.3, but then we have to
             # remove the apt-get-pip as well as the apt-get-setuptools which is
-            # ninja installed
+            # ninja installed. setuptools and pip go hand-in-hand. so ensure
+            # that as well
             command += ' && sudo pip install %s --upgrade' % pkg
-            command += ' && sudo apt-get remove python-pip'
-            command += ' && sudo apt-get remove python-setuptools'
-            command += ' && sudo pip install pip --upgrade'
-            command += ' && sudo pip install setuptools --upgrade'
+            command += ' && sudo apt-get -y remove python-pip'
+            command += ' && sudo apt-get -y remove python-setuptools'
+            command += ' && sudo pip install -y pip --upgrade'
+            command += ' && sudo pip install -y setuptools --upgrade'
     else:
         # IF not then try and install through pip
         if WIN32:

@@ -8,6 +8,23 @@ I.B.E.I.S. = Image Based Ecological Information System
 # Environment Setup:
 #--------------------
 
+# The following install script instal ibeis and all dependencies. 
+# If it doesnt you can look at the older instructions which follow
+# and try to figure it out
+
+#
+###
+cd ~
+mkdir code
+cd code
+git clone https://github.com/Erotemic/ibeis.git
+cd ibeis/_scripts
+./bootstrap.py
+./__install_prereqs__.sh
+###
+#
+
+
 # Navigate to your code directory
 export CODE_DIR=~/code
 cd $CODE_DIR
