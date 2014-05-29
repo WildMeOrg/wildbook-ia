@@ -13,7 +13,9 @@ if __name__ == '__main__':
     # <DEBUG CODE>
     ibs = main_locals['ibs']
     if 'back' in main_locals:
+        from ibeis.dev.all_imports import *  # NOQA
         back = main_locals['back']
+        front = getattr(back, 'front', None)
         #front = back.front
         #ui = front.ui
     # </DEBUG CODE>

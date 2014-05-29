@@ -4,6 +4,7 @@ import utool
 import guitool
 from itertools import izip  # noqa
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import Qt
 from guitool import slot_, checks_qt_error, ChangingModelLayout  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
@@ -22,7 +23,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
 
 class EncoutnerTabWidget(QtGui.QTabWidget):
-    def __init__(enc_tabwgt, parent=None):
+    def __init__(enc_tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(enc_tabwgt, parent)
         enc_tabwgt.ibswgt = parent
         enc_tabwgt.setTabsClosable(True)
@@ -31,6 +32,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         enc_tabwgt.tabbar.setMovable(True)
         enc_tabwgt.setStyleSheet('border: none;')
         enc_tabwgt.tabbar.setStyleSheet('border: none;')
+        sizePolicy = guitool.newSizePolicy(enc_tabwgt, horizontalStretch=horizontalStretch)
+        enc_tabwgt.setSizePolicy(sizePolicy)
 
         enc_tabwgt.tabCloseRequested.connect(enc_tabwgt._close_tab)
         enc_tabwgt.currentChanged.connect(enc_tabwgt._on_change)
@@ -95,13 +98,6 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         CLASS_IBEISGUIWidget.__init__(ibswgt, parent)
         ibswgt.ibs = ibs
         ibswgt.back = back
-        ibswgt._init_layout()
-        ibswgt._connect_signals_and_slots()
-        ibswgt.connect_ibeis_control(ibswgt.ibs)
-
-    #@checks_qt_error
-    def _init_layout(ibswgt):
-        """ Layout the widgets, menus, and containers """
         # Define the abstract item models and views for the tables
         ibswgt.modelview_defs = [
             (IMAGE_TABLE,     IBEISTableModel, IBEISTableView),
@@ -114,11 +110,23 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.views        = {}
         ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
+        # Create and layout components
+        ibswgt._init_components()
+        ibswgt._init_layout()
+        # Connect signals and slots
+        ibswgt._connect_signals_and_slots()
+        # Connect the IBEIS control
+        ibswgt.connect_ibeis_control(ibswgt.ibs)
+
+    #@checks_qt_error
+    def _init_components(ibswgt):
+        """ Defines gui components """
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
-        ibswgt.hsplitter = guitool.newHorizontalSplitter(ibswgt)
+        ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
+        ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
         # Tables Tab
-        ibswgt._tab_table_wgt = QtGui.QTabWidget(ibswgt)
+        ibswgt._tab_table_wgt = guitool.newTabWidget(ibswgt, horizontalStretch=81)
         # Create models and views
         for tblname, ModelClass, ViewClass in ibswgt.modelview_defs:
             ibswgt.models[tblname] = ModelClass(parent=ibswgt)
@@ -127,13 +135,27 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         # Add Image, ROI, and Names as tabs
         for tblname in ibswgt.tblname_list:
             ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
-        # Encs Tabs
-        ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt)
-        # Add Other elements to the view
+        # Custom Encounter Tab Wiget
+        ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
+        # Other components
+        ibswgt.outputLog   = guitool.newOutputLog(ibswgt, visible=True, verticalStretch=6)
+        ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
+        ibswgt.status_wgt, ibswgt.status_vlayout = guitool.newWidget(ibswgt, verticalStretch=6)
+
+    def _init_layout(ibswgt):
+        """ Lays out the defined components """
+        # Add elements to the layout
         ibswgt.vlayout.addWidget(ibswgt.enc_tabwgt)
-        ibswgt.vlayout.addWidget(ibswgt.hsplitter)
+        ibswgt.vlayout.addWidget(ibswgt.vsplitter)
+        # Vertical
+        ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
+        ibswgt.vsplitter.addWidget(ibswgt.status_wgt)
+        # Horizontal Upper
         ibswgt.hsplitter.addWidget(ibswgt.views[ENCOUNTER_TABLE])
         ibswgt.hsplitter.addWidget(ibswgt._tab_table_wgt)
+        # Horizontal Lower
+        ibswgt.status_vlayout.addWidget(ibswgt.outputLog)
+        ibswgt.status_vlayout.addWidget(ibswgt.progressBar)
 
     #@checks_qt_error
     def _connect_signals_and_slots(ibswgt):
@@ -207,7 +229,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
-        print('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
+        printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:
             return
         tblname = str(tblname)

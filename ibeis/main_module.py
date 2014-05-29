@@ -213,7 +213,7 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
 
 
 @profile
-def _preload(mpl=True, par=True, logging=False):
+def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool
     #from ibeis.dev import main_helpers
@@ -222,7 +222,7 @@ def _preload(mpl=True, par=True, logging=False):
         return
     #_parse_args()
     # matplotlib backends
-    if logging:
+    if logging or params.args.nologging:
         utool.start_logging()
     if mpl:
         _init_matplotlib()

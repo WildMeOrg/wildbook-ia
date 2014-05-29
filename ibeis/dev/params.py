@@ -54,7 +54,7 @@ def parse_args():
                          help='dumps the SQLITE3 database after every commit')
         parser2.add_flag('--darken')
         parser2.add_flag('--aggroflush', help='utool writes flush immediately')
-        parser2.add_flag('--logging', help='utool prints are logged')
+        parser2.add_flag('--nologging', help='diables logging')
 
     def database_argparse(parser2):
         # Database selections

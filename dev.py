@@ -298,8 +298,7 @@ if __name__ == '__main__':
         if 'back' in main_locals:
             back = main_locals['back']
             if back is not None:
-                front = back.front
-                ui = front.ui
+                front = getattr(back, 'front', None)
         if ibs is not None:
             #ibs.dump_tables()
             valid_rids = ibs.get_valid_rids()
