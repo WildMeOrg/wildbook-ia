@@ -94,7 +94,8 @@ class MainWindowBackend(QtCore.QObject):
         back.active_enc = 0
 
         # Create GUIFrontend object
-        back.front = newgui.IBEISGuiWidget(back=back, ibs=ibs)
+        back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
+        back.front = back.mainwin.ibswgt
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.front)
 
@@ -103,7 +104,7 @@ class MainWindowBackend(QtCore.QObject):
     #------------------------
 
     def show(back):
-        back.front.show()
+        back.mainwin.show()
 
     def select_bbox(back, gid, **kwargs):
         bbox = interact.iselect_bbox(back.ibs, gid)

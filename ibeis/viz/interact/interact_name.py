@@ -10,7 +10,7 @@ from ibeis.viz import viz_helpers as vh
 #==========================
 
 
-def ishow_name(ibs, nid, rids=[], select_rid_callback=None, fnum=5, **kwargs):
+def ishow_name(ibs, nid, sel_rids=[], select_rid_callback=None, fnum=5, **kwargs):
     fig = ih.begin_interaction('name', fnum)
 
     def _on_name_click(event):
@@ -22,12 +22,12 @@ def ishow_name(ibs, nid, rids=[], select_rid_callback=None, fnum=5, **kwargs):
             if viztype == 'chip':
                 rid = vh.get_ibsdat(ax, 'rid')
                 print('... rid=%r' % rid)
-                viz.show_name(ibs, nid, fnum=fnum, rids=[rid])
+                viz.show_name(ibs, nid, fnum=fnum, sel_rids=[rid])
                 if select_rid_callback is not None:
                     select_rid_callback(rid)
         viz.draw()
 
-    viz.show_name(ibs, nid, fnum=fnum, rids=rids)
+    viz.show_name(ibs, nid, fnum=fnum, sel_rids=sel_rids)
     viz.draw()
     ih.connect_callback(fig, 'button_press_event', _on_name_click)
     pass

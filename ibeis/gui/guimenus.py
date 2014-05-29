@@ -12,118 +12,117 @@ class DummyBack(object):
         return None
 
 
-def setup_menus(ibswin):
+def setup_menus(mainwin, back=None):
     print('[guimenus] creating menus')
-    ibswin.menubar = newMenubar(ibswin)
-    back = ibswin.back
+    mainwin.menubar = newMenubar(mainwin)
     if back is None:
         back = DummyBack()
-    setup_file_menu(ibswin, back)
-    setup_actions_menu(ibswin, back)
-    setup_batch_menu(ibswin, back)
-    setup_option_menu(ibswin, back)
-    setup_help_menu(ibswin, back)
-    setup_developer_menu(ibswin, back)
+    setup_file_menu(mainwin, back)
+    setup_actions_menu(mainwin, back)
+    setup_batch_menu(mainwin, back)
+    setup_option_menu(mainwin, back)
+    setup_help_menu(mainwin, back)
+    setup_developer_menu(mainwin, back)
 
 
-def setup_file_menu(ibswin, back):
+def setup_file_menu(mainwin, back):
     """ FILE MENU """
-    ibswin.menuFile = newMenu(ibswin, ibswin.menubar, 'menuFile', 'File')
-    ibswin.menuFile.newAction(
+    mainwin.menuFile = newMenu(mainwin, mainwin.menubar, 'menuFile', 'File')
+    mainwin.menuFile.newAction(
         name='actionNew_Database',
         text='New Database',
         tooltip='Create a new folder to use as a database.',
         shortcut='Ctrl+N',
         slot_fn=back.new_database)
-    ibswin.menuFile.newAction(
+    mainwin.menuFile.newAction(
         name='actionOpen_Database',
         text='Open Database',
         tooltip='Opens a different database directory.',
         shortcut='Ctrl+O',
         slot_fn=back.open_database)
-    ibswin.menuFile.addSeparator()
-    ibswin.menuFile.newAction(
+    mainwin.menuFile.addSeparator()
+    mainwin.menuFile.newAction(
         name='actionSave_Database',
         tooltip='Saves csv tables',
         text='Save Database',
         shortcut='Ctrl+S',
         slot_fn=back.save_database)
-    ibswin.menuFile.addSeparator()
-    ibswin.menuFile.newAction(
+    mainwin.menuFile.addSeparator()
+    mainwin.menuFile.newAction(
         name='actionImport_Img_file',
         text='Import Images (select file(s))',
         shortcut=None,
         slot_fn=back.import_images_from_file)
-    ibswin.menuFile.newAction(
+    mainwin.menuFile.newAction(
         name='actionImport_Img_dir',
         text='Import Images (select directory)',
         shortcut='Ctrl+I',
         slot_fn=back.import_images_from_dir)
-    ibswin.menuFile.addSeparator()
-    ibswin.menuFile.newAction(
+    mainwin.menuFile.addSeparator()
+    mainwin.menuFile.newAction(
         name='actionQuit',
         text='Quit',
         shortcut='',
         slot_fn=back.quit)
 
 
-def setup_actions_menu(ibswin, back):
+def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
-    ibswin.menuActions = newMenu(ibswin, ibswin.menubar, 'menuActions', 'Actions')
-    ibswin.menuActions.newAction(
+    mainwin.menuActions = newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
+    mainwin.menuActions.newAction(
         name='actionAdd_ROI',
         text='Add ROI',
         shortcut='A',
         slot_fn=back.add_roi)
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query',
         shortcut='Q',
         slot_fn=back.query)
-    ibswin.menuActions.addSeparator()
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
         name='actionReselect_ROI',
         text='Reselect ROI Bbox',
         shortcut='R',
         slot_fn=back.reselect_roi)
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.newAction(
         name='actionReselect_Ori',
         text='Reselect ROI Orientation',
         shortcut='O',
         slot_fn=back.reselect_ori)
-    ibswin.menuActions.addSeparator()
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
         name='actionNext',
         text='Select Next',
         shortcut='N',
         slot_fn=back.select_next)
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.newAction(
         name='actionPrev',
         text='Select Previous',
         shortcut='P',
         slot_fn=back.select_prev)
-    ibswin.menuActions.addSeparator()
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
         name='actionDelete_ROI',
         text='Delete ROI',
         shortcut='Ctrl+Del',
         slot_fn=back.delete_roi)
-    ibswin.menuActions.newAction(
+    mainwin.menuActions.newAction(
         name='actionDelete_Image',
         text='Trash Image',
         shortcut='',
         slot_fn=back.delete_image)
 
 
-def setup_batch_menu(ibswin, back):
+def setup_batch_menu(mainwin, back):
     """ BATCH MENU """
-    ibswin.menuBatch = newMenu(ibswin, ibswin.menubar, 'menuBatch', 'Batch')
-    ibswin.menuBatch.newAction(
+    mainwin.menuBatch = newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
+    mainwin.menuBatch.newAction(
         name='actionPrecomputeROIFeatures',
         text='Precompute Chips/Features',
         shortcut='Ctrl+Return',
         slot_fn=back.precompute_feats)
-    ibswin.menuBatch.newAction(
+    mainwin.menuBatch.newAction(
         name='actionPrecompute_Queries',
         text='Precompute Queries',
         tooltip='''This might take anywhere from a coffee break to an
@@ -132,34 +131,34 @@ def setup_batch_menu(ibswin, back):
                     allows multiple queries to be rapidly inspected later.''',
         shortcut='',
         slot_fn=back.precompute_queries)
-    ibswin.menuBatch.newAction(
+    mainwin.menuBatch.newAction(
         name='actionDetect_Grevys_Quick',
         text='Detect Grevys Quick',
         slot_fn=back.detect_grevys_quick)
-    ibswin.menuBatch.newAction(
+    mainwin.menuBatch.newAction(
         name='actionDetect_Grevys_Fine',
         text='Detect Grevys Fine',
         slot_fn=back.detect_grevys_fine)
-    ibswin.menuBatch.addSeparator()
-    ibswin.menuBatch.newAction(
+    mainwin.menuBatch.addSeparator()
+    mainwin.menuBatch.newAction(
         name='actionCompute_Encounters',
         text='Compute Encounters',
         shortcut='Ctrl+E',
         slot_fn=back.compute_encounters)
-    ibswin.menuBatch.addSeparator()
+    mainwin.menuBatch.addSeparator()
 
 
-def setup_option_menu(ibswin, back):
+def setup_option_menu(mainwin, back):
     """ OPTIONS MENU """
-    ibswin.menuOptions = newMenu(ibswin, ibswin.menubar, 'menuOptions', 'Options')
-    ibswin.menuOptions.newAction(
+    mainwin.menuOptions = newMenu(mainwin, mainwin.menubar, 'menuOptions', 'Options')
+    mainwin.menuOptions.newAction(
         name='actionLayout_Figures',
         text='Layout Figures',
         tooltip='Organizes windows in a grid',
         shortcut='Ctrl+L',
         slot_fn=back.layout_figures)
-    ibswin.menuOptions.addSeparator()
-    ibswin.menuOptions.newAction(
+    mainwin.menuOptions.addSeparator()
+    mainwin.menuOptions.newAction(
         name='actionPreferences',
         text='Edit Preferences',
         tooltip='Changes algorithm parameters and program behavior.',
@@ -167,67 +166,67 @@ def setup_option_menu(ibswin, back):
         slot_fn=back.edit_preferences)
 
 
-def setup_help_menu(ibswin, back):
+def setup_help_menu(mainwin, back):
     """ HELP MENU """
-    ibswin.menuHelp = newMenu(ibswin, ibswin.menubar, 'menuHelp', 'Help')
+    mainwin.menuHelp = newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
     about_msg = 'IBEIS = Image Based Ecological Information System'
-    ibswin.menuHelp.newAction(
+    mainwin.menuHelp.newAction(
         name='actionAbout',
         text='About',
         shortcut='',
         slot_fn=msg_event('About', about_msg))
-    ibswin.menuHelp.newAction(
+    mainwin.menuHelp.newAction(
         name='actionView_Docs',
         text='View Documentation',
         shortcut='',
         slot_fn=back.view_docs)
     # ---
-    ibswin.menuHelp.addSeparator()
+    mainwin.menuHelp.addSeparator()
     # ---
-    ibswin.menuHelp.newAction(
+    mainwin.menuHelp.newAction(
         name='actionView_DBDir',
         text='View Database Directory',
         shortcut='',
         slot_fn=back.view_database_dir)
     # ---
-    ibswin.menuHelp.addSeparator()
+    mainwin.menuHelp.addSeparator()
     # ---
-    ibswin.menuHelp.newAction(
+    mainwin.menuHelp.newAction(
         name='actionDelete_Precomputed_Results',
         text='Delete Cached Query Results',
         shortcut='',
         slot_fn=back.delete_queryresults_dir)
-    ibswin.menuHelp.newAction(
+    mainwin.menuHelp.newAction(
         name='actionDelete_computed_directory',
         text='Delete computed directory',
         shortcut='',
         slot_fn=back.delete_cache)
-    ibswin.menuHelp.newAction(
+    mainwin.menuHelp.newAction(
         name='actionDelete_global_preferences',
         text='Delete Global Preferences',
         shortcut='',
         slot_fn=back.delete_global_prefs)
 
 
-def setup_developer_menu(ibswin, back):
+def setup_developer_menu(mainwin, back):
     """ DEV MENU """
-    ibswin.menuDev = newMenu(ibswin, ibswin.menubar, 'menuDev', 'Dev')
-    ibswin.menuDev.newAction(
+    mainwin.menuDev = newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
+    mainwin.menuDev.newAction(
         name='actionDeveloper_reload',
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
-    ibswin.menuDev.newAction(
+    mainwin.menuDev.newAction(
         name='actionDeveloper_mode',
         text='Developer IPython',
         shortcut='Ctrl+Shift+I',
         slot_fn=back.dev_mode)
-    ibswin.menuDev.newAction(
+    mainwin.menuDev.newAction(
         name='actionDeveloper_CLS',
         text='CLS',
         shortcut='Ctrl+Shift+C',
         slot_fn=back.dev_cls)
-    ibswin.menuDev.newAction(
+    mainwin.menuDev.newAction(
         name='actionDeveloper_DumpDB',
         text='Dump SQL Database',
         slot_fn=back.dev_dumpdb)

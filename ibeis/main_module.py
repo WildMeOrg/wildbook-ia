@@ -83,7 +83,7 @@ def _init_gui():
     #else:
     #    from ibeis.gui import newgui
     #    back = newgui.IBEISGuiWidget()
-    guitool.activate_qwindow(back)
+    guitool.activate_qwindow(back.mainwin)
     return back
 
 
@@ -213,7 +213,7 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
 
 
 @profile
-def _preload(mpl=True, par=True):
+def _preload(mpl=True, par=True, logging=False):
     """ Sets up python environment """
     import utool
     #from ibeis.dev import main_helpers
@@ -222,6 +222,8 @@ def _preload(mpl=True, par=True):
         return
     #_parse_args()
     # matplotlib backends
+    if logging:
+        utool.start_logging()
     if mpl:
         _init_matplotlib()
     # numpy print settings
@@ -267,8 +269,8 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
         except Exception as ex:
             print('[main_loop] IBEIS Caught: %s %s' % (type(ex), ex))
             raise
-    if not persist or params.args.cmd:
-        main_close()
+    #if not persist or params.args.cmd:
+    #    main_close()
     # Put locals in the exec namespace
     ipycmd_execstr = utool.ipython_execstr()
     locals_execstr = utool.execstr_dict(main_locals, 'main_locals')

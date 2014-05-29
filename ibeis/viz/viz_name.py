@@ -10,18 +10,18 @@ from .viz_chip import show_chip
 
 def show_name_of(ibs, rid, **kwargs):
     nid = ibs.get_roi_names(rid)
-    show_name(ibs, nid, rids=[rid], **kwargs)
+    show_name(ibs, nid, sel_rids=[rid], **kwargs)
 
 
 @utool.indent_func
-def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, rids=[], subtitle='',
+def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, sel_rids=[], subtitle='',
               annote=False, **kwargs):
     print('[viz] show_name nid=%r' % nid)
-    rids = ibs.get_name_rids(nid)
+    rid_list = ibs.get_name_rids(nid)
     name = ibs.get_names((nid,))
-    ibsfuncs.ensure_roi_data(ibs, rids, chips=(not in_image or annote), feats=annote)
-    print('[viz] show_name=%r rids=%r' % (name, rids))
-    nRids = len(rids)
+    ibsfuncs.ensure_roi_data(ibs, rid_list, chips=(not in_image or annote), feats=annote)
+    print('[viz] show_name=%r rid_list=%r' % (name, rid_list))
+    nRids = len(rid_list)
     if nRids > 0:
         nRows, nCols = ph.get_square_row_cols(nRids)
         print('[viz*] r=%r, c=%r' % (nRows, nCols))
@@ -30,9 +30,9 @@ def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, rids=[], subtitle
         fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
         fig.clf()
         # Trigger computation of all chips in parallel
-        for px, rid in enumerate(rids):
+        for px, rid in enumerate(rid_list):
             show_chip(ibs, rid=rid, pnum=pnum_(px), annote=annote, in_image=in_image)
-            if rid in rids:
+            if rid in sel_rids:
                 ax = df2.gca()
                 df2.draw_border(ax, df2.GREEN, 4)
             #plot_rid3(ibs, rid)

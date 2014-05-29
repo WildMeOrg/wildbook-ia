@@ -24,7 +24,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 class EncoutnerTabWidget(QtGui.QTabWidget):
     def __init__(enc_tabwgt, parent=None):
         QtGui.QTabWidget.__init__(enc_tabwgt, parent)
-        enc_tabwgt.ibswin = parent
+        enc_tabwgt.ibswgt = parent
         enc_tabwgt.setTabsClosable(True)
         enc_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
         enc_tabwgt.tabbar = enc_tabwgt.tabBar()
@@ -42,7 +42,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         """ Switch to the current encounter tab """
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
-            enc_tabwgt.ibswin._change_enc(eid)
+            enc_tabwgt.ibswgt._change_enc(eid)
 
     def _close_tab(enc_tabwgt, index):
         if enc_tabwgt.eid_list[index] is not None:
@@ -73,93 +73,100 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 ###### Window Widgets #######
 #############################
 
-#class IBEISMainWindow(QtGui.QMainWindow):
-class IBEISGuiWidget(QtGui.QMainWindow):
+class IBEISMainWindow(QtGui.QMainWindow):
+    def __init__(mainwin, back=None, ibs=None, parent=None):
+        QtGui.QMainWindow.__init__(mainwin, parent)
+        # Menus
+        mainwin.setUnifiedTitleAndToolBarOnMac(False)
+        guimenus.setup_menus(mainwin, back)
+        # Central Widget
+        mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
+        mainwin.setCentralWidget(mainwin.ibswgt)
+        #
+        mainwin.resize(900, 600)
+
+
+CLASS_IBEISGUIWidget = QtGui.QWidget
+
+
+class IBEISGuiWidget(CLASS_IBEISGUIWidget):
     #@checks_qt_error
-    def __init__(ibswin, back=None, ibs=None, parent=None):
-        QtGui.QMainWindow.__init__(ibswin, parent)
-        ibswin.ibs = ibs
-        ibswin.back = back
-        ibswin._init_layout()
-        ibswin._connect_signals_and_slots()
-        ibswin.connect_ibeis_control(ibswin.ibs)
+    def __init__(ibswgt, back=None, ibs=None, parent=None):
+        CLASS_IBEISGUIWidget.__init__(ibswgt, parent)
+        ibswgt.ibs = ibs
+        ibswgt.back = back
+        ibswgt._init_layout()
+        ibswgt._connect_signals_and_slots()
+        ibswgt.connect_ibeis_control(ibswgt.ibs)
 
     #@checks_qt_error
-    def _init_layout(ibswin):
+    def _init_layout(ibswgt):
         """ Layout the widgets, menus, and containers """
         # Define the abstract item models and views for the tables
-        ibswin.modelview_defs = [
+        ibswgt.modelview_defs = [
             (IMAGE_TABLE,     IBEISTableModel, IBEISTableView),
             (ROI_TABLE,       IBEISTableModel, IBEISTableView),
             (NAME_TABLE,      IBEISTableModel, IBEISTableView),
             (ENCOUNTER_TABLE, EncModel,        EncView),
         ]
         # Sturcutres that will hold models and views
-        ibswin.models       = {}
-        ibswin.views        = {}
-        ibswin.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE]
-        ibswin.super_tblname_list = ibswin.tblname_list + [ENCOUNTER_TABLE]
-        # Menus
-        ibswin.resize(900, 600)
-        ibswin.setUnifiedTitleAndToolBarOnMac(False)
-        ibswin.centralwidget = QtGui.QWidget(ibswin)
-        ibswin.setCentralWidget(ibswin.centralwidget)
-        parent = ibswin
-        root = ibswin.centralwidget
-        guimenus.setup_menus(ibswin)
+        ibswgt.models       = {}
+        ibswgt.views        = {}
+        ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE]
+        ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Layout
-        ibswin.vlayout = QtGui.QVBoxLayout(root)
-        ibswin.hsplitter = guitool.newHorizontalSplitter(parent)
+        ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
+        ibswgt.hsplitter = guitool.newHorizontalSplitter(ibswgt)
         # Tables Tab
-        ibswin._tab_table_wgt = QtGui.QTabWidget(parent)
+        ibswgt._tab_table_wgt = QtGui.QTabWidget(ibswgt)
         # Create models and views
-        for tblname, ModelClass, ViewClass in ibswin.modelview_defs:
-            ibswin.models[tblname] = ModelClass(parent=parent)
-            ibswin.views[tblname]  = ViewClass(parent=parent)
-            ibswin.views[tblname].setModel(ibswin.models[tblname])
+        for tblname, ModelClass, ViewClass in ibswgt.modelview_defs:
+            ibswgt.models[tblname] = ModelClass(parent=ibswgt)
+            ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
+            ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ROI, and Names as tabs
-        for tblname in ibswin.tblname_list:
-            ibswin._tab_table_wgt.addTab(ibswin.views[tblname], tblname)
+        for tblname in ibswgt.tblname_list:
+            ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
         # Encs Tabs
-        ibswin.enc_tabwgt = EncoutnerTabWidget(parent=ibswin)
+        ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt)
         # Add Other elements to the view
-        ibswin.vlayout.addWidget(ibswin.enc_tabwgt)
-        ibswin.vlayout.addWidget(ibswin.hsplitter)
-        ibswin.hsplitter.addWidget(ibswin.views[ENCOUNTER_TABLE])
-        ibswin.hsplitter.addWidget(ibswin._tab_table_wgt)
+        ibswgt.vlayout.addWidget(ibswgt.enc_tabwgt)
+        ibswgt.vlayout.addWidget(ibswgt.hsplitter)
+        ibswgt.hsplitter.addWidget(ibswgt.views[ENCOUNTER_TABLE])
+        ibswgt.hsplitter.addWidget(ibswgt._tab_table_wgt)
 
     #@checks_qt_error
-    def _connect_signals_and_slots(ibswin):
+    def _connect_signals_and_slots(ibswgt):
         tblslots = {
-            IMAGE_TABLE     : ibswin.on_doubleclick_image,
-            ROI_TABLE       : ibswin.on_doubleclick_roi,
-            NAME_TABLE      : ibswin.on_doubleclick_name,
-            ENCOUNTER_TABLE : ibswin.on_doubleclick_encounter,
+            IMAGE_TABLE     : ibswgt.on_doubleclick_image,
+            ROI_TABLE       : ibswgt.on_doubleclick_roi,
+            NAME_TABLE      : ibswgt.on_doubleclick_name,
+            ENCOUNTER_TABLE : ibswgt.on_doubleclick_encounter,
         }
         for tblname, slot in tblslots.iteritems():
-            view = ibswin.views[tblname]
+            view = ibswgt.views[tblname]
             view.doubleClicked.connect(slot)
-            model = ibswin.models[tblname]
-            model._rows_updated.connect(ibswin.on_rows_updated)
+            model = ibswgt.models[tblname]
+            model._rows_updated.connect(ibswgt.on_rows_updated)
 
-    def change_model_context_gen(ibswin, tblnames=None):
+    def change_model_context_gen(ibswgt, tblnames=None):
         """
         Loops over tablenames emitting layoutChanged at the end for each
         """
         if tblnames is None:
-            tblnames = ibswin.super_tblname_list
-        model_list = [ibswin.models[tblname] for tblname in tblnames]
+            tblnames = ibswgt.super_tblname_list
+        model_list = [ibswgt.models[tblname] for tblname in tblnames]
         with ChangingModelLayout(model_list):
             for tblname in tblnames:
                 yield tblname
 
-    def update_tables(ibswin, tblnames=None):
+    def update_tables(ibswgt, tblnames=None):
         """ forces changing models """
-        for tblname in ibswin.change_model_context_gen(tblnames=tblnames):
-            model = ibswin.models[tblname]
+        for tblname in ibswgt.change_model_context_gen(tblnames=tblnames):
+            model = ibswgt.models[tblname]
             model._update()
 
-    def connect_ibeis_control(ibswin, ibs):
+    def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
         print('[newgui] connecting ibs control')
         if ibs is None:
@@ -168,73 +175,80 @@ class IBEISGuiWidget(QtGui.QMainWindow):
         else:
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             # Give the frontend the new control
-            ibswin.ibs = ibs
+            ibswgt.ibs = ibs
             # Update the api models to use the new control
-            header_dict = gh.make_ibeis_headers_dict(ibswin.ibs)
+            header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             print('[newgui] Calling model _update_headers')
-            for tblname in ibswin.change_model_context_gen(ibswin.super_tblname_list):
-                model = ibswin.models[tblname]
+            for tblname in ibswgt.change_model_context_gen(ibswgt.super_tblname_list):
+                model = ibswgt.models[tblname]
                 header = header_dict[tblname]
                 model._update_headers(**header)
             #ibs.delete_invalid_eids()
-            title = ibsfuncs.get_title(ibswin.ibs)
-        ibswin.setWindowTitle(title)
+            title = ibsfuncs.get_title(ibswgt.ibs)
+        ibswgt.setWindowTitle(title)
 
-    def _change_enc(ibswin, eid):
-        for tblname in ibswin.change_model_context_gen(tblnames=ibswin.tblname_list):
-            ibswin.views[tblname]._change_enc(eid)
+    def setWindowTitle(ibswgt, title):
+        parent_ = ibswgt.parent()
+        if parent_ is not None:
+            parent_.setWindowTitle(title)
+        else:
+            CLASS_IBEISGUIWidget.setWindowTitle(ibswgt, title)
 
-    def _update_enc_tab_name(ibswin, eid, enctext):
-        ibswin.enc_tabwgt._update_enc_tab_name(eid, enctext)
+    def _change_enc(ibswgt, eid):
+        for tblname in ibswgt.change_model_context_gen(tblnames=ibswgt.tblname_list):
+            ibswgt.views[tblname]._change_enc(eid)
+
+    def _update_enc_tab_name(ibswgt, eid, enctext):
+        ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
 
     #------------
     # SLOTS
     #------------
 
     @slot_(str, int)
-    def on_rows_updated(ibswin, tblname, nRows):
+    def on_rows_updated(ibswgt, tblname, nRows):
         print('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:
             return
         tblname = str(tblname)
-        index = ibswin._tab_table_wgt.indexOf(ibswin.views[tblname])
-        ibswin._tab_table_wgt.setTabText(index, tblname + ' ' + str(nRows))
+        index = ibswgt._tab_table_wgt.indexOf(ibswgt.views[tblname])
+        ibswgt._tab_table_wgt.setTabText(index, tblname + ' ' + str(nRows))
 
     @slot_(QtCore.QModelIndex)
-    def on_doubleclick_image(ibswin, qtindex):
+    def on_doubleclick_image(ibswgt, qtindex):
         row   = qtindex.row()
         model = qtindex.model()
         gid = model._get_row_id(row)
-        ibswin.back.select_gid(gid, model.eid)
+        ibswgt.back.select_gid(gid, model.eid)
         print("Image Selected, %r (ENC %r)" % (gid, model.eid))
         print('img')
 
     @slot_(QtCore.QModelIndex)
-    def on_doubleclick_roi(ibswin, qtindex):
+    def on_doubleclick_roi(ibswgt, qtindex):
         print('roi')
         row   = qtindex.row()
         model = qtindex.model()
         rid = model._get_row_id(row)
-        ibswin.back.select_rid(rid, model.eid)
+        ibswgt.back.select_rid(rid, model.eid)
         print("ROI Selected, %r (ENC %r)" % (rid, model.eid))
 
     @slot_(QtCore.QModelIndex)
-    def on_doubleclick_name(ibswin, qtindex):
+    def on_doubleclick_name(ibswgt, qtindex):
         print('name')
         model = qtindex.model()
         row   = qtindex.row()
         nid = model._get_row_id(row)
-        ibswin.back.select_nid(nid, model.eid)
+        ibswgt.back.select_nid(nid, model.eid)
         print("Name Selected, %r (ENC %r)" % (nid, model.eid))
 
     @slot_(QtCore.QModelIndex)
-    def on_doubleclick_encounter(ibswin, qtindex):
+    def on_doubleclick_encounter(ibswgt, qtindex):
         print('encounter')
         row   = qtindex.row()
         model = qtindex.model()
         eid = model._get_row_id(row)
-        enctext = ibswin.ibs.get_encounter_enctext(eid)
-        ibswin.enc_tabwgt._add_enc_tab(eid, enctext)
+        enctext = ibswgt.ibs.get_encounter_enctext(eid)
+        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
         print("Encounter Selected, %r" % (eid))
 
 
@@ -245,10 +259,10 @@ if __name__ == '__main__':
     guitool.ensure_qtapp()
     dbdir = ibeis.sysres.get_args_dbdir(defaultdb='cache')
     ibs = IBEISControl.IBEISController(dbdir=dbdir)
-    ibswin = IBEISGuiWidget(ibs=ibs)
+    ibswgt = IBEISGuiWidget(ibs=ibs)
 
     if '--cmd' in sys.argv:
-        guitool.qtapp_loop(qwin=ibswin, ipy=True)
+        guitool.qtapp_loop(qwin=ibswgt, ipy=True)
         exec(utool.ipython_execstr())
     else:
-        guitool.qtapp_loop(qwin=ibswin)
+        guitool.qtapp_loop(qwin=ibswgt)
