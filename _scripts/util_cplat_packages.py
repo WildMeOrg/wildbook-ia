@@ -245,8 +245,8 @@ def __install_command_pip(pkg, upgrade=None):
             command += ' && sudo pip install %s --upgrade' % pkg
             command += ' && sudo apt-get remove python-pip'
             command += ' && sudo apt-get remove python-setuptools'
-            command += ' && sudo pip install pip --upgrade' % pkg
-            command += ' && sudo pip install setuptools --upgrade' % pkg
+            command += ' && sudo pip install pip --upgrade'
+            command += ' && sudo pip install setuptools --upgrade'
     else:
         # IF not then try and install through pip
         if WIN32:

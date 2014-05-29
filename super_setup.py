@@ -3,7 +3,14 @@ from __future__ import absolute_import, division, print_function
 from os.path import dirname, realpath
 """
 PREREQ:
-_scripts/bootstrap.py %% ./install_prereqs.sh
+git config --global push.default current
+cd ~
+mkdir code
+cd code
+git clone https://github.com/Erotemic/ibeis.git
+cd ibeis/_scripts
+./bootstrap.py
+./__install_prereqs__.sh
 """
 
 print('[super_setup] __IBEIS_SUPER_SETUP__')
