@@ -1,13 +1,35 @@
-ibeis
+# IBEIS
+## I.B.E.I.S. = Image Based Ecological Information System
 =====
 
-I.B.E.I.S. = Image Based Ecological Information System
+
+Erotemic's IBEIS module dependencies 
+
+* https://github.com/Erotemic/utool
+* https://github.com/Erotemic/plottool
+* https://github.com/Erotemic/vtool
+* https://github.com/Erotemic/hesaff
+* https://github.com/Erotemic/guitool
 
 
-    #--------------------
-    # Environment Setup:
-    #--------------------
+bluemellophone's IBEIS modules
 
+* https://github.com/bluemellophone/detecttools
+* https://github.com/bluemellophone/pyrf
+
+
+hjweide's IBEIS modules
+
+* https://github.com/bluemellophone/pygist
+
+
+The IBEIS module itself: 
+
+* https://github.com/Erotemic/ibeis
+
+# Environment Setup:
+
+```bash
     # The following install script instal ibeis and all dependencies. 
     # If it doesnt you can look at the older instructions which follow
     # and try to figure it out
@@ -29,14 +51,14 @@ I.B.E.I.S. = Image Based Ecological Information System
     # Usually this needs to be run twice. Either way it wont hurt
     ./super_setup.py --build --develop
     ./super_setup.py --build --develop
+```
 
 
 ###
 
 
-    #--------------------
-    # OLD Environment Setup:
-    #--------------------
+#### OLD Environment Setup:
+```bash
     # Navigate to your code directory
     export CODE_DIR=~/code
     cd $CODE_DIR
@@ -78,10 +100,14 @@ I.B.E.I.S. = Image Based Ecological Information System
     # If you want to train random forests with pyrf clone
     # https://github.com/bluemellophone/IBEIS2014.git
     # otherwise you dont need this
+```
 
 
-###
+# Example usage
 
+(Note: This list is far from complete)
+
+```bash
     #--------------------
     # Main Commands
     #--------------------
@@ -162,3 +188,4 @@ I.B.E.I.S. = Image Based Ecological Information System
 
     # Run the best configuration and print out the hard cases
     python dev.py --allgt -t best --echo-hardcase
+```
