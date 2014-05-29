@@ -319,7 +319,9 @@ def ensure_package(pkg):
     elif MACPORTS:
         command = __install_command_macports(pkg)
     elif WIN32:
-        raise Exception('not a chance.')
+        raise Exception('Win32: not a chance.')
+    else:
+        raise NotImplementedError('%r is not yet supported' % ((__OS__, DISTRO, DISTRO_VERSION,),))
     if command == '':
         return ''
     return cmd(command)
