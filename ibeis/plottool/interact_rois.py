@@ -269,7 +269,7 @@ class ROIInteraction(object):
 
     def button_press_callback(self, event):
         """ whenever a mouse button is pressed """
-        if not self._ind is None:
+        if self._ind is not None:
             self._ind = None
             return
         ignore = not self.showverts or event.inaxes is None or event.button != 1
@@ -445,7 +445,7 @@ class ROIInteraction(object):
         """ Makes selected polygon translucent """
         print('onpick')
         self._thisPoly = event.artist
-        x, y = event.mouseevent.xdata, event.mouseevent.xdata
+        #x, y = event.mouseevent.xdata, event.mouseevent.xdata
         self._polyHeld = True
 
     def mouse_enter(self, event):

@@ -54,19 +54,19 @@ def get_square_row_cols(nSubplots, max_cols=None):
 
 def get_plotdat(ax, key, default=None):
     """ returns internal property from a matplotlib axis """
-    _ibsdat = ax.__dict__.get('_ibsdat', None)
-    if _ibsdat is None:
+    _plotdat = ax.__dict__.get('_plotdat', None)
+    if _plotdat is None:
         return default
-    val = _ibsdat.get(key, default)
+    val = _plotdat.get(key, default)
     return val
 
 
 def set_plotdat(ax, key, val):
     """ sets internal property to a matplotlib axis """
-    if '_ibsdat' not in ax.__dict__:
-        ax.__dict__['_ibsdat'] = {}
-    _ibsdat = ax.__dict__['_ibsdat']
-    _ibsdat[key] = val
+    if '_plotdat' not in ax.__dict__:
+        ax.__dict__['_plotdat'] = {}
+    _plotdat = ax.__dict__['_plotdat']
+    _plotdat[key] = val
 
 
 def get_bbox_centers(bbox_list):
