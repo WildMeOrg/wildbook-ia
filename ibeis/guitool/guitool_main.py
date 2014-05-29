@@ -53,9 +53,7 @@ ensure_qapp = ensure_qtapp
 def activate_qwindow(qwin):
     global QAPP
     if not QUIET:
-        print('[guitool.qtapp_loop()] qapp.setActiveWindow(qwin)')
-    if hasattr(qwin, 'front'):
-        qwin = qwin.front
+        print('[guitool] qapp.setActiveWindow(qwin)')
     qwin.show()
     QAPP.setActiveWindow(qwin)
 
@@ -72,8 +70,8 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
 
 def qtapp_loop(qwin=None, ipy=False, **kwargs):
     global QAPP
-    if not QUIET and VERBOSE:
-        print('[guitool.qtapp_loop()]')
+    #if not QUIET and VERBOSE:
+    print('[guitool] starting qt app loop: qwin=%r' % (qwin,))
     if qwin is not None:
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(**kwargs)
@@ -102,18 +100,21 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
 
 
 def ping_python_interpreter(frequency=420):  # 4200):
-    'Create a QTimer which lets the python catch ctrl+c'
-    if not QUIET:  # and VERBOSE:
+    """ Create a QTimer which lets the python catch ctrl+c """
+    if not QUIET and VERBOSE:
         print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
-    timer.timeout.connect(lambda: None)
+    def ping_func():
+        return None
+    timer.ping_func = ping_func
+    timer.timeout.connect(timer.ping_func)
     timer.start(frequency)
     return timer
 
 
 def exit_application():
-    if not QUIET:
-        print('[guitool] exiting application')
+    #if not QUIET:
+    print('[guitool] exiting application')
     QtGui.qApp.quit()
 
 

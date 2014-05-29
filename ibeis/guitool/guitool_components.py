@@ -20,19 +20,26 @@ def newSizePolicy(widget,
     sizePolicy = QSizePolicy(horizontalSizePolicy, verticalSizePolicy)
     sizePolicy.setHorizontalStretch(horizontalStretch)
     sizePolicy.setVerticalStretch(verticalStretch)
-    sizePolicy.setHeightForWidth(widget.sizePolicy().hasHeightForWidth())
+    #sizePolicy.setHeightForWidth(widget.sizePolicy().hasHeightForWidth())
     return sizePolicy
 
 
-def newHorizontalSplitter(widget):
+def newSplitter(widget, orientation=Qt.Horizontal, verticalStretch=1):
     """
     input: widget - the central widget
     """
-    hsplitter = QtGui.QSplitter(Qt.Horizontal, widget)
+    hsplitter = QtGui.QSplitter(orientation, widget)
     # This line makes the hsplitter resize with the widget
-    sizePolicy = newSizePolicy(widget)
+    sizePolicy = newSizePolicy(hsplitter, verticalStretch=verticalStretch)
     hsplitter.setSizePolicy(sizePolicy)
     return hsplitter
+
+
+def newTabWidget(parent, horizontalStretch=1):
+    tabwgt = QtGui.QTabWidget(parent)
+    sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
+    tabwgt.setSizePolicy(sizePolicy)
+    return tabwgt
 
 
 def newMenubar(widget):
@@ -90,24 +97,79 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     return action
 
 
-def newProgressBar(parent, visible=True):
+def newProgressBar(parent, visible=True, verticalStretch=1):
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
-                               verticalSizePolicy=QSizePolicy.Fixed,
-                               verticalStretch=1)
+                               verticalSizePolicy=QSizePolicy.Maximum,
+                               verticalStretch=verticalStretch)
     progressBar.setSizePolicy(sizePolicy)
-    progressBar.setProperty('value', 24)
+    progressBar.setProperty('value', 42)
+    progressBar.setTextVisible(False)
     progressBar.setVisible(visible)
     return progressBar
 
 
-def newOutputEdit(parent, visible=True):
+def newOutputLog(parent, visible=True, verticalStretch=1):
+    from .guitool_misc import QLoggedOutput
+    outputLog = QLoggedOutput(parent)
+    sizePolicy = newSizePolicy(outputLog,
+                               #verticalSizePolicy=QSizePolicy.Preferred,
+                               verticalStretch=verticalStretch)
+    outputLog.setSizePolicy(sizePolicy)
+    outputLog.setAcceptRichText(False)
+    outputLog.setVisible(visible)
+    #outputLog.setFontPointSize(8)
+    outputLog.setFont(newFont('Courier New', 6))
+    return outputLog
+
+
+def newTextEdit(parent, visible=True):
     outputEdit = QtGui.QTextEdit(parent)
     sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
     outputEdit.setVisible(visible)
     return outputEdit
+
+
+def newWidget(parent, verticalStretch=1):
+    widget = QtGui.QWidget()
+    sizePolicy = newSizePolicy(widget, verticalStretch=1)
+    widget.setSizePolicy(sizePolicy)
+    layout = QtGui.QVBoxLayout(widget)
+    return widget, layout
+
+
+def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
+    #fontname = 'Courier New'
+    #pointSize = 8
+    #weight = -1
+    #italic = False
+    font = QtGui.QFont(fontname, pointSize=pointSize, weight=weight, italic=italic)
+    return font
+
+
+def getAvailableFonts():
+    fontdb = QtGui.QFontDatabase()
+    available_fonts = map(str, list(fontdb.families()))
+    return available_fonts
+
+
+def layoutSplitter(splitter):
+    old_sizes = splitter.sizes()
+    print(old_sizes)
+    phi = utool.get_phi()
+    total = sum(old_sizes)
+    ratio = 1 / phi
+    sizes = []
+    for count, size in enumerate(old_sizes[:-1]):
+        new_size = int(round(total * ratio))
+        total -= new_size
+        sizes.append(new_size)
+    sizes.append(total)
+    splitter.setSizes(sizes)
+    print(sizes)
+    print('===')
 
 
 def msg_event(title, msg):
