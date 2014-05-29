@@ -117,8 +117,8 @@ class ROIInteraction(object):
         ax.imshow(img)
 
         ax.set_clip_on(False)
-        ax.set_title(('Click and drag a point to move it; or click once, then'
-                      'click again.\nClose figure when done.'))
+        ax.set_title(('Click and drag a point to move it; or click once, then '
+                      'click again.\nClick an ROI and press \"r\" to remove it\nPress \"t\" to add an ROI'))
 
         self.showverts = True
         self.max_ds = max_ds
@@ -253,9 +253,11 @@ class ROIInteraction(object):
     def poly_changed(self, poly):
         """ this method is called whenever the polygon object is called """
         # only copy the artist props to the line (except visibility)
-        vis = self.line[poly.num].get_visible()
+        num = self.polyList.index(poly)
+        vis = self.line[num].get_visible()
         #Artist.update_from(self.line, poly)
-        self.line[poly.num].set_visible(vis)  # don't use the poly visibility state
+        self.line[num].set_visible(vis)
+        #self.line[poly.num].set_visible(vis)  # don't use the poly visibility state
 
     def draw_callback(self, event):
         #print('[mask] draw_callback(event=%r)' % event)
@@ -275,7 +277,10 @@ class ROIInteraction(object):
             return
         if self._thisPoly is None:
             print('WARNING: Polygon unknown. Using default.')
-            self._thisPoly = self.polyList[0]
+            if len(self.polyList) == 0:
+                print('No polygons on screen')
+            else:
+                self._thisPoly = self.polyList[0]
 
         polyind, self._ind = self.get_ind_under_cursor(event)
 
@@ -349,6 +354,28 @@ class ROIInteraction(object):
         Poly.num = self.next_polynum()
         self._ind = None  # the active vert
 
+
+    def delete_current_poly(self):
+        if self._thisPoly is None:
+            print('No Poly Selected to delete')
+            return
+        Poly = self._thisPoly
+        lineNumber = self.polyList.index(Poly)
+        ###print('poly list: ', len(self.polyList), 'list size ', len(self.line), 'index of poly ', lineNumber)
+        
+        #line deletion
+        del self.line[lineNumber]
+        #poly deletion
+        self.polyList.remove(Poly)
+        #remove the poly from the figure itself
+        Poly.remove()
+        #reset anything that has to do with current poly
+        self._thisPoly = None;
+        self._polyHeld = False;
+
+
+
+
     def key_press_callback(self, event):
         """ whenever a key is pressed """
         print('key_press_callback')
@@ -358,6 +385,11 @@ class ROIInteraction(object):
             self.draw_new_poly()
         # old code for adding and deleting Polygon vertices (would need to
         # rewrite for multiply polygons
+
+        """code for deleting a polygon"""
+        if event.key == 'r':
+            self.delete_current_poly()
+
 
         # elif event.key == 'd':
         #     ind = self.get_ind_under_cursor(event)
@@ -564,6 +596,9 @@ class ROIInteraction(object):
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
         mask_list = [verts_to_mask(shape, poly.xy) for poly in self.polyList]
+        if len(mask_list) == 0:
+            print('No polygons to make mask out of')
+            return 0;
         mask = mask_list[0]
         for mask_ in mask_list:
             mask = np.maximum(mask, mask_)
