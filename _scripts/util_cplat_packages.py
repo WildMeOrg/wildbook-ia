@@ -191,6 +191,32 @@ def __update_apt_get():
     return 'sudo apt-get update && sudo apt-get upgrade -y'
 
 
+# CENTOS YUM COMMANDS
+
+def __check_installed_yum(pkg):
+    return False
+    ## First try which
+    #out, err, ret = shell('which ' + pkg)
+    #if ret == 0:
+    #    return True
+    ## Then use dpkg to check if we have it
+    #out, err, ret = shell('dpkg -s ' + pkg)
+    #if ret == 0:
+    #    return True
+    #else:
+    #    return False
+
+
+def __install_command_yum(pkg):
+    if pkg == 'python-pyqt4':
+        pkg = 'python-qt4'
+    return 'sudo yum install -y %s' % pkg
+
+
+def __update_yum():
+    return 'sudo yum update && sudo yum upgrade -y'
+
+
 # PIP COMMANDS
 
 def get_pypkg_aliases(pkg):
@@ -288,6 +314,8 @@ def ensure_package(pkg):
         return ''
     if UBUNTU:
         command = __install_command_apt_get(pkg)
+    elif CENTOS:
+        command = __install_command_yum(pkg)
     elif MACPORTS:
         command = __install_command_macports(pkg)
     elif WIN32:

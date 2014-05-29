@@ -11,7 +11,7 @@ cd ibeis/_scripts
 """
 import sys
 import os
-from util_cplat_packages import make_prereq_script, APPLE, UBUNTU, print_sysinfo
+from util_cplat_packages import make_prereq_script, APPLE, CENTOS, UBUNTU, print_sysinfo
 
 
 DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
@@ -46,6 +46,9 @@ if UBUNTU:
         'zlib1g-dev',
         'python-dev',
     ])
+
+if CENTOS:
+    pass
 
 PREREQ_PYPKG_LIST = [
     'pip',

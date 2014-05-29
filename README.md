@@ -21,6 +21,10 @@ git clone https://github.com/Erotemic/ibeis.git
 cd ibeis/_scripts
 ./bootstrap.py
 ./__install_prereqs__.sh
+cd ..
+# Usually this needs to be run twice. Either way it wont hurt
+./super_setup.py --build --develop
+./super_setup.py --build --develop
 ###
 #
 

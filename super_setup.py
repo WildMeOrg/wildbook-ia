@@ -11,6 +11,9 @@ git clone https://github.com/Erotemic/ibeis.git
 cd ibeis/_scripts
 ./bootstrap.py
 ./__install_prereqs__.sh
+cd ..
+./super_setup.py --build --develop
+./super_setup.py --build --develop
 """
 
 print('[super_setup] __IBEIS_SUPER_SETUP__')
@@ -44,7 +47,7 @@ except ImportError:
     os.system('git pull')
     os.system('sudo python setup.py develop')
     sys.path.append(os.path.realpath(os.getcwd()))
-    print('Please rerun suepr_setup.py')
+    print('Please rerun supr_setup.py')
     sys.exit(1)
 
 #-----------
