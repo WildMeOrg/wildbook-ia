@@ -367,7 +367,6 @@ class ROIInteraction(object):
         Poly.num = self.next_polynum()
         self._ind = None  # the active vert
 
-
     def delete_current_poly(self):
         if self._thisPoly is None:
             print('No Poly Selected to delete')
@@ -375,7 +374,7 @@ class ROIInteraction(object):
         Poly = self._thisPoly
         lineNumber = self.polyList.index(Poly)
         ###print('poly list: ', len(self.polyList), 'list size ', len(self.line), 'index of poly ', lineNumber)
-        
+
         #line deletion
         del self.line[lineNumber]
         #poly deletion
@@ -383,11 +382,8 @@ class ROIInteraction(object):
         #remove the poly from the figure itself
         Poly.remove()
         #reset anything that has to do with current poly
-        self._thisPoly = None;
-        self._polyHeld = False;
-
-
-
+        self._thisPoly = None
+        self._polyHeld = False
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
@@ -402,7 +398,6 @@ class ROIInteraction(object):
         """code for deleting a polygon"""
         if event.key == 'r':
             self.delete_current_poly()
-
 
         # elif event.key == 'd':
         #     ind = self.get_ind_under_cursor(event)
@@ -611,7 +606,7 @@ class ROIInteraction(object):
         mask_list = [verts_to_mask(shape, poly.xy) for poly in self.polyList]
         if len(mask_list) == 0:
             print('No polygons to make mask out of')
-            return 0;
+            return 0
         mask = mask_list[0]
         for mask_ in mask_list:
             mask = np.maximum(mask, mask_)
