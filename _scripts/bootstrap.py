@@ -11,7 +11,7 @@ cd ibeis/_scripts
 """
 import sys
 import os
-from os.path import dirname, realpath
+from os.path import dirname, realpath, join
 from util_cplat_packages import make_prereq_script, APPLE, CENTOS, UBUNTU, print_sysinfo
 
 
@@ -83,7 +83,7 @@ if output == '':
     print('System has all prerequisites!')
 elif not DRYRUN:
     script_dir = realpath(dirname(__file__))
-    fpath = '__install_prereqs__.sh'
+    fpath = join(script_dir, '__install_prereqs__.sh')
     with open(fpath, 'w') as file_:
         file_.write(output)
     os.system('chmod +x ' + fpath)

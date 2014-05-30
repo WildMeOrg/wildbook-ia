@@ -36,6 +36,7 @@ The IBEIS module itself:
 
 # Navigate to your code directory
 export CODE_DIR=~/code
+mkdir $CODE_DIR
 cd $CODE_DIR
 
 # Clone IBEIS

@@ -5,11 +5,12 @@ from os.path import dirname, realpath
 PREREQ:
 git config --global push.default current
 export CODE_DIR=~/code
+mkdir $CODE_DIR
 cd $CODE_DIR
 git clone https://github.com/Erotemic/ibeis.git
 cd ibeis
 ./_scripts/bootstrap.py
-./_scripts./__install_prereqs__.sh
+./_scripts/__install_prereqs__.sh
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 """
