@@ -28,6 +28,10 @@ APPLE_PYPKG_MAP = {
     'pyreadline': 'readline',
 }
 
+APT_GET_PKGMAP = {
+    'python-pyqt4': 'python-qt4'
+}
+
 PIP_PYPKG_SET = get_pip_installed()
 
 #print('\n'.join(sorted(list(PIP_PYPKG_SET))))
@@ -181,10 +185,25 @@ def __check_installed_apt_get(pkg):
         return False
 
 
+def fix_pkgname_apt_get(pkg):
+    """ Returns the correct package name for apt_get if given a known alias """
+    return APT_GET_PKGMAP.get(pkg, pkg)
+
+
 def __install_command_apt_get(pkg):
-    if pkg == 'python-pyqt4':
-        pkg = 'python-qt4'
+    """
+    Returns the apt_get install command for a package (accepts known aliases)
+    """
+    pkg = fix_pkgname_apt_get(pkg)
     return 'sudo apt-get install -y %s' % pkg
+
+
+def __uninstall_command_apt_get(pkg):
+    """
+    Returns the apt_get uninstall command for a package (accepts known aliases)
+    """
+    pkg = fix_pkgname_apt_get(pkg)
+    return 'sudo apt-get remote -y %s' % pkg
 
 
 def __update_apt_get():
@@ -249,6 +268,9 @@ def check_python_installed(pkg, target_version=None):
 
 
 def __install_command_pip(pkg, upgrade=None):
+    fmtstr_install_pip = 'pip install %s'
+    if not WIN32:
+        fmtstr_install_pip = 'sudo ' + fmtstr_install_pip
     # First check if we already have this package
     if upgrade is None:
         upgrade = UPGRADE_PIP
@@ -269,17 +291,18 @@ def __install_command_pip(pkg, upgrade=None):
             # remove the apt-get-pip as well as the apt-get-setuptools which is
             # ninja installed. setuptools and pip go hand-in-hand. so ensure
             # that as well
-            command += ' && sudo pip install %s --upgrade' % pkg
-            command += ' && sudo apt-get -y remove python-pip'
-            command += ' && sudo apt-get -y remove python-setuptools'
-            command += ' && sudo pip install pip --upgrade'
-            command += ' && sudo pip install setuptools --upgrade'
+            command = ' && '.join([
+                command,
+                fmtstr_install_pip % 'pip --upgrade',
+                __uninstall_command_apt_get('python-pip'),
+                __uninstall_command_apt_get('python-setuptools'),
+                fmtstr_install_pip % 'pip --upgrade',
+                fmtstr_install_pip % 'setuptools --upgrade',
+            ])
+
     else:
         # IF not then try and install through pip
-        if WIN32:
-            command = 'pip install %s' % pkg
-        else:
-            command = 'sudo pip install %s' % pkg
+        command = fmtstr_install_pip % pkg
         # I dont know why it gets a weird version
         if pkg == 'setuptools':
             upgrade = True
