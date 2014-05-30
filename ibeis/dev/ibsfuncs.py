@@ -156,18 +156,22 @@ def get_roi_is_hard(ibs, rid_list):
 
 @__injectable
 def localize_images(ibs, gid_list=None):
+    """
+    Moves the images into the ibeis image cache.
+    Images are renamed to img_uuid.ext
+    """
     if gid_list is None:
         gid_list  = ibs.get_valid_gids()
     gpath_list = ibs.get_image_paths(gid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
     gext_list  = ibs.get_image_exts(gid_list)
     # Build list of image names based on uuid in the ibeis imgdir
-    local_gname_list = [str(guuid) + ext for guuid, ext, in izip(guuid_list, gext_list)]
-    local_gpath_list = [join(ibs.imgdir, gname) for gname in local_gname_list]
-    utool.copy_list(gpath_list, local_gpath_list, lbl='Localizing Images: ')
-    ibs.set_image_uris(gid_list, local_gname_list)
-
-    assert all(map(exists, local_gpath_list)), 'not all images copied'
+    guuid_strs = (str(guuid) for guuid in guuid_list)
+    loc_gname_list = [guuid + ext for (guuid, ext) in izip(guuid_strs, gext_list)]
+    loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
+    utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
+    ibs.set_image_uris(gid_list, loc_gname_list)
+    assert all(map(exists, loc_gname_list)), 'not all images copied'
 
 
 @__injectable

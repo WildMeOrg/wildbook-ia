@@ -3,7 +3,7 @@ import utool
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
-from ibeis import constants
+#from ibeis import constants
 (print, print_,  rrr, profile,
  printDBG) = utool.inject(__name__, '[preproc_encounter]', DEBUG=False)
 
@@ -69,10 +69,18 @@ def _meanshift_cluster_encounters_time(unixtime_arr, quantile):
     # quantile should be between [0, 1]
     # e.g: quantile=.5 represents the median of all pairwise distances
     bandwidth = estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
+    if bandwidth == 0:
+        print('[WARNING!] bandwidth is 0. Cannot cluster')
+        return np.zeros(unixtime_arr.size)
     # bandwidth is with respect to the RBF used in clustering
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
+    #try:
     ms.fit(X_data)
     label_arr = ms.labels_
+    #except ValueError as ex:
+    #    utool.printex(ex, 'type(X_data) = %r' % (type(X_data),))
+    #    utool.embed()
+    #    raise
     return label_arr
 
 

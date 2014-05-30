@@ -305,8 +305,8 @@ class IBEISController(object):
         Adds an algorithm configuration as a string
         """
         config_uid_list = ibs.get_config_uid_from_suffix(cfgsuffix_list, ensure=False)
-        print('config_uid_list %r' % (config_uid_list,))
-        print('cfgsuffix_list %r' % (cfgsuffix_list,))
+        #print('config_uid_list %r' % (config_uid_list,))
+        #print('cfgsuffix_list %r' % (cfgsuffix_list,))
         try:
             if any([x is None for x in config_uid_list]):
                 ibs.db.executemany(
