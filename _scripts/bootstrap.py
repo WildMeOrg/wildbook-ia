@@ -11,6 +11,7 @@ cd ibeis/_scripts
 """
 import sys
 import os
+from os.path import dirname, realpath
 from util_cplat_packages import make_prereq_script, APPLE, CENTOS, UBUNTU, print_sysinfo
 
 
@@ -81,11 +82,12 @@ output = make_prereq_script(PREREQ_PKG_LIST, PREREQ_PYPKG_LIST)
 if output == '':
     print('System has all prerequisites!')
 elif not DRYRUN:
-    filename = '__install_prereqs__.sh'
-    with open(filename, 'w') as file_:
+    script_dir = realpath(dirname(__file__))
+    fpath = '__install_prereqs__.sh'
+    with open(fpath, 'w') as file_:
         file_.write(output)
-    os.system('chmod +x ' + filename)
-    print('# wrote: %r' % os.path.realpath(filename))
+    os.system('chmod +x ' + fpath)
+    print('# wrote: %r' % fpath)
     #sudo python super_setup.py --build --develop
 
 

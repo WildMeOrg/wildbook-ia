@@ -30,27 +30,28 @@ The IBEIS module itself:
 # Environment Setup:
 
 ```bash
-    # The following install script instal ibeis and all dependencies. 
-    # If it doesnt you can look at the older instructions which follow
-    # and try to figure it out
+# The following install script instal ibeis and all dependencies. 
+# If it doesnt you can look at the older instructions which follow
+# and try to figure it out
 
-    # Navigate to your code directory
-    export CODE_DIR=~/code
-    cd $CODE_DIR
+# Navigate to your code directory
+export CODE_DIR=~/code
+cd $CODE_DIR
 
-    # Clone IBEIS
-    git clone https://github.com/Erotemic/ibeis.git
+# Clone IBEIS
+git clone https://github.com/Erotemic/ibeis.git
+cd ibeis
 
-    # Generate the prereq install script
-    ./_scripts/bootstrap.py
+# Generate the prereq install script
+./_scripts/bootstrap.py
 
-    # Run the prereq install script
-    ./_scripts./__install_prereqs__.sh
+# Run the prereq install script
+./_scripts./__install_prereqs__.sh
 
-    # Run super_setup to build and install ibeis modules in development mode
-    # Usually this needs to be run twice. Either way it wont hurt
-    ./super_setup.py --build --develop
-    ./super_setup.py --build --develop
+# Run super_setup to build and install ibeis modules in development mode
+# Usually this needs to be run twice. Either way it wont hurt
+./super_setup.py --build --develop
+./super_setup.py --build --develop
 ```
 
 

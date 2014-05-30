@@ -58,6 +58,7 @@ def preprocess_image(gpath):
     image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
     orig_gname = split(gpath)[1]
     ext = splitext(gpath)[1].lower()
+    # TODO: Resize, Filter, and localize Image
     notes = ''
     if ext == '.jpeg':
         ext = '.jpg'
