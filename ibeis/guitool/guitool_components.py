@@ -109,7 +109,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     return progressBar
 
 
-def newOutputLog(parent, visible=True, verticalStretch=1):
+def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     from .guitool_misc import QLoggedOutput
     outputLog = QLoggedOutput(parent)
     sizePolicy = newSizePolicy(outputLog,
@@ -119,7 +119,7 @@ def newOutputLog(parent, visible=True, verticalStretch=1):
     outputLog.setAcceptRichText(False)
     outputLog.setVisible(visible)
     #outputLog.setFontPointSize(8)
-    outputLog.setFont(newFont('Courier New', 6))
+    outputLog.setFont(newFont('Courier New', pointSize))
     return outputLog
 
 

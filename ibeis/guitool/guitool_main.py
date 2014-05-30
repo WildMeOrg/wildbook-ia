@@ -88,7 +88,7 @@ def qtapp_loop(qwin=None, ipy=False, **kwargs):
                 #QAPP.quit()
                 exit_application()
                 sys.exit(1)
-            sys.excepthook = qt_excepthook
+            #sys.excepthook = qt_excepthook
             try:
                 QAPP.exec_()
             except Exception as ex:
