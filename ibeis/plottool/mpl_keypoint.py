@@ -33,9 +33,9 @@ def _draw_patches(ax, patch_list, color, alpha, lw, fcolor='none'):
 def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
                    ell=True, pts=False, rect=False, eig=False, ori=False,  sifts=None,
                    **kwargs):
-    '''
+    """
     draws keypoints extracted by pyhesaff onto a matplotlib axis
-    '''
+    """
     # ellipse and point properties
     pts_size       = kwargs.get('pts_size', 2)
     ell_color      = kwargs.get('ell_color', None)

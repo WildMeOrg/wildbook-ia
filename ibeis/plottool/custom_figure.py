@@ -58,10 +58,10 @@ def get_ax(fnum=None, pnum=None):
 
 def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
            doclf=False, **kwargs):
-    '''
+    """
     fnum = fignum = figure number
     pnum = plotnum = plot tuple
-    '''
+    """
     #mpl.pyplot.xkcd()
     fig = get_fig(fnum)
     axes_list = fig.get_axes()
