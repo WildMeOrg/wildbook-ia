@@ -272,8 +272,8 @@ def __install_command_pip(pkg, upgrade=None):
             command += ' && sudo pip install %s --upgrade' % pkg
             command += ' && sudo apt-get -y remove python-pip'
             command += ' && sudo apt-get -y remove python-setuptools'
-            command += ' && sudo pip install -y pip --upgrade'
-            command += ' && sudo pip install -y setuptools --upgrade'
+            command += ' && sudo pip install pip --upgrade'
+            command += ' && sudo pip install setuptools --upgrade'
     else:
         # IF not then try and install through pip
         if WIN32:
@@ -344,6 +344,7 @@ def cmd(command):
     write_list = [delim1]
     write_list += [delim2]
     if CRASH_ON_FAIL:
+        # Augments the bash script to exit on the failure of a command
         fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % command
         write_list += [command + fail_extra]
     else:
