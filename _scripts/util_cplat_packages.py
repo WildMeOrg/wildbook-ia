@@ -26,10 +26,20 @@ def get_pip_installed():
 APPLE_PYPKG_MAP = {
     'dateutils': 'dateutil',
     'pyreadline': 'readline',
+    'scikit-learn': 'scikits-learn',
+    'libjpeg' : 'libjpg'
 }
 
 APT_GET_PKGMAP = {
-    'python-pyqt4': 'python-qt4'
+    'python-pyqt4' : 'python-qt4',
+    'zlib'         : 'zlib1g-dev',
+    'libjpg'       : 'libjpeg-dev',
+    'libjpeg'      : 'libjpeg-dev',
+    'libpng'       : 'libpng12-dev',
+    'freetype'     : 'libfreetype6-dev',
+    'atlas-base'   : 'libatlas-base-dev',
+    'fftw3'        : 'libfftw3-dev',
+    'fftw'         : 'libfftw3-dev',
 }
 
 PIP_PYPKG_SET = get_pip_installed()
@@ -284,21 +294,26 @@ def __install_command_pip(pkg, upgrade=None):
         command = __install_command_macports('python-' + pkg)
 
     if UBUNTU and pkg in UBUNTU_NOPIP_PYPKGS:
-        command = __install_command_apt_get('python-' + pkg)
         if pkg == 'pip':
+            # PIP IS VERY SPECIAL. HANDLE VERY EXPLICITLY
             # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
             # but then pip can upgrade itself to 1.5.3, but then we have to
             # remove the apt-get-pip as well as the apt-get-setuptools which is
             # ninja installed. setuptools and pip go hand-in-hand. so ensure
             # that as well
-            command = ' && '.join([
-                command,
+            command = [
+                __install_command_apt_get('python-pip'),
+                fmtstr_install_pip % 'pip',
+                fmtstr_install_pip % 'setuptools',
                 fmtstr_install_pip % 'pip --upgrade',
+                fmtstr_install_pip % 'setuptools --upgrade',
                 __uninstall_command_apt_get('python-pip'),
                 __uninstall_command_apt_get('python-setuptools'),
                 fmtstr_install_pip % 'pip --upgrade',
                 fmtstr_install_pip % 'setuptools --upgrade',
-            ])
+            ]
+        else:
+            command = __install_command_apt_get('python-' + pkg)
 
     else:
         # IF not then try and install through pip
@@ -307,7 +322,7 @@ def __install_command_pip(pkg, upgrade=None):
         if pkg == 'setuptools':
             upgrade = True
         if upgrade:
-            return command + ' && ' + command + ' --upgrade'
+            command = [command, command + ' --upgrade']
     return command
 
 
@@ -345,15 +360,11 @@ def ensure_package(pkg):
         raise Exception('Win32: not a chance.')
     else:
         raise NotImplementedError('%r is not yet supported' % ((__OS__, DISTRO, DISTRO_VERSION,),))
-    if command == '':
-        return ''
     return cmd(command)
 
 
 def ensure_python_package(pkg):
     command = __install_command_pip(pkg)
-    if command == '':
-        return ''
     return cmd(command)
 
 
@@ -361,22 +372,30 @@ def ensure_python_package(pkg):
 
 
 def cmd(command):
-    print(command)
-    delim1 = 'echo "************"'
-    delim2 = 'echo "command = %r"' % command
-    write_list = [delim1]
-    write_list += [delim2]
-    if CRASH_ON_FAIL:
-        # Augments the bash script to exit on the failure of a command
-        fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % command
-        write_list += [command + fail_extra]
+    if command == '':
+        # Base Case
+        return ''
+    elif isinstance(command, (list, tuple)):
+        # Recursive Case
+        return ''.join([cmd(_) for _ in command])
     else:
-        write_list += [command]
-    write_list += [delim1]
-    output = '\n'.join(write_list) + '\n'
-    #INSTALL_PREREQ_FILE.write(output)
-    return output
-    #os.system(command)
+        # Base Case
+        print(command)
+        delim1 = 'echo "************"'
+        delim2 = 'echo "command = %r"' % command
+        write_list = [delim1]
+        write_list += [delim2]
+        if CRASH_ON_FAIL:
+            # Augments the bash script to exit on the failure of a command
+            fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % command
+            write_list += [command + fail_extra]
+        else:
+            write_list += [command]
+        write_list += [delim1]
+        output = '\n'.join(write_list) + '\n'
+        #INSTALL_PREREQ_FILE.write(output)
+        return output
+        #os.system(command)
 
 
 def make_prereq_script(pkg_list, pypkg_list):

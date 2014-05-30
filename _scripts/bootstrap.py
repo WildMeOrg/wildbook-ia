@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 """
 git config --global push.default current
-cd ~
-mkdir code
-cd code
+export CODE_DIR=~/code
+mkdir $CODE_DIR
+cd $CODE_DIR
 git clone https://github.com/Erotemic/ibeis.git
-cd ibeis/_scripts
-./bootstrap.py
-./__install_prereqs__.sh
+cd ibeis
+./_scripts/bootstrap.py
+./_scripts/__install_prereqs__.sh
+./super_setup.py --build --develop
+./super_setup.py --build --develop
 """
 import sys
 import os
@@ -24,15 +26,17 @@ PREREQ_PKG_LIST = [
     'g++',
     'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
     'ffmpeg',
+    'libpng',
+    'libjpg',
+    'zlib',
+    'freetype',
+    'fftw3',
     #'zmq',
 ]
 
 if APPLE:
     PREREQ_PKG_LIST.extend([
         'opencv',
-        'libpng',
-        'zlib',
-        'freetype',
     ])
 
 if UBUNTU:
@@ -42,9 +46,9 @@ if UBUNTU:
         'libatlas-base-dev',  # ATLAS for numpy no UBUNTU
         #'libatlas3gf-sse2',  # ATLAS SSE2 for numpy no UBUNTU
         'libfreetype6-dev',  # for matplotlib
-        'libpng12-dev',
-        'libjpeg-dev',
-        'zlib1g-dev',
+        #'libpng12-dev',
+        #'libjpeg-dev',
+        #'zlib1g-dev',
         'python-dev',
     ])
 
