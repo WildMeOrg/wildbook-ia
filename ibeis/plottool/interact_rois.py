@@ -626,7 +626,7 @@ def default_vertices(img):
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
 
 
-def mask_creator_demo():
+def ROI_creator(imgID, verts_list):
     print('*** START DEMO ***')
     try:
         import utool
@@ -636,8 +636,14 @@ def mask_creator_demo():
     except Exception as ex:
         print('cant read zebra: %r' % ex)
         img = np.random.uniform(0, 255, size=(100, 100))
+    if verts_list is None:
+        verts_list = [default_vertices(img), default_vertices(img)]
+    else:
+        for verts in verts_list:
+            if (len(verts) is not 5):
+                print("verts list is not of correct length. ", len(verts_list))
+                return
 
-    verts_list = [default_vertices(img), default_vertices(img)]
     mc = ROIInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
     plt.show()
@@ -654,4 +660,5 @@ def mask_creator_demo():
 
 
 if __name__ == '__main__':
-    mask_creator_demo()
+    verts = [((0,400),(400,400),(400,0),(0,0),(0,400))]
+    ROI_creator(None, verts)
