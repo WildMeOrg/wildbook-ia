@@ -46,9 +46,11 @@ def resize_img_and_roi(img_fpath, roi_, new_size=None, sqrt_area=400.0):
 
 
 def clean_mask(mask, num_dilate=3, num_erode=3, window_frac=.025):
-    '''Clean the mask
+    """
+    Clean the mask
     (num_erode, num_dilate) = (1, 1)
-    (w, h) = (10, 10)'''
+    (w, h) = (10, 10)
+    """
     w = h = int(round(min(mask.shape) * window_frac))
     element = cv2.getStructuringElement(cv2.MORPH_CROSS, (w, h))
     _mask = mask

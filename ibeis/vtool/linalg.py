@@ -48,11 +48,11 @@ def OLD_pdf_norm2d(x_, y_):
 
 @profile
 def gauss2d_pdf(x_, y_, sigma=None, mu=None):
-    '''
+    """
     Input: x and y coordinate of a 2D gaussian
            sigma, mu - covariance and mean vector
     Output: The probability density at that point
-    '''
+    """
     if sigma is None:
         sigma = np.eye(2)
     if mu is None:
@@ -328,14 +328,14 @@ def compare_matrix_columns(matrix, columns):
 @profile
 def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
     # FIXME: Generalize
-    '''
+    """
     Compares each row in row_list to each row in row matrix using comp_op
     Both must have the same number of columns.
     Performs logic_op on the results of each individual row
 
     compop   = np.equal
     logic_op = np.logical_or
-    '''
+    """
     row_result_list = [array([comp_op(matrow, row) for matrow in row_matrix])
                        for row in row_list]
     output = row_result_list[0]

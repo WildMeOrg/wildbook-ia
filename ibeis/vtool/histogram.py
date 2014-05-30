@@ -66,7 +66,7 @@ def interpolate_submaxima(argmaxima, hist, centers=None):
 
 @profile
 def subbin_bounds(z, radius, low, high):
-    '''
+    """
     Gets quantized bounds of a sub-bin/pixel point and a radius.
     Useful for cropping using subpixel points
     Returns: quantized_bounds=(iz1, iz2), subbin_offset
@@ -84,7 +84,7 @@ def subbin_bounds(z, radius, low, high):
             ,.___.___.___.___.___.   < radius (5.333)
       .---.-,                        < z_offset1 (1.6666)
             ,_.___.___.___.___.___.  < z_offset2 (5.666)
-                '''
+    """
     #print('quan pxl: z=%r, radius=%r, low=%r, high=%r' % (z, radius, low, high))
     # Get subpixel bounds ignoring boundaries
     z1 = z - radius

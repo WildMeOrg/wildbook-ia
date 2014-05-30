@@ -1,4 +1,4 @@
-'''
+"""
 Keypoints are stored in the invA format by default.
 Unfortunately many places in the code reference this as A instead of invA
 because I was confused when I first started writing this.
@@ -15,7 +15,7 @@ kpts = [x, y, iv11, iv21, iv22, ori]
 invV = ((iv11, iv12, x),
         (iv21, iv22, y),
         (   0,    0, 1))
-'''
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 from itertools import izip
