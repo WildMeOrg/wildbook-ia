@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import copy
-print, print_,  printDBG, rrr, profile = utool.inject(
+(print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[Config]', DEBUG=False)
 
 ConfigBase = utool.Pref
@@ -10,9 +10,9 @@ ConfigBase = utool.Pref
 
 
 def make_feasible(query_cfg):
-    '''
+    """
     removes invalid parameter settings over all cfgs (move to QueryConfig)
-    '''
+    """
     filt_cfg = query_cfg.filt_cfg
     nn_cfg   = query_cfg.nn_cfg
     feat_cfg = query_cfg._feat_cfg
@@ -407,7 +407,7 @@ class EncounterConfig(ConfigBase):
         super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
         enc_cfg.min_imgs_per_encounter = 1
         enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
-        enc_cfg.quantile = .5  # depends meanshift
+        enc_cfg.quantile = .01  # depends meanshift
         enc_cfg.seconds_thresh = 60    # depends agglomerative
 
     def get_uid_list(enc_cfg):

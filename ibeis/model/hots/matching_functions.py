@@ -330,9 +330,11 @@ def new_fmfsfk():
 
 @profile
 def build_chipmatches(qrid2_nns, qrid2_nnfilt, qreq):
-    '''vsmany/vsone counts here. also this is where the filter
+    """
+    vsmany/vsone counts here. also this is where the filter
     weights and thershold are applied to the matches. Essientally
-    nearest neighbors are converted into weighted assignments'''
+    nearest neighbors are converted into weighted assignments
+    """
     # Config
     K = qreq.cfg.nn_cfg.K
     query_type = qreq.cfg.agg_cfg.query_type
@@ -498,8 +500,8 @@ def _spatial_verification(ibs, qrid2_chipmatch, qreq, dbginfo=False):
 
 def _precompute_topx2_dlen_sqrd(ibs, rid2_fm, topx2_rid, topx2_kpts,
                                 nRerank, use_chip_extent):
-    '''helper for spatial verification, computes the squared diagonal length of
-    matching chips'''
+    """ helper for spatial verification, computes the squared diagonal length of
+    matching chips """
     if use_chip_extent:
         topx2_chipsize = list(ibs.get_roi_chipsizes(topx2_rid))
         def chip_dlen_sqrd(tx):

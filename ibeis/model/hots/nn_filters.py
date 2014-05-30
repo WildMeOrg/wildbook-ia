@@ -24,7 +24,7 @@ def LNBNN_fn(vdist, ndist):
 
 
 # normweight_fn = LNBNN_fn
-''''
+"""
 ndist = array([[0, 1, 2], [3, 4, 5], [3, 4, 5], [3, 4, 5],  [9, 7, 6] ])
 vdist = array([[3, 2, 1, 5], [3, 2, 5, 6], [3, 4, 5, 3], [3, 4, 5, 8],  [9, 7, 6, 3] ])
 vdist1 = vdist[:,0:1]
@@ -35,7 +35,7 @@ print(LNBNN_fn(vdist1, ndist)) * 1000
 print(LNBNN_fn(vdist2, ndist)) * 1000
 print(LNBNN_fn(vdist3, ndist)) * 1000
 print(LNBNN_fn(vdist4, ndist)) * 1000
-'''
+"""
 
 
 def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
-'''
+"""
 Tests IBEIS parallel
-'''
+"""
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool

@@ -33,7 +33,7 @@ def backblock(func):
     way to make it more general?
     """
     @functools.wraps(func)
-    @guitool.checks_qt_error
+    #@guitool.checks_qt_error
     def bacblock_wrapper(back, *args, **kwargs):
         _wasBlocked_ = back.front.blockSignals(True)
         try:

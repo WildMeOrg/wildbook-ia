@@ -35,10 +35,10 @@ COLUMN_DEFS = [
 
 
 def _datatup_cols(ibs, tblname, cx2_score=None):
-    '''
+    """
     Returns maps which map which maps internal column names
     to lazy evaluation functions which compute the data (hence the lambdas)
-    '''
+    """
     printDBG('[gui] _datatup_cols()')
     # Return requested columns
     # TODO: Use partials here?
@@ -181,9 +181,9 @@ if USER_MODE:
 
 
 def _get_datatup_list(ibs, tblname, index_list, header_order, extra_cols):
-    '''
+    """
     Used by guiback to get lists of datatuples by internal column names.
-    '''
+    """
     #printDBG('[gui] _get_datatup_list()')
     cols = _datatup_cols(ibs, tblname)
     #printDBG('[gui] cols=%r' % cols)
