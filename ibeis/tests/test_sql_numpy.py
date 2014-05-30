@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool
-from ibeis.control import SQLDatabaseControl
+from ibeis.control import SQLDatabaseControl as sqldbc
 from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NUMPY] ')
 
@@ -22,8 +22,8 @@ def TEST_SQL_NUMPY():
     sqldb_dpath = utool.util_cplat.get_app_resource_dir('ibeis', 'testfiles')
     utool.ensuredir(sqldb_dpath)
     utool.util_path.remove_file(join(sqldb_dpath, sqldb_fname), dryrun=False)
-    db = SQLDatabaseControl.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
-                                                  sqldb_fname=sqldb_fname)
+    db = sqldbc.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
+                                      sqldb_fname=sqldb_fname)
 
     db.schema('temp',    [
         ('temp_id',      'INTEGER PRIMARY KEY'),
@@ -55,7 +55,7 @@ def TEST_SQL_NUMPY():
     print('[TEST] read from sql database')
 
     tt = utool.tic()
-    db.execute('SELECT temp_hash FROM temp', [])
+    db.executor.execute('SELECT temp_hash FROM temp', [])
     print(' * execute select time=%r sec' % utool.toc(tt))
 
     tt = utool.tic()

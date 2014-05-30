@@ -299,35 +299,52 @@ class IBEISController(object):
     # --- ADDERS ---
     #---------------
 
-    def add_config(ibs, config_suffix):
-        #try:
-        ibs.db.executeone(
-            operation='''
-            INSERT OR IGNORE INTO configs
-            (
-                config_uid,
-                config_suffix
-            )
-            VALUES (NULL, ?)
-            ''',
-            params=(config_suffix,))
-        #except sqldbc.lite.IntegrityError:
-        #pass
-
-        config_uid = ibs.db.executeone(
+    @getter
+    def get_config_uid_from_suffix(ibs, config_suffix_list, ensure=True):
+        """
+        Adds an algorithm configuration as a string
+        """
+        if ensure:
+            return ibs.add_config(config_suffix_list)
+        config_uid_list = ibs.db.executemany(
             operation='''
             SELECT config_uid
             FROM configs
             WHERE config_suffix=?
             ''',
-            params=(config_suffix,))
+            params_iter=((suffix,) for suffix in config_suffix_list),
+        )
+        # executeone always returns a list
+        #if config_uid_list is not None and len(config_uid_list) == 1:
+            #config_uid_list = config_uid_list[0]
+        return config_uid_list
+
+    @getter
+    def add_config(ibs, config_suffix_list):
+        """
+        Adds an algorithm configuration as a string
+        """
+        config_uid_list = ibs.get_config_uid_from_suffix(config_suffix_list, ensure=False)
+        print('config_uid_list %r' % (config_uid_list,))
+        print('config_suffix_list %r' % (config_suffix_list,))
         try:
-            # executeone always returns a list
-            if len(config_uid) == 1:
-                config_uid = config_uid[0]
-        except AttributeError:
-            pass
-        return config_uid
+            if any([x is None for x in config_uid_list]):
+                ibs.db.executemany(
+                    operation='''
+                    INSERT OR IGNORE INTO configs
+                    (
+                        config_uid,
+                        config_suffix
+                    )
+                    VALUES (NULL, ?)
+                    ''',
+                    params_iter=((_,) for _ in config_suffix_list)
+                )
+                config_uid_list = ibs.get_config_uid_from_suffix(config_suffix_list, ensure=False)
+        except Exception as ex:
+            utool.printex(ex)
+            utool.sys.exit(1)
+        return config_uid_list
 
     @adder
     def add_images(ibs, gpath_list):
@@ -1355,7 +1372,7 @@ class IBEISController(object):
 
     #
     # GETTERS: CONFIG
-
+    @getter
     def get_config_suffixes(ibs, cfgid_list):
         """ Gets suffixes for algorithm configs """
         # TODO: This can be massively optimized with a unique if it ever gets slow

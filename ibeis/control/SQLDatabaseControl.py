@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
+from itertools import imap
 import re
 from os.path import join, exists
 # Tools
@@ -15,8 +16,81 @@ AUTODUMP = utool.get_flag('--auto-dump')
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 
 
+class SQLExecutionContext(object):
+    def __init__(self, db, operation, num_params=None, auto_commit=True):
+        utool.printif(lambda: '[sql] ' + utool.get_caller_name(range(2, 4)), VERBOSE)
+        self.db = db
+        # Parse the operation type
+        self.operation_type = get_operation_type(operation)
+        if any([self.operation_type.startswith(op)
+                for op in ['INSERT', 'UPDATE', 'DELETE']]):
+            is_changing = True
+            db._isdirty = True
+        else:
+            is_changing = False
+        self.is_changing = is_changing
+        self.auto_commit = auto_commit
+        if num_params is None:
+            self.operation_label = '[sql] execute %d %s: ' % (num_params, self.operation_type)
+        else:
+            self.operation_label = '[sql] executeone %s: ' % (self.operation_type)
+
+    def __enter__(self):
+        """ Checks to see if the operating will change the database """
+        if not QUIET:
+            self.tt = utool.tic(self.operation_label)
+
+    def __exit__(self, type_, value, trace):
+        if not QUIET:
+            utool.tic(self.tt)
+        if trace is None:
+            # Commit the transaction
+            if self.auto_commit:
+                self.db.commit(verbose=False)
+            # Emit callback if changing
+            if self.is_changing:
+                print('[sql] changed database')
+                if self.db.dbchanged_callback is not None:
+                    self.db.dbchanged_callback()
+        else:
+            # Dump on error
+            if trace is not None:
+                self.db.dump()
+            print('[sql] FATAL ERROR IN QUERY')
+            utool.sys.exit(1)
+
+
+# Define helper functions
+def _executor(executor, opeartion, params):
+    """HELPER: Send command to SQL (all other results are invalided)"""
+    executor.execute(opeartion, params)
+
+
+def _results_gen(executor, verbose=VERBOSE):
+    while True:
+        result = executor.fetchone()
+        if not result:
+            raise StopIteration()
+        # Results are always returned wraped in a tuple
+        yield result[0] if len(result) == 1 else result
+
+
+def _execute_and_get(executor, operation, params):
+    executor.execute(operation, params)
+    return _results_gen(executor)
+
+
+def _unpacker(results_):
+    """HELPER: Unpakcks results if unpack_scalars is true"""
+    results = None if len(results_) == 0 else results_[0]
+    assert len(results_) < 2, 'throwing away results!'
+    return results
+
+
 def get_operation_type(operation):
-    """ Parses the operation type from an SQL operation """
+    """
+    Parses the operation type from an SQL operation
+    """
     operation_type = operation.split()[0].strip()
     if operation_type == 'SELECT':
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
@@ -138,8 +212,8 @@ class SQLDatabaseController(object):
 
     def get_sql_version(db):
         db.execute('''
-                 SELECT sqlite_version()
-                 ''', verbose=False)
+                   SELECT sqlite_version()
+                   ''', verbose=False)
         sql_version = db.result()
 
         print('[sql] SELECT sqlite_version = %r' % (sql_version,))
@@ -183,32 +257,18 @@ class SQLDatabaseController(object):
         op_body = ', '.join(body_list + table_constraints)
         op_foot = ')'
         operation = op_head + op_body + op_foot
-        db.execute(operation, [], verbose=False)
+        db.executeone(operation, [], verbose=False)
         # Append to internal storage
         db.table_columns[tablename] = schema_list
 
-    def about_to_execute(db, operation):
-        """ Checks to see if the operating will change the database """
-        operation_type = get_operation_type(operation)
-        if any([operation_type.startswith(op)
-                for op in ['INSERT', 'UPDATE', 'DELETE']]):
-            is_changing = True
-            db._isdirty = True
-        else:
-            is_changing = False
-        #else:
-        #    print('[sql] executing: %r' % operation_type)
-        return operation_type, is_changing
+    def execute(db, operation, params=(), verbose=VERBOSE):
+        db.executor.execute(operation, params)
 
-    def post_execute(db, is_changing):
-        if is_changing:
-            print('[sql] changed database')
-            if db.dbchanged_callback is not None:
-                db.dbchanged_callback()
+    def result_iter(db):
+        return _results_gen(db.executor)
 
     @profile
-    def execute(db, operation, params=(), auto_commit=False, errmsg=None,
-                verbose=VERBOSE):
+    def executeone(db, operation, params=(), auto_commit=True, errmsg=None, verbose=VERBOSE):
         """
             operation - parameterized SQL operation string.
                 Parameterized prevents SQL injection attacks by using an ordered
@@ -225,51 +285,23 @@ class SQLDatabaseController(object):
                     arbirtary order that will be filled into the cooresponging
                     slots of the sql operation string
         """
-        #if verbose:
-        #    caller_name = utool.util_dbg.get_caller_name()
-        #    print('[sql] %r called execute' % caller_name)
-        operation_type, is_changing = db.about_to_execute(operation)
-        status = False
-        try:
-            status = db.executor.execute(operation, params)
-            if auto_commit:
-                db.commit(verbose=False)
-        except Exception as ex:
-            print('[sql] Caught Exception: %r' % (ex,))
-            status = True
-            raise
-        db.post_execute(is_changing)
-        return status
-
-    @profile
-    def executeone(db, operation, params=(), auto_commit=True, errmsg=None,
-                   verbose=VERBOSE):
-        """ Runs execute and returns results """
-        #if verbose:
-        #    caller_name = utool.util_dbg.get_caller_name()
-        #    print('[sql] %r called executeone' % caller_name)
-        operation_type, is_changing = db.about_to_execute(operation)
-        operation_label = '[sql] executeone %s: ' % (operation_type)
-        if not QUIET:
-            tt = utool.tic(operation_label)
-        #print(operation)
-        #print(params)
-        db.executor.execute(operation, params)
-        # JON: For some reason the top line works and the bottom line doesn't
-        # in test_query.py I don't know if removing the bottom line breaks
-        # anything else.
-        #db.execute(operation, params, auto_commit, errmsg, verbose=False)
-        if auto_commit:
-            db.commit(verbose=False)
-        result_list = db.result_list(verbose=False)
-        if not QUIET:
-            printDBG(utool.toc(tt, True))
-        db.post_execute(is_changing)
+        with SQLExecutionContext(db, operation, num_params=1):
+            try:
+                result_list = list(_execute_and_get(db.executor, operation, params))
+            except Exception as ex:
+                utool.printex(ex, key_list=[(str, 'operation'), 'params'])
+                utool.sys.exit(1)
+                raise
         return result_list
 
     @profile
-    def executemany(db, operation, params_iter, auto_commit=True,
-                    errmsg=None, verbose=VERBOSE, unpack_scalars=True,
+    def executemany(db,
+                    operation,
+                    params_iter,
+                    auto_commit=True,
+                    errmsg=None,
+                    verbose=VERBOSE,
+                    unpack_scalars=True,
                     num_params=None):
         """
         Input:
@@ -296,8 +328,6 @@ class SQLDatabaseController(object):
         same as execute but takes a iterable of params instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
-        # Do any preprocesing on the SQL command / query
-        operation_type, is_changing = db.about_to_execute(operation)
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
             params_iter = list(params_iter)
@@ -308,52 +338,19 @@ class SQLDatabaseController(object):
                 print('[sql] cannot executemany with no params.' +
                       'use executeone instead')
             return []
-        operation_label = '[sql] execute %d %s: ' % (num_params, operation_type)
-        if not QUIET:
-            tt = utool.tic(operation_label)
-        #
-        # Define helper functions
-        def _executor(params):
-            """HELPER: Send command to SQL (all other results are invalided)"""
-            db.executor.execute(operation, params)
-            # Read all results
-            results_ = [result for result in db.result_iter(verbose=False)]
-            return results_
-        #
-        def _unpacker(results_):
-            """HELPER: Unpakcks results if unpack_scalars is true"""
-            results = None if len(results_) == 0 else results_[0]
-            assert len(results_) < 2, 'throwing away results!'
-            return results
-        #
-        try:
-            # Transactions halve query time
-            db.executor.execute('BEGIN', ())
-            # Process executions in list comprehension (cuts time by 10x)
-            result_list = [_executor(params) for params in params_iter]
-            # Append to the list of queries
-            if unpack_scalars:
-                result_list = [_unpacker(results_) for results_ in result_list]
-            # Sanity check
-            num_results = len(result_list)
-            if num_results != 0 and num_results != num_params:
-                raise lite.Error('num_params=%r != num_results=%r'
-                                 % (num_params, num_results))
-        except Exception as ex:
-            utool.printex(ex, 'Execute Many Error', '[!sql]',
-                          key_list=[(str, 'operation'), 'params', 'params_iter'])
-            db.dump()
-            raise
-        #
-        if not QUIET:
-            printDBG(utool.toc(tt, True))
-        #
-        if auto_commit:
-            #if verbose:
-            #    print('[sql.executemany] commit')
-            db.commit(errmsg=errmsg, verbose=False)
-        db.post_execute(is_changing)
-        return result_list
+        with SQLExecutionContext(db, operation, num_params):
+            try:
+                db.executor.execute('BEGIN', ())
+                results_iter = map(list, (_execute_and_get(db.executor, operation, params)
+                                           for params in params_iter))
+                if unpack_scalars:
+                    results_iter = map(_unpacker, results_iter)
+                results_list = list(results_iter)
+            except Exception as ex:
+                utool.printex(ex, key_list=[(str, 'operation'), 'params', 'params_iter'])
+                print(utool.get_caller_name(range(1, 10)))
+                raise
+        return results_list
 
     @profile
     def result(db, verbose=VERBOSE):
@@ -361,27 +358,6 @@ class SQLDatabaseController(object):
         #    caller_name = utool.util_dbg.get_caller_name()
         #    print('[sql.result] caller_name=%r' % caller_name)
         return db.executor.fetchone()
-
-    @profile
-    def result_list(db, verbose=VERBOSE):
-        #if verbose:
-        #    caller_name = utool.util_dbg.get_caller_name()
-        #    print('[sql.result_list] caller_name=%r' % caller_name)
-        return list(db.result_iter(verbose=False))
-
-    @profile
-    def result_iter(db, verbose=VERBOSE):
-        #if verbose:
-        #    caller_name = utool.util_dbg.get_caller_name()
-        #    print('[sql.result_iter] caller_name=%r' % caller_name)
-        while True:
-            result = db.executor.fetchone()
-            if not result:
-                raise StopIteration()
-            if len(result) == 1:
-                yield result[0]
-            else:
-                yield result
 
     @profile
     def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
@@ -449,3 +425,14 @@ class SQLDatabaseController(object):
             table_csv = db.get_table_csv(tablename)
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)
+
+
+
+## Sanity check
+#num_results = len(result_list)
+#if num_results != 0 and num_results != num_params:
+#    raise lite.Error('num_params=%r != num_results=%r'
+#                     % (num_params, num_results))
+# Transactions halve query time
+# list comprehension cuts time by 10x
+#result_list = [_unpacker(results_) for results_ in result_list]

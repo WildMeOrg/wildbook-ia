@@ -138,7 +138,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         # Custom Encounter Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
-        ibswgt.outputLog   = guitool.newOutputLog(ibswgt, visible=True, verticalStretch=6)
+        ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8, visible=True, verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         ibswgt.status_wgt, ibswgt.status_vlayout = guitool.newWidget(ibswgt, verticalStretch=6)
 
