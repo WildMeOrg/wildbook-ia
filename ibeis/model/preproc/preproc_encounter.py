@@ -2,70 +2,102 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
+from sklearn.cluster import MeanShift, estimate_bandwidth
 from ibeis import constants
 (print, print_,  rrr, profile,
  printDBG) = utool.inject(__name__, '[preproc_encounter]', DEBUG=False)
 
 
-def _cluster_encounters_by_time(valid_gids, valid_unixtimes, seconds_thresh):
-    # fclusterdata requires 2d input
-    X_data = np.vstack([valid_unixtimes, np.zeros(valid_unixtimes.size)]).T
-    gid2_cluster = fclusterdata(X_data, seconds_thresh, criterion='distance')
-    # Reverse the image to cluster index mapping
-    cluster2_gids = utool.build_reverse_mapping(valid_gids, gid2_cluster)
-    # Sort encounters by images per encounter
-    cluster_list, gids_in_cluster = utool.unpack_items_sorted_by_lenvalue(cluster2_gids)
-    cluster_list    = np.array(cluster_list)
-    gids_in_cluster = np.array(gids_in_cluster)
-    return cluster_list, gids_in_cluster
-
-
-def _get_images_with_unixtimes(ibs):
-    """ Returns valid gids with unixtimes """
-    # Get image ids and timestamps
-    gid_list = np.array(ibs.get_valid_gids())
-    unixtime_list = ibs.get_image_unixtime(gid_list)
-    # Remove images without timestamps
-    isvalid_list = unixtime_list != -1
-    valid_gids = gid_list[isvalid_list]
-    valid_unixtimes = unixtime_list[isvalid_list]
-    return valid_gids, valid_unixtimes
-
-
-def _filter_encounters(cluster_list, gids_in_cluster, min_imgs_per_encounter):
-    """ Removes cluster with too few images """
-    nGids_per_cluster = np.array(map(len, gids_in_cluster))
-    iscluster_valid = nGids_per_cluster >= min_imgs_per_encounter
-    valid_cluster_list    = cluster_list[iscluster_valid]
-    valid_gids_in_cluster = gids_in_cluster[iscluster_valid]
-    # Rebase ids so encounter0 has the most images
-    encounter_ids = range(len(valid_cluster_list))
-    gids_in_eid = valid_gids_in_cluster
-    return encounter_ids, gids_in_eid
-
-
-def ibeis_compute_encounters(ibs):
+def ibeis_compute_encounters(ibs, gid_list):
     """
     clusters encounters togethers (by time, not yet space)
     An encounter is a meeting, localized in time and space between a camera and
     a group of animals.  Animals are identified within each encounter.
     """
-    print('[encounter] clustering encounters')
-    # Config info
-    seconds_thresh = ibs.cfg.enc_cfg.seconds_thresh
-    min_imgs_per_encounter = ibs.cfg.enc_cfg.min_imgs_per_encounter
-    # Data to cluster
-    valid_gids, valid_unixtimes = _get_images_with_unixtimes(ibs)
-    if len(valid_gids) == 0:
-        print('WARNING: No unixtime data to compute encounters with')
+    print('[encounter] computing encounters')
+    if len(gid_list) == 0:
+        print('[encounter] WARNING: No unixtime data to compute encounters with')
         return [], []
+    # Config info
+    enc_cfg_uid      = ibs.cfg.enc_cfg.get_uid()
+    seconds_thresh   = ibs.cfg.enc_cfg.seconds_thresh
+    min_imgs_per_enc = ibs.cfg.enc_cfg.min_imgs_per_encounter
+    cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
+    quantile         = ibs.cfg.enc_cfg.quantile
+    # Data to cluster
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    gid_arr       = np.array(gid_list)
+    unixtime_arr  = np.array(unixtime_list)
     # Agglomerative clustering of unixtimes
-    cluster_list, gids_in_cluster  = _cluster_encounters_by_time(valid_gids, valid_unixtimes, seconds_thresh)
+    if cluster_algo == 'agglomerative':
+        label_arr = _agglomerative_cluster_encounters_time(unixtime_arr, seconds_thresh)
+    elif cluster_algo == 'meanshift':
+        label_arr = _meanshift_cluster_encounters_time(unixtime_arr, quantile)
+    else:
+        raise AssertionError('Uknown clustering algorithm: %r' % cluster_algo)
+    # Group images by unique label
+    labels, label_gids = _group_images_by_label(label_arr, gid_arr)
     # Remove encounters less than the threshold
-    encounter_ids, gids_in_eid = _filter_encounters(cluster_list, gids_in_cluster, min_imgs_per_encounter)
+    enc_labels, enc_gids = _filter_and_relabel(labels, label_gids, min_imgs_per_enc)
     # Flatten gids list by enounter
-    flat_eids, flat_gids = utool.flatten_membership_mapping(encounter_ids, gids_in_eid)
+    flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
     # Create enctext for each image
-    enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
+    #enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
+    enctext_list = [enc_cfg_uid + repr(eid) for eid in flat_eids]
     print('[encounter] finished clustering')
     return enctext_list, flat_gids
+
+
+def _agglomerative_cluster_encounters_time(unixtime_arr, seconds_thresh):
+    """ Agglomerative encounter clustering algorithm
+    Input: Length N array of data to cluster
+    Output: Length N array of labels
+    """
+    # scipy clustering requires 2d input
+    X_data = np.vstack([unixtime_arr, np.zeros(unixtime_arr.size)]).T
+    label_arr = fclusterdata(X_data, seconds_thresh, criterion='distance')
+    return label_arr
+
+
+def _meanshift_cluster_encounters_time(unixtime_arr, quantile):
+    """ Meanshift encounter clustering algorithm
+    Input: Length N array of data to cluster
+    Output: Length N array of labels
+    """
+    # scipy clustering requires 2d input
+    X_data = np.vstack([unixtime_arr, np.zeros(unixtime_arr.size)]).T
+    # quantile should be between [0, 1]
+    # e.g: quantile=.5 represents the median of all pairwise distances
+    bandwidth = estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
+    # bandwidth is with respect to the RBF used in clustering
+    ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
+    ms.fit(X_data)
+    label_arr = ms.labels_
+    return label_arr
+
+
+def _group_images_by_label(labels_arr, gid_arr):
+    """
+    Input: Length N list of labels and ids
+    Output: Length M list of unique labels, and lenth M list of lists of ids
+    """
+    # Reverse the image to cluster index mapping
+    label2_gids = utool.build_reverse_mapping(gid_arr, labels_arr)
+    # Unpack dict, sort encounters by images-per-encounter
+    labels, label_gids = utool.unpack_items_sorted_by_lenvalue(label2_gids)
+    labels     = np.array(labels)
+    label_gids = np.array(label_gids)
+    return labels, label_gids
+
+
+def _filter_and_relabel(labels, label_gids, min_imgs_per_enc):
+    """
+    Removes clusters with too few members.
+    Relabels clusters-labels such that label 0 has the most members
+    """
+    label_nGids = np.array(map(len, label_gids))
+    label_isvalid = label_nGids >= min_imgs_per_enc
+    # Rebase ids so encounter0 has the most images
+    enc_ids  = range(label_isvalid.sum())
+    enc_gids = label_gids[label_isvalid]
+    return enc_ids, enc_gids

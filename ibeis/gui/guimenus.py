@@ -112,6 +112,11 @@ def setup_actions_menu(mainwin, back):
         text='Trash Image',
         shortcut='',
         slot_fn=back.delete_image)
+    mainwin.menuActions.newAction(
+        name='actionDeleteAllEncounters',
+        text='Delete All Encounters',
+        shortcut='',
+        slot_fn=back.delete_all_encounters)
 
 
 def setup_batch_menu(mainwin, back):

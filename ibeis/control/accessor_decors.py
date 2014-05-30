@@ -20,6 +20,7 @@ def otherfunc(func):
 
 def adder(func):
     func = otherfunc(func)
+    @utool.accepts_scalar_input
     @wraps(func)
     def adder_wrapper(*args, **kwargs):
         return func(*args, **kwargs)

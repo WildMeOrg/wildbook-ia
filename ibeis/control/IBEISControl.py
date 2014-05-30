@@ -299,34 +299,14 @@ class IBEISController(object):
     # --- ADDERS ---
     #---------------
 
-    @getter
-    def get_config_uid_from_suffix(ibs, config_suffix_list, ensure=True):
+    @adder
+    def add_config(ibs, cfgsuffix_list):
         """
         Adds an algorithm configuration as a string
         """
-        if ensure:
-            return ibs.add_config(config_suffix_list)
-        config_uid_list = ibs.db.executemany(
-            operation='''
-            SELECT config_uid
-            FROM configs
-            WHERE config_suffix=?
-            ''',
-            params_iter=((suffix,) for suffix in config_suffix_list),
-        )
-        # executeone always returns a list
-        #if config_uid_list is not None and len(config_uid_list) == 1:
-            #config_uid_list = config_uid_list[0]
-        return config_uid_list
-
-    @getter
-    def add_config(ibs, config_suffix_list):
-        """
-        Adds an algorithm configuration as a string
-        """
-        config_uid_list = ibs.get_config_uid_from_suffix(config_suffix_list, ensure=False)
+        config_uid_list = ibs.get_config_uid_from_suffix(cfgsuffix_list, ensure=False)
         print('config_uid_list %r' % (config_uid_list,))
-        print('config_suffix_list %r' % (config_suffix_list,))
+        print('cfgsuffix_list %r' % (cfgsuffix_list,))
         try:
             if any([x is None for x in config_uid_list]):
                 ibs.db.executemany(
@@ -338,9 +318,9 @@ class IBEISController(object):
                     )
                     VALUES (NULL, ?)
                     ''',
-                    params_iter=((_,) for _ in config_suffix_list)
+                    params_iter=((_,) for _ in cfgsuffix_list)
                 )
-                config_uid_list = ibs.get_config_uid_from_suffix(config_suffix_list, ensure=False)
+                config_uid_list = ibs.get_config_uid_from_suffix(cfgsuffix_list, ensure=False)
         except Exception as ex:
             utool.printex(ex)
             utool.sys.exit(1)
@@ -822,11 +802,16 @@ class IBEISController(object):
         return all_gids
 
     @getter_general
-    def get_valid_gids(ibs, eid=None):
+    def get_valid_gids(ibs, eid=None, require_unixtime=False):
         if eid is None:
             gid_list = ibs._get_all_gids()
         else:
             gid_list = ibs.get_encounter_gids(eid)
+        if require_unixtime:
+            # Remove images without timestamps
+            unixtime_list = ibs.get_image_unixtime(gid_list)
+            isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
+            gid_list = utool.filter_items(gid_list, isvalid_list)
         return gid_list
 
     @getter
@@ -1373,6 +1358,26 @@ class IBEISController(object):
     #
     # GETTERS: CONFIG
     @getter
+    def get_config_uid_from_suffix(ibs, cfgsuffix_list, ensure=True):
+        """
+        Adds an algorithm configuration as a string
+        """
+        if ensure:
+            return ibs.add_config(cfgsuffix_list)
+        config_uid_list = ibs.db.executemany(
+            operation='''
+            SELECT config_uid
+            FROM configs
+            WHERE config_suffix=?
+            ''',
+            params_iter=((suffix,) for suffix in cfgsuffix_list),
+        )
+        # executeone always returns a list
+        #if config_uid_list is not None and len(config_uid_list) == 1:
+        #    config_uid_list = config_uid_list[0]
+        return config_uid_list
+
+    @getter
     def get_config_suffixes(ibs, cfgid_list):
         """ Gets suffixes for algorithm configs """
         # TODO: This can be massively optimized with a unique if it ever gets slow
@@ -1714,7 +1719,8 @@ class IBEISController(object):
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         print('[ibs] computing encounters')
-        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs)
+        gid_list = ibs.get_valid_gids(require_unixtime=True)
+        enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         ibs.set_image_enctext(flat_gids, enctext_list)
         print('[ibs] finished computing encounters')
 

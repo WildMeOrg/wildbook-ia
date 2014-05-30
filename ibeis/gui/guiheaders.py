@@ -27,13 +27,12 @@ TABLE_NICE = {
 
 # the columns each ibeis table has
 TABLE_COLNAMES = {
-    #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext', 'unixtime'],
-    IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'aif', 'notes', 'enctext'],
+    IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
-    ENCOUNTER_TABLE : ['eid', 'nImgs'],
+    ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
 }
 
 # the columns which are editable
@@ -66,6 +65,7 @@ COL_DEF = dict([
     ('theta',      (str,   'Theta')),
     ('aif',        (bool,  'All Detected')),
     ('enctext',    (str,   'Encounter Text')),
+    ('datetime',   (str,   'Date / Time')),
 ])
 
 
@@ -87,6 +87,7 @@ def make_ibeis_headers_dict(ibs):
         'gname':    ibs.get_image_gnames,
         'nRids':    ibs.get_image_num_rois,
         'unixtime': ibs.get_image_unixtime,
+        'datetime': simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
         'notes':    ibs.get_image_notes,
     }
     setters[IMAGE_TABLE] = {

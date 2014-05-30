@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
-import utool
-import guitool
 from itertools import izip  # noqa
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
@@ -9,11 +7,13 @@ from guitool import slot_, checks_qt_error, ChangingModelLayout  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
-from ibeis.gui.guiheaders import (IMAGE_TABLE, ROI_TABLE, NAME_TABLE,
-                                  ENCOUNTER_TABLE)
 from ibeis.gui import guimenus
-from ibeis.gui.newgui_models import IBEISTableModel, EncModel
-from ibeis.gui.newgui_views import IBEISTableView, EncView
+from ibeis.gui.guiheaders import (
+    IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE)
+from ibeis.gui.models_and_views import (
+    IBEISTableModel, IBEISTableView, EncTableModel, EncTableView)
+import guitool
+import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
 
@@ -103,7 +103,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             (IMAGE_TABLE,     IBEISTableModel, IBEISTableView),
             (ROI_TABLE,       IBEISTableModel, IBEISTableView),
             (NAME_TABLE,      IBEISTableModel, IBEISTableView),
-            (ENCOUNTER_TABLE, EncModel,        EncView),
+            (ENCOUNTER_TABLE, EncTableModel,     EncTableView),
         ]
         # Sturcutres that will hold models and views
         ibswgt.models       = {}

@@ -10,9 +10,85 @@ from ibeis.dev import ibsfuncs
 from ibeis.control import IBEISControl
 import utool
 
+#
+#
+### <STANDARD DATABASES> ###
+
+STANDARD_INJEST_FUNCS = {}
+
+
+def __standard(dbname):
+    """  Decorates a function as a standard injestable database """
+    def __registerdb(func):
+        STANDARD_INJEST_FUNCS[dbname] = func
+        return func
+    return __registerdb
+
+
+@__standard('polar_bears')
+def injest_polar_bears(db):
+    return Injestable(db, injest_type='named_folders',
+                      adjust_percent=0.00,
+                      fmtkey='name')
+
+
+@__standard('testdb1')
+def injest_testdb1(db):
+    from vtool.tests import grabdata
+    def postinjest_tesdb1_func(ibs):
+        import numpy as np
+        gid_list = np.array(ibs.get_valid_gids())
+        unixtimes_even = (gid_list[0::2] + 100).tolist()
+        unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
+        unixtime_list = unixtimes_even + unixtimes_odd
+        ibs.set_image_unixtime(gid_list, unixtime_list)
+        return None
+    return Injestable(db, injest_type='named_images',
+                      fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
+                      img_dir=grabdata.get_testdata_dir(),
+                      adjust_percent=0.00,
+                      postinjest_func=postinjest_tesdb1_func)
+
+
+@__standard('snails_drop1')
+def injest_snails_drop1(db):
+    return Injestable(db,
+                      injest_type='named_images',
+                      fmtkey=ibsfuncs.FMT_KEYS.snails_fmt,
+                      adjust_percent=.20)
+
+
+@__standard('JAG_Kieryn')
+def injest_JAG_Kieryn(db):
+    return Injestable(db,
+                      injest_type='unknown',
+                      adjust_percent=0.00)
+
+
+def get_standard_injestable(db):
+    if db in STANDARD_INJEST_FUNCS:
+        return STANDARD_INJEST_FUNCS[db](db)
+    else:
+        raise AssertionError('Unknown db=%r' % (db,))
+
+
+def injest_standard_database(db, force_delete=False):
+    print('[injest] Injest Standard Database: db=%r' % (db,))
+    injestable = get_standard_injestable(db)
+    dbdir = ibeis.sysres.db_to_dbdir(injestable.db, allow_newdir=True, use_sync=False)
+    utool.ensuredir(dbdir, verbose=True)
+    if force_delete:
+        ibsfuncs.delete_ibeis_database(dbdir)
+    ibs = IBEISControl.IBEISController(dbdir)
+    injest_rawdata(ibs, injestable)
+
+### </STANDARD DATABASES> ###
+#
+#
+
 
 class Injestable(object):
-    """ Temp struct for storing info to injest """
+    """ Temporary structure representing how to injest a databases """
     def __init__(self, db, img_dir=None, injest_type=None, fmtkey=None,
                  adjust_percent=0.0, postinjest_func=None):
         self.db              = db
@@ -33,51 +109,6 @@ class Injestable(object):
         assert exists(self.img_dir), msg
         if self.injest_type == 'named_folders':
             assert self.fmtkey == 'name'
-
-
-def get_standard_injestable(db):
-    if db == 'polar_bears':
-        injestable = Injestable(db, injest_type='named_folders',
-                                adjust_percent=0.00,
-                                fmtkey='name')
-    elif db == 'testdb1':
-        from vtool.tests import grabdata
-        def postinjest_tesdb1_func(ibs):
-            import numpy as np
-            gid_list = np.array(ibs.get_valid_gids())
-            unixtimes_even = (gid_list[0::2] + 100).tolist()
-            unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
-            unixtime_list = unixtimes_even + unixtimes_odd
-            ibs.set_image_unixtime(gid_list, unixtime_list)
-            return None
-        injestable = Injestable(db, injest_type='named_images',
-                                fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
-                                img_dir=grabdata.get_testdata_dir(),
-                                adjust_percent=0.00,
-                                postinjest_func=postinjest_tesdb1_func)
-    elif db == 'snails_drop1':
-        injestable = Injestable(db,
-                                injest_type='named_images',
-                                fmtkey=ibsfuncs.FMT_KEYS.snails_fmt,
-                                adjust_percent=.20)
-    elif db == 'JAG_Kieryn':
-        injestable = Injestable(db,
-                                injest_type='unknown',
-                                adjust_percent=0.00)
-    else:
-        raise AssertionError('Unknown db=%r' % (db,))
-    return injestable
-
-
-def list_injestable_images(img_dir, fullpath=True, recursive=True):
-    ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
-    gpath_list = utool.list_images(img_dir,
-                                   fullpath=fullpath,
-                                   recursive=recursive,
-                                   ignore_list=ignore_list)
-    # Ensure in unix format
-    gpath_list = map(utool.unixpath, gpath_list)
-    return gpath_list
 
 
 def injest_rawdata(ibs, injestable, localize=False):
@@ -140,21 +171,27 @@ def injest_rawdata(ibs, injestable, localize=False):
     return rid_list
 
 
-def injest_standard_database(db, force_delete=False):
-    print('[injest] Injest Standard Database: db=%r' % (db,))
-    injestable = get_standard_injestable(db)
-    dbdir = ibeis.sysres.db_to_dbdir(injestable.db, allow_newdir=True, use_sync=False)
-    utool.ensuredir(dbdir, verbose=True)
-    if force_delete:
-        ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = IBEISControl.IBEISController(dbdir)
-    injest_rawdata(ibs, injestable)
+def list_injestable_images(img_dir, fullpath=True, recursive=True):
+    ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+    gpath_list = utool.list_images(img_dir,
+                                   fullpath=fullpath,
+                                   recursive=recursive,
+                                   ignore_list=ignore_list)
+    # Ensure in unix format
+    gpath_list = map(utool.unixpath, gpath_list)
+    return gpath_list
 
 
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # win32
     print('__main__ = injest_database.py')
+    print(utool.unindent(
+        '''
+        usage:
+        ./ibeis/injest/injest_database.py --db [dbname]
+
+        Valid dbnames:''') + utool.indentjoin(STANDARD_INJEST_FUNCS.keys(), '\n  * '))
     db = utool.get_arg('--db', str, None)
     ibs = injest_standard_database(db)
     #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')

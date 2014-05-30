@@ -504,6 +504,11 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
+    def delete_all_encounters(back):
+        back.ibs.delete_all_encounters()
+        back.front.update_tables()
+
+    @blocking_slot()
     def select_next(back):
         """ Action -> Next"""
         print('[back] select_next')

@@ -43,12 +43,12 @@ class NNConfig(ConfigBase):
         nn_cfg.update(**kwargs)
 
     def get_uid_list(nn_cfg):
-        nn_uid  = ['_NN(']
-        nn_uid.extend(['K', str(nn_cfg.K)])
-        nn_uid.extend(['+', str(nn_cfg.Knorm)])
-        nn_uid.extend([',' + nn_cfg.normalizer_rule])
-        nn_uid.extend([',cks', str(nn_cfg.checks)])
-        nn_uid.extend([')'])
+        nn_uid  = ['_NN(',
+                   'K', str(nn_cfg.K),
+                   '+', str(nn_cfg.Knorm),
+                   ',', nn_cfg.normalizer_rule,
+                   ',cks', str(nn_cfg.checks),
+                   ')']
         return nn_uid
 
     def get_uid(nn_cfg):
@@ -402,10 +402,27 @@ class DisplayConfig(ConfigBase):
 
 
 class EncounterConfig(ConfigBase):
+    valid_cluster_algos = ['meanshift', 'agglomerative']
     def __init__(enc_cfg, **kwargs):
         super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
-        enc_cfg.seconds_thresh = 60
         enc_cfg.min_imgs_per_encounter = 1
+        enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
+        enc_cfg.quantile = .5  # depends meanshift
+        enc_cfg.seconds_thresh = 60    # depends agglomerative
+
+    def get_uid_list(enc_cfg):
+        enc_uids = []
+        enc_uids.append(str(enc_cfg.min_imgs_per_encounter))
+        if enc_cfg.cluster_algo == 'meanshift':
+            enc_uids.append('ms')
+            enc_uids.append('quant_%r' % enc_cfg.quantile)
+        elif enc_cfg.cluster_algo == 'agglomerative':
+            enc_uids.append('agg')
+            enc_uids.append('sec_%r' % enc_cfg.seconds_thresh)
+        return ['_ENC(', ','.join(enc_uids), ')']
+
+    def get_uid(enc_cfg):
+        return ''.join(enc_cfg.get_uid_list())
 
 
 # Convinience
@@ -430,13 +447,14 @@ def default_query_cfg(**kwargs):
 
 def default_vsone_cfg(ibs, **kwargs):
     kwargs['query_type'] = 'vsone'
-    kwargs_set = __dict_default_func(kwargs)
-    kwargs_set('lnbnn_weight', 0.0)
-    kwargs_set('checks', 256)
-    kwargs_set('K', 1)
-    kwargs_set('Knorm', 1)
-    kwargs_set('ratio_weight', 1.0)
-    kwargs_set('ratio_thresh', 1.5)
+    utool.dict_update_newkeys(kwargs, {
+        'lnbnn_weight': 0.0,
+        'checks': 256,
+        'K': 1,
+        'Knorm': 1,
+        'ratio_weight': 1.0,
+        'ratio_thresh': 1.5,
+    })
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
 
