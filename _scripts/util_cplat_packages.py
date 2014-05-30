@@ -203,7 +203,7 @@ def __uninstall_command_apt_get(pkg):
     Returns the apt_get uninstall command for a package (accepts known aliases)
     """
     pkg = fix_pkgname_apt_get(pkg)
-    return 'sudo apt-get remote -y %s' % pkg
+    return 'sudo apt-get remove -y %s' % pkg
 
 
 def __update_apt_get():

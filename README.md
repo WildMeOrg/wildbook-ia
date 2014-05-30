@@ -47,7 +47,7 @@ cd ibeis
 ./_scripts/bootstrap.py
 
 # Run the prereq install script
-./_scripts./__install_prereqs__.sh
+./_scripts/__install_prereqs__.sh
 
 # Run super_setup to build and install ibeis modules in development mode
 # Usually this needs to be run twice. Either way it wont hurt
