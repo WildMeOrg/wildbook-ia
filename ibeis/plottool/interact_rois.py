@@ -10,6 +10,18 @@ TODO:
 2.. Make 45 degree rotation - need help
 
 
+
+3. Change bounding box and update continuously to the original image the new ROIs
+
+2. Make new window and frames inside, double click to pull up normal window with editing
+start with just taking in 6 images and ROIs
+
+1. ROI ID number, then list of 4 touples
+
+
+
+
+
 Interactive tool to draw mask on an image or image-like array.
 
 Adapted from matplotlib/examples/event_handling/poly_editor.py
@@ -275,10 +287,11 @@ class ROIInteraction(object):
         ignore = not self.showverts or event.inaxes is None or event.button != 1
         if ignore:
             return
-        if self._thisPoly is None:
+        if self._thisPoly is None or self.line is None:
             print('WARNING: Polygon unknown. Using default.')
             if len(self.polyList) == 0:
                 print('No polygons on screen')
+                return
             else:
                 self._thisPoly = self.polyList[0]
 
@@ -310,7 +323,7 @@ class ROIInteraction(object):
         if self._polyHeld is True and (self._ind is None or self.press1 is False):
             self._polyHeld = False
 
-        ignore = not self.showverts or event.button != 1
+        ignore = not self.showverts or event.button != 1 or self._thisPoly is None
         if ignore:
             return
         if (self._ind is None) or self._polyHeld is False or (self._ind is not None and self.press1 is True) and self._thisPoly is not None and self.canUncolor is True:
