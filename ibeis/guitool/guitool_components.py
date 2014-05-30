@@ -6,7 +6,7 @@ import functools
 import utool
 from . import guitool_dialogs
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
-                                                       '[guitool-components]')
+                                                       '[guitool_components]')
 
 
 def newSizePolicy(widget,
