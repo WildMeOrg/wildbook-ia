@@ -389,7 +389,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         except Exception as ex:
             value = str(value.toString())  # NOQA
             utool.printex(ex, 'ignoring setData', '[model]',
-                          key_list=['value'])
+                          key_list=['value'], iswarning=True)
             return False
 
     @otherfunc
