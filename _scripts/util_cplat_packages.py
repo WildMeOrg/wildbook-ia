@@ -42,7 +42,9 @@ APT_GET_PKGMAP = {
     'fftw'         : 'libfftw3-dev',
 }
 
-YUM_PKGMAP = {}
+YUM_PKGMAP = {
+    'g++': 'gcc-c++',
+}
 
 PIP_PYPKG_SET = get_pip_installed()
 
