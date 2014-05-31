@@ -9,7 +9,7 @@ from vtool import image as gtool
 from ibeis.model.detect import grabmodels
 import pyrf
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[detect_randomforest]', DEBUG=False)
+    __name__, '[randomforest]', DEBUG=False)
 
 
 def scale_bbox(bbox, s):

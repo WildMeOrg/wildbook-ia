@@ -11,7 +11,7 @@ from PyQt4 import QtCore
 import guitool
 import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[back]', DEBUG=False)
+    __name__, '[inspect_gui]', DEBUG=False)
 
 
 class QueryResultsWidget(guitool_tables.ColumnListTableWidget):
@@ -37,11 +37,12 @@ class QueryResultsWidget(guitool_tables.ColumnListTableWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_click(iqrw, index):
-        print('Clicked: ' + str(qtype.qindexinfo(index)))
-        return on_click(iqrw, index)
+        pass
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(iqrw, index):
+        print('Clicked: ' + str(qtype.qindexinfo(index)))
+        return show_match_at(iqrw, index)
         # This is actually a release
         #print('DoubleClicked: ' + str(qtype.qindexinfo(index)))
         pass
@@ -57,7 +58,7 @@ class QueryResultsWidget(guitool_tables.ColumnListTableWidget):
         pass
 
 
-def on_click(qrw, index):
+def show_match_at(qrw, index):
     print('interact')
     if qrw.is_index_clickable(index):
         return

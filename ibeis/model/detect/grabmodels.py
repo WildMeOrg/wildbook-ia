@@ -1,6 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from os.path import exists, join, realpath
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[grabmodels]', DEBUG=False)
+
 
 #DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
 DETECTMODELS_DIR = utool.get_app_resource_dir('ibeis', 'detectmodels')

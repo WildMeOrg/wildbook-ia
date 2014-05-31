@@ -541,6 +541,10 @@ class MainWindowBackend(QtCore.QObject):
         back.precompute_feats(refresh=False)
         valid_rids = back.ibs.get_valid_rids()
         qrid2_qres = back.ibs.query_database(valid_rids)
+        from ibeis.gui import inspect_gui
+        qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
+        qrw.show()
+        qrw.raise_()
         #raise NotImplementedError()
         #pass
 
