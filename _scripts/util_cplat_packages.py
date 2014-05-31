@@ -42,6 +42,8 @@ APT_GET_PKGMAP = {
     'fftw'         : 'libfftw3-dev',
 }
 
+YUM_PKGMAP = {}
+
 PIP_PYPKG_SET = get_pip_installed()
 
 #print('\n'.join(sorted(list(PIP_PYPKG_SET))))
@@ -223,22 +225,25 @@ def __update_apt_get():
 # CENTOS YUM COMMANDS
 
 def __check_installed_yum(pkg):
-    return False
-    ## First try which
-    #out, err, ret = shell('which ' + pkg)
-    #if ret == 0:
-    #    return True
-    ## Then use dpkg to check if we have it
-    #out, err, ret = shell('dpkg -s ' + pkg)
-    #if ret == 0:
-    #    return True
-    #else:
-    #    return False
+    # First try which
+    out, err, ret = shell('which ' + pkg)
+    if ret == 0:
+        return True
+    # Then use yum to check if we have it
+    out, err, ret = shell('yum list installed ' + pkg)
+    if ret == 0:
+        return True
+    else:
+        return False
+
+
+def fix_pkgname_yum(pkg):
+    """ Returns the correct package name for apt_get if given a known alias """
+    return YUM_PKGMAP.get(pkg, pkg)
 
 
 def __install_command_yum(pkg):
-    if pkg == 'python-pyqt4':
-        pkg = 'python-qt4'
+    pkg = fix_pkgname_yum(pkg)
     return 'sudo yum install -y %s' % pkg
 
 

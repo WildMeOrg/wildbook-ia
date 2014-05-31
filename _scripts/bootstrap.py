@@ -21,10 +21,10 @@ DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
 
 PREREQ_PKG_LIST = [
     'git',
-    'cmake',
     'gcc',  # need a C compiler for numpy
     'g++',
     'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
+    'cmake',
     'ffmpeg',
     'libpng',
     'libjpg',
