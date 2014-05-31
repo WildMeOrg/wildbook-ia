@@ -141,7 +141,7 @@ WIN32 = __OS__.startswith('win32')
 LINUX = __OS__.startswith('linux')
 
 UBUNTU = (DISTRO == 'Ubuntu')
-CENTOS = (DISTRO == 'Centos')
+CENTOS = (DISTRO == 'centos')
 MACPORTS = APPLE  # We force macports right now
 
 
