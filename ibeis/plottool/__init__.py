@@ -28,6 +28,7 @@ from .mpl_sift import draw_sifts
 from . import fig_presenter
 
 import utool
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[plottool]')
 
 def reload_subs():
     rrr()
@@ -36,7 +37,6 @@ def reload_subs():
     draw_sv.rrr()
     viz_keypoints.rrr()
     viz_image2.rrr()
+    rrr()
 
 rrrr = reload_subs
-
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[plottool]')
