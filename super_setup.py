@@ -26,6 +26,10 @@ pythoncmd = 'python'
 if DISTRO == 'centos':
     pythoncmd = 'python2.7'
 
+envcmds = {
+    'pythoncmd': pythoncmd
+}
+
 
 def userid_prompt():
     # TODO: Make this prompt for the userid
@@ -51,7 +55,7 @@ except ImportError:
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
     os.system('git pull')
-    os.system('sudo python setup.py develop')
+    os.system('sudo {pythoncmd} setup.py develop'.format(**envcmds))
     sys.path.append(os.path.realpath(os.getcwd()))
     print('Please rerun supr_setup.py')
     sys.exit(1)
@@ -127,11 +131,11 @@ if utool.get_flag('--build'):
         utool.util_git.std_build_command(repo)
     # Build only IBEIS repos with setup.py
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py build'.format(pythoncmd=pythoncmd))
+    utool.gg_command('sudo {pythoncmd} setup.py build'.format(**envcmds))
 
 if utool.get_flag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd))
+    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**envcmds))
 
 
 if utool.get_flag('--test'):
