@@ -275,14 +275,14 @@ def adjust_subplots_safe(**kwargs):
 def adjust_subplots(left=0.02,  bottom=0.02,
                     right=0.98,     top=0.90,
                     wspace=0.1,   hspace=0.15):
-    '''
+    """
     left  = 0.125  # the left side of the subplots of the figure
     right = 0.9    # the right side of the subplots of the figure
     bottom = 0.1   # the bottom of the subplots of the figure
     top = 0.9      # the top of the subplots of the figure
     wspace = 0.2   # the amount of width reserved for blank space between subplots
     hspace = 0.2
-    '''
+    """
     #print('[df2] adjust_subplots(%r)' % locals())
     plt.subplots_adjust(left, bottom, right, top, wspace, hspace)
 
@@ -1035,9 +1035,9 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
 
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False, **kwargs):
-    '''Draws two chips and the feature matches between them. feature matches
+    """Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
-    '''
+    """
     printDBG('[df2] draw_matches2() fnum=%r, pnum=%r' % (fnum, pnum))
     # get matching keypoints + offset
     (h1, w1) = rchip1.shape[0:2]  # get chip (h, w) dimensions
@@ -1057,10 +1057,10 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
 def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
                 draw_border=False, **kwargs):
-    '''Draws the matching features. This is draw because it is an overlay
+    """Draws the matching features. This is draw because it is an overlay
     xywh1 - location of rchip1 in the axes
     xywh2 - location or rchip2 in the axes
-    '''
+    """
     if fm is None:
         assert kpts1.shape == kpts2.shape, 'shapes different or fm not none'
         fm = np.tile(np.arange(0, len(kpts1)), (2, 1)).T
