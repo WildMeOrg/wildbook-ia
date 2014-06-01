@@ -238,9 +238,10 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         if model.name == IMAGE_TABLE:
             gid = id_
             opt2_gid_callback = [
-                (('view hough image'), lambda: ibswgt.back.show_hough(gid)),
+                ('view hough image', lambda: ibswgt.back.show_hough(gid)),
+                ('delete image', lambda: ibswgt.back.delete_image(gid)),
             ]
-            guitool.popup_menu2(tblview, pos, opt2_gid_callback)
+            guitool.popup_menu(tblview, pos, opt2_gid_callback)
 
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):

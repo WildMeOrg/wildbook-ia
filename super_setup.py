@@ -47,7 +47,7 @@ try:
     print('Checking utool')
     import utool
     utool.set_userid(**userid_prompt())
-except ImportError:
+except Exception:
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP')
     import os
     import sys
@@ -57,7 +57,7 @@ except ImportError:
     os.system('git pull')
     os.system('sudo {pythoncmd} setup.py develop'.format(**envcmds))
     sys.path.append(os.path.realpath(os.getcwd()))
-    print('Please rerun supr_setup.py')
+    print('Please rerun super_setup.py')
     sys.exit(1)
 
 #-----------

@@ -4,7 +4,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 import vtool.exif as exif
 from PIL import Image
-from os.path import split, splitext
+from os.path import split, splitext, join
 import numpy as np
 import hashlib
 import uuid
@@ -41,7 +41,12 @@ def get_image_uuid(img_bytes_):
     return uuid_
 
 
-def preprocess_image(gpath):
+def preprocess_image(tup):
+    gpath, kwargs = tup
+    cache_dir       = kwargs.get('cache_dir', None)
+    max_width       = kwargs.get('max_image_width', None)
+    max_height      = kwargs.get('max_image_height', None)
+    localize_images = kwargs.get('localize_images', False)
     """ Called in parallel. gpath must be in UNIX-PATH format! """
     try:
         pil_img = Image.open(gpath, 'r')      # Open PIL Image
@@ -53,6 +58,8 @@ def preprocess_image(gpath):
         else:
             raise
     width, height  = pil_img.size         # Read width, height
+    if width > max_width or height > max_height:
+        pass
     time, lat, lon = get_exif(pil_img)    # Read exif tags
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
     image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
@@ -62,24 +69,16 @@ def preprocess_image(gpath):
     notes = ''
     if ext == '.jpeg':
         ext = '.jpg'
+    # Move images to the cache dir
+    if localize_images:
+        gname = image_uuid + ext
+        gpath = '/'.join((cache_dir, gname))
     param_tup  = (image_uuid, gpath, orig_gname, ext, width, height, time, lat, lon, notes)
     return param_tup
 
-"""
-#@profile
-#def add_images_params_gen_OLD(gpath_list):
-    #generates values for add_images sqlcommands
-    #mark_prog, end_prog = utool.progress_func(len(gpath_list), lbl='imgs: ',
-                                              #mark_start=True, flush_after=4)
-    #for count, gpath in enumerate(gpath_list):
-        #param_tup = preprocess_image(gpath)
-        #mark_prog(count)
-        #yield param_tup
-    #end_prog()
-"""
-
 
 @profile
-def add_images_params_gen(gpath_list):
+def add_images_params_gen(gpath_list, **kwargs):
     """ generates values for add_images sqlcommands asychronously """
-    return utool.util_parallel.generate(preprocess_image, gpath_list)
+    preproc_args = [(gpath, kwargs) for gpath in gpath_list]
+    return utool.util_parallel.generate(preprocess_image, preproc_args)

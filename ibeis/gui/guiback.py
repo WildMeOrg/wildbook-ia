@@ -505,8 +505,8 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> Delete Images"""
         print('[back] delete_image')
         gid = uidtables.qt_cast(gid)
-        raise NotImplementedError()
-        pass
+        back.ibs.delete_images([gid])
+        back.front.update_tables()
 
     @blocking_slot()
     def delete_all_encounters(back):

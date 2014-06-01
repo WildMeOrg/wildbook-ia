@@ -182,7 +182,7 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
         (toggle_samefig_key, toggle_samefig),
         ('query last feature', query_last_feature),
         ('cancel', lambda: print('cancel')), ]
-    guitool.popup_menu(fig.canvas, opt2_callback, fig.canvas)
+    guitool.connect_context_menu(fig.canvas, opt2_callback)
     ih.connect_callback(fig, 'button_press_event', _click_matches_click)
     viz.draw()
     return fig

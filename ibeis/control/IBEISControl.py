@@ -237,25 +237,19 @@ class IBEISController(object):
 
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
+        ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
         try:
-            ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
-            if not ibs.cfg.load() is True:
-                raise Exception('did not load')
+            ibs.cfg.load()
         except Exception:
             ibs._default_config()
 
     def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
         # TODO: Detector config
-        query_cfg  = Config.default_query_cfg()
-        enc_cfg    = Config.default_encounter_cfg()
+        query_cfg    = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
-        ibs.set_encounter_cfg(enc_cfg)
-        ibs.set_query_cfg(query_cfg)
-
-    @otherfunc
-    def set_encounter_cfg(ibs, enc_cfg):
-        ibs.cfg.enc_cfg = enc_cfg
+        ibs.cfg.enc_cfg     = Config.EncounterConfig()
+        ibs.cfg.preproc_cfg = Config.PreprocConfig()
 
     @otherfunc
     def set_query_cfg(ibs, query_cfg):
@@ -1052,7 +1046,7 @@ class IBEISController(object):
         return gid_list
 
     @getter
-    def get_roi_cids(ibs, rid_list, ensure=True):
+    def get_roi_cids(ibs, rid_list, ensure=True, all_configs=False):
         if ensure:
             try:
                 ibs.add_chips(rid_list)
@@ -1060,15 +1054,24 @@ class IBEISController(object):
                 utool.printex(ex, '[!ibs.get_roi_cids]')
                 print('[!ibs.get_roi_cids] rid_list = %r' % (rid_list,))
                 raise
-        chip_config_uid = ibs.get_chip_config_uid()
-        cid_list = ibs.db.executemany(
-            operation='''
-            SELECT chip_uid
-            FROM chips
-            WHERE roi_uid=?
-            AND config_uid=?
-            ''',
-            params_iter=[(rid, chip_config_uid) for rid in rid_list])
+        if all_configs:
+            cid_list = ibs.db.executemany(
+                operation='''
+                SELECT chip_uid
+                FROM chips
+                WHERE roi_uid=?
+                ''',
+                params_iter=[(rid,) for rid in rid_list])
+        else:
+            chip_config_uid = ibs.get_chip_config_uid()
+            cid_list = ibs.db.executemany(
+                operation='''
+                SELECT chip_uid
+                FROM chips
+                WHERE roi_uid=?
+                AND config_uid=?
+                ''',
+                params_iter=[(rid, chip_config_uid) for rid in rid_list])
         if ensure:
             try:
                 utool.assert_all_not_None(cid_list, 'cid_list')
@@ -1604,6 +1607,8 @@ class IBEISController(object):
     def delete_rois(ibs, rid_list):
         """ deletes rois from the database """
         print('[ibs] deleting %d rois' % len(rid_list))
+        # Delete chips and features first
+        ibs.delete_roi_chips(rid_list)
         ibs.db.executemany(
             operation='''
             DELETE
@@ -1616,6 +1621,9 @@ class IBEISController(object):
     def delete_images(ibs, gid_list):
         """ deletes images from the database that belong to gids"""
         print('[ibs] deleting %d images' % len(gid_list))
+        # Delete rois first
+        rid_list = utool.flatten(ibs.get_image_rids(gid_list))
+        ibs.delete_rois(rid_list)
         ibs.db.executemany(  # remove from images
             operation='''
             DELETE
@@ -1646,7 +1654,7 @@ class IBEISController(object):
     @deleter
     def delete_roi_chips(ibs, rid_list):
         """ Clears roi data but does not remove the roi """
-        _cid_list = ibs.get_roi_cids(rid_list)
+        _cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         cid_list = utool.filter_Nones(_cid_list)
         ibs.delete_chips(cid_list)
 

@@ -425,6 +425,20 @@ class EncounterConfig(ConfigBase):
         return ''.join(enc_cfg.get_uid_list())
 
 
+class PreprocConfig(ConfigBase):
+    def __init__(preproc_cfg, **kwargs):
+        super(PreprocConfig, preproc_cfg).__init__(name='preproc_cfg')
+        preproc_cfg.max_image_width  = 1000
+        preproc_cfg.max_image_height = 1000
+
+    def get_uid_list(preproc_cfg):
+        uids = []
+        return ['_PREPROC(', ','.join(uids), ')']
+
+    def get_uid(preproc_cfg):
+        return ''.join(preproc_cfg.get_uid_list())
+
+
 # Convinience
 def __dict_default_func(dict_):
     # Sets keys only if they dont exist
@@ -432,11 +446,6 @@ def __dict_default_func(dict_):
         if key not in dict_:
             dict_[key] = val
     return set_key
-
-
-def default_display_cfg(**kwargs):
-    display_cfg = DisplayConfig(**kwargs)
-    return display_cfg
 
 
 def default_query_cfg(**kwargs):
@@ -457,8 +466,3 @@ def default_vsone_cfg(ibs, **kwargs):
     })
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
-
-
-def default_encounter_cfg(**kwargs):
-    enc_cfg = EncounterConfig(**kwargs)
-    return enc_cfg
