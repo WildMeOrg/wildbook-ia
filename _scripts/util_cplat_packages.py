@@ -1,6 +1,7 @@
 # HELPS GENERATE CROSS PLATFORM INSTALL SCRIPTS
 import sys
 import platform
+import textwrap
 
 # Behavior variables
 
@@ -30,6 +31,13 @@ APPLE_PYPKG_MAP = {
     'libjpeg' : 'libjpg'
 }
 
+
+def _std_pkgwrap(pkg):
+    if UBUNTU:
+        return 'lib' + pkg + '-dev'
+    if CENTOS:
+        return pkg + '-devel'
+
 APT_GET_PKGMAP = {
     'python-pyqt4' : 'python-qt4',
     'zlib'         : 'zlib1g-dev',
@@ -37,14 +45,107 @@ APT_GET_PKGMAP = {
     'libjpeg'      : 'libjpeg-dev',
     'libpng'       : 'libpng12-dev',
     'freetype'     : 'libfreetype6-dev',
-    'atlas-base'   : 'libatlas-base-dev',
+    'atlas'        : 'libatlas-base-dev',
     'fftw3'        : 'libfftw3-dev',
-    'fftw'         : 'libfftw3-dev',
+    'openssl'      : 'libopenssl-devel',
 }
 
 YUM_PKGMAP = {
     'g++': 'gcc-c++',
+    'gfortran': 'gcc-gfortran',
+    'ffmpeg': 'ffmpeg-devel',
+    'libpng': 'libpng-devel',
+    'zlib':   'zlib-devel',
+    'libjpg': 'libjpeg-devel',
+    'freetype': 'freetype-devel',
+    'fftw3'   : 'fftw3-devel',
+    'atlas'   : 'atlas-devel',
+    'python-dev': 'python-devel',
 }
+
+
+def _fix_yum_repos():
+    # This puts a config file to tell yum about the ffmpeg repos
+    # The $ signs are escaped here. They wont be in the file that is
+    # written
+    make_dag_repo_command = r'''
+sudo sh -c 'cat > /etc/yum.repos.d/dag.repo << EOL
+[dag]
+name=Dag RPM Repository for Red Hat Enterprise Linux
+baseurl=http://apt.sw.be/redhat/el\$releasever/en/\$basearch/dag
+gpgcheck=1
+enabled=1
+EOL'
+    '''.strip()
+    fixyum_cmds = []
+    fixyum_cmds.append(
+        '''
+        su -c 'rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm'
+        '''.strip())
+    fixyum_cmds.append(make_dag_repo_command)
+    fixyum_cmds.append('cat /etc/yum.repos.d/dag.repo')
+    fixyum_cmds.append('sudo yum groupinstall -y \'development tools\'')
+    fixyum_cmds.append('sudo yum groupinstall -y \'development tools\'')
+    # Import pbulic key for epel repo's
+    fixyum_cmds.append('sudo rpm --import http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-6')
+    fixyum_cmds.append('sudo yum install -y zlib-dev openssl-devel sqlite-devel bzip2-devel')
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        sudo yum install bash-completion
+        '''
+    ))
+    # Get ability to download python
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        sudo yum upgrade -y wget
+        sudo yum install xz-libs
+        '''
+    ))
+    # Download and unzip python
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        wget https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
+        gunzip Python-2.7.6.tgz
+        tar -xvf Python-2.7.6.tar
+        '''))
+    # Configure Python
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        cd Python-2.7.6
+        ./configure --prefix=/usr/local --enable-unicode=ucs4 --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+        make
+        sudo make altinstall
+        cd ~
+        '''))
+    # Get Pip
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        sudo yum install make automake gcc gcc-c++ kernel-devel git-core -y
+
+        wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
+        python2.7 ez_setup.py
+        easy_install-2.7 pip
+
+        wget https://bootstrap.pypa.io/get-pip.py
+        sudo /usr/local/bin/python2.7 get-pip.py
+        sudo /usr/local/bin/pip install pip --upgrade
+
+        ln -s /usr/local/bin/pip2.7 /usr/local/bin/pip27
+        ln -s /usr/local/bin/python2.7 /usr/local/bin/python27
+        sudo ln -s /usr/local/bin/pip2.7 /usr/bin/pip2.7
+        sudo ln -s /usr/local/bin/python2.7 /usr/bin/python2.7
+        sudo ln -s /usr/local/bin/pip2.7 /usr/bin/pip27
+        sudo ln -s /usr/local/bin/python2.7 /usr/bin/python27
+
+        sudo pip2.7 install virtualenv
+        virtualenv-2.7 ~/ibeis27
+        source ibeis27/bin/activate
+        python --version
+        '''))
+    return fixyum_cmds
+    #with open('/etc/yum.repos.d/dag.repo', 'w') as file_:
+        #file_.write(dag_repo)
+
 
 PIP_PYPKG_SET = get_pip_installed()
 
@@ -56,7 +157,7 @@ PIP_PYPKG_MAP = {
     'pyqt4': 'PyQt4',
 }
 
-UBUNTU_NOPIP_PYPKGS = set([
+NOPIP_PYPKGS = set([
     'pip',
     #'setuptools',
     'pyqt4',
@@ -146,6 +247,10 @@ LINUX = __OS__.startswith('linux')
 
 UBUNTU = (DISTRO == 'Ubuntu')
 CENTOS = (DISTRO == 'centos')
+if CENTOS:
+    WIN32 = False
+    LINUX = True
+    APPLE = False
 MACPORTS = APPLE  # We force macports right now
 
 
@@ -250,7 +355,7 @@ def __install_command_yum(pkg):
 
 
 def __update_yum():
-    return 'sudo yum update && sudo yum upgrade -y'
+    return 'sudo yum -y update'
 
 
 # PIP COMMANDS
@@ -285,7 +390,11 @@ def check_python_installed(pkg, target_version=None):
 
 
 def __install_command_pip(pkg, upgrade=None):
-    fmtstr_install_pip = 'pip install %s'
+    if CENTOS:
+        pipcmd = 'pip27'
+    else:
+        pipcmd = 'pip'
+    fmtstr_install_pip = pipcmd + ' install %s'
     if not WIN32:
         fmtstr_install_pip = 'sudo ' + fmtstr_install_pip
     # First check if we already have this package
@@ -300,7 +409,7 @@ def __install_command_pip(pkg, upgrade=None):
         pkg = APPLE_PYPKG_MAP.get(pkg)
         command = __install_command_macports('python-' + pkg)
 
-    if UBUNTU and pkg in UBUNTU_NOPIP_PYPKGS:
+    if UBUNTU and pkg in NOPIP_PYPKGS:
         if pkg == 'pip':
             # PIP IS VERY SPECIAL. HANDLE VERY EXPLICITLY
             # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
@@ -321,7 +430,8 @@ def __install_command_pip(pkg, upgrade=None):
             ]
         else:
             command = __install_command_apt_get('python-' + pkg)
-
+    elif CENTOS and pkg in NOPIP_PYPKGS:
+        return ''
     else:
         # IF not then try and install through pip
         command = fmtstr_install_pip % pkg
@@ -335,11 +445,22 @@ def __install_command_pip(pkg, upgrade=None):
 
 # GENERAL COMMANDS
 
+def apply_preinstall_fixes():
+    if CENTOS:
+        prefixes = []
+        prefixes.append(update_and_upgrade())
+        return [cmd(command, label='_fix_yum_repos: ' + str(count))
+                for count, command in enumerate(_fix_yum_repos())]
+    else:
+        return []
 
-def upgrade():
-    if LINUX and UBUNTU:
+
+def update_and_upgrade():
+    if UBUNTU:
         return cmd(__update_apt_get())
-    if APPLE and MACPORTS:
+    if CENTOS:
+        return cmd(__update_yum())
+    if MACPORTS:
         return cmd(__update_macports())
 
 
@@ -364,7 +485,8 @@ def ensure_package(pkg):
     elif MACPORTS:
         command = __install_command_macports(pkg)
     elif WIN32:
-        raise Exception('Win32: not a chance.')
+        command = ''
+        #raise Exception('Win32: not a chance.')
     else:
         raise NotImplementedError('%r is not yet supported' % ((__OS__, DISTRO, DISTRO_VERSION,),))
     return cmd(command)
@@ -378,7 +500,7 @@ def ensure_python_package(pkg):
 # CONVINENCE COMMANDS
 
 
-def cmd(command):
+def cmd(command, label=None):
     if command == '':
         # Base Case
         return ''
@@ -388,13 +510,15 @@ def cmd(command):
     else:
         # Base Case
         print(command)
+        if label is None:
+            label = command.split('\n')[0]
         delim1 = 'echo "************"'
-        delim2 = 'echo "command = %r"' % command
+        delim2 = 'echo "command = %r"' % label
         write_list = [delim1]
         write_list += [delim2]
         if CRASH_ON_FAIL:
             # Augments the bash script to exit on the failure of a command
-            fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % command
+            fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % label
             write_list += [command + fail_extra]
         else:
             write_list += [command]
@@ -407,6 +531,7 @@ def cmd(command):
 
 def make_prereq_script(pkg_list, pypkg_list):
     output_list = []
+    output_list.extend(apply_preinstall_fixes())
     output_list.extend([ensure_package(pkg) for pkg in pkg_list])
     output_list.extend([ensure_python_package(pypkg) for pypkg in pypkg_list])
     output = ''.join(output_list)

@@ -31,6 +31,7 @@ PREREQ_PKG_LIST = [
     'zlib',
     'freetype',
     'fftw3',
+    'atlas',
     #'zmq',
 ]
 
