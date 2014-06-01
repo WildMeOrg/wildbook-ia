@@ -19,11 +19,13 @@ class MultiImageInteraction(object):
         self.max_per_page = min(max_per_page, nImgs)
         self.current_index = 0
         self.img_iter = iter(img_list)
+        self.page_number = -1
         self.display_next_page()
-
+        self.img_list = img_list
 
 
     def display_next_page(self, event=None):
+        self.page_number = self.page_number + 1
         start_index = self.current_index
         nLeft    = self.nImgs - self.current_index
         if nLeft == 0:
@@ -55,13 +57,13 @@ class MultiImageInteraction(object):
         finish_index = start_index + px + 1
         self.current_index += px + 1
         df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, finish_index, self.nImgs))
-        figlist = fig.get_children()
-        print('figlist size: ', len(figlist))
+        self.figlist = fig.get_children()
+        print('figlist size: ', len(self.figlist))
 
         """would rather do something like "for fig in figlist, if fig.name = "Axes"", but am unable to find the proper syntax.
         this sets all the images in the frame to respond to a mouseclick."""
-        for x in range(1, len(figlist)-1):
-            figlist[x].set_picker(True)
+        for x in range(1, len(self.figlist)-1):
+            self.figlist[x].set_picker(True)
         # Define buttons
 
 
@@ -73,9 +75,11 @@ class MultiImageInteraction(object):
 
 
     def onpick(self, event):
-        print('test2')
+        img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number)
+        #print(imgs[0].make_image())
+        #print(self.img_list[3])
         """Need to add ROI code"""
         verts_of_image_selected = None
         """Need to figure out how to get the img from the code above"""
-        img = None
+        img = self.img_list[img_ind]
         irs.ROI_creator(img, verts_of_image_selected)

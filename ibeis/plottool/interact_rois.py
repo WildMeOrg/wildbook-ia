@@ -115,13 +115,14 @@ class ROIInteraction(object):
                  line_width=4,
                  line_color=(1, 1, 1),
                  face_color=(0, 0, 0),
-                 fnum=None):
+                 fnum=None,
+                 do_mask=False):
 
         if fnum is None:
             fnum = df2.next_fnum()
 
         self.img = img
-
+        self.do_mask = do_mask
         plt.figure(fnum)
         ax = plt.subplot(111)
         self.ax = ax
@@ -148,6 +149,11 @@ class ROIInteraction(object):
         self.canUncolor = False
         #number of polygons in the image
         self._autoinc_polynum = 0
+
+        #Something Jon added
+        self.background = None
+        #the method to call to update ROIs in the other program
+        self.callback = None
 
         def new_polygon(verts):
             """ verts - list of (x, y) tuples """
@@ -311,8 +317,12 @@ class ROIInteraction(object):
         self.press1 = True
         self.canUncolor = False
         self._update_line()
-        self.canvas.restore_region(self.background)
-
+        if self.background is not None:
+            self.canvas.restore_region(self.background)
+        else:
+            print("error: self.background is none. Trying refresh.")
+            self.canvas.restore_region(self.background)
+            self.background = self.canvas.copy_from_bbox(self.ax.bbox)
         for n, poly in enumerate(self.polyList):
             self.ax.draw_artist(poly)
             self.ax.draw_artist(self.line[n])
@@ -386,8 +396,12 @@ class ROIInteraction(object):
         self._thisPoly = None;
         self._polyHeld = False;
 
-
-
+    def load_points(self):
+        new_verts_list = []
+        for poly in self.polyList:
+            new_verts_list.append(poly.xy)
+        print(new_verts_list)
+        return new_verts_list
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
@@ -403,6 +417,8 @@ class ROIInteraction(object):
         if event.key == 'r':
             self.delete_current_poly()
 
+        if event.key == 'u':
+            self.load_points()
 
         # elif event.key == 'd':
         #     ind = self.get_ind_under_cursor(event)
@@ -592,19 +608,35 @@ class ROIInteraction(object):
 
     def accept_new_rois(self, event):
         print('Pressed Accept Button')
+
+
+        def send_back_rois(self):
+            point_list = self.load_points()
+            self.callback(point_list)
+
+        print(self.callback)
+        if self.callback is not None:
+            send_back_rois()
+        else:
+            #just print the updated points
+            self.load_points()
         # Make mask from selection
-        plt.clf()
-        ax = plt.subplot(111)
-        img = self.img
-        mask = self.get_mask(img.shape)
-        # User must close previous figure
-        # Modify the image with the mask
-        masked_img = apply_mask(img, mask)
-        # show the modified image
-        ax.imshow(masked_img)
-        plt.title('Region outside of mask is darkened')
+        if self.do_mask is True:
+            plt.clf()
+            ax = plt.subplot(111)
+            img = self.img
+            mask = self.get_mask(img.shape)
+            # User must close previous figure
+            # Modify the image with the mask
+            masked_img = apply_mask(img, mask)
+            # show the modified image
+            ax.imshow(masked_img)
+            plt.title('Region outside of mask is darkened')
+        
+            ax.figure.show()
+
         print('show2')
-        ax.figure.show()
+
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
@@ -626,24 +658,30 @@ def default_vertices(img):
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
 
 
-def ROI_creator(imgID, verts_list):
+def ROI_creator(img, verts_list):#add callback as variable
     print('*** START DEMO ***')
-    try:
-        import utool
-        img_url = 'http://i.imgur.com/Vq9CLok.jpg'
-        img_fpath = utool.grab_file_url(img_url)
-        img = mpimg.imread(img_fpath)
-    except Exception as ex:
-        print('cant read zebra: %r' % ex)
-        img = np.random.uniform(0, 255, size=(100, 100))
+    
+
     if verts_list is None:
-        verts_list = [default_vertices(img), default_vertices(img)]
+        verts_list = [default_vertices(img)]
     else:
         for verts in verts_list:
             if (len(verts) is not 5):
-                print("verts list is not of correct length. ", len(verts_list))
+                print("verts list is not of correct length. ", len(verts))
                 return
 
+
+    if img is None:
+        try:
+            import utool
+            img_url = 'http://i.imgur.com/Vq9CLok.jpg'
+            img_fpath = utool.grab_file_url(img_url)
+            img = mpimg.imread(img_fpath)
+        except Exception as ex:
+            print('cant read zebra: %r' % ex)
+            img = np.random.uniform(0, 255, size=(100, 100))
+    # if callback is not None:
+    #     self.callback = callback
     mc = ROIInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
     plt.show()
@@ -660,5 +698,5 @@ def ROI_creator(imgID, verts_list):
 
 
 if __name__ == '__main__':
-    verts = [((0,400),(400,400),(400,0),(0,0),(0,400))]
+    verts = [((0,400),(400,400),(400,0),(0,0),(0,400)), ((400,700),(700,700),(700,400),(400,400), (400,700))]
     ROI_creator(None, verts)
