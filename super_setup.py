@@ -19,6 +19,13 @@ print('[super_setup] __IBEIS_SUPER_SETUP__')
 CODE_DIR = dirname(dirname(realpath(__file__)))   # '~/code'
 print('[super_setup] code_dir: %r' % CODE_DIR)
 
+import platform
+(DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
+
+pythoncmd = 'python'
+if DISTRO == 'centos':
+    pythoncmd = 'python2.7'
+
 
 def userid_prompt():
     # TODO: Make this prompt for the userid
@@ -120,11 +127,11 @@ if utool.get_flag('--build'):
         utool.util_git.std_build_command(repo)
     # Build only IBEIS repos with setup.py
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo python setup.py build')
+    utool.gg_command('sudo {pythoncmd} setup.py build'.format(pythoncmd=pythoncmd))
 
 if utool.get_flag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo python setup.py develop')
+    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd))
 
 
 if utool.get_flag('--test'):
