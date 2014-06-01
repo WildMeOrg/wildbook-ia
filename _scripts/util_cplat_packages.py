@@ -142,6 +142,34 @@ EOL'
         source ibeis27/bin/activate
         python --version
         '''))
+
+    # Get SIP
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        cd ~
+        wget http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11/PyQt-x11-gpl-4.11.tar.gz
+        gunzip PyQt-x11-gpl-4.11.tar.gz
+        tar -xvf PyQt-x11-gpl-4.11.tar
+        cd PyQt-x11-gpl-4.11
+        sudo yum install qt -y
+        sudo yum upgrade qt -y
+        python27 configure-ng.py
+        make
+        sudo make install
+        '''))
+
+    # Get PyQt4
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        cd ~
+        wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.16/sip-4.16.tar.gz
+        gunzip sip-4.16.tar.gz
+        tar -xvf sip-4.16.tar
+        cd sip-4.16
+        python27 configure.py
+        make
+        sudo make install
+        '''))
     return fixyum_cmds
     #with open('/etc/yum.repos.d/dag.repo', 'w') as file_:
         #file_.write(dag_repo)

@@ -18,7 +18,7 @@ def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
 
     def _image_view(sel_rids=sel_rids, **_kwargs):
         try:
-            viz.show_image(ibs, gid, sel_rids=sel_rids, **_kwargs)
+            viz.show_image(ibs, gid, sel_rids=sel_rids, fnum=fnum, **_kwargs)
             df2.set_figtitle('Image View')
         except TypeError as ex:
             utool.printex(ex, utool.dict_str(_kwargs))

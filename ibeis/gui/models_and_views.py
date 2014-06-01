@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from PyQt4 import QtGui
-from guitool import APITableModel, updater
+from PyQt4 import QtGui, QtCore
+from guitool import APITableModel, updater, signal_, slot_
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
 #--------------------
@@ -47,40 +47,50 @@ class EncTableModel(APITableModel):
 #############################
 
 
-def default_tableview_layout(view):
-    # Allow sorting by column
-    view.setSortingEnabled(True)
-    # No vertical header
-    verticalHeader = view.verticalHeader()
-    verticalHeader.setVisible(False)
-    # Stretchy column widths
-    horizontalHeader = view.horizontalHeader()
-    horizontalHeader.setStretchLastSection(True)
-    horizontalHeader.setSortIndicatorShown(True)
-    horizontalHeader.setHighlightSections(True)
-    horizontalHeader.setCascadingSectionResizes(True)
-    #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-    horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-    #horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
-    horizontalHeader.setMovable(True)
-    # Selection behavior
-    view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-    view.resizeColumnsToContents()
+class APITableView(QtGui.QTableView):
+    contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
+
+    def __init__(tblview, parent=None):
+        QtGui.QTableView.__init__(tblview, parent)
+        # Allow sorting by column
+        tblview.setSortingEnabled(True)
+        # No vertical header
+        verticalHeader = tblview.verticalHeader()
+        verticalHeader.setVisible(False)
+        # Stretchy column widths
+        horizontalHeader = tblview.horizontalHeader()
+        horizontalHeader.setStretchLastSection(True)
+        horizontalHeader.setSortIndicatorShown(True)
+        horizontalHeader.setHighlightSections(True)
+        horizontalHeader.setCascadingSectionResizes(True)
+        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
+        horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
+        horizontalHeader.setMovable(True)
+        # Selection behavior
+        tblview.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        tblview.resizeColumnsToContents()
+        tblview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # Context menu
+        tblview.customContextMenuRequested.connect(tblview.on_customMenuRequested)
+
+    @slot_(QtCore.QPoint)
+    def on_customMenuRequested(tblview, pos):
+        index = tblview.indexAt(pos)
+        tblview.contextMenuClicked.emit(index, pos)
 
 
-class IBEISTableView(QtGui.QTableView):
-    def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
-        view.ibswin = parent
-        default_tableview_layout(view)
+class IBEISTableView(APITableView):
+    def __init__(tblview, parent=None):
+        APITableView.__init__(tblview, parent)
+        tblview.ibswin = parent
 
-    def _change_enc(view, eid):
-        view.model()._change_enc(eid)
+    def _change_enc(tblview, eid):
+        tblview.model()._change_enc(eid)
 
 
-class EncTableView(QtGui.QTableView):
-    def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
-        view.ibswin = parent
-        default_tableview_layout(view)
-        view.setMaximumSize(500, 9999)
+class EncTableView(APITableView):
+    def __init__(tblview, parent=None):
+        APITableView.__init__(tblview, parent)
+        tblview.ibswin = parent
+        tblview.setMaximumSize(500, 9999)

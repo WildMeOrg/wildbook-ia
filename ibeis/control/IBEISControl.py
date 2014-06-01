@@ -739,13 +739,14 @@ class IBEISController(object):
     #
     # GETTERS::GENERAL
 
-    def get_table_props(ibs, table, prop_key, uid_list):
+    def get_table_props(ibs, table, prop_key, uid_list, **kwargs):
         #OFF printDBG('get_(table=%r, prop_key=%r)' % (table, prop_key))
         # Input to table props must be a list
         if isinstance(prop_key, (str, unicode)):
             prop_key = (prop_key,)
         # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
+        errmsg = '[ibs.get_table_props] ERROR (table=%r, prop_key=%r)' % (table, prop_key)
         # Potentially UNSAFE SQL
         property_list = ibs.db.executemany(
             operation='''
@@ -754,8 +755,8 @@ class IBEISController(object):
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
             params_iter=((_uid,) for _uid in uid_list),
-            errmsg='[ibs.get_table_props] ERROR (table=%r, prop_key=%r)' %
-            (table, prop_key))
+            errmsg=errmsg,
+            **kwargs)
         return list(property_list)
 
     def get_valid_ids(ibs, tblname, eid=None):
@@ -766,29 +767,29 @@ class IBEISController(object):
         }[tblname]
         return get_valid_tblname_ids(eid=eid)
 
-    def get_chip_props(ibs, prop_key, cid_list):
+    def get_chip_props(ibs, prop_key, cid_list, **kwargs):
         """ general chip property getter """
-        return ibs.get_table_props('chips', prop_key, cid_list)
+        return ibs.get_table_props('chips', prop_key, cid_list, **kwargs)
 
-    def get_image_props(ibs, prop_key, gid_list):
+    def get_image_props(ibs, prop_key, gid_list, **kwargs):
         """ general image property getter """
-        return ibs.get_table_props('images', prop_key, gid_list)
+        return ibs.get_table_props('images', prop_key, gid_list, **kwargs)
 
-    def get_roi_props(ibs, prop_key, rid_list):
+    def get_roi_props(ibs, prop_key, rid_list, **kwargs):
         """ general image property getter """
-        return ibs.get_table_props('rois', prop_key, rid_list)
+        return ibs.get_table_props('rois', prop_key, rid_list, **kwargs)
 
-    def get_name_props(ibs, prop_key, nid_list):
+    def get_name_props(ibs, prop_key, nid_list, **kwargs):
         """ general name property getter """
-        return ibs.get_table_props('names', prop_key, nid_list)
+        return ibs.get_table_props('names', prop_key, nid_list, **kwargs)
 
-    def get_feat_props(ibs, prop_key, fid_list):
+    def get_feat_props(ibs, prop_key, fid_list, **kwargs):
         """ general feature property getter """
-        return ibs.get_table_props('features', prop_key, fid_list)
+        return ibs.get_table_props('features', prop_key, fid_list, **kwargs)
 
-    def get_encounter_props(ibs, prop_key, gid_list):
+    def get_encounter_props(ibs, prop_key, gid_list, **kwargs):
         """ general image property getter """
-        return ibs.get_table_props('encounters`', prop_key, gid_list)
+        return ibs.get_table_props('encounters`', prop_key, gid_list, **kwargs)
     #
     # GETTERS::IMAGE
 
@@ -1014,14 +1015,14 @@ class IBEISController(object):
     @getter
     def get_roi_notes(ibs, rid_list):
         """ Returns a list of roi notes """
-        roi_notes_list = ibs.get_table_props('rois', 'roi_notes', rid_list)
+        roi_notes_list = ibs.get_roi_props('roi_notes', rid_list)
         return roi_notes_list
 
     @getter_numpy_vector_output
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        bbox_list = ibs.get_roi_props(
-            ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height'), rid_list)
+        prop_keys = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
+        bbox_list = ibs.get_roi_props(prop_keys, rid_list)
         return bbox_list
 
     @getter

@@ -292,6 +292,8 @@ if __name__ == '__main__':
     # + Common variables for IPython
     SNIPPITS = True
     if SNIPPITS:
+        species = 'zebra_grevys'
+        quick = True
         # Get snippet variables
         ibs = main_locals['ibs']
         if 'back' in main_locals:

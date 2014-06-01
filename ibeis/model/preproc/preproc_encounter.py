@@ -71,16 +71,17 @@ def _meanshift_cluster_encounters_time(unixtime_arr, quantile):
     try:
         bandwidth = estimate_bandwidth(X_data, quantile=quantile, n_samples=500)
         if bandwidth == 0:
-            print('[WARNING!] bandwidth is 0. Cannot cluster')
-            return np.zeros(unixtime_arr.size)
+            raise AssertionError('[WARNING!] bandwidth is 0. Cannot cluster')
         # bandwidth is with respect to the RBF used in clustering
         ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)
         ms.fit(X_data)
         label_arr = ms.labels_
     except Exception as ex:
-        utool.printex(ex, 'error computing meanshift', key_list=['X_data',
-                                                                 'quantile'])
-        raise
+        utool.printex(ex, 'error computing meanshift',
+                      key_list=['X_data', 'quantile'],
+                      iswarning=True)
+        # Fallback to all from same encounter
+        label_arr = np.zeros(unixtime_arr.size)
     return label_arr
 
 

@@ -11,6 +11,7 @@ from . import viz_name
 from . import viz_nearest_descriptors
 from . import viz_qres
 from . import viz_sver
+from . import viz_hough
 
 from . import viz_helpers as vh
 from .viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
@@ -21,6 +22,7 @@ from .viz_matches import show_matches, annotate_matches
 from .viz_qres import show_qres, show_qres_top, show_qres_analysis
 from .viz_sver import show_sver, _compute_svvars
 from .viz_nearest_descriptors import show_nearest_descriptors
+from .viz_hough import show_hough
 
 __LOADED__ = False
 
@@ -45,6 +47,7 @@ def reload_subs():
     getattr(viz_nearest_descriptors, 'rrr', lambda: None)()
     getattr(viz_qres, 'rrr', lambda: None)()
     getattr(viz_sver, 'rrr', lambda: None)()
+    getattr(viz_hough, 'rrr', lambda: None)()
     getattr(interact, 'reload_subs', lambda: None)()
     rrr()
 rrrr = reload_subs

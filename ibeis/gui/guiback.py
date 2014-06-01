@@ -15,6 +15,7 @@ from ibeis.dev import ibsfuncs, sysres
 from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import uidtables as uidtables
+from ibeis import viz
 from ibeis.viz import interact
 # Utool
 import utool
@@ -97,7 +98,7 @@ class MainWindowBackend(QtCore.QObject):
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
         back.front = back.mainwin.ibswgt
         # connect signals and other objects
-        fig_presenter.register_qt4_win(back.front)
+        fig_presenter.register_qt4_win(back.mainwin)
 
     #------------------------
     # Draw Functions
@@ -140,6 +141,10 @@ class MainWindowBackend(QtCore.QObject):
     def show_qres_roimatch(back, qres, rid, **kwargs):
         interact.ishow_qres(back.ibs, qres, rid, **kwargs)
         pass
+
+    def show_hough(back, gid, **kwargs):
+        viz.show_hough(back.ibs, gid, **kwargs)
+        viz.draw()
 
     def set_view(back, index):
         """ Sets the current tab index """

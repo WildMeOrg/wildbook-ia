@@ -157,20 +157,6 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.status_vlayout.addWidget(ibswgt.outputLog)
         ibswgt.status_vlayout.addWidget(ibswgt.progressBar)
 
-    #@checks_qt_error
-    def _connect_signals_and_slots(ibswgt):
-        tblslots = {
-            IMAGE_TABLE     : ibswgt.on_doubleclick_image,
-            ROI_TABLE       : ibswgt.on_doubleclick_roi,
-            NAME_TABLE      : ibswgt.on_doubleclick_name,
-            ENCOUNTER_TABLE : ibswgt.on_doubleclick_encounter,
-        }
-        for tblname, slot in tblslots.iteritems():
-            view = ibswgt.views[tblname]
-            view.doubleClicked.connect(slot)
-            model = ibswgt.models[tblname]
-            model._rows_updated.connect(ibswgt.on_rows_updated)
-
     def change_model_context_gen(ibswgt, tblnames=None):
         """
         Loops over tablenames emitting layoutChanged at the end for each
@@ -223,14 +209,43 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
 
+    #@checks_qt_error
+    def _connect_signals_and_slots(ibswgt):
+        tblslots = {
+            IMAGE_TABLE     : ibswgt.on_doubleclick_image,
+            ROI_TABLE       : ibswgt.on_doubleclick_roi,
+            NAME_TABLE      : ibswgt.on_doubleclick_name,
+            ENCOUNTER_TABLE : ibswgt.on_doubleclick_encounter,
+        }
+        for tblname, slot in tblslots.iteritems():
+            tblview = ibswgt.views[tblname]
+            tblview.doubleClicked.connect(slot)
+            tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
+
+            model = ibswgt.models[tblname]
+            model._rows_updated.connect(ibswgt.on_rows_updated)
+
     #------------
     # SLOTS
     #------------
 
+    @slot_(QtCore.QModelIndex, QtCore.QPoint)
+    def on_contextMenuClicked(ibswgt, qtindex, pos):
+        print('[newgui] contextmenu')
+        model = qtindex.model()
+        id_ = model._get_row_id(qtindex.row())
+        tblview = ibswgt.views[model.name]
+        if model.name == IMAGE_TABLE:
+            gid = id_
+            opt2_gid_callback = [
+                (('view hough image'), lambda: ibswgt.back.show_hough(gid)),
+            ]
+            guitool.popup_menu2(tblview, pos, opt2_gid_callback)
+
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
-        if tblname == ENCOUNTER_TABLE:
+        if tblname == ENCOUNTER_TABLE:  # Hack
             return
         tblname = str(tblname)
         index = ibswgt._tab_table_wgt.indexOf(ibswgt.views[tblname])
@@ -238,37 +253,29 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_image(ibswgt, qtindex):
-        row   = qtindex.row()
         model = qtindex.model()
-        gid = model._get_row_id(row)
+        gid = model._get_row_id(qtindex.row())
         ibswgt.back.select_gid(gid, model.eid)
         print("Image Selected, %r (ENC %r)" % (gid, model.eid))
-        print('img')
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_roi(ibswgt, qtindex):
-        print('roi')
-        row   = qtindex.row()
         model = qtindex.model()
-        rid = model._get_row_id(row)
+        rid = model._get_row_id(qtindex.row())
         ibswgt.back.select_rid(rid, model.eid)
         print("ROI Selected, %r (ENC %r)" % (rid, model.eid))
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_name(ibswgt, qtindex):
-        print('name')
         model = qtindex.model()
-        row   = qtindex.row()
-        nid = model._get_row_id(row)
+        nid = model._get_row_id(qtindex.row())
         ibswgt.back.select_nid(nid, model.eid)
         print("Name Selected, %r (ENC %r)" % (nid, model.eid))
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_encounter(ibswgt, qtindex):
-        print('encounter')
-        row   = qtindex.row()
         model = qtindex.model()
-        eid = model._get_row_id(row)
+        eid = model._get_row_id(qtindex.row())
         enctext = ibswgt.ibs.get_encounter_enctext(eid)
         ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
         print("Encounter Selected, %r" % (eid))

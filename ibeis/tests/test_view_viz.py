@@ -72,3 +72,6 @@ if __name__ == '__main__':
     test_locals = utool.run_test(TEST_VIZ, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
+    import sys
+    if '--cmd' in sys.argv:
+        exec(df2.present())

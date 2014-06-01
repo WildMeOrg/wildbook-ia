@@ -13,7 +13,7 @@ from .interact_chip import ishow_chip
 
 def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
                   same_fig=True, **kwargs):
-    'Plots a chip result and sets up callbacks for interaction.'
+    """ Plots a chip result and sets up callbacks for interaction. """
     fig = ih.begin_interaction('matches', fnum)
     qrid = qres.qrid
     if rid is None:

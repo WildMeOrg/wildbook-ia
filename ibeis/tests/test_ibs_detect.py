@@ -42,8 +42,7 @@ def TEST_DETECT(ibs):
             fig = viz_image2.show_image(img, bbox_list=bbox_list)
         fig_presenter.present()
     #fig_presenter.all_figures_bring_to_front()
-
-        #ibs.detect_random_forest(gid_list, 'zebra_grevys')
+    #ibs.detect_random_forest(gid_list, 'zebra_grevys')
     return locals()
 
 

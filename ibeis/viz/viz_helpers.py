@@ -101,9 +101,10 @@ def get_vsstr(qrid, rid):
 
 
 def get_bbox_centers(bbox_list):
-    bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])
-                             for (x, y, w, h) in bbox_list])
-    return bbox_centers
+    center_pts = [((x + w / 2), (y + h / 2))
+                  for (x, y, w, h) in bbox_list]
+    center_pts = np.array(center_pts)
+    return center_pts
 
 
 def get_match_truth(ibs, rid1, rid2):
@@ -175,7 +176,7 @@ def get_chip_labels(ibs, rid_list, **kwargs):
 def get_image_titles(ibs, gid_list):
     gname_list = ibs.get_image_gnames(gid_list)
     title_list = [
-        'gid=%r gname=%r' % (gid, gname)
+        'gid=%r gname=%r' % (gid, str(gname))
         for gid, gname in izip(gid_list, gname_list)
     ]
     return title_list

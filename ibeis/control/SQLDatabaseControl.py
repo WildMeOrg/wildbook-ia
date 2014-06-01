@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import imap
+#from itertools import imap
 import re
 from os.path import join, exists
 # Tools
@@ -18,10 +18,11 @@ QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 
 class SQLExecutionContext(object):
     def __init__(self, db, operation, num_params=None, auto_commit=True):
-        utool.printif(lambda: '[sql] ' + utool.get_caller_name(range(2, 4)), VERBOSE)
+        utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), VERBOSE)
         self.db = db
         # Parse the operation type
         self.operation_type = get_operation_type(operation)
+        # Mark if the database is changing
         if any([self.operation_type.startswith(op)
                 for op in ['INSERT', 'UPDATE', 'DELETE']]):
             is_changing = True

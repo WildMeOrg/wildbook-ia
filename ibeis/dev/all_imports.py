@@ -94,12 +94,13 @@ from vtool import linalg as ltool
 from vtool import segmentation
 from vtool import spatial_verification as sverif
 
-# DrawTool
+# PlotTool
 import plottool
 from plottool import draw_func2 as df2
 from plottool import interact_helpers as ih
 from plottool import viz_keypoints
-
+from plottool import viz_image2
+from plottool import fig_presenter
 
 # IBEIS DEV
 from ibeis.dev import main_commands
@@ -138,6 +139,7 @@ from ibeis.model.hots import coverage_image
 from ibeis.model.hots import query_helpers
 # IBEIS MODEL DETECT
 from ibeis.model.detect import randomforest
+from ibeis.model.detect import grabmodels
 # IBEIS VIEW GUI
 from ibeis.gui import guifront
 from ibeis.gui import guiback
@@ -148,6 +150,7 @@ from ibeis.viz import viz_image
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches
 from ibeis.viz import viz_sver
+from ibeis.viz import viz_hough
 # IBEIS VIEW INTERACT
 from ibeis.viz.interact import ishow_image
 from ibeis.viz.interact import ishow_chip
