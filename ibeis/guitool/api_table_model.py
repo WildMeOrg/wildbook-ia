@@ -177,8 +177,10 @@ class APITableModel(QtCore.QAbstractTableModel):
         if len(ids_) == 0:
             model.row_index_list = []
         else:
+            # start sort
             values = model.col_getter_list[model.col_sort_index](ids_)
-            row_indices = [tup[1] for tup in sorted(list(izip(values, ids_)))]
+            row_indices = [id_ for (value, id_) in sorted(list(izip(values, ids_)))]
+            # end sort
             assert row_indices is not None, 'no indices'
             if model.col_sort_reverse:
                 row_indices = row_indices[::-1]
