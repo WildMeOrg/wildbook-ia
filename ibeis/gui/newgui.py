@@ -22,6 +22,22 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 #############################
 
 
+class APITabWidget(QtGui.QTabWidget):
+    def __init__(tabwgt, parent=None, horizontalStretch=1):
+        QtGui.QTabWidget.__init__(tabwgt, parent)
+        tabwgt.ibswgt = parent
+        sizePolicy = guitool.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
+        tabwgt.setSizePolicy(sizePolicy)
+        tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
+
+    def setCurrentIndex(tabwgt, index):
+        print('Set current Index: %r ' % index)
+        tblname = tabwgt.ibswgt.tblname_list[index]
+        model = tabwgt.ibswgt.models[tblname]
+        with ChangingModelLayout([model]):
+            QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
+
+
 class EncoutnerTabWidget(QtGui.QTabWidget):
     def __init__(enc_tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(enc_tabwgt, parent)
@@ -126,7 +142,8 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
         ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
         # Tables Tab
-        ibswgt._tab_table_wgt = guitool.newTabWidget(ibswgt, horizontalStretch=81)
+        ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
+        #guitool.newTabWidget(ibswgt, horizontalStretch=81)
         # Create models and views
         for tblname, ModelClass, ViewClass in ibswgt.modelview_defs:
             ibswgt.models[tblname] = ModelClass(parent=ibswgt)
@@ -246,6 +263,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
+        """ When the rows are updated change the tab names """
         printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:  # Hack
             return

@@ -4,7 +4,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 import vtool.exif as exif
 from PIL import Image
-from os.path import split, splitext, join
+from os.path import split, splitext
 import numpy as np
 import hashlib
 import uuid

@@ -14,8 +14,7 @@ cd ibeis
 import sys
 import os
 from os.path import dirname, realpath, join
-from util_cplat_packages import make_prereq_script, APPLE, CENTOS, UBUNTU, print_sysinfo
-
+from util_cplat_packages import make_prereq_script, APPLE, CENTOS, DEBIAN_FAMILY, print_sysinfo
 
 DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
 
@@ -38,9 +37,12 @@ PREREQ_PKG_LIST = [
 if APPLE:
     PREREQ_PKG_LIST.extend([
         'opencv',
+        'libpng',
+        'zlib',
+        'freetype',
     ])
 
-if UBUNTU:
+if DEBIAN_FAMILY:
     PREREQ_PKG_LIST.extend([
         'libfftw3-dev',
         #'libeigen3-dev',
