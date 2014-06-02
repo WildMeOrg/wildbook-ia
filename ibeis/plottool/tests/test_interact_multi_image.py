@@ -2,14 +2,11 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_multi_image
 from plottool import draw_func2 as df2
-from plottool.tests.test_helpers import imread_many
 import utool
 
 
 def test_interact_multimage(imgpaths):
-    img_list = imread_many(imgpaths)
-    iteract_obj = interact_multi_image.MultiImageInteraction(img_list +
-                                                             img_list,
+    iteract_obj = interact_multi_image.MultiImageInteraction(imgpaths,
                                                              max_per_page=6)
     return iteract_obj
 

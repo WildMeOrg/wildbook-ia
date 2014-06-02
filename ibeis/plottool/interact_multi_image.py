@@ -1,85 +1,114 @@
 from __future__ import absolute_import, division, print_function
 from matplotlib.widgets import Button
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from plottool import viz_image2
+from plottool import interact_rois
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
-from plottool import interact_rois as irs
+from plottool import interact_helpers as ih
+import cv2
 #import utool
 
 
 class MultiImageInteraction(object):
-    def __init__(self, img_list, nImgs=None, max_per_page=10, fnum=None):
-        print("test")
+    def __init__(self, gpath_list, bboxes_list=None, thetas_list=None,
+                 nImgs=None, max_per_page=10, fnum=None):
+        print('Creating multi-image interaction')
         if nImgs is None:
-            nImgs = len(img_list)
+            nImgs = len(gpath_list)
         if fnum is None:
             self.fnum = df2.next_fnum()
+        if bboxes_list is None:
+            bboxes_list = [[]] * nImgs
+        if thetas_list is None:
+            thetas_list = [[0] * len(bboxes) for bboxes in bboxes_list]
+        # How many images we are showing and per page
+        self.thetas_list = thetas_list
+        self.bboxes_list = bboxes_list
         self.nImgs = nImgs
         self.max_per_page = min(max_per_page, nImgs)
         self.current_index = 0
-        self.img_iter = iter(img_list)
         self.page_number = -1
+        # Initialize iterator over the image paths
+        self.gpath_list = gpath_list
+        # Display the first page
         self.display_next_page()
-        self.img_list = img_list
-
 
     def display_next_page(self, event=None):
         self.page_number = self.page_number + 1
-        start_index = self.current_index
-        nLeft    = self.nImgs - self.current_index
+        nLeft = self.nImgs - self.current_index
         if nLeft == 0:
+            fig = df2.figure(fnum=self.fnum, pnum=(1, 1, 1))
+            fig.clf()
+            return False
             raise AssertionError('no more images to display')
         nDisplay = min(nLeft, self.max_per_page)
         nRows, nCols = ph.get_square_row_cols(nDisplay)
         print('[viz*] r=%r, c=%r' % (nRows, nCols))
         pnum_ = df2.get_pnum_func(nRows, nCols)
+        # Clear the figure for the new page of data
         fig = df2.figure(fnum=self.fnum, pnum=pnum_(0))
         fig.clf()
-        fig.canvas.mpl_connect('pick_event', self.onpick)
-        px = -1
-        for px, img in enumerate(self.img_iter):
-            print(px)
+        # Draw the new page of data
+        px = -1  # plot-index
+        start_index = self.current_index
+        end_index   = start_index + nDisplay
+        for px, index in enumerate(xrange(start_index, end_index)):
+            gpath      = self.gpath_list[index]
+            bbox_list  = self.bboxes_list[index]
+            theta_list = self.thetas_list[index]
+            img = cv2.imread(gpath)
             _vizkw = {
                 'fnum': self.fnum,
                 'pnum': pnum_(px),
-                'title': '',
-                'bbox_list'  : [],
-                'theta_list' : [],
+                'title': str(index),
+                'bbox_list'  : bbox_list,
+                'theta_list' : theta_list,
                 'sel_list'   : [],
                 'label_list' : [],
             }
             #print(utool.dict_str(_vizkw))
-            viz_image2.show_image(img, **_vizkw)
+            _, ax = viz_image2.show_image(img, **_vizkw)
+            ph.set_plotdat(ax, 'px', str(px))
+            ph.set_plotdat(ax, 'bbox_list', bbox_list)
+            ph.set_plotdat(ax, 'gpath', gpath)
             #print('components: ', fig.get_children())
             if px + 1 >= nDisplay:
                 break
-        finish_index = start_index + px + 1
-        self.current_index += px + 1
-        df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, finish_index, self.nImgs))
-        self.figlist = fig.get_children()
-        print('figlist size: ', len(self.figlist))
+        self.current_index = end_index
+        # Set the figure title
+        df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, end_index, self.nImgs))
 
-        """would rather do something like "for fig in figlist, if fig.name = "Axes"", but am unable to find the proper syntax.
-        this sets all the images in the frame to respond to a mouseclick."""
-        for x in range(1, len(self.figlist)-1):
-            self.figlist[x].set_picker(True)
-        # Define buttons
-
-
+        # Create the button for scrolling forwards
         self.next_ax = plt.axes([0.7, 0.05, 0.15, 0.075])
         self.next_but = Button(self.next_ax, 'next')
         self.next_but.on_clicked(self.display_next_page)
+
+        # Connect the callback whenever the figure is clicked
+        ih.connect_callback(fig, 'button_press_event', self.on_figure_clicked)
+
+        # Show the changes
         fig.show()
         print('next')
 
+    def on_figure_clicked(self, event):
+        if ih.clicked_inside_axis(event):
+            ax = event.inaxes
+            px = ph.get_plotdat(ax, 'px')
+            bbox_list  = ph.get_plotdat(ax, 'bbox_list')
+            theta_list = ph.get_plotdat(ax, 'theta_list')
+            gpath      = ph.get_plotdat(ax, 'gpath')
+            img = mpimg.imread(gpath)
+            fnum = df2.next_fnum()
+            mc = interact_rois.ROIInteraction(img, bbox_list=bbox_list, fnum=fnum)
+            plt.show()
+            print('Clicked: ax: px=%r' % px)
 
-    def onpick(self, event):
-        img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number)
-        #print(imgs[0].make_image())
+        #img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number) #print(imgs[0].make_image())
         #print(self.img_list[3])
-        """Need to add ROI code"""
-        verts_of_image_selected = None
-        """Need to figure out how to get the img from the code above"""
-        img = self.img_list[img_ind]
-        irs.ROI_creator(img, verts_of_image_selected)
+        #"""Need to add ROI code"""
+        #verts_of_image_selected = None
+        #"""Need to figure out how to get the img from the code above"""
+        #img = self.img_list[img_ind]
+        #irs.ROI_creator(img, verts_of_image_selected)

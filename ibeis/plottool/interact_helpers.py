@@ -64,9 +64,10 @@ def disconnect_callback(fig, callback_type, **kwargs):
 
 
 def connect_callback(fig, callback_type, callback_fn):
-    #print('[df2] register %r callback' % callback_type)
+    printDBG('[ih] register %r callback' % callback_type)
     if callback_fn is None:
         return
+    # Store the callback in the figure diction so it doesnt lose scope
     cbid_type = callback_type + '_cbid'
     cbfn_type = callback_type + '_func'
     fig.__dict__[cbid_type] = fig.canvas.mpl_connect(callback_type, callback_fn)

@@ -110,7 +110,7 @@ class ROIInteraction(object):
     def __init__(self,
                  img,
                  verts_list=None,
-                 bbox_list=None,
+                 bbox_list=None,  # will get converted to verts_list
                  max_ds=10,
                  line_width=4,
                  line_color=(1, 1, 1),
@@ -209,6 +209,9 @@ class ROIInteraction(object):
         self.accept_ax  = plt.axes([0.7, 0.05, 0.15, 0.075])
         self.accept_but = Button(self.accept_ax, 'Accept New ROIs')
         self.accept_but.on_clicked(self.accept_new_rois)
+
+    def show(self):
+        self.fig.canvas.show()
 
     def next_polynum(self):
         num = self._autoinc_polynum
@@ -336,7 +339,9 @@ class ROIInteraction(object):
         ignore = not self.showverts or event.button != 1 or self._thisPoly is None
         if ignore:
             return
-        if (self._ind is None) or self._polyHeld is False or (self._ind is not None and self.press1 is True) and self._thisPoly is not None and self.canUncolor is True:
+        if (self._ind is None) or self._polyHeld is False or \
+           (self._ind is not None and self.press1 is True) and \
+           self._thisPoly is not None and self.canUncolor is True:
             self._thisPoly.set_alpha(0)
 
         self.update_UI()
@@ -352,7 +357,9 @@ class ROIInteraction(object):
         if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
             return
 
-        if (self._ind is None) or self._polyHeld is False or (self._ind is not None and self.press1 is True) and self._thisPoly is not None:
+        if (self._ind is None) or self._polyHeld is False or \
+           (self._ind is not None and self.press1 is True) and \
+           self._thisPoly is not None:
             self._thisPoly = None
         self._ind = None
         self._polyHeld = False
@@ -392,8 +399,8 @@ class ROIInteraction(object):
         #remove the poly from the figure itself
         Poly.remove()
         #reset anything that has to do with current poly
-        self._thisPoly = None;
-        self._polyHeld = False;
+        self._thisPoly = None
+        self._polyHeld = False
 
     def load_points(self):
         new_verts_list = []
@@ -608,7 +615,6 @@ class ROIInteraction(object):
     def accept_new_rois(self, event):
         print('Pressed Accept Button')
 
-
         def send_back_rois(self):
             point_list = self.load_points()
             self.callback(point_list)
@@ -631,11 +637,10 @@ class ROIInteraction(object):
             # show the modified image
             ax.imshow(masked_img)
             plt.title('Region outside of mask is darkened')
-        
+
             ax.figure.show()
 
         print('show2')
-
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
@@ -657,9 +662,8 @@ def default_vertices(img):
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
 
 
-def ROI_creator(img, verts_list):#add callback as variable
+def ROI_creator(img, verts_list):  # add callback as variable
     print('*** START DEMO ***')
-    
 
     if verts_list is None:
         verts_list = [default_vertices(img)]
@@ -668,7 +672,6 @@ def ROI_creator(img, verts_list):#add callback as variable
             if (len(verts) is not 5):
                 print("verts list is not of correct length. ", len(verts))
                 return
-
 
     if img is None:
         try:
@@ -697,5 +700,6 @@ def ROI_creator(img, verts_list):#add callback as variable
 
 
 if __name__ == '__main__':
-    verts = [((0,400),(400,400),(400,0),(0,0),(0,400)), ((400,700),(700,700),(700,400),(400,400), (400,700))]
+    verts = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
+             ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
     ROI_creator(None, verts)
