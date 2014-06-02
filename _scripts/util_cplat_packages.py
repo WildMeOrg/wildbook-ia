@@ -25,10 +25,22 @@ def get_pip_installed():
 # Special cases
 
 APPLE_PYPKG_MAP = {
-    'dateutils': 'dateutil',
-    'pyreadline': 'readline',
-    'scikit-learn': 'scikits-learn',
-    'libjpeg' : 'libjpg'
+    'dateutils'    : 'dateutil',
+    'pyreadline'   : 'readline',
+    'pyparsing'    : 'parsing',
+}
+
+# Need to use pip for these
+APPLE_NONPORTS_PYPKGS = [
+
+]
+
+
+MACPORTS_PKGMAP = {
+    #'gfortran':
+    #'g++':
+    #'libjpg'    : 'parsing',
+    'libjpeg'      : 'libjpg',
 }
 
 
@@ -316,6 +328,7 @@ MACPORTS_PY_PREFIX = 'py' + MACPORTS_PY_SUFFIX + '-'
 
 def __install_command_macports(pkg):
     pkg = pkg.replace('python-', MACPORTS_PY_PREFIX)
+    pkg = MACPORTS_PKGMAP.get(pkg, pkg)
     extra = ''
     if pkg == 'python':
         pkg += MACPORTS_PY_SUFFIX
@@ -328,11 +341,25 @@ def __install_command_macports(pkg):
     elif pkg == 'py27-matplotlib':
         pkg += ' +qt +tkinter'
     command = ('sudo port install %s' % pkg) + extra
+    #command = ('port search %s' % pkg) + extra
     return command
 
 
 def __update_macports():
     return 'sudo port selfupdate && sudo port upgrade outdated'
+
+
+def __check_installed_macports(pkg):
+    # First try which
+    out, err, ret = shell('which ' + pkg)
+    if ret == 0:
+        return True
+    # Then use dpkg to check if we have it
+    out, err, ret = shell('port search ' + pkg)
+    if ret == 0:
+        return True
+    else:
+        return False
 
 
 # APT_GET COMMANDS
@@ -451,12 +478,11 @@ def __install_command_pip(pkg, upgrade=None):
         return ''
     # See if this package should be installed through
     # the os package manager
-    if APPLE:
+    if MACPORTS:
         # Apple should prefer macports
         pkg = APPLE_PYPKG_MAP.get(pkg, pkg)
         command = __install_command_macports('python-' + pkg)
-
-    if UBUNTU and pkg in NOPIP_PYPKGS:
+    elif UBUNTU and pkg in NOPIP_PYPKGS:
         if pkg == 'pip':
             # PIP IS VERY SPECIAL. HANDLE VERY EXPLICITLY
             # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
@@ -535,7 +561,7 @@ def ensure_package(pkg):
         command = ''
         #raise Exception('Win32: not a chance.')
     else:
-        raise NotImplementedError('%r is not yet supported' % ((__OS__, DISTRO, DISTRO_VERSION,),))
+        raise NotImplementedError('%r is not yet supported' % ((__OS__, distro, distro_version,),))
     return cmd(command)
 
 

@@ -60,6 +60,8 @@ except Exception:
     print('Please rerun super_setup.py')
     sys.exit(1)
 
+utool.init_catch_ctrl_c()
+
 #-----------
 # Set userid
 #-----------
