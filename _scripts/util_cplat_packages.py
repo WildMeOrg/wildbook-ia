@@ -288,9 +288,9 @@ if 'os' in ARG_DICT:
     if __OS__.lower() in ['apple', 'darwin', 'mac']:
         MACPORTS = True
         APPLE    = True
-    elif __OS__.lower() in ['ubuntu']:
-        LINUX    = True
-        UBUNTU   = True
+    elif __OS__.lower() in ['debian','ubuntu']:
+        LINUX         = True
+        DEBIAN_FAMILY = True
     elif __OS__.lower() in ['centos']:
         LINUX    = True
         CENTOS   = True
@@ -482,10 +482,11 @@ def __install_command_pip(pkg, upgrade=None):
         # Apple should prefer macports
         pkg = APPLE_PYPKG_MAP.get(pkg, pkg)
         command = __install_command_macports('python-' + pkg)
-    elif UBUNTU and pkg in NOPIP_PYPKGS:
+    elif DEBIAN_FAMILY and pkg in NOPIP_PYPKGS:
+        command = __install_command_apt_get('python-' + pkg)
         if pkg == 'pip':
             # PIP IS VERY SPECIAL. HANDLE VERY EXPLICITLY
-            # Installing pip is very weird on Ubuntu, apt_get installs pip 1.0,
+            # Installing pip is very weird on Ubuntu, apt-get installs pip 1.0,
             # but then pip can upgrade itself to 1.5.3, but then we have to
             # remove the apt-get-pip as well as the apt-get-setuptools which is
             # ninja installed. setuptools and pip go hand-in-hand. so ensure
@@ -529,7 +530,7 @@ def apply_preinstall_fixes():
 
 
 def update_and_upgrade():
-    if UBUNTU:
+    if DEBIAN_FAMILY:
         return cmd(__update_apt_get())
     if CENTOS:
         return cmd(__update_yum())
@@ -540,7 +541,7 @@ def update_and_upgrade():
 def check_installed(pkg):
     if not CHECK_INSTALLED:
         return False
-    if UBUNTU:
+    if DEBIAN_FAMILY:
         return __check_installed_apt_get(pkg)
     else:
         raise NotImplemented('fixme')
@@ -551,7 +552,7 @@ def ensure_package(pkg):
     #    return install_packages(pkg)
     if check_installed(pkg):
         return ''
-    if UBUNTU:
+    if DEBIAN_FAMILY:
         command = __install_command_apt_get(pkg)
     elif CENTOS:
         command = __install_command_yum(pkg)
