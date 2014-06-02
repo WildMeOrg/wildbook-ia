@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from PyQt4 import QtGui, QtCore
-from guitool import APITableModel, updater, signal_, slot_
+from guitool import APITableModel, updater, signal_, slot_, ChangingModelLayout
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
 #--------------------
@@ -29,10 +29,10 @@ class IBEISTableModel(APITableModel):
         """ Overrides the API model ider to give only selected encounter ids """
         return model.original_ider(eid=model.eid)
 
-    @updater
     def _change_enc(model, eid):
         model.eid = eid
-        model._update_rows()
+        with ChangingModelLayout([model]):
+            model._update_rows()
 
 
 class EncTableModel(APITableModel):

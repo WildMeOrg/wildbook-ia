@@ -427,8 +427,6 @@ class SQLDatabaseController(object):
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)
 
-
-
 ## Sanity check
 #num_results = len(result_list)
 #if num_results != 0 and num_results != num_params:
