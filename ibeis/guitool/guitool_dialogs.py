@@ -136,37 +136,44 @@ def msgbox(msg, title='msgbox'):
     return msgBox
 
 
-def popup_menu(widget, opt2_callback, parent=None):
+def popup_menu(widget, pos, opt2_callback):
+    menu = QtGui.QMenu()
+    actions = [menu.addAction(opt, func) for (opt, func) in opt2_callback]
+    selection = menu.exec_(widget.mapToGlobal(pos))
+    return selection, actions
+    #pos=QtGui.QCursor.pos()
+
+
+def connect_context_menu(widget, opt2_callback):
     def popup_slot(pos):
-        print(pos)
-        menu = QtGui.QMenu()
-        actions = [menu.addAction(opt, func) for opt, func in
-                   iter(opt2_callback)]
-        #pos=QtGui.QCursor.pos()
-        selection = menu.exec_(widget.mapToGlobal(pos))
-        return selection, actions
-    if parent is not None:
-        # Make sure popup_slot does not lose scope.
-        for _slot in _get_scope(parent, '_popup_scope'):
-            parent.customContextMenuRequested.disconnect(_slot)
-        _clear_scope(parent, '_popup_scope')
-        parent.setContextMenuPolicy(Qt.CustomContextMenu)
-        parent.customContextMenuRequested.connect(popup_slot)
-        _enfore_scope(parent, popup_slot, '_popup_scope')
+        return popup_menu(widget, pos, opt2_callback)
+    # Remove other context menus from this widget
+    for _slot in _get_scope(widget, '_popup_scope'):
+        widget.customContextMenuRequested.disconnect(_slot)
+    _clear_scope(widget, '_popup_scope')
+    # Enable custom context menus to be requested
+    widget.setContextMenuPolicy(Qt.CustomContextMenu)
+    # Connect our context slot
+    widget.customContextMenuRequested.connect(popup_slot)
+    # Make sure popup_slot does not lose scope.
+    _enforce_scope(widget, popup_slot, '_popup_scope')
     return popup_slot
 
 
 def _get_scope(qobj, scope_title='_scope_list'):
+    """ Helper for ensuring qt objects are not garbage collected """
     if not hasattr(qobj, scope_title):
         setattr(qobj, scope_title, [])
     return getattr(qobj, scope_title)
 
 
 def _clear_scope(qobj, scope_title='_scope_list'):
+    """ Helper for ensuring qt objects are not garbage collected """
     setattr(qobj, scope_title, [])
 
 
-def _enfore_scope(qobj, scoped_obj, scope_title='_scope_list'):
+def _enforce_scope(qobj, scoped_obj, scope_title='_scope_list'):
+    """ Helper for ensuring qt objects are not garbage collected """
     _get_scope(qobj, scope_title).append(scoped_obj)
 
 
