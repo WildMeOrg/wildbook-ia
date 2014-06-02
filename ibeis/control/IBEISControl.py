@@ -338,7 +338,7 @@ class IBEISController(object):
         param_iter = utool.ifilter_Nones(raw_param_iter)
         param_list = list(param_iter)
         #print(utool.list_str(enumerate(param_list)))
-        ibs.db.executemany(
+        gid_list = ibs.db.executemany(
             operation='''
             INSERT or IGNORE INTO images(
                 image_uid,
@@ -355,16 +355,6 @@ class IBEISController(object):
             ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=param_list)
-        # This should solve the ordering and failure issue
-        # Any gpaths that failed to insert will have None as a gid
-        gid_list = ibs.db.executemany(
-            operation='''
-            SELECT image_uid
-            FROM images
-            WHERE image_uri=?
-            ORDER BY image_uid ASC
-            ''',
-            params_iter=[(gpath,) for gpath in gpath_list])
         num_invalid = sum((gid is None for gid in gid_list))
         if num_invalid > 0:
             print(('[ibs!] There were %d invalid gpaths ' % num_invalid) +
@@ -403,7 +393,7 @@ class IBEISController(object):
                                             viewpoint_list,
                                             notes_list))
         # Insert the new ROIs into the SQL database
-        ibs.db.executemany(
+        rid_list = ibs.db.executemany(
             operation='''
             INSERT OR REPLACE INTO rois
             (
@@ -422,14 +412,6 @@ class IBEISController(object):
             VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=params_iter)
-        # Get the rids of the rois that were just inserted
-        rid_list = ibs.db.executemany(
-            operation='''
-            SELECT roi_uid
-            FROM rois
-            WHERE roi_uuid=?
-            ''',
-            params_iter=[(roi_uuid,) for roi_uuid in roi_uuid_list])
         return rid_list
 
     @adder

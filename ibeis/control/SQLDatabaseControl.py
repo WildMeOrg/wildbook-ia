@@ -69,7 +69,7 @@ def _executor(executor, opeartion, params):
 
 def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
     if get_last_id:
-        executor.execute("SELECT last_insert_rowid()", [])
+        executor.execute('SELECT last_insert_rowid()', [])
     while True:
         result = executor.fetchone()
         if not result:
@@ -80,7 +80,7 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
 
 def _execute_and_get(executor, operation, params):
     executor.execute(operation, params)
-    insert = operation.lower().strip().startswith("insert")
+    insert = operation.upper().strip().startswith('INSERT')
     return _results_gen(executor, get_last_id=insert)
 
 
