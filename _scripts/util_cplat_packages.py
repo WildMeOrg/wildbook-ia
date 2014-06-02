@@ -45,7 +45,7 @@ MACPORTS_PKGMAP = {
 
 
 def _std_pkgwrap(pkg):
-    if UBUNTU:
+    if DEBIAN_FAMILY:
         return 'lib' + pkg + '-dev'
     if CENTOS:
         return pkg + '-devel'
@@ -281,7 +281,7 @@ if 'os' in ARG_DICT:
     os             = ''
     MACPORTS = False
     APPLE    = False
-    UBUNTU   = False
+    DEBIAN_FAMILY   = False
     CENTOS   = False
     WIN32    = False
     LINUX    = False
@@ -304,7 +304,7 @@ else:
     WIN32 = __OS__.startswith('win32')
     LINUX = __OS__.startswith('linux')
 
-    UBUNTU = (distro == 'Ubuntu')
+    DEBIAN_FAMILY = (distro == 'Ubuntu' or distro == 'debian')
     CENTOS = (distro == 'centos')
     if CENTOS:
         WIN32 = False
