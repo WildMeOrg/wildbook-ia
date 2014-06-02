@@ -19,17 +19,28 @@ class ChangingModelLayout(object):
     def __init__(self, model_list, *args):
         #print('Changing: %r' % (model_list,))
         self.model_list = list(model_list) + list(args)
+        self.selfid = id(self)
 
     def __enter__(self):
         for model in self.model_list:
+            if model._context_id is not None:
+                continue
+            model._context_id = self.selfid
             model._about_to_change()
             model._changeblocked = True
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.model_list:
-            model._changeblocked = False
-            model._change()
+            if model._context_id == self.selfid:
+                model._context_id = None
+                model._changeblocked = False
+                model._change()
+
+
+def default_method_decorator(func):
+    """ Dummy decorator """
+    return checks_qt_error(profile(func))
 
 
 def updater(func):
@@ -37,21 +48,16 @@ def updater(func):
     Decorates a function by executing layoutChanged signals if not already in
     the middle of a layout changed
     """
-    func = profile(func)
+    func = default_method_decorator(func)
     #@checks_qt_error
     @functools.wraps(func)
     def upd_wrapper(model, *args, **kwargs):
-        #with ChangingModelLayout(model):
-        model._about_to_change()
-        ret = func(model, *args, **kwargs)
-        model._change()
+        #model._about_to_change()
+        with ChangingModelLayout([model]):
+            ret = func(model, *args, **kwargs)
+        #model._change()
         return ret
     return upd_wrapper
-
-
-def otherfunc(func):
-    """ Dummy decorator """
-    return checks_qt_error(profile(func))
 
 
 class APITableModel(QtCore.QAbstractTableModel):
@@ -79,8 +85,9 @@ class APITableModel(QtCore.QAbstractTableModel):
         super(APITableModel, model).__init__()
         # Class member variables
         model._abouttochange   = False
+        model._context_id      = None
         model._haschanged      = True
-        model._changeblocked  = False
+        model._changeblocked   = False
         model.name             = None
         model.nice             = None
         model.ider             = None
@@ -98,7 +105,8 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._about_to_change()
         if headers is None:
             headers = {}
-        model._update_headers(**headers)
+        with ChangingModelLayout([model]):
+            model._update_headers(**headers)
 
     @updater
     def _update_headers(model,
@@ -130,10 +138,11 @@ class APITableModel(QtCore.QAbstractTableModel):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse)
 
+    @default_method_decorator
     def _about_to_change(model, force=False):
-        N = range(1, 15)  # NOQA
+        N = range(0, 15)  # NOQA
         if force or (model._haschanged and not model._abouttochange):
-            #print('ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            print('ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             model._abouttochange = True
             #model._haschanged = False
             model.layoutAboutToBeChanged.emit()
@@ -142,10 +151,11 @@ class APITableModel(QtCore.QAbstractTableModel):
             #print('NOT ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
 
+    @default_method_decorator
     def _change(model, force=False):
-        N = range(1, 15)  # NOQA
+        N = range(0, 15)  # NOQA
         if force or (not model._haschanged or model._abouttochange and not model._changeblocked):
-            #print('LAYOUT CHANGED:  %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            print('LAYOUT CHANGED:  %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             model._abouttochange = False
             model._haschanged = True
             model.layoutChanged.emit()
@@ -154,20 +164,25 @@ class APITableModel(QtCore.QAbstractTableModel):
             #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
 
+    @default_method_decorator
     def _check_if_dirty(model):
         """ check the api has changed without us knowing """
         if model.getdirty():
             model._force_update()
 
+    @default_method_decorator
     def _force_update(model):
         model._about_to_change(force=True)
         model._change(force=True)
 
-    def _update(model):
-        model._update_rows()
+    @default_method_decorator
+    def _update(model, newrows=False):
+        if newrows:
+            model._update_rows()
         model.cache = {}
-        model.setdirty(False)
+        #model.setdirty(False)
 
+    @updater
     def _update_rows(model):
         """
         Uses the current ider and col_sort_index to create
@@ -213,7 +228,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             'inconsistent colnice'
         model.col_nice_list = col_nice_list
 
-    @otherfunc
+    @default_method_decorator
     def _set_col_edit(model, col_edit_list=None):
         if col_edit_list is None:
             col_edit_list = [False] * len(model.col_name_list)
@@ -221,7 +236,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             'inconsistent coledit'
         model.col_edit_list = col_edit_list
 
-    @otherfunc
+    @default_method_decorator
     def _set_col_setter(model, col_setter_list=None):
         if col_setter_list is None:
             col_setter_list = []
@@ -229,7 +244,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             'inconsistent colsetter'
         model.col_setter_list = col_setter_list
 
-    @otherfunc
+    @default_method_decorator
     def _set_col_getter(model, col_getter_list=None):
         if col_getter_list is None:
             col_getter_list = []
@@ -254,7 +269,7 @@ class APITableModel(QtCore.QAbstractTableModel):
     # --- API Interface Functions ---
     #--------------------------------
 
-    @otherfunc
+    @default_method_decorator
     def _get_col_align(model, column):
         assert column is not None
         if model.col_type_list[column] in utool.VALID_FLOAT_TYPES:
@@ -262,7 +277,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         else:
             return Qt.AlignHCenter
 
-    @otherfunc
+    @default_method_decorator
     def _get_row_id(model, row):
         try:
             id_ = model.row_index_list[row]
@@ -277,7 +292,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             utool.printex(ex, msg)
             raise
 
-    @otherfunc
+    @default_method_decorator
     def _get_data(model, row, col):
         # Get general getter for this column
         getter = model.col_getter_list[col]
@@ -291,7 +306,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             model.cache[cachekey] = data
         return data
 
-    @otherfunc
+    @default_method_decorator
     def _set_data(model, row, col, value):
         """
             The setter function should be of the following format:
@@ -319,19 +334,19 @@ class APITableModel(QtCore.QAbstractTableModel):
     # --- QtGui Functions ---
     #------------------------
 
-    @otherfunc
+    @default_method_decorator
     def index(model, row, column, parent=QtCore.QModelIndex()):
         return model.createIndex(row, column)
 
-    @otherfunc
+    @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         return len(model.row_index_list)
 
-    @otherfunc
+    @default_method_decorator
     def columnCount(model, parent=QtCore.QModelIndex()):
         return len(model.col_name_list)
 
-    @otherfunc
+    @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
         """
         Depending on the role, returns either data or how to display data
@@ -361,7 +376,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         else:
             return QtCore.QVariant()
 
-    @otherfunc
+    @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
         """
         Sets the role data for the item at qtindex to value.
@@ -394,7 +409,7 @@ class APITableModel(QtCore.QAbstractTableModel):
                           key_list=['value'], iswarning=True)
             return False
 
-    @otherfunc
+    @default_method_decorator
     def headerData(model, column, orientation, role=Qt.DisplayRole):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if column >= len(model.col_nice_list):
@@ -403,12 +418,12 @@ class APITableModel(QtCore.QAbstractTableModel):
         else:
             return QtCore.QVariant()
 
-    @updater
+    @default_method_decorator
     def sort(model, column, order):
         reverse = order == QtCore.Qt.DescendingOrder
         model._set_sort(column, reverse)
 
-    @otherfunc
+    @default_method_decorator
     def flags(model, qtindex):
         col = qtindex.column()
         if not model.col_edit_list[col]:
