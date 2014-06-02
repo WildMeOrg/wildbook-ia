@@ -67,7 +67,9 @@ def _executor(executor, opeartion, params):
     executor.execute(opeartion, params)
 
 
-def _results_gen(executor, verbose=VERBOSE):
+def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
+    if get_last_id:
+        executor.execute("SELECT last_insert_rowid()", [])
     while True:
         result = executor.fetchone()
         if not result:
@@ -78,7 +80,8 @@ def _results_gen(executor, verbose=VERBOSE):
 
 def _execute_and_get(executor, operation, params):
     executor.execute(operation, params)
-    return _results_gen(executor)
+    insert = operation.lower().strip().startswith("insert")
+    return _results_gen(executor, get_last_id=insert)
 
 
 def _unpacker(results_):
