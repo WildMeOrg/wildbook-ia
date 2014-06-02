@@ -172,7 +172,7 @@ EOL'
         '''))
     return fixyum_cmds
     #with open('/etc/yum.repos.d/dag.repo', 'w') as file_:
-        #file_.write(dag_repo)
+    #     file_.write(dag_repo)
 
 
 PIP_PYPKG_SET = get_pip_installed()
@@ -261,30 +261,49 @@ def parse_args():
 ARG_DICT = parse_args()
 
 # GET SYSTEM CONFIGURATION (OR DESIRED CONFIGURATION)
-__OS__ = ''.join(ARG_DICT.get('os', sys.platform))
 
-distro_tup = platform.dist()
-DISTRO = ''.join(ARG_DICT.get('distro', [distro_tup[0]]))
-DISTRO_VERSION = ''.join(ARG_DICT.get('distro_verions', [distro_tup[1]]))
-DISTRO_TAG = ''.join(ARG_DICT.get('distro_tag', [distro_tup[2]]))
-del distro_tup
+if 'os' in ARG_DICT:
+    __OS__ = ''.join(ARG_DICT['os'])
+    distro         = ''
+    distro_version = ''
+    os             = ''
+    MACPORTS = False
+    APPLE    = False
+    UBUNTU   = False
+    CENTOS   = False
+    WIN32    = False
+    LINUX    = False
+    if __OS__.lower() in ['apple', 'darwin', 'mac']:
+        MACPORTS = True
+        APPLE    = True
+    elif __OS__.lower() in ['ubuntu']:
+        LINUX    = True
+        UBUNTU   = True
+    elif __OS__.lower() in ['centos']:
+        LINUX    = True
+        CENTOS   = True
+    elif __OS__.lower() in ['win', 'win32']:
+        WIN32    = True
+else:
+    __OS__ = sys.platform
+    (distro, distro_version, distro_tag) = platform.dist()
 
-APPLE = __OS__.startswith('darwin')
-WIN32 = __OS__.startswith('win32')
-LINUX = __OS__.startswith('linux')
+    APPLE = __OS__.startswith('darwin')
+    WIN32 = __OS__.startswith('win32')
+    LINUX = __OS__.startswith('linux')
 
-UBUNTU = (DISTRO == 'Ubuntu')
-CENTOS = (DISTRO == 'centos')
-if CENTOS:
-    WIN32 = False
-    LINUX = True
-    APPLE = False
-MACPORTS = APPLE  # We force macports right now
+    UBUNTU = (distro == 'Ubuntu')
+    CENTOS = (distro == 'centos')
+    if CENTOS:
+        WIN32 = False
+        LINUX = True
+        APPLE = False
+    MACPORTS = APPLE  # We force macports right now
 
 
 # PRINT WHAT WE ARE WORKING WITH
 def print_sysinfo():
-    print('# sysinfo: (%s, %s, %s) ' % (__OS__, DISTRO, DISTRO_VERSION,))
+    print('# sysinfo: (%s, %s, %s) ' % (__OS__, distro, distro_version,))
 
 
 # TARGET PYTHON PLATFORM
@@ -434,7 +453,7 @@ def __install_command_pip(pkg, upgrade=None):
     # the os package manager
     if APPLE:
         # Apple should prefer macports
-        pkg = APPLE_PYPKG_MAP.get(pkg)
+        pkg = APPLE_PYPKG_MAP.get(pkg, pkg)
         command = __install_command_macports('python-' + pkg)
 
     if UBUNTU and pkg in NOPIP_PYPKGS:
