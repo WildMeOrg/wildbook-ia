@@ -41,7 +41,14 @@ export PROFILE_TYPE="lineprof"
 if [ "$SYSNAME" = "MINGW32_NT" ]; then
     export MINGW_PYEXE=$(python -c "import sys; print(sys.executable)")
     export MINGW_PYDIR=$(python -c "import sys, os; print(os.path.dirname(sys.executable))")
+    export MINGW_PYSCRIPTS=$MINGW_PYDIR/Scripts
     export KERNPROF_PY="$MINGW_PYEXE $MINGW_PYDIR/Scripts/kernprof.py"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    export PORT_PYEXE=$(python -c "import sys; print(sys.executable)")
+    export PORT_PYSCRIPTS="/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin"
+    echo $PORT_PYEXE
+    echo $PORT_PYDIR
+    export KERNPROF_PY="$PORT_PYEXE $PORT_PYDIR/Scripts/kernprof.py"
 else
     export KERNPROF_PY="kernprof.py"
     export RUNSNAKE_PY="runsnake"
