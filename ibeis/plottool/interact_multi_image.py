@@ -12,9 +12,12 @@ import cv2
 
 
 class MultiImageInteraction(object):
-    def __init__(self, gpath_list, bboxes_list=None, thetas_list=None,
-                 nImgs=None, max_per_page=10, fnum=None):
+    def __init__(self, gpath_list, max_per_page=10, bboxes_list=None, thetas_list=None, verts_list=None, gid_list=None,
+                 nImgs=None, fnum=None):
         print('Creating multi-image interaction')
+
+    #def __init__(self, img_list, nImgs=None, gid_list=None, rids_list=None, bboxes_list=None, max_per_page=10,fnum=None):
+        print("maX ",max_per_page)
         if nImgs is None:
             nImgs = len(gpath_list)
         if fnum is None:
@@ -26,6 +29,11 @@ class MultiImageInteraction(object):
         # How many images we are showing and per page
         self.thetas_list = thetas_list
         self.bboxes_list = bboxes_list
+        if gid_list is None:
+            self.gid_list = None
+        else:
+            self.gid_list = gid_list
+
         self.nImgs = nImgs
         self.max_per_page = min(max_per_page, nImgs)
         self.current_index = 0
@@ -92,7 +100,19 @@ class MultiImageInteraction(object):
         fig.show()
         print('next')
 
+    def update_images(self, img_ind, updated_bbox_list):
+        print("update called")
+        ind = int (img_ind)
+        print(self.bboxes_list)
+        self.bboxes_list[ind] = updated_bbox_list;
+        print(self.bboxes_list)
+
+        """Insert code for viz_image2 redrawing here"""
+
     def on_figure_clicked(self, event):
+
+
+
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
             px = ph.get_plotdat(ax, 'px')
@@ -101,7 +121,12 @@ class MultiImageInteraction(object):
             gpath      = ph.get_plotdat(ax, 'gpath')
             img = mpimg.imread(gpath)
             fnum = df2.next_fnum()
-            mc = interact_rois.ROIInteraction(img, bbox_list=bbox_list, fnum=fnum)
+            mc = interact_rois.ROIInteraction(img, px, self.update_images, bbox_list=bbox_list, fnum=fnum)
+            # """wait for accept
+            # have a flag to tell if a bbox has been changed, on the bbox list that is brought it"
+            # on accept:
+            # viz_image2.show_image callback
+            # """
             plt.show()
             print('Clicked: ax: px=%r' % px)
 
@@ -112,3 +137,15 @@ class MultiImageInteraction(object):
         #"""Need to figure out how to get the img from the code above"""
         #img = self.img_list[img_ind]
         #irs.ROI_creator(img, verts_of_image_selected)
+#     def onpick(self, event):
+#         img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number)
+        
+#         """Need to add ROI code"""
+#         if self.rids_list is not None:
+#             verts_of_image_selected = self.rids_list[img_ind]
+#         else:
+#             verts_of_image_selected = None
+#         """Need to figure out how to get the img from the code above"""
+#         img = self.img_list[img_ind]
+#         irs.ROI_creator(img, img_ind, verts_of_image_selected, self.update_lists)
+# >>>>>>> Stashed changes
