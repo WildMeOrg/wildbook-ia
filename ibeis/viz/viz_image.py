@@ -43,7 +43,7 @@ def get_roi_annotations(ibs, rid_list, sel_rids=[], draw_lbls=True):
     return annotekw
 
 
-@utool.indent_decor('[show_image]')
+@utool.indent_func
 def show_image(ibs, gid, sel_rids=[], fnum=None,
                annote=True, draw_lbls=True, **kwargs):
     """ Driver function to show images """

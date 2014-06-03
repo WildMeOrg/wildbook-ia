@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
-#from itertools import imap
+from itertools import imap
 import re
 from os.path import join, exists
 # Tools
@@ -16,102 +16,144 @@ AUTODUMP = utool.get_flag('--auto-dump')
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 
 
-class SQLExecutionContext(object):
-    def __init__(self, db, operation, num_params=None, auto_commit=True):
-        utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), VERBOSE)
-        self.db = db
-        # Parse the operation type
-        self.operation_type = get_operation_type(operation)
-        # Mark if the database is changing
-        if any([self.operation_type.startswith(op)
-                for op in ['INSERT', 'UPDATE', 'DELETE']]):
-            is_changing = True
-            db._isdirty = True
-        else:
-            is_changing = False
-        self.is_changing = is_changing
-        self.auto_commit = auto_commit
-        if num_params is None:
-            self.operation_label = '[sql] execute %d %s: ' % (num_params, self.operation_type)
-        else:
-            self.operation_label = '[sql] executeone %s: ' % (self.operation_type)
-
-    def __enter__(self):
-        """ Checks to see if the operating will change the database """
-        if not QUIET:
-            self.tt = utool.tic(self.operation_label)
-
-    def __exit__(self, type_, value, trace):
-        if not QUIET:
-            utool.tic(self.tt)
-        if trace is None:
-            # Commit the transaction
-            if self.auto_commit:
-                self.db.commit(verbose=False)
-            # Emit callback if changing
-            if self.is_changing:
-                print('[sql] changed database')
-                if self.db.dbchanged_callback is not None:
-                    self.db.dbchanged_callback()
-        else:
-            # Dump on error
-            if trace is not None:
-                self.db.dump()
-            print('[sql] FATAL ERROR IN QUERY')
-            utool.sys.exit(1)
+# =======================
+# Helper Functions
+# =======================
 
 
-# Define helper functions
 def _executor(executor, opeartion, params):
-    """HELPER: Send command to SQL (all other results are invalided)"""
+    """ HELPER: Send command to SQL (all other results are invalided)
+    Execute an SQL Command
+    """
     executor.execute(opeartion, params)
 
 
 def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
+    """ HELPER - Returns as many results as there are.
+    Careful. Overwrites the results once you call it.
+    Basically: Dont call this twice.
+    """
     if get_last_id:
-        executor.execute('SELECT last_insert_rowid()', [])
+        # The sqlite3_last_insert_rowid(D) interface returns the
+        # <b> rowid of the most recent successful INSERT </b>
+        # into a rowid table in D
+        _executor(executor, 'SELECT last_insert_rowid()', ())
+    # Wraping fetchone in a generator for some pretty tight calls.
     while True:
         result = executor.fetchone()
         if not result:
             raise StopIteration()
-        # Results are always returned wraped in a tuple
-        yield result[0] if len(result) == 1 else result
-
-
-def _execute_and_get(executor, operation, params):
-    executor.execute(operation, params)
-    insert = operation.upper().strip().startswith('INSERT')
-    return _results_gen(executor, get_last_id=insert)
+        else:
+            # Results are always returned wraped in a tuple
+            yield result[0] if len(result) == 1 else result
 
 
 def _unpacker(results_):
-    """HELPER: Unpakcks results if unpack_scalars is true"""
+    """ HELPER: Unpacks results if unpack_scalars is True """
     results = None if len(results_) == 0 else results_[0]
     assert len(results_) < 2, 'throwing away results!'
     return results
 
 
+# =======================
+# SQL Context Class
+# =======================
+
+
+class SQLExecutionContext(object):
+    """ A good with context to use around direct sql calls
+    """
+    def __init__(context, db, operation, num_params=None, auto_commit=True,
+                 start_transaction=False):
+        context.auto_commit = auto_commit
+        context.db = db  # Reference to sqldb
+        context.operation = operation
+        context.num_params = num_params
+        context.start_transaction = start_transaction
+        #context.__dict__.update(locals())  # Too mystic?
+        context.operation_type = get_operation_type(operation)  # Parse the optype
+
+    def __enter__(context):
+        """ Checks to see if the operating will change the database """
+        utool.printif(lambda:
+                      '[sql] Callers: ' + utool.get_caller_name(range(3, 6)),
+                      VERBOSE)
+        # Mark if the database will change
+        if any([context.operation_type.startswith(op) for op in
+                ['INSERT', 'UPDATE', 'DELETE']]):
+            context.db.about_to_change = False or context.db.about_to_change
+        else:
+            context.db.changed = True
+            context.db.changed = False
+        if context.num_params is None:
+            context.operation_label = ('[sql] execute num_params=%d optype=%s: '
+                                       % (context.num_params, context.operation_type))
+        else:
+            context.operation_label = '[sql] executeone optype=%s: ' % (context.operation_type)
+        # Start SQL Transaction
+        if context.start_transaction:
+            context.db.executor.execute('BEGIN', ())
+        # Comment out timeing code
+        #if not QUIET:
+        #    context.tt = utool.tic(context.operation_label)
+
+    # --- with SQLExecutionContext: statment code happens here ---
+
+    def execute_and_generate_results(context, params):
+        """ HELPER FOR CONTEXT STATMENT """
+        executor = context.db.executor
+        operation = context.db.operation
+        executor.execute(operation, params)
+        is_insert = context.operation_type.upper().startswith('INSERT')
+        return _results_gen(executor, get_last_id=is_insert)
+
+    def __exit__(context, type_, value, trace):
+        #if not QUIET:
+        #    utool.tic(context.tt)
+        if trace is None:
+            # Commit the transaction
+            if context.auto_commit:
+                context.db.commit(verbose=False)
+            # NO MORE CALLBACKS ????
+            # Emit callback if changing
+            #if context.changed:
+            #    print('[sql] changed database')
+            #    if context.db.dbchanged_callback is not None:
+            #        context.db.dbchanged_callback()
+        else:
+            # An SQLError is a serious offence.
+            # Dump on error
+            print('[sql] FATAL ERROR IN QUERY')
+            context.db.dump()
+            utool.sys.exit(1)
+
+
 def get_operation_type(operation):
     """
-    Parses the operation type from an SQL operation
+    Parses the operation_type from an SQL operation
     """
-    operation_type = operation.split()[0].strip()
-    if operation_type == 'SELECT':
+    operation = ' '.join(operation.split('\n').strip())
+    operation_type = operation.split(' ')[0].strip()
+    if operation_type.startswith('SELECT'):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
-        operation_type += ' ' + operation_args
-    elif operation_type == 'INSERT':
+    elif operation_type.startswith('INSERT'):
         operation_args = utool.str_between(operation, operation_type, '(').strip()
-        operation_type += ' ' + operation_args.replace('\n', ' ')
-    elif operation_type == 'UPDATE':
-        pass
-    elif operation_type == 'DELETE':
-        pass
+    elif operation_type.startswith('UPDATE'):
+        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
+    elif operation_type.startswith('DELETE'):
+        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
+    else:
+        operation_args = None
+    operation_type += ' ' + operation_args.replace('\n', ' ')
     return operation_type
 
 
 class SQLDatabaseController(object):
+    """ SQLDatabaseController an efficientish interface into SQL """
+
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3'):
-        """
+        """ Creates db and opens connection
+
             SQLite3 Documentation: http://www.sqlite.org/docs.html
             -------------------------------------------------------
             SQL INSERT: http://www.w3schools.com/sql/sql_insert.asp
@@ -125,7 +167,6 @@ class SQLDatabaseController(object):
         """
         printDBG('[sql.__init__]')
         # Get SQL file path
-        db.dbchanged_callback = None
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
@@ -136,19 +177,188 @@ class SQLDatabaseController(object):
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
         db.table_columns = {}
-        db._isdirty = False  # used by apitablemodel for cache invalidation
+        db.about_to_change = False  # used by apitablemodel for cache invalidation
+        db.dbchanged_callback = None
+
+    def execute(db, operation, params=(), verbose=VERBOSE):
+        """ DEPRICATE """
+        db.executor.execute(operation, params)
+
+    def result(db, verbose=VERBOSE):
+        """ DEPRICATE """
+        return db.executor.fetchone()
+
+    def result_iter(db):
+        """ DEPRICATE """
+        return _results_gen(db.executor)
 
     def get_isdirty(db):
-        return db._isdirty
+        """ DEPRICATE """
+        return db.about_to_change
 
     def set_isdirty(db, flag):
+        """ DEPRICATE """
         db.isdirty = flag
 
     def connect_dbchanged_callback(db, callback):
+        """ DEPRICATE """
         db.dbchanged_callback = callback
 
     def disconnect_dbchanged_callback(db):
+        """ DEPRICATE """
         db.dbchanged_callback = None
+
+    def dump_tables_to_csv(db):
+        """ Convenience: Dumps all csv database files to disk """
+        dump_dir = join(db.dir_, 'CSV_DUMP')
+        utool.ensuredir(dump_dir)
+        for tablename in db.table_columns.iterkeys():
+            table_fname = tablename + '.csv'
+            table_csv = db.get_table_csv(tablename)
+            with open(join(dump_dir, table_fname), 'w') as file_:
+                file_.write(table_csv)
+
+    def get_column_names(db, tablename):
+        """ Conveinience: Returns the sql tablename columns """
+        column_names = [name for name, type_ in  db.table_columns[tablename]]
+        return column_names
+
+    def get_tables(db):
+        """ Conveinience: """
+        return db.table_columns.keys()
+
+    @profile
+    def get_column(db, tablename, name):
+        """ Conveinience: """
+        _table, (_column,) = db.sanatize_sql(tablename, (name,))
+        column_vals = db.executeone(
+            operation='''
+            SELECT %s
+            FROM %s
+            ''' % (_column, _table))
+        return column_vals
+
+    def get_table_csv(db, tablename, exclude_columns=[]):
+        """ Conveinience: Converts a tablename to csv format """
+        header_name  = '# TABLENAME: %r' % tablename
+        column_nametypes = db.table_columns[tablename]
+        column_names = [name for (name, type_) in column_nametypes]
+        header_types = utool.indentjoin(column_nametypes, '\n# ')
+        column_list = []
+        column_labels = []
+        for name in column_names:
+            if name in exclude_columns:
+                continue
+            column_vals = db.get_column(tablename, name)
+            column_list.append(column_vals)
+            column_labels.append(name.replace(tablename[:-1] + '_', ''))
+        # remove column prefix for more compact csvs
+
+        #=None, column_list=[], header='', column_type=None
+        header = header_name + header_types
+        csv_table = utool.make_csv_table(column_list, column_labels, header)
+        return csv_table
+
+    def get_sql_version(db):
+        """ Conveinience """
+        db.execute('''
+                   SELECT sqlite_version()
+                   ''', verbose=False)
+        sql_version = db.result()
+
+        print('[sql] SELECT sqlite_version = %r' % (sql_version,))
+        # The version number sqlite3 module. NOT the version of SQLite library.
+        print('[sql] sqlite3.version = %r' % (lite.version,))
+        # The version of the SQLite library
+        print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
+        return sql_version
+
+    #==============
+    # API INTERFACE
+    #==============
+
+    def _executeone_operation_fmt(db, operation_fmt, fmtdict):
+        operation = operation_fmt.format(**fmtdict)
+        return db.executeone(operation, auto_commit=True, errmsg=None, verbose=VERBOSE)
+
+    def _executemany_operation_fmt(db, operation_fmt, fmtdict):
+        operation = operation_fmt.format(**fmtdict)
+        return db.executemany(operation, auto_commit=True, errmsg=None, verbose=VERBOSE)
+
+    #@ider
+    def get_valid_ids(db, tblname, **kwargs):
+        """ valid ider """
+        fmtdict = {
+            'tblname': tblname,
+        }
+        operation_fmt = '''
+        SELECT rowid FROM {tblname}
+        '''
+        return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+
+    #@adder
+    def add(db, tblname, colname_list, vals_iter, params_list, **kwargs):
+        """ adder """
+        fmtdict = {
+            'tblname_str'  : tblname,
+            'erotemes_str' : ','.join(['?'] * len(colname_list)),
+            'adders_str'   : ',\n'.join(
+                ['%s_%s = ?' % (tblname[:-1], name) for name in colname_list]),
+        }
+        operation_fmt = '''
+            INSERT {tblname_str}
+            (
+            rowid=?,
+            {adders_str}
+            )
+            VALUES (NULL, {erotemes_str})
+            '''
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=vals_iter, **kwargs)
+
+    #@getter
+    def get(db, tblname, colnames, id_iter, unpack_scalars=True, **kwargs):
+        """ getter """
+        fmtdict = dict(tblname=tblname, colnames=colnames)
+        operation_fmt = '''
+            SELECT {colnames}
+            FROM {tblname}
+            WHERE rowid=?
+            '''
+        params_iter = ((_uid,) for _uid in id_iter)
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=params_iter, **kwargs)
+
+    #@setter
+    def set(db, tblname, colnames, id_list, val_iter, **kwargs):
+        """ setter """
+        fmtdict = {
+            'tblname_str': tblname,
+        }
+        operation_fmt = '''
+            UPDATE {tblname_str}
+            SET {setter_str}
+            WHERE rowid=?
+            '''
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=val_iter, **kwargs)
+
+    #@deleter
+    def delete(db, tblname, colname, id_list, **kwargs):
+        """ deleter """
+        fmtdict = {}
+        operation_fmt = '''
+            DELETE
+            FROM {tblname_str}
+            WHERE {deleter_str}
+            '''
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=id_list,
+                                             **kwargs)
+
+    #=========
+    # API CORE
+    #=========
 
     @profile
     def sanatize_sql(db, tablename, columns=None):
@@ -175,61 +385,10 @@ class SQLDatabaseController(object):
 
             return tablename, columns
 
-    def get_column_names(db, tablename):
-        """ Returns the sql tablename columns """
-        column_names = [name for name, type_ in  db.table_columns[tablename]]
-        return column_names
-
-    def get_tables(db):
-        return db.table_columns.keys()
-
-    @profile
-    def get_column(db, tablename, name):
-        _table, (_column,) = db.sanatize_sql(tablename, (name,))
-        column_vals = db.executeone(
-            operation='''
-            SELECT %s
-            FROM %s
-            ''' % (_column, _table))
-        return column_vals
-
-    def get_table_csv(db, tablename, exclude_columns=[]):
-        """ Converts a tablename to csv format """
-        header_name  = '# TABLENAME: %r' % tablename
-        column_nametypes = db.table_columns[tablename]
-        column_names = [name for (name, type_) in column_nametypes]
-        header_types = utool.indentjoin(column_nametypes, '\n# ')
-        column_list = []
-        column_labels = []
-        for name in column_names:
-            if name in exclude_columns:
-                continue
-            column_vals = db.get_column(tablename, name)
-            column_list.append(column_vals)
-            column_labels.append(name.replace(tablename[:-1] + '_', ''))
-        # remove column prefix for more compact csvs
-
-        #=None, column_list=[], header='', column_type=None
-        header = header_name + header_types
-        csv_table = utool.make_csv_table(column_list, column_labels, header)
-        return csv_table
-
-    def get_sql_version(db):
-        db.execute('''
-                   SELECT sqlite_version()
-                   ''', verbose=False)
-        sql_version = db.result()
-
-        print('[sql] SELECT sqlite_version = %r' % (sql_version,))
-        # The version number sqlite3 module. NOT the version of SQLite library.
-        print('[sql] sqlite3.version = %r' % (lite.version,))
-        # The version of the SQLite library
-        print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
-        return sql_version
-
     @profile
     def schema(db, tablename, schema_list, table_constraints=[]):
-        """
+        """ Creates a table in the database with some schema and constraints
+
             schema_list - list of tablename columns tuples
                 {
                     (column_1_name, column_1_type),
@@ -265,12 +424,6 @@ class SQLDatabaseController(object):
         # Append to internal storage
         db.table_columns[tablename] = schema_list
 
-    def execute(db, operation, params=(), verbose=VERBOSE):
-        db.executor.execute(operation, params)
-
-    def result_iter(db):
-        return _results_gen(db.executor)
-
     @profile
     def executeone(db, operation, params=(), auto_commit=True, errmsg=None, verbose=VERBOSE):
         """
@@ -289,9 +442,10 @@ class SQLDatabaseController(object):
                     arbirtary order that will be filled into the cooresponging
                     slots of the sql operation string
         """
-        with SQLExecutionContext(db, operation, num_params=1):
+        with SQLExecutionContext(db, operation, num_params=1) as context:
             try:
-                result_list = list(_execute_and_get(db.executor, operation, params))
+                result_iter = context.execute_and_generate_results(params)
+                result_list = list(result_iter)
             except Exception as ex:
                 utool.printex(ex, key_list=[(str, 'operation'), 'params'])
                 utool.sys.exit(1)
@@ -299,88 +453,92 @@ class SQLDatabaseController(object):
         return result_list
 
     @profile
-    def executemany(db,
-                    operation,
-                    params_iter,
-                    auto_commit=True,
-                    errmsg=None,
-                    verbose=VERBOSE,
-                    unpack_scalars=True,
-                    num_params=None):
+    def executemany(db, operation, params_iter, auto_commit=True, errmsg=None,
+                    verbose=VERBOSE, unpack_scalars=True, num_params=None):
         """
         Input:
-            operation - an sql command to be executed
-                e.g.
+            operation - an sql command to be executed e.g.
                 operation = '''
-                SELECT column
-                FROM tablename
+                SELECT colname
+                FROM tblname
                 WHERE
                 (
-                    column_1=?,
+                    colname_1=?,
                     ...,
-                    column_N=?
+                    colname_N=?
                 )
                 '''
-            params_iter - an iterable of params
-                e.g.
+            params_iter - a sequence of params e.g.
                 params_iter = [
                     (col1, ..., colN),
                            ...,
                     (col1, ..., colN),
                 ]
+        Output:
+            results_iter - a sequence of data results
+
+            FOR AN INSERT STATEMENT
+                [
+
+            FOR AN UPDATE STATEMENT
+
+            FOR A  SELECT STATEMENT
+
+            FOR A  DELETE STATEMENT
+
+
+        if unpack_scalars is True results are returned as:
+
 
         same as execute but takes a iterable of params instead of just one
         This function is a bit messy right now. Needs cleaning up
         """
         # Aggresively compute iterator if the num_params is not given
-        if num_params is None:
-            params_iter = list(params_iter)
-            num_params = len(params_iter)
+        def _prepare(num_params, params_iter):
+            if num_params is None:
+                params_iter = list(params_iter)
+                num_params  = len(params_iter)
+            return num_params, params_iter
+        num_params, params_iter = _prepare(num_params, params_iter)
         # Do not compute executemany without params
         if num_params == 0:
-            if VERBOSE:
-                print('[sql] cannot executemany with no params.' +
-                      'use executeone instead')
+            utool.printif(lambda: utool.unindent(
+                '''
+                [sql!] WARNING: dont use executemany with no params use executeone instead.
+                '''), VERBOSE)
             return []
-        with SQLExecutionContext(db, operation, num_params):
+        with SQLExecutionContext(db, operation, num_params,
+                                 start_transaction=True) as context:
             try:
-                db.executor.execute('BEGIN', ())
-                results_iter = map(list, (_execute_and_get(db.executor, operation, params)
-                                           for params in params_iter))
+                # Python list-comprehension magic.
+                results_iter = map(list, (
+                    context.execute_and_generate_results(
+                        db.executor, operation, params)
+                    for params in params_iter))
                 if unpack_scalars:
-                    results_iter = map(_unpacker, results_iter)
+                    results_iter = list(imap(_unpacker, results_iter))
+                # Eager evaluation of results (for development)
                 results_list = list(results_iter)
             except Exception as ex:
+                # Error reporting
                 utool.printex(ex, key_list=[(str, 'operation'), 'params', 'params_iter'])
                 print(utool.get_caller_name(range(1, 10)))
+                results_list = None
                 raise
         return results_list
 
     @profile
-    def result(db, verbose=VERBOSE):
-        #if verbose:
-        #    caller_name = utool.util_dbg.get_caller_name()
-        #    print('[sql.result] caller_name=%r' % caller_name)
-        return db.executor.fetchone()
-
-    @profile
     def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
-        """
-            Commits staged changes to the database and saves the binary
+        """ Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         """
         try:
-            #if verbose:
-                #caller_name = utool.util_dbg.get_caller_name()
-                #print('[sql.commit] caller_name=%r' % caller_name)
             if not all(qstat_flag_list):
                 raise lite.DatabaseError(errmsg)
             else:
-                #printDBG('<ACTUAL COMMIT>')
                 db.connection.commit()
-                #printDBG('</ACTUAL COMMIT>')
                 if AUTODUMP:
                     db.dump(auto_commit=False)
         except lite.Error as ex2:
@@ -393,8 +551,7 @@ class SQLDatabaseController(object):
 
     @profile
     def dump(db, file_=None, auto_commit=True):
-        """
-            Same output as shell command below
+        """ Same output as shell command below
             > sqlite3 database.sqlite3 .dump > database.dump.txt
 
             If file_=sys.stdout dumps to standard out
@@ -419,22 +576,3 @@ class SQLDatabaseController(object):
                 db.commit(verbose=False)
             for line in db.connection.iterdump():
                 file_.write('%s\n' % line)
-
-    def dump_tables_to_csv(db):
-        """ Dumps all csv database files to disk """
-        dump_dir = join(db.dir_, 'CSV_DUMP')
-        utool.ensuredir(dump_dir)
-        for tablename in db.table_columns.iterkeys():
-            table_fname = tablename + '.csv'
-            table_csv = db.get_table_csv(tablename)
-            with open(join(dump_dir, table_fname), 'w') as file_:
-                file_.write(table_csv)
-
-## Sanity check
-#num_results = len(result_list)
-#if num_results != 0 and num_results != num_params:
-#    raise lite.Error('num_params=%r != num_results=%r'
-#                     % (num_params, num_results))
-# Transactions halve query time
-# list comprehension cuts time by 10x
-#result_list = [_unpacker(results_) for results_ in result_list]

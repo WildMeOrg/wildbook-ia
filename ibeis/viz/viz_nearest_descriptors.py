@@ -7,7 +7,7 @@ from ibeis.model.hots import query_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_nndesc]', DEBUG=False)
 
 
-@utool.indent_decor('[viz.show_near_desc]')
+@utool.indent_func('[show_neardesc]')
 def show_nearest_descriptors(ibs, qrid, qfx, fnum=None, stride=5,
                              consecutive_distance_compare=False):
     # Plots the nearest neighbors of a given feature (qrid, qfx)

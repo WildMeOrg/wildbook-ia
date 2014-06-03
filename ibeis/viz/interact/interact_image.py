@@ -9,7 +9,7 @@ from plottool import interact_helpers as ih
                                                        DEBUG=False)
 
 
-@utool.indent_decor('[interact_img]')
+@utool.indent_func
 def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
                 **kwargs):
     fig = ih.begin_interaction('image', fnum)

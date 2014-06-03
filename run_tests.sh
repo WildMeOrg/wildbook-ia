@@ -221,6 +221,7 @@ if [ "$FAILED_TESTS" != "" ] ; then
     echo "-----"
     printf "Failed Tests:" 
     printf "$FAILED_TESTS\n"
+    echo "$FAILED_TESTS\n" >> failed.txt
     echo "-----"
 fi
 

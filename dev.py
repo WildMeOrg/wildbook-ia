@@ -30,7 +30,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 #--------------------
 
 
-#@utool.indent_decor('[dev]')
+#@utool.indent_func('[dev]')
 @profile
 def run_experiments(ibs, qrid_list):
     """

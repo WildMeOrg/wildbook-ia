@@ -42,7 +42,7 @@ def bigcache_query(ibs, qreq, batch_size=10, use_bigcache=True,
 
 
 #@profile
-#@utool.indent_decor('[pre_cache]')
+#@utool.indent_func('[pre_cache]')
 #def pre_cache_checks(ibs, qreq):
     #print(' --- pre cache checks --- ')
     ## Ensure ibs object is using the right config

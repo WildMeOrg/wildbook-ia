@@ -1,12 +1,14 @@
 """
 Module Licence and docstring
 
-LOGIC DOES NOT LIVE HERE
-THIS DEFINES THE ARCHITECTURE OF IBEIS
+Algorithm logic does not live here.
+This file defines the data architecture of IBEIS
+This file should only define:
+    iders
+    setters
+    getters
+    deleter
 """
-# JON SAYS (3-24)
-# I had a change of heart. I'm using tripple double quotes for comment strings
-# only and tripple single quotes for python multiline strings only
 from __future__ import absolute_import, division, print_function
 # Python
 import atexit
@@ -42,7 +44,7 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy_vector_output,
                                            getter_vector_output,
                                            getter_general, deleter,
-                                           otherfunc)
+                                           default_decorator)
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
@@ -213,20 +215,25 @@ class IBEISController(object):
         return len(nid_list)
 
     def get_dirty(ibs):
+        #DEPRICATE
         return ibs.db.get_isdirty()
 
     def set_dirty(ibs, flag):
+        #DEPRICATE
         ibs.db.set_isdirty(flag)
 
     def __dbchanged_callback(ibs):
+        #DEPRICATE
         print('[ibs] sqldb changed')
         if ibs.ibschanged_callback is not None:
             ibs.ibschanged_callback()
 
     def disconnect_ibschanged(ibs):
+        #DEPRICATE
         ibs.ibschanged_callback = None
 
     def connect_ibschanged(ibs, callback):
+        #DEPRICATE
         ibs.ibschanged_callback = callback
 
     #
@@ -251,7 +258,7 @@ class IBEISController(object):
         ibs.cfg.enc_cfg     = Config.EncounterConfig()
         ibs.cfg.preproc_cfg = Config.PreprocConfig()
 
-    @otherfunc
+    @default_decorator
     def set_query_cfg(ibs, query_cfg):
         if ibs.qreq is not None:
             ibs.qreq.set_cfg(query_cfg)
@@ -259,30 +266,34 @@ class IBEISController(object):
         ibs.cfg.feat_cfg  = query_cfg._feat_cfg
         ibs.cfg.chip_cfg  = query_cfg._feat_cfg._chip_cfg
 
-    @otherfunc
+    @default_decorator
     def update_cfg(ibs, **kwargs):
         ibs.cfg.query_cfg.update_cfg(**kwargs)
 
-    @otherfunc
+    @default_decorator
     def get_chip_config_uid(ibs):
+        # FIXME: Configs are still handled poorly
         chip_cfg_suffix = ibs.cfg.chip_cfg.get_uid()
         chip_cfg_uid = ibs.add_config(chip_cfg_suffix)
         return chip_cfg_uid
 
-    @otherfunc
+    @default_decorator
     def get_feat_config_uid(ibs):
+        # FIXME: Configs are still handled poorly
         feat_cfg_suffix = ibs.cfg.feat_cfg.get_uid()
         feat_cfg_uid = ibs.add_config(feat_cfg_suffix)
         return feat_cfg_uid
 
-    @otherfunc
+    @default_decorator
     def get_query_config_uid(ibs):
+        # FIXME: Configs are still handled poorly
         query_cfg_suffix = ibs.cfg.query_cfg.get_uid()
         query_cfg_uid = ibs.add_config(query_cfg_suffix)
         return query_cfg_uid
 
-    @otherfunc
+    @default_decorator
     def get_qreq_uid(ibs):
+        # FIXME: Configs are still handled poorly
         assert ibs.qres is not None
         qreq_uid = ibs.qreq.get_uid()
         return qreq_uid
@@ -298,6 +309,7 @@ class IBEISController(object):
         """
         Adds an algorithm configuration as a string
         """
+        # FIXME: Configs are still handled poorly
         config_uid_list = ibs.get_config_uid_from_suffix(cfgsuffix_list, ensure=False)
         #print('config_uid_list %r' % (config_uid_list,))
         #print('cfgsuffix_list %r' % (cfgsuffix_list,))
@@ -333,9 +345,10 @@ class IBEISController(object):
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Processing an image might fail, yeilding a None instead of a tup
         gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
+        # Create param_iter and filter out nones before passing to SQL
         raw_param_iter = preproc_image.add_images_params_gen(gpath_list)
-        # Filter out None values before passing to SQL
         param_iter = utool.ifilter_Nones(raw_param_iter)
+        # Eager Evaluation for development
         param_list = list(param_iter)
         #print(utool.list_str(enumerate(param_list)))
         gid_list = ibs.db.executemany(
@@ -841,7 +854,7 @@ class IBEISController(object):
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image paths relative to img_dir? by gid """
         uri_list = ibs.get_image_uris(gid_list)
-        utool.assert_all_not_None(uri_list, 'uri_list')
+        utool.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
         gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
         return gpath_list
 
@@ -1684,7 +1697,7 @@ class IBEISController(object):
     # --- WRITERS ---
     #----------------
 
-    @otherfunc
+    @default_decorator
     def export_to_wildbook(ibs):
         """ Exports identified chips to wildbook """
         print('[ibs] exporting to wildbook')
@@ -1706,7 +1719,7 @@ class IBEISController(object):
     # --- MODEL ---
     #--------------
 
-    @otherfunc
+    @default_decorator
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         print('[ibs] computing encounters')
@@ -1715,14 +1728,14 @@ class IBEISController(object):
         ibs.set_image_enctext(flat_gids, enctext_list)
         print('[ibs] finished computing encounters')
 
-    @otherfunc
+    @default_decorator
     def detect_existence(ibs, gid_list, **kwargs):
         """ Detects the probability of animal existence in each image """
         probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
         # Return for user inspection
         return probexist_list
 
-    @otherfunc
+    @default_decorator
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
@@ -1750,33 +1763,33 @@ class IBEISController(object):
         commit_detections(detected_gid_list, detected_bbox_list)
         print('[ibs] finshed detecting')
 
-    @otherfunc
+    @default_decorator
     def get_recognition_database_rids(ibs):
         """ returns persitent recognition database rois """
         drid_list = ibs.get_valid_rids()
         return drid_list
 
-    @otherfunc
+    @default_decorator
     def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = qrid_list
         qres_list = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qres_list
 
-    @otherfunc
+    @default_decorator
     def prep_qreq_encounter(ibs, qrid_list):
         """ Puts IBEIS into intra-encounter mode """
         drid_list = qrid_list
         ibs._prep_qreq(qrid_list, drid_list)
 
-    @otherfunc
+    @default_decorator
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = ibs.get_recognition_database_rids()
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_qres
 
-    @otherfunc
+    @default_decorator
     def query_encounter(ibs, qrid_list, eid, **kwargs):
         """ _query_chips wrapper """
         drid_list = ibs.get_encounter_rids(eid)  # encounter database chips
@@ -1785,19 +1798,19 @@ class IBEISController(object):
             qres.eid = eid
         return qrid2_qres
 
-    @otherfunc
+    @default_decorator
     def prep_qreq_db(ibs, qrid_list):
         """ Puts IBEIS into query database mode """
         drid_list = ibs.get_recognition_database_rids()
         ibs._prep_qreq(qrid_list, drid_list)
 
-    @otherfunc
+    @default_decorator
     def _init_query_requestor(ibs):
         # Create query request object
         ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
-    @otherfunc
+    @default_decorator
     def _prep_qreq(ibs, qrid_list, drid_list, **kwargs):
         if ibs.qreq is None:
             ibs._init_query_requestor()
@@ -1808,7 +1821,7 @@ class IBEISController(object):
                                       **kwargs)
         return qreq
 
-    @otherfunc
+    @default_decorator
     def _query_chips(ibs, qrid_list, drid_list, **kwargs):
         """
         qrid_list - query chip ids

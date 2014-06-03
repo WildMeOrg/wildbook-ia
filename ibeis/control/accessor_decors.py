@@ -11,15 +11,28 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
 # DECORATORS::OTHERS
 
-def otherfunc(func):
-    return profile(func)
+def default_decorator(func):
+    return utool.indent_func(profile(func))
 
 
 # DECORATORS::ADDER
 
 
 def adder(func):
-    func = otherfunc(func)
+    func = default_decorator(func)
+    @utool.ignores_exc_tb
+    @utool.accepts_scalar_input
+    @wraps(func)
+    def adder_wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return adder_wrapper
+
+
+# DECORATORS::DELETER
+
+def deleter(func):
+    func = default_decorator(func)
+    @utool.ignores_exc_tb
     @utool.accepts_scalar_input
     @wraps(func)
     def adder_wrapper(*args, **kwargs):
@@ -30,7 +43,8 @@ def adder(func):
 # DECORATORS::SETTER
 
 def setter(func):
-    func = otherfunc(func)
+    func = default_decorator(func)
+    @utool.ignores_exc_tb
     @wraps(func)
     def setter_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
@@ -44,7 +58,8 @@ def getter(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a heterogeous list of values
     """
-    func = otherfunc(func)
+    func = default_decorator(func)
+    @utool.ignores_exc_tb
     @utool.accepts_scalar_input
     @wraps(func)
     def getter_wrapper(*args, **kwargs):
@@ -57,7 +72,8 @@ def getter_vector_output(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a homogenous list of values
     """
-    func = otherfunc(func)
+    func = default_decorator(func)
+    @utool.ignores_exc_tb
     @utool.accepts_scalar_input_vector_output
     @wraps(func)
     def getter_vector_wrapper(*args, **kwargs):
@@ -71,6 +87,7 @@ def getter_numpy(func):
     list and returns a heterogeous list of values
     """
     getter_func = getter(func)
+    @utool.ignores_exc_tb
     @utool.accepts_numpy
     @wraps(func)
     def getter_numpy_wrapper(*args, **kwargs):
@@ -82,7 +99,9 @@ def getter_numpy_vector_output(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a heterogeous list of values """
     getter_func = getter_vector_output(func)
+    @utool.ignores_exc_tb
     @utool.accepts_numpy
+    @wraps(func)
     def getter_numpy_vector_wrapper(*args, **kwargs):
         return getter_func(*args, **kwargs)
     return getter_numpy_vector_wrapper
@@ -90,18 +109,9 @@ def getter_numpy_vector_output(func):
 
 def getter_general(func):
     """ Getter decorator for functions which has no gaurentees """
-    func = otherfunc(func)
+    func = default_decorator(func)
+    @utool.ignores_exc_tb
     @wraps(func)
     def getter_general_wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_general_wrapper
-
-
-# DECORATORS::DELETER
-
-def deleter(func):
-    func = otherfunc(func)
-    @wraps(func)
-    def adder_wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return adder_wrapper
