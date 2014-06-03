@@ -615,6 +615,15 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
+    def delete_detection_models(back):
+        # RCOS TODO: Add are you sure dialog?
+        print('[back] delete_detection_models')
+        DETECTMODELS_DIR = utool.get_app_resource_dir('ibeis', 'detectmodels')
+        print(DETECTMODELS_DIR)
+        utool.delete(DETECTMODELS_DIR)
+        pass
+
+    @slot_()
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
