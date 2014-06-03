@@ -99,6 +99,7 @@ class SQLExecutionContext(object):
         # Comment out timeing code
         #if not QUIET:
         #    context.tt = utool.tic(context.operation_label)
+        return context
 
     # --- with SQLExecutionContext: statment code happens here ---
 
@@ -135,7 +136,7 @@ def get_operation_type(operation):
     """
     Parses the operation_type from an SQL operation
     """
-    operation = ' '.join(operation.split('\n').strip())
+    operation = ' '.join(operation.split('\n')).strip()
     operation_type = operation.split(' ')[0].strip()
     if operation_type.startswith('SELECT'):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
@@ -145,6 +146,8 @@ def get_operation_type(operation):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
     elif operation_type.startswith('DELETE'):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
+    elif operation_type.startswith('CREATE'):
+        operation_args = utool.str_between(operation, operation_type, '(').strip()
     else:
         operation_args = None
     operation_type += ' ' + operation_args.replace('\n', ' ')
