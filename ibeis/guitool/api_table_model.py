@@ -177,8 +177,8 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def _update(model, newrows=False):
-        if newrows:
-            model._update_rows()
+        #if newrows:
+        model._update_rows()
         model.cache = {}
         #model.setdirty(False)
 

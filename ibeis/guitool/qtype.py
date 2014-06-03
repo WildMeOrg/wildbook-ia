@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore
 from PyQt4.QtCore import Qt
 import utool
+import uuid
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qtype]', DEBUG=False)
 
@@ -28,6 +29,8 @@ def cast_into_qt(data, role=Qt.DisplayRole, flags=Qt.DisplayRole):
             return QtCore.QVariant(bool(data)).toString()
         elif  utool.is_int(data):
             return QtCore.QVariant(int(data)).toString()
+        elif isinstance(data, uuid.UUID):
+            return QtCore.QVariant(str(data)).toString()
         else:
             return 'Unknown qtype: %r for data=%r' % (type(data), data)
     else:
