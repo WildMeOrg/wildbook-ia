@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
-from guitool import APITableModel
+from guitool.api_table_model import APITableModel
 from PyQt4 import  QtGui
 import string
 import random
@@ -89,7 +89,7 @@ def create_databse():
     return col_name_list, col_type_list, col_edit_list, col_nice_list, db
 
 
-class ImageModelSQL(APITableModel.APITableModel):
+class ImageModelSQL(APITableModel):
     def __init__(model, col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=None, *args):
         model.db = db
         model.encounter_id = '-1'
@@ -122,7 +122,7 @@ class ImageModelSQL(APITableModel.APITableModel):
         return str(result_list[0])
 
 
-class EncounterModelSQL(APITableModel.APITableModel):
+class EncounterModelSQL(APITableModel):
     def __init__(model, col_name_list, col_type_list, col_edit_list, db, parent=None, *args):
         model.db = db
         super(EncounterModelSQL, model).__init__(col_name_list=col_name_list,

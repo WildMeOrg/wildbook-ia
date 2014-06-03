@@ -45,7 +45,10 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
             raise StopIteration()
         else:
             # Results are always returned wraped in a tuple
-            yield result[0] if len(result) == 1 else result
+            result = result[0] if len(result) == 1 else result
+            if get_last_id and result == 0:
+                result = None
+            yield result
 
 
 def _unpacker(results_):
