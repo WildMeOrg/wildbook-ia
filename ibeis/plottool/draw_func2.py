@@ -882,7 +882,7 @@ def draw_keypoint_gradient_orientations(rchip, kp, sift=None, mode='vec', **kwar
     draw_kpts2(wkpts, sifts=sifts, ori=True)
 
 
-@utool.indent_decor('[df2.dkp]')
+@utool.indent_func('[df2.dkp]')
 def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwargs):
     #print('--------------------')
     printDBG('[df2] draw_keypoint_patch()')
