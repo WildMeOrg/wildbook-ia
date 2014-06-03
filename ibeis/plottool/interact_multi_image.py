@@ -102,13 +102,27 @@ class MultiImageInteraction(object):
 
     def update_images(self, img_ind, updated_bbox_list):
         print("update called")
-        ind = int (img_ind)
-        print(self.bboxes_list)
-        self.bboxes_list[ind] = updated_bbox_list;
-        print(self.bboxes_list)
-
+        index = int (img_ind)
+        print(self.bboxes_list[index])
+        self.bboxes_list[index] = updated_bbox_list;
+        print(self.bboxes_list[index])
+        print("bbox update done")
         """Insert code for viz_image2 redrawing here"""
-
+        gpath = self.gpath_list[index]
+        bbox_list  = self.bboxes_list[index]
+        theta_list = self.thetas_list[index]
+        img = cv2.imread(gpath)
+        _vizkw = {
+            'fnum': self.fnum,
+            #'pnum': pnum_(px),
+            'title': str(index),
+            'bbox_list'  : bbox_list,
+            'theta_list' : theta_list,
+            'sel_list'   : [],
+            'label_list' : [],
+        }
+            #print(utool.dict_str(_vizkw))
+        _, ax = viz_image2.show_image(img, **_vizkw)
     def on_figure_clicked(self, event):
 
 
@@ -117,6 +131,8 @@ class MultiImageInteraction(object):
             ax = event.inaxes
             px = ph.get_plotdat(ax, 'px')
             bbox_list  = ph.get_plotdat(ax, 'bbox_list')
+            bbox_list = self.bboxes_list[int(px)]
+            print("Bbox of figure: ",bbox_list)
             theta_list = ph.get_plotdat(ax, 'theta_list')
             gpath      = ph.get_plotdat(ax, 'gpath')
             img = mpimg.imread(gpath)

@@ -82,13 +82,14 @@ def bbox_to_verts(bbox):
     return verts
 
 def verts_to_bbox(verts):
+    print()
     new_bbox_list = []
     print(verts)
     for i in range(0, len(verts)):
-        x = verts[i][0][0]
+        x = verts[i][1][0]
         y = verts[i][1][1]
-        w = x - verts[i][2][0]
-        h = y - verts[i][3][1]
+        w = verts[i][3][0] - x
+        h = verts[i][3][1] - y
         bbox = (x, y, w, h)
         new_bbox_list.append(bbox) 
     return new_bbox_list
@@ -422,7 +423,6 @@ class ROIInteraction(object):
         new_verts_list = []
         for poly in self.polyList:
             new_verts_list.append(poly.xy)
-        print(new_verts_list)
         return new_verts_list
 
     def key_press_callback(self, event):
@@ -632,12 +632,10 @@ class ROIInteraction(object):
         print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
         def send_back_rois():
-            print("sending back ROIs")
             point_list = self.load_points()
             new_bboxes = verts_to_bbox(point_list)
             self.callback(self.img_ind, new_bboxes)
 
-        print(self.callback)
         if self.callback is not None:
             send_back_rois()
         else:
