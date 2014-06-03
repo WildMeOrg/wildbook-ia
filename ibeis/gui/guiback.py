@@ -603,13 +603,13 @@ class MainWindowBackend(QtCore.QObject):
     def view_database_dir(back):
         """ Help -> View Directory Slots"""
         print('[back] view_database_dir')
-        utool.view_directory(back.ibs.dbdir)
+        utool.view_directory(back.ibs.get_dbdir())
         pass
 
     @slot_()
     def view_app_files_dir(back):
         print('[back] view_model_dir')
-        utool.view_directory('"' + utool.get_app_resource_dir('ibeis') + '"')
+        utool.view_directory(utool.get_app_resource_dir('ibeis'))
         pass
 
     @slot_()
@@ -622,7 +622,7 @@ class MainWindowBackend(QtCore.QObject):
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
-        utool.delete(back.ibs.cachedir)
+        utool.delete(back.ibs.get_cachedir())
         pass
 
     @slot_()

@@ -154,7 +154,6 @@ class IBEISController(object):
     def _init_sql(ibs):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
-        ibs.db.connect_dbchanged_callback(ibs.__dbchanged_callback)
         DB_SCHEMA.define_IBEIS_schema(ibs)
         ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
@@ -214,28 +213,6 @@ class IBEISController(object):
     def get_num_names(ibs):
         nid_list = ibs.get_valid_nids()
         return len(nid_list)
-
-    def get_dirty(ibs):
-        #DEPRICATE
-        return ibs.db.get_isdirty()
-
-    def set_dirty(ibs, flag):
-        #DEPRICATE
-        ibs.db.set_isdirty(flag)
-
-    def __dbchanged_callback(ibs):
-        #DEPRICATE
-        print('[ibs] sqldb changed')
-        if ibs.ibschanged_callback is not None:
-            ibs.ibschanged_callback()
-
-    def disconnect_ibschanged(ibs):
-        #DEPRICATE
-        ibs.ibschanged_callback = None
-
-    def connect_ibschanged(ibs, callback):
-        #DEPRICATE
-        ibs.ibschanged_callback = callback
 
     #
     #

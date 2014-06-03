@@ -46,7 +46,7 @@ TABLE_EDITSET = {
 
 # Define the valid columns a table could have
 COL_DEF = dict([
-    ('image_uuid',  (str,   'Image UUID')),
+    ('image_uuid', (str,   'Image UUID')),
     ('gid',        (int,   'Image ID')),
     ('rid',        (int,   'ROI ID')),
     ('nid',        (int,   'Name ID')),
@@ -165,8 +165,6 @@ def make_ibeis_headers_dict(ibs):
             'name': tblname,
             'nice': tblnice,
             'ider': iders[tblname],
-            'getdirty': ibs.get_dirty,
-            'setdirty': ibs.set_dirty,
             'col_name_list': colnames,
             'col_type_list': coltypes,
             'col_nice_list': colnices,
