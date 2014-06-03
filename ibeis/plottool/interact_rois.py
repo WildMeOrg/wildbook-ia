@@ -81,6 +81,18 @@ def bbox_to_verts(bbox):
                       (x + 0, y + h)], dtype=np.float32)
     return verts
 
+def verts_to_bbox(verts):
+    print()
+    new_bbox_list = []
+    print(verts)
+    for i in range(0, len(verts)):
+        x = verts[i][1][0]
+        y = verts[i][1][1]
+        w = verts[i][3][0] - x
+        h = verts[i][3][1] - y
+        bbox = (x, y, w, h)
+        new_bbox_list.append(bbox) 
+    return new_bbox_list
 
 def bbox_to_mask(shape, bbox):
     verts = bbox_to_verts(bbox)
@@ -109,6 +121,8 @@ class ROIInteraction(object):
     """
     def __init__(self,
                  img,
+                 img_ind,
+                 callback=None,
                  verts_list=None,
                  bbox_list=None,  # will get converted to verts_list
                  max_ds=10,
@@ -116,16 +130,19 @@ class ROIInteraction(object):
                  line_color=(1, 1, 1),
                  face_color=(0, 0, 0),
                  fnum=None,
+                 
                  do_mask=False):
-
         if fnum is None:
             fnum = df2.next_fnum()
-
+        if callback is not None:
+            self.callback = callback
         self.img = img
         self.do_mask = do_mask
         plt.figure(fnum)
         ax = plt.subplot(111)
         self.ax = ax
+
+        self.img_ind = img_ind
 
         ax.imshow(img)
 
@@ -152,8 +169,6 @@ class ROIInteraction(object):
 
         #Something Jon added
         self.background = None
-        #the method to call to update ROIs in the other program
-        self.callback = None
 
         def new_polygon(verts):
             """ verts - list of (x, y) tuples """
@@ -171,7 +186,9 @@ class ROIInteraction(object):
             line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
             line = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
             return line
-
+        # print(verts_list)
+        # test_list = verts_to_bbox(verts_list)
+        # print(test_list)
         # Ensure that our input is in verts_list format
         assert verts_list is None or bbox_list is None, 'only one can be specified'
         if bbox_list is not None:
@@ -406,7 +423,6 @@ class ROIInteraction(object):
         new_verts_list = []
         for poly in self.polyList:
             new_verts_list.append(poly.xy)
-        print(new_verts_list)
         return new_verts_list
 
     def key_press_callback(self, event):
@@ -614,12 +630,12 @@ class ROIInteraction(object):
 
     def accept_new_rois(self, event):
         print('Pressed Accept Button')
-
-        def send_back_rois(self):
+        """write a callback to redraw viz for bbox_list"""
+        def send_back_rois():
             point_list = self.load_points()
-            self.callback(point_list)
+            new_bboxes = verts_to_bbox(point_list)
+            self.callback(self.img_ind, new_bboxes)
 
-        print(self.callback)
         if self.callback is not None:
             send_back_rois()
         else:
@@ -640,7 +656,7 @@ class ROIInteraction(object):
 
             ax.figure.show()
 
-        print('show2')
+        print('Accept Over')
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
@@ -662,16 +678,28 @@ def default_vertices(img):
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
 
 
+# def update_lists(self, img_ind, new_verts_list, new_thetas_list, new_indices_list):
+#         """for each image: know if any bboxes changed, if any have been deleted, know if any new bboxes
+#         pass all of this information to a function callback, so Jon can use the information"""
+#         print("before: ",self.rids_list[img_ind])
+#         self.rids_list[img_ind] = new_rids
+#         print("after: ", self.rids_list[img_ind])
+
+#         """add function call for redrawing the ROIs"""
+
+
 def ROI_creator(img, verts_list):  # add callback as variable
+# def ROI_creator(img, img_ind, verts_list, callback):#add callback as variable
+# >>>>>>> Stashed changes
     print('*** START DEMO ***')
 
     if verts_list is None:
         verts_list = [default_vertices(img)]
-    else:
-        for verts in verts_list:
-            if (len(verts) is not 5):
-                print("verts list is not of correct length. ", len(verts))
-                return
+    # else:
+    #     for verts in verts_list:
+    #         if (len(verts) is not 5):
+    #             print("verts list is not of correct length. ", len(verts))
+    #             return
 
     if img is None:
         try:
@@ -682,9 +710,8 @@ def ROI_creator(img, verts_list):  # add callback as variable
         except Exception as ex:
             print('cant read zebra: %r' % ex)
             img = np.random.uniform(0, 255, size=(100, 100))
-    # if callback is not None:
-    #     self.callback = callback
-    mc = ROIInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
+    #test_bbox = verts_to_bbox(verts_list)
+    mc = ROIInteraction(img, verts_list=verts_list,fnum=0)  # NOQA
     # Do interaction
     plt.show()
     # Make mask from selection
@@ -700,6 +727,7 @@ def ROI_creator(img, verts_list):  # add callback as variable
 
 
 if __name__ == '__main__':
+    #verts = [[0,0,400,400]]
     verts = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
              ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
-    ROI_creator(None, verts)
+    ROI_creator(None, verts_list=verts)
