@@ -86,10 +86,11 @@ def verts_to_bbox(verts):
     new_bbox_list = []
     print(verts)
     for i in range(0, len(verts)):
-        x = verts[i][1][0]
-        y = verts[i][1][1]
-        w = verts[i][3][0] - x
-        h = verts[i][3][1] - y
+        print('verts[i][0][0]: ', verts[i][0][0], " verts[i][0][1]: ",verts[i][0][1])
+        x = verts[i][0][0]
+        y = verts[i][0][1]
+        w = verts[i][2][0] - x
+        h = verts[i][2][1] - y
         bbox = (x, y, w, h)
         new_bbox_list.append(bbox) 
     return new_bbox_list
@@ -125,6 +126,7 @@ class ROIInteraction(object):
                  callback=None,
                  verts_list=None,
                  bbox_list=None,  # will get converted to verts_list
+                 theta_list=None,
                  max_ds=10,
                  line_width=4,
                  line_color=(1, 1, 1),
@@ -193,7 +195,10 @@ class ROIInteraction(object):
         assert verts_list is None or bbox_list is None, 'only one can be specified'
         if bbox_list is not None:
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
-
+        if theta_list is None:
+            self.theta_list = []
+        else:
+            self.theta_list = theta_list
         # Create the list of polygons
         self.polyList = [new_polygon(verts) for verts in verts_list]
         # Create the list of lines
@@ -395,6 +400,9 @@ class ROIInteraction(object):
         line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
         self.line.append(plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs))
         self._update_line()
+
+        self.theta_list.append(0)
+
         self.ax.add_line(self.line[-1])
 
         Poly.add_callback(self.poly_changed)
@@ -410,6 +418,8 @@ class ROIInteraction(object):
         ###print('poly list: ', len(self.polyList), 'list size ', len(self.line), 'index of poly ', lineNumber)
 
         #line deletion
+        print("length: ", len(self.theta_list), "number: ", lineNumber)
+        del self.theta_list[lineNumber]
         del self.line[lineNumber]
         #poly deletion
         self.polyList.remove(Poly)
@@ -633,8 +643,9 @@ class ROIInteraction(object):
         """write a callback to redraw viz for bbox_list"""
         def send_back_rois():
             point_list = self.load_points()
+            theta_list = self.theta_list
             new_bboxes = verts_to_bbox(point_list)
-            self.callback(self.img_ind, new_bboxes)
+            self.callback(self.img_ind, new_bboxes, theta_list)
 
         if self.callback is not None:
             send_back_rois()

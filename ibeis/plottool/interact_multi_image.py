@@ -7,6 +7,7 @@ from plottool import interact_rois
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
+import utool
 import cv2
 #import utool
 
@@ -41,17 +42,24 @@ class MultiImageInteraction(object):
         # Initialize iterator over the image paths
         self.gpath_list = gpath_list
         # Display the first page
+        self.first_load = True
         self.display_next_page()
 
     def display_next_page(self, event=None):
-        self.page_number = self.page_number + 1
+
         nLeft = self.nImgs - self.current_index
+        if(nLeft <= 0):
+            print("No more images to display")
+            return
+        self.page_number = self.page_number + 1
+        
         if nLeft == 0:
             fig = df2.figure(fnum=self.fnum, pnum=(1, 1, 1))
             fig.clf()
             return False
             raise AssertionError('no more images to display')
         nDisplay = min(nLeft, self.max_per_page)
+        self.nDisplay = nDisplay
         nRows, nCols = ph.get_square_row_cols(nDisplay)
         print('[viz*] r=%r, c=%r' % (nRows, nCols))
         pnum_ = df2.get_pnum_func(nRows, nCols)
@@ -62,89 +70,198 @@ class MultiImageInteraction(object):
         px = -1  # plot-index
         start_index = self.current_index
         end_index   = start_index + nDisplay
+        """this is so, on reaching final page, if you hit prev_button you 
+        return to the same images as were on the last page before"""
+        self.current_index = self.current_index + self.max_per_page
         for px, index in enumerate(xrange(start_index, end_index)):
             gpath      = self.gpath_list[index]
             bbox_list  = self.bboxes_list[index]
+            print("bbox_list in display for px: ",px, " , ",bbox_list)
             theta_list = self.thetas_list[index]
             img = cv2.imread(gpath)
+            sel_list = []
+            #Add true values for every bbox to display
+            for i in range(0, len(bbox_list)):
+                sel_list.append(True)
             _vizkw = {
                 'fnum': self.fnum,
                 'pnum': pnum_(px),
                 'title': str(index),
                 'bbox_list'  : bbox_list,
                 'theta_list' : theta_list,
-                'sel_list'   : [],
-                'label_list' : [],
+                'sel_list'   : sel_list,
+                'label_list' : ["lbl1"],
             }
             #print(utool.dict_str(_vizkw))
+            print('vizkw = ' + utool.dict_str(_vizkw))
             _, ax = viz_image2.show_image(img, **_vizkw)
             ph.set_plotdat(ax, 'px', str(px))
+            ph.set_plotdat(ax, 'bbox_list', bbox_list)
+            ph.set_plotdat(ax, 'theta_list', theta_list)
+            ph.set_plotdat(ax, 'title', str(index))
+            ph.set_plotdat(ax, 'gpath', gpath)
+            #print('components: ', fig.get_children())
+            if px + 1 >= nDisplay:
+                break
+        
+        # Set the figure title
+        df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, end_index, self.nImgs))
+
+        if self.first_load is True:
+            self.first_load = False
+            ih.connect_callback(fig, 'button_press_event', self.on_figure_clicked)
+        
+
+        self.display_buttons()
+        # Connect the callback whenever the figure is clicked
+        
+        # Show the changes
+        fig.show()
+        print('next')
+
+    def display_prev_page(self, event=None):
+        if(self.current_index <= self.max_per_page):
+            print("at top of list.")
+            return
+        self.page_number = self.page_number - 1
+        'update our current index instantly, in case of multiple button clicks at once'
+        end_index   = self.current_index - self.max_per_page
+        start_index = self.current_index - (2 * self.max_per_page)
+        self.current_index = end_index
+        # if nLeft == 0:
+        #     fig = df2.figure(fnum=self.fnum, pnum=(1, 1, 1))
+        #     fig.clf()
+        #     return False
+        #     raise AssertionError('no more images to display')
+        nDisplay = self.max_per_page
+        self.nDisplay = nDisplay
+        nRows, nCols = ph.get_square_row_cols(nDisplay)
+        print('[viz*] r=%r, c=%r' % (nRows, nCols))
+        pnum_ = df2.get_pnum_func(nRows, nCols)
+        # Clear the figure for the new page of data
+        fig = df2.figure(fnum=self.fnum, pnum=pnum_(0))
+        fig.clf()
+        # Draw the new page of data
+        px = -1  # plot-index
+        
+        
+        for px, index in enumerate(xrange(start_index, end_index)):
+            gpath      = self.gpath_list[index]
+            bbox_list  = self.bboxes_list[index]
+            print("bbox_list in display for px: ",px, " , ",bbox_list)
+            theta_list = self.thetas_list[index]
+            img = cv2.imread(gpath)
+            sel_list = []
+            #Add true values for every bbox to display
+            for i in range(0, len(bbox_list)):
+                sel_list.append(True)
+            _vizkw = {
+                'fnum': self.fnum,
+                'pnum': pnum_(px),
+                #title should always be the image number
+                'title': str(index),
+                'bbox_list'  : bbox_list,
+                'theta_list' : theta_list,
+                'sel_list'   : sel_list,
+                'label_list' : ["lbl1"],
+            }
+            #print(utool.dict_str(_vizkw))
+            print('vizkw = ' + utool.dict_str(_vizkw))
+            _, ax = viz_image2.show_image(img, **_vizkw)
+            ph.set_plotdat(ax, 'px', str(px))
+            ph.set_plotdat(ax, 'title', str(index))
             ph.set_plotdat(ax, 'bbox_list', bbox_list)
             ph.set_plotdat(ax, 'gpath', gpath)
             #print('components: ', fig.get_children())
             if px + 1 >= nDisplay:
                 break
-        self.current_index = end_index
+        
         # Set the figure title
         df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, end_index, self.nImgs))
 
-        # Create the button for scrolling forwards
-        self.next_ax = plt.axes([0.7, 0.05, 0.15, 0.075])
-        self.next_but = Button(self.next_ax, 'next')
-        self.next_but.on_clicked(self.display_next_page)
-
-        # Connect the callback whenever the figure is clicked
-        ih.connect_callback(fig, 'button_press_event', self.on_figure_clicked)
-
+        #ih.connect_callback(fig, 'button_press_event', self.on_figure_clicked)
+        
+        self.display_buttons()
         # Show the changes
         fig.show()
         print('next')
 
-    def update_images(self, img_ind, updated_bbox_list):
+    def display_buttons(self):
+        # Create the button for scrolling forwards
+        self.next_ax = plt.axes([0.75, 0.025, 0.15, 0.075])
+        self.next_but = Button(self.next_ax, 'next')
+        self.next_but.on_clicked(self.display_next_page)
+
+        # Create the button for scrolling backwards
+        self.prev_ax = plt.axes([0.1, .025, 0.15, 0.075])
+        self.prev_but = Button(self.prev_ax, 'prev')
+        self.prev_but.on_clicked(self.display_prev_page)
+        # Connect the callback whenever the figure is clicked
+        
+
+    def update_images(self, img_ind, updated_bbox_list, updated_theta_list):
         print("update called")
         index = int (img_ind)
-        print(self.bboxes_list[index])
-        self.bboxes_list[index] = updated_bbox_list;
-        print(self.bboxes_list[index])
-        print("bbox update done")
+        print("index: ",index)
+        print("Image's bbox before: ",self.bboxes_list[index])
+        self.bboxes_list[index] = updated_bbox_list
+        self.thetas_list[index] = updated_theta_list
+        print("Image's bbox after: ",self.bboxes_list[index])
+
         """Insert code for viz_image2 redrawing here"""
+        nRows, nCols = ph.get_square_row_cols(self.nDisplay)
+        pnum_ = df2.get_pnum_func(nRows, nCols)
         gpath = self.gpath_list[index]
         bbox_list  = self.bboxes_list[index]
         theta_list = self.thetas_list[index]
+        px = index % self.max_per_page
+        label_list = []
+        for i in range(0, len(bbox_list)):
+            label_list.append(i + 1)
+        sel_list = []
+        for i in range(0, len(bbox_list)):
+                print("image has a bbox")
+                sel_list.append(True)
         img = cv2.imread(gpath)
         _vizkw = {
             'fnum': self.fnum,
-            #'pnum': pnum_(px),
+            'pnum': pnum_(px),
             'title': str(index),
             'bbox_list'  : bbox_list,
             'theta_list' : theta_list,
-            'sel_list'   : [],
-            'label_list' : [],
+            'sel_list'   : sel_list,
+            'label_list' : label_list,
         }
             #print(utool.dict_str(_vizkw))
         _, ax = viz_image2.show_image(img, **_vizkw)
+
+
     def on_figure_clicked(self, event):
-
-
+        #don't do other stuff if we clicked a button
+        point = (event.x, event.y)
+        if self.next_ax.contains_point(point) or self.prev_ax.contains_point(point):
+            print("in button click")
+            return
 
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
-            px = ph.get_plotdat(ax, 'px')
-            bbox_list  = ph.get_plotdat(ax, 'bbox_list')
-            bbox_list = self.bboxes_list[int(px)]
+            image_number = int(ph.get_plotdat(ax, 'title'))
+            #bbox_list  = ph.get_plotdat(ax, 'bbox_list')
+            bbox_list = self.bboxes_list[image_number]
             print("Bbox of figure: ",bbox_list)
-            theta_list = ph.get_plotdat(ax, 'theta_list')
+            theta_list = self.thetas_list[image_number]
+            print("theta_list = ",theta_list)
             gpath      = ph.get_plotdat(ax, 'gpath')
             img = mpimg.imread(gpath)
             fnum = df2.next_fnum()
-            mc = interact_rois.ROIInteraction(img, px, self.update_images, bbox_list=bbox_list, fnum=fnum)
+            mc = interact_rois.ROIInteraction(img, image_number, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
             # """wait for accept
             # have a flag to tell if a bbox has been changed, on the bbox list that is brought it"
             # on accept:
             # viz_image2.show_image callback
             # """
             plt.show()
-            print('Clicked: ax: px=%r' % px)
+            print('Clicked: ax: num=%r' % image_number)
 
         #img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number) #print(imgs[0].make_image())
         #print(self.img_list[3])
