@@ -252,9 +252,11 @@ class SQLDatabaseController(object):
         header_types = utool.indentjoin(column_nametypes, '\n# ')
         column_list = []
         column_labels = []
+        print(column_names)
         for name in column_names:
             if name in exclude_columns:
                 continue
+            print("%r %r" %(tablename, name))
             column_vals = db.get_column(tablename, name)
             column_list.append(column_vals)
             column_labels.append(name.replace(tablename[:-1] + '_', ''))
@@ -369,7 +371,7 @@ class SQLDatabaseController(object):
     @profile
     def sanatize_sql(db, tablename, columns=None):
         """ Sanatizes an sql tablename and column. Use sparingly """
-        tablename = re.sub('[^a-z_]', '', tablename)
+        tablename = re.sub('[^a-z_0-9]', '', tablename)
         valid_tables = db.get_tables()
         if tablename not in valid_tables:
             raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
@@ -377,7 +379,7 @@ class SQLDatabaseController(object):
             return tablename
         else:
             def _sanitize_sql_helper(column):
-                column = re.sub('[^a-z_]', '', column)
+                column = re.sub('[^a-z_0-9]', '', column)
                 valid_columns = db.get_column_names(tablename)
                 if column not in valid_columns:
                     raise Exception('UNSAFE COLUMN: tablename=%r column=%r' %

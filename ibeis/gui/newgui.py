@@ -206,9 +206,9 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             tblnames = ibswgt.super_tblname_list
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
-        # with ChangingModelLayout(model_list):
-        for tblname in tblnames:
-            yield tblname
+        with ChangingModelLayout(model_list):
+            for tblname in tblnames:
+                yield tblname
 
     def update_tables(ibswgt, tblnames=None):
         """ forces changing models """
