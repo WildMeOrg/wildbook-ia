@@ -110,8 +110,6 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @updater
     def _update_headers(model,
-                        getdirty=None,
-                        setdirty=None,
                         ider=None,
                         name=None,
                         nice=None,
@@ -126,8 +124,6 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.cache = {}  # FIXME: This is not sustainable
         model.name = str(name)
         model.nice = str(nice)
-        model.getdirty = getdirty if getdirty is not None else lambda: False
-        model.setdirty = setdirty if setdirty is not None else lambda flag: None
         # Initialize class
         model._set_ider(ider)
         model._set_col_name_type(col_name_list, col_type_list)
@@ -165,12 +161,6 @@ class APITableModel(QtCore.QAbstractTableModel):
             return False
 
     @default_method_decorator
-    def _check_if_dirty(model):
-        """ check the api has changed without us knowing """
-        if model.getdirty():
-            model._force_update()
-
-    @default_method_decorator
     def _force_update(model):
         model._about_to_change(force=True)
         model._change(force=True)
@@ -180,7 +170,6 @@ class APITableModel(QtCore.QAbstractTableModel):
         #if newrows:
         model._update_rows()
         model.cache = {}
-        #model.setdirty(False)
 
     @updater
     def _update_rows(model):
