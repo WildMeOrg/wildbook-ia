@@ -214,5 +214,4 @@ def embed(back):
     """ Allows for embedding in an environment with all imports """
     ibs = back.ibs
     front = back.front
-    ui = front.ui
     utool.embed()

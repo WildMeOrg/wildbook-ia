@@ -257,7 +257,7 @@ class SQLDatabaseController(object):
         for name in column_names:
             if name in exclude_columns:
                 continue
-            print("%r %r" %(tablename, name))
+            print("%r %r" % (tablename, name))
             column_vals = db.get_column(tablename, name)
             column_list.append(column_vals)
             column_labels.append(name.replace(tablename[:-1] + '_', ''))
@@ -333,7 +333,8 @@ class SQLDatabaseController(object):
         # Add any unadded images
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         if len(dirty_params) > 0:
-            rowid_list = db.add(tblname, colname_list, dirty_params)
+            db.add(tblname, colname_list, dirty_params)
+            rowid_list = get_rowid_from_uuid(uuid_list)
         else:
             rowid_list = rowid_list_
         return rowid_list
@@ -368,8 +369,10 @@ class SQLDatabaseController(object):
             WHERE rowid=?
             '''
         params_iter = ((_uid,) for _uid in id_iter)
-        return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=params_iter, **kwargs)
+        #  db.cache[tblname][colname][rowid] =
+        val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                                 params_iter=params_iter, **kwargs)
+        return val_list
 
     #@setter
     def set(db, tblname, colnames, id_list, val_iter, **kwargs):

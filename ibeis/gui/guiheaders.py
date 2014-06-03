@@ -27,7 +27,7 @@ TABLE_NICE = {
 
 # the columns each ibeis table has
 TABLE_COLNAMES = {
-    IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes'],
+    IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
@@ -46,6 +46,7 @@ TABLE_EDITSET = {
 
 # Define the valid columns a table could have
 COL_DEF = dict([
+    ('image_uuid',  (str,   'Image UUID')),
     ('gid',        (int,   'Image ID')),
     ('rid',        (int,   'ROI ID')),
     ('nid',        (int,   'Name ID')),
@@ -66,6 +67,7 @@ COL_DEF = dict([
     ('aif',        (bool,  'All Detected')),
     ('enctext',    (str,   'Encounter Text')),
     ('datetime',   (str,   'Date / Time')),
+    ('ext',        (str,   'EXT')),
 ])
 
 
@@ -89,6 +91,7 @@ def make_ibeis_headers_dict(ibs):
         'unixtime': ibs.get_image_unixtime,
         'datetime': simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
         'notes':    ibs.get_image_notes,
+        'image_uuid': ibs.get_image_uuids,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,

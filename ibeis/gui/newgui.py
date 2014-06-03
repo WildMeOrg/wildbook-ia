@@ -188,7 +188,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
     def refresh_status_labels(ibswgt, labels=None):
         [ ibswgt.statusBar.itemAt(index).widget().close()
-            for index in range(ibswgt.statusBar.count()) ]
+            for index in xrange(ibswgt.statusBar.count()) ]
         if labels is not None:
             ibswgt.statusLabels = labels
         for label in ibswgt.statusLabels:
@@ -205,8 +205,8 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         """
         if tblnames is None:
             tblnames = ibswgt.super_tblname_list
-        #model_list = [ibswgt.models[tblname] for tblname in tblnames]
-        model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
+        model_list = [ibswgt.models[tblname] for tblname in tblnames]
+        #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
         with ChangingModelLayout(model_list):
             for tblname in tblnames:
                 yield tblname
@@ -283,6 +283,12 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             opt2_gid_callback = [
                 ('view hough image', lambda: ibswgt.back.show_hough(gid)),
                 ('delete image', lambda: ibswgt.back.delete_image(gid)),
+            ]
+            guitool.popup_menu(tblview, pos, opt2_gid_callback)
+        if model.name == ENCOUNTER_TABLE:
+            eid = id_
+            opt2_gid_callback = [
+                ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
             ]
             guitool.popup_menu(tblview, pos, opt2_gid_callback)
 

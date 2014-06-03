@@ -352,7 +352,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] export_database')
         back.ibs.db.dump()
         back.ibs.db.dump_tables_to_csv()
-        
+
     @blocking_slot()
     def import_images(back, gpath_list=None, dir_=None, refresh=True):
         """ File -> Import Images (ctrl + i)"""
@@ -509,7 +509,14 @@ class MainWindowBackend(QtCore.QObject):
 
     @blocking_slot()
     def delete_all_encounters(back):
+        print('\n\n[back] delete all encounters')
         back.ibs.delete_all_encounters()
+        back.front.update_tables()
+
+    @blocking_slot(int)
+    def delete_encounter(back, eid):
+        print('\n\n[back] delete encounter')
+        back.ibs.delete_encounters([eid])
         back.front.update_tables()
 
     @blocking_slot()
