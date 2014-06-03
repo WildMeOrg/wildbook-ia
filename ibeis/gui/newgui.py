@@ -88,6 +88,11 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
                 enc_tabwgt.setTabText(index, enctext)
 
 
+class StatusLabel(QtGui.QLabel):
+    def __init__(labelwgt, text, parent=None):
+        QtGui.QLabel.__init__(labelwgt, text, parent)
+        labelwgt.setAlignment(Qt.AlignCenter)
+
 #############################
 ###### Window Widgets #######
 #############################
@@ -159,6 +164,9 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         ibswgt.status_wgt, ibswgt.status_vlayout = guitool.newWidget(ibswgt, verticalStretch=6)
 
+        ibswgt.statusBar = QtGui.QHBoxLayout(ibswgt)
+        ibswgt.statusLabels = ['', 'Status Bar', '']
+
     def _init_layout(ibswgt):
         """ Lays out the defined components """
         # Add elements to the layout
@@ -173,6 +181,22 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         # Horizontal Lower
         ibswgt.status_vlayout.addWidget(ibswgt.outputLog)
         ibswgt.status_vlayout.addWidget(ibswgt.progressBar)
+        ibswgt.status_vlayout.addLayout(ibswgt.statusBar)
+        # Status Labels
+        ibswgt.refresh_status_labels()
+
+    def refresh_status_labels(ibswgt, labels=None):
+        [ ibswgt.statusBar.itemAt(index).widget().close() 
+            for index in range(ibswgt.statusBar.count()) ]
+        if labels is not None:
+            ibswgt.statusLabels = labels
+        for label in ibswgt.statusLabels:
+            ibswgt.statusBar.addWidget(StatusLabel(label))
+
+    def set_label(ibswgt, index, text):
+        print(ibswgt.statusLabels)
+        ibswgt.statusLabels[index] = text
+        ibswgt.refresh_status_labels()
 
     def change_model_context_gen(ibswgt, tblnames=None):
         """
@@ -182,9 +206,9 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             tblnames = ibswgt.super_tblname_list
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
-        with ChangingModelLayout(model_list):
-            for tblname in tblnames:
-                yield tblname
+        # with ChangingModelLayout(model_list):
+        for tblname in tblnames:
+            yield tblname
 
     def update_tables(ibswgt, tblnames=None):
         """ forces changing models """
@@ -276,21 +300,27 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         model = qtindex.model()
         gid = model._get_row_id(qtindex.row())
         ibswgt.back.select_gid(gid, model.eid)
-        print("Image Selected, %r (ENC %r)" % (gid, model.eid))
+        string = "Image Selected, %r (ENC %r)" % (gid, model.eid)
+        print(string)
+        ibswgt.set_label(0, string)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_roi(ibswgt, qtindex):
         model = qtindex.model()
         rid = model._get_row_id(qtindex.row())
         ibswgt.back.select_rid(rid, model.eid)
-        print("ROI Selected, %r (ENC %r)" % (rid, model.eid))
+        string = "ROI Selected, %r (ENC %r)" % (rid, model.eid)
+        print(string)
+        ibswgt.set_label(1, string)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_name(ibswgt, qtindex):
         model = qtindex.model()
         nid = model._get_row_id(qtindex.row())
         ibswgt.back.select_nid(nid, model.eid)
-        print("Name Selected, %r (ENC %r)" % (nid, model.eid))
+        string = "Name Selected, %r (ENC %r)" % (nid, model.eid)
+        print(string)
+        ibswgt.set_label(2, string)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_encounter(ibswgt, qtindex):
