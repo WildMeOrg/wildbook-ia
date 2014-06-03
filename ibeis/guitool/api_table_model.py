@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import __builtin__
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
@@ -19,20 +20,19 @@ class ChangingModelLayout(object):
     def __init__(self, model_list, *args):
         #print('Changing: %r' % (model_list,))
         self.model_list = list(model_list) + list(args)
-        self.selfid = id(self)
 
     def __enter__(self):
         for model in self.model_list:
             if model._context_id is not None:
                 continue
-            model._context_id = self.selfid
+            model._context_id = id(self)
             model._about_to_change()
             model._changeblocked = True
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.model_list:
-            if model._context_id == self.selfid:
+            if model._context_id == id(self):
                 model._context_id = None
                 model._changeblocked = False
                 model._change()
@@ -41,6 +41,14 @@ class ChangingModelLayout(object):
 def default_method_decorator(func):
     """ Dummy decorator """
     return checks_qt_error(profile(func))
+    func_name = func.func_name
+    #func_ = checks_qt_error(profile(func))
+    func_ = func
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        __builtin__.print('func_name = ' + func_name)
+        return func_(*args, **kwargs)
+    return wrapper
 
 
 def updater(func):
@@ -83,11 +91,12 @@ class APITableModel(QtCore.QAbstractTableModel):
         ----
         """
         super(APITableModel, model).__init__()
-        # Class member variables
+        # Internal Flags
         model._abouttochange   = False
         model._context_id      = None
         model._haschanged      = True
         model._changeblocked   = False
+        # Model Data And Accessors
         model.name             = None
         model.nice             = None
         model.ider             = None
@@ -102,11 +111,40 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.cache = None  # FIXME: This is not sustainable
         model.row_index_list = None
         # Initialize member variables
-        model._about_to_change()
-        if headers is None:
-            headers = {}
+        #model._about_to_change()
         with ChangingModelLayout([model]):
-            model._update_headers(**headers)
+            if headers is None:
+                headers = {}
+            with ChangingModelLayout([model]):
+                model._update_headers(**headers)
+
+    @default_method_decorator
+    def _about_to_change(model, force=False):
+        N = range(0, 10)  # NOQA
+        if force or (not model._abouttochange and not model._changeblocked):
+            print('ABOUT TO CHANGE: %r' % (model.name,))
+            #print('caller=%r' % (utool.get_caller_name(N=N)))
+            model._abouttochange = True
+            model.layoutAboutToBeChanged.emit()
+            return True
+        else:
+            print('NOT ABOUT TO CHANGE')
+            return False
+
+    @default_method_decorator
+    def _change(model, force=False):
+        N = range(0, 10)  # NOQA
+        if force or (model._abouttochange and not model._changeblocked):
+            print('LAYOUT CHANGED:  %r' % (model.name,))
+            model._abouttochange = False
+            #print('caller=%r' % (utool.get_caller_name(N=N)))
+            #model._abouttochange = False
+            model.layoutChanged.emit()
+            return True
+        else:
+            print('NOT CHANGING')
+            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            return False
 
     @updater
     def _update_headers(model,
@@ -135,39 +173,9 @@ class APITableModel(QtCore.QAbstractTableModel):
         model._set_sort(col_sort_index, col_sort_reverse)
 
     @default_method_decorator
-    def _about_to_change(model, force=False):
-        N = range(0, 15)  # NOQA
-        if force or (model._haschanged and not model._abouttochange):
-            print('ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
-            model._abouttochange = True
-            #model._haschanged = False
-            model.layoutAboutToBeChanged.emit()
-            return True
-        else:
-            #print('NOT ABOUT TO CHANGE: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
-            return False
-
-    @default_method_decorator
-    def _change(model, force=False):
-        N = range(0, 15)  # NOQA
-        if force or (not model._haschanged or model._abouttochange and not model._changeblocked):
-            print('LAYOUT CHANGED:  %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
-            model._abouttochange = False
-            model._haschanged = True
-            model.layoutChanged.emit()
-            return True
-        else:
-            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
-            return False
-
-    @default_method_decorator
-    def _force_update(model):
-        model._about_to_change(force=True)
-        model._change(force=True)
-
-    @default_method_decorator
     def _update(model, newrows=False):
         #if newrows:
+        print('UPDATE: CACHE INVALIDATED!')
         model._update_rows()
         model.cache = {}
 
@@ -177,22 +185,24 @@ class APITableModel(QtCore.QAbstractTableModel):
         Uses the current ider and col_sort_index to create
         row_indicies
         """
+        print('UPDATE ROWS!')
         ids_ = model.ider()
         if len(ids_) == 0:
             model.row_index_list = []
         else:
             # start sort
             values = model.col_getter_list[model.col_sort_index](ids_)
-            row_indices = [id_ for (value, id_) in sorted(list(izip(values, ids_)))]
+            row_indices = [id_ for (value, id_) in
+                           sorted(izip(values, ids_),
+                                  reverse=model.col_sort_reverse)]
             # end sort
             assert row_indices is not None, 'no indices'
-            if model.col_sort_reverse:
-                row_indices = row_indices[::-1]
             model.row_index_list = row_indices
         model._rows_updated.emit(model.name, len(model.row_index_list))
 
     @updater
     def _set_ider(model, ider=None):
+        print('NEW IDER')
         if ider is None:
             ider = lambda: []
         assert utool.is_funclike(ider), 'bad type: %r' % type(ider)
@@ -243,6 +253,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @updater
     def _set_sort(model, col_sort_index=None, col_sort_reverse=None):
+        print('SET SORT')
         if col_sort_index is None:
             col_sort_index = 0
         else:
@@ -323,9 +334,9 @@ class APITableModel(QtCore.QAbstractTableModel):
     # --- QtGui Functions ---
     #------------------------
 
-    @default_method_decorator
-    def index(model, row, column, parent=QtCore.QModelIndex()):
-        return model.createIndex(row, column)
+    #@default_method_decorator
+    #def index(model, row, column, parent=QtCore.QModelIndex()):
+    #    return model.createIndex(row, column)
 
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
@@ -337,9 +348,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
-        """
-        Depending on the role, returns either data or how to display data
-        """
+        """ Depending on the role, returns either data or how to display data """
         if not qtindex.isValid():
             return None
         flags = model.flags(qtindex)
@@ -367,10 +376,8 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
-        """
-        Sets the role data for the item at qtindex to value.
-        value is a QVariant (called data in documentation)
-        """
+        """ Sets the role data for the item at qtindex to value.
+        value is a QVariant (called data in documentation) """
         try:
             if not qtindex.isValid():
                 return None

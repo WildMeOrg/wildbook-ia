@@ -133,11 +133,15 @@ def newTextEdit(parent, visible=True):
 
 
 def newWidget(parent, verticalStretch=1):
-    widget = QtGui.QWidget()
+    widget = QtGui.QWidget(parent)
     sizePolicy = newSizePolicy(widget, verticalStretch=1)
     widget.setSizePolicy(sizePolicy)
     layout = QtGui.QVBoxLayout(widget)
-    return widget, layout
+    # Black magic
+    widget._guitool_layout = layout
+    widget.addWidget = widget._guitool_layout.addWidget
+    widget.addLayout = widget._guitool_layout.addLayout
+    return widget
 
 
 def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
