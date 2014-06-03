@@ -92,8 +92,6 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     #back.set_image_prop(gid_list[0], 'notes', 'notes of an image', **_kwargs)
     #back.set_image_prop(gid_list[1], 'aif', True, **_kwargs)
 
-    #back.set_view(1)
-
     #back.set_roi_prop(rid_list[1], 'notes', 'Lena', **_kwargs)
     #back.set_roi_prop(rid_list[2], 'notes', 'This is, a small ROI on jeff', **_kwargs)
     #assert ibs.get_roi_notes(rid_list) == [u'', u'Lena', u'This is, a small ROI on jeff', u'', u'']

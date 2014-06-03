@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import sys
-from os.path import exists, join, realpath
+from os.path import exists, join
 import functools
 # Qt
 from PyQt4 import QtCore
@@ -145,10 +145,6 @@ class MainWindowBackend(QtCore.QObject):
     def show_hough(back, gid, **kwargs):
         viz.show_hough(back.ibs, gid, **kwargs)
         viz.draw()
-
-    def set_view(back, index):
-        """ Sets the current tab index """
-        back.front.ui.tablesTabWidget.setCurrentIndex(index)
 
     #----------------------
     # State Management Functions (ewww... state)
@@ -627,15 +623,15 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def delete_global_prefs(back):
-        # RCOS TODO: Add are you sure dialog?
         print('[back] delete_global_prefs')
+        # TODO: Add are you sure dialog?
         utool.delete(utool.get_app_resource_dir('ibeis', 'global_cache'))
         pass
 
     @slot_()
     def delete_queryresults_dir(back):
-        # RCOS TODO: Add are you sure dialog?
         print('[back] delete_queryresults_dir')
+        # TODO: Add are you sure dialog?
         utool.delete(back.ibs.qresdir)
         pass
 
@@ -645,21 +641,12 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] dev_reload')
         from ibeis.dev.all_imports import reload_all
         reload_all()
-        """
-        #from ibeis.dev import debug_imports
-        #ibeis_modules = debug_imports.get_ibeis_modules()
-        #for module in ibeis_modules:
-            #if not hasattr(module, 'rrr'):
-                #utool.inject_reload_function(module=module)
-            #if hasattr(module, 'rrr'):
-                #module.rrr()
-        """
 
     @blocking_slot()
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
-        from ibeis.dev import all_imports  # NOQA
+        from ibeis.dev import all_imports
         all_imports.embed(back)
 
     @blocking_slot()

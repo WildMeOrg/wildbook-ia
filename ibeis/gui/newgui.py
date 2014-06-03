@@ -33,9 +33,10 @@ class APITabWidget(QtGui.QTabWidget):
     def setCurrentIndex(tabwgt, index):
         print('Set current Index: %r ' % index)
         tblname = tabwgt.ibswgt.tblname_list[index]
-        model = tabwgt.ibswgt.models[tblname]
-        with ChangingModelLayout([model]):
-            QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
+        print(tblname)
+        #model = tabwgt.ibswgt.models[tblname]
+        #with ChangingModelLayout([model]):
+        #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
 class EncoutnerTabWidget(QtGui.QTabWidget):
@@ -145,8 +146,10 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         """ Defines gui components """
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
-        ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
-        ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
+        #ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
+        ibswgt.vsplitter = guitool.newWidget(ibswgt, Qt.Vertical)
+        ibswgt.hsplitter = guitool.newWidget(ibswgt)
+        #
         # Tables Tab
         ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
         #guitool.newTabWidget(ibswgt, horizontalStretch=81)
@@ -154,6 +157,8 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         for tblname, ModelClass, ViewClass in ibswgt.modelview_defs:
             ibswgt.models[tblname] = ModelClass(parent=ibswgt)
             ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
+        # Connect models and views
+        for tblname in ibswgt.super_tblname_list:
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ROI, and Names as tabs
         for tblname in ibswgt.tblname_list:
@@ -163,7 +168,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8, visible=True, verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
-        ibswgt.status_wgt, ibswgt.status_vlayout = guitool.newWidget(ibswgt, verticalStretch=6)
+        ibswgt.status_wgt  = guitool.newWidget(ibswgt, verticalStretch=6)
 
         ibswgt.statusBar = QtGui.QHBoxLayout(ibswgt)
         ibswgt.statusLabels = ['', 'Status Bar', '']
@@ -180,9 +185,9 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.hsplitter.addWidget(ibswgt.views[ENCOUNTER_TABLE])
         ibswgt.hsplitter.addWidget(ibswgt._tab_table_wgt)
         # Horizontal Lower
-        ibswgt.status_vlayout.addWidget(ibswgt.outputLog)
-        ibswgt.status_vlayout.addWidget(ibswgt.progressBar)
-        ibswgt.status_vlayout.addLayout(ibswgt.statusBar)
+        ibswgt.status_wgt.addWidget(ibswgt.outputLog)
+        ibswgt.status_wgt.addWidget(ibswgt.progressBar)
+        ibswgt.status_wgt.addLayout(ibswgt.statusBar)
         # Status Labels
         ibswgt.refresh_status_labels()
 
@@ -199,7 +204,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.statusLabels[index] = text
         ibswgt.refresh_status_labels()
 
-    def change_model_context_gen(ibswgt, tblnames=None):
+    def changing_models_gen(ibswgt, tblnames=None):
         """
         Loops over tablenames emitting layoutChanged at the end for each
         """
@@ -213,7 +218,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
     def update_tables(ibswgt, tblnames=None):
         """ forces changing models """
-        for tblname in ibswgt.change_model_context_gen(tblnames=tblnames):
+        for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
             model = ibswgt.models[tblname]
             model._update()
 
@@ -223,20 +228,22 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         if ibs is None:
             print('[newgui] invalid ibs')
             title = 'No Database Opened'
+            ibswgt.setWindowTitle(title)
         else:
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             # Give the frontend the new control
             ibswgt.ibs = ibs
             # Update the api models to use the new control
             header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
+            title = ibsfuncs.get_title(ibswgt.ibs)
+            ibswgt.setWindowTitle(title)
             print('[newgui] Calling model _update_headers')
-            for tblname in ibswgt.change_model_context_gen(ibswgt.super_tblname_list):
+            _flag = ibswgt._tab_table_wgt.blockSignals(True)
+            for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
                 model = ibswgt.models[tblname]
                 header = header_dict[tblname]
                 model._update_headers(**header)
-            #ibs.delete_invalid_eids()
-            title = ibsfuncs.get_title(ibswgt.ibs)
-        ibswgt.setWindowTitle(title)
+            ibswgt._tab_table_wgt.blockSignals(_flag)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
@@ -246,7 +253,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             CLASS_IBEISGUIWidget.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
-        for tblname in ibswgt.change_model_context_gen(tblnames=ibswgt.tblname_list):
+        for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
