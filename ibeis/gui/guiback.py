@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import sys
-from os.path import exists, join
+from os.path import exists, join, realpath
 import functools
 # Qt
 from PyQt4 import QtCore
@@ -347,13 +347,12 @@ class MainWindowBackend(QtCore.QObject):
             sysres.set_default_dbdir(dbdir)
 
     @blocking_slot()
-    def save_database(back):
-        """ File -> Save Database"""
-        print('[back] ')
-        # Depricate
-        pass
-        raise NotImplementedError()
-
+    def export_database(back):
+        """ File -> Export Database"""
+        print('[back] export_database')
+        back.ibs.db.dump()
+        back.ibs.db.dump_tables_to_csv()
+        
     @blocking_slot()
     def import_images(back, gpath_list=None, dir_=None, refresh=True):
         """ File -> Import Images (ctrl + i)"""
@@ -550,8 +549,6 @@ class MainWindowBackend(QtCore.QObject):
         qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
         qrw.show()
         qrw.raise_()
-        #raise NotImplementedError()
-        #pass
 
     @blocking_slot()
     def compute_encounters(back, refresh=True):
@@ -603,45 +600,36 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @slot_()
-    def view_computed_dir(back):
-        print('[back] view_computed_dir')
-        raise NotImplementedError()
-        pass
-
-    @slot_()
-    def view_global_dir(back):
-        print('[back] view_global_dir')
-        raise NotImplementedError()
+    def view_app_files_dir(back):
+        print('[back] view_model_dir')
+        utool.view_directory('"' + utool.get_app_resource_dir('ibeis') + '"')
         pass
 
     @slot_()
     def delete_detection_models(back):
-        # RCOS TODO: Add are you sure dialog?
         print('[back] delete_detection_models')
-        DETECTMODELS_DIR = utool.get_app_resource_dir('ibeis', 'detectmodels')
-        print(DETECTMODELS_DIR)
-        utool.delete(DETECTMODELS_DIR)
+        utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
         pass
 
     @slot_()
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
-        raise NotImplementedError()
+        utool.delete(back.ibs.cachedir)
         pass
 
     @slot_()
     def delete_global_prefs(back):
         # RCOS TODO: Add are you sure dialog?
         print('[back] delete_global_prefs')
-        raise NotImplementedError()
+        utool.delete(utool.get_app_resource_dir('ibeis', 'global_cache'))
         pass
 
     @slot_()
     def delete_queryresults_dir(back):
         # RCOS TODO: Add are you sure dialog?
         print('[back] delete_queryresults_dir')
-        raise NotImplementedError()
+        utool.delete(back.ibs.qresdir)
         pass
 
     @blocking_slot()

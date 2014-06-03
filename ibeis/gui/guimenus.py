@@ -42,11 +42,11 @@ def setup_file_menu(mainwin, back):
         slot_fn=back.open_database)
     mainwin.menuFile.addSeparator()
     mainwin.menuFile.newAction(
-        name='actionSave_Database',
-        tooltip='Saves csv tables',
-        text='Save Database',
+        name='actionExport_Database',
+        tooltip='Dumps and exports database as csv tables.',
+        text='Export Database',
         shortcut='Ctrl+S',
-        slot_fn=back.save_database)
+        slot_fn=back.export_database)
     mainwin.menuFile.addSeparator()
     mainwin.menuFile.newAction(
         name='actionImport_Img_file',
@@ -193,6 +193,11 @@ def setup_help_menu(mainwin, back):
         text='View Database Directory',
         shortcut='',
         slot_fn=back.view_database_dir)
+    mainwin.menuHelp.newAction(
+        name='actionView_App_Files_Dir',
+        text='View Application Files Directory',
+        shortcut='',
+        slot_fn=back.view_app_files_dir)
     # ---
     mainwin.menuHelp.addSeparator()
     # ---
