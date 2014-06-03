@@ -93,6 +93,7 @@ from vtool import keypoint as ktool
 from vtool import linalg as ltool
 from vtool import segmentation
 from vtool import spatial_verification as sverif
+from vtool.tests import grabdata
 
 # PlotTool
 import plottool

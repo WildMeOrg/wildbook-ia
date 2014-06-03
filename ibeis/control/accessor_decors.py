@@ -42,11 +42,19 @@ def deleter(func):
 
 # DECORATORS::SETTER
 
+def setter_general(func):
+    func = default_decorator(func)
+    return func
+
+
 def setter(func):
     func = default_decorator(func)
     @utool.ignores_exc_tb
+    @utool.accepts_scalar_input2(range(0, 2))
     @wraps(func)
     def setter_wrapper(*args, **kwargs):
+        print('set: func_name=%r, args=%r, kwargs=%r' % (func.func_name, args,
+                                                         kwargs))
         return func(*args, **kwargs)
     return setter_wrapper
 

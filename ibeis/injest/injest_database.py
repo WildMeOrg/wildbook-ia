@@ -139,20 +139,6 @@ def injest_rawdata(ibs, injestable, localize=False):
 
     # Add Images
     gid_list = utool.filter_Nones(ibs.add_images(gpath_list))
-    #DEBUG = True
-    #if DEBUG:
-    #    invalid_list = [gid is None for gid in gid_list]
-    #    none_indexes = utool.filter_items(range(len(gid_list)), invalid_list)
-    #    none_gpaths  = utool.filter_items(gpath_list, invalid_list)
-    #    print(none_gpaths)
-    #    print(none_indexes)
-    #    for gpath in none_gpaths:
-    #        from ibeis.model.preproc import preproc_image
-    #        utool.checkpath(gpath, verbose=True)
-    #        imgtup = preproc_image.preprocess_image(gpath)
-    #        guuid_list = [imgtup[0]]
-    #    utool.embed()
-    # Resolve conflicts
     unique_gids, unique_names, unique_notes = ibsfuncs.resolve_name_conflicts(
         gid_list, name_list)
     # Add ROIs with names and notes

@@ -31,7 +31,7 @@ def change_names(ibs, qrid_list):
     for rid in qrid_list:
         ibs.print_name_table()
         #(nid,) = ibs.add_names((new_name,))
-        ibs.set_roi_props((rid,), 'name', (new_name,))
+        ibs.set_roi_names(rid, new_name)
         ibs.print_name_table()
         ibs.print_roi_table()
     # FIXME:

@@ -27,8 +27,8 @@ def __insert_names(db, name_list):
         VALUES (NULL, ?)
         ''',
         params_iter=((name,) for name in name_list))
-    assert ret == [None] * len(name_list)
-    #print('INSERT RETURNED: %r' % ret)
+    print('INSERT RETURNED: %r' % ret)
+    #assert ret == [None] * len(name_list)
 
 
 def TEST_SQL_NAMES():
@@ -57,7 +57,7 @@ def TEST_SQL_NAMES():
         'rob',
     ]
     __insert_names(db, test_names)
-    __insert_names(db, test_names[2:3])
+    __insert_names(db, test_names[2:4])
     #
     # -------- RUN SELECT NAMES --------------
     print('[TEST] --- SELECT NAMES ---')

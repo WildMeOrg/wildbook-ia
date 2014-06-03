@@ -108,7 +108,7 @@ def make_ibeis_headers_dict(ibs):
         'notes':  ibs.get_roi_notes,
     }
     setters[ROI_TABLE] = {
-        'names': ibs.set_roi_names,
+        'name': ibs.set_roi_names,
         'notes': ibs.set_roi_notes,
     }
     #

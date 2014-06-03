@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import multiprocessing
 import utool
 from ibeis import viz
 from vtool.tests import grabdata
@@ -9,7 +8,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS]')
 
 
 def TEST_IBS(ibs):
-    gpath_list = grabdata.get_test_gpaths(ndata=3)
+    gpath_list = grabdata.get_test_gpaths(ndata=2)
 
     print('[TEST] 1.ibs.add_images(gpath_list=%r)' % gpath_list)
     gid_list = ibs.add_images(gpath_list)
@@ -40,7 +39,13 @@ def TEST_IBS(ibs):
     gid_list = [gid, gid]
     bbox_list = [(50, 50, 100, 100), (75, 75, 102, 101)]
     theta_list = [0, 1.1]
-    rid_list = ibs.add_rois(gid_list, bbox_list, theta_list)
+    viewpoint_list = None
+    nid_list = None
+    name_list = None
+    notes_list = None
+    rid_list = ibs.add_rois(gid_list, bbox_list, theta_list=theta_list,
+                            viewpoint_list=viewpoint_list, nid_list=nid_list,
+                            name_list=name_list, notes_list=notes_list)
     print(' * rid_list=%r' % rid_list)
 
     print('[TEST] 6. get_roi_props')
@@ -58,6 +63,7 @@ def TEST_IBS(ibs):
 
 
 if __name__ == '__main__':
+    import multiprocessing
     multiprocessing.freeze_support()  # For win32
     import ibeis
     # Initialize database

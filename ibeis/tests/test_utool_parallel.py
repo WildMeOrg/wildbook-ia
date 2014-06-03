@@ -14,7 +14,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_PARALLEL]'
 
 
 def TEST_PARALLEL():
-    gpath_list = grabdata.get_test_gpaths(ndata=10, zebra=True, lena=True, jeff=True)
+    gpath_list = grabdata.get_test_gpaths(ndata=10, names=['zebra', 'lena', 'jeff'])
     args_list  = [(gpath,) for gpath in gpath_list]
 
     @utool.argv_flag_dec

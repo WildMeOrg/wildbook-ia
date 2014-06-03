@@ -4,7 +4,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 import vtool.exif as exif
 from PIL import Image
-from os.path import split, splitext
+from os.path import splitext, basename
 import numpy as np
 import hashlib
 import uuid
@@ -16,7 +16,7 @@ DateTimeOriginal_TAGID = exif.EXIF_TAG_TO_TAGID['DateTimeOriginal']
 
 
 @profile
-def get_exif(pil_img):
+def parse_exif(pil_img):
     """ Image EXIF helper """
     exif_dict = exif.get_exif_dict(pil_img)
     exiftime = exif_dict.get(DateTimeOriginal_TAGID, -1)
@@ -29,9 +29,9 @@ def get_exif(pil_img):
 
 
 @profile
-def get_image_uuid(img_bytes_):
-    # Read PIL image data
-    #img_bytes_ = pil_img.tobytes()
+def get_image_uuid(pil_img):
+    # Read PIL image data (every 64th byte)
+    img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
     # hash the bytes using sha1
     bytes_sha1 = hashlib.sha1(img_bytes_)
     hashbytes_20 = bytes_sha1.digest()
@@ -41,45 +41,83 @@ def get_image_uuid(img_bytes_):
     return uuid_
 
 
-def preprocess_image(tup):
+def get_standard_ext(gpath):
+    """ Returns standardized image extension """
+    ext = splitext(gpath)[1].lower()
+    if ext == '.jpeg':
+        ext = '.jpg'
+    return ext
+
+
+@profile
+def parse_imageinfo(tup):
+    """ Worker function: gpath must be in UNIX-PATH format!
+    Input:
+        a tuple of arguments (so the function can be parallelized easily)
+    Output:
+        if successful: returns a tuple of image parameters which are values for SQL columns on
+        else: returns None
+    """
+    # Parse arguments from tuple
     gpath = tup
+    # Try to open the image
+    try:
+        pil_img = Image.open(gpath, 'r')  # Open PIL Image
+    except IOError:
+        return None
+    # Parse out the data
+    width, height  = pil_img.size         # Read width, height
+    time, lat, lon = parse_exif(pil_img)  # Read exif tags
+    image_uuid = get_image_uuid(pil_img)  # Read pixels ]-hash-> guid = gid
+    #orig_gpath = gpath
+    orig_gname = basename(gpath)
+    ext = get_standard_ext(gpath)
+    notes = ''
+    # Build parameters tuple
+    param_tup = (
+        image_uuid,
+        gpath,
+        orig_gname,
+        #orig_gpath,
+        ext,
+        width,
+        height,
+        time,
+        lat,
+        lon,
+        notes
+    )
+    return param_tup
+
+
+def imgparams_worker2(tup):
     #gpath, kwargs = tup
     #cache_dir       = kwargs.get('cache_dir', None)
     #max_width       = kwargs.get('max_image_width', None)
     #max_height      = kwargs.get('max_image_height', None)
     #localize_images = kwargs.get('localize_images', False)
-    """ Called in parallel. gpath must be in UNIX-PATH format! """
-    try:
-        pil_img = Image.open(gpath, 'r')      # Open PIL Image
-    except IOError as ex:
-        print('FAILED TO READ: %r' % gpath)
-        if str(ex).startswith('cannot identify image file'):
-            param_tup = None
-            return param_tup
-        else:
-            raise
-    width, height  = pil_img.size         # Read width, height
-    #if width > max_width or height > max_height:
-    #    pass
-    time, lat, lon = get_exif(pil_img)    # Read exif tags
-    img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
-    image_uuid = get_image_uuid(img_bytes_)  # Read pixels ]-hash-> guid = gid
-    orig_gname = split(gpath)[1]
-    ext = splitext(gpath)[1].lower()
-    # TODO: Resize, Filter, and localize Image
-    notes = ''
-    if ext == '.jpeg':
-        ext = '.jpg'
+
     # Move images to the cache dir
     #if localize_images:
     #    gname = image_uuid + ext
     #    gpath = '/'.join((cache_dir, gname))
-    param_tup  = (image_uuid, gpath, orig_gname, ext, width, height, time, lat, lon, notes)
-    return param_tup
+
+    #if width > max_width or height > max_height:
+    #    pass
+    # TODO: Resize, Filter, and localize Image
+    pass
 
 
 @profile
 def add_images_params_gen(gpath_list, **kwargs):
-    """ generates values for add_images sqlcommands asychronously """
+    """ generates values for add_images sqlcommands asychronously
+
+    TEST CODE:
+        from ibeis.dev.all_imports import *
+        gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
+        params_list = list(preproc_image.add_images_params_gen(gpath_list))
+
+    """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
-    return utool.util_parallel.generate(preprocess_image, gpath_list)
+    params_gen = utool.generate(parse_imageinfo, gpath_list, ordered=True)
+    return params_gen

@@ -124,7 +124,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     main_locals = ibeis.main(defaultdb='testdb0', gui=True)
-    gpath_list = grabdata.get_test_gpaths(zebra=True, lena=True, jeff=True)
+    gpath_list = grabdata.get_test_gpaths(names=['lena', 'zebra', 'jeff'])
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_GUI_ALL, ibs, back, gpath_list)

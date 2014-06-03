@@ -15,7 +15,8 @@ def define_IBEIS_schema(ibs):
         ('image_uuid',                   'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
         ('image_ext',                    'TEXT NOT NULL'),
-        ('image_original_name',          'TEXT NOT NULL'),
+        ('image_original_name',          'TEXT NOT NULL'),  # We could parse this out
+        #('image_original_path',          'TEXT NOT NULL'),
         ('image_width',                  'INTEGER'),
         ('image_height',                 'INTEGER'),
         ('image_exif_time_posix',        'INTEGER'),

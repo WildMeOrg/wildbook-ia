@@ -97,6 +97,7 @@ class StatusLabel(QtGui.QLabel):
 ###### Window Widgets #######
 #############################
 
+
 class IBEISMainWindow(QtGui.QMainWindow):
     def __init__(mainwin, back=None, ibs=None, parent=None):
         QtGui.QMainWindow.__init__(mainwin, parent)
@@ -186,14 +187,14 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.refresh_status_labels()
 
     def refresh_status_labels(ibswgt, labels=None):
-        [ ibswgt.statusBar.itemAt(index).widget().close() 
+        [ ibswgt.statusBar.itemAt(index).widget().close()
             for index in range(ibswgt.statusBar.count()) ]
         if labels is not None:
             ibswgt.statusLabels = labels
         for label in ibswgt.statusLabels:
             ibswgt.statusBar.addWidget(StatusLabel(label))
 
-    def set_label(ibswgt, index, text):
+    def set_status_label(ibswgt, index, text):
         print(ibswgt.statusLabels)
         ibswgt.statusLabels[index] = text
         ibswgt.refresh_status_labels()
@@ -205,10 +206,10 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         if tblnames is None:
             tblnames = ibswgt.super_tblname_list
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
-        model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
-        # with ChangingModelLayout(model_list):
-        for tblname in tblnames:
-            yield tblname
+        #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
+        with ChangingModelLayout(model_list):
+            for tblname in tblnames:
+                yield tblname
 
     def update_tables(ibswgt, tblnames=None):
         """ forces changing models """
@@ -302,7 +303,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.back.select_gid(gid, model.eid)
         string = "Image Selected, %r (ENC %r)" % (gid, model.eid)
         print(string)
-        ibswgt.set_label(0, string)
+        ibswgt.set_status_label(0, string)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_roi(ibswgt, qtindex):
@@ -311,7 +312,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.back.select_rid(rid, model.eid)
         string = "ROI Selected, %r (ENC %r)" % (rid, model.eid)
         print(string)
-        ibswgt.set_label(1, string)
+        ibswgt.set_status_label(1, string)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_name(ibswgt, qtindex):
@@ -320,7 +321,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.back.select_nid(nid, model.eid)
         string = "Name Selected, %r (ENC %r)" % (nid, model.eid)
         print(string)
-        ibswgt.set_label(2, string)
+        ibswgt.set_status_label(2, string)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick_encounter(ibswgt, qtindex):

@@ -43,7 +43,8 @@ from ibeis.control.accessor_decors import (adder, setter, getter,
                                            getter_numpy,
                                            getter_numpy_vector_output,
                                            getter_vector_output,
-                                           getter_general, deleter,
+                                           getter_general, setter_general,
+                                           deleter,
                                            default_decorator)
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -340,40 +341,30 @@ class IBEISController(object):
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
+
+        TEST CODE:
+            from ibeis.dev.all_imports import *
+            gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Processing an image might fail, yeilding a None instead of a tup
         gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
-        # Create param_iter and filter out nones before passing to SQL
-        raw_param_iter = preproc_image.add_images_params_gen(gpath_list)
-        param_iter = utool.ifilter_Nones(raw_param_iter)
-        # Eager Evaluation for development
-        param_list = list(param_iter)
-        #print(utool.list_str(enumerate(param_list)))
-        gid_list = ibs.db.executemany(
-            operation='''
-            INSERT or IGNORE INTO images(
-                image_uid,
-                image_uuid,
-                image_uri,
-                image_original_name,
-                image_ext,
-                image_width,
-                image_height,
-                image_exif_time_posix,
-                image_exif_gps_lat,
-                image_exif_gps_lon,
-                image_notes
-            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''',
-            params_iter=param_list)
-        num_invalid = sum((gid is None for gid in gid_list))
-        if num_invalid > 0:
-            print(('[ibs!] There were %d invalid gpaths ' % num_invalid) +
-                  '(probably duplicates if no other error was thrown)')
-
-        assert len(gid_list) == len(gpath_list), 'bug in add_images'
+        # Create param_iter
+        params_list  = list(preproc_image.add_images_params_gen(gpath_list))
+        # Error reporting
+        print('\n'.join(
+            [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params)
+             in izip(gpath_list, params_list) if not params]))
+        # Add any unadded images
+        tblname = 'images'
+        colname_list = ('image_uuid', 'image_uri', 'image_original_name',
+                        'image_ext', 'image_width', 'image_height',
+                        'image_exif_time_posix', 'image_exif_gps_lat',
+                        'image_exif_gps_lon', 'image_notes',)
+        # Execute SQL Add
+        gid_list = ibs.db.add_cleanly(tblname, colname_list, params_list,
+                                      ibs.get_image_gids_from_uuid)
         return gid_list
 
     @adder
@@ -381,6 +372,7 @@ class IBEISController(object):
                  nid_list=None, name_list=None, notes_list=None):
         """ Adds oriented ROI bounding boxes to images """
         print('[ibs] adding rois')
+        # Prepare the SQL input
         assert name_list is None or nid_list is None,\
             'cannot specify both names and nids'
         if theta_list is None:
@@ -398,33 +390,17 @@ class IBEISController(object):
         roi_uuid_list = ibsfuncs.make_roi_uuids(image_uuid_list, bbox_list,
                                                 theta_list)
         # Define arguments to insert
-        params_iter = utool.flattenize(izip(roi_uuid_list,
-                                            gid_list,
-                                            nid_list,
-                                            bbox_list,
-                                            theta_list,
-                                            viewpoint_list,
-                                            notes_list))
-        # Insert the new ROIs into the SQL database
-        rid_list = ibs.db.executemany(
-            operation='''
-            INSERT OR REPLACE INTO rois
-            (
-                roi_uid,
-                roi_uuid,
-                image_uid,
-                name_uid,
-                roi_xtl,
-                roi_ytl,
-                roi_width,
-                roi_height,
-                roi_theta,
-                roi_viewpoint,
-                roi_notes
-            )
-            VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''',
-            params_iter=params_iter)
+        params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
+                                            bbox_list, theta_list,
+                                            viewpoint_list, notes_list))
+
+        tblname = 'rois'
+        colname_list = ['roi_uuid', 'image_uid', 'name_uid', 'roi_xtl',
+                        'roi_ytl', 'roi_width', 'roi_height', 'roi_theta',
+                        'roi_viewpoint', 'roi_notes' ]
+        # Execute add ROIs SQL
+        rid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
+                                      ibs.get_roi_rids_from_uuid)
         return rid_list
 
     @adder
@@ -547,15 +523,14 @@ class IBEISController(object):
     #----------------
 
     # SETTERS::General
-
-    @setter
-    def set_table_props(ibs, table, prop_key, uid_list, val_list):
+    @setter_general
+    def set_table_props(ibs, table, prop_key, rowid_list, val_list):
         #OFF printDBG('------------------------')
         #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
-        #OFF printDBG('set_(uid_list=%r, val_list=%r)' % (uid_list, val_list))
+        #OFF printDBG('set_(rowid_list=%r, val_list=%r)' % (rowid_list, val_list))
         # Sanatize input to be only lowercase alphabet and underscores
-        if not utool.isiterable(uid_list) and not utool.isiterable(val_list):
-            uid_list = (uid_list,)
+        if not utool.isiterable(rowid_list) and not utool.isiterable(val_list):
+            rowid_list = (rowid_list,)
             val_list = (val_list,)
         table, (prop_key,) = ibs.db.sanatize_sql(table, (prop_key,))
         # Potentially UNSAFE SQL
@@ -565,24 +540,11 @@ class IBEISController(object):
             SET ''' + prop_key + '''=?
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
-            params_iter=izip(val_list, uid_list),
+            params_iter=izip(val_list, rowid_list),
             errmsg='[ibs.set_table_props] ERROR (table=%r, prop_key=%r)' %
             (table, prop_key))
 
     # SETTERS::IMAGE
-
-    @setter
-    def set_image_props(ibs, gid_list, key, value_list):
-        print('[ibs] set_image_props')
-        ibs.set_table_props('images', key, gid_list, value_list)
-        # if key == 'aif':
-        #     return ibs.set_image_aifs(gid_list, value_list)
-        # if key == 'enctext':
-        #     return ibs.set_image_enctext(gid_list, value_list)
-        # if key == 'notes':
-        #     return ibs.set_image_notes(gid_list, value_list)
-        # else:
-        #     raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_image_uris(ibs, gid_list, new_gpath_list):
@@ -603,6 +565,7 @@ class IBEISController(object):
         """ Sets the image all instances found bit """
         ibs.set_table_props('images', 'image_notes', gid_list, notes_list)
 
+    @setter
     def set_image_unixtime(ibs, gid_list, unixtime_list):
         """ Sets the image unixtime (does not modify exif yet) """
         ibs.set_table_props('images', 'image_exif_time_posix', gid_list, unixtime_list)
@@ -623,23 +586,6 @@ class IBEISController(object):
             params_iter=izip(gid_list, eid_list))
 
     # SETTERS::ROI
-
-    @setter
-    def set_roi_props(ibs, rid_list, key, value_list):
-        print('[ibs] set_roi_props')
-        ibs.set_table_props('rois', key, rid_list, value_list)
-        # if key == 'bbox':
-        #     return ibs.set_roi_bboxes(rid_list, value_list)
-        # elif key == 'theta':
-        #     return ibs.set_roi_thetas(rid_list, value_list)
-        # elif key == 'name':
-        #     return ibs.set_roi_names(rid_list, value_list)
-        # elif key == 'viewpoint':
-        #     return ibs.set_roi_viewpoints(rid_list, value_list)
-        # elif key == 'notes':
-        #     return ibs.set_roi_notes(rid_list, value_list)
-        # else:
-        #     raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_roi_bboxes(ibs, rid_list, bbox_list):
@@ -688,16 +634,6 @@ class IBEISController(object):
             params_iter=izip(nid_list, rid_list))
 
     # SETTERS::NAME
-    @setter
-    def set_name_props(ibs, nid_list, key, value_list):
-        print('[ibs] set_name_props')
-        ibs.set_table_props('names', key, nid_list, value_list)
-        # if key == 'name':
-        #     return ibs.set_name_names(nid_list, value_list)
-        # elif key == 'notes':
-        #     return ibs.set_name_notes(nid_list, value_list)
-        # else:
-        #     raise KeyError('UNKOWN key=%r' % (key,))
 
     @setter
     def set_name_notes(ibs, nid_list, notes_list):
@@ -715,6 +651,7 @@ class IBEISController(object):
         print('[ibs] set_encounter_props')
         ibs.set_table_props('encounters', key, eid_list, value_list)
 
+    @setter
     def set_encounter_enctext(ibs, eid_list, names_list):
         """ Sets names of encounters (groups of animals) """
         ibs.set_table_props('encounters', 'encounter_text', eid_list, names_list)
@@ -728,7 +665,7 @@ class IBEISController(object):
     #
     # GETTERS::GENERAL
 
-    def get_table_props(ibs, table, prop_key, uid_list, **kwargs):
+    def get_table_props(ibs, table, prop_key, rowid_list, **kwargs):
         #OFF printDBG('get_(table=%r, prop_key=%r)' % (table, prop_key))
         # Input to table props must be a list
         if isinstance(prop_key, (str, unicode)):
@@ -743,7 +680,7 @@ class IBEISController(object):
             FROM ''' + table + '''
             WHERE ''' + table[:-1] + '''_uid=?
             ''',
-            params_iter=((_uid,) for _uid in uid_list),
+            params_iter=((rowid,) for rowid in rowid_list),
             errmsg=errmsg,
             **kwargs)
         return list(property_list)
@@ -844,10 +781,8 @@ class IBEISController(object):
             SELECT image_uid
             FROM images
             WHERE image_uuid=?
-            ORDER BY image_uid ASC
             ''',
-            params_iter=utool.tuplize(uuid_list),
-            unpack_scalars=True)
+            params_iter=utool.tuplize(uuid_list))
         return gid_list
 
     @getter

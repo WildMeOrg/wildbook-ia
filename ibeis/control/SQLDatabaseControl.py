@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import imap
+from itertools import imap, izip
 import re
 from os.path import join, exists
 # Tools
@@ -37,6 +37,7 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
         # The sqlite3_last_insert_rowid(D) interface returns the
         # <b> rowid of the most recent successful INSERT </b>
         # into a rowid table in D
+        result = executor.fetchone()
         _executor(executor, 'SELECT last_insert_rowid()', ())
     # Wraping fetchone in a generator for some pretty tight calls.
     while True:
@@ -46,8 +47,8 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
         else:
             # Results are always returned wraped in a tuple
             result = result[0] if len(result) == 1 else result
-            if get_last_id and result == 0:
-                result = None
+            #if get_last_id and result == 0:
+            #    result = None
             yield result
 
 
@@ -283,13 +284,13 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
-    def _executeone_operation_fmt(db, operation_fmt, fmtdict):
+    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params):
         operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, auto_commit=True, errmsg=None, verbose=VERBOSE)
+        return db.executeone(operation, params, auto_commit=True, errmsg=None, verbose=VERBOSE)
 
-    def _executemany_operation_fmt(db, operation_fmt, fmtdict):
+    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter):
         operation = operation_fmt.format(**fmtdict)
-        return db.executemany(operation, auto_commit=True, errmsg=None, verbose=VERBOSE)
+        return db.executemany(operation, params_iter, auto_commit=True, errmsg=None, verbose=VERBOSE)
 
     #@ider
     def get_valid_ids(db, tblname, **kwargs):
@@ -302,30 +303,63 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
+    def add_cleanly(db, tblname, colname_list, params_iter,
+                    get_rowid_from_uuid):
+        """
+        Extra input:
+            the first item of params_iter must be a uuid,
+
+            uuid_list - a non-rowid column which identifies a row
+            get_rowid_from_uuid - function which does what it says
+        e.g:
+            get_rowid_from_uuid = ibs.get_image_gids_from_uuid
+
+        """
+        # eagerly evaluate for uuids
+        params_list = list(params_iter)
+        # check which parameters are valid
+        isvalid_list = [params is not None for params in params_list]
+        # Extract uuids from the params list (requires eager eval)
+        uuid_list = [params[0] if isvalid else None for (params, isvalid) in
+                     izip(params_list, isvalid_list)]
+
+        rowid_list_ = get_rowid_from_uuid(uuid_list)
+        isdirty_list = [rowid is None and isvalid for (rowid, isvalid)
+                        in izip(rowid_list_, isvalid_list)]
+        dirty_params = utool.filter_items(params_list, isdirty_list)
+
+        # Add any unadded images
+        print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
+        if len(dirty_params) > 0:
+            rowid_list = db.add(tblname, colname_list, dirty_params)
+        else:
+            rowid_list = rowid_list_
+        return rowid_list
+
     #@adder
-    def add(db, tblname, colname_list, vals_iter, params_list, **kwargs):
+    def add(db, tblname, colname_list, params_iter, **kwargs):
         """ adder """
         fmtdict = {
             'tblname_str'  : tblname,
-            'erotemes_str' : ','.join(['?'] * len(colname_list)),
-            'adders_str'   : ',\n'.join(
-                ['%s_%s = ?' % (tblname[:-1], name) for name in colname_list]),
+            'erotemes_str' : ', '.join(['?'] * len(colname_list)),
+            'adders_str'   : ',\n'.join(colname_list),
         }
-        operation_fmt = '''
-            INSERT {tblname_str}
-            (
-            rowid=?,
+        operation_fmt = utool.unindent('''
+            INSERT INTO {tblname_str}(
+            rowid,
             {adders_str}
-            )
-            VALUES (NULL, {erotemes_str})
-            '''
+            ) VALUES (NULL, {erotemes_str})
+            ''')
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=vals_iter, **kwargs)
+                                             params_iter=params_iter, **kwargs)
 
     #@getter
     def get(db, tblname, colnames, id_iter, unpack_scalars=True, **kwargs):
         """ getter """
-        fmtdict = dict(tblname=tblname, colnames=colnames)
+        fmtdict = {
+            'tblname': tblname,
+            'colnames': colnames,
+        }
         operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
@@ -518,7 +552,7 @@ class SQLDatabaseController(object):
             try:
                 # Python list-comprehension magic.
                 results_iter = map(list, (context.execute_and_generate_results(params)
-                    for params in params_iter))
+                                          for params in params_iter))
                 if unpack_scalars:
                     results_iter = list(imap(_unpacker, results_iter))
                 # Eager evaluation of results (for development)
@@ -526,7 +560,7 @@ class SQLDatabaseController(object):
             except Exception as ex:
                 # Error reporting
                 utool.printex(ex, key_list=[(str, 'operation'), 'params', 'params_iter'])
-                print(utool.get_caller_name(range(1, 10)))
+                print(utool.get_caller_name(range(0, 10)))
                 results_list = None
                 raise
         return results_list
