@@ -106,7 +106,7 @@ class SQLExecutionContext(object):
     def execute_and_generate_results(context, params):
         """ HELPER FOR CONTEXT STATMENT """
         executor = context.db.executor
-        operation = context.db.operation
+        operation = context.operation
         executor.execute(operation, params)
         is_insert = context.operation_type.upper().startswith('INSERT')
         return _results_gen(executor, get_last_id=is_insert)
@@ -129,7 +129,7 @@ class SQLExecutionContext(object):
             # Dump on error
             print('[sql] FATAL ERROR IN QUERY')
             context.db.dump()
-            utool.sys.exit(1)
+            # utool.sys.exit(1)
 
 
 def get_operation_type(operation):
@@ -454,7 +454,7 @@ class SQLDatabaseController(object):
                 result_list = list(result_iter)
             except Exception as ex:
                 utool.printex(ex, key_list=[(str, 'operation'), 'params'])
-                utool.sys.exit(1)
+                # utool.sys.exit(1)
                 raise
         return result_list
 
@@ -517,9 +517,7 @@ class SQLDatabaseController(object):
                                  start_transaction=True) as context:
             try:
                 # Python list-comprehension magic.
-                results_iter = map(list, (
-                    context.execute_and_generate_results(
-                        db.executor, operation, params)
+                results_iter = map(list, (context.execute_and_generate_results(params)
                     for params in params_iter))
                 if unpack_scalars:
                     results_iter = list(imap(_unpacker, results_iter))
