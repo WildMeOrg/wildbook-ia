@@ -3,6 +3,9 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
+from . import api_table_model
+from . import api_table_view
+
 from . import guitool_tables
 from . import guitool_dialogs
 from . import guitool_decorators
@@ -10,7 +13,6 @@ from . import guitool_delegates
 from . import guitool_components
 from . import guitool_main
 from . import guitool_misc
-from . import api_table_model
 from . import qtype
 
 from .guitool_tables import *
@@ -21,6 +23,7 @@ from .guitool_components import *
 from .guitool_main import *
 from .guitool_misc import *
 from .api_table_model import *
+from .api_table_view import *
 from .qtype import *
 
 import utool

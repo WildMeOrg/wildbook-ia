@@ -12,22 +12,22 @@ import utool
 
 
 ItemDataRoles = {
-    0  : 'DisplayRole',                # The key data to be rendered in the form of text. (QString)
-    1  : 'DecorationRole',             # The data to be rendered as a decoration in the form of an icon. (QColor, QIcon or QPixmap)
-    2  : 'EditRole',                   # The data in a form suitable for editing in an editor. (QString)
-    3  : 'ToolTipRole',                # The data displayed in the item's tooltip. (QString)
-    4  : 'StatusTipRole',              # The data displayed in the status bar. (QString)
-    5  : 'WhatsThisRole',              # The data displayed for the item in "What's This?" mode. (QString)
-    13 : 'SizeHintRole',               # The size hint for the item that will be supplied to views. (QSize)
-    6  : 'FontRole',                   # The font used for items rendered with the default delegate. (QFont)
-    7  : 'TextAlignmentRole',          # The alignment of the text for items rendered with the default delegate. (Qt::AlignmentFlag)
-    8  : 'BackgroundRole',             # The background brush used for items rendered with the default delegate. (QBrush)
-    9  : 'ForegroundRole',             # The foreground brush used for items rendered with the default delegate. (QBrush)
-    10 : 'CheckStateRole',             # This role is used to obtain the checked state of an item. (Qt::CheckState)
-    14 : 'InitialSortOrderRole',       # This role is used to obtain the initial sort order of a header view section. (Qt::SortOrder).
-    11 : 'AccessibleTextRole',         # The text to be used by accessibility extensions and plugins, such as screen readers. (QString)
+    0  : 'DisplayRole',                # key data to be rendered in the form of text. (QString)
+    1  : 'DecorationRole',             # data to be rendered as an icon. (QColor, QIcon or QPixmap)
+    2  : 'EditRole',                   # data in a form suitable for editing in an editor. (QString)
+    3  : 'ToolTipRole',                # data displayed in the item's tooltip. (QString)
+    4  : 'StatusTipRole',              # data displayed in the status bar. (QString)
+    5  : 'WhatsThisRole',              # data displayed for the item in "What's This?" mode. (QString)
+    13 : 'SizeHintRole',               # size hint for the item that will be supplied to views. (QSize)
+    6  : 'FontRole',                   # font used for items rendered with the default delegate. (QFont)
+    7  : 'TextAlignmentRole',          # text alignment of items with default delegate. (Qt::AlignmentFlag)
+    8  : 'BackgroundRole',             # background brush for items with default delegate. (QBrush)
+    9  : 'ForegroundRole',             # foreground brush for items rendered with default delegate. (QBrush)
+    10 : 'CheckStateRole',             # checked state of an item. (Qt::CheckState)
+    14 : 'InitialSortOrderRole',       # initial sort order of a header view section. (Qt::SortOrder).
+    11 : 'AccessibleTextRole',         # text used by accessibility extensions and plugins (QString)
     12 : 'AccessibleDescriptionRole',  # A description of the item for accessibility purposes. (QString)
-    32 : 'UserRole',                   # The first role that can be used for application-specific purposes.
+    32 : 'UserRole',                   # first role that can be used for application-specific purposes.
     8  : 'BackgroundColorRole',        # Obsolete. Use BackgroundRole instead.
     9  : 'TextColorRole',              # Obsolete. Use ForegroundRole instead.
 }
