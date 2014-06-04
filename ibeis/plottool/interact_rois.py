@@ -122,7 +122,7 @@ class ROIInteraction(object):
     """
     def __init__(self,
                  img,
-                 img_ind,
+                 img_ind=None,
                  callback=None,
                  verts_list=None,
                  bbox_list=None,  # will get converted to verts_list
@@ -138,6 +138,8 @@ class ROIInteraction(object):
             fnum = df2.next_fnum()
         if callback is not None:
             self.callback = callback
+        else:
+            self.callback = None
         self.img = img
         self.do_mask = do_mask
         fig = plt.figure(fnum)
@@ -178,6 +180,7 @@ class ROIInteraction(object):
             poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
             # register this polygon
             poly.num = self.next_polynum()
+            self.theta_list.append(0)
             return poly
 
         def new_line(poly):
