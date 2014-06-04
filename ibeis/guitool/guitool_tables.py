@@ -177,12 +177,15 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
     # Qt AbstractItemTable Overrides
 
     def rowCount(model, parent=QtCore.QModelIndex()):
+        """ Qt Override """
         return len(model.row_sortx)
 
     def columnCount(model, parent=QtCore.QModelIndex()):
+        """ Qt Override """
         return len(model.col_name_list)
 
     def index(model, row, column, parent=QtCore.QModelIndex()):
+        """ Qt Override """
         return model.createIndex(row, column)
 
     def data(model, index, role=Qt.DisplayRole):
@@ -237,18 +240,21 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             return False
 
     def headerData(model, section, orientation, role=Qt.DisplayRole):
+        """ Qt Override """
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             return model.get_niceheader(section)
         else:
             return QtCore.QVariant()
 
     def sort(model, column, order):
+        """ Qt Override """
         model.layoutAboutToBeChanged.emit()
         model.set_sorting(column, order)
         model._change_row_indicies()
         model.layoutChanged.emit()
 
     def flags(model, index):
+        """ Qt Override """
         #return Qt.ItemFlag(0)
         column = index.column()
         if not model.get_editable(column):

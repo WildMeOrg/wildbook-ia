@@ -33,7 +33,7 @@ ItemDataRoles = {
 }
 
 
-class ChangingModelLayout(object):
+class ChangeLayoutContext(object):
     """
     Context manager emitting layoutChanged before body,
     not updating durring body, and then updating after body.
@@ -82,7 +82,7 @@ def updater(func):
     #@checks_qt_error
     @functools.wraps(func)
     def upd_wrapper(model, *args, **kwargs):
-        with ChangingModelLayout([model]):
+        with ChangeLayoutContext([model]):
             return func(model, *args, **kwargs)
     return upd_wrapper
 
@@ -90,7 +90,9 @@ def updater(func):
 class APITableModel(QtCore.QAbstractTableModel):
     """ Item model for displaying a list of columns """
     _rows_updated = signal_(str, int)
-    EditableItemColor = QtGui.QColor(250, 240, 240)
+    EditableItemColor = QtGui.QColor(220, 220, 255)
+    TrueItemColor     = QtGui.QColor(230, 250, 230)
+    FalseItemColor    = QtGui.QColor(250, 230, 230)
 
     #
     # Non-Qt Init Functions
@@ -110,33 +112,30 @@ class APITableModel(QtCore.QAbstractTableModel):
         col_sort_reverse : boolean of if to reverse the sort ordering
         ----
         """
-        super(APITableModel, model).__init__()
+        QtCore.QAbstractTableModel.__init__(model, parent=parent)
         # Internal Flags
         model._abouttochange   = False
         model._context_id      = None
         model._haschanged      = True
         model._changeblocked   = False
         # Model Data And Accessors
-        model.name             = None
-        model.nice             = None
-        model.ider             = None
-        model.col_name_list    = None
-        model.col_type_list    = None
-        model.col_nice_list    = None
-        model.col_edit_list    = None
-        model.col_setter_list  = None
-        model.col_getter_list  = None
+        model.name             = 'None'
+        model.nice             = 'None'
+        model.ider             = lambda: []
+        model.col_name_list    = []
+        model.col_type_list    = []
+        model.col_nice_list    = []
+        model.col_edit_list    = []
+        model.col_setter_list  = []
+        model.col_getter_list  = []
         model.col_sort_index   = None
-        model.col_sort_reverse = None
+        model.col_sort_reverse = False
+        model.row_index_list = []
         model.cache = None  # FIXME: This is not sustainable
-        model.row_index_list = None
         # Initialize member variables
         #model._about_to_change()
-        with ChangingModelLayout([model]):
-            if headers is None:
-                headers = {}
-            with ChangingModelLayout([model]):
-                model._update_headers(**headers)
+        if headers is not None:
+            model._update_headers(**headers)
 
     @default_method_decorator
     def _about_to_change(model, force=False):
@@ -178,7 +177,7 @@ class APITableModel(QtCore.QAbstractTableModel):
                         col_setter_list=None,
                         col_getter_list=None,
                         col_sort_index=None,
-                        col_sort_reverse=None):
+                        col_sort_reverse=False):
         model.cache = {}  # FIXME: This is not sustainable
         model.name = str(name)
         model.nice = str(nice)
@@ -206,15 +205,20 @@ class APITableModel(QtCore.QAbstractTableModel):
         row_indicies
         """
         #printDBG('UPDATE ROWS!')
+        print('UPDATE model(%s) rows' % model.name)
         ids_ = model.ider()
         if len(ids_) == 0:
             model.row_index_list = []
         else:
             # start sort
-            values = model.col_getter_list[model.col_sort_index](ids_)
-            row_indices = [id_ for (value, id_) in
-                           sorted(izip(values, ids_),
-                                  reverse=model.col_sort_reverse)]
+            if model.col_sort_index is None:
+                values = ids_
+            else:
+                getter = model.col_getter_list[model.col_sort_index]
+                values = getter(ids_)
+            reverse = model.col_sort_reverse
+            sorted_pairs = sorted(izip(values, ids_), reverse=reverse)
+            row_indices = [id_ for (value, id_) in sorted_pairs]
             # end sort
             assert row_indices is not None, 'no indices'
             model.row_index_list = row_indices
@@ -238,6 +242,11 @@ class APITableModel(QtCore.QAbstractTableModel):
             'inconsistent colnametype'
         model.col_name_list = col_name_list
         model.col_type_list = col_type_list
+        # Check if any of the column types are specified as delegates
+        for colx in xrange(len(model.col_type_list)):
+            coltype_ = col_type_list[colx]
+            if isinstance(coltype_, tuple):
+                delegate_type, coltype_ = coltype_
 
     @updater
     def _set_col_nice(model, col_nice_list=None):
@@ -272,30 +281,32 @@ class APITableModel(QtCore.QAbstractTableModel):
         model.col_getter_list = col_getter_list
 
     @updater
-    def _set_sort(model, col_sort_index=None, col_sort_reverse=None):
+    def _set_sort(model, col_sort_index, col_sort_reverse=False):
         #printDBG('SET SORT')
-        if col_sort_index is None:
-            col_sort_index = 0
-        else:
-            assert col_sort_index < len(model.col_name_list), \
-                'sort index out of bounds by: %r' % col_sort_index
-        if not utool.is_bool(col_sort_reverse):
-            col_sort_reverse = False
+        assert col_sort_index < len(model.col_name_list), \
+            'sort index out of bounds by: %r' % col_sort_index
         model.col_sort_index = col_sort_index
         model.col_sort_reverse = col_sort_reverse
+        # Update the row-id order
         model._update_rows()
+
+    #----------------------------------
+    # --- API Convineince Functions ---
+    #----------------------------------
+
+    @default_method_decorator
+    def get_header_data(model, colname, row):
+        """ Use _get_data if the column number is known """
+        col = model.col_name_list.index(colname)
+        return model._get_data(row, col)
 
     #--------------------------------
     # --- API Interface Functions ---
     #--------------------------------
 
     @default_method_decorator
-    def _get_col_align(model, column):
-        assert column is not None, 'bad column'
-        if model.col_type_list[column] in utool.VALID_FLOAT_TYPES:
-            return Qt.AlignRight
-        else:
-            return Qt.AlignHCenter
+    def _get_col_align(model, col):
+        assert col is not None, 'bad column'
 
     @default_method_decorator
     def _get_row_id(model, row):
@@ -311,6 +322,10 @@ class APITableModel(QtCore.QAbstractTableModel):
             ])
             utool.printex(ex, msg)
             raise
+
+    @default_method_decorator
+    def _get_type(model, col):
+        return model.col_type_list[col]
 
     @default_method_decorator
     def _get_data(model, row, col):
@@ -329,13 +344,11 @@ class APITableModel(QtCore.QAbstractTableModel):
     @default_method_decorator
     def _set_data(model, row, col, value):
         """
-            The setter function should be of the following format:
-
+            The setter function should be of the following format
             def setter(column_name, row_id, value)
-                 column_name is the key or SQL-like name for the column row_id
-                 is the corresponding row key or SQL-like id that the row call
-                 back returned value is the value that needs to be stored
-
+            column_name is the key or SQL-like name for the column row_id
+            is the corresponding row key or SQL-like id that the row call
+            back returned value is the value that needs to be stored
             The setter function should return a boolean, if setting the value
             was successfull or not
         """
@@ -353,16 +366,19 @@ class APITableModel(QtCore.QAbstractTableModel):
     # --- QtGui Functions ---
     #------------------------
 
-    #@default_method_decorator
-    #def index(model, row, column, parent=QtCore.QModelIndex()):
-    #    return model.createIndex(row, column)
+    @default_method_decorator
+    def index(model, row, column, parent=QtCore.QModelIndex()):
+        """ Qt Override """
+        return model.createIndex(row, column)
 
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
+        """ Qt Override """
         return len(model.row_index_list)
 
     @default_method_decorator
     def columnCount(model, parent=QtCore.QModelIndex()):
+        """ Qt Override """
         return len(model.col_name_list)
 
     @default_method_decorator
@@ -373,28 +389,68 @@ class APITableModel(QtCore.QAbstractTableModel):
         flags = model.flags(qtindex)
         row = qtindex.row()
         col = qtindex.column()
+        type_ = model._get_type(col)
         #role_name = ItemDataRoles[role]
         #
         # Specify alignment
         if role == Qt.TextAlignmentRole:
-            value = model._get_col_align(col)
+            if type_ in qtype.QT_IMAGE_TYPES or type_ in utool.VALID_FLOAT_TYPES:
+                value = Qt.AlignRight
+            else:
+                value = Qt.AlignHCenter
+            return value
         #
-        # Editable fields are colored
-        elif role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable or
-                                            flags & Qt.ItemIsUserCheckable):
+        # Specify Background Rule
+        elif role == Qt.BackgroundRole and flags & Qt.ItemIsEditable:
+            # Editable fields are colored
             value = QtCore.QVariant(model.EditableItemColor)
-        #elif role == Qt.ForegroundRole and (flags & Qt.ItemIsEditable):
-        #    return QtGui.QBrush(QtGui.QColor(0, 0, 255))
+            return value
+        elif role == Qt.BackgroundRole and flags & Qt.ItemIsUserCheckable:
+            # Checkable color depends on the truth value
+            data = model._get_data(row, col)
+            if data:
+                value = QtCore.QVariant(model.TrueItemColor)
+            else:
+                value = QtCore.QVariant(model.FalseItemColor)
+            return value
+        #
+        # Specify Foreground Role
+        elif role == Qt.ForegroundRole and (flags & Qt.ItemIsEditable):
+            return QtGui.QBrush(QtGui.QColor(0, 0, 0))
+        #
+        # Specify Decoration Role
+        elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
+            # The type is a pixelmap
+            npimg = model._get_data(row, col)
+            if npimg is not None:
+                if type_ in qtype.QT_PIXMAP_TYPES:
+                    return qtype.numpy_to_qicon(npimg)
+                elif type_ in qtype.QT_ICON_TYPES:
+                    return qtype.numpy_to_qpixmap(npimg)
+        # Specify CheckState Role:
+        if role == Qt.CheckStateRole:
+            if flags & Qt.ItemIsUserCheckable:
+                data = model._get_data(row, col)
+                return Qt.Checked if data else Qt.Unchecked
         #
         # Return the data as a qvariant in most cases
-        elif role in (Qt.DisplayRole, Qt.EditRole, Qt.CheckStateRole):
-            data = model._get_data(row, col)
-            value = qtype.cast_into_qt(data, role, flags)
-        #
+        elif role in (Qt.DisplayRole, Qt.EditRole):
+            if type_ in qtype.QT_PIXMAP_TYPES:
+                pass
+                #return 'pixmap'
+            elif type_ in qtype.QT_ICON_TYPES:
+                pass
+                #return 'icon'
+            else:
+                data = model._get_data(row, col)
+                value = qtype.cast_into_qt(data)
+                return value
+            #
         # else return an empty QVariant
         else:
+            pass
             #__builtin__.print('returned a qvariant role=%r' % role_name)
-            value = QtCore.QVariant()
+        value = QtCore.QVariant()
         return value
 
     @default_method_decorator
@@ -429,26 +485,37 @@ class APITableModel(QtCore.QAbstractTableModel):
             return False
 
     @default_method_decorator
-    def headerData(model, column, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+    def headerData(model, section, orientation, role=Qt.DisplayRole):
+        """ Qt Override """
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            column = section
             if column >= len(model.col_nice_list):
                 return []
             return model.col_nice_list[column]
-        else:
-            return QtCore.QVariant()
+        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+            row = section
+            rowid = model._get_row_id(row)
+            return rowid
+        return QtCore.QVariant()
 
     @default_method_decorator
     def sort(model, column, order):
-        reverse = order == QtCore.Qt.DescendingOrder
+        """ Qt Override """
+        reverse = (order == QtCore.Qt.DescendingOrder)
         model._set_sort(column, reverse)
 
     @default_method_decorator
     def flags(model, qtindex):
+        """ Qt Override """
         # Return flags based on column properties (like type, and editable)
         col = qtindex.column()
-        if not model.col_edit_list[col]:
+        type_ = model._get_type(col)
+        editable = model.col_edit_list[col]
+        if type_ in qtype.QT_IMAGE_TYPES:
+            return Qt.ItemIsEnabled
+        elif not editable:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        elif model.col_type_list[col] in utool.VALID_BOOL_TYPES:
+        elif type_ in utool.VALID_BOOL_TYPES:
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable

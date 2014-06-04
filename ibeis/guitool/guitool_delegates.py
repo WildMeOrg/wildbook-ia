@@ -7,6 +7,7 @@ class ComboDelegate(QtGui.QItemDelegate):
     A delegate that places a fully functioning QComboBox in every
     cell of the column to which it's applied
     """
+    is_persistant_editable = True
     def __init__(self, parent):
         QtGui.QItemDelegate.__init__(self, parent)
 
@@ -37,6 +38,7 @@ class ButtonDelegate(QtGui.QItemDelegate):
     A delegate that places a fully functioning QPushButton in every
     cell of the column to which it's applied
     """
+    is_persistant_editable = False
     def __init__(self, parent):
         # The parent is not an optional argument for the delegate as
         # we need to reference it in the paint method (see below)
@@ -59,3 +61,8 @@ class ButtonDelegate(QtGui.QItemDelegate):
                     clicked=self.parent().cellButtonClicked
                 )
             )
+
+DELEGATE_MAP = {
+    'BUTTON': ButtonDelegate,
+    'COMBO': ComboDelegate,
+}
