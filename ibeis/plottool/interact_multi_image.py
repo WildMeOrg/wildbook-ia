@@ -113,7 +113,7 @@ class MultiImageInteraction(object):
         if self.first_load is True:
             self.first_load = False
             ih.connect_callback(fig, 'button_press_event', self.on_figure_clicked)
-        
+            ih.connect_callback(fig, 'key_press_event', self.key_press_callback)
 
         self.display_buttons()
         # Connect the callback whenever the figure is clicked
@@ -272,22 +272,8 @@ class MultiImageInteraction(object):
             plt.show()
             print('Clicked: ax: num=%r' % image_number)
 
-        #img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number) #print(imgs[0].make_image())
-        #print(self.img_list[3])
-        #"""Need to add ROI code"""
-        #verts_of_image_selected = None
-        #"""Need to figure out how to get the img from the code above"""
-        #img = self.img_list[img_ind]
-        #irs.ROI_creator(img, verts_of_image_selected)
-#     def onpick(self, event):
-#         img_ind = (self.figlist.index(event.artist) - 1) + (self.max_per_page * self.page_number)
-        
-#         """Need to add ROI code"""
-#         if self.rids_list is not None:
-#             verts_of_image_selected = self.rids_list[img_ind]
-#         else:
-#             verts_of_image_selected = None
-#         """Need to figure out how to get the img from the code above"""
-#         img = self.img_list[img_ind]
-#         irs.ROI_creator(img, img_ind, verts_of_image_selected, self.update_lists)
-# >>>>>>> Stashed changes
+    def key_press_callback(self,event):
+        if event.key == 'n':
+            self.display_next_page()
+        if event.key == 'p':
+            self.display_prev_page()
