@@ -4,12 +4,12 @@ from itertools import izip
 #utool.rrrr()
 from ibeis.viz import interact
 from ibeis.dev import results_organizer
-from ibeis.dev import ibsfuncs
 from plottool import fig_presenter
 from guitool import guitool_tables, qtype
 from PyQt4 import QtCore
 import guitool
-import numpy as np
+#from ibeis.dev import ibsfuncs
+#import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[inspect_gui]', DEBUG=False)
 
@@ -58,6 +58,24 @@ class QueryResultsWidget(guitool_tables.ColumnListTableWidget):
         pass
 
 
+class ColumnListsAPI(object):
+    def __init__(self, col_data_list, column_headers, column_editable):
+        self.col_data_list = col_data_list
+        if len(col_data_list) == 0:
+            self.nRows = 0
+        else:
+            self.nRows = len(col_data_list[0])
+
+    def get(self, column, row):
+        return self.col_data_list[column][row]
+
+    def set(self, column, row, val):
+        self.col_data_list[column][row] = val
+
+    def ider(self):
+        return range(self.nRows)
+
+
 def show_match_at(qrw, index):
     print('interact')
     if qrw.is_index_clickable(index):
@@ -76,28 +94,28 @@ def make_query_result_column_dict(ibs, qrid2_qres, ranks_lt=5):
     # Get extra info
     (qrids, rids, scores, ranks) = candidate_matches
     truths = (ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0
-    views  = ['view ' + ibsfuncs.vsstr(qrid, rid, lite=True)
-              for qrid, rid in izip(qrids, rids)]
-    opts = np.zeros(len(qrids))
+    #views  = ['view ' + ibsfuncs.vsstr(qrid, rid, lite=True)
+    #          for qrid, rid in izip(qrids, rids)]
+    #opts = np.zeros(len(qrids))
     # Define column information
     column_tuples = [
         ('qrid',  qrids,  int),
         ('rid',   rids,   int),
         ('score', scores, float),
         ('rank',  ranks,  int),
-        ('opt',   opts,   ('COMBO', int)),
+        #('opt',   opts,   ('COMBO', int)),
         ('truth', truths, bool),
-        ('view',  views, ('BUTTON', str)),
+        #('view',  views, ('BUTTON', str)),
     ]
     # Unpack the tuple into flat lists
-    header_list, column_list, coltype_list = list(izip(*column_tuples))
-    editable_headers = ['truth', 'notes', 'Opt']
+    col_name_list, col_data_list, col_type_list = list(izip(*column_tuples))
+    col_edit_list = ['truth', 'notes', 'Opt']
     # Insert info into dict
     column_dict = {
-        'editable_headers':  editable_headers,
-        'header_list':       header_list,
-        'column_list':       column_list,
-        'coltype_list':      coltype_list,
-        'sortby': 'score'
+        'col_edit_list':  col_edit_list,
+        'col_name_list':  col_name_list,
+        'col_data_list':    col_data_list,
+        'col_type_list':  col_type_list,
+        'col_sort_index': col_name_list.index('score'),
     }
     return column_dict

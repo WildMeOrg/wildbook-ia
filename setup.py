@@ -35,6 +35,7 @@ PROJECT_DIRS = [
 ]
 
 CLUTTER_PATTERNS = [
+    'failed.txt',
     '*.pyc',
     '*.pyo',
     '*.dump.txt',
@@ -45,7 +46,7 @@ CLUTTER_PATTERNS = [
     '\'',
 ]
 
-CLUTTER_DIRS = ['logs']
+CLUTTER_DIRS = ['logs', '__pycache__']
 
 INSTALL_REQUIRES = [
     'utool >= 1.0.0.dev1',

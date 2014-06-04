@@ -7,16 +7,16 @@ import functools
 from PyQt4 import QtCore
 # GUITool
 import guitool
-from guitool import slot_, signal_
+from guitool import slot_, signal_, cast_from_qt
 # PlotTool
 from plottool import fig_presenter
 # IBEIS
 from ibeis.dev import ibsfuncs, sysres
 from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
-from ibeis.gui import uidtables as uidtables
 from ibeis import viz
 from ibeis.viz import interact
+from ibeis.gui import inspect_gui
 # Utool
 import utool
 from ibeis.control import IBEISControl
@@ -97,6 +97,7 @@ class MainWindowBackend(QtCore.QObject):
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
         back.front = back.mainwin.ibswgt
+        back.ibswgt = back.front  # Alias
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.mainwin)
 
@@ -150,6 +151,23 @@ class MainWindowBackend(QtCore.QObject):
     # State Management Functions (ewww... state)
     #----------------------
 
+    #@utool.indent_func
+    def update_window_title(back):
+        pass
+
+    #@utool.indent_func
+    def refresh_state(back):
+        """ Blanket refresh function. Try not to call this """
+        back.front.update_tables()
+
+    #@utool.indent_func
+    def connect_ibeis_control(back, ibs):
+        print('[back] connect_ibeis()')
+        back.ibs = ibs
+        back.front.connect_ibeis_control(ibs)
+        back._set_selection(sel_gids=[], sel_rids=[], sel_nids=[],
+                            sel_eids=[None])
+
     @utool.indent_func
     def get_selected_gid(back):
         """ selected image id """
@@ -172,7 +190,7 @@ class MainWindowBackend(QtCore.QObject):
     @utool.indent_func
     def get_selected_eid(back):
         """ selected encounter id """
-        if len(back.sel_rids) == 0:
+        if len(back.sel_eids) == 0:
             raise AssertionError('There are no selected Encounters')
         eid = back.sel_eids[0]
         return eid
@@ -186,60 +204,36 @@ class MainWindowBackend(QtCore.QObject):
         else:
             return None
 
-    #@utool.indent_func
-    def update_window_title(back):
-        pass
-
-    #@utool.indent_func
-    def refresh_state(back):
-        """ Blanket refresh function. Try not to call this """
-        back.front.update_tables()
-
-    #@utool.indent_func
-    def connect_ibeis_control(back, ibs):
-        print('[back] connect_ibeis()')
-        back.ibs = ibs
-        back.front.connect_ibeis_control(ibs)
-
-    #--------------------------------------------------------------------------
-    # Helper functions
-    #--------------------------------------------------------------------------
-
-    def user_info(back, **kwargs):
-        return guitool.user_info(parent=back.front, **kwargs)
-
-    def user_input(back, **kwargs):
-        return guitool.user_input(parent=back.front, **kwargs)
-
-    def user_option(back, **kwargs):
-        return guitool.user_option(parent=back.front, **kwargs)
-
-    def get_work_directory(back):
-        return sysres.get_workdir()
-
-    def user_select_new_dbdir(back):
-        raise NotImplementedError()
-        pass
-
     #--------------------------------------------------------------------------
     # Selection Functions
     #--------------------------------------------------------------------------
 
     def _set_selection(back, sel_gids=None, sel_rids=None, sel_nids=None,
                        sel_qres=None, sel_eids=None, **kwargs):
-        if sel_gids is not None:
-            back.sel_gids = sel_gids
-        if sel_rids is not None:
-            back.sel_rids = sel_rids
-        if sel_nids is not None:
-            back.sel_nids = sel_nids
-        if sel_qres is not None:
-            back.sel_sel_qres = sel_qres
         if sel_eids is not None:
             back.sel_eids = sel_eids
+            back.ibswgt.set_status_label(0, 'Selected Encounter: %r' % (sel_eids,))
+        if sel_gids is not None:
+            back.sel_gids = sel_gids
+            back.ibswgt.set_status_label(1, 'Selected Image: %r' % (sel_gids,))
+        if sel_rids is not None:
+            back.sel_rids = sel_rids
+            back.ibswgt.set_status_label(2, 'Selected ROI: %r' % (sel_rids,))
+        if sel_nids is not None:
+            back.sel_nids = sel_nids
+            back.ibswgt.set_status_label(3, 'Selected Name: %r' % (sel_nids,))
+        if sel_qres is not None:
+            back.sel_sel_qres = sel_qres
 
     @backblock
-    def select_gid(back, gid, eid=None, sel_rids=None, **kwargs):
+    def select_eid(back, eid=None, **kwargs):
+        """ Table Click -> Result Table """
+        eid = cast_from_qt(eid)
+        back._set_selection(sel_eids=(eid,), **kwargs)
+        print('[back] select encounter eid=%r' % (eid))
+
+    @backblock
+    def select_gid(back, gid, eid=None, show=True, sel_rids=None, **kwargs):
         """ Table Click -> Image Table """
         # Select the first ROI in the image if unspecified
         if sel_rids is None:
@@ -250,156 +244,34 @@ class MainWindowBackend(QtCore.QObject):
                 sel_rids = []
         print('[back] select_gid(gid=%r, eid=%r, sel_rids=%r)' % (gid, eid, sel_rids))
         back._set_selection(sel_gids=(gid,), sel_rids=sel_rids, sel_eids=[eid], **kwargs)
-        back.show_image(gid, sel_rids=sel_rids)
+        if show:
+            back.show_image(gid, sel_rids=sel_rids)
 
     @backblock
-    def select_rid(back, rid, eid=None, show_roi=True, **kwargs):
+    def select_rid(back, rid, eid=None, show=True, show_roi=True, **kwargs):
         """ Table Click -> Chip Table """
         print('[back] select rid=%r, eid=%r' % (rid, eid))
         gid = back.ibs.get_roi_gids(rid)
         nid = back.ibs.get_roi_nids(rid)
-        back._set_selection(sel_rids=[rid], sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
-        if show_roi:
+        back._set_selection(sel_rids=(rid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
+        if show and show_roi:
             back.show_roi(rid, **kwargs)
 
     @backblock
-    def select_nid(back, nid, eid=None, show_name=True, **kwargs):
+    def select_nid(back, nid, eid=None, show=True, show_name=True, **kwargs):
         """ Table Click -> Name Table """
-        nid = uidtables.qt_cast(nid)
+        nid = cast_from_qt(nid)
         print('[back] select nid=%r, eid=%r' % (nid, eid))
-        back._set_selection(sel_nids=[nid], sel_eids=[eid], **kwargs)
-        if show_name:
+        back._set_selection(sel_nids=(nid,), sel_eids=[eid], **kwargs)
+        if show and show_name:
             back.show_name(nid, **kwargs)
 
     @backblock
-    def select_qres_rid(back, rid, enctext=None, **kwargs):
+    def select_qres_rid(back, rid, eid=None, show=True, **kwargs):
         """ Table Click -> Result Table """
-        eid = back.ibs.get_encounter_eids(uidtables.qt_enctext_cast(enctext))
-        rid = uidtables.qt_cast(rid)
+        eid = cast_from_qt(eid)
+        rid = cast_from_qt(rid)
         print('[back] select result rid=%r, eid=%r' % (rid, eid))
-
-    #--------------------------------------------------------------------------
-    # Misc Slots
-    #--------------------------------------------------------------------------
-
-    @blocking_slot()
-    def default_preferences(back):
-        """ Button Click -> Preferences Defaults """
-        print('[back] default preferences')
-        back.ibs._default_config()
-
-    #--------------------------------------------------------------------------
-    # File Slots
-    #--------------------------------------------------------------------------
-
-    @blocking_slot()
-    def new_database(back, new_dbdir=None):
-        """ File -> New Database"""
-        if new_dbdir is None:
-            new_dbname = back.user_input(
-                msg='What do you want to name the new database?',
-                title='New Database')
-            if new_dbname is None or len(new_dbname) == 0:
-                print('Abort new database. new_dbname=%r' % new_dbname)
-                return
-            reply = back.user_option(
-                msg='Where should I put the new database?',
-                title='Import Images',
-                options=['Choose Directory', 'My Work Dir'],
-                use_cache=False)
-            if reply == 'Choose Directory':
-                print('[back] new_database(): SELECT A DIRECTORY')
-                putdir = guitool.select_directory('Select new database directory')
-            elif reply == 'My Work Dir':
-                putdir = back.get_work_directory()
-            else:
-                print('Abort new database')
-                return
-            new_dbdir = join(putdir, new_dbname)
-            if not exists(putdir):
-                raise ValueError('Directory %r does not exist.' % putdir)
-            if exists(new_dbdir):
-                raise ValueError('New DB %r already exists.' % new_dbdir)
-        utool.ensuredir(new_dbdir)
-        print('[back] new_database(new_dbdir=%r)' % new_dbdir)
-        back.open_database(dbdir=new_dbdir)
-
-    @blocking_slot()
-    def open_database(back, dbdir=None):
-        """ File -> Open Database"""
-        if dbdir is None:
-            print('[back] new_database(): SELECT A DIRECTORY')
-            dbdir = guitool.select_directory('Select new database directory')
-            if dbdir is None:
-                return
-        print('[back] open_database(dbdir=%r)' % dbdir)
-        try:
-            ibs = IBEISControl.IBEISController(dbdir=dbdir)
-            back.connect_ibeis_control(ibs)
-        except Exception as ex:
-            print('[guiback] Caught: %s: %s' % (type(ex), ex))
-            raise
-        else:
-            sysres.set_default_dbdir(dbdir)
-
-    @blocking_slot()
-    def export_database(back):
-        """ File -> Export Database"""
-        print('[back] export_database')
-        back.ibs.db.dump()
-        back.ibs.db.dump_tables_to_csv()
-
-    @blocking_slot()
-    def import_images(back, gpath_list=None, dir_=None, refresh=True):
-        """ File -> Import Images (ctrl + i)"""
-        print('[back] import_images')
-        reply = None
-        if gpath_list is None and dir_ is None:
-            reply = back.user_option(
-                msg='Import specific files or whole directory?',
-                title='Import Images',
-                options=['Files', 'Directory'],
-                use_cache=False)
-        if reply == 'Files' or gpath_list is not None:
-            gid_list = back.import_images_from_file(gpath_list=gpath_list,
-                                                    refresh=refresh)
-        if reply == 'Directory' or dir_ is not None:
-            gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh)
-        return gid_list
-
-    @blocking_slot()
-    def import_images_from_file(back, gpath_list=None, refresh=True):
-        print('[back] import_images_from_file')
-        """ File -> Import Images From File"""
-        if back.ibs is None:
-            raise ValueError('back.ibs is None! must open IBEIS database first')
-        if gpath_list is None:
-            gpath_list = guitool.select_images('Select image files to import')
-        gid_list = back.ibs.add_images(gpath_list)
-        if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE])
-            #back.populate_image_table()
-        return gid_list
-
-    @blocking_slot()
-    def import_images_from_dir(back, dir_=None, refresh=True):
-        print('[back] import_images_from_dir')
-        """ File -> Import Images From Directory"""
-        if dir_ is None:
-            dir_ = guitool.select_directory('Select directory with images in it')
-        printDBG('[back] dir=%r' % dir_)
-        gpath_list = utool.list_images(dir_, fullpath=True)
-        gid_list = back.ibs.add_images(gpath_list)
-        if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE])
-        return gid_list
-        #print('')
-
-    @slot_()
-    def quit(back):
-        """ File -> Quit"""
-        print('[back] ')
-        guitool.exit_application()
 
     #--------------------------------------------------------------------------
     # Action menu slots
@@ -494,12 +366,13 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.delete_rois([rid])
         # update display, to show image without the deleted roi
         back.select_gid(gid)
+        back.front.update_tables()
 
     @blocking_slot(int)
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
         print('[back] delete_image')
-        gid = uidtables.qt_cast(gid)
+        gid = cast_from_qt(gid)
         back.ibs.delete_images([gid])
         back.front.update_tables()
 
@@ -542,13 +415,17 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
 
     @blocking_slot()
-    def precompute_queries(back):
+    def precompute_queries(back, **kwargs):
         """ Batch -> Precompute Queries"""
-        print('[back] precompute_queries')
+        if 'eid' not in kwargs:
+            eid = back.get_selected_eid()
+        print('[back] precompute_queries: eid=%r' % (eid,))
         back.precompute_feats(refresh=False)
-        valid_rids = back.ibs.get_valid_rids()
-        qrid2_qres = back.ibs.query_database(valid_rids)
-        from ibeis.gui import inspect_gui
+        valid_rids = back.ibs.get_valid_rids(eid=eid)
+        if eid is None:
+            qrid2_qres = back.ibs.query_database(valid_rids)
+        else:
+            qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
         qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
         qrw.show()
         qrw.raise_()
@@ -663,3 +540,146 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.db.dump()
         utool.view_directory(back.ibs._ibsdb)
         back.ibs.db.dump_tables_to_csv()
+
+    #--------------------------------------------------------------------------
+    # Misc Slots
+    #--------------------------------------------------------------------------
+
+    @blocking_slot()
+    def default_preferences(back):
+        """ Button Click -> Preferences Defaults """
+        print('[back] default preferences')
+        back.ibs._default_config()
+
+    #--------------------------------------------------------------------------
+    # File Slots
+    #--------------------------------------------------------------------------
+
+    @blocking_slot()
+    def new_database(back, new_dbdir=None):
+        """ File -> New Database"""
+        if new_dbdir is None:
+            new_dbname = back.user_input(
+                msg='What do you want to name the new database?',
+                title='New Database')
+            if new_dbname is None or len(new_dbname) == 0:
+                print('Abort new database. new_dbname=%r' % new_dbname)
+                return
+            reply = back.user_option(
+                msg='Where should I put the new database?',
+                title='Import Images',
+                options=['Choose Directory', 'My Work Dir'],
+                use_cache=False)
+            if reply == 'Choose Directory':
+                print('[back] new_database(): SELECT A DIRECTORY')
+                putdir = guitool.select_directory('Select new database directory')
+            elif reply == 'My Work Dir':
+                putdir = back.get_work_directory()
+            else:
+                print('Abort new database')
+                return
+            new_dbdir = join(putdir, new_dbname)
+            if not exists(putdir):
+                raise ValueError('Directory %r does not exist.' % putdir)
+            if exists(new_dbdir):
+                raise ValueError('New DB %r already exists.' % new_dbdir)
+        utool.ensuredir(new_dbdir)
+        print('[back] new_database(new_dbdir=%r)' % new_dbdir)
+        back.open_database(dbdir=new_dbdir)
+
+    @blocking_slot()
+    def open_database(back, dbdir=None):
+        """ File -> Open Database"""
+        if dbdir is None:
+            print('[back] new_database(): SELECT A DIRECTORY')
+            dbdir = guitool.select_directory('Select new database directory')
+            if dbdir is None:
+                return
+        print('[back] open_database(dbdir=%r)' % dbdir)
+        try:
+            ibs = IBEISControl.IBEISController(dbdir=dbdir)
+            back.connect_ibeis_control(ibs)
+        except Exception as ex:
+            print('[guiback] Caught: %s: %s' % (type(ex), ex))
+            raise
+        else:
+            sysres.set_default_dbdir(dbdir)
+
+    @blocking_slot()
+    def export_database(back):
+        """ File -> Export Database"""
+        print('[back] export_database')
+        back.ibs.db.dump()
+        back.ibs.db.dump_tables_to_csv()
+
+    @blocking_slot()
+    def import_images(back, gpath_list=None, dir_=None, refresh=True):
+        """ File -> Import Images (ctrl + i)"""
+        print('[back] import_images')
+        reply = None
+        if gpath_list is None and dir_ is None:
+            reply = back.user_option(
+                msg='Import specific files or whole directory?',
+                title='Import Images',
+                options=['Files', 'Directory'],
+                use_cache=False)
+        if reply == 'Files' or gpath_list is not None:
+            gid_list = back.import_images_from_file(gpath_list=gpath_list,
+                                                    refresh=refresh)
+        if reply == 'Directory' or dir_ is not None:
+            gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh)
+        return gid_list
+
+    @blocking_slot()
+    def import_images_from_file(back, gpath_list=None, refresh=True):
+        print('[back] import_images_from_file')
+        """ File -> Import Images From File"""
+        if back.ibs is None:
+            raise ValueError('back.ibs is None! must open IBEIS database first')
+        if gpath_list is None:
+            gpath_list = guitool.select_images('Select image files to import')
+        gid_list = back.ibs.add_images(gpath_list)
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE])
+            #back.populate_image_table()
+        return gid_list
+
+    @blocking_slot()
+    def import_images_from_dir(back, dir_=None, refresh=True):
+        """ File -> Import Images From Directory"""
+        print('[back] import_images_from_dir')
+        if dir_ is None:
+            dir_ = guitool.select_directory('Select directory with images in it')
+        printDBG('[back] dir=%r' % dir_)
+        gpath_list = utool.list_images(dir_, fullpath=True)
+        gid_list = back.ibs.add_images(gpath_list)
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE])
+        return gid_list
+        #print('')
+
+    @slot_()
+    def quit(back):
+        """ File -> Quit"""
+        print('[back] ')
+        guitool.exit_application()
+
+    #--------------------------------------------------------------------------
+    # Helper functions
+    #--------------------------------------------------------------------------
+
+    def user_info(back, **kwargs):
+        return guitool.user_info(parent=back.front, **kwargs)
+
+    def user_input(back, **kwargs):
+        return guitool.user_input(parent=back.front, **kwargs)
+
+    def user_option(back, **kwargs):
+        return guitool.user_option(parent=back.front, **kwargs)
+
+    def get_work_directory(back):
+        return sysres.get_workdir()
+
+    def user_select_new_dbdir(back):
+        raise NotImplementedError()
+        pass

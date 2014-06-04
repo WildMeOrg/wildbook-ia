@@ -27,9 +27,11 @@ TABLE_NICE = {
 
 # the columns each ibeis table has
 TABLE_COLNAMES = {
-    IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes'],
+    #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
+    IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-    ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
+    #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
+    ROI_TABLE       : ['rid', 'name', 'gname', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
@@ -82,16 +84,17 @@ def make_ibeis_headers_dict(ibs):
     # Image Iders/Setters/Getters
     iders[IMAGE_TABLE] = ibs.get_valid_gids
     getters[IMAGE_TABLE] = {
-        'gid':      lambda gids: gids,
-        'eid':      ibs.get_image_eids,
-        'enctext':  simap_func(utool.tupstr, ibs.get_image_enctext),
-        'aif':      ibs.get_image_aifs,
-        'gname':    ibs.get_image_gnames,
-        'nRids':    ibs.get_image_num_rois,
-        'unixtime': ibs.get_image_unixtime,
-        'datetime': simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
-        'notes':    ibs.get_image_notes,
-        'image_uuid': ibs.get_image_uuids,
+        'gid'        : lambda gids: gids,
+        'eid'        : ibs.get_image_eids,
+        'enctext'    : simap_func(utool.tupstr, ibs.get_image_enctext),
+        'aif'        : ibs.get_image_aifs,
+        'gname'      : ibs.get_image_gnames,
+        'nRids'      : ibs.get_image_num_rois,
+        'unixtime'   : ibs.get_image_unixtime,
+        'datetime'   : simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
+        'notes'      : ibs.get_image_notes,
+        'image_uuid' : ibs.get_image_uuids,
+        'ext'        : ibs.get_image_exts,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,

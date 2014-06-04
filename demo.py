@@ -27,6 +27,7 @@ if __name__ == '__main__':
     back = main_locals['back']
 
     # Get a directory with some images in it
+
     testurl = 'https://www.dropbox.com/s/s4gkjyxjgghr18c/testdata_detect.zip'
     testdir = utool.grab_zipped_url(testurl)
 
@@ -37,7 +38,6 @@ if __name__ == '__main__':
     back.import_images_from_dir(testdir)
     back.detect_grevys_quick()
     back.compute_encounters()
-
     """
 
     #execstr = ibeis.main_loop(main_locals)

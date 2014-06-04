@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from PyQt4 import QtGui, QtCore
-from guitool import APITableModel, updater, signal_, slot_, ChangingModelLayout
+from guitool import APITableModel, signal_, slot_, ChangingModelLayout
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
 #--------------------
@@ -42,12 +42,18 @@ class EncTableModel(APITableModel):
         APITableModel.__init__(model, headers=headers, parent=parent)
 
 
-#############################
-######### Data Views ########
-#############################
+#-------------------
+# --- Data Views ---
+#-------------------
 
-
+# If you need to set the selected index try:
+# AbstractItemView::setCurrentIndex
+# AbstractItemView::scrollTo
+# AbstractItemView::keyboardSearch
 class APITableView(QtGui.QTableView):
+    """
+    Base class for all IBEIS Tables
+    """
     contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
 
     def __init__(tblview, parent=None):
@@ -64,14 +70,23 @@ class APITableView(QtGui.QTableView):
         horizontalHeader.setHighlightSections(True)
         horizontalHeader.setCascadingSectionResizes(True)
         #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-        horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         #horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
-        horizontalHeader.setMovable(True)
+        #horizontalHeader.setMovable(True)
+
         # Selection behavior
-        tblview.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        tblview.resizeColumnsToContents()
-        tblview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # DO NOT USE SELECT ROWS. IT MAKES THINGS VERY SLOW FOR SOME REASON.
+        #tblview.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+
+        # Edit Triggers
+        #tblview.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)  # No Editing
+        #tblview.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked)
+        #tblview.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        tblview.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+
+        #tblview.resizeColumnsToContents()
         # Context menu
+        tblview.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         tblview.customContextMenuRequested.connect(tblview.on_customMenuRequested)
 
     @slot_(QtCore.QPoint)
@@ -81,6 +96,9 @@ class APITableView(QtGui.QTableView):
 
 
 class IBEISTableView(APITableView):
+    """
+    View for ROI / NAME / IMAGE Tables
+    """
     def __init__(tblview, parent=None):
         APITableView.__init__(tblview, parent)
         tblview.ibswin = parent
@@ -90,6 +108,9 @@ class IBEISTableView(APITableView):
 
 
 class EncTableView(APITableView):
+    """
+    View for Encounter Table
+    """
     def __init__(tblview, parent=None):
         APITableView.__init__(tblview, parent)
         tblview.ibswin = parent
