@@ -140,17 +140,17 @@ class ROIInteraction(object):
             self.callback = callback
         self.img = img
         self.do_mask = do_mask
-        plt.figure(fnum)
+        fig = plt.figure(fnum)
         ax = plt.subplot(111)
         self.ax = ax
-
+        print("FIG SIZEEEEEEEEEEEEEEEEE: ", ax.get_yaxis())
         self.img_ind = img_ind
 
         ax.imshow(img)
 
         ax.set_clip_on(False)
-        ax.set_title(('Click and drag a point to move it; or click once, then '
-                      'click again.\nClick an ROI and press \"r\" to remove it\nPress \"t\" to add an ROI'))
+        ax.set_title(('Click and drag a point to move; '
+                      'Click an ROI and press \"r\" to remove it\nPress \"t\" to add an ROI'))
 
         self.showverts = True
         self.max_ds = max_ds
@@ -228,9 +228,17 @@ class ROIInteraction(object):
         self.canvas = canvas
 
         # Define buttons
-        self.accept_ax  = plt.axes([0.7, 0.05, 0.15, 0.075])
+        self.accept_ax  = plt.axes([0.63, 0.01, 0.2, 0.06])
         self.accept_but = Button(self.accept_ax, 'Accept New ROIs')
         self.accept_but.on_clicked(self.accept_new_rois)
+
+        self.add_ax  = plt.axes([0.2, .01, 0.16, 0.06])
+        self.add_but = Button(self.add_ax, 'Add Rectangle')
+        self.add_but.on_clicked(self.draw_new_poly)
+
+        self.del_ax  = plt.axes([0.4, 0.01, 0.19, 0.06])
+        self.del_but = Button(self.del_ax, 'Delete Rectangle')
+        self.del_but.on_clicked(self.delete_current_poly)
 
     def show(self):
         self.fig.canvas.show()
@@ -319,12 +327,12 @@ class ROIInteraction(object):
         if ignore:
             return
         if self._thisPoly is None or self.line is None:
-            print('WARNING: Polygon unknown. Using default.')
+            print('WARNING: Polygon unknown. Using last placed poly.')
             if len(self.polyList) == 0:
                 print('No polygons on screen')
                 return
             else:
-                self._thisPoly = self.polyList[0]
+                self._thisPoly = self.polyList[len(self.polyList) - 1]
 
         polyind, self._ind = self.get_ind_under_cursor(event)
 
@@ -386,7 +394,7 @@ class ROIInteraction(object):
         self._ind = None
         self._polyHeld = False
 
-    def draw_new_poly(self):
+    def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
         Poly = Polygon(coords, animated=True,
                             fc='white', ec='none', alpha=0.2, picker=True)
@@ -408,8 +416,10 @@ class ROIInteraction(object):
         Poly.add_callback(self.poly_changed)
         Poly.num = self.next_polynum()
         self._ind = None  # the active vert
+        self._thisPoly = Poly
+        plt.draw()
 
-    def delete_current_poly(self):
+    def delete_current_poly(self, event=None):
         if self._thisPoly is None:
             print('No Poly Selected to delete')
             return
@@ -428,7 +438,7 @@ class ROIInteraction(object):
         #reset anything that has to do with current poly
         self._thisPoly = None
         self._polyHeld = False
-
+        plt.draw()
     def load_points(self):
         new_verts_list = []
         for poly in self.polyList:

@@ -79,6 +79,9 @@ class MultiImageInteraction(object):
             print("bbox_list in display for px: ",px, " , ",bbox_list)
             theta_list = self.thetas_list[index]
             img = cv2.imread(gpath)
+            label_list = []
+            for i in range(0, len(bbox_list)):
+                label_list.append(i + 1)
             sel_list = []
             #Add true values for every bbox to display
             for i in range(0, len(bbox_list)):
@@ -90,7 +93,7 @@ class MultiImageInteraction(object):
                 'bbox_list'  : bbox_list,
                 'theta_list' : theta_list,
                 'sel_list'   : sel_list,
-                'label_list' : ["lbl1"],
+                'label_list' : label_list,
             }
             #print(utool.dict_str(_vizkw))
             print('vizkw = ' + utool.dict_str(_vizkw))
@@ -117,6 +120,7 @@ class MultiImageInteraction(object):
         
         # Show the changes
         fig.show()
+        plt.draw()
         print('next')
 
     def display_prev_page(self, event=None):
@@ -151,6 +155,10 @@ class MultiImageInteraction(object):
             print("bbox_list in display for px: ",px, " , ",bbox_list)
             theta_list = self.thetas_list[index]
             img = cv2.imread(gpath)
+            label_list = []
+            for i in range(0, len(bbox_list)):
+                label_list.append(i + 1)
+
             sel_list = []
             #Add true values for every bbox to display
             for i in range(0, len(bbox_list)):
@@ -163,7 +171,7 @@ class MultiImageInteraction(object):
                 'bbox_list'  : bbox_list,
                 'theta_list' : theta_list,
                 'sel_list'   : sel_list,
-                'label_list' : ["lbl1"],
+                'label_list' : label_list,
             }
             #print(utool.dict_str(_vizkw))
             print('vizkw = ' + utool.dict_str(_vizkw))
@@ -183,6 +191,7 @@ class MultiImageInteraction(object):
         
         self.display_buttons()
         # Show the changes
+        plt.draw()
         fig.show()
         print('next')
 
@@ -234,7 +243,7 @@ class MultiImageInteraction(object):
         }
             #print(utool.dict_str(_vizkw))
         _, ax = viz_image2.show_image(img, **_vizkw)
-
+        plt.draw()
 
     def on_figure_clicked(self, event):
         #don't do other stuff if we clicked a button
