@@ -138,6 +138,11 @@ def cvt_BGR2L(imgBGR):
     return imgL
 
 
+def cvt_BGR2RGB(imgBGR):
+    imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
+    return imgRGB
+
+
 @profile
 def warpAffine(img, Aff, dsize):
     """
@@ -175,3 +180,14 @@ def print_image_checks(img_fpath):
 
 def resize(img, dsize):
     return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
+
+
+def resize_thumb(img, max_dsize=(64, 64)):
+    max_width, max_height = max_dsize
+    height, width = img.shape[0:2]
+    ratio = min(max_width / width, max_height / height)
+    if ratio > 1:
+        return cvt_BGR2RGB(img)
+    else:
+        dsize = (int(round(width * ratio)), int(round(height * ratio)))
+        return cvt_BGR2RGB(resize(img, dsize))
