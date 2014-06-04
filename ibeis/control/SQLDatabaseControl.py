@@ -55,7 +55,7 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
 def _unpacker(results_):
     """ HELPER: Unpacks results if unpack_scalars is True """
     results = None if len(results_) == 0 else results_[0]
-    assert len(results_) < 2, 'throwing away results! { %r }' %(results_)
+    assert len(results_) < 2, 'throwing away results! { %r }' % (results_)
     return results
 
 
@@ -294,27 +294,129 @@ class SQLDatabaseController(object):
 
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
         operation = operation_fmt.format(**fmtdict)
-        return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars, 
-                                auto_commit=True,  verbose=VERBOSE)
+        return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
+                              auto_commit=True, verbose=VERBOSE)
 
-    #@ider
-    def get_valid_ids(db, tblname, **kwargs):
+    def _get_all_ids(db, tblname, **kwargs):
         """ valid ider """
         fmtdict = {
-            'tblname_str': tblname,
+            'tblname': tblname,
         }
         operation_fmt = '''
         SELECT rowid FROM {tblname}
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
-    def add_cleanly(db, tblname, colname_list, params_iter,
+    #@ider
+    def get_valid_ids(db, tblname, **kwargs):
+        return db._get_all_ids(tblname, **kwargs)
+
+    #@adder
+    def add(db, tblname, colnames, params_iter, **kwargs):
+        """ adder """
+        fmtdict = {
+            'tblname'  : tblname,
+            'questionmarks' : ', '.join(['?'] * len(colnames)),
+            'params'   : ',\n'.join(colnames),
+        }
+        operation_fmt = utool.unindent('''
+            INSERT INTO {tblname}(
+            rowid,
+            {params}
+            ) VALUES (NULL, {questionmarks})
+            ''')
+        rowid_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=params_iter, **kwargs)
+        return rowid_list
+
+    #@getter
+    def get(db, tblname, colnames, id_iter=None, where_col=None, where_custom=None,
+                unpack_scalars=None, one_execute_override=False, **kwargs):
+        """ getter """
+        if unpack_scalars is None:
+            unpack_scalars = where_col is None
+
+        if id_iter is not None and not one_execute_override:
+            if where_custom is None:
+                where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
+                params_iter = ((_uid,) for _uid in id_iter)
+            else:
+                where_rowid = where_custom
+                params_iter = id_iter
+
+            fmtdict = {
+                'tblname'     : tblname,
+                'colnames'    : ', '.join(colnames),
+                'where_rowids' : 'WHERE ' + where_rowid,
+            }
+            operation_fmt = '''
+                SELECT {colnames}
+                FROM {tblname}
+                {where_rowids}
+                '''
+            #  db.cache[tblname][colname][rowid] =
+            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                                     params_iter=params_iter,
+                                                     unpack_scalars=unpack_scalars,
+                                                     **kwargs)
+        else:
+            fmtdict = {
+                'tblname'       : tblname,
+                'colnames_str'      : ', '.join(colnames),
+                'where_rowid_str'   : ('' if where_custom is None else 'WHERE ' + where_custom)
+            }
+            operation_fmt = '''
+                SELECT {colnames_str}
+                FROM {tblname}
+                {where_rowid_str}
+                '''
+            if one_execute_override:
+                params = id_iter
+            else:
+                params = None
+
+            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
+        return val_list
+
+    #@setter
+    def set(db, tblname, colnames, id_list, val_iter, **kwargs):
+        """ setter """
+        fmtdict = {
+            'tblname': tblname,
+            'assign_str': ',\n'.join(['%s=?' % name for name in colnames])
+        }
+        operation_fmt = '''
+            UPDATE {tblname}
+            SET {assign_str}
+            WHERE rowid=?
+            '''
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=val_iter, **kwargs)
+
+    #@deleter
+    def delete(db, tblname, id_list, where_col=None, **kwargs):
+        """ deleter """
+        fmtdict = {
+            'tblname' : tblname,
+            'tblname': tblname,
+            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
+        }
+        operation_fmt = '''
+            DELETE
+            FROM {tblname}
+            WHERE {rowid_str}
+            '''
+        params_iter = ((_uid,) for _uid in id_list)
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=params_iter,
+                                             **kwargs)
+
+    def add_cleanly(db, tblname, colnames, params_iter,
                     get_rowid_from_uuid):
         """
         Extra input:
             the first item of params_iter must be a uuid,
-
-            uuid_list - a non-rowid column which identifies a row
+        uuid_list - a non-rowid column which identifies a row
             get_rowid_from_uuid - function which does what it says
         e.g:
             get_rowid_from_uuid = ibs.get_image_gids_from_uuid
@@ -336,111 +438,11 @@ class SQLDatabaseController(object):
         # Add any unadded images
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         if len(dirty_params) > 0:
-            db.add(tblname, colname_list, dirty_params)
+            db.add(tblname, colnames, dirty_params)
             rowid_list = get_rowid_from_uuid(uuid_list)
         else:
             rowid_list = rowid_list_
         return rowid_list
-
-    #@adder
-    def add(db, tblname, colname_list, params_iter, **kwargs):
-        """ adder """
-        fmtdict = {
-            'tblname_str'  : tblname,
-            'erotemes_str' : ', '.join(['?'] * len(colname_list)),
-            'adders_str'   : ',\n'.join(colname_list),
-        }
-        operation_fmt = utool.unindent('''
-            INSERT INTO {tblname_str}(
-            rowid,
-            {adders_str}
-            ) VALUES (NULL, {erotemes_str})
-            ''')
-        return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=params_iter, **kwargs)
-
-    #@getter
-    def get(db, tblname, colnames, id_iter=None, where_col=None, where_custom=None,
-                unpack_scalars=None, one_execute_override=False, **kwargs):
-        """ getter """
-        if unpack_scalars is None:
-            unpack_scalars = where_col is None
-
-        if id_iter is not None and not one_execute_override:
-            if where_custom is None:
-                where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
-                params_iter = ((_uid,) for _uid in id_iter)
-            else:
-                where_rowid = where_custom
-                params_iter = id_iter
-
-            fmtdict = {
-                'tblname_str'     : tblname,
-                'colnames_str'    : ', '.join(colnames),
-                'where_rowid_str' : 'WHERE ' + where_rowid,
-            }
-            operation_fmt = '''
-                SELECT {colnames_str}
-                FROM {tblname_str}
-                {where_rowid_str}
-                '''
-            #  db.cache[tblname][colname][rowid] =
-            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                                     params_iter=params_iter, 
-                                                     unpack_scalars=unpack_scalars,
-                                                     **kwargs)
-        else:
-            fmtdict = {
-                'tblname_str'       : tblname,
-                'colnames_str'      : ', '.join(colnames),
-                'where_rowid_str'   : ('' if where_custom is None else 'WHERE ' + where_custom)
-            }
-            operation_fmt = '''
-                SELECT {colnames_str}
-                FROM {tblname_str}
-                {where_rowid_str}
-                '''
-            if one_execute_override:
-                params = id_iter
-            else:
-                params = None
-
-            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
-
-
-        return val_list
-
-    #@setter
-    def set(db, tblname, colnames, id_list, val_iter, **kwargs):
-        # """ setter """
-        # fmtdict = {
-        #     'tblname_str'   : tblname,
-        # }
-        # operation_fmt = '''
-        #     UPDATE {tblname_str}
-        #     SET {setter_str}
-        #     WHERE rowid=?
-        #     '''
-        # return db._executemany_operation_fmt(operation_fmt, fmtdict,
-        #                                      params_iter=val_iter, **kwargs)
-        pass 
-
-    #@deleter
-    def delete(db, tblname, id_list, where_col=None, **kwargs):
-        """ deleter """
-        fmtdict = {
-            'tblname_str' : tblname,
-            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
-        }
-        operation_fmt = '''
-            DELETE
-            FROM {tblname_str}
-            WHERE {rowid_str}
-            '''
-        params_iter = ((_uid,) for _uid in id_list)
-        return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=params_iter,
-                                             **kwargs)
 
     #=========
     # API CORE

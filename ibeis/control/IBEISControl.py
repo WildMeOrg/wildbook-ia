@@ -55,6 +55,9 @@ __USTRCAST__ = str  # change to unicode if needed
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 
 
+IMAGE_TABLE = 'images'
+
+
 def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global __ALL_CONTROLLERS__
@@ -647,12 +650,12 @@ class IBEISController(object):
             prop_key = (prop_key,)
         # Sanatize input to be only lowercase alphabet and underscores
         table, prop_key = ibs.db.sanatize_sql(table, prop_key)
-        errmsg = '[ibs.get_table_props] ERROR (table=%r, prop_key=%r)' % (table, prop_key)
+        #errmsg = '[ibs.get_table_props] ERROR (table=%r, prop_key=%r)' % (table, prop_key)
         tblname = table
         colname_list = prop_key
         where_col = table[:-1] + '_uid'
-        property_list = ibs.db.get(tblname, colname_list, rowid_list, 
-                                    where_col=where_col, 
+        property_list = ibs.db.get(tblname, colname_list, rowid_list,
+                                    where_col=where_col,
                                     unpack_scalars=True)
         return property_list
 
@@ -692,9 +695,9 @@ class IBEISController(object):
 
     @getter_general
     def _get_all_gids(ibs):
-        tblname = 'images'
-        colname_list = ('image_uid',)
-        all_gids = ibs.db.get(tblname, colname_list, id_iter=None)
+        #colname_list = ('image_uid',)
+        #all_gids = ibs.db.get(tblname, colname_list, id_iter=None)
+        all_gids = ibs.db._get_all_ids(IMAGE_TABLE)
         return all_gids
 
     @getter_general
@@ -742,8 +745,8 @@ class IBEISController(object):
         """ Returns a list of original image names """
         tblname = 'images'
         colname_list = ('image_uid',)
-        gid_list = ibs.db.get(tblname, colname_list, uuid_list, 
-                                where_col='image_uuid', 
+        gid_list = ibs.db.get(tblname, colname_list, uuid_list,
+                                where_col='image_uuid',
                                 unpack_scalars=True)
         return gid_list
 
@@ -824,7 +827,7 @@ class IBEISController(object):
         """ Returns a list of encounter ids for each image by gid """
         tblname = 'egpairs'
         colname_list = ('encounter_uid',)
-        eids_list = ibs.db.get(tblname, colname_list, gid_list, 
+        eids_list = ibs.db.get(tblname, colname_list, gid_list,
                                 where_col='image_uid',
                                 unpack_scalars=False)
         return eids_list
@@ -842,7 +845,7 @@ class IBEISController(object):
         """ Returns a list of rids for each image by gid """
         tblname = 'rois'
         colname_list = ('roi_uid',)
-        rids_list = ibs.db.get(tblname, colname_list, gid_list, 
+        rids_list = ibs.db.get(tblname, colname_list, gid_list,
                                 where_col='image_uid',
                                 unpack_scalars=False)
         return rids_list
@@ -882,7 +885,7 @@ class IBEISController(object):
         """ Returns a list of original image names """
         tblname = 'rois'
         colname_list = ('roi_uid',)
-        rids_list = ibs.db.get(tblname, colname_list, uuid_list, 
+        rids_list = ibs.db.get(tblname, colname_list, uuid_list,
                                 where_col='roi_uuid',
                                 unpack_scalars=True)
         return rids_list
@@ -912,8 +915,8 @@ class IBEISController(object):
         try:
             tblname = 'rois'
             colname_list = ('image_uid',)
-            gid_list = ibs.db.get(tblname, colname_list, rid_list, 
-                                    where_col='roi_uid', 
+            gid_list = ibs.db.get(tblname, colname_list, rid_list,
+                                    where_col='roi_uid',
                                     unpack_scalars=True)
             utool.assert_all_not_None(gid_list, 'gid_list')
         except AssertionError as ex:
@@ -935,7 +938,7 @@ class IBEISController(object):
         if all_configs:
             tblname = 'chips'
             colname_list = ('chip_uid',)
-            cid_list = ibs.db.get(tblname, colname_list, uuid_list, where_col='roi_uid')
+            cid_list = ibs.db.get(tblname, colname_list, rid_list, where_col='roi_uid')
         else:
             chip_config_uid = ibs.get_chip_config_uid()
             print(chip_config_uid)
@@ -1065,7 +1068,7 @@ class IBEISController(object):
         colname_list = ('roi_uid',)
         where_custom = 'name_uid=? AND name_uid!=? AND roi_uid!=?'
         params_iter = ((nid, ibs.UNKNOWN_NID, rid) for nid, rid in izip(nid_list, rid_list))
-        groundtruth_list = ibs.db.get(tblname, colname_list, params_iter, 
+        groundtruth_list = ibs.db.get(tblname, colname_list, params_iter,
                                         where_custom=where_custom,
                                         unpack_scalars=False)
 
@@ -1217,8 +1220,8 @@ class IBEISController(object):
             return ibs.add_config(cfgsuffix_list)
         tblname = 'configs'
         colname_list = ('config_uid',)
-        config_uid_list = ibs.db.get(tblname, colname_list, cfgsuffix_list, 
-                                        where_col='config_suffix', 
+        config_uid_list = ibs.db.get(tblname, colname_list, cfgsuffix_list,
+                                        where_col='config_suffix',
                                         unpack_scalars=True)
 
         # executeone always returns a list
@@ -1255,9 +1258,9 @@ class IBEISController(object):
         colname_list = ('name_uid',)
         where_custom = 'name_text!=?'
         params_iter = [ibs.UNKNOWN_NAME]
-        all_nids = ibs.db.get(tblname, colname_list, params_iter, 
-            where_custom=where_custom, 
-            one_execute_override=True)
+        all_nids = ibs.db.get(tblname, colname_list, params_iter,
+                              where_custom=where_custom,
+                              one_execute_override=True)
         return all_nids
 
     @getter_general
@@ -1289,7 +1292,7 @@ class IBEISController(object):
             ibs.add_names(name_list)
         tblname = 'names'
         colname_list = ('name_uid',)
-        nid_list = ibs.db.get(tblname, colname_list, name_list, 
+        nid_list = ibs.db.get(tblname, colname_list, name_list,
                                 where_col='name_text',
                                 unpack_scalars=True)
         return nid_list
@@ -1381,8 +1384,8 @@ class IBEISController(object):
         tblname = 'encounters'
         colname_list = ('encounter_text',)
         enctext_list = ibs.db.get(tblname, colname_list, eid_list,
-            where_col='encounter_uid', 
-            unpack_scalars=True)
+                                  where_col='encounter_uid',
+                                  unpack_scalars=True)
         enctext_list = list(imap(__USTRCAST__, enctext_list))
         return enctext_list
 
@@ -1393,7 +1396,7 @@ class IBEISController(object):
             ibs.add_encounters(enctext_list)
         tblname = 'encounters'
         colname_list = ('encounter_uid',)
-        eid_list = ibs.db.get(tblname, colname_list, enctext_list, 
+        eid_list = ibs.db.get(tblname, colname_list, enctext_list,
                                 where_col='encounter_text',
                                 unpack_scalars=True)
         return eid_list
@@ -1461,8 +1464,8 @@ class IBEISController(object):
     def delete_encounters(ibs, eid_list):
         """ Removes encounters (but not any other data) """
         print('[ibs] deleting %d encounters' % len(eid_list))
-        ibs.db.delete('encounters', gid_list)
-        ibs.db.delete('egpairs', gid_list, where_col='encounter_uid')
+        ibs.db.delete('encounters', eid_list)
+        ibs.db.delete('egpairs', eid_list, where_col='encounter_uid')
 
     #
     #
