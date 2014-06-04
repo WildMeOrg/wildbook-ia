@@ -5,7 +5,7 @@ import functools  # NOQA
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QSizePolicy
-from guitool import slot_, checks_qt_error, ChangingModelLayout  # NOQA
+from guitool import slot_, checks_qt_error, ChangeLayoutContext  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
@@ -37,7 +37,7 @@ class APITabWidget(QtGui.QTabWidget):
         tblname = tabwgt.ibswgt.tblname_list[index]
         print(tblname)
         #model = tabwgt.ibswgt.models[tblname]
-        #with ChangingModelLayout([model]):
+        #with ChangeLayoutContext([model]):
         #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
@@ -183,7 +183,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt.buttonBar = QtGui.QHBoxLayout(ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         ibswgt.button_list = [
-            _NEWBUT('COMPUTE ENCOUNTERS', ibswgt.back.detect_grevys_quick),
+            _NEWBUT('COMPUTE ENCOUNTERS', ibswgt.back.compute_encounters),
             _NEWBUT('DELETE ALL ENCOUNTERS', ibswgt.back.delete_all_encounters),
             _NEWBUT('DETECT (grevys)', ibswgt.back.detect_grevys_quick),
             _NEWBUT('QUERY ()', ibswgt.back.precompute_queries),
@@ -223,7 +223,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             tblnames = ibswgt.super_tblname_list
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
-        with ChangingModelLayout(model_list):
+        with ChangeLayoutContext(model_list):
             for tblname in tblnames:
                 yield tblname
 

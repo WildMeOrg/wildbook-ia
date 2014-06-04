@@ -7,11 +7,14 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS
+import utool
 import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     ibeis._preload()
     from ibeis.dev.all_imports import *  # NOQA
+#utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
+#                                   developing=True)
 from _devcmds_ibeis import *  # NOQA
 # Tools
 from plottool import draw_func2 as df2
@@ -22,7 +25,6 @@ from ibeis.viz import interact
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import results_all
-import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=False)
 
 #--------------------
@@ -174,10 +176,12 @@ def inspect_matches(ibs, qrid_list):
     from ibeis.gui import inspect_gui
     allres = get_allres(ibs, qrid_list)
     guitool.ensure_qapp()
+    tblname = 'qres'
     qrid2_qres = allres.qrid2_qres
-    qrw = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=5)
-    qrw.show()
-    qrw.raise_()
+    ranks_lt = 5
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    qres_wgt.show()
+    qres_wgt.raise_()
     return locals()
 
 

@@ -41,7 +41,7 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
-        df2.set_figtitle(figtitle + vh.get_vsstr(qrid, rid))
+        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qrid, rid))
 
     # Draw clicked selection
     def _select_ith_match(mx, qrid, rid):

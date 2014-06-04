@@ -58,6 +58,9 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 IMAGE_TABLE = 'images'
 
 
+THUMB_SIZE = 128
+
+
 def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global __ALL_CONTROLLERS__
@@ -721,6 +724,13 @@ class IBEISController(object):
         return image_list
 
     @getter
+    def get_image_thumbs(ibs, gid_list):
+        """ TODO: CACHING """
+        image_list = ibs.get_images(gid_list)
+        thumb_list = [gtool.resize_thumb(img, (THUMB_SIZE, THUMB_SIZE)) for img in image_list]
+        return thumb_list
+
+    @getter
     def get_image_uuids(ibs, gid_list):
         """ Returns a list of image uuids by gid """
         image_uuid_list = ibs.get_table_props('images', 'image_uuid', gid_list)
@@ -941,7 +951,7 @@ class IBEISController(object):
             cid_list = ibs.db.get(tblname, colname_list, rid_list, where_col='roi_uid')
         else:
             chip_config_uid = ibs.get_chip_config_uid()
-            print(chip_config_uid)
+            #print(chip_config_uid)
             tblname = 'chips'
             colname_list = ('chip_uid',)
             where_custom = 'roi_uid=? AND config_uid=?'
@@ -1016,14 +1026,25 @@ class IBEISController(object):
     def get_roi_chips(ibs, rid_list, ensure=True):
         utool.assert_all_not_None(rid_list, 'rid_list')
         cid_list = ibs.get_roi_cids(rid_list, ensure=ensure)
-        try:
-            utool.assert_all_not_None(cid_list, 'cid_list')
-        except AssertionError as ex:
-            utool.printex(ex, 'Invalid cid_list', key_list=[
-                'ensure', 'cid_list'])
-            raise
-        chip_list = ibs.get_chips(cid_list)
+        if ensure:
+            try:
+                utool.assert_all_not_None(cid_list, 'cid_list')
+            except AssertionError as ex:
+                utool.printex(ex, 'Invalid cid_list', key_list=[
+                    'ensure', 'cid_list'])
+                raise
+        chip_list = ibs.get_chips(cid_list, ensure=ensure)
         return chip_list
+
+    @getter
+    def get_roi_chip_thumbs(ibs, rid_list, ensure=False):
+        """ TODO: CACHING """
+        utool.assert_all_not_None(rid_list, 'rid_list')
+        chip_list = ibs.get_roi_chips(rid_list, ensure=ensure)
+        thumb_list = [None if chip is None
+                      else gtool.resize_thumb(chip, (THUMB_SIZE, THUMB_SIZE))
+                      for chip in chip_list]
+        return thumb_list
 
     @getter_numpy_vector_output
     def get_roi_kpts(ibs, rid_list, ensure=True):
@@ -1114,10 +1135,10 @@ class IBEISController(object):
         return all_cids
 
     @getter
-    def get_chips(ibs, cid_list):
+    def get_chips(ibs, cid_list, ensure=True):
         """ Returns a list cropped images in numpy array form by their cid """
         rid_list = ibs.get_chip_rids(cid_list)
-        chip_list = preproc_chip.compute_or_read_roi_chips(ibs, rid_list)
+        chip_list = preproc_chip.compute_or_read_roi_chips(ibs, rid_list, ensure=ensure)
         return chip_list
 
     @getter

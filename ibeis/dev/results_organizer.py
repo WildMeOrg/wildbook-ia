@@ -209,18 +209,14 @@ def get_automatch_candidates(qrid2_qres, ranks_lt=5):
     ranks_stack  = []
     scores_stack = []
 
-    # Extract inspectable candidate matches from each query result
+    # For each QueryResult, Extract inspectable candidate matches
     for qrid, qres in qrid2_qres.iteritems():
         assert qrid == qres.qrid, 'qrid2_qres and qres disagree on qrid'
-        rids   = np.array(qres.rid2_score.keys())
-        scores = np.array(qres.rid2_score.values())
-        qrids  = np.full(rids.shape, qrid, dtype=rids.dtype)
-        ranks  = np.arange(rids.size)
-        isvalid = ranks < ranks_lt
-        qrids_stack.append(qrids[isvalid])
-        rids_stack.append(rids[isvalid])
-        ranks_stack.append(ranks[isvalid])
-        scores_stack.append(scores[isvalid])
+        (qrids, rids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt)
+        qrids_stack.append(qrids)
+        rids_stack.append(rids)
+        scores_stack.append(scores)
+        ranks_stack.append(ranks)
 
     # Stack them into a giant array
     qrid_arr  = np.hstack(qrids_stack)

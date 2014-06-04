@@ -19,17 +19,21 @@ import vtool.image as gtool
 
 #@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfg_uids first
 @utool.indent_func
-def compute_or_read_roi_chips(ibs, rid_list):
+def compute_or_read_roi_chips(ibs, rid_list, ensure=True):
     """ Reads chips and tries to compute them if they do not exist """
     #print('[preproc_chip] compute_or_read_chips')
-    try:
-        utool.assert_all_not_None(rid_list, 'rid_list')
-    except AssertionError as ex:
-        utool.printex(ex, key_list=['rid_list'])
-        raise
+    if ensure:
+        try:
+            utool.assert_all_not_None(rid_list, 'rid_list')
+        except AssertionError as ex:
+            utool.printex(ex, key_list=['rid_list'])
+            raise
     cfpath_list = get_roi_cfpath_list(ibs, rid_list)
     try:
-        chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+        if ensure:
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+        else:
+            chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_list]
     except IOError as ex:
         if not utool.QUIET:
             utool.printex(ex, '[preproc_chip] Handing Exception: ')
@@ -99,10 +103,10 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
 @utool.indent_func
 def get_roi_cfpath_list(ibs, rid_list, suffix=None):
     """ Returns chip path list """
-    utool.assert_all_not_None(rid_list, 'rid_list')
+    #utool.assert_all_not_None(rid_list, 'rid_list')
     _cfname_fmt = get_chip_fname_fmt(ibs=ibs, suffix=suffix)
-    cfname_iter = (_cfname_fmt  % rid for rid in iter(rid_list))
-    cfpath_list = [join(ibs.chipdir, cfname) for cfname in cfname_iter]
+    cfname_iter = (None if rid is None else _cfname_fmt  % rid for rid in iter(rid_list))
+    cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname) for cfname in cfname_iter]
     return cfpath_list
 
 

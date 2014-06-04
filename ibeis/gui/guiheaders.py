@@ -28,10 +28,11 @@ TABLE_NICE = {
 # the columns each ibeis table has
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
-    IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
+    #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'gname', 'nRids', 'datetime', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
-    ROI_TABLE       : ['rid', 'name', 'gname', 'notes'],
+    ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
@@ -70,6 +71,7 @@ COL_DEF = dict([
     ('enctext',    (str,   'Encounter Text')),
     ('datetime',   (str,   'Date / Time')),
     ('ext',        (str,   'EXT')),
+    ('thumb',      ('PIXMAP', 'Thumb')),
 ])
 
 
@@ -95,6 +97,7 @@ def make_ibeis_headers_dict(ibs):
         'notes'      : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
+        'thumb'      : ibs.get_image_thumbs,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
@@ -112,6 +115,7 @@ def make_ibeis_headers_dict(ibs):
         'bbox':   simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
         'nFeats': ibs.get_roi_num_feats,
         'notes':  ibs.get_roi_notes,
+        'thumb':  ibs.get_roi_chip_thumbs,
     }
     setters[ROI_TABLE] = {
         'name': ibs.set_roi_names,

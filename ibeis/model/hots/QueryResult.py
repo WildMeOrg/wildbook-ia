@@ -183,24 +183,49 @@ class QueryResult(__OBJECT_BASE__):
             mx = mx_list[0]
             return mx
 
+    def get_match_tbldata(qres, ranks_lt=5):
+        """ Returns matchinfo in table format (qrids, rids, scores, ranks) """
+        rid_arr, score_arr = qres.get_rids_and_scores()
+        # Sort the scores in rank order
+        sortx = score_arr.argsort()[::-1]
+        score_arr = score_arr[sortx]
+        rid_arr   = rid_arr[sortx]
+        rank_arr  = np.arange(sortx.size)
+        # Return only rows where rank < ranks_lt
+        isvalid = rank_arr < ranks_lt
+        rids    =   rid_arr[isvalid]
+        scores  = score_arr[isvalid]
+        ranks   =  rank_arr[isvalid]
+        qrids   = np.full(rids.shape, qres.qrid, dtype=rids.dtype)
+        tbldata = (qrids, rids, scores, ranks)
+        # DEBUG
+        #column_labels = ['qrids', 'rids', 'scores', 'ranks']
+        #qrid_arr      = np.full(rid_arr.shape, qres.qrid, dtype=rid_arr.dtype)
+        #tbldata2      = (qrid_arr, rid_arr, score_arr, rank_arr)
+        #print(utool.make_csv_table(tbldata, column_labels))
+        #print(utool.make_csv_table(tbldata2, column_labels))
+        #utool.embed()
+        return tbldata
+
     def get_rids_and_scores(qres):
         """ returns a chip index list and associated score list """
-        score_list = np.array(qres.rid2_score.values())
-        rid_list   = np.array(qres.rid2_score.keys())
-        return rid_list, score_list
+        rid_arr   = np.array(qres.rid2_score.keys())
+        score_arr = np.array(qres.rid2_score.values())
+        return rid_arr, score_arr
 
     def get_top_rids(qres, num=None):
         """ Returns a ranked list of chip indexes """
-        rid_list, score_list = qres.get_rids_and_scores()
+        # TODO: rename num to ranks_lt
+        rid_arr, score_arr = qres.get_rids_and_scores()
         # Get chip-ids sorted by scores
-        top_rids = rid_list[score_list.argsort()[::-1]]
+        top_rids = rid_arr[score_arr.argsort()[::-1]]
         num_indexed = len(top_rids)
         if num is None:
             num = num_indexed
         return top_rids[0:min(num, num_indexed)]
 
-    def get_rid_scores(qres, rid_list):
-        return [qres.rid2_score[rid] for rid in rid_list]
+    def get_rid_scores(qres, rid_arr):
+        return [qres.rid2_score[rid] for rid in rid_arr]
 
     def get_inspect_str(qres):
         assert_qres(qres)
@@ -230,21 +255,21 @@ class QueryResult(__OBJECT_BASE__):
         inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str
 
-    def get_rid_ranks(qres, rid_list):
-        """ get ranks of chip indexes in rid_list """
+    def get_rid_ranks(qres, rid_arr):
+        """ get ranks of chip indexes in rid_arr """
         top_rids = qres.get_top_rids()
-        foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
+        foundpos = [np.where(top_rids == rid)[0] for rid in rid_arr]
         ranks_   = [ranks if len(ranks) > 0 else [None] for ranks in foundpos]
         assert all([len(ranks) == 1 for ranks in ranks_]), 'len(rid_ranks) != 1'
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
 
-    #def get_rid_ranks(qres, rid_list):
-        #'get ranks of chip indexes in rid_list'
-        #score_list = np.array(qres.rid2_score.values())
-        #rid_list   = np.array(qres.rid2_score.keys())
-        #top_rids = rid_list[score_list.argsort()[::-1]]
-        #foundpos = [np.where(top_rids == rid)[0] for rid in rid_list]
+    #def get_rid_ranks(qres, rid_arr):
+        #'get ranks of chip indexes in rid_arr'
+        #score_arr = np.array(qres.rid2_score.values())
+        #rid_arr   = np.array(qres.rid2_score.keys())
+        #top_rids = rid_arr[score_arr.argsort()[::-1]]
+        #foundpos = [np.where(top_rids == rid)[0] for rid in rid_arr]
         #ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
         #assert all([len(r) == 1 for r in ranks_])
         #rank_list = [r[0] for r in ranks_]

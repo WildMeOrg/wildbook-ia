@@ -69,6 +69,7 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
 import PyQt4
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
+from PyQt4.QtCore import (QString, QVariant)
 import sip
 
 # Tools
