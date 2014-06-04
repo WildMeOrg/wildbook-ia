@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import __builtin__
+#import __builtin__
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
@@ -9,6 +9,28 @@ import functools
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
+
+
+ItemDataRoles = {
+    0  : 'DisplayRole',                # The key data to be rendered in the form of text. (QString)
+    1  : 'DecorationRole',             # The data to be rendered as a decoration in the form of an icon. (QColor, QIcon or QPixmap)
+    2  : 'EditRole',                   # The data in a form suitable for editing in an editor. (QString)
+    3  : 'ToolTipRole',                # The data displayed in the item's tooltip. (QString)
+    4  : 'StatusTipRole',              # The data displayed in the status bar. (QString)
+    5  : 'WhatsThisRole',              # The data displayed for the item in "What's This?" mode. (QString)
+    13 : 'SizeHintRole',               # The size hint for the item that will be supplied to views. (QSize)
+    6  : 'FontRole',                   # The font used for items rendered with the default delegate. (QFont)
+    7  : 'TextAlignmentRole',          # The alignment of the text for items rendered with the default delegate. (Qt::AlignmentFlag)
+    8  : 'BackgroundRole',             # The background brush used for items rendered with the default delegate. (QBrush)
+    9  : 'ForegroundRole',             # The foreground brush used for items rendered with the default delegate. (QBrush)
+    10 : 'CheckStateRole',             # This role is used to obtain the checked state of an item. (Qt::CheckState)
+    14 : 'InitialSortOrderRole',       # This role is used to obtain the initial sort order of a header view section. (Qt::SortOrder).
+    11 : 'AccessibleTextRole',         # The text to be used by accessibility extensions and plugins, such as screen readers. (QString)
+    12 : 'AccessibleDescriptionRole',  # A description of the item for accessibility purposes. (QString)
+    32 : 'UserRole',                   # The first role that can be used for application-specific purposes.
+    8  : 'BackgroundColorRole',        # Obsolete. Use BackgroundRole instead.
+    9  : 'TextColorRole',              # Obsolete. Use ForegroundRole instead.
+}
 
 
 class ChangingModelLayout(object):
@@ -41,14 +63,14 @@ class ChangingModelLayout(object):
 def default_method_decorator(func):
     """ Dummy decorator """
     return checks_qt_error(profile(func))
-    func_name = func.func_name
-    #func_ = checks_qt_error(profile(func))
-    func_ = func
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        __builtin__.print('func_name = ' + func_name)
-        return func_(*args, **kwargs)
-    return wrapper
+    #func_name = func.func_name
+    ##func_ = checks_qt_error(profile(func))
+    #func_ = func
+    #@functools.wraps(func)
+    #def wrapper(*args, **kwargs):
+    #    __builtin__.print('func_name = ' + func_name)
+    #    return func_(*args, **kwargs)
+    #return wrapper
 
 
 def updater(func):
@@ -60,17 +82,15 @@ def updater(func):
     #@checks_qt_error
     @functools.wraps(func)
     def upd_wrapper(model, *args, **kwargs):
-        #model._about_to_change()
         with ChangingModelLayout([model]):
-            ret = func(model, *args, **kwargs)
-        #model._change()
-        return ret
+            return func(model, *args, **kwargs)
     return upd_wrapper
 
 
 class APITableModel(QtCore.QAbstractTableModel):
     """ Item model for displaying a list of columns """
     _rows_updated = signal_(str, int)
+    EditableItemColor = QtGui.QColor(250, 240, 240)
 
     #
     # Non-Qt Init Functions
@@ -122,27 +142,27 @@ class APITableModel(QtCore.QAbstractTableModel):
     def _about_to_change(model, force=False):
         N = range(0, 10)  # NOQA
         if force or (not model._abouttochange and not model._changeblocked):
-            print('ABOUT TO CHANGE: %r' % (model.name,))
-            #print('caller=%r' % (utool.get_caller_name(N=N)))
+            #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
+            #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
         else:
-            print('NOT ABOUT TO CHANGE')
+            #printDBG('NOT ABOUT TO CHANGE')
             return False
 
     @default_method_decorator
     def _change(model, force=False):
         N = range(0, 10)  # NOQA
         if force or (model._abouttochange and not model._changeblocked):
-            print('LAYOUT CHANGED:  %r' % (model.name,))
-            model._abouttochange = False
-            #print('caller=%r' % (utool.get_caller_name(N=N)))
+            #printDBG('LAYOUT CHANGED:  %r' % (model.name,))
+            #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             #model._abouttochange = False
+            model._abouttochange = False
             model.layoutChanged.emit()
             return True
         else:
-            print('NOT CHANGING')
+            #printDBG('NOT CHANGING')
             #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
 
@@ -185,7 +205,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         Uses the current ider and col_sort_index to create
         row_indicies
         """
-        print('UPDATE ROWS!')
+        #printDBG('UPDATE ROWS!')
         ids_ = model.ider()
         if len(ids_) == 0:
             model.row_index_list = []
@@ -202,7 +222,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @updater
     def _set_ider(model, ider=None):
-        print('NEW IDER')
+        #printDBG('NEW IDER')
         if ider is None:
             ider = lambda: []
         assert utool.is_funclike(ider), 'bad type: %r' % type(ider)
@@ -253,7 +273,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @updater
     def _set_sort(model, col_sort_index=None, col_sort_reverse=None):
-        print('SET SORT')
+        #printDBG('SET SORT')
         if col_sort_index is None:
             col_sort_index = 0
         else:
@@ -271,7 +291,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def _get_col_align(model, column):
-        assert column is not None
+        assert column is not None, 'bad column'
         if model.col_type_list[column] in utool.VALID_FLOAT_TYPES:
             return Qt.AlignRight
         else:
@@ -312,10 +332,9 @@ class APITableModel(QtCore.QAbstractTableModel):
             The setter function should be of the following format:
 
             def setter(column_name, row_id, value)
-                # column_name is the key or SQL-like name for the column
-                # row_id is the corresponding row key or SQL-like id that the
-                #    row call back returned
-                # value is the value that needs to be stored
+                 column_name is the key or SQL-like name for the column row_id
+                 is the corresponding row key or SQL-like id that the row call
+                 back returned value is the value that needs to be stored
 
             The setter function should return a boolean, if setting the value
             was successfull or not
@@ -349,30 +368,34 @@ class APITableModel(QtCore.QAbstractTableModel):
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
         """ Depending on the role, returns either data or how to display data """
-        if not qtindex.isValid():
-            return None
+        #if not qtindex.isValid():
+        #    return None
         flags = model.flags(qtindex)
         row = qtindex.row()
         col = qtindex.column()
+        #role_name = ItemDataRoles[role]
         #
         # Specify alignment
         if role == Qt.TextAlignmentRole:
-            return model._get_col_align(col)
+            value = model._get_col_align(col)
         #
         # Editable fields are colored
-        if role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable or
-                                          flags & Qt.ItemIsUserCheckable):
-            return QtCore.QVariant(QtGui.QColor(250, 240, 240))
+        elif role == Qt.BackgroundRole and (flags & Qt.ItemIsEditable or
+                                            flags & Qt.ItemIsUserCheckable):
+            value = QtCore.QVariant(model.EditableItemColor)
+        #elif role == Qt.ForegroundRole and (flags & Qt.ItemIsEditable):
+        #    return QtGui.QBrush(QtGui.QColor(0, 0, 255))
         #
-        # Editable fields are colored
-        if role == Qt.DisplayRole or role == Qt.CheckStateRole:
+        # Return the data as a qvariant in most cases
+        elif role in (Qt.DisplayRole, Qt.EditRole, Qt.CheckStateRole):
             data = model._get_data(row, col)
             value = qtype.cast_into_qt(data, role, flags)
-            return value
         #
         # else return an empty QVariant
         else:
-            return QtCore.QVariant()
+            #__builtin__.print('returned a qvariant role=%r' % role_name)
+            value = QtCore.QVariant()
+        return value
 
     @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
@@ -421,6 +444,7 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def flags(model, qtindex):
+        # Return flags based on column properties (like type, and editable)
         col = qtindex.column()
         if not model.col_edit_list[col]:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable

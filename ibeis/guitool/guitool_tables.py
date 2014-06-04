@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
+from .guitool_delegates import ComboDelegate, ButtonDelegate
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[guitbls]', DEBUG=False)
@@ -23,152 +24,93 @@ class ColumnListTableView(QtGui.QTableView):
         print(self.sender().text())
 
 
-class ComboDelegate(QtGui.QItemDelegate):
-    """
-    A delegate that places a fully functioning QComboBox in every
-    cell of the column to which it's applied
-    """
-    def __init__(self, parent):
-        QtGui.QItemDelegate.__init__(self, parent)
-
-    def createEditor(self, parent, option, index):
-        combo = QtGui.QComboBox(parent)
-        combo.addItems(['option1', 'option2', 'option3'])
-        #self.connect(combo.currentIndexChanged, self.currentIndexChanged)
-        # FIXME: Change to newstyle signal slot
-        self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self, QtCore.SLOT("currentIndexChanged()"))
-        return combo
-
-    def setEditorData(self, editor, index):
-        editor.blockSignals(True)
-        editor.setCurrentIndex(int(index.model().data(index).toString()))
-        editor.blockSignals(False)
-
-    def setModelData(self, editor, model, index):
-        model.setData(index, editor.currentIndex())
-
-    @QtCore.pyqtSlot()
-    def currentIndexChanged(self):
-        self.commitData.emit(self.sender())
-
-
-class ButtonDelegate(QtGui.QItemDelegate):
-    """
-    A delegate that places a fully functioning QPushButton in every
-    cell of the column to which it's applied
-    """
-    def __init__(self, parent):
-        # The parent is not an optional argument for the delegate as
-        # we need to reference it in the paint method (see below)
-        QtGui.QItemDelegate.__init__(self, parent)
-
-    def paint(self, painter, option, index):
-        # This method will be called every time a particular cell is
-        # in view and that view is changed in some way. We ask the
-        # delegates parent (in this case a table view) if the index
-        # in question (the table cell) already has a widget associated
-        # with it. If not, create one with the text for this index and
-        # connect its clicked signal to a slot in the parent view so
-        # we are notified when its used and can do something.
-        if not self.parent().indexWidget(index):
-            self.parent().setIndexWidget(
-                index,
-                QtGui.QPushButton(
-                    index.data().toString(),
-                    self.parent(),
-                    clicked=self.parent().cellButtonClicked
-                )
-            )
-
-
 class ColumnListItemModel(QtCore.QAbstractTableModel):
     """ Item model for displaying a list of columns """
 
     #
     # Non-Qt Init Functions
 
-    def __init__(model, column_list=None, header_list=None, niceheader_list=None,
-                 coltype_list=None, editable_headers=None,
-                 display_indicies=False, sortby=None,
+    def __init__(model, col_data_list=None, col_name_list=None, niceheader_list=None,
+                 col_type_list=None, col_edit_list=None,
+                 display_indicies=False, col_sort_index=None,
                  parent=None, *args):
         super(ColumnListItemModel, model).__init__()
         model.sortcolumn = None
         model.sortreverse = False
         model.display_indicies = False  # FIXME: Broken
-        model._change_data(column_list, header_list, niceheader_list,
-                           coltype_list, editable_headers, display_indicies,
-                           sortby)
+        model._change_data(col_data_list, col_name_list, niceheader_list,
+                           col_type_list, col_edit_list, display_indicies,
+                           col_sort_index)
 
-    def _change_data(model, column_list=None, header_list=None,
-                     niceheader_list=None, coltype_list=None,
-                     editable_headers=None, display_indicies=False,
-                     sortby=None):
+    def _change_data(model, col_data_list=None, col_name_list=None,
+                     niceheader_list=None, col_type_list=None,
+                     col_edit_list=None, display_indicies=False,
+                     col_sort_index=None):
         model.layoutAboutToBeChanged.emit()
-        if header_list is None:
-            header_list = []
-        if column_list is None:
-            column_list = []
-        if len(column_list) > 0:
+        if col_name_list is None:
+            col_name_list = []
+        if col_data_list is None:
+            col_data_list = []
+        if len(col_data_list) > 0:
             model.sortcolumn = 0
         #print('[model] Changing data')
         # Set the data to display (list of lists)
-        model._change_columns(column_list, coltype_list)
+        model._change_columns(col_data_list, col_type_list)
         # Set the headers
-        model._change_headers(header_list, niceheader_list)
+        model._change_headers(col_name_list, niceheader_list)
         # Is editable
-        model._change_editable(editable_headers)
+        model._change_editable(col_edit_list)
         # Make internal indicies
-        model.set_sorting(sortby)
+        model.set_sorting(col_sort_index)
         model.display_indicies = display_indicies
         model._change_row_indicies()
         # Make sure the user didn't do anything bad
         model._assert_feasibility()
         model.layoutChanged.emit()
 
-    def _change_editable(model, editable_headers=None):
-        if editable_headers is None:
-            model.column_editable = [False] * len(model.column_list)
+    def _change_editable(model, col_edit_list=None):
+        if col_edit_list is None:
+            model.column_editable = [False] * len(model.col_data_list)
         else:
-            model.column_editable = [header in editable_headers for header in
-                                     model.header_list]
+            model.column_editable = [header in col_edit_list for header in
+                                     model.col_name_list]
         #print('[model] new column_editable = %r' % (model.column_editable,))
 
-    def _change_headers(model, header_list, niceheader_list=None):
+    def _change_headers(model, col_name_list, niceheader_list=None):
         """ Internal header names """
-        model.header_list = header_list
+        model.col_name_list = col_name_list
         # Set user readable "nice" headers, default to internal ones
         if niceheader_list is None:
-            model.niceheader_list = header_list
+            model.niceheader_list = col_name_list
         else:
             model.niceheader_list = niceheader_list
-        #print('[model] new header_list = %r' % (model.header_list,))
+        #print('[model] new col_name_list = %r' % (model.col_name_list,))
 
-    def _change_columns(model, column_list, coltype_list=None):
-        model.column_list = column_list
-        if coltype_list is not None:
-            model.coltype_list = coltype_list
+    def _change_columns(model, col_data_list, col_type_list=None):
+        model.col_data_list = col_data_list
+        if col_type_list is not None:
+            model.col_type_list = col_type_list
         else:
-            model.coltype_list = qtype.infer_coltype(model.column_list)
-        #print('[model] new coltype_list = %r' % (model.coltype_list,))
+            model.col_type_list = qtype.infer_coltype(model.col_data_list)
+        #print('[model] new col_type_list = %r' % (model.col_type_list,))
 
     def _change_row_indicies(model):
         """  Non-Qt Helper """
         if model.sortcolumn is not None:
             print('using: sortcolumn=%r' % model.sortcolumn)
-            column_data = model.column_list[model.sortcolumn]
+            column_data = model.col_data_list[model.sortcolumn]
             indicies = range(len(column_data))
             model.row_sortx = utool.sortedby(indicies, column_data,
                                              reverse=model.sortreverse)
-        elif len(model.column_list) > 0:
-            model.row_sortx = range(len(model.column_list[0]))
+        elif len(model.col_data_list) > 0:
+            model.row_sortx = range(len(model.col_data_list[0]))
         else:
             model.row_sortx = []
         #print('[model] new len(row_sortx) = %r' % (len(model.row_sortx),))
 
     def _assert_feasibility(model):
-        assert len(model.header_list) == len(model.column_list)
-        nrows = map(len, model.column_list)
+        assert len(model.col_name_list) == len(model.col_data_list)
+        nrows = map(len, model.col_data_list)
         assert all([nrows[0] == num for num in nrows]), 'inconsistent data'
         #print('[model] is feasible')
 
@@ -180,40 +122,40 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         """ Non-Qt Helper """
         row = index.row()
         column = index.column()
-        row_data = model.column_list[column]
+        row_data = model.col_data_list[column]
         data = row_data[model.row_sortx[row]]
         return data
 
-    def set_sorting(model, sortby=None, order=Qt.DescendingOrder):
+    def set_sorting(model, col_sort_index=None, order=Qt.DescendingOrder):
         model.sortreverse = (order == Qt.DescendingOrder)
-        if sortby is not None:
-            if utool.is_str(sortby):
-                sortby = model.header_list.index(sortby)
-            assert utool.is_int(sortby), 'sort by an index not %r' % type(sortby)
-            model.sortcolumn = sortby
-            assert model.sortcolumn < len(model.header_list), 'outofbounds'
+        if col_sort_index is not None:
+            if utool.is_str(col_sort_index):
+                col_sort_index = model.col_name_list.index(col_sort_index)
+            assert utool.is_int(col_sort_index), 'sort by an index not %r' % type(col_sort_index)
+            model.sortcolumn = col_sort_index
+            assert model.sortcolumn < len(model.col_name_list), 'outofbounds'
             print('sortcolumn: %r' % model.sortcolumn)
 
     def set_data(model, index, data):
         """ Non-Qt Helper """
         row = index.row()
         column = index.column()
-        row_data = model.column_list[column]
+        row_data = model.col_data_list[column]
         row_data[model.row_sortx[row]] = data
 
     def get_header(model, column):
         """ Non-Qt Helper """
-        return model.header_list[column]
+        return model.col_name_list[column]
 
     def get_header_data(model, header, row):
         """ Non-Qt Helper """
-        column = model.header_list.index(header)
+        column = model.col_name_list.index(header)
         index  = model.index(row, column)
         data   = model.get_data(index)
         return data
 
     def get_coltype(model, column):
-        type_ = model.coltype_list[column]
+        type_ = model.col_type_list[column]
         return type_
 
     def get_editable(model, column):
@@ -238,7 +180,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         return len(model.row_sortx)
 
     def columnCount(model, parent=QtCore.QModelIndex()):
-        return len(model.header_list)
+        return len(model.col_name_list)
 
     def index(model, row, column, parent=QtCore.QModelIndex()):
         return model.createIndex(row, column)
@@ -319,10 +261,10 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
 
 class ColumnListTableWidget(QtGui.QWidget):
     """ ColumnList Table Main Widget """
-    def __init__(cltw, column_list=None, header_list=None,
-                 niceheader_list=None, coltype_list=None,
-                 editable_headers=None, display_indicies=False,
-                 sortby=None, parent=None):
+    def __init__(cltw, col_data_list=None, col_name_list=None,
+                 niceheader_list=None, col_type_list=None,
+                 col_edit_list=None, display_indicies=False,
+                 col_sort_index=None, parent=None):
         QtGui.QWidget.__init__(cltw, parent)
         # Create vertical layout for the table to go into
         cltw.vert_layout = QtGui.QVBoxLayout(cltw)
@@ -333,33 +275,33 @@ class ColumnListTableWidget(QtGui.QWidget):
         cltw.view.setModel(cltw.model)
         cltw.vert_layout.addWidget(cltw.view)
         # Make sure we don't call a childs method
-        ColumnListTableWidget.change_data(cltw, column_list, header_list,
-                                          niceheader_list, coltype_list,
-                                          editable_headers, display_indicies,
-                                          sortby)
+        ColumnListTableWidget.change_data(cltw, col_data_list, col_name_list,
+                                          niceheader_list, col_type_list,
+                                          col_edit_list, display_indicies,
+                                          col_sort_index)
 
-    def change_data(cltw, column_list=None, header_list=None,
-                    niceheader_list=None, coltype_list=None,
-                    editable_headers=None, display_indicies=False,
-                    sortby=None):
+    def change_data(cltw, col_data_list=None, col_name_list=None,
+                    niceheader_list=None, col_type_list=None,
+                    col_edit_list=None, display_indicies=False,
+                    col_sort_index=None):
         """
         Checks for deligates
         """
         marked_columns = []  # these will be persistantly editable
-        if coltype_list is not None:
-            print('cltw.change_data: %r' % len(coltype_list))
-            coltype_list = list(coltype_list)
-            for column in xrange(len(coltype_list)):
-                if isinstance(coltype_list[column], tuple):
-                    delegate_type, coltype = coltype_list[column]
-                    coltype_list[column] = coltype
+        if col_type_list is not None:
+            print('cltw.change_data: %r' % len(col_type_list))
+            col_type_list = list(col_type_list)
+            for column in xrange(len(col_type_list)):
+                if isinstance(col_type_list[column], tuple):
+                    delegate_type, coltype = col_type_list[column]
+                    col_type_list[column] = coltype
                     if cltw.set_column_as_delegate(column, delegate_type):
                         marked_columns.append(column)
         else:
             print('cltw.change_data: None')
-        cltw.model._change_data(column_list, header_list, niceheader_list,
-                                coltype_list, editable_headers,
-                                display_indicies, sortby)
+        cltw.model._change_data(col_data_list, col_name_list, niceheader_list,
+                                col_type_list, col_edit_list,
+                                display_indicies, col_sort_index)
         # Set persistant editability after data is changed
         for column in marked_columns:
             cltw.set_column_persistant_editor(column)
@@ -394,10 +336,10 @@ class ColumnListTableWidget(QtGui.QWidget):
         return model.get_header_data(header, index.row())
 
 
-def make_listtable_widget(column_list, header_list, editable_headers=None,
+def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
                           show=True, raise_=True, on_click=None):
-    widget = ColumnListTableWidget(column_list, header_list,
-                                   editable_headers=editable_headers)
+    widget = ColumnListTableWidget(col_data_list, col_name_list,
+                                   col_edit_list=col_edit_list)
     def on_doubleclick(index):
         # This is actually a release
         #print('DoubleClicked: ' + str(qtype.qindexinfo(index)))

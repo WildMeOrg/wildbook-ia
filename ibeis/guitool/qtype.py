@@ -20,7 +20,7 @@ def cast_into_qt(data, role=Qt.DisplayRole, flags=Qt.DisplayRole):
     """ Casts data to a QVariant """
     if role == Qt.CheckStateRole and flags & Qt.ItemIsUserCheckable:
         return Qt.Checked if data else Qt.Unchecked
-    elif role == Qt.DisplayRole:
+    elif role in (Qt.DisplayRole, Qt.EditRole):
         if utool.is_str(data):
             return QtCore.QVariant(str(data)).toString()
         if utool.is_float(data):
@@ -38,15 +38,29 @@ def cast_into_qt(data, role=Qt.DisplayRole, flags=Qt.DisplayRole):
 
 
 @profile
-def cast_from_qt(var, type_):
+def cast_from_qt(var, type_=None):
     """ Casts a QVariant to data """
-    if isinstance(var, QtCore.QVariant):
+    #printDBG('Casting var=%r' % (var,))
+    if var is None:
+        return None
+    if type_ is not None and isinstance(var, QtCore.QVariant):
         # Most cases will be qvariants
         reprstr = str(var.toString())
         data = utool.smart_cast(reprstr, type_)
-    elif utool.is_int(var):
+    elif isinstance(var, QtCore.QVariant):
+        if var.typeName() == 'bool':
+            data = bool(var.toBool())
+        if var.typeName() == 'QString':
+            data = str(var.toString())
+    elif isinstance(var, QtCore.QString):
+        data = str(var)
+    #elif isinstance(var, (int, long, str, float)):
+    elif isinstance(var, (int, str, unicode)):
         # comboboxes return ints
         data = var
+    else:
+        raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
+                         (type(var), var))
     return data
 
 

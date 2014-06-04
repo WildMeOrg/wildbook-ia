@@ -132,11 +132,23 @@ def newTextEdit(parent, visible=True):
     return outputEdit
 
 
-def newWidget(parent, verticalStretch=1):
+def newWidget(parent, orientation=Qt.Vertical,
+              verticalSizePolicy=QSizePolicy.Expanding,
+              horizontalSizePolicy=QSizePolicy.Expanding,
+              verticalStretch=1):
     widget = QtGui.QWidget(parent)
-    sizePolicy = newSizePolicy(widget, verticalStretch=1)
+
+    sizePolicy = newSizePolicy(widget,
+                               horizontalSizePolicy=horizontalSizePolicy,
+                               verticalSizePolicy=verticalSizePolicy,
+                               verticalStretch=1)
     widget.setSizePolicy(sizePolicy)
-    layout = QtGui.QVBoxLayout(widget)
+    if orientation == Qt.Vertical:
+        layout = QtGui.QVBoxLayout(widget)
+    elif orientation == Qt.Horizontal:
+        layout = QtGui.QHBoxLayout(widget)
+    else:
+        raise NotImplementedError('orientation')
     # Black magic
     widget._guitool_layout = layout
     widget.addWidget = widget._guitool_layout.addWidget
@@ -151,6 +163,17 @@ def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
     #italic = False
     font = QtGui.QFont(fontname, pointSize=pointSize, weight=weight, italic=italic)
     return font
+
+
+def newButton(parent, text, clicked=None):
+    button = QtGui.QPushButton(text, parent=parent, clicked=clicked)
+    return button
+
+
+def newLabel(parent, text):
+    label = QtGui.QLabel(text, parent=parent)
+    label.setAlignment(Qt.AlignCenter)
+    return label
 
 
 def getAvailableFonts():
