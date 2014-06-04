@@ -186,6 +186,8 @@ class SQLDatabaseController(object):
         db.table_columns = {}
         db.about_to_change = False  # used by apitablemodel for cache invalidation
         db.dbchanged_callback = None
+        db.cache = {}
+        db.stack = []
 
     def execute(db, operation, params=(), verbose=VERBOSE):
         """ DEPRICATE """
@@ -253,11 +255,9 @@ class SQLDatabaseController(object):
         header_types = utool.indentjoin(column_nametypes, '\n# ')
         column_list = []
         column_labels = []
-        print(column_names)
         for name in column_names:
             if name in exclude_columns:
                 continue
-            print("%r %r" % (tablename, name))
             column_vals = db.get_column(tablename, name)
             column_list.append(column_vals)
             column_labels.append(name.replace(tablename[:-1] + '_', ''))
@@ -290,12 +290,12 @@ class SQLDatabaseController(object):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, params, auto_commit=True, errmsg=None, verbose=VERBOSE)
+        return db.executeone(operation, params, auto_commit=True,  verbose=VERBOSE)
 
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars, 
-                                auto_commit=True, errmsg=None, verbose=VERBOSE)
+                                auto_commit=True,  verbose=VERBOSE)
 
     #@ider
     def get_valid_ids(db, tblname, **kwargs):
@@ -360,23 +360,30 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter, **kwargs)
 
     #@getter
-    def get(db, tblname, colnames, id_iter=None, where_col=None, unpack_scalars=None, **kwargs):
+    def get(db, tblname, colnames, id_iter=None, where_col=None, where_custom=None,
+                unpack_scalars=None, one_execute_override=False, **kwargs):
         """ getter """
         if unpack_scalars is None:
             unpack_scalars = where_col is None
 
-        if id_iter is not None:
+        if id_iter is not None and not one_execute_override:
+            if where_custom is None:
+                where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
+                params_iter = ((_uid,) for _uid in id_iter)
+            else:
+                where_rowid = where_custom
+                params_iter = id_iter
+
             fmtdict = {
-                'tblname_str'   : tblname,
-                'colnames_str'  : ', '.join(colnames),
-                'rowid_str'     : ('rowid=?' if where_col is None else where_col + '=?'),
+                'tblname_str'     : tblname,
+                'colnames_str'    : ', '.join(colnames),
+                'where_rowid_str' : 'WHERE ' + where_rowid,
             }
             operation_fmt = '''
                 SELECT {colnames_str}
                 FROM {tblname_str}
-                WHERE {rowid_str}
+                {where_rowid_str}
                 '''
-            params_iter = ((_uid,) for _uid in id_iter)
             #  db.cache[tblname][colname][rowid] =
             val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                      params_iter=params_iter, 
@@ -384,38 +391,45 @@ class SQLDatabaseController(object):
                                                      **kwargs)
         else:
             fmtdict = {
-                'tblname_str'   : tblname,
-                'colnames_str'  : ', '.join(colnames),
+                'tblname_str'       : tblname,
+                'colnames_str'      : ', '.join(colnames),
+                'where_rowid_str'   : ('' if where_custom is None else 'WHERE ' + where_custom)
             }
             operation_fmt = '''
                 SELECT {colnames_str}
                 FROM {tblname_str}
+                {where_rowid_str}
                 '''
-            #  db.cache[tblname][colname][rowid] =
-            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+            if one_execute_override:
+                params = id_iter
+            else:
+                params = None
 
-        
+            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
+
+
         return val_list
 
     #@setter
     def set(db, tblname, colnames, id_list, val_iter, **kwargs):
-        """ setter """
-        fmtdict = {
-            'tblname_str': tblname,
-        }
-        operation_fmt = '''
-            UPDATE {tblname_str}
-            SET {setter_str}
-            WHERE rowid=?
-            '''
-        return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=val_iter, **kwargs)
+        # """ setter """
+        # fmtdict = {
+        #     'tblname_str'   : tblname,
+        # }
+        # operation_fmt = '''
+        #     UPDATE {tblname_str}
+        #     SET {setter_str}
+        #     WHERE rowid=?
+        #     '''
+        # return db._executemany_operation_fmt(operation_fmt, fmtdict,
+        #                                      params_iter=val_iter, **kwargs)
+        pass 
 
     #@deleter
     def delete(db, tblname, id_list, where_col=None, **kwargs):
         """ deleter """
         fmtdict = {
-            'tblname_str': tblname,
+            'tblname_str' : tblname,
             'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
         }
         operation_fmt = '''
@@ -423,8 +437,9 @@ class SQLDatabaseController(object):
             FROM {tblname_str}
             WHERE {rowid_str}
             '''
+        params_iter = ((_uid,) for _uid in id_list)
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=id_list,
+                                             params_iter=params_iter,
                                              **kwargs)
 
     #=========
@@ -496,7 +511,7 @@ class SQLDatabaseController(object):
         db.table_columns[tablename] = schema_list
 
     @profile
-    def executeone(db, operation, params=(), auto_commit=True, errmsg=None, verbose=VERBOSE):
+    def executeone(db, operation, params=(), auto_commit=True,  verbose=VERBOSE):
         """
             operation - parameterized SQL operation string.
                 Parameterized prevents SQL injection attacks by using an ordered
@@ -524,7 +539,7 @@ class SQLDatabaseController(object):
         return result_list
 
     @profile
-    def executemany(db, operation, params_iter, auto_commit=True, errmsg=None,
+    def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE, unpack_scalars=True, num_params=None):
         """
         Input:
@@ -597,7 +612,7 @@ class SQLDatabaseController(object):
         return results_list
 
     @profile
-    def commit(db, qstat_flag_list=[], errmsg=None, verbose=VERBOSE):
+    def commit(db, qstat_flag_list=[],  verbose=VERBOSE, errmsg=None):
         """ Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
             commited one at a time or after a batch - which allows for batch
