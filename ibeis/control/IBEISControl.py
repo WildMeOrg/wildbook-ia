@@ -1380,7 +1380,9 @@ class IBEISController(object):
         """ Returns encounter_text of each eid in eid_list """
         tblname = 'encounters'
         colname_list = ('encounter_text',)
-        enctext_list = ibs.db.get(tblname, colname_list, eid_list, where_col='encounter_uid')
+        enctext_list = ibs.db.get(tblname, colname_list, eid_list,
+            where_col='encounter_uid', 
+            unpack_scalars=True)
         enctext_list = list(imap(__USTRCAST__, enctext_list))
         return enctext_list
 
