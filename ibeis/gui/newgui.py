@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 from itertools import izip  # noqa
+import functools  # NOQA
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QSizePolicy
 from guitool import slot_, checks_qt_error, ChangingModelLayout  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
@@ -46,7 +48,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         enc_tabwgt.setTabsClosable(True)
         enc_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
         enc_tabwgt.tabbar = enc_tabwgt.tabBar()
-        enc_tabwgt.tabbar.setMovable(True)
+        enc_tabwgt.tabbar.setMovable(False)
         enc_tabwgt.setStyleSheet('border: none;')
         enc_tabwgt.tabbar.setStyleSheet('border: none;')
         sizePolicy = guitool.newSizePolicy(enc_tabwgt, horizontalStretch=horizontalStretch)
@@ -88,11 +90,6 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             if eid == _id:
                 enc_tabwgt.setTabText(index, enctext)
 
-
-class StatusLabel(QtGui.QLabel):
-    def __init__(labelwgt, text, parent=None):
-        QtGui.QLabel.__init__(labelwgt, text, parent)
-        labelwgt.setAlignment(Qt.AlignCenter)
 
 #############################
 ###### Window Widgets #######
@@ -146,9 +143,10 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         """ Defines gui components """
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
-        #ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
-        ibswgt.vsplitter = guitool.newWidget(ibswgt, Qt.Vertical)
-        ibswgt.hsplitter = guitool.newWidget(ibswgt)
+        ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
+        ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
+        #ibswgt.hsplitter = guitool.newWidget(ibswgt, Qt.Horizontal, verticalStretch=18)
+        #ibswgt.vsplitter = guitool.newWidget(ibswgt)
         #
         # Tables Tab
         ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
@@ -168,17 +166,34 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8, visible=True, verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
-        ibswgt.status_wgt  = guitool.newWidget(ibswgt, verticalStretch=6)
+        # New widget has black magic (for implicit layouts) in it
+        ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,
+                                               verticalStretch=6,
+                                               horizontalSizePolicy=QSizePolicy.Maximum)
 
         ibswgt.statusBar = QtGui.QHBoxLayout(ibswgt)
-        ibswgt.statusLabels = ['', 'Status Bar', '']
+        _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
+        ibswgt.statusLabel_list = [
+            _NEWLBL(''),
+            _NEWLBL('Status Bar'),
+            _NEWLBL(''),
+            _NEWLBL(''),
+        ]
+
+        ibswgt.buttonBar = QtGui.QHBoxLayout(ibswgt)
+        _NEWBUT = functools.partial(guitool.newButton, ibswgt)
+        ibswgt.button_list = [
+            _NEWBUT('COMPUTE ENCOUNTERS', ibswgt.back.detect_grevys_quick),
+            _NEWBUT('DELETE ALL ENCOUNTERS', ibswgt.back.delete_all_encounters),
+            _NEWBUT('DETECT (grevys)', ibswgt.back.detect_grevys_quick),
+            _NEWBUT('QUERY ()', ibswgt.back.precompute_queries),
+        ]
 
     def _init_layout(ibswgt):
         """ Lays out the defined components """
         # Add elements to the layout
         ibswgt.vlayout.addWidget(ibswgt.enc_tabwgt)
         ibswgt.vlayout.addWidget(ibswgt.vsplitter)
-        # Vertical
         ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
         ibswgt.vsplitter.addWidget(ibswgt.status_wgt)
         # Horizontal Upper
@@ -187,22 +202,18 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
         ibswgt.status_wgt.addWidget(ibswgt.progressBar)
+        ibswgt.status_wgt.addLayout(ibswgt.buttonBar)
         ibswgt.status_wgt.addLayout(ibswgt.statusBar)
-        # Status Labels
-        ibswgt.refresh_status_labels()
-
-    def refresh_status_labels(ibswgt, labels=None):
-        [ ibswgt.statusBar.itemAt(index).widget().close()
-            for index in xrange(ibswgt.statusBar.count()) ]
-        if labels is not None:
-            ibswgt.statusLabels = labels
-        for label in ibswgt.statusLabels:
-            ibswgt.statusBar.addWidget(StatusLabel(label))
+        # Add statusbar
+        for widget in ibswgt.statusLabel_list:
+            ibswgt.statusBar.addWidget(widget)
+        # Add buttonbar
+        for button in ibswgt.button_list:
+            ibswgt.buttonBar.addWidget(button)
 
     def set_status_label(ibswgt, index, text):
-        print(ibswgt.statusLabels)
-        ibswgt.statusLabels[index] = text
-        ibswgt.refresh_status_labels()
+        printDBG('set_status_label[%r] = %r' % (index, text))
+        ibswgt.statusLabel_list[index].setText(text)
 
     def changing_models_gen(ibswgt, tblnames=None):
         """
@@ -255,49 +266,27 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
     def _change_enc(ibswgt, eid):
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
+        try:
+            ibswgt.button_list[3].setText('QUERY(eid=%r)' % eid)
+        except Exception:
+            pass
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
 
     #@checks_qt_error
     def _connect_signals_and_slots(ibswgt):
-        tblslots = {
-            IMAGE_TABLE     : ibswgt.on_doubleclick_image,
-            ROI_TABLE       : ibswgt.on_doubleclick_roi,
-            NAME_TABLE      : ibswgt.on_doubleclick_name,
-            ENCOUNTER_TABLE : ibswgt.on_doubleclick_encounter,
-        }
-        for tblname, slot in tblslots.iteritems():
+        for tblname in ibswgt.super_tblname_list:
             tblview = ibswgt.views[tblname]
-            tblview.doubleClicked.connect(slot)
+            tblview.doubleClicked.connect(ibswgt.on_doubleclick)
+            tblview.clicked.connect(ibswgt.on_click)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
-
             model = ibswgt.models[tblname]
             model._rows_updated.connect(ibswgt.on_rows_updated)
 
     #------------
     # SLOTS
     #------------
-
-    @slot_(QtCore.QModelIndex, QtCore.QPoint)
-    def on_contextMenuClicked(ibswgt, qtindex, pos):
-        print('[newgui] contextmenu')
-        model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row())
-        tblview = ibswgt.views[model.name]
-        if model.name == IMAGE_TABLE:
-            gid = id_
-            opt2_gid_callback = [
-                ('view hough image', lambda: ibswgt.back.show_hough(gid)),
-                ('delete image', lambda: ibswgt.back.delete_image(gid)),
-            ]
-            guitool.popup_menu(tblview, pos, opt2_gid_callback)
-        if model.name == ENCOUNTER_TABLE:
-            eid = id_
-            opt2_gid_callback = [
-                ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
-            ]
-            guitool.popup_menu(tblview, pos, opt2_gid_callback)
 
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
@@ -309,41 +298,72 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         index = ibswgt._tab_table_wgt.indexOf(ibswgt.views[tblname])
         ibswgt._tab_table_wgt.setTabText(index, tblname + ' ' + str(nRows))
 
-    @slot_(QtCore.QModelIndex)
-    def on_doubleclick_image(ibswgt, qtindex):
+    @slot_(QtCore.QModelIndex, QtCore.QPoint)
+    def on_contextMenuClicked(ibswgt, qtindex, pos):
+        print('[newgui] contextmenu')
         model = qtindex.model()
-        gid = model._get_row_id(qtindex.row())
-        ibswgt.back.select_gid(gid, model.eid)
-        string = "Image Selected, %r (ENC %r)" % (gid, model.eid)
-        print(string)
-        ibswgt.set_status_label(0, string)
+        id_ = model._get_row_id(qtindex.row())
+        tblview = ibswgt.views[model.name]
+        if model.name == ENCOUNTER_TABLE:
+            eid = id_
+            guitool.popup_menu(tblview, pos, [
+                ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
+            ])
+        else:
+            eid = model.eid
+            if model.name == IMAGE_TABLE:
+                gid = id_
+                guitool.popup_menu(tblview, pos, [
+                    ('view hough image', lambda: ibswgt.back.show_hough(gid)),
+                    ('delete image', lambda: ibswgt.back.delete_image(gid)),
+                ])
+            elif model.name == ROI_TABLE:
+                rid = id_
+                guitool.popup_menu(tblview, pos, [
+                    ('delete roi', lambda: ibswgt.back.delete_roi(rid)),
+
+
+                ])
+    @slot_(QtCore.QModelIndex)
+    def on_click(ibswgt, qtindex):
+        print('on_click')
+        model = qtindex.model()
+        id_ = model._get_row_id(qtindex.row())
+        if model.name == ENCOUNTER_TABLE:
+            print('clicked encounter')
+        else:
+            eid = model.eid
+            if model.name == IMAGE_TABLE:
+                gid = id_
+                ibswgt.back.select_gid(gid, eid, show=False)
+            elif model.name == ROI_TABLE:
+                rid = id_
+                ibswgt.back.select_rid(rid, eid, show=False)
+            elif model.name == NAME_TABLE:
+                nid = id_
+                ibswgt.back.select_nid(nid, eid, show=False)
 
     @slot_(QtCore.QModelIndex)
-    def on_doubleclick_roi(ibswgt, qtindex):
+    def on_doubleclick(ibswgt, qtindex):
+        print('on_doubleclick')
         model = qtindex.model()
-        rid = model._get_row_id(qtindex.row())
-        ibswgt.back.select_rid(rid, model.eid)
-        string = "ROI Selected, %r (ENC %r)" % (rid, model.eid)
-        print(string)
-        ibswgt.set_status_label(1, string)
-
-    @slot_(QtCore.QModelIndex)
-    def on_doubleclick_name(ibswgt, qtindex):
-        model = qtindex.model()
-        nid = model._get_row_id(qtindex.row())
-        ibswgt.back.select_nid(nid, model.eid)
-        string = "Name Selected, %r (ENC %r)" % (nid, model.eid)
-        print(string)
-        ibswgt.set_status_label(2, string)
-
-    @slot_(QtCore.QModelIndex)
-    def on_doubleclick_encounter(ibswgt, qtindex):
-        model = qtindex.model()
-        eid = model._get_row_id(qtindex.row())
-        enctext = ibswgt.ibs.get_encounter_enctext(eid)
-        ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
-        print("Encounter Selected, %r" % (eid))
-
+        id_ = model._get_row_id(qtindex.row())
+        if model.name == ENCOUNTER_TABLE:
+            eid = id_
+            enctext = ibswgt.ibs.get_encounter_enctext(eid)
+            ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
+            ibswgt.back.select_eid(eid)
+        else:
+            eid = model.eid
+            if model.name == IMAGE_TABLE:
+                gid = id_
+                ibswgt.back.select_gid(gid, eid)
+            elif model.name == ROI_TABLE:
+                rid = id_
+                ibswgt.back.select_rid(rid, eid)
+            elif model.name == NAME_TABLE:
+                nid = id_
+                ibswgt.back.select_nid(nid, eid)
 
 if __name__ == '__main__':
     import ibeis

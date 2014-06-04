@@ -142,9 +142,10 @@ from ibeis.model.hots import query_helpers
 from ibeis.model.detect import randomforest
 from ibeis.model.detect import grabmodels
 # IBEIS VIEW GUI
-from ibeis.gui import guifront
+from ibeis.gui import newgui
 from ibeis.gui import guiback
-from ibeis.gui import uidtables
+from ibeis.gui import guimenus
+from ibeis.gui import guiheaders
 # IBEIS VIEW VIZ
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
