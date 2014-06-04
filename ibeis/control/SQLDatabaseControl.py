@@ -55,7 +55,7 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
 def _unpacker(results_):
     """ HELPER: Unpacks results if unpack_scalars is True """
     results = None if len(results_) == 0 else results_[0]
-    assert len(results_) < 2, 'throwing away results!'
+    assert len(results_) < 2, 'throwing away results! { %r }' %(results_)
     return results
 
 
@@ -286,19 +286,22 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
-    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params):
+    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None):
+        if params is None:
+            params = []
         operation = operation_fmt.format(**fmtdict)
         return db.executeone(operation, params, auto_commit=True, errmsg=None, verbose=VERBOSE)
 
-    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter):
+    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
         operation = operation_fmt.format(**fmtdict)
-        return db.executemany(operation, params_iter, auto_commit=True, errmsg=None, verbose=VERBOSE)
+        return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars, 
+                                auto_commit=True, errmsg=None, verbose=VERBOSE)
 
     #@ider
     def get_valid_ids(db, tblname, **kwargs):
         """ valid ider """
         fmtdict = {
-            'tblname': tblname,
+            'tblname_str': tblname,
         }
         operation_fmt = '''
         SELECT rowid FROM {tblname}
@@ -357,21 +360,41 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter, **kwargs)
 
     #@getter
-    def get(db, tblname, colnames, id_iter, unpack_scalars=True, **kwargs):
+    def get(db, tblname, colnames, id_iter=None, where_col=None, unpack_scalars=None, **kwargs):
         """ getter """
-        fmtdict = {
-            'tblname': tblname,
-            'colnames': colnames,
-        }
-        operation_fmt = '''
-            SELECT {colnames}
-            FROM {tblname}
-            WHERE rowid=?
-            '''
-        params_iter = ((_uid,) for _uid in id_iter)
-        #  db.cache[tblname][colname][rowid] =
-        val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                                 params_iter=params_iter, **kwargs)
+        if unpack_scalars is None:
+            unpack_scalars = where_col is None
+
+        if id_iter is not None:
+            fmtdict = {
+                'tblname_str'   : tblname,
+                'colnames_str'  : ', '.join(colnames),
+                'rowid_str'     : ('rowid=?' if where_col is None else where_col + '=?'),
+            }
+            operation_fmt = '''
+                SELECT {colnames_str}
+                FROM {tblname_str}
+                WHERE {rowid_str}
+                '''
+            params_iter = ((_uid,) for _uid in id_iter)
+            #  db.cache[tblname][colname][rowid] =
+            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                                     params_iter=params_iter, 
+                                                     unpack_scalars=unpack_scalars,
+                                                     **kwargs)
+        else:
+            fmtdict = {
+                'tblname_str'   : tblname,
+                'colnames_str'  : ', '.join(colnames),
+            }
+            operation_fmt = '''
+                SELECT {colnames_str}
+                FROM {tblname_str}
+                '''
+            #  db.cache[tblname][colname][rowid] =
+            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+
+        
         return val_list
 
     #@setter
@@ -389,13 +412,16 @@ class SQLDatabaseController(object):
                                              params_iter=val_iter, **kwargs)
 
     #@deleter
-    def delete(db, tblname, colname, id_list, **kwargs):
+    def delete(db, tblname, id_list, where_col=None, **kwargs):
         """ deleter """
-        fmtdict = {}
+        fmtdict = {
+            'tblname_str': tblname,
+            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
+        }
         operation_fmt = '''
             DELETE
             FROM {tblname_str}
-            WHERE {deleter_str}
+            WHERE {rowid_str}
             '''
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=id_list,
