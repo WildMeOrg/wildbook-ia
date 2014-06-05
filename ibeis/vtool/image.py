@@ -190,4 +190,4 @@ def resize_thumb(img, max_dsize=(64, 64)):
         return cvt_BGR2RGB(img)
     else:
         dsize = (int(round(width * ratio)), int(round(height * ratio)))
-        return cvt_BGR2RGB(resize(img, dsize))
+        return resize(img, dsize)
