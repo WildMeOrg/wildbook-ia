@@ -2,14 +2,23 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 
 
-class ComboDelegate(QtGui.QItemDelegate):
+class APIDelegate(QtGui.QItemDelegate):
+    is_persistant_editable = True
+    def __init__(self, parent):
+        QtGui.QItemDelegate.__init__(self, parent)
+
+    def sizeHint(option, qindex):
+        # QStyleOptionViewItem option
+        return QtCore.QSize(50, 50);
+
+
+class ComboDelegate(APIDelegate):
     """
     A delegate that places a fully functioning QComboBox in every
     cell of the column to which it's applied
     """
-    is_persistant_editable = True
     def __init__(self, parent):
-        QtGui.QItemDelegate.__init__(self, parent)
+        APIDelegate.__init__(self, parent)
 
     def createEditor(self, parent, option, index):
         combo = QtGui.QComboBox(parent)
@@ -33,16 +42,15 @@ class ComboDelegate(QtGui.QItemDelegate):
         self.commitData.emit(self.sender())
 
 
-class ButtonDelegate(QtGui.QItemDelegate):
+class ButtonDelegate(APIDelegate):
     """
     A delegate that places a fully functioning QPushButton in every
     cell of the column to which it's applied
     """
-    is_persistant_editable = False
     def __init__(self, parent):
         # The parent is not an optional argument for the delegate as
         # we need to reference it in the paint method (see below)
-        QtGui.QItemDelegate.__init__(self, parent)
+        APIDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
         # This method will be called every time a particular cell is

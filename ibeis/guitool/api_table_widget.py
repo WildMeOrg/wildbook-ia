@@ -31,4 +31,5 @@ class APITableWidget(QtGui.QWidget):
         widget.model._rows_updated.connect(widget.on_rows_updated)
 
     def on_rows_updated(widget, name, num):
+        print('rows updated')
         pass

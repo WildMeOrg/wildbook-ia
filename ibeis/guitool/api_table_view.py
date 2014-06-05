@@ -43,9 +43,10 @@ class APITableView(QtGui.QTableView):
         # No vertical header
         verticalHeader = view.verticalHeader()
         verticalHeader.setVisible(True)
+        verticalHeader.setVisible(False)
         #verticalHeader.setSortIndicatorShown(True)
         #verticalHeader.setHighlightSections(True)
-        verticalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
+        #verticalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
         #verticalHeader.setMovable(True)
         # Stretchy column widths
         horizontalHeader = view.horizontalHeader()
@@ -53,10 +54,10 @@ class APITableView(QtGui.QTableView):
         horizontalHeader.setSortIndicatorShown(True)
         horizontalHeader.setHighlightSections(True)
         # Column Sizes
-        # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW FOR SOME REASON.
+        # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW
         #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
+        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
+        horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
         #horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
         horizontalHeader.setMovable(True)
@@ -95,3 +96,48 @@ class APITableView(QtGui.QTableView):
         for row in xrange(num_rows):
             index  = cltw.model.index(row, column)
             cltw.view.openPersistentEditor(index)
+
+    def copy_selection_to_keyboard(view):
+        """
+        Taken from here http://stackoverflow.com/questions/3135737/copying-part-of-qtableview
+        modified with regex:
+        s/\(^  *\)Q[A-Z][a-zA-Z]*\> \**/\1/gc
+        s/;$//gc
+        s/->/./gc
+        s/if(\(.*\))/if \1:/gc
+        %s/for(\(.*\))/for \1:/gc
+        """
+        abmodel = view.model()
+        model = view.selectionModel()
+        qindex_list = model.selectedIndexes()
+
+        qindex_list = sorted(qindex_list)
+
+        if len(qindex_list.size()):
+            return
+
+        copy_table = []
+        previous = qindex_list[0]
+
+        qindex_list.removeFirst()
+
+        for ix in xrange(len(qindex_list)):
+            data = abmodel.data(previous)  # QVar
+            text = str(data.toString())
+
+            qindex_list = qindex_list[ix]
+            copy_table.append(text)
+
+            if qindex_list.row() != previous.row():
+                copy_table.append('\n')
+            else:
+                copy_table.append('\t')
+            previous = qindex_list
+
+        copy_table.append(abmodel.data(qindex_list[-1]).toString())
+        copy_table.append('\n')
+        from guitool.guitool_main import get_qapp
+        QAPP = get_qapp()
+
+        clipboard = QAPP.clipboard()
+        clipboard.setText(copy_table)

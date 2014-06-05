@@ -368,7 +368,12 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def index(model, row, column, parent=QtCore.QModelIndex()):
-        """ Qt Override """
+        """ Qt Override
+        Returns the index of the item in the model specified by the given row,
+        column and parent index.  When reimplementing this function in a
+        subclass, call createIndex() to generate model indexes that other
+        components can use to refer to items in your model.
+        """
         return model.createIndex(row, column)
 
     @default_method_decorator
@@ -383,14 +388,22 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
-        """ Depending on the role, returns either data or how to display data """
+        """ Depending on the role, returns either data or how to display data
+        Returns the data stored under the given role for the item referred to by
+        the index.  Note: If you do not have a value to return, return an
+        invalid QVariant instead of returning 0.
+        """
         #if not qtindex.isValid():
         #    return None
         flags = model.flags(qtindex)
         row = qtindex.row()
         col = qtindex.column()
         type_ = model._get_type(col)
-        #role_name = ItemDataRoles[role]
+        role_name = ItemDataRoles[role]
+
+        if role == Qt.SizeHintRole:
+            print(role_name)
+            pass
         #
         # Specify alignment
         if role == Qt.TextAlignmentRole:
@@ -437,10 +450,10 @@ class APITableModel(QtCore.QAbstractTableModel):
         elif role in (Qt.DisplayRole, Qt.EditRole):
             if type_ in qtype.QT_PIXMAP_TYPES:
                 pass
-                #return 'pixmap'
+                return 'pixmap'
             elif type_ in qtype.QT_ICON_TYPES:
                 pass
-                #return 'icon'
+                return 'icon'
             else:
                 data = model._get_data(row, col)
                 value = qtype.cast_into_qt(data)
@@ -456,7 +469,12 @@ class APITableModel(QtCore.QAbstractTableModel):
     @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
         """ Sets the role data for the item at qtindex to value.
-        value is a QVariant (called data in documentation) """
+        value is a QVariant (called data in documentation)
+        Returns a map with values for all predefined roles in the model for the item at
+        the given index.  Reimplement this function if you want to extend the default
+        behavior of this function to include custom roles in the map.
+
+        """
         try:
             if not qtindex.isValid():
                 return None
@@ -486,7 +504,12 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def headerData(model, section, orientation, role=Qt.DisplayRole):
-        """ Qt Override """
+        """ Qt Override
+        Returns the data for the given role and section in the header with the
+        specified orientation.  For horizontal headers, the section number
+        corresponds to the column number. Similarly, for vertical headers, the
+        section number corresponds to the row number.
+        """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             column = section
             if column >= len(model.col_nice_list):
@@ -498,7 +521,7 @@ class APITableModel(QtCore.QAbstractTableModel):
             return rowid
         return QtCore.QVariant()
 
-    @default_method_decorator
+    @updater
     def sort(model, column, order):
         """ Qt Override """
         reverse = (order == QtCore.Qt.DescendingOrder)
@@ -506,16 +529,96 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def flags(model, qtindex):
-        """ Qt Override """
+        """ Qt Override
+        returns Qt::ItemFlag
+             0: 'NoItemFlags'          # It does not have any properties set.
+             1: 'ItemIsSelectable'     # It can be selected.
+             2: 'ItemIsEditable'       # It can be edited.
+             4: 'ItemIsDragEnabled'    # It can be dragged.
+             8: 'ItemIsDropEnabled'    # It can be used as a drop target.
+            16: 'ItemIsUserCheckable'  # It can be checked or unchecked by the user.
+            32: 'ItemIsEnabled'        # The user can interact with the item.
+            64: 'ItemIsTristate'       # The item is checkable with three separate states.
+        """
         # Return flags based on column properties (like type, and editable)
-        col = qtindex.column()
-        type_ = model._get_type(col)
+        col      = qtindex.column()
+        type_    = model._get_type(col)
         editable = model.col_edit_list[col]
         if type_ in qtype.QT_IMAGE_TYPES:
-            return Qt.ItemIsEnabled
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif not editable:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif type_ in utool.VALID_BOOL_TYPES:
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
+
+
+
+    #http://qt-project.org/doc/qt-4.8/qabstractitemmodel.html
+
+    #QModelIndexList QAbstractItemModel::match ( const QModelIndex & start, int role, const QVariant & value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags( Qt::MatchStartsWith | Qt::MatchWrap ) ) const [virtual]
+
+    #def mimeData(QModelIndexList indexes):
+    #    return QMimeData
+
+    #def mimeTypes (QModelIndexList indexes)
+    #    return QStringList
+
+
+    #QModelIndex QAbstractItemModel::parent ( const QModelIndex & index )
+
+
+    #QModelIndexList QAbstractItemModel::persistentIndexList () const [protected]
+    #Returns the list of indexes stored as persistent indexes in the model.
+
+    #bool QAbstractItemModel::removeColumns ( int column, int count, const QModelIndex & parent = QModelIndex() ) [virtual]
+
+
+    #bool QAbstractItemModel::removeRow ( int row, const QModelIndex & parent = QModelIndex() )
+
+
+    #bool QAbstractItemModel::removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() ) [virtual]
+
+
+    # const QHash<int, QByteArray> & QAbstractItemModel::roleNames () const
+
+
+    #void QAbstractItemModel::rowsAboutToBeInserted ( const QModelIndex & parent, int start, int end ) [signal]
+
+    #void QAbstractItemModel::rowsAboutToBeMoved ( const QModelIndex & sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow ) [signal]
+
+
+    #void QAbstractItemModel::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end ) [signal]
+
+    #void QAbstractItemModel::rowsInserted ( const QModelIndex & parent, int start, int end ) [signal]
+
+
+    #void QAbstractItemModel::rowsMoved ( const QModelIndex & sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow ) [signal]
+
+    #void QAbstractItemModel::rowsRemoved ( const QModelIndex & parent, int start, int end ) [signal]
+
+
+    #bool QAbstractItemModel::setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole ) [virtual]
+
+    #bool QAbstractItemModel::setHeaderData ( int section, Qt::Orientation orientation, const QVariant & value, int role = Qt::EditRole ) [virtual]
+    # d headerDataChanged() signals must be emitted explicitly
+
+    #bool QAbstractItemModel::setItemData ( const QModelIndex & index, const QMap<int, QVariant> & roles ) [virtual]
+    #Sets the role data for the item at index to the associated value in roles, for every Qt::ItemDataRole.
+    #Returns true if successful; otherwise returns false.
+
+    #void QAbstractItemModel::setRoleNames ( const QHash<int, QByteArray> & roleNames ) [protected]
+
+
+    #void QAbstractItemModel::setSupportedDragActions ( Qt::DropActions actions )
+
+    #QModelIndex QAbstractItemModel::sibling ( int row, int column, const QModelIndex & index ) const
+
+    #QSize QAbstractItemModel::span ( const QModelIndex & index ) const [virtual]
+
+    #bool QAbstractItemModel::submit () [virtual slot]
+
+    #Qt::DropActions QAbstractItemModel::supportedDragActions () const
+
+    #Qt::DropActions QAbstractItemModel::supportedDropActions () const [virtual]
