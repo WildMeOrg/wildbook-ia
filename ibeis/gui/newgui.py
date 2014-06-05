@@ -182,11 +182,33 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
         ibswgt.buttonBar = QtGui.QHBoxLayout(ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
+        #_SEP = lambda: None
         ibswgt.button_list = [
-            _NEWBUT('COMPUTE ENCOUNTERS', ibswgt.back.compute_encounters),
+            _NEWBUT('Import Images (from file)', lambda *args: None),
+            _NEWBUT('Import Images (from dir)', lambda *args: None),
+            _NEWBUT('Import Images (from dir with size filter)', lambda *args: None),
+
+            #_SEP(),
+
+            _NEWBUT('Filter Images (GIST)', lambda *args: None),
+
+            #_SEP(),
+
+            _NEWBUT('Compute {algid} Encounters', lambda *args: None),
+
+            #_SEP(),
+
+            _NEWBUT('Run {species}-{algid} Detector', ibswgt.back.detect_grevys_quick),
+            _NEWBUT('Review {species}-Detections', lambda *args: None),
+
+            #_SEP(),
+
+            _NEWBUT('Individual Recognition (who are these?)', ibswgt.back.precompute_queries),
+            _NEWBUT('Review Individual Matches', lambda *args: None),
+
+            #_SEP(),
+
             _NEWBUT('DELETE ALL ENCOUNTERS', ibswgt.back.delete_all_encounters),
-            _NEWBUT('DETECT (grevys)', ibswgt.back.detect_grevys_quick),
-            _NEWBUT('QUERY ()', ibswgt.back.precompute_queries),
         ]
 
     def _init_layout(ibswgt):

@@ -192,4 +192,7 @@ python dev.py --allgt -t scores -w
 
 # Run the best configuration and print out the hard cases
 python dev.py --allgt -t best --echo-hardcase
+
+# Look at inspection widget
+python dev.py --allgt -t inspect -w
 ```
