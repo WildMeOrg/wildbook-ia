@@ -29,7 +29,7 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'gname', 'nRids', 'datetime', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'aif', 'gname', 'nRids', 'datetime', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
     ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'notes'],
@@ -67,7 +67,7 @@ COL_DEF = dict([
     ('bbox',       (str,   'BBOX (x, y, w, h))')),  # Non editables are safe as strs
     ('score',      (str,   'Confidence')),
     ('theta',      (str,   'Theta')),
-    ('aif',        (bool,  'All Detected')),
+    ('aif',        (bool,  'Reviewed')),
     ('enctext',    (str,   'Encounter Text')),
     ('datetime',   (str,   'Date / Time')),
     ('ext',        (str,   'EXT')),

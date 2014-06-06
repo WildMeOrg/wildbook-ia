@@ -53,9 +53,9 @@ def compute_all_chips(ibs):
 
 
 @__injectable
-def compute_all_features(ibs):
+def compute_all_features(ibs, **kwargs):
     print('[ibs] compute_all_features')
-    rid_list = ibs.get_valid_rids()
+    rid_list = ibs.get_valid_rids(**kwargs)
     cid_list = ibs.get_roi_cids(rid_list, ensure=True)
     fid_list = ibs.add_feats(cid_list)
     return fid_list
@@ -70,9 +70,9 @@ def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
 
 
 @__injectable
-def get_empty_gids(ibs):
+def get_empty_gids(ibs, eid=None):
     """ returns gid list without any chips """
-    gid_list = ibs.get_valid_gids()
+    gid_list = ibs.get_valid_gids(eid=eid)
     nRois_list = ibs.get_image_num_rois(gid_list)
     empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
     return empty_gids
@@ -505,13 +505,13 @@ def merge_databases(ibs_target, ibs_source_list):
 
 def get_title(ibs):
     if ibs is None:
-        title = 'IBEIS - No Database Open'
+        title = 'IBEIS - No Database Directory Open'
     elif ibs.dbdir is None:
-        title = 'IBEIS - invalid database'
+        title = 'IBEIS - !! INVALID DATABASE !!'
     else:
         dbdir = ibs.get_dbdir()
         dbname = ibs.get_dbname()
-        title = 'IBEIS - %r - %s' % (dbname, dbdir)
+        title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
     return title
 
 

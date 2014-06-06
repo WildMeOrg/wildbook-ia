@@ -14,7 +14,7 @@ from __future__ import absolute_import, division, print_function
 import atexit
 import requests
 from itertools import izip, imap
-from os.path import join, split, exists
+from os.path import join, split
 # Science
 import numpy as np
 # VTool
@@ -58,56 +58,17 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 IMAGE_TABLE = 'images'
 
 
-def _trimread(gpath):
-    try:
-        return gtool.imread(gpath)
-    except Exception:
-        return None
-
-
-class ThumbnailCacheContext(object):
-    """ Caches any images as thumbnails. Just pass unique image names """
-    def __init__(self, uuid_list, asrgb=True):
-        thumb_dpath = utool.get_app_resource_dir('ibeis', 'thumbs')
-        utool.ensuredir(thumb_dpath)
-        self.thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in uuid_list]
-        self.asrgb = asrgb
-        self.THUMB_SIZE = 64
-        self.thumb_list = None
-        self.dirty_list = None
-        self.dirty_gpaths = None
-
-    def __enter__(self):
-        # These items need to be computed
-        self.dirty_list = [not exists(gpath) for gpath in self.thumb_gpaths]
-        self.dirty_gpaths = utool.filter_items(self.thumb_gpaths, self.dirty_list)
-        return self
-
-    def save_dirty_thumbs_from_images(self, img_list):
-        # Remove any non images
-        isvalid_list = [img is not None for img in img_list]
-        valid_images  = utool.filter_items(img_list, isvalid_list)
-        valid_fpath = utool.filter_items(self.thumb_gpaths, isvalid_list)
-        # Resize to thumbnails
-        max_dsize = (self.THUMB_SIZE, self.THUMB_SIZE)
-        valid_thumbs = [gtool.resize_thumb(img, max_dsize) for img in valid_images]
-        # Write thumbs to disk
-        for gpath, thumb in izip(valid_fpath, valid_thumbs):
-            gtool.imwrite(gpath, thumb)
-
-    def __exit__(self, trace, one, two):
-        # Try to read thumbnails on disk
-        self.thumb_list = [_trimread(gpath) for gpath in self.thumb_gpaths]
-        if self.asrgb:
-            self.thumb_list = [None if thumb is None else
-                                    gtool.cvt_BGR2RGB(thumb)
-                                    for thumb in self.thumb_list]
-
-
+@atexit.register
 def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global __ALL_CONTROLLERS__
     del __ALL_CONTROLLERS__
+
+
+def IBEIS_ThumbnailCacheContext(ibs, uuid_list):
+    """ Wrapper around vtool.image.ThumbnailCacheContext """
+    thumb_size = ibs.cfg.other_cfg.thumb_size
+    return gtool.ThumbnailCacheContext(uuid_list, thumb_size, appname='ibeis')
 
 
 #
@@ -273,17 +234,23 @@ class IBEISController(object):
         """ Loads the database's algorithm configuration """
         ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
         try:
+            # HACK: FORCING DEFAULTS FOR NOW
+            if True or utool.get_flag(('--noprefload', '--noprefload')):
+                raise Exception('')
             ibs.cfg.load()
+            print('[ibs] successfully loaded config')
         except Exception:
             ibs._default_config()
 
     def _default_config(ibs):
         """ Resets the databases's algorithm configuration """
-        # TODO: Detector config
+        print('[ibs] building default config')
         query_cfg    = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
         ibs.cfg.enc_cfg     = Config.EncounterConfig()
         ibs.cfg.preproc_cfg = Config.PreprocConfig()
+        ibs.cfg.detect_cfg  = Config.DetectionConfig()
+        ibs.cfg.other_cfg   = Config.OtherConfig()
 
     @default_decorator
     def set_query_cfg(ibs, query_cfg):
@@ -295,6 +262,7 @@ class IBEISController(object):
 
     @default_decorator
     def update_cfg(ibs, **kwargs):
+        """ Updates query config only. Configs needs a restructure very badly """
         ibs.cfg.query_cfg.update_cfg(**kwargs)
 
     @default_decorator
@@ -771,13 +739,14 @@ class IBEISController(object):
         """ Does thumbnailing """
         # Cache thumbnails
         img_uuid_list = ibs.get_image_uuids(gid_list)
-        with ThumbnailCacheContext(img_uuid_list) as context:
-            #print('len(dirty_gpaths): %r' % len(dirty_gpaths))
-            if len(context.dirty_gpaths) > 0:
-                dirty_gids = utool.filter_items(gid_list, context.dirty_list)
+        # Pass unique ids to thumbnail context
+        with IBEIS_ThumbnailCacheContext(ibs, img_uuid_list) as context:
+            if context.needs_compute:
+                dirty_gids = context.filter_dirty_items(gid_list)
                 dirty_imgs = ibs.get_images(dirty_gids)
+                # Pass in any images, whos thumbnails are dirty
                 context.save_dirty_thumbs_from_images(dirty_imgs)
-
+        # The context populates thumb_list on exit
         thumb_list = context.thumb_list
         return thumb_list
 
@@ -1092,7 +1061,7 @@ class IBEISController(object):
         """ TODO: CACHING """
         roi_uuid_list = ibs.get_roi_uuids(rid_list)
         # Cache thumbnails
-        with ThumbnailCacheContext(roi_uuid_list) as context:
+        with IBEIS_ThumbnailCacheContext(ibs, roi_uuid_list) as context:
             #print('len(dirty_gpaths): %r' % len(dirty_gpaths))
             if len(context.dirty_gpaths) > 0:
                 dirty_rids = utool.filter_items(rid_list, context.dirty_list)
@@ -1690,5 +1659,3 @@ class IBEISController(object):
     #--------------
     # See ibeis/dev/ibsfuncs.py
     # there is some sneaky stuff happening there
-
-atexit.register(__cleanup)

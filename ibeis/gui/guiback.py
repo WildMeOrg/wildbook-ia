@@ -168,6 +168,14 @@ class MainWindowBackend(QtCore.QObject):
         back._set_selection(sel_gids=[], sel_rids=[], sel_nids=[],
                             sel_eids=[None])
 
+    @blocking_slot()
+    def default_config(back):
+        """ Button Click -> Preferences Defaults """
+        print('[back] default preferences')
+        back.ibs._default_config()
+        back.edit_prefs_wgt.refresh_layout()
+        back.edit_prefs_wgt.pref_model.rootPref.save()
+
     @utool.indent_func
     def get_selected_gid(back):
         """ selected image id """
@@ -330,22 +338,25 @@ class MainWindowBackend(QtCore.QObject):
             back.show_qres(qres)
 
     @blocking_slot()
-    def _detect_grevys(back, quick=True, refresh=True):
+    def _run_detection(back, quick=True, refresh=True, **kwargs):
         print('\n\n')
-        print('[back] detect_grevys(quick=%r)' % quick)
+        if 'eid' not in kwargs:
+            eid = back.get_selected_eid()
         ibs = back.ibs
-        gid_list = ibsfuncs.get_empty_gids(ibs)
-        ibs.detect_random_forest(gid_list, 'zebra_grevys', quick=quick)
+        gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
+        species = ibs.cfg.detect_cfg.species
+        print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
+        ibs.detect_random_forest(gid_list, species, quick=quick)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
 
     @blocking_slot()
-    def detect_grevys_quick(back, refresh=True):
-        back._detect_grevys(quick=True)
+    def run_detection_coarse(back, refresh=True):
+        back._run_detection(quick=True)
 
     @blocking_slot()
-    def detect_grevys_fine(back, refresh=True):
-        back._detect_grevys(quick=False)
+    def run_detection_fine(back, refresh=True):
+        back._run_detection(quick=False)
 
     @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
@@ -407,20 +418,22 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def precompute_feats(back, refresh=True):
+    def compute_feats(back, refresh=True, **kwargs):
         """ Batch -> Precompute Feats"""
-        print('[back] precompute_feats')
-        ibsfuncs.compute_all_features(back.ibs)
+        print('[back] compute_feats')
+        if 'eid' not in kwargs:
+            eid = back.get_selected_eid()
+        ibsfuncs.compute_all_features(back.ibs, eid=eid)
         if refresh:
             back.front.update_tables()
 
     @blocking_slot()
-    def precompute_queries(back, **kwargs):
+    def compute_queries(back, refresh=True, **kwargs):
         """ Batch -> Precompute Queries"""
         if 'eid' not in kwargs:
             eid = back.get_selected_eid()
-        print('[back] precompute_queries: eid=%r' % (eid,))
-        back.precompute_feats(refresh=False)
+        print('[back] compute_queries: eid=%r' % (eid,))
+        back.compute_feats(refresh=False, **kwargs)
         valid_rids = back.ibs.get_valid_rids(eid=eid)
         if eid is None:
             qrid2_qres = back.ibs.query_database(valid_rids)
@@ -429,6 +442,8 @@ class MainWindowBackend(QtCore.QObject):
         qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
         qrw.show()
         qrw.raise_()
+        if refresh:
+            back.front.update_tables()
 
     @blocking_slot()
     def compute_encounters(back, refresh=True):
@@ -454,9 +469,10 @@ class MainWindowBackend(QtCore.QObject):
         """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
         epw = back.ibs.cfg.createQWidget()
-        epw.ui.defaultPrefsBUT.clicked.connect(back.default_preferences)
+        fig_presenter.register_qt4_win(epw)
+        epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
         epw.show()
-        back.edit_prefs = epw
+        back.edit_prefs_wgt = epw
         #query_uid = ''.join(back.ibs.cfg.query_cfg.get_uid())
         #print('[back] query_uid = %s' % query_uid)
         #print('')
@@ -542,16 +558,6 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.db.dump_tables_to_csv()
 
     #--------------------------------------------------------------------------
-    # Misc Slots
-    #--------------------------------------------------------------------------
-
-    @blocking_slot()
-    def default_preferences(back):
-        """ Button Click -> Preferences Defaults """
-        print('[back] default preferences')
-        back.ibs._default_config()
-
-    #--------------------------------------------------------------------------
     # File Slots
     #--------------------------------------------------------------------------
 
@@ -596,14 +602,15 @@ class MainWindowBackend(QtCore.QObject):
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
-        try:
-            ibs = IBEISControl.IBEISController(dbdir=dbdir)
-            back.connect_ibeis_control(ibs)
-        except Exception as ex:
-            print('[guiback] Caught: %s: %s' % (type(ex), ex))
-            raise
-        else:
-            sysres.set_default_dbdir(dbdir)
+        with utool.Indenter(lbl='    [opendb]'):
+            try:
+                ibs = IBEISControl.IBEISController(dbdir=dbdir)
+                back.connect_ibeis_control(ibs)
+            except Exception as ex:
+                utool.printex(ex, 'caught Exception while opening database')
+                raise
+            else:
+                sysres.set_default_dbdir(dbdir)
 
     @blocking_slot()
     def export_database(back):
@@ -645,13 +652,17 @@ class MainWindowBackend(QtCore.QObject):
         return gid_list
 
     @blocking_slot()
-    def import_images_from_dir(back, dir_=None, refresh=True):
+    def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True):
         """ File -> Import Images From Directory"""
         print('[back] import_images_from_dir')
         if dir_ is None:
             dir_ = guitool.select_directory('Select directory with images in it')
         printDBG('[back] dir=%r' % dir_)
+        if dir_ is None:
+            return
         gpath_list = utool.list_images(dir_, fullpath=True)
+        if size_filter is not None:
+            raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE])

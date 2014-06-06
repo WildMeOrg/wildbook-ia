@@ -10,6 +10,10 @@ from utool import util_cache, util_list, util_cplat
 from ibeis import constants
 from ibeis.dev import params
 
+# Inject utool functions
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[sysres]', DEBUG=False)
+
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
 
@@ -31,12 +35,14 @@ def _ibeis_cache_read(key, **kwargs):
 # Specific cache getters / setters
 
 def set_default_dbdir(dbdir):
-    print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
+    printDBG('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
 
 
 def get_default_dbdir():
-    return _ibeis_cache_read(DEFAULTDB_CAHCEID, default=None)
+    dbdir = _ibeis_cache_read(DEFAULTDB_CAHCEID, default=None)
+    printDBG('[sysres] READING DEFAULT DBDIR: %r' % dbdir)
+    return dbdir
 
 
 def get_syncdir():
@@ -192,9 +198,9 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
 
 def get_args_dbdir(defaultdb=None, allow_newdir=False):
     """ Machinery for finding a database directory """
-    if not utool.QUIET and utool.VERBOSE:
-        print('[sysres] parsing commandline for dbdir')
-        print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
+    #if not utool.QUIET and utool.VERBOSE:
+    printDBG('[sysres] parsing commandline for dbdir')
+    printDBG('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
     dbdir = params.args.dbdir
     db = params.args.db
     if dbdir == 'None' or db == 'None':
@@ -212,9 +218,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False):
         # Try a cached / commandline / default db
         if db is None and defaultdb == 'cache' and not params.args.nocache_db:
             dbdir = get_default_dbdir()
-            if not utool.QUIET and utool.VERBOSE:
-                print('[sysres] Loading dbdir from cache.')
-                print('[sysres] dbdir=%r' % (dbdir,))
+            #if not utool.QUIET and utool.VERBOSE:
+            printDBG('[sysres] Loading dbdir from cache.')
+            printDBG('[sysres] dbdir=%r' % (dbdir,))
         elif db is not None:
             dbdir = db_to_dbdir(db, allow_newdir=allow_newdir)
         elif defaultdb is not None:

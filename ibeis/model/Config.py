@@ -238,6 +238,7 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg   = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg  = AggregateConfig(**kwargs)
         query_cfg.use_cache = False
+        query_cfg.num_results = 6
         # Depends on feature config
         if feat_cfg is None:
             query_cfg._feat_cfg = FeatureConfig(**kwargs)
@@ -437,6 +438,19 @@ class PreprocConfig(ConfigBase):
 
     def get_uid(preproc_cfg):
         return ''.join(preproc_cfg.get_uid_list())
+
+
+class DetectionConfig(ConfigBase):
+    def __init__(guicfg, **kwargs):
+        super(DetectionConfig, guicfg).__init__(name='detectcfg')
+        guicfg.species     = 'zebra_grevys'
+        guicfg.detector    = 'rf'
+
+
+class OtherConfig(ConfigBase):
+    def __init__(othercfg, **kwargs):
+        super(OtherConfig, othercfg).__init__(name='othercfg')
+        othercfg.thumb_size     = 64
 
 
 # Convinience

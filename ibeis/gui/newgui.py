@@ -13,7 +13,8 @@ from ibeis.gui import guimenus
 from ibeis.gui.guiheaders import (
     IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
-    IBEISTableModel, IBEISTableView, EncTableModel, EncTableView)
+    IBEISTableModel, IBEISTableView, EncTableModel, EncTableView,
+    IBEISTableWidget, EncTableWidget)
 import guitool
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
@@ -109,25 +110,19 @@ class IBEISMainWindow(QtGui.QMainWindow):
         mainwin.resize(900, 600)
 
 
-CLASS_IBEISGUIWidget = QtGui.QWidget
+IBEIS_GUI_BASE = QtGui.QWidget
 
 
-class IBEISGuiWidget(CLASS_IBEISGUIWidget):
+class IBEISGuiWidget(IBEIS_GUI_BASE):
     #@checks_qt_error
     def __init__(ibswgt, back=None, ibs=None, parent=None):
-        CLASS_IBEISGUIWidget.__init__(ibswgt, parent)
+        IBEIS_GUI_BASE.__init__(ibswgt, parent)
         ibswgt.ibs = ibs
         ibswgt.back = back
-        # Define the abstract item models and views for the tables
-        ibswgt.modelview_defs = [
-            (IMAGE_TABLE,     IBEISTableModel, IBEISTableView),
-            (ROI_TABLE,       IBEISTableModel, IBEISTableView),
-            (NAME_TABLE,      IBEISTableModel, IBEISTableView),
-            (ENCOUNTER_TABLE, EncTableModel,     EncTableView),
-        ]
         # Sturcutres that will hold models and views
         ibswgt.models       = {}
         ibswgt.views        = {}
+        ibswgt.widgets      = {}
         ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
@@ -152,19 +147,32 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
         #guitool.newTabWidget(ibswgt, horizontalStretch=81)
         # Create models and views
-        for tblname, ModelClass, ViewClass in ibswgt.modelview_defs:
-            ibswgt.models[tblname] = ModelClass(parent=ibswgt)
-            ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
+        # Define the abstract item models and views for the tables
+        ibswgt.modelview_defs = [
+            (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (ROI_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (ENCOUNTER_TABLE, EncTableWidget, EncTableModel,     EncTableView),
+        ]
+        for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
+            widget = WidgetClass(parent=ibswgt)
+            ibswgt.widgets[tblname] = widget
+            ibswgt.models[tblname]  = widget.model
+            ibswgt.views[tblname]   = widget.view
+            #ibswgt.models[tblname] = ModelClass(parent=ibswgt)
+            #ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
         # Connect models and views
-        for tblname in ibswgt.super_tblname_list:
-            ibswgt.views[tblname].setModel(ibswgt.models[tblname])
+        #for tblname in ibswgt.super_tblname_list:
+        #    ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ROI, and Names as tabs
         for tblname in ibswgt.tblname_list:
-            ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
+            ibswgt._tab_table_wgt.addTab(ibswgt.widgets[tblname], tblname)
+            #ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
         # Custom Encounter Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
-        ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8, visible=True, verticalStretch=6)
+        ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
+                                                  visible=True, verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         # New widget has black magic (for implicit layouts) in it
         ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,
@@ -182,29 +190,33 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
 
         ibswgt.buttonBar = QtGui.QHBoxLayout(ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
+        back = ibswgt.back
         #_SEP = lambda: None
         ibswgt.button_list = [
-            _NEWBUT('Import Images (from file)', lambda *args: None),
-            _NEWBUT('Import Images (from dir)', lambda *args: None),
-            _NEWBUT('Import Images (from dir with size filter)', lambda *args: None),
+            _NEWBUT('Import Images\n(from files)',
+                    back.import_images_from_file),
+            _NEWBUT('Import Images\n(from dir)',
+                    back.import_images_from_dir),
+            _NEWBUT('Import Images\n(from dir + size filter)'),
 
             #_SEP(),
 
-            _NEWBUT('Filter Images (GIST)', lambda *args: None),
+            _NEWBUT('Filter Images (GIST)'),
 
             #_SEP(),
 
-            _NEWBUT('Compute {algid} Encounters', lambda *args: None),
+            _NEWBUT('Compute {algid} Encounters'),
 
             #_SEP(),
 
-            _NEWBUT('Run {species}-{algid} Detector', ibswgt.back.detect_grevys_quick),
-            _NEWBUT('Review {species}-Detections', lambda *args: None),
+            _NEWBUT('Run {species}-{algid} Detector',
+                    ibswgt.back.run_detection_coarse),
+            _NEWBUT('Review {species}-Detections'),
 
             #_SEP(),
 
-            _NEWBUT('Individual Recognition (who are these?)', ibswgt.back.precompute_queries),
-            _NEWBUT('Review Individual Matches', lambda *args: None),
+            _NEWBUT('Individual Recognition (who are these?)', ibswgt.back.compute_queries),
+            _NEWBUT('Review Individual Matches'),
 
             #_SEP(),
 
@@ -273,9 +285,15 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
             print('[newgui] Calling model _update_headers')
             _flag = ibswgt._tab_table_wgt.blockSignals(True)
             for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
-                model = ibswgt.models[tblname]
+                # TODO: Consolidate these models and views into their own widgets
+                # Then have that update headers call them both
+                #model = ibswgt.models[tblname]
+                #view = ibswgt.views[tblname]
+                widget = ibswgt.widgets[tblname]
                 header = header_dict[tblname]
-                model._update_headers(**header)
+                widget.change_headers(header)
+                #model._update_headers(**header)
+                #view._update_headers(**header)
             ibswgt._tab_table_wgt.blockSignals(_flag)
 
     def setWindowTitle(ibswgt, title):
@@ -283,7 +301,7 @@ class IBEISGuiWidget(CLASS_IBEISGUIWidget):
         if parent_ is not None:
             parent_.setWindowTitle(title)
         else:
-            CLASS_IBEISGUIWidget.setWindowTitle(ibswgt, title)
+            IBEIS_GUI_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):

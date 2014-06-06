@@ -13,7 +13,7 @@ except AttributeError:
 
 
 def _on_ctrl_c(signal, frame):
-    print('Caught ctrl+c')
+    print('[ibeis.main_module] Caught ctrl+c')
     _close_parallel()
     sys.exit(0)
 

@@ -126,28 +126,28 @@ def setup_batch_menu(mainwin, back):
         name='actionPrecomputeROIFeatures',
         text='Precompute Chips/Features',
         shortcut='Ctrl+Return',
-        slot_fn=back.precompute_feats)
+        slot_fn=back.compute_feats)
     mainwin.menuBatch.newAction(
-        name='actionPrecompute_Queries',
-        text='Precompute Queries',
+        name='actionCompute_Queries',
+        text='Compute Queries',
         tooltip='''This might take anywhere from a coffee break to an
                     overnight procedure depending on how many ROIs you\'ve
                     made. It queries each chip and saves the result which
                     allows multiple queries to be rapidly inspected later.''',
         shortcut='',
-        slot_fn=back.precompute_queries)
+        slot_fn=back.compute_queries)
     mainwin.menuBatch.newAction(
-        name='actionDetect_Grevys_Quick',
-        text='Detect Grevys Quick',
-        slot_fn=back.detect_grevys_quick)
+        name='actionDetect_Coarse',
+        text='Run Detection (coarse)',
+        slot_fn=back.run_detection_coarse)
     mainwin.menuBatch.newAction(
-        name='actionDetect_Grevys_Fine',
-        text='Detect Grevys Fine',
-        slot_fn=back.detect_grevys_fine)
+        name='actionDetect_Fine',
+        text='Run Detection (fine)',
+        slot_fn=back.run_detection_fine)
     mainwin.menuBatch.addSeparator()
     mainwin.menuBatch.newAction(
         name='actionCompute_Encounters',
-        text='Compute Encounters',
+        text='Cluster Encounters',
         shortcut='Ctrl+E',
         slot_fn=back.compute_encounters)
     mainwin.menuBatch.addSeparator()

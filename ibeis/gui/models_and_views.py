@@ -1,15 +1,20 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from guitool import APITableModel, APITableView, ChangeLayoutContext
+from guitool import APITableModel, APITableView, APITableWidget, ChangeLayoutContext
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
-#--------------------
-# --- Data Models ---
-#--------------------
+#---------------------
+# --- IBEIS Tables ---
+#---------------------
 
 
-def _null_ider(**kwargs):
-    return []
+class IBEISTableWidget(APITableWidget):
+    def __init__(widget, headers=None, parent=None, *args):
+        widget.ibswin = parent
+        widget.eid = None
+        APITableWidget.__init__(widget, headers=headers, parent=parent,
+                                model_class=IBEISTableModel,
+                                view_class=IBEISTableView)
 
 
 class IBEISTableModel(APITableModel):
@@ -20,6 +25,8 @@ class IBEISTableModel(APITableModel):
         APITableModel.__init__(model, headers=headers, parent=parent)
 
     def _update_headers(model, **headers):
+        def _null_ider(**kwargs):
+            return []
         model.original_ider = headers.get('ider', _null_ider)
         headers['ider'] = model._ider
         return APITableModel._update_headers(model, **headers)
@@ -34,17 +41,6 @@ class IBEISTableModel(APITableModel):
             model._update_rows()
 
 
-class EncTableModel(APITableModel):
-    def __init__(model, headers=None, parent=None):
-        model.ibswin = parent
-        model.headers = headers
-        APITableModel.__init__(model, headers=headers, parent=parent)
-
-
-#-------------------
-# --- Data Views ---
-#-------------------
-
 class IBEISTableView(APITableView):
     """
     View for ROI / NAME / IMAGE Tables
@@ -55,6 +51,26 @@ class IBEISTableView(APITableView):
 
     def _change_enc(tblview, eid):
         tblview.model()._change_enc(eid)
+
+
+#-------------------------
+# --- ENCOUNTER TABLES ---
+#-------------------------
+
+
+class EncTableWidget(APITableWidget):
+    def __init__(widget, headers=None, parent=None, *args):
+        widget.ibswin = parent
+        APITableWidget.__init__(widget, headers=headers, parent=parent,
+                                model_class=EncTableModel,
+                                view_class=EncTableView)
+
+
+class EncTableModel(APITableModel):
+    def __init__(model, headers=None, parent=None):
+        model.ibswin = parent
+        model.headers = headers
+        APITableModel.__init__(model, headers=headers, parent=parent)
 
 
 class EncTableView(APITableView):
