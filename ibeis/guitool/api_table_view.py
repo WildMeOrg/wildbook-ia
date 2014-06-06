@@ -4,6 +4,7 @@ from PyQt4.QtCore import Qt
 import guitool
 from guitool.guitool_decorators import signal_, slot_
 from guitool.guitool_main import get_qtapp
+from guitool.guitool_misc import get_view_selection_as_str
 import utool
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -165,9 +166,7 @@ class APITableView(API_VIEW_BASE):
         return DelegateClass.is_persistant_editable
 
     def set_column_persistant_editor(cltw, column):
-        """
-        Set each row in a column as persistant
-        """
+        """ Set each row in a column as persistant """
         num_rows = cltw.model.rowCount()
         print('cltw.set_persistant: %r rows' % num_rows)
         for row in xrange(num_rows):
@@ -175,55 +174,11 @@ class APITableView(API_VIEW_BASE):
             cltw.view.openPersistentEditor(index)
 
     def copy_selection_to_clipboard(view):
-        """
-        Taken from here http://stackoverflow.com/questions/3135737/
-            copying-part-of-qtableview
-        TODO: Make this pythonic
-        """
+        """ Copys selected grid to clipboard """
         print('[guitool] Copying selection to clipboard')
-        model = view.model()
-        selection_model = view.selectionModel()
-        qindex_list = selection_model.selectedIndexes()
-        qindex_list = sorted(qindex_list)
-        print('[guitool] %d cells selected' % len(qindex_list))
-        if len(qindex_list) == 0:
-            return
-        copy_table = []
-        previous = qindex_list[0]
-
-        def astext(data):
-            """ Helper which casts model data to a string """
-            try:
-                if isinstance(data, QtCore.QVariant):
-                    text = str(data.toString())
-                elif isinstance(data, QtCore.QString):
-                    text = str(data)
-                else:
-                    text = str(data)
-            except Exception as ex:
-                text = repr(ex)
-            return text.replace('\n', '<NEWLINE>').replace(',', '<COMMA>')
-
-        #
-        for ix in xrange(1, len(qindex_list)):
-            text = astext(model.data(previous))
-            copy_table.append(text)
-            qindex = qindex_list[ix]
-
-            if qindex.row() != previous.row():
-                copy_table.append('\n')
-            else:
-                copy_table.append(', ')
-            previous = qindex
-
-        # Do last element in list
-        text = astext(model.data(qindex_list[-1]))
-        copy_table.append(text)
-        #copy_table.append('\n')
-        copy_str = str(''.join(copy_table))
+        copy_str = get_view_selection_as_str(view)
         copy_qstr = QtCore.QString(copy_str)
-        QAPP = get_qtapp()
-        clipboard = QAPP.clipboard()
+        clipboard = get_qtapp().clipboard()
         print(copy_str)
         clipboard.setText(copy_qstr)
         print('[guitool] finished copy')

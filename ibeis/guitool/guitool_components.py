@@ -97,36 +97,6 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     return action
 
 
-def newAction(front, name=None, text=None, shortcut=None,
-                  tooltip=None, slot_fn=None, enabled=True):
-    assert name is not None, 'menuAction name cannot be None'
-    # Dynamically add new menu actions programatically
-    action_name = name
-    action_text = text
-    action_shortcut = shortcut
-    action_tooltip  = tooltip
-    if hasattr(front, action_name):
-        raise Exception('menu action already defined')
-    # Create new action
-    action = QtGui.QAction(front)
-    setattr(front, action_name, action)
-    action.setEnabled(enabled)
-    action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
-    menu = getattr(front, menu_name)
-    menu.addAction(action)
-    if action_text is None:
-        action_text = action_name
-    if action_text is not None:
-        action.setText(action_text)
-    if action_tooltip is not None:
-        action.setToolTip(action_tooltip)
-    if action_shortcut is not None:
-        action.setShortcut(action_shortcut)
-    if slot_fn is not None:
-        action.triggered.connect(slot_fn)
-    return action
-
-
 def newProgressBar(parent, visible=True, verticalStretch=1):
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,

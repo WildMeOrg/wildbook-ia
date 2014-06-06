@@ -561,72 +561,72 @@ class APITableModel(API_MODEL_BASE):
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
 
+    # http://qt-project.org/doc/qt-4.8/qabstractitemmodel.html
 
+    # QModelIndexList match ( const QModelIndex & start, int role, const
+    # QVariant & value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags(
+    # Qt::MatchStartsWith | Qt::MatchWrap ) ) const [virtual]
 
-    #http://qt-project.org/doc/qt-4.8/qabstractitemmodel.html
+    # def mimeData(QModelIndexList indexes): return QMimeData
 
-    #QModelIndexList QAbstractItemModel::match ( const QModelIndex & start, int role, const QVariant & value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags( Qt::MatchStartsWith | Qt::MatchWrap ) ) const [virtual]
+    # def mimeTypes (QModelIndexList indexes) return QStringList
 
-    #def mimeData(QModelIndexList indexes):
-    #    return QMimeData
+    # QModelIndexList persistentIndexList () const [protected] Returns the list
+    # of indexes stored as persistent indexes in the model.
 
-    #def mimeTypes (QModelIndexList indexes)
-    #    return QStringList
+    # bool removeColumns ( int column, int count, const QModelIndex & parent =
+    # QModelIndex() ) [virtual]
 
+    # bool removeRow ( int row, const QModelIndex & parent = QModelIndex() )
 
-    #QModelIndex QAbstractItemModel::parent ( const QModelIndex & index )
+    # bool removeRows ( int row, int count, const QModelIndex & parent =
+    # QModelIndex() ) [virtual]
 
+    # const QHash<int, QByteArray> & roleNames () const
 
-    #QModelIndexList QAbstractItemModel::persistentIndexList () const [protected]
-    #Returns the list of indexes stored as persistent indexes in the model.
+    # void rowsAboutToBeInserted ( const QModelIndex & parent, int start, int
+    # end ) [signal]
 
-    #bool QAbstractItemModel::removeColumns ( int column, int count, const QModelIndex & parent = QModelIndex() ) [virtual]
+    # void rowsAboutToBeMoved ( const QModelIndex & sourceParent, int
+    # sourceStart, int sourceEnd, const QModelIndex & destinationParent, int
+    # destinationRow ) [signal]
 
+    # void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end
+    # ) [signal]
 
-    #bool QAbstractItemModel::removeRow ( int row, const QModelIndex & parent = QModelIndex() )
+    # void rowsInserted ( const QModelIndex & parent, int start, int end )
+    # [signal]
 
+    # void rowsMoved ( const QModelIndex & sourceParent, int sourceStart, int
+    # sourceEnd, const QModelIndex & destinationParent, int destinationRow )
+    # [signal]
 
-    #bool QAbstractItemModel::removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() ) [virtual]
+    # void rowsRemoved ( const QModelIndex & parent, int start, int end )
+    # [signal]
 
+    # bool setData ( const QModelIndex & index, const QVariant & value, int role
+    # = Qt::EditRole ) [virtual]
 
-    # const QHash<int, QByteArray> & QAbstractItemModel::roleNames () const
+    # bool setHeaderData ( int section, Qt::Orientation orientation, const
+    # QVariant & value, int role = Qt::EditRole ) [virtual] d
+    # headerDataChanged() signals must be emitted explicitly
 
+    # bool setItemData ( const QModelIndex & index, const QMap<int, QVariant> &
+    # roles ) [virtual] Sets the role data for the item at index to the
+    # associated value in roles, for every Qt::ItemDataRole.  Returns true if
+    # successful; otherwise returns false.
 
-    #void QAbstractItemModel::rowsAboutToBeInserted ( const QModelIndex & parent, int start, int end ) [signal]
+    # void setRoleNames ( const QHash<int, QByteArray> & roleNames ) [protected]
 
-    #void QAbstractItemModel::rowsAboutToBeMoved ( const QModelIndex & sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow ) [signal]
+    # void setSupportedDragActions ( Qt::DropActions actions)
 
+    # QModelIndex sibling ( int row, int column, const QModelIndex & index )
+    # const
 
-    #void QAbstractItemModel::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end ) [signal]
+    # QSize span ( const QModelIndex & index ) const [virtual]
 
-    #void QAbstractItemModel::rowsInserted ( const QModelIndex & parent, int start, int end ) [signal]
+    # bool submit () [virtual slot]
 
+    # Qt::DropActions supportedDragActions () const
 
-    #void QAbstractItemModel::rowsMoved ( const QModelIndex & sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow ) [signal]
-
-    #void QAbstractItemModel::rowsRemoved ( const QModelIndex & parent, int start, int end ) [signal]
-
-
-    #bool QAbstractItemModel::setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole ) [virtual]
-
-    #bool QAbstractItemModel::setHeaderData ( int section, Qt::Orientation orientation, const QVariant & value, int role = Qt::EditRole ) [virtual]
-    # d headerDataChanged() signals must be emitted explicitly
-
-    #bool QAbstractItemModel::setItemData ( const QModelIndex & index, const QMap<int, QVariant> & roles ) [virtual]
-    #Sets the role data for the item at index to the associated value in roles, for every Qt::ItemDataRole.
-    #Returns true if successful; otherwise returns false.
-
-    #void QAbstractItemModel::setRoleNames ( const QHash<int, QByteArray> & roleNames ) [protected]
-
-
-    #void QAbstractItemModel::setSupportedDragActions ( Qt::DropActions actions )
-
-    #QModelIndex QAbstractItemModel::sibling ( int row, int column, const QModelIndex & index ) const
-
-    #QSize QAbstractItemModel::span ( const QModelIndex & index ) const [virtual]
-
-    #bool QAbstractItemModel::submit () [virtual slot]
-
-    #Qt::DropActions QAbstractItemModel::supportedDragActions () const
-
-    #Qt::DropActions QAbstractItemModel::supportedDropActions () const [virtual]
+    # Qt::DropActions supportedDropActions () const [virtual]
