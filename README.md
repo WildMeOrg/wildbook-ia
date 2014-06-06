@@ -20,7 +20,7 @@ bluemellophone's IBEIS modules
 
 hjweide's IBEIS modules
 
-* https://github.com/bluemellophone/pygist
+* https://github.com/hjweide/pygist
 
 
 The IBEIS module itself: 

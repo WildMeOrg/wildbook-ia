@@ -27,7 +27,6 @@ def _executor(executor, opeartion, params):
     """
     executor.execute(opeartion, params)
 
-
 def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
     """ HELPER - Returns as many results as there are.
     Careful. Overwrites the results once you call it.
@@ -82,13 +81,6 @@ class SQLExecutionContext(object):
         utool.printif(lambda:
                       '[sql] Callers: ' + utool.get_caller_name(range(3, 6)),
                       VERBOSE)
-        # Mark if the database will change
-        if any([context.operation_type.startswith(op) for op in
-                ['INSERT', 'UPDATE', 'DELETE']]):
-            context.db.about_to_change = False or context.db.about_to_change
-        else:
-            context.db.changed = True
-            context.db.changed = False
         if context.num_params is None:
             context.operation_label = ('[sql] execute num_params=%d optype=%s: '
                                        % (context.num_params, context.operation_type))
@@ -96,7 +88,7 @@ class SQLExecutionContext(object):
             context.operation_label = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
         if context.start_transaction:
-            context.db.executor.execute('BEGIN', ())
+            _executor(context.db.executor, 'BEGIN', ())
         # Comment out timeing code
         #if not QUIET:
         #    context.tt = utool.tic(context.operation_label)
@@ -108,7 +100,7 @@ class SQLExecutionContext(object):
         """ HELPER FOR CONTEXT STATMENT """
         executor = context.db.executor
         operation = context.operation
-        executor.execute(operation, params)
+        _executor(context.db.executor, operation, params)
         is_insert = context.operation_type.upper().startswith('INSERT')
         return _results_gen(executor, get_last_id=is_insert)
 
@@ -184,38 +176,8 @@ class SQLDatabaseController(object):
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
         db.table_columns = {}
-        db.about_to_change = False  # used by apitablemodel for cache invalidation
-        db.dbchanged_callback = None
         db.cache = {}
         db.stack = []
-
-    def execute(db, operation, params=(), verbose=VERBOSE):
-        """ DEPRICATE """
-        db.executor.execute(operation, params)
-
-    def result(db, verbose=VERBOSE):
-        """ DEPRICATE """
-        return db.executor.fetchone()
-
-    def result_iter(db):
-        """ DEPRICATE """
-        return _results_gen(db.executor)
-
-    def get_isdirty(db):
-        """ DEPRICATE """
-        return db.about_to_change
-
-    def set_isdirty(db, flag):
-        """ DEPRICATE """
-        db.isdirty = flag
-
-    def connect_dbchanged_callback(db, callback):
-        """ DEPRICATE """
-        db.dbchanged_callback = callback
-
-    def disconnect_dbchanged_callback(db):
-        """ DEPRICATE """
-        db.dbchanged_callback = None
 
     def dump_tables_to_csv(db):
         """ Convenience: Dumps all csv database files to disk """
@@ -270,10 +232,10 @@ class SQLDatabaseController(object):
 
     def get_sql_version(db):
         """ Conveinience """
-        db.execute('''
+        _executor(db.executor, '''
                    SELECT sqlite_version()
                    ''', verbose=False)
-        sql_version = db.result()
+        sql_version = db.executor.fetchone()
 
         print('[sql] SELECT sqlite_version = %r' % (sql_version,))
         # The version number sqlite3 module. NOT the version of SQLite library.
@@ -329,6 +291,46 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter, **kwargs)
         return rowid_list
 
+    def add_cleanly(db, tblname, colnames, params_iter,
+                    get_rowid_from_uuid, ensure=None):
+        """
+        Extra input:
+            the first item of params_iter must be a uuid,
+        uuid_list - a non-rowid column which identifies a row
+            get_rowid_from_uuid - function which does what it says
+        e.g:
+            get_rowid_from_uuid = ibs.get_image_gids_from_uuid
+
+        """
+        # eagerly evaluate for uuids
+        params_list = list(params_iter)
+        # check which parameters are valid
+        isvalid_list = [params is not None for params in params_list]
+        # Extract uuids from the params list (requires eager eval)
+        uuid_list = [params[0] if isvalid else None for (params, isvalid) in
+                     izip(params_list, isvalid_list)]
+
+        if ensure is None:
+            rowid_list_ = get_rowid_from_uuid(uuid_list)
+        else:
+            rowid_list_ = get_rowid_from_uuid(uuid_list, ensure=ensure)
+
+        isdirty_list = [rowid is None and isvalid for (rowid, isvalid)
+                        in izip(rowid_list_, isvalid_list)]
+        dirty_params = utool.filter_items(params_list, isdirty_list)
+
+        # Add any unadded images
+        print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
+        if len(dirty_params) > 0:
+            db.add(tblname, colnames, dirty_params)
+            if ensure is None:
+                rowid_list = get_rowid_from_uuid(uuid_list)
+            else:
+                rowid_list = get_rowid_from_uuid(uuid_list, ensure=ensure)
+        else:
+            rowid_list = rowid_list_
+        return rowid_list
+
     #@getter
     def get(db, tblname, colnames, id_iter=None, where_col=None, where_custom=None,
                 unpack_scalars=None, one_execute_override=False, **kwargs):
@@ -354,7 +356,6 @@ class SQLDatabaseController(object):
                 FROM {tblname}
                 {where_rowids}
                 '''
-            #  db.cache[tblname][colname][rowid] =
             val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                      params_iter=params_iter,
                                                      unpack_scalars=unpack_scalars,
@@ -376,22 +377,26 @@ class SQLDatabaseController(object):
                 params = None
 
             val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
+        
         return val_list
 
     #@setter
-    def set(db, tblname, colnames, id_list, val_iter, **kwargs):
+    def set(db, tblname, colnames, val_list, id_list, where_col=None, **kwargs):
         """ setter """
+        assert  len(val_list) == len(id_list)
         fmtdict = {
-            'tblname': tblname,
-            'assign_str': ',\n'.join(['%s=?' % name for name in colnames])
+            'tblname_str': tblname,
+            'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),
+            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
         }
         operation_fmt = '''
-            UPDATE {tblname}
+            UPDATE {tblname_str}
             SET {assign_str}
-            WHERE rowid=?
+            WHERE {rowid_str}
             '''
+        params_iter = utool.flattenize(izip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=val_iter, **kwargs)
+                                             params_iter=params_iter, **kwargs)
 
     #@deleter
     def delete(db, tblname, id_list, where_col=None, **kwargs):
@@ -410,39 +415,6 @@ class SQLDatabaseController(object):
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter,
                                              **kwargs)
-
-    def add_cleanly(db, tblname, colnames, params_iter,
-                    get_rowid_from_uuid):
-        """
-        Extra input:
-            the first item of params_iter must be a uuid,
-        uuid_list - a non-rowid column which identifies a row
-            get_rowid_from_uuid - function which does what it says
-        e.g:
-            get_rowid_from_uuid = ibs.get_image_gids_from_uuid
-
-        """
-        # eagerly evaluate for uuids
-        params_list = list(params_iter)
-        # check which parameters are valid
-        isvalid_list = [params is not None for params in params_list]
-        # Extract uuids from the params list (requires eager eval)
-        uuid_list = [params[0] if isvalid else None for (params, isvalid) in
-                     izip(params_list, isvalid_list)]
-
-        rowid_list_ = get_rowid_from_uuid(uuid_list)
-        isdirty_list = [rowid is None and isvalid for (rowid, isvalid)
-                        in izip(rowid_list_, isvalid_list)]
-        dirty_params = utool.filter_items(params_list, isdirty_list)
-
-        # Add any unadded images
-        print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
-        if len(dirty_params) > 0:
-            db.add(tblname, colnames, dirty_params)
-            rowid_list = get_rowid_from_uuid(uuid_list)
-        else:
-            rowid_list = rowid_list_
-        return rowid_list
 
     #=========
     # API CORE

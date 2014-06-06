@@ -310,18 +310,11 @@ class IBEISController(object):
         #print('cfgsuffix_list %r' % (cfgsuffix_list,))
         try:
             if any([x is None or (isinstance(x, list) and len(x) == 0) for x in config_uid_list]):
-                ibs.db.executemany(
-                    operation='''
-                    INSERT OR IGNORE INTO configs
-                    (
-                        config_uid,
-                        config_suffix
-                    )
-                    VALUES (NULL, ?)
-                    ''',
-                    params_iter=((_,) for _ in cfgsuffix_list)
-                )
-                config_uid_list = ibs.get_config_uid_from_suffix(cfgsuffix_list, ensure=False)
+                params_iter = ((_,) for _ in cfgsuffix_list)
+                tblname = 'configs'
+                colname_list = ['config_suffix']
+                config_uid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+                                                    ibs.get_config_uid_from_suffix, ensure=False)
         except Exception as ex:
             utool.printex(ex)
             utool.sys.exit(1)
@@ -417,23 +410,12 @@ class IBEISController(object):
                 utool.printex(ex, '[!ibs.add_chips]')
                 print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
                 raise
-            ibs.db.executemany(
-                operation='''
-                INSERT OR IGNORE
-                INTO chips
-                (
-                    chip_uid,
-                    roi_uid,
-                    chip_uri,
-                    chip_width,
-                    chip_height,
-                    config_uid
-                )
-                VALUES (NULL, ?, ?, ?, ?, ?)
-                ''',
-                params_iter=params_iter)
-            # Ensure must be false, otherwise an infinite loop occurs
-            cid_list = ibs.get_roi_cids(rid_list, ensure=False)
+            tblname = 'chips'
+            colname_list = ['roi_uid', 'chip_uri', 'chip_width', 
+                            'chip_height', 'config_uid']
+            cid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+                                            ibs.get_roi_cids, ensure=False)
+
         return cid_list
 
     @adder
@@ -444,22 +426,12 @@ class IBEISController(object):
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
         if len(dirty_cids) > 0:
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
-            ibs.db.executemany(
-                operation='''
-                INSERT OR IGNORE
-                INTO features
-                (
-                    feature_uid,
-                    chip_uid,
-                    feature_num_feats,
-                    feature_keypoints,
-                    feature_sifts,
-                    config_uid
-                )
-                VALUES (NULL, ?, ?, ?, ?, ?)
-                ''',
-                params_iter=(tup for tup in params_iter))
-            fid_list = ibs.get_chip_fids(cid_list, ensure=False)
+            tblname = 'features'
+            colname_list = ['chip_uid', 'feature_num_feats', 'feature_keypoints', 
+                            'feature_sifts', 'config_uid']
+            fid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+                                            ibs.get_chip_fids, ensure=False)
+
         return fid_list
 
     @adder
@@ -471,43 +443,39 @@ class IBEISController(object):
             print('[ibs] adding %d names' % len(dirty_names))
             ibsfuncs.assert_valid_names(name_list)
             notes_list = ['' for _ in xrange(len(dirty_names))]
-            param_iter = izip(dirty_names, notes_list)
-            param_list = list(param_iter)
-            ibs.db.executemany(
-                operation='''
-                INSERT OR IGNORE
-                INTO names
-                (
-                    name_uid,
-                    name_text,
-                    name_notes
-                )
-                VALUES (NULL, ?, ?)
-                ''',
-                params_iter=param_list)
-            nid_list = ibs.get_name_nids(name_list, ensure=False)
+            params_iter = izip(dirty_names, notes_list)
+            tblname = 'names'
+            colname_list = ['name_text', 'name_notes']
+            nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+                                            ibs.get_name_nids, ensure=False)
         return nid_list
 
     @adder
     def add_encounters(ibs, enctext_list):
+        def _rename_helper(index, enctect_list, seen):
+            enctext = enctext_list[index]
+            if enctext in seen.keys():
+                new_name = enctext + "-" + str(seen[enctext])
+                print('</!!! WARNING !!!>\nENCOUNTER \'%s\' RENAMED AS \'%s\'' 
+                        %(enctext_list[index], new_name))
+                enctext_list[index] = new_name
+                seen[enctext] += 1
+            else:
+                seen[enctext] = 2
+
         """ Adds a list of names. Returns their nids """
         print('[ibs] adding %d encounters' % len(enctext_list))
+        # Fix names to prevent duplicates. If duplicates are passed, there is a problem
+        # upstream and it should be fixed
+        seen = {}
+        [ _rename_helper(index, enctext_list, seen) for index in xrange(len(enctext_list)) ]
+        # Add encounter text names to database
         notes_list = ['' for _ in xrange(len(enctext_list))]
-        param_iter = izip(enctext_list, notes_list)
-        param_list = list(param_iter)
-        ibs.db.executemany(
-            operation='''
-            INSERT OR IGNORE
-            INTO encounters
-            (
-                encounter_uid,
-                encounter_text,
-                encounter_notes
-            )
-            VALUES (NULL, ?, ?)
-            ''',
-            params_iter=param_list)
-        eid_list = ibs.get_encounter_eids(enctext_list, ensure=False)
+        params_iter = izip(enctext_list, notes_list)
+        tblname = 'encounters'
+        colname_list = ['encounter_text', 'encounter_notes']
+        eid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+                                        ibs.get_encounter_eids, ensure=False)
         return eid_list
 
     #
@@ -527,14 +495,7 @@ class IBEISController(object):
             rowid_list = (rowid_list,)
             val_list = (val_list,)
         table, (prop_key,) = ibs.db.sanatize_sql(table, (prop_key,))
-        # Potentially UNSAFE SQL
-        ibs.db.executemany(
-            operation='''
-            UPDATE ''' + table + '''
-            SET ''' + prop_key + '''=?
-            WHERE ''' + table[:-1] + '''_uid=?
-            ''',
-            params_iter=izip(val_list, rowid_list))
+        ibs.db.set(table, [prop_key], val_list, rowid_list)
 
     # SETTERS::IMAGE
 
@@ -567,15 +528,12 @@ class IBEISController(object):
         """ Sets the encoutertext of each image """
         print('[ibs] Setting %r image encounter ids' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
-        ibs.db.executemany(
-            operation='''
-            INSERT OR IGNORE INTO egpairs(
-                egpair_uid,
-                image_uid,
-                encounter_uid
-            ) VALUES (NULL, ?, ?)
-            ''',
-            params_iter=izip(gid_list, eid_list))
+        params_iter = izip(gid_list, eid_list)
+        tblname = 'egpairs'
+        colname_list = ['image_uid', 'encounter_uid']
+        gid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+                                    get_rowid_from_uuid = (lambda gid: gid))
+        return gid_list
 
     # SETTERS::ROI
 
@@ -584,16 +542,8 @@ class IBEISController(object):
         """ Sets ROIs of a list of rois by rid, where roi_list is a list of
             (x, y, w, h) tuples """
         ibs.delete_roi_chips(rid_list)
-        ibs.db.executemany(
-            operation='''
-            UPDATE rois SET
-                roi_xtl=?,
-                roi_ytl=?,
-                roi_width=?,
-                roi_height=?
-            WHERE roi_uid=?
-            ''',
-            params_iter=utool.flattenize(izip(bbox_list, rid_list)))
+        colnames = ['roi_xtl', 'roi_ytl', 'roi_width', 'roi_height']
+        ibs.db.set('rois', colnames, bbox_list, rid_list)
 
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
@@ -618,12 +568,7 @@ class IBEISController(object):
             assert name_list is not None
             nid_list = ibs.add_names(name_list)
         # Cannot use set_table_props for cross-table setters.
-        ibs.db.executemany(
-            operation='''
-            UPDATE rois
-            SET name_uid=?
-            WHERE roi_uid=?''',
-            params_iter=izip(nid_list, rid_list))
+        ibs.db.set('rois', ['name_uid'], nid_list, rid_list)
 
     # SETTERS::NAME
 

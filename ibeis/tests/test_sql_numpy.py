@@ -59,7 +59,7 @@ def TEST_SQL_NUMPY():
     print(' * execute select time=%r sec' % utool.toc(tt))
 
     tt = utool.tic()
-    result_list = [result for result in db.result_iter()]
+    result_list = sqldbc._results_gen(db.executor)
     print(' * iter results time=%r sec' % utool.toc(tt))
     print(' * memory(result_list) = %s' % utool.byte_str2(utool.get_object_size(result_list)))
     del result_list
