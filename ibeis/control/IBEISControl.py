@@ -313,8 +313,8 @@ class IBEISController(object):
                 params_iter = ((_,) for _ in cfgsuffix_list)
                 tblname = 'configs'
                 colname_list = ['config_suffix']
-                config_uid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
-                                                    ibs.get_config_uid_from_suffix, ensure=False)
+                config_uid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
+                                                     ibs.get_config_uid_from_suffix, ensure=False)
         except Exception as ex:
             utool.printex(ex)
             utool.sys.exit(1)
@@ -411,9 +411,9 @@ class IBEISController(object):
                 print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
                 raise
             tblname = 'chips'
-            colname_list = ['roi_uid', 'chip_uri', 'chip_width', 
+            colname_list = ['roi_uid', 'chip_uri', 'chip_width',
                             'chip_height', 'config_uid']
-            cid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+            cid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                             ibs.get_roi_cids, ensure=False)
 
         return cid_list
@@ -427,16 +427,20 @@ class IBEISController(object):
         if len(dirty_cids) > 0:
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
             tblname = 'features'
-            colname_list = ['chip_uid', 'feature_num_feats', 'feature_keypoints', 
+            colname_list = ['chip_uid', 'feature_num_feats', 'feature_keypoints',
                             'feature_sifts', 'config_uid']
-            fid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+            fid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                             ibs.get_chip_fids, ensure=False)
 
         return fid_list
 
     @adder
-    def add_names(ibs, name_list):
+    def add_names(ibs, name_list_):
         """ Adds a list of names. Returns their nids """
+        # Ensure input list is unique
+        name_list = tuple(set(name_list_))
+        # HACKY, the adder decorator should specify this
+
         nid_list = ibs.get_name_nids(name_list, ensure=False)
         dirty_names = utool.get_dirty_items(name_list, nid_list)
         if len(dirty_names) > 0:
@@ -446,9 +450,13 @@ class IBEISController(object):
             params_iter = izip(dirty_names, notes_list)
             tblname = 'names'
             colname_list = ['name_text', 'name_notes']
-            nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+            nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                             ibs.get_name_nids, ensure=False)
-        return nid_list
+
+        # Return nids in input order
+        namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
+        nid_list_ = [namenid_dict[name] for name in name_list_]
+        return nid_list_
 
     @adder
     def add_encounters(ibs, enctext_list):
@@ -456,8 +464,8 @@ class IBEISController(object):
             enctext = enctext_list[index]
             if enctext in seen.keys():
                 new_name = enctext + "-" + str(seen[enctext])
-                print('</!!! WARNING !!!>\nENCOUNTER \'%s\' RENAMED AS \'%s\'' 
-                        %(enctext_list[index], new_name))
+                print('</!!! WARNING !!!>\nENCOUNTER \'%s\' RENAMED AS \'%s\''
+                        % (enctext_list[index], new_name))
                 enctext_list[index] = new_name
                 seen[enctext] += 1
             else:
@@ -474,7 +482,7 @@ class IBEISController(object):
         params_iter = izip(enctext_list, notes_list)
         tblname = 'encounters'
         colname_list = ['encounter_text', 'encounter_notes']
-        eid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
+        eid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                         ibs.get_encounter_eids, ensure=False)
         return eid_list
 
@@ -531,8 +539,8 @@ class IBEISController(object):
         params_iter = izip(gid_list, eid_list)
         tblname = 'egpairs'
         colname_list = ['image_uid', 'encounter_uid']
-        gid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter, 
-                                    get_rowid_from_uuid = (lambda gid: gid))
+        gid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
+                                      get_rowid_from_uuid=(lambda gid: gid))
         return gid_list
 
     # SETTERS::ROI
