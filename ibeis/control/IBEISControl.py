@@ -435,10 +435,10 @@ class IBEISController(object):
         return fid_list
 
     @adder
-    def add_names(ibs, name_list_):
+    def add_names(ibs, name_list):
         """ Adds a list of names. Returns their nids """
         # Ensure input list is unique
-        name_list = tuple(set(name_list_))
+        # name_list = tuple(set(name_list_))
         # HACKY, the adder decorator should specify this
 
         nid_list = ibs.get_name_nids(name_list, ensure=False)
@@ -453,10 +453,10 @@ class IBEISController(object):
             nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                             ibs.get_name_nids, ensure=False)
 
-        # Return nids in input order
-        namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
-        nid_list_ = [namenid_dict[name] for name in name_list_]
-        return nid_list_
+        # # Return nids in input order
+        # namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
+        # nid_list_ = [namenid_dict[name] for name in name_list_]
+        return nid_list
 
     @adder
     def add_encounters(ibs, enctext_list):
