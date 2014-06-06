@@ -1,15 +1,14 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
-from os.path import exists
+from os.path import exists, join
+from itertools import izip
 # Science
 import cv2
 import numpy as np
 from PIL import Image
-from utool import util_path, util_str
-#from utool import util_progress
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(
+import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[img]', DEBUG=False)
 
 
@@ -28,7 +27,7 @@ CV2_WARP_KWARGS = {
 
 
 EXIF_TAG_GPS      = 'GPSInfo'
-EXIF_TAG_DATETIME =  'DateTimeOriginal'
+EXIF_TAG_DATETIME = 'DateTimeOriginal'
 
 
 def dummy_img(w, h):
@@ -169,9 +168,9 @@ def blend_images(img1, img2):
 
 
 def print_image_checks(img_fpath):
-    hasimg = util_path.checkpath(img_fpath, verbose=True)
+    hasimg = utool.checkpath(img_fpath, verbose=True)
     if hasimg:
-        _tup = (img_fpath, util_str.filesize_str(img_fpath))
+        _tup = (img_fpath, utool.filesize_str(img_fpath))
         print('[io] Image %r (%s) exists. Is it corrupted?' % _tup)
     else:
         print('[io] Image %r does not exists ' (img_fpath,))
@@ -183,6 +182,7 @@ def resize(img, dsize):
 
 
 def resize_thumb(img, max_dsize=(64, 64)):
+    """ Resize an image such that its max width or height is: """
     max_width, max_height = max_dsize
     height, width = img.shape[0:2]
     ratio = min(max_width / width, max_height / height)
@@ -191,3 +191,64 @@ def resize_thumb(img, max_dsize=(64, 64)):
     else:
         dsize = (int(round(width * ratio)), int(round(height * ratio)))
         return resize(img, dsize)
+
+
+def _trimread(gpath):
+    """ Try an imread """
+    try:
+        return imread(gpath)
+    except Exception:
+        return None
+
+
+class ThumbnailCacheContext(object):
+    """ Lazy computation of of images as thumbnails.
+
+    Just pass a list of uuids corresponding to the images. Then compute images
+    flagged as dirty and give them back to the context.  thumbs_list will be
+    populated on contex exit
+    """
+    def __init__(self, uuid_list, asrgb=True, thumb_size=64, appname='vtool'):
+        thumb_dpath = utool.get_app_resource_dir(appname, 'thumbs')
+        utool.ensuredir(thumb_dpath)
+        self.thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in uuid_list]
+        self.asrgb = asrgb
+        self.thumb_size = thumb_size
+        self.thumb_list = None
+        self.dirty_list = None
+        self.dirty_gpaths = None
+
+    def __enter__(self):
+        # These items need to be computed
+        self.dirty_list = [not exists(gpath) for gpath in self.thumb_gpaths]
+        self.dirty_gpaths = utool.filter_items(self.thumb_gpaths, self.dirty_list)
+        #print('[gtool.thumb] len(dirty_gpaths): %r' % len(self.dirty_gpaths))
+        self.needs_compute = len(self.dirty_gpaths) > 0
+        return self
+
+    def save_dirty_thumbs_from_images(self, img_list):
+        """ Pass in any images marked by the context as dirty here """
+        # Remove any non images
+        isvalid_list = [img is not None for img in img_list]
+        valid_images  = utool.filter_items(img_list, isvalid_list)
+        valid_fpath = utool.filter_items(self.thumb_gpaths, isvalid_list)
+        # Resize to thumbnails
+        max_dsize = (self.thumb_size, self.thumb_size)
+        valid_thumbs = [resize_thumb(img, max_dsize) for img in valid_images]
+        # Write thumbs to disk
+        for gpath, thumb in izip(valid_fpath, valid_thumbs):
+            imwrite(gpath, thumb)
+
+    def filter_dirty_items(self, list_):
+        """ Returns only items marked by the context as dirty """
+        return utool.filter_items(list_, self.dirty_list)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if traceback is not None:
+            print('[gtool.thumb] Error while in thumbnail context')
+            return
+        # Try to read thumbnails on disk
+        self.thumb_list = [_trimread(gpath) for gpath in self.thumb_gpaths]
+        if self.asrgb:
+            self.thumb_list = [None if thumb is None else cvt_BGR2RGB(thumb)
+                               for thumb in self.thumb_list]
