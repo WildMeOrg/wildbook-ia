@@ -9,6 +9,28 @@ from PyQt4.QtCore import QString, QVariant
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qtype]', DEBUG=False)
 
+
+ItemDataRoles = {
+    0  : 'DisplayRole',       # key data to be rendered in the form of text. (QString)
+    1  : 'DecorationRole',     # data to be rendered as an icon. (QColor, QIcon or QPixmap)
+    2  : 'EditRole',           # data in a form suitable for editing in an editor. (QString)
+    3  : 'ToolTipRole',        # data displayed in the item's tooltip. (QString)
+    4  : 'StatusTipRole',      # data displayed in the status bar. (QString)
+    5  : 'WhatsThisRole',      # data displayed in "What's This?" mode. (QString)
+    13 : 'SizeHintRole',       # size hint for item that will be supplied to views. (QSize)
+    6  : 'FontRole',           # font used for items rendered with default delegate. (QFont)
+    7  : 'TextAlignmentRole',  # text alignment of items with default delegate. (Qt::AlignmentFlag)
+    8  : 'BackgroundRole',     # background brush for items with default delegate. (QBrush)
+    9  : 'ForegroundRole',     # foreground brush for items rendered with default delegate. (QBrush)
+    10 : 'CheckStateRole',     # checked state of an item. (Qt::CheckState)
+    14 : 'InitialSortOrderRole',  # initial sort order of a header view (Qt::SortOrder).
+    11 : 'AccessibleTextRole',    # text used by accessibility extensions and plugins (QString)
+    12 : 'AccessibleDescriptionRole',  # accessibe description of the item for (QString)
+    32 : 'UserRole',             # first role that can be used for application-specific purposes.
+    8  : 'BackgroundColorRole',  # Obsolete. Use BackgroundRole instead.
+    9  : 'TextColorRole',        # Obsolete. Use ForegroundRole instead.
+}
+
 LOCALE = QLocale()
 
 QT_PIXMAP_TYPES = set((QtGui.QPixmap, 'PIXMAP'))

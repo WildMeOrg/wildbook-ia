@@ -7,7 +7,8 @@ import sip
 if hasattr(sip, 'setdestroyonexit'):
     sip.setdestroyonexit(False)  # This prevents a crash on windows
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool]', DEBUG=False)
+print, print_, printDBG, rrr, profile = utool.inject(
+    __name__, '[guitool]', DEBUG=False)
 
 
 IS_ROOT = False
@@ -112,10 +113,8 @@ def ping_python_interpreter(frequency=420):  # 4200):
     return timer
 
 
+@atexit.register
 def exit_application():
     #if not QUIET:
     print('[guitool] exiting application')
     QtGui.qApp.quit()
-
-
-atexit.register(exit_application)

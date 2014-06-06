@@ -9,7 +9,25 @@ class APIDelegate(QtGui.QItemDelegate):
 
     def sizeHint(option, qindex):
         # QStyleOptionViewItem option
-        return QtCore.QSize(50, 50);
+        return QtCore.QSize(50, 50)
+
+
+class ImageDelegate(QtGui.QStyledItemDelegate):
+    def __init__(self, parent):
+        print(dir(self))
+        QtGui.QStyledItemDelegate.__init__(self, parent)
+
+    def paint(self, painter, option, index):
+
+        painter.fillRect(option.rect, QtGui.QColor(191, 222, 185))
+
+        # path = "path\to\my\image.jpg"
+        self.path = "image.bmp"
+
+        image = QtGui.QImage(str(self.path))
+        pixmap = QtGui.QPixmap.fromImage(image)
+        pixmap.scaled(50, 40, QtCore.Qt.KeepAspectRatio)
+        painter.drawPixmap(option.rect, pixmap)
 
 
 class ComboDelegate(APIDelegate):

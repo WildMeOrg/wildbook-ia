@@ -22,22 +22,21 @@ def _guitool_cache_read(key, **kwargs):
 def user_option(parent=None, msg='msg', title='user_option',
                 options=['No', 'Yes'], use_cache=False):
     'Prompts user with several options with ability to save decision'
-    print('[*guitools] user_option:\n %r: %s' + title + ': ' + msg)
+    print('[*guitools] user_option:\n %r: %s' % (title, msg))
     # Recall decision
-    print('[*guitools] asking user: %r %r' % (msg, title))
     cache_id = title + msg
     if use_cache:
         reply = _guitool_cache_read(cache_id, default=None)
         if reply is not None:
             return reply
     # Create message box
-    msgBox = _newMsgBox(msg, title, parent)
-    _addOptions(msgBox, options)
+    msgbox = _newMsgBox(msg, title, parent)
+    _addOptions(msgbox, options)
     if use_cache:
         # Add a remember me option if caching is on
-        dontPrompt = _cacheReply(msgBox)
+        dontPrompt = _cacheReply(msgbox)
     # Wait for output
-    optx = msgBox.exec_()
+    optx = msgbox.exec_()
     if optx == QtGui.QMessageBox.Cancel:
         # User Canceled
         return None
@@ -55,7 +54,7 @@ def user_option(parent=None, msg='msg', title='user_option',
     if use_cache and dontPrompt.isChecked():
         _guitool_cache_write(cache_id, reply)
     # Close the message box
-    del msgBox
+    del msgbox
     return reply
 
 
@@ -68,18 +67,18 @@ def user_input(parent=None, msg='msg', title='user_input'):
 
 def user_info(parent=None, msg='msg', title='user_info'):
     print('[dlg.user_info] title=%r, msg=%r' % (title, msg))
-    msgBox = _newMsgBox(msg, title, parent)
-    msgBox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    msgBox.setModal(False)
-    msgBox.open(msgBox.close)
-    msgBox.show()
+    msgbox = _newMsgBox(msg, title, parent)
+    msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
+    msgbox.setModal(False)
+    msgbox.open(msgbox.close)
+    msgbox.show()
 
 
 def user_question(msg):
     raise NotImplementedError('user_question')
-    msgBox = QtGui.QMessageBox.question(None, '', 'lovely day?')
-    return msgBox
+    msgbox = QtGui.QMessageBox.question(None, '', 'lovely day?')
+    return msgbox
 
 
 def select_directory(caption='Select Directory', directory=None):
@@ -122,18 +121,33 @@ def select_files(caption='Select Files:', directory=None, name_filter=None):
     _guitool_cache_write(SELDIR_CACHEID, directory)
     return file_list
 
+# Prevent messageboxes from being garbage collected
+__MESSAGE_BOXES__ = []
+
+
+def _register_msgbox(msgbox):
+    """ Dont let the message box lose scope """
+    global __MESSAGE_BOXES__
+    __MESSAGE_BOXES__.append(msgbox)
+    @QtCore.pyqtSlot(QtCore.QObject)
+    def _close_msgbox(qobj):
+        global __MESSAGE_BOXES__
+        __MESSAGE_BOXES__.remove(msgbox)
+    msgbox.destroyed.connect(_close_msgbox)
+
 
 def msgbox(msg, title='msgbox'):
-    'Make a non modal critical QtGui.QMessageBox.'
-    msgBox = QtGui.QMessageBox(None)
-    msgBox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
-    msgBox.setWindowTitle(title)
-    msgBox.setText(msg)
-    msgBox.setModal(False)
-    msgBox.open(msgBox.close)
-    msgBox.show()
-    return msgBox
+    """ Make a non modal critical QtGui.QMessageBox. """
+    msgbox = QtGui.QMessageBox(None)
+    msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
+    msgbox.setWindowTitle(title)
+    msgbox.setText(msg)
+    msgbox.setModal(False)
+    msgbox.open(msgbox.close)
+    msgbox.show()
+    _register_msgbox(msgbox)
+    return msgbox
 
 
 def popup_menu(widget, pos, opt2_callback):
@@ -177,31 +191,31 @@ def _enforce_scope(qobj, scoped_obj, scope_title='_scope_list'):
     _get_scope(qobj, scope_title).append(scoped_obj)
 
 
-def _addOptions(msgBox, options):
-    #msgBox.addButton(QtGui.QMessageBox.Close)
+def _addOptions(msgbox, options):
+    #msgbox.addButton(QtGui.QMessageBox.Close)
     for opt in options:
         role = QtGui.QMessageBox.ApplyRole
-        msgBox.addButton(QtGui.QPushButton(opt), role)
+        msgbox.addButton(QtGui.QPushButton(opt), role)
 
 
-def _cacheReply(msgBox):
-    dontPrompt = QtGui.QCheckBox('dont ask me again', parent=msgBox)
+def _cacheReply(msgbox):
+    dontPrompt = QtGui.QCheckBox('dont ask me again', parent=msgbox)
     dontPrompt.blockSignals(True)
-    msgBox.addButton(dontPrompt, QtGui.QMessageBox.ActionRole)
+    msgbox.addButton(dontPrompt, QtGui.QMessageBox.ActionRole)
     return dontPrompt
 
 
 def _newMsgBox(msg='', title='', parent=None, options=None, cache_reply=False):
-    msgBox = QtGui.QMessageBox(parent)
-    #msgBox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    msgbox = QtGui.QMessageBox(parent)
+    #msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     #std_buts = QtGui.QMessageBox.Close
     #std_buts = QtGui.QMessageBox.NoButton
     std_buts = QtGui.QMessageBox.Cancel
-    msgBox.setStandardButtons(std_buts)
-    msgBox.setWindowTitle(title)
-    msgBox.setText(msg)
-    msgBox.setModal(parent is not None)
-    return msgBox
+    msgbox.setStandardButtons(std_buts)
+    msgbox.setWindowTitle(title)
+    msgbox.setText(msg)
+    msgbox.setModal(parent is not None)
+    return msgbox
 
 
 def _getQtImageNameFilter():

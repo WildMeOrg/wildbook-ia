@@ -10,27 +10,8 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
 
-
-ItemDataRoles = {
-    0  : 'DisplayRole',                # key data to be rendered in the form of text. (QString)
-    1  : 'DecorationRole',             # data to be rendered as an icon. (QColor, QIcon or QPixmap)
-    2  : 'EditRole',                   # data in a form suitable for editing in an editor. (QString)
-    3  : 'ToolTipRole',                # data displayed in the item's tooltip. (QString)
-    4  : 'StatusTipRole',              # data displayed in the status bar. (QString)
-    5  : 'WhatsThisRole',              # data displayed for the item in "What's This?" mode. (QString)
-    13 : 'SizeHintRole',               # size hint for the item that will be supplied to views. (QSize)
-    6  : 'FontRole',                   # font used for items rendered with the default delegate. (QFont)
-    7  : 'TextAlignmentRole',          # text alignment of items with default delegate. (Qt::AlignmentFlag)
-    8  : 'BackgroundRole',             # background brush for items with default delegate. (QBrush)
-    9  : 'ForegroundRole',             # foreground brush for items rendered with default delegate. (QBrush)
-    10 : 'CheckStateRole',             # checked state of an item. (Qt::CheckState)
-    14 : 'InitialSortOrderRole',       # initial sort order of a header view section. (Qt::SortOrder).
-    11 : 'AccessibleTextRole',         # text used by accessibility extensions and plugins (QString)
-    12 : 'AccessibleDescriptionRole',  # A description of the item for accessibility purposes. (QString)
-    32 : 'UserRole',                   # first role that can be used for application-specific purposes.
-    8  : 'BackgroundColorRole',        # Obsolete. Use BackgroundRole instead.
-    9  : 'TextColorRole',              # Obsolete. Use ForegroundRole instead.
-}
+#API_MODEL_BASE = QtCore.QAbstractTableModel
+API_MODEL_BASE = QtCore.QAbstractItemModel
 
 
 class ChangeLayoutContext(object):
@@ -87,7 +68,7 @@ def updater(func):
     return upd_wrapper
 
 
-class APITableModel(QtCore.QAbstractTableModel):
+class APITableModel(API_MODEL_BASE):
     """ Item model for displaying a list of columns """
     _rows_updated = signal_(str, int)
     EditableItemColor = QtGui.QColor(220, 220, 255)
@@ -112,7 +93,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         col_sort_reverse : boolean of if to reverse the sort ordering
         ----
         """
-        QtCore.QAbstractTableModel.__init__(model, parent=parent)
+        API_MODEL_BASE.__init__(model, parent=parent)
         # Internal Flags
         model._abouttochange   = False
         model._context_id      = None
@@ -158,6 +139,8 @@ class APITableModel(QtCore.QAbstractTableModel):
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             #model._abouttochange = False
             model._abouttochange = False
+            print('CHANGE: CACHE INVALIDATED!')
+            model.cache = {}
             model.layoutChanged.emit()
             return True
         else:
@@ -194,8 +177,8 @@ class APITableModel(QtCore.QAbstractTableModel):
     @default_method_decorator
     def _update(model, newrows=False):
         #if newrows:
-        print('UPDATE: CACHE INVALIDATED!')
         model._update_rows()
+        print('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
 
     @updater
@@ -335,6 +318,10 @@ class APITableModel(QtCore.QAbstractTableModel):
         row_id = model._get_row_id(row)
         cachekey = (row_id, col)
         try:
+            # Randomly invalidate the cache
+            #import random
+            #if random.uniform(0, 1) > .95:
+            #    raise KeyError('')
             data = model.cache[cachekey]
         except KeyError:
             data = getter(row_id)
@@ -365,6 +352,23 @@ class APITableModel(QtCore.QAbstractTableModel):
     #------------------------
     # --- QtGui Functions ---
     #------------------------
+    @default_method_decorator
+    def parent(model, qindex):
+        """
+        Returns the parent of the model item with the given index. If the item
+        has no parent, an invalid QModelIndex is returned.
+
+        A common convention used in models that expose tree data structures is
+        that only items in the first column have children. For that case, when
+        reimplementing this function in a subclass the column of the returned
+        QModelIndex would be 0.
+
+        When reimplementing this function in a subclass, be careful to avoid
+        calling QModelIndex member functions, such as QModelIndex::parent(),
+        since indexes belonging to your model will simply call your
+        implementation, leading to infinite recursion.
+        """
+        return QtCore.QModelIndex()
 
     @default_method_decorator
     def index(model, row, column, parent=QtCore.QModelIndex()):
@@ -399,10 +403,11 @@ class APITableModel(QtCore.QAbstractTableModel):
         row = qtindex.row()
         col = qtindex.column()
         type_ = model._get_type(col)
-        role_name = ItemDataRoles[role]
+        #role_name = ItemDataRoles[role]
 
         if role == Qt.SizeHintRole:
-            print(role_name)
+            print('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
+            return QtCore.QSize(64, 64)
             pass
         #
         # Specify alignment
@@ -450,6 +455,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         elif role in (Qt.DisplayRole, Qt.EditRole):
             if type_ in qtype.QT_PIXMAP_TYPES:
                 pass
+                return QtCore.QVariant()
                 return 'pixmap'
             elif type_ in qtype.QT_ICON_TYPES:
                 pass
@@ -468,12 +474,11 @@ class APITableModel(QtCore.QAbstractTableModel):
 
     @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
-        """ Sets the role data for the item at qtindex to value.
-        value is a QVariant (called data in documentation)
-        Returns a map with values for all predefined roles in the model for the item at
-        the given index.  Reimplement this function if you want to extend the default
-        behavior of this function to include custom roles in the map.
-
+        """ Sets the role data for the item at qtindex to value.  value is a
+        QVariant (called data in documentation) Returns a map with values for
+        all predefined roles in the model for the item at the given index.
+        Reimplement this function if you want to extend the default behavior of
+        this function to include custom roles in the map.
         """
         try:
             if not qtindex.isValid():
@@ -492,9 +497,11 @@ class APITableModel(QtCore.QAbstractTableModel):
                 type_ = model.col_type_list[col]
                 data = qtype.cast_from_qt(value, type_)
             # Do actual setting of data
-            model._set_data(row, col, data)
-            # Emit that data was changed and return succcess
-            model.dataChanged.emit(qtindex, qtindex)
+            old_data = model._get_data(row, col)
+            if old_data != data:
+                model._set_data(row, col, data)
+                # Emit that data was changed and return succcess
+                model.dataChanged.emit(qtindex, qtindex)
             return True
         except Exception as ex:
             value = str(value.toString())  # NOQA
@@ -545,6 +552,7 @@ class APITableModel(QtCore.QAbstractTableModel):
         type_    = model._get_type(col)
         editable = model.col_edit_list[col]
         if type_ in qtype.QT_IMAGE_TYPES:
+            #return Qt.NoItemFlags
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif not editable:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
