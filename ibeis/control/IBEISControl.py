@@ -452,23 +452,8 @@ class IBEISController(object):
 
     @adder
     def add_encounters(ibs, enctext_list):
-        def _rename_helper(index, enctect_list, seen):
-            enctext = enctext_list[index]
-            if enctext in seen.keys():
-                new_name = enctext + "-" + str(seen[enctext])
-                print('</!!! WARNING !!!>\nENCOUNTER \'%s\' RENAMED AS \'%s\'' 
-                        %(enctext_list[index], new_name))
-                enctext_list[index] = new_name
-                seen[enctext] += 1
-            else:
-                seen[enctext] = 2
-
         """ Adds a list of names. Returns their nids """
         print('[ibs] adding %d encounters' % len(enctext_list))
-        # Fix names to prevent duplicates. If duplicates are passed, there is a problem
-        # upstream and it should be fixed
-        seen = {}
-        [ _rename_helper(index, enctext_list, seen) for index in xrange(len(enctext_list)) ]
         # Add encounter text names to database
         notes_list = ['' for _ in xrange(len(enctext_list))]
         params_iter = izip(enctext_list, notes_list)

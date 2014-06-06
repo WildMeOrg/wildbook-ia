@@ -36,7 +36,6 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
         # The sqlite3_last_insert_rowid(D) interface returns the
         # <b> rowid of the most recent successful INSERT </b>
         # into a rowid table in D
-        result = executor.fetchone()
         _executor(executor, 'SELECT last_insert_rowid()', ())
     # Wraping fetchone in a generator for some pretty tight calls.
     while True:
@@ -96,13 +95,19 @@ class SQLExecutionContext(object):
 
     # --- with SQLExecutionContext: statment code happens here ---
 
-    def execute_and_generate_results(context, params):
+    def execute_and_generate_results(context, params, squelch_ignore=True):
         """ HELPER FOR CONTEXT STATMENT """
         executor = context.db.executor
         operation = context.operation
-        _executor(context.db.executor, operation, params)
-        is_insert = context.operation_type.upper().startswith('INSERT')
-        return _results_gen(executor, get_last_id=is_insert)
+        try:
+            _executor(context.db.executor, operation, params)
+            is_insert = context.operation_type.upper().startswith('INSERT')
+            return _results_gen(executor, get_last_id=is_insert)
+        except lite.IntegrityError:
+            if squelch_ignore:
+                return [None]
+            else:
+                raise lite.IntegrityError
 
     def __exit__(context, type_, value, trace):
         #if not QUIET:
@@ -322,7 +327,16 @@ class SQLDatabaseController(object):
         # Add any unadded images
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         if len(dirty_params) > 0:
-            db.add(tblname, colnames, dirty_params)
+            results = db.add(tblname, colnames, dirty_params)
+            # If the result was already in the database (and ignored), it will return None.
+            # Thus, go and get the row_id if the index is None
+            results =   [ 
+                            get_rowid_from_uuid([uuid_list[index]])[0] 
+                            if results[index] is None else 
+                            results[index] 
+                            for index in range(len(results))
+                        ]
+
             if ensure is None:
                 rowid_list = get_rowid_from_uuid(uuid_list)
             else:
@@ -485,7 +499,7 @@ class SQLDatabaseController(object):
         db.table_columns[tablename] = schema_list
 
     @profile
-    def executeone(db, operation, params=(), auto_commit=True,  verbose=VERBOSE):
+    def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
         """
             operation - parameterized SQL operation string.
                 Parameterized prevents SQL injection attacks by using an ordered
