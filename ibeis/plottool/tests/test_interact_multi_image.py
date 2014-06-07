@@ -10,7 +10,7 @@ def test_interact_multimage(imgpaths):
     print("len: ", len(imgpaths))
     bboxes_list = [[]] * len(imgpaths)
 
-    bboxes_list[0] = [(0, 0, 400, 400)]
+    bboxes_list[0] = [(-200, -100, 400, 400)]
     print(bboxes_list)
     iteract_obj = interact_multi_image.MultiImageInteraction(imgpaths, max_per_page=10, bboxes_list=bboxes_list)
 # def test_interact_multimage(imgpaths, gid_list=None, rids_list=None, bboxes_list=None):

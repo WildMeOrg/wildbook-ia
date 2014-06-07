@@ -143,9 +143,10 @@ class ROIInteraction(object):
         self.img = img
         self.do_mask = do_mask
         fig = plt.figure(fnum)
+        self.fnum = fnum
+        print(self.fnum)
         ax = plt.subplot(111)
         self.ax = ax
-        print("FIG SIZEEEEEEEEEEEEEEEEE: ", ax.get_yaxis())
         self.img_ind = img_ind
 
         ax.imshow(img)
@@ -251,6 +252,14 @@ class ROIInteraction(object):
         self._autoinc_polynum += 1
         return num
 
+    def update_colors(self, poly_ind):
+        for line in self.line:
+            if line.get_color() != 'white':
+                line.set_color('white')
+        if(poly_ind is not None and poly_ind >=0):
+            self.line[poly_ind].set_color('red')
+        plt.draw()
+
     def rotate45(self, poly):
         """
         starting to figure out rotation
@@ -335,21 +344,24 @@ class ROIInteraction(object):
                 print('No polygons on screen')
                 return
             else:
-                self._thisPoly = self.polyList[len(self.polyList) - 1]
-
+                poly_ind = len(self.polyList) - 1
+                self._thisPoly = self.polyList[poly_ind]
+                self.update_colors(poly_ind)
         polyind, self._ind = self.get_ind_under_cursor(event)
 
         if self._ind is not None and polyind is not None:
             self._thisPoly = self.polyList[polyind]
             self.indX, self.indY = self._thisPoly.xy[self._ind]
             self._polyHeld = True
+            self.update_colors(polyind)
 
         self.mouseX, self.mouseY = event.xdata, event.ydata
 
         if self._polyHeld is True or self._ind is not None:
             self._thisPoly.set_alpha(.2)
-            self._thisPoly.set_facecolor('white')
-
+            self.update_colors(self.polyList.index(self._thisPoly))
+            #self._thisPoly.set_facecolor('red')
+            #self.line[polyInd].set_color('red')
         self.press1 = True
         self.canUncolor = False
         self._update_line()
@@ -376,6 +388,8 @@ class ROIInteraction(object):
            (self._ind is not None and self.press1 is True) and \
            self._thisPoly is not None and self.canUncolor is True:
             self._thisPoly.set_alpha(0)
+            #self._thisPoly.set_facecolor('white')
+
 
         self.update_UI()
         self.press1 = False
@@ -394,6 +408,7 @@ class ROIInteraction(object):
            (self._ind is not None and self.press1 is True) and \
            self._thisPoly is not None:
             self._thisPoly = None
+            self.update_colors(None)
         self._ind = None
         self._polyHeld = False
 
@@ -420,6 +435,7 @@ class ROIInteraction(object):
         Poly.num = self.next_polynum()
         self._ind = None  # the active vert
         self._thisPoly = Poly
+        self.update_colors(len(self.polyList) - 1)
         plt.draw()
 
     def delete_current_poly(self, event=None):
@@ -441,6 +457,7 @@ class ROIInteraction(object):
         #reset anything that has to do with current poly
         self._thisPoly = None
         self._polyHeld = False
+        self.update_colors(len(self.polyList) - 1)
         plt.draw()
     def load_points(self):
         new_verts_list = []
@@ -465,6 +482,8 @@ class ROIInteraction(object):
         if event.key == 'u':
             self.load_points()
 
+        if event.key == 'p':
+            print(plt.get_fignums())
         # elif event.key == 'd':
         #     ind = self.get_ind_under_cursor(event)
         #     if ind is None:
@@ -535,33 +554,65 @@ class ROIInteraction(object):
     def check_dims(self, coords):
         xlim = self.ax.get_xlim()
         ylim = self.ax.get_ylim()
-        if coords[0] >= xlim[0] and coords[0] <= xlim[1] and coords[1] >= ylim[1] and coords[1] <= ylim[0]:
-            return True
-        return False
+        if coords[0] < xlim[0]:
+            return False
+            #coords[0] = xlim[0]
+        if coords[0] > xlim[1]:
+            return False
+            #coords[0] = xlim[1]
+        if coords[1] < ylim[1]:
+            return False
+            #coords[1] = ylim[1]
+        if coords[1] > ylim[0]:
+            return False
+            #coords[1] = ylim[0]
+        return True
 
+    def fix_dims(self, coords):
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+        if coords[0] < xlim[0]:
+            print("adjusted")
+            coords[0] = xlim[0]
+        if coords[0] > xlim[1]:
+            print("adjusted")
+            coords[0] = xlim[1]
+        if coords[1] < ylim[1]:
+            print("adjusted")
+            coords[1] = ylim[1]
+        if coords[1] > ylim[0]:
+            print("adjusted")
+            coords[1] = ylim[0]
+        return coords
     def move_rectangle(self, event, polygon, x, y):
         print('move_rectangle')
-        selectedX, selectedY = (polygon.xy[1])
+        for coord in polygon.xy:
+            coord = self.fix_dims(coord)
+
         beforeX, beforeY = (polygon.xy[0])
+        selectedX, selectedY = (polygon.xy[1])
         afterX, afterY = (polygon.xy[2])
         acrossX, acrossY = (polygon.xy[3])
         # if we are not holding a rectangle, return
         if self._polyHeld is not True:
             return
         # Change selected
-        new1 = (selectedX + (x - self.mouseX), selectedY + (y - self.mouseY))
-        new0 = (beforeX   + (x - self.mouseX), beforeY   + (y - self.mouseY))
-        new2 = (afterX    + (x - self.mouseX), afterY    + (y - self.mouseY))
-        new3 = (acrossX   + (x - self.mouseX), acrossY   + (y - self.mouseY))
-        if(self.check_dims(new1)) is True and self.check_dims(new0) is True and self.check_dims(new2) is True and self.check_dims(new3) is True:
-            polygon.xy[1] = new1
-            # Change before vert
-            polygon.xy[0] = new0
-            polygon.xy[self.last_vert_ind] = new0
-            # Change after vert
-            polygon.xy[2] = new2
-            # Change across vert
-            polygon.xy[3] = new3
+        new0 = [beforeX   + (x - self.mouseX), beforeY   + (y - self.mouseY)]
+        new1 = [selectedX + (x - self.mouseX), selectedY + (y - self.mouseY)]
+        new2 = [afterX    + (x - self.mouseX), afterY    + (y - self.mouseY)]
+        new3 = [acrossX   + (x - self.mouseX), acrossY   + (y - self.mouseY)]
+
+        new_coords = [new0, new1, new2, new3, new0]
+
+        change = True
+        new_xy = []
+        for x, coord in enumerate(new_coords):
+            if self.check_dims(coord) is False:
+                change = False
+                break
+        if change is True:
+            polygon.xy = new_coords
+
 
     def calculate_move(self, event, poly):
         print('calculate_move')
@@ -679,8 +730,11 @@ class ROIInteraction(object):
             plt.title('Region outside of mask is darkened')
 
             ax.figure.show()
+            return
 
         print('Accept Over')
+        plt.close(self.fnum)
+        plt.draw()
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
