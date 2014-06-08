@@ -31,7 +31,7 @@ def reload_subs():
     viz.reload_subs()
     #control.reload_subs()
     model.reload_subs()
-    #injest.reload_subs()
+    #ingest.reload_subs()
     #gui.reload_subs()
     #tests.reload_subs()
 

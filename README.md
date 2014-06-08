@@ -163,13 +163,13 @@ python dev.py --prequit --dump-argv
 
 
 #---------
-# Injest examples
+# Ingest examples
 #---------
-# Injest raw images
-python ibeis/injest/injest_database.py --db JAG_Kieryn
+# Ingest raw images
+python ibeis/ingest/ingest_database.py --db JAG_Kieryn
 
-# Injest an hsdb
-python ibeis/injest/injest_hsdb.py --db JAG_Kelly --force-delete
+# Ingest an hsdb
+python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
 
 # Merge all jaguar databases into single big database
 python main.py --merge-species JAG_

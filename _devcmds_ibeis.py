@@ -10,7 +10,7 @@ import vtool.keypoint as ktool
 from ibeis import sysres
 from ibeis.dev import ibsfuncs
 from ibeis.viz import interact
-from ibeis.injest import injest_hsdb
+from ibeis.ingest import ingest_hsdb
 
 
 @devcmd
@@ -74,14 +74,14 @@ def list_dbs(*args):
 
 @devcmd('list_hsdbs')
 def list_unconverted_hsdbs(*args):
-    needs_convert_hsdbs = injest_hsdb.get_unconverted_hsdbs()
+    needs_convert_hsdbs = ingest_hsdb.get_unconverted_hsdbs()
     print('NEEDS CONVERSION:')
     print('\n'.join(needs_convert_hsdbs))
 
 
 @devcmd('convert')
 def convert_hsdbs(*args):
-    injest_hsdb.injest_unconverted_hsdbs_in_workdir()
+    ingest_hsdb.ingest_unconverted_hsdbs_in_workdir()
 
 
 @devcmd

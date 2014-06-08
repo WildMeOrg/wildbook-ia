@@ -6,7 +6,7 @@ from utool.util_setup import setuptools_setup
 CHMOD_PATTERNS = [
     'run_tests.sh',
     'test_*.py',
-    'injest_*.py',
+    'ingest_*.py',
 ]
 
 CYTHON_FILES = [
@@ -26,7 +26,7 @@ PROJECT_DIRS = [
     'ibeis/control',
     'ibeis/dev',
     'ibeis/gui',
-    'ibeis/injest',
+    'ibeis/ingest',
     'ibeis/model',
     'ibeis/hots',
     'ibeis/preproc',
