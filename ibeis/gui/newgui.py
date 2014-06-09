@@ -188,7 +188,8 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
             _NEWLBL(''),
         ]
 
-        ibswgt.buttonBar = QtGui.QHBoxLayout(ibswgt)
+        ibswgt.buttonBar1 = QtGui.QHBoxLayout(ibswgt)
+        ibswgt.buttonBar2 = QtGui.QHBoxLayout(ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         back = ibswgt.back
         #_SEP = lambda: None
@@ -236,14 +237,19 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
         ibswgt.status_wgt.addWidget(ibswgt.progressBar)
-        ibswgt.status_wgt.addLayout(ibswgt.buttonBar)
+        ibswgt.status_wgt.addLayout(ibswgt.buttonBar1)
+        ibswgt.status_wgt.addLayout(ibswgt.buttonBar2)
         ibswgt.status_wgt.addLayout(ibswgt.statusBar)
         # Add statusbar
         for widget in ibswgt.statusLabel_list:
             ibswgt.statusBar.addWidget(widget)
         # Add buttonbar
-        for button in ibswgt.button_list:
-            ibswgt.buttonBar.addWidget(button)
+        mid = int(len(ibswgt.button_list) / 2)
+        for button in ibswgt.button_list[:mid]:
+            ibswgt.buttonBar1.addWidget(button)
+
+        for button in ibswgt.button_list[mid:]:
+            ibswgt.buttonBar2.addWidget(button)
 
     def set_status_label(ibswgt, index, text):
         printDBG('set_status_label[%r] = %r' % (index, text))
