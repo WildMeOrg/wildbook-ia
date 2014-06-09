@@ -424,10 +424,10 @@ class IBEISController(object):
     @adder
     def add_feats(ibs, cid_list, force=False):
         """ Computes the features for every chip without them """
-        print('[ibs] adding features')
         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
         if len(dirty_cids) > 0:
+            print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
             tblname = 'features'
             colname_list = ['chip_uid', 'feature_num_feats', 'feature_keypoints',

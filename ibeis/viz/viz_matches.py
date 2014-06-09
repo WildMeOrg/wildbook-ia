@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 # Drawtool
 import plottool.draw_func2 as df2
+import plottool.plot_helpers as ph
 # IBEIS
 from . import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -13,12 +14,13 @@ from . import viz_helpers as vh
 def show_matches(ibs, qres, rid2, sel_fm=[], **kwargs):
     """ shows single annotated match result. """
     in_image = kwargs.get('in_image', False)
+    draw_fmatches = kwargs.get('draw_fmatches', True)
     qrid = qres.qrid
     fm = qres.rid2_fm[rid2]
     fs = qres.rid2_fs[rid2]
     # Read query and result info (chips, names, ...)
     rchip1, rchip2 = vh.get_chips(ibs, [qrid, rid2], **kwargs)
-    if kwargs.get('draw_fmatches', True):
+    if draw_fmatches:
         kpts1, kpts2 = vh.get_kpts( ibs, [qrid, rid2], **kwargs)
     else:
         kpts1, kpts2 = None, None
@@ -68,14 +70,16 @@ def annotate_matches(ibs, qres, rid2,
     # Build xlabel
     xlabel = vh.get_chip_labels(ibs, rid2, **kwargs)
     ax = df2.gca()
-    vh.set_ibsdat(ax, 'viztype', 'matches')
-    vh.set_ibsdat(ax, 'qrid', qrid)
-    vh.set_ibsdat(ax, 'rid2', rid2)
+    ph.set_plotdat(ax, 'viztype', 'matches')
+    ph.set_plotdat(ax, 'qrid', qrid)
+    ph.set_plotdat(ax, 'rid1', qrid)
+    ph.set_plotdat(ax, 'rid2', rid2)
     if vh.NO_LABEL_OVERRIDE:
         title = ''
         xlabel = ''
     df2.set_title(title, ax)
     df2.set_xlabel(xlabel, ax)
+    # FIXME: Find better name than annote
     if kwargs.get('annote', True):
         # Plot annotations over images
         if in_image:

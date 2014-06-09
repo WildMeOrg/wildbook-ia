@@ -1,60 +1,92 @@
-from os.path import join, dirname, realpath, expanduser, exists, basename
+#!/usr/bin/env python
+from __future__ import division
+from os.path import join, expanduser, exists, basename
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from detecttools.directory import Directory
 import utool
 
 # FIX THIS TO POINT TO THE CORRECT DIRECTORY
-prefix = expanduser(join('~', 'Desktop'))
+#prefix = expanduser(join('~', 'Desktop'))
 prefix = '/media/Store/data/raw/Dan_2014-03-26_Ol_Pejeta__100GB/Ol_pejeta_zebra_stuff__2GB/'
 
-print 'PROCESSING ACTIVITIES'
+print('''
+      =====================
+      PROCESSING ACTIVITIES
+      =====================
+      ''')
 activities = {}
 columns = [3, 9, 10, 11, 12, 13, 14, 15]
-for line in open(join(prefix, 'Group-Habitat-Activity table.csv'), 'r').readlines()[1:]:
-    line = [ item.strip() for item in line.strip().split(',')]
-    _id = line[2]
-    if _id not in activities:
-        activities[_id] = [line[col] for col in columns]
+csv_fpath = join(prefix, 'OPC Zebra database all [exported]', 'csv')
+activity_csv_fpath = join(csv_fpath, 'Group-Habitat-Activity table.csv')
+exportedmdb_fpath  = join(csv_fpath, 'Individual sightings.csv')
+
+utool.checkpath(activity_csv_fpath, verbose=True)
+utool.checkpath(exportedmdb_fpath, verbose=True)
+
+with open(join(activity_csv_fpath), 'r') as file_:
+    lines = file_.read()
+    for line in lines.splitlines()[1:]:
+        line = [ item.strip() for item in line.strip().split(',')]
+        _id = line[2]
+        if _id not in activities:
+            activities[_id] = [line[col] for col in columns]
 
 originals = join(prefix, 'Ol_pejeta_zebra_photos2__1GB')
 images = Directory(originals)
+image_set = set(images.files())
+print(images)
 exts = []
 for image in images.files():
     exts.append(image.split('.')[-1])
 exts = list(set(exts))
 print 'EXTENSIONS:', exts
 
-print 'PROCESSING ENCOUNTERS'
+print('''
+      =====================
+      PROCESSING ENCOUNTERS
+      =====================
+      ''')
 used = []
 # encounters = open(join(prefix, 'encounters.csv'),'w')
 # animals = open(join(prefix, 'animals.csv'),'w')
 linenum = 0
 processed = []
-for line in open(join(prefix, 'Individual sightings.csv'), 'r').readline().split('\r')[1:]:
-    linenum += 1
-    line = [ item.strip() for item in line.strip().split(',')]
-    if len(line) == 1:
-        print 'INVALID DATA ON LINE', linenum, '[FIX TO CONTINUE]'
-        break 
-    filename = line[2]
-    sighting = line[1]
-    files = [ join(originals, filename + '.' + ext) in images.files() for ext in exts]
+with open(join(exportedmdb_fpath), 'r') as file_:
+    lines = file_.read()
+    for line in lines.splitlines()[1:]:
+        linenum += 1
+        line = [ item.strip() for item in line.strip().split(',')]
+        if len(line) == 1:
+            print('WARNING: INVALID DATA ON LINE', linenum, '[FIX TO CONTINUE]')
+            continue
+        filename = line[2].strip('"\'')
+        sighting = line[1]
+        files = [ join(originals, filename + '.' + ext) in image_set for ext in exts]
 
-    if sighting in activities and True in files:
-        for i in range(len(files)):
-            if files[i]:
-                filename += '.' + exts[i]
-                break
+        if sighting in activities and True in files:
+            for i in xrange(len(files)):
+                if files[i]:
+                    filename += '.' + exts[i]
+                    break
 
-        line = [join(originals, filename)] + activities[sighting]
-        if filename not in used:
-            processed.append(line)
-            # animals.write(','.join(line) + '\n')
-            used.append(filename)
-        # encounters.write(','.join(line) + '\n')
+            line = [join(originals, filename)] + activities[sighting]
+            if filename not in used:
+                processed.append(line)
+                # animals.write(','.join(line) + '\n')
+                used.append(filename)
+            # encounters.write(','.join(line) + '\n')
 
-print 'USED:', float(len(used)) / len(images.files())
+print('USED:', float(len(used)) / len(images.files()))
+#print('processed: %s' % processed)
+
+
+print('''
+      =====================
+      FINISHED PROCESS
+      =====================
+      ''')
+
 
 def _sloppy_data(string):
     string = string.replace('0212', '2012')
@@ -67,7 +99,7 @@ ibsfuncs.delete_ibeis_database(dbdir)
 ibs = IBEISControl.IBEISController(dbdir=dbdir)
 image_gpath_list = [item[0] for item in processed]
 notes_list = [','.join( [basename(item[0])] + item[2:5] ) for item in processed]
-times_list = [ utool.exiftime_to_unixtime(_sloppy_data(item[1]), timestamp_format=2) 
+times_list = [ utool.exiftime_to_unixtime(_sloppy_data(item[1]), timestamp_format=2)
                 for item in processed]
 assert all(map(exists, image_gpath_list)), 'some images dont exist'
 
