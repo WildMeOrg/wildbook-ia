@@ -201,6 +201,8 @@ def get_query_label(ibs, qres, rid2, truth, **kwargs):
         rank_str = ' rank=%s' % str(qres.get_rid_ranks([rid2])[0] + 1)
         label_list.append(rank_str)
     if kwargs.get('show_score', True):
+        if len(label_list) > 0:
+            label_list.append('\n')
         score = qres.rid2_score[rid2]
         score_str = (' score=' + utool.num_fmt(score))
         label_list.append(score_str)

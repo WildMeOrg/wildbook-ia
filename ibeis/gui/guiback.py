@@ -439,6 +439,10 @@ class MainWindowBackend(QtCore.QObject):
             qrid2_qres = back.ibs.query_database(valid_rids)
         else:
             qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
+        from ibeis.viz.interact import interact_qres2
+        ibs = back.ibs
+        back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
+
         qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
         qrw.show()
         qrw.raise_()

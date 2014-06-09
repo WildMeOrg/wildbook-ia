@@ -18,7 +18,10 @@ def show_matches(ibs, qres, rid2, sel_fm=[], **kwargs):
     fs = qres.rid2_fs[rid2]
     # Read query and result info (chips, names, ...)
     rchip1, rchip2 = vh.get_chips(ibs, [qrid, rid2], **kwargs)
-    kpts1,  kpts2  = vh.get_kpts( ibs, [qrid, rid2], **kwargs)
+    if kwargs.get('draw_fmatches', True):
+        kpts1, kpts2 = vh.get_kpts( ibs, [qrid, rid2], **kwargs)
+    else:
+        kpts1, kpts2 = None, None
 
     # Build annotation strings / colors
     lbl1 = 'q' + vh.get_ridstrs(qrid)
@@ -54,7 +57,7 @@ def annotate_matches(ibs, qres, rid2,
                      offset1=(0, 0),
                      offset2=(0, 0), **kwargs):
     # TODO Use this function when you clean show_matches
-    in_image = kwargs.get('in_image', False)
+    in_image   = kwargs.get('in_image', False)
     show_query = kwargs.get('show_query', True)
     printDBG('[viz] annotate_matches()')
     qrid = qres.qrid
@@ -73,21 +76,22 @@ def annotate_matches(ibs, qres, rid2,
         xlabel = ''
     df2.set_title(title, ax)
     df2.set_xlabel(xlabel, ax)
-    # Plot annotations over images
-    if in_image:
-        bbox1, bbox2 = vh.get_bboxes(ibs, [qrid, rid2], [offset1, offset2])
-        theta1, theta2 = vh.get_thetas(ibs, [qrid, rid2])
-        # HACK!
-        lbl1 = 'q' + vh.get_ridstrs(qrid)
-        lbl2 = vh.get_ridstrs(rid2)
-        if show_query:
-            df2.draw_roi(bbox1, bbox_color=df2.ORANGE, label=lbl1, theta=theta1)
-        df2.draw_roi(bbox2, bbox_color=truth_color, label=lbl2, theta=theta2)
-    else:
-        xy, w, h = df2._axis_xy_width_height(ax)
-        bbox2 = (xy[0], xy[1], w, h)
-        theta2 = 0
-        df2.draw_border(ax, truth_color, 4, offset=offset2)
-        # No matches draw a red box
-    if rid2 not in qres.rid2_fm or len(qres.rid2_fm[rid2]) == 0:
-        df2.draw_boxedX(bbox2, theta=theta2)
+    if kwargs.get('annote', True):
+        # Plot annotations over images
+        if in_image:
+            bbox1, bbox2 = vh.get_bboxes(ibs, [qrid, rid2], [offset1, offset2])
+            theta1, theta2 = vh.get_thetas(ibs, [qrid, rid2])
+            # HACK!
+            lbl1 = 'q' + vh.get_ridstrs(qrid)
+            lbl2 = vh.get_ridstrs(rid2)
+            if show_query:
+                df2.draw_roi(bbox1, bbox_color=df2.ORANGE, label=lbl1, theta=theta1)
+            df2.draw_roi(bbox2, bbox_color=truth_color, label=lbl2, theta=theta2)
+        else:
+            xy, w, h = df2._axis_xy_width_height(ax)
+            bbox2 = (xy[0], xy[1], w, h)
+            theta2 = 0
+            df2.draw_border(ax, truth_color, 4, offset=offset2)
+            # No matches draw a red box
+        if rid2 not in qres.rid2_fm or len(qres.rid2_fm[rid2]) == 0:
+            df2.draw_boxedX(bbox2, theta=theta2)

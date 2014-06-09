@@ -98,6 +98,7 @@ from vtool.tests import grabdata
 
 # PlotTool
 import plottool
+from plottool import plot_helpers as ph
 from plottool import draw_func2 as df2
 from plottool import interact_helpers as ih
 from plottool import viz_keypoints
