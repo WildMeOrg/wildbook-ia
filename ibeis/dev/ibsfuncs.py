@@ -171,7 +171,7 @@ def localize_images(ibs, gid_list=None):
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
     ibs.set_image_uris(gid_list, loc_gname_list)
-    assert all(map(exists, loc_gname_list)), 'not all images copied'
+    assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
 
 @__injectable
