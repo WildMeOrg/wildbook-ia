@@ -600,3 +600,8 @@ def print_tables(ibs):
     ibs.print_name_table()
     ibs.print_config_table()
     print('\n')
+
+
+def make_new_name(ibs):
+    new_name = 'name_%d' % ibs.get_num_names()
+    return new_name

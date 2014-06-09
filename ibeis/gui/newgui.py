@@ -5,7 +5,7 @@ import functools  # NOQA
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QSizePolicy
-from guitool import slot_, checks_qt_error, ChangeLayoutContext  # NOQA
+from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
@@ -34,9 +34,8 @@ class APITabWidget(QtGui.QTabWidget):
         tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
 
     def setCurrentIndex(tabwgt, index):
-        print('Set current Index: %r ' % index)
         tblname = tabwgt.ibswgt.tblname_list[index]
-        print(tblname)
+        print('Set %r current Index: %r ' % (tblname, index))
         #model = tabwgt.ibswgt.models[tblname]
         #with ChangeLayoutContext([model]):
         #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
@@ -98,6 +97,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
 
 class IBEISMainWindow(QtGui.QMainWindow):
+    quitSignal = signal_()
     def __init__(mainwin, back=None, ibs=None, parent=None):
         QtGui.QMainWindow.__init__(mainwin, parent)
         # Menus
@@ -106,8 +106,17 @@ class IBEISMainWindow(QtGui.QMainWindow):
         # Central Widget
         mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
         mainwin.setCentralWidget(mainwin.ibswgt)
+        if back is not None:
+            mainwin.quitSignal.connect(back.quit)
+        else:
+            raise AssertionError('need backend')
         #
         mainwin.resize(900, 600)
+
+    @slot_()
+    def closeEvent(mainwin, event):
+        event.accept()
+        mainwin.quitSignal.emit()
 
 
 IBEIS_GUI_BASE = QtGui.QWidget
@@ -194,11 +203,14 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
         back = ibswgt.back
         #_SEP = lambda: None
         ibswgt.button_list = [
-            _NEWBUT('Import Images\n(from files)',
-                    back.import_images_from_file),
-            _NEWBUT('Import Images\n(from dir)',
-                    back.import_images_from_dir),
-            _NEWBUT('Import Images\n(from dir + size filter)'),
+            _NEWBUT('Import Images\n(via files)',
+                    back.import_images_from_file,
+                    bgcolor=(235, 200, 200),),
+            _NEWBUT('Import Images\n(via dir)',
+                    back.import_images_from_dir,
+                    bgcolor=(235, 200, 200)),
+            _NEWBUT('Import Images\n(via dir + size filter)',
+                    bgcolor=(235, 200, 200)),
 
             #_SEP(),
 
@@ -206,22 +218,29 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
 
             #_SEP(),
 
-            _NEWBUT('Compute {algid} Encounters'),
+            _NEWBUT('Cluster Encounters', ibswgt.back.compute_encounters,
+                    bgcolor=(255, 255, 150)),
+            #_NEWBUT('Compute {algid} Encounters'),
 
             #_SEP(),
 
-            _NEWBUT('Run {species}-{algid} Detector',
-                    ibswgt.back.run_detection_coarse),
-            _NEWBUT('Review {species}-Detections'),
+            _NEWBUT('Run Detector',
+                    ibswgt.back.run_detection_coarse,
+                    bgcolor=(150, 255, 150)),
+            _NEWBUT('Review Detections'),
 
             #_SEP(),
 
-            _NEWBUT('Individual Recognition (who are these?)', ibswgt.back.compute_queries),
-            _NEWBUT('Review Individual Matches'),
+            _NEWBUT('Run Recognition', ibswgt.back.compute_queries,
+                    bgcolor=(150, 150, 255),
+                    fgcolor=(0, 0, 0)),
+            _NEWBUT('Review Recognitions'),
 
             #_SEP(),
 
-            _NEWBUT('DELETE ALL ENCOUNTERS', ibswgt.back.delete_all_encounters),
+            _NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
+                    bgcolor=(255, 0, 0),
+                    fgcolor=(0, 0, 0)),
         ]
 
     def _init_layout(ibswgt):
@@ -329,6 +348,8 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
             model = ibswgt.models[tblname]
             model._rows_updated.connect(ibswgt.on_rows_updated)
+            #front.printSignal.connect(back.backend_print)
+            #front.raiseExceptionSignal.connect(back.backend_exception)
 
     #------------
     # SLOTS
@@ -346,7 +367,7 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
 
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):
-        print('[newgui] contextmenu')
+        printDBG('[newgui] contextmenu')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex.row())
         tblview = ibswgt.views[model.name]
@@ -372,11 +393,11 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
                 ])
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
-        print('on_click')
+        printDBG('on_click')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex.row())
         if model.name == ENCOUNTER_TABLE:
-            print('clicked encounter')
+            printDBG('clicked encounter')
         else:
             eid = model.eid
             if model.name == IMAGE_TABLE:
@@ -391,7 +412,7 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
-        print('on_doubleclick')
+        printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex.row())
         if model.name == ENCOUNTER_TABLE:

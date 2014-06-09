@@ -7,7 +7,7 @@ from os.path import join, exists
 import utool
 from . import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[sql]', DEBUG=False)
+    __name__, '[sql]', DEBUG=True)
 
 
 VERBOSE = utool.VERBOSE
@@ -15,6 +15,10 @@ AUTODUMP = utool.get_flag('--auto-dump')
 
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 
+
+def default_decorator(func):
+    return func
+    #return utool.indent_func('[sql.' + func.func_name + ']')(func)
 
 # =======================
 # Helper Functions
@@ -26,6 +30,7 @@ def _executor(executor, opeartion, params):
     Execute an SQL Command
     """
     executor.execute(opeartion, params)
+
 
 def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
     """ HELPER - Returns as many results as there are.
@@ -184,6 +189,7 @@ class SQLDatabaseController(object):
         db.cache = {}
         db.stack = []
 
+    @default_decorator
     def dump_tables_to_csv(db):
         """ Convenience: Dumps all csv database files to disk """
         dump_dir = join(db.dir_, 'CSV_DUMP')
@@ -194,16 +200,18 @@ class SQLDatabaseController(object):
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)
 
+    @default_decorator
     def get_column_names(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
         column_names = [name for name, type_ in  db.table_columns[tablename]]
         return column_names
 
+    @default_decorator
     def get_tables(db):
         """ Conveinience: """
         return db.table_columns.keys()
 
-    @profile
+    @default_decorator
     def get_column(db, tablename, name):
         """ Conveinience: """
         _table, (_column,) = db.sanatize_sql(tablename, (name,))
@@ -214,6 +222,7 @@ class SQLDatabaseController(object):
             ''' % (_column, _table))
         return column_vals
 
+    @default_decorator
     def get_table_csv(db, tablename, exclude_columns=[]):
         """ Conveinience: Converts a tablename to csv format """
         header_name  = '# TABLENAME: %r' % tablename
@@ -235,6 +244,7 @@ class SQLDatabaseController(object):
         csv_table = utool.make_csv_table(column_list, column_labels, header)
         return csv_table
 
+    @default_decorator
     def get_sql_version(db):
         """ Conveinience """
         _executor(db.executor, '''
@@ -253,17 +263,20 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
+    @default_decorator
     def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
         return db.executeone(operation, params, auto_commit=True,  verbose=VERBOSE)
 
+    @default_decorator
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
                               auto_commit=True, verbose=VERBOSE)
 
+    @default_decorator
     def _get_all_ids(db, tblname, **kwargs):
         """ valid ider """
         fmtdict = {
@@ -275,10 +288,12 @@ class SQLDatabaseController(object):
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
     #@ider
+    @default_decorator
     def get_valid_ids(db, tblname, **kwargs):
         return db._get_all_ids(tblname, **kwargs)
 
     #@adder
+    @default_decorator
     def add(db, tblname, colnames, params_iter, **kwargs):
         """ adder """
         fmtdict = {
@@ -293,9 +308,10 @@ class SQLDatabaseController(object):
             ) VALUES (NULL, {questionmarks})
             ''')
         rowid_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                             params_iter=params_iter, **kwargs)
+                                                   params_iter=params_iter, **kwargs)
         return rowid_list
 
+    @default_decorator
     def add_cleanly(db, tblname, colnames, params_iter,
                     get_rowid_from_uuid, ensure=None):
         """
@@ -327,15 +343,15 @@ class SQLDatabaseController(object):
         # Add any unadded images
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         if len(dirty_params) > 0:
-            results = db.add(tblname, colnames, dirty_params)
+            db.add(tblname, colnames, dirty_params)
+            #results =
             # If the result was already in the database (and ignored), it will return None.
             # Thus, go and get the row_id if the index is None
-            results =   [ 
-                            get_rowid_from_uuid([uuid_list[index]])[0] 
-                            if results[index] is None else 
-                            results[index] 
-                            for index in range(len(results))
-                        ]
+            # NO NO NO NO NO!!!
+            #results = [get_rowid_from_uuid([uuid_list[index]])[0]
+            #           if results[index] is None
+            #           else results[index]
+            #           for index in range(len(results))]
 
             if ensure is None:
                 rowid_list = get_rowid_from_uuid(uuid_list)
@@ -346,55 +362,66 @@ class SQLDatabaseController(object):
         return rowid_list
 
     #@getter
-    def get(db, tblname, colnames, id_iter=None, where_col=None, where_custom=None,
-                unpack_scalars=None, one_execute_override=False, **kwargs):
+    @default_decorator
+    def get(db, tblname, colnames, id_iter=None, where_col=None, where_clause=None,
+                unpack_scalars=None, **kwargs):
         """ getter """
         if unpack_scalars is None:
             unpack_scalars = where_col is None
 
-        if id_iter is not None and not one_execute_override:
-            if where_custom is None:
-                where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
-                params_iter = ((_uid,) for _uid in id_iter)
-            else:
-                where_rowid = where_custom
-                params_iter = id_iter
-
-            fmtdict = {
-                'tblname'     : tblname,
-                'colnames'    : ', '.join(colnames),
-                'where_rowids' : 'WHERE ' + where_rowid,
-            }
-            operation_fmt = '''
-                SELECT {colnames}
-                FROM {tblname}
-                {where_rowids}
-                '''
-            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                                     params_iter=params_iter,
-                                                     unpack_scalars=unpack_scalars,
-                                                     **kwargs)
+        if where_clause is None:
+            where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
+            params_iter = ((_uid,) for _uid in id_iter)
         else:
-            fmtdict = {
-                'tblname'       : tblname,
-                'colnames_str'      : ', '.join(colnames),
-                'where_rowid_str'   : ('' if where_custom is None else 'WHERE ' + where_custom)
-            }
-            operation_fmt = '''
-                SELECT {colnames_str}
-                FROM {tblname}
-                {where_rowid_str}
-                '''
-            if one_execute_override:
-                params = id_iter
-            else:
-                params = None
+            where_rowid = where_clause
+            params_iter = id_iter
 
-            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
-        
+        fmtdict = {
+            'tblname'     : tblname,
+            'colnames'    : ', '.join(colnames),
+            'where_rowids' : 'WHERE ' + where_rowid,
+        }
+        operation_fmt = '''
+            SELECT {colnames}
+            FROM {tblname}
+            {where_rowids}
+            '''
+        val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                                    params_iter=params_iter,
+                                                    unpack_scalars=unpack_scalars,
+                                                    **kwargs)
+        return val_list
+
+    @default_decorator
+    def get_executeone(db, tblname, colnames, **kwargs):
+        fmtdict = {
+            'tblname'         : tblname,
+            'colnames_str'    : ', '.join(colnames),
+        }
+        operation_fmt = '''
+            SELECT {colnames_str}
+            FROM {tblname}
+            '''
+        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+        return val_list
+
+    @default_decorator
+    def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
+        fmtdict = {
+            'tblname'         : tblname,
+            'colnames_str'    : ', '.join(colnames),
+            'where_clause'    : where_clause
+        }
+        operation_fmt = '''
+            SELECT {colnames_str}
+            FROM {tblname}
+            WHERE {where_clause}
+            '''
+        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
         return val_list
 
     #@setter
+    @default_decorator
     def set(db, tblname, colnames, val_list, id_list, where_col=None, **kwargs):
         """ setter """
         assert  len(val_list) == len(id_list)
@@ -413,6 +440,7 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter, **kwargs)
 
     #@deleter
+    @default_decorator
     def delete(db, tblname, id_list, where_col=None, **kwargs):
         """ deleter """
         fmtdict = {
@@ -435,6 +463,7 @@ class SQLDatabaseController(object):
     #=========
 
     @profile
+    @default_decorator
     def sanatize_sql(db, tablename, columns=None):
         """ Sanatizes an sql tablename and column. Use sparingly """
         tablename = re.sub('[^a-z_0-9]', '', tablename)
@@ -459,7 +488,7 @@ class SQLDatabaseController(object):
 
             return tablename, columns
 
-    @profile
+    @default_decorator
     def schema(db, tablename, schema_list, table_constraints=[]):
         """ Creates a table in the database with some schema and constraints
 
@@ -498,7 +527,7 @@ class SQLDatabaseController(object):
         # Append to internal storage
         db.table_columns[tablename] = schema_list
 
-    @profile
+    @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
         """
             operation - parameterized SQL operation string.
@@ -526,7 +555,7 @@ class SQLDatabaseController(object):
                 raise
         return result_list
 
-    @profile
+    @default_decorator
     def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE, unpack_scalars=True, num_params=None):
         """
@@ -599,7 +628,7 @@ class SQLDatabaseController(object):
                 raise
         return results_list
 
-    @profile
+    @default_decorator
     def commit(db, qstat_flag_list=[],  verbose=VERBOSE, errmsg=None):
         """ Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
@@ -621,7 +650,7 @@ class SQLDatabaseController(object):
             print('</!!! ERROR>\n')
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
-    @profile
+    @default_decorator
     def dump(db, file_=None, auto_commit=True):
         """ Same output as shell command below
             > sqlite3 database.sqlite3 .dump > database.dump.txt

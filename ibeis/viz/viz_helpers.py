@@ -194,17 +194,17 @@ def get_roi_labels(ibs, rid_list, draw_lbls):
 def get_query_label(ibs, qres, rid2, truth, **kwargs):
     """ returns title based on the query chip and result """
     label_list = []
-    if kwargs.get('show_truth', True):
+    if kwargs.get('show_truth', False):
         truth_str = '*%s*' % get_truth_label(ibs, truth)
         label_list.append(truth_str)
     if kwargs.get('show_rank', True):
-        rank_str = ' rank=%s' % str(qres.get_rid_ranks([rid2])[0] + 1)
+        rank_str = 'rank=%s' % str(qres.get_rid_ranks([rid2])[0] + 1)
         label_list.append(rank_str)
     if kwargs.get('show_score', True):
-        if len(label_list) > 0:
-            label_list.append('\n')
         score = qres.rid2_score[rid2]
-        score_str = (' score=' + utool.num_fmt(score))
+        score_str = ('score=' + utool.num_fmt(score))
+        if len(label_list) > 0:
+            score_str = '\n' + score_str
         label_list.append(score_str)
     if kwargs.get('show_timedelta', False):
         timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qrid, rid2))

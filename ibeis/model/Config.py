@@ -407,7 +407,8 @@ class EncounterConfig(ConfigBase):
     def __init__(enc_cfg, **kwargs):
         super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
         enc_cfg.min_imgs_per_encounter = 1
-        enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
+        #enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
+        enc_cfg.cluster_algo = 'agglomerative'
         enc_cfg.quantile = .01  # depends meanshift
         enc_cfg.seconds_thresh = 60    # depends agglomerative
 

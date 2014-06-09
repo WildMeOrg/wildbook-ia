@@ -17,6 +17,7 @@ from ibeis.gui import guiheaders as gh
 from ibeis import viz
 from ibeis.viz import interact
 from ibeis.gui import inspect_gui
+from ibeis.viz.interact import interact_qres2
 # Utool
 import utool
 from ibeis.control import IBEISControl
@@ -27,12 +28,18 @@ from ibeis.control import IBEISControl
 VERBOSE = utool.VERBOSE
 
 
+def default_decorator(func):
+    return func
+    #return utool.indent_func('[back.' + func.func_name + ']')(func)
+
+
 def backblock(func):
     """
     BLOCKING DECORATOR
     TODO: This decorator has to be specific to either front or back. Is there a
     way to make it more general?
     """
+    func = default_decorator(func)
     @functools.wraps(func)
     #@guitool.checks_qt_error
     def bacblock_wrapper(back, *args, **kwargs):
@@ -93,6 +100,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_gids = []
         back.sel_qres = []
         back.active_enc = 0
+        back.encounter_query_results = utool.ddict(dict)
 
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
@@ -323,8 +331,7 @@ class MainWindowBackend(QtCore.QObject):
         print('\n\n[back] query')
         if rid is None:
             rid = back.get_selected_rid()
-        if 'eid' not in kwargs:
-            eid = back.get_selected_eid()
+        eid = back._eidfromkw(kwargs)
         if eid is None:
             print('[back] query_database(rid=%r)' % (rid,))
             qrid2_qres = back.ibs.query_database([rid])
@@ -340,8 +347,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def _run_detection(back, quick=True, refresh=True, **kwargs):
         print('\n\n')
-        if 'eid' not in kwargs:
-            eid = back.get_selected_eid()
+        eid = back._eidfromkw(kwargs)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
         species = ibs.cfg.detect_cfg.species
@@ -421,8 +427,7 @@ class MainWindowBackend(QtCore.QObject):
     def compute_feats(back, refresh=True, **kwargs):
         """ Batch -> Precompute Feats"""
         print('[back] compute_feats')
-        if 'eid' not in kwargs:
-            eid = back.get_selected_eid()
+        eid = back._eidfromkw(kwargs)
         ibsfuncs.compute_all_features(back.ibs, eid=eid)
         if refresh:
             back.front.update_tables()
@@ -430,8 +435,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def compute_queries(back, refresh=True, **kwargs):
         """ Batch -> Precompute Queries"""
-        if 'eid' not in kwargs:
-            eid = back.get_selected_eid()
+        eid = back._eidfromkw(kwargs)
         print('[back] compute_queries: eid=%r' % (eid,))
         back.compute_feats(refresh=False, **kwargs)
         valid_rids = back.ibs.get_valid_rids(eid=eid)
@@ -439,23 +443,39 @@ class MainWindowBackend(QtCore.QObject):
             qrid2_qres = back.ibs.query_database(valid_rids)
         else:
             qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
-        from ibeis.viz.interact import interact_qres2
-        ibs = back.ibs
-        back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
+        back.encounter_query_results[eid].update(qrid2_qres)
+        print('[back] About to finish compute_queries: eid=%r' % (eid,))
+        back.review_queries(eid=eid)
 
-        qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
-        qrw.show()
-        qrw.raise_()
+        #back.qres_widget = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
+        #back.qres_widget.show()
+        #back.qres_widget.raise_()
         if refresh:
             back.front.update_tables()
+        print('[back] FINISHED compute_queries: eid=%r' % (eid,))
+
+    def review_queries(back, **kwargs):
+        eid = back.get_selected_eid()
+        if eid not in back.encounter_query_results:
+            raise AssertionError('Queries have not been computed yet')
+        qrid2_qres = back.encounter_query_results[eid]
+        review_kw = {
+            'on_change_callback': back.front.update_tables,
+            'nPerPage': 6,
+        }
+        ibs = back.ibs
+        back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
+        back.query_review.show()
 
     @blocking_slot()
     def compute_encounters(back, refresh=True):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
         back.ibs.compute_encounters()
+        print('[back] about to finish computing encounters')
         if refresh:
             back.front.update_tables()
+        print('[back] finished computing encounters')
 
     #--------------------------------------------------------------------------
     # Option menu slots
@@ -552,6 +572,8 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] dev_cls')
         print('\n'.join([''] * 100))
         back.refresh_state()
+        from plottool import draw_func2 as df2
+        df2.update()
 
     @blocking_slot()
     def dev_dumpdb(back):
@@ -698,3 +720,12 @@ class MainWindowBackend(QtCore.QObject):
     def user_select_new_dbdir(back):
         raise NotImplementedError()
         pass
+
+    def _eidfromkw(back, kwargs):
+        if 'eid' not in kwargs:
+            eid = back.get_selected_eid()
+        else:
+            eid = kwargs['eid']
+        return eid
+
+
