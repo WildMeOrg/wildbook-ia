@@ -52,7 +52,7 @@ class MultiImageInteraction(object):
             print("No more images to display")
             return
         self.page_number = self.page_number + 1
-        
+
         if nLeft == 0:
             fig = df2.figure(fnum=self.fnum, pnum=(1, 1, 1))
             fig.clf()
@@ -70,7 +70,7 @@ class MultiImageInteraction(object):
         px = -1  # plot-index
         start_index = self.current_index
         end_index   = start_index + nDisplay
-        """this is so, on reaching final page, if you hit prev_button you 
+        """this is so, on reaching final page, if you hit prev_button you
         return to the same images as were on the last page before"""
         self.current_index = self.current_index + self.max_per_page
         for px, index in enumerate(xrange(start_index, end_index)):
@@ -106,7 +106,7 @@ class MultiImageInteraction(object):
             #print('components: ', fig.get_children())
             if px + 1 >= nDisplay:
                 break
-        
+
         # Set the figure title
         df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, end_index, self.nImgs))
 
@@ -117,7 +117,7 @@ class MultiImageInteraction(object):
 
         self.display_buttons()
         # Connect the callback whenever the figure is clicked
-        
+
         # Show the changes
         fig.show()
         plt.draw()
@@ -147,8 +147,8 @@ class MultiImageInteraction(object):
         fig.clf()
         # Draw the new page of data
         px = -1  # plot-index
-        
-        
+
+
         for px, index in enumerate(xrange(start_index, end_index)):
             gpath      = self.gpath_list[index]
             bbox_list  = self.bboxes_list[index]
@@ -183,12 +183,12 @@ class MultiImageInteraction(object):
             #print('components: ', fig.get_children())
             if px + 1 >= nDisplay:
                 break
-        
+
         # Set the figure title
         df2.set_figtitle('Displaying (%d - %d) / %d' % (start_index + 1, end_index, self.nImgs))
 
         #ih.connect_callback(fig, 'button_press_event', self.on_figure_clicked)
-        
+
         self.display_buttons()
         # Show the changes
         plt.draw()
@@ -206,9 +206,10 @@ class MultiImageInteraction(object):
         self.prev_but = Button(self.prev_ax, 'prev')
         self.prev_but.on_clicked(self.display_prev_page)
         # Connect the callback whenever the figure is clicked
-        
+
 
     def update_images(self, img_ind, updated_bbox_list, updated_theta_list):
+        """Insert code for viz_image2 redrawing here"""
         print("update called")
         index = int (img_ind)
         print("index: ",index)
@@ -217,7 +218,6 @@ class MultiImageInteraction(object):
         self.thetas_list[index] = updated_theta_list
         print("Image's bbox after: ",self.bboxes_list[index])
 
-        """Insert code for viz_image2 redrawing here"""
         nRows, nCols = ph.get_square_row_cols(self.nDisplay)
         pnum_ = df2.get_pnum_func(nRows, nCols)
         gpath = self.gpath_list[index]

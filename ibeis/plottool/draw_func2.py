@@ -19,6 +19,7 @@ import colorsys
 import pylab
 import sys
 import warnings
+from itertools import izip
 # Qt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
@@ -1247,3 +1248,44 @@ def remove_patches(ax=None):
 def imshow_null(**kwargs):
     imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
     draw_boxedX()
+
+
+def axes_bottom_button_bar(ax, text_list=[]):
+    # Method 2
+    divider = make_axes_locatable(ax)
+    ax_list = []
+    but_list = []
+
+    for text in text_list:
+        ax = divider.append_axes('bottom', size='5%', pad=0.05)
+        but = mpl.widgets.Button(ax, text)
+        ax_list.append(ax)
+        but_list.append(but)
+
+    return but_list, ax_list
+    """
+    # Method 1
+    (x1, y1), (x2, y2) = ax.get_position().get_points()
+    # Parent axes props
+    root_left   = x1
+    root_bottom = y1
+    root_height = y2 - y1
+    root_width  = x2 - x1
+
+    # Build axes for buttons
+    num = len(text_list)
+    pad_percent = .05
+    rect_list = []
+    xpad = root_width * pad_percent
+    width = (root_width - (xpad * num)) / num
+    height = root_height * .05
+    left = root_left
+    bottom = root_bottom - height
+    for ix in xrange(num):
+        rect = [left, bottom, width, height]
+        rect_list.append(rect)
+        left += width + xpad
+    ax_list = [plt.axes(rect) for rect in rect_list]
+    but_list = [mpl.widgets.Button(ax_, text) for ax_, text in izip(ax_list, text_list)]
+    return but_list
+    """
