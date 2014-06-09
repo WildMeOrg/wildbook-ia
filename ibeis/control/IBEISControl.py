@@ -356,7 +356,7 @@ class IBEISController(object):
 
     @adder
     def add_rois(ibs, gid_list, bbox_list, theta_list=None, viewpoint_list=None,
-                 nid_list=None, name_list=None, notes_list=None):
+                 nid_list=None, name_list=None, confidence_list=None, notes_list=None):
         """ Adds oriented ROI bounding boxes to images """
         print('[ibs] adding rois')
         # Prepare the SQL input
@@ -370,6 +370,8 @@ class IBEISController(object):
             nid_list = ibs.add_names(name_list)
         if nid_list is None:
             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
+        if confidence_list is None:
+            confidence_list = [0.0 for _ in xrange(len(gid_list))]
         if notes_list is None:
             notes_list = ['' for _ in xrange(len(gid_list))]
         # Build deterministic and unique ROI ids
@@ -379,12 +381,13 @@ class IBEISController(object):
         # Define arguments to insert
         params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
                                             bbox_list, theta_list,
-                                            viewpoint_list, notes_list))
+                                            viewpoint_list, confidence_list,
+                                            notes_list))
 
         tblname = 'rois'
         colname_list = ['roi_uuid', 'image_uid', 'name_uid', 'roi_xtl',
                         'roi_ytl', 'roi_width', 'roi_height', 'roi_theta',
-                        'roi_viewpoint', 'roi_notes' ]
+                        'roi_viewpoint', 'roi_detect_confidence', 'roi_notes' ]
         # Execute add ROIs SQL
         rid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                       ibs.get_roi_rids_from_uuid)
@@ -515,6 +518,11 @@ class IBEISController(object):
     def set_image_unixtime(ibs, gid_list, unixtime_list):
         """ Sets the image unixtime (does not modify exif yet) """
         ibs.set_table_props('images', 'image_exif_time_posix', gid_list, unixtime_list)
+
+    @setter
+    def set_image_confidence(ibs, gid_list, confidence_list):
+        """ Sets the image detection confidence """
+        ibs.set_table_props('images', 'image_confidence', gid_list, confidence_list)
 
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
@@ -771,6 +779,12 @@ class IBEISController(object):
         return aif_list
 
     @getter
+    def get_image_confidence(ibs, gid_list):
+        """ Returns image detection confidence """
+        confidence_list = ibs.get_image_props('image_confidence', gid_list)
+        return confidence_list
+
+    @getter
     def get_image_notes(ibs, gid_list):
         """ Returns image notes """
         notes_list = ibs.get_image_props('image_notes', gid_list)
@@ -857,6 +871,12 @@ class IBEISController(object):
                                 where_col='roi_uuid',
                                 unpack_scalars=True)
         return rids_list
+
+    @getter
+    def get_roi_confidence(ibs, rid_list):
+        """ Returns a list of roi notes """
+        roi_confidence_list = ibs.get_roi_props('roi_detect_confidence', rid_list)
+        return roi_confidence_list
 
     @getter
     def get_roi_notes(ibs, rid_list):
@@ -1493,33 +1513,47 @@ class IBEISController(object):
         probexist_list = randomforest.detect_existence(ibs, gid_list, **kwargs)
         # Return for user inspection
         return probexist_list
-
+    
     @default_decorator
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         detect_gen = randomforest.generate_detections(ibs, gid_list, species, **kwargs)
-        detected_gid_list, detected_bbox_list = [], []
+        detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
         ADD_AFTER_THRESHOLD = 1
 
-        def commit_detections(detected_gids, detectd_bboxes):
+        def commit_detections(detected_gids, detected_bboxes, detected_confidences, img_confs):
             """ helper to commit detections on the fly """
             if len(detected_gids) == 0:
                 return
             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
-            ibs.add_rois(detected_gids, detectd_bboxes, notes_list=notes_list)
+            ibs.add_rois(detected_gids, detected_bboxes, 
+                            notes_list=notes_list,
+                            confidence_list=detected_confidences)
+            ibs.set_image_confidence(detected_gids, img_confs)
 
-        for count, (gid, bbox) in enumerate(detect_gen):
+        for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
             detected_gid_list.append(gid)
             detected_bbox_list.append(bbox)
+            detected_confidence_list.append(confidence)
+            detected_img_confs.append(img_conf)
             # Save detections as we go
             if len(detected_gid_list) >= ADD_AFTER_THRESHOLD:
-                commit_detections(detected_gid_list, detected_bbox_list)
+                commit_detections(  detected_gid_list, 
+                                    detected_bbox_list, 
+                                    detected_confidence_list, 
+                                    detected_img_confs
+                                )
                 detected_gid_list  = []
                 detected_bbox_list = []
+                detected_confidence_list = []
+                detected_img_confs = []
         # Save any leftover detections
-        commit_detections(detected_gid_list, detected_bbox_list)
+        commit_detections(  detected_gid_list, 
+                            detected_bbox_list, 
+                            detected_confidence_list,
+                            detected_img_confs)
         print('[ibs] finshed detecting')
 
     @default_decorator

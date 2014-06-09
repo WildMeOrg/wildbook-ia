@@ -34,13 +34,15 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     scale_list = [oldw / neww for oldw, neww in izip(oldw_list, neww_list)]
 
     # Detect on scaled images
-    bboxes_list = detect_species_bboxes(src_gpath_list, species, **detectkw)
+    generator = detect_species_bboxes(src_gpath_list, species, **detectkw)
 
-    for gid, scale, bboxes in izip(gid_list, scale_list, bboxes_list):
+    for gid, scale, (bboxes, confidences, img_conf) in izip(gid_list, scale_list, generator):
         # Unscale results
         unscaled_bboxes = [_scale_bbox(bbox_, scale) for bbox_ in bboxes]
-        for bbox in unscaled_bboxes:
-            yield gid, bbox
+        for index in xrange(len(unscaled_bboxes)):
+            bbox = unscaled_bboxes[index]
+            confidence = float(confidences[index])
+            yield gid, bbox, confidence, img_conf
 
 
 def get_image_hough_gpaths(ibs, gid_list, species, quick=True):
@@ -133,7 +135,17 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
                                           **detect_config)
         # Unpack unsupressed bounding boxes
         bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
-                  for (centx, centy, minx, miny, maxx, maxy, _, supressed)
+                  for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
                   in results if supressed == 0]
-        yield bboxes
+
+        confidences = [ confidence
+                  for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                  in results if supressed == 0]
+
+        if len(results) > 0:
+            image_confidence = max( [ float(result[6]) for result in results] )
+        else:
+            image_confidence = 0.0
+
+        yield bboxes, confidences, image_confidence
     end_prog()
