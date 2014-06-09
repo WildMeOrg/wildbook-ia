@@ -171,7 +171,7 @@ def localize_images(ibs, gid_list=None):
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
     ibs.set_image_uris(gid_list, loc_gname_list)
-    assert all(map(exists, loc_gname_list)), 'not all images copied'
+    assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
 
 @__injectable
@@ -341,7 +341,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
     Input: gpath_list
     Output: names based on the parent folder of each image
     """
-    INJEST_FORMATS = {
+    INGEST_FORMATS = {
         FMT_KEYS.name_fmt: utool.named_field_regex([
             ('name', r'[a-zA-Z]+'),  # all alpha characters
             ('id',   r'\d*'),        # first numbers (if existant)
@@ -356,7 +356,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
             ('ext',  r'\w+'),
         ]),
     }
-    regex = INJEST_FORMATS.get(fmtkey, fmtkey)
+    regex = INGEST_FORMATS.get(fmtkey, fmtkey)
     gname_list = utool.fpaths_to_fnames(gpath_list)
     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
 

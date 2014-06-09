@@ -15,7 +15,7 @@ import utool
 import re
 import csv
 print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[injest_hsbd]')
+    __name__, '[ingest_hsbd]')
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
@@ -45,7 +45,7 @@ def get_unconverted_hsdbs(workdir=None):
     return needs_convert_hsdbs
 
 
-def injest_unconverted_hsdbs_in_workdir():
+def ingest_unconverted_hsdbs_in_workdir():
     workdir = sysres.get_workdir()
     needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
     for hsdb in needs_convert_hsdbs:
@@ -60,7 +60,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert'
     if force_delete:
         ibsfuncs.delete_ibeis_database(hsdb_dir)
-    print('[injest] Injesting hsdb: %r' % hsdb_dir)
+    print('[ingest] Ingesting hsdb: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
 
     ibs = IBEISControl.IBEISController(dbdir=hsdb_dir)
@@ -147,7 +147,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     # Write file flagging successful conversion
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
         file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
-    print('finished injest')
+    print('finished ingest')
 
 
 if __name__ == '__main__':

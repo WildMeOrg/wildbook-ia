@@ -119,9 +119,9 @@ from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
 # IBEIS EXPORT
 from ibeis.export import export_hsdb
-# IBEIS INJEST
-from ibeis.injest import injest_hsdb
-from ibeis.injest import injest_database
+# IBEIS INGEST
+from ibeis.ingest import ingest_hsdb
+from ibeis.ingest import ingest_database
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc
