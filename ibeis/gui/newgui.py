@@ -20,6 +20,9 @@ import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
 
+IBEIS_WIDGET_BASE = QtGui.QWidget
+
+
 #############################
 ###### Tab Widgets #######
 #############################
@@ -29,16 +32,16 @@ class APITabWidget(QtGui.QTabWidget):
     def __init__(tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(tabwgt, parent)
         tabwgt.ibswgt = parent
-        sizePolicy = guitool.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
-        tabwgt.setSizePolicy(sizePolicy)
-        tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
+        tabwgt._sizePolicy = guitool.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
+        tabwgt.setSizePolicy(tabwgt._sizePolicy)
+        #tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
 
-    def setCurrentIndex(tabwgt, index):
-        tblname = tabwgt.ibswgt.tblname_list[index]
-        print('Set %r current Index: %r ' % (tblname, index))
-        #model = tabwgt.ibswgt.models[tblname]
-        #with ChangeLayoutContext([model]):
-        #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
+    #def setCurrentIndex(tabwgt, index):
+    #    tblname = tabwgt.ibswgt.tblname_list[index]
+    #    print('Set %r current Index: %r ' % (tblname, index))
+    #    #model = tabwgt.ibswgt.models[tblname]
+    #    #with ChangeLayoutContext([model]):
+    #    #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
 class EncoutnerTabWidget(QtGui.QTabWidget):
@@ -119,19 +122,16 @@ class IBEISMainWindow(QtGui.QMainWindow):
         mainwin.quitSignal.emit()
 
 
-IBEIS_GUI_BASE = QtGui.QWidget
-
-
-class IBEISGuiWidget(IBEIS_GUI_BASE):
+class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     #@checks_qt_error
     def __init__(ibswgt, back=None, ibs=None, parent=None):
-        IBEIS_GUI_BASE.__init__(ibswgt, parent)
+        IBEIS_WIDGET_BASE.__init__(ibswgt, parent)
         ibswgt.ibs = ibs
         ibswgt.back = back
         # Sturcutres that will hold models and views
         ibswgt.models       = {}
         ibswgt.views        = {}
-        ibswgt.widgets      = {}
+        #ibswgt.widgets      = {}
         ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
@@ -164,19 +164,19 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
             (ENCOUNTER_TABLE, EncTableWidget, EncTableModel,     EncTableView),
         ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
-            widget = WidgetClass(parent=ibswgt)
-            ibswgt.widgets[tblname] = widget
-            ibswgt.models[tblname]  = widget.model
-            ibswgt.views[tblname]   = widget.view
-            #ibswgt.models[tblname] = ModelClass(parent=ibswgt)
-            #ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
+            #widget = WidgetClass(parent=ibswgt)
+            #ibswgt.widgets[tblname] = widget
+            #ibswgt.models[tblname]  = widget.model
+            #ibswgt.views[tblname]   = widget.view
+            ibswgt.models[tblname] = ModelClass(parent=ibswgt)
+            ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
         # Connect models and views
-        #for tblname in ibswgt.super_tblname_list:
-        #    ibswgt.views[tblname].setModel(ibswgt.models[tblname])
+        for tblname in ibswgt.super_tblname_list:
+            ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ROI, and Names as tabs
         for tblname in ibswgt.tblname_list:
-            ibswgt._tab_table_wgt.addTab(ibswgt.widgets[tblname], tblname)
-            #ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
+            #ibswgt._tab_table_wgt.addTab(ibswgt.widgets[tblname], tblname)
+            ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
         # Custom Encounter Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
@@ -227,14 +227,20 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
             _NEWBUT('Run Detector',
                     ibswgt.back.run_detection_coarse,
                     bgcolor=(150, 255, 150)),
-            _NEWBUT('Review Detections'),
+            _NEWBUT('Review Detections',
+                    ibswgt.back.review_detections,
+                    bgcolor=(170, 250, 170)),
 
             #_SEP(),
 
-            _NEWBUT('Run Recognition', ibswgt.back.compute_queries,
+            _NEWBUT('Run Recognition',
+                    ibswgt.back.compute_queries,
                     bgcolor=(150, 150, 255),
                     fgcolor=(0, 0, 0)),
-            _NEWBUT('Review Recognitions'),
+            _NEWBUT('Review Recognitions',
+                    ibswgt.back.review_queries,
+                    bgcolor=(170, 170, 250),
+                    fgcolor=(0, 0, 0)),
 
             #_SEP(),
 
@@ -310,15 +316,13 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
             print('[newgui] Calling model _update_headers')
             _flag = ibswgt._tab_table_wgt.blockSignals(True)
             for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
-                # TODO: Consolidate these models and views into their own widgets
-                # Then have that update headers call them both
-                #model = ibswgt.models[tblname]
-                #view = ibswgt.views[tblname]
-                widget = ibswgt.widgets[tblname]
+                model = ibswgt.models[tblname]
+                view = ibswgt.views[tblname]
                 header = header_dict[tblname]
-                widget.change_headers(header)
-                #model._update_headers(**header)
-                #view._update_headers(**header)
+                #widget = ibswgt.widgets[tblname]
+                #widget.change_headers(header)
+                model._update_headers(**header)
+                view._update_headers(**header)
             ibswgt._tab_table_wgt.blockSignals(_flag)
 
     def setWindowTitle(ibswgt, title):
@@ -326,15 +330,16 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
         if parent_ is not None:
             parent_.setWindowTitle(title)
         else:
-            IBEIS_GUI_BASE.setWindowTitle(ibswgt, title)
+            IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
-        try:
-            ibswgt.button_list[3].setText('QUERY(eid=%r)' % eid)
-        except Exception:
-            pass
+            ibswgt.models[tblname]._change_enc(eid)
+        #try:
+        #    ibswgt.button_list[3].setText('QUERY(eid=%r)' % eid)
+        #except Exception:
+        #    pass
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)
@@ -346,8 +351,7 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
             tblview.clicked.connect(ibswgt.on_click)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
-            model = ibswgt.models[tblname]
-            model._rows_updated.connect(ibswgt.on_rows_updated)
+            tblview.rows_updated.connect(ibswgt.on_rows_updated)
             #front.printSignal.connect(back.backend_print)
             #front.raiseExceptionSignal.connect(back.backend_exception)
 
@@ -362,8 +366,11 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
         if tblname == ENCOUNTER_TABLE:  # Hack
             return
         tblname = str(tblname)
-        index = ibswgt._tab_table_wgt.indexOf(ibswgt.views[tblname])
-        ibswgt._tab_table_wgt.setTabText(index, tblname + ' ' + str(nRows))
+        view = ibswgt.views[tblname]
+        index = ibswgt._tab_table_wgt.indexOf(view)
+        text = tblname + ' ' + str(nRows)
+        printDBG('Rows updated in index=%r, text=%r' % (index, text))
+        ibswgt._tab_table_wgt.setTabText(index, text)
 
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):

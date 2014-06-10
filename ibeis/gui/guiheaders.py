@@ -29,7 +29,7 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'aif', 'gname', 'nRids', 'datetime', 'gconf', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
     ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'rconf', 'notes'],

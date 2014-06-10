@@ -38,10 +38,17 @@ def export_to_hotspotter(ibs):
 
 
 @__injectable
-def get_image_bboxes(ibs, gid_list):
-    size_list = ibs.get_image_sizes(gid_list)
-    bbox_list  = [(0, 0, w, h) for (w, h) in size_list]
-    return bbox_list
+def get_image_roi_bboxes(ibs, gid_list):
+    rids_list = ibs.get_image_rids(gid_list)
+    bboxes_list = ibs.get_unflat_roi_bboxes(rids_list)
+    return bboxes_list
+
+
+@__injectable
+def get_image_roi_thetas(ibs, gid_list):
+    rids_list = ibs.get_image_rids(gid_list)
+    thetas_list = ibs.get_unflat_roi_thetas(rids_list)
+    return thetas_list
 
 
 @__injectable
@@ -233,7 +240,9 @@ def inject_ibeis(ibs):
         ibs.get_roi_uuids,
         ibs.get_image_uuids,
         ibs.get_names,
-        ibs.get_image_unixtime
+        ibs.get_image_unixtime,
+        ibs.get_roi_bboxes,
+        ibs.get_roi_thetas,
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)

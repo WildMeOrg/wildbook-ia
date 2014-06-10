@@ -16,7 +16,7 @@ from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis import viz
 from ibeis.viz import interact
-from ibeis.gui import inspect_gui
+#from ibeis.gui import inspect_gui
 from ibeis.viz.interact import interact_qres2
 # Utool
 import utool
@@ -345,26 +345,6 @@ class MainWindowBackend(QtCore.QObject):
             back.show_qres(qres)
 
     @blocking_slot()
-    def _run_detection(back, quick=True, refresh=True, **kwargs):
-        print('\n\n')
-        eid = back._eidfromkw(kwargs)
-        ibs = back.ibs
-        gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
-        species = ibs.cfg.detect_cfg.species
-        print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
-        ibs.detect_random_forest(gid_list, species, quick=quick)
-        if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
-
-    @blocking_slot()
-    def run_detection_coarse(back, refresh=True):
-        back._run_detection(quick=True)
-
-    @blocking_slot()
-    def run_detection_fine(back, refresh=True):
-        back._run_detection(quick=False)
-
-    @blocking_slot()
     def reselect_ori(back, rid=None, theta=None, **kwargs):
         """ Action -> Reselect ORI"""
         print('[back] reselect_ori')
@@ -424,6 +404,28 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
+    def _run_detection(back, quick=True, refresh=True, **kwargs):
+        print('\n\n')
+        eid = back._eidfromkw(kwargs)
+        ibs = back.ibs
+        gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
+        species = ibs.cfg.detect_cfg.species
+        print('[back] _run_detection(quick=%r, species=%r, eid=%r)' % (quick, species, eid))
+        ibs.detect_random_forest(gid_list, species, quick=quick)
+        print('[back] about to finish detection')
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
+        print('[back] finished detection')
+
+    @blocking_slot()
+    def run_detection_coarse(back, refresh=True):
+        back._run_detection(quick=True)
+
+    @blocking_slot()
+    def run_detection_fine(back, refresh=True):
+        back._run_detection(quick=False)
+
+    @blocking_slot()
     def compute_feats(back, refresh=True, **kwargs):
         """ Batch -> Precompute Feats"""
         print('[back] compute_feats')
@@ -454,6 +456,7 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
 
+    @blocking_slot()
     def review_queries(back, **kwargs):
         eid = back.get_selected_eid()
         if eid not in back.encounter_query_results:
@@ -466,6 +469,18 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
         back.query_review.show()
+
+    @blocking_slot()
+    def review_detections(back, **kwargs):
+        from plottool.interact_multi_image import MultiImageInteraction
+        eid = back.get_selected_eid()
+        ibs = back.ibs
+        gid_list = ibs.get_valid_gids(eid=eid)
+        gpath_list = ibs.get_image_paths(gid_list)
+        bboxes_list = ibs.get_image_roi_bboxes(gid_list)
+        thetas_list = ibs.get_image_roi_thetas(gid_list)
+        multi_image_interaction = MultiImageInteraction(gpath_list, bboxes_list=bboxes_list, thetas_list=thetas_list)
+        back.multi_image_interaction = multi_image_interaction
 
     @blocking_slot()
     def compute_encounters(back, refresh=True):
@@ -727,5 +742,3 @@ class MainWindowBackend(QtCore.QObject):
         else:
             eid = kwargs['eid']
         return eid
-
-

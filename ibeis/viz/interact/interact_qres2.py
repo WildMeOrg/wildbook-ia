@@ -29,16 +29,32 @@ RENAME2_PREF     = 'rename result: '
 
 def default_interact_qres_params():
     params = {
-        'fnum': 512,
-        'nPerPage': 6,
-        'ranks_lt': 3,
-        'on_change_callback': None
+        'fnum'               : 512,
+        'nPerPage'           : 6,
+        'ranks_lt'           : 3,
+        'on_change_callback' : None
     }
     return params
 
 
 class Interact_QueryResult(object):
     def __init__(self, ibs, qrid2_qres, **kwargs):
+        # Initialize variables. No logic
+        self.fnum               = None
+        self.nPerPage           = None
+        self.ranks_lt           = None
+        self.on_change_callback = None
+        self.ibs = None
+        self.nCands = 0  # number of candidate matches
+        self.qrid2_qres = {}
+        self.cand_match_list = []
+        self.start_index = 0
+        self.current_pagenum = -1
+        self.current_match_rids = None
+        self.current_qres       = None
+        self.scope = []  # for keeping those widgets alive!
+        self.nPages = 0
+        self.stop_index  = -1
         self.interactkw = {
             'draw_fmatches': False,
             'draw_ell': True,
@@ -54,21 +70,17 @@ class Interact_QueryResult(object):
             ('TOG: timedelta', 'show_timedelta'),
             ('TOG: lbl', 'draw_lbl'),
         ])
+        # Initialize Logic
+        # main data
+        self.ibs = ibs
+        self.qrid2_qres = qrid2_qres
+        # update keyword args
         params = default_interact_qres_params()
         utool.updateif_haskey(params, kwargs)
         self.__dict__.update(**params)
-        self.ibs = ibs
-        self.nCands = 0  # number of candidate matches
-        self.qrid2_qres = {}
-        self.cand_match_list = []
-        self.start_index = 0
-        self.current_pagenum = -1
-        self.current_match_rids = None
-        self.current_qres       = None
-        self.scope = []  # for keeping those widgets alive!
-        self.nPages = 0
-        self.stop_index  = self.start_index + self.nPerPage
+        # initialize matches
         self.init_candidates(qrid2_qres)
+        # show first page
         self.show_page(0)
 
     def get_default_params(self):
@@ -271,6 +283,8 @@ class Interact_QueryResult(object):
         elif text.startswith(RENAME2_PREF):
             name1 = ibs.get_roi_names(rid1)
             ibs.set_roi_names([rid2], [name1])
+        # Emit that something has changed
+        self.on_change_callback()
         self.show_page()
 
     def on_figure_clicked(self, event):
