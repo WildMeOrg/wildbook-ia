@@ -3,6 +3,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import guitool
 from guitool.guitool_decorators import signal_, slot_
+from guitool.api_table_model import APITableModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
@@ -24,6 +25,7 @@ class APITableView(API_VIEW_BASE):
     """
     Base class for all IBEIS Tables
     """
+    rows_updated = signal_(str, int)
     contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
 
     def __init__(view, parent=None):
@@ -103,9 +105,15 @@ class APITableView(API_VIEW_BASE):
     # Qt Overrides
     #---------------
 
-    def itemDelegate(qindex):
+    def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
-        return API_VIEW_BASE.itemDelegate(qindex)
+        assert isinstance(model, APITableModel), 'apitblview only accepts apitblemodels'
+        model._rows_updated.connect(view.on_rows_updated)
+        return API_VIEW_BASE.setModel(view, model)
+
+    def itemDelegate(view, qindex):
+        """ QtOverride: Returns item delegate for this index """
+        return API_VIEW_BASE.itemDelegate(view, qindex)
 
     def keyPressEvent(view, event):
         assert isinstance(event, QtGui.QKeyEvent)
@@ -122,12 +130,12 @@ class APITableView(API_VIEW_BASE):
     def mousePressEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
         API_VIEW_BASE.mousePressEvent(view, event)
-        print('no editing')
+        #print('no editing')
         view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
     def mouseReleaseEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
-        print('editing ok')
+        #print('editing ok')
         view.setEditTriggers(view._defaultEditTriggers)
         API_VIEW_BASE.mouseReleaseEvent(view, event)
 
@@ -152,6 +160,11 @@ class APITableView(API_VIEW_BASE):
     #---------------
     # Slots
     #---------------
+
+    @slot_(str, int)
+    def on_rows_updated(view, tblname, num):
+        # re-emit the model signal
+        view.rows_updated.emit(tblname, num)
 
     @slot_(QtCore.QPoint)
     def on_customMenuRequested(view, pos):

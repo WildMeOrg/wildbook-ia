@@ -32,6 +32,7 @@ def newSplitter(widget, orientation=Qt.Horizontal, verticalStretch=1):
     # This line makes the hsplitter resize with the widget
     sizePolicy = newSizePolicy(hsplitter, verticalStretch=verticalStretch)
     hsplitter.setSizePolicy(sizePolicy)
+    setattr(hsplitter, '_guitool_sizepolicy', sizePolicy)
     return hsplitter
 
 
@@ -39,6 +40,7 @@ def newTabWidget(parent, horizontalStretch=1):
     tabwgt = QtGui.QTabWidget(parent)
     sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
     tabwgt.setSizePolicy(sizePolicy)
+    setattr(tabwgt, '_guitool_sizepolicy', sizePolicy)
     return tabwgt
 
 
@@ -106,6 +108,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     progressBar.setProperty('value', 42)
     progressBar.setTextVisible(False)
     progressBar.setVisible(visible)
+    setattr(progressBar, '_guitool_sizepolicy', sizePolicy)
     return progressBar
 
 
@@ -120,6 +123,7 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     outputLog.setVisible(visible)
     #outputLog.setFontPointSize(8)
     outputLog.setFont(newFont('Courier New', pointSize))
+    setattr(outputLog, '_guitool_sizepolicy', sizePolicy)
     return outputLog
 
 
@@ -129,6 +133,7 @@ def newTextEdit(parent, visible=True):
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
     outputEdit.setVisible(visible)
+    setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
     return outputEdit
 
 
@@ -153,6 +158,7 @@ def newWidget(parent, orientation=Qt.Vertical,
     widget._guitool_layout = layout
     widget.addWidget = widget._guitool_layout.addWidget
     widget.addLayout = widget._guitool_layout.addLayout
+    setattr(widget, '_guitool_sizepolicy', sizePolicy)
     return widget
 
 
@@ -167,7 +173,7 @@ def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
 
 
 def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
-              enabled=True):
+              enabled=True, bgcolor=None, fgcolor=None):
     """ wrapper around QtGui.QPushButton """
     but_args = [text]
     but_kwargs = {
@@ -180,6 +186,17 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
     if qicon is not None:
         but_args = [qicon] + but_args
     button = QtGui.QPushButton(*but_args, **but_kwargs)
+    style_list = []
+    fmtdict = {}
+    if bgcolor is not None:
+        style_list.append('background-color: rgb({bgcolor})')
+        fmtdict['bgcolor'] = ','.join(map(str, bgcolor))
+    if fgcolor is not None:
+        style_list.append('color: rgb({fgcolor})')
+        fmtdict['fgcolor'] = ','.join(map(str, fgcolor))
+    if len(style_list) > 0:
+        style_sheet_fmt = ';'.join(style_list)
+        button.setStyleSheet(style_sheet_fmt.format(**fmtdict))
     button.setVisible(visible)
     button.setEnabled(enabled)
     return button

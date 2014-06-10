@@ -139,7 +139,7 @@ class APITableModel(API_MODEL_BASE):
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             #model._abouttochange = False
             model._abouttochange = False
-            print('CHANGE: CACHE INVALIDATED!')
+            printDBG('CHANGE: CACHE INVALIDATED!')
             model.cache = {}
             model.layoutChanged.emit()
             return True
@@ -178,7 +178,7 @@ class APITableModel(API_MODEL_BASE):
     def _update(model, newrows=False):
         #if newrows:
         model._update_rows()
-        print('UPDATE: CACHE INVALIDATED!')
+        printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
 
     @updater
@@ -406,7 +406,7 @@ class APITableModel(API_MODEL_BASE):
         #role_name = ItemDataRoles[role]
 
         if role == Qt.SizeHintRole:
-            print('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
+            printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
             return QtCore.QSize(64, 64)
             pass
         #
