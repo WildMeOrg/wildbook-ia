@@ -32,13 +32,14 @@ import matplotlib
 #matplotlib.use('Qt4Agg')
 from matplotlib.patches import Polygon
 from matplotlib.widgets import Button
-import matplotlib.image as mpimg
+#import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import math as math
 #from matplotlib import nxutils  # Depricated
 #from matplotlib.mlab import dist_point_to_segment
 # Scientific
 import numpy as np
+import utool
 
 from plottool import draw_func2 as df2
 
@@ -81,19 +82,21 @@ def bbox_to_verts(bbox):
                       (x + 0, y + h)], dtype=np.float32)
     return verts
 
+
 def verts_to_bbox(verts):
     print()
     new_bbox_list = []
     print(verts)
     for i in range(0, len(verts)):
-        print('verts[i][0][0]: ', verts[i][0][0], " verts[i][0][1]: ",verts[i][0][1])
+        print('verts[i][0][0]: ', verts[i][0][0], " verts[i][0][1]: ", verts[i][0][1])
         x = verts[i][0][0]
         y = verts[i][0][1]
         w = verts[i][2][0] - x
         h = verts[i][2][1] - y
         bbox = (x, y, w, h)
-        new_bbox_list.append(bbox) 
+        new_bbox_list.append(bbox)
     return new_bbox_list
+
 
 def bbox_to_mask(shape, bbox):
     verts = bbox_to_verts(bbox)
@@ -132,7 +135,7 @@ class ROIInteraction(object):
                  line_color=(1, 1, 1),
                  face_color=(0, 0, 0),
                  fnum=None,
-                 
+
                  do_mask=False):
         if fnum is None:
             fnum = df2.next_fnum()
@@ -142,18 +145,21 @@ class ROIInteraction(object):
             self.callback = None
         self.img = img
         self.do_mask = do_mask
-        fig = plt.figure(fnum)
+        self.fig = df2.figure(fnum=fnum)
         self.fnum = fnum
         print(self.fnum)
         ax = plt.subplot(111)
         self.ax = ax
         self.img_ind = img_ind
 
-        ax.imshow(img)
+        df2.imshow(img, fnum=fnum)
 
         ax.set_clip_on(False)
-        ax.set_title(('Click and drag a point to move; '
-                      'Click an ROI and press \"r\" to remove it\nPress \"t\" to add an ROI'))
+        ax.set_title(('\n'.join([
+            'Click and drag to select/move/resize an ROI',
+            'Press \"r\" to remove selected ROI',
+            'Press \"t\" to add an ROI.',
+            'Press \"a\" to Accept new ROIs'])))
 
         self.showverts = True
         self.max_ds = max_ds
@@ -202,7 +208,7 @@ class ROIInteraction(object):
         if theta_list is None:
             self.theta_list = []
         else:
-            self.theta_list = theta_list
+            self.theta_list = list(theta_list)
         # Create the list of polygons
         self.polyList = [new_polygon(verts) for verts in verts_list]
         # Create the list of lines
@@ -221,12 +227,14 @@ class ROIInteraction(object):
         self._ind = None  # the active vert
 
         canvas = ax.figure.canvas
+        #http://matplotlib.org/1.3.1/api/backend_bases_api.html
         canvas.mpl_connect('draw_event', self.draw_callback)
         canvas.mpl_connect('button_press_event', self.button_press_callback)
         canvas.mpl_connect('button_release_event', self.button_release_callback)
         canvas.mpl_connect('key_press_event', self.key_press_callback)
         canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
         canvas.mpl_connect('pick_event', self.onpick)
+        canvas.mpl_connect('resize_event', self.on_resize)
         # canvas.mpl_connect('figure_enter_event', self.mouse_enter)
         # canvas.mpl_connect('figure_leave_event', self.mouse_leave)
         self.canvas = canvas
@@ -244,6 +252,15 @@ class ROIInteraction(object):
         self.del_but = Button(self.del_ax, 'Delete Rectangle')
         self.del_but.on_clicked(self.delete_current_poly)
 
+    def on_resize(self, event):
+        #print(utool.dict_str(event.__dict__))
+        #self.canvas.draw()
+        #self.fig.canvas.draw()
+        #self.canvas.update()
+        #self.fig.canvas.update()
+        plt.draw()
+        pass
+
     def show(self):
         self.fig.canvas.show()
 
@@ -256,8 +273,8 @@ class ROIInteraction(object):
         for line in self.line:
             if line.get_color() != 'white':
                 line.set_color('white')
-        if(poly_ind is not None and poly_ind >=0):
-            self.line[poly_ind].set_color('red')
+        if(poly_ind is not None and poly_ind >= 0):
+            self.line[poly_ind].set_color(df2.ORANGE)
         plt.draw()
 
     def rotate45(self, poly):
@@ -390,7 +407,6 @@ class ROIInteraction(object):
             self._thisPoly.set_alpha(0)
             #self._thisPoly.set_facecolor('white')
 
-
         self.update_UI()
         self.press1 = False
 
@@ -459,6 +475,7 @@ class ROIInteraction(object):
         self._polyHeld = False
         self.update_colors(len(self.polyList) - 1)
         plt.draw()
+
     def load_points(self):
         new_verts_list = []
         for poly in self.polyList:
@@ -470,12 +487,15 @@ class ROIInteraction(object):
         print('key_press_callback')
         if not event.inaxes:
             return
+        if event.key == 'a':
+            self.accept_new_rois()
+
         if event.key == 't':
             self.draw_new_poly()
         # old code for adding and deleting Polygon vertices (would need to
         # rewrite for multiply polygons
 
-        """code for deleting a polygon"""
+        # code for deleting a polygon
         if event.key == 'r':
             self.delete_current_poly()
 
@@ -605,14 +625,13 @@ class ROIInteraction(object):
         new_coords = [new0, new1, new2, new3, new0]
 
         change = True
-        new_xy = []
+        #new_xy = []
         for x, coord in enumerate(new_coords):
             if self.check_dims(coord) is False:
                 change = False
                 break
         if change is True:
             polygon.xy = new_coords
-
 
     def calculate_move(self, event, poly):
         print('calculate_move')
@@ -767,8 +786,6 @@ def default_vertices(img):
 
 
 def ROI_creator(img, verts_list):  # add callback as variable
-# def ROI_creator(img, img_ind, verts_list, callback):#add callback as variable
-# >>>>>>> Stashed changes
     print('*** START DEMO ***')
 
     if verts_list is None:
@@ -784,12 +801,14 @@ def ROI_creator(img, verts_list):  # add callback as variable
             import utool
             img_url = 'http://i.imgur.com/Vq9CLok.jpg'
             img_fpath = utool.grab_file_url(img_url)
-            img = mpimg.imread(img_fpath)
+            #img = mpimg.imread(img_fpath)
+            from vtool import image as gtool
+            img = gtool.imread(img_fpath)
         except Exception as ex:
             print('cant read zebra: %r' % ex)
             img = np.random.uniform(0, 255, size=(100, 100))
     #test_bbox = verts_to_bbox(verts_list)
-    mc = ROIInteraction(img, verts_list=verts_list,fnum=0)  # NOQA
+    mc = ROIInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
     plt.show()
     # Make mask from selection

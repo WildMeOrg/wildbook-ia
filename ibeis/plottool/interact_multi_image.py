@@ -1,24 +1,24 @@
 from __future__ import absolute_import, division, print_function
 from matplotlib.widgets import Button
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+#import matplotlib.image as mpimg
 from plottool import viz_image2
 from plottool import interact_rois
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 import utool
-import cv2
+from vtool import image as gtool
 #import utool
 
 
 class MultiImageInteraction(object):
-    def __init__(self, gpath_list, max_per_page=10, bboxes_list=None, thetas_list=None, verts_list=None, gid_list=None,
+    def __init__(self, gpath_list, max_per_page=4, bboxes_list=None, thetas_list=None, verts_list=None, gid_list=None,
                  nImgs=None, fnum=None):
         print('Creating multi-image interaction')
 
     #def __init__(self, img_list, nImgs=None, gid_list=None, rids_list=None, bboxes_list=None, max_per_page=10,fnum=None):
-        print("maX ",max_per_page)
+        print('maX ', max_per_page)
         if nImgs is None:
             nImgs = len(gpath_list)
         if fnum is None:
@@ -49,7 +49,7 @@ class MultiImageInteraction(object):
 
         nLeft = self.nImgs - self.current_index
         if(nLeft <= 0):
-            print("No more images to display")
+            print('No more images to display')
             return
         self.page_number = self.page_number + 1
 
@@ -76,13 +76,11 @@ class MultiImageInteraction(object):
         for px, index in enumerate(xrange(start_index, end_index)):
             gpath      = self.gpath_list[index]
             bbox_list  = self.bboxes_list[index]
-            print("bbox_list in display for px: ",px, " , ",bbox_list)
+            #print('bbox_list=%r in display for px=%r' % (bbox_list, px))
             theta_list = self.thetas_list[index]
-            img = cv2.imread(gpath)
-            label_list = []
-            for i in range(0, len(bbox_list)):
-                label_list.append(i + 1)
-            sel_list = []
+            img = gtool.imread(gpath)
+            label_list = [ix + 1 for ix in xrange(len(bbox_list))]
+            sel_list = [True for ix in xrange(len(bbox_list))]
             #Add true values for every bbox to display
             for i in range(0, len(bbox_list)):
                 sel_list.append(True)
@@ -96,7 +94,7 @@ class MultiImageInteraction(object):
                 'label_list' : label_list,
             }
             #print(utool.dict_str(_vizkw))
-            print('vizkw = ' + utool.dict_str(_vizkw))
+            #print('vizkw = ' + utool.dict_str(_vizkw))
             _, ax = viz_image2.show_image(img, **_vizkw)
             ph.set_plotdat(ax, 'px', str(px))
             ph.set_plotdat(ax, 'bbox_list', bbox_list)
@@ -125,7 +123,7 @@ class MultiImageInteraction(object):
 
     def display_prev_page(self, event=None):
         if(self.current_index <= self.max_per_page):
-            print("at top of list.")
+            print('at top of list.')
             return
         self.page_number = self.page_number - 1
         'update our current index instantly, in case of multiple button clicks at once'
@@ -148,13 +146,12 @@ class MultiImageInteraction(object):
         # Draw the new page of data
         px = -1  # plot-index
 
-
         for px, index in enumerate(xrange(start_index, end_index)):
             gpath      = self.gpath_list[index]
             bbox_list  = self.bboxes_list[index]
-            print("bbox_list in display for px: ",px, " , ",bbox_list)
+            print('bbox_list %r in display for px: %r ' % (bbox_list, px))
             theta_list = self.thetas_list[index]
-            img = cv2.imread(gpath)
+            img = gtool.imread(gpath)
             label_list = []
             for i in range(0, len(bbox_list)):
                 label_list.append(i + 1)
@@ -207,16 +204,15 @@ class MultiImageInteraction(object):
         self.prev_but.on_clicked(self.display_prev_page)
         # Connect the callback whenever the figure is clicked
 
-
     def update_images(self, img_ind, updated_bbox_list, updated_theta_list):
         """Insert code for viz_image2 redrawing here"""
-        print("update called")
-        index = int (img_ind)
-        print("index: ",index)
-        print("Image's bbox before: ",self.bboxes_list[index])
+        print('update called')
+        index = int(img_ind)
+        print('index: %r' % index)
+        print('Images bbox before: %r' % (self.bboxes_list[index],))
         self.bboxes_list[index] = updated_bbox_list
         self.thetas_list[index] = updated_theta_list
-        print("Image's bbox after: ",self.bboxes_list[index])
+        print('Images bbox after: %r' % (self.bboxes_list[index],))
 
         nRows, nCols = ph.get_square_row_cols(self.nDisplay)
         pnum_ = df2.get_pnum_func(nRows, nCols)
@@ -229,9 +225,9 @@ class MultiImageInteraction(object):
             label_list.append(i + 1)
         sel_list = []
         for i in range(0, len(bbox_list)):
-                print("image has a bbox")
+                print('image has a bbox')
                 sel_list.append(True)
-        img = cv2.imread(gpath)
+        img = gtool.imread(gpath)
         _vizkw = {
             'fnum': self.fnum,
             'pnum': pnum_(px),
@@ -241,7 +237,7 @@ class MultiImageInteraction(object):
             'sel_list'   : sel_list,
             'label_list' : label_list,
         }
-            #print(utool.dict_str(_vizkw))
+        #print(utool.dict_str(_vizkw))
         _, ax = viz_image2.show_image(img, **_vizkw)
         plt.draw()
 
@@ -249,7 +245,7 @@ class MultiImageInteraction(object):
         #don't do other stuff if we clicked a button
         point = (event.x, event.y)
         if self.next_ax.contains_point(point) or self.prev_ax.contains_point(point):
-            print("in button click")
+            print('in button click')
             return
 
         if ih.clicked_inside_axis(event):
@@ -257,22 +253,25 @@ class MultiImageInteraction(object):
             image_number = int(ph.get_plotdat(ax, 'title'))
             #bbox_list  = ph.get_plotdat(ax, 'bbox_list')
             bbox_list = self.bboxes_list[image_number]
-            print("Bbox of figure: ",bbox_list)
+            print('Bbox of figure: %r' % (bbox_list,))
             theta_list = self.thetas_list[image_number]
-            print("theta_list = ",theta_list)
+            print('theta_list = %r' % (theta_list,))
             gpath      = ph.get_plotdat(ax, 'gpath')
-            img = mpimg.imread(gpath)
+            #img = mpimg.imread(gpath)
+            img = gtool.imread(gpath)
             fnum = df2.next_fnum()
             mc = interact_rois.ROIInteraction(img, image_number, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
+            self.mc = mc
             # """wait for accept
             # have a flag to tell if a bbox has been changed, on the bbox list that is brought it"
             # on accept:
             # viz_image2.show_image callback
             # """
-            plt.show()
+            #plt.show()
+            df2.update()
             print('Clicked: ax: num=%r' % image_number)
 
-    def key_press_callback(self,event):
+    def key_press_callback(self, event):
         if event.key == 'n':
             self.display_next_page()
         if event.key == 'p':

@@ -19,7 +19,7 @@ import colorsys
 import pylab
 import sys
 import warnings
-from itertools import izip
+#from itertools import izip
 # Qt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
@@ -742,12 +742,20 @@ def scores_to_cmap(scores, colors=None, cmap_='hot'):
     return listed_cmap
 
 
+def ensure_divider(ax):
+    """ Returns previously constructed divider or creates one """
+    if not hasattr(ax, '_df2_divider'):
+        divider = make_axes_locatable(ax)
+        ax._df2_divider = divider
+    return ax._df2_divider
+
+
 def colorbar(scalars, colors):
     """ adds a color bar next to the axes """
     printDBG('colorbar()')
     # Parameters
     ax = gca()
-    divider = make_axes_locatable(ax)
+    divider = ensure_divider(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
 
     xy, width, height = _axis_xy_width_height(ax)
@@ -1035,7 +1043,8 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None):
 
 
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
-                    vert=None, fnum=None, pnum=None, heatmap=False, **kwargs):
+                    vert=None, fnum=None, pnum=None, heatmap=False,
+                    draw_fmatch=True, **kwargs):
     """Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
     """
@@ -1050,18 +1059,20 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
     # Show the stacked chips
     fig, ax = imshow(match_img, title=title, fnum=fnum, pnum=pnum, heatmap=heatmap)
     # Overlay feature match nnotations
-    draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, **kwargs)
+    if draw_fmatch and kpts1 is not None and kpts2 is not None:
+        plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, **kwargs)
     return ax, xywh1, xywh2
 
 
-# draw feature match
-def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
+# plot feature match
+def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
                 draw_border=False, **kwargs):
     """Draws the matching features. This is draw because it is an overlay
     xywh1 - location of rchip1 in the axes
     xywh2 - location or rchip2 in the axes
     """
+    printDBG('[df2] plot_fmatch')
     if fm is None:
         assert kpts1.shape == kpts2.shape, 'shapes different or fm not none'
         fm = np.tile(np.arange(0, len(kpts1)), (2, 1)).T
@@ -1074,11 +1085,13 @@ def draw_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
     x1, y1, w1, h1 = xywh1
     x2, y2, w2, h2 = xywh2
     offset2 = (x2, y2)
-    # Custom user label for chips 1 and 2
-    if lbl1 is not None:
-        absolute_lbl(x1 + w1, y1, lbl1)
-    if lbl2 is not None:
-        absolute_lbl(x2 + w2, y2, lbl2)
+    # THIS IS NOT WHERE THIS CODE BELONGS
+    if False:
+        # Custom user label for chips 1 and 2
+        if lbl1 is not None:
+            absolute_lbl(x1 + w1, y1, lbl1)
+        if lbl2 is not None:
+            absolute_lbl(x2 + w2, y2, lbl2)
     # Plot the number of matches
     if kwargs.get('show_nMatches', False):
         upperleft_text('#match=%d' % nMatch)
@@ -1289,3 +1302,18 @@ def axes_bottom_button_bar(ax, text_list=[]):
     but_list = [mpl.widgets.Button(ax_, text) for ax_, text in izip(ax_list, text_list)]
     return but_list
     """
+
+
+def make_bbox_positioners(y=.02, w=.08, h=.02, xpad=.05, startx=0, stopx=1):
+    def hl_slot(ix):
+        x = startx + (xpad * (ix + 1)) + ix * w
+        return (x, y, w, h)
+
+    def hr_slot(ix):
+        x = stopx - ((xpad * (ix + 1)) + (ix + 1) * w)
+        return (x, y, w, h)
+    return hl_slot, hr_slot
+
+
+def width_from(num, pad=.05, start=0, stop=1):
+    return ((stop - start) - ((num + 1) * pad)) / num
