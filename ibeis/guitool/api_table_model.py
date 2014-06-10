@@ -4,6 +4,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error, signal_
+from .api_thumb_delegate import APIThumbDelegate
 from itertools import izip
 import functools
 import utool
@@ -93,6 +94,7 @@ class APITableModel(API_MODEL_BASE):
         col_sort_reverse : boolean of if to reverse the sort ordering
         ----
         """
+        model.view = parent
         API_MODEL_BASE.__init__(model, parent=parent)
         # Internal Flags
         model._abouttochange   = False
@@ -228,9 +230,9 @@ class APITableModel(API_MODEL_BASE):
         # Check if any of the column types are specified as delegates
         for colx in xrange(len(model.col_type_list)):
             coltype_ = col_type_list[colx]
-            if isinstance(coltype_, tuple):
-                delegate_type, coltype_ = coltype_
-
+            if coltype_ == 'PIXMAP':
+                model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
+            
     @updater
     def _set_col_nice(model, col_nice_list=None):
         if col_nice_list is None:
@@ -437,14 +439,14 @@ class APITableModel(API_MODEL_BASE):
             return QtGui.QBrush(QtGui.QColor(0, 0, 0))
         #
         # Specify Decoration Role
-        elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
-            # The type is a pixelmap
-            npimg = model._get_data(row, col)
-            if npimg is not None:
-                if type_ in qtype.QT_PIXMAP_TYPES:
-                    return qtype.numpy_to_qicon(npimg)
-                elif type_ in qtype.QT_ICON_TYPES:
-                    return qtype.numpy_to_qpixmap(npimg)
+        # elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
+        #     # The type is a pixelmap
+        #     npimg = model._get_data(row, col)
+        #     if npimg is not None:
+        #         if type_ in qtype.QT_PIXMAP_TYPES:
+        #             return qtype.numpy_to_qicon(npimg)
+        #         elif type_ in qtype.QT_ICON_TYPES:
+        #             return qtype.numpy_to_qpixmap(npimg)
         # Specify CheckState Role:
         if role == Qt.CheckStateRole:
             if flags & Qt.ItemIsUserCheckable:
@@ -455,7 +457,7 @@ class APITableModel(API_MODEL_BASE):
         elif role in (Qt.DisplayRole, Qt.EditRole):
             if type_ in qtype.QT_PIXMAP_TYPES:
                 pass
-                return QtCore.QVariant()
+                return model._get_data(row, col)
                 return 'pixmap'
             elif type_ in qtype.QT_ICON_TYPES:
                 pass
