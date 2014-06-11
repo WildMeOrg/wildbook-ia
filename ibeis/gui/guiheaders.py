@@ -160,7 +160,7 @@ def make_ibeis_headers_dict(ibs):
     getters[THUMB_TABLE] = {
         'gid'        : lambda gids: gids,
         'gname'      : ibs.get_image_gnames,
-        'thumb'      : ibs.get_image_exts,
+        'thumb'      : ibs.get_image_thumbs,
     }
     setters[THUMB_TABLE] = {
     }
