@@ -22,7 +22,7 @@ def define_IBEIS_schema(ibs):
         ('image_exif_time_posix',        'INTEGER'),
         ('image_exif_gps_lat',           'REAL'),
         ('image_exif_gps_lon',           'REAL'),
-        ('image_confidence',             'REAL DEFAULT 0.0',),  # Move to an algocfg table?
+        ('image_confidence',             'REAL DEFAULT -1.0',),  # Move to an algocfg table?
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
         ('image_notes',                  'TEXT',),
@@ -48,7 +48,7 @@ def define_IBEIS_schema(ibs):
         ('roi_theta',                    'REAL DEFAULT 0.0'),
         ('roi_viewpoint',                'INTEGER DEFAULT 0'),
         ('roi_species_text',             'TEXT'),
-        ('roi_detect_confidence',        'REAL DEFAULT 0.0'),
+        ('roi_detect_confidence',        'REAL DEFAULT -1.0'),
         ('roi_recognition_db_flag',      'INTEGER DEFAULT 0'),
         ('roi_notes',                    'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (roi_uuid)']

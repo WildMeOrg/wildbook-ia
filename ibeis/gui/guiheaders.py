@@ -29,10 +29,10 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'aif', 'gname', 'nRids', 'datetime', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
-    ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'notes'],
+    ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'rconf', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
@@ -49,28 +49,30 @@ TABLE_EDITSET = {
 
 # Define the valid columns a table could have
 COL_DEF = dict([
-    ('image_uuid', (str,   'Image UUID')),
-    ('gid',        (int,   'Image ID')),
-    ('rid',        (int,   'ROI ID')),
-    ('nid',        (int,   'Name ID')),
-    ('eid',        (int,   'Encounter ID')),
-    ('nRids',      (int,   '#ROIs')),
-    ('nGt',        (int,   '#GT')),
-    ('nImgs',      (int,   '#Imgs')),
-    ('nFeats',     (int,   '#Features')),
-    ('rank',       (str,   'Rank')),  # needs to be a string for !Query
-    ('unixtime',   (float, 'unixtime')),
-    ('gname',      (str,   'Image Name')),
-    ('name',       (str,   'Name')),
-    ('notes',      (str,   'Notes')),
-    ('match_name', (str,   'Matching Name')),
-    ('bbox',       (str,   'BBOX (x, y, w, h))')),  # Non editables are safe as strs
-    ('score',      (str,   'Confidence')),
-    ('theta',      (str,   'Theta')),
-    ('aif',        (bool,  'Reviewed')),
-    ('enctext',    (str,   'Encounter Text')),
-    ('datetime',   (str,   'Date / Time')),
-    ('ext',        (str,   'EXT')),
+    ('image_uuid', (str,      'Image UUID')),
+    ('gid',        (int,      'Image ID')),
+    ('rid',        (int,      'ROI ID')),
+    ('nid',        (int,      'Name ID')),
+    ('eid',        (int,      'Encounter ID')),
+    ('nRids',      (int,      '#ROIs')),
+    ('nGt',        (int,      '#GT')),
+    ('nImgs',      (int,      '#Imgs')),
+    ('nFeats',     (int,      '#Features')),
+    ('rank',       (str,      'Rank')),  # needs to be a string for !Query
+    ('unixtime',   (float,    'unixtime')),
+    ('gname',      (str,      'Image Name')),
+    ('gconf',      (str,      'Detection Confidence')),
+    ('rconf',      (float,    'Detection Confidence')),
+    ('name',       (str,      'Name')),
+    ('notes',      (str,      'Notes')),
+    ('match_name', (str,      'Matching Name')),
+    ('bbox',       (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+    ('score',      (str,      'Confidence')),
+    ('theta',      (str,      'Theta')),
+    ('aif',        (bool,     'Reviewed')),
+    ('enctext',    (str,      'Encounter Text')),
+    ('datetime',   (str,      'Date / Time')),
+    ('ext',        (str,      'EXT')),
     ('thumb',      ('PIXMAP', 'Thumb')),
 ])
 
@@ -94,10 +96,12 @@ def make_ibeis_headers_dict(ibs):
         'nRids'      : ibs.get_image_num_rois,
         'unixtime'   : ibs.get_image_unixtime,
         'datetime'   : simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
+        'gconf'      : ibs.get_image_confidence,
         'notes'      : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
         'thumb'      : ibs.get_image_thumbs,
+        # 'thumb'      : ibs.get_image_paths,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
@@ -114,11 +118,13 @@ def make_ibeis_headers_dict(ibs):
         'theta':  simap_func(utool.theta_str, ibs.get_roi_thetas),
         'bbox':   simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
         'nFeats': ibs.get_roi_num_feats,
+        'rconf':  ibs.get_roi_confidence,
         'notes':  ibs.get_roi_notes,
         'thumb':  ibs.get_roi_chip_thumbs,
+        # 'thumb':  ibs.get_roi_gpaths,
     }
     setters[ROI_TABLE] = {
-        'name': ibs.set_roi_names,
+        'name':  ibs.set_roi_names,
         'notes': ibs.set_roi_notes,
     }
     #

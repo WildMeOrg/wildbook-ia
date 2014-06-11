@@ -123,10 +123,22 @@ def setup_batch_menu(mainwin, back):
     """ BATCH MENU """
     mainwin.menuBatch = newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
     mainwin.menuBatch.newAction(
-        name='actionPrecomputeROIFeatures',
-        text='Precompute Chips/Features',
-        shortcut='Ctrl+Return',
-        slot_fn=back.compute_feats)
+        name='actionCompute_Encounters',
+        text='Cluster Encounters',
+        shortcut='Ctrl+2',
+        slot_fn=back.compute_encounters)
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionDetect_Coarse',
+        text='Run Detection (coarse)',
+        shortcut='Ctrl+3',
+        slot_fn=back.run_detection_coarse)
+    mainwin.menuBatch.newAction(
+        name='actionDetect_Fine',
+        text='Run Detection (fine)',
+        shortcut='Ctrl+Shift+3',
+        slot_fn=back.run_detection_fine)
+    mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionCompute_Queries',
         text='Compute Queries',
@@ -134,23 +146,15 @@ def setup_batch_menu(mainwin, back):
                     overnight procedure depending on how many ROIs you\'ve
                     made. It queries each chip and saves the result which
                     allows multiple queries to be rapidly inspected later.''',
-        shortcut='',
+        shortcut='Ctrl+4',
         slot_fn=back.compute_queries)
+    mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
-        name='actionDetect_Coarse',
-        text='Run Detection (coarse)',
-        slot_fn=back.run_detection_coarse)
-    mainwin.menuBatch.newAction(
-        name='actionDetect_Fine',
-        text='Run Detection (fine)',
-        slot_fn=back.run_detection_fine)
-    mainwin.menuBatch.addSeparator()
-    mainwin.menuBatch.newAction(
-        name='actionCompute_Encounters',
-        text='Cluster Encounters',
-        shortcut='Ctrl+E',
-        slot_fn=back.compute_encounters)
-    mainwin.menuBatch.addSeparator()
+        name='actionPrecomputeROIFeatures',
+        text='Precompute Chips/Features',
+        shortcut='Ctrl+Return',
+        slot_fn=back.compute_feats)
+    mainwin.menuBatch.addSeparator()  # ---------
 
 
 def setup_option_menu(mainwin, back):

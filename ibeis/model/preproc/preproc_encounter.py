@@ -8,15 +8,16 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
     __name__, '[preproc_encounter]', DEBUG=False)
 
 
+@utool.indent_func('[encounter]')
 def ibeis_compute_encounters(ibs, gid_list):
     """
     clusters encounters togethers (by time, not yet space)
     An encounter is a meeting, localized in time and space between a camera and
     a group of animals.  Animals are identified within each encounter.
     """
-    print('[encounter] computing encounters on %r images' % len(gid_list))
+    print('Computing encounters on %r images.' % len(gid_list))
     if len(gid_list) == 0:
-        print('[encounter] WARNING: No unixtime data to compute encounters with')
+        print('WARNING: No unixtime data to compute encounters with')
         return [], []
     # Config info
     enc_cfg_uid      = ibs.cfg.enc_cfg.get_uid()
@@ -44,7 +45,7 @@ def ibeis_compute_encounters(ibs, gid_list):
     # Create enctext for each image
     #enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
     enctext_list = [enc_cfg_uid + repr(eid) for eid in flat_eids]
-    print('[encounter] found %d clusters' % len(labels))
+    print('Found %d clusters.' % len(labels))
     return enctext_list, flat_gids
 
 

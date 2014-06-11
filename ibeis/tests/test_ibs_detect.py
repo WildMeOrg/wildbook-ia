@@ -27,10 +27,11 @@ def TEST_DETECT(ibs):
     detect_gen = randomforest.generate_detections(ibs, gid_list, species, **detectkw)
     gid_list2 = []
     bbox_list2 = []
-    for gid, bboxes in detect_gen:
+    for gid, bboxes, confidences, img_conf in detect_gen:
         for bbox in bboxes:
             gid_list2.append(gid)
             bbox_list2.append(bbox)
+            # not using confidence nor img_conf here
 
     if SPECIAL:
         from plottool import viz_image2, fig_presenter

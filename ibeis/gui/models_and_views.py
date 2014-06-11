@@ -50,7 +50,9 @@ class IBEISTableView(APITableView):
         tblview.ibswin = parent
 
     def _change_enc(tblview, eid):
-        tblview.model()._change_enc(eid)
+        model = tblview.model()
+        if model is not None:
+            model._change_enc(eid)
 
 
 #-------------------------

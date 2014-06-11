@@ -1,0 +1,3344 @@
+diff --git a/README.md b/README.md
+index fba600b..0fa050c 100644
+--- a/README.md
++++ b/README.md
+@@ -20,7 +20,7 @@ bluemellophone's IBEIS modules
+ 
+ hjweide's IBEIS modules
+ 
+-* https://github.com/bluemellophone/pygist
++* https://github.com/hjweide/pygist
+ 
+ 
+ The IBEIS module itself: 
+@@ -163,13 +163,13 @@ python dev.py --prequit --dump-argv
+ 
+ 
+ #---------
+-# Injest examples
++# Ingest examples
+ #---------
+-# Injest raw images
+-python ibeis/injest/injest_database.py --db JAG_Kieryn
++# Ingest raw images
++python ibeis/ingest/ingest_database.py --db JAG_Kieryn
+ 
+-# Injest an hsdb
+-python ibeis/injest/injest_hsdb.py --db JAG_Kelly --force-delete
++# Ingest an hsdb
++python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
+ 
+ # Merge all jaguar databases into single big database
+ python main.py --merge-species JAG_
+diff --git a/_devcmds_ibeis.py b/_devcmds_ibeis.py
+index d4744c3..3b7b8e7 100644
+--- a/_devcmds_ibeis.py
++++ b/_devcmds_ibeis.py
+@@ -10,7 +10,7 @@ import vtool.keypoint as ktool
+ from ibeis import sysres
+ from ibeis.dev import ibsfuncs
+ from ibeis.viz import interact
+-from ibeis.injest import injest_hsdb
++from ibeis.ingest import ingest_hsdb
+ 
+ 
+ @devcmd
+@@ -74,14 +74,14 @@ def list_dbs(*args):
+ 
+ @devcmd('list_hsdbs')
+ def list_unconverted_hsdbs(*args):
+-    needs_convert_hsdbs = injest_hsdb.get_unconverted_hsdbs()
++    needs_convert_hsdbs = ingest_hsdb.get_unconverted_hsdbs()
+     print('NEEDS CONVERSION:')
+     print('\n'.join(needs_convert_hsdbs))
+ 
+ 
+ @devcmd('convert')
+ def convert_hsdbs(*args):
+-    injest_hsdb.injest_unconverted_hsdbs_in_workdir()
++    ingest_hsdb.ingest_unconverted_hsdbs_in_workdir()
+ 
+ 
+ @devcmd
+diff --git a/dev.py b/dev.py
+index db4a2e5..255c1ec 100755
+--- a/dev.py
++++ b/dev.py
+@@ -173,15 +173,18 @@ def desc_dists(ibs, qrid_list):
+ 
+ @devcmd('inspect')
+ def inspect_matches(ibs, qrid_list):
+-    from ibeis.gui import inspect_gui
++    #from ibeis.gui import inspect_gui
++    from ibeis.viz.interact import interact_qres2
+     allres = get_allres(ibs, qrid_list)
+     guitool.ensure_qapp()
+     tblname = 'qres'
+     qrid2_qres = allres.qrid2_qres
+     ranks_lt = 5
+-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
+-    qres_wgt.show()
+-    qres_wgt.raise_()
++    #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
++    #qres_wgt.show()
++    #qres_wgt.raise_()
++    #query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
++    self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
+     return locals()
+ 
+ 
+diff --git a/ibeis/__init__.py b/ibeis/__init__.py
+index 93b21aa..1550876 100644
+--- a/ibeis/__init__.py
++++ b/ibeis/__init__.py
+@@ -31,7 +31,7 @@ def reload_subs():
+     viz.reload_subs()
+     #control.reload_subs()
+     model.reload_subs()
+-    #injest.reload_subs()
++    #ingest.reload_subs()
+     #gui.reload_subs()
+     #tests.reload_subs()
+ 
+diff --git a/ibeis/control/DB_SCHEMA.py b/ibeis/control/DB_SCHEMA.py
+index de6dabe..73d19fa 100644
+--- a/ibeis/control/DB_SCHEMA.py
++++ b/ibeis/control/DB_SCHEMA.py
+@@ -22,7 +22,7 @@ def define_IBEIS_schema(ibs):
+         ('image_exif_time_posix',        'INTEGER'),
+         ('image_exif_gps_lat',           'REAL'),
+         ('image_exif_gps_lon',           'REAL'),
+-        ('image_confidence',             'REAL DEFAULT 0.0',),  # Move to an algocfg table?
++        ('image_confidence',             'REAL DEFAULT -1.0',),  # Move to an algocfg table?
+         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
+         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
+         ('image_notes',                  'TEXT',),
+@@ -48,7 +48,7 @@ def define_IBEIS_schema(ibs):
+         ('roi_theta',                    'REAL DEFAULT 0.0'),
+         ('roi_viewpoint',                'INTEGER DEFAULT 0'),
+         ('roi_species_text',             'TEXT'),
+-        ('roi_detect_confidence',        'REAL DEFAULT 0.0'),
++        ('roi_detect_confidence',        'REAL DEFAULT -1.0'),
+         ('roi_recognition_db_flag',      'INTEGER DEFAULT 0'),
+         ('roi_notes',                    'TEXT'),
+     ), ['CONSTRAINT superkey UNIQUE (roi_uuid)']
+diff --git a/ibeis/control/IBEISControl.py b/ibeis/control/IBEISControl.py
+index c4c5aee..1537f3b 100644
+--- a/ibeis/control/IBEISControl.py
++++ b/ibeis/control/IBEISControl.py
+@@ -212,16 +212,16 @@ class IBEISController(object):
+     def get_flann_cachedir(ibs):
+         return ibs.flanndir
+ 
+-    def get_num_images(ibs):
+-        gid_list = ibs.get_valid_gids()
++    def get_num_images(ibs, **kwargs):
++        gid_list = ibs.get_valid_gids(**kwargs)
+         return len(gid_list)
+ 
+-    def get_num_rois(ibs):
+-        rid_list = ibs.get_valid_rids()
++    def get_num_rois(ibs, **kwargs):
++        rid_list = ibs.get_valid_rids(**kwargs)
+         return len(rid_list)
+ 
+-    def get_num_names(ibs):
+-        nid_list = ibs.get_valid_nids()
++    def get_num_names(ibs, **kwargs):
++        nid_list = ibs.get_valid_nids(**kwargs)
+         return len(nid_list)
+ 
+     #
+@@ -310,18 +310,11 @@ class IBEISController(object):
+         #print('cfgsuffix_list %r' % (cfgsuffix_list,))
+         try:
+             if any([x is None or (isinstance(x, list) and len(x) == 0) for x in config_uid_list]):
+-                ibs.db.executemany(
+-                    operation='''
+-                    INSERT OR IGNORE INTO configs
+-                    (
+-                        config_uid,
+-                        config_suffix
+-                    )
+-                    VALUES (NULL, ?)
+-                    ''',
+-                    params_iter=((_,) for _ in cfgsuffix_list)
+-                )
+-                config_uid_list = ibs.get_config_uid_from_suffix(cfgsuffix_list, ensure=False)
++                params_iter = ((_,) for _ in cfgsuffix_list)
++                tblname = 'configs'
++                colname_list = ['config_suffix']
++                config_uid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
++                                                     ibs.get_config_uid_from_suffix, ensure=False)
+         except Exception as ex:
+             utool.printex(ex)
+             utool.sys.exit(1)
+@@ -363,7 +356,7 @@ class IBEISController(object):
+ 
+     @adder
+     def add_rois(ibs, gid_list, bbox_list, theta_list=None, viewpoint_list=None,
+-                 nid_list=None, name_list=None, notes_list=None):
++                 nid_list=None, name_list=None, confidence_list=None, notes_list=None):
+         """ Adds oriented ROI bounding boxes to images """
+         print('[ibs] adding rois')
+         # Prepare the SQL input
+@@ -377,6 +370,8 @@ class IBEISController(object):
+             nid_list = ibs.add_names(name_list)
+         if nid_list is None:
+             nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
++        if confidence_list is None:
++            confidence_list = [0.0 for _ in xrange(len(gid_list))]
+         if notes_list is None:
+             notes_list = ['' for _ in xrange(len(gid_list))]
+         # Build deterministic and unique ROI ids
+@@ -386,12 +381,13 @@ class IBEISController(object):
+         # Define arguments to insert
+         params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
+                                             bbox_list, theta_list,
+-                                            viewpoint_list, notes_list))
++                                            viewpoint_list, confidence_list,
++                                            notes_list))
+ 
+         tblname = 'rois'
+         colname_list = ['roi_uuid', 'image_uid', 'name_uid', 'roi_xtl',
+                         'roi_ytl', 'roi_width', 'roi_height', 'roi_theta',
+-                        'roi_viewpoint', 'roi_notes' ]
++                        'roi_viewpoint', 'roi_detect_confidence', 'roi_notes' ]
+         # Execute add ROIs SQL
+         rid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
+                                       ibs.get_roi_rids_from_uuid)
+@@ -417,97 +413,65 @@ class IBEISController(object):
+                 utool.printex(ex, '[!ibs.add_chips]')
+                 print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
+                 raise
+-            ibs.db.executemany(
+-                operation='''
+-                INSERT OR IGNORE
+-                INTO chips
+-                (
+-                    chip_uid,
+-                    roi_uid,
+-                    chip_uri,
+-                    chip_width,
+-                    chip_height,
+-                    config_uid
+-                )
+-                VALUES (NULL, ?, ?, ?, ?, ?)
+-                ''',
+-                params_iter=params_iter)
+-            # Ensure must be false, otherwise an infinite loop occurs
+-            cid_list = ibs.get_roi_cids(rid_list, ensure=False)
++            tblname = 'chips'
++            colname_list = ['roi_uid', 'chip_uri', 'chip_width',
++                            'chip_height', 'config_uid']
++            cid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
++                                            ibs.get_roi_cids, ensure=False)
++
+         return cid_list
+ 
+     @adder
+     def add_feats(ibs, cid_list, force=False):
+         """ Computes the features for every chip without them """
+-        print('[ibs] adding features')
+         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
+         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
+         if len(dirty_cids) > 0:
++            print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
+             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
+-            ibs.db.executemany(
+-                operation='''
+-                INSERT OR IGNORE
+-                INTO features
+-                (
+-                    feature_uid,
+-                    chip_uid,
+-                    feature_num_feats,
+-                    feature_keypoints,
+-                    feature_sifts,
+-                    config_uid
+-                )
+-                VALUES (NULL, ?, ?, ?, ?, ?)
+-                ''',
+-                params_iter=(tup for tup in params_iter))
+-            fid_list = ibs.get_chip_fids(cid_list, ensure=False)
++            tblname = 'features'
++            colname_list = ['chip_uid', 'feature_num_feats', 'feature_keypoints',
++                            'feature_sifts', 'config_uid']
++            fid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
++                                            ibs.get_chip_fids, ensure=False)
++
+         return fid_list
+ 
+     @adder
+     def add_names(ibs, name_list):
+         """ Adds a list of names. Returns their nids """
++        # Ensure input list is unique
++        # name_list = tuple(set(name_list_))
++        # HACKY, the adder decorator should specify this
++
+         nid_list = ibs.get_name_nids(name_list, ensure=False)
+         dirty_names = utool.get_dirty_items(name_list, nid_list)
+         if len(dirty_names) > 0:
+             print('[ibs] adding %d names' % len(dirty_names))
+             ibsfuncs.assert_valid_names(name_list)
+             notes_list = ['' for _ in xrange(len(dirty_names))]
+-            param_iter = izip(dirty_names, notes_list)
+-            param_list = list(param_iter)
+-            ibs.db.executemany(
+-                operation='''
+-                INSERT OR IGNORE
+-                INTO names
+-                (
+-                    name_uid,
+-                    name_text,
+-                    name_notes
+-                )
+-                VALUES (NULL, ?, ?)
+-                ''',
+-                params_iter=param_list)
+-            nid_list = ibs.get_name_nids(name_list, ensure=False)
++            params_iter = izip(dirty_names, notes_list)
++            tblname = 'names'
++            colname_list = ['name_text', 'name_notes']
++            nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
++                                            ibs.get_name_nids, ensure=False)
++
++        # # Return nids in input order
++        # namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
++        # nid_list_ = [namenid_dict[name] for name in name_list_]
+         return nid_list
+ 
+     @adder
+     def add_encounters(ibs, enctext_list):
+         """ Adds a list of names. Returns their nids """
+         print('[ibs] adding %d encounters' % len(enctext_list))
++        # Add encounter text names to database
+         notes_list = ['' for _ in xrange(len(enctext_list))]
+-        param_iter = izip(enctext_list, notes_list)
+-        param_list = list(param_iter)
+-        ibs.db.executemany(
+-            operation='''
+-            INSERT OR IGNORE
+-            INTO encounters
+-            (
+-                encounter_uid,
+-                encounter_text,
+-                encounter_notes
+-            )
+-            VALUES (NULL, ?, ?)
+-            ''',
+-            params_iter=param_list)
+-        eid_list = ibs.get_encounter_eids(enctext_list, ensure=False)
++        params_iter = izip(enctext_list, notes_list)
++        tblname = 'encounters'
++        colname_list = ['encounter_text', 'encounter_notes']
++        eid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
++                                        ibs.get_encounter_eids, ensure=False)
+         return eid_list
+ 
+     #
+@@ -523,18 +487,15 @@ class IBEISController(object):
+         #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
+         #OFF printDBG('set_(rowid_list=%r, val_list=%r)' % (rowid_list, val_list))
+         # Sanatize input to be only lowercase alphabet and underscores
++        from operator import xor
++        assert not xor(utool.isiterable(rowid_list),
++                       utool.isiterable(val_list)), 'invalid mixing of iterable and scalar inputs'
++
+         if not utool.isiterable(rowid_list) and not utool.isiterable(val_list):
+             rowid_list = (rowid_list,)
+             val_list = (val_list,)
+         table, (prop_key,) = ibs.db.sanatize_sql(table, (prop_key,))
+-        # Potentially UNSAFE SQL
+-        ibs.db.executemany(
+-            operation='''
+-            UPDATE ''' + table + '''
+-            SET ''' + prop_key + '''=?
+-            WHERE ''' + table[:-1] + '''_uid=?
+-            ''',
+-            params_iter=izip(val_list, rowid_list))
++        ibs.db.set(table, [prop_key], val_list, rowid_list)
+ 
+     # SETTERS::IMAGE
+ 
+@@ -563,19 +524,21 @@ class IBEISController(object):
+         ibs.set_table_props('images', 'image_exif_time_posix', gid_list, unixtime_list)
+ 
+     @setter
++    def set_image_confidence(ibs, gid_list, confidence_list):
++        """ Sets the image detection confidence """
++        ibs.set_table_props('images', 'image_confidence', gid_list, confidence_list)
++
++    @setter
+     def set_image_enctext(ibs, gid_list, enctext_list):
+         """ Sets the encoutertext of each image """
+         print('[ibs] Setting %r image encounter ids' % len(gid_list))
+         eid_list = ibs.add_encounters(enctext_list)
+-        ibs.db.executemany(
+-            operation='''
+-            INSERT OR IGNORE INTO egpairs(
+-                egpair_uid,
+-                image_uid,
+-                encounter_uid
+-            ) VALUES (NULL, ?, ?)
+-            ''',
+-            params_iter=izip(gid_list, eid_list))
++        params_iter = izip(gid_list, eid_list)
++        tblname = 'egpairs'
++        colname_list = ['image_uid', 'encounter_uid']
++        gid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
++                                      get_rowid_from_uuid=(lambda gid: gid))
++        return gid_list
+ 
+     # SETTERS::ROI
+ 
+@@ -584,16 +547,8 @@ class IBEISController(object):
+         """ Sets ROIs of a list of rois by rid, where roi_list is a list of
+             (x, y, w, h) tuples """
+         ibs.delete_roi_chips(rid_list)
+-        ibs.db.executemany(
+-            operation='''
+-            UPDATE rois SET
+-                roi_xtl=?,
+-                roi_ytl=?,
+-                roi_width=?,
+-                roi_height=?
+-            WHERE roi_uid=?
+-            ''',
+-            params_iter=utool.flattenize(izip(bbox_list, rid_list)))
++        colnames = ['roi_xtl', 'roi_ytl', 'roi_width', 'roi_height']
++        ibs.db.set('rois', colnames, bbox_list, rid_list)
+ 
+     @setter
+     def set_roi_thetas(ibs, rid_list, theta_list):
+@@ -614,16 +569,13 @@ class IBEISController(object):
+     @setter
+     def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
+         """ Sets names of a list of chips by cid """
++        assert name_list is None or nid_list is None, (
++            'can only specify one type of name values (nid or name) not both')
+         if nid_list is None:
+             assert name_list is not None
+             nid_list = ibs.add_names(name_list)
+         # Cannot use set_table_props for cross-table setters.
+-        ibs.db.executemany(
+-            operation='''
+-            UPDATE rois
+-            SET name_uid=?
+-            WHERE roi_uid=?''',
+-            params_iter=izip(nid_list, rid_list))
++        ibs.db.set('rois', ['name_uid'], nid_list, rid_list)
+ 
+     # SETTERS::NAME
+ 
+@@ -709,9 +661,9 @@ class IBEISController(object):
+ 
+     @getter_general
+     def _get_all_gids(ibs):
+-        #colname_list = ('image_uid',)
+-        #all_gids = ibs.db.get(tblname, colname_list, id_iter=None)
+-        all_gids = ibs.db._get_all_ids(IMAGE_TABLE)
++        tblname = IMAGE_TABLE
++        colname_list = ('image_uid',)
++        all_gids = ibs.db.get_executeone(tblname, colname_list)
+         return all_gids
+ 
+     @getter_general
+@@ -833,6 +785,12 @@ class IBEISController(object):
+         return aif_list
+ 
+     @getter
++    def get_image_confidence(ibs, gid_list):
++        """ Returns image detection confidence """
++        confidence_list = ibs.get_image_props('image_confidence', gid_list)
++        return confidence_list
++
++    @getter
+     def get_image_notes(ibs, gid_list):
+         """ Returns image notes """
+         notes_list = ibs.get_image_props('image_notes', gid_list)
+@@ -893,7 +851,7 @@ class IBEISController(object):
+         """ returns a all ROI ids """
+         tblname = 'rois'
+         colname_list = ('roi_uid',)
+-        all_rids = ibs.db.get(tblname, colname_list, id_iter=None)
++        all_rids = ibs.db.get_executeone(tblname, colname_list)
+         return all_rids
+ 
+     def get_valid_rids(ibs, eid=None):
+@@ -921,6 +879,12 @@ class IBEISController(object):
+         return rids_list
+ 
+     @getter
++    def get_roi_confidence(ibs, rid_list):
++        """ Returns a list of roi notes """
++        roi_confidence_list = ibs.get_roi_props('roi_detect_confidence', rid_list)
++        return roi_confidence_list
++
++    @getter
+     def get_roi_notes(ibs, rid_list):
+         """ Returns a list of roi notes """
+         roi_notes_list = ibs.get_roi_props('roi_notes', rid_list)
+@@ -974,9 +938,9 @@ class IBEISController(object):
+             #print(chip_config_uid)
+             tblname = 'chips'
+             colname_list = ('chip_uid',)
+-            where_custom = 'roi_uid=? AND config_uid=?'
++            where_clause = 'roi_uid=? AND config_uid=?'
+             params_iter = ((rid, chip_config_uid) for rid in rid_list)
+-            cid_list = ibs.db.get(tblname, colname_list, params_iter, where_custom=where_custom)
++            cid_list = ibs.db.get(tblname, colname_list, params_iter, where_clause=where_clause)
+         if ensure:
+             try:
+                 utool.assert_all_not_None(cid_list, 'cid_list')
+@@ -1111,10 +1075,10 @@ class IBEISController(object):
+         nid_list  = ibs.get_roi_nids(rid_list)
+         tblname = 'rois'
+         colname_list = ('roi_uid',)
+-        where_custom = 'name_uid=? AND name_uid!=? AND roi_uid!=?'
++        where_clause = 'name_uid=? AND name_uid!=? AND roi_uid!=?'
+         params_iter = ((nid, ibs.UNKNOWN_NID, rid) for nid, rid in izip(nid_list, rid_list))
+         groundtruth_list = ibs.db.get(tblname, colname_list, params_iter,
+-                                        where_custom=where_custom,
++                                        where_clause=where_clause,
+                                         unpack_scalars=False)
+ 
+         return groundtruth_list
+@@ -1154,8 +1118,8 @@ class IBEISController(object):
+             (you probably should not use this)
+         """
+         tblname = 'chips'
+-        colname_list = ('chip_uid',)
+-        all_cids = ibs.db.get(tblname, colname_list, id_iter=None)
++        colnames = ('chip_uid',)
++        all_cids = ibs.db.get_executeone(tblname, colnames)
+         return all_cids
+ 
+     @getter
+@@ -1192,10 +1156,10 @@ class IBEISController(object):
+         feat_config_uid = ibs.get_feat_config_uid()
+         tblname = 'features'
+         colname_list = ('feature_uid',)
+-        where_custom = 'chip_uid=? AND config_uid=?'
++        where_clause = 'chip_uid=? AND config_uid=?'
+         params_iter = ((cid, feat_config_uid) for cid in cid_list)
+         fid_list = ibs.db.get(tblname, colname_list, params_iter,
+-                                         where_custom=where_custom)
++                                         where_clause=where_clause)
+         return fid_list
+ 
+     @getter
+@@ -1233,7 +1197,7 @@ class IBEISController(object):
+         (you probably should not use this)"""
+         tblname = 'features'
+         colname_list = ('feature_uid',)
+-        all_fids = ibs.db.get(tblname, colname_list, id_iter=None)
++        all_fids = ibs.db.get_executeone(tblname, colname_list)
+         return all_fids
+ 
+     @getter_vector_output
+@@ -1301,11 +1265,9 @@ class IBEISController(object):
+             (does not include unknown names) """
+         tblname = 'names'
+         colname_list = ('name_uid',)
+-        where_custom = 'name_text!=?'
+-        params_iter = [ibs.UNKNOWN_NAME]
+-        all_nids = ibs.db.get(tblname, colname_list, params_iter,
+-                              where_custom=where_custom,
+-                              one_execute_override=True)
++        where_clause = 'name_text!=?'
++        params = [ibs.UNKNOWN_NAME]
++        all_nids = ibs.db.get_executeone_where(tblname, colname_list, where_clause, params)
+         return all_nids
+ 
+     @getter_general
+@@ -1381,7 +1343,7 @@ class IBEISController(object):
+     def _get_all_eids(ibs):
+         tblname = 'encounters'
+         colname_list = ('encounter_uid',)
+-        all_eids = ibs.db.get(tblname, colname_list, id_iter=None)
++        all_eids = ibs.db.get_executeone(tblname, colname_list)
+         return all_eids
+ 
+     @getter_general
+@@ -1562,26 +1524,39 @@ class IBEISController(object):
+         # TODO: Return confidence here as well
+         print('[ibs] detecting using random forests')
+         detect_gen = randomforest.generate_detections(ibs, gid_list, species, **kwargs)
+-        detected_gid_list, detected_bbox_list = [], []
++        detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
+         ADD_AFTER_THRESHOLD = 1
+ 
+-        def commit_detections(detected_gids, detectd_bboxes):
++        def commit_detections(detected_gids, detected_bboxes, detected_confidences, img_confs):
+             """ helper to commit detections on the fly """
+             if len(detected_gids) == 0:
+                 return
+             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+-            ibs.add_rois(detected_gids, detectd_bboxes, notes_list=notes_list)
++            ibs.add_rois(detected_gids, detected_bboxes,
++                            notes_list=notes_list,
++                            confidence_list=detected_confidences)
++            ibs.set_image_confidence(detected_gids, img_confs)
+ 
+-        for count, (gid, bbox) in enumerate(detect_gen):
++        for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
+             detected_gid_list.append(gid)
+             detected_bbox_list.append(bbox)
++            detected_confidence_list.append(confidence)
++            detected_img_confs.append(img_conf)
+             # Save detections as we go
+             if len(detected_gid_list) >= ADD_AFTER_THRESHOLD:
+-                commit_detections(detected_gid_list, detected_bbox_list)
++                commit_detections(detected_gid_list,
++                                  detected_bbox_list,
++                                  detected_confidence_list,
++                                  detected_img_confs)
+                 detected_gid_list  = []
+                 detected_bbox_list = []
++                detected_confidence_list = []
++                detected_img_confs = []
+         # Save any leftover detections
+-        commit_detections(detected_gid_list, detected_bbox_list)
++        commit_detections(  detected_gid_list,
++                            detected_bbox_list,
++                            detected_confidence_list,
++                            detected_img_confs)
+         print('[ibs] finshed detecting')
+ 
+     @default_decorator
+diff --git a/ibeis/control/SQLDatabaseControl.py b/ibeis/control/SQLDatabaseControl.py
+index 9f81565..09a0276 100644
+--- a/ibeis/control/SQLDatabaseControl.py
++++ b/ibeis/control/SQLDatabaseControl.py
+@@ -37,7 +37,6 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
+         # The sqlite3_last_insert_rowid(D) interface returns the
+         # <b> rowid of the most recent successful INSERT </b>
+         # into a rowid table in D
+-        result = executor.fetchone()
+         _executor(executor, 'SELECT last_insert_rowid()', ())
+     # Wraping fetchone in a generator for some pretty tight calls.
+     while True:
+@@ -82,13 +81,6 @@ class SQLExecutionContext(object):
+         utool.printif(lambda:
+                       '[sql] Callers: ' + utool.get_caller_name(range(3, 6)),
+                       VERBOSE)
+-        # Mark if the database will change
+-        if any([context.operation_type.startswith(op) for op in
+-                ['INSERT', 'UPDATE', 'DELETE']]):
+-            context.db.about_to_change = False or context.db.about_to_change
+-        else:
+-            context.db.changed = True
+-            context.db.changed = False
+         if context.num_params is None:
+             context.operation_label = ('[sql] execute num_params=%d optype=%s: '
+                                        % (context.num_params, context.operation_type))
+@@ -96,7 +88,7 @@ class SQLExecutionContext(object):
+             context.operation_label = '[sql] executeone optype=%s: ' % (context.operation_type)
+         # Start SQL Transaction
+         if context.start_transaction:
+-            context.db.executor.execute('BEGIN', ())
++            _executor(context.db.executor, 'BEGIN', ())
+         # Comment out timeing code
+         #if not QUIET:
+         #    context.tt = utool.tic(context.operation_label)
+@@ -104,13 +96,19 @@ class SQLExecutionContext(object):
+ 
+     # --- with SQLExecutionContext: statment code happens here ---
+ 
+-    def execute_and_generate_results(context, params):
++    def execute_and_generate_results(context, params, squelch_ignore=True):
+         """ HELPER FOR CONTEXT STATMENT """
+         executor = context.db.executor
+         operation = context.operation
+-        executor.execute(operation, params)
+-        is_insert = context.operation_type.upper().startswith('INSERT')
+-        return _results_gen(executor, get_last_id=is_insert)
++        try:
++            _executor(context.db.executor, operation, params)
++            is_insert = context.operation_type.upper().startswith('INSERT')
++            return _results_gen(executor, get_last_id=is_insert)
++        except lite.IntegrityError:
++            if squelch_ignore:
++                return [None]
++            else:
++                raise lite.IntegrityError
+ 
+     def __exit__(context, type_, value, trace):
+         #if not QUIET:
+@@ -184,39 +182,9 @@ class SQLDatabaseController(object):
+         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
+         db.executor   = db.connection.cursor()
+         db.table_columns = {}
+-        db.about_to_change = False  # used by apitablemodel for cache invalidation
+-        db.dbchanged_callback = None
+         db.cache = {}
+         db.stack = []
+ 
+-    def execute(db, operation, params=(), verbose=VERBOSE):
+-        """ DEPRICATE """
+-        db.executor.execute(operation, params)
+-
+-    def result(db, verbose=VERBOSE):
+-        """ DEPRICATE """
+-        return db.executor.fetchone()
+-
+-    def result_iter(db):
+-        """ DEPRICATE """
+-        return _results_gen(db.executor)
+-
+-    def get_isdirty(db):
+-        """ DEPRICATE """
+-        return db.about_to_change
+-
+-    def set_isdirty(db, flag):
+-        """ DEPRICATE """
+-        db.isdirty = flag
+-
+-    def connect_dbchanged_callback(db, callback):
+-        """ DEPRICATE """
+-        db.dbchanged_callback = callback
+-
+-    def disconnect_dbchanged_callback(db):
+-        """ DEPRICATE """
+-        db.dbchanged_callback = None
+-
+     def dump_tables_to_csv(db):
+         """ Convenience: Dumps all csv database files to disk """
+         dump_dir = join(db.dir_, 'CSV_DUMP')
+@@ -270,10 +238,10 @@ class SQLDatabaseController(object):
+ 
+     def get_sql_version(db):
+         """ Conveinience """
+-        db.execute('''
++        _executor(db.executor, '''
+                    SELECT sqlite_version()
+                    ''', verbose=False)
+-        sql_version = db.result()
++        sql_version = db.executor.fetchone()
+ 
+         print('[sql] SELECT sqlite_version = %r' % (sql_version,))
+         # The version number sqlite3 module. NOT the version of SQLite library.
+@@ -326,72 +294,129 @@ class SQLDatabaseController(object):
+             ) VALUES (NULL, {questionmarks})
+             ''')
+         rowid_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+-                                             params_iter=params_iter, **kwargs)
++                                                   params_iter=params_iter, **kwargs)
++        return rowid_list
++
++    def add_cleanly(db, tblname, colnames, params_iter,
++                    get_rowid_from_uuid, ensure=None):
++        """
++        Extra input:
++            the first item of params_iter must be a uuid,
++        uuid_list - a non-rowid column which identifies a row
++            get_rowid_from_uuid - function which does what it says
++        e.g:
++            get_rowid_from_uuid = ibs.get_image_gids_from_uuid
++
++        """
++        # eagerly evaluate for uuids
++        params_list = list(params_iter)
++        # check which parameters are valid
++        isvalid_list = [params is not None for params in params_list]
++        # Extract uuids from the params list (requires eager eval)
++        uuid_list = [params[0] if isvalid else None for (params, isvalid) in
++                     izip(params_list, isvalid_list)]
++
++        if ensure is None:
++            rowid_list_ = get_rowid_from_uuid(uuid_list)
++        else:
++            rowid_list_ = get_rowid_from_uuid(uuid_list, ensure=ensure)
++
++        isdirty_list = [rowid is None and isvalid for (rowid, isvalid)
++                        in izip(rowid_list_, isvalid_list)]
++        dirty_params = utool.filter_items(params_list, isdirty_list)
++
++        # Add any unadded images
++        print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
++        if len(dirty_params) > 0:
++            results = db.add(tblname, colnames, dirty_params)
++            # If the result was already in the database (and ignored), it will return None.
++            # Thus, go and get the row_id if the index is None
++            results = [get_rowid_from_uuid([uuid_list[index]])[0]
++                       if results[index] is None
++                       else results[index]
++                       for index in range(len(results))]
++
++            if ensure is None:
++                rowid_list = get_rowid_from_uuid(uuid_list)
++            else:
++                rowid_list = get_rowid_from_uuid(uuid_list, ensure=ensure)
++        else:
++            rowid_list = rowid_list_
+         return rowid_list
+ 
+     #@getter
+-    def get(db, tblname, colnames, id_iter=None, where_col=None, where_custom=None,
+-                unpack_scalars=None, one_execute_override=False, **kwargs):
++    def get(db, tblname, colnames, id_iter=None, where_col=None, where_clause=None,
++                unpack_scalars=None, **kwargs):
+         """ getter """
+         if unpack_scalars is None:
+             unpack_scalars = where_col is None
+ 
+-        if id_iter is not None and not one_execute_override:
+-            if where_custom is None:
+-                where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
+-                params_iter = ((_uid,) for _uid in id_iter)
+-            else:
+-                where_rowid = where_custom
+-                params_iter = id_iter
+-
+-            fmtdict = {
+-                'tblname'     : tblname,
+-                'colnames'    : ', '.join(colnames),
+-                'where_rowids' : 'WHERE ' + where_rowid,
+-            }
+-            operation_fmt = '''
+-                SELECT {colnames}
+-                FROM {tblname}
+-                {where_rowids}
+-                '''
+-            #  db.cache[tblname][colname][rowid] =
+-            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+-                                                     params_iter=params_iter,
+-                                                     unpack_scalars=unpack_scalars,
+-                                                     **kwargs)
++        if where_clause is None:
++            where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
++            params_iter = ((_uid,) for _uid in id_iter)
+         else:
+-            fmtdict = {
+-                'tblname'       : tblname,
+-                'colnames_str'      : ', '.join(colnames),
+-                'where_rowid_str'   : ('' if where_custom is None else 'WHERE ' + where_custom)
+-            }
+-            operation_fmt = '''
+-                SELECT {colnames_str}
+-                FROM {tblname}
+-                {where_rowid_str}
+-                '''
+-            if one_execute_override:
+-                params = id_iter
+-            else:
+-                params = None
++            where_rowid = where_clause
++            params_iter = id_iter
++
++        fmtdict = {
++            'tblname'     : tblname,
++            'colnames'    : ', '.join(colnames),
++            'where_rowids' : 'WHERE ' + where_rowid,
++        }
++        operation_fmt = '''
++            SELECT {colnames}
++            FROM {tblname}
++            {where_rowids}
++            '''
++        val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
++                                                    params_iter=params_iter,
++                                                    unpack_scalars=unpack_scalars,
++                                                    **kwargs)
++        return val_list
+ 
+-            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
++    def get_executeone(db, tblname, colnames, **kwargs):
++        fmtdict = {
++            'tblname'         : tblname,
++            'colnames_str'    : ', '.join(colnames),
++        }
++        operation_fmt = '''
++            SELECT {colnames_str}
++            FROM {tblname}
++            '''
++        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
++        return val_list
++
++    def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
++        fmtdict = {
++            'tblname'         : tblname,
++            'colnames_str'    : ', '.join(colnames),
++            'where_clause'    : where_clause
++        }
++        operation_fmt = '''
++            SELECT {colnames_str}
++            FROM {tblname}
++            WHERE {where_clause}
++            '''
++        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
+         return val_list
+ 
+     #@setter
+-    def set(db, tblname, colnames, id_list, val_iter, **kwargs):
++    def set(db, tblname, colnames, val_list, id_list, where_col=None, **kwargs):
+         """ setter """
++        assert  len(val_list) == len(id_list)
+         fmtdict = {
+-            'tblname': tblname,
+-            'assign_str': ',\n'.join(['%s=?' % name for name in colnames])
++            'tblname_str': tblname,
++            'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),
++            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
+         }
+         operation_fmt = '''
+-            UPDATE {tblname}
++            UPDATE {tblname_str}
+             SET {assign_str}
+-            WHERE rowid=?
++            WHERE {rowid_str}
+             '''
++        params_iter = utool.flattenize(izip(val_list, id_list))
+         return db._executemany_operation_fmt(operation_fmt, fmtdict,
+-                                             params_iter=val_iter, **kwargs)
++                                             params_iter=params_iter, **kwargs)
+ 
+     #@deleter
+     def delete(db, tblname, id_list, where_col=None, **kwargs):
+@@ -411,39 +436,6 @@ class SQLDatabaseController(object):
+                                              params_iter=params_iter,
+                                              **kwargs)
+ 
+-    def add_cleanly(db, tblname, colnames, params_iter,
+-                    get_rowid_from_uuid):
+-        """
+-        Extra input:
+-            the first item of params_iter must be a uuid,
+-        uuid_list - a non-rowid column which identifies a row
+-            get_rowid_from_uuid - function which does what it says
+-        e.g:
+-            get_rowid_from_uuid = ibs.get_image_gids_from_uuid
+-
+-        """
+-        # eagerly evaluate for uuids
+-        params_list = list(params_iter)
+-        # check which parameters are valid
+-        isvalid_list = [params is not None for params in params_list]
+-        # Extract uuids from the params list (requires eager eval)
+-        uuid_list = [params[0] if isvalid else None for (params, isvalid) in
+-                     izip(params_list, isvalid_list)]
+-
+-        rowid_list_ = get_rowid_from_uuid(uuid_list)
+-        isdirty_list = [rowid is None and isvalid for (rowid, isvalid)
+-                        in izip(rowid_list_, isvalid_list)]
+-        dirty_params = utool.filter_items(params_list, isdirty_list)
+-
+-        # Add any unadded images
+-        print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
+-        if len(dirty_params) > 0:
+-            db.add(tblname, colnames, dirty_params)
+-            rowid_list = get_rowid_from_uuid(uuid_list)
+-        else:
+-            rowid_list = rowid_list_
+-        return rowid_list
+-
+     #=========
+     # API CORE
+     #=========
+@@ -513,7 +505,7 @@ class SQLDatabaseController(object):
+         db.table_columns[tablename] = schema_list
+ 
+     @profile
+-    def executeone(db, operation, params=(), auto_commit=True,  verbose=VERBOSE):
++    def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
+         """
+             operation - parameterized SQL operation string.
+                 Parameterized prevents SQL injection attacks by using an ordered
+diff --git a/ibeis/control/accessor_decors.py b/ibeis/control/accessor_decors.py
+index 678e832..861abd0 100644
+--- a/ibeis/control/accessor_decors.py
++++ b/ibeis/control/accessor_decors.py
+@@ -50,7 +50,7 @@ def setter_general(func):
+ def setter(func):
+     func = default_decorator(func)
+     @utool.ignores_exc_tb
+-    @utool.accepts_scalar_input2(range(0, 2))
++    @utool.accepts_scalar_input2(argx_list=range(0, 2))
+     @wraps(func)
+     def setter_wrapper(*args, **kwargs):
+         print('set: func_name=%r, args=%r, kwargs=%r' % (func.func_name, args,
+diff --git a/ibeis/dev/all_imports.py b/ibeis/dev/all_imports.py
+index 9a2681d..e5b435d 100644
+--- a/ibeis/dev/all_imports.py
++++ b/ibeis/dev/all_imports.py
+@@ -98,6 +98,7 @@ from vtool.tests import grabdata
+ 
+ # PlotTool
+ import plottool
++from plottool import plot_helpers as ph
+ from plottool import draw_func2 as df2
+ from plottool import interact_helpers as ih
+ from plottool import viz_keypoints
+@@ -118,9 +119,9 @@ from ibeis.dev import experiment_printres
+ from ibeis.dev import experiment_helpers as eh
+ # IBEIS EXPORT
+ from ibeis.export import export_hsdb
+-# IBEIS INJEST
+-from ibeis.injest import injest_hsdb
+-from ibeis.injest import injest_database
++# IBEIS INGEST
++from ibeis.ingest import ingest_hsdb
++from ibeis.ingest import ingest_database
+ # IBEIS MODEL
+ from ibeis.model import Config
+ from ibeis.model import preproc
+diff --git a/ibeis/dev/ibsfuncs.py b/ibeis/dev/ibsfuncs.py
+index 33ed07d..9c385d7 100644
+--- a/ibeis/dev/ibsfuncs.py
++++ b/ibeis/dev/ibsfuncs.py
+@@ -171,7 +171,7 @@ def localize_images(ibs, gid_list=None):
+     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
+     utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
+     ibs.set_image_uris(gid_list, loc_gname_list)
+-    assert all(map(exists, loc_gname_list)), 'not all images copied'
++    assert all(map(exists, loc_gpath_list)), 'not all images copied'
+ 
+ 
+ @__injectable
+@@ -341,7 +341,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
+     Input: gpath_list
+     Output: names based on the parent folder of each image
+     """
+-    INJEST_FORMATS = {
++    INGEST_FORMATS = {
+         FMT_KEYS.name_fmt: utool.named_field_regex([
+             ('name', r'[a-zA-Z]+'),  # all alpha characters
+             ('id',   r'\d*'),        # first numbers (if existant)
+@@ -356,7 +356,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
+             ('ext',  r'\w+'),
+         ]),
+     }
+-    regex = INJEST_FORMATS.get(fmtkey, fmtkey)
++    regex = INGEST_FORMATS.get(fmtkey, fmtkey)
+     gname_list = utool.fpaths_to_fnames(gpath_list)
+     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
+ 
+@@ -600,3 +600,8 @@ def print_tables(ibs):
+     ibs.print_name_table()
+     ibs.print_config_table()
+     print('\n')
++
++
++def make_new_name(ibs):
++    new_name = 'name_%d' % ibs.get_num_names()
++    return new_name
+diff --git a/ibeis/dev/main_commands.py b/ibeis/dev/main_commands.py
+index 27fec49..6155f2b 100644
+--- a/ibeis/dev/main_commands.py
++++ b/ibeis/dev/main_commands.py
+@@ -40,8 +40,8 @@ def parse_cfgstr_list(cfgstr_list):
+ 
+ def preload_convert_hsdb(dbdir):
+     """ Convert the database before loading (A bit hacky) """
+-    from ibeis.injest import injest_hsdb
+-    injest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=False)
++    from ibeis.ingest import ingest_hsdb
++    ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=False)
+ 
+ 
+ def preload_commands(dbdir, defaultdb):
+diff --git a/ibeis/dev/results_organizer.py b/ibeis/dev/results_organizer.py
+index db71155..152899d 100644
+--- a/ibeis/dev/results_organizer.py
++++ b/ibeis/dev/results_organizer.py
+@@ -199,7 +199,7 @@ def organize_results(ibs, qrid2_qres):
+     return allorg
+ 
+ 
+-def get_automatch_candidates(qrid2_qres, ranks_lt=5):
++def get_automatch_candidates(qrid2_qres, ranks_lt=5, directed=True):
+     """ Returns a list of matches that should be inspected
+     This function is more lightweight than orgres or allres
+     and will be used in production.
+@@ -231,5 +231,23 @@ def get_automatch_candidates(qrid2_qres, ranks_lt=5):
+     score_arr = score_arr[sortx]
+     rank_arr  = rank_arr[sortx]
+ 
++    # Remove directed edges
++    if not directed:
++        #nodes = np.unique(directed_edges.flatten())
++        directed_edges = np.vstack((qrid_arr, rid_arr)).T
++        flipped = qrid_arr < rid_arr
++        # standardize edge order
++        edges_dupl = directed_edges.copy()
++        edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
++        # Find unique row indexes
++        unique_rowx = utool.unique_row_indexes(edges_dupl)
++        #edges_unique = edges_dupl[unique_rowx]
++        #flipped_unique = flipped[unique_rowx]
++        qrid_arr  = qrid_arr[unique_rowx]
++        rid_arr   = rid_arr[unique_rowx]
++        score_arr = score_arr[unique_rowx]
++        rank_arr  = rank_arr[unique_rowx]
++
+     candidate_matches = (qrid_arr, rid_arr, score_arr, rank_arr)
++
+     return candidate_matches
+diff --git a/ibeis/gui/guiback.py b/ibeis/gui/guiback.py
+index 16e8f63..4a73b2d 100644
+--- a/ibeis/gui/guiback.py
++++ b/ibeis/gui/guiback.py
+@@ -17,6 +17,7 @@ from ibeis.gui import guiheaders as gh
+ from ibeis import viz
+ from ibeis.viz import interact
+ from ibeis.gui import inspect_gui
++from ibeis.viz.interact import interact_qres2
+ # Utool
+ import utool
+ from ibeis.control import IBEISControl
+@@ -93,6 +94,7 @@ class MainWindowBackend(QtCore.QObject):
+         back.sel_gids = []
+         back.sel_qres = []
+         back.active_enc = 0
++        back.encounter_query_results = utool.ddict(dict)
+ 
+         # Create GUIFrontend object
+         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
+@@ -323,8 +325,7 @@ class MainWindowBackend(QtCore.QObject):
+         print('\n\n[back] query')
+         if rid is None:
+             rid = back.get_selected_rid()
+-        if 'eid' not in kwargs:
+-            eid = back.get_selected_eid()
++        eid = back._eidfromkw(kwargs)
+         if eid is None:
+             print('[back] query_database(rid=%r)' % (rid,))
+             qrid2_qres = back.ibs.query_database([rid])
+@@ -340,8 +341,7 @@ class MainWindowBackend(QtCore.QObject):
+     @blocking_slot()
+     def _run_detection(back, quick=True, refresh=True, **kwargs):
+         print('\n\n')
+-        if 'eid' not in kwargs:
+-            eid = back.get_selected_eid()
++        eid = back._eidfromkw(kwargs)
+         ibs = back.ibs
+         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
+         species = ibs.cfg.detect_cfg.species
+@@ -421,8 +421,7 @@ class MainWindowBackend(QtCore.QObject):
+     def compute_feats(back, refresh=True, **kwargs):
+         """ Batch -> Precompute Feats"""
+         print('[back] compute_feats')
+-        if 'eid' not in kwargs:
+-            eid = back.get_selected_eid()
++        eid = back._eidfromkw(kwargs)
+         ibsfuncs.compute_all_features(back.ibs, eid=eid)
+         if refresh:
+             back.front.update_tables()
+@@ -430,8 +429,7 @@ class MainWindowBackend(QtCore.QObject):
+     @blocking_slot()
+     def compute_queries(back, refresh=True, **kwargs):
+         """ Batch -> Precompute Queries"""
+-        if 'eid' not in kwargs:
+-            eid = back.get_selected_eid()
++        eid = back._eidfromkw(kwargs)
+         print('[back] compute_queries: eid=%r' % (eid,))
+         back.compute_feats(refresh=False, **kwargs)
+         valid_rids = back.ibs.get_valid_rids(eid=eid)
+@@ -439,19 +437,39 @@ class MainWindowBackend(QtCore.QObject):
+             qrid2_qres = back.ibs.query_database(valid_rids)
+         else:
+             qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
+-        qrw = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
+-        qrw.show()
+-        qrw.raise_()
++        back.encounter_query_results[eid].update(qrid2_qres)
++        print('[back] About to finish compute_queries: eid=%r' % (eid,))
++        back.review_queries(eid=eid)
++
++        #back.qres_widget = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
++        #back.qres_widget.show()
++        #back.qres_widget.raise_()
+         if refresh:
+             back.front.update_tables()
++        print('[back] FINISHED compute_queries: eid=%r' % (eid,))
++
++    def review_queries(back, **kwargs):
++        eid = back.get_selected_eid()
++        if eid not in back.encounter_query_results:
++            raise AssertionError('Queries have not been computed yet')
++        qrid2_qres = back.encounter_query_results[eid]
++        review_kw = {
++            'on_change_callback': back.front.update_tables,
++            'nPerPage': 6,
++        }
++        ibs = back.ibs
++        back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
++        back.query_review.show()
+ 
+     @blocking_slot()
+     def compute_encounters(back, refresh=True):
+         """ Batch -> Compute Encounters """
+         print('[back] compute_encounters')
+         back.ibs.compute_encounters()
++        print('[back] about to finish computing encounters')
+         if refresh:
+             back.front.update_tables()
++        print('[back] finished computing encounters')
+ 
+     #--------------------------------------------------------------------------
+     # Option menu slots
+@@ -548,6 +566,8 @@ class MainWindowBackend(QtCore.QObject):
+         print('[back] dev_cls')
+         print('\n'.join([''] * 100))
+         back.refresh_state()
++        from plottool import draw_func2 as df2
++        df2.update()
+ 
+     @blocking_slot()
+     def dev_dumpdb(back):
+@@ -694,3 +714,12 @@ class MainWindowBackend(QtCore.QObject):
+     def user_select_new_dbdir(back):
+         raise NotImplementedError()
+         pass
++
++    def _eidfromkw(back, kwargs):
++        if 'eid' not in kwargs:
++            eid = back.get_selected_eid()
++        else:
++            eid = kwargs['eid']
++        return eid
++
++
+diff --git a/ibeis/gui/guiheaders.py b/ibeis/gui/guiheaders.py
+index 6f4d1c6..b2e401f 100644
+--- a/ibeis/gui/guiheaders.py
++++ b/ibeis/gui/guiheaders.py
+@@ -29,10 +29,10 @@ TABLE_NICE = {
+ TABLE_COLNAMES = {
+     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
+     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
+-    IMAGE_TABLE     : ['gid', 'thumb', 'aif', 'gname', 'nRids', 'datetime', 'notes'],
++    IMAGE_TABLE     : ['gid', 'thumb', 'aif', 'gname', 'nRids', 'datetime', 'gconf', 'notes'],
+     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
+     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
+-    ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'notes'],
++    ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'rconf', 'notes'],
+     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
+     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
+     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
+@@ -61,6 +61,8 @@ COL_DEF = dict([
+     ('rank',       (str,   'Rank')),  # needs to be a string for !Query
+     ('unixtime',   (float, 'unixtime')),
+     ('gname',      (str,   'Image Name')),
++    ('gconf',      (str,   'Detection Confidence')),
++    ('rconf',      (float, 'Detection Confidence')),
+     ('name',       (str,   'Name')),
+     ('notes',      (str,   'Notes')),
+     ('match_name', (str,   'Matching Name')),
+@@ -94,6 +96,7 @@ def make_ibeis_headers_dict(ibs):
+         'nRids'      : ibs.get_image_num_rois,
+         'unixtime'   : ibs.get_image_unixtime,
+         'datetime'   : simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
++        'gconf'      : ibs.get_image_confidence,
+         'notes'      : ibs.get_image_notes,
+         'image_uuid' : ibs.get_image_uuids,
+         'ext'        : ibs.get_image_exts,
+@@ -114,11 +117,12 @@ def make_ibeis_headers_dict(ibs):
+         'theta':  simap_func(utool.theta_str, ibs.get_roi_thetas),
+         'bbox':   simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
+         'nFeats': ibs.get_roi_num_feats,
++        'rconf':  ibs.get_roi_confidence,
+         'notes':  ibs.get_roi_notes,
+         'thumb':  ibs.get_roi_chip_thumbs,
+     }
+     setters[ROI_TABLE] = {
+-        'name': ibs.set_roi_names,
++        'name':  ibs.set_roi_names,
+         'notes': ibs.set_roi_notes,
+     }
+     #
+diff --git a/ibeis/gui/guimenus.py b/ibeis/gui/guimenus.py
+index aa0f3c0..24418b3 100644
+--- a/ibeis/gui/guimenus.py
++++ b/ibeis/gui/guimenus.py
+@@ -123,34 +123,38 @@ def setup_batch_menu(mainwin, back):
+     """ BATCH MENU """
+     mainwin.menuBatch = newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
+     mainwin.menuBatch.newAction(
+-        name='actionPrecomputeROIFeatures',
+-        text='Precompute Chips/Features',
+-        shortcut='Ctrl+Return',
+-        slot_fn=back.compute_feats)
+-    mainwin.menuBatch.newAction(
+-        name='actionCompute_Queries',
+-        text='Compute Queries',
+-        tooltip='''This might take anywhere from a coffee break to an
+-                    overnight procedure depending on how many ROIs you\'ve
+-                    made. It queries each chip and saves the result which
+-                    allows multiple queries to be rapidly inspected later.''',
+-        shortcut='',
+-        slot_fn=back.compute_queries)
++        name='actionCompute_Encounters',
++        text='Cluster Encounters',
++        shortcut='Ctrl+2',
++        slot_fn=back.compute_encounters)
++    mainwin.menuBatch.addSeparator()  # ---------
+     mainwin.menuBatch.newAction(
+         name='actionDetect_Coarse',
+         text='Run Detection (coarse)',
++        shortcut='Ctrl+3',
+         slot_fn=back.run_detection_coarse)
+     mainwin.menuBatch.newAction(
+         name='actionDetect_Fine',
+         text='Run Detection (fine)',
++        shortcut='Ctrl+Shift+3',
+         slot_fn=back.run_detection_fine)
+-    mainwin.menuBatch.addSeparator()
++    mainwin.menuBatch.addSeparator()  # ---------
+     mainwin.menuBatch.newAction(
+-        name='actionCompute_Encounters',
+-        text='Cluster Encounters',
+-        shortcut='Ctrl+E',
+-        slot_fn=back.compute_encounters)
+-    mainwin.menuBatch.addSeparator()
++        name='actionCompute_Queries',
++        text='Compute Queries',
++        tooltip='''This might take anywhere from a coffee break to an
++                    overnight procedure depending on how many ROIs you\'ve
++                    made. It queries each chip and saves the result which
++                    allows multiple queries to be rapidly inspected later.''',
++        shortcut='Ctrl+4',
++        slot_fn=back.compute_queries)
++    mainwin.menuBatch.addSeparator()  # ---------
++    mainwin.menuBatch.newAction(
++        name='actionPrecomputeROIFeatures',
++        text='Precompute Chips/Features',
++        shortcut='Ctrl+Return',
++        slot_fn=back.compute_feats)
++    mainwin.menuBatch.addSeparator()  # ---------
+ 
+ 
+ def setup_option_menu(mainwin, back):
+diff --git a/ibeis/gui/newgui.py b/ibeis/gui/newgui.py
+index ca22fd2..81485df 100755
+--- a/ibeis/gui/newgui.py
++++ b/ibeis/gui/newgui.py
+@@ -5,7 +5,7 @@ import functools  # NOQA
+ from PyQt4 import QtGui, QtCore
+ from PyQt4.QtCore import Qt
+ from PyQt4.QtGui import QSizePolicy
+-from guitool import slot_, checks_qt_error, ChangeLayoutContext  # NOQA
++from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
+ from ibeis.control import IBEISControl
+ from ibeis.dev import ibsfuncs
+ from ibeis.gui import guiheaders as gh
+@@ -34,9 +34,8 @@ class APITabWidget(QtGui.QTabWidget):
+         tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
+ 
+     def setCurrentIndex(tabwgt, index):
+-        print('Set current Index: %r ' % index)
+         tblname = tabwgt.ibswgt.tblname_list[index]
+-        print(tblname)
++        print('Set %r current Index: %r ' % (tblname, index))
+         #model = tabwgt.ibswgt.models[tblname]
+         #with ChangeLayoutContext([model]):
+         #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
+@@ -98,6 +97,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
+ 
+ 
+ class IBEISMainWindow(QtGui.QMainWindow):
++    quitSignal = signal_()
+     def __init__(mainwin, back=None, ibs=None, parent=None):
+         QtGui.QMainWindow.__init__(mainwin, parent)
+         # Menus
+@@ -106,9 +106,18 @@ class IBEISMainWindow(QtGui.QMainWindow):
+         # Central Widget
+         mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
+         mainwin.setCentralWidget(mainwin.ibswgt)
++        if back is not None:
++            mainwin.quitSignal.connect(back.quit)
++        else:
++            raise AssertionError('need backend')
+         #
+         mainwin.resize(900, 600)
+ 
++    @slot_()
++    def closeEvent(mainwin, event):
++        event.accept()
++        mainwin.quitSignal.emit()
++
+ 
+ IBEIS_GUI_BASE = QtGui.QWidget
+ 
+@@ -188,16 +197,20 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+             _NEWLBL(''),
+         ]
+ 
+-        ibswgt.buttonBar = QtGui.QHBoxLayout(ibswgt)
++        ibswgt.buttonBar1 = QtGui.QHBoxLayout(ibswgt)
++        ibswgt.buttonBar2 = QtGui.QHBoxLayout(ibswgt)
+         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
+         back = ibswgt.back
+         #_SEP = lambda: None
+         ibswgt.button_list = [
+-            _NEWBUT('Import Images\n(from files)',
+-                    back.import_images_from_file),
+-            _NEWBUT('Import Images\n(from dir)',
+-                    back.import_images_from_dir),
+-            _NEWBUT('Import Images\n(from dir + size filter)'),
++            _NEWBUT('Import Images\n(via files)',
++                    back.import_images_from_file,
++                    bgcolor=(235, 200, 200),),
++            _NEWBUT('Import Images\n(via dir)',
++                    back.import_images_from_dir,
++                    bgcolor=(235, 200, 200)),
++            _NEWBUT('Import Images\n(via dir + size filter)',
++                    bgcolor=(235, 200, 200)),
+ 
+             #_SEP(),
+ 
+@@ -205,22 +218,29 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+ 
+             #_SEP(),
+ 
+-            _NEWBUT('Compute {algid} Encounters'),
++            _NEWBUT('Cluster Encounters', ibswgt.back.compute_encounters,
++                    bgcolor=(255, 255, 150)),
++            #_NEWBUT('Compute {algid} Encounters'),
+ 
+             #_SEP(),
+ 
+-            _NEWBUT('Run {species}-{algid} Detector',
+-                    ibswgt.back.run_detection_coarse),
+-            _NEWBUT('Review {species}-Detections'),
++            _NEWBUT('Run Detector',
++                    ibswgt.back.run_detection_coarse,
++                    bgcolor=(150, 255, 150)),
++            _NEWBUT('Review Detections'),
+ 
+             #_SEP(),
+ 
+-            _NEWBUT('Individual Recognition (who are these?)', ibswgt.back.compute_queries),
+-            _NEWBUT('Review Individual Matches'),
++            _NEWBUT('Run Recognition', ibswgt.back.compute_queries,
++                    bgcolor=(150, 150, 255),
++                    fgcolor=(0, 0, 0)),
++            _NEWBUT('Review Recognitions'),
+ 
+             #_SEP(),
+ 
+-            _NEWBUT('DELETE ALL ENCOUNTERS', ibswgt.back.delete_all_encounters),
++            _NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
++                    bgcolor=(255, 0, 0),
++                    fgcolor=(0, 0, 0)),
+         ]
+ 
+     def _init_layout(ibswgt):
+@@ -236,14 +256,19 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+         # Horizontal Lower
+         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
+         ibswgt.status_wgt.addWidget(ibswgt.progressBar)
+-        ibswgt.status_wgt.addLayout(ibswgt.buttonBar)
++        ibswgt.status_wgt.addLayout(ibswgt.buttonBar1)
++        ibswgt.status_wgt.addLayout(ibswgt.buttonBar2)
+         ibswgt.status_wgt.addLayout(ibswgt.statusBar)
+         # Add statusbar
+         for widget in ibswgt.statusLabel_list:
+             ibswgt.statusBar.addWidget(widget)
+         # Add buttonbar
+-        for button in ibswgt.button_list:
+-            ibswgt.buttonBar.addWidget(button)
++        mid = int(len(ibswgt.button_list) / 2)
++        for button in ibswgt.button_list[:mid]:
++            ibswgt.buttonBar1.addWidget(button)
++
++        for button in ibswgt.button_list[mid:]:
++            ibswgt.buttonBar2.addWidget(button)
+ 
+     def set_status_label(ibswgt, index, text):
+         printDBG('set_status_label[%r] = %r' % (index, text))
+@@ -323,6 +348,8 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
+             model = ibswgt.models[tblname]
+             model._rows_updated.connect(ibswgt.on_rows_updated)
++            #front.printSignal.connect(back.backend_print)
++            #front.raiseExceptionSignal.connect(back.backend_exception)
+ 
+     #------------
+     # SLOTS
+@@ -340,7 +367,7 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+ 
+     @slot_(QtCore.QModelIndex, QtCore.QPoint)
+     def on_contextMenuClicked(ibswgt, qtindex, pos):
+-        print('[newgui] contextmenu')
++        printDBG('[newgui] contextmenu')
+         model = qtindex.model()
+         id_ = model._get_row_id(qtindex.row())
+         tblview = ibswgt.views[model.name]
+@@ -366,11 +393,11 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+                 ])
+     @slot_(QtCore.QModelIndex)
+     def on_click(ibswgt, qtindex):
+-        print('on_click')
++        printDBG('on_click')
+         model = qtindex.model()
+         id_ = model._get_row_id(qtindex.row())
+         if model.name == ENCOUNTER_TABLE:
+-            print('clicked encounter')
++            printDBG('clicked encounter')
+         else:
+             eid = model.eid
+             if model.name == IMAGE_TABLE:
+@@ -385,7 +412,7 @@ class IBEISGuiWidget(IBEIS_GUI_BASE):
+ 
+     @slot_(QtCore.QModelIndex)
+     def on_doubleclick(ibswgt, qtindex):
+-        print('on_doubleclick')
++        printDBG('on_doubleclick')
+         model = qtindex.model()
+         id_ = model._get_row_id(qtindex.row())
+         if model.name == ENCOUNTER_TABLE:
+diff --git a/ibeis/ingest/__init__.py b/ibeis/ingest/__init__.py
+new file mode 100644
+index 0000000..10b16de
+--- /dev/null
++++ b/ibeis/ingest/__init__.py
+@@ -0,0 +1,5 @@
++# flake8: noqa
++from __future__ import absolute_import, division, print_function
++
++from . import ingest_hsdb
++from . import ingest_database
+diff --git a/ibeis/ingest/ingest_database.py b/ibeis/ingest/ingest_database.py
+new file mode 100755
+index 0000000..f7547fd
+--- /dev/null
++++ b/ibeis/ingest/ingest_database.py
+@@ -0,0 +1,186 @@
++#!/usr/bin/env python
++# TODO: ADD COPYRIGHT TAG
++"""
++This module lists known raw databases and how to ingest them.
++"""
++from __future__ import absolute_import, division, print_function
++import ibeis
++from os.path import exists
++from ibeis.dev import ibsfuncs
++from ibeis.control import IBEISControl
++import utool
++
++#
++#
++### <STANDARD DATABASES> ###
++
++STANDARD_INGEST_FUNCS = {}
++
++
++def __standard(dbname):
++    """  Decorates a function as a standard ingestable database """
++    def __registerdb(func):
++        STANDARD_INGEST_FUNCS[dbname] = func
++        return func
++    return __registerdb
++
++
++@__standard('polar_bears')
++def ingest_polar_bears(db):
++    return Ingestable(db, ingest_type='named_folders',
++                      adjust_percent=0.00,
++                      fmtkey='name')
++
++
++@__standard('testdb1')
++def ingest_testdb1(db):
++    from vtool.tests import grabdata
++    def postingest_tesdb1_func(ibs):
++        import numpy as np
++        gid_list = np.array(ibs.get_valid_gids())
++        unixtimes_even = (gid_list[0::2] + 100).tolist()
++        unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
++        unixtime_list = unixtimes_even + unixtimes_odd
++        ibs.set_image_unixtime(gid_list, unixtime_list)
++        return None
++    return Ingestable(db, ingest_type='named_images',
++                      fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
++                      img_dir=grabdata.get_testdata_dir(),
++                      adjust_percent=0.00,
++                      postingest_func=postingest_tesdb1_func)
++
++
++@__standard('snails_drop1')
++def ingest_snails_drop1(db):
++    return Ingestable(db,
++                      ingest_type='named_images',
++                      fmtkey=ibsfuncs.FMT_KEYS.snails_fmt,
++                      adjust_percent=.20)
++
++
++@__standard('JAG_Kieryn')
++def ingest_JAG_Kieryn(db):
++    return Ingestable(db,
++                      ingest_type='unknown',
++                      adjust_percent=0.00)
++
++
++def get_standard_ingestable(db):
++    if db in STANDARD_INGEST_FUNCS:
++        return STANDARD_INGEST_FUNCS[db](db)
++    else:
++        raise AssertionError('Unknown db=%r' % (db,))
++
++
++def ingest_standard_database(db, force_delete=False):
++    print('[ingest] Ingest Standard Database: db=%r' % (db,))
++    ingestable = get_standard_ingestable(db)
++    dbdir = ibeis.sysres.db_to_dbdir(ingestable.db, allow_newdir=True, use_sync=False)
++    utool.ensuredir(dbdir, verbose=True)
++    if force_delete:
++        ibsfuncs.delete_ibeis_database(dbdir)
++    ibs = IBEISControl.IBEISController(dbdir)
++    ingest_rawdata(ibs, ingestable)
++
++### </STANDARD DATABASES> ###
++#
++#
++
++
++class Ingestable(object):
++    """ Temporary structure representing how to ingest a databases """
++    def __init__(self, db, img_dir=None, ingest_type=None, fmtkey=None,
++                 adjust_percent=0.0, postingest_func=None):
++        self.db              = db
++        self.img_dir         = img_dir
++        self.ingest_type     = ingest_type
++        self.fmtkey          = fmtkey
++        self.adjust_percent  = adjust_percent
++        self.postingest_func = postingest_func
++        self.ensure_feasibility()
++
++    def ensure_feasibility(self):
++        rawdir  = ibeis.sysres.get_rawdir()
++        if self.img_dir is None:
++            # Try to find data either the raw or work dir
++            self.img_dir = ibeis.sysres.db_to_dbdir(self.db, extra_workdirs=[rawdir])
++        msg = 'Cannot find img_dir for db=%r, img_dir=%r' % (self.db, self.img_dir)
++        assert self.img_dir is not None, msg
++        assert exists(self.img_dir), msg
++        if self.ingest_type == 'named_folders':
++            assert self.fmtkey == 'name'
++
++
++def ingest_rawdata(ibs, ingestable, localize=False):
++    """
++    Ingests rawdata into an ibeis database.
++
++    if ingest_type == 'named_folders':
++        Converts folder structure where folders = name, to ibsdb
++    if ingest_type == 'named_images':
++        Converts imgname structure where imgnames = name_id.ext, to ibsdb
++    """
++    img_dir         = ingestable.img_dir
++    ingest_type     = ingestable.ingest_type
++    fmtkey          = ingestable.fmtkey
++    adjust_percent  = ingestable.adjust_percent
++    postingest_func = ingestable.postingest_func
++
++    # Get images in the image directory
++    gpath_list  = list_ingestable_images(img_dir, recursive=True)
++    # Parse structure for image names
++    if ingest_type == 'named_folders':
++        name_list = ibsfuncs.get_names_from_parent_folder(gpath_list, img_dir, fmtkey)
++        pass
++    if ingest_type == 'named_images':
++        name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
++    if ingest_type == 'unknown':
++        name_list = [ibsfuncs.UNKNOWN_NAME for _ in xrange(len(gpath_list))]
++
++    # Add Images
++    gid_list = utool.filter_Nones(ibs.add_images(gpath_list))
++    unique_gids, unique_names, unique_notes = ibsfuncs.resolve_name_conflicts(
++        gid_list, name_list)
++    # Add ROIs with names and notes
++    rid_list = ibsfuncs.use_images_as_rois(ibs, unique_gids,
++                                           name_list=unique_names,
++                                           notes_list=unique_notes,
++                                           adjust_percent=adjust_percent)
++    if localize:
++        ibsfuncs.localize_images(ibs)
++    if postingest_func is not None:
++        postingest_func(ibs)
++    # Print to show success
++    ibs.print_name_table()
++    ibs.print_image_table()
++    ibs.print_roi_table()
++    return rid_list
++
++
++def list_ingestable_images(img_dir, fullpath=True, recursive=True):
++    ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
++    gpath_list = utool.list_images(img_dir,
++                                   fullpath=fullpath,
++                                   recursive=recursive,
++                                   ignore_list=ignore_list)
++    # Ensure in unix format
++    gpath_list = map(utool.unixpath, gpath_list)
++    return gpath_list
++
++
++if __name__ == '__main__':
++    import multiprocessing
++    multiprocessing.freeze_support()  # win32
++    print('__main__ = ingest_database.py')
++    print(utool.unindent(
++        '''
++        usage:
++        ./ibeis/ingest/ingest_database.py --db [dbname]
++
++        Valid dbnames:''') + utool.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
++    db = utool.get_arg('--db', str, None)
++    ibs = ingest_standard_database(db)
++    #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
++    #main_locals = ibeis.main(dbdir=img_dir, gui=False)
++    #ibs = main_locals['ibs']
++    #ingest_rawdata(ibs, img_dir)
+diff --git a/ibeis/ingest/ingest_hsdb.py b/ibeis/ingest/ingest_hsdb.py
+new file mode 100755
+index 0000000..444251a
+--- /dev/null
++++ b/ibeis/ingest/ingest_hsdb.py
+@@ -0,0 +1,158 @@
++#!/usr/bin/env python
++"""
++Converts a hotspostter database to IBEIS
++"""
++# TODO: ADD COPYRIGHT TAG
++from __future__ import absolute_import, division, print_function
++from os.path import join, exists
++#import ibeis
++from ibeis.control import IBEISControl
++from ibeis import sysres
++from ibeis import constants
++from ibeis.dev import ibsfuncs
++from itertools import izip
++import utool
++import re
++import csv
++print, print_, printDBG, rrr, profile = utool.inject(
++    __name__, '[ingest_hsbd]')
++
++
++SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
++
++FORCE_DELETE = utool.get_flag('--force-delete')
++
++
++def is_succesful_convert(dbdir):
++    return exists(join(dbdir, constants.PATH_NAMES._ibsdb, SUCCESS_FLAG_FNAME))
++
++
++def get_unconverted_hsdbs(workdir=None):
++    import os
++    import numpy as np
++    from vtool import linalg as ltool
++    if workdir is None:
++        workdir = sysres.get_workdir()
++    dbname_list = os.listdir(workdir)
++    dbpath_list = np.array([join(workdir, name) for name in dbname_list])
++    is_hsdb_list        = np.array(map(sysres.is_hsdb, dbpath_list))
++    is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
++    if FORCE_DELETE:
++        needs_convert = is_hsdb_list
++    else:
++        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
++    needs_convert_hsdbs  = dbpath_list[needs_convert].tolist()
++    return needs_convert_hsdbs
++
++
++def ingest_unconverted_hsdbs_in_workdir():
++    workdir = sysres.get_workdir()
++    needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
++    for hsdb in needs_convert_hsdbs:
++        try:
++            convert_hsdb_to_ibeis(hsdb, force=FORCE_DELETE)
++        except Exception as ex:
++            utool.printex(ex)
++            raise
++
++
++def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
++    assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert'
++    if force_delete:
++        ibsfuncs.delete_ibeis_database(hsdb_dir)
++    print('[ingest] Ingesting hsdb: %r' % hsdb_dir)
++    imgdir = join(hsdb_dir, 'images')
++
++    ibs = IBEISControl.IBEISController(dbdir=hsdb_dir)
++
++    # READ NAME TABLE
++    names_name_list = ['____']
++    name_nid_list   = [0]
++    with open(join(hsdb_dir, '_hsdb', 'name_table.csv'), 'rb') as nametbl_file:
++        name_reader = csv.reader(nametbl_file)
++        for ix, row in enumerate(name_reader):
++            #if ix >= 3:
++            if len(row) == 0 or row[0].strip().startswith('#'):
++                continue
++            else:
++                nid = int(row[0])
++                name = row[1].strip()
++                names_name_list.append(name)
++                name_nid_list.append(nid)
++
++    image_gid_list   = []
++    image_gname_list = []
++    image_aif_list   = []
++    with open(join(hsdb_dir, '_hsdb/image_table.csv'), 'rb') as imgtb_file:
++        image_reader = csv.reader(imgtb_file)
++        for ix, row in enumerate(image_reader):
++            #if ix >= 3:
++            if len(row) == 0 or row[0].strip().startswith('#'):
++                continue
++            else:
++                gid = int(row[0])
++                gname_ = row[1].strip()
++                aif = bool(row[2])
++                image_gid_list.append(gid)
++                image_gname_list.append(gname_)
++                image_aif_list.append(aif)
++
++    image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
++    assert all(map(exists, image_gpath_list)), 'some images dont exist'
++
++    # Add Images and Names Table
++    gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None
++    nid_list = ibs.add_names(names_name_list)
++    # Build mappings to new indexes
++    names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in izip(name_nid_list, nid_list)}
++    names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
++    images_gid_to_gid = {images_gid: gid for (images_gid, gid) in izip(image_gid_list, gid_list)}
++
++    #get rois from chip_table
++    chip_bbox_list   = []
++    chip_theta_list  = []
++    chip_nid_list    = []
++    chip_gid_list    = []
++    chip_note_list   = []
++    with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl_file:
++        chip_reader = csv.reader(chiptbl_file)
++        for ix, row in enumerate(chip_reader):
++            if len(row) == 0 or row[0].strip().startswith('#'):
++                continue
++            else:
++                images_gid = int(row[1])
++                names_nid = int(row[2])
++                bbox_text = row[3]
++                theta = float(row[4])
++                notes = '<COMMA>'.join([item.strip() for item in row[5:]])
++                nid = names_nid_to_nid[names_nid]
++                gid = images_gid_to_gid[images_gid]
++                bbox_text = bbox_text.replace('[', '').replace(']', '').strip()
++                bbox_text = re.sub('  *', ' ', bbox_text)
++                bbox_strlist = bbox_text.split(' ')
++                bbox = tuple(map(int, bbox_strlist))
++                if gid is None:
++                    print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
++                    continue
++                #bbox = [int(item) for item in bbox_strlist]
++                chip_nid_list.append(nid)
++                chip_gid_list.append(gid)
++                chip_bbox_list.append(bbox)
++                chip_theta_list.append(theta)
++                chip_note_list.append(notes)
++
++    # Add Chips Table
++    ibs.add_rois(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
++
++    # Write file flagging successful conversion
++    with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
++        file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
++    print('finished ingest')
++
++
++if __name__ == '__main__':
++    import multiprocessing
++    multiprocessing.freeze_support()  # win32
++    db = utool.get_arg('--db', str, None)
++    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
++    convert_hsdb_to_ibeis(dbdir)
+diff --git a/ibeis/ingest/ingest_mdb.py b/ibeis/ingest/ingest_mdb.py
+new file mode 100755
+index 0000000..6d1cc0f
+--- /dev/null
++++ b/ibeis/ingest/ingest_mdb.py
+@@ -0,0 +1,112 @@
++#!/usr/bin/env python
++from __future__ import division
++from os.path import join, expanduser, exists, basename
++from ibeis.control import IBEISControl
++from ibeis.dev import ibsfuncs
++from detecttools.directory import Directory
++import utool
++
++# FIX THIS TO POINT TO THE CORRECT DIRECTORY
++#prefix = expanduser(join('~', 'Desktop'))
++prefix = '/media/Store/data/raw/Dan_2014-03-26_Ol_Pejeta__100GB/Ol_pejeta_zebra_stuff__2GB/'
++
++print('''
++      =====================
++      PROCESSING ACTIVITIES
++      =====================
++      ''')
++activities = {}
++columns = [3, 9, 10, 11, 12, 13, 14, 15]
++csv_fpath = join(prefix, 'OPC Zebra database all [exported]', 'csv')
++activity_csv_fpath = join(csv_fpath, 'Group-Habitat-Activity table.csv')
++exportedmdb_fpath  = join(csv_fpath, 'Individual sightings.csv')
++
++utool.checkpath(activity_csv_fpath, verbose=True)
++utool.checkpath(exportedmdb_fpath, verbose=True)
++
++with open(join(activity_csv_fpath), 'r') as file_:
++    lines = file_.read()
++    for line in lines.splitlines()[1:]:
++        line = [ item.strip() for item in line.strip().split(',')]
++        _id = line[2]
++        if _id not in activities:
++            activities[_id] = [line[col] for col in columns]
++
++originals = join(prefix, 'Ol_pejeta_zebra_photos2__1GB')
++images = Directory(originals)
++image_set = set(images.files())
++print(images)
++exts = []
++for image in images.files():
++    exts.append(image.split('.')[-1])
++exts = list(set(exts))
++print 'EXTENSIONS:', exts
++
++print('''
++      =====================
++      PROCESSING ENCOUNTERS
++      =====================
++      ''')
++used = []
++# encounters = open(join(prefix, 'encounters.csv'),'w')
++# animals = open(join(prefix, 'animals.csv'),'w')
++linenum = 0
++processed = []
++with open(join(exportedmdb_fpath), 'r') as file_:
++    lines = file_.read()
++    for line in lines.splitlines()[1:]:
++        linenum += 1
++        line = [ item.strip() for item in line.strip().split(',')]
++        if len(line) == 1:
++            print('WARNING: INVALID DATA ON LINE', linenum, '[FIX TO CONTINUE]')
++            continue
++        filename = line[2].strip('"\'')
++        sighting = line[1]
++        files = [ join(originals, filename + '.' + ext) in image_set for ext in exts]
++
++        if sighting in activities and True in files:
++            for i in xrange(len(files)):
++                if files[i]:
++                    filename += '.' + exts[i]
++                    break
++
++            line = [join(originals, filename)] + activities[sighting]
++            if filename not in used:
++                processed.append(line)
++                # animals.write(','.join(line) + '\n')
++                used.append(filename)
++            # encounters.write(','.join(line) + '\n')
++
++print('USED:', float(len(used)) / len(images.files()))
++#print('processed: %s' % processed)
++
++
++print('''
++      =====================
++      FINISHED PROCESS
++      =====================
++      ''')
++
++
++def _sloppy_data(string):
++    string = string.replace('0212', '2012')
++    string = string.replace('1212', '2012')
++    string = string.replace('"', '')
++    return string
++
++dbdir = join(prefix, 'converted')
++ibsfuncs.delete_ibeis_database(dbdir)
++ibs = IBEISControl.IBEISController(dbdir=dbdir)
++image_gpath_list = [item[0] for item in processed]
++notes_list = [','.join( [basename(item[0])] + item[2:5] ) for item in processed]
++times_list = [ utool.exiftime_to_unixtime(_sloppy_data(item[1]), timestamp_format=2)
++                for item in processed]
++assert all(map(exists, image_gpath_list)), 'some images dont exist'
++
++gid_list = ibs.add_images(image_gpath_list)
++ibsfuncs.localize_images(ibs)
++ibs.set_image_notes(gid_list, notes_list)
++ibs.set_image_unixtime(gid_list, times_list)
++bbox_list = [ (0, 0, w, h) for (w, h) in ibs.get_image_sizes(gid_list) ]
++ibs.add_rois(gid_list, bbox_list)
++ibs.db.commit()
+diff --git a/ibeis/ingest/ingest_my_hotspotter_dbs.py b/ibeis/ingest/ingest_my_hotspotter_dbs.py
+new file mode 100755
+index 0000000..e69de29
+diff --git a/ibeis/injest/__init__.py b/ibeis/injest/__init__.py
+deleted file mode 100644
+index 9bb82b9..0000000
+--- a/ibeis/injest/__init__.py
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# flake8: noqa
+-from __future__ import absolute_import, division, print_function
+-
+-from . import injest_hsdb
+-from . import injest_database
+diff --git a/ibeis/injest/injest_database.py b/ibeis/injest/injest_database.py
+deleted file mode 100755
+index 3944539..0000000
+--- a/ibeis/injest/injest_database.py
++++ /dev/null
+@@ -1,186 +0,0 @@
+-#!/usr/bin/env python
+-# TODO: ADD COPYRIGHT TAG
+-"""
+-This module lists known raw databases and how to injest them.
+-"""
+-from __future__ import absolute_import, division, print_function
+-import ibeis
+-from os.path import exists
+-from ibeis.dev import ibsfuncs
+-from ibeis.control import IBEISControl
+-import utool
+-
+-#
+-#
+-### <STANDARD DATABASES> ###
+-
+-STANDARD_INJEST_FUNCS = {}
+-
+-
+-def __standard(dbname):
+-    """  Decorates a function as a standard injestable database """
+-    def __registerdb(func):
+-        STANDARD_INJEST_FUNCS[dbname] = func
+-        return func
+-    return __registerdb
+-
+-
+-@__standard('polar_bears')
+-def injest_polar_bears(db):
+-    return Injestable(db, injest_type='named_folders',
+-                      adjust_percent=0.00,
+-                      fmtkey='name')
+-
+-
+-@__standard('testdb1')
+-def injest_testdb1(db):
+-    from vtool.tests import grabdata
+-    def postinjest_tesdb1_func(ibs):
+-        import numpy as np
+-        gid_list = np.array(ibs.get_valid_gids())
+-        unixtimes_even = (gid_list[0::2] + 100).tolist()
+-        unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
+-        unixtime_list = unixtimes_even + unixtimes_odd
+-        ibs.set_image_unixtime(gid_list, unixtime_list)
+-        return None
+-    return Injestable(db, injest_type='named_images',
+-                      fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
+-                      img_dir=grabdata.get_testdata_dir(),
+-                      adjust_percent=0.00,
+-                      postinjest_func=postinjest_tesdb1_func)
+-
+-
+-@__standard('snails_drop1')
+-def injest_snails_drop1(db):
+-    return Injestable(db,
+-                      injest_type='named_images',
+-                      fmtkey=ibsfuncs.FMT_KEYS.snails_fmt,
+-                      adjust_percent=.20)
+-
+-
+-@__standard('JAG_Kieryn')
+-def injest_JAG_Kieryn(db):
+-    return Injestable(db,
+-                      injest_type='unknown',
+-                      adjust_percent=0.00)
+-
+-
+-def get_standard_injestable(db):
+-    if db in STANDARD_INJEST_FUNCS:
+-        return STANDARD_INJEST_FUNCS[db](db)
+-    else:
+-        raise AssertionError('Unknown db=%r' % (db,))
+-
+-
+-def injest_standard_database(db, force_delete=False):
+-    print('[injest] Injest Standard Database: db=%r' % (db,))
+-    injestable = get_standard_injestable(db)
+-    dbdir = ibeis.sysres.db_to_dbdir(injestable.db, allow_newdir=True, use_sync=False)
+-    utool.ensuredir(dbdir, verbose=True)
+-    if force_delete:
+-        ibsfuncs.delete_ibeis_database(dbdir)
+-    ibs = IBEISControl.IBEISController(dbdir)
+-    injest_rawdata(ibs, injestable)
+-
+-### </STANDARD DATABASES> ###
+-#
+-#
+-
+-
+-class Injestable(object):
+-    """ Temporary structure representing how to injest a databases """
+-    def __init__(self, db, img_dir=None, injest_type=None, fmtkey=None,
+-                 adjust_percent=0.0, postinjest_func=None):
+-        self.db              = db
+-        self.img_dir         = img_dir
+-        self.injest_type     = injest_type
+-        self.fmtkey          = fmtkey
+-        self.adjust_percent  = adjust_percent
+-        self.postinjest_func = postinjest_func
+-        self.ensure_feasibility()
+-
+-    def ensure_feasibility(self):
+-        rawdir  = ibeis.sysres.get_rawdir()
+-        if self.img_dir is None:
+-            # Try to find data either the raw or work dir
+-            self.img_dir = ibeis.sysres.db_to_dbdir(self.db, extra_workdirs=[rawdir])
+-        msg = 'Cannot find img_dir for db=%r, img_dir=%r' % (self.db, self.img_dir)
+-        assert self.img_dir is not None, msg
+-        assert exists(self.img_dir), msg
+-        if self.injest_type == 'named_folders':
+-            assert self.fmtkey == 'name'
+-
+-
+-def injest_rawdata(ibs, injestable, localize=False):
+-    """
+-    Injests rawdata into an ibeis database.
+-
+-    if injest_type == 'named_folders':
+-        Converts folder structure where folders = name, to ibsdb
+-    if injest_type == 'named_images':
+-        Converts imgname structure where imgnames = name_id.ext, to ibsdb
+-    """
+-    img_dir         = injestable.img_dir
+-    injest_type     = injestable.injest_type
+-    fmtkey          = injestable.fmtkey
+-    adjust_percent  = injestable.adjust_percent
+-    postinjest_func = injestable.postinjest_func
+-
+-    # Get images in the image directory
+-    gpath_list  = list_injestable_images(img_dir, recursive=True)
+-    # Parse structure for image names
+-    if injest_type == 'named_folders':
+-        name_list = ibsfuncs.get_names_from_parent_folder(gpath_list, img_dir, fmtkey)
+-        pass
+-    if injest_type == 'named_images':
+-        name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
+-    if injest_type == 'unknown':
+-        name_list = [ibsfuncs.UNKNOWN_NAME for _ in xrange(len(gpath_list))]
+-
+-    # Add Images
+-    gid_list = utool.filter_Nones(ibs.add_images(gpath_list))
+-    unique_gids, unique_names, unique_notes = ibsfuncs.resolve_name_conflicts(
+-        gid_list, name_list)
+-    # Add ROIs with names and notes
+-    rid_list = ibsfuncs.use_images_as_rois(ibs, unique_gids,
+-                                           name_list=unique_names,
+-                                           notes_list=unique_notes,
+-                                           adjust_percent=adjust_percent)
+-    if localize:
+-        ibsfuncs.localize_images(ibs)
+-    if postinjest_func is not None:
+-        postinjest_func(ibs)
+-    # Print to show success
+-    ibs.print_name_table()
+-    ibs.print_image_table()
+-    ibs.print_roi_table()
+-    return rid_list
+-
+-
+-def list_injestable_images(img_dir, fullpath=True, recursive=True):
+-    ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+-    gpath_list = utool.list_images(img_dir,
+-                                   fullpath=fullpath,
+-                                   recursive=recursive,
+-                                   ignore_list=ignore_list)
+-    # Ensure in unix format
+-    gpath_list = map(utool.unixpath, gpath_list)
+-    return gpath_list
+-
+-
+-if __name__ == '__main__':
+-    import multiprocessing
+-    multiprocessing.freeze_support()  # win32
+-    print('__main__ = injest_database.py')
+-    print(utool.unindent(
+-        '''
+-        usage:
+-        ./ibeis/injest/injest_database.py --db [dbname]
+-
+-        Valid dbnames:''') + utool.indentjoin(STANDARD_INJEST_FUNCS.keys(), '\n  * '))
+-    db = utool.get_arg('--db', str, None)
+-    ibs = injest_standard_database(db)
+-    #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
+-    #main_locals = ibeis.main(dbdir=img_dir, gui=False)
+-    #ibs = main_locals['ibs']
+-    #injest_rawdata(ibs, img_dir)
+diff --git a/ibeis/injest/injest_hsdb.py b/ibeis/injest/injest_hsdb.py
+deleted file mode 100755
+index e8a8224..0000000
+--- a/ibeis/injest/injest_hsdb.py
++++ /dev/null
+@@ -1,158 +0,0 @@
+-#!/usr/bin/env python
+-"""
+-Converts a hotspostter database to IBEIS
+-"""
+-# TODO: ADD COPYRIGHT TAG
+-from __future__ import absolute_import, division, print_function
+-from os.path import join, exists
+-#import ibeis
+-from ibeis.control import IBEISControl
+-from ibeis import sysres
+-from ibeis import constants
+-from ibeis.dev import ibsfuncs
+-from itertools import izip
+-import utool
+-import re
+-import csv
+-print, print_, printDBG, rrr, profile = utool.inject(
+-    __name__, '[injest_hsbd]')
+-
+-
+-SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
+-
+-FORCE_DELETE = utool.get_flag('--force-delete')
+-
+-
+-def is_succesful_convert(dbdir):
+-    return exists(join(dbdir, constants.PATH_NAMES._ibsdb, SUCCESS_FLAG_FNAME))
+-
+-
+-def get_unconverted_hsdbs(workdir=None):
+-    import os
+-    import numpy as np
+-    from vtool import linalg as ltool
+-    if workdir is None:
+-        workdir = sysres.get_workdir()
+-    dbname_list = os.listdir(workdir)
+-    dbpath_list = np.array([join(workdir, name) for name in dbname_list])
+-    is_hsdb_list        = np.array(map(sysres.is_hsdb, dbpath_list))
+-    is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
+-    if FORCE_DELETE:
+-        needs_convert = is_hsdb_list
+-    else:
+-        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
+-    needs_convert_hsdbs  = dbpath_list[needs_convert].tolist()
+-    return needs_convert_hsdbs
+-
+-
+-def injest_unconverted_hsdbs_in_workdir():
+-    workdir = sysres.get_workdir()
+-    needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
+-    for hsdb in needs_convert_hsdbs:
+-        try:
+-            convert_hsdb_to_ibeis(hsdb, force=FORCE_DELETE)
+-        except Exception as ex:
+-            utool.printex(ex)
+-            raise
+-
+-
+-def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
+-    assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert'
+-    if force_delete:
+-        ibsfuncs.delete_ibeis_database(hsdb_dir)
+-    print('[injest] Injesting hsdb: %r' % hsdb_dir)
+-    imgdir = join(hsdb_dir, 'images')
+-
+-    ibs = IBEISControl.IBEISController(dbdir=hsdb_dir)
+-
+-    # READ NAME TABLE
+-    names_name_list = ['____']
+-    name_nid_list   = [0]
+-    with open(join(hsdb_dir, '_hsdb', 'name_table.csv'), 'rb') as nametbl_file:
+-        name_reader = csv.reader(nametbl_file)
+-        for ix, row in enumerate(name_reader):
+-            #if ix >= 3:
+-            if len(row) == 0 or row[0].strip().startswith('#'):
+-                continue
+-            else:
+-                nid = int(row[0])
+-                name = row[1].strip()
+-                names_name_list.append(name)
+-                name_nid_list.append(nid)
+-
+-    image_gid_list   = []
+-    image_gname_list = []
+-    image_aif_list   = []
+-    with open(join(hsdb_dir, '_hsdb/image_table.csv'), 'rb') as imgtb_file:
+-        image_reader = csv.reader(imgtb_file)
+-        for ix, row in enumerate(image_reader):
+-            #if ix >= 3:
+-            if len(row) == 0 or row[0].strip().startswith('#'):
+-                continue
+-            else:
+-                gid = int(row[0])
+-                gname_ = row[1].strip()
+-                aif = bool(row[2])
+-                image_gid_list.append(gid)
+-                image_gname_list.append(gname_)
+-                image_aif_list.append(aif)
+-
+-    image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
+-    assert all(map(exists, image_gpath_list)), 'some images dont exist'
+-
+-    # Add Images and Names Table
+-    gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None
+-    nid_list = ibs.add_names(names_name_list)
+-    # Build mappings to new indexes
+-    names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in izip(name_nid_list, nid_list)}
+-    names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
+-    images_gid_to_gid = {images_gid: gid for (images_gid, gid) in izip(image_gid_list, gid_list)}
+-
+-    #get rois from chip_table
+-    chip_bbox_list   = []
+-    chip_theta_list  = []
+-    chip_nid_list    = []
+-    chip_gid_list    = []
+-    chip_note_list   = []
+-    with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl_file:
+-        chip_reader = csv.reader(chiptbl_file)
+-        for ix, row in enumerate(chip_reader):
+-            if len(row) == 0 or row[0].strip().startswith('#'):
+-                continue
+-            else:
+-                images_gid = int(row[1])
+-                names_nid = int(row[2])
+-                bbox_text = row[3]
+-                theta = float(row[4])
+-                notes = '<COMMA>'.join([item.strip() for item in row[5:]])
+-                nid = names_nid_to_nid[names_nid]
+-                gid = images_gid_to_gid[images_gid]
+-                bbox_text = bbox_text.replace('[', '').replace(']', '').strip()
+-                bbox_text = re.sub('  *', ' ', bbox_text)
+-                bbox_strlist = bbox_text.split(' ')
+-                bbox = tuple(map(int, bbox_strlist))
+-                if gid is None:
+-                    print('Not adding the ix=%r-th Chip. Its image is corrupted image.' % (ix,))
+-                    continue
+-                #bbox = [int(item) for item in bbox_strlist]
+-                chip_nid_list.append(nid)
+-                chip_gid_list.append(gid)
+-                chip_bbox_list.append(bbox)
+-                chip_theta_list.append(theta)
+-                chip_note_list.append(notes)
+-
+-    # Add Chips Table
+-    ibs.add_rois(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
+-
+-    # Write file flagging successful conversion
+-    with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
+-        file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
+-    print('finished injest')
+-
+-
+-if __name__ == '__main__':
+-    import multiprocessing
+-    multiprocessing.freeze_support()  # win32
+-    db = utool.get_arg('--db', str, None)
+-    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
+-    convert_hsdb_to_ibeis(dbdir)
+diff --git a/ibeis/injest/injest_my_hotspotter_dbs.py b/ibeis/injest/injest_my_hotspotter_dbs.py
+deleted file mode 100755
+index e69de29..0000000
+diff --git a/ibeis/model/Config.py b/ibeis/model/Config.py
+index cc6126d..fbc0d28 100644
+--- a/ibeis/model/Config.py
++++ b/ibeis/model/Config.py
+@@ -407,7 +407,8 @@ class EncounterConfig(ConfigBase):
+     def __init__(enc_cfg, **kwargs):
+         super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
+         enc_cfg.min_imgs_per_encounter = 1
+-        enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
++        #enc_cfg.cluster_algo = 'meanshift'  # [agglomerative]
++        enc_cfg.cluster_algo = 'agglomerative'
+         enc_cfg.quantile = .01  # depends meanshift
+         enc_cfg.seconds_thresh = 60    # depends agglomerative
+ 
+diff --git a/ibeis/model/detect/randomforest.py b/ibeis/model/detect/randomforest.py
+index 8b22eb4..f25705a 100644
+--- a/ibeis/model/detect/randomforest.py
++++ b/ibeis/model/detect/randomforest.py
+@@ -34,13 +34,15 @@ def generate_detections(ibs, gid_list, species, **detectkw):
+     scale_list = [oldw / neww for oldw, neww in izip(oldw_list, neww_list)]
+ 
+     # Detect on scaled images
+-    bboxes_list = detect_species_bboxes(src_gpath_list, species, **detectkw)
++    generator = detect_species_bboxes(src_gpath_list, species, **detectkw)
+ 
+-    for gid, scale, bboxes in izip(gid_list, scale_list, bboxes_list):
++    for gid, scale, (bboxes, confidences, img_conf) in izip(gid_list, scale_list, generator):
+         # Unscale results
+         unscaled_bboxes = [_scale_bbox(bbox_, scale) for bbox_ in bboxes]
+-        for bbox in unscaled_bboxes:
+-            yield gid, bbox
++        for index in xrange(len(unscaled_bboxes)):
++            bbox = unscaled_bboxes[index]
++            confidence = float(confidences[index])
++            yield gid, bbox, confidence, img_conf
+ 
+ 
+ def get_image_hough_gpaths(ibs, gid_list, species, quick=True):
+@@ -133,7 +135,17 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
+                                           **detect_config)
+         # Unpack unsupressed bounding boxes
+         bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
+-                  for (centx, centy, minx, miny, maxx, maxy, _, supressed)
++                  for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                   in results if supressed == 0]
+-        yield bboxes
++
++        confidences = [ confidence
++                  for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
++                  in results if supressed == 0]
++
++        if len(results) > 0:
++            image_confidence = max( [ float(result[6]) for result in results] )
++        else:
++            image_confidence = 0.0
++
++        yield bboxes, confidences, image_confidence
+     end_prog()
+diff --git a/ibeis/tests/reset_testdbs.py b/ibeis/tests/reset_testdbs.py
+index b15d73a..0207049 100755
+--- a/ibeis/tests/reset_testdbs.py
++++ b/ibeis/tests/reset_testdbs.py
+@@ -2,7 +2,7 @@
+ # TODO: ADD COPYRIGHT TAG
+ from __future__ import absolute_import, division, print_function
+ from ibeis.dev import sysres
+-from ibeis.injest import injest_database
++from ibeis.ingest import ingest_database
+ from os.path import join
+ from vtool.tests import grabdata
+ import ibeis
+@@ -42,7 +42,7 @@ def reset_testdbs():
+     grabdata.ensure_testdata()
+     delete_testdbs()
+     make_testdb0()
+-    injest_database.injest_standard_database('testdb1')
++    ingest_database.ingest_standard_database('testdb1')
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/ibeis/tests/test_ibs_detect.py b/ibeis/tests/test_ibs_detect.py
+index 42d7f73..a22bee7 100755
+--- a/ibeis/tests/test_ibs_detect.py
++++ b/ibeis/tests/test_ibs_detect.py
+@@ -27,10 +27,11 @@ def TEST_DETECT(ibs):
+     detect_gen = randomforest.generate_detections(ibs, gid_list, species, **detectkw)
+     gid_list2 = []
+     bbox_list2 = []
+-    for gid, bboxes in detect_gen:
++    for gid, bboxes, confidences, img_conf in detect_gen:
+         for bbox in bboxes:
+             gid_list2.append(gid)
+             bbox_list2.append(bbox)
++            # not using confidence nor img_conf here
+ 
+     if SPECIAL:
+         from plottool import viz_image2, fig_presenter
+diff --git a/ibeis/tests/test_ibs_encounters.py b/ibeis/tests/test_ibs_encounters.py
+index 76d2590..5103e6c 100755
+--- a/ibeis/tests/test_ibs_encounters.py
++++ b/ibeis/tests/test_ibs_encounters.py
+@@ -5,7 +5,7 @@ from ibeis.dev import ibsfuncs
+ from itertools import izip
+ # Python
+ import multiprocessing
+-import numpy as np
++#import numpy as np
+ from uuid import UUID
+ # Tools
+ import utool
+@@ -28,45 +28,92 @@ def TEST_ENCOUNTERS(ibs):
+     roi_uuids_list = ibs.get_unflat_roi_uuids(rids_list)
+     names_list = ibs.get_unflat_names(nids_list)
+ 
+-    target_enctexts = ['enc_0', 'enc_1']
+-
+-    target_gid_uuids = [
+-        (UUID('aed981a2-4116-9936-6311-e46bd17e25de'),
+-         UUID('f2c4658f-a722-793b-8578-c392fd550888'),
+-         UUID('d35757a5-8f1b-80d5-8b35-9eb8661cb8df'),
+-         UUID('145d74ce-b0e0-dce3-9bf5-365599e86b56'),
+-         UUID('9d3ae88a-8c33-43ef-530e-62dbf916fff2'),
+-         UUID('08c76203-3614-cada-aace-01d22b3378e2'),
+-         UUID('9dd931ae-04d3-4996-3a3a-c6ca4a375ba4')),
+-        (UUID('383dda50-f26b-200a-8baf-548e3ef88f9c'),
+-         UUID('f409ae19-e64c-c40b-75bb-30bb18f5a1a3'),
+-         UUID('3c06d3d3-1073-5f28-6439-d7edac4c1893'),
+-         UUID('e7fe548c-a001-8df7-c940-bc509862d301'),
+-         UUID('a4597ee8-9e11-c704-efdc-f0d8a1d755b5'),
+-         UUID('70821b89-f34f-ab57-4575-5384380c592a'),
+-         UUID('672b1bd6-1516-d5fa-14f9-b39594447e23'))]
+-
+-    target_roi_uuids = [
+-        (UUID('10678bf2-597d-a25e-3fff-86929529cfb9'),
+-         UUID('ba47db63-439c-e300-0c13-80a40816a13d'),
+-         UUID('9a9b1c0a-dc6a-868d-0858-e5588cad52e8'),
+-         UUID('cd338bea-16cc-c8e4-e7e3-7ffd92814024'),
+-         UUID('4bf7a461-6892-352d-e8cd-9d71864df380'),
+-         UUID('0db42bc8-0ee1-8dee-b528-292f87a6d681'),
+-         UUID('e0cc89cc-fe0d-b2e9-2a8f-6b19ed03a566')),
+-        (UUID('27dc2758-0e81-f337-fefb-b75e88581b1a'),
+-         UUID('8a46c89a-08f2-cfbe-b384-00a5b0b8ef31'),
+-         UUID('2f27d1be-be35-a77c-5933-1d6ba657d74e'),
+-         UUID('5890a727-2efd-94ad-601e-3afde2f6870b'),
+-         UUID('ccabdf13-798d-152a-b6b1-6b7f106bbff3'),
+-         UUID('42a3e2c3-bf75-8f01-6bd1-303a7b30eec2'),
+-         UUID('f0ea15bf-5d38-b65f-d157-0c4a3f34755f'))]
+-
+-    target_names = [('polar', 'zebra', 'jeff', 'lena', 'occl'),
+-                    ('easy', 'elephant', 'hard')]
+-
++    #target_enctexts = ['enc_0', 'enc_1']
++
++    #target_gid_uuids = [
++    #    (UUID('aed981a2-4116-9936-6311-e46bd17e25de'),
++    #     UUID('f2c4658f-a722-793b-8578-c392fd550888'),
++    #     UUID('d35757a5-8f1b-80d5-8b35-9eb8661cb8df'),
++    #     UUID('145d74ce-b0e0-dce3-9bf5-365599e86b56'),
++    #     UUID('9d3ae88a-8c33-43ef-530e-62dbf916fff2'),
++    #     UUID('08c76203-3614-cada-aace-01d22b3378e2'),
++    #     UUID('9dd931ae-04d3-4996-3a3a-c6ca4a375ba4')),
++    #    (UUID('383dda50-f26b-200a-8baf-548e3ef88f9c'),
++    #     UUID('f409ae19-e64c-c40b-75bb-30bb18f5a1a3'),
++    #     UUID('3c06d3d3-1073-5f28-6439-d7edac4c1893'),
++    #     UUID('e7fe548c-a001-8df7-c940-bc509862d301'),
++    #     UUID('a4597ee8-9e11-c704-efdc-f0d8a1d755b5'),
++    #     UUID('70821b89-f34f-ab57-4575-5384380c592a'),
++    #     UUID('672b1bd6-1516-d5fa-14f9-b39594447e23'))]
++
++    #target_roi_uuids = [
++    #    (UUID('10678bf2-597d-a25e-3fff-86929529cfb9'),
++    #     UUID('ba47db63-439c-e300-0c13-80a40816a13d'),
++    #     UUID('9a9b1c0a-dc6a-868d-0858-e5588cad52e8'),
++    #     UUID('cd338bea-16cc-c8e4-e7e3-7ffd92814024'),
++    #     UUID('4bf7a461-6892-352d-e8cd-9d71864df380'),
++    #     UUID('0db42bc8-0ee1-8dee-b528-292f87a6d681'),
++    #     UUID('e0cc89cc-fe0d-b2e9-2a8f-6b19ed03a566')),
++    #    (UUID('27dc2758-0e81-f337-fefb-b75e88581b1a'),
++    #     UUID('8a46c89a-08f2-cfbe-b384-00a5b0b8ef31'),
++    #     UUID('2f27d1be-be35-a77c-5933-1d6ba657d74e'),
++    #     UUID('5890a727-2efd-94ad-601e-3afde2f6870b'),
++    #     UUID('ccabdf13-798d-152a-b6b1-6b7f106bbff3'),
++    #     UUID('42a3e2c3-bf75-8f01-6bd1-303a7b30eec2'),
++    #     UUID('f0ea15bf-5d38-b65f-d157-0c4a3f34755f'))]
++
++    #target_names = [('polar', 'zebra', 'jeff', 'lena', 'occl'),
++    #                ('easy', 'elephant', 'hard')]
++
++    target_enctexts = ['_ENC(1,ms,quant_0.01)0',
++                       '_ENC(1,ms,quant_0.01)0-2',
++                       '_ENC(1,ms,quant_0.01)0-3',
++                       '_ENC(1,ms,quant_0.01)0-4',
++                       '_ENC(1,ms,quant_0.01)0-5',
++                       '_ENC(1,ms,quant_0.01)0-6',
++                       '_ENC(1,ms,quant_0.01)0-7',
++                       '_ENC(1,ms,quant_0.01)0-8',
++                       '_ENC(1,ms,quant_0.01)0-9',
++                       '_ENC(1,ms,quant_0.01)0-10',
++                       '_ENC(1,ms,quant_0.01)0-11',
++                       '_ENC(1,ms,quant_0.01)0-12',
++                       '_ENC(1,ms,quant_0.01)0-13']
++
++    target_gid_uuids = [(UUID('70821b89-f34f-ab57-4575-5384380c592a'),
++                         UUID('f2c4658f-a722-793b-8578-c392fd550888'),
++                         UUID('08c76203-3614-cada-aace-01d22b3378e2'),
++                         UUID('9d3ae88a-8c33-43ef-530e-62dbf916fff2'),
++                         UUID('9dd931ae-04d3-4996-3a3a-c6ca4a375ba4'),
++                         UUID('145d74ce-b0e0-dce3-9bf5-365599e86b56'),
++                         UUID('d35757a5-8f1b-80d5-8b35-9eb8661cb8df'),
++                         UUID('5485daf4-3a9a-fa68-196d-79c996f11181'),
++                         UUID('aed981a2-4116-9936-6311-e46bd17e25de'),
++                         UUID('383dda50-f26b-200a-8baf-548e3ef88f9c'),
++                         UUID('672b1bd6-1516-d5fa-14f9-b39594447e23'),
++                         UUID('a4597ee8-9e11-c704-efdc-f0d8a1d755b5'),
++                         UUID('96735673-dce9-f43a-2cdf-4dc229a0627c'))]
++
++    target_roi_uuids = [(UUID('42a3e2c3-bf75-8f01-6bd1-303a7b30eec2'),
++                         UUID('ba47db63-439c-e300-0c13-80a40816a13d'),
++                         UUID('0db42bc8-0ee1-8dee-b528-292f87a6d681'),
++                         UUID('4bf7a461-6892-352d-e8cd-9d71864df380'),
++                         UUID('e0cc89cc-fe0d-b2e9-2a8f-6b19ed03a566'),
++                         UUID('cd338bea-16cc-c8e4-e7e3-7ffd92814024'),
++                         UUID('9a9b1c0a-dc6a-868d-0858-e5588cad52e8'),
++                         UUID('1d24701e-c85a-41ab-a4c6-0559ae00e370'),
++                         UUID('10678bf2-597d-a25e-3fff-86929529cfb9'),
++                         UUID('27dc2758-0e81-f337-fefb-b75e88581b1a'),
++                         UUID('f0ea15bf-5d38-b65f-d157-0c4a3f34755f'),
++                         UUID('ccabdf13-798d-152a-b6b1-6b7f106bbff3'),
++                         UUID('0e3da848-f9f7-2bca-54cd-8e25ae1403b6'))]
++
++    target_names = [('hard', 'lena', 'polar', 'zebra', 'occl', 'easy', 'jeff')]
++    print(gid_uuids_list)
++    print(target_gid_uuids)
+     def assert_unflat_eq(unflat_list1, unflat_list2, lbl=''):
+         print('testing %r' % lbl)
++        print('unflat_list1 %r' % unflat_list1)
++        print('unflat_list2 %r' % unflat_list2)
+         passed_unsorted = True
+         for ix, (list1, list2) in enumerate(izip(unflat_list1, unflat_list2)):
+             try:
+@@ -80,6 +127,8 @@ def TEST_ENCOUNTERS(ibs):
+             except AssertionError:
+                 sorted1 = sorted(list1)
+                 sorted2 = sorted(list2)
++                print('sorted1 %r' % sorted1)
++                print('sorted2 %r' % sorted2)
+                 for jx, (item1, item2) in enumerate(izip(sorted1, sorted2)):
+                     if item1 != item2:
+                         msg = (('Failed sorted at pos ix=%r, jx=%r\n%r != %r') %
+@@ -96,16 +145,16 @@ def TEST_ENCOUNTERS(ibs):
+         try:
+             assert_unflat_eq(roi_uuids_list, target_roi_uuids)
+             assert_unflat_eq(names_list, target_names)
+-            assert enctext_list  == target_enctexts
+-            assert gid_uuids_list == target_gid_uuids
+-            assert map(set, roi_uuids_list) == map(set, target_roi_uuids)
+-            assert map(set, names_list) == map(set, target_names)
+-
+-            ut1, ut2 = ibs.get_unflat_image_unixtime(gids_list)
+-            ut1 = np.array(ut1)
+-            ut2 = np.array(ut2)
+-            assert(np.all(ut1 > 9000))
+-            assert(np.all(ut2 < 9000))
++            assert_unflat_eq(enctext_list, target_enctexts)
++            assert_unflat_eq(gid_uuids_list, target_gid_uuids)
++            #assert map(set, roi_uuids_list) == map(set, target_roi_uuids)
++            #assert map(set, names_list) == map(set, target_names)
++
++            #ut1, ut2 = ibs.get_unflat_image_unixtime(gids_list)
++            #ut1 = np.array(ut1)
++            #ut2 = np.array(ut2)
++            #assert(np.all(ut1 > 9000))
++            #assert(np.all(ut2 < 9000))
+         except AssertionError as ex:
+             utool.printex(ex, key_list=['eid_list', 'gid_uuids_list', 'roi_uuids_list', 'names_list'])
+             raise
+diff --git a/ibeis/tests/test_sql_numpy.py b/ibeis/tests/test_sql_numpy.py
+index c1a4e7f..08c920e 100755
+--- a/ibeis/tests/test_sql_numpy.py
++++ b/ibeis/tests/test_sql_numpy.py
+@@ -59,7 +59,7 @@ def TEST_SQL_NUMPY():
+     print(' * execute select time=%r sec' % utool.toc(tt))
+ 
+     tt = utool.tic()
+-    result_list = [result for result in db.result_iter()]
++    result_list = sqldbc._results_gen(db.executor)
+     print(' * iter results time=%r sec' % utool.toc(tt))
+     print(' * memory(result_list) = %s' % utool.byte_str2(utool.get_object_size(result_list)))
+     del result_list
+diff --git a/ibeis/tests/test_uuid_consistency.py b/ibeis/tests/test_uuid_consistency.py
+old mode 100644
+new mode 100755
+diff --git a/ibeis/viz/interact/interact_matches.py b/ibeis/viz/interact/interact_matches.py
+index 3a6db64..e081991 100644
+--- a/ibeis/viz/interact/interact_matches.py
++++ b/ibeis/viz/interact/interact_matches.py
+@@ -186,3 +186,181 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
+     ih.connect_callback(fig, 'button_press_event', _click_matches_click)
+     viz.draw()
+     return fig
++
++
++#class MatchInteraction(object):
++#    def __init__(self, ibs, qres, rid=None, fnum=4,
++#                 figtitle='Inspect Query Result', same_fig=True, **kwargs):
++#        """ Plots a chip result and sets up callbacks for interaction. """
++#        fig = ih.begin_interaction('matches', fnum)
++#        qrid = qres.qrid
++#        if rid is None:
++#            rid = qres.get_top_rids(num=1)[0]
++#        rchip1, rchip2 = ibs.get_roi_chips([qrid, rid])
++#        fm = qres.rid2_fm[rid]
++#        mx = kwargs.pop('mx', None)
++#        xywh2_ptr = [None]
++#        annote_ptr = [kwargs.pop('mode', 0)]
++#        last_state = utool.DynStruct()
++#        last_state.same_fig = same_fig
++#        last_state.last_fx = 0
++
++#        toggle_samefig_key = 'Toggle same_fig (currently %r)' % same_fig
++
++#        opt2_callback = [
++#            (toggle_samefig_key, toggle_samefig),
++#            ('query last feature', query_last_feature),
++#            ('cancel', lambda: print('cancel')), ]
++#        guitool.connect_context_menu(fig.canvas, opt2_callback)
++#        ih.connect_callback(fig, 'button_press_event', _click_matches_click)
++#        viz.draw()
++#        return fig
++
++#    # Draw default
++#    def _chipmatch_view(pnum=(1, 1, 1), **kwargs):
++#        mode = annote_ptr[0]  # drawing mode draw: with/without lines/feats
++#        draw_ell = mode >= 1
++#        draw_lines = mode == 2
++#        annote_ptr[0] = (annote_ptr[0] + 1) % 3
++#        df2.figure(fnum=fnum, docla=True, doclf=True)
++#        # TODO RENAME This to remove qres and rectify with show_matches
++#        tup = viz.show_matches(ibs, qres, rid, fnum=fnum, pnum=pnum,
++#                            draw_lines=draw_lines, draw_ell=draw_ell,
++#                            colorbar_=True, **kwargs)
++#        ax, xywh1, xywh2 = tup
++#        xywh2_ptr[0] = xywh2
++
++#        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qrid, rid))
++
++#    # Draw clicked selection
++#    def _select_ith_match(mx, qrid, rid):
++#        #----------------------
++#        # Get info for the _select_ith_match plot
++#        annote_ptr[0] = 1
++#        # Get the mx-th feature match
++#        rid1, rid2 = qrid, rid
++#        fx1, fx2 = fm[mx]
++#        fscore2  = qres.rid2_fs[rid2][mx]
++#        fk2      = qres.rid2_fk[rid2][mx]
++#        kpts1, kpts2 = ibs.get_roi_kpts([rid1, rid2])
++#        desc1, desc2 = ibs.get_roi_desc([rid1, rid2])
++#        kp1, kp2     = kpts1[fx1], kpts2[fx2]
++#        sift1, sift2 = desc1[fx1], desc2[fx2]
++#        info1 = '\nquery'
++#        info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
++#        last_state.last_fx = fx1
++
++#        # Extracted keypoints to draw
++#        extracted_list = [(rchip1, kp1, sift1, fx1, rid1, info1),
++#                        (rchip2, kp2, sift2, fx2, rid2, info2)]
++#        # Normalizng Keypoint
++#        if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
++#            qfx2_norm = qres.filt2_meta['lnbnn']
++#            # Normalizing chip and feature
++#            (rid3, fx3, normk) = qfx2_norm[fx1]
++#            rchip3 = ibs.get_roi_chips(rid3)
++#            kp3 = ibs.get_roi_kpts(rid3)[fx3]
++#            sift3 = ibs.get_roi_desc(rid3)[fx3]
++#            info3 = '\nnorm %s k=%r' % (vh.get_ridstrs(rid3), normk)
++#            extracted_list.append((rchip3, kp3, sift3, fx3, rid3, info3))
++#        else:
++#            print('WARNING: meta doesnt exist')
++
++#        #----------------------
++#        # Draw the _select_ith_match plot
++#        nRows, nCols = len(extracted_list) + same_fig, 3
++#        # Draw matching chips and features
++#        sel_fm = np.array([(fx1, fx2)])
++#        pnum1 = (nRows, 1, 1) if same_fig else (1, 1, 1)
++#        _chipmatch_view(pnum1, vert=False, ell_alpha=.4, ell_linewidth=1.8,
++#                        colors=df2.BLUE, sel_fm=sel_fm, **kwargs)
++#        # Draw selected feature matches
++#        px = nCols * same_fig  # plot offset
++#        prevsift = None
++#        if not same_fig:
++#            fnum2 = fnum + len(viz.FNUMS)
++#            fig2 = df2.figure(fnum=fnum2, docla=True, doclf=True)
++#        else:
++#            fnum2 = fnum
++#        for (rchip, kp, sift, fx, rid, info) in extracted_list:
++#            px = draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
++#                            prevsift=prevsift, rid=rid, info=info)
++#            prevsift = sift
++#        if not same_fig:
++#            ih.connect_callback(fig2, 'button_press_event', _click_matches_click)
++#            df2.set_figtitle(figtitle + vh.get_vsstr(qrid, rid))
++
++#    # Draw ctrl clicked selection
++#    def _sv_view(rid):
++#        fnum = viz.FNUMS['special']
++#        fig = df2.figure(fnum=fnum, docla=True, doclf=True)
++#        ih.disconnect_callback(fig, 'button_press_event')
++#        viz.show_sv(ibs, qres.qrid, rid2=rid, fnum=fnum)
++#        viz.draw()
++
++#    # Callback
++#    def _click_matches_click(event):
++#        print_('[inter] clicked matches')
++#        if event is None:
++#            return
++#        button = event.button
++#        is_right_click = button == 3
++#        if is_right_click:
++#            return
++#        (x, y, ax) = (event.xdata, event.ydata, event.inaxes)
++#        # Out of axes click
++#        if None in [x, y, ax]:
++#            print('... out of axis')
++#            _chipmatch_view()
++#            viz.draw()
++#            return
++#        viztype = vh.get_ibsdat(ax, 'viztype', '')
++#        print_('[ir] viztype=%r ' % viztype)
++#        key = '' if event.key is None else event.key
++#        print_('key=%r ' % key)
++#        ctrl_down = key.find('control') == 0
++#        # Click in match axes
++#        if viztype == 'matches' and ctrl_down:
++#            # Ctrl-Click
++#            print('.. control click')
++#            return _sv_view(rid)
++#        elif viztype == 'matches':
++#            if len(fm) == 0:
++#                print('[inter] no feature matches to click')
++#            else:
++#                # Normal Click
++#                # Select nearest feature match to the click
++#                kpts1, kpts2 = ibs.get_roi_kpts([qrid, rid])
++#                kpts1_m = kpts1[fm[:, 0]]
++#                kpts2_m = kpts2[fm[:, 1]]
++#                x2, y2, w2, h2 = xywh2_ptr[0]
++#                _mx1, _dist1 = utool.nearest_point(x, y, kpts1_m)
++#                _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
++#                mx = _mx1 if _dist1 < _dist2 else _mx2
++#                print('... clicked mx=%r' % mx)
++#                _select_ith_match(mx, qrid, rid)
++#        elif viztype in ['warped', 'unwarped']:
++#            hs_rid = ax.__dict__.get('_hs_rid', None)
++#            hs_fx = ax.__dict__.get('_hs_fx', None)
++#            if hs_rid is not None and viztype == 'unwarped':
++#                ishow_chip(ibs, hs_rid, fx=hs_fx, fnum=df2.next_fnum())
++#            elif hs_rid is not None and viztype == 'warped':
++#                viz.show_keypoint_gradient_orientations(ibs, hs_rid, hs_fx, fnum=df2.next_fnum())
++#        else:
++#            print('...Unknown viztype: %r' % viztype)
++#        viz.draw()
++
++#    if mx is None:
++#        _chipmatch_view()
++#    else:
++#        _select_ith_match(mx, qrid, rid)
++
++#    def toggle_samefig():
++#        # FIXME: Do not do recursive calls
++#        ishow_matches(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
++
++#    def query_last_feature():
++#        viz.show_nearest_descriptors(ibs, qrid, last_state.last_fx, df2.next_fnum())
++#        fig3 = df2.gcf()
++#        ih.connect_callback(fig3, 'button_press_event', _click_matches_click)
++#        df2.update()
+diff --git a/ibeis/viz/interact/interact_qres2.py b/ibeis/viz/interact/interact_qres2.py
+new file mode 100644
+index 0000000..309fc19
+--- /dev/null
++++ b/ibeis/viz/interact/interact_qres2.py
+@@ -0,0 +1,334 @@
++from __future__ import absolute_import, division, print_function
++# UTool
++import utool
++import functools
++from collections import OrderedDict as odict
++# Drawtool
++import plottool.draw_func2 as df2
++# IBEIS
++from ibeis.viz import viz_helpers as vh
++from ibeis.dev import ibsfuncs
++from plottool import interact_helpers as ih
++from ibeis.viz import viz_matches
++from ibeis.viz.interact.interact_matches import ishow_matches
++from ibeis.viz.interact.interact_sver import ishow_sver
++from ibeis.dev import results_organizer
++import matplotlib as mpl
++from plottool import plot_helpers as ph
++#import cv2
++
++(print, print_, printDBG, rrr, profile) = utool.inject(
++    __name__, '[interact_qres2]')
++
++
++BREAK_MATCH_PREF = 'break match'
++NEW_MATCH_PREF   = 'new match'
++RENAME1_PREF     = 'rename query: '
++RENAME2_PREF     = 'rename result: '
++
++
++def default_interact_qres_params():
++    params = {
++        'fnum': 512,
++        'nPerPage': 6,
++        'ranks_lt': 3,
++        'on_change_callback': None
++    }
++    return params
++
++
++class Interact_QueryResult(object):
++    def __init__(self, ibs, qrid2_qres, **kwargs):
++        self.interactkw = {
++            'draw_fmatches': False,
++            'draw_ell': True,
++            'draw_rect': True,
++            'draw_lines': True,
++            'in_image': False,
++            'draw_lbl': True,
++            'show_timedelta': False,
++        }
++        self.toggleable_kws = odict([
++            ('TOG: fmatch', 'draw_fmatches'),
++            ('TOG: in_image', 'in_image'),
++            ('TOG: timedelta', 'show_timedelta'),
++            ('TOG: lbl', 'draw_lbl'),
++        ])
++        params = default_interact_qres_params()
++        utool.updateif_haskey(params, kwargs)
++        self.__dict__.update(**params)
++        self.ibs = ibs
++        self.nCands = 0  # number of candidate matches
++        self.qrid2_qres = {}
++        self.cand_match_list = []
++        self.start_index = 0
++        self.current_pagenum = -1
++        self.current_match_rids = None
++        self.current_qres       = None
++        self.scope = []  # for keeping those widgets alive!
++        self.nPages = 0
++        self.stop_index  = self.start_index + self.nPerPage
++        self.init_candidates(qrid2_qres)
++        self.show_page(0)
++
++    def get_default_params(self):
++        return default_interact_qres_params()
++
++    def init_candidates(self, qrid2_qres):
++        self.qrid2_qres = qrid2_qres
++        get_candidates = results_organizer.get_automatch_candidates
++        self.cand_match_list = get_candidates(self.qrid2_qres,
++                                              ranks_lt=self.ranks_lt,
++                                              directed=False)
++        (qrids, rids, scores, ranks) = self.cand_match_list
++        self.qrids = qrids
++        self.rids = rids
++        self.nCands = len(self.qrids)
++        self.nPages = utool.iceil(self.nCands / self.nPerPage)
++        #if self.nCands > 0:
++        #    index = 0
++        #    self.select_candidate_match(index)
++
++    def select_candidate_match(self, index):
++        #if not utool.isiterable(index_list):
++        #    index = index_list
++        #if index < 0 or index >= len(self.cand_match_list): raise AssertionError('no results')
++            #return None
++        (qrid, rid, rank, score) = [list_[index] for list_ in self.cand_match_list]
++        self.current_match_rids = (self.qrids[index], self.rids[index])
++        self.current_qres       = self.qrid2_qres[qrid]
++
++    def append_button(self, text, divider=None, rect=None, callback=None, **kwargs):
++        """ Adds a button to the current page """
++        if divider is not None:
++            new_ax = divider.append_axes('bottom', size='9%', pad=.05)
++        if rect is not None:
++            new_ax = df2.plt.axes(rect)
++        new_but = mpl.widgets.Button(new_ax, text)
++        if callback is not None:
++            new_but.on_clicked(callback)
++        ph.set_plotdat(new_ax, 'viztype', 'button')
++        ph.set_plotdat(new_ax, 'text', text)
++        for key, val in kwargs.iteritems():
++            ph.set_plotdat(new_ax, key, val)
++        # Keep buttons from losing scrop
++        self.scope.append((new_but, new_ax))
++
++    def clean_scope(self):
++        """ Removes any widgets saved in the interaction scope """
++        #for (but, ax) in self.scope:
++        #    but.disconnect_events()
++        #    ax.set_visible(False)
++        #    assert len(ax.callbacks.callbacks) == 0
++        self.scope = []
++
++    def prepare_page(self, pagenum):
++        # Set the start index
++        self.start_index = pagenum * self.nPerPage
++        # Clip based on nCands
++        self.nDisplay = min(self.nCands - self.start_index, self.nPerPage)
++        nRows, nCols = ph.get_square_row_cols(self.nDisplay)
++        # Create a grid to hold nPerPage
++        self.pnum_ = df2.get_pnum_func(nRows, nCols)
++        printDBG('[iqr2*] r=%r, c=%r' % (nRows, nCols))
++        # Adjust stop index
++        self.stop_index = self.start_index + self.nDisplay
++        # Clear current figure
++        self.clean_scope()
++        self.fig = df2.figure(fnum=self.fnum, pnum=self.pnum_(0), doclf=True, docla=True)
++        ih.disconnect_callback(self.fig, 'button_press_event')
++        ih.connect_callback(self.fig, 'button_press_event', self.on_figure_clicked)
++        printDBG(self.fig)
++
++    def show_page(self, pagenum=None):
++        """ Displays a page of matches """
++        if pagenum is None:
++            pagenum = self.current_pagenum
++        print('[iqr2] show page: %r' % pagenum)
++        self.current_pagenum = pagenum
++        self.prepare_page(pagenum)
++        # Begin showing matches
++        index = self.start_index
++        for index in xrange(self.start_index, self.stop_index):
++            self.show_match(index, draw=False)
++        self.make_hud()
++        self.draw()
++
++    def show_match(self, index, draw=True, make_buttons=True):
++        printDBG('[ishow_qres] starting interaction')
++        self.select_candidate_match(index)
++        # Get index relative to the page
++        px = index - self.start_index
++        pnum = self.pnum_(px)
++        #fnum = df2.kwargs_fnum(kwargs)
++        #printDBG('[inter] starting %s interaction' % type_)
++        # Setup figure
++        fnum = self.fnum
++        printDBG('\n<<<<  BEGIN %s INTERACTION >>>>' % (str('qres').upper()))
++        fig = df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=False)
++        printDBG(fig)
++        #self.ax = ax = df2.gca()
++        # Get viz params
++        qres = self.current_qres
++        rid1, rid2 = self.current_match_rids
++        ibs = self.ibs
++        kwargs = self.interactkw
++        # Vizualize
++        ax = viz_matches.show_matches(ibs, qres, rid2, self_fm=[], fnum=fnum,
++                                      pnum=pnum, **kwargs)[0]
++
++        divider = df2.ensure_divider(ax)
++
++        name1, name2 = ibs.get_roi_names([rid1, rid2])
++        #truth = vh.get_match_truth(self.ibs, rid1, rid2)
++
++        if make_buttons:
++            butkw = {
++                'divider': divider,
++                'callback': self.match_reviewed,
++                'index': index,
++            }
++            if name1 == name2 and not name1.startswith('____'):
++                self.append_button(BREAK_MATCH_PREF, **butkw)
++            else:
++                if not name1.startswith('____'):
++                    self.append_button(RENAME2_PREF + name1, **butkw)
++                if not name2.startswith('____'):
++                    self.append_button(RENAME1_PREF + name2, **butkw)
++                if name1.startswith('____') and name2.startswith('____'):
++                    self.append_button(NEW_MATCH_PREF, **butkw)
++
++        if draw:
++            vh.draw()
++
++    def make_hud(self):
++        """ Creates heads up display """
++        # Button positioning
++        nToggle = len(self.toggleable_kws)
++
++        hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.08, h=.04,
++                                                     xpad=.05, startx=0, stopx=1)
++        prev_rect = hl_slot(0)
++        next_rect = hr_slot(0)
++
++        tw = df2.width_from(nToggle, pad=.05, start=.13, stop=.87)
++        hlt_slot, hrt_slot = df2.make_bbox_positioners(y=.02, w=tw, h=.04,
++                                                       xpad=.05, startx=.13,
++                                                       stopx=.87)
++
++        # Create buttons
++        if self.current_pagenum != 0:
++            self.append_button('prev', callback=self.prev_page, rect=prev_rect)
++        if self.current_pagenum != self.nPages - 1:
++            self.append_button('next', callback=self.next_page, rect=next_rect)
++        for count, (label, keyword) in enumerate(self.toggleable_kws.iteritems()):
++            callback = functools.partial(self.toggle_kw, keyword=keyword)
++            rect = hlt_slot(count)
++            self.append_button(label, callback=callback, rect=rect)
++
++        figtitle_fmt = '''
++        Match Candidates ({start_index}-{stop_index}) / {nCands}
++        page {current_pagenum} / {nPages}
++        '''
++        # sexy: using object dict as format keywords
++        figtitle = figtitle_fmt.format(**self.__dict__)
++        df2.set_figtitle(figtitle)
++
++    def next_page(self, event):
++        print('next')
++        self.show_page(self.current_pagenum + 1)
++        pass
++
++    def prev_page(self, event):
++        self.show_page(self.current_pagenum - 1)
++        pass
++
++    def toggle_kw(self, event, keyword=None):
++        print('toggle %r' % keyword)
++        self.interactkw[keyword] = not self.interactkw[keyword]
++        self.show_page()
++
++    def match_reviewed(self, event):
++        ax = event.inaxes
++        viztype = ph.get_plotdat(ax, 'viztype', '')
++        assert viztype == 'button', 'bad mpl button slot'
++        # The change name button was clicked
++        index = ph.get_plotdat(ax, 'index', -1)
++        text  = ph.get_plotdat(ax, 'text', -1)
++        self.select_candidate_match(index)
++        rid1, rid2 = self.current_match_rids
++        print(index)
++        print(text)
++        ibs = self.ibs
++        if text.startswith(BREAK_MATCH_PREF):
++            ibs.set_roi_names([rid1, rid2], ['____', '____'])
++        elif text.startswith(NEW_MATCH_PREF):
++            new_name = ibsfuncs.make_new_name(ibs)
++            ibs.set_roi_names([rid1, rid2], [new_name, new_name])
++        elif text.startswith(RENAME1_PREF):
++            name2 = ibs.get_roi_names(rid2)
++            ibs.set_roi_names([rid1], [name2])
++        elif text.startswith(RENAME2_PREF):
++            name1 = ibs.get_roi_names(rid1)
++            ibs.set_roi_names([rid2], [name1])
++        self.show_page()
++
++    def on_figure_clicked(self, event):
++        """ Clicked a match between query roi and result roi:
++            parses the type of click it was and execute the correct
++            visualiztion
++        """
++        print('[viz] clicked result')
++        if ih.clicked_outside_axis(event):
++            #self.toggle_fmatch()
++            pass
++        else:
++            ax = event.inaxes
++            viztype = ph.get_plotdat(ax, 'viztype', '')
++            #printDBG(str(event.__dict__))
++            printDBG('viztype=%r' % viztype)
++            # Clicked a specific matches
++            if viztype == 'matches':
++                rid1 = ph.get_plotdat(ax, 'rid1', None)
++                rid2 = ph.get_plotdat(ax, 'rid2', None)
++                # Ctrl-Click
++                key = '' if event.key is None else event.key
++                print('key = %r' % key)
++                if key.find('control') == 0:
++                    print('[viz] result control clicked')
++                    self.on_ctrl_clicked_match(rid1, rid2)
++                # Left-Click
++                else:
++                    print('[viz] result clicked')
++                    self.on_clicked_match(rid1, rid2)
++
++    def on_ctrl_clicked_match(self, rid1, rid2):
++        """ HELPER:  Executed when a result ROI is control-clicked """
++        printDBG('ctrl+clicked rid2=%r' % rid2)
++        fnum_ = df2.next_fnum()
++        ishow_sver(self.ibs, rid1, rid2, fnum=fnum_)
++        fig = df2.gcf()
++        fig.canvas.draw()
++        df2.bring_to_front(fig)
++
++    def on_clicked_match(self, rid1, rid2):
++        """ HELPER: Executed when a result ROI is clicked """
++        printDBG('clicked rid2=%r' % rid2)
++        fnum_ = df2.next_fnum()
++        qres = self.qrid2_qres[rid1]
++        ishow_matches(self.ibs, qres, rid2, fnum=fnum_)
++        fig = df2.gcf()
++        fig.canvas.draw()
++        df2.bring_to_front(fig)
++        #self.draw()
++        #self.bring_to_front()
++
++    def bring_to_front(self):
++        df2.bring_to_front(self.fig)
++
++    def draw(self):
++        self.fig.canvas.draw()
++
++    def show(self):
++        self.draw()
++        self.bring_to_front()
+diff --git a/ibeis/viz/viz_helpers.py b/ibeis/viz/viz_helpers.py
+index 3ab0f62..b48986f 100644
+--- a/ibeis/viz/viz_helpers.py
++++ b/ibeis/viz/viz_helpers.py
+@@ -194,15 +194,17 @@ def get_roi_labels(ibs, rid_list, draw_lbls):
+ def get_query_label(ibs, qres, rid2, truth, **kwargs):
+     """ returns title based on the query chip and result """
+     label_list = []
+-    if kwargs.get('show_truth', True):
++    if kwargs.get('show_truth', False):
+         truth_str = '*%s*' % get_truth_label(ibs, truth)
+         label_list.append(truth_str)
+     if kwargs.get('show_rank', True):
+-        rank_str = ' rank=%s' % str(qres.get_rid_ranks([rid2])[0] + 1)
++        rank_str = 'rank=%s' % str(qres.get_rid_ranks([rid2])[0] + 1)
+         label_list.append(rank_str)
+     if kwargs.get('show_score', True):
+         score = qres.rid2_score[rid2]
+-        score_str = (' score=' + utool.num_fmt(score))
++        score_str = ('score=' + utool.num_fmt(score))
++        if len(label_list) > 0:
++            score_str = '\n' + score_str
+         label_list.append(score_str)
+     if kwargs.get('show_timedelta', False):
+         timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qrid, rid2))
+diff --git a/ibeis/viz/viz_matches.py b/ibeis/viz/viz_matches.py
+index 1b4a360..2983f0d 100644
+--- a/ibeis/viz/viz_matches.py
++++ b/ibeis/viz/viz_matches.py
+@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
+ import utool
+ # Drawtool
+ import plottool.draw_func2 as df2
++import plottool.plot_helpers as ph
+ # IBEIS
+ from . import viz_helpers as vh
+ (print, print_, printDBG, rrr, profile) = utool.inject(
+@@ -13,15 +14,19 @@ from . import viz_helpers as vh
+ def show_matches(ibs, qres, rid2, sel_fm=[], **kwargs):
+     """ shows single annotated match result. """
+     in_image = kwargs.get('in_image', False)
+-    qrid = qres.qrid
++    draw_fmatches = kwargs.get('draw_fmatches', True)
++    rid1 = qres.qrid
+     fm = qres.rid2_fm[rid2]
+     fs = qres.rid2_fs[rid2]
+     # Read query and result info (chips, names, ...)
+-    rchip1, rchip2 = vh.get_chips(ibs, [qrid, rid2], **kwargs)
+-    kpts1,  kpts2  = vh.get_kpts( ibs, [qrid, rid2], **kwargs)
++    rchip1, rchip2 = vh.get_chips(ibs, [rid1, rid2], **kwargs)
++    if draw_fmatches:
++        kpts1, kpts2 = vh.get_kpts( ibs, [rid1, rid2], **kwargs)
++    else:
++        kpts1, kpts2 = None, None
+ 
+     # Build annotation strings / colors
+-    lbl1 = 'q' + vh.get_ridstrs(qrid)
++    lbl1 = 'q' + vh.get_ridstrs(rid1)
+     lbl2 = vh.get_ridstrs(rid2)
+     if in_image:  # HACK!
+         lbl1 = None
+@@ -41,10 +46,10 @@ def show_matches(ibs, qres, rid2, sel_fm=[], **kwargs):
+     if len(sel_fm) > 0:
+         # Draw any selected matches
+         sm_kw = dict(rect=True, colors=df2.BLUE)
+-        df2.draw_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
++        df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
+     offset1 = (x1, y1)
+     offset2 = (x2, y2)
+-    annotate_matches(ibs, qres, rid2, xywh2=xywh2,
++    annotate_matches(ibs, qres, rid2, xywh2=xywh2, xywh1=xywh1,
+                      offset1=offset1, offset2=offset2, **kwargs)
+     return ax, xywh1, xywh2
+ 
+@@ -52,42 +57,62 @@ def show_matches(ibs, qres, rid2, sel_fm=[], **kwargs):
+ @utool.indent_func
+ def annotate_matches(ibs, qres, rid2,
+                      offset1=(0, 0),
+-                     offset2=(0, 0), **kwargs):
++                     offset2=(0, 0),
++                     xywh2=(0, 0, 0, 0),
++                     xywh1=(0, 0, 0, 0),
++                     **kwargs):
+     # TODO Use this function when you clean show_matches
+-    in_image = kwargs.get('in_image', False)
+-    show_query = kwargs.get('show_query', True)
++    in_image    = kwargs.get('in_image', False)
++    show_query  = kwargs.get('show_query', True)
++    draw_border = kwargs.get('draw_border', True)
++    draw_lbl    = kwargs.get('draw_lbl', True)
++
+     printDBG('[viz] annotate_matches()')
+-    qrid = qres.qrid
+-    truth = vh.get_match_truth(ibs, qrid, rid2)
++    rid1 = qres.qrid
++    truth = vh.get_match_truth(ibs, rid1, rid2)
+     truth_color = vh.get_truth_color(ibs, truth)
+     # Build title
+     title = vh.get_query_label(ibs, qres, rid2, truth, **kwargs)
+     # Build xlabel
+-    xlabel = vh.get_chip_labels(ibs, rid2, **kwargs)
++    #xlabel = vh.get_chip_labels(ibs, rid2, **kwargs)
+     ax = df2.gca()
+-    vh.set_ibsdat(ax, 'viztype', 'matches')
+-    vh.set_ibsdat(ax, 'qrid', qrid)
+-    vh.set_ibsdat(ax, 'rid2', rid2)
++    ph.set_plotdat(ax, 'viztype', 'matches')
++    ph.set_plotdat(ax, 'qrid', rid1)
++    ph.set_plotdat(ax, 'rid1', rid1)
++    ph.set_plotdat(ax, 'rid2', rid2)
++    if draw_lbl:
++        name1, name2 = ibs.get_roi_names([rid1, rid2])
++        lbl1 = repr(name1)  + ' : ' + 'q' + vh.get_ridstrs(rid1)
++        lbl2 = repr(name2)  + ' : ' +  vh.get_ridstrs(rid2)
++    else:
++        lbl1, lbl2 = None, None
+     if vh.NO_LABEL_OVERRIDE:
+         title = ''
+-        xlabel = ''
++        #xlabel = ''
+     df2.set_title(title, ax)
+-    df2.set_xlabel(xlabel, ax)
++    #df2.set_xlabel(xlabel, ax)
+     # Plot annotations over images
+     if in_image:
+-        bbox1, bbox2 = vh.get_bboxes(ibs, [qrid, rid2], [offset1, offset2])
+-        theta1, theta2 = vh.get_thetas(ibs, [qrid, rid2])
++        bbox1, bbox2 = vh.get_bboxes(ibs, [rid1, rid2], [offset1, offset2])
++        theta1, theta2 = ibs.get_roi_thetas([rid1, rid2])
+         # HACK!
+-        lbl1 = 'q' + vh.get_ridstrs(qrid)
+-        lbl2 = vh.get_ridstrs(rid2)
+         if show_query:
+             df2.draw_roi(bbox1, bbox_color=df2.ORANGE, label=lbl1, theta=theta1)
+-        df2.draw_roi(bbox2, bbox_color=truth_color, label=lbl2, theta=theta2)
++        bbox_color2 = truth_color if draw_border else df2.ORANGE
++        df2.draw_roi(bbox2, bbox_color=bbox_color2, label=lbl2, theta=theta2)
+     else:
+         xy, w, h = df2._axis_xy_width_height(ax)
+         bbox2 = (xy[0], xy[1], w, h)
+         theta2 = 0
+-        df2.draw_border(ax, truth_color, 4, offset=offset2)
++        if draw_border:
++            df2.draw_border(ax, truth_color, 4, offset=offset2)
++        if draw_lbl:
++            # Custom user label for chips 1 and 2
++            (x1, y1, w1, h1) = xywh1
++            (x2, y2, w2, h2) = xywh2
++            df2.absolute_lbl(x1 + w1, y1, lbl1)
++            df2.absolute_lbl(x2 + w2, y2, lbl2)
+         # No matches draw a red box
+     if rid2 not in qres.rid2_fm or len(qres.rid2_fm[rid2]) == 0:
+-        df2.draw_boxedX(bbox2, theta=theta2)
++        if draw_border:
++            df2.draw_boxedX(bbox2, theta=theta2)
+diff --git a/setup.py b/setup.py
+index 7599290..e545868 100755
+--- a/setup.py
++++ b/setup.py
+@@ -6,7 +6,7 @@ from utool.util_setup import setuptools_setup
+ CHMOD_PATTERNS = [
+     'run_tests.sh',
+     'test_*.py',
+-    'injest_*.py',
++    'ingest_*.py',
+ ]
+ 
+ CYTHON_FILES = [
+@@ -26,7 +26,7 @@ PROJECT_DIRS = [
+     'ibeis/control',
+     'ibeis/dev',
+     'ibeis/gui',
+-    'ibeis/injest',
++    'ibeis/ingest',
+     'ibeis/model',
+     'ibeis/hots',
+     'ibeis/preproc',

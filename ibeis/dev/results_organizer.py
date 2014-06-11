@@ -199,7 +199,7 @@ def organize_results(ibs, qrid2_qres):
     return allorg
 
 
-def get_automatch_candidates(qrid2_qres, ranks_lt=5):
+def get_automatch_candidates(qrid2_qres, ranks_lt=5, directed=True):
     """ Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres
     and will be used in production.
@@ -231,5 +231,23 @@ def get_automatch_candidates(qrid2_qres, ranks_lt=5):
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
+    # Remove directed edges
+    if not directed:
+        #nodes = np.unique(directed_edges.flatten())
+        directed_edges = np.vstack((qrid_arr, rid_arr)).T
+        flipped = qrid_arr < rid_arr
+        # standardize edge order
+        edges_dupl = directed_edges.copy()
+        edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
+        # Find unique row indexes
+        unique_rowx = utool.unique_row_indexes(edges_dupl)
+        #edges_unique = edges_dupl[unique_rowx]
+        #flipped_unique = flipped[unique_rowx]
+        qrid_arr  = qrid_arr[unique_rowx]
+        rid_arr   = rid_arr[unique_rowx]
+        score_arr = score_arr[unique_rowx]
+        rank_arr  = rank_arr[unique_rowx]
+
     candidate_matches = (qrid_arr, rid_arr, score_arr, rank_arr)
+
     return candidate_matches

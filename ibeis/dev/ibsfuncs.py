@@ -38,10 +38,17 @@ def export_to_hotspotter(ibs):
 
 
 @__injectable
-def get_image_bboxes(ibs, gid_list):
-    size_list = ibs.get_image_sizes(gid_list)
-    bbox_list  = [(0, 0, w, h) for (w, h) in size_list]
-    return bbox_list
+def get_image_roi_bboxes(ibs, gid_list):
+    rids_list = ibs.get_image_rids(gid_list)
+    bboxes_list = ibs.get_unflat_roi_bboxes(rids_list)
+    return bboxes_list
+
+
+@__injectable
+def get_image_roi_thetas(ibs, gid_list):
+    rids_list = ibs.get_image_rids(gid_list)
+    thetas_list = ibs.get_unflat_roi_thetas(rids_list)
+    return thetas_list
 
 
 @__injectable
@@ -171,7 +178,7 @@ def localize_images(ibs, gid_list=None):
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
     ibs.set_image_uris(gid_list, loc_gname_list)
-    assert all(map(exists, loc_gname_list)), 'not all images copied'
+    assert all(map(exists, loc_gpath_list)), 'not all images copied'
 
 
 @__injectable
@@ -233,7 +240,9 @@ def inject_ibeis(ibs):
         ibs.get_roi_uuids,
         ibs.get_image_uuids,
         ibs.get_names,
-        ibs.get_image_unixtime
+        ibs.get_image_unixtime,
+        ibs.get_roi_bboxes,
+        ibs.get_roi_thetas,
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
@@ -341,7 +350,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
     Input: gpath_list
     Output: names based on the parent folder of each image
     """
-    INJEST_FORMATS = {
+    INGEST_FORMATS = {
         FMT_KEYS.name_fmt: utool.named_field_regex([
             ('name', r'[a-zA-Z]+'),  # all alpha characters
             ('id',   r'\d*'),        # first numbers (if existant)
@@ -356,7 +365,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
             ('ext',  r'\w+'),
         ]),
     }
-    regex = INJEST_FORMATS.get(fmtkey, fmtkey)
+    regex = INGEST_FORMATS.get(fmtkey, fmtkey)
     gname_list = utool.fpaths_to_fnames(gpath_list)
     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
 
@@ -600,3 +609,8 @@ def print_tables(ibs):
     ibs.print_name_table()
     ibs.print_config_table()
     print('\n')
+
+
+def make_new_name(ibs):
+    new_name = 'name_%d' % ibs.get_num_names()
+    return new_name
