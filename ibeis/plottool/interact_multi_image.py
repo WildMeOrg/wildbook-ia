@@ -45,7 +45,9 @@ class MultiImageInteraction(object):
         # Display the first page
         self.first_load = True
         self.scope = []
-        self.display_next_page()
+        self.current_pagenum = 0
+        self.nPages = utool.iceil(self.nImgs / nPerPage)
+        self.show_page()
 
     def append_button(self, text, divider=None, rect=None, callback=None, **kwargs):
         """ Adds a button to the current page """
@@ -110,8 +112,8 @@ class MultiImageInteraction(object):
         """ Gets indexes for the pagenum ready to be displayed """
         # Set the start index
         self.start_index = pagenum * self.nPerPage
-        # Clip based on nCands
-        self.nDisplay = min(self.nCands - self.start_index, self.nPerPage)
+        # Clip based on nImgs
+        self.nDisplay = min(self.nImgs - self.start_index, self.nPerPage)
         nRows, nCols = ph.get_square_row_cols(self.nDisplay)
         # Create a grid to hold nPerPage
         self.pnum_ = df2.get_pnum_func(nRows, nCols)
@@ -139,6 +141,9 @@ class MultiImageInteraction(object):
         self.make_hud()
         self.draw()
 
+    def draw(self):
+        self.fig.canvas.draw()
+
     def plot_image(self, index):
         px = index - self.start_index
         gpath      = self.gpath_list[index]
@@ -160,10 +165,11 @@ class MultiImageInteraction(object):
             'label_list' : label_list,
         }
         #print(utool.dict_str(_vizkw))
-        print('vizkw = ' + utool.dict_str(_vizkw))
+        #print('vizkw = ' + utool.dict_str(_vizkw))
         _, ax = viz_image2.show_image(img, **_vizkw)
         ph.set_plotdat(ax, 'px', str(px))
-        ph.set_plotdat(ax, 'title', str(index))
+        ph.set_plotdat(ax, 'index', index)
+        print(index)
         ph.set_plotdat(ax, 'bbox_list', bbox_list)
         ph.set_plotdat(ax, 'gpath', gpath)
 
@@ -177,28 +183,30 @@ class MultiImageInteraction(object):
         self.thetas_list[index] = updated_theta_list
         print('Images bbox after: %r' % (self.bboxes_list[index],))
         self.plot_image(index)
-        plt.draw()
+        self.draw()
 
     def on_figure_clicked(self, event):
         #don't do other stuff if we clicked a button
         point = (event.x, event.y)
-        if self.next_ax.contains_point(point) or self.prev_ax.contains_point(point):
-            print('in button click')
-            return
+        #if self.next_ax.contains_point(point) or self.prev_ax.contains_point(point):
+            #print('in button click')
+            #return
 
-        if ih.clicked_inside_axis(event):
-            ax = event.inaxes
-            image_number = int(ph.get_plotdat(ax, 'title'))
+        if not ih.clicked_inside_axis(event):
+            return
+        ax = event.inaxes
+        index = ph.get_plotdat(ax, 'index')
+        if index is not None:
             #bbox_list  = ph.get_plotdat(ax, 'bbox_list')
-            bbox_list = self.bboxes_list[image_number]
+            gpath = self.gpath_list[index]
+            bbox_list = self.bboxes_list[index]
             print('Bbox of figure: %r' % (bbox_list,))
-            theta_list = self.thetas_list[image_number]
+            theta_list = self.thetas_list[index]
             print('theta_list = %r' % (theta_list,))
-            gpath      = ph.get_plotdat(ax, 'gpath')
             #img = mpimg.imread(gpath)
             img = gtool.imread(gpath)
             fnum = df2.next_fnum()
-            mc = interact_rois.ROIInteraction(img, image_number, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
+            mc = interact_rois.ROIInteraction(img, index, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
             self.mc = mc
             # """wait for accept
             # have a flag to tell if a bbox has been changed, on the bbox list that is brought it"
@@ -207,7 +215,7 @@ class MultiImageInteraction(object):
             # """
             #plt.show()
             df2.update()
-            print('Clicked: ax: num=%r' % image_number)
+            print('Clicked: ax: num=%r' % index)
 
     def key_press_callback(self, event):
         if event.key == 'n':

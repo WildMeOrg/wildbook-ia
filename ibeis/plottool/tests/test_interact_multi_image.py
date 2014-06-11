@@ -12,14 +12,14 @@ def test_interact_multimage(imgpaths):
 
     bboxes_list[0] = [(-200, -100, 400, 400)]
     print(bboxes_list)
-    iteract_obj = interact_multi_image.MultiImageInteraction(imgpaths, max_per_page=10, bboxes_list=bboxes_list)
+    iteract_obj = interact_multi_image.MultiImageInteraction(imgpaths, nPerPage=4, bboxes_list=bboxes_list)
 # def test_interact_multimage(imgpaths, gid_list=None, rids_list=None, bboxes_list=None):
 #     img_list = imread_many(imgpaths)
 #     iteract_obj = interact_multi_image.MultiImageInteraction(img_list +
 #                                                              img_list,
 #                                                              gid_list, rids_list, bboxes_list,
 # >>>>>>> Stashed changes
-#                                                              max_per_page=6)
+#                                                              nPerPage=6)
     return iteract_obj
 
 if __name__ == '__main__':
