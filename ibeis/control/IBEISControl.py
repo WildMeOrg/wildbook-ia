@@ -374,10 +374,10 @@ class IBEISController(object):
             confidence_list = [0.0 for _ in xrange(len(gid_list))]
         if notes_list is None:
             notes_list = ['' for _ in xrange(len(gid_list))]
-        # Build deterministic and unique ROI ids
+        # Build ~~deterministic?~~ random and unique ROI ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
         roi_uuid_list = ibsfuncs.make_roi_uuids(image_uuid_list, bbox_list,
-                                                theta_list)
+                                                theta_list, deterministic=False)
         # Define arguments to insert
         params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
                                             bbox_list, theta_list,
@@ -1542,8 +1542,8 @@ class IBEISController(object):
                 return
             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
             ibs.add_rois(detected_gids, detected_bboxes,
-                            notes_list=notes_list,
-                            confidence_list=detected_confidences)
+                         notes_list=notes_list,
+                         confidence_list=detected_confidences)
             ibs.set_image_confidence(detected_gids, img_confs)
 
         for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
