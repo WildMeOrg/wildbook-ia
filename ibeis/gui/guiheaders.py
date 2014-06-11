@@ -8,13 +8,14 @@ ROI_TABLE   = 'rois'
 NAME_TABLE  = 'names'
 QRES_TABLE  = 'qres'
 ENCOUNTER_TABLE = 'encounters'
+THUMB_TABLE = 'thumbs'
 
 #-----------------
 # Define the tables
 #-----------------
 
 # enabled tables
-TABLENAME_LIST = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE]
+TABLENAME_LIST = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE, THUMB_TABLE]
 
 # table nice names
 TABLE_NICE = {
@@ -23,6 +24,7 @@ TABLE_NICE = {
     NAME_TABLE      : 'Name Table',
     QRES_TABLE      : 'Query Results Table',
     ENCOUNTER_TABLE : 'Encounter Table',
+    THUMB_TABLE     : 'Thumbnail Table',
 }
 
 # the columns each ibeis table has
@@ -36,6 +38,7 @@ TABLE_COLNAMES = {
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
+    THUMB_TABLE     : ['gid', 'thumb', 'gname'],
 }
 
 # the columns which are editable
@@ -45,6 +48,7 @@ TABLE_EDITSET = {
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
+    THUMB_TABLE     : set([]),
 }
 
 # Define the valid columns a table could have
@@ -151,6 +155,16 @@ def make_ibeis_headers_dict(ibs):
     setters[ENCOUNTER_TABLE] = {
         'enctext': ibs.set_encounter_enctext,
     }
+
+    iders[THUMB_TABLE] = ibs.get_valid_gids
+    getters[THUMB_TABLE] = {
+        'gid'        : lambda gids: gids,
+        'gname'      : ibs.get_image_gnames,
+        'thumb'      : ibs.get_image_exts,
+    }
+    setters[THUMB_TABLE] = {
+    }
+
 
     def make_header(tblname):
         """

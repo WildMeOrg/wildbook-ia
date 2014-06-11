@@ -173,18 +173,18 @@ def desc_dists(ibs, qrid_list):
 
 @devcmd('inspect')
 def inspect_matches(ibs, qrid_list):
-    #from ibeis.gui import inspect_gui
+    from ibeis.gui import inspect_gui
     from ibeis.viz.interact import interact_qres2
     allres = get_allres(ibs, qrid_list)
     guitool.ensure_qapp()
     tblname = 'qres'
     qrid2_qres = allres.qrid2_qres
     ranks_lt = 5
-    #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
-    #qres_wgt.show()
-    #qres_wgt.raise_()
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    qres_wgt.show()
+    qres_wgt.raise_()
     #query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
-    self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    #self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
     return locals()
 
 
