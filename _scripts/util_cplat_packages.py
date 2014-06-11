@@ -510,7 +510,7 @@ def __install_command_pip(pkg, upgrade=None):
         # IF not then try and install through pip
         command = fmtstr_install_pip % pkg
         # I dont know why it gets a weird version
-        if pkg == 'setuptools':
+        if pkg in ['setuptools', 'numpy']:
             upgrade = True
         if upgrade:
             command = [command, command + ' --upgrade']

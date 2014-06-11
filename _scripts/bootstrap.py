@@ -53,6 +53,8 @@ if DEBIAN_FAMILY:
         #'libjpeg-dev',
         #'zlib1g-dev',
         'python-dev',
+        'libopencv-dev',
+        'python-opencv',
     ])
 
 if CENTOS:

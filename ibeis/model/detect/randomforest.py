@@ -138,9 +138,9 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
                   for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
                   in results if supressed == 0]
 
-        confidences = [ confidence
-                  for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                  in results if supressed == 0]
+        confidences = [confidence
+                       for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                       in results if supressed == 0]
 
         if len(results) > 0:
             image_confidence = max( [ float(result[6]) for result in results] )
