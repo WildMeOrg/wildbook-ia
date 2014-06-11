@@ -442,14 +442,14 @@ class APITableModel(API_MODEL_BASE):
             return QtGui.QBrush(QtGui.QColor(0, 0, 0))
         #
         # Specify Decoration Role
-        # elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
-        #     # The type is a pixelmap
-        #     npimg = model._get_data(row, col)
-        #     if npimg is not None:
-        #         if type_ in qtype.QT_PIXMAP_TYPES:
-        #             return qtype.numpy_to_qicon(npimg)
-        #         elif type_ in qtype.QT_ICON_TYPES:
-        #             return qtype.numpy_to_qpixmap(npimg)
+        elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
+            # The type is a pixelmap
+            npimg = model._get_data(row, col)
+            if npimg is not None:
+                if type_ in qtype.QT_PIXMAP_TYPES:
+                    return qtype.numpy_to_qicon(npimg)
+                elif type_ in qtype.QT_ICON_TYPES:
+                    return qtype.numpy_to_qpixmap(npimg)
         # Specify CheckState Role:
         if role == Qt.CheckStateRole:
             if flags & Qt.ItemIsUserCheckable:
