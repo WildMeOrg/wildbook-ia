@@ -410,7 +410,9 @@ def resolve_name_conflicts(gid_list, name_list):
     return unique_gids, unique_names, unique_notes
 
 
-def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
+def make_roi_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
+    augment_uuid = utool.util_hash.augment_uuid
+    random_uuid = utool.util_hash.random_uuid
     try:
         # Check to make sure bbox input is a tuple-list, not a list-list
         if len(bbox_list) > 0:
@@ -421,9 +423,14 @@ def make_roi_uuids(image_uuid_list, bbox_list, theta_list):
                 utool.printex(ex)
                 print('bbox_list = %r' % (bbox_list,))
                 raise
-        roi_uuid_list = [utool.util_hash.augment_uuid(img_uuid, bbox, theta)
-                            for img_uuid, bbox, theta
-                            in izip(image_uuid_list, bbox_list, theta_list)]
+        roi_uuid_list = [augment_uuid(img_uuid, bbox, theta)
+                         for img_uuid, bbox, theta
+                         in izip(image_uuid_list, bbox_list, theta_list)]
+        if not deterministic:
+            # Augment determenistic uuid with a random uuid to ensure randomness
+            # (this should be ensured in all hardward situations)
+            roi_uuid_list = [augment_uuid(random_uuid(), _uuid)
+                             for _uuid in roi_uuid_list]
     except Exception as ex:
         utool.printex(ex, 'Error building roi_uuids', '[add_roi]',
                       key_list=['image_uuid_list'])
