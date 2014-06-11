@@ -231,7 +231,10 @@ class APITableModel(API_MODEL_BASE):
         for colx in xrange(len(model.col_type_list)):
             coltype_ = col_type_list[colx]
             if coltype_ == 'PIXMAP':
-                model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
+                try:
+                    model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
+                except:
+                    print("IGNORING")
             
     @updater
     def _set_col_nice(model, col_nice_list=None):
