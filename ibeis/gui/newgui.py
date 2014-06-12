@@ -162,15 +162,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (ROI_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (ENCOUNTER_TABLE, EncTableWidget, EncTableModel,     EncTableView),
+            (ENCOUNTER_TABLE, EncTableWidget,   EncTableModel,   EncTableView),
         ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
             #ibswgt.widgets[tblname] = widget
             #ibswgt.models[tblname]  = widget.model
             #ibswgt.views[tblname]   = widget.view
-            ibswgt.models[tblname] = ModelClass(parent=ibswgt)
-            ibswgt.views[tblname]  = ViewClass(parent=ibswgt)
+            ibswgt.views[tblname]  = ViewClass(parent=ibswgt) # Make view first to pass as parent
+            ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
         # Connect models and views
         for tblname in ibswgt.super_tblname_list:
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])

@@ -8,13 +8,14 @@ ROI_TABLE   = 'rois'
 NAME_TABLE  = 'names'
 QRES_TABLE  = 'qres'
 ENCOUNTER_TABLE = 'encounters'
+THUMB_TABLE = 'thumbs'
 
 #-----------------
 # Define the tables
 #-----------------
 
 # enabled tables
-TABLENAME_LIST = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE]
+TABLENAME_LIST = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE, THUMB_TABLE]
 
 # table nice names
 TABLE_NICE = {
@@ -23,6 +24,7 @@ TABLE_NICE = {
     NAME_TABLE      : 'Name Table',
     QRES_TABLE      : 'Query Results Table',
     ENCOUNTER_TABLE : 'Encounter Table',
+    THUMB_TABLE     : 'Thumbnail Table',
 }
 
 # the columns each ibeis table has
@@ -36,6 +38,7 @@ TABLE_COLNAMES = {
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
+    THUMB_TABLE     : ['thumb'],
 }
 
 # the columns which are editable
@@ -45,34 +48,35 @@ TABLE_EDITSET = {
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
+    THUMB_TABLE     : set([]),
 }
 
 # Define the valid columns a table could have
 COL_DEF = dict([
-    ('image_uuid', (str,   'Image UUID')),
-    ('gid',        (int,   'Image ID')),
-    ('rid',        (int,   'ROI ID')),
-    ('nid',        (int,   'Name ID')),
-    ('eid',        (int,   'Encounter ID')),
-    ('nRids',      (int,   '#ROIs')),
-    ('nGt',        (int,   '#GT')),
-    ('nImgs',      (int,   '#Imgs')),
-    ('nFeats',     (int,   '#Features')),
-    ('rank',       (str,   'Rank')),  # needs to be a string for !Query
-    ('unixtime',   (float, 'unixtime')),
-    ('gname',      (str,   'Image Name')),
-    ('gconf',      (str,   'Detection Confidence')),
-    ('rconf',      (float, 'Detection Confidence')),
-    ('name',       (str,   'Name')),
-    ('notes',      (str,   'Notes')),
-    ('match_name', (str,   'Matching Name')),
-    ('bbox',       (str,   'BBOX (x, y, w, h))')),  # Non editables are safe as strs
-    ('score',      (str,   'Confidence')),
-    ('theta',      (str,   'Theta')),
-    ('aif',        (bool,  'Reviewed')),
-    ('enctext',    (str,   'Encounter Text')),
-    ('datetime',   (str,   'Date / Time')),
-    ('ext',        (str,   'EXT')),
+    ('image_uuid', (str,      'Image UUID')),
+    ('gid',        (int,      'Image ID')),
+    ('rid',        (int,      'ROI ID')),
+    ('nid',        (int,      'Name ID')),
+    ('eid',        (int,      'Encounter ID')),
+    ('nRids',      (int,      '#ROIs')),
+    ('nGt',        (int,      '#GT')),
+    ('nImgs',      (int,      '#Imgs')),
+    ('nFeats',     (int,      '#Features')),
+    ('rank',       (str,      'Rank')),  # needs to be a string for !Query
+    ('unixtime',   (float,    'unixtime')),
+    ('gname',      (str,      'Image Name')),
+    ('gconf',      (str,      'Detection Confidence')),
+    ('rconf',      (float,    'Detection Confidence')),
+    ('name',       (str,      'Name')),
+    ('notes',      (str,      'Notes')),
+    ('match_name', (str,      'Matching Name')),
+    ('bbox',       (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+    ('score',      (str,      'Confidence')),
+    ('theta',      (str,      'Theta')),
+    ('aif',        (bool,     'Reviewed')),
+    ('enctext',    (str,      'Encounter Text')),
+    ('datetime',   (str,      'Date / Time')),
+    ('ext',        (str,      'EXT')),
     ('thumb',      ('PIXMAP', 'Thumb')),
 ])
 
@@ -100,7 +104,7 @@ def make_ibeis_headers_dict(ibs):
         'notes'      : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
-        'thumb'      : ibs.get_image_thumbs,
+        'thumb'      : ibs.get_image_thumbs_paths,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
@@ -119,7 +123,7 @@ def make_ibeis_headers_dict(ibs):
         'nFeats': ibs.get_roi_num_feats,
         'rconf':  ibs.get_roi_confidence,
         'notes':  ibs.get_roi_notes,
-        'thumb':  ibs.get_roi_chip_thumbs,
+        'thumb':  ibs.get_roi_chip_thumbs_paths,
     }
     setters[ROI_TABLE] = {
         'name':  ibs.set_roi_names,
@@ -149,6 +153,14 @@ def make_ibeis_headers_dict(ibs):
     setters[ENCOUNTER_TABLE] = {
         'enctext': ibs.set_encounter_enctext,
     }
+
+    iders[THUMB_TABLE] = ibs.get_valid_gids
+    getters[THUMB_TABLE] = {
+        'thumb'      : ibs.get_image_thumbs_paths,
+    }
+    setters[THUMB_TABLE] = {
+    }
+
 
     def make_header(tblname):
         """

@@ -135,6 +135,7 @@ class Interact_QueryResult(object):
         self.scope = []
 
     def prepare_page(self, pagenum):
+        """ Gets indexes for the pagenum ready to be displayed """
         # Set the start index
         self.start_index = pagenum * self.nPerPage
         # Clip based on nCands
@@ -162,11 +163,11 @@ class Interact_QueryResult(object):
         # Begin showing matches
         index = self.start_index
         for index in xrange(self.start_index, self.stop_index):
-            self.show_match(index, draw=False)
+            self.plot_roimatch(index, draw=False)
         self.make_hud()
         self.draw()
 
-    def show_match(self, index, draw=True, make_buttons=True):
+    def plot_roimatch(self, index, draw=True, make_buttons=True):
         printDBG('[ishow_qres] starting interaction')
         self.select_candidate_match(index)
         # Get index relative to the page

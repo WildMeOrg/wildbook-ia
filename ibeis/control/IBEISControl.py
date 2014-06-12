@@ -374,10 +374,10 @@ class IBEISController(object):
             confidence_list = [0.0 for _ in xrange(len(gid_list))]
         if notes_list is None:
             notes_list = ['' for _ in xrange(len(gid_list))]
-        # Build deterministic and unique ROI ids
+        # Build ~~deterministic?~~ random and unique ROI ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
         roi_uuid_list = ibsfuncs.make_roi_uuids(image_uuid_list, bbox_list,
-                                                theta_list)
+                                                theta_list, deterministic=False)
         # Define arguments to insert
         params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
                                             bbox_list, theta_list,
@@ -708,6 +708,17 @@ class IBEISController(object):
         # The context populates thumb_list on exit
         thumb_list = context.thumb_list
         return thumb_list
+    
+    @getter
+    def get_image_thumbs_paths(ibs, gid_list):
+        img_uuid_list = ibs.get_image_uuids(gid_list)
+        thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
+        utool.ensuredir(thumb_dpath)
+        thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in img_uuid_list]
+        image_paths = ibs.get_image_paths(gid_list)
+        paths_list = [(thumb, img) for (thumb, img) in izip(thumb_gpaths, image_paths)]
+        return paths_list
+        
 
     @getter
     def get_image_uuids(ibs, gid_list):
@@ -1040,6 +1051,16 @@ class IBEISController(object):
                 context.save_dirty_thumbs_from_images(dirty_chips)
         thumb_list = context.thumb_list
         return thumb_list
+
+    @getter
+    def get_roi_chip_thumbs_paths(ibs, rid_list):
+        roi_uuid_list = ibs.get_roi_uuids(rid_list)
+        thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
+        utool.ensuredir(thumb_dpath)
+        thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in roi_uuid_list]
+        image_paths = ibs.get_roi_cpaths(rid_list)
+        paths_list = [(thumb, img) for (thumb, img) in izip(thumb_gpaths, image_paths)]
+        return paths_list
 
     @getter_numpy_vector_output
     def get_roi_kpts(ibs, rid_list, ensure=True):
@@ -1542,8 +1563,8 @@ class IBEISController(object):
                 return
             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
             ibs.add_rois(detected_gids, detected_bboxes,
-                            notes_list=notes_list,
-                            confidence_list=detected_confidences)
+                         notes_list=notes_list,
+                         confidence_list=detected_confidences)
             ibs.set_image_confidence(detected_gids, img_confs)
 
         for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
