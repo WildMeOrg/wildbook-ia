@@ -143,6 +143,10 @@ class ROIInteraction(object):
             self.callback = callback
         else:
             self.callback = None
+        if bbox_list is not None:
+            self.original_list = bbox_list
+        else:
+            self.original_list = []
         self.img = img
         self.do_mask = do_mask
         self.fig = df2.figure(fnum=fnum)
@@ -271,9 +275,13 @@ class ROIInteraction(object):
 
     def update_colors(self, poly_ind):
         for line in self.line:
+            if line is None:
+                continue
             if line.get_color() != 'white':
                 line.set_color('white')
         if(poly_ind is not None and poly_ind >= 0):
+            if self.polyList[poly_ind] is None:
+                return
             self.line[poly_ind].set_color(df2.ORANGE)
         plt.draw()
 
@@ -326,6 +334,8 @@ class ROIInteraction(object):
         self._update_line()
         self.canvas.restore_region(self.background)
         for n, poly in enumerate(self.polyList):
+            if poly is None:
+                continue
             self.ax.draw_artist(poly)
             self.ax.draw_artist(self.line[n])
         self.canvas.blit(self.ax.bbox)
@@ -343,6 +353,8 @@ class ROIInteraction(object):
         #print('[mask] draw_callback(event=%r)' % event)
         self.background = self.canvas.copy_from_bbox(self.ax.bbox)
         for n, poly in enumerate(self.polyList):
+            if poly is None:
+                continue
             self.ax.draw_artist(poly)
             self.ax.draw_artist(self.line[n])
         self.canvas.blit(self.ax.bbox)
@@ -368,6 +380,8 @@ class ROIInteraction(object):
 
         if self._ind is not None and polyind is not None:
             self._thisPoly = self.polyList[polyind]
+            if self._thisPoly is None:
+                return
             self.indX, self.indY = self._thisPoly.xy[self._ind]
             self._polyHeld = True
             self.update_colors(polyind)
@@ -389,6 +403,8 @@ class ROIInteraction(object):
             self.canvas.restore_region(self.background)
             self.background = self.canvas.copy_from_bbox(self.ax.bbox)
         for n, poly in enumerate(self.polyList):
+            if poly is None:
+                continue
             self.ax.draw_artist(poly)
             self.ax.draw_artist(self.line[n])
         self.canvas.blit(self.ax.bbox)
@@ -415,6 +431,8 @@ class ROIInteraction(object):
         if self._thisPoly is None:
             print('WARNING: Polygon unknown. Using default. (2)')
             self._thisPoly = self.polyList[0]
+            if(self._thisPoly is None):
+                return
         currX, currY = self._thisPoly.xy[self._ind]
 
         if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
@@ -464,10 +482,11 @@ class ROIInteraction(object):
 
         #line deletion
         print("length: ", len(self.theta_list), "number: ", lineNumber)
-        del self.theta_list[lineNumber]
-        del self.line[lineNumber]
+        self.theta_list[lineNumber] = None
+        self.line[lineNumber] = None
         #poly deletion
-        self.polyList.remove(Poly)
+        self.polyList[self.polyList.index(Poly)] = None
+        #self.polyList.remove(Poly)
         #remove the poly from the figure itself
         Poly.remove()
         #reset anything that has to do with current poly
@@ -613,6 +632,14 @@ class ROIInteraction(object):
         selectedX, selectedY = (polygon.xy[1])
         afterX, afterY = (polygon.xy[2])
         acrossX, acrossY = (polygon.xy[3])
+        #print("Before: (" + str(beforeX) + ", " + str(beforeY) + ")")
+        #print("Selected: (" + str(selectedX) + ", " + str(selectedY) + ")")
+        #print("After: (" + str(afterX) + ", " + str(afterY) + ")")
+        #print("Across: (" + str(acrossX) + ", " + str(acrossY) + ")")
+        #bbox_x = int(beforeX)
+        #bbox_y = int(selectedY)
+        #bbox_w = int(afterX - beforeX)
+        #bbox_h = int(beforeY - afterY)
         # if we are not holding a rectangle, return
         if self._polyHeld is not True:
             return
@@ -631,10 +658,16 @@ class ROIInteraction(object):
                 change = False
                 break
         if change is True:
+            #if (bbox_x,bbox_y,bbox_w,bbox_h) in self.original_list:
+            #    index = self.original_list.index((bbox_x,bbox_y,bbox_w,bbox_h)) 
+            #    self.changed_list[index] = True
+            #    print(self.changed_list)
             polygon.xy = new_coords
 
     def calculate_move(self, event, poly):
         print('calculate_move')
+        if poly is None:
+            return
         indBefore = self._ind - 1
         if(indBefore < 0):
             indBefore = len(poly.xy) - 2
@@ -642,6 +675,15 @@ class ROIInteraction(object):
         selectedX, selectedY = (poly.xy[self._ind])
         beforeX, beforeY = (poly.xy[indBefore])
         afterX, afterY = (poly.xy[indAfter])
+        #print("Before: (" + str(beforeX) + ", " + str(beforeY) + ")")
+        #print("Selected: (" + str(selectedX) + ", " + str(selectedY) + ")")
+        #print("After: (" + str(afterX) + ", " + str(afterY) + ")")
+        #bbox_x = int(selectedX)
+        #bbox_y = int(selectedY)
+        #bbox_w = int(afterX - selectedX)
+        #bbox_h = int(beforeY - selectedY)
+        #if((bbox_x, bbox_y, bbox_w, bbox_h) in self.original_list):
+        #    print("ORIGINAL BBOX")
 
         changeBefore = -1
         keepX, changeY = -1, -1
@@ -686,6 +728,8 @@ class ROIInteraction(object):
         # save verts because polygon gets deleted when figure is closed
         for n, poly in enumerate(self.polyList):
             #self.verts = poly.xy
+            if poly is None:
+                continue
             self.last_vert_ind = len(poly.xy) - 1
             self.line[n].set_data(zip(*poly.xy))
 
@@ -693,6 +737,8 @@ class ROIInteraction(object):
         'get the index of the vertex under cursor if within max_ds tolerance'
 
         def get_ind_and_dist(poly):
+            if poly is None:
+                return (None, -1)
             xy = np.asarray(poly.xy)
             xyt = poly.get_transform().transform(xy)
             xt, yt = xyt[:, 0], xyt[:, 1]
@@ -704,6 +750,10 @@ class ROIInteraction(object):
                 ind = None
                 mindist = None
             return (ind, mindist)
+        ind_dist_list = []
+        #for poly in self.polyList:
+        #    if poly is not None:
+        #        ind_dist_list.append(get_ind_and_dist(poly))
         ind_dist_list = [get_ind_and_dist(poly) for poly in self.polyList]
         min_dist = None
         min_ind  = None
@@ -724,17 +774,55 @@ class ROIInteraction(object):
     def accept_new_rois(self, event):
         print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
+        def get_bbox_list():
+            bbox_list = []
+            for poly in self.polyList:
+                if poly is None:
+                    bbox_list.append(None)
+                else:
+                    x = min(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
+                    y = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
+                    w = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0]) - x
+                    h = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1]) - y
+                    bbox_list.append((int(x),int(y),int(w),int(h)))
+            return bbox_list
+
         def send_back_rois():
-            point_list = self.load_points()
-            theta_list = self.theta_list
-            new_bboxes = verts_to_bbox(point_list)
-            self.callback(self.img_ind, new_bboxes, theta_list)
+            #point_list = self.load_points()
+            #theta_list = self.theta_list
+            #new_bboxes = verts_to_bbox(point_list)
+            print("send_back_rois")
+            bbox_list = get_bbox_list()
+            deleted_list = []
+            changed_list = []
+            new_list = []
+            for i in range(0, len(self.original_list)):
+                if bbox_list[i] is None:
+                    deleted_list.append(i)
+                elif bbox_list[i] != self.original_list[i]:
+                    changed_list.append((i,bbox_list[i]))
+            for i in range(len(self.original_list), len(self.polyList)):
+                if bbox_list[i] is not None:
+                    new_list.append(bbox_list[i])
+            #print("Deleted")
+            #for bbox in deleted_list:
+            #    print(bbox)
+            #print("Changed")
+            #for bbox in changed_list:
+            #    print(bbox)
+            #print("New")
+            #for bbox in new_list:
+            #    print(bbox)
+            #print("send_back_rois() completed")
+            #self.callback(self.img_ind, new_bboxes, theta_list)
+            self.callback(deleted_list, changed_list, new_list)
 
         if self.callback is not None:
             send_back_rois()
-        else:
+        #else:
             #just print the updated points
-            self.load_points()
+            #self.load_points()
+            #print(self.polyList)
         # Make mask from selection
         if self.do_mask is True:
             plt.clf()
