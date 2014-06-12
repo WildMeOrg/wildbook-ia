@@ -34,7 +34,7 @@ TABLE_COLNAMES = {
     IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
-    ROI_TABLE       : ['rid', 'thumb', 'name', 'gname', 'rconf', 'notes'],
+    ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rconf', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
@@ -44,7 +44,7 @@ TABLE_COLNAMES = {
 # the columns which are editable
 TABLE_EDITSET = {
     IMAGE_TABLE     : set(['aif', 'notes']),
-    ROI_TABLE       : set(['name', 'notes']),
+    ROI_TABLE       : set(['name', 'notes', 'exemplar']),
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
@@ -115,20 +115,22 @@ def make_ibeis_headers_dict(ibs):
     # ROI Iders/Setters/Getters
     iders[ROI_TABLE] = ibs.get_valid_rids
     getters[ROI_TABLE] = {
-        'rid':    lambda rids: rids,
-        'name':   ibs.get_roi_names,
-        'gname':  ibs.get_roi_gnames,
-        'nGt':    ibs.get_roi_num_groundtruth,
-        'theta':  simap_func(utool.theta_str, ibs.get_roi_thetas),
-        'bbox':   simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
-        'nFeats': ibs.get_roi_num_feats,
-        'rconf':  ibs.get_roi_confidence,
-        'notes':  ibs.get_roi_notes,
-        'thumb':  ibs.get_roi_chip_thumbs_paths,
+        'rid'      : lambda rids: rids,
+        'name'     : ibs.get_roi_names,
+        'gname'    : ibs.get_roi_gnames,
+        'nGt'      : ibs.get_roi_num_groundtruth,
+        'theta'    : simap_func(utool.theta_str, ibs.get_roi_thetas),
+        'bbox'     : simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
+        'nFeats'   : ibs.get_roi_num_feats,
+        'rconf'    : ibs.get_roi_confidence,
+        'notes'    : ibs.get_roi_notes,
+        'thumb'    : ibs.get_roi_chip_thumbs_paths,
+        'exemplar' : ibs.get_roi_exemplar_flag,
     }
     setters[ROI_TABLE] = {
-        'name':  ibs.set_roi_names,
-        'notes': ibs.set_roi_notes,
+        'name'     : ibs.set_roi_names,
+        'notes'    : ibs.set_roi_notes,
+        'exemplar' : ibs.set_roi_exemplar_flag,
     }
     #
     # Name Iders/Setters/Getters
