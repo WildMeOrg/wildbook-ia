@@ -64,9 +64,9 @@ class ThumbnailCreationThread(QtCore.QRunnable):
 
     def run(thread):
         size = thread.view.viewport().size().height()
-        if( abs(thread.view.verticalOffset() + int(size / 2) - thread.offset) < size ):
-            image = gtool.imread(thread.image_path)
-            max_dsize = (thread.thumb_size, thread.thumb_size)
-            thumb_image = gtool.resize_thumb(image, max_dsize)
-            gtool.imwrite(thread.thumb_path, thumb_image)
-            thread.index.model().dataChanged.emit(thread.index, thread.index)
+        # if( abs(thread.view.verticalOffset() + int(size / 2) - thread.offset) < size ):
+        image = gtool.imread(thread.image_path)
+        max_dsize = (thread.thumb_size, thread.thumb_size)
+        thumb_image = gtool.resize_thumb(image, max_dsize)
+        gtool.imwrite(thread.thumb_path, thumb_image)
+        thread.index.model().dataChanged.emit(thread.index, thread.index)

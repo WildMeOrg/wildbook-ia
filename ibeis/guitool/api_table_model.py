@@ -302,7 +302,14 @@ class APITableModel(API_MODEL_BASE):
         assert col is not None, 'bad column'
 
     @default_method_decorator
-    def _get_row_id(model, row):
+    def _get_row_id(model, row, col=None):
+        if col is not None:
+            num = model.col_name_list_counts[model.col_name_list[col]]
+            # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
+            assert num == len(model.col_name_list), "mixing stripped with non stripped"
+            row = row * num + col
+            col = 0
+
         try:
             id_ = model.row_index_list[row]
             return id_
