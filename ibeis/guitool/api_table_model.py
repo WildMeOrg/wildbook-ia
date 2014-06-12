@@ -182,7 +182,7 @@ class APITableModel(API_MODEL_BASE):
     def _update(model, newrows=False):
         #if newrows:
         model._update_rows()
-        printDBG('UPDATE: CACHE INVALIDATED!')
+        #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
 
     @updater
@@ -192,7 +192,7 @@ class APITableModel(API_MODEL_BASE):
         row_indicies
         """
         #printDBG('UPDATE ROWS!')
-        print('UPDATE model(%s) rows' % model.name)
+        #print('UPDATE model(%s) rows' % model.name)
         ids_ = model.ider()
         if len(ids_) == 0:
             model.row_index_list = []
@@ -240,7 +240,8 @@ class APITableModel(API_MODEL_BASE):
                     model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
                 except:
                     print("COLUMN INDEXING VIEW %r" % model.view)
-            
+                    #print("IGNORING")
+
     @updater
     def _set_col_nice(model, col_nice_list=None):
         if col_nice_list is None:
@@ -313,7 +314,7 @@ class APITableModel(API_MODEL_BASE):
         try:
             id_ = model.row_index_list[row]
             return id_
-        except IndexError as ex:
+        except IndexError as ex:  # NOQA
             # msg = '\n'.join([
             #     'Error in _get_row_id',
             #     'name=%r\n' % model.name,
