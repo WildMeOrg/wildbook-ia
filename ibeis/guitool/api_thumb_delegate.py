@@ -17,36 +17,39 @@ class APIThumbDelegate(QtGui.QItemDelegate):
         dgt.pool.setMaxThreadCount(8)
         
     def paint(dgt, painter, option, index):
-        dgt.thumb_path, dgt.image_path = index.model().data(index, QtCore.Qt.DisplayRole)
-        
-        if exists(dgt.image_path):
-            if not utool.checkpath(dgt.thumb_path):
-                offset = dgt.parent().verticalOffset()
-                dgt.pool.start(
-                    ThumbnailCreationThread(
-                        dgt.thumb_path, 
-                        dgt.image_path, 
-                        index, 
-                        dgt.parent(),
-                        offset + option.rect.y()
-                    ) 
-                )
-            else:
-                npimg   = gtool.imread(dgt.thumb_path, )
-                npimg   = cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
-                data    = npimg.astype(np.uint8)
-                (height, width, nDims) = npimg.shape[0:3]
-                npimg   = np.dstack((npimg[:, :, 3], npimg[:, :, 0:2]))
-                format_ = QtGui.QImage.Format_ARGB32
-                qimg    = QtGui.QImage(data, width, height, format_)
+        try:
+            dgt.thumb_path, dgt.image_path = index.model().data(index, QtCore.Qt.DisplayRole)
+            if exists(dgt.image_path):
+                if not utool.checkpath(dgt.thumb_path):
+                    offset = dgt.parent().verticalOffset()
+                    dgt.pool.start(
+                        ThumbnailCreationThread(
+                            dgt.thumb_path, 
+                            dgt.image_path, 
+                            index, 
+                            dgt.parent(),
+                            offset + option.rect.y()
+                        ) 
+                    )
+                else:
+                    npimg   = gtool.imread(dgt.thumb_path, )
+                    npimg   = cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
+                    data    = npimg.astype(np.uint8)
+                    (height, width, nDims) = npimg.shape[0:3]
+                    npimg   = np.dstack((npimg[:, :, 3], npimg[:, :, 0:2]))
+                    format_ = QtGui.QImage.Format_ARGB32
+                    qimg    = QtGui.QImage(data, width, height, format_)
 
-                painter.save()
-                painter.setClipRect(option.rect)
-                painter.translate(option.rect.x(), option.rect.y())
-                painter.drawImage(QtCore.QRectF(0,0,width, height), qimg)
-                painter.restore()
-        else:
-            print("SOURCE IMAGE NOT COMPUTED")
+                    painter.save()
+                    painter.setClipRect(option.rect)
+                    painter.translate(option.rect.x(), option.rect.y())
+                    painter.drawImage(QtCore.QRectF(0,0,width, height), qimg)
+                    painter.restore()
+            else:
+                print("SOURCE IMAGE NOT COMPUTED")
+        except:
+            painter.save()
+            painter.restore()
     
 
 class ThumbnailCreationThread(QtCore.QRunnable):

@@ -8,6 +8,7 @@ from .api_thumb_delegate import APIThumbDelegate
 from itertools import izip
 import functools
 import utool
+import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
 
@@ -106,6 +107,7 @@ class APITableModel(API_MODEL_BASE):
         model.nice             = 'None'
         model.ider             = lambda: []
         model.col_name_list    = []
+        model.col_name_list_counts = {}
         model.col_type_list    = []
         model.col_nice_list    = []
         model.col_edit_list    = []
@@ -226,6 +228,9 @@ class APITableModel(API_MODEL_BASE):
         assert len(col_name_list) == len(col_type_list), \
             'inconsistent colnametype'
         model.col_name_list = col_name_list
+        model.col_name_list_counts = {}
+        for name in set(col_name_list):
+            model.col_name_list_counts[name] = model.col_name_list.count(name)
         model.col_type_list = col_type_list
         # Check if any of the column types are specified as delegates
         for colx in xrange(len(model.col_type_list)):
@@ -318,23 +323,32 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, row, col):
-        # Get general getter for this column
-        getter = model.col_getter_list[col]
-        # Get row_id accoring to sorting
-        row_id = model._get_row_id(row)
-        if row_id is None:
-            return "__NONE__"
-        cachekey = (row_id, col)
-        try:
-            # Randomly invalidate the cache
-            #import random
-            #if random.uniform(0, 1) > .95:
-            #    raise KeyError('')
-            data = model.cache[cachekey]
-        except KeyError:
-            data = getter(row_id)
-            model.cache[cachekey] = data
-        return data
+        num = model.col_name_list_counts[model.col_name_list[col]]
+        if num > 1:
+            # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
+            assert num == len(model.col_name_list), "mixing stripped with non stripped"
+            row = row * num + col
+            col = 0
+        if row < len(model.row_index_list):
+            # Get general getter for this column
+            getter = model.col_getter_list[col]
+            # Get row_id accoring to sorting
+            row_id = model._get_row_id(row)
+            if row_id is None:
+                return "__NONE__"
+            cachekey = (row_id, col)
+            try:
+                # Randomly invalidate the cache
+                #import random
+                #if random.uniform(0, 1) > .95:
+                #    raise KeyError('')
+                data = model.cache[cachekey]
+            except KeyError:
+                data = getter(row_id)
+                model.cache[cachekey] = data
+            return data
+        else:
+            return "!!!<EMPTY FOR STRIPE>!!!"
 
     @default_method_decorator
     def _set_data(model, row, col, value):
@@ -393,7 +407,12 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
-        return len(model.row_index_list)
+        try:
+            length = len(model.row_index_list)
+            counts = [ np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
+            return max(counts)
+        except:
+            return len(model.row_index_list)
 
     @default_method_decorator
     def columnCount(model, parent=QtCore.QModelIndex()):
@@ -402,9 +421,6 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
-        model.view.setColumnWidth(1, 200)
-        model.view.setRowHeight(qtindex.row(), 200)
-
         """ Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
         the index.  Note: If you do not have a value to return, return an
@@ -468,6 +484,8 @@ class APITableModel(API_MODEL_BASE):
         elif role in (Qt.DisplayRole, Qt.EditRole):
             if type_ in qtype.QT_PIXMAP_TYPES:
                 pass
+                model.view.setColumnWidth(qtindex.column(), 200)
+                model.view.setRowHeight(qtindex.row(), 200)
                 return model._get_data(row, col)
                 return 'pixmap'
             elif type_ in qtype.QT_ICON_TYPES:
