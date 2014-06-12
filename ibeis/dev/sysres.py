@@ -196,13 +196,15 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     return dbdir
 
 
-def get_args_dbdir(defaultdb=None, allow_newdir=False):
+def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
     """ Machinery for finding a database directory """
     #if not utool.QUIET and utool.VERBOSE:
     printDBG('[sysres] parsing commandline for dbdir')
     printDBG('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
-    dbdir = params.args.dbdir
-    db = params.args.db
+    if dbdir is None:
+        dbdir = params.args.dbdir
+    if db is None:
+        db = params.args.db
     if dbdir == 'None' or db == 'None':
         print('Forcing no dbdir')
         # If specified as the string none, the user forces no db

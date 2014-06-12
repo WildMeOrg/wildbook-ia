@@ -29,6 +29,7 @@ def parse_args():
         parser2.add_ints(('--sel-cols', '-c'), help='view col')
         parser2.add_ints('--qrid', default=[], help='investigate match cx')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
+        parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
         parser2.add_str(('--merge-species'), help='merges all databases of given species')
 
     def behavior_argparse(parser2):

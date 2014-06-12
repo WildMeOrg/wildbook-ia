@@ -74,6 +74,7 @@ COL_DEF = dict([
     ('score',      (str,      'Confidence')),
     ('theta',      (str,      'Theta')),
     ('aif',        (bool,     'Reviewed')),
+    ('exemplar',   (bool,     'Is Exemplar')),
     ('enctext',    (str,      'Encounter Text')),
     ('datetime',   (str,      'Date / Time')),
     ('ext',        (str,      'EXT')),
@@ -164,7 +165,6 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[THUMB_TABLE] = {
     }
-
 
     def make_header(tblname):
         """

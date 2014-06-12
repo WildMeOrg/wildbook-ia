@@ -15,16 +15,17 @@ def ibeis_compute_encounters(ibs, gid_list):
     An encounter is a meeting, localized in time and space between a camera and
     a group of animals.  Animals are identified within each encounter.
     """
-    print('Computing encounters on %r images.' % len(gid_list))
-    if len(gid_list) == 0:
-        print('WARNING: No unixtime data to compute encounters with')
-        return [], []
     # Config info
     enc_cfg_uid      = ibs.cfg.enc_cfg.get_uid()
     seconds_thresh   = ibs.cfg.enc_cfg.seconds_thresh
     min_imgs_per_enc = ibs.cfg.enc_cfg.min_imgs_per_encounter
     cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
     quantile         = ibs.cfg.enc_cfg.quantile
+    print('Computing %r encounters on %r images.' % (cluster_algo, len(gid_list)))
+    print('enc_cfg_uid = %r' % enc_cfg_uid)
+    if len(gid_list) == 0:
+        print('WARNING: No unixtime data to compute encounters with')
+        return [], []
     # Data to cluster
     unixtime_list = ibs.get_image_unixtime(gid_list)
     gid_arr       = np.array(gid_list)

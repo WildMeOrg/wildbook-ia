@@ -1,15 +1,18 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
+from ibeis import constants
 from ibeis.dev import params
 from ibeis.dev import ibsfuncs
 from ibeis.dev import sysres
+from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[main_cmds]')
 
 
 def vdq(dbdir):
     """view directory and quit"""
-    utool.util_cplat.view_directory(dbdir + '/_ibsdb')
+    _ibsdb = constants.PATH_NAMES._ibsdb
+    utool.util_cplat.view_directory(join(dbdir, _ibsdb))
     sys.exit(1)
 
 
@@ -41,20 +44,12 @@ def parse_cfgstr_list(cfgstr_list):
 def preload_convert_hsdb(dbdir):
     """ Convert the database before loading (A bit hacky) """
     from ibeis.ingest import ingest_hsdb
-    ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=False)
+    ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
 
 
-def preload_commands(dbdir, defaultdb):
+def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
-
-    def get_dbdir_hack(dbdir, defaultdb):
-        # HACKY: Copied code from _init_ibeis to get the
-        # dbdir before creating an IBEISControl
-        # Use command line dbdir unless user specifies it
-        if dbdir is None:
-            dbdir = sysres.get_args_dbdir(defaultdb, False)
-        return dbdir
     if params.args.dump_argv:
         print(utool.dict_str(vars(params.args)))
     if params.args.dump_global_cache:
@@ -65,9 +60,11 @@ def preload_commands(dbdir, defaultdb):
         vwd()
     if utool.get_flag('--vdq'):
         print('got arg --vdq')
-        vdq(get_dbdir_hack(dbdir, defaultdb))
+        vdq(dbdir)
+    if kwargs.get('delete_ibsdir', False):
+        ibsfuncs.delete_ibeis_database(dbdir)
     if params.args.convert:
-        preload_convert_hsdb(get_dbdir_hack(dbdir, defaultdb))
+        preload_convert_hsdb(dbdir)
     if params.args.merge_species is not None:
         ibsfuncs.merge_species_databases(params.args.merge_species)
     if params.args.preload_exit:

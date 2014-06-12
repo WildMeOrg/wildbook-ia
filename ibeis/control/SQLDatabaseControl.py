@@ -7,7 +7,7 @@ from os.path import join, exists
 import utool
 from . import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[sql]', DEBUG=True)
+    __name__, '[sql]', DEBUG=False)
 
 
 VERBOSE = utool.VERBOSE

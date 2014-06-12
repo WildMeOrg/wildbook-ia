@@ -453,8 +453,12 @@ class IBEISController(object):
             params_iter = izip(dirty_names, notes_list)
             tblname = 'names'
             colname_list = ['name_text', 'name_notes']
-            nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
-                                            ibs.get_name_nids, ensure=False)
+            new_nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
+                                              ibs.get_name_nids, ensure=False)
+
+            # All the names should have been ensured
+            # this nid list should correspond to the input
+            nid_list = ibs.get_name_nids(name_list, ensure=False)
 
         # # Return nids in input order
         # namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
@@ -556,6 +560,10 @@ class IBEISController(object):
         ibs.delete_roi_chips(rid_list)
         colnames = ['roi_xtl', 'roi_ytl', 'roi_width', 'roi_height']
         ibs.db.set('rois', colnames, bbox_list, rid_list)
+
+    @setter
+    def set_roi_exemplar_flag(ibs, rid_list, flag_list):
+        ibs.set_table_props('rois', 'roi_exemplar_flag', rid_list, flag_list)
 
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
@@ -861,13 +869,21 @@ class IBEISController(object):
         all_rids = ibs.db.get_executeone(tblname, colname_list)
         return all_rids
 
-    def get_valid_rids(ibs, eid=None):
+    def get_valid_rids(ibs, eid=None, is_exemplar=False):
         """ returns a list of valid ROI unique ids """
         if eid is None:
             rid_list = ibs._get_all_rids()
         else:
             rid_list = ibs.get_encounter_rids(eid)
+        if is_exemplar:
+            flag_list = ibs.get_roi_exemplar_flag(rid_list)
+            rid_list = utool.filter_items(rid_list, flag_list)
         return rid_list
+
+    @getter
+    def get_roi_exemplar_flag(ibs, rid_list):
+        roi_uuid_list = ibs.get_table_props('rois', 'roi_exemplar_flag', rid_list)
+        return roi_uuid_list
 
     @getter
     def get_roi_uuids(ibs, rid_list):

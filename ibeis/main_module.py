@@ -88,15 +88,12 @@ def _init_gui():
 
 
 @profile
-def _init_ibeis(dbdir=None, defaultdb='cache', allow_newdir=False):
+def _init_ibeis(dbdir=None):
     import utool
     from ibeis.control import IBEISControl
-    from ibeis.dev import sysres
     if not utool.QUIET:
         print('[main] _init_ibeis()')
     # Use command line dbdir unless user specifies it
-    if dbdir is None:
-        dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir)
     if dbdir is None:
         ibs = None
         utool.printWARN('[main!] WARNING args.dbdir is None')
@@ -173,13 +170,15 @@ def _guitool_loop(main_locals, ipy=False):
 
 
 @profile
-def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
+def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, **kwargs):
     """
     Program entry point
     Inits the system environment, an IBEISControl, and a GUI if requested
 
     If gui is False a gui instance will not be created
     """
+    from ibeis.dev import main_commands
+    from ibeis.dev import sysres
     # Display a visible intro message
     msg1 = '''
     _____ ....... _______ _____ _______
@@ -198,16 +197,21 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, **kwargs):
     if '--quiet' not in sys.argv:
         print('[main] ibeis.main_module.main()')
     _preload()
-    _preload_commands(dbdir, defaultdb)
+    # Parse directory to be loaded from command line args
+    # and explicit kwargs
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    # Execute preload commands
+    main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
     try:
-        ibs = _init_ibeis(dbdir, defaultdb, allow_newdir)
+        # Build IBEIS Control object
+        ibs = _init_ibeis(dbdir)
         if gui and ('--gui' in sys.argv or '--nogui' not in sys.argv):
             back = _init_gui()
             back.connect_ibeis_control(ibs)
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
-    _postload_commands(ibs, back)
+    main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}
     return main_locals
 
@@ -238,16 +242,6 @@ def _preload(mpl=True, par=True, logging=True):
     # register type aliases for debugging
     #main_helpers.register_utool_aliases()
     return params.args
-
-
-def _preload_commands(dbdir, defaultdb):
-    from ibeis.dev import main_commands
-    main_commands.preload_commands(dbdir, defaultdb)  # PRELOAD CMDS
-
-
-def _postload_commands(ibs, back):
-    from ibeis.dev import main_commands
-    main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
 
 
 @profile

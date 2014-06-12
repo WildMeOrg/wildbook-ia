@@ -50,7 +50,7 @@ def ingest_unconverted_hsdbs_in_workdir():
     needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
     for hsdb in needs_convert_hsdbs:
         try:
-            convert_hsdb_to_ibeis(hsdb, force=FORCE_DELETE)
+            convert_hsdb_to_ibeis(hsdb, force_delete=FORCE_DELETE)
         except Exception as ex:
             utool.printex(ex)
             raise
@@ -59,6 +59,7 @@ def ingest_unconverted_hsdbs_in_workdir():
 def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert'
     if force_delete:
+        print('FORCE DELETE: %r' % (hsdb_dir,))
         ibsfuncs.delete_ibeis_database(hsdb_dir)
     print('[ingest] Ingesting hsdb: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
@@ -80,6 +81,13 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 names_name_list.append(name)
                 name_nid_list.append(nid)
 
+    # ADD NAMES TABLE
+    nid_list = ibs.add_names(names_name_list)
+    print(names_name_list)
+    print(nid_list)
+
+    assert len(nid_list) == len(names_name_list), 'bad name adder'
+
     image_gid_list   = []
     image_gname_list = []
     image_aif_list   = []
@@ -100,9 +108,9 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
     assert all(map(exists, image_gpath_list)), 'some images dont exist'
 
-    # Add Images and Names Table
+    # Add Images Table
     gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None
-    nid_list = ibs.add_names(names_name_list)
+    assert len(gid_list) == len(image_gpath_list), 'bad image adder'
     # Build mappings to new indexes
     names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in izip(name_nid_list, nid_list)}
     names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
@@ -125,7 +133,12 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 bbox_text = row[3]
                 theta = float(row[4])
                 notes = '<COMMA>'.join([item.strip() for item in row[5:]])
-                nid = names_nid_to_nid[names_nid]
+                try:
+                    nid = names_nid_to_nid[names_nid]
+                except KeyError:
+                    print(names_nid_to_nid)
+                    print('Error no names_nid: %r' % names_nid)
+                    raise
                 gid = images_gid_to_gid[images_gid]
                 bbox_text = bbox_text.replace('[', '').replace(']', '').strip()
                 bbox_text = re.sub('  *', ' ', bbox_text)
@@ -143,6 +156,12 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 
     # Add Chips Table
     ibs.add_rois(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
+
+    # Set all injested RIDS as exemplars
+    rid_list = ibs.get_valid_rids()
+    flag_list = [True] * len(rid_list)
+    ibs.set_roi_exemplar_flag(rid_list, flag_list)
+    assert(all(ibs.get_roi_exemplar_flag(rid_list))), 'exemplars not set correctly'
 
     # Write file flagging successful conversion
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
