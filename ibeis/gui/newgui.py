@@ -10,6 +10,7 @@ from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
+from ibeis.viz.interact import interact_rois2
 from ibeis.gui.guiheaders import (
     IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
@@ -431,7 +432,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             eid = model.eid
             if model.name == IMAGE_TABLE:
                 gid = id_
-                ibswgt.back.select_gid(gid, eid)
+                ibswgt.roi_interact = interact_rois2.ROI_Interaction2(ibswgt.ibs, gid)
+                ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ROI_TABLE:
                 rid = id_
                 ibswgt.back.select_rid(rid, eid)
