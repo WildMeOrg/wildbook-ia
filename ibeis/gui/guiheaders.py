@@ -38,7 +38,7 @@ TABLE_COLNAMES = {
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
-    THUMB_TABLE     : ['thumb'],
+    THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
 }
 
 # the columns which are editable
