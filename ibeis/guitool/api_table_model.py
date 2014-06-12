@@ -234,7 +234,7 @@ class APITableModel(API_MODEL_BASE):
                 try:
                     model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
                 except:
-                    print("IGNORING")
+                    print("COLUMN INDEXING VIEW %r" % model.view)
             
     @updater
     def _set_col_nice(model, col_nice_list=None):
@@ -302,14 +302,15 @@ class APITableModel(API_MODEL_BASE):
             id_ = model.row_index_list[row]
             return id_
         except IndexError as ex:
-            msg = '\n'.join([
-                'Error in _get_row_id',
-                'name=%r\n' % model.name,
-                'row=%r\n' % row,
-                'len(model.row_index_list) = %r' % len(model.row_index_list),
-            ])
-            utool.printex(ex, msg)
-            raise
+            # msg = '\n'.join([
+            #     'Error in _get_row_id',
+            #     'name=%r\n' % model.name,
+            #     'row=%r\n' % row,
+            #     'len(model.row_index_list) = %r' % len(model.row_index_list),
+            # ])
+            # utool.printex(ex, msg)
+            # raise
+            return None
 
     @default_method_decorator
     def _get_type(model, col):
@@ -321,6 +322,8 @@ class APITableModel(API_MODEL_BASE):
         getter = model.col_getter_list[col]
         # Get row_id accoring to sorting
         row_id = model._get_row_id(row)
+        if row_id is None:
+            return "__NONE__"
         cachekey = (row_id, col)
         try:
             # Randomly invalidate the cache
@@ -345,6 +348,8 @@ class APITableModel(API_MODEL_BASE):
             was successfull or not
         """
         row_id = model._get_row_id(row)
+        if row_id is None:
+            return "__NONE__"
         cachekey = (row_id, col)
         try:
             del model.cache[cachekey]
@@ -397,6 +402,9 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
+        model.view.setColumnWidth(1, 200)
+        model.view.setRowHeight(qtindex.row(), 200)
+
         """ Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
         the index.  Note: If you do not have a value to return, return an
@@ -442,14 +450,14 @@ class APITableModel(API_MODEL_BASE):
             return QtGui.QBrush(QtGui.QColor(0, 0, 0))
         #
         # Specify Decoration Role
-        elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
-            # The type is a pixelmap
-            npimg = model._get_data(row, col)
-            if npimg is not None:
-                if type_ in qtype.QT_PIXMAP_TYPES:
-                    return qtype.numpy_to_qicon(npimg)
-                elif type_ in qtype.QT_ICON_TYPES:
-                    return qtype.numpy_to_qpixmap(npimg)
+        # elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
+        #     # The type is a pixelmap
+        #     npimg = model._get_data(row, col)
+        #     if npimg is not None:
+        #         if type_ in qtype.QT_PIXMAP_TYPES:
+        #             return qtype.numpy_to_qicon(npimg)
+        #         elif type_ in qtype.QT_ICON_TYPES:
+        #             return qtype.numpy_to_qpixmap(npimg)
         # Specify CheckState Role:
         if role == Qt.CheckStateRole:
             if flags & Qt.ItemIsUserCheckable:
