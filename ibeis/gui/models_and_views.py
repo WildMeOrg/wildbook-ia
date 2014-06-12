@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from PyQt4 import QtCore, QtGui
 from guitool import APITableModel, APITableView, APITableWidget, ChangeLayoutContext
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
@@ -50,6 +51,7 @@ class IBEISTableView(APITableView):
         tblview.ibswin = parent
 
     def _change_enc(tblview, eid):
+        tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
             model._change_enc(eid)

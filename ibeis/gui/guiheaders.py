@@ -38,7 +38,7 @@ TABLE_COLNAMES = {
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
-    THUMB_TABLE     : ['gid', 'thumb', 'gname'],
+    THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
 }
 
 # the columns which are editable
@@ -105,8 +105,7 @@ def make_ibeis_headers_dict(ibs):
         'notes'      : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
-        'thumb'      : ibs.get_image_thumbs,
-        # 'thumb'      : ibs.get_image_paths,
+        'thumb'      : ibs.get_image_thumbs_paths,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
@@ -125,8 +124,7 @@ def make_ibeis_headers_dict(ibs):
         'nFeats': ibs.get_roi_num_feats,
         'rconf':  ibs.get_roi_confidence,
         'notes':  ibs.get_roi_notes,
-        'thumb':  ibs.get_roi_chip_thumbs,
-        # 'thumb':  ibs.get_roi_gpaths,
+        'thumb':  ibs.get_roi_chip_thumbs_paths,
     }
     setters[ROI_TABLE] = {
         'name':  ibs.set_roi_names,
@@ -159,9 +157,7 @@ def make_ibeis_headers_dict(ibs):
 
     iders[THUMB_TABLE] = ibs.get_valid_gids
     getters[THUMB_TABLE] = {
-        'gid'        : lambda gids: gids,
-        'gname'      : ibs.get_image_gnames,
-        'thumb'      : ibs.get_image_thumbs,
+        'thumb'      : ibs.get_image_thumbs_paths,
     }
     setters[THUMB_TABLE] = {
     }

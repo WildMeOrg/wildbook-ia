@@ -716,6 +716,17 @@ class IBEISController(object):
         # The context populates thumb_list on exit
         thumb_list = context.thumb_list
         return thumb_list
+    
+    @getter
+    def get_image_thumbs_paths(ibs, gid_list):
+        img_uuid_list = ibs.get_image_uuids(gid_list)
+        thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
+        utool.ensuredir(thumb_dpath)
+        thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in img_uuid_list]
+        image_paths = ibs.get_image_paths(gid_list)
+        paths_list = [(thumb, img) for (thumb, img) in izip(thumb_gpaths, image_paths)]
+        return paths_list
+        
 
     @getter
     def get_image_uuids(ibs, gid_list):
@@ -1056,6 +1067,16 @@ class IBEISController(object):
                 context.save_dirty_thumbs_from_images(dirty_chips)
         thumb_list = context.thumb_list
         return thumb_list
+
+    @getter
+    def get_roi_chip_thumbs_paths(ibs, rid_list):
+        roi_uuid_list = ibs.get_roi_uuids(rid_list)
+        thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
+        utool.ensuredir(thumb_dpath)
+        thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in roi_uuid_list]
+        image_paths = ibs.get_roi_cpaths(rid_list)
+        paths_list = [(thumb, img) for (thumb, img) in izip(thumb_gpaths, image_paths)]
+        return paths_list
 
     @getter_numpy_vector_output
     def get_roi_kpts(ibs, rid_list, ensure=True):
