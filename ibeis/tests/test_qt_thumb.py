@@ -42,8 +42,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
         # Create models and views
-        ibswgt.model = IBEISTableModel(parent=ibswgt)
         ibswgt.view = IBEISTableView(parent=ibswgt)
+        ibswgt.model = IBEISTableModel(parent=ibswgt.view)
         ibswgt.view.setModel(ibswgt.model)
 
     def _init_layout(ibswgt):

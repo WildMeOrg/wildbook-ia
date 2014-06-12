@@ -50,6 +50,7 @@ class IBEISTableView(APITableView):
         tblview.ibswin = parent
 
     def _change_enc(tblview, eid):
+        tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
             model._change_enc(eid)
