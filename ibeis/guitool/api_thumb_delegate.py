@@ -18,9 +18,17 @@ class APIThumbDelegate(QtGui.QItemDelegate):
         
     def paint(dgt, painter, option, index):
         try:
-            dgt.thumb_path, dgt.image_path = index.model().data(index, QtCore.Qt.DisplayRole)
+            dgt.thumb_path, dgt.image_path, dgt.bboxes = index.model().data(index, QtCore.Qt.DisplayRole)
+            #print('%d, %d' % (index.column(),index.row()))
+            #print(dgt.thumb_path)
             if exists(dgt.image_path):
                 if not utool.checkpath(dgt.thumb_path):
+                    index.model()._update()
+                    dgt.bboxes = index.model().data(index, QtCore.Qt.DisplayRole)[2]
+                    print('%d, %d' % (index.column(),index.row()))
+                    print(dgt.bboxes)
+                    print("Should be remaking thumbnail")
+                #if True:
                     offset = dgt.parent().verticalOffset()
                     dgt.pool.start(
                         ThumbnailCreationThread(
@@ -28,7 +36,8 @@ class APIThumbDelegate(QtGui.QItemDelegate):
                             dgt.image_path, 
                             index, 
                             dgt.parent(),
-                            offset + option.rect.y()
+                            offset + option.rect.y(),
+                            dgt.bboxes
                         ) 
                     )
                 else:
@@ -53,7 +62,7 @@ class APIThumbDelegate(QtGui.QItemDelegate):
     
 
 class ThumbnailCreationThread(QtCore.QRunnable):
-    def __init__(thread, thumb_path, image_path, index, view, offset):
+    def __init__(thread, thumb_path, image_path, index, view, offset, bboxes):
         QtCore.QRunnable.__init__(thread)
         thread.thumb_path = thumb_path
         thread.image_path = image_path
@@ -61,12 +70,21 @@ class ThumbnailCreationThread(QtCore.QRunnable):
         thread.offset = offset
         thread.thumb_size = 200
         thread.view = view
+        thread.bboxes = bboxes
 
     def run(thread):
-        size = thread.view.viewport().size().height()
+        # size = thread.view.viewport().size().height()
         # if( abs(thread.view.verticalOffset() + int(size / 2) - thread.offset) < size ):
         image = gtool.imread(thread.image_path)
         max_dsize = (thread.thumb_size, thread.thumb_size)
+        for bbox in thread.bboxes:
+            x1 = bbox[0]
+            y1 = bbox[1]
+            x2 = x1 + bbox[2]
+            y2 = y1 + bbox[3]
+            (r, g, b) = (255,128,0)
+            cv2.rectangle(image, (x1,y1), (x2, y2), (b, g, r), 3)
         thumb_image = gtool.resize_thumb(image, max_dsize)
         gtool.imwrite(thread.thumb_path, thumb_image)
+        print("Thumb Written: %s" % thread.thumb_path)
         thread.index.model().dataChanged.emit(thread.index, thread.index)
