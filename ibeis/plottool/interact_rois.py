@@ -149,10 +149,15 @@ class ROIInteraction(object):
             self.original_list = []
         self.img = img
         self.do_mask = do_mask
-        self.fig = df2.figure(fnum=fnum)
+        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
+        self.fig.clear()
+        self.fig.clf()
+        #self.fig.cla()
+        #utool.qflag()
         self.fnum = fnum
         print(self.fnum)
-        ax = plt.subplot(111)
+        #ax = plt.subplot(111)
+        ax = df2.gca()
         self.ax = ax
         self.img_ind = img_ind
 
@@ -840,7 +845,8 @@ class ROIInteraction(object):
             return
 
         print('Accept Over')
-        plt.close(self.fnum)
+        df2.close_figure(self.fig)
+        #plt.close(self.fnum)
         plt.draw()
 
     def get_mask(self, shape):
