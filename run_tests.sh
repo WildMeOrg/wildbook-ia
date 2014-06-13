@@ -137,7 +137,7 @@ EOF
 
     RUN_TEST ibeis/tests/test_ibs_add_images.py
 
-    RUN_TEST ibeis/tests/test_ibs_add_names.py
+    RUN_TEST ibeis/tests/test_ibs_add_name.py
 
     RUN_TEST ibeis/tests/test_ibs_encounters.py
 
