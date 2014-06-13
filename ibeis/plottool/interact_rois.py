@@ -847,7 +847,7 @@ class ROIInteraction(object):
         print('Accept Over')
         df2.close_figure(self.fig)
         #plt.close(self.fnum)
-        plt.draw()
+        #plt.draw()
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
