@@ -11,7 +11,7 @@ class ROI_Interaction2:
         self.rid_list = ibs.get_image_rids(self.gid)
         bbox_list = ibs.get_roi_bboxes(self.rid_list)
         theta_list = ibs.get_roi_thetas(self.rid_list)
-        self.interact_ROIS = interact_rois.ROIInteraction(img, fnum=1, callback=self.callback,bbox_list=bbox_list, theta_list=theta_list)
+        self.interact_ROIS = interact_rois.ROIInteraction(img, callback=self.callback,bbox_list=bbox_list, theta_list=theta_list)
         #exec(df2.present())
         df2.update()
 
