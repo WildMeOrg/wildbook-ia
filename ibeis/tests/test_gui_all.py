@@ -53,11 +53,21 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
         rid = back.add_roi(gid=gid, bbox=bbox, theta=theta, **_kwargs)
         return rid
 
+    preadd_rids = ibs.get_valid_rids()  # this should be []
+    assert len(preadd_rids) == 0, 'there are already rids in the database!'
+    print('preadd_rids = %r' % preadd_rids)
+
     rid1 = add_roi(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
     rid2 = add_roi(gid_list[1], (50, 50, 100, 100))
     rid3 = add_roi(gid_list[2], (50, 50, 64, 64))
     rid4 = add_roi(gid_list[2], (50, 50, 200, 200))
     rid5 = add_roi(gid_list[1], (0, 0, 400, 400))
+
+    print('rid1 = %r' % rid1)
+    print('rid2 = %r' % rid2)
+    print('rid3 = %r' % rid3)
+    print('rid4 = %r' % rid4)
+    print('rid5 = %r' % rid5)
     #
     #
     # SELECT ROIS
