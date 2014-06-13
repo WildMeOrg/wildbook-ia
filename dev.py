@@ -183,8 +183,8 @@ def inspect_matches(ibs, qrid_list):
     qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
     qres_wgt.show()
     qres_wgt.raise_()
-    #query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
+    self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
     return locals()
 
 

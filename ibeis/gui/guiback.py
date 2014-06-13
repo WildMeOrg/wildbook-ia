@@ -16,8 +16,6 @@ from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis import viz
 from ibeis.viz import interact
-#from ibeis.gui import inspect_gui
-from ibeis.viz.interact import interact_qres2
 # Utool
 import utool
 from ibeis.control import IBEISControl
@@ -448,10 +446,6 @@ class MainWindowBackend(QtCore.QObject):
         back.encounter_query_results[eid].update(qrid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
-
-        #back.qres_widget = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=5)
-        #back.qres_widget.show()
-        #back.qres_widget.raise_()
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
@@ -467,8 +461,15 @@ class MainWindowBackend(QtCore.QObject):
             'nPerPage': 6,
         }
         ibs = back.ibs
+        # Matplotlib QueryResults interaction
+        from ibeis.viz.interact import interact_qres2
         back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
         back.query_review.show()
+        # Qt QueryResults Interaction
+        from ibeis.gui import inspect_gui
+        qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=5)
+        qres_wgt.show()
+        qres_wgt.raise_()
 
     @blocking_slot()
     def review_detections(back, **kwargs):
