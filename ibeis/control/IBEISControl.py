@@ -719,12 +719,20 @@ class IBEISController(object):
     
     @getter
     def get_image_thumbs_paths(ibs, gid_list):
+        #print(gid_list)
+        #print(type(gid_list[0]))
         img_uuid_list = ibs.get_image_uuids(gid_list)
+        #rid_list = ibsfuncs.unflat_lookup(ibs.get_image_rids,gid_list)
+        rids_list = ibs.get_image_rids(gid_list)
+        #print(rid_list)
+        #bbox_list = ibs.get_roi_bboxes(rid_list)
+        bboxes_list = ibs.get_unflat_roi_bboxes(rids_list)
+        #print(bbox_list)
         thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
         utool.ensuredir(thumb_dpath)
         thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in img_uuid_list]
         image_paths = ibs.get_image_paths(gid_list)
-        paths_list = [(thumb, img) for (thumb, img) in izip(thumb_gpaths, image_paths)]
+        paths_list = [(thumb, img, bbox) for (thumb, img, bbox) in izip(thumb_gpaths, image_paths, bboxes_list)]
         return paths_list
         
 
