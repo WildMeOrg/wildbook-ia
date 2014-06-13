@@ -162,11 +162,11 @@ def make_qres_lists_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     # Define column information
     column_tuples = [
         ('qrid',  np.array(qrids),  int),
-        ('query',  lambda ids: ibs.get_roi_chip_thumbs(qrids[ids]), 'PIXMAP'),
+        #('query',  lambda ids: ibs.get_roi_chip_thumbs(qrids[ids]), 'PIXMAP'),
         ('qname', np.array(qnames), str),
         ('rid',   np.array(rids),   int),
         ('name',  np.array(names),  str),
-        ('result',  lambda ids: ibs.get_roi_chip_thumbs(rids[ids]), 'PIXMAP'),
+        #('result',  lambda ids: ibs.get_roi_chip_thumbs(rids[ids]), 'PIXMAP'),
         ('score', np.array(scores), float),
         ('rank',  np.array(ranks),  int),
         ('truth', np.array(truths), bool),
