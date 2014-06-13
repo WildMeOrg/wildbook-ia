@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # UTool
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 import vtool.exif as exif
 from PIL import Image
 from os.path import splitext, basename
@@ -9,6 +8,7 @@ import numpy as np
 import hashlib
 import uuid
 from utool import util_time
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
 
 
 GPSInfo_TAGID          = exif.EXIF_TAG_TO_TAGID['GPSInfo']
@@ -32,12 +32,17 @@ def parse_exif(pil_img):
 def get_image_uuid(pil_img):
     # Read PIL image data (every 64th byte)
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
+    #print('[ginfo] npimg.sum() = %r' % npimg.sum())
+    #img_bytes_ = np.asarray(pil_img).ravel().tostring()
     # hash the bytes using sha1
     bytes_sha1 = hashlib.sha1(img_bytes_)
     hashbytes_20 = bytes_sha1.digest()
     # sha1 produces 20 bytes, but UUID requires 16 bytes
     hashbytes_16 = hashbytes_20[0:16]
     uuid_ = uuid.UUID(bytes=hashbytes_16)
+    #uuid_ = uuid.uuid4()
+    #print('[ginfo] hashbytes_16 = %r' % (hashbytes_16,))
+    #print('[ginfo] uuid_ = %r' % (uuid_,))
     return uuid_
 
 
@@ -60,11 +65,14 @@ def parse_imageinfo(tup):
     """
     # Parse arguments from tuple
     gpath = tup
+    #print('[ginfo] gpath=%r' % gpath)
     # Try to open the image
     try:
         pil_img = Image.open(gpath, 'r')  # Open PIL Image
     except IOError:
+        #print('IOError')
         return None
+    
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
     time, lat, lon = parse_exif(pil_img)  # Read exif tags
@@ -87,6 +95,7 @@ def parse_imageinfo(tup):
         lon,
         notes
     )
+    #print('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
 
 

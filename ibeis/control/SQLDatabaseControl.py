@@ -347,7 +347,6 @@ class SQLDatabaseController(object):
             #results =
             # If the result was already in the database (and ignored), it will return None.
             # Thus, go and get the row_id if the index is None
-            # NO NO NO NO NO!!!
             #results = [get_rowid_from_uuid([uuid_list[index]])[0]
             #           if results[index] is None
             #           else results[index]
@@ -359,6 +358,7 @@ class SQLDatabaseController(object):
                 rowid_list = get_rowid_from_uuid(uuid_list, ensure=ensure)
         else:
             rowid_list = rowid_list_
+        assert len(rowid_list) == len(params_list)
         return rowid_list
 
     #@getter

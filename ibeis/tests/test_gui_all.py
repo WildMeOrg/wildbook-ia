@@ -41,6 +41,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     #
     # IMPORT IMAGES
     print('[TEST] IMPORT_TEST_GPATHS')
+    print('gpath_list = ' + utool.indentjoin(gpath_list))
     gid_list = back.import_images(gpath_list=gpath_list, **_kwargs)
     print('\n'.join('  * gid_list[%d] = %r' % (count, gid) for count, gid in enumerate(gid_list)))
     assert len(gid_list) == len(gpath_list)
@@ -64,44 +65,13 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     rid_list = ibs.get_valid_rids()
     print('\n'.join('  * rid_list[%d] = %r' % (count, rid) for count, rid in enumerate(rid_list)))
 
-    #back.select_rid(rid_list[1])
-    #back.select_rid(rid_list[2])
-
-    # Keys for propname come from uidtables.fancy_headers
-
-    # THE ABSTRACT API MODEL TAKES CARE OF THIS NOW
-    #back.set_roi_prop(rid_list[0], 'name', 'testname1', **_kwargs)
-    #back.set_roi_prop(rid_list[1], 'name', 'testname2', **_kwargs)
-    #back.set_roi_prop(rid_list[0], 'name', 'testname1', **_kwargs)
-    #back.set_roi_prop(rid_list[2], 'name', '____', **_kwargs)
-
-    #name_list = ibs.get_roi_names(rid_list)
-    #target_name_list = ['testname1', 'testname2', '____3', '____4', '____5']
-    #try:
-    #    assert name_list == target_name_list
-    #except AssertionError as ex:
-    #    utool.printex(ex, key_list=['name_list', 'target_name_list'])
-    #    raise
-
-    ## Test name props
-    #nid_list = ibs.get_valid_nids()
-    #back.set_name_prop(nid_list[0], 'notes', 'notes of a name', **_kwargs)
-    #back.set_name_prop(nid_list[0], 'name', 'aliased name', **_kwargs)
-
-    ## Test image props
-    #back.set_image_prop(gid_list[0], 'notes', 'notes of an image', **_kwargs)
-    #back.set_image_prop(gid_list[1], 'aif', True, **_kwargs)
-
-    #back.set_roi_prop(rid_list[1], 'notes', 'Lena', **_kwargs)
-    #back.set_roi_prop(rid_list[2], 'notes', 'This is, a small ROI on jeff', **_kwargs)
-    #assert ibs.get_roi_notes(rid_list) == [u'', u'Lena', u'This is, a small ROI on jeff', u'', u'']
-
-    #back.set_image_prop(gid_list[0], 'aif', True, **_kwargs)
-    #back.set_image_prop(gid_list[1], 'aif', False, **_kwargs)
-    #assert ibs.get_image_aifs(gid_list) == [1, 0, 0]
-
     back.select_rid(rid_list[0], show_image=True, **_kwargs)
-    assert ibs.get_roi_bboxes(rid_list[0]) == (50, 50, 100, 100)
+    try:
+        bbox_list = ibs.get_roi_bboxes(rid_list)
+        assert bbox_list[0] == (50, 50, 100, 100)
+    except AssertionError as ex:
+        utool.printex(ex, key_list=['bbox_list', 'rid_list'])
+        raise
     back.reselect_roi(bbox=[51, 52, 103, 104])
     assert ibs.get_roi_bboxes(rid_list[0]) == (51, 52, 103, 104)
 

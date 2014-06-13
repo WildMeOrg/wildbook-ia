@@ -179,6 +179,7 @@ cat <<EOF
 EOF
     
     RUN_TEST ibeis/tests/test_utool_parallel.py
+    RUN_TEST ibeis/tests/test_pil_hash.py
 fi
 
 #---------------------------------------------

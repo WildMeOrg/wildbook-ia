@@ -125,7 +125,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     fmtkey          = ingestable.fmtkey
     adjust_percent  = ingestable.adjust_percent
     postingest_func = ingestable.postingest_func
-
+    print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
     # Get images in the image directory
     gpath_list  = list_ingestable_images(img_dir, recursive=True)
     # Parse structure for image names
@@ -138,6 +138,17 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         name_list = [ibsfuncs.UNKNOWN_NAME for _ in xrange(len(gpath_list))]
 
     # Add Images
+    # <DEBUG>
+    #gid_list_ = ibs.add_images(gpath_list)
+    #print('added: \n' + '\n  *'.join(map(str, zip(gid_list_, gpath_list))))
+    #unique_gids = list(set(gid_list_))
+    #print("[ingest] Length gid list: %d" % len(gid_list_))
+    #print("[ingest] Length unique gid list: %d" % len(unique_gids))
+    #assert len(gid_list_) == len(gpath_list)
+    #for gid in gid_list_:
+    #    if gid is None:
+    #        print('[ingest] big fat warning')
+    # </DEBUG>
     gid_list = utool.filter_Nones(ibs.add_images(gpath_list))
     unique_gids, unique_names, unique_notes = ibsfuncs.resolve_name_conflicts(
         gid_list, name_list)
