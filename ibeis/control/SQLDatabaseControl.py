@@ -284,6 +284,7 @@ class SQLDatabaseController(object):
         }
         operation_fmt = '''
         SELECT rowid FROM {tblname}
+        ORDER BY rowid ASC
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 

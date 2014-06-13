@@ -716,7 +716,7 @@ class IBEISController(object):
         # The context populates thumb_list on exit
         thumb_list = context.thumb_list
         return thumb_list
-    
+
     @getter
     def get_image_thumbs_paths(ibs, gid_list):
         #print(gid_list)
@@ -734,7 +734,6 @@ class IBEISController(object):
         image_paths = ibs.get_image_paths(gid_list)
         paths_list = [(thumb, img, bbox) for (thumb, img, bbox) in izip(thumb_gpaths, image_paths, bboxes_list)]
         return paths_list
-        
 
     @getter
     def get_image_uuids(ibs, gid_list):
