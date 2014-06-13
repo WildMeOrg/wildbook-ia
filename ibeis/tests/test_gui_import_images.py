@@ -32,7 +32,7 @@ def TEST_GUI_IMPORT_IMAGES(ibs, back):
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     import ibeis
-    main_locals = ibeis.main(defaultdb='testdb0', gui=True)
+    main_locals = ibeis.main(defaultdb='testdb0', gui=True, allow_newdir=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_GUI_IMPORT_IMAGES, ibs, back)
