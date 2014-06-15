@@ -344,16 +344,20 @@ class APITableModel(API_MODEL_BASE):
             row_id = model._get_row_id(row)
             if row_id is None:
                 return "__NONE__"
+            # <HACK: MODEL CACHE>
             cachekey = (row_id, col)
             try:
                 # Randomly invalidate the cache
                 #import random
                 #if random.uniform(0, 1) > .95:
                 #    raise KeyError('')
+                if True:
+                    raise KeyError('')
                 data = model.cache[cachekey]
             except KeyError:
                 data = getter(row_id)
                 model.cache[cachekey] = data
+            # </HACK: MODEL CACHE>
             return data
         else:
             return "!!!<EMPTY FOR STRIPE>!!!"

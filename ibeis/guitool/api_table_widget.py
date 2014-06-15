@@ -15,9 +15,10 @@ class APITableWidget(QtGui.QWidget):
         # Create vertical layout for the table to go into
         widget.vert_layout = QtGui.QVBoxLayout(widget)
         # Instansiate the AbstractItemModel
-        widget.model = model_class(parent=widget)
         # Create a ColumnListTableView for the AbstractItemModel
         widget.view = view_class(parent=widget)
+        # FIXME: It is very bad to give the model a view. Only the view should have a model
+        widget.model = model_class(parent=widget.view)
         widget.view.setModel(widget.model)
         widget.vert_layout.addWidget(widget.view)
         if headers is not None:
