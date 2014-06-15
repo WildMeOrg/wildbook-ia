@@ -162,6 +162,18 @@ python dev.py -t list_dbs
 python dev.py --prequit --dump-argv
 
 
+#------------------
+# Convert a hotspotter database to IBEIS
+#------------------
+# Set this as your workdir
+python dev.py --db PZ_MOTHERS --setdb
+# If its in the same location as a hotspotter db, convert it
+python dev.py --convert --force-delete
+# Then interact with your new IBEIS database
+python dev.py --cmd --gui 
+
+rid_list = ibs.get_valid_rids()
+
 #---------
 # Ingest examples
 #---------
@@ -179,6 +191,15 @@ python main.py --merge-species JAG_
 #---------
 ./testsuit/run_tests.sh
 
+
+#--------------
+# Run Result Inspection
+#--------------
+%run dev.py --db MOTHERS --setdb
+%run dev.py --cmd --allgt -t inspect
+
+
+
 #---------------
 # Technical Demo
 #---------------
@@ -195,4 +216,6 @@ python dev.py --allgt -t best --echo-hardcase
 
 # Look at inspection widget
 python dev.py --allgt -t inspect -w
+
+
 ```

@@ -32,7 +32,7 @@ class ROI_Interaction2:
         if len(new_list) > 0:
             #print(new_list)
             self.ibs.add_rois([self.gid] * len(new_list), new_list)
-        thumb_path, image_path, bbox_list = self.ibs.get_image_thumbs_paths(self.gid)
+        thumb_path, image_path, bbox_list = self.ibs.get_image_thumbtup(self.gid)
         print("Current BBoxes")
         print(bbox_list)
         if os.path.exists(thumb_path):

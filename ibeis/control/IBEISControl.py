@@ -150,15 +150,18 @@ class IBEISController(object):
         ibs.flanndir    = join(ibs.cachedir, PATH_NAMES.flann)
         ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
         ibs.bigcachedir = join(ibs.cachedir,  PATH_NAMES.bigcache)
+        ibs.thumb_dpath = utool.get_app_resource_dir('ibeis', 'thumbs')
         if ensure:
+            _verbose = True
             utool.ensuredir(ibs._ibsdb)
-            utool.ensuredir(ibs.cachedir, verbose=False)
-            utool.ensuredir(ibs.workdir, verbose=False)
-            utool.ensuredir(ibs.imgdir, verbose=False)
-            utool.ensuredir(ibs.chipdir, verbose=False)
-            utool.ensuredir(ibs.flanndir, verbose=False)
-            utool.ensuredir(ibs.qresdir, verbose=False)
-            utool.ensuredir(ibs.bigcachedir, verbose=False)
+            utool.ensuredir(ibs.cachedir,    verbose=_verbose)
+            utool.ensuredir(ibs.workdir,     verbose=_verbose)
+            utool.ensuredir(ibs.imgdir,      verbose=_verbose)
+            utool.ensuredir(ibs.chipdir,     verbose=_verbose)
+            utool.ensuredir(ibs.flanndir,    verbose=_verbose)
+            utool.ensuredir(ibs.qresdir,     verbose=_verbose)
+            utool.ensuredir(ibs.bigcachedir, verbose=_verbose)
+            utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
         assert dbdir is not None, 'must specify database directory'
 
     def _init_sql(ibs):
@@ -199,6 +202,9 @@ class IBEISController(object):
     def get_ibsdir(ibs):
         """ Returns ibs internal directory """
         return ibs._ibsdb
+
+    def get_thumbdir(ibs):
+        return ibs.thumb_dpath
 
     def get_workdir(ibs):
         return ibs.workdir
@@ -455,6 +461,7 @@ class IBEISController(object):
             colname_list = ['name_text', 'name_notes']
             new_nid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                               ibs.get_name_nids, ensure=False)
+            new_nid_list  # this line silences warnings
 
             # All the names should have been ensured
             # this nid list should correspond to the input
@@ -718,22 +725,24 @@ class IBEISController(object):
         return thumb_list
 
     @getter
-    def get_image_thumbs_paths(ibs, gid_list):
-        #print(gid_list)
-        #print(type(gid_list[0]))
+    def get_image_thumbtup(ibs, gid_list):
+        """ Returns tuple of image paths, where the thumb path should go, and any bboxes """
         img_uuid_list = ibs.get_image_uuids(gid_list)
-        #rid_list = ibsfuncs.unflat_lookup(ibs.get_image_rids,gid_list)
         rids_list = ibs.get_image_rids(gid_list)
-        #print(rid_list)
-        #bbox_list = ibs.get_roi_bboxes(rid_list)
-        bboxes_list = ibs.get_unflat_roi_bboxes(rids_list)
-        #print(bbox_list)
-        thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
-        utool.ensuredir(thumb_dpath)
+        #bboxes_list = ibs.get_unflat_roi_bboxes(rids_list)  # Convinience, use full mapping instead
+        bboxes_list = ibsfuncs.unflat_lookup(ibs.get_roi_bboxes, rids_list)
+        # PSA: Add thumb_dpath to the ibeis dirs, so you only preform the
+        # ensuredir check once.
+        #thumb_dpath = utool.get_app_resource_dir('ibeis', 'thumbs')
+        #utool.ensuredir(thumb_dpath)
+        thumb_dpath = ibs.thumb_dpath
         thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in img_uuid_list]
         image_paths = ibs.get_image_paths(gid_list)
-        paths_list = [(thumb, img, bbox) for (thumb, img, bbox) in izip(thumb_gpaths, image_paths, bboxes_list)]
-        return paths_list
+        thumbtup_list = list(izip(thumb_gpaths, image_paths, bboxes_list))
+        #paths_list = [(thumb_path, img_path, bbox)
+        #              for (thumb_path, img_path, bbox) in
+        #              izip(thumb_gpaths, image_paths, bboxes_list)]
+        return thumbtup_list
 
     @getter
     def get_image_uuids(ibs, gid_list):
@@ -1076,14 +1085,17 @@ class IBEISController(object):
         return thumb_list
 
     @getter
-    def get_roi_chip_thumbs_paths(ibs, rid_list):
+    def get_roi_chip_thumbtup(ibs, rid_list):
         roi_uuid_list = ibs.get_roi_uuids(rid_list)
-        thumb_dpath = utool.get_app_resource_dir('vtool', 'thumbs')
-        utool.ensuredir(thumb_dpath)
-        thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in roi_uuid_list]
+        # PSA: Do not use ensurepath here. Move to an initialcheck on creation
+        # and save thumb_dpath as an IBEIS path
+        thumb_gpaths = [join(ibs.thumb_dpath, str(uuid) + 'thumb.png')
+                        for uuid in roi_uuid_list]
         image_paths = ibs.get_roi_cpaths(rid_list)
-        paths_list = [(thumb, img) for (thumb, img) in izip(thumb_gpaths, image_paths)]
-        return paths_list
+        thumbtup_list = [(thumb_path, img_path, [])
+                         for (thumb_path, img_path) in
+                         izip(thumb_gpaths, image_paths)]
+        return thumbtup_list
 
     @getter_numpy_vector_output
     def get_roi_kpts(ibs, rid_list, ensure=True):
@@ -1358,13 +1370,17 @@ class IBEISController(object):
     @getter
     def get_names(ibs, nid_list, distinguish_unknowns=True):
         """ Returns text names """
+        #print('get_names: %r' % nid_list)
         # Change the temporary negative indexes back to the unknown NID for the
         # SQL query. Then augment the name list to distinguish unknown names
-        nid_list_  = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
-        name_list  = ibs.get_name_props('name_text', nid_list_)
+        nid_list_  = [nid if nid is not None and nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
+        name_list = ibs.db.get('names', ('name_text',), nid_list_,
+                               unpack_scalars=True)
+        #name_list = ibs.get_name_props('name_text', nid_list_)
         if distinguish_unknowns:
-            name_list  = [name if nid > 0 else name + str(-nid) for (name, nid)
-                          in izip(name_list, nid_list)]
+            name_list  = [name if nid is not None and nid > 0
+                          else name + str(-nid) if nid is not None else ibs.UNKNOWN_NAME
+                          for (name, nid) in izip(name_list, nid_list)]
         name_list  = list(imap(__USTRCAST__, name_list))
         return name_list
 
@@ -1631,7 +1647,7 @@ class IBEISController(object):
         drid_list = qrid_list
         ibs._prep_qreq(qrid_list, drid_list)
 
-    @default_decorator
+    @default_decorator('[querydb]')
     def query_database(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = ibs.get_recognition_database_rids()

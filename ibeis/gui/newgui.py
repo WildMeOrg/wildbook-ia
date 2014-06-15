@@ -169,7 +169,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.widgets[tblname] = widget
             #ibswgt.models[tblname]  = widget.model
             #ibswgt.views[tblname]   = widget.view
-            ibswgt.views[tblname]  = ViewClass(parent=ibswgt) # Make view first to pass as parent
+            ibswgt.views[tblname]  = ViewClass(parent=ibswgt)  # Make view first to pass as parent
+            # FIXME: It is very bad to give the model a view. Only the view should have a model
             ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
         # Connect models and views
         for tblname in ibswgt.super_tblname_list:

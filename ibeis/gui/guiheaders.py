@@ -33,8 +33,8 @@ TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
     IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-    #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'notes'],
-    ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rconf', 'notes'],
+    #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rconf', 'notes'],
+    ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'exemplar', 'gname', 'rconf', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
@@ -105,7 +105,7 @@ def make_ibeis_headers_dict(ibs):
         'notes'      : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
-        'thumb'      : ibs.get_image_thumbs_paths,
+        'thumb'      : ibs.get_image_thumbtup,
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
@@ -124,7 +124,7 @@ def make_ibeis_headers_dict(ibs):
         'nFeats'   : ibs.get_roi_num_feats,
         'rconf'    : ibs.get_roi_confidence,
         'notes'    : ibs.get_roi_notes,
-        'thumb'    : ibs.get_roi_chip_thumbs_paths,
+        'thumb'    : ibs.get_roi_chip_thumbtup,
         'exemplar' : ibs.get_roi_exemplar_flag,
     }
     setters[ROI_TABLE] = {
@@ -159,7 +159,7 @@ def make_ibeis_headers_dict(ibs):
 
     iders[THUMB_TABLE] = ibs.get_valid_gids
     getters[THUMB_TABLE] = {
-        'thumb'      : ibs.get_image_thumbs_paths,
+        'thumb'      : ibs.get_image_thumbtup,
     }
     setters[THUMB_TABLE] = {
     }

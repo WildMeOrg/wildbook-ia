@@ -39,8 +39,9 @@ def run_experiments(ibs, qrid_list):
     This function runs tests passed in with the -t flag
     """
     print('\n')
+    print('[dev] run_experiments')
     print('==========================')
-    print('RUN INVESTIGATIONS %s' % ibs.get_dbname())
+    print('RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
     input_test_list = params.args.tests[:]
     print('input_test_list = %r' % (input_test_list,))
@@ -68,6 +69,7 @@ def run_experiments(ibs, qrid_list):
 
     valid_test_helpstr_list.append('    # --- Simple Tests ---')
 
+    # Explicit (simple) test functions
     if intest('export'):
         export(ibs)
     if intest('dbinfo'):
@@ -85,15 +87,17 @@ def run_experiments(ibs, qrid_list):
 
     locals_ = locals()
 
-    # Run decorated functions
+    # Implicit (decorated) test functions
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
-            ret = func(ibs, qrid_list)
-            if isinstance(ret, dict):
-                locals_.update(ret)
+            with utool.Indenter('[dev.' + func.func_name + ']'):
+                ret = func(ibs, qrid_list)
+                if isinstance(ret, dict):
+                    locals_.update(ret)
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
+    # Config driven test functions
     # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
@@ -124,6 +128,7 @@ __ALLRES_CACHE__ = {}
 
 
 def get_allres(ibs, qrid_list):
+    print('[dev] get_allres')
     allres_uid = ibs.qreq.get_uid()
     try:
         allres = __ALLRES_CACHE__[allres_uid]
@@ -142,18 +147,11 @@ def get_allres(ibs, qrid_list):
 # and then go in _devcmds_ibeis.py
 
 
-def devfunc(ibs, qrid_list):
-    """ Function for developing something """
-    allres = get_allres(ibs, qrid_list)
-    locals_ = locals()
-    #locals_.update(roimatch_scores(ibs, qrid_list))
-    return locals_
-
-
 @devcmd('dists', 'dist', 'desc_dists')
 def desc_dists(ibs, qrid_list):
     """ Plots the distances between matching descriptors
     labeled with groundtruth (true/false) data """
+    print('[dev] desc_dists')
     allres = get_allres(ibs, qrid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['top_false', 'true']
@@ -173,23 +171,32 @@ def desc_dists(ibs, qrid_list):
 
 @devcmd('inspect')
 def inspect_matches(ibs, qrid_list):
+    print('<inspect_matches>')
     from ibeis.gui import inspect_gui
-    from ibeis.viz.interact import interact_qres2
+    from ibeis.viz.interact import interact_qres2  # NOQA
     allres = get_allres(ibs, qrid_list)
     guitool.ensure_qapp()
     tblname = 'qres'
     qrid2_qres = allres.qrid2_qres
     ranks_lt = 5
+    # This object is created inside QresResultsWidget
+    #qres_api = inspect_gui.make_qres_api(ibs, qrid2_qres)  # NOQA
+    # This is where you create the result widigt
+    print('[inspect_matches] make_qres_widget')
     qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    print('[inspect_matches] show')
     qres_wgt.show()
+    print('[inspect_matches] raise')
     qres_wgt.raise_()
-    query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
-    self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    #query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
+    #self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    print('</inspect_matches>')
     return locals()
 
 
 @devcmd('scores', 'score')
 def roimatch_scores(ibs, qrid_list):
+    print('[dev] roimatch_scores')
     allres = get_allres(ibs, qrid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
@@ -214,6 +221,7 @@ def gvcomp(ibs, qrid_list):
     GV = With gravity vector
     RI = With rotation invariance
     """
+    print('[dev] gvcomp')
     def testcomp(ibs, qrid_list):
         allres = get_allres(ibs, qrid_list)
         for qrid in qrid_list:
@@ -229,6 +237,7 @@ def gvcomp(ibs, qrid_list):
 
 
 def get_ibslist(ibs):
+    print('[dev] get_ibslist')
     ibs_GV  = ibs
     ibs_RI  = ibs.clone_handle(nogravity_hack=True)
     ibs_RIW = ibs.clone_handle(nogravity_hack=True, gravity_weighting=True)
@@ -238,6 +247,7 @@ def get_ibslist(ibs):
 
 @devcmd('gv_scores')
 def compgrav_roimatch_scores(ibs, qrid_list):
+    print('[dev] compgrav_roimatch_scores')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
         roimatch_scores(ibs_, qrid_list)
@@ -247,14 +257,50 @@ def compgrav_roimatch_scores(ibs, qrid_list):
 # DEV MAIN
 #------------------
 
-def rundev(main_locals):
-    ibs = main_locals['ibs']
-    back = main_locals['back']
+def dev_snippets(main_locals):
+    """ Common variables for convineince when interacting with IPython """
+    print('[dev] dev_snippets')
+    species = 'zebra_grevys'
+    quick = True
     fnum = 1
+    # Get reference to IBEIS Controller
+    ibs = main_locals['ibs']
+    if 'back' in main_locals:
+        # Get reference to GUI Backend
+        back = main_locals['back']
+        if back is not None:
+            # Get reference to GUI Frontend
+            front = getattr(back, 'front', None)
     if ibs is not None:
+        #ibs.dump_tables()
+        valid_rids = ibs.get_valid_rids()
+        valid_gids = ibs.get_valid_gids()
+        valid_nids = ibs.get_valid_nids()
+        valid_nid_list   = ibs.get_roi_nids(valid_rids)
+        valid_rid_names  = ibs.get_roi_names(valid_rids)
+        valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
+    return locals()
+
+
+def devfunc(ibs, qrid_list):
+    """ Function for developing something """
+    print('[dev] devfunc')
+    allres = get_allres(ibs, qrid_list)
+    locals_ = locals()
+    #locals_.update(roimatch_scores(ibs, qrid_list))
+    return locals_
+
+
+def run_dev(main_locals):
+    print('[dev] run_dev')
+    # Get references to controller
+    ibs  = main_locals['ibs']
+    if ibs is not None:
+        # Get rids marked as test cases
         qrid_list = main_helpers.get_test_qrids(ibs)
         print('test_qrids = %r' % qrid_list)
         print('len(test_qrids) = %d' % len(qrid_list))
+        # Warn on no test cases
         try:
             assert len(qrid_list) > 0, 'assert!'
         except AssertionError as ex:
@@ -262,19 +308,18 @@ def rundev(main_locals):
             #qrid_list = ibs.get_valid_rids()[0]
 
         if len(qrid_list) > 0:
+            # Prepare the IBEIS controller for querys
             ibs.prep_qreq_db(qrid_list)
+            # Run the dev experiments
             expt_locals = run_experiments(ibs, qrid_list)
-            if '--cmd' in sys.argv or utool.inIPython():
-                exec(utool.execstr_dict(expt_locals, 'expt_locals'))
+            # Add experiment locals to local namespace
+            exec(utool.execstr_dict(expt_locals, 'expt_locals'))
             if '--devmode' in sys.argv:
+                # Execute the dev-func and add to local namespace
                 devfunc_locals = devfunc(ibs, qrid_list)
                 exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
-            if '--nopresent' not in sys.argv:
-                df2.present()
 
-    ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
-    main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
-    return locals(), main_execstr
+    return locals()
 
 
 if __name__ == '__main__':
@@ -290,43 +335,45 @@ if __name__ == '__main__':
                 ./dev.py -t query -w
     """
     multiprocessing.freeze_support()  # for win32
+
     #
-    # IBEIS Main
+    #
+    # Run IBEIS Main, create controller, and possibly gui
     print('++dev')
     main_locals = ibeis.main(gui='--gui' in sys.argv)
+
     #
-    # ______________________________
-    # + Common variables for IPython
+    #
+    # Load snippet variables
     SNIPPITS = True
     if SNIPPITS:
-        species = 'zebra_grevys'
-        quick = True
-        # Get snippet variables
-        ibs = main_locals['ibs']
-        if 'back' in main_locals:
-            back = main_locals['back']
-            if back is not None:
-                front = getattr(back, 'front', None)
-        if ibs is not None:
-            #ibs.dump_tables()
-            valid_rids = ibs.get_valid_rids()
-            valid_gids = ibs.get_valid_gids()
-            valid_nids = ibs.get_valid_nids()
-            valid_nid_list   = ibs.get_roi_nids(valid_rids)
-            valid_rid_names  = ibs.get_roi_names(valid_rids)
-            valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
-    # L___________________________
+        snippet_locals = dev_snippets(main_locals)
+        snippet_execstr = utool.execstr_dict(snippet_locals, 'snippet_locals')
+        exec(snippet_execstr)
+
     #
     #
     # Development code
     RUN_DEV = True  # RUN_DEV = '__IPYTHON__' in vars()
     if RUN_DEV:
-        dev_locals, main_execstr = rundev(main_locals)
+        dev_locals = run_dev(main_locals)
         dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
-        execstr = dev_execstr + '\n' + main_execstr
-        exec(execstr)
+        exec(dev_execstr)
+
+    #
+    #
+    # Main Loop (IPython interaction, or some exec loop)
+    if '--nopresent' not in sys.argv:
+        df2.present()
+    ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
+    main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
+    exec(main_execstr)
+
+    #
+    #
     # Memory profile
     if '--memprof' in sys.argv:
         utool.print_resource_usage()
         utool.memory_profile()
+
     print('exiting dev')
