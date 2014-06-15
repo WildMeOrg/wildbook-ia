@@ -201,6 +201,29 @@ def _trimread(gpath):
         return None
 
 
+def get_scale_factor(src_img, dst_img):
+    """ returns scale factor from one image to the next """
+    src_h, src_w = src_img.shape[0:2]
+    dst_h, dst_w = dst_img.shape[0:2]
+    sx = dst_w / src_w
+    sy = dst_h / src_h
+    return (sx, sy)
+
+
+def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
+    """ Converts bbox to thumb format with a scale factor"""
+    (x1, y1, _w, _h) = xywh
+    x2 = (x1 + _w)
+    y2 = (y1 + _h)
+    if round_:
+        pt1 = (utool.iround(x1 * sx), utool.iround(y1 * sy))
+        pt2 = (utool.iround(x2 * sx), utool.iround(y2 * sy))
+    else:
+        pt1 = ((x1 * sx), (y1 * sy))
+        pt2 = ((x2 * sx), (y2 * sy))
+    return (pt1, pt2)
+
+
 class ThumbnailCacheContext(object):
     """ Lazy computation of of images as thumbnails.
 
