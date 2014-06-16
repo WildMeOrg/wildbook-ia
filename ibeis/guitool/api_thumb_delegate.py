@@ -36,8 +36,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         dgt).__init__(parent) Instead call the parent classes init directly """
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = QtCore.QThreadPool()
-        dgt.thumb_path = None
-        dgt.img_path = None
+        dgt.thumb_size = 128
         # Initialize threadcount
         dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
 
@@ -65,11 +64,13 @@ class APIThumbDelegate(DELEGATE_BASE):
             # Start computation of thumb if needed
             qtindex.model()._update()
             view = dgt.parent()
+            thumb_size = dgt.thumb_size
             offset = view.verticalOffset()
             dgt.pool.start(
                 ThumbnailCreationThread(
                     thumb_path,
                     img_path,
+                    thumb_size,
                     qtindex,
                     view,
                     offset + option.rect.y(),
@@ -89,8 +90,14 @@ class APIThumbDelegate(DELEGATE_BASE):
                 # Read the precomputed thumbnail
                 qimg, width, height = read_thumb_as_qimg(thumb_path)
                 view = dgt.parent()
-                view.setColumnWidth(qtindex.column(), 200)
-                view.setRowHeight(qtindex.row(), height)
+                col_width = view.columnWidth(qtindex.column())
+                col_height = view.rowHeight(qtindex.row())
+                # Let columns shrink
+                if dgt.thumb_size != col_width:
+                    view.setColumnWidth(qtindex.column(), dgt.thumb_size)
+                # Let rows grow
+                if height > col_height:
+                    view.setRowHeight(qtindex.row(), height)
                 # Paint image on an item in some view
                 painter.save()
                 painter.setClipRect(option.rect)
@@ -108,13 +115,13 @@ class APIThumbDelegate(DELEGATE_BASE):
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """ Helper to compute thumbnails concurrently """
 
-    def __init__(thread, thumb_path, img_path, qtindex, view, offset, bbox_list):
+    def __init__(thread, thumb_path, img_path, thumb_size, qtindex, view, offset, bbox_list):
         RUNNABLE_BASE.__init__(thread)
         thread.thumb_path = thumb_path
         thread.img_path = img_path
         thread.qtindex = qtindex
         thread.offset = offset
-        thread.thumb_size = 200
+        thread.thumb_size = thumb_size
         thread.view = view
         thread.bbox_list = bbox_list
 

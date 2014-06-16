@@ -150,6 +150,7 @@ class APITableView(API_VIEW_BASE):
     #---------------
 
     def infer_delegates(view, **headers):
+        """ Infers which columns should be given item delegates """
         col_type_list = headers.get('col_type_list', [])
         for colx, coltype in enumerate(col_type_list):
             if coltype == 'PIXMAP':
