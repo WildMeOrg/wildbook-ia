@@ -14,6 +14,7 @@ DELEGATE_BASE = QtGui.QItemDelegate
 RUNNABLE_BASE = QtCore.QRunnable
 MAX_NUM_THUMB_THREADS = 1
 
+
 def read_thumb_as_qimg(thumb_path):
     # Read thumbnail image and convert to 32bit aligned for Qt
     npimg   = gtool.imread(thumb_path)
@@ -27,71 +28,65 @@ def read_thumb_as_qimg(thumb_path):
 
 
 class APIThumbDelegate(DELEGATE_BASE):
-    # TODO: The delegate can have a reference to the view,
-    # and it is allowed to resize the rows to fit the images.
-    # It probably should not resize columns
-    # but it can get the column width and resize the image to that
-    # size.
+    """ TODO: The delegate can have a reference to the view, and it is allowed
+    to resize the rows to fit the images.  It probably should not resize columns
+    but it can get the column width and resize the image to that size.  """
     def __init__(dgt, parent=None):
-        # <PSA> !!!
-        # calling super is unsafe in pyqt4 code
-        # super(APIThumbDelegate, dgt).__init__(parent)
-        # Instead call the parent classes init directly
+        """ PSA: calling super is unsafe in pyqt4 code super(APIThumbDelegate,
+        dgt).__init__(parent) Instead call the parent classes init directly """
         DELEGATE_BASE.__init__(dgt, parent)
-        # </PSA>
         dgt.pool = QtCore.QThreadPool()
         dgt.thumb_path = None
         dgt.img_path = None
         # Initialize threadcount
         dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
 
-    def get_model_data(dgt, index):
-        data = index.model().data(index, QtCore.Qt.DisplayRole)
+    def get_model_data(dgt, qtindex):
+        data = qtindex.model().data(qtindex, QtCore.Qt.DisplayRole)
         # The data should be specified as a thumbtup
         assert isinstance(data, tuple), 'data should be a thumbtup'
         thumbtup = data
         #(thumb_path, img_path, bbox_list) = thumbtup
         return thumbtup
 
-    def try_get_thumb_path(dgt, option, index):
-        """
-        Checks if the thumbnail is ready to paint
-        Returns thumb_path if computed. Otherwise returns None
-        """
+    def try_get_thumb_path(dgt, option, qtindex):
+        """ Checks if the thumbnail is ready to paint
+        Returns thumb_path if computed. Otherwise returns None """
         # Get data from the models display role
-        thumb_path, img_path, bbox_list = dgt.get_model_data(index)
+        thumb_path, img_path, bbox_list = dgt.get_model_data(qtindex)
         if not exists(img_path):
             print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
             return None
         if not exists(thumb_path):
             # Start computation of thumb if needed
-            index.model()._update()
-            #print('[APIItemDelegate] Request Thumb: rc=(%d, %d), nBboxes=%r' %
-            #      (index.row(), index.column(), len(bbox_list)))
-            #print('[APIItemDelegate] bbox_list = %r' % (bbox_list,))
+            qtindex.model()._update()
             view = dgt.parent()
             offset = view.verticalOffset()
             dgt.pool.start(
                 ThumbnailCreationThread(
                     thumb_path,
                     img_path,
-                    index,
+                    qtindex,
                     view,
                     offset + option.rect.y(),
                     bbox_list
                 )
             )
+            #print('[ThumbDelegate] Waiting to compute')
             return None
         else:
             # thumb is computed return the path
             return thumb_path
 
-    def paint(dgt, painter, option, index):
+    def paint(dgt, painter, option, qtindex):
         try:
-            thumb_path = dgt.try_get_thumb_path(option, index)
+            thumb_path = dgt.try_get_thumb_path(option, qtindex)
             if thumb_path is not None:
                 # Read the precomputed thumbnail
                 qimg, width, height = read_thumb_as_qimg(thumb_path)
+                view = dgt.parent()
+                view.setColumnWidth(qtindex.column(), 200)
+                view.setRowHeight(qtindex.row(), height)
                 # Paint image on an item in some view
                 painter.save()
                 painter.setClipRect(option.rect)
@@ -109,11 +104,11 @@ class APIThumbDelegate(DELEGATE_BASE):
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """ Helper to compute thumbnails concurrently """
 
-    def __init__(thread, thumb_path, img_path, index, view, offset, bbox_list):
+    def __init__(thread, thumb_path, img_path, qtindex, view, offset, bbox_list):
         RUNNABLE_BASE.__init__(thread)
         thread.thumb_path = thumb_path
         thread.img_path = img_path
-        thread.index = index
+        thread.qtindex = qtindex
         thread.offset = offset
         thread.thumb_size = 200
         thread.view = view
@@ -137,4 +132,10 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
             cv2.rectangle(thumb, pt1, pt2, color, thickness)
         gtool.imwrite(thread.thumb_path, thumb)
         #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
-        thread.index.model().dataChanged.emit(thread.index, thread.index)
+        thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
+
+
+# GRAVE:
+#print('[APIItemDelegate] Request Thumb: rc=(%d, %d), nBboxes=%r' %
+#      (qtindex.row(), qtindex.column(), len(bbox_list)))
+#print('[APIItemDelegate] bbox_list = %r' % (bbox_list,))

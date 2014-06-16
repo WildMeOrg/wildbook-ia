@@ -1,10 +1,11 @@
+# TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
 #import __builtin__
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error, signal_
-from .api_thumb_delegate import APIThumbDelegate
+#from .api_thumb_delegate import APIThumbDelegate
 from itertools import izip
 import functools
 import utool
@@ -119,12 +120,13 @@ class APITableModel(API_MODEL_BASE):
         model.cache = None  # FIXME: This is not sustainable
         # Initialize member variables
         #model._about_to_change()
+        model.headers = headers  # save the headers
         if headers is not None:
             model._update_headers(**headers)
 
     @default_method_decorator
     def _about_to_change(model, force=False):
-        N = range(0, 10)  # NOQA
+        #N = range(0, 10)  # NOQA
         if force or (not model._abouttochange and not model._changeblocked):
             #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
@@ -137,7 +139,7 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _change(model, force=False):
-        N = range(0, 10)  # NOQA
+        #N = range(0, 10)  # NOQA
         if force or (model._abouttochange and not model._changeblocked):
             #printDBG('LAYOUT CHANGED:  %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
@@ -233,14 +235,15 @@ class APITableModel(API_MODEL_BASE):
             model.col_name_list_counts[name] = model.col_name_list.count(name)
         model.col_type_list = col_type_list
         # Check if any of the column types are specified as delegates
-        for colx in xrange(len(model.col_type_list)):
-            coltype_ = col_type_list[colx]
-            if coltype_ == 'PIXMAP':
-                try:
-                    model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
-                except:
-                    print("COLUMN INDEXING VIEW %r" % model.view)
-                    #print("IGNORING")
+        # PSA: Don't do this in the model.
+        #for colx in xrange(len(model.col_type_list)):
+        #    coltype_ = col_type_list[colx]
+        #    if coltype_ == 'PIXMAP':
+        #        try:
+        #            model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
+        #        except:
+        #            print("COLUMN INDEXING VIEW %r" % model.view)
+        #            #print("IGNORING")
 
     @updater
     def _set_col_nice(model, col_nice_list=None):
@@ -496,8 +499,8 @@ class APITableModel(API_MODEL_BASE):
         elif role in (Qt.DisplayRole, Qt.EditRole):
             if type_ in qtype.QT_PIXMAP_TYPES:
                 pass
-                model.view.setColumnWidth(qtindex.column(), 200)
-                model.view.setRowHeight(qtindex.row(), 200)
+                #model.view.setColumnWidth(qtindex.column(), 200)
+                #model.view.setRowHeight(qtindex.row(), 200)
                 return model._get_data(row, col)
                 return 'pixmap'
             elif type_ in qtype.QT_ICON_TYPES:

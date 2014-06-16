@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import guitool
+from guitool.api_thumb_delegate import APIThumbDelegate
+from guitool.api_button_delegate import APIButtonDelegate
 from guitool.guitool_decorators import signal_, slot_
 from guitool.api_table_model import APITableModel
 from guitool.guitool_main import get_qtapp
@@ -108,7 +110,11 @@ class APITableView(API_VIEW_BASE):
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
         assert isinstance(model, APITableModel), 'apitblview only accepts apitblemodels'
+        # Learn some things about the model before you fully connect it.
+        print('[view] setting model')
         model._rows_updated.connect(view.on_rows_updated)
+        #view.infer_delegates_from_model(model=model)
+        # TODO: Update headers
         return API_VIEW_BASE.setModel(view, model)
 
     def itemDelegate(view, qindex):
@@ -143,13 +149,39 @@ class APITableView(API_VIEW_BASE):
     # Data Manipulation
     #---------------
 
+    def infer_delegates(view, **headers):
+        col_type_list = headers.get('col_type_list', [])
+        for colx, coltype in enumerate(col_type_list):
+            if coltype == 'PIXMAP':
+                print('[view] colx=%r is a PIXMAP' % colx)
+                view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
+            elif coltype == 'BUTTON':
+                print('[view] colx=%r is a BUTTON' % colx)
+                view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
+
+    #def infer_delegates_from_model(view, model=None):
+    #    if model is None:
+    #        model = view.model
+    #    print('[view] infering model = %r' % model)
+    #    if not hasattr(model, 'col_type_list'):
+    #        print('dir(model) = ' + utool.indentjoin(sorted(dir(model))))
+    #        raise AssertionError('no attribute col_type_list')
+    #        return
+    #    assert isinstance(model, guitool.api_table_model.APITableModel), ' not apitable model: %r' % type(model)
+    #    #col_type_list = model.col_type_list
+
     def _update_headers(view, **headers):
         """ Mirrors _update_headers in api_table_model """
+        # Use headers from model
+        #model = view.model
+        #headers = model.headers
         # Get header info
         col_sort_index = headers.get('col_sort_index', None)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # Call updates
         view._set_sort(col_sort_index, col_sort_reverse)
+        #view.infer_delegates_from_model(model=model)
+        view.infer_delegates(**headers)
         #view.resizeColumnsToContents()
 
     def _set_sort(view, col_sort_index, col_sort_reverse=False):
@@ -173,7 +205,10 @@ class APITableView(API_VIEW_BASE):
 
     def set_column_as_delegate(view, column, delegate_type):
         """ Checks delegate type from tuple"""
-        DelegateClass = guitool.DELEGATE_MAP[delegate_type]
+        if isinstance(delegate_type, int):
+            DelegateClass = guitool.DELEGATE_MAP[delegate_type]
+        else:
+            DelegateClass = delegate_type
         print('view.setItemDelegateForColumn(%r, %r)' % (column, delegate_type))
         view.setItemDelegateForColumn(column, DelegateClass(view))
         return DelegateClass.is_persistant_editable
