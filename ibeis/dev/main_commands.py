@@ -80,9 +80,9 @@ def postload_commands(ibs, back):
         vdd(ibs)
     if params.args.set_default_dbdir:
         sysres.set_default_dbdir(ibs.get_dbdir())
-    if params.args.update_cfg is not None:
-        cfgdict = parse_cfgstr_list(params.args.update_cfg)
-        ibs.update_cfg(**cfgdict)
+    if params.args.update_query_cfg is not None:
+        cfgdict = parse_cfgstr_list(params.args.update_query_cfg)
+        ibs.update_query_cfg(**cfgdict)
     if params.args.select_rid is not None:
         try:
             ibsfuncs.assert_valid_rids(ibs, (params.args.select_rid,))

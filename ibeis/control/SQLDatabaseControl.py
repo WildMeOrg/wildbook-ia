@@ -372,7 +372,7 @@ class SQLDatabaseController(object):
 
         if where_clause is None:
             where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
-            params_iter = ((_uid,) for _uid in id_iter)
+            params_iter = ((_rowid,) for _rowid in id_iter)
         else:
             where_rowid = where_clause
             params_iter = id_iter
@@ -454,7 +454,7 @@ class SQLDatabaseController(object):
             FROM {tblname}
             WHERE {rowid_str}
             '''
-        params_iter = ((_uid,) for _uid in id_list)
+        params_iter = ((_rowid,) for _rowid in id_list)
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter,
                                              **kwargs)

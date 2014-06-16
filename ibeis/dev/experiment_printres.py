@@ -57,8 +57,8 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
     if cfgx2_lbl is None:
         cfgx2_lbl = []
         for cfgx in xrange(nCfg):
-            test_uid  = cfg_list[cfgx].get_uid()
-            cfg_label = 'cfgx=(%3d) %s' % (cfgx, test_uid)
+            test_cfgstr  = cfg_list[cfgx].get_cfgstr()
+            cfg_label = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
             cfgx2_lbl.append(cfg_label)
         cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
@@ -230,14 +230,14 @@ def print_results(ibs, qrids, drids, cfg_list, mat_list, testnameid,
             bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
             best_rankscore += eh.rankscore_str(X, max_LessX, nQuery)
-            uid_list = cfgx2_lbl[bestCFG_X]
+            cfgstr_list = cfgx2_lbl[bestCFG_X]
 
-            best_rankcfg = eh.format_uid_list(uid_list)
-            #indent('\n'.join(uid_list), '    ')
+            best_rankcfg = eh.format_cfgstr_list(cfgstr_list)
+            #indent('\n'.join(cfgstr_list), '    ')
             print(best_rankscore)
             print(best_rankcfg)
         print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nCfg))
-        print(eh.format_uid_list(intersected))
+        print(eh.format_cfgstr_list(intersected))
 
         print('--- /Best Configurations ---')
     print_bestcfg()

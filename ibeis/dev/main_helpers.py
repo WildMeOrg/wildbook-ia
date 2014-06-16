@@ -25,7 +25,7 @@ def register_utool_aliases():
 @utool.indent_func
 @profile
 def get_test_qrids(ibs):
-    """ Gets test roi_uids based on command line arguments """
+    """ Gets test roi_rowids based on command line arguments """
     #print('[main_helpers]')
     test_qrids = []
     valid_rids = ibs.get_valid_rids()

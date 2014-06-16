@@ -4,7 +4,7 @@ import utool
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QAbstractItemView
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[uidtables]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[rowidtables]', DEBUG=False)
 
 from ibeis.control import DB_SCHEMA
 
@@ -105,7 +105,7 @@ schema_qt_typemap = {
     'UUID': str,
 }
 
-# Specialize table uid types
+# Specialize table rowid types
 QT_IMAGE_UID_TYPE = schema_qt_typemap[DB_SCHEMA.IMAGE_UID_TYPE]
 QT_ROI_UID_TYPE   = schema_qt_typemap[DB_SCHEMA.ROI_UID_TYPE]
 QT_NAME_UID_TYPE  = schema_qt_typemap[DB_SCHEMA.NAME_UID_TYPE]
@@ -238,19 +238,19 @@ def _get_table_datatup_list(ibs, tblname, col_headers, col_editable,
 
 def emit_populate_table(back, tblname, *args, **kwargs):
     printDBG('>>>>>>>>>>>>>>>>>>>>>')
-    printDBG('[uidtbls] _populate_table(%r)' % tblname)
+    printDBG('[rowidtbls] _populate_table(%r)' % tblname)
     col_headers, col_editable = _get_table_headers_editable(tblname)
-    #printDBG('[uidtbls] col_headers = %r' % col_headers)
-    #printDBG('[uidtbls] col_editable = %r' % col_editable)
+    #printDBG('[rowidtbls] col_headers = %r' % col_headers)
+    #printDBG('[rowidtbls] col_editable = %r' % col_editable)
     enctext = kwargs.get('enctext', '')
     datatup_list = _get_table_datatup_list(back.ibs, tblname, col_headers,
                                            col_editable, *args, **kwargs)
-    #printDBG('[uidtbls] datatup_list = %r' % datatup_list)
+    #printDBG('[rowidtbls] datatup_list = %r' % datatup_list)
     row_list = range(len(datatup_list))
     # Populate with fancyheaders.
     col_fancyheaders = [fancy_headers.get(key, key) for key in col_headers]
     col_types = [header_typemap.get(key) for key in col_headers]
-    printDBG('[uidtbls] populateTableSignal.emit(%r, len=%r)' %
+    printDBG('[rowidtbls] populateTableSignal.emit(%r, len=%r)' %
              (tblname, len(col_fancyheaders)))
     back.populateTableSignal.emit(tblname,
                                   col_fancyheaders,
@@ -350,5 +350,5 @@ def populate_item_table(tbl,
 
 
 def populate_encounter_tab(front, enctext):
-    #print('[uidtbls] populate_encounter_tab')
+    #print('[rowidtbls] populate_encounter_tab')
     front.ui.ensureEncounterTab(front, enctext)

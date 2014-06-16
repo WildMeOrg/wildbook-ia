@@ -96,9 +96,9 @@ def nearest_neighbors(ibs, qrids, qreq):
     K      = nn_cfg.K
     Knorm  = nn_cfg.Knorm
     checks = nn_cfg.checks
-    uid_   = nn_cfg.get_uid()
+    cfgstr_   = nn_cfg.get_cfgstr()
     if not QUIET:
-        print('[mf] Step 1) Assign nearest neighbors: ' + uid_)
+        print('[mf] Step 1) Assign nearest neighbors: ' + cfgstr_)
     # Grab descriptors
     qdesc_list = ibs.get_roi_desc(qrids)
     # NNIndex
@@ -142,7 +142,7 @@ def nearest_neighbors(ibs, qrids, qreq):
 
 def weight_neighbors(ibs, qrid2_nns, qreq):
     if not QUIET:
-        print('[mf] Step 2) Weight neighbors: ' + qreq.cfg.filt_cfg.get_uid())
+        print('[mf] Step 2) Weight neighbors: ' + qreq.cfg.filt_cfg.get_cfgstr())
     if qreq.cfg.filt_cfg.filt_on:
         return _weight_neighbors(ibs, qrid2_nns, qreq)
     else:
@@ -417,7 +417,7 @@ def spatial_verification(ibs, qrid2_chipmatch, qreq, dbginfo=False):
 @profile
 def _spatial_verification(ibs, qrid2_chipmatch, qreq, dbginfo=False):
     sv_cfg = qreq.cfg.sv_cfg
-    print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_uid())
+    print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_cfgstr())
     prescore_method = sv_cfg.prescore_method
     nShortlist      = sv_cfg.nShortlist
     xy_thresh       = sv_cfg.xy_thresh
@@ -531,7 +531,7 @@ def _precompute_topx2_dlen_sqrd(ibs, rid2_fm, topx2_rid, topx2_kpts,
 def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
     if not QUIET:
         print('[mf] Step 6) Convert chipmatch -> res')
-    uid = qreq.get_uid()
+    cfgstr = qreq.get_cfgstr()
     score_method = qreq.cfg.agg_cfg.score_method
     # Create the result structures for each query.
     qrid2_qres = {}
@@ -541,7 +541,7 @@ def chipmatch_to_resdict(ibs, qrid2_chipmatch, filt2_meta, qreq):
         # Perform final scoring
         rid2_score = score_chipmatch(ibs, qrid, chipmatch, score_method, qreq)
         # Create a query result structure
-        res = QueryResult.QueryResult(qrid, uid)
+        res = QueryResult.QueryResult(qrid, cfgstr)
         res.rid2_score = rid2_score
         (res.rid2_fm, res.rid2_fs, res.rid2_fk) = chipmatch
         res.filt2_meta = {}  # dbgstats
@@ -558,12 +558,12 @@ def try_load_resdict(qreq):
     returns a list of failed qrids
     """
     qrids = qreq.qrids
-    uid = qreq.get_uid()
+    cfgstr = qreq.get_cfgstr()
     qrid2_qres = {}
     failed_qrids = []
     for qrid in qrids:
         try:
-            res = QueryResult.QueryResult(qrid, uid)
+            res = QueryResult.QueryResult(qrid, cfgstr)
             res.load(qreq)
             qrid2_qres[qrid] = res
         except IOError:

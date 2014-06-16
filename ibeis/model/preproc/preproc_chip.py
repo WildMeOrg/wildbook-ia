@@ -17,7 +17,7 @@ import vtool.image as gtool
 #-------------
 
 
-#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfg_uids first
+#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfgstrs first
 @utool.indent_func
 def compute_or_read_roi_chips(ibs, rid_list, ensure=True):
     """ Reads chips and tries to compute them if they do not exist """
@@ -54,12 +54,12 @@ def add_chips_params_gen(ibs, rid_list):
     """ computes chips if they do not exist.
     generates values for add_chips sqlcommands """
     cfpath_list = get_roi_cfpath_list(ibs, rid_list)
-    chip_config_uid = ibs.get_chip_config_uid()
+    chip_config_rowid = ibs.get_chip_config_rowid()
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
         #print('Yeild Chip Param: rid=%r, cpath=%r' % (rid, cfpath))
-        yield (rid, cfpath, width, height, chip_config_uid)
+        yield (rid, cfpath, width, height, chip_config_rowid)
 
 
 #--------------
@@ -92,10 +92,10 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
     """ Returns format of chip file names """
     if suffix is None:
         chip_cfg = ibs.cfg.chip_cfg
-        chipcfg_uid = chip_cfg.get_uid()   # algo settings uid
-        chipcfg_fmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
-        suffix = chipcfg_uid + chipcfg_fmt
-    # Chip filenames are a function of roi_uid and cfg_uid
+        chip_cfgstr = chip_cfg.get_cfgstr()   # algo settings cfgstr
+        chip_cfgfmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
+        suffix = chip_cfgstr + chip_cfgfmt
+    # Chip filenames are a function of roi_rowid and cfgstr
     _cfname_fmt = ('rid_%s' + suffix)
     return _cfname_fmt
 

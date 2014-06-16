@@ -21,7 +21,7 @@ def bigcache_query(ibs, qreq, batch_size=10, use_bigcache=True,
     for batchx, qcids_batch in batch_enum:
         print('[mc3] batch %d / %d' % (batchx, nBatches))
         qreq.qcids = qcids_batch
-        print('qcids_batch=%r. quid=%r' % (qcids_batch, qreq.get_uid()))
+        print('qcids_batch=%r. quid=%r' % (qcids_batch, qreq.get_rowid()))
         try:
             qcid2_res_ = process_query_request(ibs, qreq, safe=False)
             # Append current batch results if we have the memory
@@ -47,11 +47,11 @@ def bigcache_query(ibs, qreq, batch_size=10, use_bigcache=True,
     #print(' --- pre cache checks --- ')
     ## Ensure ibs object is using the right config
     ##ibs.attatch_qreq(qreq)
-    #feat_uid = qreq.cfg._feat_cfg.get_uid()
+    #feat_rowid = qreq.cfg._feat_cfg.get_rowid()
     ## Load any needed features or chips into memory
-    #if ibs.feats.feat_uid != feat_uid:
+    #if ibs.feats.feat_rowid != feat_rowid:
         #print(' !! UNLOAD DATA !!')
-        #print('[mc3] feat_uid = %r' % feat_uid)
-        #print('[mc3] ibs.feats.feat_uid = %r' % ibs.feats.feat_uid)
+        #print('[mc3] feat_rowid = %r' % feat_rowid)
+        #print('[mc3] ibs.feats.feat_rowid = %r' % ibs.feats.feat_rowid)
         #ibs.unload_ciddata('all')
     #return qreq

@@ -31,20 +31,20 @@ def rankscore_str(thresh, nLess, total):
     return rankscore_str
 
 
-def wrap_uid(uid):
+def wrap_cfgstr(cfgstr):
     # REGEX to locate _XXXX(
     cfg_regex = r'_[A-Z][A-Z]*\('
-    uidmarker_list = re.findall(cfg_regex, uid)
-    uidconfig_list = re.split(cfg_regex, uid)
-    args = [uidconfig_list, uidmarker_list]
+    cfgstrmarker_list = re.findall(cfg_regex, cfgstr)
+    cfgstrconfig_list = re.split(cfg_regex, cfgstr)
+    args = [cfgstrconfig_list, cfgstrmarker_list]
     interleave_iter = utool.interleave(args)
-    new_uid_list = []
+    new_cfgstr_list = []
     total_len = 0
     prefix_str = ''
     # If unbalanced there is a prefix before a marker
-    if len(uidmarker_list) < len(uidconfig_list):
+    if len(cfgstrmarker_list) < len(cfgstrconfig_list):
         frag = interleave_iter.next()
-        new_uid_list += [frag]
+        new_cfgstr_list += [frag]
         total_len = len(frag)
         prefix_str = ' ' * len(frag)
     # Iterate through markers and config strings
@@ -56,18 +56,18 @@ def wrap_uid(uid):
         except StopIteration:
             break
         total_len += len(frag)
-        new_uid_list += [frag]
+        new_cfgstr_list += [frag]
         # Go to newline if past 80 chars
         if total_len > 80:
             total_len = 0
-            new_uid_list += ['\n' + prefix_str]
-    wrapped_uid = ''.join(new_uid_list)
-    return wrapped_uid
+            new_cfgstr_list += ['\n' + prefix_str]
+    wrapped_cfgstr = ''.join(new_cfgstr_list)
+    return wrapped_cfgstr
 
 
-def format_uid_list(uid_list):
-    indented_list = utool.indent_list('    ', uid_list)
-    wrapped_list = imap(wrap_uid, indented_list)
+def format_cfgstr_list(cfgstr_list):
+    indented_list = utool.indent_list('    ', cfgstr_list)
+    wrapped_list = imap(wrap_cfgstr, indented_list)
     return utool.joins('\n', wrapped_list)
 
 

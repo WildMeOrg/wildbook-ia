@@ -128,7 +128,7 @@ def init_score_matrix(allres):
 
 
 def get_title_suffix(ibs):
-    title_suffix = ibs.get_cache_uid()
+    title_suffix = ibs.get_cache_rowid()
     return title_suffix
 
 
@@ -816,14 +816,14 @@ def get_matching_descriptors(allres, match_list):
 def load_qcx2_res(ibs, qrid_list, nocache=False):
     'Prefrosm / loads all queries'
     qreq = mc3.quickly_ensure_qreq(ibs, qrids=qrid_list)
-    # Build query big cache uid
-    query_uid = qreq.get_uid()
-    hs_uid    = ibs.get_db_name()
-    qcxs_uid  = utool.hashstr_arr(qrid_list, lbl='_qcxs')
-    qres_uid  = hs_uid + query_uid + qcxs_uid
+    # Build query big cache rowid
+    query_rowid = qreq.get_rowid()
+    hs_rowid    = ibs.get_db_name()
+    qcxs_rowid  = utool.hashstr_arr(qrid_list, lbl='_qcxs')
+    qres_rowid  = hs_rowid + query_rowid + qcxs_rowid
     cache_dir = join(ibs.dirs.cache_dir, 'query_results_bigcache')
-    print('[rr2] load_qcx2_res(): %r' % qres_uid)
-    io_kwargs = dict(dpath=cache_dir, fname='query_results', uid=qres_uid, ext='.cPkl')
+    print('[rr2] load_qcx2_res(): %r' % qres_rowid)
+    io_kwargs = dict(dpath=cache_dir, fname='query_results', rowid=qres_rowid, ext='.cPkl')
     # Return cache if available
     if not params.args.nocache_query and (not nocache):
         qrid2_qres = io.smart_load(**io_kwargs)
@@ -841,7 +841,7 @@ def load_qcx2_res(ibs, qrid_list, nocache=False):
     qcx_max = max(qrid_list) + 1
     qrid2_qres = [ibs.query(qrid) if qrid in qcx_set else None for qrid in xrange(qcx_max)]
     # Save to the cache
-    print('[rr2] Saving query_results to bigcache: %r' % qres_uid)
+    print('[rr2] Saving query_results to bigcache: %r' % qres_rowid)
     utool.ensuredir(cache_dir)
     io.smart_save(qrid2_qres, **io_kwargs)
     return qrid2_qres

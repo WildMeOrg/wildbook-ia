@@ -11,9 +11,12 @@ from ibeis.viz import interact
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_QUERY]')
 
 
-def TEST_QUERY(ibs, qrid_list=None):
-    if qrid_list is None:
-        qrid_list = ibs.get_valid_rids()[0:1]
+def TEST_QUERY(ibs):
+    print('[TEST_QUERY]')
+    valid_rids = ibs.get_valid_rids()
+    print('[TEST_QUERY] len(valid_rids)=%r' % (len(valid_rids)))
+    qrid_list = valid_rids[0:1]
+    print('[TEST_QUERY] len(qrid_list)=%r' % (len(qrid_list)))
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #query_helpers.find_matchable_chips(ibs)
@@ -44,3 +47,4 @@ if __name__ == '__main__':
     test_locals = utool.run_test(TEST_QUERY, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
+    exec(utool.ipython_execstr())

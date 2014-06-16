@@ -39,27 +39,27 @@ def qres_get_matching_keypoints(qres, ibs, rid2_list):  # rid2 is a name. 2 != 2
 
 def remove_corrupted_queries(qreq, qres, dryrun=True):
     # This qres must be corrupted!
-    uid = qres.uid
-    hash_id = utool.hashstr(uid)
+    cfgstr = qres.cfgstr
+    hash_id = utool.hashstr(cfgstr)
     qres_dir  = qreq.qresdir
     testres_dir = join(qreq.qresdir, '..', 'experiment_harness_results')
     utool.remove_files_in_dir(testres_dir, dryrun=dryrun)
-    utool.remove_files_in_dir(qres_dir, '*' + uid + '*', dryrun=dryrun)
+    utool.remove_files_in_dir(qres_dir, '*' + cfgstr + '*', dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(qreq, qrid, uid):
+def query_result_fpath(qreq, qrid, cfgstr):
     qres_dir  = qreq.qresdir
-    fname = 'res_%s_qrid=%d.npz' % (uid, qrid)
+    fname = 'res_%s_qrid=%d.npz' % (cfgstr, qrid)
     if len(fname) > 64:
-        hash_id = utool.hashstr(uid)
+        hash_id = utool.hashstr(cfgstr)
         fname = 'res_%s_qrid=%d.npz' % (hash_id, qrid)
     fpath = join(qres_dir, fname)
     return fpath
 
 
-def query_result_exists(qreq, qrid, uid):
-    fpath = query_result_fpath(qreq, qrid, uid)
+def query_result_exists(qreq, qrid, cfgstr):
+    fpath = query_result_fpath(qreq, qrid, cfgstr)
     return exists(fpath)
 
 
@@ -92,16 +92,16 @@ def get_num_feats_in_matches(qres):
 
 class QueryResult(__OBJECT_BASE__):
     """
-    __slots__ = ['qrid', 'uid', 'nn_time',
+    __slots__ = ['qrid', 'cfgstr', 'nn_time',
                  'weight_time', 'filt_time', 'build_time', 'verify_time',
                  'rid2_fm', 'rid2_fs', 'rid2_fk', 'rid2_score']
     """
-    def __init__(qres, qrid, uid):
+    def __init__(qres, qrid, cfgstr):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qrid = qrid
-        qres.uid = uid
+        qres.cfgstr = cfgstr
         qres.eid = None  # encounter id
         # Assigned features matches
         qres.rid2_fm = None  # feat_match_list
@@ -114,7 +114,7 @@ class QueryResult(__OBJECT_BASE__):
         return query_result_exists(qreq, qres.qrid)
 
     def get_fpath(qres, qreq):
-        return query_result_fpath(qreq, qres.qrid, qres.uid)
+        return query_result_fpath(qreq, qres.qrid, qres.cfgstr)
 
     @profile
     def save(qres, qreq):

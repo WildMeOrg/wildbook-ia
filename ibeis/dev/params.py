@@ -76,7 +76,7 @@ def parse_args():
         parser2.add_flag('--dump-argv')
         parser2.add_flag(('--view-database-directory', '--vdd'),
                          help='opens the database directory')
-        parser2.add_strs(('--update-cfg', '--set-cfg', '--cfg'), default=None,
+        parser2.add_strs(('--update-query-cfg', '--set-cfg', '--cfg'), default=None,
                          help=('set cfg dict via strings: e.g. '
                                '--cfg xy_thresh=.01 score_method=csum'))
         parser2.add_flag(('--preload-exit', '--postquit'), help='exit after preload commands')

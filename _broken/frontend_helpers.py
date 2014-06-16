@@ -206,7 +206,7 @@ def newTabbedTable(front, tabWidget, name, enctext, text='',
                    clicked_slot_fn=None,
                    pressed_slot_fn=None,
                    changed_slot_fn=None):
-    """ Builds view, uidTBL, gridLayout, verticalLayout """
+    """ Builds view, rowidTBL, gridLayout, verticalLayout """
     # IMG / ROI/ NAME / RES VIEW
     viewname = name + '_view' + enctext
     tblname  = name + '_TBL' + enctext
@@ -223,7 +223,7 @@ def newTabbedTable(front, tabWidget, name, enctext, text='',
 
 
 def newTabbedTabWidget(front, tabWidget, viewname, name, text='', **kwargs):
-    """ Builds view, uidTBL, gridLayout, verticalLayout """
+    """ Builds view, rowidTBL, gridLayout, verticalLayout """
     # IMG / ROI/ NAME / RES VIEW
     view, verticalLayout = newTabbedView(front, tabWidget, viewname, text)
     # G/R/N/Q-ID TABLE

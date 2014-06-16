@@ -16,9 +16,10 @@ print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[TEST_QUERY_COMP]')
 
 
-def TEST_QUERY_COMP(ibs, qrid_list=None):
-    if qrid_list is None:
-        qrid_list = ibs.get_valid_rids()[0:1]
+def TEST_QUERY_COMP(ibs):
+    print('[TEST_QUERY_COMP]')
+    qrid_list = ibs.get_valid_rids()[0:1]
+    print('[TEST_QUERY_COMP] len(qrid_list)=%r' % (qrid_list))
     ibs._init_query_requestor()
     qreq = ibs.qreq
 

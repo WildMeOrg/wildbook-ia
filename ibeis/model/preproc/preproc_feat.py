@@ -19,17 +19,17 @@ def gen_feat_worker(tup):
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
     """
-    cid, cpath, dict_args, feat_config_uid = tup
+    cid, cpath, dict_args, feat_config_rowid = tup
     kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)
-    return cid, len(kpts), kpts, desc, feat_config_uid
+    return cid, len(kpts), kpts, desc, feat_config_rowid
 
 
-def gen_feat_openmp(cid_list, cfpath_list, dict_args, feat_config_uid):
+def gen_feat_openmp(cid_list, cfpath_list, dict_args, feat_config_rowid):
     """ Compute features in parallel on the C++ side, return generator here """
     print('Detecting %r features in parallel: ' % len(cid_list))
     kpts_list, desc_list = pyhesaff.detect_kpts_list(cfpath_list, **dict_args)
     for cid, kpts, desc in izip(cid_list, kpts_list, desc_list):
-        yield cid, len(kpts), kpts, desc, feat_config_uid
+        yield cid, len(kpts), kpts, desc, feat_config_rowid
 
 
 def add_feat_params_gen(ibs, cid_list, nFeat=None):
@@ -38,14 +38,14 @@ def add_feat_params_gen(ibs, cid_list, nFeat=None):
         nFeat = len(cid_list)
     feat_cfg  = ibs.cfg.feat_cfg
     dict_args = feat_cfg.get_dict_args()
-    feat_config_uid = ibs.get_feat_config_uid()
+    feat_config_rowid = ibs.get_feat_config_rowid()
     cfpath_list = ibs.get_chip_paths(cid_list)
     if USE_OPENMP:
         # Use Avi's openmp parallelization
-        return gen_feat_openmp(cid_list, cfpath_list, dict_args, feat_config_uid)
+        return gen_feat_openmp(cid_list, cfpath_list, dict_args, feat_config_rowid)
     else:
         # Multiprocessing parallelization
-        featcfg_iter = (feat_config_uid for _ in xrange(nFeat))
+        featcfg_iter = (feat_config_rowid for _ in xrange(nFeat))
         dictargs_iter = (dict_args for _ in xrange(nFeat))
         arg_iter = izip(cid_list, cfpath_list, dictargs_iter, featcfg_iter)
         arg_list = list(arg_iter)

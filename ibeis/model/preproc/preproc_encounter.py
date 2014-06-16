@@ -16,13 +16,13 @@ def ibeis_compute_encounters(ibs, gid_list):
     a group of animals.  Animals are identified within each encounter.
     """
     # Config info
-    enc_cfg_uid      = ibs.cfg.enc_cfg.get_uid()
+    enc_cfgstr      = ibs.cfg.enc_cfg.get_cfgstr()
     seconds_thresh   = ibs.cfg.enc_cfg.seconds_thresh
     min_imgs_per_enc = ibs.cfg.enc_cfg.min_imgs_per_encounter
     cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
     quantile         = ibs.cfg.enc_cfg.quantile
     print('Computing %r encounters on %r images.' % (cluster_algo, len(gid_list)))
-    print('enc_cfg_uid = %r' % enc_cfg_uid)
+    print('enc_cfgstr = %r' % enc_cfgstr)
     if len(gid_list) == 0:
         print('WARNING: No unixtime data to compute encounters with')
         return [], []
@@ -45,7 +45,7 @@ def ibeis_compute_encounters(ibs, gid_list):
     flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
     # Create enctext for each image
     #enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
-    enctext_list = [enc_cfg_uid + repr(eid) for eid in flat_eids]
+    enctext_list = [enc_cfgstr + repr(eid) for eid in flat_eids]
     print('Found %d clusters.' % len(labels))
     return enctext_list, flat_gids
 
