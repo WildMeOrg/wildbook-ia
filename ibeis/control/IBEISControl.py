@@ -1397,6 +1397,18 @@ class IBEISController(object):
         rids_list = ibs.db.get(tblname, colname_list, nid_list, where_col='name_rowid')
         return rids_list
 
+    @getter_vector_output
+    def get_name_roi_bboxes(ibs, nid_list):
+        rids_list = ibs.get_name_rids(nid_list)
+        bboxes_list = ibsfuncs.unflat_lookup(ibs.get_roi_bboxes, rids_list)
+        return bboxes_list
+    
+    @getter
+    def get_name_thumbtups(ibs, nid_list):
+        rids_list = ibs.get_name_rids(nid_list)
+        thumbtups_list = ibsfuncs.unflat_lookup(ibs.get_roi_chip_thumbtup, rids_list)
+        return thumbtups_list
+    
     @getter
     def get_name_num_rois(ibs, nid_list):
         """ returns the number of detections for each name """

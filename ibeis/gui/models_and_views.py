@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from PyQt4 import QtCore, QtGui
-from guitool import APITableModel, APITableView, APITableWidget, ChangeLayoutContext
+from guitool import APITableModel, APITableView, APITreeView, APITableWidget, ChangeLayoutContext
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
 #---------------------
@@ -55,6 +55,20 @@ class IBEISTableView(APITableView):
         model = tblview.model()
         if model is not None:
             model._change_enc(eid)
+class IBEISTreeView(APITreeView):
+    """
+    View for NAME / ROI Tree
+    """
+    def __init__(treeview, parent=None):
+        APITreeView.__init__(treeview, parent)
+        treeview.ibswin = parent
+
+    def _change_enc(treeview, eid):
+        treeview.verticalScrollBar().setSliderPosition(0)
+        model = treeview.model()
+        if model is not None:
+            model._change_enc(eid)
+
 
 
 #-------------------------
