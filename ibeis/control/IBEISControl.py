@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 # Python
 import atexit
 import requests
+import uuid
 from itertools import izip, imap
 from os.path import join, split
 # Science
@@ -478,9 +479,10 @@ class IBEISController(object):
         print('[ibs] adding %d encounters' % len(enctext_list))
         # Add encounter text names to database
         notes_list = ['' for _ in xrange(len(enctext_list))]
+        encounter_uuid_list = [uuid.uuid4() for _ in xrange(len(enctext_list))]
         tblname = 'encounters'
-        colname_list = ['encounter_text', 'encounter_notes']
-        params_iter = izip(enctext_list, notes_list)
+        colname_list = ['encounter_text', 'encounter_uuid', 'encounter_notes']
+        params_iter = izip(enctext_list, encounter_uuid_list, notes_list)
         eid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                       ibs.get_encounter_eids, ensure=False)
         return eid_list
@@ -534,10 +536,10 @@ class IBEISController(object):
         """ Sets the image unixtime (does not modify exif yet) """
         ibs.set_table_props('images', 'image_exif_time_posix', gid_list, unixtime_list)
 
-    @setter
-    def set_image_confidence(ibs, gid_list, confidence_list):
-        """ Sets the image detection confidence """
-        ibs.set_table_props('images', 'image_confidence', gid_list, confidence_list)
+    # @setter
+    # def set_image_confidence(ibs, gid_list, confidence_list):
+    #     """ Sets the image detection confidence """
+    #     ibs.set_table_props('images', 'image_confidence', gid_list, confidence_list)
 
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
@@ -828,9 +830,12 @@ class IBEISController(object):
 
     @getter
     def get_image_confidence(ibs, gid_list):
-        """ Returns image detection confidence """
-        confidence_list = ibs.get_image_props('image_confidence', gid_list)
-        return confidence_list
+        """ Returns image detection confidence as the max of ROI confidences """
+        rids_list = ibs.get_image_rids(gid_list)
+        confs_list = ibsfuncs.unflat_lookup(ibs.get_roi_confidence, rids_list)
+        maxconf_list = [max(confs) if len(confs) > 0 else -1
+                        for confs in confs_list]
+        return maxconf_list
 
     @getter
     def get_image_notes(ibs, gid_list):
@@ -1604,14 +1609,15 @@ class IBEISController(object):
             ibs.add_rois(detected_gids, detected_bboxes,
                          notes_list=notes_list,
                          confidence_list=detected_confidences)
-            ibs.set_image_confidence(detected_gids, img_confs)
+            #ibs.set_image_confidence(detected_gids, img_confs)
 
+        # Adding new detections on the fly as they are generated
         for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):
             detected_gid_list.append(gid)
             detected_bbox_list.append(bbox)
             detected_confidence_list.append(confidence)
             detected_img_confs.append(img_conf)
-            # Save detections as we go
+            # Save detections as we go, then reset lists
             if len(detected_gid_list) >= ADD_AFTER_THRESHOLD:
                 commit_detections(detected_gid_list,
                                   detected_bbox_list,

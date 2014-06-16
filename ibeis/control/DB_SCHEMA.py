@@ -83,6 +83,7 @@ def define_IBEIS_schema(ibs):
     # List of all encounters
     ibs.db.schema('encounters', (
         ('encounter_rowid',               'INTEGER PRIMARY KEY'),
+        ('encounter_uuid',                'UUID NOT NULL'),
         ('encounter_text',              'TEXT NOT NULL'),
         ('encounter_notes',             'TEXT NOT NULL'),
     ),  ['CONSTRAINT superkey UNIQUE (encounter_text)']
