@@ -361,9 +361,11 @@ class APITableModel(API_MODEL_BASE):
                 model.cache[cachekey] = data
             # </HACK: MODEL CACHE>
             return data
-        else:
+        #else:
             #raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.row_index_list)))
-            return "!!!<EMPTY FOR STRIPE>!!!"
+            return None
+            #return ('','',())
+            #return "!!!<EMPTY FOR STRIPE>!!!"
 
     @default_method_decorator
     def _set_data(model, row, col, value):

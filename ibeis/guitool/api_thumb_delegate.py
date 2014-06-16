@@ -42,6 +42,8 @@ class APIThumbDelegate(DELEGATE_BASE):
 
     def get_model_data(dgt, qtindex):
         data = qtindex.model().data(qtindex, QtCore.Qt.DisplayRole)
+        if data is None:
+            return (None, None, None)
         # The data should be specified as a thumbtup
         assert isinstance(data, tuple), 'data=%r is %r. should be a thumbtup' % (data, type(data))
         thumbtup = data
@@ -54,6 +56,8 @@ class APIThumbDelegate(DELEGATE_BASE):
         # Get data from the models display role
         try:
             thumb_path, img_path, bbox_list = dgt.get_model_data(qtindex)
+            if thumb_path is None or img_path is None or bbox_list is None:
+                return
         except AssertionError as ex:
             utool.printex(ex)
             return
