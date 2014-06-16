@@ -5,6 +5,7 @@ __version__ = '1.0.0.dev1'
 
 from . import api_table_model
 from . import api_table_view
+from . import api_tree_view
 from . import api_table_widget
 
 from . import guitool_tables
@@ -25,6 +26,7 @@ from .guitool_main import *
 from .guitool_misc import *
 from .api_table_model import *
 from .api_table_view import *
+from .api_tree_view import *
 from .api_table_widget import *
 from .qtype import *
 

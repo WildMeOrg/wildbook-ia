@@ -90,6 +90,9 @@ def cast_into_qt(data):
         return QVariant(int(data)).toString()
     elif isinstance(data, uuid.UUID):
         return QVariant(str(data)).toString()
+    elif utool.isiterable(data):
+        print(data)
+        return QVariant(", ".join(map(str,data))).toString()
     else:
         return 'Unknown qtype: %r for data=%r' % (type(data), data)
 
