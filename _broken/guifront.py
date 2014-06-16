@@ -8,7 +8,7 @@ from PyQt4.QtCore import Qt
 # IBEIS
 import utool
 from guitool import slot_, signal_
-from ibeis.gui import uidtables
+from ibeis.gui import rowidtables
 from ibeis.gui.Skeleton import Ui_mainSkel
 
 print, print_, printDBG, profile, rrr = utool.inject(
@@ -18,7 +18,7 @@ QUIET   = utool.get_flag('--quiet')
 VERBOSE = utool.get_flag(('--verbose', '--verbose-front', '--vf'))
 
 
-UID_TYPE = uidtables.UID_TYPE
+UID_TYPE = rowidtables.UID_TYPE
 ENC_TYPE = str  # encounters are ided with enctext right now
 QUTF8      = QtGui.QApplication.UnicodeUTF8
 QTRANSLATE = QtGui.QApplication.translate
@@ -28,7 +28,7 @@ QTRANSLATE = QtGui.QApplication.translate
 #=================
 
 
-def uid_tbl_clicked(func):
+def rowid_tbl_clicked(func):
     """
     Wrapper around item_clicked slot, which takes only the item.
     This extract the row, column, and table and passes that instead.
@@ -52,7 +52,7 @@ def uid_tbl_clicked(func):
     return clicked_wrapper
 
 
-def uid_tbl_changed(func):
+def rowid_tbl_changed(func):
     """
     Wrapper around item_changed slot, which takes only the item.
     This extract the row, column, and table and passes that instead.
@@ -209,7 +209,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
             return
 
         try:
-            uidtables.populate_item_table(tbl,
+            rowidtables.populate_item_table(tbl,
                                           col_fancyheaders,
                                           col_editable,
                                           col_types,
@@ -219,7 +219,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
             front.raiseExceptionSignal.emit(ex)
             raise
         # Set the tab text to show the number of items listed
-        fancy_tablename = uidtables.fancy_tablenames[tblname]
+        fancy_tablename = rowidtables.fancy_tablenames[tblname]
         text = fancy_tablename + ' : %d' % len(row_list)
         update_tabwidget_text(front, tblname, text, enctext)
 
@@ -236,7 +236,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         return tabWidget
 
     def get_tabView(front, tblname, enctext):
-        """ Returns the view containting the uid table """
+        """ Returns the view containting the rowid table """
         view = front.ui.__dict__[str(tblname + '_view' + enctext)]
         return view
 
@@ -255,8 +255,8 @@ class MainWindowFrontend(QtGui.QMainWindow):
     def get_tbl_header(front, tbl, col):
         # Map the fancy header back to the internal one.
         fancy_header = str(tbl.horizontalHeaderItem(col).text())
-        header = (uidtables.reverse_fancy[fancy_header]
-                  if fancy_header in uidtables.reverse_fancy else fancy_header)
+        header = (rowidtables.reverse_fancy[fancy_header]
+                  if fancy_header in rowidtables.reverse_fancy else fancy_header)
         return header
 
     def get_tbl_int(front, tbl, row, col):
@@ -281,16 +281,16 @@ class MainWindowFrontend(QtGui.QMainWindow):
         #enctext = tblname[tblpos + 4, :]
         #print(enctext)
         #tblname, enctext = str(tbl.objectName()).split('_TBL')
-        col = uidtables.table_headers[tblname].index(header)
+        col = rowidtables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
     @slot_(QtGui.QTableWidgetItem)
-    def uid_tbl_pressed(front, item):
+    def rowid_tbl_pressed(front, item):
         """ Keeps track of item state: if text or check value is changed """
         #front.print('')
         #front.print('>>>>>>>>>>>>>>>>>> PRESSED')
         #front.print('!!!!-Pressed')
-        #front.print('Pressed _uid_tbl_pressed, tbl=%r' %
+        #front.print('Pressed _rowid_tbl_pressed, tbl=%r' %
         #            str(item.tableWidget().objectName()))
         _pressed_state = item.checkState()
         _pressed_text = item.text()
@@ -301,14 +301,14 @@ class MainWindowFrontend(QtGui.QMainWindow):
     # Table Changed Functions
     #=======================
 
-    @uid_tbl_changed
+    @rowid_tbl_changed
     def gids_tbl_changed(front, row, col, tbl, new_val):
         front.print('gids_tbl_changed()')
         sel_gid = UID_TYPE(front.get_header_val(tbl, 'gid', row))
         header_lbl = front.get_tbl_header(tbl, col)
         front.setGidPropSignal.emit(sel_gid, header_lbl, new_val)
 
-    @uid_tbl_changed
+    @rowid_tbl_changed
     def rids_tbl_changed(front, row, col, tbl, new_val):
         front.print('rids_tbl_changed()')
         # Get selected roid
@@ -317,7 +317,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         header_lbl = front.get_tbl_header(tbl, col)
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
-    @uid_tbl_changed
+    @rowid_tbl_changed
     def qres_tbl_changed(front, row, col, tbl, new_val):
         front.print('qres_tbl_changed()')
         # The changed row's roi id
@@ -326,7 +326,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         header_lbl = front.get_tbl_header(tbl, col)
         front.setRoiPropSignal.emit(sel_rid, header_lbl, new_val)
 
-    @uid_tbl_changed
+    @rowid_tbl_changed
     def nids_tbl_changed(front, row, col, tbl, new_val):
         front.print('nids_tbl_changed()')
         # The changed row's name index
@@ -338,25 +338,25 @@ class MainWindowFrontend(QtGui.QMainWindow):
     #=======================
     # Table Clicked Functions
     #=======================
-    @uid_tbl_clicked
+    @rowid_tbl_clicked
     def gids_tbl_clicked(front, row, col, tbl):
         sel_gid = UID_TYPE(front.get_header_val(tbl, 'gid', row))
         enctext = front.get_tbl_enctext(tbl)
         front.selectGidSignal.emit(sel_gid, enctext)
 
-    @uid_tbl_clicked
+    @rowid_tbl_clicked
     def rids_tbl_clicked(front, row, col, tbl):
         sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
         enctext = front.get_tbl_enctext(tbl)
         front.selectRidSignal.emit(sel_rid, enctext)
 
-    @uid_tbl_clicked
+    @rowid_tbl_clicked
     def qres_tbl_clicked(front, row, col, tbl):
         sel_rid = UID_TYPE(front.get_header_val(tbl, 'rid', row))
         enctext = front.get_tbl_enctext(tbl)
         front.selectQResSignal.emit(sel_rid, enctext)
 
-    @uid_tbl_clicked
+    @rowid_tbl_clicked
     def nids_tbl_clicked(front, row, col, tbl):
         sel_nid = UID_TYPE(front.get_header_val(tbl, 'nid', row))
         enctext = front.get_tbl_enctext(tbl)

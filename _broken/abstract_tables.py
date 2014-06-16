@@ -117,8 +117,8 @@ class IBEIS_QTable(QAbstractItemModel):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         if not index.isValid():
             return Qt.ItemFlag(0)
-        item_col, item_uid = self.index2_itemdata(index)
-        if item_uid:
+        item_col, item_rowid = self.index2_itemdata(index)
+        if item_rowid:
             if item_col in self.col_editable:
                 return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
         return Qt.ItemFlag(0)

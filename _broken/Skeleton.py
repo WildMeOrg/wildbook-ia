@@ -120,19 +120,19 @@ def newEncounterTabs(front, parent, enctext=None):
                                    vstretch=10)
     tabWidget.newTabbedTable('gids', enctext, 'Image Table',
                              clicked_slot_fn=front.gids_tbl_clicked,
-                             pressed_slot_fn=front.uid_tbl_pressed,
+                             pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.gids_tbl_changed)
     tabWidget.newTabbedTable('rids', enctext, 'ROI Table',
                              clicked_slot_fn=front.rids_tbl_clicked,
-                             pressed_slot_fn=front.uid_tbl_pressed,
+                             pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.rids_tbl_changed)
     tabWidget.newTabbedTable('nids', enctext, 'Name Table',
                              clicked_slot_fn=front.nids_tbl_clicked,
-                             pressed_slot_fn=front.uid_tbl_pressed,
+                             pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.nids_tbl_clicked)
     tabWidget.newTabbedTable('qres', enctext, 'Query Result Table',
                              clicked_slot_fn=front.qres_tbl_clicked,
-                             pressed_slot_fn=front.uid_tbl_pressed,
+                             pressed_slot_fn=front.rowid_tbl_pressed,
                              changed_slot_fn=front.qres_tbl_changed)
 
 

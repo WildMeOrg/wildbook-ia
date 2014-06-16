@@ -81,10 +81,10 @@
             operation='''
             INSERT OR REPLACE INTO rois
             (
-                roi_uid,
+                roi_rowid,
                 roi_uuid,
-                image_uid,
-                name_uid,
+                image_rowid,
+                name_rowid,
                 roi_xtl,
                 roi_ytl,
                 roi_width,

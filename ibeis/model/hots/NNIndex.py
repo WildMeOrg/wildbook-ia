@@ -26,7 +26,7 @@ def get_flann_cfgstr(ibs, rid_list):
 def aggregate_descriptors(ibs, rid_list):
     """ Aggregates descriptors with inverted information
      Return agg_index to(2) -> desc (descriptor)
-                               rid (roi uid)
+                               rid (roi rowid)
                                fx (feature index w.r.t. rid)
     """
     desc_list = ibs.get_roi_desc(rid_list)

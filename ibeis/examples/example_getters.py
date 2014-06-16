@@ -18,9 +18,9 @@ def run_example(ibs):
     ibs.print_tables()  # uncomment if you want to see a lot of text
     #
     #
-    # Each table in the database is indexed with a unique id (uid)
+    # Each table in the database is indexed with a unique id (rowid)
     # NOTE: This is differnt than a universal unique id (uuid)
-    # uids are ints and uuids are hex strings. Currently
+    # rowids are ints and uuids are hex strings. Currently
     # only rois and images have uuids
     #
     gid_list = ibs.get_valid_gids()  # Valid Image IDS
@@ -29,7 +29,7 @@ def run_example(ibs):
     eid_list = ibs.get_valid_eids()  # Valid Encounter IDs
     #
     #
-    # IBEIS getter methods primarily deal with lists of uids as input
+    # IBEIS getter methods primarily deal with lists of rowids as input
     # and return lists of values as output
     #
     name_list     = ibs.get_names(nid_list)        # Animal names

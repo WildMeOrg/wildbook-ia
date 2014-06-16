@@ -198,13 +198,13 @@ def delete_invalid_eids(ibs):
     ibs.delete_encounters(invalid_eids)
 
 
-def unflat_lookup(method, unflat_uids, **kwargs):
-    """ Uses an ibeis lookup function with a non-flat uid list.
+def unflat_lookup(method, unflat_rowids, **kwargs):
+    """ Uses an ibeis lookup function with a non-flat rowid list.
     """
     # First flatten the list
-    flat_uids, reverse_list = utool.invertable_flatten(unflat_uids)
+    flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
     # Then preform the lookup
-    flat_vals = method(flat_uids, **kwargs)
+    flat_vals = method(flat_rowids, **kwargs)
     # Then unflatten the list
     unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
     return unflat_vals
@@ -219,11 +219,11 @@ def _make_unflat_getter_func(flat_getter):
     func_name = func.func_name
     assert func_name.startswith('get_'), 'only works on getters, not: ' + func_name
     # Create new function
-    def unflat_getter(self, unflat_uids, *args, **kwargs):
+    def unflat_getter(self, unflat_rowids, *args, **kwargs):
         # First flatten the list
-        flat_uids, reverse_list = utool.invertable_flatten(unflat_uids)
+        flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
         # Then preform the lookup
-        flat_vals = func(self, flat_uids, *args, **kwargs)
+        flat_vals = func(self, flat_rowids, *args, **kwargs)
         # Then unflatten the list
         unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
         return unflat_vals
@@ -576,7 +576,7 @@ def print_image_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv('images'))
-    #, exclude_columns=['image_uid']))
+    #, exclude_columns=['image_rowid']))
 
 
 @__injectable

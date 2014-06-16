@@ -54,12 +54,12 @@ def add_chips_params_gen(ibs, rid_list):
     """ computes chips if they do not exist.
     generates values for add_chips sqlcommands """
     cfpath_list = get_roi_cfpath_list(ibs, rid_list)
-    chip_config_uid = ibs.get_chip_config_uid()
+    chip_config_rowid = ibs.get_chip_config_rowid()
     for cfpath, rid in izip(cfpath_list, rid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
         #print('Yeild Chip Param: rid=%r, cpath=%r' % (rid, cfpath))
-        yield (rid, cfpath, width, height, chip_config_uid)
+        yield (rid, cfpath, width, height, chip_config_rowid)
 
 
 #--------------
@@ -95,7 +95,7 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
         chip_cfgstr = chip_cfg.get_cfgstr()   # algo settings cfgstr
         chip_cfgfmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
         suffix = chip_cfgstr + chip_cfgfmt
-    # Chip filenames are a function of roi_uid and cfgstr
+    # Chip filenames are a function of roi_rowid and cfgstr
     _cfname_fmt = ('rid_%s' + suffix)
     return _cfname_fmt
 

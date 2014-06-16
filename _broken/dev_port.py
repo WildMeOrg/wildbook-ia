@@ -87,8 +87,8 @@ def plot_seperability(hs, qcx_list, fnum=1):
     df2.set_xlabel('true chipmatch index (%d)' % len(sep_score_list))
     df2.set_logyscale_from_data(sorted_sepscores)
     df2.dark_background()
-    uid = qcx2_res.itervalues().next().uid
-    df2.set_figtitle('seperability\n' + uid)
+    rowid = qcx2_res.itervalues().next().rowid
+    df2.set_figtitle('seperability\n' + rowid)
     df2.legend()
     fnum += 1
     return fnum
@@ -169,13 +169,13 @@ def plot_scores2(hs, qcx_list, fnum=1):
         if len(rankX_gtxs) > 0:
             df2.plot(rankX_gtxs, rankX_gtys, 'o', color=rankX_color, label=rankX_label)
 
-    uid = qcx2_res.itervalues().next().uid
+    rowid = qcx2_res.itervalues().next().rowid
 
     df2.set_logyscale_from_data(allscores_sorted)
 
     df2.set_xlabel('chipmatch index')
     df2.dark_background()
-    df2.set_figtitle('matching scores\n' + uid)
+    df2.set_figtitle('matching scores\n' + rowid)
     df2.legend(loc='upper left')
     #xmin = 0
     #xmax = utool.order_of_magnitude_ceil(len(allscores_sorted))
@@ -280,13 +280,13 @@ def plot_scores(hs, qcx_list, fnum=1):
         if len(rankX_ys) > 0:
             df2.plot(rankX_xs, rankX_ys, 'o', color=rankX_color, label=rankX_label, alpha=.5)
 
-    uid = qcx2_res.itervalues().next().uid
+    rowid = qcx2_res.itervalues().next().rowid
 
     df2.set_logyscale_from_data(data_scores)
 
     df2.set_xlabel('chipmatch index')
     df2.dark_background()
-    df2.set_figtitle('matching scores\n' + uid)
+    df2.set_figtitle('matching scores\n' + rowid)
     df2.legend(loc='upper left')
     df2.iup()
     fnum += 1
@@ -295,7 +295,7 @@ def plot_scores(hs, qcx_list, fnum=1):
     score_table = score_table[data_sortx[::-1]]
 
     column_labels = ['score', 'gtrank', 'qcid', 'cid']
-    header = 'score_table\nuid=%r' % uid
+    header = 'score_table\nuid=%r' % rowid
     column_type = [float, int, int, int]
     csv_txt = utool.util_csv.numpy_to_csv(score_table,  column_labels, header, column_type)
     print(csv_txt)
