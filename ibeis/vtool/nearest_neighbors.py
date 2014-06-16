@@ -7,24 +7,24 @@ import utool
 
 
 #@utool.indent_func
-def get_flann_fpath(data, cache_dir=None, uid='', flann_params=None):
+def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params=None):
     cache_dir = '.' if cache_dir is None else cache_dir
     # Generate a unique filename for data and flann parameters
-    fparams_uid = utool.remove_chars(str(flann_params.values()), ', \'[]')
-    data_uid = utool.hashstr_arr(data, 'dID')  # flann is dependent on the data
-    flann_suffix = '_' + fparams_uid + '_' + data_uid + '.flann'
+    fparams_cfgstr = utool.remove_chars(str(flann_params.values()), ', \'[]')
+    data_hashid = utool.hashstr_arr(data, 'dID')  # flann is dependent on the data
+    flann_suffix = '_' + fparams_cfgstr + '_' + data_hashid + '.flann'
     # Append any user labels
-    flann_fname = 'flann_index_' + uid + flann_suffix
+    flann_fname = 'flann_index_' + cfgstr + flann_suffix
     flann_fpath = normpath(join(cache_dir, flann_fname))
     return flann_fpath
 
 
 #@utool.indent_func
-def flann_cache(data, cache_dir=None, uid='', flann_params=None,
+def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
                 force_recompute=False):
     """ Tries to load a cached flann index before doing anything """
-    print('...check flann_uuid(%r): ' % uid)
-    flann_fpath = get_flann_fpath(data, cache_dir, uid, flann_params)
+    print('...flann_cache cfgstr = %r: ' % cfgstr)
+    flann_fpath = get_flann_fpath(data, cache_dir, cfgstr, flann_params)
     flann = pyflann.FLANN()
     load_success = False
     # Load the index if it exists
