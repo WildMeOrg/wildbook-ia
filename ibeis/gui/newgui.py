@@ -324,7 +324,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #widget = ibswgt.widgets[tblname]
                 #widget.change_headers(header)
                 model._update_headers(**header)
-                view._update_headers(**header)
+                view._update_headers(**header)  # should use model headers
+                #view.infer_delegates_from_model()
             ibswgt._tab_table_wgt.blockSignals(_flag)
 
     def setWindowTitle(ibswgt, title):
