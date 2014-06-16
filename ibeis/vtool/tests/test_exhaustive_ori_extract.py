@@ -8,17 +8,18 @@ from plottool.viz_keypoints import show_keypoints
 # TPL
 import pyhesaff
 # VTool
-from os.path import join, dirname, realpath
+from os.path import realpath
 import vtool  # NOQA
 import vtool.image as gtool
 import vtool.keypoint as ktool
+from vtool.tests import grabdata
 
 if __name__ == '__main__':
     np.set_printoptions(threshold=5000, linewidth=5000, precision=3)
     # Read data
     print('[rotinvar] loading test data')
 
-    img_fname = join(dirname(vtool.__file__), 'tests', 'testdata', 'jeff.png')
+    img_fname = grabdata.get_test_gpaths(names='jeff')[0]
     img_fpath = realpath(img_fname)
     imgL = gtool.cvt_BGR2L(gtool.imread(img_fpath))
     detect_kw0 = {
