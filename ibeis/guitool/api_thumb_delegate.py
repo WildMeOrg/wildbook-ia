@@ -44,7 +44,7 @@ class APIThumbDelegate(DELEGATE_BASE):
     def get_model_data(dgt, qtindex):
         data = qtindex.model().data(qtindex, QtCore.Qt.DisplayRole)
         # The data should be specified as a thumbtup
-        assert isinstance(data, tuple), 'data should be a thumbtup'
+        assert isinstance(data, tuple), 'data=%r is %r. should be a thumbtup' % (data, type(data))
         thumbtup = data
         #(thumb_path, img_path, bbox_list) = thumbtup
         return thumbtup
@@ -53,7 +53,11 @@ class APIThumbDelegate(DELEGATE_BASE):
         """ Checks if the thumbnail is ready to paint
         Returns thumb_path if computed. Otherwise returns None """
         # Get data from the models display role
-        thumb_path, img_path, bbox_list = dgt.get_model_data(qtindex)
+        try:
+            thumb_path, img_path, bbox_list = dgt.get_model_data(qtindex)
+        except AssertionError as ex:
+            utool.printex(ex)
+            return
         if not exists(img_path):
             print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
             return None

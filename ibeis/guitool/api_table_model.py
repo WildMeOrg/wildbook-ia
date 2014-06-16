@@ -108,7 +108,7 @@ class APITableModel(API_MODEL_BASE):
         model.nice             = 'None'
         model.ider             = lambda: []
         model.col_name_list    = []
-        model.col_name_list_counts = {}
+        model.col_name_list_counts = {}  # HACKY
         model.col_type_list    = []
         model.col_nice_list    = []
         model.col_edit_list    = []
@@ -230,10 +230,9 @@ class APITableModel(API_MODEL_BASE):
         assert len(col_name_list) == len(col_type_list), \
             'inconsistent colnametype'
         model.col_name_list = col_name_list
-        model.col_name_list_counts = {}
-        for name in set(col_name_list):
-            model.col_name_list_counts[name] = model.col_name_list.count(name)
         model.col_type_list = col_type_list
+        # HACK: Column striping
+        model.col_name_list_counts = {name: model.col_name_list.count(name) for name in set(col_name_list)}
         # Check if any of the column types are specified as delegates
         # PSA: Don't do this in the model.
         #for colx in xrange(len(model.col_type_list)):
@@ -363,19 +362,17 @@ class APITableModel(API_MODEL_BASE):
             # </HACK: MODEL CACHE>
             return data
         else:
+            #raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.row_index_list)))
             return "!!!<EMPTY FOR STRIPE>!!!"
 
     @default_method_decorator
     def _set_data(model, row, col, value):
-        """
-            The setter function should be of the following format
-            def setter(column_name, row_id, value)
-            column_name is the key or SQL-like name for the column row_id
-            is the corresponding row key or SQL-like id that the row call
-            back returned value is the value that needs to be stored
-            The setter function should return a boolean, if setting the value
-            was successfull or not
-        """
+        """ The setter function should be of the following format def
+        setter(column_name, row_id, value) column_name is the key or SQL-like
+        name for the column row_id is the corresponding row key or SQL-like id
+        that the row call back returned value is the value that needs to be
+        stored The setter function should return a boolean, if setting the value
+        was successfull or not """
         row_id = model._get_row_id(row)
         if row_id is None:
             return "__NONE__"
@@ -403,10 +400,9 @@ class APITableModel(API_MODEL_BASE):
         QModelIndex would be 0.
 
         When reimplementing this function in a subclass, be careful to avoid
-        calling QModelIndex member functions, such as QModelIndex::parent(),
+        calling QModelIndex member functions, such as QModelIndex.parent(),
         since indexes belonging to your model will simply call your
-        implementation, leading to infinite recursion.
-        """
+        implementation, leading to infinite recursion.  """
         return QtCore.QModelIndex()
 
     @default_method_decorator
@@ -415,8 +411,7 @@ class APITableModel(API_MODEL_BASE):
         Returns the index of the item in the model specified by the given row,
         column and parent index.  When reimplementing this function in a
         subclass, call createIndex() to generate model indexes that other
-        components can use to refer to items in your model.
-        """
+        components can use to refer to items in your model. """
         return model.createIndex(row, column)
 
     @default_method_decorator
@@ -424,7 +419,9 @@ class APITableModel(API_MODEL_BASE):
         """ Qt Override """
         try:
             length = len(model.row_index_list)
-            counts = [ np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
+            # <HACK>
+            counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
+            # </HACK>
             return max(counts)
         except:
             return len(model.row_index_list)
@@ -439,8 +436,7 @@ class APITableModel(API_MODEL_BASE):
         """ Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
         the index.  Note: If you do not have a value to return, return an
-        invalid QVariant instead of returning 0.
-        """
+        invalid QVariant instead of returning 0.  """
         #if not qtindex.isValid():
         #    return None
         flags = model.flags(qtindex)
@@ -502,7 +498,7 @@ class APITableModel(API_MODEL_BASE):
                 #model.view.setColumnWidth(qtindex.column(), 200)
                 #model.view.setRowHeight(qtindex.row(), 200)
                 return model._get_data(row, col)
-                return 'pixmap'
+                #return 'pixmap'
             elif type_ in qtype.QT_ICON_TYPES:
                 pass
                 return 'icon'
@@ -524,8 +520,7 @@ class APITableModel(API_MODEL_BASE):
         QVariant (called data in documentation) Returns a map with values for
         all predefined roles in the model for the item at the given index.
         Reimplement this function if you want to extend the default behavior of
-        this function to include custom roles in the map.
-        """
+        this function to include custom roles in the map. """
         try:
             if not qtindex.isValid():
                 return None
@@ -561,8 +556,7 @@ class APITableModel(API_MODEL_BASE):
         Returns the data for the given role and section in the header with the
         specified orientation.  For horizontal headers, the section number
         corresponds to the column number. Similarly, for vertical headers, the
-        section number corresponds to the row number.
-        """
+        section number corresponds to the row number. """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             column = section
             if column >= len(model.col_nice_list):
@@ -591,8 +585,7 @@ class APITableModel(API_MODEL_BASE):
              8: 'ItemIsDropEnabled'    # It can be used as a drop target.
             16: 'ItemIsUserCheckable'  # It can be checked or unchecked by the user.
             32: 'ItemIsEnabled'        # The user can interact with the item.
-            64: 'ItemIsTristate'       # The item is checkable with three separate states.
-        """
+            64: 'ItemIsTristate'       # The item is checkable with three separate states. """
         # Return flags based on column properties (like type, and editable)
         col      = qtindex.column()
         type_    = model._get_type(col)
