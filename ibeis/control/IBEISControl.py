@@ -1094,7 +1094,7 @@ class IBEISController(object):
         roi_uuid_list = ibs.get_roi_uuids(rid_list)
         # PSA: Do not use ensurepath here. Move to an initialcheck on creation
         # and save thumb_dpath as an IBEIS path
-        thumb_gpaths = [join(ibs.thumb_dpath, str(uuid) + 'thumb.png')
+        thumb_gpaths = [join(ibs.thumb_dpath, str(uuid) + 'chip_thumb.png')
                         for uuid in roi_uuid_list]
         image_paths = ibs.get_roi_cpaths(rid_list)
         thumbtup_list = [(thumb_path, img_path, [])
@@ -1406,7 +1406,8 @@ class IBEISController(object):
     @getter
     def get_name_thumbtups(ibs, nid_list):
         rids_list = ibs.get_name_rids(nid_list)
-        thumbtups_list = ibsfuncs.unflat_lookup(ibs.get_roi_chip_thumbtup, rids_list)
+        thumbtups_list_ = ibsfuncs.unflat_lookup(ibs.get_roi_chip_thumbtup, rids_list)
+        thumbtups_list = utool.flatten(thumbtups_list_)
         return thumbtups_list
     
     @getter
