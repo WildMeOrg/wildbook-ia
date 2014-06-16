@@ -17,7 +17,7 @@ import vtool.image as gtool
 #-------------
 
 
-#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfg_uids first
+#@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfgstrs first
 @utool.indent_func
 def compute_or_read_roi_chips(ibs, rid_list, ensure=True):
     """ Reads chips and tries to compute them if they do not exist """
@@ -92,10 +92,10 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
     """ Returns format of chip file names """
     if suffix is None:
         chip_cfg = ibs.cfg.chip_cfg
-        chipcfg_uid = chip_cfg.get_uid()   # algo settings uid
-        chipcfg_fmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
-        suffix = chipcfg_uid + chipcfg_fmt
-    # Chip filenames are a function of roi_uid and cfg_uid
+        chip_cfgstr = chip_cfg.get_cfgstr()   # algo settings cfgstr
+        chip_cfgfmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
+        suffix = chip_cfgstr + chip_cfgfmt
+    # Chip filenames are a function of roi_uid and cfgstr
     _cfname_fmt = ('rid_%s' + suffix)
     return _cfname_fmt
 

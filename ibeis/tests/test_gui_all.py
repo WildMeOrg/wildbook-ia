@@ -72,7 +72,8 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     #
     # SELECT ROIS
     print('[TEST] SELECT ROI / Add Chips')
-    rid_list = ibs.get_valid_rids()
+    # get_valid_rids seems to return rids in an arbitrary order, it's an SQL thing
+    rid_list = sorted(ibs.get_valid_rids())
     print('\n'.join('  * rid_list[%d] = %r' % (count, rid) for count, rid in enumerate(rid_list)))
 
     back.select_rid(rid_list[0], show_image=True, **_kwargs)

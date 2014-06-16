@@ -63,17 +63,17 @@ def pre_exec_checks(ibs, qreq):
     """ Ensures that the NNIndex's data_index is pointing to the correct
     set of feature descriptors """
     print('  --- Pre Exec ---')
-    # Get qreq config information
-    drids = qreq.get_internal_drids()
-    feat_uid = qreq.cfg._feat_cfg.get_uid()
-    drids_uid = utool.hashstr_arr(drids, 'drids')
+    feat_cfgstr = qreq.cfg._feat_cfg.get_cfgstr()
+    drids_hashid = qreq.get_drids_hashid()
     # Ensure the index / inverted index exist for this config
-    dftup_uid = drids_uid + feat_uid
-    if dftup_uid not in qreq.dftup2_index:
+    dftup_hashid = drids_hashid + feat_cfgstr
+    if dftup_hashid not in qreq.dftup2_index:
+        # Get qreq config information
+        drids = qreq.get_internal_drids()
         # Compute the FLANN Index
         data_index = NNIndex.NNIndex(ibs, drids)
-        qreq.dftup2_index[dftup_uid] = data_index
-    qreq.data_index = qreq.dftup2_index[dftup_uid]
+        qreq.dftup2_index[dftup_hashid] = data_index
+    qreq.data_index = qreq.dftup2_index[dftup_hashid]
     return qreq
 
 
@@ -105,13 +105,13 @@ def process_query_request(ibs, qreq,
     if use_bigcache:
         bigcache_dpath = qreq.bigcachedir
         bigcache_fname = (ibs.get_dbname() + '_QRESMAP' +
-                          qreq.get_qrids_uid() + qreq.get_drids_uid())
-        bigcache_uid = qreq.cfg.get_uid()
+                          qreq.get_qrids_hashid() + qreq.get_drids_hashid())
+        bigcache_cfgstr = qreq.cfg.get_cfgstr()
     if use_cache and use_bigcache:
         try:
             qrid2_qres = utool.load_cache(bigcache_dpath,
                                           bigcache_fname,
-                                          bigcache_uid)
+                                          bigcache_cfgstr)
             print('... qrid2_qres bigcache hit')
             return qrid2_qres
         except IOError:
@@ -132,7 +132,7 @@ def process_query_request(ibs, qreq,
     if use_bigcache:
         utool.save_cache(bigcache_dpath,
                          bigcache_fname,
-                         bigcache_uid, qrid2_qres)
+                         bigcache_cfgstr, qrid2_qres)
     return qrid2_qres
 
 

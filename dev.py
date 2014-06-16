@@ -129,14 +129,14 @@ __ALLRES_CACHE__ = {}
 
 def get_allres(ibs, qrid_list):
     print('[dev] get_allres')
-    allres_uid = ibs.qreq.get_uid()
+    allres_cfgstr = ibs.qreq.get_cfgstr()
     try:
-        allres = __ALLRES_CACHE__[allres_uid]
+        allres = __ALLRES_CACHE__[allres_cfgstr]
     except KeyError:
         qrid2_qres = ibs.query_database(qrid_list)
         allres = results_all.init_allres(ibs, qrid2_qres)
     # Cache save
-    __ALLRES_CACHE__[allres_uid] = allres
+    __ALLRES_CACHE__[allres_cfgstr] = allres
     return allres
 
 
@@ -165,7 +165,7 @@ def desc_dists(ibs, qrid_list):
     dists_lbls = orgtype_list
     dists_markers = ['x', 'o--']
     plottool.plots.draw_scores_cdf(dists_list, dists_lbls, dists_markers)
-    df2.set_figtitle('Descriptor Distance CDF d(x)' + ibs.qreq.get_uid())
+    df2.set_figtitle('Descriptor Distance CDF d(x)' + ibs.qreq.get_cfgstr())
     return locals()
 
 
@@ -211,7 +211,7 @@ def roimatch_scores(ibs, qrid_list):
     scores_lbls = orgtype_list
     scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
     plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
-    df2.set_figtitle('Chipmatch Scores ' + ibs.qreq.get_uid())
+    df2.set_figtitle('Chipmatch Scores ' + ibs.qreq.get_cfgstr())
     return locals()
 
 

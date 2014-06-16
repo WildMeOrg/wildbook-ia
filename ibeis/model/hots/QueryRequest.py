@@ -38,27 +38,27 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.vsmany = query_cfg.agg_cfg.query_type == 'vsmany'
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
 
-    def get_drids_uid(qreq):
+    def get_drids_hashid(qreq):
         assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
-        drids_uid = utool.hashstr_arr(qreq.drids, '_drids')
-        return drids_uid
+        drids_hashid = utool.hashstr_arr(qreq.drids, '_drids')
+        return drids_hashid
 
-    def get_qrids_uid(qreq):
+    def get_qrids_hashid(qreq):
         assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
-        qrids_uid = utool.hashstr_arr(qreq.qrids, '_qrids')
-        return qrids_uid
+        qrids_hashid = utool.hashstr_arr(qreq.qrids, '_qrids')
+        return qrids_hashid
 
-    def get_uid_list(qreq, use_drids=True, use_qrids=False, **kwargs):
-        uid_list = []
+    def get_cfgstr_list(qreq, use_drids=True, use_qrids=False, **kwargs):
+        cfgstr_list = []
         if use_drids:
-            uid_list.append(qreq.get_drids_uid())
+            cfgstr_list.append(qreq.get_drids_hashid())
         if use_qrids:
-            uid_list.append(qreq.get_qrids_uid())
-        uid_list.extend(qreq.cfg.get_uid_list(**kwargs))
-        return uid_list
+            cfgstr_list.append(qreq.get_qrids_cfgstr())
+        cfgstr_list.extend(qreq.cfg.get_cfgstr_list(**kwargs))
+        return cfgstr_list
 
-    def get_uid(qreq, **kwargs):
-        return ''.join(qreq.get_uid_list(**kwargs))
+    def get_cfgstr(qreq, **kwargs):
+        return ''.join(qreq.get_cfgstr_list(**kwargs))
 
     def get_internal_drids(qreq):
         """ These are not the users drids in vsone mode """

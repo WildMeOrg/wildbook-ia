@@ -14,7 +14,7 @@ class AllResults(utool.DynStruct):
         allres.ibs = None
         allres.qrid2_qres = None
         allres.allorg = None
-        allres.uid = None
+        allres.cfgstr = None
 
     def get_orgtype(allres, orgtype):
         orgres = allres.allorg.get(orgtype)
@@ -31,11 +31,11 @@ class AllResults(utool.DynStruct):
 
 
 def init_allres(ibs, qrid2_qres):
-    allres_uid = ibs.qreq.get_uid()
+    allres_cfgstr = ibs.qreq.get_cfgstr()
     print('Building allres')
     allres = AllResults()
     allres.qrid2_qres = qrid2_qres
     allres.allorg = results_organizer.organize_results(ibs, qrid2_qres)
-    allres.uid = allres_uid
+    allres.cfgstr = allres_cfgstr
     allres.ibs = ibs
     return allres

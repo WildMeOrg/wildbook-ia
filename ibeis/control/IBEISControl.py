@@ -179,7 +179,7 @@ class IBEISController(object):
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
-            ibs2.update_cfg(**kwargs)
+            ibs2.update_query_cfg(**kwargs)
         if ibs.qreq is not None:
             ibs2._prep_qreq(ibs.qreq.qrids, ibs.qreq.drids)
         return ibs2
@@ -267,28 +267,28 @@ class IBEISController(object):
         ibs.cfg.chip_cfg  = query_cfg._feat_cfg._chip_cfg
 
     @default_decorator
-    def update_cfg(ibs, **kwargs):
+    def update_query_cfg(ibs, **kwargs):
         """ Updates query config only. Configs needs a restructure very badly """
-        ibs.cfg.query_cfg.update_cfg(**kwargs)
+        ibs.cfg.query_cfg.update_query_cfg(**kwargs)
 
     @default_decorator
     def get_chip_config_uid(ibs):
         # FIXME: Configs are still handled poorly
-        chip_cfg_suffix = ibs.cfg.chip_cfg.get_uid()
+        chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
         chip_cfg_uid = ibs.add_config(chip_cfg_suffix)
         return chip_cfg_uid
 
     @default_decorator
     def get_feat_config_uid(ibs):
         # FIXME: Configs are still handled poorly
-        feat_cfg_suffix = ibs.cfg.feat_cfg.get_uid()
+        feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
         feat_cfg_uid = ibs.add_config(feat_cfg_suffix)
         return feat_cfg_uid
 
     @default_decorator
     def get_query_config_uid(ibs):
         # FIXME: Configs are still handled poorly
-        query_cfg_suffix = ibs.cfg.query_cfg.get_uid()
+        query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
         query_cfg_uid = ibs.add_config(query_cfg_suffix)
         return query_cfg_uid
 
@@ -296,7 +296,7 @@ class IBEISController(object):
     def get_qreq_uid(ibs):
         # FIXME: Configs are still handled poorly
         assert ibs.qres is not None
-        qreq_uid = ibs.qreq.get_uid()
+        qreq_uid = ibs.qreq.get_cfgstr()
         return qreq_uid
 
     #
@@ -546,7 +546,7 @@ class IBEISController(object):
         eid_list = ibs.add_encounters(enctext_list)
         ibs.db.executemany(
             operation='''
-            INSERT OR IGNORE INTO egpairs(
+            INSERT OR IGNORE INTO encounter_image_relationship(
                 egpair_uid,
                 image_uid,
                 encounter_uid
@@ -855,7 +855,7 @@ class IBEISController(object):
     @getter
     def get_image_eids(ibs, gid_list):
         """ Returns a list of encounter ids for each image by gid """
-        tblname = 'egpairs'
+        tblname = 'encounter_image_relationship'
         colname_list = ('encounter_uid',)
         eids_list = ibs.db.get(tblname, colname_list, gid_list,
                                 where_col='image_uid',
@@ -1439,7 +1439,7 @@ class IBEISController(object):
     @getter_vector_output
     def get_encounter_gids(ibs, eid_list):
         """ returns a list of list of gids in each encounter """
-        tblname = 'egpairs'
+        tblname = 'encounter_image_relationship'
         colname_list = ('image_uid',)
         gids_list = ibs.db.get(tblname, colname_list, eid_list, where_col='encounter_uid')
         return gids_list
@@ -1506,7 +1506,7 @@ class IBEISController(object):
         rid_list = utool.flatten(ibs.get_image_rids(gid_list))
         ibs.delete_rois(rid_list)
         ibs.db.delete('images', gid_list)
-        ibs.db.delete('egpairs', gid_list, where_col='image_uid')
+        ibs.db.delete('encounter_image_relationship', gid_list, where_col='image_uid')
 
     @deleter
     def delete_features(ibs, fid_list):
@@ -1539,7 +1539,7 @@ class IBEISController(object):
         """ Removes encounters (but not any other data) """
         print('[ibs] deleting %d encounters' % len(eid_list))
         ibs.db.delete('encounters', eid_list)
-        ibs.db.delete('egpairs', eid_list, where_col='encounter_uid')
+        ibs.db.delete('encounter_image_relationship', eid_list, where_col='encounter_uid')
 
     #
     #

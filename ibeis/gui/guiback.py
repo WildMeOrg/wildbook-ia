@@ -513,8 +513,8 @@ class MainWindowBackend(QtCore.QObject):
         epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)
         epw.show()
         back.edit_prefs_wgt = epw
-        #query_uid = ''.join(back.ibs.cfg.query_cfg.get_uid())
-        #print('[back] query_uid = %s' % query_uid)
+        #query_cfgstr = ''.join(back.ibs.cfg.query_cfg.get_cfgstr())
+        #print('[back] query_cfgstr = %s' % query_cfgstr)
         #print('')
 
     #--------------------------------------------------------------------------

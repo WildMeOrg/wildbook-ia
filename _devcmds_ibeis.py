@@ -62,7 +62,7 @@ def sver_rids(ibs, qrid_list):
 @devcmd('cfg')
 def printcfg(ibs, qrid_list):
     ibs.cfg.printme3()
-    print(ibs.cfg.query_cfg.get_uid())
+    print(ibs.cfg.query_cfg.get_cfgstr())
 
 
 @devcmd('list_dbs')
@@ -117,7 +117,7 @@ def export(ibs, rid_pairs=None):
             rid_pair_list = MOTHERS_VIEWPOINT_EXPORT_PAIRS
         if ibs.get_dbname() == 'GZ_ALL':
             rid_pair_list = GZ_VIEWPOINT_EXPORT_PAIRS
-    ibs.update_cfg(ratio_thresh=1.6)
+    ibs.update_query_cfg(ratio_thresh=1.6)
     export_path = expanduser('~/Dropbox/Assignments/dataset')
     #utool.view_directory(export_path)
     # MOTHERS EG:

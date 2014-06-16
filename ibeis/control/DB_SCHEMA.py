@@ -20,7 +20,7 @@ def define_IBEIS_schema(ibs):
         ('image_width',                  'INTEGER'),
         ('image_height',                 'INTEGER'),
         ('image_exif_time_posix',        'INTEGER'),
-        ('image_exif_gps_lat',           'REAL'),
+        ('image_exif_gps_lat',           'REAL'),   # there doesn't seem to exist a GPSPoint in SQLite
         ('image_exif_gps_lon',           'REAL'),
         ('image_confidence',             'REAL DEFAULT -1.0',),  # Move to an algocfg table?
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
@@ -99,8 +99,8 @@ def define_IBEIS_schema(ibs):
     ),  ['CONSTRAINT superkey UNIQUE (roi_uid1, roi_uid2)']
     )
     # Relationship between encounters and images (many to many mapping)
-    # egpairs stands for encounter-image-pairs.
-    ibs.db.schema('egpairs', (
+    # encounter_image_relationship stands for encounter-image-pairs.
+    ibs.db.schema('encounter_image_relationship', (
         ('egpair_uid',                  'INTEGER PRIMARY KEY'),
         ('image_uid',                   '%s NOT NULL' % IMAGE_UID_TYPE),
         ('encounter_uid',               'INTEGER'),

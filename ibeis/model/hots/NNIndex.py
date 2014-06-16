@@ -15,11 +15,11 @@ NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 
 #@utool.indent_func
-def get_flann_uid(ibs, rid_list):
-    feat_uid   = ibs.cfg.feat_cfg.get_uid()
-    sample_uid = utool.hashstr_arr(rid_list, 'drids')
-    uid = '_' + sample_uid + feat_uid
-    return uid
+def get_flann_cfgstr(ibs, rid_list):
+    feat_cfgstr   = ibs.cfg.feat_cfg.get_cfgstr()
+    sample_cfgstr = utool.hashstr_arr(rid_list, 'drids')
+    cfgstr = '_' + sample_cfgstr + feat_cfgstr
+    return cfgstr
 
 
 #@utool.indent_func
@@ -62,10 +62,10 @@ def build_flann_inverted_index(ibs, rid_list):
                       ['infostr'])
         raise
     # Build/Load the flann index
-    flann_uid = get_flann_uid(ibs, rid_list)
+    flann_cfgstr = get_flann_cfgstr(ibs, rid_list)
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
     precomp_kwargs = {'cache_dir': ibs.get_flann_cachedir(),
-                      'uid': flann_uid,
+                      'cfgstr': flann_cfgstr,
                       'flann_params': flann_params,
                       'force_recompute': NOCACHE_FLANN}
     flann = nntool.flann_cache(ax2_desc, **precomp_kwargs)

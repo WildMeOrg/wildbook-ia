@@ -140,7 +140,7 @@ def test_configurations(ibs, qrid_list, test_cfg_name_list, fnum=1):
     for cfgx, query_cfg in enumerate(cfg_list):
         if not QUIET:
             mark_prog(cfgx + 1, nCfg)
-            print(query_cfg.get_uid())
+            print(query_cfg.get_cfgstr())
         cfglbl = cfgx2_lbl[cfgx]
         ibs.set_query_cfg(query_cfg)
         # Set data to the current config
