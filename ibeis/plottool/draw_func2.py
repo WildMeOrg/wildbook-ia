@@ -13,7 +13,6 @@ mpl.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 # Python
 import colorsys
 import pylab
@@ -32,10 +31,13 @@ import vtool.patch as ptool
 import vtool.image as gtool
 # Drawtool
 from . import mpl_keypoint as mpl_kp
-from .custom_figure import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+from .custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 from .custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-from .fig_presenter import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+from .fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 from . import color_funcs as color_fns  # NOQA
+
+lighten_rgb = color_fns.lighten_rgb
+to_base255 = color_fns.to_base255
 
 
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
