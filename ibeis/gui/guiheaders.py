@@ -41,8 +41,8 @@ TABLE_COLNAMES = {
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
     THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
-    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
-    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
+    NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
+    #NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
 }
 
 # the columns which are editable
@@ -196,15 +196,25 @@ def make_ibeis_headers_dict(ibs):
         editset  = TABLE_EDITSET[tblname]
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
-
+        
+        print("....")
+        print(colnames)
+        def get_column_data(colname):
+            coltype   = COL_DEF[colname][0]
+            colnice   = COL_DEF[colname][1]
+            coledit   = colname in editset 
+            colgetter = tblgetters[colname]
+            colsetter = None if not coledit else tblsetters.get(colname, None)
+            return (coltype, colnice, coledit, colgetter, colsetter)
         try:
-            coltypes   = [COL_DEF[colname][0] for colname in colnames]
-            colnices   = [COL_DEF[colname][1] for colname in colnames]
-            coledits   = [colname in editset  for colname in colnames]
-            colgetters = [tblgetters[colname] for colname in colnames]
-            colsetters = [None if not edit else
-                          tblsetters.get(colname, None)
-                          for colname, edit in izip(colnames, coledits)]
+            (coltypes, colnices, coledits, colgetters, colsetters) = ([], [], [], [], [])
+            if utool.is_list(colnames):
+                (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
+            elif utool.is_dict(colnames):
+                #TODO
+                print("not yet implemented")
+            else:
+                print(AssertionError("TABLE_COLNAMES[%s] must be either a list or a dict." % tblname))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise
