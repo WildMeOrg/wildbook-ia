@@ -107,15 +107,8 @@ def get_bbox_centers(bbox_list):
     return center_pts
 
 
-def get_match_truth(ibs, rid1, rid2):
-    nid1, nid2 = ibs.get_roi_nids((rid1, rid2))
-    if nid1 != nid2 and nid1 > 1 and nid2 > 1:
-        truth = 0
-    elif nid1 > 1 and nid2 > 1:
-        truth = 1
-    else:
-        truth = 2
-    return truth
+def is_unknown(ibs, nid_list):
+    return [nid == ibs.UNKNOWN_NID or nid < 0 for nid in nid_list]
 
 
 def get_truth_label(ibs, truth):
@@ -127,13 +120,20 @@ def get_truth_label(ibs, truth):
     return truth_labels[truth]
 
 
-def get_truth_color(ibs, truth):
+def get_truth_color(truth, base255=False, lighten_amount=None):
     truth_colors = [
         df2.FALSE_RED,
         df2.TRUE_GREEN,
         df2.UNKNOWN_PURP,
     ]
-    return truth_colors[truth]
+    color = truth_colors[truth]
+    if lighten_amount is not None:
+        #print('color = %r, lighten_amount=%r' % (color, lighten_amount))
+        color = df2.lighten_rgb(color, lighten_amount)
+        #print('color = %r' % (color))
+    if base255:
+        color = df2.to_base255(color)
+    return color
 
 
 def get_timedelta_str(ibs, rid1, rid2):

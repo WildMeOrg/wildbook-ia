@@ -171,8 +171,16 @@ python dev.py --db PZ_MOTHERS --setdb
 python dev.py --convert --force-delete
 # Then interact with your new IBEIS database
 python dev.py --cmd --gui 
+> rid_list = ibs.get_valid_rids()
 
-rid_list = ibs.get_valid_rids()
+
+#--------------
+# Run Result Inspection
+#--------------
+python dev.py --convert --force-delete --db MOTHERS
+python dev.py --db MOTHERS --setdb
+python dev.py --cmd --allgt -t inspect
+
 
 #---------
 # Ingest examples
@@ -186,18 +194,11 @@ python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
 # Merge all jaguar databases into single big database
 python main.py --merge-species JAG_
 
+
 #---------
 # Run Tests
 #---------
 ./testsuit/run_tests.sh
-
-
-#--------------
-# Run Result Inspection
-#--------------
-%run dev.py --db MOTHERS --setdb
-%run dev.py --cmd --allgt -t inspect
-
 
 
 #---------------

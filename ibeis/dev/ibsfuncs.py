@@ -198,6 +198,26 @@ def delete_invalid_eids(ibs):
     ibs.delete_encounters(invalid_eids)
 
 
+@__injectable
+def is_nid_unknown(ibs, nid_list):
+    return [nid == ibs.UNKNOWN_NID or nid < 0 for nid in nid_list]
+
+
+@__injectable
+def get_match_truth(ibs, rid1, rid2):
+    nid1, nid2 = ibs.get_roi_nids((rid1, rid2))
+    isunknown_list = ibs.is_nid_unknown((nid1, nid2))
+    if any(isunknown_list):
+        truth = 2  # Unknown
+    elif nid1 == nid2:
+        truth = 1  # True
+    elif nid1 != nid2:
+        truth = 0  # False
+    else:
+        raise AssertionError('invalid_unknown_truth_state')
+    return truth
+
+
 def unflat_lookup(method, unflat_rowids, **kwargs):
     """ Uses an ibeis lookup function with a non-flat rowid list.
     """

@@ -69,8 +69,8 @@ def annotate_matches(ibs, qres, rid2,
 
     printDBG('[viz] annotate_matches()')
     rid1 = qres.qrid
-    truth = vh.get_match_truth(ibs, rid1, rid2)
-    truth_color = vh.get_truth_color(ibs, truth)
+    truth = ibs.get_match_truth(rid1, rid2)
+    truth_color = vh.get_truth_color(truth)
     # Build title
     title = vh.get_query_label(ibs, qres, rid2, truth, **kwargs)
     # Build xlabel

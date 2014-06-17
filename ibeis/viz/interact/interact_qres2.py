@@ -193,7 +193,7 @@ class Interact_QueryResult(object):
         divider = df2.ensure_divider(ax)
 
         name1, name2 = ibs.get_roi_names([rid1, rid2])
-        #truth = vh.get_match_truth(self.ibs, rid1, rid2)
+        #truth = self.ibs.get_match_truth(rid1, rid2)
 
         if make_buttons:
             butkw = {
