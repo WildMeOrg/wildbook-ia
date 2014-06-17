@@ -41,6 +41,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
 
     def get_model_data(dgt, qtindex):
+        """ The model data for a thumb should be a (thumb_path, img_path, bbox_list) tuple """
         data = qtindex.model().data(qtindex, QtCore.Qt.DisplayRole)
         if data is None:
             return (None, None, None)

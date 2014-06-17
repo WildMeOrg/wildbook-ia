@@ -174,7 +174,13 @@ def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
 
 def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
               enabled=True, bgcolor=None, fgcolor=None):
-    """ wrapper around QtGui.QPushButton """
+    """ wrapper around QtGui.QPushButton
+    connectable signals:
+        void clicked(bool checked=false)
+        void pressed()
+        void released()
+        void toggled(bool checked)
+    """
     but_args = [text]
     but_kwargs = {
         'parent': parent
@@ -186,6 +192,15 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
     if qicon is not None:
         but_args = [qicon] + but_args
     button = QtGui.QPushButton(*but_args, **but_kwargs)
+    style_sheet_str = make_style_sheet(bgcolor=bgcolor, fgcolor=fgcolor)
+    if style_sheet_str is not None:
+        button.setStyleSheet(style_sheet_str)
+    button.setVisible(visible)
+    button.setEnabled(enabled)
+    return button
+
+
+def make_style_sheet(bgcolor=None, fgcolor=None):
     style_list = []
     fmtdict = {}
     if bgcolor is not None:
@@ -196,10 +211,10 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
         fmtdict['fgcolor'] = ','.join(map(str, fgcolor))
     if len(style_list) > 0:
         style_sheet_fmt = ';'.join(style_list)
-        button.setStyleSheet(style_sheet_fmt.format(**fmtdict))
-    button.setVisible(visible)
-    button.setEnabled(enabled)
-    return button
+        style_sheet_str = style_sheet_fmt.format(**fmtdict)
+        return style_sheet_str
+    else:
+        return None
 
 
 def newLabel(parent, text):
