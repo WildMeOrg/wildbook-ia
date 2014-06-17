@@ -36,7 +36,7 @@ TABLE_COLNAMES = {
     IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rconf', 'notes'],
-    ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'exemplar', 'gname', 'rconf', 'notes'],
+    ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'num', 'verts', 'exemplar', 'gname', 'rconf', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
@@ -76,6 +76,8 @@ COL_DEF = dict([
     ('notes',      (str,      'Notes')),
     ('match_name', (str,      'Matching Name')),
     ('bbox',       (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+    ('num',        (int,      'NumVerts')),
+    ('verts',      (str,      'Verts')),
     ('score',      (str,      'Confidence')),
     ('theta',      (str,      'Theta')),
     ('aif',        (bool,     'Reviewed')),
@@ -126,6 +128,8 @@ def make_ibeis_headers_dict(ibs):
         'nGt'      : ibs.get_roi_num_groundtruth,
         'theta'    : simap_func(utool.theta_str, ibs.get_roi_thetas),
         'bbox'     : simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
+        'num'      : ibs.get_roi_num_verts,
+        'verts'    : simap_func(utool.verts_str, ibs.get_roi_verts),
         'nFeats'   : ibs.get_roi_num_feats,
         'rconf'    : ibs.get_roi_confidence,
         'notes'    : ibs.get_roi_notes,
@@ -202,15 +206,23 @@ def make_ibeis_headers_dict(ibs):
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
+        _coltype = lambda colnames: tuple((COL_DEF[colname][0] for colname in colnames))
+        _colnice = lambda colnames: tuple((COL_DEF[colname][1] for colname in colnames))
+        _coledit = lambda colnames: tuple(((colname in editset) for colname in colnames))
+        _colgetter = lambda colnames: tuple((tblgetters[colname] for colname in colnames))
+        _colsetter = lambda colnames: tuple((None if not (colname in editset) else tblsetters.get(colname, None) for colname in colnames))
         try:
             (coltypes, colnices, coledits, colgetters, colsetters) = ([], [], [], [], [])
             if utool.is_list(colnames):
                 (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
             elif utool.is_dict(colnames):
-                #TODO
-                print("not yet implemented")
+                coltypes = {_coltype(key): _coltype(val) for (key, val) in colnames.iteritems()}
+                colnices = {_colnice(key): _colnice(val) for (key, val) in colnames.iteritems()}
+                coledits = {_coledit(key): _coledit(val) for (key, val) in colnames.iteritems()}
+                colgetters = {_colgetter(key): _colgetter(val) for (key, val) in colnames.iteritems()}
+                colsetters = {_colsetter(key): _colsetter(val) for (key, val) in colnames.iteritems()}
             else:
-                print(AssertionError("TABLE_COLNAMES[%s] must be either a list or a dict." % tblname))
+                raise AssertionError("TABLE_COLNAMES[%s] must be either a list or a dict." % tblname)
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise

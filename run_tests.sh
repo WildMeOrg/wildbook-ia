@@ -152,6 +152,8 @@ EOF
     RUN_TEST ibeis/tests/test_ibs_query_components.py
 
     RUN_TEST ibeis/tests/test_ibs_getters.py
+
+    RUN_TEST ibeis/tests/test_convert_bbox_poly.py
 fi
 
 
