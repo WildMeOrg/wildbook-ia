@@ -20,6 +20,7 @@ from os.path import join, split
 import numpy as np
 # VTool
 from vtool import image as gtool
+from vtool import geometry
 # UTool
 import utool
 # IBEIS EXPORT
@@ -362,13 +363,17 @@ class IBEISController(object):
         return gid_list
 
     @adder
-    def add_rois(ibs, gid_list, bbox_list, theta_list=None, viewpoint_list=None,
-                 nid_list=None, name_list=None, confidence_list=None, notes_list=None):
+    def add_rois(ibs, gid_list, bbox_list=None, theta_list=None, viewpoint_list=None,
+                 nid_list=None, name_list=None, confidence_list=None, notes_list=None,
+                 roi_verts_list=None):
         """ Adds oriented ROI bounding boxes to images """
         print('[ibs] adding rois')
         # Prepare the SQL input
         assert name_list is None or nid_list is None,\
             'cannot specify both names and nids'
+        assert (bbox_list is     None and roi_verts_list is not None) or \
+               (bbox_list is not None and roi_verts_list is     None) ,\
+            'must specify exactly one of bbox_list or vert_list'
         if theta_list is None:
             theta_list = [0.0 for _ in xrange(len(gid_list))]
         if viewpoint_list is None:
@@ -381,23 +386,34 @@ class IBEISController(object):
             confidence_list = [0.0 for _ in xrange(len(gid_list))]
         if notes_list is None:
             notes_list = ['' for _ in xrange(len(gid_list))]
+        if roi_verts_list is None:
+            roi_verts_list = geometry.verts_list_from_bboxes_list(bbox_list)
+        elif bbox_list is None:
+            bbox_list = geometry.bboxes_from_vert_list(roi_verts_list)
+
         # Build ~~deterministic?~~ random and unique ROI ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
         roi_uuid_list = ibsfuncs.make_roi_uuids(image_uuid_list, bbox_list,
                                                 theta_list, deterministic=False)
+        roi_num_verts_list = [len(verts) for verts in roi_verts_list]
+        verts_as_strings = [str(r) for r in roi_verts_list]
+        assert len(roi_num_verts_list) == len(verts_as_strings)
         # Define arguments to insert
         params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
-                                            bbox_list, theta_list,
+                                            bbox_list, theta_list, 
+                                            roi_num_verts_list, verts_as_strings,
                                             viewpoint_list, confidence_list,
                                             notes_list))
 
         tblname = 'rois'
         colname_list = ['roi_uuid', 'image_rowid', 'name_rowid', 'roi_xtl',
                         'roi_ytl', 'roi_width', 'roi_height', 'roi_theta',
-                        'roi_viewpoint', 'roi_detect_confidence', 'roi_notes' ]
+                        'roi_num_verts', 'roi_verts', 'roi_viewpoint', 
+                        'roi_detect_confidence', 'roi_notes']
         # Execute add ROIs SQL
         rid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
                                       ibs.get_roi_rids_from_uuid)
+
         return rid_list
 
     @adder
@@ -579,6 +595,16 @@ class IBEISController(object):
         """ Sets thetas of a list of chips by rid """
         ibs.delete_roi_chips(rid_list)  # Changing theta redefines the chips
         ibs.set_table_props('rois', 'roi_theta', rid_list, theta_list)
+
+    @setter
+    def set_roi_num_verts(ibs, rid_list, num_verts_list):
+        """ Sets the number of vertices of a chip by rid """
+        ibs.set_table_props('rois', 'roi_num_verts', rid_list, num_verts_list)
+
+    @setter
+    def set_roi_verts(ibs, rid_list, verts_list):
+        """ Sets the vertices [(x, y), ...] of a list of chips by rid """
+        ibs.set_table_props('rois', 'roi_verts', rid_list, verts_list)
 
     @setter
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
@@ -957,6 +983,18 @@ class IBEISController(object):
         """ Returns a list of floats describing the angles of each chip """
         theta_list = ibs.get_roi_props('roi_theta', rid_list)
         return theta_list
+
+    @getter
+    def get_roi_num_verts(ibs, rid_list):
+        """ Returns the number of vertices that form the polygon of each chip"""
+        num_verts_list = ibs.get_roi_props('roi_num_verts', rid_list)
+        return num_verts_list
+
+    @getter
+    def get_roi_verts(ibs, rid_list):
+        """ Returns the vertices that form the polygon of each chip """
+        verts_list = ibs.get_roi_props('roi_verts', rid_list)
+        return [eval(v) for v in verts_list]
 
     @getter_numpy
     def get_roi_gids(ibs, rid_list):
