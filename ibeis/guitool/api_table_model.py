@@ -293,7 +293,7 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def _set_col_level(model, col_level_list=None):
         if col_level_list is None:
-            col_level_list = []
+            col_level_list = map(lambda x: 0, model.col_name_list)
         assert len(model.col_name_list) == len(col_level_list), \
             'inconsistent collevel'
         model.col_level_list = col_level_list
