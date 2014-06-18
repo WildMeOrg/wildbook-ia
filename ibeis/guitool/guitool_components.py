@@ -216,6 +216,11 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
     else:
         return None
 
+#def make_qstyle():
+#    style_factory = QtGui.QStyleFactory()
+#    style = style_factory.create('cleanlooks')
+#    #app_style = QtGui.QApplication.style()
+
 
 def newLabel(parent, text):
     label = QtGui.QLabel(text, parent=parent)

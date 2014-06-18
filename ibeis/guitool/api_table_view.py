@@ -105,6 +105,45 @@ class APITableView(API_VIEW_BASE):
         horizontalHeader.setMovable(True)
 
     #---------------
+    # Data Manipulation
+    #---------------
+
+    def infer_delegates(view, **headers):
+        """ Infers which columns should be given item delegates """
+        col_type_list = headers.get('col_type_list', [])
+        for colx, coltype in enumerate(col_type_list):
+            if coltype in  qtype.QT_PIXMAP_TYPES:
+                print('[view] colx=%r is a PIXMAP' % colx)
+                view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
+            elif coltype in qtype.QT_BUTTON_TYPES:
+                print('[view] colx=%r is a BUTTON' % colx)
+                view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
+
+    def set_column_persistant_editor(view, column):
+        """ Set each row in a column as persistant """
+        num_rows = view.model.rowCount()
+        print('view.set_persistant: %r rows' % num_rows)
+        for row in xrange(num_rows):
+            index  = view.model.index(row, column)
+            view.view.openPersistentEditor(index)
+
+    def _update_headers(view, **headers):
+        """ Mirrors _update_headers in api_table_model """
+        # Use headers from model #model = view.model #headers = model.headers
+        # Get header info
+        col_sort_index = headers.get('col_sort_index', None)
+        col_sort_reverse = headers.get('col_sort_reverse', False)
+        # Call updates
+        view._set_sort(col_sort_index, col_sort_reverse)
+        view.infer_delegates(**headers)
+        #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
+
+    def _set_sort(view, col_sort_index, col_sort_reverse=False):
+        if col_sort_index is not None:
+            order = [Qt.AscendingOrder, Qt.DescendingOrder][col_sort_reverse]
+            view.sortByColumn(col_sort_index, order)
+
+    #---------------
     # Qt Overrides
     #---------------
 
@@ -145,45 +184,6 @@ class APITableView(API_VIEW_BASE):
         #print('editing ok')
         view.setEditTriggers(view._defaultEditTriggers)
         API_VIEW_BASE.mouseReleaseEvent(view, event)
-
-    #---------------
-    # Data Manipulation
-    #---------------
-
-    def infer_delegates(view, **headers):
-        """ Infers which columns should be given item delegates """
-        col_type_list = headers.get('col_type_list', [])
-        for colx, coltype in enumerate(col_type_list):
-            if coltype in  qtype.QT_PIXMAP_TYPES:
-                print('[view] colx=%r is a PIXMAP' % colx)
-                view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
-            elif coltype in qtype.QT_BUTTON_TYPES:
-                print('[view] colx=%r is a BUTTON' % colx)
-                view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
-
-    def set_column_persistant_editor(view, column):
-        """ Set each row in a column as persistant """
-        num_rows = view.model.rowCount()
-        print('view.set_persistant: %r rows' % num_rows)
-        for row in xrange(num_rows):
-            index  = view.model.index(row, column)
-            view.view.openPersistentEditor(index)
-
-    def _update_headers(view, **headers):
-        """ Mirrors _update_headers in api_table_model """
-        # Use headers from model #model = view.model #headers = model.headers
-        # Get header info
-        col_sort_index = headers.get('col_sort_index', None)
-        col_sort_reverse = headers.get('col_sort_reverse', False)
-        # Call updates
-        view._set_sort(col_sort_index, col_sort_reverse)
-        view.infer_delegates(**headers)
-        #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
-
-    def _set_sort(view, col_sort_index, col_sort_reverse=False):
-        if col_sort_index is not None:
-            order = [Qt.AscendingOrder, Qt.DescendingOrder][col_sort_reverse]
-            view.sortByColumn(col_sort_index, order)
 
     #---------------
     # Slots
