@@ -55,9 +55,12 @@ except Exception:
     import os
     import sys
     os.chdir(os.path.expanduser(CODE_DIR))
+    print('cloning utool')
     os.system('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
+    print('pulling utool')
     os.system('git pull')
+    print('installing utool for development')
     os.system('sudo {pythoncmd} setup.py develop'.format(**envcmds))
     sys.path.append(os.path.realpath(os.getcwd()))
     print('Please rerun super_setup.py')
