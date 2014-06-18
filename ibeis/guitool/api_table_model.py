@@ -117,7 +117,7 @@ class APITableModel(API_MODEL_BASE):
         model.col_level_list   = []
         model.col_sort_index   = None
         model.col_sort_reverse = False
-        model.row_index_list = []
+        model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
         # Initialize member variables
         #model._about_to_change()
@@ -204,26 +204,33 @@ class APITableModel(API_MODEL_BASE):
         """
         #printDBG('UPDATE ROWS!')
         #print('UPDATE model(%s) rows' % model.name)
-        sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-        
-        ids_ = model._use_ider(0)
-        # this len == 0 check looks like an efficiency hack to avoid a DB access (in the case where there are no ids to be sorted), is that warrented?
-        if len(ids_) == 0:
-            model.row_index_list = []
-        else:
-            # start sort
-            if model.col_sort_index is not None:
-                level = model.col_level_list[sort_index]
-                values = model._use_ider(level)
-            else:
-                values = ids_
-            reverse = model.col_sort_reverse
-            sorted_pairs = sorted(izip(values, ids_), reverse=reverse)
-            row_indices = [id_ for (value, id_) in sorted_pairs]
-            # end sort
-            assert row_indices is not None, 'no indices'
-            model.row_index_list = row_indices
-        model._rows_updated.emit(model.name, len(model.row_index_list))
+        if len(model.col_level_list) > 0:
+            #print('-----')
+            model.level_index_list = []
+            highest_level = max(model.col_level_list)
+            sort_index = 0 if model.col_sort_index is None else model.col_sort_index
+            for i in range(0, highest_level+1):
+                ids_ = model._use_ider(i)
+                #print('ids_: %r' % ids_)
+                row_indices = []
+                if len(ids_) != 0:
+                    # start sort
+                    if model.col_sort_index is not None:
+                        level = model.col_level_list[sort_index]
+                        getter = model.col_getter_list[sort_index]
+                        values = getter(model._use_ider(level))
+                        #print('values: %r' % values)
+                    else:
+                        values = ids_
+                    reverse = model.col_sort_reverse
+                    sorted_pairs = sorted(izip(values, ids_), reverse=reverse)
+                    row_indices = [id_ for (value, id_) in sorted_pairs]
+                    #print('row_indicies: %r' % row_indices)
+                    # end sort
+                assert row_indices is not None, 'no indices'
+                model.level_index_list.append(row_indices)
+            model._rows_updated.emit(model.name, len(model.level_index_list[0]))
+            #print(model.level_index_list)
 
     @updater
     def _set_iders(model, iders=None):
@@ -301,12 +308,14 @@ class APITableModel(API_MODEL_BASE):
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False):
         #printDBG('SET SORT')
-        assert col_sort_index < len(model.col_name_list), \
-            'sort index out of bounds by: %r' % col_sort_index
-        model.col_sort_index = col_sort_index
-        model.col_sort_reverse = col_sort_reverse
-        # Update the row-id order
-        model._update_rows()
+        #print('_set_sort: model.col_name_list: %r' % model.col_name_list)
+        if len(model.col_name_list) > 0:
+            assert col_sort_index < len(model.col_name_list), \
+                'sort index out of bounds by: %r' % col_sort_index
+            model.col_sort_index = col_sort_index
+            model.col_sort_reverse = col_sort_reverse
+            # Update the row-id order
+            model._update_rows()
 
     #----------------------------------
     # --- API Convineince Functions ---
@@ -331,12 +340,12 @@ class APITableModel(API_MODEL_BASE):
         if col is not None:
             num = model.col_name_list_counts[model.col_name_list[col]]
             # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
-            assert num == len(model.col_name_list), "mixing stripped with non stripped"
+            #assert num == len(model.col_name_list), "mixing stripped with non stripped"
             row = row * num + col
             col = 0
 
         try:
-            id_ = model.row_index_list[row]
+            id_ = model.level_index_list[0][row]
             return id_
         except IndexError as ex:  # NOQA
             # msg = '\n'.join([
@@ -365,7 +374,7 @@ class APITableModel(API_MODEL_BASE):
             col = 0
         # </HACK: COLUMN_STRIPING>
         #
-        if row < len(model.row_index_list):
+        if row < len(model.level_index_list[0]):
             getter = model.col_getter_list[col]  # getter for this column
             row_id = model._get_row_id(row)  # row_id w.r.t. to sorting
             # <HACK: MODEL CACHE>
@@ -380,7 +389,7 @@ class APITableModel(API_MODEL_BASE):
             # </HACK: MODEL CACHE>
             return data
         else:
-            raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.row_index_list)))
+            #raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.level_index_list[0])))
             return None
             #return ('','',())
             #return "!!!<EMPTY FOR STRIPE>!!!"
@@ -405,6 +414,13 @@ class APITableModel(API_MODEL_BASE):
         print('Setting data: row_id=%r, setter=%r' % (row_id, setter))
         return setter(row_id, value)
 
+    def _get_columns_of_level(model, level):
+        acc = []
+        for i, lev in enumerate(model.col_level_list):
+            if lev == level:
+                acc.append(i)
+        return acc
+
     #------------------------
     # --- QtGui Functions ---
     #------------------------
@@ -423,6 +439,11 @@ class APITableModel(API_MODEL_BASE):
         calling QModelIndex member functions, such as QModelIndex.parent(),
         since indexes belonging to your model will simply call your
         implementation, leading to infinite recursion.  """
+        if qindex.isValid():
+            indexlevel = model.col_level_list[qindex.column()]
+            parentlevel_cols = model._get_columns_of_level(indexlevel-1)
+            if len(parentlevel_cols) > 0:
+                return model.createIndex(qindex.row(), parentlevel_cols[0])
         return QtCore.QModelIndex()
 
     @default_method_decorator
@@ -441,19 +462,27 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
-        try:
-            length = len(model.row_index_list)
-            # <HACK>
-            counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
-            # </HACK>
-            return max(counts)
-        except:
-            return len(model.row_index_list)
+        if len(model.level_index_list) > 0:
+            parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
+            try:
+                length = len(model.level_index_list[parent_level+1])
+                # <HACK>
+                counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
+                # </HACK>
+                return max(counts)
+            except:
+                return len(model.level_index_list[parent_level+1])
+        else:
+            return 0
 
     @default_method_decorator
     def columnCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
-        return len(model.col_name_list)
+        if len(model.level_index_list) > 0:
+            parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
+            return len(model._get_columns_of_level(parent_level+1))
+        else:
+            return 0
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
