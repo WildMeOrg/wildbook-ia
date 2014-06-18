@@ -206,23 +206,15 @@ def make_ibeis_headers_dict(ibs):
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
-        _coltype = lambda colnames: tuple((COL_DEF[colname][0] for colname in colnames))
-        _colnice = lambda colnames: tuple((COL_DEF[colname][1] for colname in colnames))
-        _coledit = lambda colnames: tuple(((colname in editset) for colname in colnames))
-        _colgetter = lambda colnames: tuple((tblgetters[colname] for colname in colnames))
-        _colsetter = lambda colnames: tuple((None if not (colname in editset) else tblsetters.get(colname, None) for colname in colnames))
         try:
             (coltypes, colnices, coledits, colgetters, colsetters) = ([], [], [], [], [])
             if utool.is_list(colnames):
                 (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
             elif utool.is_dict(colnames):
-                coltypes = {_coltype(key): _coltype(val) for (key, val) in colnames.iteritems()}
-                colnices = {_colnice(key): _colnice(val) for (key, val) in colnames.iteritems()}
-                coledits = {_coledit(key): _coledit(val) for (key, val) in colnames.iteritems()}
-                colgetters = {_colgetter(key): _colgetter(val) for (key, val) in colnames.iteritems()}
-                colsetters = {_colsetter(key): _colsetter(val) for (key, val) in colnames.iteritems()}
+                #TODO
+                print("not yet implemented")
             else:
-                raise AssertionError("TABLE_COLNAMES[%s] must be either a list or a dict." % tblname)
+                print(AssertionError("TABLE_COLNAMES[%s] must be either a list or a dict." % tblname))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise
