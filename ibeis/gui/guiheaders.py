@@ -196,15 +196,16 @@ def make_ibeis_headers_dict(ibs):
         editset  = TABLE_EDITSET[tblname]
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
-
+        
+        def get_column_data(colname):
+            coltype   = COL_DEF[colname][0]
+            colnice   = COL_DEF[colname][1]
+            coledit   = colname in editset 
+            colgetter = tblgetters[colname]
+            colsetter = None if not coledit else tblsetters.get(colname, None)
+            return (coltype, colnice, coledit, colgetter, colsetter)
         try:
-            coltypes   = [COL_DEF[colname][0] for colname in colnames]
-            colnices   = [COL_DEF[colname][1] for colname in colnames]
-            coledits   = [colname in editset  for colname in colnames]
-            colgetters = [tblgetters[colname] for colname in colnames]
-            colsetters = [None if not edit else
-                          tblsetters.get(colname, None)
-                          for colname, edit in izip(colnames, coledits)]
+            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise
