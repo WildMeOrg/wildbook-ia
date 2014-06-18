@@ -9,7 +9,7 @@ from plottool import fig_presenter
 from guitool import qtype, APITableWidget
 from PyQt4 import QtCore
 import guitool
-#from ibeis.dev import ibsfuncs
+from ibeis.dev import ibsfuncs
 import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[inspect_gui]', DEBUG=False)
@@ -195,6 +195,24 @@ class CustomAPI(object):
         return [partial(self.set, column) for column in xrange(self.nCols)]
 
 
+def review_match(rid1, rid2):
+    print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
+    #if text.startswith(BREAK_MATCH_PREF):
+    #    ibs.set_roi_names([rid1, rid2], ['____', '____'])
+    #elif text.startswith(NEW_MATCH_PREF):
+    #    new_name = ibsfuncs.make_new_name(ibs)
+    #    ibs.set_roi_names([rid1, rid2], [new_name, new_name])
+    #elif text.startswith(RENAME1_PREF):
+    #    name2 = ibs.get_roi_names(rid2)
+    #    ibs.set_roi_names([rid1], [name2])
+    #elif text.startswith(RENAME2_PREF):
+    #    name1 = ibs.get_roi_names(rid1)
+    #    ibs.set_roi_names([rid2], [name1])
+    ## Emit that something has changed
+    #self.on_change_callback()
+    #self.show_page()
+
+
 def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     """
     Builds columns which are displayable in a ColumnListTableWidget
@@ -207,28 +225,52 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     (qrids, rids, scores, ranks) = candidate_matches
     #qnames = ibs.get_roi_names(qrids)
     #names = ibs.get_roi_names(rids)
+    #truths = np.array((ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0)
+    #buttons = [get_review_match_buttontup(rid1, rid2) for (rid1, rid2) in izip(qrids, rids)]
 
-    truths = (ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0
-    #views  = ['view ' + ibsfuncs.vsstr(qrid, rid, lite=True)
-    #          for qrid, rid in izip(qrids, rids)]
+    #def get_review_match_buttontup(rid1, rid2):
+    #    """ A buttontup is a string and a callback """
+    #    return get_button  # ('Merge', partial(review_match, rid1, rid2))
+    from ibeis.viz import viz_helpers as vh
+
+    def get_buttontup(qtindex):
+        model = qtindex.model()
+        row = qtindex.row()
+        rid1 = model.get_header_data('qrid', row)
+        rid2 = model.get_header_data('rid', row)
+        truth = ibs.get_match_truth(rid1, rid2)
+        truth_color = vh.get_truth_color(truth, base255=True,
+                                         lighten_amount=0.35)
+        callback = partial(review_match, rid1, rid2)
+        #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
+        if truth == 2:
+            buttontup = ('NEW Match', callback, truth_color)
+        elif truth == 0:
+            buttontup = ('JOIN Match', callback, truth_color)
+        elif truth == 1:
+            buttontup = ('SPLIT Match', callback, truth_color)
+        else:
+            raise AssertionError('impossible match state')
+        return buttontup
+
+    def get_rowid_button(rowid):
+        return get_buttontup
     #opts = np.zeros(len(qrids))
     # Define column information
     column_tuples = [
-        ('qrid',  np.array(qrids),  int),
-        #('query',  lambda ids: ibs.get_roi_chip_thumbs(qrids[ids]), 'PIXMAP'),
-        ('query-thumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None, 'qrid'),
-        ('qname', ibs.get_roi_names, str, ibs.set_roi_names, 'qrid'),
-        ('rid',   np.array(rids),   int),
-        ('result-thumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None, 'rid'),
-        ('name',  ibs.get_roi_names,  str, ibs.set_roi_names, 'rid'),
-        #('result',  lambda ids: ibs.get_roi_chip_thumbs(rids[ids]), 'PIXMAP'),
-        ('score', np.array(scores), float),
-        ('rank',  np.array(ranks),  int),
-        ('truth', np.array(truths), bool),
-        #('opt',   opts,   ('COMBO', int)),
-        #('view',  views, ('BUTTON', str)),
+        ('qrid',       np.array(qrids),           int),
+        ('rid',        np.array(rids),            int),
+        ('review',     get_rowid_button,          'BUTTON'),
+        ('querythumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'qrid'),
+        ('resthumb',   ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'rid'),
+        ('qname',      ibs.get_roi_names,         str,      ibs.set_roi_names, 'qrid'),
+        ('name',       ibs.get_roi_names,         str,      ibs.set_roi_names, 'rid'),
+        ('score',      np.array(scores),          float),
+        ('rank',       np.array(ranks),           int),
+        #('truth',     truths,                    bool),
+        #('opt',       opts,   ('COMBO',          int)),
     ]
-    editable_colnames =  ['truth', 'notes', 'qname', 'name', 'Opt']
+    editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
     sortby = 'score'
     # Insert info into dict
     qres_api = CustomAPI(column_tuples, editable_colnames, sortby, True)
