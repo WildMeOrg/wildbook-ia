@@ -82,7 +82,7 @@ class APITableModel(API_MODEL_BASE):
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
         """
-        ider          : function which returns ids for setters and getters
+        iders          : list of functions that return ids for setters and getters
         col_name_list : list of keys or SQL-like name for column to reference
                         abstracted data storage using getters and setters
         col_type_list : list of column value (Python) types
@@ -106,7 +106,7 @@ class APITableModel(API_MODEL_BASE):
         # Model Data And Accessors
         model.name             = 'None'
         model.nice             = 'None'
-        model.ider             = lambda: []
+        model.iders            = [lambda: []]
         model.col_name_list    = []
         model.col_name_list_counts = {}  # HACKY
         model.col_type_list    = []
@@ -114,6 +114,7 @@ class APITableModel(API_MODEL_BASE):
         model.col_edit_list    = []
         model.col_setter_list  = []
         model.col_getter_list  = []
+        model.col_level_list   = []
         model.col_sort_index   = None
         model.col_sort_reverse = False
         model.row_index_list = []
@@ -156,7 +157,7 @@ class APITableModel(API_MODEL_BASE):
 
     @updater
     def _update_headers(model,
-                        ider=None,
+                        iders=None,
                         name=None,
                         nice=None,
                         col_name_list=None,
@@ -165,18 +166,20 @@ class APITableModel(API_MODEL_BASE):
                         col_edit_list=None,
                         col_setter_list=None,
                         col_getter_list=None,
+                        col_level_list=None,
                         col_sort_index=None,
                         col_sort_reverse=False):
         model.cache = {}  # FIXME: This is not sustainable
         model.name = str(name)
         model.nice = str(nice)
         # Initialize class
-        model._set_ider(ider)
+        model._set_iders(iders)
         model._set_col_name_type(col_name_list, col_type_list)
         model._set_col_nice(col_nice_list)
         model._set_col_edit(col_edit_list)
         model._set_col_setter(col_setter_list)
         model._set_col_getter(col_getter_list)
+        model._set_col_level(col_level_list)
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse)
 
@@ -186,6 +189,12 @@ class APITableModel(API_MODEL_BASE):
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
+    
+    def _use_ider(model, level):
+        if level == 0:
+            return model.iders[level]()
+        else:
+            return model.iders[level](model._use_ider(level-1))
 
     @updater
     def _update_rows(model):
@@ -195,16 +204,19 @@ class APITableModel(API_MODEL_BASE):
         """
         #printDBG('UPDATE ROWS!')
         #print('UPDATE model(%s) rows' % model.name)
-        ids_ = model.ider()
+        sort_index = 0 if model.col_sort_index is None else model.col_sort_index
+        
+        ids_ = model._use_ider(0)
+        # this len == 0 check looks like an efficiency hack to avoid a DB access (in the case where there are no ids to be sorted), is that warrented?
         if len(ids_) == 0:
             model.row_index_list = []
         else:
             # start sort
-            if model.col_sort_index is None:
-                values = ids_
+            if model.col_sort_index is not None:
+                level = model.col_level_list[sort_index]
+                values = model._use_ider(level)
             else:
-                getter = model.col_getter_list[model.col_sort_index]
-                values = getter(ids_)
+                values = ids_
             reverse = model.col_sort_reverse
             sorted_pairs = sorted(izip(values, ids_), reverse=reverse)
             row_indices = [id_ for (value, id_) in sorted_pairs]
@@ -214,12 +226,14 @@ class APITableModel(API_MODEL_BASE):
         model._rows_updated.emit(model.name, len(model.row_index_list))
 
     @updater
-    def _set_ider(model, ider=None):
+    def _set_iders(model, iders=None):
         #printDBG('NEW IDER')
-        if ider is None:
-            ider = lambda: []
-        assert utool.is_funclike(ider), 'bad type: %r' % type(ider)
-        model.ider = ider
+        if iders is None:
+            iders = [lambda: []]
+        assert utool.is_list(iders), 'bad type: %r' % type(iders)
+        for index, ider in enumerate(iders):
+            assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
+        model.iders = iders
 
     @updater
     def _set_col_name_type(model, col_name_list=None, col_type_list=None):
@@ -275,6 +289,14 @@ class APITableModel(API_MODEL_BASE):
         assert len(model.col_name_list) == len(col_getter_list), \
             'inconsistent colgetter'
         model.col_getter_list = col_getter_list
+
+    @default_method_decorator
+    def _set_col_level(model, col_level_list=None):
+        if col_level_list is None:
+            col_level_list = []
+        assert len(model.col_name_list) == len(col_level_list), \
+            'inconsistent collevel'
+        model.col_level_list = col_level_list
 
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False):
