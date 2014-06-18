@@ -92,7 +92,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             model = ibswgt.model
             view = ibswgt.view
             header = header_dict[NAMES_TREE]
-            print("HEADER at test_qt_tree line 95ish\n%r" % header)
             model._update_headers(**header)
             view._update_headers(**header)
 
