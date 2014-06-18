@@ -41,8 +41,8 @@ TABLE_COLNAMES = {
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
     THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
-    NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
-    #NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
+    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
+    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
 }
 
 # the columns which are editable
@@ -54,6 +54,10 @@ TABLE_EDITSET = {
     ENCOUNTER_TABLE : set([]),
     THUMB_TABLE     : set([]), 
     NAMES_TREE      : set([]), 
+}
+
+TABLE_TREE_LEVELS = {
+    NAMES_TREE : [0, 0, 0, 1, 1, 1],
 }
 
 # Define the valid columns a table could have
@@ -98,7 +102,7 @@ def make_ibeis_headers_dict(ibs):
     getters = {}
     #
     # Image Iders/Setters/Getters
-    iders[IMAGE_TABLE] = ibs.get_valid_gids
+    iders[IMAGE_TABLE] = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
         'eid'        : ibs.get_image_eids,
@@ -120,7 +124,7 @@ def make_ibeis_headers_dict(ibs):
     }
     #
     # ROI Iders/Setters/Getters
-    iders[ROI_TABLE] = ibs.get_valid_rids
+    iders[ROI_TABLE] = [ibs.get_valid_rids]
     getters[ROI_TABLE] = {
         'rid'      : lambda rids: rids,
         'name'     : ibs.get_roi_names,
@@ -143,7 +147,7 @@ def make_ibeis_headers_dict(ibs):
     }
     #
     # Name Iders/Setters/Getters
-    iders[NAME_TABLE] = ibs.get_valid_nids
+    iders[NAME_TABLE] = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
         'nid':    lambda nids: nids,
         'name':   ibs.get_names,
@@ -156,7 +160,7 @@ def make_ibeis_headers_dict(ibs):
     }
     #
     # Encounter Iders/Setters/Getters
-    iders[ENCOUNTER_TABLE] = ibs.get_valid_eids
+    iders[ENCOUNTER_TABLE] = [ibs.get_valid_eids]
     getters[ENCOUNTER_TABLE] = {
         'eid':     lambda eids: eids,
         'nImgs':   ibs.get_encounter_num_gids,
@@ -166,7 +170,7 @@ def make_ibeis_headers_dict(ibs):
         'enctext': ibs.set_encounter_enctext,
     }
 
-    iders[THUMB_TABLE] = ibs.get_valid_gids
+    iders[THUMB_TABLE] = [ibs.get_valid_gids]
     getters[THUMB_TABLE] = {
         'thumb'      : ibs.get_image_thumbtup,
     }
@@ -174,14 +178,14 @@ def make_ibeis_headers_dict(ibs):
     }
     
     
-    iders[NAMES_TREE] = ibs.get_valid_nids
+    iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_rids]
     getters[NAMES_TREE] = {
         'nid':    lambda nids: nids,
         'name':   ibs.get_names,
         'nRids':  ibs.get_name_num_rois,
-        'rid':    ibs.get_name_rids,
-        'bbox':   ibs.get_name_roi_bboxes,
-        'thumb':  ibs.get_name_thumbtups,
+        'rid':    lambda rids: rids,
+        'bbox':   ibs.get_roi_bboxes,
+        'thumb':  ibs.get_roi_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
     }
@@ -196,9 +200,9 @@ def make_ibeis_headers_dict(ibs):
         editset  = TABLE_EDITSET[tblname]
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
+        #if levels aren't found, we're not dealing with a tree, so everything is at level 0
+        collevels = TABLE_TREE_LEVELS.get(tblname, map(lambda x: 0, colnames))
         
-        print("....")
-        print(colnames)
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
             colnice   = COL_DEF[colname][1]
@@ -206,36 +210,22 @@ def make_ibeis_headers_dict(ibs):
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
-        _coltype = lambda colnames: tuple((COL_DEF[colname][0] for colname in colnames))
-        _colnice = lambda colnames: tuple((COL_DEF[colname][1] for colname in colnames))
-        _coledit = lambda colnames: tuple(((colname in editset) for colname in colnames))
-        _colgetter = lambda colnames: tuple((tblgetters[colname] for colname in colnames))
-        _colsetter = lambda colnames: tuple((None if not (colname in editset) else tblsetters.get(colname, None) for colname in colnames))
         try:
-            (coltypes, colnices, coledits, colgetters, colsetters) = ([], [], [], [], [])
-            if utool.is_list(colnames):
-                (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
-            elif utool.is_dict(colnames):
-                coltypes = {_coltype(key): _coltype(val) for (key, val) in colnames.iteritems()}
-                colnices = {_colnice(key): _colnice(val) for (key, val) in colnames.iteritems()}
-                coledits = {_coledit(key): _coledit(val) for (key, val) in colnames.iteritems()}
-                colgetters = {_colgetter(key): _colgetter(val) for (key, val) in colnames.iteritems()}
-                colsetters = {_colsetter(key): _colsetter(val) for (key, val) in colnames.iteritems()}
-            else:
-                raise AssertionError("TABLE_COLNAMES[%s] must be either a list or a dict." % tblname)
+            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise
         header = {
             'name': tblname,
             'nice': tblnice,
-            'ider': iders[tblname],
+            'iders': iders[tblname],
             'col_name_list': colnames,
             'col_type_list': coltypes,
             'col_nice_list': colnices,
             'col_edit_list': coledits,
             'col_getter_list': colgetters,
             'col_setter_list': colsetters,
+            'col_level_list': collevels,
         }
         return header
 

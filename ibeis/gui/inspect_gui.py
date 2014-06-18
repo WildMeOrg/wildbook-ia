@@ -176,7 +176,7 @@ class CustomAPI(object):
         headers = {
             'name': tblname,
             'nice': tblname if tblnice is None else tblnice,
-            'ider': self.ider,
+            'iders': [self.ider],
             'col_name_list'    : self.col_name_list,
             'col_type_list'    : self.col_type_list,
             'col_nice_list'    : self.col_name_list,

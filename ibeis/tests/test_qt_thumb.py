@@ -113,6 +113,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if model.name == THUMB_TABLE:
             # eid = model.eid
             gid = id_
+            if gid is None:
+                return
             print("SINGLE CLICKED ID: %r" % gid)
 
     @slot_(QtCore.QModelIndex)
@@ -123,8 +125,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if model.name == THUMB_TABLE:
             # eid = model.eid
             gid = id_
-            if gid is None:
-                return
             ibswgt.roi_interact = interact_rois2.ROI_Interaction2(ibswgt.ibs, gid)
             print("DOUBLECLICKED ID: %r" % gid)
 

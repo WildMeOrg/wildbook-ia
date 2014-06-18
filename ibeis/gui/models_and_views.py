@@ -28,8 +28,8 @@ class IBEISTableModel(APITableModel):
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):
             return []
-        model.original_ider = headers.get('ider', _null_ider)
-        headers['ider'] = model._ider
+        original_ider = headers.get('iders', [_null_ider])
+        headers['iders'] = original_ider
         return APITableModel._update_headers(model, **headers)
 
     def _ider(model):
