@@ -107,10 +107,25 @@ EOL'
         '''
     ))
     # Get ability to download python
+    # Prereqs for python 2.7
     fixyum_cmds.append(textwrap.dedent(
         '''
+        sudo yum install -y zlib-dev
+        sudo yum install -y openssl-devel
+        sudo yum install -y openssl
+        sudo yum install -y sqlite-devel
+        sudo yum install -y bzip2-devel
         sudo yum upgrade -y wget
-        sudo yum install xz-libs
+        sudo yum install xz-libs -y
+        sudo yum install qt -y
+        sudo yum install qt-devel -y
+        sudo yum install readline-devel -y
+        sudo yum install ncurses-devel ncurses -y
+        sudo yum install tk-devel -y
+        # sudo apt-get install libncurses5-dev libncursesw5-dev
+
+        sudo yum install qt -y
+        sudo yum install qt-devel -y
         '''
     ))
     # Download and unzip python
@@ -129,15 +144,16 @@ EOL'
         sudo make altinstall
         cd ~
         '''))
+    #sudo yum install make automake gcc gcc-c++ kernel-devel git-core -y
+
+    #wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
+    #python2.7 ez_setup.py
+    #easy_install-2.7 pip
+
     # Get Pip
     fixyum_cmds.append(textwrap.dedent(
         '''
-        sudo yum install make automake gcc gcc-c++ kernel-devel git-core -y
-
-        wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
-        python2.7 ez_setup.py
-        easy_install-2.7 pip
-
+        cd ~/tmp
         wget https://bootstrap.pypa.io/get-pip.py
         sudo /usr/local/bin/python2.7 get-pip.py
         sudo /usr/local/bin/pip install pip --upgrade
@@ -158,30 +174,27 @@ EOL'
     # Get SIP
     fixyum_cmds.append(textwrap.dedent(
         '''
-        cd ~
+        cd ~/tmp
+        wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.16/sip-4.16.tar.gz
+        gunzip sip-4.16.tar.gz && tar -xvf sip-4.16.tar
+        cd sip-4.16
+        python27 configure.py
+        make
+        sudo make install
+        '''))
+    # Get PyQt4
+    fixyum_cmds.append(textwrap.dedent(
+        '''
+        cd ~/tmp
         wget http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11/PyQt-x11-gpl-4.11.tar.gz
-        gunzip PyQt-x11-gpl-4.11.tar.gz
-        tar -xvf PyQt-x11-gpl-4.11.tar
+        gunzip PyQt-x11-gpl-4.11.tar.gz && tar -xvf PyQt-x11-gpl-4.11.tar
         cd PyQt-x11-gpl-4.11
-        sudo yum install qt -y
         sudo yum upgrade qt -y
         python27 configure-ng.py
         make
         sudo make install
         '''))
 
-    # Get PyQt4
-    fixyum_cmds.append(textwrap.dedent(
-        '''
-        cd ~
-        wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.16/sip-4.16.tar.gz
-        gunzip sip-4.16.tar.gz
-        tar -xvf sip-4.16.tar
-        cd sip-4.16
-        python27 configure.py
-        make
-        sudo make install
-        '''))
     return fixyum_cmds
     #with open('/etc/yum.repos.d/dag.repo', 'w') as file_:
     #     file_.write(dag_repo)

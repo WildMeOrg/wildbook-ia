@@ -177,7 +177,7 @@ python dev.py --cmd --gui
 #--------------
 # Run Result Inspection
 #--------------
-python dev.py --convert --force-delete --db MOTHERS
+python dev.py --convert --force-delete --db MOTHERS --setdb
 python dev.py --db MOTHERS --setdb
 python dev.py --cmd --allgt -t inspect
 

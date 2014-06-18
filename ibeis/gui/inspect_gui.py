@@ -195,8 +195,19 @@ class CustomAPI(object):
         return [partial(self.set, column) for column in xrange(self.nCols)]
 
 
-def review_match(rid1, rid2):
+REGIESTERED_INTERACTIONS = []
+
+
+def register_interaction(interaction):
+    global REGIESTERED_INTERACTIONS
+    REGIESTERED_INTERACTIONS.append(interaction)
+
+
+def review_match(ibs, rid1, rid2):
     print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
+    from ibeis.viz.interact.interact_name import MatchVerificationInteraction
+    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2)
+    register_interaction(mvinteract)
     #if text.startswith(BREAK_MATCH_PREF):
     #    ibs.set_roi_names([rid1, rid2], ['____', '____'])
     #elif text.startswith(NEW_MATCH_PREF):
@@ -241,7 +252,7 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
         truth = ibs.get_match_truth(rid1, rid2)
         truth_color = vh.get_truth_color(truth, base255=True,
                                          lighten_amount=0.35)
-        callback = partial(review_match, rid1, rid2)
+        callback = partial(review_match, ibs, rid1, rid2)
         #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
         if truth == 2:
             buttontup = ('NEW Match', callback, truth_color)

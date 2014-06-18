@@ -24,9 +24,13 @@ PREREQ_PKG_LIST = [
     'g++',
     'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
     'cmake',
-    'ffmpeg',
+    'ffmpeg',  # need -dev / -devel versions of all these as well
     'libpng',
     'libjpg',
+    'libtiff',
+    'littlecms',
+    'openjpeg',
+    'jasper',
     'zlib',
     'freetype',
     'fftw3',
