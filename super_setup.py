@@ -21,10 +21,13 @@ print('[super_setup] code_dir: %r' % CODE_DIR)
 
 import platform
 (DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
+python_version = platform.python_version()
+assert python_version.startswith('2.7'), 'IBEIS is currently limited to python 2.7,  Attempted to run with python %r' % python_version
 
-pythoncmd = 'python'
-if DISTRO == 'centos':
-    pythoncmd = 'python2.7'
+
+#pythoncmd = 'python'
+#if DISTRO == 'centos':
+pythoncmd = 'python2.7'
 
 envcmds = {
     'pythoncmd': pythoncmd
@@ -48,7 +51,7 @@ try:
     import utool
     utool.set_userid(**userid_prompt())
 except Exception:
-    print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP')
+    print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
     import os
     import sys
     os.chdir(os.path.expanduser(CODE_DIR))
