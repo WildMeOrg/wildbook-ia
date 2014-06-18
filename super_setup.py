@@ -45,6 +45,11 @@ def userid_prompt():
 ## ENSURING UTOOL
 #################
 
+
+def syscmd(cmdstr):
+    print('RUN> ' + cmdstr)
+    os.system(cmdstr)
+
 # HACK IN A WAY TO ENSURE UTOOL
 try:
     print('Checking utool')
@@ -56,12 +61,13 @@ except Exception:
     import sys
     os.chdir(os.path.expanduser(CODE_DIR))
     print('cloning utool')
-    os.system('git clone https://github.com/Erotemic/utool.git')
+    if not os.path.exists('utool'):
+        syscmd('git clone https://github.com/Erotemic/utool.git')
     os.chdir('utool')
     print('pulling utool')
-    os.system('git pull')
+    syscmd('git pull')
     print('installing utool for development')
-    os.system('sudo {pythoncmd} setup.py develop'.format(**envcmds))
+    syscmd('sudo {pythoncmd} setup.py develop'.format(**envcmds))
     sys.path.append(os.path.realpath(os.getcwd()))
     print('Please rerun super_setup.py')
     sys.exit(1)
