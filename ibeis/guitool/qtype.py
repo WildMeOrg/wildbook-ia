@@ -33,9 +33,16 @@ ItemDataRoles = {
 
 LOCALE = QLocale()
 
+# Custom types of data that can be displayed (usually be a delegate)
 QT_PIXMAP_TYPES = set((QtGui.QPixmap, 'PIXMAP'))
 QT_ICON_TYPES   = set((QtGui.QIcon, 'ICON'))
+QT_BUTTON_TYPES = set(('BUTTON',))
+QT_COMBO_TYPES = set(('COMBO',))
+
+
 QT_IMAGE_TYPES  = set(list(QT_PIXMAP_TYPES) + list(QT_ICON_TYPES))
+# A set of all delegate types
+QT_DELEGATE_TYPES = set(list(QT_IMAGE_TYPES) + list(QT_BUTTON_TYPES) + list(QT_COMBO_TYPES))
 
 
 def qindexinfo(index):
@@ -91,7 +98,7 @@ def cast_into_qt(data):
     elif isinstance(data, uuid.UUID):
         return QVariant(str(data)).toString()
     elif utool.isiterable(data):
-        return QVariant(", ".join(map(str,data))).toString()
+        return QVariant(', '.join(map(str, data))).toString()
     else:
         return 'Unknown qtype: %r for data=%r' % (type(data), data)
 

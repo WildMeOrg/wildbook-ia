@@ -355,27 +355,23 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, row, col):
+        #
+        # <HACK: COLUMN_STRIPING>
         num = model.col_name_list_counts[model.col_name_list[col]]
         if num > 1:
             # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
             assert num == len(model.col_name_list), "mixing stripped with non stripped"
             row = row * num + col
             col = 0
+        # </HACK: COLUMN_STRIPING>
+        #
         if row < len(model.row_index_list):
-            # Get general getter for this column
-            getter = model.col_getter_list[col]
-            # Get row_id accoring to sorting
-            row_id = model._get_row_id(row)
-            if row_id is None:
-                return "__NONE__"
+            getter = model.col_getter_list[col]  # getter for this column
+            row_id = model._get_row_id(row)  # row_id w.r.t. to sorting
             # <HACK: MODEL CACHE>
             cachekey = (row_id, col)
             try:
-                # Randomly invalidate the cache
-                #import random
-                #if random.uniform(0, 1) > .95:
-                #    raise KeyError('')
-                if True:
+                if True:  # Cache is disabled
                     raise KeyError('')
                 data = model.cache[cachekey]
             except KeyError:
@@ -383,8 +379,8 @@ class APITableModel(API_MODEL_BASE):
                 model.cache[cachekey] = data
             # </HACK: MODEL CACHE>
             return data
-        #else:
-            #raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.row_index_list)))
+        else:
+            raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.row_index_list)))
             return None
             #return ('','',())
             #return "!!!<EMPTY FOR STRIPE>!!!"
@@ -398,8 +394,8 @@ class APITableModel(API_MODEL_BASE):
         stored The setter function should return a boolean, if setting the value
         was successfull or not """
         row_id = model._get_row_id(row)
-        if row_id is None:
-            return "__NONE__"
+        #if row_id is None:
+        #    return "__NONE__"
         cachekey = (row_id, col)
         try:
             del model.cache[cachekey]
@@ -435,8 +431,12 @@ class APITableModel(API_MODEL_BASE):
         Returns the index of the item in the model specified by the given row,
         column and parent index.  When reimplementing this function in a
         subclass, call createIndex() to generate model indexes that other
-        components can use to refer to items in your model. """
-        return model.createIndex(row, column)
+        components can use to refer to items in your model.
+        NOTE: Object must be specified to sort delegates.
+        """
+        row_id = model._get_row_id(row)
+        #data = model._get_data(row, column)
+        return model.createIndex(row, column, object=row_id)
 
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
@@ -461,44 +461,48 @@ class APITableModel(API_MODEL_BASE):
         Returns the data stored under the given role for the item referred to by
         the index.  Note: If you do not have a value to return, return an
         invalid QVariant instead of returning 0.  """
-        #if not qtindex.isValid():
-        #    return None
+        if not qtindex.isValid():
+            return None
         flags = model.flags(qtindex)
         row = qtindex.row()
         col = qtindex.column()
         type_ = model._get_type(col)
-        #role_name = ItemDataRoles[role]
 
-        if role == Qt.SizeHintRole:
-            printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
-            return QtCore.QSize(64, 64)
-            pass
+        #if role == Qt.SizeHintRole:
+        #    #printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
+        #    return QtCore.QSize(64, 64)
         #
-        # Specify alignment
+        # Specify Text Alignment Role
         if role == Qt.TextAlignmentRole:
-            if type_ in qtype.QT_IMAGE_TYPES or type_ in utool.VALID_FLOAT_TYPES:
+            if type_ in qtype.QT_IMAGE_TYPES:
+                value = Qt.AlignRight
+            elif type_ in qtype.QT_BUTTON_TYPES:
+                value = Qt.AlignRight
+            elif type_ in utool.VALID_FLOAT_TYPES:
                 value = Qt.AlignRight
             else:
                 value = Qt.AlignHCenter
             return value
         #
         # Specify Background Rule
-        elif role == Qt.BackgroundRole and flags & Qt.ItemIsEditable:
-            # Editable fields are colored
-            value = QtCore.QVariant(model.EditableItemColor)
-            return value
-        elif role == Qt.BackgroundRole and flags & Qt.ItemIsUserCheckable:
-            # Checkable color depends on the truth value
-            data = model._get_data(row, col)
-            if data:
-                value = QtCore.QVariant(model.TrueItemColor)
+        elif role == Qt.BackgroundRole:
+            if flags & Qt.ItemIsEditable:
+                # Editable fields are colored
+                return QtCore.QVariant(model.EditableItemColor)
+            elif flags & Qt.ItemIsUserCheckable:
+                # Checkable color depends on the truth value
+                data = model._get_data(row, col)
+                if data:
+                    return QtCore.QVariant(model.TrueItemColor)
+                else:
+                    return QtCore.QVariant(model.FalseItemColor)
             else:
-                value = QtCore.QVariant(model.FalseItemColor)
-            return value
+                pass
         #
         # Specify Foreground Role
-        elif role == Qt.ForegroundRole and (flags & Qt.ItemIsEditable):
-            return QtGui.QBrush(QtGui.QColor(0, 0, 0))
+        elif role == Qt.ForegroundRole:
+            if flags & Qt.ItemIsEditable:
+                return QtGui.QBrush(QtGui.QColor(0, 0, 0))
         #
         # Specify Decoration Role
         # elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
@@ -515,26 +519,25 @@ class APITableModel(API_MODEL_BASE):
                 data = model._get_data(row, col)
                 return Qt.Checked if data else Qt.Unchecked
         #
-        # Return the data as a qvariant in most cases
+        # Return the data to edit or display
         elif role in (Qt.DisplayRole, Qt.EditRole):
-            if type_ in qtype.QT_PIXMAP_TYPES:
-                pass
-                #model.view.setColumnWidth(qtindex.column(), 200)
-                #model.view.setRowHeight(qtindex.row(), 200)
-                return model._get_data(row, col)
-                #return 'pixmap'
-            elif type_ in qtype.QT_ICON_TYPES:
-                pass
-                return 'icon'
+            # For types displayed with custom delegates do not cast data into a
+            # qvariant. This includes PIXMAP, BUTTON, and COMBO
+            if type_ in qtype.QT_DELEGATE_TYPES:
+                data = model._get_data(row, col)
+                #print(data)
+                return data
             else:
+                # Display data with default delegate by casting to a qvariant
                 data = model._get_data(row, col)
                 value = qtype.cast_into_qt(data)
                 return value
-            #
-        # else return an empty QVariant
         else:
+            #import __builtin__
+            #role_name = qtype.ItemDataRoles[role]
+            #__builtin__.print('UNHANDLED ROLE=%r' % role_name)
             pass
-            #__builtin__.print('returned a qvariant role=%r' % role_name)
+        # else return an empty QVariant
         value = QtCore.QVariant()
         return value
 
