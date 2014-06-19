@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 """
 git config --global push.default current
 export CODE_DIR=~/code

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 """
 Example of interfacing with IBEIS getters
 First run ~/code/ibeis/reset_dbs.sh to ensure you have the testdata

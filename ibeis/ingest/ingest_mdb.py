@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 from __future__ import division
 from os.path import join, expanduser, exists, basename
 from ibeis.control import IBEISControl

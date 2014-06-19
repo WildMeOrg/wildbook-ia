@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 """
 Tests IBEIS parallel
