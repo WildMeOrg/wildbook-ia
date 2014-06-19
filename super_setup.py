@@ -155,3 +155,10 @@ if utool.get_flag('--develop'):
 if utool.get_flag('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))
+
+
+gg_cmd = utool.get_arg('--gg', None)  # global command
+if gg_cmd is not None:
+    ans = raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
+    if ans == 'yes':
+        utool.gg_command(gg_cmd)

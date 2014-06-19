@@ -23,3 +23,8 @@ export REPL='#!/usr/bin/env python2.7'
 # I like my sed better (sedr = sed recrusive)
 cd $IBEIS_DIR
 rob sedr "$PATTERN" "$REPL" True
+cd ~/code/hesaff
+rob sedr "$PATTERN" "$REPL" True
+
+
+rob sp "$PATTERN" "$REPL" False
