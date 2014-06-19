@@ -190,11 +190,13 @@ class APITableModel(API_MODEL_BASE):
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
     
-    def _use_ider(model, level):
+    def _use_ider(model, level=0):
         if level == 0:
             return model.iders[level]()
         else:
-            return model.iders[level](model._use_ider(level-1))
+            parent_ids = model._use_ider(level - 1)
+            level_ider = model.iders[level]
+            return level_ider(parent_ids) 
 
     @updater
     def _update_rows(model):
@@ -209,8 +211,8 @@ class APITableModel(API_MODEL_BASE):
             model.level_index_list = []
             highest_level = max(model.col_level_list)
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            for i in range(0, highest_level+1):
-                ids_ = model._use_ider(i)
+            for level in xrange(0, highest_level+1):
+                ids_ = model._use_ider(level=level)
                 #print('ids_: %r' % ids_)
                 row_indices = []
                 if len(ids_) != 0:
@@ -223,13 +225,14 @@ class APITableModel(API_MODEL_BASE):
                     else:
                         values = ids_
                     reverse = model.col_sort_reverse
-                    sorted_pairs = sorted(izip(values, ids_), reverse=reverse)
+                    sorted_pairs = sorted(list(izip(values, ids_)), reverse=reverse)
                     row_indices = [id_ for (value, id_) in sorted_pairs]
                     #print('row_indicies: %r' % row_indices)
                     # end sort
                 assert row_indices is not None, 'no indices'
                 model.level_index_list.append(row_indices)
             model._rows_updated.emit(model.name, len(model.level_index_list[0]))
+            print('[model] new level_index_list=%r' % (model.level_index_list,))
             #print(model.level_index_list)
 
     @updater
@@ -336,16 +339,17 @@ class APITableModel(API_MODEL_BASE):
         assert col is not None, 'bad column'
 
     @default_method_decorator
-    def _get_row_id(model, row, col=None):
+    def _get_row_id(model, row, col=None, level=0):
         if col is not None:
             num = model.col_name_list_counts[model.col_name_list[col]]
             # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
             #assert num == len(model.col_name_list), "mixing stripped with non stripped"
             row = row * num + col
             col = 0
+        assert col is None, 'forcefully disabled hack'
 
         try:
-            id_ = model.level_index_list[0][row]
+            id_ = model.level_index_list[level][row]
             return id_
         except IndexError as ex:  # NOQA
             # msg = '\n'.join([
@@ -367,6 +371,7 @@ class APITableModel(API_MODEL_BASE):
         #
         # <HACK: COLUMN_STRIPING>
         num = model.col_name_list_counts[model.col_name_list[col]]
+        assert num == 1, 'no hacks allowed'
         if num > 1:
             # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
             assert num == len(model.col_name_list), "mixing stripped with non stripped"
@@ -389,7 +394,7 @@ class APITableModel(API_MODEL_BASE):
             # </HACK: MODEL CACHE>
             return data
         else:
-            #raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.level_index_list[0])))
+            raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.level_index_list[0])))
             return None
             #return ('','',())
             #return "!!!<EMPTY FOR STRIPE>!!!"
@@ -420,6 +425,7 @@ class APITableModel(API_MODEL_BASE):
             if lev == level:
                 acc.append(i)
         return acc
+    
 
     #------------------------
     # --- QtGui Functions ---
@@ -455,15 +461,33 @@ class APITableModel(API_MODEL_BASE):
         components can use to refer to items in your model.
         NOTE: Object must be specified to sort delegates.
         """
-        row_id = model._get_row_id(row)
+        if not parent.isValid():
+            print('[model.index] ROOT: row=%r, col=%r, parent=%r' % (row, column, parent))
+            return model.createIndex(row, column)
+        print('[model.index] CHILD: row=%r, col=%r, parent=%r' % (row, column, parent))
+        #parentlevel = model.col_level_list[parent.column()]
+        #if not parentlevel+1 in model.col_level_list:
+        #    return model.createIndex(row, column, object=QtCore.QModelIndex())
+        #row_id = model._get_row_id(parent.row(), level=parentlevel+1)
+        #sibling = parent.sibling(parent.row(), column+model.columnCount(parent))
+        #sibling_parent = sibling.parent()
+        #print("parent.row, parent.col: %r, %r" %(parent.row(), parent.column()))
+        #print("sibling_parent.row, sibling_parent.col: %r, %r" % (sibling_parent.row(), sibling_parent.column()))
+        #print("sibling: %r, %r" % (sibling.row(), sibling.column()))
+        #print("row, col: %r, %r" % (row, column))
+        #print("row_id: %r" % row_id)
         #data = model._get_data(row, column)
-        return model.createIndex(row, column, object=row_id)
-
+        #return sibling
+        #model.insertColumn(column, parent)
+        return model.createIndex(row, column)
+    
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
         if len(model.level_index_list) > 0:
             parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
+            if parent_level+1 ==1:
+                return len(model.level_index_list[parent_level+1][parent.row()]) #Hardcoded for tree. Should be changed to generalize
             try:
                 length = len(model.level_index_list[parent_level+1])
                 # <HACK>
@@ -483,6 +507,7 @@ class APITableModel(API_MODEL_BASE):
             return len(model._get_columns_of_level(parent_level+1))
         else:
             return 0
+#        return len(model.col_name_list)
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
