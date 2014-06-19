@@ -365,34 +365,37 @@ class SQLDatabaseController(object):
 
     #@getter
     @default_decorator
-    def get(db, tblname, colnames, id_iter=None, where_col=None, where_clause=None,
-                unpack_scalars=None, **kwargs):
-        """ getter """
-        if unpack_scalars is None:
-            unpack_scalars = where_col is None
-
-        if where_clause is None:
-            where_rowid = ('rowid=?' if where_col is None else where_col + '=?')
-            params_iter = ((_rowid,) for _rowid in id_iter)
-        else:
-            where_rowid = where_clause
-            params_iter = id_iter
-
+    def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, 
+                **kwargs):
         fmtdict = {
-            'tblname'     : tblname,
-            'colnames'    : ', '.join(colnames),
-            'where_rowids' : 'WHERE ' + where_rowid,
+        'tblname'     : tblname,
+        'colnames'    : ', '.join(colnames),
+        'where_clauses' : 'WHERE ' + where_clause,
         }
         operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
-            {where_rowids}
+            {where_clauses}
             '''
         val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                     params_iter=params_iter,
                                                     unpack_scalars=unpack_scalars,
                                                     **kwargs)
         return val_list
+
+    #@getter
+    @default_decorator
+    def get(db, tblname, colnames, id_iter=None, id_colname='rowid',
+                unpack_scalars=True, **kwargs):
+        """ getter """
+        if unpack_scalars is None:
+            unpack_scalars = id_colname is None
+        assert unpack_scalars is not None, 'unpack_scalars is None'
+        where_clause = (id_colname + '=?')
+        params_iter = ((_rowid,) for _rowid in id_iter)
+
+        return db.get_where(tblname, colnames, params_iter, where_clause, unpack_scalars=unpack_scalars)
+
 
     @default_decorator
     def get_executeone(db, tblname, colnames, **kwargs):
@@ -424,13 +427,15 @@ class SQLDatabaseController(object):
 
     #@setter
     @default_decorator
-    def set(db, tblname, colnames, val_list, id_list, where_col=None, **kwargs):
+    def set(db, tblname, colnames, val_list, id_list, id_colname=None, **kwargs):
         """ setter """
+        val_list = list(val_list)
+        id_list = list(id_list)
         assert  len(val_list) == len(id_list)
         fmtdict = {
             'tblname_str': tblname,
             'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),
-            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
+            'rowid_str'   : ('rowid=?' if id_colname is None else id_colname + '=?'),
         }
         operation_fmt = '''
             UPDATE {tblname_str}
@@ -443,12 +448,12 @@ class SQLDatabaseController(object):
 
     #@deleter
     @default_decorator
-    def delete(db, tblname, id_list, where_col=None, **kwargs):
+    def delete(db, tblname, id_list, id_colname=None, **kwargs):
         """ deleter """
         fmtdict = {
             'tblname' : tblname,
             'tblname': tblname,
-            'rowid_str'   : ('rowid=?' if where_col is None else where_col + '=?'),
+            'rowid_str'   : ('rowid=?' if id_colname is None else id_colname + '=?'),
         }
         operation_fmt = '''
             DELETE

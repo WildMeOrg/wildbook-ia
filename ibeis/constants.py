@@ -18,3 +18,9 @@ ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 # Name used to denote that idkwtfthisis
 UNKNOWN_NAME = '____'
 ENCTEXT_PREFIX = 'enc_'
+
+# Pre-defined set of valid label keys/categories
+LABEL_KEYS = {
+"INDIVIDUAL_KEY": 0, 
+"SPECIES_KEY": 1,
+}

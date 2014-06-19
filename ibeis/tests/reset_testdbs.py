@@ -26,15 +26,24 @@ def delete_testdbs():
 
 
 def make_testdb0():
-    from ibeis.tests.test_gui_import_images import TEST_GUI_IMPORT_IMAGES
-    from ibeis.tests.test_gui_add_roi import TEST_GUI_ADD_ROI
-    main_locals = ibeis.main(dbdir=TESTDB0, gui=True, allow_newdir=True)
+    main_locals = ibeis.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
     ibs = main_locals['ibs']
-    back = main_locals['back']
-    assert back is not None, str(main_locals)
     assert ibs is not None, str(main_locals)
-    TEST_GUI_IMPORT_IMAGES(ibs, back)
-    TEST_GUI_ADD_ROI(ibs, back)
+    gpath_list = map(utool.unixpath, grabdata.get_test_gpaths())
+    print('[TEST] gpath_list=%r' % gpath_list)
+    gid_list = ibs.add_images(gpath_list)
+    valid_gids = ibs.get_valid_gids()
+    gid = valid_gids[0]
+    bbox = (0, 0, 100, 100)
+    rid = ibs.add_rois([gid], [bbox])[0]
+    print('[TEST] NEW RID=%r' % rid)
+    rids = ibs.get_image_rids(gid)
+    try:
+        assert rid in rids, ('bad roi adder: rid = %r, rids = %r' % (rid, rids))
+    except Exception as ex:
+        utool.printex(ex, key_list=['rid', 'rids'])
+        raise
+
 
 
 def reset_testdbs():
