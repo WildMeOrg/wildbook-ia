@@ -16,20 +16,22 @@ from ibeis.dev import params
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
+LOGDIR_CACHEID = utool.logdir_cacheid
+__APPNAME__ = 'ibeis'
 
 
 def _ibeis_cache_dump():
-    util_cache.global_cache_dump(appname='ibeis')
+    util_cache.global_cache_dump(appname=__APPNAME__)
 
 
 def _ibeis_cache_write(key, val):
     """ Writes to global IBEIS cache """
-    util_cache.global_cache_write(key, val, appname='ibeis')
+    util_cache.global_cache_write(key, val, appname=__APPNAME__)
 
 
 def _ibeis_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
-    return util_cache.global_cache_read(key, appname='ibeis', **kwargs)
+    return util_cache.global_cache_read(key, appname=__APPNAME__, **kwargs)
 
 
 # Specific cache getters / setters
@@ -69,6 +71,13 @@ def set_workdir(work_dir=None, allow_gui=True):
     if work_dir is None or not exists(work_dir):
         raise AssertionError('invalid workdir=%r' % work_dir)
     _ibeis_cache_write(WORKDIR_CACHEID, work_dir)
+
+
+def set_logdir(log_dir):
+    utool.ensuredir(log_dir)
+    utool.stop_logging()
+    _ibeis_cache_write(LOGDIR_CACHEID, log_dir)
+    utool.start_logging(appname=__APPNAME__)
 
 
 def get_rawdir():

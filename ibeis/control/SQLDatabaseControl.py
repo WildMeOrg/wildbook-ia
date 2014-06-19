@@ -6,8 +6,9 @@ from os.path import join, exists
 # Tools
 import utool
 from . import __SQLITE3__ as lite
+DEBUG=False
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[sql]', DEBUG=False)
+    __name__, '[sql]', DEBUG=DEBUG)
 
 
 VERBOSE = utool.VERBOSE
@@ -84,7 +85,7 @@ class SQLExecutionContext(object):
         """ Checks to see if the operating will change the database """
         utool.printif(lambda:
                       '[sql] Callers: ' + utool.get_caller_name(range(3, 6)),
-                      VERBOSE)
+                      DEBUG)
         if context.num_params is None:
             context.operation_label = ('[sql] execute num_params=%d optype=%s: '
                                        % (context.num_params, context.operation_type))

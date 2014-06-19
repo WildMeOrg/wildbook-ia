@@ -227,7 +227,7 @@ def _preload(mpl=True, par=True, logging=True):
     #_parse_args()
     # matplotlib backends
     if logging or params.args.nologging:
-        utool.start_logging()
+        utool.start_logging(appname='ibeis')
     if mpl:
         _init_matplotlib()
     # numpy print settings

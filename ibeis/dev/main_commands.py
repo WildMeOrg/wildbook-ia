@@ -56,6 +56,8 @@ def preload_commands(dbdir, **kwargs):
         utool.global_cache_dump()  # debug command, dumps to stdout
     if params.args.workdir is not None:
         sysres.set_workdir(params.args.workdir)
+    if params.args.logdir is not None:
+        sysres.set_logdir(params.args.logdir)
     if utool.get_flag('--vwd'):
         vwd()
     if utool.get_flag('--vdq'):

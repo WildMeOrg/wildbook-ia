@@ -9,7 +9,7 @@ class PATH_NAMES(object):
     qres   = 'qres'
     bigcache = 'bigcache'
     detectimg = 'detectimg'
-    thumbs = 'detectimg'
+    thumbs = 'thumbs'
 
 # Names normalized to the standard UNKNOWN_NAME
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
