@@ -70,7 +70,9 @@ def __cleanup():
 def IBEIS_ThumbnailCacheContext(ibs, uuid_list):
     """ Wrapper around vtool.image.ThumbnailCacheContext """
     thumb_size = ibs.cfg.other_cfg.thumb_size
-    return gtool.ThumbnailCacheContext(uuid_list, thumb_size, appname='ibeis')
+    return gtool.ThumbnailCacheContext(uuid_list, thumb_size,
+                                       thumb_dpath=ibs.thumb_dpath,
+                                       appname='ibeis')
 
 
 #
@@ -148,13 +150,13 @@ class IBEISController(object):
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
         ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
+        ibs.thumb_dpath = join(ibs._ibsdb, PATH_NAMES.thumbs)
         # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
         ibs.flanndir    = join(ibs.cachedir, PATH_NAMES.flann)
         ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
-        ibs.bigcachedir = join(ibs.cachedir,  PATH_NAMES.bigcache)
-        ibs.thumb_dpath = utool.get_app_resource_dir('ibeis', 'thumbs')
+        ibs.bigcachedir = join(ibs.cachedir, PATH_NAMES.bigcache)
         if ensure:
-            _verbose = True
+            _verbose = utool.VERBOSE
             utool.ensuredir(ibs._ibsdb)
             utool.ensuredir(ibs.cachedir,    verbose=_verbose)
             utool.ensuredir(ibs.workdir,     verbose=_verbose)
@@ -322,7 +324,7 @@ class IBEISController(object):
                 tblname = 'configs'
                 colname_list = ['config_suffix']
                 config_rowid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
-                                                     ibs.get_config_rowid_from_suffix, ensure=False)
+                                                       ibs.get_config_rowid_from_suffix, ensure=False)
         except Exception as ex:
             utool.printex(ex)
             utool.sys.exit(1)
