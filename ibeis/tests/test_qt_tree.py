@@ -7,9 +7,8 @@ from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
-from ibeis.gui.guiheaders import THUMB_TABLE, NAMES_TREE
-from ibeis.gui.models_and_views import IBEISTableModel, IBEISTreeView, IBEISTableView
-from ibeis.viz.interact import interact_rois2
+from ibeis.gui.guiheaders import NAMES_TREE
+from ibeis.gui.models_and_views import IBEISTableModel, IBEISTreeView
 import guitool
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
@@ -45,7 +44,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         #ibswgt.view = IBEISTableView(parent=ibswgt)
         ibswgt.view = IBEISTreeView(parent=ibswgt)
-        
+
 ##        class TmpTreeModel(QtGui.QStandardItemModel):
 ##            _rows_updated = signal_(str, int)
 ##
