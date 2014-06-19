@@ -10,8 +10,9 @@ from itertools import izip
 import functools
 import utool
 import numpy as np
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[APITableModel]', DEBUG=False)
+profile = lambda func: func
+printDBG = lambda *args: None
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableModel]', DEBUG=False)
 
 #API_MODEL_BASE = QtCore.QAbstractTableModel
 API_MODEL_BASE = QtCore.QAbstractItemModel
@@ -340,13 +341,13 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_row_id(model, row, col=None, level=0):
-        if col is not None:
-            num = model.col_name_list_counts[model.col_name_list[col]]
-            # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
-            #assert num == len(model.col_name_list), "mixing stripped with non stripped"
-            row = row * num + col
-            col = 0
-        assert col is None, 'forcefully disabled hack'
+        #if col is not None:
+        #    num = model.col_name_list_counts[model.col_name_list[col]]
+        #    # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
+        #    #assert num == len(model.col_name_list), "mixing stripped with non stripped"
+        #    row = row * num + col
+        #    col = 0
+        #assert col is None, 'forcefully disabled hack'
 
         try:
             id_ = model.level_index_list[level][row]
@@ -367,21 +368,21 @@ class APITableModel(API_MODEL_BASE):
         return model.col_type_list[col]
 
     @default_method_decorator
-    def _get_data(model, row, col):
+    def _get_data(model, row, col, level=0):
         #
         # <HACK: COLUMN_STRIPING>
-        num = model.col_name_list_counts[model.col_name_list[col]]
-        assert num == 1, 'no hacks allowed'
-        if num > 1:
-            # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
-            assert num == len(model.col_name_list), "mixing stripped with non stripped"
-            row = row * num + col
-            col = 0
+        #num = model.col_name_list_counts[model.col_name_list[col]]
+        #assert num == 1, 'no hacks allowed'
+        #if num > 1:
+        #    # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
+        #    assert num == len(model.col_name_list), "mixing stripped with non stripped"
+        #    row = row * num + col
+        #    col = 0
         # </HACK: COLUMN_STRIPING>
         #
         if row < len(model.level_index_list[0]):
             getter = model.col_getter_list[col]  # getter for this column
-            row_id = model._get_row_id(row)  # row_id w.r.t. to sorting
+            row_id = model._get_row_id(row, level=level)  # row_id w.r.t. to sorting
             # <HACK: MODEL CACHE>
             cachekey = (row_id, col)
             try:
@@ -461,9 +462,32 @@ class APITableModel(API_MODEL_BASE):
         NOTE: Object must be specified to sort delegates.
         """
         if not parent.isValid():
-            print('[model.index] ROOT: row=%r, col=%r, parent=%r' % (row, column, parent))
+            # This is a top level == 0 index
+            #print('[model.index] ROOT: row=%r, col=%r' % (row, column))
+            level = model.col_level_list[column]
+            if level != 0:
+                return QtCore.QModelIndex()
+            #rowid = model._get_row_id(row, level=level)
+            qtindex = model.createIndex(row, column, object=None)
+            return qtindex
+        else:
+            # This is a child level > 0 index
+            parent_row, parent_col = parent.row(), parent.column()
+            parent_level = model.col_level_list[parent_col]
+            level = model.col_level_list[column]
+            print('--')
+            print('[model.index] PARENT: row=%r, col=%r, level=%r' % (parent_row, parent_col, parent_level))
+            print('[model.index] CHILD: row=%r, col=%r, level=%r' % (row, column, level))
+            if level == parent_level + 1:
+                rowid = model._get_row_id(parent_row, level=level)[row]
+            else:
+                rowid = -1
+                return QtCore.QModelIndex()
             return model.createIndex(row, column)
-        print('[model.index] CHILD: row=%r, col=%r, parent=%r' % (row, column, parent))
+
+        #row_id = model._get_row_id(row)
+        #return model.createIndex(row, column, object=row_id)
+
         #parentlevel = model.col_level_list[parent.column()]
         #if not parentlevel+1 in model.col_level_list:
         #    return model.createIndex(row, column, object=QtCore.QModelIndex())
@@ -478,35 +502,48 @@ class APITableModel(API_MODEL_BASE):
         #data = model._get_data(row, column)
         #return sibling
         #model.insertColumn(column, parent)
-        return model.createIndex(row, column)
+        #return model.createIndex(row, column)
 
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
-        if len(model.level_index_list) > 0:
-            parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
-            if parent_level + 1 == 1:
-                return len(model.level_index_list[parent_level + 1][parent.row()])  # Hardcoded for tree. Should be changed to generalize
-            try:
-                length = len(model.level_index_list[parent_level + 1])
-                # <HACK>
-                counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
-                # </HACK>
-                return max(counts)
-            except:
-                return len(model.level_index_list[parent_level + 1])
+        if not parent.isValid():
+            # Root row count
+            if len(model.level_index_list) == 0:
+                return 0
+            return len(model.level_index_list[0])
         else:
-            return 0
+            parent_row = parent.row()
+            parent_col = parent.column()
+            parent_level = model.col_level_list[parent_col]
+            index_list = model.level_index_list[parent_level + 1]
+            return len(index_list[parent_row])
+
+        #if len(model.level_index_list) > 0:
+        #    parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
+        #    if parent_level + 1 == 1:
+        #        return len(model.level_index_list[parent_level + 1][parent.row()])  # Hardcoded for tree. Should be changed to generalize
+        #    try:
+        #        length = len(model.level_index_list[parent_level + 1])
+        #        # <HACK>
+        #        counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
+        #        # </HACK>
+        #        return max(counts)
+        #    except:
+        #        return len(model.level_index_list[parent_level + 1])
+        #else:
+        #    return 0
 
     @default_method_decorator
     def columnCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
-        if len(model.level_index_list) > 0:
-            parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
-            return len(model._get_columns_of_level(parent_level + 1))
-        else:
-            return 0
-#        return len(model.col_name_list)
+        # FOR NOW THE COLUMN COUNT IS CONSTANT
+        return len(model.col_name_list)
+        #if len(model.level_index_list) > 0:
+        #    parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
+        #    return len(model._get_columns_of_level(parent_level + 1))
+        #else:
+        #    return 0
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole):
@@ -519,6 +556,7 @@ class APITableModel(API_MODEL_BASE):
         flags = model.flags(qtindex)
         row = qtindex.row()
         col = qtindex.column()
+        level = model.col_level_list[col]
         type_ = model._get_type(col)
 
         #if role == Qt.SizeHintRole:
@@ -544,7 +582,7 @@ class APITableModel(API_MODEL_BASE):
                 return QtCore.QVariant(model.EditableItemColor)
             elif flags & Qt.ItemIsUserCheckable:
                 # Checkable color depends on the truth value
-                data = model._get_data(row, col)
+                data = model._get_data(row, col, level)
                 if data:
                     return QtCore.QVariant(model.TrueItemColor)
                 else:
@@ -560,7 +598,7 @@ class APITableModel(API_MODEL_BASE):
         # Specify Decoration Role
         # elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
         #     # The type is a pixelmap
-        #     npimg = model._get_data(row, col)
+        #     npimg = model._get_data(row, col, level)
         #     if npimg is not None:
         #         if type_ in qtype.QT_PIXMAP_TYPES:
         #             return qtype.numpy_to_qicon(npimg)
@@ -569,7 +607,7 @@ class APITableModel(API_MODEL_BASE):
         # Specify CheckState Role:
         if role == Qt.CheckStateRole:
             if flags & Qt.ItemIsUserCheckable:
-                data = model._get_data(row, col)
+                data = model._get_data(row, col, level)
                 return Qt.Checked if data else Qt.Unchecked
         #
         # Return the data to edit or display
@@ -577,12 +615,12 @@ class APITableModel(API_MODEL_BASE):
             # For types displayed with custom delegates do not cast data into a
             # qvariant. This includes PIXMAP, BUTTON, and COMBO
             if type_ in qtype.QT_DELEGATE_TYPES:
-                data = model._get_data(row, col)
+                data = model._get_data(row, col, level)
                 #print(data)
                 return data
             else:
                 # Display data with default delegate by casting to a qvariant
-                data = model._get_data(row, col)
+                data = model._get_data(row, col, level)
                 value = qtype.cast_into_qt(data)
                 return value
         else:
