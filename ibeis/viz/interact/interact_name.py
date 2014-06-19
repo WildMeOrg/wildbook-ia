@@ -82,6 +82,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         for px, rid in enumerate(gt1):
             self.show_chip(rid, nRows, nCols, px + 1, nokpts=True)
+        # show name2 rois
         if self.nid1 != self.nid2:
             for px, rid in enumerate(gt2):
                 self.show_chip(rid, nRows, nCols, px + nCols + 1, nokpts=True)
