@@ -7,6 +7,7 @@ from . import api_table_model
 from . import api_table_view
 from . import api_tree_view
 from . import api_table_widget
+from . import stripe_proxy_model
 
 from . import guitool_tables
 from . import guitool_dialogs
@@ -28,6 +29,7 @@ from .api_table_model import *
 from .api_table_view import *
 from .api_tree_view import *
 from .api_table_widget import *
+from .stripe_proxy_model import *
 from .qtype import *
 
 import utool
