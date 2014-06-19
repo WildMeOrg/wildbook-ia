@@ -43,8 +43,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
         # Create models and views
-        ibswgt.view = IBEISTableView(parent=ibswgt)
-        #ibswgt.view = IBEISTreeView(parent=ibswgt)
+        #ibswgt.view = IBEISTableView(parent=ibswgt)
+        ibswgt.view = IBEISTreeView(parent=ibswgt)
         
 ##        class TmpTreeModel(QtGui.QStandardItemModel):
 ##            _rows_updated = signal_(str, int)

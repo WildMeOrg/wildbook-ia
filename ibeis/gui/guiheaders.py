@@ -183,7 +183,8 @@ def make_ibeis_headers_dict(ibs):
         'nid':    lambda nids: nids,
         'name':   ibs.get_names,
         'nRids':  ibs.get_name_num_rois,
-        'rid':    lambda rids: rids,
+        #'rid':    lambda rids: rids,
+        'rid':    ibs.get_name_rids,
         'bbox':   ibs.get_roi_bboxes,
         'thumb':  ibs.get_roi_chip_thumbtup,
     }
