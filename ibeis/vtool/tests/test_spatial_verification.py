@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 import utool
 import vtool.spatial_verification as sver
