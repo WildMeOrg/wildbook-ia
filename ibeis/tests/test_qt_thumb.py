@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from itertools import izip  # noqa
 import functools  # NOQA
 from PyQt4 import QtGui, QtCore
-from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
+from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext, StripeProxyModel  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
@@ -45,7 +45,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         ibswgt.view = IBEISTableView(parent=ibswgt)
         ibswgt.model = IBEISTableModel(parent=ibswgt.view)
-        ibswgt.view.setModel(ibswgt.model)
+        ibswgt.proxy = StripeProxyModel(numduplicates=2)
+        #ibswgt.proxy = QtGui.QIdentityProxyModel()
+        ibswgt.proxy.setSourceModel(ibswgt.model) 
+        ibswgt.view.setModel(ibswgt.proxy)
 
     def _init_layout(ibswgt):
         """ Lays out the defined components """

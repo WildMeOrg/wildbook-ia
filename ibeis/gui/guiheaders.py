@@ -40,7 +40,8 @@ TABLE_COLNAMES = {
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
-    THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
+    #THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
+    THUMB_TABLE     : ['thumb'],
     #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
     NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
 }
