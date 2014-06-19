@@ -11,6 +11,7 @@ from PyQt4 import QtCore
 import guitool
 from ibeis.dev import ibsfuncs
 import numpy as np
+from ibeis.viz import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[inspect_gui]', DEBUG=False)
 
@@ -52,7 +53,25 @@ class QueryResultsWidget(APITableWidget):
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(iqrw, qtindex):
         print('Clicked: ' + str(qtype.qindexinfo(qtindex)))
-        return show_match_at(iqrw, qtindex)
+        #return show_match_at(iqrw, qtindex)
+        model = qtindex.model()
+        row = qtindex.row()
+        rid1 = model.get_header_data('qrid', row)
+        rid2 = model.get_header_data('rid', row)
+        ibs = iqrw.ibs
+        #truth = ibs.get_match_truth(rid1, rid2)
+        #truth_color = vh.get_truth_color(truth, base255=True,
+        #                                 lighten_amount=0.35)
+        review_match(ibs, rid1, rid2)
+        #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
+        #if truth == 2:
+        #    buttontup = ('NEW Match', truth_color)
+        #elif truth == 0:
+        #    buttontup = ('JOIN Match', truth_color)
+        #elif truth == 1:
+        #    buttontup = ('SPLIT Match', truth_color)
+        #else:
+        #    raise AssertionError('impossible match state')
         # This is actually a release
         print('DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
         pass
@@ -242,7 +261,6 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     #def get_review_match_buttontup(rid1, rid2):
     #    """ A buttontup is a string and a callback """
     #    return get_button  # ('Merge', partial(review_match, rid1, rid2))
-    from ibeis.viz import viz_helpers as vh
 
     def get_buttontup(qtindex):
         model = qtindex.model()
@@ -271,7 +289,7 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     column_tuples = [
         ('qrid',       np.array(qrids),           int),
         ('rid',        np.array(rids),            int),
-        ('review',     get_rowid_button,          'BUTTON'),
+        #('review',     get_rowid_button,          'BUTTON'),
         ('querythumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'qrid'),
         ('resthumb',   ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'rid'),
         ('qname',      ibs.get_roi_names,         str,      ibs.set_roi_names, 'qrid'),

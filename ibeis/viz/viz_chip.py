@@ -24,7 +24,7 @@ def show_chip(ibs, rid, in_image=False, annote=True, **kwargs):
     # Populate axis user data
     vh.set_ibsdat(ax, 'viztype', 'chip')
     vh.set_ibsdat(ax, 'rid', rid)
-    if annote:
+    if annote and not kwargs.get('nokpts', False):
         # Get and draw keypoints
         kpts = vh.get_kpts(ibs, rid, in_image, **kwargs)
         _annotate_kpts(kpts, **kwargs)

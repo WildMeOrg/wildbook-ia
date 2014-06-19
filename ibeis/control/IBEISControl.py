@@ -400,7 +400,7 @@ class IBEISController(object):
         assert len(roi_num_verts_list) == len(verts_as_strings)
         # Define arguments to insert
         params_iter = utool.flattenize(izip(roi_uuid_list, gid_list, nid_list,
-                                            bbox_list, theta_list, 
+                                            bbox_list, theta_list,
                                             roi_num_verts_list, verts_as_strings,
                                             viewpoint_list, confidence_list,
                                             notes_list))
@@ -408,7 +408,7 @@ class IBEISController(object):
         tblname = 'rois'
         colname_list = ['roi_uuid', 'image_rowid', 'name_rowid', 'roi_xtl',
                         'roi_ytl', 'roi_width', 'roi_height', 'roi_theta',
-                        'roi_num_verts', 'roi_verts', 'roi_viewpoint', 
+                        'roi_num_verts', 'roi_verts', 'roi_viewpoint',
                         'roi_detect_confidence', 'roi_notes']
         # Execute add ROIs SQL
         rid_list = ibs.db.add_cleanly(tblname, colname_list, params_iter,
@@ -1177,7 +1177,9 @@ class IBEISController(object):
 
     @getter_vector_output
     def get_roi_groundtruth(ibs, rid_list):
-        """ Returns a list of rids with the same name foreach rid in rid_list"""
+        """ Returns a list of rids with the same name foreach rid in rid_list.
+        a set of rids belonging to the same name is called a groundtruth. A list
+        of these is called a groundtruth_list. """
         nid_list  = ibs.get_roi_nids(rid_list)
         tblname = 'rois'
         colname_list = ('roi_rowid',)
@@ -1440,14 +1442,14 @@ class IBEISController(object):
         rids_list = ibs.get_name_rids(nid_list)
         bboxes_list = ibsfuncs.unflat_lookup(ibs.get_roi_bboxes, rids_list)
         return bboxes_list
-    
+
     @getter
     def get_name_thumbtups(ibs, nid_list):
         rids_list = ibs.get_name_rids(nid_list)
         thumbtups_list_ = ibsfuncs.unflat_lookup(ibs.get_roi_chip_thumbtup, rids_list)
         thumbtups_list = utool.flatten(thumbtups_list_)
         return thumbtups_list
-    
+
     @getter
     def get_name_num_rois(ibs, nid_list):
         """ returns the number of detections for each name """
