@@ -189,14 +189,14 @@ class APITableModel(API_MODEL_BASE):
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
-    
+
     def _use_ider(model, level=0):
         if level == 0:
             return model.iders[level]()
         else:
             parent_ids = model._use_ider(level - 1)
             level_ider = model.iders[level]
-            return level_ider(parent_ids) 
+            return level_ider(parent_ids)
 
     @updater
     def _update_rows(model):
@@ -211,7 +211,7 @@ class APITableModel(API_MODEL_BASE):
             model.level_index_list = []
             highest_level = max(model.col_level_list)
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            for level in xrange(0, highest_level+1):
+            for level in xrange(0, highest_level + 1):
                 ids_ = model._use_ider(level=level)
                 #print('ids_: %r' % ids_)
                 row_indices = []
@@ -425,7 +425,6 @@ class APITableModel(API_MODEL_BASE):
             if lev == level:
                 acc.append(i)
         return acc
-    
 
     #------------------------
     # --- QtGui Functions ---
@@ -447,7 +446,7 @@ class APITableModel(API_MODEL_BASE):
         implementation, leading to infinite recursion.  """
         if qindex.isValid():
             indexlevel = model.col_level_list[qindex.column()]
-            parentlevel_cols = model._get_columns_of_level(indexlevel-1)
+            parentlevel_cols = model._get_columns_of_level(indexlevel - 1)
             if len(parentlevel_cols) > 0:
                 return model.createIndex(qindex.row(), parentlevel_cols[0])
         return QtCore.QModelIndex()
@@ -480,22 +479,22 @@ class APITableModel(API_MODEL_BASE):
         #return sibling
         #model.insertColumn(column, parent)
         return model.createIndex(row, column)
-    
+
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
         if len(model.level_index_list) > 0:
             parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
-            if parent_level+1 ==1:
-                return len(model.level_index_list[parent_level+1][parent.row()]) #Hardcoded for tree. Should be changed to generalize
+            if parent_level + 1 == 1:
+                return len(model.level_index_list[parent_level + 1][parent.row()])  # Hardcoded for tree. Should be changed to generalize
             try:
-                length = len(model.level_index_list[parent_level+1])
+                length = len(model.level_index_list[parent_level + 1])
                 # <HACK>
                 counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
                 # </HACK>
                 return max(counts)
             except:
-                return len(model.level_index_list[parent_level+1])
+                return len(model.level_index_list[parent_level + 1])
         else:
             return 0
 
@@ -504,7 +503,7 @@ class APITableModel(API_MODEL_BASE):
         """ Qt Override """
         if len(model.level_index_list) > 0:
             parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
-            return len(model._get_columns_of_level(parent_level+1))
+            return len(model._get_columns_of_level(parent_level + 1))
         else:
             return 0
 #        return len(model.col_name_list)

@@ -3,7 +3,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import guitool
 from guitool.guitool_decorators import signal_, slot_
-from guitool.api_table_model import APITableModel
+#from guitool.api_table_model import APITableModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
@@ -114,7 +114,7 @@ class APITreeView(API_VIEW_BASE):
     def itemDelegate(view, qindex):
         """ QtOverride: Returns item delegate for this index """
         return API_VIEW_BASE.itemDelegate(view, qindex)
-    
+
     def collapse(view, qindex):
         """ QtOverride: Callback for collapse """
         print("collapse at (%d,%d)" % (qindex.row(), qindex.col()))
@@ -124,7 +124,6 @@ class APITreeView(API_VIEW_BASE):
         """ QtOverride: Callback for expand """
         print("expand at (%d,%d)" % (qindex.row(), qindex.col()))
         return API_VIEW_BASE.expand(view, qindex)
-
 
     #def keyPressEvent(view, event):
     #    assert isinstance(event, QtGui.QKeyEvent)
