@@ -231,8 +231,10 @@ class ThumbnailCacheContext(object):
     flagged as dirty and give them back to the context.  thumbs_list will be
     populated on contex exit
     """
-    def __init__(self, uuid_list, asrgb=True, thumb_size=64, appname='vtool'):
-        thumb_dpath = utool.get_app_resource_dir(appname, 'thumbs')
+    def __init__(self, uuid_list, asrgb=True, thumb_size=64, thumb_dpath=None, appname='vtool'):
+        if thumb_dpath is None:
+            # Get default thumb path
+            thumb_dpath = utool.get_app_resource_dir(appname, 'thumbs')
         utool.ensuredir(thumb_dpath)
         self.thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png') for uuid in uuid_list]
         self.asrgb = asrgb
