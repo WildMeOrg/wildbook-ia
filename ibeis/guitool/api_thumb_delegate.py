@@ -129,11 +129,11 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return QtCore.QSize(width, height)
             else:
                 print("[APIThumbDelegate] Name not found")
-                return QtCore.Qsize(150, 150)
+                return QtCore.QSize()
         except Exception as ex:
             print("Error in APIThumbDelegate")
             utool.printex(ex, 'Error in APIThumbDelegate')
-            return QtCore.QSize(100, 100)
+            return QtCore.QSize()
 
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """ Helper to compute thumbnails concurrently """
