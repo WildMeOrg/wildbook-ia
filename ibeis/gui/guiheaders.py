@@ -40,7 +40,8 @@ TABLE_COLNAMES = {
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
-    THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
+    #THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
+    THUMB_TABLE     : ['gname','thumb'],
     #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
     NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
 }
@@ -173,6 +174,8 @@ def make_ibeis_headers_dict(ibs):
     iders[THUMB_TABLE] = [ibs.get_valid_gids]
     getters[THUMB_TABLE] = {
         'thumb'      : ibs.get_image_thumbtup,
+        'gname'        : ibs.get_image_gnames,
+        'rid'        : ibs.get_image_rids,
     }
     setters[THUMB_TABLE] = {
     }
