@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from itertools import izip
+#from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
 IMAGE_TABLE = 'images'
@@ -41,8 +41,8 @@ TABLE_COLNAMES = {
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
     THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
-    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
-    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
+    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']},
+    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'],
 }
 
 # the columns which are editable
@@ -52,8 +52,8 @@ TABLE_EDITSET = {
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
-    THUMB_TABLE     : set([]), 
-    NAMES_TREE      : set([]), 
+    THUMB_TABLE     : set([]),
+    NAMES_TREE      : set([]),
 }
 
 TABLE_TREE_LEVELS = {
@@ -176,8 +176,7 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[THUMB_TABLE] = {
     }
-    
-    
+
     iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_rids]
     getters[NAMES_TREE] = {
         'nid':    lambda nids: nids,
@@ -202,17 +201,17 @@ def make_ibeis_headers_dict(ibs):
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
-        collevels = TABLE_TREE_LEVELS.get(tblname, map(lambda x: 0, colnames))
-        
+        collevels = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
+
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
             colnice   = COL_DEF[colname][1]
-            coledit   = colname in editset 
+            coledit   = colname in editset
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
         try:
-            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
+            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data, colnames))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise
