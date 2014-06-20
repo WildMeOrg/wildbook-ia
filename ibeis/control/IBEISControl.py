@@ -554,32 +554,32 @@ class IBEISController(object):
         A relative path is relative to the ibeis image cache on this machine.
         """
         #ibs.set_table_props('images', 'image_uri', gid_list, new_gpath_list)
-        val_list = ((gid,) for gid in gid_list)
-        id_list = ((new_gpath,) for new_gpath in new_gpath_list)
+        id_list = ((gid,) for gid in gid_list)
+        val_list = ((new_gpath,) for new_gpath in new_gpath_list)
         ibs.db.set('images', ('image_uri',), val_list, id_list)
 
     @setter
     def set_image_aifs(ibs, gid_list, aif_list):
         """ Sets the image all instances found bit """
         #ibs.set_table_props('images', 'image_toggle_aif', gid_list, aif_list)
-        val_list = ((gid,) for gid in gid_list)
-        id_list = ((aif,) for aif in aif_list)
+        id_list = ((gid,) for gid in gid_list)
+        val_list = ((aif,) for aif in aif_list)
         ibs.db.set('images', ('image_toggle_aif',), val_list, id_list)
 
     @setter
     def set_image_notes(ibs, gid_list, notes_list):
         """ Sets the image all instances found bit """
         #ibs.set_table_props('images', 'image_notes', gid_list, notes_list)
-        val_list = ((gid,) for gid in gid_list)
-        id_list = ((notes,) for notes in notes_list)
+        id_list = ((gid,) for gid in gid_list)
+        val_list = ((notes,) for notes in notes_list)
         ibs.db.set('images', ('image_notes',), val_list, id_list)
 
     @setter
     def set_image_unixtime(ibs, gid_list, unixtime_list):
         """ Sets the image unixtime (does not modify exif yet) """
         #ibs.set_table_props('images', 'image_exif_time_posix', gid_list, unixtime_list)
-        val_list = ((gid,) for gid in gid_list)
-        id_list = ((unixtime,) for unixtime in unixtime_list)
+        id_list = ((gid,) for gid in gid_list)
+        val_list = ((unixtime,) for unixtime in unixtime_list)
         ibs.db.set('images', ('image_exif_time_posix',), val_list, id_list)
 
     # @setter
@@ -619,8 +619,8 @@ class IBEISController(object):
     @setter
     def set_roi_exemplar_flag(ibs, rid_list, flag_list):
         #ibs.set_table_props('rois', 'roi_exemplar_flag', rid_list, flag_list)
-        val_list = ((rid,) for rid in rid_list)
-        id_list = ((flag,) for flag in flag_list)
+        id_list = ((rid,) for rid in rid_list)
+        val_list = ((flag,) for flag in flag_list)
         ibs.db.set('rois', ('roi_exemplar_flag',), val_list, id_list)
 
     @setter
@@ -628,40 +628,40 @@ class IBEISController(object):
         """ Sets thetas of a list of chips by rid """
         ibs.delete_roi_chips(rid_list)  # Changing theta redefines the chips
         #ibs.set_table_props('rois', 'roi_theta', rid_list, theta_list)
-        val_list = ((rid,) for rid in rid_list)
-        id_list = ((theta,) for theta in theta_list)
+        id_list = ((rid,) for rid in rid_list)
+        val_list = ((theta,) for theta in theta_list)
         ibs.db.set('rois', ('roi_theta',), val_list, id_list)
 
     @setter
     def set_roi_num_verts(ibs, rid_list, num_verts_list):
         """ Sets the number of vertices of a chip by rid """
         #ibs.set_table_props('rois', 'roi_num_verts', rid_list, num_verts_list)
-        val_list = ((rid,) for rid in rid_list)
-        id_list = ((num_verts,) for num_verts in num_verts_list)
+        id_list = ((rid,) for rid in rid_list)
+        val_list = ((num_verts,) for num_verts in num_verts_list)
         ibs.db.set('rois', ('roi_num_verts',), val_list, id_list)
 
     @setter
     def set_roi_verts(ibs, rid_list, verts_list):
         """ Sets the vertices [(x, y), ...] of a list of chips by rid """
         #ibs.set_table_props('rois', 'roi_verts', rid_list, verts_list)
-        val_list = ((rid,) for rid in rid_list)
-        id_list = ((verts,) for verts in verts_list)
+        id_list = ((rid,) for rid in rid_list)
+        val_list = ((verts,) for verts in verts_list)
         ibs.db.set('rois', ('roi_verts',), val_list, id_list)
 
     @setter
     def set_roi_viewpoints(ibs, rid_list, viewpoint_list):
         """ Sets viewpoints of a list of chips by rid """
         #ibs.set_table_props('rois', 'roi_viewpoint', rid_list, viewpoint_list)
-        val_list = ((rid,) for rid in rid_list)
-        id_list = ((viewpoint,) for viewpoint in viewpoint_list)
+        id_list = ((rid,) for rid in rid_list)
+        val_list = ((viewpoint,) for viewpoint in viewpoint_list)
         ibs.db.set('rois', ('roi_viewpoint',), val_list, id_list)
 
     @setter
     def set_roi_notes(ibs, rid_list, notes_list):
         """ Sets viewpoints of a list of chips by rid """
         #ibs.set_table_props('rois', 'roi_notes', rid_list, notes_list)
-        val_list = ((rid,) for rid in rid_list)
-        id_list = ((notes,) for notes in notes_list)
+        id_list = ((rid,) for rid in rid_list)
+        val_list = ((notes,) for notes in notes_list)
         ibs.db.set('rois', ('roi_notes',), val_list, id_list)
 
     @setter
@@ -681,8 +681,8 @@ class IBEISController(object):
     def set_name_notes(ibs, nid_list, notes_list):
         """ Sets notes of names (groups of animals) """
         #ibs.set_table_props('names', 'name_notes', nid_list, notes_list)
-        val_list = ((notes,) for notes in notes_list)
-        id_list = ((nid,) for nid in nid_list)
+        id_list = ((notes,) for notes in notes_list)
+        val_list = ((nid,) for nid in nid_list)
         ibs.db.set('labels', ('label_note',), val_list, id_list)
 
     @setter
@@ -690,24 +690,24 @@ class IBEISController(object):
         """ Changes the name text. Does not affect the animals of this name """
         ibsfuncs.assert_valid_names(name_list)
         #ibs.set_table_props('names', 'name_text', nid_list, name_list)
-        val_list = ((nid,) for nid in nid_list)
-        id_list = ((name,) for name in name_list)
+        id_list = ((nid,) for nid in nid_list)
+        val_list = ((name,) for name in name_list)
         ibs.db.set('labels', ('label_value',), val_list, id_list)
 
     @setter
     def set_encounter_props(ibs, eid_list, key, value_list):
         print('[ibs] set_encounter_props')
         #ibs.set_table_props('encounters', key, eid_list, value_list)
-        val_list = ((eid,) for eid in eid_list)
-        id_list = ((value,) for value in value_list)
+        id_list = ((eid,) for eid in eid_list)
+        val_list = ((value,) for value in value_list)
         ibs.db.set('encounters', key, val_list, id_list)
 
     @setter
     def set_encounter_enctext(ibs, eid_list, names_list):
         """ Sets names of encounters (groups of animals) """
         #ibs.set_table_props('encounters', 'encounter_text', eid_list, names_list)
-        val_list = ((eid,) for eid in eid_list)
-        id_list = ((names,) for names in names_list)
+        id_list = ((eid,) for eid in eid_list)
+        val_list = ((names,) for names in names_list)
         ibs.db.set('encounters', ('encouter_text',), val_list, id_list)
 
     #
