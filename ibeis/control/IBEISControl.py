@@ -708,7 +708,7 @@ class IBEISController(object):
         #ibs.set_table_props('encounters', 'encounter_text', eid_list, names_list)
         id_list = ((eid,) for eid in eid_list)
         val_list = ((names,) for names in names_list)
-        ibs.db.set('encounters', ('encouter_text',), val_list, id_list)
+        ibs.db.set('encounters', ('encounter_text',), val_list, id_list)
 
     #
     #
