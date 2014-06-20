@@ -508,6 +508,9 @@ class APITableModel(API_MODEL_BASE):
         col = qtindex.column()
         type_ = model._get_type(col)
 
+        if row >= model.rowCount():
+                return QtCore.QVariant()
+
         #if role == Qt.SizeHintRole:
         #    #printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
         #    return QtCore.QSize(64, 64)
