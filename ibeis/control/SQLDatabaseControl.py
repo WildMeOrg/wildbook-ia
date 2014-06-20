@@ -298,6 +298,8 @@ class SQLDatabaseController(object):
     @default_decorator
     def add(db, tblname, colnames, params_iter, **kwargs):
         """ adder """
+        if isinstance(colnames, (str, unicode)):
+            colnames = (colnames,)
         fmtdict = {
             'tblname'  : tblname,
             'questionmarks' : ', '.join(['?'] * len(colnames)),
@@ -367,6 +369,8 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, 
                 **kwargs):
+        if isinstance(colnames, (str, unicode)):
+            colnames = (colnames,)
         fmtdict = {
         'tblname'     : tblname,
         'colnames'    : ', '.join(colnames),
@@ -388,6 +392,8 @@ class SQLDatabaseController(object):
     def get(db, tblname, colnames, id_iter=None, id_colname='rowid',
                 unpack_scalars=True, **kwargs):
         """ getter """
+        if isinstance(colnames, (str, unicode)):
+            colnames = (colnames,)
         if unpack_scalars is None:
             unpack_scalars = id_colname is None
         assert unpack_scalars is not None, 'unpack_scalars is None'
@@ -399,6 +405,8 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_executeone(db, tblname, colnames, **kwargs):
+        if isinstance(colnames, (str, unicode)):
+            colnames = (colnames,)
         fmtdict = {
             'tblname'         : tblname,
             'colnames_str'    : ', '.join(colnames),
@@ -412,6 +420,8 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
+        if isinstance(colnames, (str, unicode)):
+            colnames = (colnames,)
         fmtdict = {
             'tblname'         : tblname,
             'colnames_str'    : ', '.join(colnames),
@@ -429,6 +439,8 @@ class SQLDatabaseController(object):
     @default_decorator
     def set(db, tblname, colnames, val_list, id_list, id_colname=None, **kwargs):
         """ setter """
+        if isinstance(colnames, (str, unicode)):
+            colnames = (colnames,)
         val_list = list(val_list)
         id_list = list(id_list)
         assert  len(val_list) == len(id_list)
