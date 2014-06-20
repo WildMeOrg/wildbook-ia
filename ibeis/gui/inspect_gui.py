@@ -97,6 +97,14 @@ def show_match_at(qres_wgt, qtindex):
     fig_presenter.bring_to_front(fig)
 
 
+def uinput_1to1(func, input_):
+    if isinstance(input_, (tuple, list)):
+        output_ = tuple(map(func, input_))
+    else:
+        output_ = func(input_)
+    return output_
+
+
 class CustomAPI(object):
     # TODO: Rename CustomAPI
     """
@@ -137,10 +145,10 @@ class CustomAPI(object):
                 if len(tup) > 4:
                     # Use another columns values as this column's ids
                     print('[CustomAPI] Augment Column Ider')
-                    _colname = tup[4]
-                    _column = self.col_name_list.index(_colname)
-                    print(' * (_colname: '  + _colname + ') = _column: (' + str(_column) + ')')
-                    _col_ider = partial(self.get, _column)
+                    _colname = tup[4]  # the real colname(s) to get ids from
+                    _column = uinput_1to1(self.col_name_list.index, _colname)
+                    print(' * (_colname: '  + str(_colname) + ') = _column: (' + str(_column) + ')')
+                    _col_ider = uinput_1to1(lambda _: partial(self.get, _), _column)
                     self.col_ider_list[column] = _col_ider
 
         self.col_edit_list = [name in editable_colnames
@@ -157,7 +165,8 @@ class CustomAPI(object):
         if ider_ is None:
             return row
         else:
-            row_ = ider_(row)
+            # row might be a tuple
+            row_ = uinput_1to1(lambda _: _(row), ider_)
             #print(ider_)
             #print('Rectify: col=%r, row=%r, row_=%r' % (column, row, row_))
             return row_
@@ -165,7 +174,7 @@ class CustomAPI(object):
     #@getter
     def get(self, column, row):
         # getters always receive primary rowids, rectify if
-        # col_ider is specified
+        # col_ider is specified (row might be a row_pair)
         row = self._rectify_row(column, row)
         column_getter = self.col_getter_list[column]
         # Columns might be indexable read/write arrays
@@ -223,9 +232,11 @@ def register_interaction(interaction):
 
 
 def review_match(ibs, rid1, rid2):
+    print(rid1)
+    print(rid2)
     print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
     from ibeis.viz.interact.interact_name import MatchVerificationInteraction
-    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2)
+    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64)
     register_interaction(mvinteract)
     #if text.startswith(BREAK_MATCH_PREF):
     #    ibs.set_roi_names([rid1, rid2], ['____', '____'])
@@ -282,6 +293,18 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
             raise AssertionError('impossible match state')
         return buttontup
 
+    def get_status(rid_pair):
+        rid1, rid2 = rid_pair
+        text = ibsfuncs.vsstr(rid1, rid2)
+        return text
+
+    def get_status_color(rid_pair):
+        rid1, rid2 = rid_pair
+        truth = ibs.get_match_truth(rid1, rid2)
+        truth_color = vh.get_truth_color(truth, base255=True,
+                                         lighten_amount=0.35)
+        return truth_color
+
     def get_rowid_button(rowid):
         return get_buttontup
     #opts = np.zeros(len(qrids))
@@ -289,7 +312,8 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     column_tuples = [
         ('qrid',       np.array(qrids),           int),
         ('rid',        np.array(rids),            int),
-        #('review',     get_rowid_button,          'BUTTON'),
+        ('review',     get_rowid_button,          'BUTTON'),
+        ('status',     get_status_color,          str,      None,  ('qrid', 'rid')),
         ('querythumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'qrid'),
         ('resthumb',   ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'rid'),
         ('qname',      ibs.get_roi_names,         str,      ibs.set_roi_names, 'qrid'),

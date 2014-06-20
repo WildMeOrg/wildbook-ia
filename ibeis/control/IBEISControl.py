@@ -152,8 +152,8 @@ class IBEISController(object):
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
         ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
-        ibs.thumb_dpath = join(ibs._ibsdb, PATH_NAMES.thumbs)
         # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
+        ibs.thumb_dpath = join(ibs.cachedir, PATH_NAMES.thumbs)
         ibs.flanndir    = join(ibs.cachedir, PATH_NAMES.flann)
         ibs.qresdir     = join(ibs.cachedir, PATH_NAMES.qres)
         ibs.bigcachedir = join(ibs.cachedir, PATH_NAMES.bigcache)
@@ -420,14 +420,14 @@ class IBEISController(object):
         # Execute add ROIs SQL
         rid_list = ibs.db.add_cleanly(tblname, colnames, params_iter,
                                       ibs.get_roi_rids_from_uuid)
-        
+
         # Also need to populate roi_label_relationship table
         params_iter2 = list(izip(rid_list, nid_list))
         tblname2 = 'roi_label_relationship'
         colnames2 = ['roi_rowid', 'label_rowid']
 
         rlrid_list = ibs.db.add(tblname2, colnames2, params_iter2)
-        
+
         return rid_list
 
     @adder
@@ -1148,7 +1148,7 @@ class IBEISController(object):
         tblname = 'roi_label_relationship'
 
         labelids_list = ibs.db.get(tblname, ('label_rowid',), id_iter=rid_list, unpack_scalars=False)
-        
+
         labelkeys_list = ibsfuncs.unflat_lookup(ibs.get_label_keys, labelids_list)
 
         # only want the nids of individuals, not species, for examples
@@ -1557,7 +1557,7 @@ class IBEISController(object):
         colnames = ('roi_rowid',)
         where_clause = 'label_rowid=?'
         params_iter = [(nid,) for nid in nid_list]
-        
+
         rids_list = ibs.db.get_where(tblname, colnames, params_iter,
                                 where_clause,
                                 unpack_scalars=False)
