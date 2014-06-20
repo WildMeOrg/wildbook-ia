@@ -4,9 +4,15 @@ from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
+from ibeis.dev import ibsfuncs
 from plottool.abstract_interaction import AbstractInteraction
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_name]', DEBUG=False)
+
+from ibeis.viz import viz_chip
+plot_chip = viz_chip.show_chip
+
+
 #==========================
 # Name Interaction
 #==========================
@@ -35,10 +41,6 @@ def ishow_name(ibs, nid, sel_rids=[], select_rid_callback=None, fnum=5, **kwargs
     pass
 
 
-from ibeis.viz import viz_chip
-show_chip = viz_chip.show_chip
-
-
 class MatchVerificationInteraction(AbstractInteraction):
     def __init__(self, ibs, rid1, rid2, **kwargs):
         print('[matchver] __init__')
@@ -63,6 +65,8 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.gt1 = self.gt2 = groundtruth + [rid1]
             self.nCols = len(self.gt1)
             self.nRows = 1
+        self.nids = utool.unique_ordered([self.nid1, self.nid2])
+        self.colors = df2.distinct_colors(len(self.nids))
 
     def prepare_page(self):
         figkw = {'fnum': self.fnum,
@@ -81,24 +85,61 @@ class MatchVerificationInteraction(AbstractInteraction):
         nCols = self.nCols
 
         for px, rid in enumerate(gt1):
-            self.show_chip(rid, nRows, nCols, px + 1, nokpts=True)
+            self.plot_chip(rid, nRows, nCols, px + 1, nokpts=True)
+            ax = df2.gca()
+            df2.draw_border(ax, color=self.colors[0])
         # show name2 rois
         if self.nid1 != self.nid2:
             for px, rid in enumerate(gt2):
-                self.show_chip(rid, nRows, nCols, px + nCols + 1, nokpts=True)
+                self.plot_chip(rid, nRows, nCols, px + nCols + 1, nokpts=True)
+                ax = df2.gca()
+                df2.draw_border(ax, color=self.colors[1])
 
         self.show_hud()
         self.draw()
         self.update()
 
+    def break_match(self):
+        self.ibs.set_roi_names([self.rid1, self.rid2], ['____', '____'])
+
+    def new_match(self):
+        new_name = ibsfuncs.make_new_name(self.ibs)
+        self.ibs.set_roi_names([self.rid1, self.rid2], [new_name, new_name])
+
+    def merge(self):
+        self.ibs.set_roi_names(self.gt1 , [self.name2] * len(self.gt1))
+
     def show_hud(self):
-        from ibeis.dev import ibsfuncs
         df2.set_figtitle('Review Match: ' + ibsfuncs.vsstr(self.rid1, self.rid2))
 
-    def show_chip(self, rid, nRows, nCols, px, **kwargs):
+    def plot_chip(self, rid, nRows, nCols, px, **kwargs):
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
             'nokpts': True,
         }
         viz_chip.show_chip(self.ibs, rid, **viz_chip_kw)
+
+        make_buttons = True
+        if make_buttons:
+            ax = df2.gca()
+            divider = df2.ensure_divider(ax)
+            butkw = {
+                'divider': divider,
+                'callback': self.break_match,
+                'index': 0,
+            }
+            self.append_button('break', **butkw)
+        #    if name1 == name2 and not name1.startswith('____'):
+        #        self.append_button(BREAK_MATCH_PREF, **butkw)
+        #    else:
+        #        if not name1.startswith('____'):
+        #            self.append_button(RENAME2_PREF + name1, **butkw)
+        #        if not name2.startswith('____'):
+        #            self.append_button(RENAME1_PREF + name2, **butkw)
+        #        if name1.startswith('____') and name2.startswith('____'):
+        #            self.append_button(NEW_MATCH_PREF, **butkw)
+
+        #if draw:
+        #    vh.draw()
+
