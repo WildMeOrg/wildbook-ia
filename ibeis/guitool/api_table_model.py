@@ -115,6 +115,7 @@ class APITableModel(API_MODEL_BASE):
         model.col_setter_list  = []
         model.col_getter_list  = []
         model.col_level_list   = []
+        model.col_rolegetter_list = None
         model.col_sort_index   = None
         model.col_sort_reverse = False
         model.level_index_list = []
@@ -181,6 +182,8 @@ class APITableModel(API_MODEL_BASE):
         model._set_col_edit(col_edit_list)
         model._set_col_setter(col_setter_list)
         model._set_col_getter(col_getter_list)
+        model._set_col_rolegetter(col_rolegetter_list)
+
         model._set_col_level(col_level_list)
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse)
@@ -303,7 +306,7 @@ class APITableModel(API_MODEL_BASE):
     def _set_col_rolegetter(model, col_rolegetter_list=None):
         """ rolegetter will be used for metadata like column color """
         if col_rolegetter_list is None:
-            col_rolegetter_list = []
+            return
         assert len(model.col_name_list) == len(col_rolegetter_list), \
             'inconsistent col_rolegetter_list'
         model.col_rolegetter_list = col_rolegetter_list
@@ -372,6 +375,13 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def _get_type(model, col):
         return model.col_type_list[col]
+
+    def _get_rolevalue(model, qtindex):
+        col = qtindex.column()
+        if model.col_rolegetter_list is None or len(model.col_rolegetter_list) < col:
+            return None
+        role_getter = model.col_rolegetter_list[col]
+        return role_getter(qtindex)
 
     @default_method_decorator
     def _get_data(model, row, col):
@@ -509,7 +519,8 @@ class APITableModel(API_MODEL_BASE):
         type_ = model._get_type(col)
 
         if row >= model.rowCount():
-                return QtCore.QVariant()
+            # Yuck.
+            return QtCore.QVariant()
 
         #if role == Qt.SizeHintRole:
         #    #printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
@@ -529,6 +540,9 @@ class APITableModel(API_MODEL_BASE):
         #
         # Specify Background Rule
         elif role == Qt.BackgroundRole:
+            value = model._get_rolevalue(qtindex)
+            if value is not None:
+                return value
             if flags & Qt.ItemIsEditable:
                 # Editable fields are colored
                 return QtCore.QVariant(model.EditableItemColor)
