@@ -45,7 +45,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         ibswgt.view = IBEISTableView(parent=ibswgt)
         ibswgt.model = IBEISTableModel(parent=ibswgt.view)
-        ibswgt.proxy = StripeProxyModel(numduplicates=2)
+        ibswgt.proxy = StripeProxyModel(numduplicates=5)
         #ibswgt.proxy = QtGui.QIdentityProxyModel()
         ibswgt.proxy.setSourceModel(ibswgt.model) 
         ibswgt.view.setModel(ibswgt.proxy)
