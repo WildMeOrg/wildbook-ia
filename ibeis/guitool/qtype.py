@@ -99,6 +99,8 @@ def cast_into_qt(data):
         return QVariant(str(data)).toString()
     elif utool.isiterable(data):
         return QVariant(', '.join(map(str, data))).toString()
+    elif data is None:
+        return QVariant('None').toString()
     else:
         return 'Unknown qtype: %r for data=%r' % (type(data), data)
 

@@ -48,6 +48,8 @@ class APIThumbDelegate(DELEGATE_BASE):
         # The data should be specified as a thumbtup
         if isinstance(data, QtCore.QVariant):
             data = data.toPyObject()
+        if data is None:
+            return (None, None, None)
         assert isinstance(data, tuple), 'data=%r is %r. should be a thumbtup' % (data, type(data))
         thumbtup = data
         #(thumb_path, img_path, bbox_list) = thumbtup
