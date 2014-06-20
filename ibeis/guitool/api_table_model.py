@@ -70,6 +70,7 @@ def _build_internal_structure(model):
         root_id_list = ider_list[0]()
     root_node = populate_tree(TreeNode(None, None), root_id_list, level=0)
     #print(root_node.full_str())
+    assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
 
 
@@ -175,6 +176,7 @@ class APITableModel(API_MODEL_BASE):
         model.col_sort_reverse = False
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
+        model.root_node = TreeNode(None, None)
         # Initialize member variables
         #model._about_to_change()
         model.headers = headers  # save the headers
@@ -208,7 +210,7 @@ class APITableModel(API_MODEL_BASE):
             return True
         else:
             #printDBG('NOT CHANGING')
-            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            #print('NOT LAYOUT CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
 
     @updater
@@ -242,6 +244,7 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def _update(model, newrows=False):
         #if newrows:
+        print("_UPDATE")
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
@@ -261,6 +264,7 @@ class APITableModel(API_MODEL_BASE):
         row_indicies
         """
         #printDBG('UPDATE ROWS!')
+        print('UPDATE ROWS!')
         #print('UPDATE model(%s) rows' % model.name)
         if len(model.col_level_list) > 0:
             #print('-----')
@@ -269,7 +273,7 @@ class APITableModel(API_MODEL_BASE):
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
             for level in xrange(0, highest_level + 1):
                 ids_ = model._use_ider(level=level)
-                #print('ids_: %r' % ids_)
+                #print('ids_ generated')
                 row_indices = []
                 if len(ids_) != 0:
                     # start sort
@@ -277,7 +281,7 @@ class APITableModel(API_MODEL_BASE):
                         level = model.col_level_list[sort_index]
                         getter = model.col_getter_list[sort_index]
                         values = getter(model._use_ider(level))
-                        #print('values: %r' % values)
+                        #print('values got')
                     else:
                         values = ids_
                     reverse = model.col_sort_reverse
@@ -288,10 +292,13 @@ class APITableModel(API_MODEL_BASE):
                 assert row_indices is not None, 'no indices'
                 model.level_index_list.append(row_indices)
             model._rows_updated.emit(model.name, len(model.level_index_list[0]))
-            print('[model] new level_index_list=%r' % (model.level_index_list,))
+            #print('[model] new level_index_list=%r' % (model.level_index_list,))
             #print(model.level_index_list)
+            #print("[model] Building internal structure now")
             model.root_node = _build_internal_structure(model)
-            print("root_node: %r" % model.root_node)
+            assert model.root_node.__dict__, "TreeNode __dict__ is empty"
+            #print("[model] Internal Structure Built")
+            #print("root_node: %r" % model.root_node)
     
 
     def _build_internal_structure_old(model):
@@ -415,6 +422,8 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_row_id(model, row, col=None, node=None):
+        if not col is None:
+            node = model.root_node[row]
         return node.get_id()
 
     @default_method_decorator
@@ -503,6 +512,12 @@ class APITableModel(API_MODEL_BASE):
         implementation, leading to infinite recursion.  """
         if qindex.isValid():
             node = qindex.internalPointer()
+            #<HACK>
+            if not isinstance(node, TreeNode):
+                print("WARNING: tried to access parent of %r type object" % type(node))
+                return QtCore.QModelIndex()
+            #</HACK>
+            #assert isinstance(node, TreeNode), "[api_table_model.parent()] node is of type %r" % type(node)
             parent_node = node.get_parent()
             if parent_node.get_id() is None:
                 return QtCore.QModelIndex()
@@ -533,9 +548,8 @@ class APITableModel(API_MODEL_BASE):
             # This is a child level > 0 index
             parent_node = parent.internalPointer()
             node = parent_node[row]
+            assert isinstance(node, TreeNode), "[api_table_model.index] node is of type %r" % type(node)
             #print("model.col_level_list[%r] = %r, node.level = %r" % (column, model.col_level_list[column], node.level))
-            #if model.col_level_list[column] != node.level:
-            #    return QtCore.QModelIndex()
             return model.createIndex(row, column, object=node)
     
     @default_method_decorator
