@@ -381,6 +381,8 @@ class APITableModel(API_MODEL_BASE):
         if model.col_rolegetter_list is None or len(model.col_rolegetter_list) < col:
             return None
         role_getter = model.col_rolegetter_list[col]
+        if role_getter is None:
+            return None
         return role_getter(qtindex)
 
     @default_method_decorator
