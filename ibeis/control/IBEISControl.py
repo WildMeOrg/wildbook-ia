@@ -643,9 +643,9 @@ class IBEISController(object):
     @setter
     def set_roi_verts(ibs, rid_list, verts_list):
         """ Sets the vertices [(x, y), ...] of a list of chips by rid """
-        #ibs.set_table_props('rois', 'roi_verts', rid_list, verts_list)
+        verts_as_strings = [str(verts) for verts in verts_list]
         id_list = ((rid,) for rid in rid_list)
-        val_list = ((verts,) for verts in verts_list)
+        val_list = ((verts,) for verts in verts_as_strings)
         ibs.db.set('rois', ('roi_verts',), val_list, id_list)
 
     @setter
@@ -681,8 +681,8 @@ class IBEISController(object):
     def set_name_notes(ibs, nid_list, notes_list):
         """ Sets notes of names (groups of animals) """
         #ibs.set_table_props('names', 'name_notes', nid_list, notes_list)
-        id_list = ((notes,) for notes in notes_list)
-        val_list = ((nid,) for nid in nid_list)
+        id_list = ((nid,) for nid in nid_list)
+        val_list = ((notes,) for notes in notes_list)
         ibs.db.set('labels', ('label_note',), val_list, id_list)
 
     @setter
