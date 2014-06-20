@@ -1577,6 +1577,11 @@ class IBEISController(object):
         """ Clears roi data but does not remove the roi """
         _cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         cid_list = utool.filter_Nones(_cid_list)
+        gid_list = ibs.get_roi_gids(rid_list)
+        thumbtup_list = ibs.get_image_thumbtup(gid_list)
+        thumb_paths = [thumbtup[0] for thumbtup in thumbtup_list]
+        delete_list = [utool.remove_file(thumb_path) for thumb_path in thumb_paths]
+        print("[ibs] thumb_paths=%r" % thumb_paths)
         ibs.delete_chips(cid_list)
 
     @deleter
