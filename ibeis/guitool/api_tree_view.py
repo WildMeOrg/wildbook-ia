@@ -1,4 +1,7 @@
 from __future__ import absolute_import, division, print_function
+from guitool import qtype
+from guitool.api_thumb_delegate import APIThumbDelegate
+from guitool.api_button_delegate import APIButtonDelegate
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import guitool
@@ -160,7 +163,19 @@ class APITreeView(API_VIEW_BASE):
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # Call updates
         view._set_sort(col_sort_index, col_sort_reverse)
+        view.infer_delegates(**headers)
         #view.resizeColumnsToContents()
+
+    def infer_delegates(view, **headers):
+        """ Infers which columns should be given item delegates """
+        col_type_list = headers.get('col_type_list', [])
+        for colx, coltype in enumerate(col_type_list):
+            if coltype in  qtype.QT_PIXMAP_TYPES:
+                print('[view] colx=%r is a PIXMAP' % colx)
+                view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
+            elif coltype in qtype.QT_BUTTON_TYPES:
+                print('[view] colx=%r is a BUTTON' % colx)
+                view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
 
     def _set_sort(view, col_sort_index, col_sort_reverse=False):
         if col_sort_index is not None:

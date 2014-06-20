@@ -95,14 +95,18 @@ class APIThumbDelegate(DELEGATE_BASE):
                 # Read the precomputed thumbnail
                 qimg, width, height = read_thumb_as_qimg(thumb_path)
                 view = dgt.parent()
-                col_width = view.columnWidth(qtindex.column())
-                col_height = view.rowHeight(qtindex.row())
-                # Let columns shrink
-                if dgt.thumb_size != col_width:
-                    view.setColumnWidth(qtindex.column(), dgt.thumb_size)
-                # Let rows grow
-                if height > col_height:
-                    view.setRowHeight(qtindex.row(), height)
+                if isinstance(view, QtGui.QTreeView):
+                    col_width = view.columnWidth(qtindex.column())
+                    col_height = view.rowHeight(qtindex)
+                elif isinstance(view, QtGui.QTableView):
+                    col_width = view.columnWidth(qtindex.column())
+                    col_height = view.rowHeight(qtindex.row())
+                    # Let columns shrink
+                    if dgt.thumb_size != col_width:
+                        view.setColumnWidth(qtindex.column(), dgt.thumb_size)
+                    # Let rows grow
+                    if height > col_height:
+                        view.setRowHeight(qtindex.row(), height)
                 # Paint image on an item in some view
                 painter.save()
                 painter.setClipRect(option.rect)
@@ -116,6 +120,20 @@ class APIThumbDelegate(DELEGATE_BASE):
             painter.save()
             painter.restore()
 
+    def sizeHint(dgt, option, index):
+        try:
+            thumb_path = dgt.try_get_thumb_path(option, index)
+            if thumb_path is not None:
+                # Read the precomputed thumbnail
+                qimg, width, height = read_thumb_as_qimg(thumb_path)
+                return QtCore.QSize(width, height)
+            else:
+                print("[APIThumbDelegate] Name not found")
+                return QtCore.Qsize(150, 150)
+        except Exception as ex:
+            print("Error in APIThumbDelegate")
+            utool.printex(ex, 'Error in APIThumbDelegate')
+            return QtCore.QSize(100, 100)
 
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """ Helper to compute thumbnails concurrently """
