@@ -156,19 +156,21 @@ class APITableModel(API_MODEL_BASE):
             return False
 
     @updater
-    def _update_headers(model,
-                        iders=None,
-                        name=None,
-                        nice=None,
-                        col_name_list=None,
-                        col_type_list=None,
-                        col_nice_list=None,
-                        col_edit_list=None,
-                        col_setter_list=None,
-                        col_getter_list=None,
-                        col_level_list=None,
-                        col_sort_index=None,
-                        col_sort_reverse=False):
+    def _update_headers(model, **headers):
+        iders            = headers.get('iders', None)
+        name             = headers.get('name', None)
+        nice             = headers.get('nice', None)
+        col_name_list    = headers.get('col_name_list', None)
+        col_type_list    = headers.get('col_type_list', None)
+        col_nice_list    = headers.get('col_nice_list', None)
+        col_edit_list    = headers.get('col_edit_list', None)
+        col_setter_list  = headers.get('col_setter_list', None)
+        col_getter_list  = headers.get('col_getter_list', None)
+        col_level_list   = headers.get('col_level_list', None)
+        col_sort_index   = headers.get('col_sort_index', None)
+        col_sort_reverse = headers.get('col_sort_reverse', False)
+        # New for dynamically getting non-data roles for each row
+        col_rolegetter_list  = headers.get('col_rolegetter_list', None)
         model.cache = {}  # FIXME: This is not sustainable
         model.name = str(name)
         model.nice = str(nice)
@@ -189,12 +191,12 @@ class APITableModel(API_MODEL_BASE):
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
-    
+
     def _use_ider(model, level):
         if level == 0:
             return model.iders[level]()
         else:
-            return model.iders[level](model._use_ider(level-1))
+            return model.iders[level](model._use_ider(level - 1))
 
     @updater
     def _update_rows(model):
@@ -209,7 +211,7 @@ class APITableModel(API_MODEL_BASE):
             model.level_index_list = []
             highest_level = max(model.col_level_list)
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            for i in range(0, highest_level+1):
+            for i in range(0, highest_level + 1):
                 ids_ = model._use_ider(i)
                 #print('ids_: %r' % ids_)
                 row_indices = []
@@ -296,6 +298,15 @@ class APITableModel(API_MODEL_BASE):
         assert len(model.col_name_list) == len(col_getter_list), \
             'inconsistent colgetter'
         model.col_getter_list = col_getter_list
+
+    @default_method_decorator
+    def _set_col_rolegetter(model, col_rolegetter_list=None):
+        """ rolegetter will be used for metadata like column color """
+        if col_rolegetter_list is None:
+            col_rolegetter_list = []
+        assert len(model.col_name_list) == len(col_rolegetter_list), \
+            'inconsistent col_rolegetter_list'
+        model.col_rolegetter_list = col_rolegetter_list
 
     @default_method_decorator
     def _set_col_level(model, col_level_list=None):
