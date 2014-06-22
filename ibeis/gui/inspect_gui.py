@@ -254,6 +254,21 @@ def review_match(ibs, rid1, rid2):
     #self.show_page()
 
 
+def get_status(ibs, rid_pair, role=None):
+    rid1, rid2 = rid_pair
+    text  = ibsfuncs.vsstr(rid1, rid2)
+    truth = ibs.get_match_truth(rid1, rid2)
+    if truth == 2:
+        text = 'NEW Match ' + text
+    elif truth == 0:
+        text = 'JOIN Match ' + text
+    elif truth == 1:
+        text = 'SPLIT Match ' + text
+    else:
+        raise AssertionError('impossible match state')
+    return text
+
+
 def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     """
     Builds columns which are displayable in a ColumnListTableWidget
@@ -293,11 +308,6 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
             raise AssertionError('impossible match state')
         return buttontup
 
-    def get_status(rid_pair):
-        rid1, rid2 = rid_pair
-        text = ibsfuncs.vsstr(rid1, rid2)
-        return text
-
     def get_status_color(rid_pair):
         rid1, rid2 = rid_pair
         truth = ibs.get_match_truth(rid1, rid2)
@@ -309,11 +319,12 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
         return get_buttontup
     #opts = np.zeros(len(qrids))
     # Define column information
+
     column_tuples = [
         ('qrid',       np.array(qrids),           int),
         ('rid',        np.array(rids),            int),
-        ('review',     get_rowid_button,          'BUTTON'),
-        ('status',     get_status_color,          str,      None,  ('qrid', 'rid')),
+        #('review',     get_rowid_button,          'BUTTON'),
+        ('status',     partial(get_status, ibs),  str,      None,  ('qrid', 'rid')),
         ('querythumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'qrid'),
         ('resthumb',   ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'rid'),
         ('qname',      ibs.get_roi_names,         str,      ibs.set_roi_names, 'qrid'),

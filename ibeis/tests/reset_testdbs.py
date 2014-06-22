@@ -20,9 +20,9 @@ TESTDB_GUIALL = join(workdir, 'testdb_guiall')
 
 
 def delete_testdbs():
-    utool.delete(TESTDB0)
-    utool.delete(TESTDB1)
-    utool.delete(TESTDB_GUIALL)
+    utool.delete(TESTDB0, ignore_errors=False)
+    utool.delete(TESTDB1, ignore_errors=False)
+    utool.delete(TESTDB_GUIALL, ignore_errors=False)
 
 
 def make_testdb0():
@@ -31,19 +31,24 @@ def make_testdb0():
     assert ibs is not None, str(main_locals)
     gpath_list = map(utool.unixpath, grabdata.get_test_gpaths())
     print('[TEST] gpath_list=%r' % gpath_list)
-    gid_list = ibs.add_images(gpath_list)
+    gid_list = ibs.add_images(gpath_list)  # NOQA
     valid_gids = ibs.get_valid_gids()
-    gid = valid_gids[0]
-    bbox = (0, 0, 100, 100)
-    rid = ibs.add_rois([gid], [bbox])[0]
+    valid_rids = ibs.get_valid_rids()
+    try:
+        assert len(valid_rids) == 0, 'there are more than 0 rois in an empty database!'
+    except Exception as ex:
+        utool.printex(ex, key_list=['valid_rids'])
+        raise
+    gid_list = valid_gids[0:1]
+    bbox_list = [(0, 0, 100, 100)]
+    rid = ibs.add_rois(gid_list, bbox_list=bbox_list)[0]
     print('[TEST] NEW RID=%r' % rid)
-    rids = ibs.get_image_rids(gid)
+    rids = ibs.get_image_rids(gid_list)[0]
     try:
         assert rid in rids, ('bad roi adder: rid = %r, rids = %r' % (rid, rids))
     except Exception as ex:
         utool.printex(ex, key_list=['rid', 'rids'])
         raise
-
 
 
 def reset_testdbs():

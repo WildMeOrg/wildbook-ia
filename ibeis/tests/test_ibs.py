@@ -31,7 +31,7 @@ def TEST_IBS(ibs):
     print(' * gps_list=%r' % gps_list)
 
     print('[TEST] 4. get_image_props')
-    mult_cols_list = ibs.get_table_props('images', ('image_uri', 'image_width', 'image_height'), gid_list)
+    mult_cols_list = ibs.db.get('images', ('image_uri', 'image_width', 'image_height'), gid_list)
     print(' * gps_list=%r' % mult_cols_list)
 
     print('[TEST] 5. add_rois')
@@ -39,13 +39,12 @@ def TEST_IBS(ibs):
     gid_list = [gid, gid]
     bbox_list = [(50, 50, 100, 100), (75, 75, 102, 101)]
     theta_list = [0, 1.1]
-    viewpoint_list = None
     nid_list = None
     name_list = None
     notes_list = None
     rid_list = ibs.add_rois(gid_list, bbox_list, theta_list=theta_list,
-                            viewpoint_list=viewpoint_list, nid_list=nid_list,
-                            name_list=name_list, notes_list=notes_list)
+                            nid_list=nid_list, name_list=name_list,
+                            notes_list=notes_list)
     print(' * rid_list=%r' % rid_list)
 
     print('[TEST] 6. get_roi_props')

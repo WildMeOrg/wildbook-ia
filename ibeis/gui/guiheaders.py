@@ -1,15 +1,14 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
-IMAGE_TABLE = 'images'
-ROI_TABLE   = 'rois'
-NAME_TABLE  = 'names'
-QRES_TABLE  = 'qres'
+IMAGE_TABLE     = 'images'
+ROI_TABLE       = 'rois'
+NAME_TABLE      = 'names'
+QRES_TABLE      = 'qres'
 ENCOUNTER_TABLE = 'encounters'
-THUMB_TABLE = 'thumbs'
-NAMES_TREE = 'names_tree'
+THUMB_TABLE     = 'thumbs'
+NAMES_TREE      = 'names_tree'
 
 #-----------------
 # Define the tables
@@ -26,24 +25,24 @@ TABLE_NICE = {
     QRES_TABLE      : 'Query Results Table',
     ENCOUNTER_TABLE : 'Encounter Table',
     THUMB_TABLE     : 'Thumbnail Table',
-    NAMES_TREE     : 'Tree of Names',
+    NAMES_TREE      : 'Tree of Names',
 }
 
 # the columns each ibeis table has
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gconf', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gdconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-    #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rconf', 'notes'],
-    ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'num', 'verts', 'exemplar', 'gname', 'rconf', 'notes'],
+    #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rdconf', 'notes'],
+    ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'num', 'verts', 'exemplar', 'gname', 'rdconf', 'notes'],
     NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
     QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
     ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
     #THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
-    THUMB_TABLE     : ['gname','thumb'],
-    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']}, 
-    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'], 
+    THUMB_TABLE     : ['gname', 'thumb'],
+    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']},
+    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'],
 }
 
 # the columns which are editable
@@ -53,8 +52,8 @@ TABLE_EDITSET = {
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
-    THUMB_TABLE     : set([]), 
-    NAMES_TREE      : set([]), 
+    THUMB_TABLE     : set([]),
+    NAMES_TREE      : set([]),
 }
 
 TABLE_TREE_LEVELS = {
@@ -75,8 +74,8 @@ COL_DEF = dict([
     ('rank',       (str,      'Rank')),  # needs to be a string for !Query
     ('unixtime',   (float,    'unixtime')),
     ('gname',      (str,      'Image Name')),
-    ('gconf',      (str,      'Detection Confidence')),
-    ('rconf',      (float,    'Detection Confidence')),
+    ('gdconf',     (str,      'Detection Confidence')),
+    ('rdconf',     (float,    'Detection Confidence')),
     ('name',       (str,      'Name')),
     ('notes',      (str,      'Notes')),
     ('match_name', (str,      'Matching Name')),
@@ -95,7 +94,7 @@ COL_DEF = dict([
 
 
 def make_ibeis_headers_dict(ibs):
-    simap_func = utool.scalar_input_map_func
+    partial_imap_1to1 = utool.partial_imap_1to1
     #
     # Table Iders/Setters/Getters
     iders = {}
@@ -107,13 +106,13 @@ def make_ibeis_headers_dict(ibs):
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
         'eid'        : ibs.get_image_eids,
-        'enctext'    : simap_func(utool.tupstr, ibs.get_image_enctext),
+        'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
         'aif'        : ibs.get_image_aifs,
         'gname'      : ibs.get_image_gnames,
         'nRids'      : ibs.get_image_num_rois,
         'unixtime'   : ibs.get_image_unixtime,
-        'datetime'   : simap_func(utool.unixtime_to_datetime, ibs.get_image_unixtime),
-        'gconf'      : ibs.get_image_confidence,
+        'datetime'   : partial_imap_1to1(utool.unixtime_to_datetime, ibs.get_image_unixtime),
+        'gdconf'     : ibs.get_image_detect_confidence,
         'notes'      : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
@@ -131,12 +130,12 @@ def make_ibeis_headers_dict(ibs):
         'name'     : ibs.get_roi_names,
         'gname'    : ibs.get_roi_gnames,
         'nGt'      : ibs.get_roi_num_groundtruth,
-        'theta'    : simap_func(utool.theta_str, ibs.get_roi_thetas),
-        'bbox'     : simap_func(utool.bbox_str,  ibs.get_roi_bboxes),
+        'theta'    : partial_imap_1to1(utool.theta_str, ibs.get_roi_thetas),
+        'bbox'     : partial_imap_1to1(utool.bbox_str,  ibs.get_roi_bboxes),
         'num'      : ibs.get_roi_num_verts,
-        'verts'    : simap_func(utool.verts_str, ibs.get_roi_verts),
+        'verts'    : partial_imap_1to1(utool.verts_str, ibs.get_roi_verts),
         'nFeats'   : ibs.get_roi_num_feats,
-        'rconf'    : ibs.get_roi_confidence,
+        'rdconf'   : ibs.get_roi_detect_confidence,
         'notes'    : ibs.get_roi_notes,
         'thumb'    : ibs.get_roi_chip_thumbtup,
         'exemplar' : ibs.get_roi_exemplar_flag,
@@ -179,8 +178,7 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[THUMB_TABLE] = {
     }
-    
-    
+
     iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_rids]
     getters[NAMES_TREE] = {
         'nid':    lambda nids: nids,
@@ -205,16 +203,16 @@ def make_ibeis_headers_dict(ibs):
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevels = TABLE_TREE_LEVELS.get(tblname, map(lambda x: 0, colnames))
-        
+
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
             colnice   = COL_DEF[colname][1]
-            coledit   = colname in editset 
+            coledit   = colname in editset
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
         try:
-            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data,colnames))
+            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data, colnames))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise

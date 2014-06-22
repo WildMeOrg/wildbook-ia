@@ -49,28 +49,26 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.ibs = ibs
         self.rid1 = rid1
         self.rid2 = rid2
-        #self.infer_data()
+        self.infer_data()
         self.show_page()
 
     def infer_data(self):
+        """ Initialize data related to the input rids """
         ibs = self.ibs
-        self.rid_list = [self.rid1, self.rid2]
-        self.nid_list = ibs.get_roi_nids(self.rid_list)
-        groundtruth_list = ibs.get_roi_groundtruth(self.rid_list)
-        self.gt_list = [gt + [rid] for gt, rid in
-                        izip(groundtruth_list, self.rid_list)]
+        # The two matching rids
+        (rid1, rid2) = (self.rid1, self.rid2)
+        # The names of the matching rois
+        self.nid1, self.nid2 = ibs.get_roi_nids((rid1, rid2))
+        # The other rois that belong to these two names
+        groundtruth_list = ibs.get_roi_groundtruth((rid1, rid2))
+        self.gt_list = [gt + [rid] for gt, rid in izip(groundtruth_list, (rid1, rid2))]
+        # A flat list of all the rids we are looking at
+        self.rid_list = utool.unique_ordered(utool.flatten(self.gt_list))
+        # Original sets of groundtruth we are working with
+        self.gt1, self.gt2 = self.gt_list
+        # Grid that will fit all the names we need to display
         self.nCols = max(map(len, self.gt_list))
         self.nRows = len(self.gt_list)
-
-        # Build Groundtruth Map
-        self.nid2_gt = utool.odict()
-        for nid, groundtruth in izip(self.nid_list, self.gt_list):
-            if nid not in self.nid2_gt:
-                self.nid2_gt[nid] = groundtruth
-        self.nid2_color = utool.odict()
-
-        self.nid1, self.nid2 = self.nid_list
-        self.gt1, self.gt2 = self.gt_list
         if self.nid1 == self.nid2:
             self.nRows = 1
 
@@ -79,22 +77,27 @@ class MatchVerificationInteraction(AbstractInteraction):
                  'doclf': True,
                  'docla': True, }
         self.fig = df2.figure(**figkw)
+        ih.disconnect_callback(self.fig, 'button_press_event')
+        #ih.connect_callback(self.fig, 'button_press_event', _on_name_click)
 
     def show_page(self):
         print('[matchver] show_page()')
         self.prepare_page()
         # Variables we will work with to paint a pretty picture
-        # Compare two sets of names
-        self.infer_data()
+        ibs = self.ibs
         nRows = self.nRows
         nCols = self.nCols
 
         # Distinct color for every unique name
-        unique_colors = df2.distinct_colors(len(self.nid2_gt))
+        unique_nids = utool.unique_ordered(ibs.get_roi_nids(self.rid_list))
+        unique_colors = df2.distinct_colors(len(unique_nids) + 2)
+        self.nid2_color = dict(izip(unique_nids, unique_colors))
 
-        for count, ((nid, gt), color) in enumerate(izip(self.nid2_gt.iteritems(), unique_colors)):
+        for count, groundtruth in enumerate(self.gt_list):
             offset = count * nCols + 1
-            for px, rid in enumerate(gt):
+            for px, rid in enumerate(groundtruth):
+                nid = ibs.get_roi_nids(rid)
+                color = self.nid2_color[nid]
                 self.plot_chip(rid, nRows, nCols, px + offset, color=color)
 
         self.show_hud()
@@ -102,23 +105,35 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.update()
 
     def plot_chip(self, rid, nRows, nCols, px, **kwargs):
+        ibs = self.ibs
+        nid = ibs.get_roi_nids(rid)
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
             'nokpts': True,
+            'show_name': True,
+            'show_gname': False,
+            'show_ridstr': True,
         }
-        viz_chip.show_chip(self.ibs, rid, **viz_chip_kw)
+        viz_chip.show_chip(ibs, rid, **viz_chip_kw)
         ax = df2.gca()
-        df2.draw_border(ax, color=kwargs.get('color'))
+        df2.draw_border(ax, color=kwargs.get('color'), lw=4)
 
-        make_buttons = True
-        if make_buttons:
+        if kwargs.get('make_buttons', True):
             divider = df2.ensure_divider(ax)
             butkw = {
                 'divider': divider,
             }
-            self.append_button('unname', callback=partial(self.unname_roi, rid), **butkw)
-        #    if name1 == name2 and not name1.startswith('____'):
+        roi_unknown = ibs.is_nid_unknown([nid])[0]
+        if not roi_unknown:
+            callback = partial(self.unname_roi, rid)
+            self.append_button('unname', callback=callback, **butkw)
+        if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
+            callback = partial(self.rename_roi_nid1, rid)
+            self.append_button('rename nid1', callback=callback, **butkw)
+        if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
+            callback = partial(self.rename_roi_nid2, rid)
+            self.append_button('rename nid2', callback=callback, **butkw)
         #        self.append_button(BREAK_MATCH_PREF, **butkw)
         #    else:
         #        if not name1.startswith('____'):
@@ -133,11 +148,34 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def unname_roi(self, rid, event=None):
         print('unname')
-        self.ibs.set_roi_names([rid], [self.ibs.UNKNOWN_NAME])
+        self.ibs.set_roi_nids([rid], [self.ibs.UNKNOWN_NID])
         self.show_page()
 
-    def break_match(self, event=None):
-        self.ibs.set_roi_names([self.rid1, self.rid2], ['____', '____'])
+    def rename_roi_nid1(self, rid, event=None):
+        print('rename nid1')
+        self.ibs.set_roi_nids([rid], [self.nid1])
+        self.show_page()
+
+    def rename_roi_nid2(self, rid, event=None):
+        print('rename nid2')
+        self.ibs.set_roi_nids([rid], [self.nid2])
+        self.show_page()
+
+    def show_hud(self):
+        """ Heads up display """
+        vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
+        df2.set_figtitle('Review Match: ' + vsstr)
+        if self.nid1 == self.nid2:
+            pass
+
+    def merge_all_into_nid1(self, event=None):
+        """ All the rois are given nid1 """
+        self.ibs.set_roi_nids(self.rid_list , [self.nid1] * len(self.gt1))
+        self.show_page()
+
+    def merge_all_into_nid2(self, event=None):
+        """ All the rois are given nid2 """
+        self.ibs.set_roi_nids(self.rid_list , [self.nid2] * len(self.gt1))
         self.show_page()
 
     def new_match(self, event=None):
@@ -148,7 +186,3 @@ class MatchVerificationInteraction(AbstractInteraction):
     def merge(self, event=None):
         self.ibs.set_roi_names(self.gt1 , [self.name2] * len(self.gt1))
         self.show_page()
-
-    def show_hud(self):
-        vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
-        df2.set_figtitle('Review Match: ' + vsstr)

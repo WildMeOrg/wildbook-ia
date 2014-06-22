@@ -21,6 +21,9 @@ ENCTEXT_PREFIX = 'enc_'
 
 # Pre-defined set of valid label keys/categories
 LABEL_KEYS = {
-"INDIVIDUAL_KEY": 0, 
-"SPECIES_KEY": 1,
+    'INDIVIDUAL_KEY': 0,
+    'SPECIES_KEY': 1,
 }
+
+INDIVIDUAL_KEY = LABEL_KEYS['INDIVIDUAL_KEY']
+SPECIES_KEY    = LABEL_KEYS['SPECIES_KEY']

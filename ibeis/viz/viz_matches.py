@@ -74,7 +74,6 @@ def annotate_matches(ibs, qres, rid2,
     # Build title
     title = vh.get_query_label(ibs, qres, rid2, truth, **kwargs)
     # Build xlabel
-    #xlabel = vh.get_chip_labels(ibs, rid2, **kwargs)
     ax = df2.gca()
     ph.set_plotdat(ax, 'viztype', 'matches')
     ph.set_plotdat(ax, 'qrid', rid1)

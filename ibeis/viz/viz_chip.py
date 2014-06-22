@@ -18,9 +18,9 @@ def show_chip(ibs, rid, in_image=False, annote=True, **kwargs):
     # Get chip
     chip = vh.get_chips(ibs, rid, in_image, **kwargs)
     # Create chip title
-    title_str = vh.get_chip_labels(ibs, rid, **kwargs)
+    chip_text = vh.get_roi_texts(ibs, [rid], **kwargs)[0]
     # Draw chip
-    fig, ax = df2.imshow(chip, title=title_str, **kwargs)
+    fig, ax = df2.imshow(chip, title=chip_text, **kwargs)
     # Populate axis user data
     vh.set_ibsdat(ax, 'viztype', 'chip')
     vh.set_ibsdat(ax, 'rid', rid)
@@ -28,6 +28,7 @@ def show_chip(ibs, rid, in_image=False, annote=True, **kwargs):
         # Get and draw keypoints
         kpts = vh.get_kpts(ibs, rid, in_image, **kwargs)
         _annotate_kpts(kpts, **kwargs)
+    df2.upperleft_text(chip_text)
     if in_image:
         gid = ibs.get_roi_gids(rid)
         rid_list = ibs.get_image_rids(gid)

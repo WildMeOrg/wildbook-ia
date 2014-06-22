@@ -29,6 +29,7 @@ def adder(func):
     @utool.accepts_scalar_input
     @wraps(func)
     def wrp_adder(*args, **kwargs):
+        print('[ADD]: ' + func.func_name)
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -40,6 +41,7 @@ def deleter(func):
     @utool.accepts_scalar_input
     @wraps(func)
     def wrp_adder(*args, **kwargs):
+        print('[DELETE]: ' + func.func_name)
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -56,6 +58,7 @@ def setter(func):
     @utool.accepts_scalar_input2(argx_list=range(0, 2))
     @wraps(func)
     def wrp_setter(*args, **kwargs):
+        print('[SET]: ' + func.func_name)
         #print('set: func_name=%r, args=%r, kwargs=%r' % (func.func_name, args, kwargs))
         return func(*args, **kwargs)
     return wrp_setter
@@ -69,6 +72,7 @@ def getter(func):
     list and returns a heterogeous list of values
     """
     func = default_decorator(func)
+    @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @wraps(func)
     def wrp_getter(*args, **kwargs):
@@ -87,6 +91,10 @@ def getter_vector_output(func):
     def getter_vector_wrp(*args, **kwargs):
         return func(*args, **kwargs)
     return getter_vector_wrp
+
+getter_1toM = getter_vector_output
+getter_1to1 = getter
+getter_1to1 = getter
 
 
 def getter_numpy(func):
@@ -113,6 +121,6 @@ def getter_numpy_vector_output(func):
     return getter_numpy_vector_wrp
 
 
-def getter_general(func):
-    """ Getter decorator for functions which has no gaurentees """
+def ider(func):
+    """ This function takes returns ids subject to conditions """
     return default_decorator(func)

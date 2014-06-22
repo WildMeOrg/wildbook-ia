@@ -24,7 +24,7 @@ def TEST_CONVERT_BBOX_POLY(ibs):
     assert vert_list_new == vert_list, 'Vertices and their bounding box do not match'
 
     vert_list = [((0, 50), (50, 100), (100, 50), (50, 0))]
-    rid_list = ibs.add_rois(gids[2:3], roi_verts_list=vert_list)
+    rid_list = ibs.add_rois(gids[2:3], vert_list=vert_list)
     bbox_list = ibs.get_roi_bboxes(rid_list)
     bbox_list_new = geometry.bboxes_from_vert_list(vert_list)
     assert bbox_list_new == bbox_list, 'Original bbox does not match the returned one'

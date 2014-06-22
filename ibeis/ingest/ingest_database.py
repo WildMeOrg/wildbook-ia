@@ -6,6 +6,7 @@ This module lists known raw databases and how to ingest them.
 from __future__ import absolute_import, division, print_function
 import ibeis
 from os.path import exists
+from itertools import izip
 from ibeis.dev import ibsfuncs
 from ibeis.control import IBEISControl
 import utool
@@ -36,12 +37,34 @@ def ingest_polar_bears(db):
 def ingest_testdb1(db):
     from vtool.tests import grabdata
     def postingest_tesdb1_func(ibs):
+        print('postingest_tesdb1_func')
+        # Adjust data as we see fit
         import numpy as np
         gid_list = np.array(ibs.get_valid_gids())
         unixtimes_even = (gid_list[0::2] + 100).tolist()
         unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
         unixtime_list = unixtimes_even + unixtimes_odd
         ibs.set_image_unixtime(gid_list, unixtime_list)
+        # Unname first rid in every name
+        rid_list = ibs.get_valid_rids()
+        nid_list = ibs.get_roi_nids(rid_list)
+        unique_flag = utool.flag_unique_items(nid_list)
+        unique_nids = utool.filter_items(nid_list, unique_flag)
+        flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
+        plural_flag = [nid in flagged_nids for nid in nid_list]
+        flag_list = map(all, izip(plural_flag, unique_flag))
+        flagged_rids = utool.filter_items(rid_list, flag_list)
+        new_nids = [ibs.UNKNOWN_NID] * len(flagged_rids)
+        print('rid_list=%r' % rid_list)
+        print('nid_list=%r' % nid_list)
+        print('unique_flag=%r' % unique_flag)
+        print('plural_flag=%r' % plural_flag)
+        print('unique_nids=%r' % unique_nids)
+        print('flag_list=%r' % flag_list)
+        print('flagged_nids=%r' % flagged_nids)
+        print('flagged_rids=%r' % flagged_rids)
+        print('new_nids=%r' % new_nids)
+        ibs.set_roi_nids(flagged_rids, new_nids)
         return None
     return Ingestable(db, ingest_type='named_images',
                       fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
@@ -162,9 +185,12 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if postingest_func is not None:
         postingest_func(ibs)
     # Print to show success
-    ibs.print_name_table()
-    ibs.print_image_table()
-    ibs.print_roi_table()
+    #ibs.print_image_table()
+    #ibs.print_tables()
+
+    #ibs.print_roi_table()
+    ibs.print_rlr_table()
+    ibs.print_label_table()
     return rid_list
 
 

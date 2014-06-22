@@ -218,16 +218,36 @@ def get_match_truth(ibs, rid1, rid2):
     return truth
 
 
-def unflat_lookup(method, unflat_rowids, **kwargs):
-    """ Uses an ibeis lookup function with a non-flat rowid list.
+def unflat_map(method, unflat_rowids, **kwargs):
     """
-    # First flatten the list
+    Uses an ibeis lookup function with a non-flat rowid list.
+    In essence this is equivilent to map(method, unflat_rowids).
+    The utility of this function is that it only calls method once.
+    This is more efficient for calls that can take a list of inputs
+    """
+    # First flatten the list, and remember the original dimensions
     flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
-    # Then preform the lookup
+    # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
-    # Then unflatten the list
+    # Then unflatten the results to the original input dimensions
     unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
     return unflat_vals
+
+
+def unflat_multimap(method_list, unflat_rowids, **kwargs):
+    """ unflat_map, but allows multiple methods
+    """
+    # First flatten the list, and remember the original dimensions
+    flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
+    # Then preform the lookup / implicit mapping
+    flat_vals_list = [method(flat_rowids, **kwargs) for method in method_list]
+    # Then unflatten the results to the original input dimensions
+    unflat_vals_list = [utool.util_list.unflatten(flat_vals, reverse_list)
+                        for flat_vals in flat_vals_list]
+    return unflat_vals_list
+
+# TODO: Depricate the lookup names
+unflat_lookup = unflat_map
 
 
 def _make_unflat_getter_func(flat_getter):
@@ -573,7 +593,7 @@ def get_infostr(ibs):
 def print_roi_table(ibs):
     """ Dumps roi table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid']))
+    print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid', 'roi_verts']))
 
 
 @__injectable
@@ -600,10 +620,17 @@ def print_image_table(ibs):
 
 
 @__injectable
-def print_name_table(ibs):
+def print_label_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('names'))
+    print(ibs.db.get_table_csv('labels'))
+
+
+@__injectable
+def print_rlr_table(ibs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv('roi_label_relationship'))
 
 
 @__injectable
@@ -628,13 +655,24 @@ def print_egpairs_table(ibs):
 
 
 @__injectable
-def print_tables(ibs):
-    ibs.print_image_table()
-    ibs.print_roi_table()
-    ibs.print_chip_table()
-    ibs.print_feat_table()
-    ibs.print_name_table()
-    ibs.print_config_table()
+def print_tables(ibs, exclude_columns=None, exclude_tables=None):
+    if exclude_columns is None:
+        exclude_columns = ['roi_uuid', 'label_uuid', 'roi_verts', 'feature_keypoints',
+                           'feature_sifts', 'image_uuid', 'image_uri']
+    if exclude_tables is None:
+        exclude_tables = ['masks', 'recognitions', 'chips', 'features']
+    for table_name in ibs.db.get_table_names():
+        if table_name in exclude_tables:
+            continue
+        print('\n')
+        print(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
+    #ibs.print_image_table()
+    #ibs.print_roi_table()
+    #ibs.print_labels_table()
+    #ibs.print_rlr_table()
+    #ibs.print_config_table()
+    #ibs.print_chip_table()
+    #ibs.print_feat_table()
     print('\n')
 
 

@@ -6,12 +6,13 @@ from os.path import join, exists
 # Tools
 import utool
 from . import __SQLITE3__ as lite
-DEBUG=False
+DEBUG = False
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql]', DEBUG=DEBUG)
 
 
 VERBOSE = utool.VERBOSE
+PRINT_SQL = utool.get_flag('--print-sql')
 AUTODUMP = utool.get_flag('--auto-dump')
 
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
@@ -83,9 +84,7 @@ class SQLExecutionContext(object):
 
     def __enter__(context):
         """ Checks to see if the operating will change the database """
-        utool.printif(lambda:
-                      '[sql] Callers: ' + utool.get_caller_name(range(3, 6)),
-                      DEBUG)
+        #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
         if context.num_params is None:
             context.operation_label = ('[sql] execute num_params=%d optype=%s: '
                                        % (context.num_params, context.operation_type))
@@ -94,6 +93,8 @@ class SQLExecutionContext(object):
         # Start SQL Transaction
         if context.start_transaction:
             _executor(context.db.executor, 'BEGIN', ())
+        if PRINT_SQL:
+            print(context.operation_label)
         # Comment out timeing code
         #if not QUIET:
         #    context.tt = utool.tic(context.operation_label)
@@ -101,7 +102,7 @@ class SQLExecutionContext(object):
 
     # --- with SQLExecutionContext: statment code happens here ---
 
-    def execute_and_generate_results(context, params, squelch_ignore=True):
+    def execute_and_generate_results(context, params):
         """ HELPER FOR CONTEXT STATMENT """
         executor = context.db.executor
         operation = context.operation
@@ -110,10 +111,7 @@ class SQLExecutionContext(object):
             is_insert = context.operation_type.upper().startswith('INSERT')
             return _results_gen(executor, get_last_id=is_insert)
         except lite.IntegrityError:
-            if squelch_ignore:
-                return [None]
-            else:
-                raise lite.IntegrityError
+            raise
 
     def __exit__(context, type_, value, trace):
         #if not QUIET:
@@ -122,12 +120,6 @@ class SQLExecutionContext(object):
             # Commit the transaction
             if context.auto_commit:
                 context.db.commit(verbose=False)
-            # NO MORE CALLBACKS ????
-            # Emit callback if changing
-            #if context.changed:
-            #    print('[sql] changed database')
-            #    if context.db.dbchanged_callback is not None:
-            #        context.db.dbchanged_callback()
         else:
             # An SQLError is a serious offence.
             # Dump on error
@@ -186,9 +178,13 @@ class SQLDatabaseController(object):
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
-        db.table_columns = {}
+        db.table_columns = utool.odict()
         db.cache = {}
         db.stack = []
+
+    #==============
+    # CONVINENCE
+    #==============
 
     @default_decorator
     def dump_tables_to_csv(db):
@@ -208,9 +204,13 @@ class SQLDatabaseController(object):
         return column_names
 
     @default_decorator
-    def get_tables(db):
+    def get_table_names(db):
         """ Conveinience: """
         return db.table_columns.keys()
+
+    def get_tables(db):
+        #DEPRICATED
+        return db.get_table_names()
 
     @default_decorator
     def get_column(db, tablename, name):
@@ -264,19 +264,7 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
-    @default_decorator
-    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None):
-        if params is None:
-            params = []
-        operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, params, auto_commit=True,  verbose=VERBOSE)
-
-    @default_decorator
-    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
-        operation = operation_fmt.format(**fmtdict)
-        return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
-                              auto_commit=True, verbose=VERBOSE)
-
+    #@ider
     @default_decorator
     def _get_all_ids(db, tblname, **kwargs):
         """ valid ider """
@@ -315,9 +303,9 @@ class SQLDatabaseController(object):
                                                    params_iter=params_iter, **kwargs)
         return rowid_list
 
+    #@adder
     @default_decorator
-    def add_cleanly(db, tblname, colnames, params_iter,
-                    get_rowid_from_uuid, ensure=None):
+    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid):
         """
         Extra input:
             the first item of params_iter must be a uuid,
@@ -327,54 +315,65 @@ class SQLDatabaseController(object):
             get_rowid_from_uuid = ibs.get_image_gids_from_uuid
 
         """
+        # ADD_CLEANLY_1: PREPROCESS INPUT
         # eagerly evaluate for uuids
         params_list = list(params_iter)
+        # Extract uuids from the params list (requires eager eval)
+        # FIXME: the uuids being at index 0 is a hack
+        uuid_list = [None if params is None else params[0] for params in params_list]
+        # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
-        # Extract uuids from the params list (requires eager eval)
-        uuid_list = [params[0] if isvalid else None for (params, isvalid) in
-                     izip(params_list, isvalid_list)]
-
-        if ensure is None:
-            rowid_list_ = get_rowid_from_uuid(uuid_list)
-        else:
-            rowid_list_ = get_rowid_from_uuid(uuid_list, ensure=ensure)
-
-        isdirty_list = [rowid is None and isvalid for (rowid, isvalid)
-                        in izip(rowid_list_, isvalid_list)]
+        # Check for duplicate inputs
+        isunique_list = utool.flag_unique_items(uuid_list)
+        # Check to see if this already exists in the database
+        rowid_list_   = get_rowid_from_uuid(uuid_list)
+        isnew_list    = [rowid is None for rowid in rowid_list_]
+        if not all(isunique_list):
+            print('[WARNING]: duplicate inputs to db.add_cleanly')
+        # Flag each item that needs to added to the database
+        isdirty_list = map(all, izip(isvalid_list, isunique_list, isnew_list))
+        # ADD_CLEANLY_3.1: EXIT IF CLEAN
+        if not any(isdirty_list):
+            # There is nothing to add. Return the rowids
+            return rowid_list_
+        # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
+        # Add any unadded parameters to the database
         dirty_params = utool.filter_items(params_list, isdirty_list)
-
-        # Add any unadded images
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
-        if len(dirty_params) > 0:
+        try:
             db.add(tblname, colnames, dirty_params)
-            #results =
-            # If the result was already in the database (and ignored), it will return None.
-            # Thus, go and get the row_id if the index is None
-            #results = [get_rowid_from_uuid([uuid_list[index]])[0]
-            #           if results[index] is None
-            #           else results[index]
-            #           for index in range(len(results))]
-
-            if ensure is None:
-                rowid_list = get_rowid_from_uuid(uuid_list)
-            else:
-                rowid_list = get_rowid_from_uuid(uuid_list, ensure=ensure)
-        else:
-            rowid_list = rowid_list_
+        except Exception as ex:
+            #unique_uuids = utool.unique_ordered(uuid_list)
+            #assert len(unique_uuids) == len(uuid_list), 'duplicate inputs'
+            #assert unique_uuids == uuid_list, 'duplicate inputs'
+            #ibs = utool.search_stack_for_var('ibs')
+            #print(ibs.get_valid_gids())
+            utool.printex(ex, key_list=['isdirty_list', 'uuid_list', 'rowid_list_'])
+            #utool.embed()
+            raise
+        #results =
+        # If the result was already in the database (and ignored), it will return None.
+        # Thus, go and get the row_id if the index is None
+        #results = [get_rowid_from_uuid([uuid_list[index]])[0]
+        #           if results[index] is None
+        #           else results[index]
+        #           for index in range(len(results))]
+        rowid_list = get_rowid_from_uuid(uuid_list)
+        # ADD_CLEANLY_4: SANITY CHECK AND RETURN
         assert len(rowid_list) == len(params_list)
         return rowid_list
 
     #@getter
     @default_decorator
-    def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, 
-                **kwargs):
+    def get_where(db, tblname, colnames, params_iter, where_clause,
+                  unpack_scalars=True, **kwargs):
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
         fmtdict = {
-        'tblname'     : tblname,
-        'colnames'    : ', '.join(colnames),
-        'where_clauses' : 'WHERE ' + where_clause,
+            'tblname'     : tblname,
+            'colnames'    : ', '.join(colnames),
+            'where_clauses' : 'WHERE ' + where_clause,
         }
         operation_fmt = '''
             SELECT {colnames}
@@ -382,9 +381,9 @@ class SQLDatabaseController(object):
             {where_clauses}
             '''
         val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                                    params_iter=params_iter,
-                                                    unpack_scalars=unpack_scalars,
-                                                    **kwargs)
+                                                 params_iter=params_iter,
+                                                 unpack_scalars=unpack_scalars,
+                                                 **kwargs)
         return val_list
 
     #@getter
@@ -402,7 +401,7 @@ class SQLDatabaseController(object):
 
         return db.get_where(tblname, colnames, params_iter, where_clause, unpack_scalars=unpack_scalars)
 
-
+    #@getter
     @default_decorator
     def get_executeone(db, tblname, colnames, **kwargs):
         if isinstance(colnames, (str, unicode)):
@@ -418,6 +417,7 @@ class SQLDatabaseController(object):
         val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
         return val_list
 
+    #@getter
     @default_decorator
     def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
         if isinstance(colnames, (str, unicode)):
@@ -437,22 +437,38 @@ class SQLDatabaseController(object):
 
     #@setter
     @default_decorator
-    def set(db, tblname, colnames, val_list, id_list, id_colname=None, **kwargs):
+    def set(db, tblname, colnames, val_list, id_list, id_colname='rowid', **kwargs):
         """ setter """
+        #OFF printDBG('------------------------')
+        #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('set_(rowid_list=%r, val_list=%r)' % (rowid_list, val_list))
+        #from operator import xor
+        #assert not xor(utool.isiterable(rowid_list),
+        #               utool.isiterable(val_list)), 'invalid mixing of iterable and scalar inputs'
+
+        #if not utool.isiterable(rowid_list) and not utool.isiterable(val_list):
+        #    rowid_list = (rowid_list,)
+        #    val_list = (val_list,)
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
         val_list = list(val_list)
         id_list = list(id_list)
+        with utool.Indenter():
+            print('[sql.set] caller: ' + utool.get_caller_name(range(1, 4)))
+            print('[sql.set] tblname=%r' % (tblname,))
+            print('[sql.set] val_list=%r' % (val_list,))
+            print('[sql.set] id_list=%r' % (id_list,))
+            print('[sql.set] id_colname=%r' % (id_colname,))
         assert  len(val_list) == len(id_list)
         fmtdict = {
             'tblname_str': tblname,
             'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),
-            'rowid_str'   : ('rowid=?' if id_colname is None else id_colname + '=?'),
+            'where_clause'   : (id_colname + '=?'),
         }
         operation_fmt = '''
             UPDATE {tblname_str}
             SET {assign_str}
-            WHERE {rowid_str}
+            WHERE {where_clause}
             '''
         params_iter = utool.flattenize(izip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
@@ -477,8 +493,25 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter,
                                              **kwargs)
 
+    #==============
+    # CORE WRAPPERS
+    #==============
+
+    @default_decorator
+    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None):
+        if params is None:
+            params = []
+        operation = operation_fmt.format(**fmtdict)
+        return db.executeone(operation, params, auto_commit=True,  verbose=VERBOSE)
+
+    @default_decorator
+    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
+        operation = operation_fmt.format(**fmtdict)
+        return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
+                              auto_commit=True, verbose=VERBOSE)
+
     #=========
-    # API CORE
+    # SQLDB CORE
     #=========
 
     @profile
@@ -549,20 +582,20 @@ class SQLDatabaseController(object):
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
         """
-            operation - parameterized SQL operation string.
-                Parameterized prevents SQL injection attacks by using an ordered
-                representation ( ? ) or by using an ordered, text representation
-                name ( :value )
+        operation - parameterized SQL operation string.
+            Parameterized prevents SQL injection attacks by using an ordered
+            representation ( ? ) or by using an ordered, text representation
+            name ( :value )
 
-            params - list of values or a dictionary of representations and
-                         corresponding values
-                * Ordered Representation -
-                    List of values in the order the question marks appear in the
-                    sql operation string
-                * Unordered Representation -
-                    Dictionary of (text representation name -> value) in an
-                    arbirtary order that will be filled into the cooresponging
-                    slots of the sql operation string
+        params - list of values or a dictionary of representations and
+                        corresponding values
+            * Ordered Representation -
+                List of values in the order the question marks appear in the
+                sql operation string
+            * Unordered Representation -
+                Dictionary of (text representation name -> value) in an
+                arbirtary order that will be filled into the cooresponging
+                slots of the sql operation string
         """
         with SQLExecutionContext(db, operation, num_params=1) as context:
             try:
@@ -584,66 +617,34 @@ class SQLDatabaseController(object):
                 SELECT colname
                 FROM tblname
                 WHERE
-                (
-                    colname_1=?,
-                    ...,
-                    colname_N=?
-                )
+                (colname_1=?, ..., colname_N=?)
                 '''
             params_iter - a sequence of params e.g.
-                params_iter = [
-                    (col1, ..., colN),
-                           ...,
-                    (col1, ..., colN),
-                ]
+                params_iter = [(col1, ..., colN), ..., (col1, ..., colN),]
         Output:
             results_iter - a sequence of data results
-
-            FOR AN INSERT STATEMENT
-                [
-
-            FOR AN UPDATE STATEMENT
-
-            FOR A  SELECT STATEMENT
-
-            FOR A  DELETE STATEMENT
-
-
-        if unpack_scalars is True results are returned as:
-
-
-        same as execute but takes a iterable of params instead of just one
-        This function is a bit messy right now. Needs cleaning up
         """
         # Aggresively compute iterator if the num_params is not given
-        def _prepare(num_params, params_iter):
-            if num_params is None:
-                params_iter = list(params_iter)
-                num_params  = len(params_iter)
-            return num_params, params_iter
-        num_params, params_iter = _prepare(num_params, params_iter)
+        if num_params is None:
+            params_iter = list(params_iter)
+            num_params  = len(params_iter)
         # Do not compute executemany without params
         if num_params == 0:
-            utool.printif(lambda: utool.unindent(
-                '''
-                [sql!] WARNING: dont use executemany with no params use executeone instead.
-                '''), VERBOSE)
+            utool.printif(lambda: '[sql!] WARNING: dont use executemany with no params use executeone instead.', VERBOSE)
             return []
+        # Execute with context
         with SQLExecutionContext(db, operation, num_params,
                                  start_transaction=True) as context:
             try:
-                # Python list-comprehension magic.
-                results_iter = map(list, (context.execute_and_generate_results(params)
-                                          for params in params_iter))
+                # Execute each query and get results with a list comprehension
+                # using the SQLExecutionContext (with eager evalutaion for now)
+                results_iter = map(list, (context.execute_and_generate_results(params) for params in params_iter))
                 if unpack_scalars:
                     results_iter = list(imap(_unpacker, results_iter))
-                # Eager evaluation of results (for development)
-                results_list = list(results_iter)
+                results_list = list(results_iter)  # Eager evaluation of results (for development)
             except Exception as ex:
                 # Error reporting
-                utool.printex(ex, key_list=[(str, 'operation'), 'params', 'params_iter'])
-                print(utool.get_caller_name(range(0, 10)))
-                results_list = None
+                utool.printex(ex, key_list=[(str, 'operation'), 'num_params', 'params_iter'])
                 raise
         return results_list
 

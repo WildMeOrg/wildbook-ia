@@ -148,28 +148,32 @@ def get_timedelta_str(ibs, rid1, rid2):
     return timedelta_str
 
 
-@getter
-def get_chip_labels(ibs, rid_list, **kwargs):
-    # Add each type of label_list to the strings list
-    ibsfuncs.assert_valid_rids(ibs, rid_list)
-    label_strs = []
+def get_roi_texts(ibs, rid_list, **kwargs):
+    """ Add each type of label_list to the strings list """
     try:
+        ibsfuncs.assert_valid_rids(ibs, rid_list)
+        assert utool.isiterable(rid_list), 'input must be iterable'
         assert all([isinstance(rid, int) for rid in rid_list]), 'invalid input'
     except AssertionError as ex:
         utool.printex(ex, 'invalid input', 'viz', key_list=['rid_list'])
         raise
+    texts_list = []  # list of lists of texts
     if kwargs.get('show_ridstr', True):
         ridstr_list = get_ridstrs(rid_list)
-        label_strs.append(ridstr_list)
+        texts_list.append(ridstr_list)
     if kwargs.get('show_gname', False):
         gname_list = ibs.get_roi_gnames(rid_list)
-        label_strs.append(['gname=%s' % gname for gname in gname_list])
+        texts_list.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):
         name_list = ibs.get_roi_names(rid_list)
-        label_strs.append(['name=%s' % name for name in name_list])
+        texts_list.append(['name=%s' % name for name in name_list])
     # zip them up to get a tuple for each chip and join the fields
-    title_list = [', '.join(tup) for tup in izip(*label_strs)]
-    return title_list
+    if len(texts_list) > 0:
+        roi_text_list = [', '.join(tup) for tup in izip(*texts_list)]
+    else:
+        # no labels were specified return empty string for each input
+        roi_text_list = [''] * len(rid_list)
+    return roi_text_list
 
 
 @getter
