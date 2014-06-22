@@ -66,8 +66,15 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # For win32
     import ibeis
     # Initialize database
-    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
-    ibs = main_locals['ibs']
-    test_locals = utool.run_test(TEST_IBS, ibs)
+    try:
+        main_locals = ibeis.main(defaultdb='testdb0', gui=False)
+        ibs = main_locals['ibs']
+        test_locals = utool.run_test(TEST_IBS, ibs)
+    except RuntimeError as ex:
+        utool.printex(ex)
+        import matplotlib as mpl
+        backend = matplotlib.get_backend()
+        print('[test] current backend is: %r' % backend)
+        raise
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)

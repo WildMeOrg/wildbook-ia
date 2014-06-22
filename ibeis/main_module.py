@@ -39,9 +39,9 @@ def _parse_args():
 
 @profile
 def _init_matplotlib():
-    import matplotlib
+    import matplotlib as mpl
     import utool
-    backend = matplotlib.get_backend()
+    backend = mpl.get_backend()
     if not sys.platform.startswith('win32') and os.environ.get('DISPLAY', None):
         # Write to files if we cannot display
         TARGET_BACKEND = 'PDF'
@@ -51,27 +51,27 @@ def _init_matplotlib():
         if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
             print('[main] current backend is: %r' % backend)
-            print('[main] matplotlib.use(%r)' % TARGET_BACKEND)
+            print('[main] mpl.use(%r)' % TARGET_BACKEND)
         if backend != TARGET_BACKEND:
-            matplotlib.use(TARGET_BACKEND, warn=True, force=True)
-            backend = matplotlib.get_backend()
+            mpl.use(TARGET_BACKEND, warn=True, force=True)
+            backend = mpl.get_backend()
             if not utool.QUIET and utool.VERBOSE:
                 print('[main] current backend is: %r' % backend)
         if utool.get_flag('--notoolbar'):
             toolbar = 'None'
         else:
             toolbar = 'toolbar2'
-        matplotlib.rcParams['toolbar'] = toolbar
-        matplotlib.rc('text', usetex=False)
-        mpl_keypress_shortcuts = [key for key in matplotlib.rcParams.keys() if key.find('keymap') == 0]
+        mpl.rcParams['toolbar'] = toolbar
+        mpl.rc('text', usetex=False)
+        mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
         for key in mpl_keypress_shortcuts:
-            matplotlib.rcParams[key] = ''
-        #matplotlib.rcParams['text'].usetex = False
+            mpl.rcParams[key] = ''
+        #mpl.rcParams['text'].usetex = False
         #for key in mpl_keypress_shortcuts:
-            #print('%s = %s' % (key, matplotlib.rcParams[key]))
+            #print('%s = %s' % (key, mpl.rcParams[key]))
         # Disable mpl shortcuts
-            #matplotlib.rcParams['toolbar'] = 'None'
-            #matplotlib.rcParams['interactive'] = True
+            #mpl.rcParams['toolbar'] = 'None'
+            #mpl.rcParams['interactive'] = True
 
 
 @profile
@@ -230,7 +230,7 @@ def _preload(mpl=True, par=True, logging=True):
     if  multiprocessing.current_process().name != 'MainProcess':
         return
     #_parse_args()
-    # matplotlib backends
+    # mpl backends
     if logging and not params.args.nologging:
         utool.start_logging(appname='ibeis')
     if mpl:
