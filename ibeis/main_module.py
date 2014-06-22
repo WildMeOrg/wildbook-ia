@@ -43,6 +43,7 @@ def _init_matplotlib():
     import utool
     backend = matplotlib.get_backend()
     if not sys.platform.startswith('win32') and os.environ.get('DISPLAY', None):
+        # Write to files if we cannot display
         TARGET_BACKEND = 'PDF'
     else:
         TARGET_BACKEND = 'Qt4Agg'
