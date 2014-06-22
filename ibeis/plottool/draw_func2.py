@@ -6,10 +6,17 @@
 # plot_<func_name> will not clear the axes or figure. More useful for graphs
 # draw_<func_name> same as plot for now. More useful for images
 from __future__ import absolute_import, division, print_function
+import os
+import sys
 import utool
 # Matplotlib
 import matplotlib as mpl
-mpl.use('Qt4Agg')
+if not sys.platform.startswith('win32') and os.environ.get('DISPLAY', None) is None:
+    # Write to files if we cannot display
+    TARGET_BACKEND = 'PDF'
+else:
+    TARGET_BACKEND = 'Qt4Agg'
+mpl.use(TARGET_BACKEND)
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable

@@ -29,7 +29,6 @@ Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
 """
 from __future__ import absolute_import, division, print_function
 import matplotlib
-#matplotlib.use('Qt4Agg')
 from matplotlib.patches import Polygon
 from matplotlib.widgets import Button
 #import matplotlib.image as mpimg
@@ -664,7 +663,7 @@ class ROIInteraction(object):
                 break
         if change is True:
             #if (bbox_x,bbox_y,bbox_w,bbox_h) in self.original_list:
-            #    index = self.original_list.index((bbox_x,bbox_y,bbox_w,bbox_h)) 
+            #    index = self.original_list.index((bbox_x,bbox_y,bbox_w,bbox_h))
             #    self.changed_list[index] = True
             #    print(self.changed_list)
             polygon.xy = new_coords
@@ -789,7 +788,7 @@ class ROIInteraction(object):
                     y = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
                     w = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0]) - x
                     h = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1]) - y
-                    bbox_list.append((int(x),int(y),int(w),int(h)))
+                    bbox_list.append((int(x), int(y), int(w), int(h)))
             return bbox_list
 
         def send_back_rois():
@@ -805,7 +804,7 @@ class ROIInteraction(object):
                 if bbox_list[i] is None:
                     deleted_list.append(i)
                 elif bbox_list[i] != self.original_list[i]:
-                    changed_list.append((i,bbox_list[i]))
+                    changed_list.append((i, bbox_list[i]))
             for i in range(len(self.original_list), len(self.polyList)):
                 if bbox_list[i] is not None:
                     new_list.append(bbox_list[i])
@@ -892,7 +891,6 @@ def ROI_creator(img, verts_list):  # add callback as variable
 
     if img is None:
         try:
-            import utool
             img_url = 'http://i.imgur.com/Vq9CLok.jpg'
             img_fpath = utool.grab_file_url(img_url)
             #img = mpimg.imread(img_fpath)
