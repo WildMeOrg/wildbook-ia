@@ -39,7 +39,7 @@ def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
     # Rebuild the index otherwise
     if not load_success:
         print('...flann cache miss.')
-        print('...building (this may take a sec).')
+        print('...building kdtree over %d points (this may take a sec).' % len(data))
         flann.build_index(data, **flann_params)
         print('flann.save_index(%r)' % split(flann_fpath)[1])
         flann.save_index(flann_fpath)
