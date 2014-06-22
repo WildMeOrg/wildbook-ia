@@ -29,7 +29,7 @@ def aggregate_descriptors(ibs, rid_list):
                                rid (roi rowid)
                                fx (feature index w.r.t. rid)
     """
-    print('[nn] aggregate descriptors from %d rois' % len(rid_list))
+    print('[nn] stacking descriptors from %d rois' % len(rid_list))
     desc_list = ibs.get_roi_desc(rid_list)
     # Build inverted index of (rid, fx) pairs
     rid_nFeat_iter = izip(rid_list, imap(len, desc_list))
@@ -44,6 +44,7 @@ def aggregate_descriptors(ibs, rid_list):
     try:
         # Stack descriptors into numpy array corresponding to inverted inexed
         ax2_desc = np.vstack(desc_list)
+        print('[nn] stacked %d descriptors from %d rois' % (len(ax2_desc), len(rid_list)))
     except MemoryError as ex:
         utool.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
