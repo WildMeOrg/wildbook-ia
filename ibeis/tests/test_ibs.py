@@ -73,7 +73,7 @@ if __name__ == '__main__':
     except RuntimeError as ex:
         utool.printex(ex)
         import matplotlib as mpl
-        backend = matplotlib.get_backend()
+        backend = mpl.get_backend()
         print('[test] current backend is: %r' % backend)
         raise
     execstr = utool.execstr_dict(test_locals, 'test_locals')
