@@ -208,41 +208,46 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             _NEWBUT('Import Images\n(via files)',
                     back.import_images_from_file,
                     bgcolor=(235, 200, 200),),
-            _NEWBUT('Import Images\n(via dir)',
-                    back.import_images_from_dir,
-                    bgcolor=(235, 200, 200)),
-            _NEWBUT('Import Images\n(via dir + size filter)',
-                    bgcolor=(235, 200, 200)),
+            #_NEWBUT('Import Images\n(via dir)',
+            #        back.import_images_from_dir,
+            #        bgcolor=(235, 200, 200)),
+            #_NEWBUT('Import Images\n(via dir + size filter)',
+            #        bgcolor=(235, 200, 200)),
 
             #_SEP(),
 
-            _NEWBUT('Filter Images (GIST)'),
+            #_NEWBUT('Filter Images (GIST)'),
 
             #_SEP(),
 
-            _NEWBUT('Cluster Encounters', ibswgt.back.compute_encounters,
+            _NEWBUT('Group Images into Encounters', ibswgt.back.compute_encounters,
                     bgcolor=(255, 255, 150)),
             #_NEWBUT('Compute {algid} Encounters'),
 
             #_SEP(),
 
-            _NEWBUT('Run Detector',
+            _NEWBUT('Detect',
                     ibswgt.back.run_detection_coarse,
                     bgcolor=(150, 255, 150)),
-            _NEWBUT('Review Detections',
-                    ibswgt.back.review_detections,
-                    bgcolor=(170, 250, 170)),
+            #_NEWBUT('Review Detections',
+            #        ibswgt.back.review_detections,
+            #        bgcolor=(170, 250, 170)),
 
             #_SEP(),
 
-            _NEWBUT('Run Recognition',
+            _NEWBUT('Identify\n(intra-encounter)',
                     ibswgt.back.compute_queries,
                     bgcolor=(150, 150, 255),
                     fgcolor=(0, 0, 0)),
-            _NEWBUT('Review Recognitions',
-                    ibswgt.back.review_queries,
-                    bgcolor=(170, 170, 250),
+
+            _NEWBUT('Identify\n(vs exemplar database)',
+                    ibswgt.back.compute_queries,
+                    bgcolor=(150, 150, 255),
                     fgcolor=(0, 0, 0)),
+            #_NEWBUT('Review Recognitions',
+            #        ibswgt.back.review_queries,
+            #        bgcolor=(170, 170, 250),
+            #        fgcolor=(0, 0, 0)),
 
             #_SEP(),
 

@@ -112,15 +112,16 @@ def nearest_neighbors(ibs, qrids, qreq):
         qfx2_desc = qdesc_list[count]
         # Check that we can query this chip
         if len(qfx2_desc) == 0:
-            # Raise error if strict
-            if utool.STRICT:
-                raise NoDescriptorsException(ibs, qrid)
-            else:
+            if True or not utool.STRICT:
                 # Assign empty nearest neighbors
                 empty_qfx2_ax   = np.empty((0, K + Knorm), dtype=np.int)
                 empty_qfx2_dist = np.empty((0, K + Knorm), dtype=np.float)
                 qrid2_nns[qrid] = (empty_qfx2_ax, empty_qfx2_dist)
                 continue
+            else:
+                # Raise error if strict
+                raise NoDescriptorsException(ibs, qrid)
+
         # Find Neareset Neighbors
         (qfx2_ax, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm,
                                               checks=checks)

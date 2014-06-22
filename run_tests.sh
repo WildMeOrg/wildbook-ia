@@ -15,31 +15,45 @@ export CWD=$(pwd)
 export PYHESAFF_DIR=$(python -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
 export VTOOL_DIR=$(python -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
 echo $VTOOL_DIR
-
 echo $PYTHONPATH
 
 export ARGV="--quiet --noshow $@"
 
-export DEFAULT=ON
-export IBS_TESTS=$DEFAULT
+set_test_flags()
+{
+    export DEFAULT=$1
+    export IBS_TESTS=$DEFAULT
+    export GUI_TESTS=$DEFAULT
+    export SQL_TESTS=$DEFAULT
+    export MISC_TESTS=$DEFAULT
+    export VIEW_TESTS=$DEFAULT
+    export VTOOL_TESTS=$DEFAULT
+    export HESAFF_TESTS=$DEFAULT
+}
+set_test_flags OFF
+export IBS_TESTS=ON
+
 
 # Parse for bash commandline args
 for i in "$@"
 do
-case $i in
-    --just-ibeis)
-    export DEFAULT=OFF  # 
-    export IBS_TESTS=ON
+case $i in --testall)
+    set_test_flags ON
+    ;;
+esac
+case $i in --notestibs)
+    export IBS_TESTS=OFF
+    ;;
+esac
+case $i in --notestgui)
+    export GUI_TESTS=ON
+    ;;
+esac
+case $i in --testgui)
+    export GUI_TESTS=ON
     ;;
 esac
 done
-
-export GUI_TESTS=$DEFAULT
-export SQL_TESTS=$DEFAULT
-export MISC_TESTS=$DEFAULT
-export VIEW_TESTS=$DEFAULT
-export VTOOL_TESTS=$DEFAULT
-export HESAFF_TESTS=$DEFAULT
 
 
 
@@ -47,6 +61,9 @@ PRINT_DELIMETER(){
     printf "\n#\n#\n#>>>>>>>>>>> next_test\n\n"
 }
 
+
+BEGIN_TESTS()
+{
 cat <<EOF
 .______       __    __  .__   __.    .___________. _______     _______.___________.    _______.
 |   _  \     |  |  |  | |  \ |  |    |           ||   ____|   /       |           |   /       |
@@ -56,13 +73,14 @@ cat <<EOF
 | _| '._____| \______/  |__| \__|        |__|     |_______|_______/       |__|    |_______/    
 EOF
 
-echo "BEGIN: ARGV=$ARGV"
-PRINT_DELIMETER
+    echo "BEGIN: ARGV=$ARGV"
+    PRINT_DELIMETER
 
-num_passed=0
-num_ran=0
+    num_passed=0
+    num_ran=0
 
-export FAILED_TESTS=''
+    export FAILED_TESTS=''
+}
 
 RUN_TEST()
 {
@@ -80,9 +98,25 @@ RUN_TEST()
 
 }
 
+END_TESTS()
+{
+    echo "RUN_TESTS: DONE"
+
+    if [ "$FAILED_TESTS" != "" ] ; then
+        echo "-----"
+        printf "Failed Tests:" 
+        printf "$FAILED_TESTS\n"
+        printf "$FAILED_TESTS\n" >> failed.txt
+        echo "-----"
+    fi
+    echo "$num_passed / $num_ran tests passed"
+}
+
+#---------------------------------------------
+# START TESTS
+BEGIN_TESTS
 
 RUN_TEST ibeis/tests/assert_modules.py 
-
 
 #---------------------------------------------
 # VTOOL TESTS
@@ -92,13 +126,9 @@ cat <<EOF
     |  |  |  |  | |  | |        |  |___ [__   |  [__  
      \/   |  |__| |__| |___     |  |___ ___]  |  ___] 
 EOF
-
     RUN_TEST $VTOOL_DIR/tests/test_draw_keypoint.py --noshow 
-
     RUN_TEST $VTOOL_DIR/tests/test_spatial_verification.py --noshow 
-
     RUN_TEST $VTOOL_DIR/tests/test_exhaustive_ori_extract.py --noshow 
-
     RUN_TEST $VTOOL_DIR/tests/test_vtool.py 
 
 fi
@@ -111,15 +141,10 @@ cat <<EOF
     | __ |  | |     |  |___ [__   |  [__  
     |__] |__| |     |  |___ ___]  |  ___] 
 EOF
-
     RUN_TEST ibeis/tests/test_gui_import_images.py 
-
     RUN_TEST ibeis/tests/test_gui_add_roi.py 
-
     RUN_TEST ibeis/tests/test_gui_selection.py 
-
     RUN_TEST ibeis/tests/test_gui_open_database.py
-
     RUN_TEST ibeis/tests/test_gui_all.py
 fi
 
@@ -132,29 +157,18 @@ cat <<EOF
     | |__] |___ | [__      |  |___ [__   |  [__  
     | |__] |___ | ___]     |  |___ ___]  |  ___] 
 EOF
-    
+    RUN_TEST ibeis/tests/test_ibs_info.py
     RUN_TEST ibeis/tests/test_ibs.py
-
     RUN_TEST ibeis/tests/test_ibs_add_images.py
-
     RUN_TEST ibeis/tests/test_ibs_add_name.py
-
     RUN_TEST ibeis/tests/test_ibs_encounters.py
-
     RUN_TEST ibeis/tests/test_ibs_chip_compute.py
-
     RUN_TEST ibeis/tests/test_ibs_feat_compute.py
-
     RUN_TEST ibeis/tests/test_ibs_detectimg_compute.py
-
     RUN_TEST ibeis/tests/test_ibs_query.py
-
     RUN_TEST ibeis/tests/test_ibs_query_components.py
-
     RUN_TEST ibeis/tests/test_ibs_getters.py
-
     RUN_TEST ibeis/tests/test_convert_bbox_poly.py
-
     RUN_TEST ibeis/tests/test_ibs_control.py
 fi
 
@@ -167,9 +181,7 @@ cat <<EOF
     |  | | |___ | | |     |  |___ [__   |  [__  
      \/  | |___ |_|_|     |  |___ ___]  |  ___] 
 EOF
-
     RUN_TEST ibeis/tests/test_view_viz.py
-
     RUN_TEST ibeis/tests/test_view_interact.py
 fi
 
@@ -181,7 +193,6 @@ cat <<EOF
     |\/| | [__  |        |  |___ [__   |  [__  
     |  | | ___] |___     |  |___ ___]  |  ___] 
 EOF
-    
     RUN_TEST ibeis/tests/test_utool_parallel.py
     RUN_TEST ibeis/tests/test_pil_hash.py
 fi
@@ -194,7 +205,6 @@ cat <<EOF
     |__| |___ [__  |__| |___ |___     |  |___ [__   |  [__  
     |  | |___ ___] |  | |    |        |  |___ ___]  |  ___] 
 EOF
-    
     RUN_TEST $PYHESAFF_DIR/tests/test_adaptive_scale.py
     RUN_TEST $PYHESAFF_DIR/tests/test_draw_keypoint.py
     RUN_TEST $PYHESAFF_DIR/tests/test_ellipse.py
@@ -213,23 +223,11 @@ cat <<EOF
     [__  |  | |        |  |___ [__   |  [__  
     ___] |_\| |___     |  |___ ___]  |  ___] 
 EOF
-
     RUN_TEST ibeis/tests/test_sql_numpy.py 
-
     RUN_TEST ibeis/tests/test_sql_names.py 
-
 fi
 
 
 #---------------------------------------------
-echo "RUN_TESTS: DONE"
-
-if [ "$FAILED_TESTS" != "" ] ; then
-    echo "-----"
-    printf "Failed Tests:" 
-    printf "$FAILED_TESTS\n"
-    printf "$FAILED_TESTS\n" >> failed.txt
-    echo "-----"
-fi
-
-echo "$num_passed / $num_ran tests passed"
+# END TESTING
+END_TESTS

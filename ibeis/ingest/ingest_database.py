@@ -55,16 +55,26 @@ def ingest_testdb1(db):
         flag_list = map(all, izip(plural_flag, unique_flag))
         flagged_rids = utool.filter_items(rid_list, flag_list)
         new_nids = [ibs.UNKNOWN_NID] * len(flagged_rids)
-        print('rid_list=%r' % rid_list)
-        print('nid_list=%r' % nid_list)
-        print('unique_flag=%r' % unique_flag)
-        print('plural_flag=%r' % plural_flag)
-        print('unique_nids=%r' % unique_nids)
-        print('flag_list=%r' % flag_list)
-        print('flagged_nids=%r' % flagged_nids)
-        print('flagged_rids=%r' % flagged_rids)
-        print('new_nids=%r' % new_nids)
+        if utool.VERBOSE:
+            def print2(*args):
+                print('[post_testdb1] ' + ', '.join(args))
+            print2('rid_list=%r' % rid_list)
+            print2('nid_list=%r' % nid_list)
+            print2('unique_flag=%r' % unique_flag)
+            print2('plural_flag=%r' % plural_flag)
+            print2('unique_nids=%r' % unique_nids)
+            print2('flag_list=%r' % flag_list)
+            print2('flagged_nids=%r' % flagged_nids)
+            print2('flagged_rids=%r' % flagged_rids)
+            print2('new_nids=%r' % new_nids)
+        # Unname, some rois for testing
         ibs.set_roi_nids(flagged_rids, new_nids)
+        # Add all rois with names as exemplars
+        from ibeis.control.IBEISControl import IBEISController
+        assert isinstance(ibs, IBEISController)
+        unflagged_rids = utool.get_dirty_items(rid_list, flag_list)
+        exemplar_flags = [True] * len(unflagged_rids)
+        ibs.set_roi_exemplar_flag(unflagged_rids, exemplar_flags)
         return None
     return Ingestable(db, ingest_type='named_images',
                       fmtkey=ibsfuncs.FMT_KEYS.name_fmt,

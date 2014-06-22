@@ -29,7 +29,8 @@ def adder(func):
     @utool.accepts_scalar_input
     @wraps(func)
     def wrp_adder(*args, **kwargs):
-        print('[ADD]: ' + func.func_name)
+        if not utool.QUIET and utool.VERBOSE:
+            print('[ADD]: ' + func.func_name)
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -41,7 +42,8 @@ def deleter(func):
     @utool.accepts_scalar_input
     @wraps(func)
     def wrp_adder(*args, **kwargs):
-        print('[DELETE]: ' + func.func_name)
+        if not utool.QUIET and utool.VERBOSE:
+            print('[DELETE]: ' + func.func_name)
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -58,7 +60,8 @@ def setter(func):
     @utool.accepts_scalar_input2(argx_list=range(0, 2))
     @wraps(func)
     def wrp_setter(*args, **kwargs):
-        print('[SET]: ' + func.func_name)
+        if not utool.QUIET and utool.VERBOSE:
+            print('[SET]: ' + func.func_name)
         #print('set: func_name=%r, args=%r, kwargs=%r' % (func.func_name, args, kwargs))
         return func(*args, **kwargs)
     return wrp_setter

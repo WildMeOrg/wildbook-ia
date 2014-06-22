@@ -5,12 +5,13 @@ import utool
 # Science
 import numpy as np
 from collections import OrderedDict
-from utool import util_latex as latex_formatter
+from utool import util_latex as util_latex
 from vtool import keypoint as ktool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
 
 
 def get_dbinfo(ibs):
+    """ Returns dictionary of digestable database information """
     # Name Info
     #rrr()
     valid_rids = ibs.get_valid_rids()
@@ -34,7 +35,12 @@ def get_dbinfo(ibs):
     num_names_with_gt = len(multiton_nxs)
     # Chip Info
     multiton_rids_list = nx2_rids[multiton_nxs]
-    multiton_cxs = np.hstack(multiton_rids_list)
+    print('multiton_nxs = %r' % (multiton_nxs,))
+    print('multiton_rids_list = %r' % (multiton_rids_list,))
+    if len(multiton_rids_list) == 0:
+        multiton_cxs = np.array([], dtype=np.int)
+    else:
+        multiton_cxs = np.hstack(multiton_rids_list)
     singleton_cxs = nx2_rids[singleton_nxs]
     multiton_nx2_nchips = map(len, multiton_rids_list)
     # Image info
@@ -91,7 +97,11 @@ def get_keypoint_stats(ibs):
     #dev_consistency.check_keypoint_consistency(ibs)
     # Keypoint stats
     #ibs.refresh_features()
-    cx2_kpts = ibs.feats.cx2_kpts
+    from ibeis.control.IBEISControl import IBEISController
+    assert(isinstance(ibs, IBEISController))
+    valid_rids = np.array(ibs.get_valid_rids())
+    cx2_kpts = ibs.get_roi_kpts(valid_rids)
+    #cx2_kpts = ibs.feats.cx2_kpts
     # Check cx2_kpts
     cx2_nFeats = map(len, cx2_kpts)
     kpts = np.vstack(cx2_kpts)
@@ -124,19 +134,19 @@ def dbstats(ibs):
     multiton_nx2_nchips = dbinfo_locals['multiton_nx2_nchips']
 
     #tex_nImage = latex_formater.latex_scalar(r'\# images', num_images)
-    tex_nChip = latex_formatter.latex_scalar(r'\# chips', num_chips)
-    tex_nName = latex_formatter.latex_scalar(r'\# names', num_names)
-    tex_nSingleName = latex_formatter.latex_scalar(r'\# singlenames', num_singlenames)
-    tex_nMultiName  = latex_formatter.latex_scalar(r'\# multinames', num_multinames)
-    tex_nMultiChip  = latex_formatter.latex_scalar(r'\# multichips', num_multichips)
-    tex_multi_stats = latex_formatter.latex_mystats(r'\# multistats', multiton_nx2_nchips)
+    tex_nChip = util_latex.latex_scalar(r'\# chips', num_chips)
+    tex_nName = util_latex.latex_scalar(r'\# names', num_names)
+    tex_nSingleName = util_latex.latex_scalar(r'\# singlenames', num_singlenames)
+    tex_nMultiName  = util_latex.latex_scalar(r'\# multinames', num_multinames)
+    tex_nMultiChip  = util_latex.latex_scalar(r'\# multichips', num_multichips)
+    tex_multi_stats = util_latex.latex_mystats(r'\# multistats', multiton_nx2_nchips)
 
-    tex_kpts_scale_thresh = latex_formatter.latex_multicolumn('Scale Threshold (%d %d)' %
+    tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
                                                               (ibs.cfg.feat_cfg.scale_min,
                                                                ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
 
     (tex_nKpts, tex_kpts_stats, tex_scale_stats) = get_keypoint_stats(ibs)
-    tex_title = latex_formatter.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
+    tex_title = util_latex.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
     tabular_body_list = [
         tex_title,
         tex_nChip,
@@ -151,7 +161,7 @@ def dbstats(ibs):
         tex_kpts_stats,
         tex_scale_stats,
     ]
-    tabular = latex_formatter.tabular_join(tabular_body_list)
+    tabular = util_latex.tabular_join(tabular_body_list)
     print('[dev stats]')
     print(tabular)
 

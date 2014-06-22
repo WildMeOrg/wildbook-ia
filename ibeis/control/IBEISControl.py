@@ -480,12 +480,13 @@ class IBEISController(object):
                     'image_exif_time_posix', 'image_exif_gps_lat',
                     'image_exif_gps_lon', 'image_note',)
         # <DEBUG>
-        uuid_list = [None if params is None else params[0] for params in params_list]
-        gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
-        valid_gids = ibs.get_valid_gids()
-        valid_uuids = ibs.get_image_uuids(valid_gids)
-        print('uuid / gid = ' + utool.indentjoin(zip(uuid_list, gid_list_)))
-        print('valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
+        if utool.VERBOSE:
+            uuid_list = [None if params is None else params[0] for params in params_list]
+            gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
+            valid_gids = ibs.get_valid_gids()
+            valid_uuids = ibs.get_image_uuids(valid_gids)
+            print('uuid / gid = ' + utool.indentjoin(zip(uuid_list, gid_list_)))
+            print('valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
         # </DEBUG>
         # Execute SQL Add
         gid_list = ibs.db.add_cleanly(IMAGES, colnames, params_list, ibs.get_image_gids_from_uuid)

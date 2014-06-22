@@ -11,16 +11,13 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_VIZ]')
 def TEST_VIZ(ibs):
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
-
-    print('''
-    * len(valid_rids) = %r
-    * len(valid_gids) = %r
-    ''' % (len(valid_rids), len(valid_gids)))
+    print('len(valid_rids) = %r' % len(valid_rids))
+    print('len(valid_gids) = %r' % len(valid_gids))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
-    gindex = int(utool.get_arg('--gx', default=0))
+    gindex = 1
     gid = valid_gids[gindex]
     rid_list = ibs.get_image_rids(gid)
-    rindex = int(utool.get_arg('--rx', default=0))
+    rindex = 0
     rid = rid_list[rindex]
     qrid = rid
     rids = rid_list[1:3]
@@ -28,6 +25,7 @@ def TEST_VIZ(ibs):
 
     try:
         qres = ibs.query_database([qrid])[qrid]
+        print(qres)
         top_rids = qres.get_top_rids(ibs)
         assert len(top_rids) > 0, 'Results seems to be empty'
         rid2 = top_rids[0]  # 294
@@ -35,6 +33,7 @@ def TEST_VIZ(ibs):
     except Exception as ex:
         query_failed = True
         utool.printex(ex, 'QUERY FAILED!')
+        raise
 
     #----------------------
     #print('Show Image')
@@ -67,11 +66,12 @@ def TEST_VIZ(ibs):
 if __name__ == '__main__':
     import ibeis
     multiprocessing.freeze_support()  # For windows
-    main_locals = ibeis.main(defaultdb='testdb0', gui=False)
+    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = utool.run_test(TEST_VIZ, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
-    import sys
-    if '--cmd' in sys.argv:
-        exec(df2.present())
+    exec(utool.ipython_execstr())
+    #import sys
+    #if '--cmd' in sys.argv:
+    #    exec(df2.present())

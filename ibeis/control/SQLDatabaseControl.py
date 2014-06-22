@@ -453,12 +453,11 @@ class SQLDatabaseController(object):
             colnames = (colnames,)
         val_list = list(val_list)
         id_list = list(id_list)
-        with utool.Indenter():
-            print('[sql.set] caller: ' + utool.get_caller_name(range(1, 4)))
-            print('[sql.set] tblname=%r' % (tblname,))
-            print('[sql.set] val_list=%r' % (val_list,))
-            print('[sql.set] id_list=%r' % (id_list,))
-            print('[sql.set] id_colname=%r' % (id_colname,))
+        print('[sql] SETTER: ' + utool.get_caller_name())
+        print('[sql] * tblname=%r' % (tblname,))
+        print('[sql] * val_list=%r' % (val_list,))
+        print('[sql] * id_list=%r' % (id_list,))
+        print('[sql] * id_colname=%r' % (id_colname,))
         assert  len(val_list) == len(id_list)
         fmtdict = {
             'tblname_str': tblname,
