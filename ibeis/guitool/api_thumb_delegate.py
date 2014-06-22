@@ -13,6 +13,7 @@ from vtool import image as gtool
 DELEGATE_BASE = QtGui.QItemDelegate
 RUNNABLE_BASE = QtCore.QRunnable
 MAX_NUM_THUMB_THREADS = 1
+VERBOSE = utool.VERBOSE
 
 
 def read_thumb_as_qimg(thumb_path):
@@ -67,7 +68,8 @@ class APIThumbDelegate(DELEGATE_BASE):
             utool.printex(ex)
             return
         if not exists(img_path):
-            print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
+            if VERBOSE:
+                print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
             return None
         if not exists(thumb_path):
             # Start computation of thumb if needed
