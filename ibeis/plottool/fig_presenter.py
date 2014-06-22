@@ -117,10 +117,15 @@ def get_main_win_base():
 
 def get_all_windows():
     """ Returns all mpl figures and registered qt windows """
-    all_figures = get_all_figures()
-    all_qt4wins = get_all_qt4_wins()
-    all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
-    return all_wins
+    try:
+        all_figures = get_all_figures()
+        all_qt4wins = get_all_qt4_wins()
+        all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
+        return all_wins
+    except AttributeError as ex:
+        utool.printex(ex, 'probably using a windowless backend',
+                      iswarning=True)
+        return []
 
 
 #@profile
