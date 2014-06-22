@@ -27,6 +27,8 @@ def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
     flann_fpath = get_flann_fpath(data, cache_dir, cfgstr, flann_params)
     flann = pyflann.FLANN()
     load_success = False
+    if len(data) == 0:
+        raise AssertionError('cannot build flann with 0 datapoints. (there would be a segfault')
     # Load the index if it exists
     if exists(flann_fpath) and not force_recompute:
         try:
