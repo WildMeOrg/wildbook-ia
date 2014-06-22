@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import __builtin__
 import sys
+import os
 import multiprocessing
 
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
@@ -41,7 +42,10 @@ def _init_matplotlib():
     import matplotlib
     import utool
     backend = matplotlib.get_backend()
-    TARGET_BACKEND = 'Qt4Agg'
+    if not sys.platform.startswith('win32') and os.environ.get('DISPLAY', None):
+        TARGET_BACKEND = 'PDF'
+    else:
+        TARGET_BACKEND = 'Qt4Agg'
     if  multiprocessing.current_process().name == 'MainProcess':
         if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
