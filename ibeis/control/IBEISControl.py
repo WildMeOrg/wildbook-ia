@@ -743,23 +743,21 @@ class IBEISController(object):
         ibs.db.set(ROIS, ('roi_theta',), val_list, id_list)
 
     @setter
-    def set_roi_num_verts(ibs, rid_list, num_verts_list):
-        """ Sets the number of vertices of a chip by rid """
-        id_list = ((rid,) for rid in rid_list)
-        val_list = ((num_verts,) for num_verts in num_verts_list)
-        ibs.db.set(ROIS, ('roi_num_verts',), val_list, id_list)
-
-    @setter
     def set_roi_verts(ibs, rid_list, verts_list):
         """ Sets the vertices [(x, y), ...] of a list of chips by rid """
         verts_as_strings = [str(verts) for verts in verts_list]
-        id_list = ((rid,) for rid in rid_list)
+        # need a list comprehension because we want to re-use id_list
+        id_list = [(rid,) for rid in rid_list]
         val_list = ((verts,) for verts in verts_as_strings)
         ibs.db.set(ROIS, ('roi_verts',), val_list, id_list)
 
+        # also need to set the internal number of vertices
+        val_list2 = ((len(verts),) for verts in verts_list)
+        ibs.db.set(ROIS, ('roi_num_verts',), val_list2, id_list)
+
     @setter
     def set_roi_notes(ibs, rid_list, notes_list):
-        """ Sets roi notes"""
+        """ Sets roi notes """
         id_list = ((rid,) for rid in rid_list)
         val_list = ((notes,) for notes in notes_list)
         ibs.db.set(ROIS, ('roi_note',), val_list, id_list)
