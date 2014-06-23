@@ -514,7 +514,7 @@ class ROIInteraction(object):
         if not event.inaxes:
             return
         if event.key == 'a':
-            self.accept_new_rois()
+            self.accept_new_rois(event)
 
         if event.key == 't':
             self.draw_new_poly()
