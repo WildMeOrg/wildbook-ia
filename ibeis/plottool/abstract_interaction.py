@@ -48,8 +48,7 @@ class AbstractInteraction(object):
         self.fig.canvas.draw()
 
     def show(self):
-        self.draw()
-        self.bring_to_front()
+        self.fig.show()
 
     def update(self):
         df2.update()
