@@ -69,11 +69,11 @@ def setup_file_menu(mainwin, back):
 def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
     mainwin.menuActions = newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
-    mainwin.menuActions.newAction(
-        name='actionAdd_ROI',
-        text='Add ROI',
-        shortcut='A',
-        slot_fn=back.add_roi)
+#    mainwin.menuActions.newAction(
+#        name='actionAdd_ROI',
+#        text='Add ROI',
+#        shortcut='A',
+#        slot_fn=back.add_roi)
     mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query',
