@@ -735,6 +735,16 @@ class IBEISController(object):
         #                              get_rowid_from_uuid=(lambda gid: gid))
         return gid_list
 
+    @setter
+    def set_image_gps(ibs, gid_list, gps_list):
+        id_list = ((gid,) for gid in gid_list)
+        lat_list = [tup[0] for tup in gps_list]
+        lon_list = [tup[1] for tup in gps_list]
+        colnames = ('image_gps_lat', 'image_gps_lon',)
+        val_list = izip(lat_list, lon_list)
+        ibs.db.set(IMAGE_TABLE, colnames, val_list, id_list)
+
+
     # SETTERS::ROI
 
     @setter

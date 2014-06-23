@@ -89,6 +89,17 @@ def TEST_IBS_CONTROL(ibs):
     assert vert_list_orig == ibs.get_roi_verts(rid_list), 'Verts were not reset to original state'
     assert bbox_list_orig == ibs.get_roi_bboxes(rid_list), 'Bboxes were not reset to original state'
 
+    """ set_image_gps / get_image_gps """
+    gid_list = ibs.get_valid_gids()
+    assert gids, 'gid_list is empty'
+    gps_list_orig = ibs.get_image_gps(gid_list)
+    gps_list = [(x, y) for (x, y) in zip(range(len(gid_list)), range(len(gid_list)))]
+    ibs.set_image_gps(gid_list, gps_list)
+    gps_list2 = ibs.get_image_gps(gid_list)
+    assert gps_list == gps_list2, 'gps lists do not match'
+    ibs.set_image_gps(gid_list, gps_list_orig)
+    assert gps_list_orig == ibs.get_image_gps(gid_list), 'gps was not reset to original state'
+
     # eid_list = ibs.get_valid_eids()
     # enc_text_list = len(eid_list) * ["test encounter text"]
     # assert eid_list, 'eid_list is empty'
