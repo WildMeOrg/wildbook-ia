@@ -362,11 +362,11 @@ class ROIInteraction(object):
             self.ax.draw_artist(poly)
             self.ax.draw_artist(self.line[n])
         self.canvas.blit(self.ax.bbox)
-    
+
     def get_most_recently_added_poly(self):
-        poly_ind = max(self.polys.iterkeys()) # most recently added polygon has the highest index
+        poly_ind = max(self.polys.iterkeys())  # most recently added polygon has the highest index
         return poly_ind, self.polys[poly_ind]
-    
+
     def button_press_callback(self, event):
         """ whenever a mouse button is pressed """
         if self._ind is not None:
@@ -436,7 +436,7 @@ class ROIInteraction(object):
             return
         if self._currently_selected_poly is None:
             print('WARNING: Polygon unknown. Using default. (2)')
-            assert False # fix if the code gets here, it's being inconsistant about defaults (uses most recently added polygon elsewhere)
+            assert False  # fix if the code gets here, it's being inconsistant about defaults (uses most recently added polygon elsewhere)
             self._currently_selected_poly = self.polys[0]
             if(self._currently_selected_poly is None):
                 return
@@ -783,10 +783,10 @@ class ROIInteraction(object):
         def get_bbox_list():
             bbox_list = []
             for poly in self.polys.itervalues():
+                assert poly is not None
 #                if poly is None:
 #                    bbox_list.append(None)
 #                else:
-                assert poly is not None
                 x = min(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
                 y = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
                 w = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0]) - x
@@ -811,7 +811,7 @@ class ROIInteraction(object):
 #            for i in range(len(self.original_list), len(self.poly_list)):
 #                if bbox_list[i] is not None:
 #                    new_list.append(bbox_list[i])
-            new_list = [bbox for bbox in bbox_list if not (bbox in self.original_list)] # possibly look into 'filter' formulation?
+            new_list = [bbox for bbox in bbox_list if not (bbox in self.original_list)]  # possibly look into 'filter' formulation?
             #print("Deleted")
             #for bbox in deleted_list:
             #    print(bbox)
