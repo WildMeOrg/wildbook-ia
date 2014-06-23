@@ -755,6 +755,16 @@ class IBEISController(object):
         val_list2 = ((len(verts),) for verts in verts_list)
         ibs.db.set(ROIS, ('roi_num_verts',), val_list2, id_list)
 
+        # changing the vertices also changes the bounding boxes
+        bbox_list = geometry.bboxes_from_vert_list(verts_list)	# new bboxes
+        xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
+
+        colnames = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height',)
+        val_list3 = ((xtl, ytl, width, height)
+        				for (xtl, ytl, width, height) in 
+        				izip(xtl_list, ytl_list, width_list, height_list))
+        ibs.db.set(ROIS, colnames, val_list3, id_list)
+
     @setter
     def set_roi_notes(ibs, rid_list, notes_list):
         """ Sets roi notes """

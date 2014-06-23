@@ -2,6 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import utool
+from vtool import geometry
 from itertools import izip
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS_CONTROL]')
 
@@ -76,6 +77,11 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_roi_verts(rid_list, vert_list)
     vert_list2 = ibs.get_roi_verts(rid_list)
     assert vert_list == vert_list2, 'vert lists do not match'
+
+    """ set_roi_verts / get_roi_bboxes """
+    bbox_list = ibs.get_roi_bboxes(rid_list)
+    bbox_list2 = geometry.bboxes_from_vert_list(vert_list2)
+    assert bbox_list == bbox_list2, 'bbox lists do not match'
     # put verts back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
     ibs.set_roi_verts(rid_list, vert_list_orig)
