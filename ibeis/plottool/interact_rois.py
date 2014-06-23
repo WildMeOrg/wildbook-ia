@@ -436,10 +436,11 @@ class ROIInteraction(object):
             return
         if self._currently_selected_poly is None:
             print('WARNING: Polygon unknown. Using default. (2)')
-            assert False  # fix if the code gets here, it's being inconsistant about defaults (uses most recently added polygon elsewhere)
-            self._currently_selected_poly = self.polys[0]
-            if(self._currently_selected_poly is None):
+            if len(self.polys) == 0:
+                print('No polygons on screen')
                 return
+            else:
+                poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
         currX, currY = self._currently_selected_poly.xy[self._ind]
 
         if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
@@ -629,6 +630,7 @@ class ROIInteraction(object):
             print("adjusted")
             coords[1] = ylim[0]
         return coords
+
     def move_rectangle(self, event, polygon, x, y):
         print('move_rectangle')
         for coord in polygon.xy:
@@ -782,6 +784,7 @@ class ROIInteraction(object):
         """write a callback to redraw viz for bbox_list"""
         def get_bbox_list():
             bbox_list = []
+            theta_list = []
             for poly in self.polys.itervalues():
                 assert poly is not None
 #                if poly is None:
@@ -792,7 +795,8 @@ class ROIInteraction(object):
                 w = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0]) - x
                 h = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1]) - y
                 bbox_list.append((int(x), int(y), int(w), int(h)))
-            return bbox_list, poly.theta
+                theta_list.append(poly.theta)
+            return bbox_list#, theta_list #not ready to add this yet, wait for integration
 
         def send_back_rois():
             #point_list = self.load_points()
@@ -811,7 +815,7 @@ class ROIInteraction(object):
 #            for i in range(len(self.original_list), len(self.poly_list)):
 #                if bbox_list[i] is not None:
 #                    new_list.append(bbox_list[i])
-            new_list = [bbox for bbox in bbox_list if not (bbox in self.original_list)]  # possibly look into 'filter' formulation?
+            new_list = filter(lambda bbox: bbox not in self.original_list, bbox_list)
             #print("Deleted")
             #for bbox in deleted_list:
             #    print(bbox)
