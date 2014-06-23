@@ -306,9 +306,9 @@ class APITableModel(API_MODEL_BASE):
     def _set_col_bgrole_getter(model, col_bgrole_getter_list=None):
         """ background rolegetter will be used for metadata like column color """
         if col_bgrole_getter_list is None:
-            model.col_bgrole_getter_list = [None] * len(col_bgrole_getter_list)
+            model.col_bgrole_getter_list = [None] * len(model.col_name_list)
         else:
-            assert len(model.col_name_list) == len(col_bgrole_getter_list), \
+            assert len(col_bgrole_getter_list) == len(model.col_name_list), \
                 'inconsistent col_bgrole_getter_list'
             model.col_bgrole_getter_list = col_bgrole_getter_list
 
