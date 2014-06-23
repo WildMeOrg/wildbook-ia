@@ -32,11 +32,9 @@ def default_decorator(func):
 
 
 def backblock(func):
-    """
-    BLOCKING DECORATOR
+    """ BLOCKING DECORATOR
     TODO: This decorator has to be specific to either front or back. Is there a
-    way to make it more general?
-    """
+    way to make it more general? """
     func = default_decorator(func)
     @functools.wraps(func)
     #@guitool.checks_qt_error

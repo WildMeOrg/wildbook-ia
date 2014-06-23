@@ -428,9 +428,7 @@ class IBEISController(object):
 
     @adder
     def add_config(ibs, cfgsuffix_list):
-        """
-        Adds an algorithm configuration as a string
-        """
+        """ Adds an algorithm configuration as a string """
         # FIXME: Configs are still handled poorly
         configid_list = ibs.get_config_rowid_from_suffix(cfgsuffix_list, ensure=False)
         #print('configid_list %r' % (configid_list,))
@@ -456,14 +454,13 @@ class IBEISController(object):
         """
         Adds a list of image paths to the database.  Returns gids
 
-        Initially we set the image_uri to exactely the given gpath.
-        Later we change the uri, but keeping it the same here lets
-        us process images asychronously.
-
         TEST CODE:
             from ibeis.dev.all_imports import *
             gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
-        """
+
+        Initially we set the image_uri to exactely the given gpath.
+        Later we change the uri, but keeping it the same here lets
+        us process images asychronously."""
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Processing an image might fail, yeilding a None instead of a tup

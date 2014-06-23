@@ -71,6 +71,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.nRows = len(self.gt_list)
         if self.nid1 == self.nid2:
             self.nRows = 1
+            self.gt_list = self.gt_list[0:1]  # remove redundant rids
 
     def prepare_page(self):
         figkw = {'fnum': self.fnum,
@@ -81,6 +82,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         #ih.connect_callback(self.fig, 'button_press_event', _on_name_click)
 
     def show_page(self):
+        """ Plots all subaxes on a page """
         print('[matchver] show_page()')
         self.prepare_page()
         # Variables we will work with to paint a pretty picture
@@ -102,9 +104,11 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         self.show_hud()
         self.draw()
-        self.update()
+        self.show()
+        #self.update()
 
     def plot_chip(self, rid, nRows, nCols, px, **kwargs):
+        """ Plots an individual chip in a subaxis """
         ibs = self.ibs
         nid = ibs.get_roi_nids(rid)
         viz_chip_kw = {
@@ -114,6 +118,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             'show_name': True,
             'show_gname': False,
             'show_ridstr': True,
+            'notitle': True,
         }
         viz_chip.show_chip(ibs, rid, **viz_chip_kw)
         ax = df2.gca()
@@ -130,10 +135,12 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('unname', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             callback = partial(self.rename_roi_nid1, rid)
-            self.append_button('rename nid1', callback=callback, **butkw)
+            text = 'change name to: ' + ibs.get_names(self.nid1)
+            self.append_button(text, callback=callback, **butkw)
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
             callback = partial(self.rename_roi_nid2, rid)
-            self.append_button('rename nid2', callback=callback, **butkw)
+            text = 'change name to: ' + ibs.get_names(self.nid2)
+            self.append_button(text, callback=callback, **butkw)
         #        self.append_button(BREAK_MATCH_PREF, **butkw)
         #    else:
         #        if not name1.startswith('____'):
@@ -142,7 +149,6 @@ class MatchVerificationInteraction(AbstractInteraction):
         #            self.append_button(RENAME1_PREF + name2, **butkw)
         #        if name1.startswith('____') and name2.startswith('____'):
         #            self.append_button(NEW_MATCH_PREF, **butkw)
-
         #if draw:
         #    vh.draw()
 

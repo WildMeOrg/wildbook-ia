@@ -403,9 +403,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 rid = id_
                 guitool.popup_menu(tblview, pos, [
                     ('delete roi', lambda: ibswgt.back.delete_roi(rid)),
-
-
                 ])
+
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
         printDBG('on_click')

@@ -20,7 +20,7 @@ def show_chip(ibs, rid, in_image=False, annote=True, **kwargs):
     # Create chip title
     chip_text = vh.get_roi_texts(ibs, [rid], **kwargs)[0]
     # Draw chip
-    fig, ax = df2.imshow(chip, title=chip_text, **kwargs)
+    fig, ax = df2.imshow(chip, **kwargs)
     # Populate axis user data
     vh.set_ibsdat(ax, 'viztype', 'chip')
     vh.set_ibsdat(ax, 'rid', rid)
@@ -29,6 +29,8 @@ def show_chip(ibs, rid, in_image=False, annote=True, **kwargs):
         kpts = vh.get_kpts(ibs, rid, in_image, **kwargs)
         _annotate_kpts(kpts, **kwargs)
     df2.upperleft_text(chip_text)
+    if not kwargs.get('notitle', False):
+        ax.set_title(chip_text)
     if in_image:
         gid = ibs.get_roi_gids(rid)
         rid_list = ibs.get_image_rids(gid)

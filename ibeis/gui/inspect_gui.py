@@ -1,9 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from functools import partial
-from itertools import izip
+#from itertools import izip
 #utool.rrrr()
 from ibeis.viz import interact
+from plottool import interact_helpers as ih
 from ibeis.dev import results_organizer
 from plottool import fig_presenter
 from guitool import qtype, APITableWidget
@@ -48,43 +49,41 @@ class QueryResultsWidget(APITableWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_click(iqrw, qtindex):
+        print('Clicked: ' + str(qtype.qindexinfo(qtindex)))
+        col = qtindex.column()
+        model = qtindex.model()
+        colname = model.get_header_name(col)
+        if colname == 'status':
+            review_match_at(iqrw, qtindex)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(iqrw, qtindex):
-        print('Clicked: ' + str(qtype.qindexinfo(qtindex)))
-        #return show_match_at(iqrw, qtindex)
-        model = qtindex.model()
-        row = qtindex.row()
-        rid1 = model.get_header_data('qrid', row)
-        rid2 = model.get_header_data('rid', row)
-        ibs = iqrw.ibs
-        #truth = ibs.get_match_truth(rid1, rid2)
-        #truth_color = vh.get_truth_color(truth, base255=True,
-        #                                 lighten_amount=0.35)
-        review_match(ibs, rid1, rid2)
-        #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
-        #if truth == 2:
-        #    buttontup = ('NEW Match', truth_color)
-        #elif truth == 0:
-        #    buttontup = ('JOIN Match', truth_color)
-        #elif truth == 1:
-        #    buttontup = ('SPLIT Match', truth_color)
-        #else:
-        #    raise AssertionError('impossible match state')
-        # This is actually a release
         print('DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
+        col = qtindex.column()
+        model = qtindex.model()
+        colname = model.get_header_name(col)
+        if colname != 'status':
+            return show_match_at(iqrw, qtindex)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_pressed(iqrw, qtindex):
-        print('Pressed: ' + str(qtype.qindexinfo(qtindex)))
+        #print('Pressed: ' + str(qtype.qindexinfo(qtindex)))
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_activated(iqrw, qtindex):
         print('Activated: ' + str(qtype.qindexinfo(qtindex)))
         pass
+
+    @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
+    def on_contextMenuRequested(iqrw, qtindex, qpos):
+        printDBG('[newgui] contextmenu')
+        guitool.popup_menu(iqrw, qpos, [
+            ('view match rois', lambda: show_match_at(iqrw, qtindex)),
+            ('view match names', lambda: review_match_at(iqrw, qtindex)),
+        ])
 
 
 def show_match_at(qres_wgt, qtindex):
@@ -97,109 +96,118 @@ def show_match_at(qres_wgt, qtindex):
     fig_presenter.bring_to_front(fig)
 
 
-def uinput_1to1(func, input_):
-    if isinstance(input_, (tuple, list)):
-        output_ = tuple(map(func, input_))
-    else:
-        output_ = func(input_)
-    return output_
+def review_match_at(qres_wgt, qtindex):
+    print('review')
+    ibs = qres_wgt.ibs
+    model = qtindex.model()
+    row = qtindex.row()
+    rid1 = model.get_header_data('qrid', row)
+    rid2 = model.get_header_data('rid', row)
+    review_match(ibs, rid1, rid2)
+
+
+def review_match(ibs, rid1, rid2):
+    print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
+    from ibeis.viz.interact.interact_name import MatchVerificationInteraction
+    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64)
+    ih.register_interaction(mvinteract)
 
 
 class CustomAPI(object):
-    # TODO: Rename CustomAPI
-    """
+    """ # TODO: Rename CustomAPI
     API wrapper around a list of lists, each containing column data
-    Defines a single table
-    """
-    def __init__(self, column_tuples, editable_colnames, sortby=0,
-                 sort_reverse=False):
+    Defines a single table """
+    def __init__(self, col_name_list, col_types_dict, col_getters_dict,
+                 col_bgrole_dict, col_ider_dict, col_setter_dict,
+                 editable_colnames, sortby, sort_reverse=True):
         print('[CustomAPI] <__init__>')
-        col_name_list, col_data_list, col_type_list = list(izip(*column_tuples))
-        # Unpack the tuple into flat lists
-        self.col_name_list = col_name_list
-        self.col_type_list = col_type_list
-        # First data column is always at least a getter
-        self.col_getter_list = col_data_list
-        self.nCols = len(self.col_getter_list)
-        if self.nCols == 0:
-            self.nRows = 0
-        else:
-            self.nRows = len(col_data_list[0])
-        # Initially the setters are set to the getters :O
-        self.col_setter_list = list(col_data_list)
-        # Initially set all column iders to universal ider
-        self.col_ider_list = [None for _ in xrange(self.nCols)]
-        # But then we overwrite the setter if specified
-        # Column tuples are specified as a minimum of 3 tuples
-        # (col_name, col_getter, col_type)
-        # (col_name, col_getter, col_type, col_setter, colname_ider)
-        # if setter is not specified the getter is used, which only works
-        # if the getter is a list/array
-        for column, tup in enumerate(column_tuples):
-            if len(tup) > 3:
-                # specify a setter explicitly
-                print('[CustomAPI] Augment Column Setter')
-                tup = column_tuples[column]
-                _col_setter = tup[3]
-                self.col_setter_list[column] = _col_setter
-                if len(tup) > 4:
-                    # Use another columns values as this column's ids
-                    print('[CustomAPI] Augment Column Ider')
-                    _colname = tup[4]  # the real colname(s) to get ids from
-                    _column = uinput_1to1(self.col_name_list.index, _colname)
-                    print(' * (_colname: '  + str(_colname) + ') = _column: (' + str(_column) + ')')
-                    _col_ider = uinput_1to1(lambda _: partial(self.get, _), _column)
-                    self.col_ider_list[column] = _col_ider
-
-        self.col_edit_list = [name in editable_colnames
-                              for name in col_name_list]
-        self.col_sort_index = (self.col_name_list.index(sortby)
-                               if isinstance(sortby, (str, unicode))
-                               else sortby)
-        self.col_sort_reverse = sort_reverse
+        self.col_name_list = []
+        self.col_type_list = []
+        self.col_getter_list = []
+        self.col_setter_list = []
+        self.nCols = 0
+        self.nRows = 0
+        self.parse_column_tuples(col_name_list, col_types_dict, col_getters_dict,
+                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
+                                 editable_colnames, sortby, sort_reverse)
         print('[CustomAPI] </__init__>')
 
-    def _rectify_row(self, column, row):
-        """ if this columns values are not indexed by the ider """
+    def parse_column_tuples(self, col_name_list, col_types_dict, col_getters_dict,
+                            col_bgrole_dict, col_ider_dict, col_setter_dict,
+                            editable_colnames, sortby, sort_reverse=True):
+        # Unpack the column tuples into names, getters, and types
+        self.col_name_list = col_name_list
+        self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
+        self.col_getter_list = [col_getters_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
+        # Get number of rows / columns
+        self.nCols = len(self.col_getter_list)
+        self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
+        # Init iders to default and then overwite based on dict inputs
+        self.col_ider_list = utool.alloc_nones(self.nCols)
+        for colname, ider_colnames in col_ider_dict.iteritems():
+            col = self.col_name_list.index(colname)
+            # Col iders might have tuple input
+            ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
+            col_ider  = utool.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
+            self.col_ider_list[col] = col_ider
+        # Init setters to data, and then overwrite based on dict inputs
+        self.col_setter_list = list(self.col_getter_list)
+        for colname, col_setter in col_setter_dict.iteritems():
+            col = self.col_name_list.index(colname)
+            self.col_setter_list[col] = col_setter
+        # Init bgrole_getters to None, and then overwrite based on dict inputs
+        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None) for colname in self.col_name_list]
+        # Mark edtiable columns
+        self.col_edit_list = [name in editable_colnames for name in col_name_list]
+        # Mark the sort column index
+        if utool.is_str(sortby):
+            self.col_sort_index = self.col_name_list.index(sortby)
+        else:
+            self.col_sort_index = sortby
+        self.col_sort_reverse = sort_reverse
+
+    def _infer_index(self, column, row):
+        """ returns the row based on the columns iders.
+        This is the identity for the default ider """
         ider_ = self.col_ider_list[column]
         if ider_ is None:
             return row
-        else:
-            # row might be a tuple
-            row_ = uinput_1to1(lambda _: _(row), ider_)
-            #print(ider_)
-            #print('Rectify: col=%r, row=%r, row_=%r' % (column, row, row_))
-            return row_
+        return utool.uinput_1to1(lambda func: func(row), ider_)
 
-    #@getter
     def get(self, column, row):
-        # getters always receive primary rowids, rectify if
-        # col_ider is specified (row might be a row_pair)
-        row = self._rectify_row(column, row)
+        """ getters always receive primary rowids, rectify if col_ider is
+        specified (row might be a row_pair) """
+        index = self._infer_index(column, row)
         column_getter = self.col_getter_list[column]
-        # Columns might be indexable read/write arrays
-        # or read only getters
-        if hasattr(column_getter, '__getitem__'):
-            val = column_getter[row]
-        else:
-            val = column_getter(row)
-        return val
+        # Columns might be getter funcs indexable read/write arrays
+        try:
+            return utool.general_get(column_getter, index)
+        except Exception:
+            # FIXME: There may be an issue on tuple-key getters when row input is
+            # vectorized. Hack it away
+            if utool.isiterable(row):
+                row_list = row
+                return [self.get(column, row_) for row_ in row_list]
+            else:
+                raise
 
-    #@setter
     def set(self, column, row, val):
-        row = self._rectify_row(column, row)
+        index = self._infer_index(column, row)
         column_setter = self.col_setter_list[column]
-        # Columns might be indexable read/write arrays
-        # or write only setters
-        if hasattr(column_setter, '__setitem__'):
-            column_setter[row] = val
-        else:
-            column_setter(row, val)
+        # Columns might be setter funcs or indexable read/write arrays
+        utool.general_set(column_setter, index, val)
+
+    def get_bgrole(self, column, row):
+        bgrole_getter = self.col_bgrole_getter_list[column]
+        if bgrole_getter is None:
+            return None
+        index = self._infer_index(column, row)
+        return utool.general_get(bgrole_getter, index)
 
     def ider(self):
         return range(self.nRows)
 
-    def make_headers(self, tblname='qres_api', tblnice=None):
+    def make_headers(self, tblname='qres_api', tblnice='Query Results'):
         """ Builds headers for APIItemModel """
         headers = {
             'name': tblname,
@@ -213,8 +221,13 @@ class CustomAPI(object):
             'col_sort_reverse' : self.col_sort_reverse,
             'col_getter_list'  : self._make_getter_list(),
             'col_setter_list'  : self._make_setter_list(),
+            'col_setter_list'  : self._make_setter_list(),
+            'col_bgrole_getter_list' : self._make_bgrole_getter_list()
         }
         return headers
+
+    def _make_bgrole_getter_list(self):
+        return [partial(self.get_bgrole, column) for column in xrange(self.nCols)]
 
     def _make_getter_list(self):
         return [partial(self.get, column) for column in xrange(self.nCols)]
@@ -223,53 +236,59 @@ class CustomAPI(object):
         return [partial(self.set, column) for column in xrange(self.nCols)]
 
 
-REGIESTERED_INTERACTIONS = []
-
-
-def register_interaction(interaction):
-    global REGIESTERED_INTERACTIONS
-    REGIESTERED_INTERACTIONS.append(interaction)
-
-
-def review_match(ibs, rid1, rid2):
-    print(rid1)
-    print(rid2)
-    print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
-    from ibeis.viz.interact.interact_name import MatchVerificationInteraction
-    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64)
-    register_interaction(mvinteract)
-    #if text.startswith(BREAK_MATCH_PREF):
-    #    ibs.set_roi_names([rid1, rid2], ['____', '____'])
-    #elif text.startswith(NEW_MATCH_PREF):
-    #    new_name = ibsfuncs.make_new_name(ibs)
-    #    ibs.set_roi_names([rid1, rid2], [new_name, new_name])
-    #elif text.startswith(RENAME1_PREF):
-    #    name2 = ibs.get_roi_names(rid2)
-    #    ibs.set_roi_names([rid1], [name2])
-    #elif text.startswith(RENAME2_PREF):
-    #    name1 = ibs.get_roi_names(rid1)
-    #    ibs.set_roi_names([rid2], [name1])
-    ## Emit that something has changed
-    #self.on_change_callback()
-    #self.show_page()
-
-
-def get_status(ibs, rid_pair, role=None):
+def get_status(ibs, rid_pair):
+    """ Data role for status column
+    FIXME: no other function in this project takes a tuple of scalars as an
+    argument. Everything else is written in the context of lists, This function
+    should follow the same paradigm, but CustomAPI will have to change.
+    """
     rid1, rid2 = rid_pair
-    text  = ibsfuncs.vsstr(rid1, rid2)
+    assert not utool.isiterable(rid1), 'rid1=%r, rid2=%r' % (rid1, rid2)
+    assert not utool.isiterable(rid2), 'rid1=%r, rid2=%r' % (rid1, rid2)
+    #text  = ibsfuncs.vsstr(rid1, rid2)
     truth = ibs.get_match_truth(rid1, rid2)
-    if truth == 2:
-        text = 'NEW Match ' + text
-    elif truth == 0:
-        text = 'JOIN Match ' + text
-    elif truth == 1:
-        text = 'SPLIT Match ' + text
-    else:
-        raise AssertionError('impossible match state')
+    text = {
+        2: 'NEW Match ',
+        0: 'JOIN Match ',
+        1: 'SPLIT Match ',
+    }.get(truth, None)
+    if text is None:
+        raise AssertionError('impossible state inspect_gui')
     return text
 
 
-def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
+def get_status_bgrole(ibs, rid_pair):
+    """ Background role for status column """
+    rid1, rid2 = rid_pair
+    truth = ibs.get_match_truth(rid1, rid2)
+    #print('get status bgrole: %r truth=%r' % (rid_pair, truth))
+    truth_color = vh.get_truth_color(truth, base255=True,
+                                        lighten_amount=0.35)
+    return truth_color
+
+
+def get_buttontup(ibs, qtindex):
+    model = qtindex.model()
+    row = qtindex.row()
+    rid1 = model.get_header_data('qrid', row)
+    rid2 = model.get_header_data('rid', row)
+    truth = ibs.get_match_truth(rid1, rid2)
+    truth_color = vh.get_truth_color(truth, base255=True,
+                                        lighten_amount=0.35)
+    callback = partial(review_match, ibs, rid1, rid2)
+    #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
+    if truth == 2:
+        buttontup = ('NEW Match', callback, truth_color)
+    elif truth == 0:
+        buttontup = ('JOIN Match', callback, truth_color)
+    elif truth == 1:
+        buttontup = ('SPLIT Match', callback, truth_color)
+    else:
+        raise AssertionError('impossible match state')
+    return buttontup
+
+
+def make_qres_api(ibs, qrid2_qres, ranks_lt=None):
     """
     Builds columns which are displayable in a ColumnListTableWidget
     """
@@ -288,54 +307,65 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None, tblname='qres'):
     #    """ A buttontup is a string and a callback """
     #    return get_button  # ('Merge', partial(review_match, rid1, rid2))
 
-    def get_buttontup(qtindex):
-        model = qtindex.model()
-        row = qtindex.row()
-        rid1 = model.get_header_data('qrid', row)
-        rid2 = model.get_header_data('rid', row)
-        truth = ibs.get_match_truth(rid1, rid2)
-        truth_color = vh.get_truth_color(truth, base255=True,
-                                         lighten_amount=0.35)
-        callback = partial(review_match, ibs, rid1, rid2)
-        #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
-        if truth == 2:
-            buttontup = ('NEW Match', callback, truth_color)
-        elif truth == 0:
-            buttontup = ('JOIN Match', callback, truth_color)
-        elif truth == 1:
-            buttontup = ('SPLIT Match', callback, truth_color)
-        else:
-            raise AssertionError('impossible match state')
-        return buttontup
-
-    def get_status_color(rid_pair):
-        rid1, rid2 = rid_pair
-        truth = ibs.get_match_truth(rid1, rid2)
-        truth_color = vh.get_truth_color(truth, base255=True,
-                                         lighten_amount=0.35)
-        return truth_color
-
     def get_rowid_button(rowid):
         return get_buttontup
     #opts = np.zeros(len(qrids))
     # Define column information
 
-    column_tuples = [
-        ('qrid',       np.array(qrids),           int),
-        ('rid',        np.array(rids),            int),
-        #('review',     get_rowid_button,          'BUTTON'),
-        ('status',     partial(get_status, ibs),  str,      None,  ('qrid', 'rid')),
-        ('querythumb', ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'qrid'),
-        ('resthumb',   ibs.get_roi_chip_thumbtup, 'PIXMAP', None,              'rid'),
-        ('qname',      ibs.get_roi_names,         str,      ibs.set_roi_names, 'qrid'),
-        ('name',       ibs.get_roi_names,         str,      ibs.set_roi_names, 'rid'),
-        ('score',      np.array(scores),          float),
-        ('rank',       np.array(ranks),           int),
-        #('truth',     truths,                    bool),
-        #('opt',       opts,   ('COMBO',          int)),
-    ]
+    # TODO: MAKE A PAIR IDER AND JUST USE EXISTING API_ITEM_MODEL FUNCTIONALITY
+    # TO GET THOSE PAIRWISE INDEXES
+
+    col_name_list = ['qrid', 'rid', 'status', 'querythumb', 'resthumb', 'qname',
+                     'name', 'score', 'rank', ]
+
+    col_types_dict = dict([
+        ('qrid',       int),
+        ('rid',        int),
+        ('review',    'BUTTON'),
+        ('status',     str),
+        ('querythumb', 'PIXMAP'),
+        ('resthumb',   'PIXMAP'),
+        ('qname',      str),
+        ('name',       str),
+        ('score',      float),
+        ('rank',       int),
+        ('truth',     bool),
+        ('opt',       int),
+    ])
+
+    col_getters_dict = dict([
+        ('qrid',       np.array(qrids)),
+        ('rid',        np.array(rids)),
+        ('review',     get_rowid_button),
+        ('status',     partial(get_status, ibs)),
+        ('querythumb', ibs.get_roi_chip_thumbtup),
+        ('resthumb',   ibs.get_roi_chip_thumbtup),
+        ('qname',      ibs.get_roi_names),
+        ('name',       ibs.get_roi_names),
+        ('score',      np.array(scores)),
+        ('rank',       np.array(ranks)),
+        #('truth',     truths),
+        #('opt',       opts),
+    ])
+
+    col_bgrole_dict = {
+        'status': partial(get_status_bgrole, ibs),
+    }
+    col_ider_dict = {
+        'status'     : ('qrid', 'rid'),
+        'querythumb' : ('qrid'),
+        'resthumb'   : ('rid'),
+        'qname'      : ('qrid'),
+        'name'       : ('rid'),
+    }
+    col_setter_dict = {
+        'qname': ibs.set_roi_names,
+        'name': ibs.set_roi_names
+    }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
     sortby = 'score'
     # Insert info into dict
-    qres_api = CustomAPI(column_tuples, editable_colnames, sortby, True)
+    qres_api = CustomAPI(col_name_list, col_types_dict, col_getters_dict,
+                         col_bgrole_dict, col_ider_dict, col_setter_dict,
+                         editable_colnames, sortby)
     return qres_api
