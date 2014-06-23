@@ -197,6 +197,7 @@ class ROIInteraction(object):
             # register this polygon
             poly.num = self.next_polynum()
             poly.theta = theta
+            poly.basecoords = poly.xy
             return poly
 
         def new_line(poly):
@@ -460,6 +461,7 @@ class ROIInteraction(object):
                             fc='white', ec='none', alpha=0.2, picker=True)
         poly.num = self.next_polynum()
         poly.theta = 0
+        poly.basecoords = poly.xy
         #self.poly_list.append(poly)
         self.polys[poly.num] = poly
         #self.theta_list.append(0)
@@ -559,6 +561,10 @@ class ROIInteraction(object):
         """ on mouse movement """
         #print('motion_notify_callback')
         ignore = (not self.showverts or event.inaxes is None)
+        lastX = self.mouseX or None
+        lastY = self.mouseY or None
+        # set new mouse loc
+        self.mouseX, self.mouseY = event.xdata, event.ydata
         if ignore:
             return
         if self.press1 is True:
@@ -569,8 +575,17 @@ class ROIInteraction(object):
                 self.move_rectangle(event, self._currently_selected_poly, event.xdata, event.ydata)
             self.update_UI()
             self._ind = None
-            # set new mouse loc
-            self.mouseX, self.mouseY = event.xdata, event.ydata
+
+        if event.button == 3 and self._polyHeld is True:
+            #print(event.__dict__)
+            if lastX is not None:
+                poly = self._currently_selected_poly
+                deltaX = self.mouseX - lastX
+                poly.theta += deltaX/10000
+                print('dx, theta = (%r, %r)' % (deltaX, poly.theta))
+                self.enforce_rotation(poly)
+                #self.rotate45(self._currently_selected_poly)
+                self.update_UI()
 
         if self._ind is None:
             return
@@ -630,6 +645,35 @@ class ROIInteraction(object):
             print("adjusted")
             coords[1] = ylim[0]
         return coords
+
+    def enforce_rotation(self, poly):
+        #from math import sin, cos
+        #t = poly.theta
+        ##poly.xy = [(x * cos(t), y * sin(t)) for (x,y) in poly.basecoords]
+        #print(poly.basecoords)
+        #x1 = min(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
+        #y1 = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
+        #x2 = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
+        #y2 = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
+        #w = x2 - x1
+        #h = y2 - y1
+        ##[x1, y1, x1+w*cos(t), y1+h*sin(t)]
+        #p1 = [x1, y1]
+        #p2 = [x1+w*cos(t), y1]
+        #p3 = [x1+w*cos(t), y1+h*sin(t)]
+        #p4 = [x1, y1+h*sin(t)]
+        #poly.xy = [p1, p2, p3, p4, p1]
+        #print(t, p1, p2, p3, p4)
+        #print('in enforce_rotation: %r, %r' % (poly.xy, poly.basecoords))
+        sin, cos, array = np.sin, np.cos, np.array
+        pts = poly.xy
+        theta = poly.theta
+        # this matrix is relative to origin, but it should probably be relative to either a corner of the bbox, or its center
+        rot_mat = array(
+            [(cos(theta), -sin(theta)),
+             (sin(theta),  cos(theta))]
+        )
+        poly.xy = rot_mat.dot(pts.T).T
 
     def move_rectangle(self, event, polygon, x, y):
         print('move_rectangle')
