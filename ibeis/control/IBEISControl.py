@@ -728,6 +728,15 @@ class IBEISController(object):
         colnames = ['roi_xtl', 'roi_ytl', 'roi_width', 'roi_height']
         ibs.db.set(ROIS, colnames, bbox_list, rid_list)
 
+        # changing the bboxes also changes the bounding polygon
+        vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
+        num_verts_list = (len(verts) for verts in vert_list)
+        verts_as_strings = (str(verts) for verts in vert_list)
+        val_list = ((num_verts, verts) for (num_verts, verts) 
+        			in izip(num_verts_list, verts_as_strings))
+        colnames = ('roi_num_verts', 'roi_verts',)
+        ibs.db.set(ROIS, colnames, val_list, rid_list)
+
     @setter
     def set_roi_exemplar_flag(ibs, rid_list, flag_list):
         id_list = ((rid,) for rid in rid_list)
@@ -1064,6 +1073,7 @@ class IBEISController(object):
         """ Returns the vertices that form the polygon of each chip """
         vertstr_list = ibs.db.get(ROIS, ('roi_verts',), rid_list)
         # TODO: Sanatize input for eval
+        #print('vertstr_list = %r' % (vertstr_list,))
         return [eval(vertstr) for vertstr in vertstr_list]
 
     @utool.accepts_numpy
@@ -1605,6 +1615,21 @@ class IBEISController(object):
         _cid_list = ibs.get_roi_cids(rid_list, ensure=False)
         cid_list = utool.filter_Nones(_cid_list)
         ibs.delete_chips(cid_list)
+        gid_list = ibs.get_roi_gids(rid_list)
+        ibs.delete_image_thumbtups(gid_list)
+        ibs.delete_roi_chip_thumbs(rid_list)
+
+    @deleter
+    def delete_image_thumbtups(ibs, gid_list):
+        thumbtup_list = ibs.get_image_thumbtup(gid_list)
+        thumbpath_list = [tup[0] for tup in thumbtup_list]
+        utool.remove_file_list(thumbpath_list)
+
+    @deleter
+    def delete_roi_chip_thumbs(ibs, rid_list):
+        thumbtup_list = ibs.get_roi_chip_thumbtup(rid_list)
+        thumbpath_list = [tup[0] for tup in thumbtup_list]
+        utool.remove_file_list(thumbpath_list)
 
     @deleter
     def delete_chips(ibs, cid_list):

@@ -5,9 +5,10 @@ import os
 
 
 class ROI_Interaction2:
-    def __init__(self, ibs, gid):
+    def __init__(self, ibs, gid, rows_updated_callback=lambda: None):
         self.ibs = ibs
         self.gid = gid
+        self.rows_updated_callback = rows_updated_callback
         img = ibs.get_images(self.gid)
         self.rid_list = ibs.get_image_rids(self.gid)
         bbox_list = ibs.get_roi_bboxes(self.rid_list)
@@ -16,8 +17,10 @@ class ROI_Interaction2:
         df2.update()
 
     def callback(self, deleted_list, changed_list, new_list):
+        rows_updated = False
         #print('Deleted BBoxes')
         if len(deleted_list) > 0:
+            rows_updated = True
             deleted = [self.rid_list[del_index] for del_index in deleted_list]
             #print(deleted)
             self.ibs.delete_rois(deleted)
@@ -31,12 +34,10 @@ class ROI_Interaction2:
         #print('New BBoxes')
         if len(new_list) > 0:
             #print(new_list)
+            rows_updated = True
             self.ibs.add_rois([self.gid] * len(new_list), new_list)
-        thumb_path, image_path, bbox_list = self.ibs.get_image_thumbtup(self.gid)
-        print('Current BBoxes')
-        print(bbox_list)
-        if os.path.exists(thumb_path):
-            os.remove(thumb_path)  # Force refresh
+        if rows_updated:
+            self.rows_updated_callback()
 
 if __name__ == '__main__':
     import ibeis
