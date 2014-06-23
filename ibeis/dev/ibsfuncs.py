@@ -7,6 +7,7 @@ import utool
 from ibeis import constants
 from ibeis import sysres
 from ibeis.export import export_hsdb
+from ibeis import constants
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -636,34 +637,34 @@ def print_label_table(ibs):
 def print_rlr_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('roi_label_relationship'))
+    print(ibs.db.get_table_csv(constants.AL_RELATION_TABLE))
 
 
 @__injectable
 def print_config_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('configs'))
+    print(ibs.db.get_table_csv(constants.CONFIG_TABLE))
 
 
 @__injectable
 def print_encounter_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('encounters'))
+    print(ibs.db.get_table_csv(constants.ENCOUNTER_TABLE))
 
 
 @__injectable
 def print_egpairs_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('egpairs'))
+    print(ibs.db.get_table_csv(constants.EG_RELATION_TABLE))
 
 
 @__injectable
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
-        exclude_columns = ['roi_uuid', 'label_uuid', 'roi_verts', 'feature_keypoints',
+        exclude_columns = ['annot_uuid', 'label_uuid', 'annot_verts', 'feature_keypoints',
                            'feature_sifts', 'image_uuid', 'image_uri']
     if exclude_tables is None:
         exclude_tables = ['masks', 'recognitions', 'chips', 'features']

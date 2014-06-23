@@ -47,6 +47,18 @@ from ibeis.control import SQLDatabaseControl as sqldbc
 from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
                                            default_decorator)
+# CONSTANTS
+from ibeis.constants import (IMAGE_TABLE,
+                            ANNOT_TABLE,
+                            LABEL_TABLE,
+                            ENCOUNTER_TABLE,
+                            EG_RELATION_TABLE,
+                            AL_RELATION_TABLE,
+                            CHIP_TABLE,
+                            FEATURE_TABLE,
+                            CONFIG_TABLE,
+                            KEY_TABLE,)
+
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
@@ -56,15 +68,6 @@ __USTRCAST__ = str  # change to unicode if needed
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 
 
-IMAGES     = 'images'
-ROIS       = 'rois'
-LABELS     = 'labels'
-ENCOUNTERS = 'encounters'
-EGR_TABLE  = 'encounter_image_relationship'
-RLR_TABLE  = 'roi_label_relationship'
-CHIPS      = 'chips'
-FEATURES   = 'features'
-CONFIGS    = 'configs'
 
 
 @atexit.register
@@ -174,6 +177,10 @@ class IBEISController(object):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
         DB_SCHEMA.define_IBEIS_schema(ibs)
+        ibs.INDIVIDUAL_KEY = ibs.add_key('INDIVIDUAL_KEY')
+        ibs.SPECIES_KEY = ibs.add_key('SPECIES_KEY')
+        assert ibs.INDIVIDUAL_KEY == 1, 'INDIVIDUAL_KEY = %r' % ibs.INDIVIDUAL_KEY
+        assert ibs.SPECIES_KEY == 2, 'SPECIES_KEY = %r' % ibs.SPECIES_KEY
         ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
         ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
         try:
@@ -181,6 +188,17 @@ class IBEISController(object):
         except AssertionError:
             print('[!ibs] ERROR: ibs.UNKNOWN_NID = %r' % ibs.UNKNOWN_NID)
             raise
+
+    @getter_1to1
+    def get_key_rowid_from_text(ibs, text_list):
+        key_rowid = ibs.db.get(KEY_TABLE, ('key_rowid',), text_list, id_colname='key_text')
+        return key_rowid
+
+    @adder
+    def add_key(ibs, text_list):
+        params_iter = ((text,) for text in text_list)
+        key = ibs.db.add_cleanly(KEY_TABLE, ('key_text',), params_iter, ibs.get_key_rowid_from_text)
+        return key
 
     @default_decorator
     def clone_handle(ibs, **kwargs):
@@ -314,7 +332,7 @@ class IBEISController(object):
 
     @ider
     def _get_all_gids(ibs):
-        all_gids = ibs.db.get_executeone(IMAGES, ('image_rowid',))
+        all_gids = ibs.db.get_executeone(IMAGE_TABLE, ('image_rowid',))
         return all_gids
 
     @ider
@@ -333,34 +351,34 @@ class IBEISController(object):
     @ider
     def _get_all_rids(ibs):
         """ returns a all ROI ids """
-        all_rids = ibs.db.get_executeone(ROIS, ('roi_rowid',))
+        all_rids = ibs.db.get_executeone(ANNOT_TABLE, ('annot_rowid',))
         return all_rids
 
     @ider
     def get_valid_cids(ibs):
         chip_config_rowid = ibs.get_chip_config_rowid()
         params = (chip_config_rowid,)
-        cid_list = ibs.db.get_executeone_where(CHIPS, ('chip_rowid',), 'config_rowid=?', params)
+        cid_list = ibs.db.get_executeone_where(CHIP_TABLE, ('chip_rowid',), 'config_rowid=?', params)
         return cid_list
 
     @ider
     def _get_all_cids(ibs):
         """ Returns computed chips for every configuration
             (you probably should not use this) """
-        all_cids = ibs.db.get_executeone(CHIPS, ('chip_rowid',))
+        all_cids = ibs.db.get_executeone(CHIP_TABLE, ('chip_rowid',))
         return all_cids
     @ider
     def get_valid_fids(ibs):
         feat_config_rowid = ibs.get_feat_config_rowid()
         params = (feat_config_rowid,)
-        fid_list = ibs.db.get_executeone_where(FEATURES, ('feature_rowid',), 'config_rowid=?', params)
+        fid_list = ibs.db.get_executeone_where(FEATURE_TABLE, ('feature_rowid',), 'config_rowid=?', params)
         return fid_list
 
     @ider
     def _get_all_fids(ibs):
         """ Returns computed features for every configuration
         (you probably should not use this)"""
-        all_fids = ibs.db.get_executeone(FEATURES, ('feature_rowid',))
+        all_fids = ibs.db.get_executeone(FEATURE_TABLE, ('feature_rowid',))
         return all_fids
     @ider
     def _get_all_known_nids(ibs):
@@ -368,7 +386,7 @@ class IBEISController(object):
             (does not include unknown names) """
         where_clause = 'label_value!=?'
         params = (ibs.UNKNOWN_NAME,)
-        all_nids = ibs.db.get_executeone_where(LABELS, ('label_rowid',), where_clause, params)
+        all_nids = ibs.db.get_executeone_where(LABEL_TABLE, ('label_rowid',), where_clause, params)
         return all_nids
 
     @ider
@@ -395,7 +413,7 @@ class IBEISController(object):
 
     @ider
     def _get_all_eids(ibs):
-        all_eids = ibs.db.get_executeone(ENCOUNTERS, ('encounter_rowid',))
+        all_eids = ibs.db.get_executeone(ENCOUNTER_TABLE, ('encounter_rowid',))
         return all_eids
 
     @ider
@@ -442,7 +460,7 @@ class IBEISController(object):
                 params_iter = ((suffix,) for suffix in cfgsuffix_list)
                 colnames = ('config_suffix',)
                 get_rowid_from_uuid = partial(ibs.get_config_rowid_from_suffix, ensure=False)
-                configid_list = ibs.db.add_cleanly(CONFIGS, colnames, params_iter, get_rowid_from_uuid)
+                configid_list = ibs.db.add_cleanly(CONFIG_TABLE, colnames, params_iter, get_rowid_from_uuid)
         except Exception as ex:
             utool.printex(ex)
             print('FATAL ERROR')
@@ -486,7 +504,7 @@ class IBEISController(object):
             print('valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
         # </DEBUG>
         # Execute SQL Add
-        gid_list = ibs.db.add_cleanly(IMAGES, colnames, params_list, ibs.get_image_gids_from_uuid)
+        gid_list = ibs.db.add_cleanly(IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
         return gid_list
 
     @adder
@@ -525,10 +543,10 @@ class IBEISController(object):
         xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
         assert len(nVert_list) == len(vertstr_list)
         # Define arguments to insert
-        colnames = ('roi_uuid', 'image_rowid', 'roi_xtl', 'roi_ytl',
-                    'roi_width', 'roi_height', 'roi_theta', 'roi_num_verts',
-                    'roi_verts', 'roi_detect_confidence',
-                    'roi_note',)
+        colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
+                    'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
+                    'annot_verts', 'annot_detect_confidence',
+                    'annot_note',)
 
         params_iter = list(izip(roi_uuid_list, gid_list, xtl_list, ytl_list,
                                 width_list, height_list, theta_list, nVert_list,
@@ -538,7 +556,7 @@ class IBEISController(object):
 
         # Execute add ROIs SQL
         get_rowid_from_uuid = ibs.get_roi_rids_from_uuid
-        rid_list = ibs.db.add_cleanly(ROIS, colnames, params_iter, get_rowid_from_uuid)
+        rid_list = ibs.db.add_cleanly(ANNOT_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         # Also need to populate roi_label_relationship table
         ibs.add_roi_relationship(rid_list, nid_list)
@@ -548,15 +566,15 @@ class IBEISController(object):
 
     @adder
     def add_roi_relationship(ibs, rid_list, labelid_list, configid_list=None,
-                             rlr_confidence_list=None):
+                             alr_confidence_list=None):
         if configid_list is None:
             configid_list = [None] * len(rid_list)
-        if rlr_confidence_list is None:
-            rlr_confidence_list = [0.0] * len(rid_list)
-        colnames = ('roi_rowid', 'label_rowid', 'config_rowid', 'rlr_confidence')
+        if alr_confidence_list is None:
+            alr_confidence_list = [0.0] * len(rid_list)
+        colnames = ('annot_rowid', 'label_rowid', 'config_rowid', 'alr_confidence')
         params_iter = list(izip(rid_list, labelid_list, configid_list,
-                                rlr_confidence_list))
-        rlrid_list = ibs.db.add(RLR_TABLE, colnames, params_iter)  # NOQA
+                                alr_confidence_list))
+        rlrid_list = ibs.db.add(AL_RELATION_TABLE, colnames, params_iter)  # NOQA
         return rlrid_list
 
     @adder
@@ -579,10 +597,10 @@ class IBEISController(object):
                 utool.printex(ex, '[!ibs.add_chips]')
                 print('[!ibs.add_chips] ' + utool.list_dbgstr('rid_list'))
                 raise
-            colnames = ('roi_rowid', 'chip_uri', 'chip_width', 'chip_height',
+            colnames = ('annot_rowid', 'chip_uri', 'chip_width', 'chip_height',
                         'config_rowid',)
             get_rowid_from_uuid = partial(ibs.get_roi_cids, ensure=False)
-            cid_list = ibs.db.add_cleanly(CHIPS, colnames, params_iter, get_rowid_from_uuid)
+            cid_list = ibs.db.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         return cid_list
 
@@ -597,7 +615,7 @@ class IBEISController(object):
             colnames = ('chip_rowid', 'feature_num_feats', 'feature_keypoints',
                         'feature_sifts', 'config_rowid',)
             get_rowid_from_uuid = partial(ibs.get_chip_fids, ensure=False)
-            fid_list = ibs.db.add_cleanly(FEATURES, colnames, params_iter, get_rowid_from_uuid)
+            fid_list = ibs.db.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         return fid_list
 
@@ -615,11 +633,11 @@ class IBEISController(object):
             ibsfuncs.assert_valid_names(name_list)
             notes_list = ['' for _ in xrange(len(dirty_names))]
             # All names are individuals and so may safely receive the INDIVIDUAL_KEY label
-            label_key_list = [constants.INDIVIDUAL_KEY for name in name_list]
-            new_nid_list = ibs.add_labels(label_key_list, dirty_names, notes_list)
+            key_rowid_list = [ibs.INDIVIDUAL_KEY for name in name_list]
+            new_nid_list = ibs.add_labels(key_rowid_list, dirty_names, notes_list)
             print('new_nid_list = %r' % (new_nid_list,))
             #get_rowid_from_uuid = partial(ibs.get_name_nids, ensure=False)
-            #new_nid_list = ibs.db.add_cleanly(LABELS, colnames, params_iter, get_rowid_from_uuid)
+            #new_nid_list = ibs.db.add_cleanly(LABEL_TABLE, colnames, params_iter, get_rowid_from_uuid)
             new_nid_list  # this line silences warnings
 
             # All the names should have been ensured
@@ -638,9 +656,9 @@ class IBEISController(object):
         # enforced as unique as well
         label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
                            izip(key_list, value_list)]
-        colnames = ['label_uuid', 'label_key', 'label_value', 'label_note']
+        colnames = ['label_uuid', 'key_rowid', 'label_value', 'label_note']
         params_iter = list(izip(label_uuid_list, key_list, value_list, note_list))
-        labelid_list = ibs.db.add_cleanly(LABELS, colnames, params_iter,
+        labelid_list = ibs.db.add_cleanly(LABEL_TABLE, colnames, params_iter,
                                           ibs.get_labelid_from_uuid)
         return labelid_list
 
@@ -655,7 +673,7 @@ class IBEISController(object):
         params_iter = izip(enctext_list, encounter_uuid_list, notes_list)
         get_rowid_from_uuid = partial(ibs.get_encounter_eids, ensure=False)
 
-        eid_list = ibs.db.add_cleanly(ENCOUNTERS, colnames, params_iter, get_rowid_from_uuid)
+        eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_uuid)
         return eid_list
 
     #
@@ -675,28 +693,28 @@ class IBEISController(object):
         """
         id_list = ((gid,) for gid in gid_list)
         val_list = ((new_gpath,) for new_gpath in new_gpath_list)
-        ibs.db.set(IMAGES, ('image_uri',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_list)
 
     @setter
     def set_image_aifs(ibs, gid_list, aif_list):
         """ Sets the image all instances found bit """
         id_list = ((gid,) for gid in gid_list)
         val_list = ((aif,) for aif in aif_list)
-        ibs.db.set(IMAGES, ('image_toggle_aif',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_toggle_aif',), val_list, id_list)
 
     @setter
     def set_image_notes(ibs, gid_list, notes_list):
         """ Sets the image all instances found bit """
         id_list = ((gid,) for gid in gid_list)
         val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(IMAGES, ('image_note',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_note',), val_list, id_list)
 
     @setter
     def set_image_unixtime(ibs, gid_list, unixtime_list):
         """ Sets the image unixtime (does not modify exif yet) """
         id_list = ((gid,) for gid in gid_list)
         val_list = ((unixtime,) for unixtime in unixtime_list)
-        ibs.db.set(IMAGES, ('image_exif_time_posix',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_exif_time_posix',), val_list, id_list)
 
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
@@ -723,7 +741,7 @@ class IBEISController(object):
     def set_roi_exemplar_flag(ibs, rid_list, flag_list):
         id_list = ((rid,) for rid in rid_list)
         val_list = ((flag,) for flag in flag_list)
-        ibs.db.set(ROIS, ('roi_exemplar_flag',), val_list, id_list)
+        ibs.db.set(ANNOT_TABLE, ('annot_exemplar_flag',), val_list, id_list)
 
     @setter
     def set_roi_bboxes(ibs, rid_list, bbox_list):
@@ -732,8 +750,8 @@ class IBEISController(object):
         # changing the bboxes also changes the bounding polygon
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
         ibs.set_roi_verts(rid_list, vert_list)
-        colnames = ['roi_xtl', 'roi_ytl', 'roi_width', 'roi_height']
-        ibs.db.set(ROIS, colnames, bbox_list, rid_list)
+        colnames = ['annot_xtl', 'annot_ytl', 'annot_width', 'annot_height']
+        ibs.db.set(ANNOT_TABLE, colnames, bbox_list, rid_list)
 
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
@@ -741,7 +759,7 @@ class IBEISController(object):
         ibs.delete_roi_chips(rid_list)  # Changing theta redefines the chips
         id_list = ((rid,) for rid in rid_list)
         val_list = ((theta,) for theta in theta_list)
-        ibs.db.set(ROIS, ('roi_theta',), val_list, id_list)
+        ibs.db.set(ANNOT_TABLE, ('annot_theta',), val_list, id_list)
 
     @setter
     def set_roi_verts(ibs, rid_list, verts_list):
@@ -754,25 +772,25 @@ class IBEISController(object):
         # also need to set the internal number of vertices
         val_list = ((num_verts, verts) for (num_verts, verts) 
         			in izip(num_verts_list, verts_as_strings))
-        colnames = ('roi_num_verts', 'roi_verts',)
-        ibs.db.set(ROIS, colnames, val_list, id_list)
+        colnames = ('annot_num_verts', 'annot_verts',)
+        ibs.db.set(ANNOT_TABLE, colnames, val_list, id_list)
 
         # changing the vertices also changes the bounding boxes
         bbox_list = geometry.bboxes_from_vert_list(verts_list)	# new bboxes
         xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
 
-        colnames = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height',)
+        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         val_list2 = ((xtl, ytl, width, height)
         				for (xtl, ytl, width, height) in 
         				izip(xtl_list, ytl_list, width_list, height_list))
-        ibs.db.set(ROIS, colnames, val_list2, id_list)
+        ibs.db.set(ANNOT_TABLE, colnames, val_list2, id_list)
 
     @setter
     def set_roi_notes(ibs, rid_list, notes_list):
         """ Sets roi notes """
         id_list = ((rid,) for rid in rid_list)
         val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(ROIS, ('roi_note',), val_list, id_list)
+        ibs.db.set(ANNOT_TABLE, ('annot_note',), val_list, id_list)
 
     @setter
     def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
@@ -792,11 +810,11 @@ class IBEISController(object):
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special labelids
         labelid_list = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
-        INDIVIDUAL_KEY = constants.INDIVIDUAL_KEY
+        INDIVIDUAL_KEY = ibs.INDIVIDUAL_KEY
         rlrid_list = ibs.get_roi_filtered_relationship_ids(rid_list, INDIVIDUAL_KEY)
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
-        ibs.db.set(RLR_TABLE, ('label_rowid',), labelid_list, rlrid_list)
+        ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), labelid_list, rlrid_list)
 
     # SETTERS::NAME
 
@@ -805,7 +823,7 @@ class IBEISController(object):
         """ Sets notes of names (groups of animals) """
         id_list = ((nid,) for nid in nid_list)
         val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(LABELS, ('label_note',), val_list, id_list)
+        ibs.db.set(LABEL_TABLE, ('label_note',), val_list, id_list)
 
     @setter
     def set_name_names(ibs, nid_list, name_list):
@@ -813,21 +831,21 @@ class IBEISController(object):
         ibsfuncs.assert_valid_names(name_list)
         id_list = ((nid,) for nid in nid_list)
         val_list = ((name,) for name in name_list)
-        ibs.db.set(LABELS, ('label_value',), val_list, id_list)
+        ibs.db.set(LABEL_TABLE, ('label_value',), val_list, id_list)
 
     @setter
     def set_encounter_props(ibs, eid_list, key, value_list):
         print('[ibs] set_encounter_props')
         id_list = ((eid,) for eid in eid_list)
         val_list = ((value,) for value in value_list)
-        ibs.db.set(ENCOUNTERS, key, val_list, id_list)
+        ibs.db.set(ENCOUNTER_TABLE, key, val_list, id_list)
 
     @setter
     def set_encounter_enctext(ibs, eid_list, names_list):
         """ Sets names of encounters (groups of animals) """
         id_list = ((eid,) for eid in eid_list)
         val_list = ((names,) for names in names_list)
-        ibs.db.set(ENCOUNTERS, ('encounter_text',), val_list, id_list)
+        ibs.db.set(ENCOUNTER_TABLE, ('encounter_text',), val_list, id_list)
 
     #
     #
@@ -873,25 +891,25 @@ class IBEISController(object):
     @getter_1to1
     def get_image_uuids(ibs, gid_list):
         """ Returns a list of image uuids by gid """
-        image_uuid_list = ibs.db.get(IMAGES, ('image_uuid',), gid_list)
+        image_uuid_list = ibs.db.get(IMAGE_TABLE, ('image_uuid',), gid_list)
         return image_uuid_list
 
     @getter_1to1
     def get_image_exts(ibs, gid_list):
         """ Returns a list of image uuids by gid """
-        image_uuid_list = ibs.db.get(IMAGES, ('image_ext',), gid_list)
+        image_uuid_list = ibs.db.get(IMAGE_TABLE, ('image_ext',), gid_list)
         return image_uuid_list
 
     @getter_1to1
     def get_image_uris(ibs, gid_list):
         """ Returns a list of image uris by gid """
-        uri_list = ibs.db.get(IMAGES, ('image_uri',), gid_list)
+        uri_list = ibs.db.get(IMAGE_TABLE, ('image_uri',), gid_list)
         return uri_list
 
     @getter_1to1
     def get_image_gids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
-        gid_list = ibs.db.get(IMAGES, ('image_rowid',), uuid_list,
+        gid_list = ibs.db.get(IMAGE_TABLE, ('image_rowid',), uuid_list,
                               id_colname='image_uuid')
         return gid_list
 
@@ -913,13 +931,13 @@ class IBEISController(object):
     @getter_1to1
     def get_image_gnames(ibs, gid_list):
         """ Returns a list of original image names """
-        gname_list = ibs.db.get(IMAGES, ('image_original_name',), gid_list)
+        gname_list = ibs.db.get(IMAGE_TABLE, ('image_original_name',), gid_list)
         return gname_list
 
     @getter_1to1
     def get_image_sizes(ibs, gid_list):
         """ Returns a list of (width, height) tuples """
-        gsize_list = ibs.db.get(IMAGES, ('image_width', 'image_height'), gid_list)
+        gsize_list = ibs.db.get(IMAGE_TABLE, ('image_width', 'image_height'), gid_list)
         return gsize_list
 
     @utool.accepts_numpy
@@ -928,15 +946,15 @@ class IBEISController(object):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
         """
-        return ibs.db.get(IMAGES, ('image_exif_time_posix',), gid_list)
+        return ibs.db.get(IMAGE_TABLE, ('image_exif_time_posix',), gid_list)
 
     @getter_1to1
     def get_image_gps(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
         """
-        lat_list = ibs.db.get(IMAGES, ('image_exif_gps_lat',), gid_list)
-        lon_list = ibs.db.get(IMAGES, ('image_exif_gps_lon',), gid_list)
+        lat_list = ibs.db.get(IMAGE_TABLE, ('image_exif_gps_lat',), gid_list)
+        lon_list = ibs.db.get(IMAGE_TABLE, ('image_exif_gps_lon',), gid_list)
         gps_list = [(lat, lon) for (lat, lon) in izip(lat_list, lon_list)]
         return gps_list
 
@@ -944,7 +962,7 @@ class IBEISController(object):
     def get_image_aifs(ibs, gid_list):
         """ Returns "All Instances Found" flag, true if all objects of interest
         (animals) have an ROI in the image """
-        aif_list = ibs.db.get(IMAGES, ('image_toggle_aif',), gid_list)
+        aif_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_aif',), gid_list)
         return aif_list
 
     @getter_1to1
@@ -959,7 +977,7 @@ class IBEISController(object):
     @getter_1to1
     def get_image_notes(ibs, gid_list):
         """ Returns image notes """
-        notes_list = ibs.db.get(IMAGES, ('image_note',), gid_list)
+        notes_list = ibs.db.get(IMAGE_TABLE, ('image_note',), gid_list)
         return notes_list
 
     @getter_1to1
@@ -980,7 +998,7 @@ class IBEISController(object):
     def get_image_eids(ibs, gid_list):
         """ Returns a list of encounter ids for each image by gid """
         colnames = ('encounter_rowid',)
-        eids_list = ibs.db.get(EGR_TABLE, colnames, gid_list,
+        eids_list = ibs.db.get(EG_RELATION_TABLE, colnames, gid_list,
                                id_colname='image_rowid', unpack_scalars=False)
         return eids_list
 
@@ -995,7 +1013,7 @@ class IBEISController(object):
     def get_image_rids(ibs, gid_list):
         """ Returns a list of rids for each image by gid """
         #print('gid_list = %r' % (gid_list,))
-        rids_list = ibs.db.get(ROIS, ('roi_rowid',), gid_list,
+        rids_list = ibs.db.get(ANNOT_TABLE, ('annot_rowid',), gid_list,
                                 id_colname='image_rowid',
                                 unpack_scalars=False)
         #print('rids_list = %r' % (rids_list,))
@@ -1011,60 +1029,60 @@ class IBEISController(object):
 
     @getter_1to1
     def get_roi_exemplar_flag(ibs, rid_list):
-        roi_uuid_list = ibs.db.get(ROIS, ('roi_exemplar_flag',), rid_list)
+        roi_uuid_list = ibs.db.get(ANNOT_TABLE, ('annot_exemplar_flag',), rid_list)
         return roi_uuid_list
 
     @getter_1to1
     def get_roi_uuids(ibs, rid_list):
         """ Returns a list of image uuids by gid """
-        roi_uuid_list = ibs.db.get(ROIS, ('roi_uuid',), rid_list)
+        roi_uuid_list = ibs.db.get(ANNOT_TABLE, ('annot_uuid',), rid_list)
         return roi_uuid_list
 
     @getter_1to1
     def get_roi_rids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
-        rids_list = ibs.db.get(ROIS, ('roi_rowid',), uuid_list,
-                               id_colname='roi_uuid')
+        rids_list = ibs.db.get(ANNOT_TABLE, ('annot_rowid',), uuid_list,
+                               id_colname='annot_uuid')
         return rids_list
 
     @getter_1to1
     def get_roi_detect_confidence(ibs, rid_list):
         """ Returns a list confidences that the rois is a valid detection """
-        roi_detect_confidence_list = ibs.db.get(ROIS,
-                                                ('roi_detect_confidence',),
+        roi_detect_confidence_list = ibs.db.get(ANNOT_TABLE,
+                                                ('annot_detect_confidence',),
                                                 rid_list)
         return roi_detect_confidence_list
 
     @getter_1to1
     def get_roi_notes(ibs, rid_list):
         """ Returns a list of roi notes """
-        roi_notes_list = ibs.db.get(ROIS, ('roi_note',), rid_list)
+        roi_notes_list = ibs.db.get(ANNOT_TABLE, ('annot_note',), rid_list)
         return roi_notes_list
 
     @utool.accepts_numpy
     @getter_1toM
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        colnames = ('roi_xtl', 'roi_ytl', 'roi_width', 'roi_height')
-        bbox_list = ibs.db.get(ROIS, colnames, rid_list)
+        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height')
+        bbox_list = ibs.db.get(ANNOT_TABLE, colnames, rid_list)
         return bbox_list
 
     @getter_1to1
     def get_roi_thetas(ibs, rid_list):
         """ Returns a list of floats describing the angles of each chip """
-        theta_list = ibs.db.get(ROIS, ('roi_theta',), rid_list)
+        theta_list = ibs.db.get(ANNOT_TABLE, ('annot_theta',), rid_list)
         return theta_list
 
     @getter_1to1
     def get_roi_num_verts(ibs, rid_list):
         """ Returns the number of vertices that form the polygon of each chip """
-        num_verts_list = ibs.db.get(ROIS, ('roi_num_verts',), rid_list)
+        num_verts_list = ibs.db.get(ANNOT_TABLE, ('annot_num_verts',), rid_list)
         return num_verts_list
 
     @getter_1to1
     def get_roi_verts(ibs, rid_list):
         """ Returns the vertices that form the polygon of each chip """
-        vertstr_list = ibs.db.get(ROIS, ('roi_verts',), rid_list)
+        vertstr_list = ibs.db.get(ANNOT_TABLE, ('annot_verts',), rid_list)
         # TODO: Sanatize input for eval
         #print('vertstr_list = %r' % (vertstr_list,))
         return [eval(vertstr) for vertstr in vertstr_list]
@@ -1073,8 +1091,8 @@ class IBEISController(object):
     @getter_1to1
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        gid_list = ibs.db.get(ROIS, ('image_rowid',), rid_list,
-                              id_colname='roi_rowid')
+        gid_list = ibs.db.get(ANNOT_TABLE, ('image_rowid',), rid_list,
+                              id_colname='annot_rowid')
         #try:
         #    utool.assert_all_not_None(gid_list, 'gid_list')
         #except AssertionError as ex:
@@ -1094,13 +1112,13 @@ class IBEISController(object):
                 print('[!ibs.get_roi_cids] rid_list = %r' % (rid_list,))
                 raise
         if all_configs:
-            cid_list = ibs.db.get(CHIPS, ('chip_rowid',), rid_list, id_colname='roi_rowid')
+            cid_list = ibs.db.get(CHIP_TABLE, ('chip_rowid',), rid_list, id_colname='annot_rowid')
         else:
             chip_config_rowid = ibs.get_chip_config_rowid()
             #print(chip_config_rowid)
-            where_clause = 'roi_rowid=? AND config_rowid=?'
+            where_clause = 'annot_rowid=? AND config_rowid=?'
             params_iter = ((rid, chip_config_rowid) for rid in rid_list)
-            cid_list = ibs.db.get_where(CHIPS,  ('chip_rowid',), params_iter, where_clause)
+            cid_list = ibs.db.get_where(CHIP_TABLE,  ('chip_rowid',), params_iter, where_clause)
         if ensure:
             try:
                 utool.assert_all_not_None(cid_list, 'cid_list')
@@ -1120,37 +1138,37 @@ class IBEISController(object):
     # <LABEL_GETTERS>
 
     def get_labelid_from_uuid(ibs, label_uuid_list):
-        labelid_list = ibs.db.get(LABELS, ('label_rowid',), label_uuid_list,
+        labelid_list = ibs.db.get(LABEL_TABLE, ('label_rowid',), label_uuid_list,
                                   id_colname='label_uuid')
         return labelid_list
 
     @getter_1to1
-    def get_labelids_from_values(ibs, value_list, label_key):
-        params_iter = [(value, label_key) for value in value_list]
-        where_clause = 'label_value=? AND label_key=?'
-        labelid_list = ibs.db.get_where(LABELS, ('label_rowid',), params_iter,
+    def get_labelids_from_values(ibs, value_list, key_rowid):
+        params_iter = [(value, key_rowid) for value in value_list]
+        where_clause = 'label_value=? AND key_rowid=?'
+        labelid_list = ibs.db.get_where(LABEL_TABLE, ('label_rowid',), params_iter,
                                         where_clause)
         #print('[ibs] labelid_list = %r' % (labelid_list,))
         return labelid_list
 
     @getter_1to1
     def get_label_uuids(ibs, labelid_list):
-        labelkey_list = ibs.db.get(LABELS, ('label_uuid',), labelid_list)
+        labelkey_list = ibs.db.get(LABEL_TABLE, ('label_uuid',), labelid_list)
         return labelkey_list
 
     @getter_1to1
     def get_label_keys(ibs, labelid_list):
-        labelkey_list = ibs.db.get(LABELS, ('label_key',), labelid_list)
+        labelkey_list = ibs.db.get(LABEL_TABLE, ('key_rowid',), labelid_list)
         return labelkey_list
 
     @getter_1to1
     def get_label_values(ibs, labelid_list):
-        labelkey_list = ibs.db.get(LABELS, ('label_value',), labelid_list)
+        labelkey_list = ibs.db.get(LABEL_TABLE, ('label_value',), labelid_list)
         return labelkey_list
 
     @getter_1to1
     def get_label_notes(ibs, labelid_list):
-        labelkey_list = ibs.db.get(LABELS, ('label_note',), labelid_list)
+        labelkey_list = ibs.db.get(LABEL_TABLE, ('label_note',), labelid_list)
         return labelkey_list
 
     # </LABEL_GETTERS>
@@ -1162,12 +1180,12 @@ class IBEISController(object):
         if label key is specified the realtionship ids are filtered to
         be only of a specific key/category/type
         """
-        rlrids_list = ibs.db.get(RLR_TABLE, ('rlr_rowid',), rid_list,
-                                 id_colname='roi_rowid', unpack_scalars=False)
+        rlrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), rid_list,
+                                 id_colname='annot_rowid', unpack_scalars=False)
         return rlrids_list
 
     @getter_1to1
-    def get_roi_filtered_relationship_ids(ibs, rid_list, label_key):
+    def get_roi_filtered_relationship_ids(ibs, rid_list, key_rowid):
         """ FIXME: func_name
         Get all the relationship ids belonging to the input rois where the
         realtionship ids are filtered to be only of a specific key/category/type
@@ -1179,10 +1197,10 @@ class IBEISController(object):
         labelkeys_list = ibsfuncs.unflat_map(ibs.get_label_keys, labelids_list)
         try:
             # only want the nids of individuals, not species, for examples
-            index_list = [keys.index(label_key) for keys in labelkeys_list]
+            index_list = [keys.index(key_rowid) for keys in labelkeys_list]
             rlrid_list = [ids[index] for (ids, index)  in izip(rlrids_list, index_list)]
         except Exception as ex:
-            utool.printex(ex, key_list=['label_key', 'labelkeys_list',
+            utool.printex(ex, key_list=['key_rowid', 'labelkeys_list',
                                         'labelids_list', 'index_list'])
             raise
         return rlrid_list
@@ -1190,7 +1208,7 @@ class IBEISController(object):
     @getter_1to1
     def get_relationship_labelids(ibs, rlrid_list):
         """ get the labelid belonging to each relationship """
-        labelids_list = ibs.db.get(RLR_TABLE, ('label_rowid',), rlrid_list)
+        labelids_list = ibs.db.get(AL_RELATION_TABLE, ('label_rowid',), rlrid_list)
         return labelids_list
 
     @utool.accepts_numpy
@@ -1203,7 +1221,7 @@ class IBEISController(object):
         """
         # Get all the roi label relationships
         # filter out only the ones which specify names
-        INDIVIDUAL_KEY = constants.INDIVIDUAL_KEY
+        INDIVIDUAL_KEY = ibs.INDIVIDUAL_KEY
         rlrid_list = ibs.get_roi_filtered_relationship_ids(rid_list, INDIVIDUAL_KEY)
         labelid_list = ibs.get_relationship_labelids(rlrid_list)
         nid_list = labelid_list
@@ -1318,10 +1336,10 @@ class IBEISController(object):
         a set of rids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
         nid_list  = ibs.get_roi_nids(rid_list)
-        colnames = ('roi_rowid',)
-        where_clause = 'label_rowid=? AND label_rowid!=? AND roi_rowid!=?'
+        colnames = ('annot_rowid',)
+        where_clause = 'label_rowid=? AND label_rowid!=? AND annot_rowid!=?'
         params_iter = [(nid, ibs.UNKNOWN_NID, rid) for nid, rid in izip(nid_list, rid_list)]
-        groundtruth_list = ibs.db.get_where(RLR_TABLE, colnames, params_iter,
+        groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, colnames, params_iter,
                                             where_clause,
                                             unpack_scalars=False)
 
@@ -1346,7 +1364,7 @@ class IBEISController(object):
         return has_gt_list
 
     #
-    # GETTERS::CHIPS
+    # GETTERS::CHIP_TABLE
 
     @getter_1to1
     def get_chips(ibs, cid_list, ensure=True):
@@ -1357,19 +1375,19 @@ class IBEISController(object):
 
     @getter_1to1
     def get_chip_rids(ibs, cid_list):
-        rid_list = ibs.db.get(CHIPS, ('roi_rowid',), cid_list)
+        rid_list = ibs.db.get(CHIP_TABLE, ('annot_rowid',), cid_list)
         return rid_list
 
     @getter_1to1
     def get_chip_paths(ibs, cid_list):
         """ Returns a list of chip paths by their rid """
-        chip_fpath_list = ibs.db.get(CHIPS, ('chip_uri',), cid_list)
+        chip_fpath_list = ibs.db.get(CHIP_TABLE, ('chip_uri',), cid_list)
         return chip_fpath_list
 
     @getter_1to1
     def get_chip_sizes(ibs, cid_list):
-        width_list  = ibs.db.get(CHIPS, ('chip_width',), cid_list)
-        height_list = ibs.db.get(CHIPS, ('chip_height',), cid_list)
+        width_list  = ibs.db.get(CHIP_TABLE, ('chip_width',), cid_list)
+        height_list = ibs.db.get(CHIP_TABLE, ('chip_height',), cid_list)
         chipsz_list = [size_ for size_ in izip(width_list, height_list)]
         return chipsz_list
 
@@ -1381,13 +1399,13 @@ class IBEISController(object):
         colnames = ('feature_rowid',)
         where_clause = 'chip_rowid=? AND config_rowid=?'
         params_iter = ((cid, feat_config_rowid) for cid in cid_list)
-        fid_list = ibs.db.get_where(FEATURES, colnames, params_iter,
+        fid_list = ibs.db.get_where(FEATURE_TABLE, colnames, params_iter,
                                     where_clause)
         return fid_list
 
     @getter_1to1
     def get_chip_configids(ibs, cid_list):
-        configid_list = ibs.db.get(CHIPS, ('config_rowid',), cid_list)
+        configid_list = ibs.db.get(CHIP_TABLE, ('config_rowid',), cid_list)
         return configid_list
 
     #
@@ -1396,18 +1414,18 @@ class IBEISController(object):
     @getter_1toM
     def get_feat_kpts(ibs, fid_list):
         """ Returns chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
-        kpts_list = ibs.db.get(FEATURES, ('feature_keypoints',), fid_list)
+        kpts_list = ibs.db.get(FEATURE_TABLE, ('feature_keypoints',), fid_list)
         return kpts_list
 
     @getter_1toM
     def get_feat_desc(ibs, fid_list):
         """ Returns chip SIFT descriptors """
-        desc_list = ibs.db.get(FEATURES, ('feature_sifts',), fid_list)
+        desc_list = ibs.db.get(FEATURE_TABLE, ('feature_sifts',), fid_list)
         return desc_list
 
     def get_num_feats(ibs, fid_list):
         """ Returns the number of keypoint / descriptor pairs """
-        nFeats_list = ibs.db.get(FEATURES, ('feature_num_feats',), fid_list)
+        nFeats_list = ibs.db.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
         nFeats_list = [ (-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
         return nFeats_list
 
@@ -1421,7 +1439,7 @@ class IBEISController(object):
         # FIXME: cfgsuffix should be renamed cfgstr? cfgtext?
         if ensure:
             return ibs.add_config(cfgsuffix_list)
-        configid_list = ibs.db.get(CONFIGS, ('config_rowid',), cfgsuffix_list,
+        configid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list,
                                    id_colname='config_suffix')
 
         # executeone always returns a list
@@ -1432,7 +1450,7 @@ class IBEISController(object):
     @getter_1to1
     def get_config_suffixes(ibs, configid_list):
         """ Gets suffixes for algorithm configs """
-        cfgsuffix_list = ibs.db.get(CONFIGS, ('config_suffix',), configid_list)
+        cfgsuffix_list = ibs.db.get(CONFIG_TABLE, ('config_suffix',), configid_list)
         return cfgsuffix_list
 
     #
@@ -1453,7 +1471,7 @@ class IBEISController(object):
         """ Returns nid_list. Creates one if it doesnt exist """
         if ensure:
             ibs.add_names(name_list)
-        nid_list = ibs.get_labelids_from_values(name_list, constants.INDIVIDUAL_KEY)
+        nid_list = ibs.get_labelids_from_values(name_list, ibs.INDIVIDUAL_KEY)
 
         return nid_list
 
@@ -1465,11 +1483,11 @@ class IBEISController(object):
         # SQL query. Then augment the name list to distinguish unknown names
         nid_list_  = [nid if nid is not None and nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
         # <TESTS>
-        label_key_list = ibs.get_label_keys(nid_list_)
-        assert all([key == constants.INDIVIDUAL_KEY
-                    for key in label_key_list]), 'label_rowids are not individual_ids'
+        key_rowid_list = ibs.get_label_keys(nid_list_)
+        assert all([key == ibs.INDIVIDUAL_KEY
+                    for key in key_rowid_list]), 'label_rowids are not individual_ids'
         # </TESTS>
-        name_list = ibs.db.get(LABELS, ('label_value',), nid_list_)
+        name_list = ibs.db.get(LABEL_TABLE, ('label_value',), nid_list_)
         #name_list = ibs.get_name_props('name_text', nid_list_)
         if distinguish_unknowns:
             name_list  = [name if nid is not None and nid > 0
@@ -1484,7 +1502,7 @@ class IBEISController(object):
         """ returns a list of list of cids in each name """
         where_clause = 'label_rowid=?'
         params_iter = [(nid,) for nid in nid_list]
-        rids_list = ibs.db.get_where(RLR_TABLE, ('roi_rowid',), params_iter,
+        rids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
                                      where_clause, unpack_scalars=False)
         return rids_list
 
@@ -1531,7 +1549,7 @@ class IBEISController(object):
     def get_encounter_gids(ibs, eid_list):
         """ returns a list of list of gids in each encounter """
         gids_list = ibs.db.get(
-            EGR_TABLE, ('image_rowid',), eid_list,
+            EG_RELATION_TABLE, ('image_rowid',), eid_list,
             id_colname='encounter_rowid', unpack_scalars=False)
         return gids_list
 
@@ -1546,7 +1564,7 @@ class IBEISController(object):
     @getter_1to1
     def get_encounter_enctext(ibs, eid_list):
         """ Returns encounter_text of each eid in eid_list """
-        enctext_list = ibs.db.get(ENCOUNTERS, ('encounter_text',), eid_list,
+        enctext_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_text',), eid_list,
                                   id_colname='encounter_rowid')
         enctext_list = list(imap(__USTRCAST__, enctext_list))
         return enctext_list
@@ -1559,7 +1577,7 @@ class IBEISController(object):
         if ensure:
             ibs.add_encounters(enctext_list)
         colnames = ('encounter_rowid',)
-        eid_list = ibs.db.get(ENCOUNTERS, colnames, enctext_list,
+        eid_list = ibs.db.get(ENCOUNTER_TABLE, colnames, enctext_list,
                               id_colname='encounter_text')
         return eid_list
 
@@ -1573,10 +1591,10 @@ class IBEISController(object):
     def delete_names(ibs, nid_list):
         """ deletes names from the database
         (CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
-        ENSURE THAT NONE OF THE NIDS HAVE ROIS)
+        ENSURE THAT NONE OF THE NIDS HAVE ANNOT_TABLE)
         """
         print('[ibs] deleting %d names' % len(nid_list))
-        ibs.db.delete(LABELS, nid_list)
+        ibs.db.delete(LABEL_TABLE, nid_list)
 
     @deleter
     def delete_rois(ibs, rid_list):
@@ -1584,7 +1602,7 @@ class IBEISController(object):
         print('[ibs] deleting %d rois' % len(rid_list))
         # Delete chips and features first
         ibs.delete_roi_chips(rid_list)
-        ibs.db.delete(ROIS, rid_list)
+        ibs.db.delete(ANNOT_TABLE, rid_list)
 
     @deleter
     def delete_images(ibs, gid_list):
@@ -1593,14 +1611,14 @@ class IBEISController(object):
         # Delete rois first
         rid_list = utool.flatten(ibs.get_image_rids(gid_list))
         ibs.delete_rois(rid_list)
-        ibs.db.delete(IMAGES, gid_list)
-        ibs.db.delete(EGR_TABLE, gid_list, id_colname='image_rowid')
+        ibs.db.delete(IMAGE_TABLE, gid_list)
+        ibs.db.delete(EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
     @deleter
     def delete_features(ibs, fid_list):
         """ deletes images from the database that belong to gids"""
         print('[ibs] deleting %d features' % len(fid_list))
-        ibs.db.delete(FEATURES, fid_list)
+        ibs.db.delete(FEATURE_TABLE, fid_list)
 
     @deleter
     def delete_roi_chips(ibs, rid_list):
@@ -1635,14 +1653,14 @@ class IBEISController(object):
         fid_list = utool.filter_Nones(_fid_list)
         ibs.delete_features(fid_list)
         # Delete chips from sql
-        ibs.db.delete(CHIPS, cid_list)
+        ibs.db.delete(CHIP_TABLE, cid_list)
 
     @deleter
     def delete_encounters(ibs, eid_list):
         """ Removes encounters (but not any other data) """
         print('[ibs] deleting %d encounters' % len(eid_list))
-        ibs.db.delete(ENCOUNTERS, eid_list)
-        ibs.db.delete(EGR_TABLE, eid_list, id_colname='encounter_rowid')
+        ibs.db.delete(ENCOUNTER_TABLE, eid_list)
+        ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
 
     #
     #
