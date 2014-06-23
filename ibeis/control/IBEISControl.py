@@ -738,12 +738,12 @@ class IBEISController(object):
     @setter
     def set_image_gps(ibs, gid_list, gps_list):
         id_list = ((gid,) for gid in gid_list)
+        # see get_image_gps for how the gps_list should look
         lat_list = [tup[0] for tup in gps_list]
         lon_list = [tup[1] for tup in gps_list]
         colnames = ('image_gps_lat', 'image_gps_lon',)
         val_list = izip(lat_list, lon_list)
         ibs.db.set(IMAGE_TABLE, colnames, val_list, id_list)
-
 
     # SETTERS::ROI
 
@@ -759,6 +759,7 @@ class IBEISController(object):
             (x, y, w, h) tuples """
         # changing the bboxes also changes the bounding polygon
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
+        # naively overwrite the bounding polygon with a rectangle - for now trust the user!
         ibs.set_roi_verts(rid_list, vert_list)
         colnames = ['annot_xtl', 'annot_ytl', 'annot_width', 'annot_height']
         ibs.db.set(ANNOT_TABLE, colnames, bbox_list, rid_list)

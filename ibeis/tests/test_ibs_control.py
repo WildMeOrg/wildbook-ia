@@ -83,6 +83,17 @@ def TEST_IBS_CONTROL(ibs):
     bbox_list = ibs.get_roi_bboxes(rid_list)
     bbox_list2 = geometry.bboxes_from_vert_list(vert_list2)
     assert bbox_list == bbox_list2, 'bbox lists do not match'
+
+    # finish this test here
+
+    """ set_roi_bboxes / get_roi_verts  """
+    bbox_list = [(10, 10, 110, 110)] * len(rid_list)
+    ibs.set_roi_bboxes(rid_list, bbox_list)
+    # test that setting the bounding boxes overrides the vertices
+    vert_list = [((10, 10), (120, 10), (120, 120), (10, 120))] * len(rid_list)
+    vert_list2 = ibs.get_roi_verts(rid_list)
+    assert vert_list == vert_list2, 'vert lists do not match'
+
     # put verts back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
     ibs.set_roi_verts(rid_list, vert_list_orig)
