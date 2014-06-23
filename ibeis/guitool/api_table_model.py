@@ -193,7 +193,8 @@ class APITableModel(API_MODEL_BASE):
             #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             model._abouttochange = True
-            model.layoutAboutToBeChanged.emit()
+            #model.layoutAboutToBeChanged.emit()
+            #model._change()
             return True
         else:
             #printDBG('NOT ABOUT TO CHANGE')
@@ -288,12 +289,12 @@ class APITableModel(API_MODEL_BASE):
                 else:
                     values = id_list
                 reverse = model.col_sort_reverse
-                sorted_pairs = sorted(list(izip(values, id_list)), reverse=reverse)
-                row_indices = [id_ for (value, id_) in sorted_pairs]
+                sorted_pairs = sorted(list(izip(values, id_list, children)), reverse=reverse)
+                row_indices = [child for (value, id_, child) in sorted_pairs]
                 level = model.col_level_list[sort_index]
                 print("row_indices sorted")
                 if level == 0:
-                    nodes = [TreeNode(id_, model.root_node, level) for id_ in row_indices]
+                    nodes = row_indices 
                     model.root_node.set_children(nodes)
                 # end sort
             assert row_indices is not None, 'no indices'
