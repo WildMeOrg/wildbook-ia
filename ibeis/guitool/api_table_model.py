@@ -27,6 +27,9 @@ class TreeNode(object):
     def set_children(self, child_nodes):
         self.child_nodes = child_nodes
 
+    def get_children(self):
+        return self.child_nodes
+
     def __getitem__(self, index):
         return self.child_nodes[index]
 
@@ -267,38 +270,36 @@ class APITableModel(API_MODEL_BASE):
         print('UPDATE ROWS!')
         #print('UPDATE model(%s) rows' % model.name)
         if len(model.col_level_list) > 0:
+            model.root_node = _build_internal_structure(model)
             #print('-----')
             model.level_index_list = []
             highest_level = max(model.col_level_list)
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            for level in xrange(0, highest_level + 1):
-                ids_ = model._use_ider(level=level)
-                #print('ids_ generated')
-                row_indices = []
-                if len(ids_) != 0:
-                    # start sort
-                    if model.col_sort_index is not None:
-                        level = model.col_level_list[sort_index]
-                        getter = model.col_getter_list[sort_index]
-                        values = getter(model._use_ider(level))
-                        #print('values got')
-                    else:
-                        values = ids_
-                    reverse = model.col_sort_reverse
-                    sorted_pairs = sorted(list(izip(values, ids_)), reverse=reverse)
-                    row_indices = [id_ for (value, id_) in sorted_pairs]
-                    #print('row_indicies: %r' % row_indices)
-                    # end sort
-                assert row_indices is not None, 'no indices'
-                model.level_index_list.append(row_indices)
+            children = model.root_node.get_children()
+            id_list = [child.get_id() for child in children]
+            #print('ids_ generated')
+            row_indices = []
+            if len(id_list) != 0:
+                # start sort
+                if model.col_sort_index is not None:
+                    getter = model.col_getter_list[sort_index]
+                    values = getter(id_list)
+                    print('values got')
+                else:
+                    values = id_list
+                reverse = model.col_sort_reverse
+                sorted_pairs = sorted(list(izip(values, id_list)), reverse=reverse)
+                row_indices = [id_ for (value, id_) in sorted_pairs]
+                level = model.col_level_list[sort_index]
+                print("row_indices sorted")
+                if level == 0:
+                    nodes = [TreeNode(id_, model.root_node, level) for id_ in row_indices]
+                    model.root_node.set_children(nodes)
+                # end sort
+            assert row_indices is not None, 'no indices'
+            model.level_index_list.append(row_indices)
             model._rows_updated.emit(model.name, len(model.level_index_list[0]))
-            #print('[model] new level_index_list=%r' % (model.level_index_list,))
-            #print(model.level_index_list)
-            #print("[model] Building internal structure now")
-            model.root_node = _build_internal_structure(model)
-            assert model.root_node.__dict__, "TreeNode __dict__ is empty"
-            #print("[model] Internal Structure Built")
-            #print("root_node: %r" % model.root_node)
+            print("Rows updated")
     
 
     def _build_internal_structure_old(model):
@@ -432,22 +433,11 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, row, col, node=None):
-        #
-        # <HACK: COLUMN_STRIPING>
-        #num = model.col_name_list_counts[model.col_name_list[col]]
-        #assert num == 1, 'no hacks allowed'
-        #if num > 1:
-        #    # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
-        #    assert num == len(model.col_name_list), "mixing stripped with non stripped"
-        #    row = row * num + col
-        #    col = 0
-        # </HACK: COLUMN_STRIPING>
-        #
-        #if node is None:
-        #    node = model.root_node
-        #if row < len(node):
         getter = model.col_getter_list[col]  # getter for this column
-        row_id = model._get_row_id(row, node=node)  # row_id w.r.t. to sorting
+        if node is not None:
+            row_id = model._get_row_id(row, node=node)  # row_id w.r.t. to sorting
+        else:
+            row_id = model._get_row_id(row, col)
         # <HACK: MODEL CACHE>
         #cachekey = (row_id, col)
         try:
@@ -473,7 +463,7 @@ class APITableModel(API_MODEL_BASE):
         that the row call back returned value is the value that needs to be
         stored The setter function should return a boolean, if setting the value
         was successfull or not """
-        row_id = model._get_row_id(row)
+        row_id = model._get_row_id(row, col)
         #if row_id is None:
         #    return "__NONE__"
         cachekey = (row_id, col)
@@ -514,14 +504,18 @@ class APITableModel(API_MODEL_BASE):
             node = qindex.internalPointer()
             #<HACK>
             if not isinstance(node, TreeNode):
+                #import traceback
+                #traceback.print_stack()
                 print("WARNING: tried to access parent of %r type object" % type(node))
                 return QtCore.QModelIndex()
+            if not node.__dict__:
+                #import traceback
+                #traceback.print_stack()
+                raise AssertionError, "node.__dict__=%r" % node.__dict__
             #</HACK>
-            #assert isinstance(node, TreeNode), "[api_table_model.parent()] node is of type %r" % type(node)
             parent_node = node.get_parent()
             if parent_node.get_id() is None:
                 return QtCore.QModelIndex()
-            #print(parent_node.full_str())
             row = parent_node.get_row()
             col = model.col_level_list.index(parent_node.level)
             return model.createIndex(row, col, parent_node)
