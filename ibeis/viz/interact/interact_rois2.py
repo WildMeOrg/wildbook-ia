@@ -13,7 +13,6 @@ class ROI_Interaction2:
         bbox_list = ibs.get_roi_bboxes(self.rid_list)
         theta_list = ibs.get_roi_thetas(self.rid_list)
         self.interact_ROIS = interact_rois.ROIInteraction(img, callback=self.callback,bbox_list=bbox_list, theta_list=theta_list)
-        #exec(df2.present())
         df2.update()
 
     def callback(self, deleted_list, changed_list, new_list):
@@ -44,5 +43,6 @@ if __name__ == '__main__':
     main_locals = ibeis.main(gui=False)
     ibs = main_locals['ibs']
     gid_list = ibs.get_valid_gids()
-    gid = gid_list[len(gid_list) - 1]
-    self = ROI_Interaction2(ibs, gid)
+    gid = gid_list[len(gid_list)-1]
+    roi = ROI_Interaction2(ibs, gid)
+    exec(df2.present())
