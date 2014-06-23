@@ -139,3 +139,8 @@ def infer_coltype(column_list):
     except Exception:
         coltype_list = [str] * len(column_list)
     return coltype_list
+
+
+def to_qcolor(color):
+    qcolor = QtGui.QColor(*color[0:3])
+    return qcolor

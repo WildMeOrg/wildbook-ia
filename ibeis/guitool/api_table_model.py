@@ -115,7 +115,7 @@ class APITableModel(API_MODEL_BASE):
         model.col_setter_list  = []
         model.col_getter_list  = []
         model.col_level_list   = []
-        model.col_rolegetter_list = None
+        model.col_bgrole_getter_list = None
         model.col_sort_index   = None
         model.col_sort_reverse = False
         model.level_index_list = []
@@ -171,7 +171,7 @@ class APITableModel(API_MODEL_BASE):
         col_sort_index   = headers.get('col_sort_index', None)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # New for dynamically getting non-data roles for each row
-        col_rolegetter_list  = headers.get('col_rolegetter_list', None)
+        col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
         model.cache = {}  # FIXME: This is not sustainable
         model.name = str(name)
         model.nice = str(nice)
@@ -182,7 +182,7 @@ class APITableModel(API_MODEL_BASE):
         model._set_col_edit(col_edit_list)
         model._set_col_setter(col_setter_list)
         model._set_col_getter(col_getter_list)
-        model._set_col_rolegetter(col_rolegetter_list)
+        model._set_col_bgrole_getter(col_bgrole_getter_list)
 
         model._set_col_level(col_level_list)
         # calls model._update_rows()
@@ -303,13 +303,14 @@ class APITableModel(API_MODEL_BASE):
         model.col_getter_list = col_getter_list
 
     @default_method_decorator
-    def _set_col_rolegetter(model, col_rolegetter_list=None):
-        """ rolegetter will be used for metadata like column color """
-        if col_rolegetter_list is None:
-            return
-        assert len(model.col_name_list) == len(col_rolegetter_list), \
-            'inconsistent col_rolegetter_list'
-        model.col_rolegetter_list = col_rolegetter_list
+    def _set_col_bgrole_getter(model, col_bgrole_getter_list=None):
+        """ background rolegetter will be used for metadata like column color """
+        if col_bgrole_getter_list is None:
+            model.col_bgrole_getter_list = [None] * len(col_bgrole_getter_list)
+        else:
+            assert len(model.col_name_list) == len(col_bgrole_getter_list), \
+                'inconsistent col_bgrole_getter_list'
+            model.col_bgrole_getter_list = col_bgrole_getter_list
 
     @default_method_decorator
     def _set_col_level(model, col_level_list=None):
@@ -340,6 +341,11 @@ class APITableModel(API_MODEL_BASE):
         """ Use _get_data if the column number is known """
         col = model.col_name_list.index(colname)
         return model._get_data(row, col)
+
+    @default_method_decorator
+    def get_header_name(model, column):
+        colname = model.col_name_list[column]
+        return colname
 
     #--------------------------------
     # --- API Interface Functions ---
@@ -376,14 +382,19 @@ class APITableModel(API_MODEL_BASE):
     def _get_type(model, col):
         return model.col_type_list[col]
 
-    def _get_rolevalue(model, qtindex):
+    @default_method_decorator
+    def _get_bgrole_value(model, qtindex):
+        """ Gets the background role if specified """
         col = qtindex.column()
-        if model.col_rolegetter_list is None or len(model.col_rolegetter_list) < col:
+        row = qtindex.row()
+        bgrole_getter = model.col_bgrole_getter_list[col]
+        if bgrole_getter is None:
             return None
-        role_getter = model.col_rolegetter_list[col]
-        if role_getter is None:
+        color = bgrole_getter(row)
+        if color is None:
             return None
-        return role_getter(qtindex)
+        val = qtype.to_qcolor(color)
+        return val
 
     @default_method_decorator
     def _get_data(model, row, col):
@@ -464,7 +475,7 @@ class APITableModel(API_MODEL_BASE):
         implementation, leading to infinite recursion.  """
         if qindex.isValid():
             indexlevel = model.col_level_list[qindex.column()]
-            parentlevel_cols = model._get_columns_of_level(indexlevel-1)
+            parentlevel_cols = model._get_columns_of_level(indexlevel - 1)
             if len(parentlevel_cols) > 0:
                 return model.createIndex(qindex.row(), parentlevel_cols[0])
         return QtCore.QModelIndex()
@@ -488,13 +499,13 @@ class APITableModel(API_MODEL_BASE):
         if len(model.level_index_list) > 0:
             parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
             try:
-                length = len(model.level_index_list[parent_level+1])
+                length = len(model.level_index_list[parent_level + 1])
                 # <HACK>
                 counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
                 # </HACK>
                 return max(counts)
             except:
-                return len(model.level_index_list[parent_level+1])
+                return len(model.level_index_list[parent_level + 1])
         else:
             return 0
 
@@ -503,7 +514,7 @@ class APITableModel(API_MODEL_BASE):
         """ Qt Override """
         if len(model.level_index_list) > 0:
             parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
-            return len(model._get_columns_of_level(parent_level+1))
+            return len(model._get_columns_of_level(parent_level + 1))
         else:
             return 0
 
@@ -531,18 +542,18 @@ class APITableModel(API_MODEL_BASE):
         # Specify Text Alignment Role
         if role == Qt.TextAlignmentRole:
             if type_ in qtype.QT_IMAGE_TYPES:
-                value = Qt.AlignRight
+                value = Qt.AlignRight | Qt.AlignVCenter
             elif type_ in qtype.QT_BUTTON_TYPES:
-                value = Qt.AlignRight
+                value = Qt.AlignRight | Qt.AlignVCenter
             elif type_ in utool.VALID_FLOAT_TYPES:
-                value = Qt.AlignRight
+                value = Qt.AlignRight | Qt.AlignVCenter
             else:
-                value = Qt.AlignHCenter
+                value = Qt.AlignHCenter | Qt.AlignVCenter
             return value
         #
         # Specify Background Rule
         elif role == Qt.BackgroundRole:
-            value = model._get_rolevalue(qtindex)
+            value = model._get_bgrole_value(qtindex)
             if value is not None:
                 return value
             if flags & Qt.ItemIsEditable:

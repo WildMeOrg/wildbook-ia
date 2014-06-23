@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from guitool.api_table_model import APITableModel
 from guitool.api_table_view import APITableView
 #from guitool import guitool_components as comp
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableWidget]', DEBUG=False)
 
@@ -31,6 +31,7 @@ class APITableWidget(WIDGET_BASE):
         if headers is not None:
             # Make sure we don't call a subclass method
             APITableWidget.change_headers(widget, headers)
+        widget.connect_signals()
 
     def change_headers(widget, headers):
         parent = widget.parent()
@@ -43,7 +44,13 @@ class APITableWidget(WIDGET_BASE):
 
     def connect_signals(widget):
         widget.model._rows_updated.connect(widget.on_rows_updated)
+        widget.view.contextMenuClicked.connect(widget.on_contextMenuRequested)
 
     def on_rows_updated(widget, name, num):
         print('rows updated')
+        pass
+
+    @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QPoint)
+    def on_contextMenuRequested(widget, index, pos):
+        print('context request')
         pass
