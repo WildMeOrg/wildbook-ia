@@ -9,7 +9,7 @@ from ibeis import constants
 
 
 def define_IBEIS_schema(ibs):
-    # TODO, Add algoritm config column
+    # First class table used to store image locations and meta-data
     ibs.db.schema(constants.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
         ('image_uuid',                   'UUID NOT NULL'),
@@ -22,14 +22,14 @@ def define_IBEIS_schema(ibs):
         ('image_exif_time_posix',        'INTEGER DEFAULT -1'),
         ('image_exif_gps_lat',           'REAL DEFAULT -1.0'),   # there doesn't seem to exist a GPSPoint in SQLite
         ('image_exif_gps_lon',           'REAL DEFAULT -1.0'),
-        ('image_confidence',             'REAL DEFAULT -1.0',),  # Move to an algocfg table?
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
     ), ['CONSTRAINT superkey UNIQUE (image_uuid)'])
 
-    # Used to store the detected annots / bboxed annots
-    # TODO: Rename to annots
+    # Mainly used to store the geometry of the annotation within its parent image
+    # The one-to-many relationship between images and annotations is encoded here
+    # Attributes are stored in the Annotation Label Relationship Table
     ibs.db.schema(constants.ANNOT_TABLE, (
         ('annot_rowid',                    'INTEGER PRIMARY KEY'),
         ('annot_uuid',                     'UUID NOT NULL'),
@@ -47,7 +47,7 @@ def define_IBEIS_schema(ibs):
         ('annot_note',                     'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (annot_uuid)']
     )
-    # Used to store the relationship between annot (annots) and Labels
+    # Used to store one-to-many the relationship between annotations (annots) and Labels
     ibs.db.schema(constants.AL_RELATION_TABLE, (
         ('alr_rowid',                      'INTEGER PRIMARY KEY'),
         ('annot_rowid',                      'INTEGER NOT NULL'),
@@ -56,12 +56,7 @@ def define_IBEIS_schema(ibs):
         ('alr_confidence',                 'REAL DEFAULT 0.0'),
     ))
 
-    # Used to store the results of annots
-    # the label key must be in
-    # {
-    # 'INDIVIDUAL_KEY': 0,
-    # 'SPECIES_KEY': 1,
-    # }
+    # Used to store the attributes of annotations
     ibs.db.schema(constants.LABEL_TABLE, (
         ('label_rowid',                   'INTEGER PRIMARY KEY'),
         ('label_uuid',                    'UUID NOT NULL'),
@@ -85,6 +80,7 @@ def define_IBEIS_schema(ibs):
     ),  ['CONSTRAINT superkey UNIQUE (encounter_text)'])
 
     # Relationship between encounters and images (many to many mapping)
+    # the many-to-many relationship between images and encounters is encoded here
     # encounter_image_relationship stands for encounter-image-pairs.
     ibs.db.schema(constants.EG_RELATION_TABLE, (
         ('egpair_rowid',                  'INTEGER PRIMARY KEY'),
@@ -92,8 +88,9 @@ def define_IBEIS_schema(ibs):
         ('encounter_rowid',               'INTEGER'),
     ),  ['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'])
 
-    # Detection and identification algorithm configurations, populated
-    # with caching information
+    # Used to store the ids of algorithm configurations that generate
+    # annotation labels.
+    # Each user will have a config id for manual contributions
     ibs.db.schema(constants.CONFIG_TABLE, (
         ('config_rowid',                 'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
