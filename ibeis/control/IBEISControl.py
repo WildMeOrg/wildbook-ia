@@ -492,8 +492,8 @@ class IBEISController(object):
         # Add any unadded images
         colnames = ('image_uuid', 'image_uri', 'image_original_name',
                     'image_ext', 'image_width', 'image_height',
-                    'image_exif_time_posix', 'image_exif_gps_lat',
-                    'image_exif_gps_lon', 'image_note',)
+                    'image_time_posix', 'image_gps_lat',
+                    'image_gps_lon', 'image_note',)
         # <DEBUG>
         if utool.VERBOSE:
             uuid_list = [None if params is None else params[0] for params in params_list]
@@ -714,7 +714,7 @@ class IBEISController(object):
         """ Sets the image unixtime (does not modify exif yet) """
         id_list = ((gid,) for gid in gid_list)
         val_list = ((unixtime,) for unixtime in unixtime_list)
-        ibs.db.set(IMAGE_TABLE, ('image_exif_time_posix',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_time_posix',), val_list, id_list)
 
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
@@ -946,15 +946,15 @@ class IBEISController(object):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
         """
-        return ibs.db.get(IMAGE_TABLE, ('image_exif_time_posix',), gid_list)
+        return ibs.db.get(IMAGE_TABLE, ('image_time_posix',), gid_list)
 
     @getter_1to1
     def get_image_gps(ibs, gid_list):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
         """
-        lat_list = ibs.db.get(IMAGE_TABLE, ('image_exif_gps_lat',), gid_list)
-        lon_list = ibs.db.get(IMAGE_TABLE, ('image_exif_gps_lon',), gid_list)
+        lat_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lat',), gid_list)
+        lon_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lon',), gid_list)
         gps_list = [(lat, lon) for (lat, lon) in izip(lat_list, lon_list)]
         return gps_list
 

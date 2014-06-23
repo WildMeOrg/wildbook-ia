@@ -19,9 +19,9 @@ def define_IBEIS_schema(ibs):
         #('image_original_path',          'TEXT NOT NULL'),
         ('image_width',                  'INTEGER DEFAULT -1'),
         ('image_height',                 'INTEGER DEFAULT -1'),
-        ('image_exif_time_posix',        'INTEGER DEFAULT -1'),
-        ('image_exif_gps_lat',           'REAL DEFAULT -1.0'),   # there doesn't seem to exist a GPSPoint in SQLite
-        ('image_exif_gps_lon',           'REAL DEFAULT -1.0'),
+        ('image_time_posix',        'INTEGER DEFAULT -1'),
+        ('image_gps_lat',           'REAL DEFAULT -1.0'),   # there doesn't seem to exist a GPSPoint in SQLite
+        ('image_gps_lon',           'REAL DEFAULT -1.0'),
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
