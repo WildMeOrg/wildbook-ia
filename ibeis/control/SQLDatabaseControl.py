@@ -181,6 +181,7 @@ class SQLDatabaseController(object):
         db.table_columns = utool.odict()
         db.cache = {}
         db.stack = []
+        db.table_constraints = utool.odict()
 
     #==============
     # CONVINENCE
@@ -226,10 +227,8 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_table_csv(db, tablename, exclude_columns=[]):
         """ Conveinience: Converts a tablename to csv format """
-        header_name  = '# TABLENAME: %r' % tablename
         column_nametypes = db.table_columns[tablename]
         column_names = [name for (name, type_) in column_nametypes]
-        header_types = utool.indentjoin(column_nametypes, '\n# ')
         column_list = []
         column_labels = []
         for name in column_names:
@@ -241,9 +240,22 @@ class SQLDatabaseController(object):
         # remove column prefix for more compact csvs
 
         #=None, column_list=[], header='', column_type=None
-        header = header_name + header_types
+        header = db.get_table_csv_header(tablename)
         csv_table = utool.make_csv_table(column_list, column_labels, header)
         return csv_table
+
+    @default_decorator
+    def get_table_csv_header(db, tablename):
+        column_nametypes = db.table_columns[tablename]
+        header_constraints = '# CONSTRAINTS: %r' % db.table_constraints[tablename]
+        header_name  = '# TABLENAME: %r' % tablename
+        header_types = utool.indentjoin(column_nametypes, '\n# ')
+        header = header_name + header_types + '\n' + header_constraints
+        return header
+
+    def print_schema(db):
+        for tablename in db.table_columns.iterkeys():
+            print(db.get_table_csv_header(tablename) + '\n')
 
     @default_decorator
     def get_sql_version(db):
@@ -578,6 +590,7 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
         # Append to internal storage
         db.table_columns[tablename] = schema_list
+        db.table_constraints[tablename] = table_constraints
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
