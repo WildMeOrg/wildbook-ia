@@ -105,7 +105,8 @@ class CustomAPI(object):
     """
     def __init__(self, column_tuples, editable_colnames, sortby=0,
                  sort_reverse=False):
-        print('[CustomAPI] <__init__>')
+        import __builtin__
+        __builtin__.print('[CustomAPI] <__init__>')
         col_name_list, col_data_list, col_type_list = list(izip(*column_tuples))
         # Unpack the tuple into flat lists
         self.col_name_list = col_name_list
@@ -130,16 +131,16 @@ class CustomAPI(object):
         for column, tup in enumerate(column_tuples):
             if len(tup) > 3:
                 # specify a setter explicitly
-                print('[CustomAPI] Augment Column Setter')
+                __builtin__.print('[CustomAPI] Augment Column Setter')
                 tup = column_tuples[column]
                 _col_setter = tup[3]
                 self.col_setter_list[column] = _col_setter
                 if len(tup) > 4:
                     # Use another columns values as this column's ids
-                    print('[CustomAPI] Augment Column Ider')
+                    __builtin__.print('[CustomAPI] Augment Column Ider')
                     _colname = tup[4]
                     _column = self.col_name_list.index(_colname)
-                    print(' * (_colname: '  + _colname + ') = _column: (' + str(_column) + ')')
+                    __builtin__.print(' * (_colname: '  + _colname + ') = _column: (' + str(_column) + ')')
                     _col_ider = partial(self.get, _column)
                     self.col_ider_list[column] = _col_ider
 
@@ -149,7 +150,7 @@ class CustomAPI(object):
                                if isinstance(sortby, (str, unicode))
                                else sortby)
         self.col_sort_reverse = sort_reverse
-        print('[CustomAPI] </__init__>')
+        __builtin__.print('[CustomAPI] </__init__>')
 
     def _rectify_row(self, column, row):
         """ if this columns values are not indexed by the ider """
