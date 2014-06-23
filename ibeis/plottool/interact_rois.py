@@ -41,6 +41,7 @@ import numpy as np
 import utool
 
 from plottool import draw_func2 as df2
+from itertools import izip
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -178,7 +179,7 @@ class ROIInteraction(object):
         #if a polygon is currently active
         self._polyHeld = False
         #the polygon that is currently active
-        self._thisPoly = None
+        self._currently_selected_poly = None
         #used in small case to determine if polygon should be highlighted or not
         self.press1 = False
         #boolean to tell if the polygon SHOULD be active
@@ -189,13 +190,13 @@ class ROIInteraction(object):
         #Something Jon added
         self.background = None
 
-        def new_polygon(verts):
+        def new_polygon(verts, theta):
             """ verts - list of (x, y) tuples """
             # create new polygon from verts
             poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
             # register this polygon
             poly.num = self.next_polynum()
-            self.theta_list.append(0)
+            poly.theta = theta
             return poly
 
         def new_line(poly):
@@ -214,11 +215,10 @@ class ROIInteraction(object):
         if bbox_list is not None:
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         if theta_list is None:
-            self.theta_list = []
-        else:
-            self.theta_list = list(theta_list)
+            theta_list = [0 for verts in verts_list]
         # Create the list of polygons
-        self.polyList = [new_polygon(verts) for verts in verts_list]
+        self.polyList = [new_polygon(verts, theta) for (verts, theta) in izip(verts_list, theta_list)]
+        assert len(theta_list) == len(self.polyList), 'theta_list: %r, polyList: %r' % (theta_list, self.polyList)
         # Create the list of lines
         self.line = [new_line(poly) for poly in self.polyList]
         self._update_line()
@@ -371,31 +371,31 @@ class ROIInteraction(object):
         ignore = not self.showverts or event.inaxes is None or event.button != 1
         if ignore:
             return
-        if self._thisPoly is None or self.line is None:
+        if self._currently_selected_poly is None or self.line is None:
             print('WARNING: Polygon unknown. Using last placed poly.')
             if len(self.polyList) == 0:
                 print('No polygons on screen')
                 return
             else:
                 poly_ind = len(self.polyList) - 1
-                self._thisPoly = self.polyList[poly_ind]
+                self._currently_selected_poly = self.polyList[poly_ind]
                 self.update_colors(poly_ind)
         polyind, self._ind = self.get_ind_under_cursor(event)
 
         if self._ind is not None and polyind is not None:
-            self._thisPoly = self.polyList[polyind]
-            if self._thisPoly is None:
+            self._currently_selected_poly = self.polyList[polyind]
+            if self._currently_selected_poly is None:
                 return
-            self.indX, self.indY = self._thisPoly.xy[self._ind]
+            self.indX, self.indY = self._currently_selected_poly.xy[self._ind]
             self._polyHeld = True
             self.update_colors(polyind)
 
         self.mouseX, self.mouseY = event.xdata, event.ydata
 
         if self._polyHeld is True or self._ind is not None:
-            self._thisPoly.set_alpha(.2)
-            self.update_colors(self.polyList.index(self._thisPoly))
-            #self._thisPoly.set_facecolor('red')
+            self._currently_selected_poly.set_alpha(.2)
+            self.update_colors(self.polyList.index(self._currently_selected_poly))
+            #self._currently_selected_poly.set_facecolor('red')
             #self.line[polyInd].set_color('red')
         self.press1 = True
         self.canUncolor = False
@@ -418,45 +418,47 @@ class ROIInteraction(object):
         if self._polyHeld is True and (self._ind is None or self.press1 is False):
             self._polyHeld = False
 
-        ignore = not self.showverts or event.button != 1 or self._thisPoly is None
+        ignore = not self.showverts or event.button != 1 or self._currently_selected_poly is None
         if ignore:
             return
         if (self._ind is None) or self._polyHeld is False or \
            (self._ind is not None and self.press1 is True) and \
-           self._thisPoly is not None and self.canUncolor is True:
-            self._thisPoly.set_alpha(0)
-            #self._thisPoly.set_facecolor('white')
+           self._currently_selected_poly is not None and self.canUncolor is True:
+            self._currently_selected_poly.set_alpha(0)
+            #self._currently_selected_poly.set_facecolor('white')
 
         self.update_UI()
         self.press1 = False
 
         if self._ind is None:
             return
-        if self._thisPoly is None:
+        if self._currently_selected_poly is None:
             print('WARNING: Polygon unknown. Using default. (2)')
-            self._thisPoly = self.polyList[0]
-            if(self._thisPoly is None):
+            self._currently_selected_poly = self.polyList[0]
+            if(self._currently_selected_poly is None):
                 return
-        currX, currY = self._thisPoly.xy[self._ind]
+        currX, currY = self._currently_selected_poly.xy[self._ind]
 
         if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
             return
 
         if (self._ind is None) or self._polyHeld is False or \
            (self._ind is not None and self.press1 is True) and \
-           self._thisPoly is not None:
-            self._thisPoly = None
+           self._currently_selected_poly is not None:
+            self._currently_selected_poly = None
             self.update_colors(None)
         self._ind = None
         self._polyHeld = False
 
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
-        Poly = Polygon(coords, animated=True,
+        poly = Polygon(coords, animated=True,
                             fc='white', ec='none', alpha=0.2, picker=True)
-        self.polyList.append(Poly)
-        self.ax.add_patch(Poly)
-        x, y = zip(*Poly.xy)
+        poly.theta = 0
+        self.polyList.append(poly)
+        #self.theta_list.append(0)
+        self.ax.add_patch(poly)
+        x, y = zip(*poly.xy)
         color = np.array((1, 1, 1))
         marker_face_color = (1, 1, 1)
         line_width = 4
@@ -465,45 +467,40 @@ class ROIInteraction(object):
         self.line.append(plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs))
         self._update_line()
 
-        self.theta_list.append(0)
-
         self.ax.add_line(self.line[-1])
 
-        Poly.add_callback(self.poly_changed)
-        Poly.num = self.next_polynum()
+        poly.add_callback(self.poly_changed)
+        poly.num = self.next_polynum()
         self._ind = None  # the active vert
-        self._thisPoly = Poly
+        self._currently_selected_poly = poly
         self.update_colors(len(self.polyList) - 1)
         plt.draw()
 
     def delete_current_poly(self, event=None):
-        if self._thisPoly is None:
-            print('No Poly Selected to delete')
+        if self._currently_selected_poly is None:
+            print('No polygon selected to delete')
             return
-        Poly = self._thisPoly
-        lineNumber = self.polyList.index(Poly)
+        poly = self._currently_selected_poly
+        lineNumber = self.polyList.index(poly)
         ###print('poly list: ', len(self.polyList), 'list size ', len(self.line), 'index of poly ', lineNumber)
 
         #line deletion
-        print("length: ", len(self.theta_list), "number: ", lineNumber)
-        self.theta_list[lineNumber] = None
+        print("length: ", len(self.polyList), "number: ", lineNumber)
+        #self.theta_list[lineNumber] = None
         self.line[lineNumber] = None
         #poly deletion
-        self.polyList[self.polyList.index(Poly)] = None
-        #self.polyList.remove(Poly)
+        self.polyList[lineNumber] = None
+        #self.polyList.remove(poly)
         #remove the poly from the figure itself
-        Poly.remove()
+        poly.remove()
         #reset anything that has to do with current poly
-        self._thisPoly = None
+        self._currently_selected_poly = None
         self._polyHeld = False
         self.update_colors(len(self.polyList) - 1)
         plt.draw()
 
     def load_points(self):
-        new_verts_list = []
-        for poly in self.polyList:
-            new_verts_list.append(poly.xy)
-        return new_verts_list
+        return [poly.xy for poly in self.polyList]
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
@@ -563,7 +560,7 @@ class ROIInteraction(object):
         if self._ind is None and event.button == 1:
             # move all vertices
             if self._polyHeld is True:
-                self.move_rectangle(event, self._thisPoly, event.xdata, event.ydata)
+                self.move_rectangle(event, self._currently_selected_poly, event.xdata, event.ydata)
             self.update_UI()
             self._ind = None
             # set new mouse loc
@@ -572,7 +569,7 @@ class ROIInteraction(object):
         if self._ind is None:
             return
         if self._polyHeld is True:
-            self.calculate_move(event, self._thisPoly)
+            self.calculate_move(event, self._currently_selected_poly)
         else:
             print('error no poly known')
         self.update_UI()
@@ -580,19 +577,19 @@ class ROIInteraction(object):
     def onpick(self, event):
         """ Makes selected polygon translucent """
         print('onpick')
-        self._thisPoly = event.artist
+        self._currently_selected_poly = event.artist
         #x, y = event.mouseevent.xdata, event.mouseevent.xdata
         self._polyHeld = True
 
     def mouse_enter(self, event):
         print('mouse_enter')
-        self._thisPoly = event.artist
-        self._thisPoly.set_alpha(.2)
+        self._currently_selected_poly = event.artist
+        self._currently_selected_poly.set_alpha(.2)
 
     def mouse_leave(self, event):
         print('mouse_leave')
-        self._thisPoly.set_alpha(0)
-        self._thisPoly = None
+        self._currently_selected_poly.set_alpha(0)
+        self._currently_selected_poly = None
 
     def check_dims(self, coords):
         xlim = self.ax.get_xlim()
