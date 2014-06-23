@@ -438,7 +438,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             eid = model.eid
             if model.name == IMAGE_TABLE:
                 gid = id_
-                ibswgt.roi_interact = interact_rois2.ROI_Interaction2(ibswgt.ibs, gid)
+                ibswgt.roi_interact = interact_rois2.ROI_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ROI_TABLE:
                 rid = id_

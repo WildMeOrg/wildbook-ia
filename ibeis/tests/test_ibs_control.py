@@ -2,6 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import utool
+from vtool import geometry
 from itertools import izip
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS_CONTROL]')
 
@@ -69,6 +70,7 @@ def TEST_IBS_CONTROL(ibs):
     """ set_roi_verts / get_roi_verts """
     rid_list = ibs.get_valid_rids()
     assert rid_list, 'rid_list is empty'
+    bbox_list_orig = ibs.get_roi_bboxes(rid_list)
     vert_list_orig = ibs.get_roi_verts(rid_list)
     vert_list = [((1, 2), (3, 4), (5, 6), (7, 8))] * len(rid_list)
     print('[TEST] vert_list = %r' % vert_list)
@@ -76,9 +78,16 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_roi_verts(rid_list, vert_list)
     vert_list2 = ibs.get_roi_verts(rid_list)
     assert vert_list == vert_list2, 'vert lists do not match'
+
+    """ set_roi_verts / get_roi_bboxes """
+    bbox_list = ibs.get_roi_bboxes(rid_list)
+    bbox_list2 = geometry.bboxes_from_vert_list(vert_list2)
+    assert bbox_list == bbox_list2, 'bbox lists do not match'
     # put verts back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
     ibs.set_roi_verts(rid_list, vert_list_orig)
+    assert vert_list_orig == ibs.get_roi_verts(rid_list), 'Verts were not reset to original state'
+    assert bbox_list_orig == ibs.get_roi_bboxes(rid_list), 'Bboxes were not reset to original state'
 
     # eid_list = ibs.get_valid_eids()
     # enc_text_list = len(eid_list) * ["test encounter text"]
