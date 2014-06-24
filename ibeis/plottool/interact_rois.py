@@ -591,7 +591,7 @@ class ROIInteraction(object):
         if self._ind is None:
             return
         if self._polyHeld is True:
-            self.calculate_move(event, self._currently_selected_poly)
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY)
         else:
             print('error no poly known')
         self.update_UI()
@@ -683,26 +683,17 @@ class ROIInteraction(object):
             poly.basecoords = new_coords
             self.set_display_coords(poly)
 
-    def calculate_move(self, event, poly):
-        #print('calculate_move')
+    def resize_rectangle(self, poly, x, y):
+        #print('resize_rectangle')
         if poly is None:
             return
         indBefore = self._ind - 1
         if(indBefore < 0):
             indBefore = len(poly.xy) - 2
         indAfter = (self._ind + 1) % 4
-        selectedX, selectedY = (poly.xy[self._ind])
-        beforeX, beforeY = (poly.xy[indBefore])
-        afterX, afterY = (poly.xy[indAfter])
-        #print("Before: (" + str(beforeX) + ", " + str(beforeY) + ")")
-        #print("Selected: (" + str(selectedX) + ", " + str(selectedY) + ")")
-        #print("After: (" + str(afterX) + ", " + str(afterY) + ")")
-        #bbox_x = int(selectedX)
-        #bbox_y = int(selectedY)
-        #bbox_w = int(afterX - selectedX)
-        #bbox_h = int(beforeY - selectedY)
-        #if((bbox_x, bbox_y, bbox_w, bbox_h) in self.original_list):
-        #    print("ORIGINAL BBOX")
+        selectedX, selectedY = (poly.basecoords[self._ind])
+        beforeX, beforeY = (poly.basecoords[indBefore])
+        afterX, afterY = (poly.basecoords[indAfter])
 
         changeBefore = -1
         keepX, changeY = -1, -1
@@ -711,37 +702,36 @@ class ROIInteraction(object):
 
         if beforeX != selectedX:
             changeBefore = indBefore
-            keepX, changeY = poly.xy[indBefore]
+            keepX, changeY = poly.basecoords[indBefore]
             changeAfter = indAfter
-            changeX, keepY = poly.xy[indAfter]
+            changeX, keepY = poly.basecoords[indAfter]
         else:
             changeBefore = indAfter
-            keepX, changeY = poly.xy[indAfter]
+            keepX, changeY = poly.basecoords[indAfter]
             changeAfter = indBefore
-            changeX, keepY = poly.xy[indBefore]
-
-        x, y = event.xdata, event.ydata
+            changeX, keepY = poly.basecoords[indBefore]
 
         # Change selected
         if self._ind == 0 or self._ind == self.last_vert_ind:
-            poly.xy[0] = x, y
-            poly.xy[self.last_vert_ind] = x, y
+            poly.basecoords[0] = x, y
+            poly.basecoords[self.last_vert_ind] = x, y
         else:
-            poly.xy[self._ind] = x, y
+            poly.basecoords[self._ind] = x, y
 
         # Change vert
         if changeBefore == 0 or changeBefore == self.last_vert_ind:
-            poly.xy[0] = keepX, y
-            poly.xy[self.last_vert_ind] = keepX, y
+            poly.basecoords[0] = keepX, y
+            poly.basecoords[self.last_vert_ind] = keepX, y
         else:
-            poly.xy[changeBefore] = keepX, y
+            poly.basecoords[changeBefore] = keepX, y
 
         # Change horiz
         if changeAfter == 0 or changeAfter == self.last_vert_ind:
-            poly.xy[0] = x, keepY
-            poly.xy[self.last_vert_ind] = x, keepY
+            poly.basecoords[0] = x, keepY
+            poly.basecoords[self.last_vert_ind] = x, keepY
         else:
-            poly.xy[changeAfter] = x, keepY
+            poly.basecoords[changeAfter] = x, keepY
+        self.set_display_coords(poly)
 
     def _update_line(self):
         # save verts because polygon gets deleted when figure is closed
