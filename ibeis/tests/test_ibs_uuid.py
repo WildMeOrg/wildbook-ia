@@ -13,12 +13,14 @@ from ibeis.control.IBEISControl import IBEISController
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_UUID]')
 from vtool import image
 from ibeis.model.preproc import preproc_image
+from vtool.tests import grabdata
 
 def TEST_ENCOUNTERS(ibs):
     print('[TEST_UUID]')
-    img = image.imread('/home/hendrik/Pictures/ysbeer.jpg')
+    gpath = grabdata.get_test_gpaths(names='lena')[0]
+    img = image.imread(gpath)
     uuid = preproc_image.get_image_uuid(img)
-    uuid2 = UUID('cf55d6e3-908f-ac6c-9a5c-cd350f3e5682')
+    uuid2 = UUID('c28a3802-ecb6-882d-6d5c-f1f9662305aa')
     print('uuid = %r' % uuid)
     print('uuid2 = %r' % uuid2)
     assert uuid == uuid2, 'uuid and uuid2 do not match'
