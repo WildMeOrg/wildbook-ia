@@ -562,6 +562,24 @@ def merge_databases(ibs_target, ibs_source_list):
                           ' into ' + ibs_target.get_dbname())
 
 
+def delete_non_exemplars(ibs):
+    rid_list_ = ibs.get_valid_rids()
+    examplar_flag_list = ibs.get_roi_exemplar_flag(rid_list_)
+    nonexemplar_flag_list = [not is_exemplar for is_exemplar in exemplar_flags]
+    rid_list = utool.filter_items(rid_list, nonexemplar_flag_list)
+    nid_list = ibs.get_roi_nids(rid_list)
+    gid_list = ibs.get_roi_gids(rid_list)
+    fid_list = ibs.get_roi_fids(rid_list)
+    ibs.delete_features(fid_list)
+    ibs.delete_images(gid_list)
+    ibs.delete_names(nid_list)
+    all_eids = ibs.get_valid_eids()
+    rids_list = ibs.get_encounter_rids(all_eids)
+    eid_list_ = [eid if len(rids_list[x]) > 0 else None for x, eid in enumerate(rids_list)]
+    eid_list = utool.filter_Nones(eid_list
+    ibs.delete_encounters(eid_list)
+
+
 def get_title(ibs):
     if ibs is None:
         title = 'IBEIS - No Database Directory Open'
