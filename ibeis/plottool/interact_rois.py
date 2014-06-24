@@ -43,6 +43,7 @@ import utool
 from plottool import draw_func2 as df2
 from itertools import izip
 
+ROTATION_SENSITIVITY = 200
 
 def _nxutils_points_inside_poly(points, verts):
     """ nxutils is depricated """
@@ -577,14 +578,13 @@ class ROIInteraction(object):
             self._ind = None
 
         if event.button == 3 and self._polyHeld is True:
-            #print(event.__dict__)
             if lastX is not None:
                 poly = self._currently_selected_poly
                 deltaX = self.mouseX - lastX
-                poly.theta += deltaX/10000
-                print('dx, theta = (%r, %r)' % (deltaX, poly.theta))
-                self.enforce_rotation(poly)
-                #self.rotate45(self._currently_selected_poly)
+                dtheta = deltaX / ROTATION_SENSITIVITY
+                poly.theta += dtheta
+                #print('dx, dtheta = (%r, %r)' % (deltaX, dtheta))
+                self.compute_display_coords(poly)
                 self.update_UI()
 
         if self._ind is None:
@@ -646,35 +646,12 @@ class ROIInteraction(object):
             coords[1] = ylim[0]
         return coords
 
-    def enforce_rotation(self, poly):
-        #from math import sin, cos
-        #t = poly.theta
-        ##poly.xy = [(x * cos(t), y * sin(t)) for (x,y) in poly.basecoords]
-        #print(poly.basecoords)
-        #x1 = min(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
-        #y1 = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
-        #x2 = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
-        #y2 = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
-        #w = x2 - x1
-        #h = y2 - y1
-        ##[x1, y1, x1+w*cos(t), y1+h*sin(t)]
-        #p1 = [x1, y1]
-        #p2 = [x1+w*cos(t), y1]
-        #p3 = [x1+w*cos(t), y1+h*sin(t)]
-        #p4 = [x1, y1+h*sin(t)]
-        #poly.xy = [p1, p2, p3, p4, p1]
-        #print(t, p1, p2, p3, p4)
-        #print('in enforce_rotation: %r, %r' % (poly.xy, poly.basecoords))
+    def compute_display_coords(self, poly):
         sin, cos, array = np.sin, np.cos, np.array
-        pts = array([array((x, y, 1)) for (x, y) in poly.xy])
+        pts = array([array((x, y, 1)) for (x, y) in poly.basecoords])
         theta = poly.theta
-        # this matrix is relative to origin, but it should probably be relative to either a corner of the bbox, or its center
-        #rot_mat = array(
-        #    [(cos(theta), -sin(theta)),
-        #     (sin(theta),  cos(theta))]
-        #)
         # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
-        # point to rotate around, first vertex for now
+        # point to rotate around
         aroundx, aroundy = self.polygon_center(poly)
         ct = cos(theta)
         st = sin(theta)
@@ -686,10 +663,8 @@ class ROIInteraction(object):
         poly.xy = [(x, y) for (x, y, z) in rot_mat.dot(pts.T).T]
 
     def polygon_center(self, poly):
-        # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center
-        points_open = poly.xy[0:-1]
-        point_sum = reduce(lambda (accx, accy), (px, py): (accx + px, accy + py), points_open)
-        return np.array(point_sum)/len(points_open)
+        # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center (hence the [:-1] slice)
+        return poly.xy[:-1].mean(axis=0)
 
     def move_rectangle(self, event, polygon, x, y):
         print('move_rectangle')
