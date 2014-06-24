@@ -85,7 +85,7 @@ EOF
 RUN_TEST()
 {
     echo "RUN_TEST: $@"
-    export TEST="python $@ $ARGV"
+    export TEST="python2.7 $@ $ARGV"
     $TEST
     export RETURN_CODE=$?
     PRINT_DELIMETER
