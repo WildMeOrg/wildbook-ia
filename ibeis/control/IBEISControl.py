@@ -1513,7 +1513,9 @@ class IBEISController(object):
         #print('get_names: %r' % nid_list)
         # Change the temporary negative indexes back to the unknown NID for the
         # SQL query. Then augment the name list to distinguish unknown names
-        nid_list_  = [nid if nid is not None and nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
+        nid_list_  = [nid if nid is not None and nid > 0 
+                      else ibs.UNKNOWN_NID 
+                      for nid in nid_list]
         # <TESTS>
         key_rowid_list = ibs.get_label_keys(nid_list_)
         assert all([key == ibs.INDIVIDUAL_KEY
@@ -1571,26 +1573,40 @@ class IBEISController(object):
 
     @getter_1toM
     def get_encounter_rids(ibs, eid_list):
+        print('get_encounter_rids')
+        print('eid_list = %r' % (eid_list,))
         """ returns a list of list of rids in each encounter """
         gids_list = ibs.get_encounter_gids(eid_list)
+        print('gids_list = %r' % (gids_list,))
         rids_list_ = ibsfuncs.unflat_map(ibs.get_image_rids, gids_list)
+        print('rids_list_ = %r' % (rids_list_,))
         rids_list = list(imap(utool.flatten, rids_list_))
+        print('rids_list = %r' % (rids_list,))
         return rids_list
 
     @getter_1toM
     def get_encounter_gids(ibs, eid_list):
+        print('get_encounter_gids')
+        print('eid_list = %r' % (eid_list,))
         """ returns a list of list of gids in each encounter """
         gids_list = ibs.db.get(
             EG_RELATION_TABLE, ('image_rowid',), eid_list,
             id_colname='encounter_rowid', unpack_scalars=False)
+        print('gids_list = %r' % (gids_list,))
         return gids_list
 
     @getter_1toM
     def get_encounter_nids(ibs, eid_list):
+
         """ returns a list of list of nids in each encounter """
+        print('get_encounter_nids')
+        print('eid_list = %r' % (eid_list,))
         rids_list = ibs.get_encounter_rids(eid_list)
+        print('rids_list = %r' % (rids_list,))
         nids_list_ = ibsfuncs.unflat_map(ibs.get_roi_nids, rids_list)
-        nids_list = list(imap(utool.unique_unordered, nids_list_))
+        print('nids_list_ = %r' % (nids_list_,))
+        nids_list = list(imap(utool.unique_ordered, nids_list_))
+        print('nids_list = %r' % (nids_list,))
         return nids_list
 
     @getter_1to1
