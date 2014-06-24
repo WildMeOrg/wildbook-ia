@@ -83,7 +83,11 @@ def TEST_IBS_CONTROL(ibs):
     bbox_list = ibs.get_roi_bboxes(rid_list)
     bbox_list2 = geometry.bboxes_from_vert_list(vert_list2)
     assert bbox_list == bbox_list2, 'bbox lists do not match'
-
+    vert_list = [((10, 10), (120, 10), (120, 120), (10, 120))] * len(rid_list)
+    ibs.set_roi_verts(rid_list, vert_list)
+    bbox_list3 = [(10, 10, 110, 110)] * len(rid_list)
+    bbox_list4 = ibs.get_roi_bboxes(rid_list)
+    assert bbox_list3 == bbox_list4, 'bbox lists do not match'
     # finish this test here
 
     """ set_roi_bboxes / get_roi_verts  """
