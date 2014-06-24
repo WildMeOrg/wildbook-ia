@@ -303,22 +303,18 @@ def adjust_subplots(left=0.02,  bottom=0.02,
 #=======================
 
 
-def upperleft_text(txt):
+def upperleft_text(txt, alpha=.6):
     txtargs = dict(horizontalalignment='left',
                    verticalalignment='top',
-                   #fontsize='smaller',
-                   #fontweight='ultralight',
-                   backgroundcolor=(0, 0, 0, .5),
+                   backgroundcolor=(0, 0, 0, alpha),
                    color=ORANGE)
     ax_relative_text(.02, .02, txt, **txtargs)
 
 
-def upperright_text(txt, offset=None):
+def upperright_text(txt, offset=None, alpha=.6):
     txtargs = dict(horizontalalignment='right',
                    verticalalignment='top',
-                   #fontsize='smaller',
-                   #fontweight='ultralight',
-                   backgroundcolor=(0, 0, 0, .5),
+                   backgroundcolor=(0, 0, 0, alpha),
                    color=ORANGE,
                    offset=offset)
     ax_relative_text(.98, .02, txt, **txtargs)
@@ -326,20 +322,19 @@ def upperright_text(txt, offset=None):
 
 def lowerright_text(txt):
     txtargs = dict(horizontalalignment='right',
-                   verticalalignment='top',
-                   #fontsize='smaller',
-                   #fontweight='ultralight',
-                   backgroundcolor=(0, 0, 0, .5),
+                   verticalalignment='bottom',
+                   backgroundcolor=(0, 0, 0, .6),
                    color=ORANGE)
     ax_relative_text(.98, .92, txt, **txtargs)
 
 
-def absolute_lbl(x_, y_, txt, roffset=(-.02, -.02), **kwargs):
+def absolute_lbl(x_, y_, txt, roffset=(-.02, -.02), alpha=.6, **kwargs):
+    """ alternative to relative text """
     txtargs = dict(horizontalalignment='right',
                    verticalalignment='top',
-                   backgroundcolor=(0, 0, 0, .5),
-                   color=ORANGE,
-                   **kwargs)
+                   backgroundcolor=(0, 0, 0, alpha),
+                   color=ORANGE)
+    txtargs.update(kwargs)
     ax_absolute_text(x_, y_, txt, roffset=roffset, **txtargs)
 
 
@@ -356,6 +351,7 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
 
 
 def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
+    """ Base function for text """
     if ax is None:
         ax = gca()
     if 'fontproperties' in kwargs:
