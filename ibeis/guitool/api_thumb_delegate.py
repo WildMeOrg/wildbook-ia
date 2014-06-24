@@ -148,7 +148,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 qimg, width, height = read_thumb_as_qimg(thumb_path)
                 return QtCore.QSize(width, height)
             else:
-                print("[APIThumbDelegate] Name not found")
+                #print("[APIThumbDelegate] Name not found")
                 return QtCore.QSize()
         except Exception as ex:
             print("Error in APIThumbDelegate")
