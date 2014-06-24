@@ -103,13 +103,16 @@ def review_match_at(qres_wgt, qtindex):
     row = qtindex.row()
     rid1 = model.get_header_data('qrid', row)
     rid2 = model.get_header_data('rid', row)
-    review_match(ibs, rid1, rid2)
+    model = qtindex.model()
+    update_callback = model._update
+    review_match(ibs, rid1, rid2, update_callback=update_callback)
 
 
-def review_match(ibs, rid1, rid2):
+def review_match(ibs, rid1, rid2, update_callback=None):
     print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
     from ibeis.viz.interact.interact_name import MatchVerificationInteraction
-    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64)
+    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64,
+                                              update_callback=update_callback)
     ih.register_interaction(mvinteract)
 
 
