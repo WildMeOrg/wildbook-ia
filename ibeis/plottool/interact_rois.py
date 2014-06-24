@@ -562,29 +562,32 @@ class ROIInteraction(object):
         """ on mouse movement """
         #print('motion_notify_callback')
         ignore = (not self.showverts or event.inaxes is None)
-        lastX = self.mouseX or None
-        lastY = self.mouseY or None
-        # set new mouse loc
-        self.mouseX, self.mouseY = event.xdata, event.ydata
+        if not (event.xdata is None or event.ydata is None):
+            # uses boolean punning for terseness
+            lastX = self.mouseX or None
+            lastY = self.mouseY or None
+            self.mouseX, self.mouseY = event.xdata, event.ydata
+            print(self.mouseX, self.mouseY, lastX, lastY)
+            deltaX = lastX is not None and self.mouseX - lastX
+            deltaY = lastY is not None and self.mouseY - lastY
+
         if ignore:
             return
         if self.press1 is True:
             self.canUncolor = True
         if self._ind is None and event.button == 1:
             # move all vertices
-            if self._polyHeld is True:
-                self.move_rectangle(event, self._currently_selected_poly, event.xdata, event.ydata)
+            if self._polyHeld is True and not (deltaX is None or deltaY is None):
+                self.move_rectangle(event, self._currently_selected_poly, deltaX, deltaY)
             self.update_UI()
             self._ind = None
 
-        if event.button == 3 and self._polyHeld is True:
-            if lastX is not None:
+        if event.button == 3 and self._polyHeld is True and deltaX is not None:
                 poly = self._currently_selected_poly
-                deltaX = self.mouseX - lastX
                 dtheta = deltaX / ROTATION_SENSITIVITY
                 poly.theta += dtheta
                 #print('dx, dtheta = (%r, %r)' % (deltaX, dtheta))
-                self.compute_display_coords(poly)
+                self.set_display_coords(poly)
                 self.update_UI()
 
         if self._ind is None:
@@ -629,74 +632,46 @@ class ROIInteraction(object):
             #coords[1] = ylim[0]
         return True
 
-    def fix_dims(self, coords):
+    def clip_vert_to_bounds(self, coords):
         xlim = self.ax.get_xlim()
         ylim = self.ax.get_ylim()
-        if coords[0] < xlim[0]:
-            print("adjusted")
-            coords[0] = xlim[0]
-        if coords[0] > xlim[1]:
-            print("adjusted")
-            coords[0] = xlim[1]
-        if coords[1] < ylim[1]:
-            print("adjusted")
-            coords[1] = ylim[1]
-        if coords[1] > ylim[0]:
-            print("adjusted")
-            coords[1] = ylim[0]
-        return coords
+        def clamp(lims, val):
+            return max(lims[0], min(lims[1], val))
+        return np.array((clamp(xlim, coords[0]), clamp(ylim, coords[1])))
 
-    def compute_display_coords(self, poly):
+    def rotate_points_around(self, points, theta, ax, ay):
         sin, cos, array = np.sin, np.cos, np.array
-        pts = array([array((x, y, 1)) for (x, y) in poly.basecoords])
-        theta = poly.theta
-        # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
-        # point to rotate around
-        aroundx, aroundy = self.polygon_center(poly)
+        augpts = array([array((x, y, 1)) for (x, y) in points])
         ct = cos(theta)
         st = sin(theta)
+        # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
         rot_mat = array(
-            [(ct, -st, aroundx - ct*aroundx + st*aroundy),
-             (st,  ct, aroundy - st*aroundx - ct*aroundy),
+            [(ct, -st, ax - ct * ax + st * ay),
+             (st,  ct, ay - st * ax - ct * ay),
              ( 0,   0,                                 1)]
         )
-        poly.xy = [(x, y) for (x, y, z) in rot_mat.dot(pts.T).T]
+        return [(x, y) for (x, y, z) in rot_mat.dot(augpts.T).T]
+
+    def calc_display_coords(self, oldcoords, theta):
+        return self.rotate_points_around(oldcoords, theta, *self.points_center(oldcoords))
+
+    def set_display_coords(self, poly):
+        poly.xy = self.calc_display_coords(poly.basecoords, poly.theta)
+
+    def points_center(self, pts):
+        # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center (hence the [:-1] slice)
+        return np.array(pts[:-1]).mean(axis=0)
 
     def polygon_center(self, poly):
-        # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center (hence the [:-1] slice)
-        return poly.xy[:-1].mean(axis=0)
+        return points_center(poly.xy)
 
-    def move_rectangle(self, event, polygon, x, y):
+    def move_rectangle(self, event, polygon, dx, dy):
         print('move_rectangle')
-        for coord in polygon.xy:
-            coord = self.fix_dims(coord)
-
-        beforeX, beforeY = (polygon.xy[0])
-        selectedX, selectedY = (polygon.xy[1])
-        afterX, afterY = (polygon.xy[2])
-        acrossX, acrossY = (polygon.xy[3])
-        #print("Before: (" + str(beforeX) + ", " + str(beforeY) + ")")
-        #print("Selected: (" + str(selectedX) + ", " + str(selectedY) + ")")
-        #print("After: (" + str(afterX) + ", " + str(afterY) + ")")
-        #print("Across: (" + str(acrossX) + ", " + str(acrossY) + ")")
-        #bbox_x = int(beforeX)
-        #bbox_y = int(selectedY)
-        #bbox_w = int(afterX - beforeX)
-        #bbox_h = int(beforeY - afterY)
-        # if we are not holding a rectangle, return
-        if self._polyHeld is not True:
-            return
-        # Change selected
-        new0 = [beforeX   + (x - self.mouseX), beforeY   + (y - self.mouseY)]
-        new1 = [selectedX + (x - self.mouseX), selectedY + (y - self.mouseY)]
-        new2 = [afterX    + (x - self.mouseX), afterY    + (y - self.mouseY)]
-        new3 = [acrossX   + (x - self.mouseX), acrossY   + (y - self.mouseY)]
-
-        new_coords = [new0, new1, new2, new3, new0]
+        new_coords = [(x+dx, y+dy) for (x, y) in polygon.basecoords]
 
         change = True
         #new_xy = []
-        for x, coord in enumerate(new_coords):
+        for x, coord in enumerate(self.calc_display_coords(new_coords, polygon.theta)):
             if self.check_dims(coord) is False:
                 change = False
                 break
@@ -705,7 +680,8 @@ class ROIInteraction(object):
             #    index = self.original_list.index((bbox_x,bbox_y,bbox_w,bbox_h))
             #    self.changed_list[index] = True
             #    print(self.changed_list)
-            polygon.xy = new_coords
+            polygon.basecoords = new_coords
+            self.set_display_coords(polygon)
 
     def calculate_move(self, event, poly):
         print('calculate_move')
