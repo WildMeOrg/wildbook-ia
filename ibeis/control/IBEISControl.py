@@ -1581,7 +1581,6 @@ class IBEISController(object):
         thumbtup_list = ibs.get_image_thumbtup(gid_list)
         thumb_paths = [thumbtup[0] for thumbtup in thumbtup_list]
         delete_list = [utool.remove_file(thumb_path) for thumb_path in thumb_paths]
-        print("[ibs] thumb_paths=%r" % thumb_paths)
         ibs.delete_chips(cid_list)
 
     @deleter

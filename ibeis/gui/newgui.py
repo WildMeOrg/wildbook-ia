@@ -379,7 +379,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_contextMenuClicked(ibswgt, qtindex, pos):
         printDBG('[newgui] contextmenu')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row())
+        id_ = model._get_row_id(qtindex)
         tblview = ibswgt.views[model.name]
         if model.name == ENCOUNTER_TABLE:
             eid = id_
@@ -405,7 +405,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_click(ibswgt, qtindex):
         printDBG('on_click')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row(), qtindex.column())
+        id_ = model._get_row_id(qtindex)
         if model.name == ENCOUNTER_TABLE:
             printDBG('clicked encounter')
         else:
@@ -424,7 +424,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_doubleclick(ibswgt, qtindex):
         printDBG('on_doubleclick')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row(), qtindex.column())
+        id_ = model._get_row_id(qtindex)
         if model.name == ENCOUNTER_TABLE:
             eid = id_
             enctext = ibswgt.ibs.get_encounter_enctext(eid)

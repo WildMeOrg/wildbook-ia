@@ -129,7 +129,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_click(ibswgt, qtindex):
         printDBG('on_click')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row(), qtindex.column())
+        id_ = model._get_row_id(qtindex)
         if model.name == NAMES_TREE:
             # eid = model.eid
             gid = id_
@@ -139,7 +139,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_doubleclick(ibswgt, qtindex):
         printDBG('on_doubleclick')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row(), qtindex.column())
+        id_ = model._get_row_id(qtindex)
         if model.name == NAMES_TREE:
             # eid = model.eid
             gid = id_
