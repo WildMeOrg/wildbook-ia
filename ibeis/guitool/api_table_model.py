@@ -650,7 +650,7 @@ class APITableModel(API_MODEL_BASE):
             # Do actual setting of data
             old_data = model._get_data(qtindex)
             if old_data != data:
-                model._set_data(row, col, data)
+                model._set_data(qtindex, data)
                 # Emit that data was changed and return succcess
                 model.dataChanged.emit(qtindex, qtindex)
             return True
