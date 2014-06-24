@@ -9,13 +9,14 @@ from .guitool_decorators import checks_qt_error, signal_
 from itertools import izip
 import functools
 import utool
-import numpy as np
+#import numpy as np
 profile = lambda func: func
 printDBG = lambda *args: None
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableModel]', DEBUG=False)
 
 #API_MODEL_BASE = QtCore.QAbstractTableModel
 API_MODEL_BASE = QtCore.QAbstractItemModel
+
 
 class TreeNode(object):
     def __init__(self, id_, parent_node, level=-1):
@@ -56,11 +57,11 @@ class TreeNode(object):
         str_ = "\n".join([self_str] + child_strs)
         return str_
 
-        
+
 def _build_internal_structure(model):
     ider_list = model.iders
     num_levels = len(ider_list)
-    
+
     def populate_tree(parent_node, child_ids, level=0):
         if level == num_levels - 1:
             child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
@@ -302,7 +303,7 @@ class APITableModel(API_MODEL_BASE):
             model.level_index_list = nodes
             model._rows_updated.emit(model.name, len(model.level_index_list))
             #print("Rows updated")
-    
+
     @updater
     def _set_iders(model, iders=None):
         #printDBG('NEW IDER')
@@ -395,8 +396,9 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def get_header_data(model, colname, row):
         """ Use _get_data if the column number is known """
-        col = model.col_name_list.index(colname)
-        return model._get_data(qtindex)
+        raise NotImplementedError('fix get_header_data to work with qtindex?')
+        #col = model.col_name_list.index(colname)
+        #return model._get_data(qtindex)
 
     #--------------------------------
     # --- API Interface Functions ---
@@ -417,7 +419,7 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, qtindex):
-        row = qtindex.row()
+        #row = qtindex.row()
         col = qtindex.column()
         getter = model.col_getter_list[col]  # getter for this column
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
@@ -508,7 +510,7 @@ class APITableModel(API_MODEL_BASE):
             parent_node = parent.internalPointer()
             node = parent_node[row]
             return model.createIndex(row, column, object=node)
-    
+
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
@@ -536,11 +538,11 @@ class APITableModel(API_MODEL_BASE):
         """ Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
         the index.  Note: If you do not have a value to return, return an
-        invalid QVariant instead of returning 0.  """
+        invalid QVariant instead of returning 0. """
         if not qtindex.isValid():
             return None
         flags = model.flags(qtindex)
-        row = qtindex.row()
+        #row = qtindex.row()
         col = qtindex.column()
         node = qtindex.internalPointer()
         if model.col_level_list[col] != node.get_level():
