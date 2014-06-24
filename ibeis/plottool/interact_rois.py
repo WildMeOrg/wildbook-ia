@@ -177,6 +177,8 @@ class ROIInteraction(object):
         #mouse coordinates
         self.mouseX = None
         self.mouseY = None
+        self.indX = None
+        self.indY = None
         #if a polygon is currently active
         self._polyHeld = False
         #the polygon that is currently active
@@ -191,6 +193,16 @@ class ROIInteraction(object):
         #Something Jon added
         self.background = None
 
+        def make_lines(poly):
+            """ verts - list of (x, y) tuples """
+            _xs, _ys = zip(*poly.xy)
+            color = np.array(line_color)
+            marker_face_color = line_color
+            line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
+            lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
+            print('make_lines: linetype = %r' % type(lines))
+            return lines
+
         def new_polygon(verts, theta):
             """ verts - list of (x, y) tuples """
             # create new polygon from verts
@@ -199,16 +211,9 @@ class ROIInteraction(object):
             poly.num = self.next_polynum()
             poly.theta = theta
             poly.basecoords = poly.xy
+            poly.lines = make_lines(poly)
             return poly
 
-        def new_line(poly):
-            """ verts - list of (x, y) tuples """
-            _xs, _ys = zip(*poly.xy)
-            color = np.array(line_color)
-            marker_face_color = line_color
-            line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-            line = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
-            return line
         # print(verts_list)
         # test_list = verts_to_bbox(verts_list)
         # print(test_list)
@@ -222,15 +227,12 @@ class ROIInteraction(object):
         poly_list = [new_polygon(verts, theta) for (verts, theta) in izip(verts_list, theta_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
         self.polys = dict({(poly.num, poly) for poly in poly_list})
-        # Create the list of lines
-        self.line = [new_line(poly) for poly in self.polys.itervalues()]
         self._update_line()
 
         # Add polygons and lines to the axis
         for poly in self.polys.itervalues():
             ax.add_patch(poly)
-        for line in self.line:
-            self.ax.add_line(line)
+            self.ax.add_line(poly.lines)
 
         # Connect callbacks
         for poly in self.polys.itervalues():
@@ -281,15 +283,14 @@ class ROIInteraction(object):
         return num
 
     def update_colors(self, poly_ind):
-        for line in self.line:
-            if line is None:
-                continue
-            if line.get_color() != 'white':
-                line.set_color('white')
+        if poly_ind is None:
+            print("WARNING: poly_ind is None in update_colors")
+            return
+        line = self.polys[poly_ind].lines
+        if line.get_color() != 'white':
+            line.set_color('white')
         if(poly_ind is not None and poly_ind >= 0):
-            if self.polys[poly_ind] is None:
-                return
-            self.line[poly_ind].set_color(df2.ORANGE)
+            self.polys[poly_ind].lines.set_color(df2.ORANGE)
         plt.draw()
 
     def rotate45(self, poly):
@@ -340,34 +341,34 @@ class ROIInteraction(object):
     def update_UI(self):
         self._update_line()
         self.canvas.restore_region(self.background)
-        for n, poly in self.polys.iteritems():
-            if poly is None:
-                continue
+        for poly in self.polys.itervalues():
             self.ax.draw_artist(poly)
-            self.ax.draw_artist(self.line[n])
+            self.ax.draw_artist(poly.lines)
         self.canvas.blit(self.ax.bbox)
 
     def poly_changed(self, poly):
         """ this method is called whenever the polygon object is called """
         # only copy the artist props to the line (except visibility)
         num = poly.num
-        vis = self.line[num].get_visible()
-        #Artist.update_from(self.line, poly)
-        self.line[num].set_visible(vis)
-        #self.line[poly.num].set_visible(vis)  # don't use the poly visibility state
+        vis = poly.lines.get_visible()
+        #Artist.update_from(poly.lines, poly)
+        poly.lines.set_visible(vis)
+        #poly.lines.set_visible(vis)  # don't use the poly visibility state
 
     def draw_callback(self, event):
         #print('[mask] draw_callback(event=%r)' % event)
         self.background = self.canvas.copy_from_bbox(self.ax.bbox)
-        for n, poly in self.polys.iteritems():
-            assert poly is not None
+        for poly in self.polys.itervalues():
             self.ax.draw_artist(poly)
-            self.ax.draw_artist(self.line[n])
+            self.ax.draw_artist(poly.lines)
         self.canvas.blit(self.ax.bbox)
 
     def get_most_recently_added_poly(self):
-        poly_ind = max(self.polys.iterkeys())  # most recently added polygon has the highest index
-        return poly_ind, self.polys[poly_ind]
+        if len(self.polys) != 0:
+            poly_ind = max(self.polys.iterkeys())  # most recently added polygon has the highest index
+            return poly_ind, self.polys[poly_ind]
+        else:
+            return (None, None)
 
     def button_press_callback(self, event):
         """ whenever a mouse button is pressed """
@@ -377,7 +378,7 @@ class ROIInteraction(object):
         ignore = not self.showverts or event.inaxes is None or event.button != 1
         if ignore:
             return
-        if self._currently_selected_poly is None or self.line is None:
+        if self._currently_selected_poly is None or self._currently_selected_poly.lines is None:
             print('WARNING: Polygon unknown. Using last placed poly.')
             if len(self.polys) == 0:
                 print('No polygons on screen')
@@ -401,7 +402,7 @@ class ROIInteraction(object):
             self._currently_selected_poly.set_alpha(.2)
             self.update_colors(self._currently_selected_poly.num)
             #self._currently_selected_poly.set_facecolor('red')
-            #self.line[polyInd].set_color('red')
+            #self._currently_selected_poly.lines.set_color('red')
         self.press1 = True
         self.canUncolor = False
         self._update_line()
@@ -411,10 +412,9 @@ class ROIInteraction(object):
             print("error: self.background is none. Trying refresh.")
             self.canvas.restore_region(self.background)
             self.background = self.canvas.copy_from_bbox(self.ax.bbox)
-        for n, poly in self.polys.iteritems():
-            assert poly is not None
+        for poly in self.polys.itervalues():
             self.ax.draw_artist(poly)
-            self.ax.draw_artist(self.line[n])
+            self.ax.draw_artist(poly.lines)
         self.canvas.blit(self.ax.bbox)
 
     def button_release_callback(self, event):
@@ -445,8 +445,9 @@ class ROIInteraction(object):
                 poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
         currX, currY = self._currently_selected_poly.xy[self._ind]
 
-        if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
-            return
+        if self.indX and self.indY:
+            if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
+                return
 
         if (self._ind is None) or self._polyHeld is False or \
            (self._ind is not None and self.press1 is True) and \
@@ -473,10 +474,10 @@ class ROIInteraction(object):
         line_width = 4
 
         line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-        self.line.append(plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs))
+        poly.lines = plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs)
         self._update_line()
 
-        self.ax.add_line(self.line[-1])
+        self.ax.add_line(poly.lines)
 
         poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
@@ -496,7 +497,7 @@ class ROIInteraction(object):
         #line deletion
         print("length: ", len(self.polys), "number: ", lineNumber)
         #self.theta_list[lineNumber] = None
-        self.line[lineNumber] = None
+        #self.line[lineNumber] = None
         #poly deletion
         self.polys.pop(lineNumber)
         #self.poly_list.remove(poly)
@@ -505,7 +506,8 @@ class ROIInteraction(object):
         #reset anything that has to do with current poly
         poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
         self._polyHeld = False
-        self.update_colors(poly_ind)
+        if poly_ind is not None:
+            self.update_colors(poly_ind)
         plt.draw()
 
     def load_points(self):
@@ -567,7 +569,7 @@ class ROIInteraction(object):
             lastX = self.mouseX or None
             lastY = self.mouseY or None
             self.mouseX, self.mouseY = event.xdata, event.ydata
-            print(self.mouseX, self.mouseY, lastX, lastY)
+            #print('mouse coords %r, %r; previous %r, %r' % (self.mouseX, self.mouseY, lastX, lastY))
             deltaX = lastX is not None and self.mouseX - lastX
             deltaY = lastY is not None and self.mouseY - lastY
 
@@ -671,13 +673,13 @@ class ROIInteraction(object):
         return valid
 
     def rotate_rectangle(self, poly, dtheta):
-        print('rotate_rectangle')
+        #print('rotate_rectangle')
         if self.check_valid_coords(self.calc_display_coords(poly.basecoords, poly.theta + dtheta)):
             poly.theta += dtheta
             self.set_display_coords(poly)
 
     def move_rectangle(self, poly, dx, dy):
-        print('move_rectangle')
+        #print('move_rectangle')
         new_coords = [(x+dx, y+dy) for (x, y) in poly.basecoords]
         if self.check_valid_coords(self.calc_display_coords(new_coords, poly.theta)):
             poly.basecoords = new_coords
@@ -735,12 +737,10 @@ class ROIInteraction(object):
 
     def _update_line(self):
         # save verts because polygon gets deleted when figure is closed
-        for n, poly in self.polys.iteritems():
-            #self.verts = poly.xy
-            if poly is None:
-                continue
+        for poly in self.polys.itervalues():
             self.last_vert_ind = len(poly.xy) - 1
-            self.line[n].set_data(zip(*poly.xy))
+            poly.lines.set_data(zip(*poly.xy))
+            pass
 
     def get_ind_under_cursor(self, event):
         'get the index of the vertex under cursor if within max_ds tolerance'
