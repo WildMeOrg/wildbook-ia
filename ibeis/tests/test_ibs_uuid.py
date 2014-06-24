@@ -103,6 +103,7 @@ def TEST_UUID():
         print('Image.PILLOW_VERSION: %r' % Image.PILLOW_VERSION)
         assert Image.PILLOW_VERSION == '2.4.0'
     except Exception as ex:
+        utool.printex(ex)
         pass
 
     assert all([test_uuid(name) for name in ['lena', 'jeff']])
