@@ -56,7 +56,9 @@ def test_uuid(name):
     else:
         gpath = grabdata.get_test_gpaths(names=name)[0]
     import cv2
+    cv2_version = cv2.__version__
     npimg2 = cv2.imread(gpath)
+    npshape = npimg2.shape
     npsum = npimg2.sum()
 
     pil_img = Image.open(gpath)
@@ -77,6 +79,8 @@ def test_uuid(name):
         print('%r: {%r: %r}' % (key, MACHINE_NAME, val))
 
     print2('gpath')
+    print2('cv2_version')
+    print2('npshape')
     print2('npsum')
     print2('uuid1')
     print2('size')
