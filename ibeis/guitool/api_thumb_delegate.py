@@ -27,6 +27,19 @@ def read_thumb_as_qimg(thumb_path):
     return qimg, width, height
 
 
+RUNNING_CREATION_THREADS = {}
+
+
+def register_thread(key, val):
+    global RUNNING_CREATION_THREADS
+    RUNNING_CREATION_THREADS[key] = val
+
+
+def unregister_thread(key):
+    global RUNNING_CREATION_THREADS
+    del RUNNING_CREATION_THREADS[key]
+
+
 class APIThumbDelegate(DELEGATE_BASE):
     """ TODO: The delegate can have a reference to the view, and it is allowed
     to resize the rows to fit the images.  It probably should not resize columns
@@ -63,25 +76,26 @@ class APIThumbDelegate(DELEGATE_BASE):
             utool.printex(ex)
             return
         if not exists(img_path):
-            print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
+            #print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
             return None
         if not exists(thumb_path):
             # Start computation of thumb if needed
-            qtindex.model()._update()
+            #qtindex.model()._update()  # should probably be deleted
             view = dgt.parent()
             thumb_size = dgt.thumb_size
-            offset = view.verticalOffset()
-            dgt.pool.start(
-                ThumbnailCreationThread(
-                    thumb_path,
-                    img_path,
-                    thumb_size,
-                    qtindex,
-                    view,
-                    offset + option.rect.y(),
-                    bbox_list
-                )
+            # where you are when you request the run
+            offset = view.verticalOffset() + option.rect.y()
+            thumb_creation_thread = ThumbnailCreationThread(
+                thumb_path,
+                img_path,
+                thumb_size,
+                qtindex,
+                view,
+                offset,
+                bbox_list
             )
+            #register_thread(thumb_path, thumb_creation_thread)
+            dgt.pool.start(thumb_creation_thread)
             #print('[ThumbDelegate] Waiting to compute')
             return None
         else:
@@ -135,6 +149,7 @@ class APIThumbDelegate(DELEGATE_BASE):
             utool.printex(ex, 'Error in APIThumbDelegate')
             return QtCore.QSize()
 
+
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """ Helper to compute thumbnails concurrently """
 
@@ -148,9 +163,22 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         thread.view = view
         thread.bbox_list = bbox_list
 
+    #def __del__(self):
+    #    print('About to delete creation thread')
+
+    def thumb_would_be_visible(thread):
+        viewport = thread.view.viewport()
+        height = viewport.size().height()
+        height_offset = thread.view.verticalOffset()
+        current_offset = height_offset + height // 2
+        # Check if the current scroll position is far beyond the
+        # scroll position when this was initially requested.
+        return abs(current_offset - thread.offset) < height
+
     def run(thread):
-        # size = thread.view.viewport().size().height()
-        # if( abs(thread.view.verticalOffset() + int(size / 2) - thread.offset) < size ):
+        if not thread.thumb_would_be_visible():
+            #unregister_thread(thread.thumb_path)
+            return
         image = gtool.imread(thread.img_path)
         max_dsize = (thread.thumb_size, thread.thumb_size)
         # Resize image to thumb
@@ -167,6 +195,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         gtool.imwrite(thread.thumb_path, thumb)
         #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
+        #unregister_thread(thread.thumb_path)
 
 
 # GRAVE:

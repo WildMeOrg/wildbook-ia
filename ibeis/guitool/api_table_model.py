@@ -25,6 +25,9 @@ class TreeNode(object):
         self.child_nodes = []
         self.level = level
 
+    def __del__(self):
+        print('DELETING THE TREE NODE!: id_=%r' % self.id_)
+
     def set_children(self, child_nodes):
         self.child_nodes = child_nodes
 
@@ -198,7 +201,7 @@ class APITableModel(API_MODEL_BASE):
             #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             model._abouttochange = True
-            #model.layoutAboutToBeChanged.emit()
+            model.layoutAboutToBeChanged.emit()
             #model._change()
             return True
         else:
@@ -209,10 +212,9 @@ class APITableModel(API_MODEL_BASE):
     def _change(model, force=False):
         #N = range(0, 10)  # NOQA
         if force or (model._abouttochange and not model._changeblocked):
-            #printDBG('LAYOUT CHANGED:  %r' % (model.name,))
+            #print('LAYOUT CHANGED:  %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             model._abouttochange = False
-            printDBG('CHANGE: CACHE INVALIDATED!')
             model.cache = {}
             model.layoutChanged.emit()
             return True
@@ -252,7 +254,7 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def _update(model, newrows=False):
         #if newrows:
-        #print("_UPDATE")
+        #print('_UPDATE')
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
