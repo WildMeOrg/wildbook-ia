@@ -19,10 +19,11 @@ class AbstractInteraction(object):
         """ Removes any widgets saved in the interaction scope """
         self.scope = []
 
-    def append_button(self, text, divider=None, rect=None, callback=None, **kwargs):
+    def append_button(self, text, divider=None, rect=None, callback=None,
+                      size='9%', **kwargs):
         """ Adds a button to the current page """
         if divider is not None:
-            new_ax = divider.append_axes('bottom', size='9%', pad=.05)
+            new_ax = divider.append_axes('bottom', size=size, pad=.05)
         if rect is not None:
             new_ax = df2.plt.axes(rect)
         new_but = mpl.widgets.Button(new_ax, text)
