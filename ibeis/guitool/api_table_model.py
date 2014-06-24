@@ -9,7 +9,6 @@ from .guitool_decorators import checks_qt_error, signal_
 from itertools import izip
 import functools
 import utool
-import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APITableModel]', DEBUG=False)
 
@@ -107,8 +106,8 @@ class APITableModel(API_MODEL_BASE):
         model.name             = 'None'
         model.nice             = 'None'
         model.iders            = [lambda: []]
+        model.col_visible_list = []
         model.col_name_list    = []
-        model.col_name_list_counts = {}  # HACKY
         model.col_type_list    = []
         model.col_nice_list    = []
         model.col_edit_list    = []
@@ -125,6 +124,138 @@ class APITableModel(API_MODEL_BASE):
         model.headers = headers  # save the headers
         if headers is not None:
             model._update_headers(**headers)
+
+    @updater
+    def _update_headers(model, **headers):
+        iders            = headers.get('iders', None)
+        name             = headers.get('name', None)
+        nice             = headers.get('nice', None)
+        col_name_list    = headers.get('col_name_list', None)
+        col_type_list    = headers.get('col_type_list', None)
+        col_nice_list    = headers.get('col_nice_list', None)
+        col_edit_list    = headers.get('col_edit_list', None)
+        col_setter_list  = headers.get('col_setter_list', None)
+        col_getter_list  = headers.get('col_getter_list', None)
+        col_level_list   = headers.get('col_level_list', None)
+        col_sort_index   = headers.get('col_sort_index', None)
+        col_sort_reverse = headers.get('col_sort_reverse', False)
+        # New for dynamically getting non-data roles for each row
+        col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
+        col_visible_list = headers.get('col_visible_list', None)
+        model.cache = {}  # FIXME: This is not sustainable
+        model.name = str(name)
+        model.nice = str(nice)
+        # Initialize class
+        model._set_iders(iders)
+        model._set_col_name_type(col_name_list, col_type_list)
+        model._set_col_nice(col_nice_list)
+        model._set_col_edit(col_edit_list)
+        model._set_col_setter(col_setter_list)
+        model._set_col_getter(col_getter_list)
+        model._set_col_bgrole_getter(col_bgrole_getter_list)
+        model._set_col_visible_list(col_visible_list)
+
+        model._set_col_level(col_level_list)
+        # calls model._update_rows()
+        model._set_sort(col_sort_index, col_sort_reverse)
+
+    @updater
+    def _set_iders(model, iders=None):
+        """ sets iders """
+        if iders is None:
+            iders = [lambda: []]
+        assert utool.is_list(iders), 'bad type: %r' % type(iders)
+        for index, ider in enumerate(iders):
+            assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
+        #printDBG('NEW IDER')
+        model.iders = iders
+
+    @updater
+    def _set_col_name_type(model, col_name_list=None, col_type_list=None):
+        if col_name_list is None:
+            col_name_list = []
+        if col_type_list is None:
+            col_type_list = []
+        assert len(col_name_list) == len(col_type_list), \
+            'inconsistent colnametype'
+        model.col_name_list = col_name_list
+        model.col_type_list = col_type_list
+
+    @updater
+    def _set_col_nice(model, col_nice_list=None):
+        if col_nice_list is None:
+            col_nice_list = model.col_name_list[:]
+        assert len(model.col_name_list) == len(col_nice_list), \
+            'inconsistent colnice'
+        model.col_nice_list = col_nice_list
+
+    @default_method_decorator
+    def _set_col_edit(model, col_edit_list=None):
+        if col_edit_list is None:
+            col_edit_list = [False] * len(model.col_name_list)
+        assert len(model.col_name_list) == len(col_edit_list), \
+            'inconsistent coledit'
+        model.col_edit_list = col_edit_list
+
+    @default_method_decorator
+    def _set_col_setter(model, col_setter_list=None):
+        if col_setter_list is None:
+            col_setter_list = []
+        assert len(model.col_name_list) == len(col_setter_list), \
+            'inconsistent colsetter'
+        model.col_setter_list = col_setter_list
+
+    @default_method_decorator
+    def _set_col_getter(model, col_getter_list=None):
+        if col_getter_list is None:
+            col_getter_list = []
+        assert len(model.col_name_list) == len(col_getter_list), \
+            'inconsistent colgetter'
+        model.col_getter_list = col_getter_list
+
+    @default_method_decorator
+    def _set_col_bgrole_getter(model, col_bgrole_getter_list=None):
+        """ background rolegetter will be used for metadata like column color """
+        if col_bgrole_getter_list is None:
+            model.col_bgrole_getter_list = [None] * len(model.col_name_list)
+        else:
+            assert len(col_bgrole_getter_list) == len(model.col_name_list), \
+                'inconsistent col_bgrole_getter_list'
+            model.col_bgrole_getter_list = col_bgrole_getter_list
+
+    @default_method_decorator
+    def _set_col_visible_list(model, col_visible_list=None):
+        """ used to turn columns off dynamically """
+        if col_visible_list is None:
+            model.col_visible_list = [True] * len(model.col_name_list)
+        else:
+            assert len(col_visible_list) == len(model.col_name_list), \
+                'inconsistent col_visible_list'
+            model.col_visible_list = col_visible_list
+
+    @default_method_decorator
+    def _set_col_level(model, col_level_list=None):
+        if col_level_list is None:
+            col_level_list = map(lambda x: 0, model.col_name_list)
+        assert len(model.col_name_list) == len(col_level_list), \
+            'inconsistent collevel'
+        model.col_level_list = col_level_list
+
+    @updater
+    def _set_sort(model, col_sort_index, col_sort_reverse=False):
+        #printDBG('SET SORT')
+        #print('_set_sort: model.col_name_list: %r' % model.col_name_list)
+        if len(model.col_name_list) > 0:
+            assert col_sort_index < len(model.col_name_list), \
+                'sort index out of bounds by: %r' % col_sort_index
+            model.col_sort_index = col_sort_index
+            model.col_sort_reverse = col_sort_reverse
+            # Update the row-id order
+            model._update_rows()
+
+    #------------------------------------
+    # --- Data maintainence functions ---
+    #------------------------------------
 
     @default_method_decorator
     def _about_to_change(model, force=False):
@@ -155,38 +286,6 @@ class APITableModel(API_MODEL_BASE):
             #printDBG('NOT CHANGING')
             #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
             return False
-
-    @updater
-    def _update_headers(model, **headers):
-        iders            = headers.get('iders', None)
-        name             = headers.get('name', None)
-        nice             = headers.get('nice', None)
-        col_name_list    = headers.get('col_name_list', None)
-        col_type_list    = headers.get('col_type_list', None)
-        col_nice_list    = headers.get('col_nice_list', None)
-        col_edit_list    = headers.get('col_edit_list', None)
-        col_setter_list  = headers.get('col_setter_list', None)
-        col_getter_list  = headers.get('col_getter_list', None)
-        col_level_list   = headers.get('col_level_list', None)
-        col_sort_index   = headers.get('col_sort_index', None)
-        col_sort_reverse = headers.get('col_sort_reverse', False)
-        # New for dynamically getting non-data roles for each row
-        col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
-        model.cache = {}  # FIXME: This is not sustainable
-        model.name = str(name)
-        model.nice = str(nice)
-        # Initialize class
-        model._set_iders(iders)
-        model._set_col_name_type(col_name_list, col_type_list)
-        model._set_col_nice(col_nice_list)
-        model._set_col_edit(col_edit_list)
-        model._set_col_setter(col_setter_list)
-        model._set_col_getter(col_getter_list)
-        model._set_col_bgrole_getter(col_bgrole_getter_list)
-
-        model._set_col_level(col_level_list)
-        # calls model._update_rows()
-        model._set_sort(col_sort_index, col_sort_reverse)
 
     @default_method_decorator
     def _update(model, newrows=False):
@@ -237,101 +336,6 @@ class APITableModel(API_MODEL_BASE):
             model._rows_updated.emit(model.name, len(model.level_index_list[0]))
             #print(model.level_index_list)
 
-    @updater
-    def _set_iders(model, iders=None):
-        #printDBG('NEW IDER')
-        if iders is None:
-            iders = [lambda: []]
-        assert utool.is_list(iders), 'bad type: %r' % type(iders)
-        for index, ider in enumerate(iders):
-            assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
-        model.iders = iders
-
-    @updater
-    def _set_col_name_type(model, col_name_list=None, col_type_list=None):
-        if col_name_list is None:
-            col_name_list = []
-        if col_type_list is None:
-            col_type_list = []
-        assert len(col_name_list) == len(col_type_list), \
-            'inconsistent colnametype'
-        model.col_name_list = col_name_list
-        model.col_type_list = col_type_list
-        # HACK: Column striping
-        model.col_name_list_counts = {name: model.col_name_list.count(name) for name in set(col_name_list)}
-        # Check if any of the column types are specified as delegates
-        # PSA: Don't do this in the model.
-        #for colx in xrange(len(model.col_type_list)):
-        #    coltype_ = col_type_list[colx]
-        #    if coltype_ == 'PIXMAP':
-        #        try:
-        #            model.view.setItemDelegateForColumn(colx, APIThumbDelegate(model.view))
-        #        except:
-        #            print("COLUMN INDEXING VIEW %r" % model.view)
-        #            #print("IGNORING")
-
-    @updater
-    def _set_col_nice(model, col_nice_list=None):
-        if col_nice_list is None:
-            col_nice_list = model.col_name_list[:]
-        assert len(model.col_name_list) == len(col_nice_list), \
-            'inconsistent colnice'
-        model.col_nice_list = col_nice_list
-
-    @default_method_decorator
-    def _set_col_edit(model, col_edit_list=None):
-        if col_edit_list is None:
-            col_edit_list = [False] * len(model.col_name_list)
-        assert len(model.col_name_list) == len(col_edit_list), \
-            'inconsistent coledit'
-        model.col_edit_list = col_edit_list
-
-    @default_method_decorator
-    def _set_col_setter(model, col_setter_list=None):
-        if col_setter_list is None:
-            col_setter_list = []
-        assert len(model.col_name_list) == len(col_setter_list), \
-            'inconsistent colsetter'
-        model.col_setter_list = col_setter_list
-
-    @default_method_decorator
-    def _set_col_getter(model, col_getter_list=None):
-        if col_getter_list is None:
-            col_getter_list = []
-        assert len(model.col_name_list) == len(col_getter_list), \
-            'inconsistent colgetter'
-        model.col_getter_list = col_getter_list
-
-    @default_method_decorator
-    def _set_col_bgrole_getter(model, col_bgrole_getter_list=None):
-        """ background rolegetter will be used for metadata like column color """
-        if col_bgrole_getter_list is None:
-            model.col_bgrole_getter_list = [None] * len(model.col_name_list)
-        else:
-            assert len(col_bgrole_getter_list) == len(model.col_name_list), \
-                'inconsistent col_bgrole_getter_list'
-            model.col_bgrole_getter_list = col_bgrole_getter_list
-
-    @default_method_decorator
-    def _set_col_level(model, col_level_list=None):
-        if col_level_list is None:
-            col_level_list = map(lambda x: 0, model.col_name_list)
-        assert len(model.col_name_list) == len(col_level_list), \
-            'inconsistent collevel'
-        model.col_level_list = col_level_list
-
-    @updater
-    def _set_sort(model, col_sort_index, col_sort_reverse=False):
-        #printDBG('SET SORT')
-        #print('_set_sort: model.col_name_list: %r' % model.col_name_list)
-        if len(model.col_name_list) > 0:
-            assert col_sort_index < len(model.col_name_list), \
-                'sort index out of bounds by: %r' % col_sort_index
-            model.col_sort_index = col_sort_index
-            model.col_sort_reverse = col_sort_reverse
-            # Update the row-id order
-            model._update_rows()
-
     #----------------------------------
     # --- API Convineince Functions ---
     #----------------------------------
@@ -352,18 +356,7 @@ class APITableModel(API_MODEL_BASE):
     #--------------------------------
 
     @default_method_decorator
-    def _get_col_align(model, col):
-        assert col is not None, 'bad column'
-
-    @default_method_decorator
-    def _get_row_id(model, row, col=None):
-        if col is not None:
-            num = model.col_name_list_counts[model.col_name_list[col]]
-            # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
-            #assert num == len(model.col_name_list), "mixing stripped with non stripped"
-            row = row * num + col
-            col = 0
-
+    def _get_row_id(model, row):
         try:
             id_ = model.level_index_list[0][row]
             return id_
@@ -375,7 +368,7 @@ class APITableModel(API_MODEL_BASE):
             #     'len(model.row_index_list) = %r' % len(model.row_index_list),
             # ])
             # utool.printex(ex, msg)
-            # raise
+            raise
             return None
 
     @default_method_decorator
@@ -390,7 +383,8 @@ class APITableModel(API_MODEL_BASE):
         bgrole_getter = model.col_bgrole_getter_list[col]
         if bgrole_getter is None:
             return None
-        color = bgrole_getter(row)
+        row_id = model._get_row_id(row)  # row_id w.r.t. to sorting
+        color = bgrole_getter(row_id)
         if color is None:
             return None
         val = qtype.to_qcolor(color)
@@ -398,16 +392,6 @@ class APITableModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, row, col):
-        #
-        # <HACK: COLUMN_STRIPING>
-        num = model.col_name_list_counts[model.col_name_list[col]]
-        if num > 1:
-            # FOR NOW, NO MIXED TYPES: STRIPPED AND VERTICAL
-            assert num == len(model.col_name_list), "mixing stripped with non stripped"
-            row = row * num + col
-            col = 0
-        # </HACK: COLUMN_STRIPING>
-        #
         if row < len(model.level_index_list[0]):
             getter = model.col_getter_list[col]  # getter for this column
             row_id = model._get_row_id(row)  # row_id w.r.t. to sorting
@@ -500,10 +484,7 @@ class APITableModel(API_MODEL_BASE):
             parent_level = model.col_level_list[parent.column()] if parent.isValid() else -1
             try:
                 length = len(model.level_index_list[parent_level + 1])
-                # <HACK>
-                counts = [np.ceil(length / count) for name, count in model.col_name_list_counts.items()]
-                # </HACK>
-                return max(counts)
+                return length
             except:
                 return len(model.level_index_list[parent_level + 1])
         else:
@@ -696,73 +677,3 @@ class APITableModel(API_MODEL_BASE):
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
-
-    # http://qt-project.org/doc/qt-4.8/qabstractitemmodel.html
-
-    # QModelIndexList match ( const QModelIndex & start, int role, const
-    # QVariant & value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags(
-    # Qt::MatchStartsWith | Qt::MatchWrap ) ) const [virtual]
-
-    # def mimeData(QModelIndexList indexes): return QMimeData
-
-    # def mimeTypes (QModelIndexList indexes) return QStringList
-
-    # QModelIndexList persistentIndexList () const [protected] Returns the list
-    # of indexes stored as persistent indexes in the model.
-
-    # bool removeColumns ( int column, int count, const QModelIndex & parent =
-    # QModelIndex() ) [virtual]
-
-    # bool removeRow ( int row, const QModelIndex & parent = QModelIndex() )
-
-    # bool removeRows ( int row, int count, const QModelIndex & parent =
-    # QModelIndex() ) [virtual]
-
-    # const QHash<int, QByteArray> & roleNames () const
-
-    # void rowsAboutToBeInserted ( const QModelIndex & parent, int start, int
-    # end ) [signal]
-
-    # void rowsAboutToBeMoved ( const QModelIndex & sourceParent, int
-    # sourceStart, int sourceEnd, const QModelIndex & destinationParent, int
-    # destinationRow ) [signal]
-
-    # void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end
-    # ) [signal]
-
-    # void rowsInserted ( const QModelIndex & parent, int start, int end )
-    # [signal]
-
-    # void rowsMoved ( const QModelIndex & sourceParent, int sourceStart, int
-    # sourceEnd, const QModelIndex & destinationParent, int destinationRow )
-    # [signal]
-
-    # void rowsRemoved ( const QModelIndex & parent, int start, int end )
-    # [signal]
-
-    # bool setData ( const QModelIndex & index, const QVariant & value, int role
-    # = Qt::EditRole ) [virtual]
-
-    # bool setHeaderData ( int section, Qt::Orientation orientation, const
-    # QVariant & value, int role = Qt::EditRole ) [virtual] d
-    # headerDataChanged() signals must be emitted explicitly
-
-    # bool setItemData ( const QModelIndex & index, const QMap<int, QVariant> &
-    # roles ) [virtual] Sets the role data for the item at index to the
-    # associated value in roles, for every Qt::ItemDataRole.  Returns true if
-    # successful; otherwise returns false.
-
-    # void setRoleNames ( const QHash<int, QByteArray> & roleNames ) [protected]
-
-    # void setSupportedDragActions ( Qt::DropActions actions)
-
-    # QModelIndex sibling ( int row, int column, const QModelIndex & index )
-    # const
-
-    # QSize span ( const QModelIndex & index ) const [virtual]
-
-    # bool submit () [virtual slot]
-
-    # Qt::DropActions supportedDragActions () const
-
-    # Qt::DropActions supportedDropActions () const [virtual]
