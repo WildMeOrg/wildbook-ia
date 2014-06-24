@@ -47,6 +47,9 @@ class TreeNode(object):
         row = sibling_nodes.index(self)
         return row
 
+    def get_level(self):
+        return self.level
+
     def full_str(self, indent=""):
         self_str = indent + "TreeNode(id_=%r, parent_node=%r, level=%r)" % (self.id_, id(self.parent_node), self.level)
         child_strs = [child.full_str(indent=indent + "    ") for child in self.child_nodes]
@@ -190,6 +193,7 @@ class APITableModel(API_MODEL_BASE):
     def _about_to_change(model, force=False):
         #N = range(0, 10)  # NOQA
         if force or (not model._abouttochange and not model._changeblocked):
+            #print('ABOUT TO CHANGE: %r' % (model.name,))
             #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             model._abouttochange = True
@@ -206,7 +210,6 @@ class APITableModel(API_MODEL_BASE):
         if force or (model._abouttochange and not model._changeblocked):
             #printDBG('LAYOUT CHANGED:  %r' % (model.name,))
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
-            #model._abouttochange = False
             model._abouttochange = False
             printDBG('CHANGE: CACHE INVALIDATED!')
             model.cache = {}
@@ -248,7 +251,7 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def _update(model, newrows=False):
         #if newrows:
-        print("_UPDATE")
+        #print("_UPDATE")
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
@@ -268,62 +271,43 @@ class APITableModel(API_MODEL_BASE):
         row_indicies
         """
         #printDBG('UPDATE ROWS!')
-        print('UPDATE ROWS!')
+        #print('UPDATE ROWS!')
         #print('UPDATE model(%s) rows' % model.name)
         if len(model.col_level_list) > 0:
             model.root_node = _build_internal_structure(model)
             #print('-----')
             model.level_index_list = []
-            highest_level = max(model.col_level_list)
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
             children = model.root_node.get_children()
             id_list = [child.get_id() for child in children]
             #print('ids_ generated')
-            row_indices = []
+            nodes = []
             if len(id_list) != 0:
                 # start sort
                 if model.col_sort_index is not None:
                     getter = model.col_getter_list[sort_index]
                     values = getter(id_list)
-                    print('values got')
+                    #print('values got')
                 else:
                     values = id_list
                 reverse = model.col_sort_reverse
                 sorted_pairs = sorted(list(izip(values, id_list, children)), reverse=reverse)
-                row_indices = [child for (value, id_, child) in sorted_pairs]
+                nodes = [child for (value, id_, child) in sorted_pairs]
                 level = model.col_level_list[sort_index]
-                print("row_indices sorted")
+                #print("row_indices sorted")
                 if level == 0:
-                    nodes = row_indices 
                     model.root_node.set_children(nodes)
                 # end sort
-            assert row_indices is not None, 'no indices'
-            model.level_index_list.append(row_indices)
-            model._rows_updated.emit(model.name, len(model.level_index_list[0]))
-            print("Rows updated")
+            assert nodes is not None, 'no indices'
+            model.level_index_list = nodes
+            model._rows_updated.emit(model.name, len(model.level_index_list))
+            #print("Rows updated")
     
-
-    def _build_internal_structure_old(model):
-        ider_list = model.iders
-        num_levels = len(ider_list)
-        if num_levels == 0:
-            return []
-        
-        def populate_tree(id_list, level=0):
-            if level == num_levels - 1:
-                return [(id_, None, level) for id_ in id_list]
-            child_ider = ider_list[level + 1]
-            return [(id_, populate_tree(child_ider(id_), level + 1), level) for id_ in id_list]
-
-        root_ider = ider_list[0]
-        root_node = populate_tree(root_ider(), level=0)
-        return root_node
-
     @updater
     def _set_iders(model, iders=None):
         #printDBG('NEW IDER')
         if iders is None:
-            iders = [lambda: []]
+            iders = []
         assert utool.is_list(iders), 'bad type: %r' % type(iders)
         for index, ider in enumerate(iders):
             assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
@@ -387,7 +371,7 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def _set_col_level(model, col_level_list=None):
         if col_level_list is None:
-            col_level_list = map(lambda x: 0, model.col_name_list)
+            col_level_list = [0] * len(model.col_name_list)
         assert len(model.col_name_list) == len(col_level_list), \
             'inconsistent collevel'
         model.col_level_list = col_level_list
@@ -412,7 +396,7 @@ class APITableModel(API_MODEL_BASE):
     def get_header_data(model, colname, row):
         """ Use _get_data if the column number is known """
         col = model.col_name_list.index(colname)
-        return model._get_data(row, col)
+        return model._get_data(qtindex)
 
     #--------------------------------
     # --- API Interface Functions ---
@@ -423,9 +407,8 @@ class APITableModel(API_MODEL_BASE):
         assert col is not None, 'bad column'
 
     @default_method_decorator
-    def _get_row_id(model, row, col=None, node=None):
-        if not col is None:
-            node = model.root_node[row]
+    def _get_row_id(model, qtindex=QtCore.QModelIndex()):
+        node = qtindex.internalPointer()
         return node.get_id()
 
     @default_method_decorator
@@ -433,55 +416,41 @@ class APITableModel(API_MODEL_BASE):
         return model.col_type_list[col]
 
     @default_method_decorator
-    def _get_data(model, row, col, node=None):
+    def _get_data(model, qtindex):
+        row = qtindex.row()
+        col = qtindex.column()
         getter = model.col_getter_list[col]  # getter for this column
-        if node is not None:
-            row_id = model._get_row_id(row, node=node)  # row_id w.r.t. to sorting
-        else:
-            row_id = model._get_row_id(row, col)
+        row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
         # <HACK: MODEL CACHE>
-        #cachekey = (row_id, col)
+        cachekey = (row_id, col)
         try:
             if True:  # Cache is disabled
                 raise KeyError('')
-            #data = model.cache[cachekey]
+            data = model.cache[cachekey]
         except KeyError:
             data = getter(row_id)
-            #model.cache[cachekey] = data
+            model.cache[cachekey] = data
         # </HACK: MODEL CACHE>
         return data
-        #else:
-            #raise AssertionError('row=%r, < len(model.row_index_list)=%r' % (row, len(model.level_index_list[0])))
-            #return None
-            #return ('','',())
-            #return "!!!<EMPTY FOR STRIPE>!!!"
 
     @default_method_decorator
-    def _set_data(model, row, col, value):
+    def _set_data(model, qtindex, value):
         """ The setter function should be of the following format def
         setter(column_name, row_id, value) column_name is the key or SQL-like
         name for the column row_id is the corresponding row key or SQL-like id
         that the row call back returned value is the value that needs to be
         stored The setter function should return a boolean, if setting the value
         was successfull or not """
-        row_id = model._get_row_id(row, col)
-        #if row_id is None:
-        #    return "__NONE__"
+        col = qtindex.column()
+        row_id = model._get_row_id(qtindex)
         cachekey = (row_id, col)
         try:
             del model.cache[cachekey]
         except KeyError:
             pass
         setter = model.col_setter_list[col]
-        print('Setting data: row_id=%r, setter=%r' % (row_id, setter))
+        print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
         return setter(row_id, value)
-
-    def _get_columns_of_level(model, level):
-        acc = []
-        for i, lev in enumerate(model.col_level_list):
-            if lev == level:
-                acc.append(i)
-        return acc
 
     #------------------------
     # --- QtGui Functions ---
@@ -505,20 +474,15 @@ class APITableModel(API_MODEL_BASE):
             node = qindex.internalPointer()
             #<HACK>
             if not isinstance(node, TreeNode):
-                #import traceback
-                #traceback.print_stack()
                 print("WARNING: tried to access parent of %r type object" % type(node))
                 return QtCore.QModelIndex()
-            if not node.__dict__:
-                #import traceback
-                #traceback.print_stack()
-                raise AssertionError, "node.__dict__=%r" % node.__dict__
+            assert node.__dict__, "node.__dict__=%r" % node.__dict__
             #</HACK>
             parent_node = node.get_parent()
             if parent_node.get_id() is None:
                 return QtCore.QModelIndex()
             row = parent_node.get_row()
-            col = model.col_level_list.index(parent_node.level)
+            col = model.col_level_list.index(parent_node.get_level())
             return model.createIndex(row, col, parent_node)
         return QtCore.QModelIndex()
 
@@ -535,7 +499,7 @@ class APITableModel(API_MODEL_BASE):
             # This is a top level == 0 index
             #print('[model.index] ROOT: row=%r, col=%r' % (row, column))
             node = model.root_node[row]
-            if model.col_level_list[column] != node.level:
+            if model.col_level_list[column] != node.get_level():
                 return QtCore.QModelIndex()
             qtindex = model.createIndex(row, column, object=node)
             return qtindex
@@ -543,8 +507,6 @@ class APITableModel(API_MODEL_BASE):
             # This is a child level > 0 index
             parent_node = parent.internalPointer()
             node = parent_node[row]
-            assert isinstance(node, TreeNode), "[api_table_model.index] node is of type %r" % type(node)
-            #print("model.col_level_list[%r] = %r, node.level = %r" % (column, model.col_level_list[column], node.level))
             return model.createIndex(row, column, object=node)
     
     @default_method_decorator
@@ -554,7 +516,7 @@ class APITableModel(API_MODEL_BASE):
             # Root row count
             if len(model.level_index_list) == 0:
                 return 0
-            nRows = len(model.level_index_list[0])
+            nRows = len(model.level_index_list)
             #print('* nRows=%r' % nRows)
             return nRows
         else:
@@ -581,7 +543,7 @@ class APITableModel(API_MODEL_BASE):
         row = qtindex.row()
         col = qtindex.column()
         node = qtindex.internalPointer()
-        if model.col_level_list[col] != node.level:
+        if model.col_level_list[col] != node.get_level():
             return QtCore.QVariant()
         type_ = model._get_type(col)
 
@@ -608,7 +570,7 @@ class APITableModel(API_MODEL_BASE):
                 return QtCore.QVariant(model.EditableItemColor)
             elif flags & Qt.ItemIsUserCheckable:
                 # Checkable color depends on the truth value
-                data = model._get_data(row, col, node)
+                data = model._get_data(qtindex)
                 if data:
                     return QtCore.QVariant(model.TrueItemColor)
                 else:
@@ -633,7 +595,7 @@ class APITableModel(API_MODEL_BASE):
         # Specify CheckState Role:
         if role == Qt.CheckStateRole:
             if flags & Qt.ItemIsUserCheckable:
-                data = model._get_data(row, col, node)
+                data = model._get_data(qtindex)
                 return Qt.Checked if data else Qt.Unchecked
         #
         # Return the data to edit or display
@@ -641,12 +603,12 @@ class APITableModel(API_MODEL_BASE):
             # For types displayed with custom delegates do not cast data into a
             # qvariant. This includes PIXMAP, BUTTON, and COMBO
             if type_ in qtype.QT_DELEGATE_TYPES:
-                data = model._get_data(row, col, node)
+                data = model._get_data(qtindex)
                 #print(data)
                 return data
             else:
                 # Display data with default delegate by casting to a qvariant
-                data = model._get_data(row, col, node)
+                data = model._get_data(qtindex)
                 value = qtype.cast_into_qt(data)
                 return value
         else:
@@ -682,7 +644,7 @@ class APITableModel(API_MODEL_BASE):
                 type_ = model.col_type_list[col]
                 data = qtype.cast_from_qt(value, type_)
             # Do actual setting of data
-            old_data = model._get_data(row, col)
+            old_data = model._get_data(qtindex)
             if old_data != data:
                 model._set_data(row, col, data)
                 # Emit that data was changed and return succcess
