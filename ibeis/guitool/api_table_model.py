@@ -423,9 +423,14 @@ class APITableModel(API_MODEL_BASE):
     @default_method_decorator
     def get_header_data(model, colname, row):
         """ Use _get_data if the column number is known """
-        raise NotImplementedError('fix get_header_data to work with qtindex?')
-        #col = model.col_name_list.index(colname)
-        #return model._get_data(qtindex)
+        # <HACK>
+        # Hacked to only work on tables. Should be in terms of qtindex
+        assert max(model.col_level_list) == 0, "Must be a table. Input is a tree"
+        col = model.col_name_list.index(colname)
+        id_ = model.root_node[row].get_id()
+        getter = model.col_getter_list[col]
+        value = getter(id_)
+        return value
 
     @default_method_decorator
     def get_header_name(model, column):
