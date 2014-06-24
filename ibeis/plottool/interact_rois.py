@@ -708,7 +708,7 @@ class ROIInteraction(object):
             polygon.xy = new_coords
 
     def calculate_move(self, event, poly):
-        print('calculate_move')
+        #print('calculate_move')
         if poly is None:
             return
         indBefore = self._ind - 1
