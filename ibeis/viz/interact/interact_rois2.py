@@ -22,14 +22,11 @@ class ROI_Interaction2:
         if len(deleted_list) > 0:
             rows_updated = True
             deleted = [self.rid_list[del_index] for del_index in deleted_list]
-            #print(deleted)
             self.ibs.delete_rois(deleted)
         #print('Changed BBoxes')
         if len(changed_list) > 0:
             changed_rid = [self.rid_list[changed[0]] for changed in changed_list]
             changed_bbox = [changed[1] for changed in changed_list]
-            #print(changed_rid)
-            #print(changed_bbox)
             self.ibs.set_roi_bboxes(changed_rid, changed_bbox)
         #print('New BBoxes')
         if len(new_list) > 0:
