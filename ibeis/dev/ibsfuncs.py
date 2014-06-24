@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import types
 from itertools import izip
+from functools import partial
 from os.path import relpath, split, join, exists
 import utool
 from ibeis import constants
@@ -18,11 +19,20 @@ from ibeis.control.accessor_decors import getter_1to1
 __INJECTABLE_FUNCS__ = []
 
 
-def __injectable(func):
-    global __INJECTABLE_FUNCS__
-    func_ = utool.indent_func(func)
-    __INJECTABLE_FUNCS__.append(func_)
-    return func_
+def __injectable(input_):
+    def closure_injectable(func, indent=True):
+        global __INJECTABLE_FUNCS__
+        if indent:
+            func_ = utool.indent_func(func)
+        else:
+            func_ = func
+        __INJECTABLE_FUNCS__.append(func_)
+        return func_
+    if utool.is_funclike(input_):
+        return closure_injectable(input_)
+    else:
+        return partial(closure_injectable, indent=input_)
+
 
 
 @__injectable
@@ -598,21 +608,21 @@ def get_infostr(ibs):
     return infostr
 
 
-@__injectable
+@__injectable(False)
 def print_roi_table(ibs):
     """ Dumps roi table to stdout """
     print('\n')
     print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid', 'roi_verts']))
 
 
-@__injectable
+@__injectable(False)
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv('chips'))
 
 
-@__injectable
+@__injectable(False)
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -620,7 +630,7 @@ def print_feat_table(ibs):
         'feature_keypoints', 'feature_sifts']))
 
 
-@__injectable
+@__injectable(False)
 def print_image_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
@@ -628,42 +638,42 @@ def print_image_table(ibs):
     #, exclude_columns=['image_rowid']))
 
 
-@__injectable
+@__injectable(False)
 def print_label_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv('labels'))
 
 
-@__injectable
+@__injectable(False)
 def print_rlr_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.AL_RELATION_TABLE))
 
 
-@__injectable
+@__injectable(False)
 def print_config_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.CONFIG_TABLE))
 
 
-@__injectable
+@__injectable(False)
 def print_encounter_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.ENCOUNTER_TABLE))
 
 
-@__injectable
+@__injectable(False)
 def print_egpairs_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.EG_RELATION_TABLE))
 
 
-@__injectable
+@__injectable(False)
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
         exclude_columns = ['annot_uuid', 'label_uuid', 'annot_verts', 'feature_keypoints',

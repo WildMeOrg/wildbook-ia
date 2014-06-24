@@ -17,9 +17,10 @@ def TEST_ENCOUNTERS(ibs):
     print('[TEST_ENCOUNTERS]')
     assert isinstance(ibs, IBEISController), 'type enforment'
     # Delete all encounters
-    eid_list = ibs.get_valid_eids()
-    ibs.delete_encounters(eid_list)
-
+    _eid_list1 = ibs.get_valid_eids()
+    ibs.delete_encounters(_eid_list1)
+    _eid_list2 = ibs.get_valid_eids()
+    assert len(_eid_list2) == 0, 'eids should have been deleted'
     # Recompute encounters
     ibs.compute_encounters()
 
@@ -49,8 +50,8 @@ def TEST_ENCOUNTERS(ibs):
                          UUID('672b1bd6-1516-d5fa-14f9-b39594447e23'),
                          UUID('a4597ee8-9e11-c704-efdc-f0d8a1d755b5'))]
 
-    target_names = [('polar', 'lena', 'easy', 'jeff', '____12', '____6'),
-                    ('zebra', 'occl', '____10', '____2', 'hard')]
+    target_names = [('polar', 'lena', 'hard', 'easy', 'jeff', '____8', '____3'), 
+                    ('occl', 'hard', 'easy', 'zebra', '____7', '____1')]
 
     try:
         print('1) gid_uuids_list = %r' % (gid_uuids_list,))
