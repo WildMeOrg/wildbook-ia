@@ -675,8 +675,7 @@ class ROIInteraction(object):
         #)
         # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
         # point to rotate around, first vertex for now
-        aroundx = poly.xy[0][0]
-        aroundy = poly.xy[0][1]
+        aroundx, aroundy = self.polygon_center(poly)
         ct = cos(theta)
         st = sin(theta)
         rot_mat = array(
@@ -686,6 +685,11 @@ class ROIInteraction(object):
         )
         poly.xy = [(x, y) for (x, y, z) in rot_mat.dot(pts.T).T]
 
+    def polygon_center(self, poly):
+        # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center
+        points_open = poly.xy[0:-1]
+        point_sum = reduce(lambda (accx, accy), (px, py): (accx + px, accy + py), points_open)
+        return np.array(point_sum)/len(points_open)
 
     def move_rectangle(self, event, polygon, x, y):
         print('move_rectangle')
