@@ -426,14 +426,14 @@ class APITableModel(API_MODEL_BASE):
         getter = model.col_getter_list[col]  # getter for this column
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
         # <HACK: MODEL CACHE>
-        cachekey = (row_id, col)
+        #cachekey = (row_id, col)
         try:
             if True:  # Cache is disabled
                 raise KeyError('')
-            data = model.cache[cachekey]
+            #data = model.cache[cachekey]
         except KeyError:
             data = getter(row_id)
-            model.cache[cachekey] = data
+            #model.cache[cachekey] = data
         # </HACK: MODEL CACHE>
         return data
 
