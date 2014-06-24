@@ -12,10 +12,10 @@ from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_rois2
 from ibeis.gui.guiheaders import (
-    IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE)
+    IMAGE_TABLE, ROI_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
-    IBEISTableModel, IBEISTableView, EncTableModel, EncTableView,
-    IBEISTableWidget, EncTableWidget)
+    IBEISTableModel, IBEISTableView, IBEISTreeView, EncTableModel, EncTableView,
+    IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
 import guitool
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
@@ -133,7 +133,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models       = {}
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
-        ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE]
+        ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, NAMES_TREE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
         ibswgt._init_components()
@@ -162,6 +162,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (ROI_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (NAMES_TREE,      IBEISTreeWidget, IBEISTableModel, IBEISTreeView),
             (ENCOUNTER_TABLE, EncTableWidget,   EncTableModel,   EncTableView),
         ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
