@@ -666,14 +666,26 @@ class ROIInteraction(object):
         #print(t, p1, p2, p3, p4)
         #print('in enforce_rotation: %r, %r' % (poly.xy, poly.basecoords))
         sin, cos, array = np.sin, np.cos, np.array
-        pts = poly.xy
+        pts = array([array((x, y, 1)) for (x, y) in poly.xy])
         theta = poly.theta
         # this matrix is relative to origin, but it should probably be relative to either a corner of the bbox, or its center
+        #rot_mat = array(
+        #    [(cos(theta), -sin(theta)),
+        #     (sin(theta),  cos(theta))]
+        #)
+        # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
+        # point to rotate around, first vertex for now
+        aroundx = poly.xy[0][0]
+        aroundy = poly.xy[0][1]
+        ct = cos(theta)
+        st = sin(theta)
         rot_mat = array(
-            [(cos(theta), -sin(theta)),
-             (sin(theta),  cos(theta))]
+            [(ct, -st, aroundx - ct*aroundx + st*aroundy),
+             (st,  ct, aroundy - st*aroundx - ct*aroundy),
+             ( 0,   0,                                 1)]
         )
-        poly.xy = rot_mat.dot(pts.T).T
+        poly.xy = [(x, y) for (x, y, z) in rot_mat.dot(pts.T).T]
+
 
     def move_rectangle(self, event, polygon, x, y):
         print('move_rectangle')
