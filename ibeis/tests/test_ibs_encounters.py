@@ -2,29 +2,36 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from ibeis.dev import ibsfuncs
-from itertools import izip
+#from itertools import izip
 # Python
 import multiprocessing
 #import numpy as np
 from uuid import UUID
 # Tools
 import utool
+from ibeis.control.IBEISControl import IBEISController
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ENCOUNTERS]')
 
 
 def TEST_ENCOUNTERS(ibs):
     print('[TEST_ENCOUNTERS]')
+    assert isinstance(ibs, IBEISController), 'type enforment'
+    # Delete all encounters
+    eid_list = ibs.get_valid_eids()
+    ibs.delete_encounters(eid_list)
+
+    # Recompute encounters
     ibs.compute_encounters()
 
-    eid_list = ibs.get_valid_eids()
+    eid_list = sorted(ibs.get_valid_eids())
     gids_list = ibs.get_encounter_gids(eid_list)
     rids_list = ibs.get_encounter_rids(eid_list)
     nids_list = ibs.get_encounter_nids(eid_list)
 
     enctext_list   = ibs.get_encounter_enctext(eid_list)
-    gid_uuids_list = ibs.get_unflat_image_uuids(rids_list)
-    roi_uuids_list = ibs.get_unflat_roi_uuids(rids_list)
-    names_list     = ibs.get_unflat_names(nids_list)
+    gid_uuids_list = ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)
+    roi_uuids_list = ibsfuncs.unflat_map(ibs.get_roi_uuids, rids_list)
+    names_list     = ibsfuncs.unflat_map(ibs.get_names, nids_list)
 
     target_enctexts = ['_ENC(1,agg,sec_60)0', '_ENC(1,agg,sec_60)1']
 
@@ -45,22 +52,29 @@ def TEST_ENCOUNTERS(ibs):
     target_names = [('polar', 'lena', 'easy', 'jeff', '____12', '____6'),
                     ('zebra', 'occl', '____10', '____2', 'hard')]
 
-    print('names_list = %r' % (names_list,))
-    print('target_names = %r' % (target_names,))
-    assert names_list == target_names, 'names_list does not match target_names'
+    try:
+        print('1) gid_uuids_list = %r' % (gid_uuids_list,))
+        print('1) target_gid_uuids = %r' % (target_gid_uuids,))
+        print('')
+        assert gid_uuids_list == target_gid_uuids, 'gid_uuids_list does not match target_gid_uuids'
 
-    print('gid_uuids_list = %r' % (gid_uuids_list,))
-    print('target_gid_uuids = %r' % (target_gid_uuids,))
-    assert gid_uuids_list == target_gid_uuids, 'gid_uuids_list does not match target_gid_uuids'
+        print('2) enctext_list = %r' % (enctext_list,))
+        print('2) target_enctexts = %r' % (target_enctexts,))
+        print('')
+        assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
 
-    print('enctext_list = %r' % (enctext_list,))
-    print('target_enctexts = %r' % (target_enctexts,))    
-    assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
+        print('3) names_list = %r' % (names_list,))
+        print('3) target_names = %r' % (target_names,))
+        print('')
+        assert names_list == target_names, 'names_list does not match target_names'
 
-    ibs.delete_encounters(eid_list)
-    ibs.compute_encounters()
-    #ibs.print_egpairs_table()
-    #ibs.print_encounter_table()
+    except AssertionError as ex:
+        utool.printex(ex, 'failed test_encounter')
+        raise
+
+    ibs.print_label_table()
+    ibs.print_egpairs_table()
+    ibs.print_encounter_table()
 
     gids_list2 = ibsfuncs.unflat_lookup(ibs.get_roi_gids, rids_list)
     assert gids_list2 == map(tuple, gids_list)
