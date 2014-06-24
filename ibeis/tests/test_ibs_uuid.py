@@ -51,7 +51,10 @@ MACHINE_VALS['lena'] = {
 def test_uuid(name):
     print('-----------------------')
     print('[TEST_UUID] TESTING: %r' % name)
-    gpath = grabdata.get_test_gpaths(names=name)[0]
+    if name.find('http') != -1:
+        gpath = utool.grab_file_url(name)
+    else:
+        gpath = grabdata.get_test_gpaths(names=name)[0]
     pil_img = Image.open(gpath)
     uuid1 = preproc_image.get_image_uuid(pil_img)
     npimg = np.asarray(pil_img)
@@ -106,7 +109,9 @@ def TEST_UUID():
         utool.printex(ex)
         pass
 
-    assert all([test_uuid(name) for name in ['lena', 'jeff']])
+    right = 'http://i.imgur.com/QqSkNZe.png'
+
+    assert all([test_uuid(name) for name in ['lena', 'jeff', 'polar1', right]])
 
     return locals()
 
