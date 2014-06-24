@@ -177,8 +177,10 @@ class IBEISController(object):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
         DB_SCHEMA.define_IBEIS_schema(ibs)
+        ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
         ibs.INDIVIDUAL_KEY = ibs.add_key('INDIVIDUAL_KEY')
         ibs.SPECIES_KEY = ibs.add_key('SPECIES_KEY')
+        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         assert ibs.INDIVIDUAL_KEY == 1, 'INDIVIDUAL_KEY = %r' % ibs.INDIVIDUAL_KEY
         assert ibs.SPECIES_KEY == 2, 'SPECIES_KEY = %r' % ibs.SPECIES_KEY
         ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
@@ -559,7 +561,9 @@ class IBEISController(object):
         rid_list = ibs.db.add_cleanly(ANNOT_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         # Also need to populate roi_label_relationship table
-        ibs.add_roi_relationship(rid_list, nid_list)
+        alrid_list = ibs.add_roi_relationship(rid_list, nid_list)
+        #print('alrid_list = %r' % (alrid_list,))
+        
         # Invalidate image thumbnails
         ibs.delete_image_thumbtups(gid_list)
         return rid_list
@@ -568,14 +572,23 @@ class IBEISController(object):
     def add_roi_relationship(ibs, rid_list, labelid_list, configid_list=None,
                              alr_confidence_list=None):
         if configid_list is None:
-            configid_list = [None] * len(rid_list)
+            configid_list = [ibs.MANUAL_CONFIGID] * len(rid_list)
         if alr_confidence_list is None:
             alr_confidence_list = [0.0] * len(rid_list)
         colnames = ('annot_rowid', 'label_rowid', 'config_rowid', 'alr_confidence')
         params_iter = list(izip(rid_list, labelid_list, configid_list,
                                 alr_confidence_list))
-        rlrid_list = ibs.db.add(AL_RELATION_TABLE, colnames, params_iter)  # NOQA
-        return rlrid_list
+        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter, 
+                                        ibs.get_alr_rowid_from_valtup, range(0, 3))
+        return alrid_list
+
+    @getter_1to1
+    def get_alr_rowid_from_valtup(ibs, rid_list, labelid_list, configid_list):
+        colnames = ('annot_rowid',)
+        params_iter = izip(rid_list, labelid_list, configid_list)
+        where_clause = 'annot_rowid=? AND label_rowid=? AND config_rowid=?'
+        alrid_list = ibs.db.get_where(AL_RELATION_TABLE, colnames, params_iter, where_clause)
+        return alrid_list
 
     @adder
     def add_chips(ibs, rid_list):
@@ -721,19 +734,27 @@ class IBEISController(object):
         """ Sets the encoutertext of each image """
         print('[ibs] Setting %r image encounter ids' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
-        ibs.db.executemany(
-            operation='''
-            INSERT OR IGNORE INTO encounter_image_relationship(
-                egpair_rowid,
-                image_rowid,
-                encounter_rowid
-            ) VALUES (NULL, ?, ?)
-            ''',
-            params_iter=izip(gid_list, eid_list))
+        egrid_list = ibs.add_image_relationship(gid_list, eid_list)
+        # ibs.db.executemany(
+        #     operation='''
+        #     INSERT OR IGNORE INTO encounter_image_relationship(
+        #         egpair_rowid,
+        #         image_rowid,
+        #         encounter_rowid
+        #     ) VALUES (NULL, ?, ?)
+        #     ''',
+        #     params_iter=izip(gid_list, eid_list))
         # DOES NOT WORK
         #gid_list = ibs.db.add_cleanly(tblname, colnames, params_iter,
         #                              get_rowid_from_uuid=(lambda gid: gid))
-        return gid_list
+
+    @adder
+    def add_image_relationship(ibs, gid_list, eid_list):
+        colnames = ('image_rowid', 'encounter_rowid')
+        params_iter = list(izip(gid_list, eid_list))
+        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter, 
+                                        ibs.get_egr_rowid_from_valtup, range(0, 2))
+        return egrid_list
 
     @setter
     def set_image_gps(ibs, gid_list, gps_list):
@@ -822,10 +843,10 @@ class IBEISController(object):
         # nids are really special labelids
         labelid_list = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
         INDIVIDUAL_KEY = ibs.INDIVIDUAL_KEY
-        rlrid_list = ibs.get_roi_filtered_relationship_ids(rid_list, INDIVIDUAL_KEY)
+        alrid_list = ibs.get_roi_filtered_relationship_ids(rid_list, INDIVIDUAL_KEY)
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
-        ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), labelid_list, rlrid_list)
+        ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), labelid_list, alrid_list)
 
     # SETTERS::NAME
 
@@ -1191,9 +1212,10 @@ class IBEISController(object):
         if label key is specified the realtionship ids are filtered to
         be only of a specific key/category/type
         """
-        rlrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), rid_list,
+        alrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), rid_list,
                                  id_colname='annot_rowid', unpack_scalars=False)
-        return rlrids_list
+        assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
+        return alrids_list
 
     @getter_1to1
     def get_roi_filtered_relationship_ids(ibs, rid_list, key_rowid):
@@ -1201,25 +1223,25 @@ class IBEISController(object):
         Get all the relationship ids belonging to the input rois where the
         realtionship ids are filtered to be only of a specific key/category/type
         """
-        rlrids_list = ibs.get_roi_relationship_ids(rid_list)
+        alrids_list = ibs.get_roi_relationship_ids(rid_list)
         # Get labelid of each relationship
-        labelids_list = ibsfuncs.unflat_map(ibs.get_relationship_labelids, rlrids_list)
+        labelids_list = ibsfuncs.unflat_map(ibs.get_relationship_labelids, alrids_list)
         # Get the type of each label
         labelkeys_list = ibsfuncs.unflat_map(ibs.get_label_keys, labelids_list)
         try:
-            # only want the nids of individuals, not species, for examples
+            # only want the nids of individuals, not species, for example
             index_list = [keys.index(key_rowid) for keys in labelkeys_list]
-            rlrid_list = [ids[index] for (ids, index)  in izip(rlrids_list, index_list)]
+            alrid_list = [ids[index] for (ids, index)  in izip(alrids_list, index_list)]
         except Exception as ex:
-            utool.printex(ex, key_list=['key_rowid', 'labelkeys_list',
+            utool.printex(ex, key_list=['rid_list', 'alrid_list', 'alrids_list', 'key_rowid', 'labelkeys_list',
                                         'labelids_list', 'index_list'])
             raise
-        return rlrid_list
+        return alrid_list
 
     @getter_1to1
-    def get_relationship_labelids(ibs, rlrid_list):
+    def get_relationship_labelids(ibs, alrid_list):
         """ get the labelid belonging to each relationship """
-        labelids_list = ibs.db.get(AL_RELATION_TABLE, ('label_rowid',), rlrid_list)
+        labelids_list = ibs.db.get(AL_RELATION_TABLE, ('label_rowid',), alrid_list)
         return labelids_list
 
     @utool.accepts_numpy
@@ -1232,9 +1254,8 @@ class IBEISController(object):
         """
         # Get all the roi label relationships
         # filter out only the ones which specify names
-        INDIVIDUAL_KEY = ibs.INDIVIDUAL_KEY
-        rlrid_list = ibs.get_roi_filtered_relationship_ids(rid_list, INDIVIDUAL_KEY)
-        labelid_list = ibs.get_relationship_labelids(rlrid_list)
+        alrid_list = ibs.get_roi_filtered_relationship_ids(rid_list, ibs.INDIVIDUAL_KEY)
+        labelid_list = ibs.get_relationship_labelids(alrid_list)
         nid_list = labelid_list
         if distinguish_unknowns:
             tnid_list = [nid if nid != ibs.UNKNOWN_NID else -rid
@@ -1591,6 +1612,14 @@ class IBEISController(object):
         eid_list = ibs.db.get(ENCOUNTER_TABLE, colnames, enctext_list,
                               id_colname='encounter_text')
         return eid_list
+
+    @getter_1to1
+    def get_egr_rowid_from_valtup(ibs, gid_list, eid_list):
+        colnames = ('image_rowid',)
+        params_iter = izip(gid_list, eid_list)
+        where_clause = 'image_rowid=? AND encounter_rowid=?'
+        egrid_list = ibs.db.get_where(EG_RELATION_TABLE, colnames, params_iter, where_clause)
+        return egrid_list
 
     #
     #

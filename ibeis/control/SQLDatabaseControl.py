@@ -182,6 +182,7 @@ class SQLDatabaseController(object):
         db.cache = {}
         db.stack = []
         db.table_constraints = utool.odict()
+        db.table_docstr = utool.odict()
 
     #==============
     # CONVINENCE
@@ -250,7 +251,8 @@ class SQLDatabaseController(object):
         header_constraints = '# CONSTRAINTS: %r' % db.table_constraints[tablename]
         header_name  = '# TABLENAME: %r' % tablename
         header_types = utool.indentjoin(column_nametypes, '\n# ')
-        header = header_name + header_types + '\n' + header_constraints
+        header_doc = utool.indentjoin(utool.unindent(db.table_docstr[tablename]).split('\n'), '\n# ')
+        header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
         return header
 
     def print_schema(db):
@@ -317,7 +319,7 @@ class SQLDatabaseController(object):
 
     #@adder
     @default_decorator
-    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid):
+    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, unique_paramx=[0]):
         """
         Extra input:
             the first item of params_iter must be a uuid,
@@ -325,21 +327,27 @@ class SQLDatabaseController(object):
             get_rowid_from_uuid - function which does what it says
         e.g:
             get_rowid_from_uuid = ibs.get_image_gids_from_uuid
+            params_list = [(uuid.uuid4(),) for _ in xrange(7)]
+            unique_paramx = [0]
 
+            params_list = [(uuid.uuid4(), 42) for _ in xrange(7)]
+            unique_paramx = [0, 1]
         """
         # ADD_CLEANLY_1: PREPROCESS INPUT
         # eagerly evaluate for uuids
         params_list = list(params_iter)
         # Extract uuids from the params list (requires eager eval)
         # FIXME: the uuids being at index 0 is a hack
-        uuid_list = [None if params is None else params[0] for params in params_list]
+
+        uuid_lists = [[None if params is None else 
+                       params[x] for params in params_list] for x in unique_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
         # Check for duplicate inputs
-        isunique_list = utool.flag_unique_items(uuid_list)
+        isunique_list = utool.flag_unique_items(list(izip(*uuid_lists)))
         # Check to see if this already exists in the database
-        rowid_list_   = get_rowid_from_uuid(uuid_list)
+        rowid_list_   = get_rowid_from_uuid(*uuid_lists)
         isnew_list    = [rowid is None for rowid in rowid_list_]
         if not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
@@ -371,7 +379,7 @@ class SQLDatabaseController(object):
         #           if results[index] is None
         #           else results[index]
         #           for index in range(len(results))]
-        rowid_list = get_rowid_from_uuid(uuid_list)
+        rowid_list = get_rowid_from_uuid(*uuid_lists)
         # ADD_CLEANLY_4: SANITY CHECK AND RETURN
         assert len(rowid_list) == len(params_list)
         return rowid_list
@@ -553,7 +561,7 @@ class SQLDatabaseController(object):
             return tablename, columns
 
     @default_decorator
-    def schema(db, tablename, schema_list, table_constraints=[]):
+    def schema(db, tablename, schema_list, table_constraints=[], docstr=''):
         """ Creates a table in the database with some schema and constraints
 
             schema_list - list of tablename columns tuples
@@ -591,6 +599,7 @@ class SQLDatabaseController(object):
         # Append to internal storage
         db.table_columns[tablename] = schema_list
         db.table_constraints[tablename] = table_constraints
+        db.table_docstr[tablename] = docstr
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):

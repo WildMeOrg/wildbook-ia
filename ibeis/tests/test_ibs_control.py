@@ -115,15 +115,15 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_image_gps(gid_list, gps_list_orig)
     assert gps_list_orig == ibs.get_image_gps(gid_list), 'gps was not reset to original state'
 
-    # eid_list = ibs.get_valid_eids()
-    # enc_text_list = len(eid_list) * ["test encounter text"]
-    # assert eid_list, 'eid_list is empty'
-    # print('len eid_list: %d' % len(eid_list))
-    # ibs.set_encounter_enctext(eid_list, enc_text_list)
-    # enc_text_list2 = ibs.get_encounter_enctext(eid_list)
-    # print('enc_text_list = %r' % enc_text_list)
-    # print('enc_text_list2 = %r' % enc_text_list2)
-    # assert enc_text_list == enc_text_list2, 'encounter text lists do not match'
+    eid_list = ibs.get_valid_eids()
+    enc_text_list = [str(x) for x in range(len(eid_list))]
+    assert eid_list, 'eid_list is empty'
+    print('len eid_list: %d' % len(eid_list))
+    ibs.set_encounter_enctext(eid_list, enc_text_list)
+    enc_text_list2 = ibs.get_encounter_enctext(eid_list)
+    print('enc_text_list = %r' % enc_text_list)
+    print('enc_text_list2 = %r' % enc_text_list2)
+    assert enc_text_list == enc_text_list2, 'encounter text lists do not match'
 
     return locals()
 
