@@ -47,6 +47,7 @@ MACHINE_VALS['lena'] = {
     },
 }
 
+
 def test_uuid(name):
     print('[TEST_UUID]')
     gpath = grabdata.get_test_gpaths(names=name)[0]
@@ -64,8 +65,8 @@ def test_uuid(name):
 
     locals_ = locals()
     def print2(key):
-        val = locals_[key]
-        print('%r: %r' % (MACHINE_NAME, val))
+        val = utool.truncate_str(str(locals_[key]))
+        print('%r: {%r: %r}' % (key, MACHINE_NAME, val))
 
     print2('gpath')
     print2('uuid1')
@@ -81,17 +82,17 @@ def test_uuid(name):
     def print2(key):
         val = locals_[key]
         print('%r: %r' % (MACHINE_NAME, val))
-    
+
     try:
         target_uuid = MACHINE_VALS[name]['UUID'][MACHINE_NAME]
         print2('target_uuid')
         assert uuid1 == target_uuid, 'uuid and target_uuid do not match'
-        assert uuid_ == uuid1, 'uuid_ does not match uuid1'  
+        assert uuid_ == uuid1, 'uuid_ does not match uuid1'
     except KeyError as ex:
         utool.printex(ex)
         return False
+    return True
 
-    return TRUNCATED
 
 def TEST_UUID():
     print('Machine Name: %r' % MACHINE_NAME)
