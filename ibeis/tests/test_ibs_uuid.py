@@ -44,6 +44,13 @@ MACHINE_VALS['lena'] = {
 
 
 def TEST_UUID():
+    print('Machine Name: %r' % MACHINE_NAME)
+
+    print('Image.PILLOW_VERSION: %r' % Image.PILLOW_VERSION)
+    assert Image.PILLOW_VERSION == '1.1.7'
+    print('Image.PILLOW_VERSION: %r' % Image.PILLOW_VERSION)
+    assert Image.PILLOW_VERSION == '1.1.7'
+
     print('[TEST_UUID]')
     gpath = grabdata.get_test_gpaths(names='lena')[0]
 
