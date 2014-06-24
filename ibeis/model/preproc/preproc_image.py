@@ -70,9 +70,8 @@ def parse_imageinfo(tup):
     try:
         pil_img = Image.open(gpath, 'r')  # Open PIL Image
     except IOError:
-        #print('IOError')
+        print('[preproc] IOError')
         return None
-    
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
     time, lat, lon = parse_exif(pil_img)  # Read exif tags

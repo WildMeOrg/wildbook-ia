@@ -51,9 +51,9 @@ def TEST_ENCOUNTERS(ibs):
                          UUID('a4597ee8-9e11-c704-efdc-f0d8a1d755b5'))]
 
     target_names = [
-    ('polar', '____8', 'easy', 'hard', '____6', 'lena', 'jeff'),
-    ('occl', 'zebra', '____1', 'easy', '____5', 'hard'),
-]
+        ('polar', '____8', 'easy', 'hard', '____6', 'lena', 'jeff'),
+        ('occl', 'zebra', '____1', 'easy', '____5', 'hard'),
+    ]
 
     ibs.print_label_table()
     ibs.print_egpairs_table()
@@ -61,35 +61,36 @@ def TEST_ENCOUNTERS(ibs):
     ibs.print_rlr_table()
     gids_test_list = ibsfuncs.unflat_map(ibs.get_image_gids_from_uuid, gid_uuids_list)
     gids_target_list = ibsfuncs.unflat_map(ibs.get_image_gids_from_uuid, target_gid_uuids)
-
-    rids_test_list = ibsfuncs.unflat_map(ibs.get_image_rids, gids_test_list)
-    rids_target_list = ibsfuncs.unflat_map(ibs.get_image_rids, gids_target_list)
-    print('a) rids_test_list = %s' % (utool.list_str(rids_test_list),))
-    print('a) rids_target_list = %s' % (utool.list_str(rids_target_list),))
     try:
         print('0) gid_uuids_list = %s' % (utool.list_str(gids_test_list),))
         print('0) target_gid_uuids = %s' % (utool.list_str(gids_target_list),))
         print('')
-        assert gids_test_list == gids_target_list, 'gids_test_list does not match gids_target_list'
-
         print('1) gid_uuids_list = %s' % (utool.list_str(gid_uuids_list),))
         print('1) target_gid_uuids = %s' % (utool.list_str(target_gid_uuids),))
         print('')
-        assert gid_uuids_list == target_gid_uuids, 'gid_uuids_list does not match target_gid_uuids'
-
         print('2) enctext_list = %r' % (enctext_list,))
         print('2) target_enctexts = %r' % (target_enctexts,))
         print('')
-        assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
-        
+
+        rids_test_list = ibsfuncs.unflat_map(ibs.get_image_rids, gids_test_list)
+        rids_target_list = ibsfuncs.unflat_map(ibs.get_image_rids, gids_target_list)
+        print('a) rids_test_list = %s' % (utool.list_str(rids_test_list),))
+        print('a) rids_target_list = %s' % (utool.list_str(rids_target_list),))
+
         print('3a) rids_list = %s' % (utool.list_str(rids_list),))
         print('3a) nids_list = %s' % (utool.list_str(nids_list),))
         nids_listb = ibsfuncs.unflat_map(ibs.get_roi_nids, rids_list)
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
-        
         print('3b) names_list = %s' % (utool.list_str(names_list),))
         print('3b) target_names = %s' % (utool.list_str(target_names),))
         print('')
+
+        assert gids_test_list == gids_target_list, 'gids_test_list does not match gids_target_list'
+
+        assert gid_uuids_list == target_gid_uuids, 'gid_uuids_list does not match target_gid_uuids'
+
+        assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
+
         assert names_list == target_names, 'names_list does not match target_names'
 
     except AssertionError as ex:
