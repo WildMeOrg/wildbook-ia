@@ -49,7 +49,8 @@ MACHINE_VALS['lena'] = {
 
 
 def test_uuid(name):
-    print('[TEST_UUID]')
+    print('-----------------------')
+    print('[TEST_UUID] TESTING: %r' % name)
     gpath = grabdata.get_test_gpaths(names=name)[0]
     pil_img = Image.open(gpath)
     uuid1 = preproc_image.get_image_uuid(pil_img)
