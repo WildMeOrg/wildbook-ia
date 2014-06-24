@@ -431,6 +431,7 @@ class APITableModel(API_MODEL_BASE):
         getter = model.col_getter_list[col]
         value = getter(id_)
         return value
+        # </HACK>
 
     @default_method_decorator
     def get_header_name(model, column):
