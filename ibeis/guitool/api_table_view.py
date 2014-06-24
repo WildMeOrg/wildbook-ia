@@ -112,11 +112,12 @@ class APITableView(API_VIEW_BASE):
         """ Infers which columns should be given item delegates """
         col_type_list = headers.get('col_type_list', [])
         for colx, coltype in enumerate(col_type_list):
+            import __builtin__
             if coltype in  qtype.QT_PIXMAP_TYPES:
-                print('[view] colx=%r is a PIXMAP' % colx)
+                __builtin__.print('[view] colx=%r is a PIXMAP' % colx)
                 view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
             elif coltype in qtype.QT_BUTTON_TYPES:
-                print('[view] colx=%r is a BUTTON' % colx)
+                __builtin__.print('[view] colx=%r is a BUTTON' % colx)
                 view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
 
     def set_column_persistant_editor(view, column):
