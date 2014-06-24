@@ -110,7 +110,7 @@ class Interact_QueryResult(object):
         self.current_match_rids = (self.qrids[index], self.rids[index])
         self.current_qres       = self.qrid2_qres[qrid]
 
-    def append_button(self, text, divider=None, rect=None, callback=None, **kwargs):
+    def append_button(self, text, divider=None, rect=None, callback=None, size='9%', **kwargs):
         """ Adds a button to the current page """
         if divider is not None:
             new_ax = divider.append_axes('bottom', size='9%', pad=.05)
@@ -219,10 +219,11 @@ class Interact_QueryResult(object):
         # Button positioning
         nToggle = len(self.toggleable_kws)
 
+        # horizontal left, horizonal right
         hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.08, h=.04,
                                                      xpad=.05, startx=0, stopx=1)
-        prev_rect = hl_slot(0)
-        next_rect = hr_slot(0)
+        prev_rect = hl_slot(0)  # left button
+        next_rect = hr_slot(0)  # right button
 
         tw = df2.width_from(nToggle, pad=.05, start=.13, stop=.87)
         hlt_slot, hrt_slot = df2.make_bbox_positioners(y=.02, w=tw, h=.04,

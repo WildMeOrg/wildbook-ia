@@ -72,11 +72,6 @@ MOTHERS()
     python dev.py --db PZ_MOTHERS -t gv_test --allgt
     python dev.py --db PZ_MOTHERS -t gv_test --qrid 27 28 45 71 90 109 --print-all
     python dev.py --db PZ_MOTHERS -t gv_test --qrid 49 --save-figures -c 0 1 2 
-
-
-
-
-    
 }
 
 

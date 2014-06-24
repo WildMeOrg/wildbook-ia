@@ -471,7 +471,7 @@ class SQLDatabaseController(object):
             print('[sql] * val_list=%r' % (val_list,))
             print('[sql] * id_list=%r' % (id_list,))
             print('[sql] * id_colname=%r' % (id_colname,))
-        assert  len(val_list) == len(id_list)
+        assert  len(val_list) == len(id_list), 'list inputs have different lengths'
         fmtdict = {
             'tblname_str': tblname,
             'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),

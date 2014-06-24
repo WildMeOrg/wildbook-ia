@@ -8,6 +8,7 @@ from ibeis import constants
 from ibeis import sysres
 from ibeis.export import export_hsdb
 from ibeis import constants
+from ibeis.control.accessor_decors import getter_1to1
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -200,6 +201,7 @@ def delete_invalid_eids(ibs):
 
 
 @__injectable
+@getter_1to1
 def is_nid_unknown(ibs, nid_list):
     return [nid == ibs.UNKNOWN_NID or nid < 0 for nid in nid_list]
 
@@ -686,3 +688,10 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 def make_new_name(ibs):
     new_name = 'name_%d' % ibs.get_num_names()
     return new_name
+
+
+#@getter_1to1
+@__injectable
+def is_rid_unknown(ibs, rid_list):
+    nid_list = ibs.get_roi_nids(rid_list)
+    return ibs.is_nid_unknown(nid_list)

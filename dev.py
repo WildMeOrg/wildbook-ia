@@ -192,7 +192,8 @@ def inspect_matches(ibs, qrid_list):
     #self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
     print('</inspect_matches>')
     # simulate double click
-    qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
+    qres_wgt._on_doubleclick(qres_wgt.model.index(2, 2))
+    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
     return locals()
 
 

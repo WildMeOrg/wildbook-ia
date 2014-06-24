@@ -92,6 +92,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         # Distinct color for every unique name
         unique_nids = utool.unique_ordered(ibs.get_roi_nids(self.rid_list))
+        import ibeis
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
         self.nid2_color = dict(izip(unique_nids, unique_colors))
 
@@ -100,6 +101,13 @@ class MatchVerificationInteraction(AbstractInteraction):
             for px, rid in enumerate(groundtruth):
                 nid = ibs.get_roi_nids(rid)
                 color = self.nid2_color[nid]
+
+                if ibs.is_rid_unknown(rid):
+                    color = ibeis.constants.UNKNOWN_PURPLE_RGBA01
+                elif not rid in self.gt2:
+                    color = ibeis.constants.NAME_RED_RGBA01
+                else:
+                    color = ibeis.constants.NAME_BLUE_RGBA01
                 self.plot_chip(rid, nRows, nCols, px + offset, color=color)
 
         self.show_hud()
@@ -128,6 +136,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             divider = df2.ensure_divider(ax)
             butkw = {
                 'divider': divider,
+                'size': '13%'
             }
         roi_unknown = ibs.is_nid_unknown([nid])[0]
         if not roi_unknown:
@@ -168,25 +177,69 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def show_hud(self):
+        """ Creates heads up display """
+        # Button positioners
+        hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.16,
+                                                     h=2 * utool.PHI_B ** 3,
+                                                     xpad=.02, startx=0, stopx=1)
+
+        ibs = self.ibs
+        self.name1, self.name2 = name1, name2 = ibs.get_names((self.nid1, self.nid2))
+
+        nid_list = ibs.get_roi_nids(self.rid_list, distinguish_unknowns=False)
+
+        def next_rect(accum=[-1]):
+            accum[0] += 1
+            return hr_slot(accum[0])
+
+        is_unknown = ibs.is_nid_unknown(nid_list)
+
+        if not all(is_unknown):
+            self.append_button('unname all', callback=self.unname_all,
+                               rect=next_rect())
+        if all(is_unknown):
+            self.append_button('merge all\n into NEW NAME',
+                               callback=self.merge_all_into_next_name, rect=next_rect())
+        if not name1.startswith('____'):
+            self.append_button('join all\n into name2=%s' % name1, callback=self.merge_all_into_nid1, rect=next_rect())
+        if name1 != name2 and not name2.startswith('____') and \
+           not all([False]):
+            self.append_button('join all\n into name2=%s' % name2,
+                               callback=self.merge_all_into_nid2, rect=next_rect())
         """ Heads up display """
-        vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
-        df2.set_figtitle('Review Match: ' + vsstr)
-        if self.nid1 == self.nid2:
-            pass
+        self.vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
+        figtitle_fmt = '''
+        Match Review Interface
+        {vsstr}
+        '''
+        # sexy: using object dict as format keywords
+        figtitle = figtitle_fmt.format(**self.__dict__)
+        df2.set_figtitle(figtitle)
+
+    def unname_all(self, event=None):
+        print('unname')
+        self.ibs.set_roi_nids(self.rid_list, [self.ibs.UNKNOWN_NID] * len(self.rid_list))
+        self.show_page()
 
     def merge_all_into_nid1(self, event=None):
         """ All the rois are given nid1 """
-        self.ibs.set_roi_nids(self.rid_list , [self.nid1] * len(self.gt1))
+        self.ibs.set_roi_nids(self.rid_list , [self.nid1] * len(self.rid_list))
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
         """ All the rois are given nid2 """
-        self.ibs.set_roi_nids(self.rid_list , [self.nid2] * len(self.gt1))
+        self.ibs.set_roi_nids(self.rid_list , [self.nid2] * len(self.rid_list))
+        self.show_page()
+
+    def merge_all_into_next_name(self, event=None):
+        """ All the rois are given nid2 """
+        self.next_name = next_name = ibsfuncs.make_new_name(self.ibs)
+        self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
         self.show_page()
 
     def new_match(self, event=None):
-        new_name = ibsfuncs.make_new_name(self.ibs)
-        self.ibs.set_roi_names([self.rid1, self.rid2], [new_name, new_name])
+        next_name = ibsfuncs.make_new_name(self.ibs)
+        self.ibs.set_roi_names([self.rid1, self.rid2], [next_name, next_name])
         self.show_page()
 
     def merge(self, event=None):

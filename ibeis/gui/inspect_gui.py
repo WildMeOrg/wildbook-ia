@@ -17,7 +17,7 @@ from ibeis.viz import viz_helpers as vh
     __name__, '[inspect_gui]', DEBUG=False)
 
 
-RANKS_LT = 5
+RANKS_LT = 2
 
 
 class QueryResultsWidget(APITableWidget):
