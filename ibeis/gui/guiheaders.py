@@ -94,7 +94,7 @@ COL_DEF = dict([
 
 
 def make_ibeis_headers_dict(ibs):
-    simap_func = utool.scalar_input_map_func
+    simap_func = utool.partial_imap_1to1
     #
     # Table Iders/Setters/Getters
     iders = {}
