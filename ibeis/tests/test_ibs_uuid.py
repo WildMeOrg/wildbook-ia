@@ -55,6 +55,10 @@ def test_uuid(name):
         gpath = utool.grab_file_url(name)
     else:
         gpath = grabdata.get_test_gpaths(names=name)[0]
+    import cv2
+    npimg2 = cv2.imread(gpath)
+    npsum = npimg2.sum()
+
     pil_img = Image.open(gpath)
     uuid1 = preproc_image.get_image_uuid(pil_img)
     npimg = np.asarray(pil_img)
@@ -73,6 +77,7 @@ def test_uuid(name):
         print('%r: {%r: %r}' % (key, MACHINE_NAME, val))
 
     print2('gpath')
+    print2('npsum')
     print2('uuid1')
     print2('size')
     print2('sum_')
@@ -111,7 +116,7 @@ def TEST_UUID():
 
     right = 'http://i.imgur.com/QqSkNZe.png'
 
-    assert all([test_uuid(name) for name in ['lena', 'jeff', 'polar1', right]])
+    assert all([test_uuid(name) for name in ['lena', 'jeff', 'easy1', right]])
 
     return locals()
 
