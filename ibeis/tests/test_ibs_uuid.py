@@ -49,7 +49,7 @@ MACHINE_VALS['lena'] = {
 
 
 def test_uuid(name):
-    print('-----------------------')
+    print('\n\n-----------------------')
     print('[TEST_UUID] TESTING: %r' % name)
     if name.find('http') != -1:
         gpath = utool.grab_file_url(name)
