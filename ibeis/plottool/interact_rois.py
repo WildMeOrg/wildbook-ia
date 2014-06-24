@@ -578,16 +578,14 @@ class ROIInteraction(object):
         if self._ind is None and event.button == 1:
             # move all vertices
             if self._polyHeld is True and not (deltaX is None or deltaY is None):
-                self.move_rectangle(event, self._currently_selected_poly, deltaX, deltaY)
+                self.move_rectangle(self._currently_selected_poly, deltaX, deltaY)
             self.update_UI()
             self._ind = None
 
         if event.button == 3 and self._polyHeld is True and deltaX is not None:
                 poly = self._currently_selected_poly
                 dtheta = deltaX / ROTATION_SENSITIVITY
-                poly.theta += dtheta
-                #print('dx, dtheta = (%r, %r)' % (deltaX, dtheta))
-                self.set_display_coords(poly)
+                self.rotate_rectangle(self._currently_selected_poly, dtheta)
                 self.update_UI()
 
         if self._ind is None:
@@ -665,23 +663,25 @@ class ROIInteraction(object):
     def polygon_center(self, poly):
         return points_center(poly.xy)
 
-    def move_rectangle(self, event, polygon, dx, dy):
-        print('move_rectangle')
-        new_coords = [(x+dx, y+dy) for (x, y) in polygon.basecoords]
+    def check_valid_coords(self, coords_list):
+        valid = True
+        for coord in coords_list:
+            if not self.check_dims(coord):
+                valid = False
+        return valid
 
-        change = True
-        #new_xy = []
-        for x, coord in enumerate(self.calc_display_coords(new_coords, polygon.theta)):
-            if self.check_dims(coord) is False:
-                change = False
-                break
-        if change is True:
-            #if (bbox_x,bbox_y,bbox_w,bbox_h) in self.original_list:
-            #    index = self.original_list.index((bbox_x,bbox_y,bbox_w,bbox_h))
-            #    self.changed_list[index] = True
-            #    print(self.changed_list)
-            polygon.basecoords = new_coords
-            self.set_display_coords(polygon)
+    def rotate_rectangle(self, poly, dtheta):
+        print('rotate_rectangle')
+        if self.check_valid_coords(self.calc_display_coords(poly.basecoords, poly.theta + dtheta)):
+            poly.theta += dtheta
+            self.set_display_coords(poly)
+
+    def move_rectangle(self, poly, dx, dy):
+        print('move_rectangle')
+        new_coords = [(x+dx, y+dy) for (x, y) in poly.basecoords]
+        if self.check_valid_coords(self.calc_display_coords(new_coords, poly.theta)):
+            poly.basecoords = new_coords
+            self.set_display_coords(poly)
 
     def calculate_move(self, event, poly):
         #print('calculate_move')
