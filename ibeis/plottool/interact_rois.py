@@ -212,9 +212,13 @@ class ROIInteraction(object):
         else:
             self.callback = None
         if bbox_list is not None:
-            self.original_list = bbox_list
+            self.original_bbox_list = bbox_list
         else:
-            self.original_list = []
+            self.original_bbox_list = []
+        if theta_list is not None:
+            self.original_theta_list = theta_list
+        else:
+            self.original_theta_list = []
         self.img = img
         self.do_mask = do_mask
         self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
@@ -849,7 +853,7 @@ class ROIInteraction(object):
         """write a callback to redraw viz for bbox_list"""
         def get_bbox_list():
             bbox_list = []
-            theta_list = []
+            #theta_list = []
             for poly in self.polys.itervalues():
                 assert poly is not None
 #                if poly is None:
@@ -859,9 +863,9 @@ class ROIInteraction(object):
                 y = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
                 w = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0]) - x
                 h = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1]) - y
-                bbox_list.append((int(x), int(y), int(w), int(h)))
-                theta_list.append(poly.theta)
-            return bbox_list#, theta_list #not ready to add this yet, wait for integration
+                bbox_list.append((int(x), int(y), int(w), int(h), poly.theta))
+                #theta_list.append(poly.theta)
+            return bbox_list# , theta_list
 
         def send_back_rois():
             #point_list = self.load_points()
@@ -872,15 +876,15 @@ class ROIInteraction(object):
             deleted_list = []
             changed_list = []
             new_list = []
-            for i in range(0, len(self.original_list)):
-                if bbox_list[i] is None:
+            for i, bbox_theta in enumerate(zip(self.original_bbox_list, self.original_theta_list)):
+                if bbox_theta not in bbox_list:
                     deleted_list.append(i)
-                elif bbox_list[i] != self.original_list[i]:
-                    changed_list.append((i, bbox_list[i]))
+#                elif bbox_list[i] != self.original_list[i]:
+#                    changed_list.append((i, bbox_list[i]))
 #            for i in range(len(self.original_list), len(self.poly_list)):
 #                if bbox_list[i] is not None:
 #                    new_list.append(bbox_list[i])
-            new_list = filter(lambda bbox: bbox not in self.original_list, bbox_list)
+            new_list = filter(lambda bbox_theta: bbox_theta not in zip(self.original_bbox_list, self.original_theta_list), bbox_list)
             #print("Deleted")
             #for bbox in deleted_list:
             #    print(bbox)
