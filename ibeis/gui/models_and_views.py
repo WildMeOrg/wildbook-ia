@@ -18,6 +18,15 @@ class IBEISTableWidget(APITableWidget):
                                 view_class=IBEISTableView)
 
 
+class IBEISTreeWidget(APITableWidget):
+    def __init__(widget, headers=None, parent=None, *args):
+        widget.ibswin = parent
+        widget.eid = None
+        APITableWidget.__init__(widget, headers=headers, parent=parent,
+                                model_class=IBEISTableModel,
+                                view_class=IBEISTreeView)
+
+
 class IBEISTableModel(APITableModel):
     def __init__(model, headers=None, parent=None, *args):
         model.ibswin = parent
@@ -55,6 +64,8 @@ class IBEISTableView(APITableView):
         model = tblview.model()
         if model is not None:
             model._change_enc(eid)
+
+
 class IBEISTreeView(APITreeView):
     """
     View for NAME / ROI Tree
