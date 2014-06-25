@@ -483,6 +483,7 @@ class IBEISController(object):
         us process images asychronously."""
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
+        print('[ibs] gpath_list = %r' % (gpath_list,))
         # Processing an image might fail, yeilding a None instead of a tup
         gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
         # Create param_iter
@@ -563,7 +564,7 @@ class IBEISController(object):
         # Also need to populate roi_label_relationship table
         alrid_list = ibs.add_roi_relationship(rid_list, nid_list)
         #print('alrid_list = %r' % (alrid_list,))
-        
+
         # Invalidate image thumbnails
         ibs.delete_image_thumbtups(gid_list)
         return rid_list
@@ -578,7 +579,7 @@ class IBEISController(object):
         colnames = ('annot_rowid', 'label_rowid', 'config_rowid', 'alr_confidence')
         params_iter = list(izip(rid_list, labelid_list, configid_list,
                                 alr_confidence_list))
-        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter, 
+        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
                                         ibs.get_alr_rowid_from_valtup, range(0, 3))
         return alrid_list
 
@@ -752,7 +753,7 @@ class IBEISController(object):
     def add_image_relationship(ibs, gid_list, eid_list):
         colnames = ('image_rowid', 'encounter_rowid')
         params_iter = list(izip(gid_list, eid_list))
-        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter, 
+        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
                                         ibs.get_egr_rowid_from_valtup, range(0, 2))
         return egrid_list
 
@@ -802,7 +803,7 @@ class IBEISController(object):
         # need a list comprehension because we want to re-use id_list
         id_list = [(rid,) for rid in rid_list]
         # also need to set the internal number of vertices
-        val_list = ((num_verts, verts) for (num_verts, verts) 
+        val_list = ((num_verts, verts) for (num_verts, verts)
         			in izip(num_verts_list, verts_as_strings))
         colnames = ('annot_num_verts', 'annot_verts',)
         ibs.db.set(ANNOT_TABLE, colnames, val_list, id_list)
@@ -813,7 +814,7 @@ class IBEISController(object):
 
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         val_list2 = ((xtl, ytl, width, height)
-        				for (xtl, ytl, width, height) in 
+        				for (xtl, ytl, width, height) in
         				izip(xtl_list, ytl_list, width_list, height_list))
         ibs.db.set(ANNOT_TABLE, colnames, val_list2, id_list)
 
@@ -1513,8 +1514,8 @@ class IBEISController(object):
         #print('get_names: %r' % nid_list)
         # Change the temporary negative indexes back to the unknown NID for the
         # SQL query. Then augment the name list to distinguish unknown names
-        nid_list_  = [nid if nid is not None and nid > 0 
-                      else ibs.UNKNOWN_NID 
+        nid_list_  = [nid if nid is not None and nid > 0
+                      else ibs.UNKNOWN_NID
                       for nid in nid_list]
         # <TESTS>
         key_rowid_list = ibs.get_label_keys(nid_list_)
