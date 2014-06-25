@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_rois
 from plottool import draw_func2 as df2
+from itertools import izip
 import os
 
 
@@ -18,21 +19,18 @@ class ROI_Interaction2:
 
     def callback(self, deleted_list, changed_list, new_list):
         rows_updated = False
-        #print('Deleted BBoxes')
         if len(deleted_list) > 0:
+            print(deleted_list)
             rows_updated = True
             deleted = [self.rid_list[del_index] for del_index in deleted_list]
             self.ibs.delete_rois(deleted)
-        #print('Changed BBoxes')
         if len(changed_list) > 0:
             changed_rid = [self.rid_list[changed[0]] for changed, theta in changed_list]
             changed_bbox = [changed[1] for (changed, theta) in changed_list]
             self.ibs.set_roi_bboxes(changed_rid, changed_bbox)
-        #print('New BBoxes')
         if len(new_list) > 0:
-            #print(new_list)
             rows_updated = True
-            bbox_list, theta_list = zip(*[((x, y, w, h), t) for (x, y, w, h, t) in new_list])
+            bbox_list, theta_list = izip(*[((x, y, w, h), t) for (x, y, w, h, t) in new_list])
             self.ibs.add_rois([self.gid] * len(new_list), bbox_list, theta_list)
         if rows_updated:
             self.rows_updated_callback()
