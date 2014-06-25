@@ -99,7 +99,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_contextMenuClicked(ibswgt, qtindex, pos):
         printDBG('[newgui] contextmenu')
         model = qtindex.model()
-        # id_ = model._get_row_id(qtindex.row())
+        id_ = model._get_row_id(qtindex)
         if model.name == THUMB_TABLE:
             tblview = ibswgt.view
             # eid = model.eid
@@ -112,7 +112,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_click(ibswgt, qtindex):
         printDBG('on_click')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row(), qtindex.column())
+        id_ = model._get_row_id(qtindex)
         if model.name == THUMB_TABLE:
             # eid = model.eid
             gid = id_
@@ -124,7 +124,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_doubleclick(ibswgt, qtindex):
         printDBG('on_doubleclick')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex.row(), qtindex.column())
+        id_ = model._get_row_id(qtindex)
         print('dblclick (%r,%r)' % (qtindex.row(), qtindex.column()))
         if model.name == THUMB_TABLE:
             # eid = model.eid
