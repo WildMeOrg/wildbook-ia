@@ -597,6 +597,7 @@ def merge_databases(ibs_target, ibs_source_list):
                           ' into ' + ibs_target.get_dbname())
 
 
+@__injectable
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
     rids_list = ibs.get_image_rids(gid_list)
@@ -615,6 +616,14 @@ def update_exemplar_encounter(ibs):
     rid_list = ibs.get_valid_rids(is_exemplar=True)
     gid_list = utool.unique_ordered(ibs.get_roi_gids(rid_list))
     ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
+
+
+@__injectable
+def update_allimage_encounter(ibs):
+    eid = ibs.get_encounter_eids(constants.ALLIMAGE_ENCTEXT)
+    ibs.delete_encounters(eid)
+    gid_list = ibs.get_valid_gids()
+    ibs.set_image_enctext(gid_list, [constants.ALLIMAGE_ENCTEXT] * len(gid_list))
 
 
 def get_title(ibs):
