@@ -54,7 +54,7 @@ class QueryResultsWidget(APITableWidget):
         model = qtindex.model()
         colname = model.get_header_name(col)
         if colname == 'status':
-            review_match_at(iqrw, qtindex)
+            review_match_at(iqrw, qtindex, quickmerge=False)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
@@ -82,7 +82,7 @@ class QueryResultsWidget(APITableWidget):
         printDBG('[newgui] contextmenu')
         guitool.popup_menu(iqrw, qpos, [
             ('view match rois', lambda: show_match_at(iqrw, qtindex)),
-            ('view match names', lambda: review_match_at(iqrw, qtindex)),
+            ('review match', lambda: review_match_at(iqrw, qtindex)),
         ])
 
 
@@ -96,7 +96,7 @@ def show_match_at(qres_wgt, qtindex):
     fig_presenter.bring_to_front(fig)
 
 
-def review_match_at(qres_wgt, qtindex):
+def review_match_at(qres_wgt, qtindex, quickmerge=False):
     print('review')
     ibs = qres_wgt.ibs
     model = qtindex.model()
@@ -105,6 +105,20 @@ def review_match_at(qres_wgt, qtindex):
     rid2 = model.get_header_data('rid', row)
     model = qtindex.model()
     update_callback = model._update
+    if quickmerge:
+        is_unknown = ibs.is_rid_unknown((rid1, rid2))
+        if all(is_unknown):
+            ibs.set_roi_names_to_next_name((rid1, rid2))
+            update_callback()
+            return
+        elif is_unknown[0]:
+            ibs.set_roi_nids(rid1, ibs.get_roi_nids(rid2))
+            update_callback()
+            return
+        elif is_unknown[1]:
+            ibs.set_roi_nids(rid2, ibs.get_roi_nids(rid1))
+            update_callback()
+            return
     review_match(ibs, rid1, rid2, update_callback=update_callback)
 
 
@@ -249,12 +263,7 @@ def get_status(ibs, rid_pair):
     assert not utool.isiterable(rid1), 'rid1=%r, rid2=%r' % (rid1, rid2)
     assert not utool.isiterable(rid2), 'rid1=%r, rid2=%r' % (rid1, rid2)
     #text  = ibsfuncs.vsstr(rid1, rid2)
-    truth = ibs.get_match_truth(rid1, rid2)
-    text = {
-        2: 'NEW Match ',
-        0: 'JOIN Match ',
-        1: 'SPLIT Match ',
-    }.get(truth, None)
+    text = ibs.get_match_text(rid1, rid2)
     if text is None:
         raise AssertionError('impossible state inspect_gui')
     return text
@@ -278,16 +287,10 @@ def get_buttontup(ibs, qtindex):
     truth = ibs.get_match_truth(rid1, rid2)
     truth_color = vh.get_truth_color(truth, base255=True,
                                         lighten_amount=0.35)
+    truth_text = ibs.get_match_text(rid1, rid2)
     callback = partial(review_match, ibs, rid1, rid2)
     #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
-    if truth == 2:
-        buttontup = ('NEW Match', callback, truth_color)
-    elif truth == 0:
-        buttontup = ('JOIN Match', callback, truth_color)
-    elif truth == 1:
-        buttontup = ('SPLIT Match', callback, truth_color)
-    else:
-        raise AssertionError('impossible match state')
+    buttontup = (truth_text, callback, truth_color)
     return buttontup
 
 

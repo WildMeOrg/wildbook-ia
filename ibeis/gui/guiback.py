@@ -140,11 +140,14 @@ class MainWindowBackend(QtCore.QObject):
 
     def show_qres(back, qres, **kwargs):
         kwargs['annote_mode'] = kwargs.get('annote_mode', 2)
+        kwargs['top_rids'] = kwargs.get('top_rids', 6)
         interact.ishow_qres(back.ibs, qres, **kwargs)
-        pass
-
-    def show_qres_roimatch(back, qres, rid, **kwargs):
-        interact.ishow_qres(back.ibs, qres, rid, **kwargs)
+        # HACK
+        from ibeis.gui import inspect_gui
+        qrid2_qres = {qres.qrid: qres}
+        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=kwargs['top_rids'])
+        back.qres_wgt1.show()
+        back.qres_wgt1.raise_()
         pass
 
     def show_hough(back, gid, **kwargs):
@@ -454,20 +457,20 @@ class MainWindowBackend(QtCore.QObject):
         if eid not in back.encounter_query_results:
             raise AssertionError('Queries have not been computed yet')
         qrid2_qres = back.encounter_query_results[eid]
-        review_kw = {
-            'on_change_callback': back.front.update_tables,
-            'nPerPage': 6,
-        }
+        # review_kw = {
+        #     'on_change_callback': back.front.update_tables,
+        #     'nPerPage': 6,
+        # }
         ibs = back.ibs
         # Matplotlib QueryResults interaction
-        from ibeis.viz.interact import interact_qres2
-        back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
-        back.query_review.show()
+        #from ibeis.viz.interact import interact_qres2
+        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
+        #back.query_review.show()
         # Qt QueryResults Interaction
         from ibeis.gui import inspect_gui
-        qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=5)
-        qres_wgt.show()
-        qres_wgt.raise_()
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres)
+        back.qres_wgt.show()
+        back.qres_wgt.raise_()
 
     @blocking_slot()
     def review_detections(back, **kwargs):
