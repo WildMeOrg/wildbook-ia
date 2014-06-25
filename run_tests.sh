@@ -170,6 +170,7 @@ EOF
     RUN_TEST ibeis/tests/test_ibs_getters.py
     RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py
     RUN_TEST ibeis/tests/test_ibs_control.py
+    RUN_TEST ibeis/tests/test_ibs_localize_images.py
 fi
 
 
