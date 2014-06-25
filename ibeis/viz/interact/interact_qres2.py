@@ -277,8 +277,8 @@ class Interact_QueryResult(object):
         if text.startswith(BREAK_MATCH_PREF):
             ibs.set_roi_names([rid1, rid2], ['____', '____'])
         elif text.startswith(NEW_MATCH_PREF):
-            new_name = ibsfuncs.make_new_name(ibs)
-            ibs.set_roi_names([rid1, rid2], [new_name, new_name])
+            next_name = ibsfuncs.make_next_name(ibs)
+            ibs.set_roi_names([rid1, rid2], [next_name, next_name])
         elif text.startswith(RENAME1_PREF):
             name2 = ibs.get_roi_names(rid2)
             ibs.set_roi_names([rid1], [name2])

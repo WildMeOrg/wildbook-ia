@@ -26,16 +26,16 @@ def show_rids(ibs, qrid_list):
 
 @devcmd()
 def change_names(ibs, qrid_list):
-    #new_name = utool.get_arg('--name', str, default='<name>_the_<species>')
-    new_name = utool.get_arg('--name', str, default='glob')
+    #next_name = utool.get_arg('--name', str, default='<name>_the_<species>')
+    next_name = utool.get_arg('--name', str, default='glob')
     for rid in qrid_list:
         ibs.print_name_table()
-        #(nid,) = ibs.add_names((new_name,))
-        ibs.set_roi_names(rid, new_name)
+        #(nid,) = ibs.add_names((next_name,))
+        ibs.set_roi_names(rid, next_name)
         ibs.print_name_table()
         ibs.print_roi_table()
     # FIXME:
-    #new_nid = ibs.get_name_nids(new_name, ensure=False)
+    #new_nid = ibs.get_name_nids(next_name, ensure=False)
     #if back is not None:
         #back.select_nid(new_nid)
 

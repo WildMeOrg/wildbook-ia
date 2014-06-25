@@ -49,15 +49,15 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            default_decorator)
 # CONSTANTS
 from ibeis.constants import (IMAGE_TABLE,
-                            ANNOT_TABLE,
-                            LABEL_TABLE,
-                            ENCOUNTER_TABLE,
-                            EG_RELATION_TABLE,
-                            AL_RELATION_TABLE,
-                            CHIP_TABLE,
-                            FEATURE_TABLE,
-                            CONFIG_TABLE,
-                            KEY_TABLE,)
+                             ANNOT_TABLE,
+                             LABEL_TABLE,
+                             ENCOUNTER_TABLE,
+                             EG_RELATION_TABLE,
+                             AL_RELATION_TABLE,
+                             CHIP_TABLE,
+                             FEATURE_TABLE,
+                             CONFIG_TABLE,
+                             KEY_TABLE,)
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -680,6 +680,12 @@ class IBEISController(object):
         #label_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
         # FIXME: This should actually be a random uuid, but (key, vals) should be
         # enforced as unique as well
+        # NOTE:
+        # A Case for Name UUIDs to not be determenistic
+        # Premise: names should just be uuids
+        # 0) Name text is constrained to be unique
+        # 1) UUIDs are not needed for JOINS.
+        #    New names are generated each time you merge a name
         label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
                            izip(key_list, value_list)]
         colnames = ['label_uuid', 'key_rowid', 'label_value', 'label_note']

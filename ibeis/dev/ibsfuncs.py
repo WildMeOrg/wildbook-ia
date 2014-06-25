@@ -229,14 +229,14 @@ def get_match_text(ibs, rid1, rid2):
 
 
 @__injectable
-def make_new_name(ibs):
-    new_name = 'name_%d' % ibs.get_num_names()
-    return new_name
+def make_next_name(ibs):
+    next_name = 'name_%d' % ibs.get_num_names()
+    return next_name
 
 
 @__injectable
 def set_roi_names_to_next_name(ibs, rid_list):
-    next_name = ibs.make_new_name()
+    next_name = ibs.make_next_name()
     ibs.set_roi_names(rid_list, [next_name] * len(rid_list))
 
 

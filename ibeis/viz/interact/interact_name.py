@@ -246,7 +246,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_next_name(self, event=None):
         """ All the rois are given nid2 """
-        #self.next_name = next_name = ibsfuncs.make_new_name(self.ibs)
+        #self.next_name = next_name = ibsfuncs.make_next_name(self.ibs)
         #self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
         ibs.set_roi_names_to_next_name(self.rid_list)
         self.update_callback()
