@@ -144,36 +144,116 @@ TEST_TARGETS['lena']['hendrik-vostro'] = {
     'gpath':         '/home/joncrall/.config/utool/testdata/lena.jpg',
     'uuid': UUID('d3daf98d-3035-65b7-2ff4-ca4076ab0cf1'),
 }
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imaging.so']['Hyrule']
+# 	linux-vdso.so.1 =>  (0x00007fffdc4bb000)
+# 	libjpeg.so.8 => /usr/lib/x86_64-linux-gnu/libjpeg.so.8 (0x00007f13c40d1000)
+# 	libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f13c3eba000)
+# 	libtiff.so.4 => /usr/lib/x86_64-linux-gnu/libtiff.so.4 (0x00007f13c3c55000)
+# 	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f13c3a38000)
+# 	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f13c3678000)
+# 	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f13c337b000)
+# 	/lib64/ld-linux-x86-64.so.2 (0x00007f13c459d000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingft.so']['Hyrule']
+# 	linux-vdso.so.1 =>  (0x00007fffde5ff000)
+# 	libfreetype.so.6 => /usr/lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007fc800ca1000)
+# 	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fc800a84000)
+# 	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc8006c3000)
+# 	libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007fc8004ac000)
+# 	/lib64/ld-linux-x86-64.so.2 (0x00007fc801175000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingmath.so']['Hyrule']
+# 	linux-vdso.so.1 =>  (0x00007fff1b7ff000)
+# 	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fc4be8ab000)
+# 	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc4be4eb000)
+# 	/lib64/ld-linux-x86-64.so.2 (0x00007fc4bed00000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingtk.so']['Hyrule']
+# 	linux-vdso.so.1 =>  (0x00007ffffe7ff000)
+# 	libtcl8.5.so.0 => /usr/lib/libtcl8.5.so.0 (0x00007f090b4a5000)
+# 	libtk8.5.so.0 => /usr/lib/libtk8.5.so.0 (0x00007f090b160000)
+# 	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f090af42000)
+# 	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f090ab82000)
+# 	libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f090a97e000)
+# 	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f090a681000)
+# 	libX11.so.6 => /usr/lib/x86_64-linux-gnu/libX11.so.6 (0x00007f090a34c000)
+# 	libXss.so.1 => /usr/lib/x86_64-linux-gnu/libXss.so.1 (0x00007f090a148000)
+# 	libXft.so.2 => /usr/lib/x86_64-linux-gnu/libXft.so.2 (0x00007f0909f32000)
+# 	libfontconfig.so.1 => /usr/lib/x86_64-linux-gnu/libfontconfig.so.1 (0x00007f0909cfc000)
+# 	/lib64/ld-linux-x86-64.so.2 (0x00007f090b9f4000)
+# 	libxcb.so.1 => /usr/lib/x86_64-linux-gnu/libxcb.so.1 (0x00007f0909ade000)
+# 	libXext.so.6 => /usr/lib/x86_64-linux-gnu/libXext.so.6 (0x00007f09098cc000)
+# 	libfreetype.so.6 => /usr/lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007f0909630000)
+# 	libXrender.so.1 => /usr/lib/x86_64-linux-gnu/libXrender.so.1 (0x00007f0909426000)
+# 	libexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007f09091fb000)
+# 	libXau.so.6 => /usr/lib/x86_64-linux-gnu/libXau.so.6 (0x00007f0908ff8000)
+# 	libXdmcp.so.6 => /usr/lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007f0908df2000)
+# 	libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f0908bda000)
+SPECS = {}
+SPECS = {}
+SPECS['Hyrule'] = {
+    'cv2_version': r'2.4.8',
+    'pillow_version': r'2.4.0',
+    'pil_version': r'1.1.7',
+}
+#----
+TEST_TARGETS['lena']['Hyrule'] = {
+    'gpath': r'/home/joncrall/.config/utool/testdata/lena.jpg',
+    'npshape': r'(220, 220, 3)',
+    'npsum': r'18615625',
+    'uuid1': r'd3daf98d-3035-65b7-2ff4-ca4076ab0cf1',
+    'size': r'(220, 220)',
+    'sum_': r'18615625',
+    'img_bytes_': r'\xe2\x98U\xccib\xc8\x7fm\xbfXp\xb1cb ~~~TRUNCATED~~~ \xc7V\xb2',
+    'hashbytes_16': r'\xd3\xda\xf9\x8d05e\xb7/\xf4\xca@v\xab\x0c\xf1',
+    'hashbytes_20': r'\xd3\xda\xf9\x8d05e\xb7/\xf4\xca@v\x ~~~TRUNCATED~~~ 3\xd5\xcb',
+    'bytes_sha1': r'<sha1 HASH object @ 0x2ba41c0>',
+    'uuid_': r'd3daf98d-3035-65b7-2ff4-ca4076ab0cf1',
+}
+#----
+TEST_TARGETS['jeff']['Hyrule'] = {
+    'gpath': r'/home/joncrall/.config/utool/testdata/jeff.png',
+    'npshape': r'(400, 400, 3)',
+    'npsum': r'111817836',
+    'uuid1': r'aed981a2-4116-9936-6311-e46bd17e25de',
+    'size': r'(400, 400)',
+    'sum_': r'152617836',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde',
+    'hashbytes_20': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde<\xb3\xd6\xe7',
+    'bytes_sha1': r'<sha1 HASH object @ 0x2ba4990>',
+    'uuid_': r'aed981a2-4116-9936-6311-e46bd17e25de',
+}
+#----
+TEST_TARGETS['easy1']['Hyrule'] = {
+    'gpath': r'/home/joncrall/.config/utool/testdata/easy1.JPG',
+    'npshape': r'(715, 1047, 3)',
+    'npsum': r'354513878',
+    'uuid1': r'4295b524-45df-8e25-52ca-71377109cebc',
+    'size': r'(1047, 715)',
+    'sum_': r'354513878',
+    'img_bytes_': r'\xde\xe9\xfc\xdf\xea\xfe\xdf\xea\xfe ~~~TRUNCATED~~~ 9\x81\x85',
+    'hashbytes_16': r'B\x95\xb5$E\xdf\x8e%R\xcaq7q\t\xce\xbc',
+    'hashbytes_20': r'B\x95\xb5$E\xdf\x8e%R\xcaq7q\t\xce\xbcI\x11\x90\xf0',
+    'bytes_sha1': r'<sha1 HASH object @ 0x2ba4850>',
+    'uuid_': r'4295b524-45df-8e25-52ca-71377109cebc',
+}
+#----
+TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['Hyrule'] = {
+    'gpath': r'/home/joncrall/.config/utool/QqSkNZe.png',
+    'npshape': r'(386, 564, 3)',
+    'npsum': r'107691325',
+    'uuid1': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+    'size': r'(564, 386)',
+    'sum_': r'107691325',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e',
+    'hashbytes_20': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e\xc5_H$',
+    'bytes_sha1': r'<sha1 HASH object @ 0x2ba4c10>',
+    'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+}
 
-#TEST_TARGETS[('hendrik-vostro', 'lena')] = {
-#    'GPATH' : {
-#        'hendrik-vostro': '/home/hendrik/.config/utool/testdata/lena.jpg',
-#    },
-
-#    'UUID': {
-#        'hendrik-vostro': UUID('f2c4658f-a722-793b-8578-c392fd550888'),
-#    },
-
-#    'SUM' : {
-#        'hyrule':         18615625,
-#        'hendrik-vostro': 18615820,
-#    },
-
-#    'BYTES': {
-#        'hyrule':         r'\xe2\x98U\xccib\xc8\x7fm\xbfXp\xb1cb\xccbl\xdfTb\xe1;[\xd1ba\xae\x81\xa3\xc1\x84n\xb5df\xcd`k\xd2]m\xe5H^\xd2a^\xd9\x80[\xce\x81Q\xc9e_\xcaNj\xfc]k\xd9N]\xcfb`\xe4}^`\x8f ~~~TRUNCATED~~~ u\x1cJ\xdcq\x86\x8e<<\xde\x1bf\x95^j\xdd\xc7V\xb2',
-#        'hendrik-vostro': r'\xe2\x99W\xccib\xc8\x7fm\xbfXn\xb1cb\xccbl\xdfTb\xe1;[\xd1aa\xae\x81\xa1\xc1\x84n\xb5df\xcd_m\xd0]m\xe5H^\xd2a^\xd7\x80]\xd1\x81R\xc9e_\xcaNj\xfb]k\xd9N]\xcfb`\xe4}^`\x8f ~~~TRUNCATED~~~ u\x1cJ\xdaq\x86\x8e<<\xde\x1bf\x95^j\xdd\xc8V\xb1',
-#    },
-
-#    'HASH16' : {
-#        'hyrule':         r'\xd3\xda\xf9\x8d05e\xb7/\xf4\xca@v\xab\x0c\xf1',
-#        'hendrik-vostro': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88',
-#    },
-
-#    'HASH20' : {
-#        'hyrule':         r'\xd3\xda\xf9\x8d05e\xb7/\xf4\xca@v\xab\x0c\xf1\x99\x93\xd5\xcb',
-#        'hendrik-vostro': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88\xac.sk',
-#    },
-#}
 
 lines = []
 writeln = lines.append
