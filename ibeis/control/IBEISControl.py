@@ -1332,9 +1332,9 @@ class IBEISController(object):
         thumb_gpaths = [join(ibs.thumb_dpath, str(uuid) + 'chip_thumb.png')
                         for uuid in roi_uuid_list]
         image_paths = ibs.get_roi_cpaths(rid_list)
-        thumbtup_list = [(thumb_path, img_path, [], theta)
-                         for (thumb_path, img_path, theta) in
-                         izip(thumb_gpaths, image_paths, roi_theta_list)]
+        thumbtup_list = [(thumb_path, img_path, [], [])
+                         for (thumb_path, img_path) in
+                         izip(thumb_gpaths, image_paths,)]
         return thumbtup_list
 
     @utool.accepts_numpy
