@@ -32,7 +32,6 @@ class QueryResultsWidget(APITableWidget):
         if callback is None:
             callback = lambda: None
         qres_wgt.callback = callback
-        print("callback=%r" % callback)
         if parent is None:
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
@@ -110,7 +109,6 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
     model = qtindex.model()
     update_callback = model._update
     backend_callback = qres_wgt.callback
-    print("review_match_at backend_callback=%r" % qres_wgt.callback)
     if quickmerge:
         is_unknown = ibs.is_rid_unknown((rid1, rid2))
         if all(is_unknown):

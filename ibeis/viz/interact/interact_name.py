@@ -52,7 +52,6 @@ class MatchVerificationInteraction(AbstractInteraction):
         if update_callback is None:
             update_callback = lambda: None
         if backend_callback is None:
-            print("backend_callback is None")
             backend_callback = lambda: None
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
