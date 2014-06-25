@@ -713,6 +713,12 @@ class MainWindowBackend(QtCore.QObject):
         #print('')
 
     @slot_()
+    def localize_images(back):
+        """ File -> Localize Images """
+        print('[back] localize_images')
+        back.ibs.localize_images()
+
+    @slot_()
     def quit(back):
         """ File -> Quit"""
         print('[back] ')
