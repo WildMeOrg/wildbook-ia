@@ -43,8 +43,6 @@ import utool
 from plottool import draw_func2 as df2
 from itertools import izip
 
-ROTATION_SENSITIVITY = 200
-
 def _nxutils_points_inside_poly(points, verts):
     """ nxutils is depricated """
     path = matplotlib.path.Path(verts)
@@ -142,6 +140,17 @@ def calc_display_coords(oldcoords, theta):
 def set_display_coords(poly):
     poly.xy = calc_display_coords(poly.basecoords, poly.theta)
 
+
+def is_within_distance(dist, p1, p2):
+    dx = p2[0] - p1[0]
+    dy = p2[1] - p1[1]
+    dx2 = dx * dx
+    dy2 = dy * dy
+    d2 = dist * dist
+    rv = d2 > (dx2 + dy2)
+    #print('is_within_distance(%r, (%r, %r), (%r, %r)) = %r' % (dist, p1[0], p1[1], p2[0], p2[1], rv))
+    return rv
+
 def calc_handle_coords(poly):
     cx, cy = polygon_center(poly)
     w, h = polygon_dims(poly)
@@ -150,6 +159,7 @@ def calc_handle_coords(poly):
     pts = [(x0, y0), (x1, y1)]
     pts = rotate_points_around(pts, poly.theta, cx, cy)
     return pts
+
 
 def make_handle_line(poly):
     _xs, _ys = zip(*calc_handle_coords(poly))
@@ -297,6 +307,7 @@ class ROIInteraction(object):
         for poly in self.polys.itervalues():
             poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
+        self.currently_rotating_poly = None
 
         canvas = ax.figure.canvas
         #http://matplotlib.org/1.3.1/api/backend_bases_api.html
@@ -441,6 +452,13 @@ class ROIInteraction(object):
         ignore = not self.showverts or event.inaxes is None or event.button != 1
         if ignore:
             return
+
+        if event.button == 1: # leftclick
+            for poly in self.polys.itervalues():
+                if is_within_distance(10, (event.xdata, event.ydata), calc_handle_coords(poly)[1]):
+                    self.currently_rotating_poly = poly
+                    break
+
         if self._currently_selected_poly is None:
             print('WARNING: Polygon unknown. Using last placed poly.')
             if len(self.polys) == 0:
@@ -485,6 +503,8 @@ class ROIInteraction(object):
         """ whenever a mouse button is released """
         if self._polyHeld is True and (self._ind is None or self.press1 is False):
             self._polyHeld = False
+
+        self.currently_rotating_poly = None
 
         ignore = not self.showverts or event.button != 1 or self._currently_selected_poly is None
         if ignore:
@@ -651,10 +671,12 @@ class ROIInteraction(object):
             self.update_UI()
             self._ind = None
 
-        if event.button == 3 and self._polyHeld is True and deltaX is not None:
-                poly = self._currently_selected_poly
-                dtheta = deltaX / ROTATION_SENSITIVITY
-                self.rotate_rectangle(self._currently_selected_poly, dtheta)
+        if self.currently_rotating_poly:
+                poly = self.currently_rotating_poly
+                cx, cy = polygon_center(poly)
+                theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - np.tau/4
+                dtheta = theta - poly.theta
+                self.rotate_rectangle(poly, dtheta)
                 self.update_UI()
 
         if self._ind is None:
