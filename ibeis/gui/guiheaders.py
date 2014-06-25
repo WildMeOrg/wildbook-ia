@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+#from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
 IMAGE_TABLE     = 'images'
@@ -185,6 +186,7 @@ def make_ibeis_headers_dict(ibs):
         'name':   ibs.get_names,
         'nRids':  ibs.get_name_num_rois,
         'rid':    lambda rids: rids,
+        #'rid':    ibs.get_name_rids,
         'bbox':   ibs.get_roi_bboxes,
         'thumb':  ibs.get_roi_chip_thumbtup,
     }
@@ -202,7 +204,7 @@ def make_ibeis_headers_dict(ibs):
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
-        collevels = TABLE_TREE_LEVELS.get(tblname, map(lambda x: 0, colnames))
+        collevels = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
 
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
