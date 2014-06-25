@@ -518,6 +518,7 @@ def test_specs():
     cv2_file = cv2.__file__
     cv2_depends = utool.get_dynlib_dependencies(cv2_file)
     cv2_version = cv2.__version__
+    writeln('# ---------------')
     writeln('# DEPENDS[%r][%r]' % (cv2_file, MACHINE_NAME))
     writeln(utool.indentjoin(cv2_depends.splitlines(), '\n# ').strip())
     pillow_version = Image.PILLOW_VERSION
