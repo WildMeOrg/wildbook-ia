@@ -105,6 +105,63 @@ def bbox_to_mask(shape, bbox):
     return mask
 
 
+def points_center(pts):
+    # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center (hence the [:-1] slice)
+    return np.array(pts[:-1]).mean(axis=0)
+
+
+def polygon_center(poly):
+    return points_center(poly.xy)
+
+
+def polygon_dims(poly):
+    xs = [x for (x, y) in poly.basecoords]
+    ys = [y for (x, y) in poly.basecoords]
+    w = max(xs) - min(xs)
+    h = max(ys) - min(ys)
+    return (w, h)
+
+def rotate_points_around(points, theta, ax, ay):
+    sin, cos, array = np.sin, np.cos, np.array
+    augpts = array([array((x, y, 1)) for (x, y) in points])
+    ct = cos(theta)
+    st = sin(theta)
+    # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
+    rot_mat = array(
+        [(ct, -st, ax - ct * ax + st * ay),
+         (st,  ct, ay - st * ax - ct * ay),
+         ( 0,   0,                                 1)]
+    )
+    return [(x, y) for (x, y, z) in rot_mat.dot(augpts.T).T]
+
+
+def calc_display_coords(oldcoords, theta):
+    return rotate_points_around(oldcoords, theta, *points_center(oldcoords))
+
+
+def set_display_coords(poly):
+    poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+
+def calc_handle_coords(poly):
+    cx, cy = polygon_center(poly)
+    w, h = polygon_dims(poly)
+    x0, y0 = cx, (cy - (h / 2)) # start at top edge
+    x1, y1 = (x0, y0-(h/4))
+    pts = [(x0, y0), (x1, y1)]
+    pts = rotate_points_around(pts, poly.theta, cx, cy)
+    return pts
+
+def make_handle_line(poly):
+    _xs, _ys = zip(*calc_handle_coords(poly))
+    line_width = 4
+    line_color = (0, 1, 0)
+    color = np.array(line_color)
+    marker_face_color = line_color
+    line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
+    lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
+    return lines
+
+
 class ROIInteraction(object):
     """
     An interactive polygon editor.
@@ -212,6 +269,7 @@ class ROIInteraction(object):
             poly.theta = theta
             poly.basecoords = poly.xy
             poly.lines = make_lines(poly)
+            poly.handle = make_handle_line(poly)
             return poly
 
         # print(verts_list)
@@ -233,6 +291,7 @@ class ROIInteraction(object):
         for poly in self.polys.itervalues():
             ax.add_patch(poly)
             self.ax.add_line(poly.lines)
+            self.ax.add_line(poly.handle)
 
         # Connect callbacks
         for poly in self.polys.itervalues():
@@ -344,6 +403,7 @@ class ROIInteraction(object):
         for poly in self.polys.itervalues():
             self.ax.draw_artist(poly)
             self.ax.draw_artist(poly.lines)
+            self.ax.draw_artist(poly.handle)
         self.canvas.blit(self.ax.bbox)
 
     def poly_changed(self, poly):
@@ -351,8 +411,10 @@ class ROIInteraction(object):
         # only copy the artist props to the line (except visibility)
         num = poly.num
         vis = poly.lines.get_visible()
+        vis = poly.handle.get_visible()
         #Artist.update_from(poly.lines, poly)
         poly.lines.set_visible(vis)
+        poly.handle.set_visible(vis)
         #poly.lines.set_visible(vis)  # don't use the poly visibility state
 
     def draw_callback(self, event):
@@ -361,6 +423,7 @@ class ROIInteraction(object):
         for poly in self.polys.itervalues():
             self.ax.draw_artist(poly)
             self.ax.draw_artist(poly.lines)
+            self.ax.draw_artist(poly.handle)
         self.canvas.blit(self.ax.bbox)
 
     def get_most_recently_added_poly(self):
@@ -378,7 +441,7 @@ class ROIInteraction(object):
         ignore = not self.showverts or event.inaxes is None or event.button != 1
         if ignore:
             return
-        if self._currently_selected_poly is None or self._currently_selected_poly.lines is None:
+        if self._currently_selected_poly is None:
             print('WARNING: Polygon unknown. Using last placed poly.')
             if len(self.polys) == 0:
                 print('No polygons on screen')
@@ -415,6 +478,7 @@ class ROIInteraction(object):
         for poly in self.polys.itervalues():
             self.ax.draw_artist(poly)
             self.ax.draw_artist(poly.lines)
+            self.ax.draw_artist(poly.handle)
         self.canvas.blit(self.ax.bbox)
 
     def button_release_callback(self, event):
@@ -457,6 +521,7 @@ class ROIInteraction(object):
         self._ind = None
         self._polyHeld = False
 
+    #might be a duplicate of a helper in __init__/part of __init__?
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
         poly = Polygon(coords, animated=True,
@@ -475,9 +540,11 @@ class ROIInteraction(object):
 
         line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
         poly.lines = plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs)
+        poly.handle = make_handle_line(poly)
         self._update_line()
 
         self.ax.add_line(poly.lines)
+        self.ax.add_line(poly.handle)
 
         poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
@@ -639,32 +706,6 @@ class ROIInteraction(object):
             return max(lims[0], min(lims[1], val))
         return np.array((clamp(xlim, coords[0]), clamp(ylim, coords[1])))
 
-    def rotate_points_around(self, points, theta, ax, ay):
-        sin, cos, array = np.sin, np.cos, np.array
-        augpts = array([array((x, y, 1)) for (x, y) in points])
-        ct = cos(theta)
-        st = sin(theta)
-        # correct matrix obtained from http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
-        rot_mat = array(
-            [(ct, -st, ax - ct * ax + st * ay),
-             (st,  ct, ay - st * ax - ct * ay),
-             ( 0,   0,                                 1)]
-        )
-        return [(x, y) for (x, y, z) in rot_mat.dot(augpts.T).T]
-
-    def calc_display_coords(self, oldcoords, theta):
-        return self.rotate_points_around(oldcoords, theta, *self.points_center(oldcoords))
-
-    def set_display_coords(self, poly):
-        poly.xy = self.calc_display_coords(poly.basecoords, poly.theta)
-
-    def points_center(self, pts):
-        # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center (hence the [:-1] slice)
-        return np.array(pts[:-1]).mean(axis=0)
-
-    def polygon_center(self, poly):
-        return points_center(poly.xy)
-
     def check_valid_coords(self, coords_list):
         valid = True
         for coord in coords_list:
@@ -674,16 +715,16 @@ class ROIInteraction(object):
 
     def rotate_rectangle(self, poly, dtheta):
         #print('rotate_rectangle')
-        if self.check_valid_coords(self.calc_display_coords(poly.basecoords, poly.theta + dtheta)):
+        if self.check_valid_coords(calc_display_coords(poly.basecoords, poly.theta + dtheta)):
             poly.theta += dtheta
-            self.set_display_coords(poly)
+            set_display_coords(poly)
 
     def move_rectangle(self, poly, dx, dy):
         #print('move_rectangle')
         new_coords = [(x+dx, y+dy) for (x, y) in poly.basecoords]
-        if self.check_valid_coords(self.calc_display_coords(new_coords, poly.theta)):
+        if self.check_valid_coords(calc_display_coords(new_coords, poly.theta)):
             poly.basecoords = new_coords
-            self.set_display_coords(poly)
+            set_display_coords(poly)
 
     def resize_rectangle(self, poly, x, y):
         #print('resize_rectangle')
@@ -733,13 +774,14 @@ class ROIInteraction(object):
             poly.basecoords[self.last_vert_ind] = x, keepY
         else:
             poly.basecoords[changeAfter] = x, keepY
-        self.set_display_coords(poly)
+        set_display_coords(poly)
 
     def _update_line(self):
         # save verts because polygon gets deleted when figure is closed
         for poly in self.polys.itervalues():
             self.last_vert_ind = len(poly.xy) - 1
             poly.lines.set_data(zip(*poly.xy))
+            poly.handle.set_data(zip(*calc_handle_coords(poly)))
             pass
 
     def get_ind_under_cursor(self, event):
