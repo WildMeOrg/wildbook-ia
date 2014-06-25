@@ -43,7 +43,7 @@ TABLE_COLNAMES = {
     #THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
     THUMB_TABLE     : ['gname', 'thumb'],
     #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']},
-    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'bbox', 'thumb'],
+    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'thumb'],
 }
 
 # the columns which are editable
@@ -58,7 +58,7 @@ TABLE_EDITSET = {
 }
 
 TABLE_TREE_LEVELS = {
-    NAMES_TREE : [0, 0, 0, 1, 1, 1],
+    NAMES_TREE : [0, 0, 0, 1, 1],
 }
 
 # Define the valid columns a table could have
@@ -186,8 +186,6 @@ def make_ibeis_headers_dict(ibs):
         'name':   ibs.get_names,
         'nRids':  ibs.get_name_num_rois,
         'rid':    lambda rids: rids,
-        #'rid':    ibs.get_name_rids,
-        'bbox':   ibs.get_roi_bboxes,
         'thumb':  ibs.get_roi_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
