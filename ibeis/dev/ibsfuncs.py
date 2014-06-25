@@ -218,6 +218,29 @@ def is_nid_unknown(ibs, nid_list):
 
 
 @__injectable
+def get_match_text(ibs, rid1, rid2):
+    truth = ibs.get_match_truth(rid1, rid2)
+    text = {
+        2: 'NEW Match ',
+        0: 'JOIN Match ',
+        1: 'SPLIT Match ',
+    }.get(truth, None)
+    return text
+
+
+@__injectable
+def make_new_name(ibs):
+    new_name = 'name_%d' % ibs.get_num_names()
+    return new_name
+
+
+@__injectable
+def set_roi_names_to_next_name(ibs, rid_list):
+    next_name = ibs.make_new_name()
+    ibs.set_roi_names(rid_list, [next_name] * len(rid_list))
+
+
+@__injectable
 def get_match_truth(ibs, rid1, rid2):
     nid1, nid2 = ibs.get_roi_nids((rid1, rid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
@@ -721,11 +744,6 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     #ibs.print_chip_table()
     #ibs.print_feat_table()
     print('\n')
-
-
-def make_new_name(ibs):
-    new_name = 'name_%d' % ibs.get_num_names()
-    return new_name
 
 
 #@getter_1to1

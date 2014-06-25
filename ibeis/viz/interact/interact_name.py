@@ -53,15 +53,17 @@ class MatchVerificationInteraction(AbstractInteraction):
             update_callback = lambda: None
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.infer_data()
-        self.show_page()
+        self.show_page(bring_to_front=True)
 
     def infer_data(self):
         """ Initialize data related to the input rids """
         ibs = self.ibs
         # The two matching rids
         (rid1, rid2) = (self.rid1, self.rid2)
+        self.match_text = ibs.get_match_text(rid1, rid2)
         # The names of the matching rois
         self.nid1, self.nid2 = ibs.get_roi_nids((rid1, rid2))
+        self.name1, self.name2 = ibs.get_names((self.nid1, self.nid2))
         # The other rois that belong to these two names
         groundtruth_list = ibs.get_roi_groundtruth((rid1, rid2))
         self.gt_list = [gt + [rid] for gt, rid in izip(groundtruth_list, (rid1, rid2))]
@@ -84,7 +86,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ih.disconnect_callback(self.fig, 'button_press_event')
         #ih.connect_callback(self.fig, 'button_press_event', _on_name_click)
 
-    def show_page(self):
+    def show_page(self, bring_to_front=False):
         """ Plots all subaxes on a page """
         print('[matchver] show_page()')
         self.prepare_page()
@@ -107,15 +109,20 @@ class MatchVerificationInteraction(AbstractInteraction):
 
                 if ibs.is_rid_unknown(rid):
                     color = ibeis.constants.UNKNOWN_PURPLE_RGBA01
-                elif not rid in self.gt2:
+                elif nid == self.nid1:
                     color = ibeis.constants.NAME_RED_RGBA01
-                else:
+                elif nid == self.nid2:
                     color = ibeis.constants.NAME_BLUE_RGBA01
+                else:
+                    color = ibeis.constants.NEW_YELLOW_RGBA01
                 self.plot_chip(rid, nRows, nCols, px + offset, color=color)
 
         self.show_hud()
+        df2.adjust_subplots_safe(top=0.85, hspace=0.03)
         self.draw()
         self.show()
+        if bring_to_front:
+            self.bring_to_front()
         #self.update()
 
     def plot_chip(self, rid, nRows, nCols, px, **kwargs):
@@ -153,16 +160,6 @@ class MatchVerificationInteraction(AbstractInteraction):
             callback = partial(self.rename_roi_nid2, rid)
             text = 'change name to: ' + ibs.get_names(self.nid2)
             self.append_button(text, callback=callback, **butkw)
-        #        self.append_button(BREAK_MATCH_PREF, **butkw)
-        #    else:
-        #        if not name1.startswith('____'):
-        #            self.append_button(RENAME2_PREF + name1, **butkw)
-        #        if not name2.startswith('____'):
-        #            self.append_button(RENAME1_PREF + name2, **butkw)
-        #        if name1.startswith('____') and name2.startswith('____'):
-        #            self.append_button(NEW_MATCH_PREF, **butkw)
-        #if draw:
-        #    vh.draw()
 
     def unname_roi(self, rid, event=None):
         print('unname')
@@ -186,11 +183,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ Creates heads up display """
         # Button positioners
         hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.16,
-                                                     h=2 * utool.PHI_B ** 3,
+                                                     h=3 * utool.PHI_B ** 4,
                                                      xpad=.02, startx=0, stopx=1)
 
         ibs = self.ibs
-        self.name1, self.name2 = name1, name2 = ibs.get_names((self.nid1, self.nid2))
+        name1, name2 = self.name1, self.name2
 
         nid_list = ibs.get_roi_nids(self.rid_list, distinguish_unknowns=False)
 
@@ -216,6 +213,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
         figtitle_fmt = '''
         Match Review Interface
+        {match_text}
         {vsstr}
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
@@ -240,17 +238,8 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_next_name(self, event=None):
         """ All the rois are given nid2 """
-        self.next_name = next_name = ibsfuncs.make_new_name(self.ibs)
-        self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
-        self.show_page()
-
-    def new_match(self, event=None):
-        next_name = ibsfuncs.make_new_name(self.ibs)
-        self.ibs.set_roi_names(self.rid_list, [next_name] * len(self.rid_list))
-        self.update_callback()
-        self.show_page()
-
-    def merge(self, event=None):
-        self.ibs.set_roi_names(self.gt1 , [self.name2] * len(self.gt1))
+        #self.next_name = next_name = ibsfuncs.make_new_name(self.ibs)
+        #self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
+        ibs.set_roi_names_to_next_name(self.rid_list)
         self.update_callback()
         self.show_page()
