@@ -429,6 +429,156 @@ TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['debian2'] = {
     'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
 }
 
+
+# Listing libraries in '/usr/lib/python2.7/site-packages/PIL'
+# ---------------
+# DEPENDS['/usr/lib/python2.7/site-packages/PIL/_imaging.so']['ZackNet']
+# 	linux-vdso.so.1 (0x00007fff15dfe000)
+# 	libjpeg.so.8 => /usr/lib/libjpeg.so.8 (0x00007f09916c6000)
+# 	libz.so.1 => /usr/lib/libz.so.1 (0x00007f09914b0000)
+# 	libtiff.so.5 => /usr/lib/libtiff.so.5 (0x00007f099123c000)
+# 	libpython2.7.so.1.0 => /usr/lib/libpython2.7.so.1.0 (0x00007f0990e6e000)
+# 	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007f0990c50000)
+# 	libc.so.6 => /usr/lib/libc.so.6 (0x00007f09908a2000)
+# 	liblzma.so.5 => /usr/lib/liblzma.so.5 (0x00007f099067e000)
+# 	libm.so.6 => /usr/lib/libm.so.6 (0x00007f099037a000)
+# 	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007f0990176000)
+# 	libutil.so.1 => /usr/lib/libutil.so.1 (0x00007f098ff72000)
+# 	/usr/lib64/ld-linux-x86-64.so.2 (0x00007f0991ba9000)
+# ---------------
+# DEPENDS['/usr/lib/python2.7/site-packages/PIL/_imagingft.so']['ZackNet']
+# 	linux-vdso.so.1 (0x00007fff675fe000)
+# 	libfreetype.so.6 => /usr/lib/libfreetype.so.6 (0x00007f2a3195b000)
+# 	libpython2.7.so.1.0 => /usr/lib/libpython2.7.so.1.0 (0x00007f2a3158e000)
+# 	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007f2a31370000)
+# 	libc.so.6 => /usr/lib/libc.so.6 (0x00007f2a30fc1000)
+# 	libz.so.1 => /usr/lib/libz.so.1 (0x00007f2a30dab000)
+# 	libbz2.so.1.0 => /usr/lib/libbz2.so.1.0 (0x00007f2a30b9b000)
+# 	libpng16.so.16 => /usr/lib/libpng16.so.16 (0x00007f2a30965000)
+# 	libharfbuzz.so.0 => /usr/lib/libharfbuzz.so.0 (0x00007f2a3070f000)
+# 	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007f2a3050b000)
+# 	libutil.so.1 => /usr/lib/libutil.so.1 (0x00007f2a30307000)
+# 	libm.so.6 => /usr/lib/libm.so.6 (0x00007f2a30003000)
+# 	/usr/lib64/ld-linux-x86-64.so.2 (0x00007f2a31e4b000)
+# 	libglib-2.0.so.0 => /usr/lib/libglib-2.0.so.0 (0x00007f2a2fcfb000)
+# 	libgraphite2.so.3 => /usr/lib/libgraphite2.so.3 (0x00007f2a2fadc000)
+# 	libpcre.so.1 => /usr/lib/libpcre.so.1 (0x00007f2a2f872000)
+# ---------------
+# DEPENDS['/usr/lib/python2.7/site-packages/PIL/_imagingmath.so']['ZackNet']
+# 	linux-vdso.so.1 (0x00007fffdabfe000)
+# 	libpython2.7.so.1.0 => /usr/lib/libpython2.7.so.1.0 (0x00007fde56cab000)
+# 	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007fde56a8d000)
+# 	libc.so.6 => /usr/lib/libc.so.6 (0x00007fde566df000)
+# 	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007fde564da000)
+# 	libutil.so.1 => /usr/lib/libutil.so.1 (0x00007fde562d7000)
+# 	libm.so.6 => /usr/lib/libm.so.6 (0x00007fde55fd3000)
+# 	/usr/lib64/ld-linux-x86-64.so.2 (0x00007fde572bf000)
+# ---------------
+# DEPENDS['/usr/lib/python2.7/site-packages/PIL/_imagingtk.so']['ZackNet']
+# 	linux-vdso.so.1 (0x00007fffb87fe000)
+# 	libtcl8.6.so => /usr/lib/libtcl8.6.so (0x00007f9013113000)
+# 	libtk8.6.so => /usr/lib/libtk8.6.so (0x00007f9012db9000)
+# 	libpython2.7.so.1.0 => /usr/lib/libpython2.7.so.1.0 (0x00007f90129ec000)
+# 	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007f90127cd000)
+# 	libc.so.6 => /usr/lib/libc.so.6 (0x00007f901241f000)
+# 	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007f901221b000)
+# 	libz.so.1 => /usr/lib/libz.so.1 (0x00007f9012004000)
+# 	libm.so.6 => /usr/lib/libm.so.6 (0x00007f9011d00000)
+# 	libXft.so.2 => /usr/lib/libXft.so.2 (0x00007f9011aea000)
+# 	libX11.so.6 => /usr/lib/libX11.so.6 (0x00007f90117a7000)
+# 	libXss.so.1 => /usr/lib/libXss.so.1 (0x00007f90115a3000)
+# 	libutil.so.1 => /usr/lib/libutil.so.1 (0x00007f90113a0000)
+# 	/usr/lib64/ld-linux-x86-64.so.2 (0x00007f90136f9000)
+# 	libfontconfig.so.1 => /usr/lib/libfontconfig.so.1 (0x00007f9011162000)
+# 	libfreetype.so.6 => /usr/lib/libfreetype.so.6 (0x00007f9010eb9000)
+# 	libXrender.so.1 => /usr/lib/libXrender.so.1 (0x00007f9010caf000)
+# 	libxcb.so.1 => /usr/lib/libxcb.so.1 (0x00007f9010a8e000)
+# 	libXext.so.6 => /usr/lib/libXext.so.6 (0x00007f901087c000)
+# 	libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007f9010652000)
+# 	libbz2.so.1.0 => /usr/lib/libbz2.so.1.0 (0x00007f9010441000)
+# 	libpng16.so.16 => /usr/lib/libpng16.so.16 (0x00007f901020c000)
+# 	libharfbuzz.so.0 => /usr/lib/libharfbuzz.so.0 (0x00007f900ffb6000)
+# 	libXau.so.6 => /usr/lib/libXau.so.6 (0x00007f900fdb1000)
+# 	libXdmcp.so.6 => /usr/lib/libXdmcp.so.6 (0x00007f900fbab000)
+# 	libglib-2.0.so.0 => /usr/lib/libglib-2.0.so.0 (0x00007f900f8a3000)
+# 	libgraphite2.so.3 => /usr/lib/libgraphite2.so.3 (0x00007f900f684000)
+# 	libpcre.so.1 => /usr/lib/libpcre.so.1 (0x00007f900f41a000)
+# ---------------
+# DEPENDS['/usr/lib/python2.7/site-packages/PIL/_webp.so']['ZackNet']
+# 	linux-vdso.so.1 (0x00007fffd17fe000)
+# 	libwebp.so.5 => /usr/lib/libwebp.so.5 (0x00007fb42978b000)
+# 	libwebpmux.so.1 => /usr/lib/libwebpmux.so.1 (0x00007fb429583000)
+# 	libpython2.7.so.1.0 => /usr/lib/libpython2.7.so.1.0 (0x00007fb4291b6000)
+# 	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007fb428f97000)
+# 	libc.so.6 => /usr/lib/libc.so.6 (0x00007fb428be9000)
+# 	libm.so.6 => /usr/lib/libm.so.6 (0x00007fb4288e5000)
+# 	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007fb4286e0000)
+# 	libutil.so.1 => /usr/lib/libutil.so.1 (0x00007fb4284dd000)
+# 	/usr/lib64/ld-linux-x86-64.so.2 (0x00007fb429c2c000)
+SPECS = {}
+SPECS['ZackNet'] = {
+    'cv2_version': r'2.4.9',
+    'pillow_version': r'2.4.0',
+    'pil_version': r'1.1.7',
+}
+#----
+TEST_TARGETS['lena']['ZackNet'] = {
+    'gpath': r'/home/zack/.config/utool/testdata/lena.jpg',
+    'npshape': r'(220, 220, 3)',
+    'npsum': r'18615625',
+    'uuid1': r'd3daf98d-3035-65b7-2ff4-ca4076ab0cf1',
+    'size': r'(220, 220)',
+    'sum_': r'18615625',
+    'img_bytes_': r'\xe2\x98U\xccib\xc8\x7fm\xbfXp\xb1cb ~~~TRUNCATED~~~ \xc7V\xb2',
+    'hashbytes_16': r'\xd3\xda\xf9\x8d05e\xb7/\xf4\xca@v\xab\x0c\xf1',
+    'hashbytes_20': r'\xd3\xda\xf9\x8d05e\xb7/\xf4\xca@v\x ~~~TRUNCATED~~~ 3\xd5\xcb',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7feb95400620>',
+    'uuid_': r'd3daf98d-3035-65b7-2ff4-ca4076ab0cf1',
+}
+#----
+TEST_TARGETS['jeff']['ZackNet'] = {
+    'gpath': r'/home/zack/.config/utool/testdata/jeff.png',
+    'npshape': r'(400, 400, 3)',
+    'npsum': r'111817836',
+    'uuid1': r'aed981a2-4116-9936-6311-e46bd17e25de',
+    'size': r'(400, 400)',
+    'sum_': r'152617836',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde',
+    'hashbytes_20': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde<\xb3\xd6\xe7',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7feb95400ee0>',
+    'uuid_': r'aed981a2-4116-9936-6311-e46bd17e25de',
+}
+#----
+TEST_TARGETS['easy1']['ZackNet'] = {
+    'gpath': r'/home/zack/.config/utool/testdata/easy1.JPG',
+    'npshape': r'(715, 1047, 3)',
+    'npsum': r'354513878',
+    'uuid1': r'4295b524-45df-8e25-52ca-71377109cebc',
+    'size': r'(1047, 715)',
+    'sum_': r'354513878',
+    'img_bytes_': r'\xde\xe9\xfc\xdf\xea\xfe\xdf\xea\xfe ~~~TRUNCATED~~~ 9\x81\x85',
+    'hashbytes_16': r'B\x95\xb5$E\xdf\x8e%R\xcaq7q\t\xce\xbc',
+    'hashbytes_20': r'B\x95\xb5$E\xdf\x8e%R\xcaq7q\t\xce\xbcI\x11\x90\xf0',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7feb95400f30>',
+    'uuid_': r'4295b524-45df-8e25-52ca-71377109cebc',
+}
+#----
+TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['ZackNet'] = {
+    'gpath': r'/home/zack/.config/utool/QqSkNZe.png',
+    'npshape': r'(386, 564, 3)',
+    'npsum': r'107691325',
+    'uuid1': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+    'size': r'(564, 386)',
+    'sum_': r'107691325',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e',
+    'hashbytes_20': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e\xc5_H$',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7feb953bf030>',
+    'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+}
+
+
 lines = []
 writeln = lines.append
 
