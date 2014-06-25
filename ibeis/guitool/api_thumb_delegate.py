@@ -193,10 +193,14 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         max_dsize = (thread.thumb_size, thread.thumb_size)
         # Resize image to thumb
         thumb = gtool.resize_thumb(image, max_dsize)
+        if not utool.is_listlike(thread.theta_list):
+            theta_list = [thread.theta_list]
+        else:
+            theta_list = thread.theta_list
         # Get scale factor
         sx, sy = gtool.get_scale_factor(image, thumb)
         # Draw bboxes on thumb (not image)
-        for bbox, theta in izip(thread.bbox_list, thread.theta_list):
+        for bbox, theta in izip(thread.bbox_list, theta_list):
             #pt1, pt2 = gtool.cvt_bbox_xywh_to_pt1pt2(bbox, sx=sx, sy=sy, round_=True)
             x, y, w, h = bbox
             pts = [[x, y], [x+w, y], [x+w, y+h], [x, y+h], [x,y]]
