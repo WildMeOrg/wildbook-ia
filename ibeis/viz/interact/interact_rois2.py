@@ -25,14 +25,15 @@ class ROI_Interaction2:
             self.ibs.delete_rois(deleted)
         #print('Changed BBoxes')
         if len(changed_list) > 0:
-            changed_rid = [self.rid_list[changed[0]] for changed in changed_list]
-            changed_bbox = [changed[1] for changed in changed_list]
+            changed_rid = [self.rid_list[changed[0]] for changed, theta in changed_list]
+            changed_bbox = [changed[1] for (changed, theta) in changed_list]
             self.ibs.set_roi_bboxes(changed_rid, changed_bbox)
         #print('New BBoxes')
         if len(new_list) > 0:
             #print(new_list)
             rows_updated = True
-            self.ibs.add_rois([self.gid] * len(new_list), new_list)
+            bbox_list, theta_list = zip(*[((x, y, w, h), t) for (x, y, w, h, t) in new_list])
+            self.ibs.add_rois([self.gid] * len(new_list), bbox_list, theta_list)
         if rows_updated:
             self.rows_updated_callback()
 

@@ -145,7 +145,8 @@ class MainWindowBackend(QtCore.QObject):
         # HACK
         from ibeis.gui import inspect_gui
         qrid2_qres = {qres.qrid: qres}
-        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, ranks_lt=kwargs['top_rids'])
+        backed_callback = back.front.update_tables
+        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, callback=backend_callback, ranks_lt=kwargs['top_rids'], )
         back.qres_wgt1.show()
         back.qres_wgt1.raise_()
         pass
@@ -468,7 +469,8 @@ class MainWindowBackend(QtCore.QObject):
         #back.query_review.show()
         # Qt QueryResults Interaction
         from ibeis.gui import inspect_gui
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres)
+        backend_callback = back.front.update_tables
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, callback=backend_callback)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 

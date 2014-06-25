@@ -23,12 +23,16 @@ RANKS_LT = 2
 class QueryResultsWidget(APITableWidget):
     """ Window for gui inspection """
 
-    def __init__(qres_wgt, ibs, qrid2_qres, parent=None, **kwargs):
+    def __init__(qres_wgt, ibs, qrid2_qres, parent=None, callback=None, **kwargs):
         print('[qres_wgt] Init QueryResultsWidget')
         APITableWidget.__init__(qres_wgt, parent=parent)
         # Set results data
         qres_wgt.set_query_results(ibs, qrid2_qres, **kwargs)
         qres_wgt.connect_signals_and_slots()
+        if callback is None:
+            callback = lambda: None
+        qres_wgt.callback = callback
+        print("callback=%r" % callback)
         if parent is None:
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
@@ -105,28 +109,35 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
     rid2 = model.get_header_data('rid', row)
     model = qtindex.model()
     update_callback = model._update
+    backend_callback = qres_wgt.callback
+    print("review_match_at backend_callback=%r" % qres_wgt.callback)
     if quickmerge:
         is_unknown = ibs.is_rid_unknown((rid1, rid2))
         if all(is_unknown):
             ibs.set_roi_names_to_next_name((rid1, rid2))
             update_callback()
+            backend_callback()
             return
         elif is_unknown[0]:
             ibs.set_roi_nids(rid1, ibs.get_roi_nids(rid2))
             update_callback()
+            backend_callback()
             return
         elif is_unknown[1]:
             ibs.set_roi_nids(rid2, ibs.get_roi_nids(rid1))
             update_callback()
+            backend_callback()
             return
-    review_match(ibs, rid1, rid2, update_callback=update_callback)
+    review_match(ibs, rid1, rid2, update_callback=update_callback, 
+                 backend_callback=backend_callback)
 
 
-def review_match(ibs, rid1, rid2, update_callback=None):
+def review_match(ibs, rid1, rid2, update_callback=None, backend_callback=None):
     print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
     from ibeis.viz.interact.interact_name import MatchVerificationInteraction
     mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64,
-                                              update_callback=update_callback)
+                                              update_callback=update_callback,
+                                              backend_callback=backend_callback)
     ih.register_interaction(mvinteract)
 
 

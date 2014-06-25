@@ -43,7 +43,7 @@ def ishow_name(ibs, nid, sel_rids=[], select_rid_callback=None, fnum=5, **kwargs
 
 
 class MatchVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, rid1, rid2, update_callback=None, **kwargs):
+    def __init__(self, ibs, rid1, rid2, update_callback=None, backend_callback=None, **kwargs):
         print('[matchver] __init__')
         super(MatchVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
@@ -51,7 +51,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.rid2 = rid2
         if update_callback is None:
             update_callback = lambda: None
+        if backend_callback is None:
+            print("backend_callback is None")
+            backend_callback = lambda: None
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
+        self.backend_callback = backend_callback
         self.infer_data()
         self.show_page(bring_to_front=True)
 
@@ -165,18 +169,21 @@ class MatchVerificationInteraction(AbstractInteraction):
         print('unname')
         self.ibs.set_roi_nids([rid], [self.ibs.UNKNOWN_NID])
         self.update_callback()
+        self.backend_callback()
         self.show_page()
 
     def rename_roi_nid1(self, rid, event=None):
         print('rename nid1')
         self.ibs.set_roi_nids([rid], [self.nid1])
         self.update_callback()
+        self.backend_callback()
         self.show_page()
 
     def rename_roi_nid2(self, rid, event=None):
         print('rename nid2')
         self.ibs.set_roi_nids([rid], [self.nid2])
         self.update_callback()
+        self.backend_callback()
         self.show_page()
 
     def show_hud(self):
@@ -228,12 +235,14 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ All the rois are given nid1 """
         self.ibs.set_roi_nids(self.rid_list , [self.nid1] * len(self.rid_list))
         self.update_callback()
+        self.backend_callback()
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
         """ All the rois are given nid2 """
         self.ibs.set_roi_nids(self.rid_list , [self.nid2] * len(self.rid_list))
         self.update_callback()
+        self.backend_callback()
         self.show_page()
 
     def merge_all_into_next_name(self, event=None):
@@ -242,4 +251,5 @@ class MatchVerificationInteraction(AbstractInteraction):
         #self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
         ibs.set_roi_names_to_next_name(self.rid_list)
         self.update_callback()
+        self.backend_callback()
         self.show_page()
