@@ -342,6 +342,92 @@ TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['hendrik-vostro'] = {
     'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
 }
 
+# Listing libraries in '/usr/local/lib/python2.7/dist-packages/PIL'
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imaging.so']['debian2']
+#       linux-gate.so.1 =>  (0xb77bd000)
+#       libjpeg.so.8 => /usr/lib/i386-linux-gnu/libjpeg.so.8 (0xb7725000)
+#       libz.so.1 => /lib/i386-linux-gnu/libz.so.1 (0xb770c000)
+#       libpthread.so.0 => /lib/i386-linux-gnu/i686/cmov/libpthread.so.0 (0xb76f2000)
+#       libc.so.6 => /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb758e000)
+#       /lib/ld-linux.so.2 (0xb77be000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingft.so']['debian2']
+#       linux-gate.so.1 =>  (0xb77ba000)
+#       libfreetype.so.6 => /usr/lib/i386-linux-gnu/libfreetype.so.6 (0xb7701000)
+#       libpthread.so.0 => /lib/i386-linux-gnu/i686/cmov/libpthread.so.0 (0xb76e8000)
+#       libc.so.6 => /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb7583000)
+#       libz.so.1 => /lib/i386-linux-gnu/libz.so.1 (0xb756a000)
+#       /lib/ld-linux.so.2 (0xb77bb000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingmath.so']['debian2']
+#       linux-gate.so.1 =>  (0xb7717000)
+#       libpthread.so.0 => /lib/i386-linux-gnu/i686/cmov/libpthread.so.0 (0xb76e0000)
+#       libc.so.6 => /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb757c000)
+#       /lib/ld-linux.so.2 (0xb7718000)
+SPECS = {}
+SPECS['debian2'] = {
+    'cv2_version': r'2.4.8',
+    'pillow_version': r'2.4.0',
+    'pil_version': r'1.1.7',
+}
+#----
+TEST_TARGETS['lena']['debian2'] = {
+    'gpath': r'/home/avi/.config/utool/testdata/lena.jpg',
+    'npshape': r'(220, 220, 3)',
+    'npsum': r'18615820',
+    'uuid1': r'f2c4658f-a722-793b-8578-c392fd550888',
+    'size': r'(220, 220)',
+    'sum_': r'18615820',
+    'img_bytes_': r'\xe2\x99W\xccib\xc8\x7fm\xbfXn\xb1cb ~~~TRUNCATED~~~ \xc8V\xb1',
+    'hashbytes_16': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88',
+    'hashbytes_20': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88\xac.sk',
+    'bytes_sha1': r'<sha1 HASH object @ 0xa23e250>',
+    'uuid_': r'f2c4658f-a722-793b-8578-c392fd550888',
+}   
+#----
+TEST_TARGETS['jeff']['debian2'] = {
+    'gpath': r'/home/avi/.config/utool/testdata/jeff.png',
+    'npshape': r'(400, 400, 3)',
+    'npsum': r'111817836',
+    'uuid1': r'aed981a2-4116-9936-6311-e46bd17e25de',
+    'uuid1': r'aed981a2-4116-9936-6311-e46bd17e25de',
+    'size': r'(400, 400)',
+    'sum_': r'152617836',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde',
+    'hashbytes_20': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde<\xb3\xd6\xe7',
+    'bytes_sha1': r'<sha1 HASH object @ 0xa23e6b0>',
+    'uuid_': r'aed981a2-4116-9936-6311-e46bd17e25de',
+}
+#----
+TEST_TARGETS['easy1']['debian2'] = {
+    'gpath': r'/home/avi/.config/utool/testdata/easy1.JPG',
+    'npshape': r'(715, 1047, 3)',
+    'npsum': r'354510703',
+    'uuid1': r'383dda50-f26b-200a-8baf-548e3ef88f9c',
+    'size': r'(1047, 715)',
+    'sum_': r'354510703',
+    'img_bytes_': r'\xde\xe9\xfc\xdf\xea\xfe\xdf\xea\xfe ~~~TRUNCATED~~~ 9\x81\x85',
+    'hashbytes_16': r'8=\xdaP\xf2k \n\x8b\xafT\x8e>\xf8\x8f\x9c',
+    'hashbytes_20': r'8=\xdaP\xf2k \n\x8b\xafT\x8e>\xf8\x8f\x9c"\xdf\xcb\x08',
+    'bytes_sha1': r'<sha1 HASH object @ 0xa23e638>',
+    'uuid_': r'383dda50-f26b-200a-8baf-548e3ef88f9c',
+}
+#----
+TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['debian2'] = {
+    'gpath': r'/home/avi/.config/utool/QqSkNZe.png',
+    'npshape': r'(386, 564, 3)',
+    'npsum': r'107691325',
+    'uuid1': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+    'size': r'(564, 386)',
+    'sum_': r'107691325',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e',
+    'hashbytes_20': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e\xc5_H$',
+    'bytes_sha1': r'<sha1 HASH object @ 0xa23ea20>',
+    'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+}
 
 lines = []
 writeln = lines.append
