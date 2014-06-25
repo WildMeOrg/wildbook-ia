@@ -608,12 +608,13 @@ def delete_non_exemplars(ibs):
     delete_invalid_nids(ibs)
 
 
+@__injectable
 def update_exemplar_encounter(ibs):
-    eid = ibs.get_encounter_eids("Exemplars")
+    eid = ibs.get_encounter_eids(constants.EXEMPLAR_ENCTEXT)
     ibs.delete_encounters(eid)
     rid_list = ibs.get_valid_rids(is_exemplar=True)
     gid_list = utool.unique_ordered(ibs.get_roi_gids(rid_list))
-    ibs.set_image_enctext(gid_list, ["Exemplars"] * len(gid_list))
+    ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
 
 
 def get_title(ibs):

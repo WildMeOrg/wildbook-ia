@@ -317,6 +317,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             # Give the frontend the new control
             ibswgt.ibs = ibs
+            ibs.update_exemplar_encounter()
             # Update the api models to use the new control
             header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             title = ibsfuncs.get_title(ibswgt.ibs)
