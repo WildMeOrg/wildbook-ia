@@ -456,6 +456,38 @@ TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['hendrik-vostro'] = {
 #       libpthread.so.0 => /lib/i386-linux-gnu/i686/cmov/libpthread.so.0 (0xb76e0000)
 #       libc.so.6 => /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb757c000)
 #       /lib/ld-linux.so.2 (0xb7718000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/cv2.so']['debian2']
+#       linux-gate.so.1 =>  (0xb773c000)
+#       libpython2.7.so.1.0 => /usr/lib/libpython2.7.so.1.0 (0xb72f9000)
+#       libopencv_core.so.2.4 => /usr/local/lib/libopencv_core.so.2.4 (0xb70e0000)
+#       libopencv_flann.so.2.4 => /usr/local/lib/libopencv_flann.so.2.4 (0xb706b000)
+#       libopencv_imgproc.so.2.4 => /usr/local/lib/libopencv_imgproc.so.2.4 (0xb6de4000)
+#       libopencv_highgui.so.2.4 => /usr/local/lib/libopencv_highgui.so.2.4 (0xb6c12000)
+#       libopencv_features2d.so.2.4 => /usr/local/lib/libopencv_features2d.so.2.4 (0xb6b6a000)
+#       libopencv_calib3d.so.2.4 => /usr/local/lib/libopencv_calib3d.so.2.4 (0xb6ad2000)
+#       libopencv_ml.so.2.4 => /usr/local/lib/libopencv_ml.so.2.4 (0xb6a59000)
+#       libopencv_video.so.2.4 => /usr/local/lib/libopencv_video.so.2.4 (0xb6a05000)
+#       libopencv_legacy.so.2.4 => /usr/local/lib/libopencv_legacy.so.2.4 (0xb68f0000)
+#       libopencv_objdetect.so.2.4 => /usr/local/lib/libopencv_objdetect.so.2.4 (0xb6870000)
+#       libopencv_photo.so.2.4 => /usr/local/lib/libopencv_photo.so.2.4 (0xb6854000)
+#       libopencv_gpu.so.2.4 => /usr/local/lib/libopencv_gpu.so.2.4 (0xb6812000)
+#       libopencv_ocl.so.2.4 => /usr/local/lib/libopencv_ocl.so.2.4 (0xb6640000)
+#       libopencv_nonfree.so.2.4 => /usr/local/lib/libopencv_nonfree.so.2.4 (0xb660f000)
+#       libopencv_contrib.so.2.4 => /usr/local/lib/libopencv_contrib.so.2.4 (0xb6530000)
+#       libstdc++.so.6 => /usr/lib/i386-linux-gnu/libstdc++.so.6 (0xb6444000)
+#       libm.so.6 => /lib/i386-linux-gnu/i686/cmov/libm.so.6 (0xb641d000)
+#       libgcc_s.so.1 => /lib/i386-linux-gnu/libgcc_s.so.1 (0xb6400000)
+#       libpthread.so.0 => /lib/i386-linux-gnu/i686/cmov/libpthread.so.0 (0xb63e7000)
+#       libc.so.6 => /lib/i386-linux-gnu/i686/cmov/libc.so.6 (0xb6283000)
+#       libz.so.1 => /lib/i386-linux-gnu/libz.so.1 (0xb626a000)
+#       libdl.so.2 => /lib/i386-linux-gnu/i686/cmov/libdl.so.2 (0xb6265000)
+#       libutil.so.1 => /lib/i386-linux-gnu/i686/cmov/libutil.so.1 (0xb6261000)
+#       librt.so.1 => /lib/i386-linux-gnu/i686/cmov/librt.so.1 (0xb6258000)
+#       libjpeg.so.8 => /usr/lib/i386-linux-gnu/libjpeg.so.8 (0xb621f000)
+#       libpng12.so.0 => /lib/i386-linux-gnu/libpng12.so.0 (0xb61f5000)
+#       /lib/ld-linux.so.2 (0xb773d000)
+
 SPECS = {}
 SPECS['debian2'] = {
     'cv2_version': r'2.4.8',
