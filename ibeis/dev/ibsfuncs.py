@@ -576,7 +576,7 @@ def delete_non_exemplars(ibs):
     all_eids = ibs.get_valid_eids()
     rids_list = ibs.get_encounter_rids(all_eids)
     eid_list_ = [eid if len(rids_list[x]) > 0 else None for x, eid in enumerate(rids_list)]
-    eid_list = utool.filter_Nones(eid_list
+    eid_list = utool.filter_Nones(eid_list)
     ibs.delete_encounters(eid_list)
 
 
