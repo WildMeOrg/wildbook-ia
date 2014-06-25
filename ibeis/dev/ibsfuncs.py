@@ -610,9 +610,17 @@ def delete_non_exemplars(ibs):
     ibs.delete_names(nid_list)
     all_eids = ibs.get_valid_eids()
     rids_list = ibs.get_encounter_rids(all_eids)
-    eid_list_ = [eid if len(rids_list[x]) > 0 else None for x, eid in enumerate(rids_list)]
+    eid_list_ = [eid if len(rids_list[x]) == 0 else None for x, eid in enumerate(rids_list)]
     eid_list = utool.filter_Nones(eid_list)
     ibs.delete_encounters(eid_list)
+
+
+def update_exemplar_encounter(ibs):
+    eid_list = ibs.get_encounter_eids("Exemplars")
+    ibs.delete_encounters(eid_list)
+    rid_list = ibs.get_valid_rids(is_exemplar=True)
+    gid_list = ibs.get_roi_gids(rid_list)
+    ibs.set_image_enctext(gid_list, "Exemplars")
 
 
 def get_title(ibs):

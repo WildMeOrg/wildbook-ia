@@ -1596,13 +1596,13 @@ class IBEISController(object):
 
     @getter_1toM
     def get_encounter_gids(ibs, eid_list):
-        print('get_encounter_gids')
-        print('eid_list = %r' % (eid_list,))
+        #print('get_encounter_gids')
+        #print('eid_list = %r' % (eid_list,))
         """ returns a list of list of gids in each encounter """
         gids_list = ibs.db.get(
             EG_RELATION_TABLE, ('image_rowid',), eid_list,
             id_colname='encounter_rowid', unpack_scalars=False)
-        print('gids_list = %r' % (gids_list,))
+        #print('gids_list = %r' % (gids_list,))
         return gids_list
 
     @getter_1toM
