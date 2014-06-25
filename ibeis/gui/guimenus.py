@@ -58,6 +58,11 @@ def setup_file_menu(mainwin, back):
         text='Import Images (select directory)',
         shortcut='Ctrl+I',
         slot_fn=back.import_images_from_dir)
+    mainwin.menuFile.newAction(
+        name='actionLocalizeImages',
+        text='Localize Images',
+        shortcut=None,
+        slot_fn=back.localize_images)
     mainwin.menuFile.addSeparator()
     mainwin.menuFile.newAction(
         name='actionQuit',
