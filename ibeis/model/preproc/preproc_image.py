@@ -30,6 +30,7 @@ def parse_exif(pil_img):
 
 @profile
 def get_image_uuid(pil_img):
+    # DEPRICATE
     # Read PIL image data (every 64th byte)
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
     #print('[ginfo] npimg.sum() = %r' % npimg.sum())
