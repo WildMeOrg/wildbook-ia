@@ -598,29 +598,22 @@ def merge_databases(ibs_target, ibs_source_list):
 
 
 def delete_non_exemplars(ibs):
-    rid_list_ = ibs.get_valid_rids()
-    examplar_flag_list = ibs.get_roi_exemplar_flag(rid_list_)
-    nonexemplar_flag_list = [not is_exemplar for is_exemplar in exemplar_flags]
-    rid_list = utool.filter_items(rid_list, nonexemplar_flag_list)
-    nid_list = ibs.get_roi_nids(rid_list)
-    gid_list = ibs.get_roi_gids(rid_list)
-    fid_list = ibs.get_roi_fids(rid_list)
-    ibs.delete_features(fid_list)
-    ibs.delete_images(gid_list)
-    ibs.delete_names(nid_list)
-    all_eids = ibs.get_valid_eids()
-    rids_list = ibs.get_encounter_rids(all_eids)
-    eid_list_ = [eid if len(rids_list[x]) == 0 else None for x, eid in enumerate(rids_list)]
-    eid_list = utool.filter_Nones(eid_list)
-    ibs.delete_encounters(eid_list)
+    gid_list = ibs.get_valid_gids
+    rids_list = ibs.get_image_rids(gid_list)
+    flags_list = unflat_map(ibs.get_roi_exemplar_flag, rids_list)
+    delete_gid_flag_list = [not any(flags) for flags in flags_list]
+    delete_gid_list = utool.filter_items(gid_list, delete_gid_flag_list)
+    ibs.delete_images(delete_gid_list)
+    delete_invalid_eids(ibs)
+    delete_invalid_nids(ibs)
 
 
 def update_exemplar_encounter(ibs):
-    eid_list = ibs.get_encounter_eids("Exemplars")
-    ibs.delete_encounters(eid_list)
+    eid = ibs.get_encounter_eids("Exemplars")
+    ibs.delete_encounters(eid)
     rid_list = ibs.get_valid_rids(is_exemplar=True)
-    gid_list = ibs.get_roi_gids(rid_list)
-    ibs.set_image_enctext(gid_list, "Exemplars")
+    gid_list = utool.unique_ordered(ibs.get_roi_gids(rid_list))
+    ibs.set_image_enctext(gid_list, ["Exemplars"] * len(gid_list))
 
 
 def get_title(ibs):
