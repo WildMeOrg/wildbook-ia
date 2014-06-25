@@ -31,19 +31,22 @@ class IBEISTableModel(APITableModel):
     def __init__(model, headers=None, parent=None, *args):
         model.ibswin = parent
         model.eid = None
-        model.original_ider = None
+        model.original_iders = None
         APITableModel.__init__(model, headers=headers, parent=parent)
 
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):
             return []
-        original_ider = headers.get('iders', [_null_ider])
-        headers['iders'] = original_ider
+        model.original_iders = headers.get('iders', [_null_ider])
+        if len(model.original_iders) > 0:
+            model.new_iders = model.original_iders[:]
+            model.new_iders[0] = model._ider
+        headers['iders'] = model.new_iders
         return APITableModel._update_headers(model, **headers)
 
     def _ider(model):
         """ Overrides the API model ider to give only selected encounter ids """
-        return model.original_ider(eid=model.eid)
+        return model.original_iders[0](eid=model.eid)
 
     def _change_enc(model, eid):
         model.eid = eid

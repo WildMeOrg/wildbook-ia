@@ -68,6 +68,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         """ Switch to the current encounter tab """
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
+            print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
             enc_tabwgt.ibswgt._change_enc(eid)
 
     def _close_tab(enc_tabwgt, index):

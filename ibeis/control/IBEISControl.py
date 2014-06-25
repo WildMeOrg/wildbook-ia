@@ -435,7 +435,6 @@ class IBEISController(object):
             rid_list = ibs._get_all_rids()
         else:
             enctext = ibs.get_encounter_enctext(eid)
-            assert isinstance(enctext, (str, unicode))
             if enctext == constants.EXEMPLAR_ENCTEXT:
                 is_exemplar = True
             rid_list = ibs.get_encounter_rids(eid)
