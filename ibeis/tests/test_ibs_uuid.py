@@ -384,7 +384,7 @@ TEST_TARGETS['lena']['debian2'] = {
     'hashbytes_20': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88\xac.sk',
     'bytes_sha1': r'<sha1 HASH object @ 0xa23e250>',
     'uuid_': r'f2c4658f-a722-793b-8578-c392fd550888',
-}   
+}
 #----
 TEST_TARGETS['jeff']['debian2'] = {
     'gpath': r'/home/avi/.config/utool/testdata/jeff.png',
@@ -498,7 +498,7 @@ def test_uuid(key):
     return True
 
 
-def test_pil_info():
+def test_specs():
     try:
         print('Image.PILLOW_VERSION: %r' % Image.PILLOW_VERSION)
         assert Image.PILLOW_VERSION == '2.4.0'
@@ -515,15 +515,17 @@ def test_pil_info():
             writeln('# ---------------')
             writeln('# DEPENDS[%r][%r]' % (libpath, MACHINE_NAME))
             writeln(utool.indentjoin(depend_out.splitlines(), '\n# ').strip())
-
-
-def test_specs():
+    cv2_file = cv2.__file__
+    cv2_depends = utool.get_dynlib_dependencies(cv2_file)
     cv2_version = cv2.__version__
+    writeln('# DEPENDS[%r][%r]' % (cv2_file, MACHINE_NAME))
+    writeln(utool.indentjoin(cv2_depends.splitlines(), '\n# ').strip())
     pillow_version = Image.PILLOW_VERSION
     pil_version = PIL.VERSION
     writeln('SPECS = {}')
     writeln('SPECS[%r] = {' % (MACHINE_NAME))
     print_var('cv2_version')
+    print_var('cv2_file')
     print_var('pillow_version')
     print_var('pil_version')
     writeln('}')
@@ -531,7 +533,6 @@ def test_specs():
 
 def TEST_UUID():
     print('Machine Name: %r' % MACHINE_NAME)
-    test_pil_info()
     test_specs()
     right = 'http://i.imgur.com/QqSkNZe.png'
     test_image_keys = ['lena', 'jeff', 'easy1', right]
