@@ -632,21 +632,21 @@ def get_infostr(ibs):
 def print_roi_table(ibs):
     """ Dumps roi table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('rois', exclude_columns=['roi_uuid', 'roi_verts']))
+    print(ibs.db.get_table_csv(constants.ANNOT_TABLE, exclude_columns=['roi_uuid', 'roi_verts']))
 
 
 @__injectable(False)
 def print_chip_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('chips'))
+    print(ibs.db.get_table_csv(constants.CHIP_TABLE))
 
 
 @__injectable(False)
 def print_feat_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('features', exclude_columns=[
+    print(ibs.db.get_table_csv(constants.FEATURE_TABLE, exclude_columns=[
         'feature_keypoints', 'feature_sifts']))
 
 
@@ -654,7 +654,7 @@ def print_feat_table(ibs):
 def print_image_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('images'))
+    print(ibs.db.get_table_csv(constants.IMAGE_TABLE))
     #, exclude_columns=['image_rowid']))
 
 
@@ -662,7 +662,7 @@ def print_image_table(ibs):
 def print_label_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv('labels'))
+    print(ibs.db.get_table_csv(constants.LABEL_TABLE))
 
 
 @__injectable(False)

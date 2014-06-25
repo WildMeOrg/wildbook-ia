@@ -222,6 +222,7 @@ class SQLDatabaseController(object):
             operation='''
             SELECT %s
             FROM %s
+            ORDER BY rowid ASC
             ''' % (_column, _table))
         return column_vals
 
@@ -339,7 +340,7 @@ class SQLDatabaseController(object):
         # Extract uuids from the params list (requires eager eval)
         # FIXME: the uuids being at index 0 is a hack
 
-        uuid_lists = [[None if params is None else 
+        uuid_lists = [[None if params is None else
                        params[x] for params in params_list] for x in unique_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
