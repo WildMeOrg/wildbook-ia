@@ -239,7 +239,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
     The utility of this function is that it only calls method once.
     This is more efficient for calls that can take a list of inputs
     """
-    utool.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
+    #utool.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
     # First flatten the list, and remember the original dimensions
     flat_rowids, reverse_list = utool.invertable_flatten(unflat_rowids)
     # Then preform the lookup / implicit mapping

@@ -36,24 +36,16 @@ def TEST_ENCOUNTERS(ibs):
 
     target_enctexts = ['_ENC(1,agg,sec_60)0', '_ENC(1,agg,sec_60)1']
 
-    target_gid_uuids = [(UUID('08c76203-3614-cada-aace-01d22b3378e2'),
-                         UUID('f409ae19-e64c-c40b-75bb-30bb18f5a1a3'),
-                         UUID('383dda50-f26b-200a-8baf-548e3ef88f9c'),
-                         UUID('70821b89-f34f-ab57-4575-5384380c592a'),
-                         UUID('9d3ae88a-8c33-43ef-530e-62dbf916fff2'),
-                         UUID('f2c4658f-a722-793b-8578-c392fd550888'),
-                         UUID('aed981a2-4116-9936-6311-e46bd17e25de')),
-                        (UUID('d35757a5-8f1b-80d5-8b35-9eb8661cb8df'),
-                         UUID('9dd931ae-04d3-4996-3a3a-c6ca4a375ba4'),
-                         UUID('145d74ce-b0e0-dce3-9bf5-365599e86b56'),
-                         UUID('3c06d3d3-1073-5f28-6439-d7edac4c1893'),
-                         UUID('672b1bd6-1516-d5fa-14f9-b39594447e23'),
-                         UUID('a4597ee8-9e11-c704-efdc-f0d8a1d755b5'))]
+    target_gid_uuids = [
+    (UUID('2deeff06-5546-c752-15dc-2bd0fdb1198a'), UUID('163a890c-36f2-981e-3529-c552b6d668a3'), UUID('33fd9813-3a2b-774b-3fcc-4360d1ae151b'), UUID('588bc218-83a5-d400-21aa-d499832632b0'), UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), UUID('0a9bc03d-a75e-8d14-0153-e2949502aba7')),
+    (UUID('97e8ea74-873f-2092-b372-f928a7be30fa'), UUID('a9b70278-a936-c1dd-8a3b-bc1e9a998bf0'), UUID('0cd05978-3d83-b2ee-2ac9-798dd571c3b3'), UUID('c459d381-fd74-1d99-6215-e42e3f432ea9'), UUID('42fdad98-369a-2cbc-67b1-983d6d6a3a60'), UUID('b73b72f4-4acb-c445-e72c-05ce02719d3d')),
+]
+
 
     target_names = [
-        ('polar', '____8', 'easy', 'hard', '____6', 'lena', 'jeff'),
-        ('occl', 'zebra', '____1', 'easy', '____5', 'hard'),
-    ]
+    ('hard', 'zebra', '____1', 'polar', 'easy'),
+    ('____6', 'jeff', '____7', 'occl', 'lena', '____10'),
+]
 
     ibs.print_label_table()
     ibs.print_egpairs_table()
