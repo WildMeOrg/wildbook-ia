@@ -254,6 +254,94 @@ TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['Hyrule'] = {
     'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
 }
 
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imaging.so']['hendrik-vostro']
+#   linux-vdso.so.1 =>  (0x00007fff5cdfe000)
+#   libjpeg.so.9 => /usr/local/lib/libjpeg.so.9 (0x00007f1f568c0000)
+#   libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f1f566a7000)
+#   libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f1f56488000)
+#   libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f1f560c2000)
+#   /lib64/ld-linux-x86-64.so.2 (0x00007f1f56d6c000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingft.so']['hendrik-vostro']
+#   linux-vdso.so.1 =>  (0x00007fff08de3000)
+#   libfreetype.so.6 => /usr/lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007fbe7c200000)
+#   libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fbe7bfe2000)
+#   libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fbe7bc1b000)
+#   libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007fbe7ba02000)
+#   libpng12.so.0 => /usr/lib/x86_64-linux-gnu/libpng12.so.0 (0x00007fbe7b7dc000)
+#   /lib64/ld-linux-x86-64.so.2 (0x00007fbe7c6d1000)
+#   libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fbe7b4d5000)
+# ---------------
+# DEPENDS['/usr/local/lib/python2.7/dist-packages/PIL/_imagingmath.so']['hendrik-vostro']
+#   linux-vdso.so.1 =>  (0x00007fffc2d3b000)
+#   libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f94a4665000)
+#   libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f94a429f000)
+#   /lib64/ld-linux-x86-64.so.2 (0x00007f94a4ab1000)
+
+SPECS = {}
+SPECS['hendrik-vostro'] = {
+    'cv2_version': r'2.4.9',
+    'pillow_version': r'2.4.0',
+    'pil_version': r'1.1.7',
+}
+#----
+TEST_TARGETS['lena']['hendrik-vostro'] = {
+    'gpath': r'/home/hendrik/.config/utool/testdata/lena.jpg',
+    'npshape': r'(220, 220, 3)',
+    'npsum': r'18615625',
+    'uuid1': r'f2c4658f-a722-793b-8578-c392fd550888',
+    'size': r'(220, 220)',
+    'sum_': r'18615820',
+    'img_bytes_': r'\xe2\x99W\xccib\xc8\x7fm\xbfXn\xb1cb ~~~TRUNCATED~~~ \xc8V\xb1',
+    'hashbytes_16': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88',
+    'hashbytes_20': r'\xf2\xc4e\x8f\xa7"y;\x85x\xc3\x92\xfdU\x08\x88\xac.sk',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7fd5adf1e120>',
+    'uuid_': r'f2c4658f-a722-793b-8578-c392fd550888',
+}
+#----
+TEST_TARGETS['jeff']['hendrik-vostro'] = {
+    'gpath': r'/home/hendrik/.config/utool/testdata/jeff.png',
+    'npshape': r'(400, 400, 3)',
+    'npsum': r'111817836',
+    'uuid1': r'aed981a2-4116-9936-6311-e46bd17e25de',
+    'size': r'(400, 400)',
+    'sum_': r'152617836',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde',
+    'hashbytes_20': r'\xae\xd9\x81\xa2A\x16\x996c\x11\xe4k\xd1~%\xde<\xb3\xd6\xe7',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7fd5adf1e940>',
+    'uuid_': r'aed981a2-4116-9936-6311-e46bd17e25de',
+}
+#----
+TEST_TARGETS['easy1']['hendrik-vostro'] = {
+    'gpath': r'/home/hendrik/.config/utool/testdata/easy1.JPG',
+    'npshape': r'(715, 1047, 3)',
+    'npsum': r'354513878',
+    'uuid1': r'383dda50-f26b-200a-8baf-548e3ef88f9c',
+    'size': r'(1047, 715)',
+    'sum_': r'354510703',
+    'img_bytes_': r'\xde\xe9\xfc\xdf\xea\xfe\xdf\xea\xfe ~~~TRUNCATED~~~ 9\x81\x85',
+    'hashbytes_16': r'8=\xdaP\xf2k \n\x8b\xafT\x8e>\xf8\x8f\x9c',
+    'hashbytes_20': r'8=\xdaP\xf2k \n\x8b\xafT\x8e>\xf8\x8f\x9c"\xdf\xcb\x08',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7fd5adf1ea30>',
+    'uuid_': r'383dda50-f26b-200a-8baf-548e3ef88f9c',
+}
+#----
+TEST_TARGETS['http://i.imgur.com/QqSkNZe.png']['hendrik-vostro'] = {
+    'gpath': r'/home/hendrik/.config/utool/QqSkNZe.png',
+    'npshape': r'(386, 564, 3)',
+    'npsum': r'107691325',
+    'uuid1': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+    'size': r'(564, 386)',
+    'sum_': r'107691325',
+    'img_bytes_': r'\xff\xff\xff\xff\xff\xff\xff\xff\xff ~~~TRUNCATED~~~ f\xff\xff',
+    'hashbytes_16': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e',
+    'hashbytes_20': r'\xa6;\xec\xe9\xbb\\\x13^!s\xee\x8e\x99\xa2T\x0e\xc5_H$',
+    'bytes_sha1': r'<sha1 HASH object @ 0x7fd5adf1ed00>',
+    'uuid_': r'a63bece9-bb5c-135e-2173-ee8e99a2540e',
+}
+
 
 lines = []
 writeln = lines.append
@@ -332,21 +420,21 @@ def test_pil_info():
         utool.printex(ex)
         pass
     if len(PIL.__path__) > 1:
-        print('WARNING THERE ARE MULTIPLE PILS! %r ' % PIL.__path__)
-    pil_path = PIL.__path__[0]
-    lib_list = utool.ls_libs(pil_path)
-    for libpath in lib_list:
-        depend_out = utool.get_dynlib_dependencies(libpath)
-        writeln('# ---------------')
-        writeln('# DEPENDS[%r][%r]' % (libpath, MACHINE_NAME))
-        writeln(utool.indentjoin(depend_out.splitlines(), '\n# ').strip())
+        writeln('# WARNING THERE ARE MULTIPLE PILS! %r ' % PIL.__path__)
+    for pil_path in PIL.__path__:
+        writeln('# Listing libraries in %r' % (pil_path))
+        lib_list = utool.ls_libs(pil_path)
+        for libpath in lib_list:
+            depend_out = utool.get_dynlib_dependencies(libpath)
+            writeln('# ---------------')
+            writeln('# DEPENDS[%r][%r]' % (libpath, MACHINE_NAME))
+            writeln(utool.indentjoin(depend_out.splitlines(), '\n# ').strip())
 
 
 def test_specs():
     cv2_version = cv2.__version__
     pillow_version = Image.PILLOW_VERSION
     pil_version = PIL.VERSION
-    writeln('SPECS = {}')
     writeln('SPECS = {}')
     writeln('SPECS[%r] = {' % (MACHINE_NAME))
     print_var('cv2_version')
