@@ -75,7 +75,8 @@ def parse_imageinfo(tup):
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
     time, lat, lon = parse_exif(pil_img)  # Read exif tags
-    image_uuid = get_image_uuid(pil_img)  # Read pixels ]-hash-> guid = gid
+    # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
+    image_uuid = utool.get_file_uuid(gpath)  # Read file ]-hash-> guid = gid
     #orig_gpath = gpath
     orig_gname = basename(gpath)
     ext = get_standard_ext(gpath)
