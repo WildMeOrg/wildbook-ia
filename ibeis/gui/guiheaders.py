@@ -43,7 +43,7 @@ TABLE_COLNAMES = {
     #THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
     THUMB_TABLE     : ['gname', 'thumb'],
     #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']},
-    NAMES_TREE      : ['name', 'nid', 'nRids', 'rid', 'thumb'],
+    NAMES_TREE      : ['name', 'nid', 'nRids', 'exemplar', 'rid', 'thumb'],
 }
 
 # the columns which are editable
@@ -54,16 +54,16 @@ TABLE_EDITSET = {
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
     THUMB_TABLE     : set([]),
-    NAMES_TREE      : set([]),
+    NAMES_TREE      : set(['exemplar']),
 }
 
 TABLE_TREE_LEVELS = {
-    NAMES_TREE : [0, 0, 0, 1, 1],
+    NAMES_TREE : [0, 0, 0, 1, 1, 1],
 }
 
 TABLE_HIDDEN_LIST = {
     IMAGE_TABLE : [False, False, False, False, False, False, False, False],
-    NAMES_TREE : [False, False, False, False, False],
+    NAMES_TREE : [False, False, False, False, False, False],
     NAME_TABLE : [False, False, False, False],
 }
 
@@ -194,9 +194,11 @@ def make_ibeis_headers_dict(ibs):
         'name':   ibs.get_names,
         'nRids':  ibs.get_name_num_rois,
         'rid':    lambda rids: rids,
+        'exemplar' : ibs.get_roi_exemplar_flag,
         'thumb':  ibs.get_roi_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
+        'exemplar' : ibs.set_roi_exemplar_flag,
     }
 
     def make_header(tblname):

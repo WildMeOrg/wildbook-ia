@@ -1851,20 +1851,13 @@ class IBEISController(object):
 
     @default_decorator
     def get_recognition_database_rids(ibs):
-        """ returns persistent recognition database rois """
+        """ DEPRECATE: returns persistent recognition database rois """
         drid_list = ibs.get_valid_rids()
         return drid_list
 
     @default_decorator
-    def query_exemplars(ibs, qrid_list, **kwargs):
-        drid_list = ibs.get_valid_rids(is_exemplar=True)
-        assert len(drid_list) > 0, 'there are no exemplars'
-        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
-        return qrid2_qres
-
-    @default_decorator
     def query_intra_encounter(ibs, qrid_list, **kwargs):
-        """ _query_chips wrapper """
+        """ DEPRECATE: _query_chips wrapper """
         drid_list = qrid_list
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_qres
@@ -1878,7 +1871,7 @@ class IBEISController(object):
     @default_decorator('[querydb]')
     def query_all(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
-        drid_list = ibs.get_recognition_database_rids()
+        drid_list = ibs.get_valid_rids()
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_qres
 
@@ -1889,6 +1882,13 @@ class IBEISController(object):
         qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         for qres in qrid2_qres.itervalues():
             qres.eid = eid
+        return qrid2_qres
+
+    @default_decorator
+    def query_exemplars(ibs, qrid_list, **kwargs):
+        drid_list = ibs.get_valid_rids(is_exemplar=True)
+        assert len(drid_list) > 0, 'there are no exemplars'
+        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
         return qrid2_qres
 
     @default_decorator
