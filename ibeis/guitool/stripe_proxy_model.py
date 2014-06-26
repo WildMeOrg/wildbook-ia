@@ -75,6 +75,10 @@ class StripeProxyModel(BASE_CLASS):
     def data(self, proxyIndex, role=Qt.DisplayRole):
         return self.sourceModel().data(self.mapToSource(proxyIndex), role)
 
+    def setData(self, proxyIndex, value, role=Qt.EditRole):
+        print('set data')
+        return self.sourceModel().setData(self.mapToSource(proxyIndex), value, role)
+
     def sort(self, column, order):
         source_model = self.sourceModel()
         source_cols = source_model.columnCount()
