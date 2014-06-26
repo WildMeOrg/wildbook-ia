@@ -253,8 +253,7 @@ class IBEISController(object):
         """ Loads the database's algorithm configuration """
         ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
         try:
-            # HACK: FORCING DEFAULTS FOR NOW
-            if True or utool.get_flag(('--noprefload', '--noprefload')):
+            if utool.get_flag(('--noprefload', '--noprefload')):
                 raise Exception('')
             ibs.cfg.load()
             print('[ibs] successfully loaded config')
@@ -1005,6 +1004,16 @@ class IBEISController(object):
         return gps_list
 
     @getter_1to1
+    def get_image_lat(ibs, gid_list):
+        lat_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lat',), gid_list)
+        return lat_list
+
+    @getter_1to1
+    def get_image_lon(ibs, gid_list):
+        lon_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lon',), gid_list)
+        return lon_list
+
+    @getter_1to1
     def get_image_aifs(ibs, gid_list):
         """ Returns "All Instances Found" flag, true if all objects of interest
         (animals) have an ROI in the image """
@@ -1220,24 +1229,28 @@ class IBEISController(object):
     # </LABEL_GETTERS>
 
     @getter_1toM
-    def get_roi_relationship_ids(ibs, rid_list):
+    def get_roi_relationship_ids(ibs, rid_list, configid=None):
         """ FIXME: func_name
         Get all the relationship ids belonging to the input rois
-        if label key is specified the realtionship ids are filtered to
+        if label key is specified the relationship ids are filtered to
         be only of a specific key/category/type
         """
-        alrids_list = ibs.db.get(AL_RELATION_TABLE, ('alr_rowid',), rid_list,
-                                 id_colname='annot_rowid', unpack_scalars=False)
+        if configid==None:
+            configid = ibs.MANUAL_CONFIGID
+        params_iter = ((rid, configid) for rid in rid_list)
+        where_clause = 'annot_rowid=? AND config_rowid=?'
+        alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
+                                       where_clause=where_clause, unpack_scalars=False)
         assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
         return alrids_list
 
     @getter_1to1
-    def get_roi_filtered_relationship_ids(ibs, rid_list, key_rowid):
+    def get_roi_filtered_relationship_ids(ibs, rid_list, key_rowid, configid=None):
         """ FIXME: func_name
         Get all the relationship ids belonging to the input rois where the
-        realtionship ids are filtered to be only of a specific key/category/type
+        relationship ids are filtered to be only of a specific key/category/type
         """
-        alrids_list = ibs.get_roi_relationship_ids(rid_list)
+        alrids_list = ibs.get_roi_relationship_ids(rid_list, configid=configid)
         # Get labelid of each relationship
         labelids_list = ibsfuncs.unflat_map(ibs.get_relationship_labelids, alrids_list)
         # Get the type of each label
@@ -1251,6 +1264,13 @@ class IBEISController(object):
                                         'labelids_list', 'index_list'])
             raise
         return alrid_list
+
+    @setter
+    def set_alr_confidence(ibs, alrid_list, confidence_list):
+        id_iter = ((alrid,) for alrid in alrid_list)
+        val_iter = ((confidence,) for confidence in confidence_list)
+        colnames = ('alr_confidence')
+        ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
 
     @getter_1to1
     def get_relationship_labelids(ibs, alrid_list):

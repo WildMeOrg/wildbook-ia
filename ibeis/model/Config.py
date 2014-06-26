@@ -411,6 +411,7 @@ class EncounterConfig(ConfigBase):
         enc_cfg.cluster_algo = 'agglomerative'
         enc_cfg.quantile = .01  # depends meanshift
         enc_cfg.seconds_thresh = 60    # depends agglomerative
+        enc_cfg.use_gps = False
 
     def get_cfgstr_list(enc_cfg):
         enc_cfgstrs = []
@@ -421,6 +422,8 @@ class EncounterConfig(ConfigBase):
         elif enc_cfg.cluster_algo == 'agglomerative':
             enc_cfgstrs.append('agg')
             enc_cfgstrs.append('sec_%r' % enc_cfg.seconds_thresh)
+        if enc_cfg.use_gps:
+            enc_cfgstrs.append('gps')
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
     def get_cfgstr(enc_cfg):

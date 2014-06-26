@@ -33,7 +33,7 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gdconf', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gps', 'gdconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rdconf', 'notes'],
     ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'num', 'verts', 'exemplar', 'gname', 'rdconf', 'notes'],
@@ -91,6 +91,7 @@ COL_DEF = dict([
     ('datetime',   (str,      'Date / Time')),
     ('ext',        (str,      'EXT')),
     ('thumb',      ('PIXMAP', 'Thumb')),
+    ('gps',        (str,      'GPS')),
 ])
 
 
@@ -118,6 +119,7 @@ def make_ibeis_headers_dict(ibs):
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
         'thumb'      : ibs.get_image_thumbtup,
+        'gps'        : partial_imap_1to1(utool.tupstr, ibs.get_image_gps),
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
