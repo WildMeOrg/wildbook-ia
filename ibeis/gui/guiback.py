@@ -333,8 +333,8 @@ class MainWindowBackend(QtCore.QObject):
             rid = back.get_selected_rid()
         eid = back._eidfromkw(kwargs)
         if eid is None:
-            print('[back] query_database(rid=%r)' % (rid,))
-            qrid2_qres = back.ibs.query_database([rid])
+            print('[back] query_all(rid=%r)' % (rid,))
+            qrid2_qres = back.ibs.query_all([rid])
         else:
             print('[back] query_encounter(rid=%r, eid=%r)' % (rid, eid))
             qrid2_qres = back.ibs.query_encounter([rid], eid)
@@ -442,16 +442,20 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] compute_queries: eid=%r' % (eid,))
         back.compute_feats(refresh=False, **kwargs)
         valid_rids = back.ibs.get_valid_rids(eid=eid)
-        if eid is None:
-            qrid2_qres = back.ibs.query_database(valid_rids)
+        if kwargs.get('get_vs_exemplars', False):
+            if eid is None:
+                qrid2_qres = back.ibs.query_all(valid_rids)
+            else:
+                qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
         else:
-            qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
+            qrid2_qres = back.ibs.query_exemplars(valid_rids)
         back.encounter_query_results[eid].update(qrid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
+
 
     @blocking_slot()
     def review_queries(back, **kwargs):

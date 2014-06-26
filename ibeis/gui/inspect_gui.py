@@ -32,8 +32,8 @@ class QueryResultsWidget(APITableWidget):
         if callback is None:
             callback = lambda: None
         qres_wgt.callback = callback
-        qres_wgt.view.setColumnHidden(0, True)
-        qres_wgt.view.setColumnHidden(1, True)
+        qres_wgt.view.setColumnHidden(0, False)
+        qres_wgt.view.setColumnHidden(1, False)
         if parent is None:
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)

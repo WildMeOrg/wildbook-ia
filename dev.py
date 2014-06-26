@@ -133,7 +133,7 @@ def get_allres(ibs, qrid_list):
     try:
         allres = __ALLRES_CACHE__[allres_cfgstr]
     except KeyError:
-        qrid2_qres = ibs.query_database(qrid_list)
+        qrid2_qres = ibs.query_all(qrid_list)
         allres = results_all.init_allres(ibs, qrid2_qres)
     # Cache save
     __ALLRES_CACHE__[allres_cfgstr] = allres

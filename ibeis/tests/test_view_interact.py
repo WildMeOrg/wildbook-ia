@@ -36,7 +36,7 @@ def TEST_INTERACT(ibs):
     #----------------------
     #print('Show Query')
     #rid1 = rid
-    #qcid2_qres = ibs.query_database([rid1])
+    #qcid2_qres = ibs.query_all([rid1])
     #qres = qcid2_qres.values()[0]
     #top_cids = qres.get_top_cids(ibs)
     #assert len(top_cids) > 0, 'there does not seem to be results'

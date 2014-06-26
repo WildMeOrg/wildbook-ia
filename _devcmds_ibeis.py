@@ -42,7 +42,7 @@ def change_names(ibs, qrid_list):
 
 @devcmd('query')
 def query_rids(ibs, qrid_list):
-    qrid2_qres = ibs.query_database(qrid_list)
+    qrid2_qres = ibs.query_all(qrid_list)
     for qrid in qrid_list:
         qres = qrid2_qres[qrid]
         interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
@@ -51,7 +51,7 @@ def query_rids(ibs, qrid_list):
 
 @devcmd('sver')
 def sver_rids(ibs, qrid_list):
-    qrid2_qres = ibs.query_database(qrid_list)
+    qrid2_qres = ibs.query_all(qrid_list)
     for qrid in qrid_list:
         qres = qrid2_qres[qrid]
         rid2 = qres.get_top_rids()[0]
