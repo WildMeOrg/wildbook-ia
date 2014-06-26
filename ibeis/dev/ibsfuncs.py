@@ -700,7 +700,7 @@ def print_label_table(ibs):
 
 
 @__injectable(False)
-def print_rlr_table(ibs):
+def print_alr_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(constants.AL_RELATION_TABLE))
@@ -742,7 +742,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     #ibs.print_image_table()
     #ibs.print_roi_table()
     #ibs.print_labels_table()
-    #ibs.print_rlr_table()
+    #ibs.print_alr_table()
     #ibs.print_config_table()
     #ibs.print_chip_table()
     #ibs.print_feat_table()

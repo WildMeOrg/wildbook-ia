@@ -199,7 +199,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #ibs.print_tables()
 
     #ibs.print_roi_table()
-    ibs.print_rlr_table()
+    ibs.print_alr_table()
     ibs.print_label_table()
     ibs.print_image_table()
     return rid_list
