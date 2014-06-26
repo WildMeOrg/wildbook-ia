@@ -61,6 +61,12 @@ TABLE_TREE_LEVELS = {
     NAMES_TREE : [0, 0, 0, 1, 1],
 }
 
+TABLE_HIDDEN_LIST = {
+    IMAGE_TABLE : [False, False, False, False, False, False, False, False],
+    NAMES_TREE : [False, False, False, False, False],
+    NAME_TABLE : [False, False, False, False],
+}
+
 # Define the valid columns a table could have
 COL_DEF = dict([
     ('image_uuid', (str,      'Image UUID')),
@@ -203,6 +209,7 @@ def make_ibeis_headers_dict(ibs):
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevels = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
+        hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
 
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
@@ -227,6 +234,7 @@ def make_ibeis_headers_dict(ibs):
             'col_getter_list': colgetters,
             'col_setter_list': colsetters,
             'col_level_list': collevels,
+            'col_hidden_list' : hiddencols,
         }
         return header
 
