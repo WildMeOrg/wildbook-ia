@@ -42,14 +42,14 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
         model.setSourceModel(model.sourcemodel)
         if not _DID_IBEISTABLEMODEL_METACLASS_HACK:
             _DID_IBEISTABLEMODEL_METACLASS_HACK = True
-            exclude_list = ["_update_headers", "_ider", "_change_enc", "sourcemodel", "__class__", "__setattr__", "__getattr__", "_nd"]
+            exclude_list = ["_update_headers", "_ider", "_change_enc", "sourcemodel", "__class__", "__setattr__", "__getattr__", "_nd", "sourceModel"]
             old_getattr = model.__class__.__getattr__
             #print('old_getattr outside: %r' % old_getattr)
             def new_getattr(obj, item):
                 #print('old_getattr is %r' % old_getattr)
                 #print('new_getattr(%r, %r)' % (obj, item))
                 if item not in exclude_list:
-                    print('sourcemodel.dict %r' % model.sourcemodel.__dict__)
+                    #print('sourcemodel.dict %r' % model.sourcemodel.__dict__)
                     try:
                         val = old_getattr(model.sourcemodel, item)
                     except AttributeError:
