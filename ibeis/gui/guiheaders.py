@@ -33,7 +33,7 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
     #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gdconf', 'notes'],
+    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gps', 'gdconf', 'notes'],
     #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
     #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rdconf', 'notes'],
     ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'num', 'verts', 'exemplar', 'gname', 'rdconf', 'notes'],
@@ -59,6 +59,12 @@ TABLE_EDITSET = {
 
 TABLE_TREE_LEVELS = {
     NAMES_TREE : [0, 0, 0, 1, 1],
+}
+
+TABLE_HIDDEN_LIST = {
+    IMAGE_TABLE : [False, False, False, False, False, False, False, False],
+    NAMES_TREE : [False, False, False, False, False],
+    NAME_TABLE : [False, False, False, False],
 }
 
 # Define the valid columns a table could have
@@ -91,6 +97,7 @@ COL_DEF = dict([
     ('datetime',   (str,      'Date / Time')),
     ('ext',        (str,      'EXT')),
     ('thumb',      ('PIXMAP', 'Thumb')),
+    ('gps',        (str,      'GPS')),
 ])
 
 
@@ -118,6 +125,7 @@ def make_ibeis_headers_dict(ibs):
         'image_uuid' : ibs.get_image_uuids,
         'ext'        : ibs.get_image_exts,
         'thumb'      : ibs.get_image_thumbtup,
+        'gps'        : partial_imap_1to1(utool.tupstr, ibs.get_image_gps),
     }
     setters[IMAGE_TABLE] = {
         'aif':   ibs.set_image_aifs,
@@ -203,6 +211,7 @@ def make_ibeis_headers_dict(ibs):
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevels = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
+        hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
 
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
@@ -227,6 +236,7 @@ def make_ibeis_headers_dict(ibs):
             'col_getter_list': colgetters,
             'col_setter_list': colsetters,
             'col_level_list': collevels,
+            'col_hidden_list' : hiddencols,
         }
         return header
 

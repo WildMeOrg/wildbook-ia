@@ -144,6 +144,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect the IBEIS control
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
+
     #@checks_qt_error
     def _init_components(ibswgt):
         """ Defines gui components """
@@ -324,17 +325,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             print('[newgui] Calling model _update_headers')
-            _flag = ibswgt._tab_table_wgt.blockSignals(True)
+            block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
             for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
                 model = ibswgt.models[tblname]
                 view = ibswgt.views[tblname]
                 header = header_dict[tblname]
                 #widget = ibswgt.widgets[tblname]
                 #widget.change_headers(header)
+                block_model_flag = model.blockSignals(True)
                 model._update_headers(**header)
                 view._update_headers(**header)  # should use model headers
+                model.blockSignals(block_model_flag)
                 #view.infer_delegates_from_model()
-            ibswgt._tab_table_wgt.blockSignals(_flag)
+            for tblname in ibswgt.super_tblname_list:
+                view = ibswgt.views[tblname]
+                view.hide_cols()
+            ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()

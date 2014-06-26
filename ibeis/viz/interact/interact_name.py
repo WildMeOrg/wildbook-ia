@@ -215,7 +215,7 @@ class MatchVerificationInteraction(AbstractInteraction):
            not all([False]):
             self.append_button('join all\n into name2=%s' % name2,
                                callback=self.merge_all_into_nid2, rect=next_rect())
-        """ Heads up display """
+        self.append_button('confirm', callback=self.confirm, rect=hl_slot(0))
         self.vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
         figtitle_fmt = '''
         Match Review Interface
@@ -224,6 +224,20 @@ class MatchVerificationInteraction(AbstractInteraction):
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
+
+    def confirm(self, event=None):
+        ibs = self.ibs
+        print('confirm')
+        from guitool import guitool_dialogs
+        from ibeis import constants
+        ans = guitool_dialogs.user_option(parent=self.fig.canvas, msg='Are you sure?', title='Confirmation',
+                                    options=['Confirm'], use_cache=False)
+        print('ans = %r' % ans)
+        if ans == 'Confirm':
+            alrid_list = ibs.get_roi_filtered_relationship_ids(self.rid_list, ibs.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
+            ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
+        
+        ibs.print_alr_table()
 
     def unname_all(self, event=None):
         print('unname')

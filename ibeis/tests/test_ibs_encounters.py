@@ -57,7 +57,7 @@ def TEST_ENCOUNTERS(ibs):
     ibs.print_label_table()
     ibs.print_egpairs_table()
     ibs.print_encounter_table()
-    ibs.print_rlr_table()
+    ibs.print_alr_table()
     gids_test_list = ibsfuncs.unflat_map(ibs.get_image_gids_from_uuid, gid_uuids_list)
     gids_target_list = ibsfuncs.unflat_map(ibs.get_image_gids_from_uuid, target_gid_uuids)
     try:

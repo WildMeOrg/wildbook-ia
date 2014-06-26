@@ -26,15 +26,12 @@ def ibeis_compute_encounters(ibs, gid_list):
     if len(gid_list) == 0:
         print('WARNING: No unixtime data to compute encounters with')
         return [], []
-    # Data to cluster
-    unixtime_list = ibs.get_image_unixtime(gid_list)
-    gid_arr       = np.array(gid_list)
-    unixtime_arr  = np.array(unixtime_list)
+    X_data, gid_arr = _prepare_X_data(ibs, gid_list, use_gps=False)
     # Agglomerative clustering of unixtimes
     if cluster_algo == 'agglomerative':
-        label_arr = _agglomerative_cluster_encounters_time(unixtime_arr, seconds_thresh)
+        label_arr = _agglomerative_cluster_encounters(X_data, seconds_thresh)
     elif cluster_algo == 'meanshift':
-        label_arr = _meanshift_cluster_encounters_time(unixtime_arr, quantile)
+        label_arr = _meanshift_cluster_encounters(X_data, quantile)
     else:
         raise AssertionError('Uknown clustering algorithm: %r' % cluster_algo)
     # Group images by unique label
@@ -50,24 +47,38 @@ def ibeis_compute_encounters(ibs, gid_list):
     return enctext_list, flat_gids
 
 
-def _agglomerative_cluster_encounters_time(unixtime_arr, seconds_thresh):
+def _prepare_X_data(ibs, gid_list, use_gps=False):
+    # Data to cluster
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    gid_arr       = np.array(gid_list)
+    unixtime_arr  = np.array(unixtime_list)
+
+    if use_gps:
+        lat_list = ibs.get_image_lat(gid_list)
+        lon_list = ibs.get_image_lon(gid_list)
+        lat_arr = np.array(lat_list)
+        lon_arr = np.array(lon_list)
+        X_data = np.vstack([unixtime_arr, lat_arr, lon_arr]).T
+    else:
+        # scipy clustering requires 2d input
+        X_data = np.vstack([unixtime_arr, np.zeros(unixtime_arr.size)]).T
+    return X_data, gid_arr
+
+
+def _agglomerative_cluster_encounters(X_data, seconds_thresh):
     """ Agglomerative encounter clustering algorithm
     Input: Length N array of data to cluster
     Output: Length N array of labels
     """
-    # scipy clustering requires 2d input
-    X_data = np.vstack([unixtime_arr, np.zeros(unixtime_arr.size)]).T
     label_arr = fclusterdata(X_data, seconds_thresh, criterion='distance')
     return label_arr
 
 
-def _meanshift_cluster_encounters_time(unixtime_arr, quantile):
+def _meanshift_cluster_encounters(X_data, quantile):
     """ Meanshift encounter clustering algorithm
     Input: Length N array of data to cluster
     Output: Length N array of labels
     """
-    # scipy clustering requires 2d input
-    X_data = np.vstack([unixtime_arr, np.zeros(unixtime_arr.size)]).T
     # quantile should be between [0, 1]
     # e.g: quantile=.5 represents the median of all pairwise distances
     try:
