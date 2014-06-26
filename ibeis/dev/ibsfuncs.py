@@ -229,12 +229,6 @@ def get_match_text(ibs, rid1, rid2):
 
 
 @__injectable
-def make_next_name(ibs):
-    next_name = 'name_%d' % ibs.get_num_names()
-    return next_name
-
-
-@__injectable
 def set_roi_names_to_next_name(ibs, rid_list):
     next_name = ibs.make_next_name()
     ibs.set_roi_names(rid_list, [next_name] * len(rid_list))
@@ -626,6 +620,12 @@ def update_allimage_encounter(ibs):
     ibs.set_image_enctext(gid_list, [constants.ALLIMAGE_ENCTEXT] * len(gid_list))
 
 
+@__injectable
+def update_special_encounters(ibs):
+    ibs.update_exemplar_encounter()
+    ibs.update_allimage_encounter()
+
+
 def get_title(ibs):
     if ibs is None:
         title = 'IBEIS - No Database Directory Open'
@@ -754,3 +754,15 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 def is_rid_unknown(ibs, rid_list):
     nid_list = ibs.get_roi_nids(rid_list)
     return ibs.is_nid_unknown(nid_list)
+
+
+def make_enctext_list(eid_list, enc_cfgstr):
+    enctext_list = ['E' + str(eid) + enc_cfgstr for eid in eid_list]
+    return enctext_list
+
+
+@__injectable
+def make_next_name(ibs):
+    name_prefix = utool.get_timestamp('tag')
+    next_name = name_prefix + '_AUTO%4d' % ibs.get_num_names()
+    return next_name

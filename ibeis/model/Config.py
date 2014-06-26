@@ -415,7 +415,6 @@ class EncounterConfig(ConfigBase):
 
     def get_cfgstr_list(enc_cfg):
         enc_cfgstrs = []
-        enc_cfgstrs.append(str(enc_cfg.min_imgs_per_encounter))
         if enc_cfg.cluster_algo == 'meanshift':
             enc_cfgstrs.append('ms')
             enc_cfgstrs.append('quant_%r' % enc_cfg.quantile)
@@ -424,6 +423,8 @@ class EncounterConfig(ConfigBase):
             enc_cfgstrs.append('sec_%r' % enc_cfg.seconds_thresh)
         if enc_cfg.use_gps:
             enc_cfgstrs.append('gps')
+        
+        enc_cfgstrs.append(str(enc_cfg.min_imgs_per_encounter))
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
     def get_cfgstr(enc_cfg):

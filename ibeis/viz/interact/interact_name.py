@@ -262,7 +262,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ All the rois are given nid2 """
         #self.next_name = next_name = ibsfuncs.make_next_name(self.ibs)
         #self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
-        ibs.set_roi_names_to_next_name(self.rid_list)
+        self.ibs.set_roi_names_to_next_name(self.rid_list)
         self.update_callback()
         self.backend_callback()
         self.show_page()

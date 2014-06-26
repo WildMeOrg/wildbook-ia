@@ -34,7 +34,7 @@ def TEST_ENCOUNTERS(ibs):
     roi_uuids_list = ibsfuncs.unflat_map(ibs.get_roi_uuids, rids_list)
     names_list     = ibsfuncs.unflat_map(ibs.get_names, nids_list)
 
-    target_enctexts = ['_ENC(1,agg,sec_60)0', '_ENC(1,agg,sec_60)1']
+    target_enctexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
 
     target_gid_uuids = [(UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), 
                          UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), 

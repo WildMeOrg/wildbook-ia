@@ -11,6 +11,7 @@ from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_rois2
+from ibeis import constants
 from ibeis.gui.guiheaders import (
     IMAGE_TABLE, ROI_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
@@ -62,8 +63,9 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         enc_tabwgt.currentChanged.connect(enc_tabwgt._on_change)
 
         enc_tabwgt.eid_list = []
-        enc_tabwgt._add_enc_tab(None, 'Recognition Database')
+        enc_tabwgt._add_enc_tab(None, constants.ALLIMAGE_ENCTEXT)
 
+    @slot_(int)
     def _on_change(enc_tabwgt, index):
         """ Switch to the current encounter tab """
         if 0 <= index and index < len(enc_tabwgt.eid_list):
@@ -71,12 +73,17 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
             enc_tabwgt.ibswgt._change_enc(eid)
 
+    @slot_(int)
     def _close_tab(enc_tabwgt, index):
         if enc_tabwgt.eid_list[index] is not None:
             enc_tabwgt.eid_list.pop(index)
             enc_tabwgt.removeTab(index)
 
     def _add_enc_tab(enc_tabwgt, eid, enctext):
+        # <HACK>
+        if enctext == constants.ALLIMAGE_ENCTEXT:
+            eid = None
+        # </HACK>
         if eid not in enc_tabwgt.eid_list:
             # tab_name = str(eid) + ' - ' + str(enctext)
             tab_name = str(enctext)
@@ -319,7 +326,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             # Give the frontend the new control
             ibswgt.ibs = ibs
-            ibs.update_exemplar_encounter()
+            ibs.update_special_encounters()
             # Update the api models to use the new control
             header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             title = ibsfuncs.get_title(ibswgt.ibs)
@@ -341,6 +348,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 view = ibswgt.views[tblname]
                 view.hide_cols()
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
+            ibswgt._change_enc(None)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
@@ -353,10 +361,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
             ibswgt.models[tblname]._change_enc(eid)
-        #try:
-        #    ibswgt.button_list[3].setText('QUERY(eid=%r)' % eid)
-        #except Exception:
-        #    pass
+        try:
+            if eid is None:
+                # HACK
+                enctext = constants.ALLIMAGE_ENCTEXT
+            else:
+                enctext = ibswgt.ibs.get_encounter_enctext(eid)
+            ibswgt.button_list[3].setText('Identify\nQUERY(%r)' % enctext)
+        except Exception:
+            pass
 
     def _update_enc_tab_name(ibswgt, eid, enctext):
         ibswgt.enc_tabwgt._update_enc_tab_name(eid, enctext)

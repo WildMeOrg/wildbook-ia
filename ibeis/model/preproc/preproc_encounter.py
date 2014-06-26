@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
+from ibeis.dev import ibsfuncs
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
 #from ibeis import constants
@@ -42,7 +43,7 @@ def ibeis_compute_encounters(ibs, gid_list):
     flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
     # Create enctext for each image
     #enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
-    enctext_list = [enc_cfgstr + repr(eid) for eid in flat_eids]
+    enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
     print('Found %d clusters.' % len(labels))
     return enctext_list, flat_gids
 

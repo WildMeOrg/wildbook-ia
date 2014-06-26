@@ -590,7 +590,7 @@ class IBEISController(object):
         params_iter = list(izip(rid_list, labelid_list, configid_list,
                                 alr_confidence_list))
         alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
-                                        ibs.get_alr_rowid_from_valtup, range(0, 3))
+                                        ibs.get_alr_rowid_from_valtup, unique_paramx=range(0, 3))
         return alrid_list
 
     @getter_1to1
@@ -679,17 +679,29 @@ class IBEISController(object):
         # FIXME: This should actually be a random uuid, but (key, vals) should be
         # enforced as unique as well
         # NOTE:
-        # A Case for Name UUIDs to not be determenistic
+        # A Case for Name UUIDs to not be deterministic
         # Premise: names should just be uuids
         # 0) Name text is constrained to be unique
         # 1) UUIDs are not needed for JOINS.
         #    The next name are generated each time you merge a name
-        label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
-                           izip(key_list, value_list)]
+        # A Case against deterministic UUIDS:
+        # 0) Changing the nickname would mean you have to change the UUID 
+        #label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
+        #                   izip(key_list, value_list)]
+        label_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
         colnames = ['label_uuid', 'key_rowid', 'label_value', 'label_note']
         params_iter = list(izip(label_uuid_list, key_list, value_list, note_list))
         labelid_list = ibs.db.add_cleanly(LABEL_TABLE, colnames, params_iter,
-                                          ibs.get_labelid_from_uuid)
+                                          ibs.get_label_rowid_from_keyval, unique_paramx=[1, 2])
+        return labelid_list
+
+
+    @getter_1to1
+    def get_label_rowid_from_keyval(ibs, key_list, value_list):
+        colnames = ('label_rowid',)
+        params_iter = izip(key_list, value_list)
+        where_clause = 'key_rowid=? AND label_value=?'
+        labelid_list = ibs.db.get_where(LABEL_TABLE, colnames, params_iter, where_clause)
         return labelid_list
 
     @adder
@@ -759,7 +771,7 @@ class IBEISController(object):
         colnames = ('image_rowid', 'encounter_rowid')
         params_iter = list(izip(gid_list, eid_list))
         egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
-                                        ibs.get_egr_rowid_from_valtup, range(0, 2))
+                                        ibs.get_egr_rowid_from_valtup, unique_paramx=range(0, 2))
         return egrid_list
 
     @setter

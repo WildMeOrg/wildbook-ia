@@ -377,6 +377,7 @@ class MainWindowBackend(QtCore.QObject):
     def delete_all_encounters(back):
         print('\n\n[back] delete all encounters')
         back.ibs.delete_all_encounters()
+        back.ibs.update_special_encounters()
         back.front.update_tables()
 
     @blocking_slot(int)
