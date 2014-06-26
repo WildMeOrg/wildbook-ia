@@ -78,4 +78,5 @@ class StripeProxyModel(BASE_CLASS):
     def sort(self, column, order):
         source_model = self.sourceModel()
         source_cols = source_model.columnCount()
-        source_model.sort(column % source_cols, order)
+        if source_cols > 0:
+            source_model.sort(column % source_cols, order)
