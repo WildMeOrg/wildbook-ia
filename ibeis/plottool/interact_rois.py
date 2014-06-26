@@ -273,7 +273,7 @@ class ROIInteraction(object):
             lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
             print('make_lines: linetype = %r' % type(lines))
             return lines
-
+                   
         def new_polygon(verts, theta):
             """ verts - list of (x, y) tuples """
             # create new polygon from verts
@@ -282,6 +282,7 @@ class ROIInteraction(object):
             poly.num = self.next_polynum()
             poly.theta = theta
             poly.basecoords = poly.xy
+            poly.xy = calc_display_coords(poly.basecoords, poly.theta)
             poly.lines = make_lines(poly)
             poly.handle = make_handle_line(poly)
             return poly
@@ -291,10 +292,11 @@ class ROIInteraction(object):
         # print(test_list)
         # Ensure that our input is in verts_list format
         assert verts_list is None or bbox_list is None, 'only one can be specified'
-        if bbox_list is not None:
-            verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         if theta_list is None:
             theta_list = [0 for verts in verts_list]
+        if bbox_list is not None:
+            verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
+            
         # Create the list of polygons
         poly_list = [new_polygon(verts, theta) for (verts, theta) in izip(verts_list, theta_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
