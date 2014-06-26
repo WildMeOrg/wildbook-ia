@@ -666,7 +666,7 @@ def get_infostr(ibs):
 def print_roi_table(ibs):
     """ Dumps roi table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.ANNOT_TABLE, exclude_columns=['roi_uuid', 'roi_verts']))
+    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['roi_uuid', 'roi_verts']))
 
 
 @__injectable(False)

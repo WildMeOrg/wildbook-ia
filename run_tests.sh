@@ -12,8 +12,10 @@ export CWD=$(pwd)
 
 # FIXME: Weird directory dependency
 #export PATHSEP=$(python -c "import os; print(os.pathsep)")
-export PYHESAFF_DIR=$(python -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
-export VTOOL_DIR=$(python -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
+export PY=python
+#export PY=python2.7
+export PYHESAFF_DIR=$($PY -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
+export VTOOL_DIR=$($PY -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
 echo $VTOOL_DIR
 echo $PYTHONPATH
 
@@ -85,7 +87,7 @@ EOF
 RUN_TEST()
 {
     echo "RUN_TEST: $@"
-    export TEST="python2.7 $@ $ARGV"
+    export TEST="$PY $@ $ARGV"
     $TEST
     export RETURN_CODE=$?
     PRINT_DELIMETER

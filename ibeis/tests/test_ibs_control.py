@@ -60,8 +60,9 @@ def TEST_IBS_CONTROL(ibs):
     bbox_list = [(1, 2, 3, 4)] * len(rid_list)
     ibs.set_roi_bboxes(rid_list, bbox_list)
     bbox_list2 = ibs.get_roi_bboxes(rid_list)
-    print('[TEST] bbox_list = %r' % bbox_list)
-    print('[TEST] bbox_list2 = %r' % bbox_list2)
+    print('[TEST] rid_list = %r' % (rid_list,))
+    print('[TEST] bbox_list = %r' % (bbox_list,))
+    print('[TEST] bbox_list2 = %r' % (bbox_list2,))
     assert bbox_list == bbox_list2, 'bbox lists do not match'
     # put bboxes back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)

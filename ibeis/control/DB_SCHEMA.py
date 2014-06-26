@@ -28,7 +28,7 @@ def define_IBEIS_schema(ibs):
     docstr='''
     First class table used to store image locations and meta-data''')
 
-    ibs.db.schema(constants.ANNOT_TABLE, (
+    ibs.db.schema(constants.ANNOTATION_TABLE, (
         ('annot_rowid',                    'INTEGER PRIMARY KEY'),
         ('annot_uuid',                     'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),

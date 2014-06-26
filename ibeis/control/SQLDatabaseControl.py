@@ -4,150 +4,12 @@ from itertools import imap, izip
 import re
 from os.path import join, exists
 # Tools
-import utool
-from . import __SQLITE3__ as lite
-DEBUG = False
+from ibeis.control._sql_database_control_helpers import *  # NOQA
+from ibeis.control import _sql_database_control_helpers as sqlhelpers  # NOQA
+from ibeis.control._sql_database_control_helpers import _unpacker, lite, utool
+
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql]', DEBUG=DEBUG)
-
-
-VERBOSE = utool.VERBOSE
-PRINT_SQL = utool.get_flag('--print-sql')
-AUTODUMP = utool.get_flag('--auto-dump')
-
-QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
-
-
-def default_decorator(func):
-    return func
-    #return utool.indent_func('[sql.' + func.func_name + ']')(func)
-
-# =======================
-# Helper Functions
-# =======================
-
-
-def _executor(executor, opeartion, params):
-    """ HELPER: Send command to SQL (all other results are invalided)
-    Execute an SQL Command
-    """
-    executor.execute(opeartion, params)
-
-
-def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
-    """ HELPER - Returns as many results as there are.
-    Careful. Overwrites the results once you call it.
-    Basically: Dont call this twice.
-    """
-    if get_last_id:
-        # The sqlite3_last_insert_rowid(D) interface returns the
-        # <b> rowid of the most recent successful INSERT </b>
-        # into a rowid table in D
-        _executor(executor, 'SELECT last_insert_rowid()', ())
-    # Wraping fetchone in a generator for some pretty tight calls.
-    while True:
-        result = executor.fetchone()
-        if not result:
-            raise StopIteration()
-        else:
-            # Results are always returned wraped in a tuple
-            result = result[0] if len(result) == 1 else result
-            #if get_last_id and result == 0:
-            #    result = None
-            yield result
-
-
-def _unpacker(results_):
-    """ HELPER: Unpacks results if unpack_scalars is True """
-    results = None if len(results_) == 0 else results_[0]
-    assert len(results_) < 2, 'throwing away results! { %r }' % (results_)
-    return results
-
-
-# =======================
-# SQL Context Class
-# =======================
-
-
-class SQLExecutionContext(object):
-    """ A good with context to use around direct sql calls
-    """
-    def __init__(context, db, operation, num_params=None, auto_commit=True,
-                 start_transaction=False):
-        context.auto_commit = auto_commit
-        context.db = db  # Reference to sqldb
-        context.operation = operation
-        context.num_params = num_params
-        context.start_transaction = start_transaction
-        #context.__dict__.update(locals())  # Too mystic?
-        context.operation_type = get_operation_type(operation)  # Parse the optype
-
-    def __enter__(context):
-        """ Checks to see if the operating will change the database """
-        #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
-        if context.num_params is None:
-            context.operation_label = ('[sql] execute num_params=%d optype=%s: '
-                                       % (context.num_params, context.operation_type))
-        else:
-            context.operation_label = '[sql] executeone optype=%s: ' % (context.operation_type)
-        # Start SQL Transaction
-        if context.start_transaction:
-            _executor(context.db.executor, 'BEGIN', ())
-        if PRINT_SQL:
-            print(context.operation_label)
-        # Comment out timeing code
-        #if not QUIET:
-        #    context.tt = utool.tic(context.operation_label)
-        return context
-
-    # --- with SQLExecutionContext: statment code happens here ---
-
-    def execute_and_generate_results(context, params):
-        """ HELPER FOR CONTEXT STATMENT """
-        executor = context.db.executor
-        operation = context.operation
-        try:
-            _executor(context.db.executor, operation, params)
-            is_insert = context.operation_type.upper().startswith('INSERT')
-            return _results_gen(executor, get_last_id=is_insert)
-        except lite.IntegrityError:
-            raise
-
-    def __exit__(context, type_, value, trace):
-        #if not QUIET:
-        #    utool.tic(context.tt)
-        if trace is None:
-            # Commit the transaction
-            if context.auto_commit:
-                context.db.commit(verbose=False)
-        else:
-            # An SQLError is a serious offence.
-            # Dump on error
-            print('[sql] FATAL ERROR IN QUERY')
-            context.db.dump()
-            # utool.sys.exit(1)
-
-
-def get_operation_type(operation):
-    """
-    Parses the operation_type from an SQL operation
-    """
-    operation = ' '.join(operation.split('\n')).strip()
-    operation_type = operation.split(' ')[0].strip()
-    if operation_type.startswith('SELECT'):
-        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('INSERT'):
-        operation_args = utool.str_between(operation, operation_type, '(').strip()
-    elif operation_type.startswith('UPDATE'):
-        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('DELETE'):
-        operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
-    elif operation_type.startswith('CREATE'):
-        operation_args = utool.str_between(operation, operation_type, '(').strip()
-    else:
-        operation_args = None
-    operation_type += ' ' + operation_args.replace('\n', ' ')
-    return operation_type
 
 
 class SQLDatabaseController(object):
@@ -178,11 +40,11 @@ class SQLDatabaseController(object):
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.executor   = db.connection.cursor()
-        db.table_columns = utool.odict()
-        db.cache = {}
-        db.stack = []
+        db.table_columns     = utool.odict()
         db.table_constraints = utool.odict()
-        db.table_docstr = utool.odict()
+        db.table_docstr      = utool.odict()
+        db.stack = []
+        db.cache = {}
 
     #==============
     # CONVINENCE
@@ -209,10 +71,6 @@ class SQLDatabaseController(object):
     def get_table_names(db):
         """ Conveinience: """
         return db.table_columns.keys()
-
-    def get_tables(db):
-        #DEPRICATED
-        return db.get_table_names()
 
     @default_decorator
     def get_column(db, tablename, name):
@@ -280,9 +138,8 @@ class SQLDatabaseController(object):
     #==============
 
     #@ider
-    @default_decorator
     def _get_all_ids(db, tblname, **kwargs):
-        """ valid ider """
+        """ VALID IDER """
         fmtdict = {
             'tblname': tblname,
         }
@@ -292,15 +149,21 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
-    #@ider
     @default_decorator
     def get_valid_ids(db, tblname, **kwargs):
+        """ VALID IDER """
         return db._get_all_ids(tblname, **kwargs)
 
-    #@adder
+    @default_decorator
+    def get_valid_rowids(db, tblname, **kwargs):
+        """ VALID IDER """
+        return db._get_all_ids(tblname, **kwargs)
+
     @default_decorator
     def add(db, tblname, colnames, params_iter, **kwargs):
-        """ adder """
+        """ ADDER
+        NOTE: use add_cleanly
+        """
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
         fmtdict = {
@@ -318,10 +181,10 @@ class SQLDatabaseController(object):
                                                    params_iter=params_iter, **kwargs)
         return rowid_list
 
-    #@adder
     @default_decorator
     def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, unique_paramx=[0]):
         """
+        ADDER
         Extra input:
             the first item of params_iter must be a uuid,
         uuid_list - a non-rowid column which identifies a row
@@ -480,11 +343,17 @@ class SQLDatabaseController(object):
             print('[sql] * val_list=%r' % (val_list,))
             print('[sql] * id_list=%r' % (id_list,))
             print('[sql] * id_colname=%r' % (id_colname,))
-        assert  len(val_list) == len(id_list), 'list inputs have different lengths'
+        try:
+            num_val = len(val_list)
+            num_id = len(id_list)
+            assert num_val == num_id, 'list inputs have different lengths'
+        except AssertionError as ex:
+            utool.printex(ex, key_list=['num_val', 'num_id'])
+            raise
         fmtdict = {
-            'tblname_str': tblname,
-            'assign_str': ',\n'.join(['%s=?' % name for name in colnames]),
-            'where_clause'   : (id_colname + '=?'),
+            'tblname_str'  : tblname,
+            'assign_str'   : ',\n'.join(['%s=?' % name for name in colnames]),
+            'where_clause' : (id_colname + '=?'),
         }
         operation_fmt = '''
             UPDATE {tblname_str}
@@ -519,17 +388,19 @@ class SQLDatabaseController(object):
     #==============
 
     @default_decorator
-    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None):
+    def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None, **kwargs):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, params, auto_commit=True,  verbose=VERBOSE)
+        return db.executeone(operation, params, auto_commit=True,
+                             verbose=VERBOSE, **kwargs)
 
     @default_decorator
-    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter, unpack_scalars=True):
+    def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
+                                   unpack_scalars=True, **kwargs):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
-                              auto_commit=True, verbose=VERBOSE)
+                              auto_commit=True, verbose=VERBOSE, **kwargs)
 
     #=========
     # SQLDB CORE
@@ -540,7 +411,7 @@ class SQLDatabaseController(object):
     def sanatize_sql(db, tablename, columns=None):
         """ Sanatizes an sql tablename and column. Use sparingly """
         tablename = re.sub('[^a-z_0-9]', '', tablename)
-        valid_tables = db.get_tables()
+        valid_tables = db.get_table_names()
         if tablename not in valid_tables:
             raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
         if columns is None:
@@ -634,6 +505,7 @@ class SQLDatabaseController(object):
     def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE, unpack_scalars=True, num_params=None):
         """
+        TODO: SEPARATE
         Input:
             operation - an sql command to be executed e.g.
                 operation = '''
@@ -647,27 +519,33 @@ class SQLDatabaseController(object):
         Output:
             results_iter - a sequence of data results
         """
+        # --- ARGS PREPROC ---
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
             params_iter = list(params_iter)
             num_params  = len(params_iter)
         # Do not compute executemany without params
         if num_params == 0:
-            utool.printif(lambda: '[sql!] WARNING: dont use executemany with no params use executeone instead.', VERBOSE)
+            utool.printif(
+                lambda: ('[sql!] WARNING: dont use executemany'
+                         'with no params use executeone instead.'), VERBOSE)
             return []
-        # Execute with context
-        with SQLExecutionContext(db, operation, num_params,
-                                 start_transaction=True) as context:
+        # --- SQL EXECUTION CODE ---
+        def closure_execute_many(context):
+            _sql_exec_gen = context.execute_and_generate_results
+            results_iter = map(list, (_sql_exec_gen(params) for params in params_iter))  # list of iterators
+            if unpack_scalars:
+                results_iter = list(imap(_unpacker, results_iter))  # list of iterators
+            results_list = list(results_iter)  # Eager evaluation
+            return results_list
+        # --- SQL EXECUTION ---
+        contextkw = {'num_params': num_params, 'start_transaction': True}
+        with SQLExecutionContext(db, operation, **contextkw) as context:
             try:
-                # Execute each query and get results with a list comprehension
-                # using the SQLExecutionContext (with eager evalutaion for now)
-                results_iter = map(list, (context.execute_and_generate_results(params) for params in params_iter))
-                if unpack_scalars:
-                    results_iter = list(imap(_unpacker, results_iter))
-                results_list = list(results_iter)  # Eager evaluation of results (for development)
+                locals_ = locals()
+                results_list = closure_execute_many(context)
             except Exception as ex:
-                # Error reporting
-                utool.printex(ex, key_list=[(str, 'operation'), 'num_params', 'params_iter'])
+                utool.printex(ex, utool.dict_str(locals_))
                 raise
         return results_list
 
@@ -679,18 +557,18 @@ class SQLDatabaseController(object):
             error handling without comprimising the integrity of the database.
         """
         try:
-            if not all(qstat_flag_list):
-                raise lite.DatabaseError(errmsg)
+            if not all(qstat_flag_list):  # DEPRICATE
+                raise lite.DatabaseError(errmsg)  # DEPRICATE
             else:
                 db.connection.commit()
                 if AUTODUMP:
                     db.dump(auto_commit=False)
         except lite.Error as ex2:
-            print('\n<!!! ERROR>')
+            print('\n<!!! ERROR>')  # DEPRICATE
             utool.printex(ex2, '[!sql] Caught ex2=')
-            caller_name = utool.util_dbg.get_caller_name()
-            print('[!sql] caller_name=%r' % caller_name)
-            print('</!!! ERROR>\n')
+            caller_name = utool.util_dbg.get_caller_name()  # DEPRICATE
+            print('[!sql] caller_name=%r' % caller_name)  # DEPRICATE
+            print('</!!! ERROR>\n')  # DEPRICATE
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
     @default_decorator
@@ -715,7 +593,7 @@ class SQLDatabaseController(object):
             with open(dump_fpath, 'w') as file_:
                 db.dump(file_, auto_commit)
         else:
-            print('[sql.dump]')
+            print('[sql.dump]')  # DEPRICATE
             if auto_commit:
                 db.commit(verbose=False)
             for line in db.connection.iterdump():

@@ -49,7 +49,7 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            default_decorator)
 # CONSTANTS
 from ibeis.constants import (IMAGE_TABLE,
-                             ANNOT_TABLE,
+                             ANNOTATION_TABLE,
                              LABEL_TABLE,
                              ENCOUNTER_TABLE,
                              EG_RELATION_TABLE,
@@ -64,10 +64,8 @@ from ibeis.constants import (IMAGE_TABLE,
     __name__, '[ibs]', DEBUG=False)
 
 
-__USTRCAST__ = str  # change to unicode if needed
+__STR__ = str  # change to unicode if needed
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
-
-
 
 
 @atexit.register
@@ -353,7 +351,7 @@ class IBEISController(object):
     @ider
     def _get_all_rids(ibs):
         """ returns a all ROI ids """
-        all_rids = ibs.db.get_executeone(ANNOT_TABLE, ('annot_rowid',))
+        all_rids = ibs.db.get_executeone(ANNOTATION_TABLE, ('annot_rowid',))
         return sorted(all_rids)
 
     @ider
@@ -554,7 +552,7 @@ class IBEISController(object):
         roi_uuid_list = ibsfuncs.make_roi_uuids(image_uuid_list, bbox_list,
                                                 theta_list, deterministic=False)
         nVert_list = [len(verts) for verts in vert_list]
-        vertstr_list = [str(verts) for verts in vert_list]
+        vertstr_list = [__STR__(verts) for verts in vert_list]
         xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
         assert len(nVert_list) == len(vertstr_list)
         # Define arguments to insert
@@ -571,10 +569,11 @@ class IBEISController(object):
 
         # Execute add ROIs SQL
         get_rowid_from_uuid = ibs.get_roi_rids_from_uuid
-        rid_list = ibs.db.add_cleanly(ANNOT_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        rid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         # Also need to populate roi_label_relationship table
         alrid_list = ibs.add_roi_relationship(rid_list, nid_list)
+        del alrid_list
         #print('alrid_list = %r' % (alrid_list,))
 
         # Invalidate image thumbnails
@@ -685,7 +684,7 @@ class IBEISController(object):
         # Premise: names should just be uuids
         # 0) Name text is constrained to be unique
         # 1) UUIDs are not needed for JOINS.
-        #    New names are generated each time you merge a name
+        #    The next name are generated each time you merge a name
         label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
                            izip(key_list, value_list)]
         colnames = ['label_uuid', 'key_rowid', 'label_value', 'label_note']
@@ -723,30 +722,30 @@ class IBEISController(object):
         An absolute path can either be on this machine or on the cloud
         A relative path is relative to the ibeis image cache on this machine.
         """
-        id_list = ((gid,) for gid in gid_list)
+        id_iter = ((gid,) for gid in gid_list)
         val_list = ((new_gpath,) for new_gpath in new_gpath_list)
-        ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_iter)
 
     @setter
     def set_image_aifs(ibs, gid_list, aif_list):
         """ Sets the image all instances found bit """
-        id_list = ((gid,) for gid in gid_list)
+        id_iter = ((gid,) for gid in gid_list)
         val_list = ((aif,) for aif in aif_list)
-        ibs.db.set(IMAGE_TABLE, ('image_toggle_aif',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_toggle_aif',), val_list, id_iter)
 
     @setter
     def set_image_notes(ibs, gid_list, notes_list):
         """ Sets the image all instances found bit """
-        id_list = ((gid,) for gid in gid_list)
+        id_iter = ((gid,) for gid in gid_list)
         val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(IMAGE_TABLE, ('image_note',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_note',), val_list, id_iter)
 
     @setter
     def set_image_unixtime(ibs, gid_list, unixtime_list):
         """ Sets the image unixtime (does not modify exif yet) """
-        id_list = ((gid,) for gid in gid_list)
+        id_iter = ((gid,) for gid in gid_list)
         val_list = ((unixtime,) for unixtime in unixtime_list)
-        ibs.db.set(IMAGE_TABLE, ('image_time_posix',), val_list, id_list)
+        ibs.db.set(IMAGE_TABLE, ('image_time_posix',), val_list, id_iter)
 
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
@@ -754,18 +753,7 @@ class IBEISController(object):
         print('[ibs] Setting %r image encounter ids' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
         egrid_list = ibs.add_image_relationship(gid_list, eid_list)
-        # ibs.db.executemany(
-        #     operation='''
-        #     INSERT OR IGNORE INTO encounter_image_relationship(
-        #         egpair_rowid,
-        #         image_rowid,
-        #         encounter_rowid
-        #     ) VALUES (NULL, ?, ?)
-        #     ''',
-        #     params_iter=izip(gid_list, eid_list))
-        # DOES NOT WORK
-        #gid_list = ibs.db.add_cleanly(tblname, colnames, params_iter,
-        #                              get_rowid_from_uuid=(lambda gid: gid))
+        del egrid_list
 
     @adder
     def add_image_relationship(ibs, gid_list, eid_list):
@@ -776,72 +764,78 @@ class IBEISController(object):
         return egrid_list
 
     @setter
-    def set_image_gps(ibs, gid_list, gps_list):
-        id_list = ((gid,) for gid in gid_list)
+    def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
         # see get_image_gps for how the gps_list should look
-        lat_list = [tup[0] for tup in gps_list]
-        lon_list = [tup[1] for tup in gps_list]
+        if gps_list is not None:
+            assert lat_list is None
+            assert lon_list is None
+            lat_list = [tup[0] for tup in gps_list]
+            lon_list = [tup[1] for tup in gps_list]
         colnames = ('image_gps_lat', 'image_gps_lon',)
         val_list = izip(lat_list, lon_list)
-        ibs.db.set(IMAGE_TABLE, colnames, val_list, id_list)
+        id_iter = ((gid,) for gid in gid_list)
+        ibs.db.set(IMAGE_TABLE, colnames, val_list, id_iter)
 
     # SETTERS::ROI
 
     @setter
     def set_roi_exemplar_flag(ibs, rid_list, flag_list):
-        id_list = ((rid,) for rid in rid_list)
-        val_list = ((flag,) for flag in flag_list)
-        ibs.db.set(ANNOT_TABLE, ('annot_exemplar_flag',), val_list, id_list)
+        id_iter = ((rid,) for rid in rid_list)
+        val_iter = ((flag,) for flag in flag_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_exemplar_flag',), val_iter, id_iter)
 
     @setter
     def set_roi_bboxes(ibs, rid_list, bbox_list):
         """ Sets ROIs of a list of rois by rid, where roi_list is a list of
-            (x, y, w, h) tuples """
+            (x, y, w, h) tuples
+
+        NOTICE: set_roi_bboxes is a proxy for set_roi_verts
+        """
         # changing the bboxes also changes the bounding polygon
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
         # naively overwrite the bounding polygon with a rectangle - for now trust the user!
         ibs.set_roi_verts(rid_list, vert_list)
         colnames = ['annot_xtl', 'annot_ytl', 'annot_width', 'annot_height']
-        ibs.db.set(ANNOT_TABLE, colnames, bbox_list, rid_list)
+        ibs.db.set(ANNOTATION_TABLE, colnames, bbox_list, rid_list)
 
     @setter
     def set_roi_thetas(ibs, rid_list, theta_list):
         """ Sets thetas of a list of chips by rid """
         ibs.delete_roi_chips(rid_list)  # Changing theta redefines the chips
-        id_list = ((rid,) for rid in rid_list)
+        id_iter = ((rid,) for rid in rid_list)
         val_list = ((theta,) for theta in theta_list)
-        ibs.db.set(ANNOT_TABLE, ('annot_theta',), val_list, id_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_theta',), val_list, id_iter)
 
     @setter
     def set_roi_verts(ibs, rid_list, verts_list):
         """ Sets the vertices [(x, y), ...] of a list of chips by rid """
-        ibs.delete_roi_chips(rid_list)
-        num_verts_list = [len(verts) for verts in verts_list]
-        verts_as_strings = [str(verts) for verts in verts_list]
-        # need a list comprehension because we want to re-use id_list
-        id_list = [(rid,) for rid in rid_list]
+        num_params = len(rid_list)
+        # Compute data to set
+        num_verts_list   = imap(len, verts_list)
+        verts_as_strings = imap(__STR__, verts_list)
+        id_iter1 = ((rid,) for rid in rid_list)
         # also need to set the internal number of vertices
-        val_list = ((num_verts, verts) for (num_verts, verts)
-        			in izip(num_verts_list, verts_as_strings))
+        val_iter1 = ((num_verts, verts) for (num_verts, verts)
+                     in izip(num_verts_list, verts_as_strings))
         colnames = ('annot_num_verts', 'annot_verts',)
-        ibs.db.set(ANNOT_TABLE, colnames, val_list, id_list)
-
+        # SET VERTS in ANNOTATION_TABLE
+        ibs.db.set(ANNOTATION_TABLE, colnames, val_iter1, id_iter1, num_params=num_params)
         # changing the vertices also changes the bounding boxes
-        bbox_list = geometry.bboxes_from_vert_list(verts_list)	# new bboxes
+        bbox_list = geometry.bboxes_from_vert_list(verts_list)  	# new bboxes
         xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
-
+        val_iter2 = izip(xtl_list, ytl_list, width_list, height_list)
+        id_iter2 = ((rid,) for rid in rid_list)
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
-        val_list2 = ((xtl, ytl, width, height)
-        				for (xtl, ytl, width, height) in
-        				izip(xtl_list, ytl_list, width_list, height_list))
-        ibs.db.set(ANNOT_TABLE, colnames, val_list2, id_list)
+        # SET BBOX in ANNOTATION_TABLE
+        ibs.db.set(ANNOTATION_TABLE, colnames, val_iter2, id_iter2, num_params=num_params)
+        ibs.delete_roi_chips(rid_list)  # INVALIDATE THUMBNAILS
 
     @setter
     def set_roi_notes(ibs, rid_list, notes_list):
         """ Sets roi notes """
-        id_list = ((rid,) for rid in rid_list)
+        id_iter = ((rid,) for rid in rid_list)
         val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(ANNOT_TABLE, ('annot_note',), val_list, id_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_note',), val_list, id_iter)
 
     @setter
     def set_roi_names(ibs, rid_list, name_list=None, nid_list=None):
@@ -872,31 +866,31 @@ class IBEISController(object):
     @setter
     def set_name_notes(ibs, nid_list, notes_list):
         """ Sets notes of names (groups of animals) """
-        id_list = ((nid,) for nid in nid_list)
+        id_iter = ((nid,) for nid in nid_list)
         val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(LABEL_TABLE, ('label_note',), val_list, id_list)
+        ibs.db.set(LABEL_TABLE, ('label_note',), val_list, id_iter)
 
     @setter
     def set_name_names(ibs, nid_list, name_list):
         """ Changes the name text. Does not affect the animals of this name """
         ibsfuncs.assert_valid_names(name_list)
-        id_list = ((nid,) for nid in nid_list)
+        id_iter = ((nid,) for nid in nid_list)
         val_list = ((name,) for name in name_list)
-        ibs.db.set(LABEL_TABLE, ('label_value',), val_list, id_list)
+        ibs.db.set(LABEL_TABLE, ('label_value',), val_list, id_iter)
 
     @setter
     def set_encounter_props(ibs, eid_list, key, value_list):
         print('[ibs] set_encounter_props')
-        id_list = ((eid,) for eid in eid_list)
+        id_iter = ((eid,) for eid in eid_list)
         val_list = ((value,) for value in value_list)
-        ibs.db.set(ENCOUNTER_TABLE, key, val_list, id_list)
+        ibs.db.set(ENCOUNTER_TABLE, key, val_list, id_iter)
 
     @setter
     def set_encounter_enctext(ibs, eid_list, names_list):
         """ Sets names of encounters (groups of animals) """
-        id_list = ((eid,) for eid in eid_list)
+        id_iter = ((eid,) for eid in eid_list)
         val_list = ((names,) for names in names_list)
-        ibs.db.set(ENCOUNTER_TABLE, ('encounter_text',), val_list, id_list)
+        ibs.db.set(ENCOUNTER_TABLE, ('encounter_text',), val_list, id_iter)
 
     #
     #
@@ -934,7 +928,7 @@ class IBEISController(object):
         bboxes_list = ibsfuncs.unflat_map(ibs.get_roi_bboxes, rids_list)
         thetas_list = ibsfuncs.unflat_map(ibs.get_roi_thetas, rids_list)
         thumb_dpath = ibs.thumb_dpath
-        thumb_gpaths = [join(thumb_dpath, str(uuid) + 'thumb.png')
+        thumb_gpaths = [join(thumb_dpath, __STR__(uuid)  + constants.IMAGE_THUMB_SUFFIX)
                         for uuid in img_uuid_list]
         image_paths = ibs.get_image_paths(gid_list)
         thumbtup_list = list(izip(thumb_gpaths, image_paths, bboxes_list, thetas_list))
@@ -1065,7 +1059,7 @@ class IBEISController(object):
     def get_image_rids(ibs, gid_list):
         """ Returns a list of rids for each image by gid """
         #print('gid_list = %r' % (gid_list,))
-        rids_list = ibs.db.get(ANNOT_TABLE, ('annot_rowid',), gid_list,
+        rids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), gid_list,
                                 id_colname='image_rowid',
                                 unpack_scalars=False)
         #print('rids_list = %r' % (rids_list,))
@@ -1081,26 +1075,26 @@ class IBEISController(object):
 
     @getter_1to1
     def get_roi_exemplar_flag(ibs, rid_list):
-        roi_uuid_list = ibs.db.get(ANNOT_TABLE, ('annot_exemplar_flag',), rid_list)
+        roi_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_exemplar_flag',), rid_list)
         return roi_uuid_list
 
     @getter_1to1
     def get_roi_uuids(ibs, rid_list):
         """ Returns a list of image uuids by gid """
-        roi_uuid_list = ibs.db.get(ANNOT_TABLE, ('annot_uuid',), rid_list)
+        roi_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_uuid',), rid_list)
         return roi_uuid_list
 
     @getter_1to1
     def get_roi_rids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
-        rids_list = ibs.db.get(ANNOT_TABLE, ('annot_rowid',), uuid_list,
+        rids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), uuid_list,
                                id_colname='annot_uuid')
         return rids_list
 
     @getter_1to1
     def get_roi_detect_confidence(ibs, rid_list):
         """ Returns a list confidences that the rois is a valid detection """
-        roi_detect_confidence_list = ibs.db.get(ANNOT_TABLE,
+        roi_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE,
                                                 ('annot_detect_confidence',),
                                                 rid_list)
         return roi_detect_confidence_list
@@ -1108,7 +1102,7 @@ class IBEISController(object):
     @getter_1to1
     def get_roi_notes(ibs, rid_list):
         """ Returns a list of roi notes """
-        roi_notes_list = ibs.db.get(ANNOT_TABLE, ('annot_note',), rid_list)
+        roi_notes_list = ibs.db.get(ANNOTATION_TABLE, ('annot_note',), rid_list)
         return roi_notes_list
 
     @utool.accepts_numpy
@@ -1116,25 +1110,25 @@ class IBEISController(object):
     def get_roi_bboxes(ibs, rid_list):
         """ returns roi bounding boxes in image space """
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height')
-        bbox_list = ibs.db.get(ANNOT_TABLE, colnames, rid_list)
+        bbox_list = ibs.db.get(ANNOTATION_TABLE, colnames, rid_list)
         return bbox_list
 
     @getter_1to1
     def get_roi_thetas(ibs, rid_list):
         """ Returns a list of floats describing the angles of each chip """
-        theta_list = ibs.db.get(ANNOT_TABLE, ('annot_theta',), rid_list)
+        theta_list = ibs.db.get(ANNOTATION_TABLE, ('annot_theta',), rid_list)
         return theta_list
 
     @getter_1to1
     def get_roi_num_verts(ibs, rid_list):
         """ Returns the number of vertices that form the polygon of each chip """
-        num_verts_list = ibs.db.get(ANNOT_TABLE, ('annot_num_verts',), rid_list)
+        num_verts_list = ibs.db.get(ANNOTATION_TABLE, ('annot_num_verts',), rid_list)
         return num_verts_list
 
     @getter_1to1
     def get_roi_verts(ibs, rid_list):
         """ Returns the vertices that form the polygon of each chip """
-        vertstr_list = ibs.db.get(ANNOT_TABLE, ('annot_verts',), rid_list)
+        vertstr_list = ibs.db.get(ANNOTATION_TABLE, ('annot_verts',), rid_list)
         # TODO: Sanatize input for eval
         #print('vertstr_list = %r' % (vertstr_list,))
         return [eval(vertstr) for vertstr in vertstr_list]
@@ -1143,7 +1137,7 @@ class IBEISController(object):
     @getter_1to1
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        gid_list = ibs.db.get(ANNOT_TABLE, ('image_rowid',), rid_list,
+        gid_list = ibs.db.get(ANNOTATION_TABLE, ('image_rowid',), rid_list,
                               id_colname='annot_rowid')
         #try:
         #    utool.assert_all_not_None(gid_list, 'gid_list')
@@ -1335,10 +1329,7 @@ class IBEISController(object):
     @getter_1to1
     def get_roi_chip_thumbtup(ibs, rid_list):
         roi_uuid_list = ibs.get_roi_uuids(rid_list)
-        roi_theta_list = ibs.get_roi_thetas(rid_list)
-        # PSA: Do not use ensurepath here. Move to an initialcheck on creation
-        # and save thumb_dpath as an IBEIS path
-        thumb_gpaths = [join(ibs.thumb_dpath, str(uuid) + 'chip_thumb.png')
+        thumb_gpaths = [join(ibs.thumb_dpath, __STR__(uuid) + constants.CHIP_THUMB_SUFFIX)
                         for uuid in roi_uuid_list]
         image_paths = ibs.get_roi_cpaths(rid_list)
         thumbtup_list = [(thumb_path, img_path, [], [])
@@ -1546,9 +1537,9 @@ class IBEISController(object):
         #name_list = ibs.get_name_props('name_text', nid_list_)
         if distinguish_unknowns:
             name_list  = [name if nid is not None and nid > 0
-                          else name + str(-nid) if nid is not None else ibs.UNKNOWN_NAME
+                          else name + __STR__(-nid) if nid is not None else ibs.UNKNOWN_NAME
                           for (name, nid) in izip(name_list, nid_list)]
-        name_list  = list(imap(__USTRCAST__, name_list))
+        name_list  = list(imap(__STR__, name_list))
 
         return name_list
 
@@ -1635,7 +1626,7 @@ class IBEISController(object):
         """ Returns encounter_text of each eid in eid_list """
         enctext_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_text',), eid_list,
                                   id_colname='encounter_rowid')
-        enctext_list = list(imap(__USTRCAST__, enctext_list))
+        enctext_list = list(imap(__STR__, enctext_list))
         return enctext_list
 
     @getter_1to1
@@ -1668,7 +1659,7 @@ class IBEISController(object):
     def delete_names(ibs, nid_list):
         """ deletes names from the database
         (CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
-        ENSURE THAT NONE OF THE NIDS HAVE ANNOT_TABLE)
+        ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE)
         """
         print('[ibs] deleting %d names' % len(nid_list))
         ibs.db.delete(LABEL_TABLE, nid_list)
@@ -1679,7 +1670,7 @@ class IBEISController(object):
         print('[ibs] deleting %d rois' % len(rid_list))
         # Delete chips and features first
         ibs.delete_roi_chips(rid_list)
-        ibs.db.delete(ANNOT_TABLE, rid_list)
+        ibs.db.delete(ANNOTATION_TABLE, rid_list)
 
     @deleter
     def delete_images(ibs, gid_list):

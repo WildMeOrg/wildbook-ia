@@ -19,7 +19,7 @@ UNKNOWN_NAME = '____'
 ENCTEXT_PREFIX = 'enc_'
 
 IMAGE_TABLE       = 'images'
-ANNOT_TABLE       = 'annotations'
+ANNOTATION_TABLE       = 'annotations'
 LABEL_TABLE       = 'labels'
 ENCOUNTER_TABLE   = 'encounters'
 EG_RELATION_TABLE = 'encounter_image_relationship'
@@ -43,3 +43,6 @@ NEW_YELLOW_RGBA01    = NEW_YELLOW_RGBA255 / 255.0
 
 EXEMPLAR_ENCTEXT = 'Exemplars'
 ALLIMAGE_ENCTEXT = 'All_Images'
+
+IMAGE_THUMB_SUFFIX = '_thumb.png'
+CHIP_THUMB_SUFFIX = '_chip_thumb.png'
