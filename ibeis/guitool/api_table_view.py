@@ -7,6 +7,7 @@ from guitool.api_thumb_delegate import APIThumbDelegate
 from guitool.api_button_delegate import APIButtonDelegate
 from guitool.guitool_decorators import signal_, slot_
 from guitool.api_table_model import APITableModel
+from guitool.stripe_proxy_model import StripeProxyModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
@@ -161,7 +162,7 @@ class APITableView(API_VIEW_BASE):
             model = model_or_proxy.sourceModel()
         else:
             model = model_or_proxy
-        assert isinstance(model, APITableModel), 'apitblview only accepts apitblemodels, received a %r' % type(model)
+        assert isinstance(model, (StripeProxyModel, APITableModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)
         # Learn some things about the model before you fully connect it.
         print('[view] setting model')
         model._rows_updated.connect(view.on_rows_updated)
