@@ -1856,11 +1856,18 @@ class IBEISController(object):
         return drid_list
 
     @default_decorator
+    def query_exemplars(ibs, qrid_list, **kwargs):
+        drid_list = ibs.get_valid_rids(is_exemplar=True)
+        assert len(drid_list) > 0, 'there are no exemplars'
+        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        return qrid2_qres
+
+    @default_decorator
     def query_intra_encounter(ibs, qrid_list, **kwargs):
         """ _query_chips wrapper """
         drid_list = qrid_list
-        qres_list = ibs._query_chips(qrid_list, drid_list, **kwargs)
-        return qres_list
+        qrid2_qres = ibs._query_chips(qrid_list, drid_list, **kwargs)
+        return qrid2_qres
 
     @default_decorator
     def prep_qreq_encounter(ibs, qrid_list):

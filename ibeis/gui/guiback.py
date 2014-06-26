@@ -442,16 +442,20 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] compute_queries: eid=%r' % (eid,))
         back.compute_feats(refresh=False, **kwargs)
         valid_rids = back.ibs.get_valid_rids(eid=eid)
-        if eid is None:
-            qrid2_qres = back.ibs.query_database(valid_rids)
+        if kwargs.get('get_vs_exemplars', False):
+            if eid is None:
+                qrid2_qres = back.ibs.query_database(valid_rids)
+            else:
+                qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
         else:
-            qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
+            qrid2_qres = back.ibs.query_exemplars(valid_rids)
         back.encounter_query_results[eid].update(qrid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
+
 
     @blocking_slot()
     def review_queries(back, **kwargs):

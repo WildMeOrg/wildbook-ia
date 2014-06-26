@@ -367,7 +367,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 enctext = constants.ALLIMAGE_ENCTEXT
             else:
                 enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.button_list[3].setText('Identify\nQUERY(%r)' % enctext)
+            ibswgt.button_list[3].setText('Identify\nQUERY(%r vs. %r)' % (enctext, enctext))
+            ibswgt.button_list[4].setText('Identify\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
         except Exception:
             pass
 
