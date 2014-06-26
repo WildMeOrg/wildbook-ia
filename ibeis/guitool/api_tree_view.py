@@ -35,6 +35,7 @@ class APITreeView(API_VIEW_BASE):
         API_VIEW_BASE.__init__(view, parent)
         # Allow sorting by column
         view._init_tree_behavior()
+        view.col_hidden_list = []
         ##view._init_header_behavior()
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -46,45 +47,14 @@ class APITreeView(API_VIEW_BASE):
 
     def _init_tree_behavior(view):
         """ Tree behavior """
-        #view.setCornerButtonEnabled(False)
         view.setWordWrap(True)
         view.setSortingEnabled(True)
-        #view.setShowGrid(True)
-
-        # Selection behavior
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectColumns)
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-
-        # Selection behavior
-        #view.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
-
-        # Edit Triggers
-        #view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)  # No Editing
-        #view.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked)
-        #QtGui.QAbstractItemView.NoEditTriggers  |  # 0
-        #QtGui.QAbstractItemView.CurrentChanged  |  # 1
-        #QtGui.QAbstractItemView.DoubleClicked   |  # 2
-        #QtGui.QtGui.QAbstractItemView.SelectedClicked |  # 4
-        #QtGui.QAbstractItemView.EditKeyPressed  |  # 8
-        #QtGui.QAbstractItemView.AnyKeyPressed      # 16
-        #view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers
-        #view.setEditTriggers(view._defaultEditTriggers)
-        # TODO: Figure out how to not edit when you are selecting
-        #view.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
-
-        #view.setIconSize(QtCore.QSize(64, 64))
 
     def _init_header_behavior(view):
         """ Header behavior """
         # Row Headers
         verticalHeader = view.verticalHeader()
         verticalHeader.setVisible(True)
-        #verticalHeader.setSortIndicatorShown(True)
         verticalHeader.setHighlightSections(True)
         verticalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
         verticalHeader.setMovable(True)
@@ -117,16 +87,6 @@ class APITreeView(API_VIEW_BASE):
     def itemDelegate(view, qindex):
         """ QtOverride: Returns item delegate for this index """
         return API_VIEW_BASE.itemDelegate(view, qindex)
-
-    def collapse(view, qindex):
-        """ QtOverride: Callback for collapse """
-        print("collapse at (%d,%d)" % (qindex.row(), qindex.col()))
-        return API_VIEW_BASE.collapse(view, qindex)
-
-    def expand(view, qindex):
-        """ QtOverride: Callback for expand """
-        print("expand at (%d,%d)" % (qindex.row(), qindex.col()))
-        return API_VIEW_BASE.expand(view, qindex)
 
     #def keyPressEvent(view, event):
     #    assert isinstance(event, QtGui.QKeyEvent)
@@ -161,6 +121,9 @@ class APITreeView(API_VIEW_BASE):
         # Get header info
         col_sort_index = headers.get('col_sort_index', None)
         col_sort_reverse = headers.get('col_sort_reverse', False)
+        view.col_hidden_list = headers.get('col_hidden_list', [])
+        for col, hidden in enumerate(view.col_hidden_list):
+            view.setColumnHidden(col, hidden)
         # Call updates
         view._set_sort(col_sort_index, col_sort_reverse)
         view.infer_delegates(**headers)
@@ -181,6 +144,11 @@ class APITreeView(API_VIEW_BASE):
         if col_sort_index is not None:
             order = [Qt.AscendingOrder, Qt.DescendingOrder][col_sort_reverse]
             view.sortByColumn(col_sort_index, order)
+
+    def hide_cols(view):
+        for col, hidden in enumerate(view.col_hidden_list):
+            view.setColumnHidden(col, hidden)
+
 
     #---------------
     # Slots

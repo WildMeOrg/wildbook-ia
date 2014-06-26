@@ -36,6 +36,7 @@ class APITableView(API_VIEW_BASE):
         # Allow sorting by column
         view._init_table_behavior()
         view._init_header_behavior()
+        view.col_hidden_list = []
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
@@ -134,6 +135,8 @@ class APITableView(API_VIEW_BASE):
         # Get header info
         col_sort_index = headers.get('col_sort_index', None)
         col_sort_reverse = headers.get('col_sort_reverse', False)
+        view.col_hidden_list = headers.get('col_hidden_list', [])
+        view.setColumnHidden(0, True)
         # Call updates
         view._set_sort(col_sort_index, col_sort_reverse)
         view.infer_delegates(**headers)
@@ -143,6 +146,10 @@ class APITableView(API_VIEW_BASE):
         if col_sort_index is not None:
             order = [Qt.AscendingOrder, Qt.DescendingOrder][col_sort_reverse]
             view.sortByColumn(col_sort_index, order)
+
+    def hide_cols(view):
+        for col, hidden in enumerate(view.col_hidden_list):
+            view.setColumnHidden(col, hidden)
 
     #---------------
     # Qt Overrides
