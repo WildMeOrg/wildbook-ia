@@ -96,18 +96,18 @@ class ChangeLayoutContext(object):
 
     def __enter__(self):
         for model in self.model_list:
-            if model._context_id is not None:
+            if model._get_context_id() is not None:
                 continue
-            model._context_id = id(self)
+            model._set_context_id(id(self))
             model._about_to_change()
-            model._changeblocked = True
+            model._set_changeblocked(True)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.model_list:
-            if model._context_id == id(self):
-                model._context_id = None
-                model._changeblocked = False
+            if model._get_context_id() == id(self):
+                model._set_context_id(None)
+                model._set_changeblocked(False)
                 model._change()
 
 
@@ -145,6 +145,17 @@ class APITableModel(API_MODEL_BASE):
     TrueItemColor     = QtGui.QColor(230, 250, 230)
     FalseItemColor    = QtGui.QColor(250, 230, 230)
 
+    def _set_context_id(self, id_):
+        self._context_id = id_
+
+    def _get_context_id(self):
+        return self._context_id
+
+    def _set_changeblocked(self, changeblocked_):
+        self._changeblocked = changeblocked_
+
+    def _get_changeblocked(self):
+        return self._changeblocked
     #
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):

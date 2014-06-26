@@ -156,19 +156,15 @@ class APITableView(API_VIEW_BASE):
     # Qt Overrides
     #---------------
 
-    def setModel(view, model_or_proxy):
+    def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
-        if isinstance(model_or_proxy, QtGui.QAbstractProxyModel):
-            model = model_or_proxy.sourceModel()
-        else:
-            model = model_or_proxy
         assert isinstance(model, (StripeProxyModel, APITableModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)
         # Learn some things about the model before you fully connect it.
         print('[view] setting model')
         model._rows_updated.connect(view.on_rows_updated)
         #view.infer_delegates_from_model(model=model)
         # TODO: Update headers
-        return API_VIEW_BASE.setModel(view, model_or_proxy)
+        return API_VIEW_BASE.setModel(view, model)
 
     def itemDelegate(view, qindex):
         """ QtOverride: Returns item delegate for this index """
