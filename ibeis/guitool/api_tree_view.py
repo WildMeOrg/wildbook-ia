@@ -122,12 +122,18 @@ class APITreeView(API_VIEW_BASE):
         col_sort_index = headers.get('col_sort_index', None)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         view.col_hidden_list = headers.get('col_hidden_list', [])
-        for col, hidden in enumerate(view.col_hidden_list):
-            view.setColumnHidden(col, hidden)
         # Call updates
         view._set_sort(col_sort_index, col_sort_reverse)
         view.infer_delegates(**headers)
         #view.resizeColumnsToContents()
+
+    def set_column_persistant_editor(cltw, column):
+        """ Set each row in a column as persistant """
+        num_rows = cltw.model.rowCount()
+        print('cltw.set_persistant: %r rows' % num_rows)
+        for row in xrange(num_rows):
+            index  = cltw.model.index(row, column)
+            cltw.view.openPersistentEditor(index)
 
     def infer_delegates(view, **headers):
         """ Infers which columns should be given item delegates """
@@ -163,21 +169,6 @@ class APITreeView(API_VIEW_BASE):
     def on_customMenuRequested(view, pos):
         index = view.indexAt(pos)
         view.contextMenuClicked.emit(index, pos)
-
-    def set_column_as_delegate(view, column, delegate_type):
-        """ Checks delegate type from tuple"""
-        DelegateClass = guitool.DELEGATE_MAP[delegate_type]
-        print('view.setItemDelegateForColumn(%r, %r)' % (column, delegate_type))
-        view.setItemDelegateForColumn(column, DelegateClass(view))
-        return DelegateClass.is_persistant_editable
-
-    def set_column_persistant_editor(cltw, column):
-        """ Set each row in a column as persistant """
-        num_rows = cltw.model.rowCount()
-        print('cltw.set_persistant: %r rows' % num_rows)
-        for row in xrange(num_rows):
-            index  = cltw.model.index(row, column)
-            cltw.view.openPersistentEditor(index)
 
     def copy_selection_to_clipboard(view):
         """ Copys selected grid to clipboard """

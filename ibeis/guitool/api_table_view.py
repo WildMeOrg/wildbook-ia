@@ -137,7 +137,6 @@ class APITableView(API_VIEW_BASE):
         col_sort_index = headers.get('col_sort_index', None)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         view.col_hidden_list = headers.get('col_hidden_list', [])
-        view.setColumnHidden(0, True)
         # Call updates
         view._set_sort(col_sort_index, col_sort_reverse)
         view.infer_delegates(**headers)
