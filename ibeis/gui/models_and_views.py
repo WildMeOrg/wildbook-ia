@@ -27,66 +27,39 @@ class IBEISTreeWidget(APITableWidget):
                                 view_class=IBEISTreeView)
 
 
-_DID_IBEISTABLEMODEL_METACLASS_HACK = False
-IBEISTABLEMODEL_BASE = StripeProxyModel
+#IBEISTABLEMODEL_BASE = StripeProxyModel
+IBEISTABLEMODEL_BASE = APITableModel
 
 
 class IBEISTableModel(IBEISTABLEMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
-        global _DID_IBEISTABLEMODEL_METACLASS_HACK
-        model.sourcemodel = APITableModel(headers=headers, parent=parent)
-        model.sourcemodel.ibswin = parent
-        model.sourcemodel.eid = None
-        model.sourcemodel.original_ider = None
         IBEISTABLEMODEL_BASE.__init__(model, parent=parent, *args)
-        model.setSourceModel(model.sourcemodel)
-        if not _DID_IBEISTABLEMODEL_METACLASS_HACK:
-            _DID_IBEISTABLEMODEL_METACLASS_HACK = True
-            exclude_list = ["_update_headers", "_ider", "_change_enc", "sourcemodel", "__class__", "__setattr__", "__getattr__", "_nd", "sourceModel"]
-            old_getattr = model.__class__.__getattr__
-            #print('old_getattr outside: %r' % old_getattr)
-            def new_getattr(obj, item):
-                #print('old_getattr is %r' % old_getattr)
-                #print('new_getattr(%r, %r)' % (obj, item))
-                if item not in exclude_list:
-                    #print('sourcemodel.dict %r' % model.sourcemodel.__dict__)
-                    try:
-                        val = old_getattr(model.sourcemodel, item)
-                    except AttributeError:
-                        val = getattr(model.sourcemodel, item)
-                else:
-                    val = old_getattr(obj, item)
-                #print('new_getattr returning %r' % val)
-                return val
-            model.__class__.__getattr__ = new_getattr
-
-            old_setattr = model.__class__.__setattr__
-            def new_setattr(obj, name, val):
-                print('new_setattr(%r, %r, %r)' % (obj, name, val))
-                if name not in exclude_list:
-                    old_setattr(model.sourcemodel, name, val)
-                else:
-                    old_setattr(obj, name, val)
-            model.__class__.__setattr__ = new_setattr
+        model.ibswin = parent
+        model.eid = None
+        model.original_ider = None
+        if IBEISTABLEMODEL_BASE == StripeProxyModel:
+            model.sourcemodel = APITableModel(headers=headers, parent=parent)
+            model.setSourceModel(model.sourcemodel)
+            print('just set the sourcemodel')
 
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):
             return []
-        model.sourcemodel.original_iders = headers.get('iders', [_null_ider])
-        if len(model.sourcemodel.original_iders) > 0:
-            model.sourcemodel.new_iders = model.sourcemodel.original_iders[:]
-            model.sourcemodel.new_iders[0] = model._ider
-        headers['iders'] = model.sourcemodel.new_iders
-        return APITableModel._update_headers(model.sourcemodel, **headers)
+        model.original_iders = headers.get('iders', [_null_ider])
+        if len(model.original_iders) > 0:
+            model.new_iders = model.original_iders[:]
+            model.new_iders[0] = model._ider
+        headers['iders'] = model.new_iders
+        return IBEISTABLEMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
         """ Overrides the API model ider to give only selected encounter ids """
-        return model.sourcemodel.original_iders[0](eid=model.eid)
+        return model.original_iders[0](eid=model.eid)
 
     def _change_enc(model, eid):
-        model.sourcemodel.eid = eid
-        with ChangeLayoutContext([model.sourcemodel]):
-            model.sourcemodel._update_rows()
+        model.eid = eid
+        with ChangeLayoutContext([model]):
+            IBEISTABLEMODEL_BASE._update_rows(model)
 
 
 class IBEISTableView(APITableView):
