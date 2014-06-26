@@ -21,7 +21,7 @@ def TEST_QUERY(ibs):
     qreq = ibs.qreq
     #query_helpers.find_matchable_chips(ibs)
     rids = ibs.get_recognition_database_rids()
-    qres_dict = ibs.query_database(qrid_list)
+    qres_dict = ibs.query_all(qrid_list)
 
     for qrid in qrid_list:
         qres  = qres_dict[qrid]

@@ -24,7 +24,7 @@ def TEST_VIZ(ibs):
     rid = rid_list[-1]
 
     try:
-        qres = ibs.query_database([qrid])[qrid]
+        qres = ibs.query_all([qrid])[qrid]
         print(qres)
         top_rids = qres.get_top_rids(ibs)
         assert len(top_rids) > 0, 'Results seems to be empty'

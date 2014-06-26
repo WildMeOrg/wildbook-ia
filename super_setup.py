@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 from os.path import dirname, realpath
+import sys
 """
 PREREQ:
 git config --global push.default current
@@ -27,7 +28,10 @@ assert python_version.startswith('2.7'), 'IBEIS is currently limited to python 2
 
 #pythoncmd = 'python'
 #if DISTRO == 'centos':
-pythoncmd = 'python2.7'
+if sys.platform.startswith('win32'):
+    pythoncmd = 'python'
+else:
+    pythoncmd = 'python2.7'
 
 envcmds = {
     'pythoncmd': pythoncmd
