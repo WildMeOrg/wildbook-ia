@@ -1,6 +1,6 @@
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
-import uuid
+#import uuid
 import types
 from itertools import izip
 from functools import partial
@@ -9,7 +9,7 @@ import utool
 from ibeis import constants
 from ibeis import sysres
 from ibeis.export import export_hsdb
-from ibeis import constants
+#from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
 
 # Inject utool functions
@@ -34,6 +34,25 @@ def __injectable(input_):
     else:
         return partial(closure_injectable, indent=input_)
 
+
+def inject_ibeis(ibs):
+    """ Injects custom functions into an IBEISController """
+    # Give the ibeis object the inject_func_as_method
+    utool.inject_func_as_method(ibs, utool.inject_func_as_method)
+    # List of getters to unflatten
+    to_unflatten = [
+        ibs.get_roi_uuids,
+        ibs.get_image_uuids,
+        ibs.get_names,
+        ibs.get_image_unixtime,
+        ibs.get_roi_bboxes,
+        ibs.get_roi_thetas,
+    ]
+    for flat_getter in to_unflatten:
+        unflat_getter = _make_unflat_getter_func(flat_getter)
+        ibs.inject_func_as_method(unflat_getter)
+    for func in __INJECTABLE_FUNCS__:
+        ibs.inject_func_as_method(func)
 
 
 @__injectable
@@ -301,26 +320,6 @@ def _make_unflat_getter_func(flat_getter):
         return unflat_vals
     unflat_getter.func_name = func_name.replace('get_', 'get_unflat_')
     return unflat_getter
-
-
-def inject_ibeis(ibs):
-    """ Injects custom functions into an IBEISController """
-    # Give the ibeis object the inject_func_as_method
-    utool.inject_func_as_method(ibs, utool.inject_func_as_method)
-    # List of getters to unflatten
-    to_unflatten = [
-        ibs.get_roi_uuids,
-        ibs.get_image_uuids,
-        ibs.get_names,
-        ibs.get_image_unixtime,
-        ibs.get_roi_bboxes,
-        ibs.get_roi_thetas,
-    ]
-    for flat_getter in to_unflatten:
-        unflat_getter = _make_unflat_getter_func(flat_getter)
-        ibs.inject_func_as_method(unflat_getter)
-    for func in __INJECTABLE_FUNCS__:
-        ibs.inject_func_as_method(func)
 
 
 def delete_ibeis_database(dbdir):
