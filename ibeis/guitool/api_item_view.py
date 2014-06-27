@@ -2,35 +2,31 @@ from __future__ import absolute_import, division, print_function
 from guitool import qtype
 from guitool.api_thumb_delegate import APIThumbDelegate
 from guitool.api_button_delegate import APIButtonDelegate
+from guitool.stripe_proxy_model import StripeProxyModel
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import guitool
 from guitool.guitool_decorators import signal_, slot_
-#from guitool.api_table_model import APITableModel
+from guitool.api_table_model import APITableModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
+from functools import partial
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APIItemView]', DEBUG=False)
 
 API_VIEW_BASE = QtGui.QAbstractItemView
 viewmember = utool.classmember(API_VIEW_BASE)
+injectviewinstance = partial(utool.inject_instance, API_VIEW_BASE)
 
 class APIItemView(API_VIEW_BASE):
     """
     Base class for all IBEIS Tables
     """
-    rows_updated = signal_(str, int)
-    contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
-
+    
     def __init__(view, parent=None):
         API_VIEW_BASE.__init__(view, parent)
-        # Allow sorting by column
-        view.col_hidden_list = []
-        # Context menu
-        view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        view.customContextMenuRequested.connect(view.on_customMenuRequested)
 
 #---------------
 # Data Manipulation
@@ -79,23 +75,11 @@ def _set_sort(view, col_sort_index, col_sort_reverse=False):
 @viewmember
 def hide_cols(view):
     for col, hidden in enumerate(view.col_hidden_list):
-        pass
-        #view.setColumnHidden(col, hidden)
+        view.setColumnHidden(col, hidden)
 
 #---------------
 # Qt Overrides
 #---------------
-
-@viewmember
-def setModel(view, model):
-    """ QtOverride: Returns item delegate for this index """
-    assert isinstance(model, (StripeProxyModel, APITableModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)
-    # Learn some things about the model before you fully connect it.
-    print('[view] setting model')
-    model._rows_updated.connect(view.on_rows_updated)
-    #view.infer_delegates_from_model(model=model)
-    # TODO: Update headers
-    return API_VIEW_BASE.setModel(view, model)
 
 @viewmember
 def itemDelegate(view, qindex):
@@ -107,18 +91,6 @@ def itemDelegate(view, qindex):
 #---------------
 
 @viewmember
-@slot_(str, int)
-def on_rows_updated(view, tblname, num):
-    # re-emit the model signal
-    view.rows_updated.emit(tblname, num)
-
-@viewmember
-@slot_(QtCore.QPoint)
-def on_customMenuRequested(view, pos):
-    index = view.indexAt(pos)
-    view.contextMenuClicked.emit(index, pos)
-
-@viewmember
 def copy_selection_to_clipboard(view):
     """ Copys selected grid to clipboard """
     print('[guitool] Copying selection to clipboard')
@@ -128,4 +100,3 @@ def copy_selection_to_clipboard(view):
     print(copy_str)
     clipboard.setText(copy_qstr)
     print('[guitool] finished copy')
-
