@@ -110,6 +110,14 @@ def rotation_around_mat3x3(theta, x, y):
 
 
 @profile
+def rotation_around_bbox_mat3x3(theta, bbox):
+    x, y, w, h = bbox
+    centerx = x + (w / 2)
+    centery = y + (h / 2)
+    return rotation_around_mat3x3(theta, centerx, centery)
+
+
+@profile
 def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     T = array([[1, 0,  x],
                [0, 1,  y],

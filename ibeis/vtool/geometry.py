@@ -5,20 +5,66 @@ import utool
     __name__, '[geom]', DEBUG=False)
 
 
-""" Fit the bounding polygon inside a rectangle """
 def bboxes_from_vert_list(verts_list):
-    def _to_bbox(verts):
-        x = min(x[0] for x in verts)
-        y = min(y[1] for y in verts)
-        w = max(x[0] for x in verts) - x
-        h = max(y[1] for y in verts) - y
-        return (x, y, w, h)
-    return [_to_bbox(verts) for verts in verts_list]
+    """ Fit the bounding polygon inside a rectangle """
+    return [bbox_of_verts(verts) for verts in verts_list]
 
 
-""" Create a four-vertex polygon from the bounding rectangle """
 def verts_list_from_bboxes_list(bboxes_list):
-    return [((x,     y),
-             (x + w, y),
-             (x + w, y + h),
-             (x,     y + h)) for (x, y, w, h) in bboxes_list]
+    """ Create a four-vertex polygon from the bounding rectangle """
+    return [verts_from_bbox(bbox) for bbox in bboxes_list]
+
+
+def verts_from_bbox(bbox, close=False):
+    x1, y1, w, h = bbox
+    x2 = (x1 + w)
+    y2 = (y1 + h)
+    if close:
+        # Close the verticies list (for drawing lines)
+        verts = ((x1, y1), (x2, y1), (x2, y2), (x1, y2), (x1, y1))
+    else:
+        verts = ((x1, y1), (x2, y1), (x2, y2), (x1, y2))
+    return verts
+
+
+def bbox_of_verts(verts):
+    x = min(x[0] for x in verts)
+    y = min(y[1] for y in verts)
+    w = max(x[0] for x in verts) - x
+    h = max(y[1] for y in verts) - y
+    return (x, y, w, h)
+
+
+def homogonize_list(xy_list):
+    return [(x, y, 1) for (x, y) in xy_list]
+
+
+def unhomogonize_list(xyz_list):
+    return [(x / z, y / z) for (x, y, z) in xyz_list]
+
+
+import numpy as np
+
+
+def homogonize(xy_arr):
+    z_arr = np.ones(xy_arr.shape[1], dtype=xy_arr.dtype)
+    xyz_arr = np.vstack((xy_arr, z_arr))
+    return xyz_arr
+
+
+def unhomogonize(xyz_arr):
+    x_arr, y_ar, z_arr = xyz_arr
+    xy_arr = np.vstack((x_arr / z_arr, y_ar / z_arr))
+    return xy_arr
+
+
+def draw_verts(img, verts, color=(0, 128, 255), thickness=2):
+    if isinstance(verts, np.ndarray):
+        verts = verts.tolist()
+    from itertools import izip
+    import cv2
+    line_sequence = izip(verts[:-1], verts[1:])
+    for (p1, p2) in line_sequence:
+        #print('p1, p2: (%r, %r)' % (p1, p2))
+        cv2.line(img, tuple(p1), tuple(p2), color, thickness)
+    return img
