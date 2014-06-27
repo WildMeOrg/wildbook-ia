@@ -19,6 +19,10 @@ def TEST_GUI_IMPORT_IMAGES(ibs, back):
         #    gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)[::4]
         print('[TEST] IMPORT IMAGES FROM FILE\n * gpath_list=%r' % gpath_list)
         gid_list = back.import_images(gpath_list=gpath_list)
+        thumbtup_list = ibs.get_image_thumbtup(gid_list)
+        imgpath_list = [tup[1] for tup in thumbtup_list]
+        for path in gpath_list:
+            assert path in imgpath_list, "Imported Image not in db, path=%r" % path 
     elif mode == 'DIR':
         dir_ = grabdata.get_testdata_dir()
         print('[TEST] IMPORT IMAGES FROM DIR\n * dir_=%r' % dir_)

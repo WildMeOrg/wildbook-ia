@@ -56,6 +56,8 @@ def TEST_IBS(ibs):
     print(' * bbox_list=%r' % bbox_list)
     print(' * theta_list=%r' % theta_list)
     print(' * rids_list=%r' % rids_list)
+    assert len(bbox_list) == len(theta_list), "len(bbox_list) != len(theta_list)"
+    assert len(theta_list) == len(rid_list), "len(theta_list) != len(rid_list)"
 
     viz.show_image(ibs, gid)
     return locals()
