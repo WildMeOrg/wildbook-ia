@@ -861,10 +861,10 @@ class ROIInteraction(object):
 #                if poly is None:
 #                    bbox_list.append(None)
 #                else:
-                x = min(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0])
-                y = min(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1])
-                w = max(poly.xy[0][0], poly.xy[1][0], poly.xy[2][0], poly.xy[3][0]) - x
-                h = max(poly.xy[0][1], poly.xy[1][1], poly.xy[2][1], poly.xy[3][1]) - y
+                x = min(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0])
+                y = min(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1])
+                w = max(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0]) - x
+                h = max(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1]) - y
                 bbox_list.append((int(x), int(y), int(w), int(h), poly.theta))
                 #theta_list.append(poly.theta)
             return bbox_list# , theta_list
