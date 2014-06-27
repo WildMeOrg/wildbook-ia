@@ -1,12 +1,9 @@
 #!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.dev import ibsfuncs
 #from itertools import izip
 # Python
 import multiprocessing
-#import numpy as np
-from uuid import UUID
 # Tools
 import utool
 from ibeis.control.IBEISControl import IBEISController
@@ -14,6 +11,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_LOCALIZE_I
 
 
 def TEST_ENCOUNTERS(ibs):
+    assert isinstance(ibs, IBEISController)
     print('[TEST_LOCALIZE_IMAGES]')
 
     gid_list = ibs.get_valid_gids()
@@ -29,14 +27,13 @@ def TEST_ENCOUNTERS(ibs):
     print('[gpath_list = %r' % (gpath_list,))
 
     uuids_new = [utool.get_file_uuid(gpath) for gpath in gpath_list]
-    
+
     assert uuids_old, 'get_file_uuid returned empty'
     assert uuids_new, 'get_image_uuids returned empty'
 
     print('uuids_old = %r' % (uuids_old,))
     print('uuids_new = %r' % (uuids_new,))
     assert uuids_old == uuids_new, 'regenerated uuids are not the same as the originals'
-         
 
     return locals()
 
@@ -49,3 +46,4 @@ if __name__ == '__main__':
     test_locals = utool.run_test(TEST_ENCOUNTERS, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
+    exec(utool.ipython_execstr())

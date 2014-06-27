@@ -14,6 +14,7 @@ def TEST_GUI_ADD_ROI(ibs, back):
     bbox = (0, 0, 100, 100)
     rid = back.add_roi(bbox=bbox)
     print('[TEST] NEW RID=%r' % rid)
+    assert rid is not None
     return locals()
 
 
@@ -24,5 +25,5 @@ if __name__ == '__main__':
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_GUI_ADD_ROI, ibs, back)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    exec(execstr)
+    exec(utool.execstr_dict(test_locals, 'test_locals'))
+    exec(utool.ipython_execstr())
