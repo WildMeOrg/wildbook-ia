@@ -1,16 +1,16 @@
 from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+#from PyQt4.QtCore import Qt
 #import guitool
-from guitool import qtype
-from guitool.api_thumb_delegate import APIThumbDelegate
-from guitool.api_button_delegate import APIButtonDelegate
+#from guitool import qtype
+#from guitool.api_thumb_delegate import APIThumbDelegate
+#from guitool.api_button_delegate import APIButtonDelegate
 from guitool.api_item_view import injectviewinstance
 from guitool.guitool_decorators import signal_, slot_
 from guitool.api_item_model import APIItemModel
 from guitool.stripe_proxy_model import StripeProxyModel
-from guitool.guitool_main import get_qtapp
-from guitool.guitool_misc import get_view_selection_as_str
+#from guitool.guitool_main import get_qtapp
+#from guitool.guitool_misc import get_view_selection_as_str
 import utool
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -43,7 +43,6 @@ class APITableView(API_VIEW_BASE):
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
-
 
     #---------------
     # Initialization
@@ -109,10 +108,10 @@ class APITableView(API_VIEW_BASE):
         # Columns moveable
         horizontalHeader.setMovable(True)
 
-   #---------------
-   # Qt Overrides
-   #---------------
- 
+    #---------------
+    # Qt Overrides
+    #---------------
+
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
         assert isinstance(model, (StripeProxyModel, APIItemModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)

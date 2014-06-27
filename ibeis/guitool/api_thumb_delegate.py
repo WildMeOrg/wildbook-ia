@@ -6,7 +6,7 @@ from itertools import izip
 from os.path import exists
 from PyQt4 import QtGui, QtCore
 from vtool import image as gtool
-from vtool import linalg as ltool
+from vtool import linalg, geometry
 #from multiprocessing import Process
 #from guitool import guitool_components as comp
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
@@ -202,18 +202,30 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         # Draw bboxes on thumb (not image)
         for bbox, theta in izip(thread.bbox_list, theta_list):
             #pt1, pt2 = gtool.cvt_bbox_xywh_to_pt1pt2(bbox, sx=sx, sy=sy, round_=True)
-            x, y, w, h = bbox
-            pts = [[x, y], [x+w, y], [x+w, y+h], [x, y+h], [x,y]]
-            pts = np.array([(x, y, 1) for (x, y) in pts])
-            pts = ltool.rotation_around_mat3x3(theta, x + (w / 2), y + (h / 2)).dot(pts.T).T
-            pts = [(int(x * sx), int(y * sy)) for (x, y, dummy) in pts]
+            # --- OLD CODE ---
+            #x, y, w, h = bbox
+            #pts = [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]
+            #pts = np.array([(x, y, 1) for (x, y) in pts])
+            #pts = linalg.rotation_around_mat3x3(theta, x + (w / 2), y + (h / 2)).dot(pts.T).T
+            #pts = [(int(x * sx), int(y * sy)) for (x, y, dummy) in pts]
+            #color = orange_bgr
+            #thickness = 2
+            #for (p1, p2) in line_sequence:
+            #    #print('p1, p2: (%r, %r)' % (p1, p2))
+            #    cv2.line(thumb, tuple(p1), tuple(p2), color, thickness)
+            # --- NEW CODE ---
+            # Transformation matrixes
+            R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+            S = linalg.scale_mat3x3(sx, sy)
+            # Get verticies of the annotation polygon
+            verts = geometry.verts_from_bbox(bbox, close=True)
+            # Rotate and transform to thumbnail space
+            xyz_pts = geometry.homogonize(np.array(verts).T)
+            trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
+            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            # -----------------
             orange_bgr = (0, 128, 255)
-            color = orange_bgr
-            thickness = 2
-            #cv2.rectangle(thumb, pt1, pt2, color, thickness)
-            for (p1, p2) in zip(pts[:-1], pts[1:]):
-                #print('p1, p2: (%r, %r)' % (p1, p2))
-                cv2.line(thumb, p1, p2, color, thickness)
+            thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
         gtool.imwrite(thread.thumb_path, thumb)
         #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
