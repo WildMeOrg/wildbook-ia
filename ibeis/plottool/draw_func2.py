@@ -11,7 +11,7 @@ import sys
 import utool
 # Matplotlib
 import matplotlib as mpl
-if not sys.platform.startswith('win32') and os.environ.get('DISPLAY', None) is None:
+if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
     # Write to files if we cannot display
     TARGET_BACKEND = 'PDF'
 else:
