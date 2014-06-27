@@ -55,6 +55,10 @@ def newMenubar(widget):
     return menubar
 
 
+def newQPoint(x, y):
+    return QtCore.QPoint(int(round(x)), int(round(y)))
+
+
 def newMenu(widget, menubar, name, text):
     """ Defines each menu category in the menubar """
     menu = QtGui.QMenu(menubar)

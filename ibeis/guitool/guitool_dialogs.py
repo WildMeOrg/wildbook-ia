@@ -151,7 +151,7 @@ def msgbox(msg, title='msgbox'):
 
 
 def popup_menu(widget, pos, opt2_callback):
-    menu = QtGui.QMenu()
+    menu = QtGui.QMenu(widget)
     actions = [menu.addAction(opt, func) for (opt, func) in opt2_callback]
     selection = menu.exec_(widget.mapToGlobal(pos))
     return selection, actions
