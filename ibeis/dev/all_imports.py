@@ -92,6 +92,8 @@ from vtool import histogram as htool
 from vtool import patch as ptool
 from vtool import keypoint as ktool
 from vtool import linalg as ltool
+from vtool import linalg
+from vtool import geometry
 from vtool import segmentation
 from vtool import spatial_verification as sverif
 from vtool.tests import grabdata

@@ -128,7 +128,7 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
             update_callback()
             backend_callback()
             return
-    review_match(ibs, rid1, rid2, update_callback=update_callback, 
+    review_match(ibs, rid1, rid2, update_callback=update_callback,
                  backend_callback=backend_callback)
 
 

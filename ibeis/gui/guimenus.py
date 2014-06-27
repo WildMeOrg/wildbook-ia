@@ -221,8 +221,8 @@ def setup_help_menu(mainwin, back):
         shortcut='',
         slot_fn=back.delete_queryresults_dir)
     mainwin.menuHelp.newAction(
-        name='actionDelete_computed_directory',
-        text='Delete computed directory',
+        name='actionDelete_Cache_Directory',
+        text='Delete Database Cache',
         shortcut='',
         slot_fn=back.delete_cache)
     mainwin.menuHelp.newAction(
