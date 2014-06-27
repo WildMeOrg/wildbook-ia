@@ -151,7 +151,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect the IBEIS control
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
-
     #@checks_qt_error
     def _init_components(ibswgt):
         """ Defines gui components """
@@ -367,8 +366,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 enctext = constants.ALLIMAGE_ENCTEXT
             else:
                 enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.button_list[3].setText('Identify\nQUERY(%r vs. %r)' % (enctext, enctext))
-            ibswgt.button_list[4].setText('Identify\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
+            ibswgt.button_list[3].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            ibswgt.button_list[4].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
         except Exception:
             pass
 
