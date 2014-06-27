@@ -18,7 +18,6 @@ def test_interact_multimage(imgpaths):
 #     iteract_obj = interact_multi_image.MultiImageInteraction(img_list +
 #                                                              img_list,
 #                                                              gid_list, rids_list, bboxes_list,
-# >>>>>>> Stashed changes
 #                                                              nPerPage=6)
     return iteract_obj
 
@@ -28,7 +27,7 @@ if __name__ == '__main__':
     # # List of imaGe-ids:
     # gid_list  = ibs.get_valid_gids()
     # # Get a list of lists of ROI-ids (because each image can have more than one ROI)
-    # rids_list = ibs.get_image_rids(gid_list) 
+    # rids_list = ibs.get_image_rids(gid_list)
     # # Get the list of lists of bounding boxes
     # bboxes_list = [ibs.get_roi_bboxes(rids) for rids in rids_list]
 
@@ -40,6 +39,6 @@ if __name__ == '__main__':
 
     TEST_IMAGES_URL = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
-    imgpaths       = utool.list_images(test_image_dir, fullpath=True)   # test image paths
+    imgpaths       = utool.list_images(test_image_dir, fullpath=True, recursive=False)   # test image paths
     iteract_obj = test_interact_multimage(imgpaths)
     exec(df2.present())
