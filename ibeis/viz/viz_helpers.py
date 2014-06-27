@@ -167,6 +167,9 @@ def get_roi_texts(ibs, rid_list, **kwargs):
     if kwargs.get('show_name', True):
         name_list = ibs.get_roi_names(rid_list)
         texts_list.append(['name=%s' % name for name in name_list])
+    if kwargs.get('show_exemplar', True):
+        flag_list = ibs.get_roi_exemplar_flag(rid_list)
+        texts_list.append(['EX' if flag else '' for flag in flag_list])
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
         roi_text_list = [', '.join(tup) for tup in izip(*texts_list)]

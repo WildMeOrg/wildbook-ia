@@ -87,7 +87,30 @@ class MatchVerificationInteraction(AbstractInteraction):
                  'docla': True, }
         self.fig = df2.figure(**figkw)
         ih.disconnect_callback(self.fig, 'button_press_event')
-        #ih.connect_callback(self.fig, 'button_press_event', _on_name_click)
+        ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
+
+    def figure_clicked(self, event=None):
+        print_('[inter] clicked name')
+        ax = event.inaxes
+        if ih.clicked_inside_axis(event):
+            viztype = vh.get_ibsdat(ax, 'viztype')
+            print_(' viztype=%r' % viztype)
+            if viztype == 'chip':
+                rid = vh.get_ibsdat(ax, 'rid')
+                print('... rid=%r' % rid)
+                if event.button == 3:   # right-click
+                    import guitool
+                    ibs = self.ibs
+                    is_exemplar = ibs.get_roi_exemplar_flag(rid)
+                    def context_func():
+                        ibs.set_roi_exemplar_flag(rid, not is_exemplar)
+                        self.show_page()
+                    guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
+                            ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
+                            ])
+                    ibs.print_roi_table()
+                print(utool.dict_str(event.__dict__))
+
 
     def show_page(self, bring_to_front=False):
         """ Plots all subaxes on a page """
