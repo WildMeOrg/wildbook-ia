@@ -5,7 +5,9 @@ from .guitool_decorators import checks_qt_error, signal_, slot_
 from . import qtype
 import math
 
-BASE_CLASS = QtGui.QAbstractProxyModel
+#BASE_CLASS = QtGui.QAbstractProxyModel
+#BASE_CLASS = QtGui.QSortFilterProxyModel
+BASE_CLASS = QtGui.QIdentityProxyModel
 
 # ["__init__", "rowCount", "columnCount", "mapToSource", "mapFromSource", "index", "data", "setData", "sort"]
 
@@ -81,9 +83,12 @@ class StripeProxyModel(BASE_CLASS):
             c2 = c % source_cols
             p2 = p
             #print('StripeProxyModel.mapToSource(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
-            return self.sourceModel().index(r2, c2, p2)
+            #idx = self.sourceModel().index(r2, c2, p2)
+            idx = self.index(r2, c2, p2)
+            idx.__dict__['actual'] = self.sourceModel().index(r2, c2, parent=p2)
         else:
-            return QtCore.QModelIndex()
+            idx = QtCore.QModelIndex()
+        return idx
 
     def mapFromSource(self, sourceIndex):
         """
@@ -99,9 +104,12 @@ class StripeProxyModel(BASE_CLASS):
             c2 = ((r%self._nd)*source_cols)+c
             p2 = p
             #print('StripeProxyModel.mapFromSource(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
-            return self.sourceModel().index(r2, c2, p2)
+            #idx = self.sourceModel().index(r2, c2, p2)
+            idx = self.index(r2, c2, p2)
+            idx.__dict__['actual'] = self.sourceModel().index(r2, c2, parent=p2)
         else:
-            return QtCore.QModelIndex()
+            idx = QtCore.QModelIndex()
+        return idx
 
 #    def mapSelectionToSource(self, sel):
 #        
@@ -115,17 +123,32 @@ class StripeProxyModel(BASE_CLASS):
             c2 = c % source_cols
             p2 = p
             #print('StripeProxyModel.index(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
-            return self.sourceModel().index(r2, c2, parent=p2)
-            #return self.createIndex(row, col)
+            #idx = self.sourceModel().index(r2, c2, parent=p2)
+            idx = self.createIndex(r2, c2, parent)
+            idx.__dict__['actual'] = self.sourceModel().index(r2, c2, parent=p2)
+#            def f():
+#                print('in inline parent %r' % parent)
+#                return parent
+#            idx.parent = f
         else:
-            return QtCore.QModelIndex()
+            idx = QtCore.QModelIndex()
+        return idx
 
     def data(self, proxyIndex, role=Qt.DisplayRole):
-        return self.sourceModel().data(self.mapToSource(proxyIndex), role)
+        #print('stripeproxymodel.data %r; %r' % (proxyIndex, type(proxyIndex)))
+        #print(proxyIndex.parent, proxyIndex.parent())
+        #idx = self.sourceModel().index(proxyIndex.row(), proxyIndex.column(), proxyIndex.parent())
+        idx = self.sourceModel().index(proxyIndex.row(), proxyIndex.column())
+#        assert proxyIndex.isValid()
+#        idx = proxyIndex.__dict__['actual']
+        #return self.sourceModel().data(self.mapToSource(proxyIndex), role)
+        return self.sourceModel().data(idx, role)
+        #return self.sourceModel().data(proxyIndex, role)
 
-    def setData(self, proxyIndex, value, role=Qt.EditRole):
-        print('set data')
-        return self.sourceModel().setData(self.mapToSource(proxyIndex), value, role)
+#    def setData(self, proxyIndex, value, role=Qt.EditRole):
+#        print('stripeproxymodel.setdata')
+#        #return self.sourceModel().setData(self.mapToSource(proxyIndex), value, role)
+#        return self.sourceModel().setData(proxyIndex, value, role)
 
     def sort(self, column, order):
         source_model = self.sourceModel()
@@ -133,20 +156,22 @@ class StripeProxyModel(BASE_CLASS):
         if source_cols > 0:
             source_model.sort(column % source_cols, order)
 
-    def flags(self, *args, **kwargs):
-        return self.sourceModel().flags(*args, **kwargs)
+#    def flags(self, *args, **kwargs):
+#        return self.sourceModel().flags(*args, **kwargs)
 
-    def parent(self, *args, **kwargs):
-        return self.sourceModel().parent(*args, **kwargs)
+    def parent(self, index):
+        #print('hello')
+        #return self.sourceModel().parent(*args, **kwargs)
+        return QtCore.QModelIndex()
 
-    def headerData(self, *args, **kwargs):
-        return self.sourceModel().headerData(*args, **kwargs)
-
-    def hasChildren(self, *args, **kwargs):
-        return self.sourceModel().hasChildren(*args, **kwargs)
-
-    def itemData(self, *args, **kwargs):
-        return self.sourceModel().itemData(*args, **kwargs)
+#    def headerData(self, *args, **kwargs):
+#        return self.sourceModel().headerData(*args, **kwargs)
+#
+#    def hasChildren(self, *args, **kwargs):
+#        return self.sourceModel().hasChildren(*args, **kwargs)
+#
+#    def itemData(self, *args, **kwargs):
+#        return self.sourceModel().itemData(*args, **kwargs)
 
     def _update_headers(self, **kwargs):
         print('forwarding update headers')
@@ -175,3 +200,6 @@ class StripeProxyModel(BASE_CLASS):
 
     def _update(self, *args, **kwargs):
         return self.sourceModel()._update(*args, **kwargs)
+
+    def _get_row_id(self, *args, **kwargs):
+        return self.sourceModel()._get_row_id(*args, **kwargs)
