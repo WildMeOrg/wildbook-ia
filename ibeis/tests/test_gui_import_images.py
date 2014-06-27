@@ -16,7 +16,7 @@ def TEST_GUI_IMPORT_IMAGES(ibs, back):
 
         # else:
         #    dir_ = utool.truepath(join(sysres.get_workdir(), 'PZ_MOTHERS/images'))
-        #    gpath_list = utool.list_images(dir_, fullpath=True)[::4]
+        #    gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)[::4]
         print('[TEST] IMPORT IMAGES FROM FILE\n * gpath_list=%r' % gpath_list)
         gid_list = back.import_images(gpath_list=gpath_list)
     elif mode == 'DIR':

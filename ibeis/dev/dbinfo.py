@@ -45,7 +45,7 @@ def get_dbinfo(ibs):
     multiton_nx2_nchips = map(len, multiton_rids_list)
     # Image info
     gpath_list = ibs.get_image_paths(valid_gids)
-    #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True)
+    #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True, recursive=True)
 
     def wh_print_stats(wh_list):
         if len(wh_list) == 0:

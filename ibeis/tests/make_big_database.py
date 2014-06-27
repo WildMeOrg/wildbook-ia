@@ -41,7 +41,7 @@ def MAKE_BIG_DB():
     gpath_list = grabdata.get_test_gpaths(ndata=1)
 
     imgdir = get_big_imgdir(workdir)
-    gname_list = utool.list_images(imgdir)
+    gname_list = utool.list_images(imgdir, recursive=True)
     gpath_list = [join(imgdir, gname) for gname in gname_list]
     gpath_list = gpath_list
 
