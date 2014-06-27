@@ -296,16 +296,18 @@ def resize_worker(tup):
     return new_gfpath
 
 
-def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list):
+def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwargs):
     """ Resizes images and yeilds results asynchronously  """
     # Compute and write detectimg in asychronous process
+    kwargs['force_serial'] = kwargs.get('force_serial', True)
+    kwargs['ordered']      = kwargs.get('ordered', True)
     arg_iter = izip(gpath_list, new_gpath_list, newsize_list)
     arg_list = list(arg_iter)
-    return utool.util_parallel.generate(resize_worker, arg_list)
+    return utool.util_parallel.generate(resize_worker, arg_list, **kwargs)
 
 
 def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
-                                 sqrt_area=800, output_dir=None):
+                                 sqrt_area=800, output_dir=None, **kwargs):
     """ Resizes images and yeilds results asynchronously  """
     from .chip import get_scaled_sizes_with_area
     target_area = sqrt_area ** 2
@@ -318,18 +320,14 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
         if output_dir is None:
             # Create an output directory if not specified
             output_dir      = 'resized_sqrtarea%r' % sqrt_area
-            utool.ensuredir(output_dir)
-        #basepath_list   = utool.get_basepath_list(gpath_list)
-        gnamenoext_list  = utool.get_basename_noext_list(gpath_list)
-        ext_list         = utool.get_ext_list(gpath_list)
-        size_suffix_list = ['_' + repr(newsize).replace(' ', '')
-                            for newsize in newsize_list]
-        new_gname_list   = [gname + suffix + ext for gname, suffix, ext in
-                            izip(gnamenoext_list, size_suffix_list, ext_list)]
-        new_gpath_list   = [join(output_dir, gname) for gname in new_gname_list]
-        new_gpath_list   = map(utool.unixpath, new_gpath_list)
+        utool.ensuredir(output_dir)
+        size_suffix_list = ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
+        new_gname_list = utool.append_suffixlist_to_namelist(gpath_list, size_suffix_list)
+        new_gpath_list = [join(output_dir, gname) for gname in new_gname_list]
+        new_gpath_list = map(utool.unixpath, new_gpath_list)
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
     assert len(newsize_list) == len(gpath_list), 'unequal len'
     # Evaluate generator
-    generator = resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list)
+    generator = resize_imagelist_generator(gpath_list, new_gpath_list,
+                                           newsize_list, **kwargs)
     return [res for res in generator]
