@@ -131,6 +131,12 @@ def open_image_size(image_fpath):
     return size
 
 
+def get_gpathlist_sizes(gpath_list):
+    """ reads the size of each image in gpath_list """
+    gsize_list = [open_image_size(gpath) for gpath in gpath_list]
+    return gsize_list
+
+
 def cvt_BGR2L(imgBGR):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]
@@ -277,3 +283,53 @@ class ThumbnailCacheContext(object):
         if self.asrgb:
             self.thumb_list = [None if thumb is None else cvt_BGR2RGB(thumb)
                                for thumb in self.thumb_list]
+
+
+# Parallel code for resizing many images
+def resize_worker(tup):
+    """ worker function for parallel generator """
+    gfpath, new_gfpath, new_size = tup
+    #print('[preproc] writing detectimg: %r' % new_gfpath)
+    img = imread(gfpath)
+    new_img = resize(img, new_size)
+    imwrite(new_gfpath, new_img)
+    return new_gfpath
+
+
+def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list):
+    """ Resizes images and yeilds results asynchronously  """
+    # Compute and write detectimg in asychronous process
+    arg_iter = izip(gpath_list, new_gpath_list, newsize_list)
+    arg_list = list(arg_iter)
+    return utool.util_parallel.generate(resize_worker, arg_list)
+
+
+def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
+                                 sqrt_area=800, output_dir=None):
+    """ Resizes images and yeilds results asynchronously  """
+    from .chip import get_scaled_sizes_with_area
+    target_area = sqrt_area ** 2
+    # Read image sizes
+    gsize_list = get_gpathlist_sizes(gpath_list)
+    # Compute new sizes which preserve aspect ratio
+    newsize_list = get_scaled_sizes_with_area(target_area, gsize_list)
+    if new_gpath_list is None:
+        # Compute names for the new images if not given
+        if output_dir is None:
+            # Create an output directory if not specified
+            output_dir      = 'resized_sqrtarea%r' % sqrt_area
+            utool.ensuredir(output_dir)
+        #basepath_list   = utool.get_basepath_list(gpath_list)
+        gnamenoext_list  = utool.get_basename_noext_list(gpath_list)
+        ext_list         = utool.get_ext_list(gpath_list)
+        size_suffix_list = ['_' + repr(newsize).replace(' ', '')
+                            for newsize in newsize_list]
+        new_gname_list   = [gname + suffix + ext for gname, suffix, ext in
+                            izip(gnamenoext_list, size_suffix_list, ext_list)]
+        new_gpath_list   = [join(output_dir, gname) for gname in new_gname_list]
+        new_gpath_list   = map(utool.unixpath, new_gpath_list)
+    assert len(new_gpath_list) == len(gpath_list), 'unequal len'
+    assert len(newsize_list) == len(gpath_list), 'unequal len'
+    # Evaluate generator
+    generator = resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list)
+    return [res for res in generator]

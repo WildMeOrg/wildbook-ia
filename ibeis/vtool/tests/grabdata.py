@@ -23,7 +23,7 @@ def get_test_gpaths(ndata=None, names=None, **kwargs):
     if ndata_arg is not None:
         ndata = ndata_arg
     imgdir = get_testdata_dir(**kwargs)
-    gpath_list = sorted(list(utool.list_images(imgdir, full=True)))
+    gpath_list = sorted(list(utool.list_images(imgdir, full=True, recursive=True)))
     # Get only the gpaths of certain names
     if names is not None:
         gpath_list = [gpath for gpath in gpath_list if
