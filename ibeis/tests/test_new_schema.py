@@ -37,6 +37,5 @@ if __name__ == '__main__':
                              allow_newdir=True, delete_ibsdir=True)
     ibs = main_locals['ibs']    # IBEIS Control
     test_locals = utool.run_test(TEST_NEW_SCHEMA, ibs)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    execstr += '\n' + utool.ipython_execstr()
-    exec(execstr)
+    exec(utool.execstr_dict(test_locals, 'test_locals'))
+    exec(utool.ipython_execstr())
