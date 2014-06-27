@@ -7,7 +7,7 @@ from ibeis.viz import interact
 from plottool import interact_helpers as ih
 from ibeis.dev import results_organizer
 from plottool import fig_presenter
-from guitool import qtype, APITableWidget
+from guitool import qtype, APIItemWidget
 from PyQt4 import QtCore
 import guitool
 from ibeis.dev import ibsfuncs
@@ -20,12 +20,12 @@ from ibeis.viz import viz_helpers as vh
 RANKS_LT = 2
 
 
-class QueryResultsWidget(APITableWidget):
+class QueryResultsWidget(APIItemWidget):
     """ Window for gui inspection """
 
     def __init__(qres_wgt, ibs, qrid2_qres, parent=None, callback=None, **kwargs):
         print('[qres_wgt] Init QueryResultsWidget')
-        APITableWidget.__init__(qres_wgt, parent=parent)
+        APIItemWidget.__init__(qres_wgt, parent=parent)
         # Set results data
         qres_wgt.set_query_results(ibs, qrid2_qres, **kwargs)
         qres_wgt.connect_signals_and_slots()
@@ -44,7 +44,7 @@ class QueryResultsWidget(APITableWidget):
         qres_wgt.qrid2_qres = qrid2_qres
         qres_wgt.qres_api = make_qres_api(ibs, qrid2_qres, **kwargs)
         headers = qres_wgt.qres_api.make_headers()
-        APITableWidget.change_headers(qres_wgt, headers)
+        APIItemWidget.change_headers(qres_wgt, headers)
 
     def connect_signals_and_slots(qres_wgt):
         qres_wgt.view.clicked.connect(qres_wgt._on_click)

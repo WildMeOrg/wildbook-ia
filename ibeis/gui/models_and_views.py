@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from PyQt4 import QtCore, QtGui
-from guitool import APITableModel, APITableView, APITreeView, APITableWidget, StripeProxyModel, ChangeLayoutContext
+from guitool import APIItemModel, APITableView, APITreeView, APIItemWidget, StripeProxyModel, ChangeLayoutContext
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
 #---------------------
@@ -9,26 +9,26 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]'
 #---------------------
 
 
-class IBEISTableWidget(APITableWidget):
+class IBEISTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
         widget.eid = None
-        APITableWidget.__init__(widget, headers=headers, parent=parent,
+        APIItemWidget.__init__(widget, headers=headers, parent=parent,
                                 model_class=IBEISTableModel,
                                 view_class=IBEISTableView)
 
 
-class IBEISTreeWidget(APITableWidget):
+class IBEISTreeWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
         widget.eid = None
-        APITableWidget.__init__(widget, headers=headers, parent=parent,
+        APIItemWidget.__init__(widget, headers=headers, parent=parent,
                                 model_class=IBEISTableModel,
                                 view_class=IBEISTreeView)
 
 
 #IBEISTABLEMODEL_BASE = StripeProxyModel
-IBEISTABLEMODEL_BASE = APITableModel
+IBEISTABLEMODEL_BASE = APIItemModel
 
 
 class IBEISTableModel(IBEISTABLEMODEL_BASE):
@@ -38,7 +38,7 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
         model.eid = None
         model.original_ider = None
         if IBEISTABLEMODEL_BASE == StripeProxyModel:
-            model.sourcemodel = APITableModel(headers=headers, parent=parent)
+            model.sourcemodel = APIItemModel(headers=headers, parent=parent)
             model.setSourceModel(model.sourcemodel)
             print('just set the sourcemodel')
 
@@ -98,19 +98,19 @@ class IBEISTreeView(APITreeView):
 #-------------------------
 
 
-class EncTableWidget(APITableWidget):
+class EncTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
-        APITableWidget.__init__(widget, headers=headers, parent=parent,
+        APIItemWidget.__init__(widget, headers=headers, parent=parent,
                                 model_class=EncTableModel,
                                 view_class=EncTableView)
 
 
-class EncTableModel(APITableModel):
+class EncTableModel(APIItemModel):
     def __init__(model, headers=None, parent=None):
         model.ibswin = parent
         model.headers = headers
-        APITableModel.__init__(model, headers=headers, parent=parent)
+        APIItemModel.__init__(model, headers=headers, parent=parent)
 
 
 class EncTableView(APITableView):
