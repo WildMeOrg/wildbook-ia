@@ -42,7 +42,7 @@ def _init_matplotlib():
     import matplotlib as mpl
     import utool
     backend = mpl.get_backend()
-    if not sys.platform.startswith('win32') and os.environ.get('DISPLAY', None) is None:
+    if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
         # Write to files if we cannot display
         TARGET_BACKEND = 'PDF'
     else:
