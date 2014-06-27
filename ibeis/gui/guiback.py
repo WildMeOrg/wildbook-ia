@@ -710,7 +710,7 @@ class MainWindowBackend(QtCore.QObject):
         printDBG('[back] dir=%r' % dir_)
         if dir_ is None:
             return
-        gpath_list = utool.list_images(dir_, fullpath=True)
+        gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
