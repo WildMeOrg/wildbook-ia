@@ -7,7 +7,7 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import guitool
 from guitool.guitool_decorators import signal_, slot_
-from guitool.api_table_model import APITableModel
+from guitool.api_item_model import APIItemModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
@@ -55,7 +55,7 @@ def set_column_persistant_editor(view, column):
 
 @viewmember
 def _update_headers(view, **headers):
-    """ Mirrors _update_headers in api_table_model """
+    """ Mirrors _update_headers in api_item_model """
     # Use headers from model #model = view.model #headers = model.headers
     # Get header info
     col_sort_index = headers.get('col_sort_index', None)

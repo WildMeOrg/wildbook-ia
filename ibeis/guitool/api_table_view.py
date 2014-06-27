@@ -7,7 +7,7 @@ from guitool.api_thumb_delegate import APIThumbDelegate
 from guitool.api_button_delegate import APIButtonDelegate
 from guitool.api_item_view import injectviewinstance
 from guitool.guitool_decorators import signal_, slot_
-from guitool.api_table_model import APITableModel
+from guitool.api_item_model import APIItemModel
 from guitool.stripe_proxy_model import StripeProxyModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
@@ -115,7 +115,7 @@ class APITableView(API_VIEW_BASE):
  
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
-        assert isinstance(model, (StripeProxyModel, APITableModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)
+        assert isinstance(model, (StripeProxyModel, APIItemModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)
         # Learn some things about the model before you fully connect it.
         print('[view] setting model')
         model._rows_updated.connect(view.on_rows_updated)

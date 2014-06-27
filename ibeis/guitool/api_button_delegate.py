@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtGui, QtCore  # NOQA
 from guitool import guitool_components
 import utool
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableWidget]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
 
 
 #DELEGATE_BASE = QtGui.QItemDelegate

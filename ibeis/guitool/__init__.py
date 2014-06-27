@@ -3,10 +3,10 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
-from . import api_table_model
+from . import api_item_model
 from . import api_table_view
 from . import api_tree_view
-from . import api_table_widget
+from . import api_item_widget
 from . import stripe_proxy_model
 
 from . import guitool_tables
@@ -25,10 +25,10 @@ from .guitool_delegates import *
 from .guitool_components import *
 from .guitool_main import *
 from .guitool_misc import *
-from .api_table_model import *
+from .api_item_model import *
 from .api_table_view import *
 from .api_tree_view import *
-from .api_table_widget import *
+from .api_item_widget import *
 from .stripe_proxy_model import *
 from .qtype import *
 
@@ -50,8 +50,8 @@ def reload_subs():
         guitool_main.rrr()
     if hasattr(guitool_misc, 'rrr'):
         guitool_misc.rrr()
-    if hasattr(api_table_model, 'rrr'):
-        api_table_model.rrr()
+    if hasattr(api_item_model, 'rrr'):
+        api_item_model.rrr()
     if hasattr(guitool_components, 'rrr'):
         guitool_components.rrr()
 

@@ -9,7 +9,7 @@ from vtool import image as gtool
 from vtool import linalg as ltool
 #from multiprocessing import Process
 #from guitool import guitool_components as comp
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableWidget]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
 
 
 DELEGATE_BASE = QtGui.QItemDelegate
