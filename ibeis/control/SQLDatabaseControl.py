@@ -3,13 +3,22 @@ from __future__ import absolute_import, division, print_function
 from itertools import imap, izip
 import re
 from os.path import join, exists
+import utool
 # Tools
-from ibeis.control._sql_database_control_helpers import *  # NOQA
-from ibeis.control import _sql_database_control_helpers as sqlhelpers  # NOQA
-from ibeis.control._sql_database_control_helpers import _unpacker, lite, utool
+#from ibeis.control._sql_database_control_helpers import *  # NOQA
+#from ibeis.control import _sql_database_control_helpers as sqlhelpers
+from ibeis.control._sql_database_control_helpers import (_unpacker, _executor,
+                                                         lite,
+                                                         SQLExecutionContext,
+                                                         default_decorator,
+                                                         DEBUG)
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql]', DEBUG=DEBUG)
+
+VERBOSE = utool.VERBOSE
+QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
+AUTODUMP = utool.get_flag('--auto-dump')
 
 
 class SQLDatabaseController(object):

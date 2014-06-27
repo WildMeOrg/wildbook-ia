@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function
-# Python
-# Tools
 import utool
 from . import __SQLITE3__ as lite
+DEBUG = False
+
+(print, print_, printDBG, rrr, profile) = utool.inject(
+    __name__, '[sql-helpers]', DEBUG=DEBUG)
 
 
 def default_decorator(func):
@@ -12,7 +14,6 @@ def default_decorator(func):
 # =======================
 # Helper Functions
 # =======================
-DEBUG = False
 VERBOSE = utool.VERBOSE
 PRINT_SQL = utool.get_flag('--print-sql')
 AUTODUMP = utool.get_flag('--auto-dump')
