@@ -763,5 +763,5 @@ def make_enctext_list(eid_list, enc_cfgstr):
 @__injectable
 def make_next_name(ibs):
     name_prefix = utool.get_timestamp('tag')
-    next_name = name_prefix + '_AUTO%4d' % ibs.get_num_names()
+    next_name = name_prefix + '_AUTO%04d' % ibs.get_num_names()
     return next_name
