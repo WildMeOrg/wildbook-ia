@@ -3,25 +3,22 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ROI]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ROI_CHIPS]')
 
 
-def TEST_DELETE_ROI(ibs, back):
+def TEST_DELETE_ROI_CHIPS(ibs, back):
     rid_list = ibs.get_valid_rids()
     rid = rid_list[0]
-    cid = ibs.get_roi_cids(rid)
-    fid = ibs.get_roi_fids(rid)
-    thumbtup = ibs.get_roi_chip_thumbtup(rid)
-    print("thumbtup_list=%r" % (thumbtup,))
-    thumbpath = thumbtup[0]    
-    ibs.delete_rois(rid)
+    ibs.delete_roi_chips(rid)
     rid_list = ibs.get_valid_rids()
-    cid_list = ibs.get_valid_cids()
-    fid_list = ibs.get_valid_fids()
-    assert rid not in rid_list, "RID still exists"
-    assert cid not in cid_list, "CID still exists"
-    assert fid not in fid_list, "FID still exists"
-    assert not utool.checkpath(thumbpath), "Thumbnail still exists"
+    assert rid in rid_list, "Error: RID deleted"
+    gid_list = get_roi_gids(rid)
+    thumbtup_list = ibs.get_image_thumbtups(gid_list)
+    assert len(thumbtup_list) == 0, "Thumbtup list not deleted"
+    cid_list = ibs.get_roi_cids(rid)
+    assert len(cid_list) == 0, "CID not deleted"
+    roi_thumbtup_list = ibs.get_roi_chip_thumbtup(rid)
+    assert len(roi_thumbtup_list) == 0, "ROI chip thumbtups not deleted"
     return locals()
 
 
@@ -32,6 +29,6 @@ if __name__ == '__main__':
                              allow_newdir=True, delete_ibsdir=True)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
-    test_locals = utool.run_test(TEST_DELETE_ROI, ibs, back)
+    test_locals = utool.run_test(TEST_DELETE_ROI_CHIPS, ibs, back)
     exec(utool.execstr_dict(test_locals, 'test_locals'))
     exec(utool.ipython_execstr())
