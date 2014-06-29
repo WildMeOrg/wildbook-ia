@@ -47,10 +47,12 @@ class APIItemWidget(WIDGET_BASE):
         widget.view.contextMenuClicked.connect(widget.on_contextMenuRequested)
 
     def on_rows_updated(widget, name, num):
-        print('rows updated')
+        if utool.VERBOSE:
+            print('rows updated')
         pass
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(widget, index, pos):
-        print('context request')
+        if utool.VERBOSE:
+            print('context request')
         pass

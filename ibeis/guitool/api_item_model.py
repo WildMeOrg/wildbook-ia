@@ -10,12 +10,14 @@ from itertools import izip
 import functools
 import utool
 #import numpy as np
-profile = lambda func: func
-printDBG = lambda *args: None
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
+#profile = lambda func: func
+#printDBG = lambda *args: None
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
 
 #API_MODEL_BASE = QtCore.QAbstractTableModel
 API_MODEL_BASE = QtCore.QAbstractItemModel
+
+VERBOSE = utool.VERBOSE
 
 
 class TreeNode(object):
@@ -26,7 +28,8 @@ class TreeNode(object):
         self.level = level
 
     def __del__(self):
-        print('DELETING THE TREE NODE!: id_=%r' % self.id_)
+        if VERBOSE:
+            print('DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def set_children(self, child_nodes):
         self.child_nodes = child_nodes
@@ -239,14 +242,6 @@ class APIItemModel(API_MODEL_BASE):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse)
 
-    def _use_ider(model, level=0):
-        if level == 0:
-            return model.iders[level]()
-        else:
-            parent_ids = model._use_ider(level - 1)
-            level_ider = model.iders[level]
-            return level_ider(parent_ids)
-
     @updater
     def _update_rows(model):
         """
@@ -421,11 +416,19 @@ class APIItemModel(API_MODEL_BASE):
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
 
-    def _use_ider(model, level):
+    #def _use_ider(model, level):
+    #    if level == 0:
+    #        return model.iders[level]()
+    #    else:
+    #        return model.iders[level](model._use_ider(level - 1))
+
+    def _use_ider(model, level=0):
         if level == 0:
             return model.iders[level]()
         else:
-            return model.iders[level](model._use_ider(level - 1))
+            parent_ids = model._use_ider(level - 1)
+            level_ider = model.iders[level]
+            return level_ider(parent_ids)
 
     #----------------------------------
     # --- API Convineince Functions ---
@@ -486,15 +489,16 @@ class APIItemModel(API_MODEL_BASE):
         col = qtindex.column()
         getter = model.col_getter_list[col]  # getter for this column
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
+        data = getter(row_id)
         # <HACK: MODEL CACHE>
         #cachekey = (row_id, col)
-        try:
-            if True:  # Cache is disabled
-                raise KeyError('')
-            #data = model.cache[cachekey]
-        except KeyError:
-            data = getter(row_id)
-            #model.cache[cachekey] = data
+        #try:
+        #    if True:  # Cache is disabled
+        #        raise KeyError('')
+        #    #data = model.cache[cachekey]
+        #except KeyError:
+        #    data = getter(row_id)
+        #    #model.cache[cachekey] = data
         # </HACK: MODEL CACHE>
         return data
 
@@ -514,7 +518,8 @@ class APIItemModel(API_MODEL_BASE):
         except KeyError:
             pass
         setter = model.col_setter_list[col]
-        print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
+        if VERBOSE:
+            print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
         return setter(row_id, value)
 
     #------------------------

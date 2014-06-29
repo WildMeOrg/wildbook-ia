@@ -85,7 +85,8 @@ class APIButtonDelegate(DELEGATE_BASE):
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def on_button_click(dgt, qtindex):
-        print('pressed button')
+        if utool.VERBOSE:
+            print('pressed button')
         butkw = dgt.get_index_butkw(qtindex)
         callback = butkw['clicked']
         callback()
@@ -97,7 +98,8 @@ class APIButtonDelegate(DELEGATE_BASE):
         if event_type == QtCore.QEvent.MouseButtonPress:
             # store the position that is clicked
             dgt._pressed = (qtindex.row(), qtindex.column())
-            print('store')
+            if utool.VERBOSE:
+                print('store')
             return True
         elif event_type == QtCore.QEvent.MouseButtonRelease:
             if dgt.is_qtindex_pressed(qtindex):

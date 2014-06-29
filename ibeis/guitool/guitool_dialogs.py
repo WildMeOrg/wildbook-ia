@@ -3,6 +3,7 @@ from PyQt4 import QtCore, QtGui  # NOQA
 from PyQt4.QtCore import Qt
 from os.path import split
 # UTool
+import utool
 from utool import util_cache, util_path
 
 
@@ -21,8 +22,9 @@ def _guitool_cache_read(key, **kwargs):
 
 def user_option(parent=None, msg='msg', title='user_option',
                 options=['No', 'Yes'], use_cache=False):
-    'Prompts user with several options with ability to save decision'
-    print('[*guitools] user_option:\n %r: %s' % (title, msg))
+    """ Prompts user with several options with ability to save decision """
+    if utool.VERBOSE:
+        print('[*guitools] user_option:\n %r: %s' % (title, msg))
     # Recall decision
     cache_id = title + msg
     if use_cache:

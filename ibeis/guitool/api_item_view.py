@@ -16,6 +16,8 @@ from functools import partial
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APIItemView]', DEBUG=False)
 
+VERBOSE = utool.VERBOSE
+
 API_VIEW_BASE = QtGui.QAbstractItemView
 viewmember = utool.classmember(API_VIEW_BASE)
 injectviewinstance = partial(utool.inject_instance, API_VIEW_BASE)
@@ -40,10 +42,12 @@ def infer_delegates(view, **headers):
     col_type_list = headers.get('col_type_list', [])
     for colx, coltype in enumerate(col_type_list):
         if coltype in  qtype.QT_PIXMAP_TYPES:
-            print('[view] colx=%r is a PIXMAP' % colx)
+            if VERBOSE:
+                print('[view] colx=%r is a PIXMAP' % colx)
             view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
         elif coltype in qtype.QT_BUTTON_TYPES:
-            print('[view] colx=%r is a BUTTON' % colx)
+            if VERBOSE:
+                print('[view] colx=%r is a BUTTON' % colx)
             view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
 
 
@@ -103,10 +107,13 @@ def itemDelegate(view, qindex):
 @viewmember
 def copy_selection_to_clipboard(view):
     """ Copys selected grid to clipboard """
-    print('[guitool] Copying selection to clipboard')
+    if VERBOSE:
+        print('[guitool] Copying selection to clipboard')
     copy_str = get_view_selection_as_str(view)
     copy_qstr = QtCore.QString(copy_str)
     clipboard = get_qtapp().clipboard()
-    print(copy_str)
+    if VERBOSE:
+        print(copy_str)
     clipboard.setText(copy_qstr)
-    print('[guitool] finished copy')
+    if VERBOSE:
+        print('[guitool] finished copy')
