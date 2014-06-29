@@ -146,8 +146,10 @@ class SQLDatabaseController(object):
     #==============
 
     #@ider
-    def _get_all_ids(db, tblname, **kwargs):
-        """ VALID IDER """
+    def get_all_rowids(db, tblname, **kwargs):
+        """ VALID IDER
+        returns a list of all rowids from a table in ascending order
+        """
         fmtdict = {
             'tblname': tblname,
         }
@@ -158,17 +160,12 @@ class SQLDatabaseController(object):
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
     @default_decorator
-    def get_valid_ids(db, tblname, **kwargs):
-        """ VALID IDER """
-        return db._get_all_ids(tblname, **kwargs)
-
-    @default_decorator
     def get_valid_rowids(db, tblname, **kwargs):
         """ VALID IDER """
-        return db._get_all_ids(tblname, **kwargs)
+        return db.get_all_rowids(tblname, **kwargs)
 
     @default_decorator
-    def add(db, tblname, colnames, params_iter, **kwargs):
+    def _add(db, tblname, colnames, params_iter, **kwargs):
         """ ADDER
         NOTE: use add_cleanly
         """
@@ -234,7 +231,7 @@ class SQLDatabaseController(object):
         dirty_params = utool.filter_items(params_list, isdirty_list)
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         try:
-            db.add(tblname, colnames, dirty_params)
+            db._add(tblname, colnames, dirty_params)
         except Exception as ex:
             #unique_uuids = utool.unique_ordered(uuid_list)
             #assert len(unique_uuids) == len(uuid_list), 'duplicate inputs'
@@ -421,7 +418,6 @@ class SQLDatabaseController(object):
         #db.cur.execute('PRAGMA cache_size = 1024;')
         #db.cur.execute('PRAGMA page_size = 1024;')
         #db.cur.execute('PRAGMA synchronous = OFF;')
-
 
     @default_decorator
     def schema(db, tablename, schema_list, table_constraints=[], docstr=''):

@@ -331,8 +331,41 @@ class IBEISController(object):
 
     @ider
     def _get_all_gids(ibs):
-        all_gids = ibs.db.get_executeone(IMAGE_TABLE, ('image_rowid',))
-        return sorted(all_gids)
+        """ returns all unfiltered gids (image rowids) """
+        #all_gids = sorted(ibs.db.get_executeone(IMAGE_TABLE, ('image_rowid',)))
+        all_gids = ibs.db.get_all_rowids(IMAGE_TABLE)
+        return all_gids
+
+    @ider
+    def _get_all_rids(ibs):
+        """ returns all unfiltered rids (annotation rowids) """
+        #all_rids = sorted(ibs.db.get_executeone(ANNOTATION_TABLE, ('annot_rowid',)))
+        all_rids = ibs.db.get_all_rowids(ANNOTATION_TABLE)
+        return all_rids
+
+    @ider
+    def _get_all_eids(ibs):
+        """ returns all unfiltered eids (encounter rowids) """
+        #all_eids = sorted(ibs.db.get_executeone(ENCOUNTER_TABLE,
+        #                                        ('encounter_rowid',)))
+        all_eids = ibs.db.get_all_rowids(ENCOUNTER_TABLE)
+        return all_eids
+
+    @ider
+    def _get_all_cids(ibs):
+        """ Returns unfiltered cids (computed chip rowids) for every
+        configuration (YOU PROBABLY SHOULD NOT USE THIS) """
+        #all_cids = sorted(ibs.db.get_executeone(CHIP_TABLE, ('chip_rowid',)))
+        all_cids = ibs.db.get_all_rowids(CHIP_TABLE)
+        return all_cids
+
+    @ider
+    def _get_all_fids(ibs):
+        """ Returns unfiltered fids (computed feature rowids) for every
+        configuration (YOU PROBABLY SHOULD NOT USE THIS)"""
+        #all_fids = sorted(ibs.db.get_executeone(FEATURE_TABLE, ('feature_rowid',)))
+        all_fids = ibs.db.get_all_rowids(FEATURE_TABLE)
+        return all_fids
 
     @ider
     def get_valid_gids(ibs, eid=None, require_unixtime=False):
@@ -347,38 +380,6 @@ class IBEISController(object):
             gid_list = utool.filter_items(gid_list, isvalid_list)
         return sorted(gid_list)
 
-    @ider
-    def _get_all_rids(ibs):
-        """ returns a all ROI ids """
-        all_rids = ibs.db.get_executeone(ANNOTATION_TABLE, ('annot_rowid',))
-        return sorted(all_rids)
-
-    @ider
-    def get_valid_cids(ibs):
-        chip_config_rowid = ibs.get_chip_config_rowid()
-        params = (chip_config_rowid,)
-        cid_list = ibs.db.get_executeone_where(CHIP_TABLE, ('chip_rowid',), 'config_rowid=?', params)
-        return sorted(cid_list)
-
-    @ider
-    def _get_all_cids(ibs):
-        """ Returns computed chips for every configuration
-            (you probably should not use this) """
-        all_cids = ibs.db.get_executeone(CHIP_TABLE, ('chip_rowid',))
-        return sorted(all_cids)
-    @ider
-    def get_valid_fids(ibs):
-        feat_config_rowid = ibs.get_feat_config_rowid()
-        params = (feat_config_rowid,)
-        fid_list = ibs.db.get_executeone_where(FEATURE_TABLE, ('feature_rowid',), 'config_rowid=?', params)
-        return sorted(fid_list)
-
-    @ider
-    def _get_all_fids(ibs):
-        """ Returns computed features for every configuration
-        (you probably should not use this)"""
-        all_fids = ibs.db.get_executeone(FEATURE_TABLE, ('feature_rowid',))
-        return sorted(all_fids)
     @ider
     def _get_all_known_nids(ibs):
         """ Returns all nids of known animals
@@ -411,11 +412,6 @@ class IBEISController(object):
         return sorted(nid_list)
 
     @ider
-    def _get_all_eids(ibs):
-        all_eids = ibs.db.get_executeone(ENCOUNTER_TABLE, ('encounter_rowid',))
-        return sorted(all_eids)
-
-    @ider
     def get_valid_eids(ibs, min_num_gids=0):
         """ returns list of all encounter ids """
         eid_list = ibs._get_all_eids()
@@ -439,6 +435,24 @@ class IBEISController(object):
             flag_list = ibs.get_roi_exemplar_flag(rid_list)
             rid_list = utool.filter_items(rid_list, flag_list)
         return sorted(rid_list)
+
+    @ider
+    def get_valid_cids(ibs):
+        """ Valid chip rowids of the current configuration """
+        # FIXME: configids need reworking
+        chip_config_rowid = ibs.get_chip_config_rowid()
+        params = (chip_config_rowid,)
+        cid_list = ibs.db.get_executeone_where(CHIP_TABLE, ('chip_rowid',), 'config_rowid=?', params)
+        return sorted(cid_list)
+
+    @ider
+    def get_valid_fids(ibs):
+        """ Valid feature rowids of the current configuration """
+        # FIXME: configids need reworking
+        feat_config_rowid = ibs.get_feat_config_rowid()
+        params = (feat_config_rowid,)
+        fid_list = ibs.db.get_executeone_where(FEATURE_TABLE, ('feature_rowid',), 'config_rowid=?', params)
+        return sorted(fid_list)
 
     #
     #
@@ -890,17 +904,6 @@ class IBEISController(object):
     #----------------
     # --- GETTERS ---
     #----------------
-
-    #
-    # GETTERS::GENERAL
-
-    def get_valid_ids(ibs, tblname, eid=None):
-        get_valid_tblname_ids = {
-            'gids': ibs.get_valid_gids,
-            'rids': ibs.get_valid_rids,
-            'nids': ibs.get_valid_nids,
-        }[tblname]
-        return get_valid_tblname_ids(eid=eid)
 
     #
     # GETTERS::IMAGE
