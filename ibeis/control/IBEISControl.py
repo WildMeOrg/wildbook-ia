@@ -384,10 +384,12 @@ class IBEISController(object):
     def _get_all_known_nids(ibs):
         """ Returns all nids of known animals
             (does not include unknown names) """
-        where_clause = 'label_value!=?'
-        params = (ibs.UNKNOWN_NAME,)
-        all_nids = ibs.db.get_executeone_where(LABEL_TABLE, ('label_rowid',), where_clause, params)
-        return sorted(all_nids)
+        where_clause = 'label_value!=? AND key_rowid=?'
+        params = (ibs.UNKNOWN_NAME, ibs.INDIVIDUAL_KEY)
+        all_known_nids = ibs.db.get_rowids_where(LABEL_TABLE, where_clause, params)
+        #all_nids = ibs.db.get_executeone_where(LABEL_TABLE, ('label_rowid',), where_clause, params)
+        #all_nids = sorted(all_nids)
+        return all_known_nids
 
     @ider
     def get_valid_nids(ibs, eid=None):
@@ -441,18 +443,23 @@ class IBEISController(object):
         """ Valid chip rowids of the current configuration """
         # FIXME: configids need reworking
         chip_config_rowid = ibs.get_chip_config_rowid()
-        params = (chip_config_rowid,)
-        cid_list = ibs.db.get_executeone_where(CHIP_TABLE, ('chip_rowid',), 'config_rowid=?', params)
-        return sorted(cid_list)
+        #params = (chip_config_rowid,)
+        #cid_list = ibs.db.get_executeone_where(CHIP_TABLE, ('chip_rowid',), 'config_rowid=?', params)
+        #cid_list = sorted(cid_list)
+        #return sorted(cid_list)
+        cid_list = ibs.db.get_rowids_where(FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
+        return cid_list
 
     @ider
     def get_valid_fids(ibs):
         """ Valid feature rowids of the current configuration """
         # FIXME: configids need reworking
         feat_config_rowid = ibs.get_feat_config_rowid()
-        params = (feat_config_rowid,)
-        fid_list = ibs.db.get_executeone_where(FEATURE_TABLE, ('feature_rowid',), 'config_rowid=?', params)
-        return sorted(fid_list)
+        #fid_list = ibs.db.get_executeone_where(FEATURE_TABLE, ('feature_rowid',), 'config_rowid=?', (feat_config_rowid,))
+        #fid_list = sorted(fid_list)
+        fid_list = ibs.db.get_rowids_where(FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
+        return fid_list
+
 
     #
     #

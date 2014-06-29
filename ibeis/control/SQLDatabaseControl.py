@@ -147,28 +147,72 @@ class SQLDatabaseController(object):
 
     #@ider
     def get_all_rowids(db, tblname, **kwargs):
-        """ VALID IDER
-        returns a list of all rowids from a table in ascending order
-        """
+        """ VALID IDER returns a list of all rowids from a table in ascending
+        order """
         fmtdict = {
             'tblname': tblname,
         }
         operation_fmt = '''
-        SELECT rowid FROM {tblname}
+        SELECT rowid
+        FROM {tblname}
         ORDER BY rowid ASC
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
+    #@ider
     @default_decorator
-    def get_valid_rowids(db, tblname, **kwargs):
-        """ VALID IDER """
-        return db.get_all_rowids(tblname, **kwargs)
+    def get_rowids_where(db, tblname, where_clause, params, **kwargs):
+        """ VALID IDER returns a list of all rowids from a table which satisfy a
+        condition in ascending order """
+        fmtdict = {
+            'tblname': tblname,
+            'where_clause': where_clause,
+        }
+        operation_fmt = '''
+        SELECT rowid
+        FROM {tblname}
+        WHERE {where_clause}
+        ORDER BY rowid ASC
+        '''
+        return db._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
+
+    #@default_decorator
+    #def get_executeone(db, tblname, colnames, **kwargs):
+    #    """ DEPRICATE """
+    #    if isinstance(colnames, (str, unicode)):
+    #        colnames = (colnames,)
+    #    fmtdict = {
+    #        'tblname'         : tblname,
+    #        'colnames_str'    : ', '.join(colnames),
+    #    }
+    #    operation_fmt = '''
+    #        SELECT {colnames_str}
+    #        FROM {tblname}
+    #        '''
+    #    val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+    #    return val_list
+
+    #@default_decorator
+    #def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
+    #    """ DEPRICATE """
+    #    if isinstance(colnames, (str, unicode)):
+    #        colnames = (colnames,)
+    #    fmtdict = {
+    #        'tblname'         : tblname,
+    #        'colnames_str'    : ', '.join(colnames),
+    #        'where_clause'    : where_clause
+    #    }
+    #    operation_fmt = '''
+    #        SELECT {colnames_str}
+    #        FROM {tblname}
+    #        WHERE {where_clause}
+    #        '''
+    #    val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
+    #    return val_list
 
     @default_decorator
     def _add(db, tblname, colnames, params_iter, **kwargs):
-        """ ADDER
-        NOTE: use add_cleanly
-        """
+        """ ADDER NOTE: use add_cleanly """
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
         fmtdict = {
@@ -188,10 +232,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, unique_paramx=[0]):
-        """
-        ADDER
-        Extra input:
-            the first item of params_iter must be a uuid,
+        """ ADDER Extra input: the first item of params_iter must be a uuid,
         uuid_list - a non-rowid column which identifies a row
             get_rowid_from_uuid - function which does what it says
         e.g:
@@ -203,13 +244,11 @@ class SQLDatabaseController(object):
             unique_paramx = [0, 1]
         """
         # ADD_CLEANLY_1: PREPROCESS INPUT
-        # eagerly evaluate for uuids
-        params_list = list(params_iter)
+        params_list = list(params_iter)  # eagerly evaluate for uuids
         # Extract uuids from the params list (requires eager eval)
-        # FIXME: the uuids being at index 0 is a hack
-
-        uuid_lists = [[None if params is None else
-                       params[x] for params in params_list] for x in unique_paramx]
+        uuid_lists = [[None if params is None else params[x]
+                       for params in params_list]
+                      for x in unique_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
@@ -218,14 +257,13 @@ class SQLDatabaseController(object):
         # Check to see if this already exists in the database
         rowid_list_   = get_rowid_from_uuid(*uuid_lists)
         isnew_list    = [rowid is None for rowid in rowid_list_]
-        if not all(isunique_list):
+        if VERBOSE and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
         isdirty_list = map(all, izip(isvalid_list, isunique_list, isnew_list))
         # ADD_CLEANLY_3.1: EXIT IF CLEAN
         if not any(isdirty_list):
-            # There is nothing to add. Return the rowids
-            return rowid_list_
+            return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
         # Add any unadded parameters to the database
         dirty_params = utool.filter_items(params_list, isdirty_list)
@@ -233,24 +271,13 @@ class SQLDatabaseController(object):
         try:
             db._add(tblname, colnames, dirty_params)
         except Exception as ex:
-            #unique_uuids = utool.unique_ordered(uuid_list)
-            #assert len(unique_uuids) == len(uuid_list), 'duplicate inputs'
-            #assert unique_uuids == uuid_list, 'duplicate inputs'
-            #ibs = utool.search_stack_for_var('ibs')
-            #print(ibs.get_valid_gids())
             utool.printex(ex, key_list=['isdirty_list', 'uuid_list', 'rowid_list_'])
-            #utool.embed()
             raise
-        #results =
-        # If the result was already in the database (and ignored), it will return None.
-        # Thus, go and get the row_id if the index is None
-        #results = [get_rowid_from_uuid([uuid_list[index]])[0]
-        #           if results[index] is None
-        #           else results[index]
-        #           for index in range(len(results))]
+        # TODO: We should only have to preform a subset of adds here
+        # (at the positions where rowid_list was None in the getter check)
         rowid_list = get_rowid_from_uuid(*uuid_lists)
         # ADD_CLEANLY_4: SANITY CHECK AND RETURN
-        assert len(rowid_list) == len(params_list)
+        assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
     #@getter
@@ -262,12 +289,12 @@ class SQLDatabaseController(object):
         fmtdict = {
             'tblname'     : tblname,
             'colnames'    : ', '.join(colnames),
-            'where_clauses' : 'WHERE ' + where_clause,
+            'where_clauses' :  where_clause,
         }
         operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
-            {where_clauses}
+            WHERE {where_clauses}
             '''
         val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                  params_iter=params_iter,
@@ -289,40 +316,6 @@ class SQLDatabaseController(object):
         params_iter = ((_rowid,) for _rowid in id_iter)
 
         return db.get_where(tblname, colnames, params_iter, where_clause, unpack_scalars=unpack_scalars)
-
-    #@getter
-    @default_decorator
-    def get_executeone(db, tblname, colnames, **kwargs):
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
-        fmtdict = {
-            'tblname'         : tblname,
-            'colnames_str'    : ', '.join(colnames),
-        }
-        operation_fmt = '''
-            SELECT {colnames_str}
-            FROM {tblname}
-            '''
-        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
-        return val_list
-
-    #@getter
-    @default_decorator
-    def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
-        fmtdict = {
-            'tblname'         : tblname,
-            'colnames_str'    : ', '.join(colnames),
-            'where_clause'    : where_clause
-        }
-        operation_fmt = '''
-            SELECT {colnames_str}
-            FROM {tblname}
-            WHERE {where_clause}
-            '''
-        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
-        return val_list
 
     #@setter
     @default_decorator
