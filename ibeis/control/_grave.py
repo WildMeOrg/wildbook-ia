@@ -96,3 +96,29 @@
             VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
             params_iter=params_iter)
+
+
+
+        # Ensure input list is unique
+        # name_list = tuple(set(name_list_))
+        # HACKY, the adder decorator should specify this
+        #nid_list = ibs.get_name_nids(name_list, ensure=False)
+        #dirty_names = utool.get_dirty_items(name_list, nid_list)
+        #if len(dirty_names) > 0:
+        #    print('[ibs] adding %d names' % len(dirty_names))
+        #    ibsfuncs.assert_valid_names(name_list)
+        #    notes_list = ['' for _ in xrange(len(dirty_names))]
+        #    # All names are individuals and so may safely receive the INDIVIDUAL_KEY label
+        #    key_rowid_list = [ibs.INDIVIDUAL_KEY for name in name_list]
+        #    new_nid_list = ibs.add_labels(key_rowid_list, dirty_names, notes_list)
+        #    #print('new_nid_list = %r' % (new_nid_list,))
+        #    #get_rowid_from_uuid = partial(ibs.get_name_nids, ensure=False)
+        #    #new_nid_list = ibs.db.add_cleanly(LABEL_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        #    new_nid_list  # this line silences warnings
+
+        #    # All the names should have been ensured
+        #    # this nid list should correspond to the input
+        #    nid_list = ibs.get_name_nids(name_list, ensure=False)
+        #    #print('nid_list = %r' % (new_nid_list,))
+        # # Return nids in input order
+        # namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}

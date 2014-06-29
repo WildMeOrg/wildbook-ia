@@ -634,7 +634,8 @@ class IBEISController(object):
         fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         dirty_cids = utool.get_dirty_items(cid_list, fid_list)
         if len(dirty_cids) > 0:
-            print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
+            if utool.VERBOSE:
+                print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
             colnames = ('chip_rowid', 'feature_num_feats', 'feature_keypoints',
                         'feature_sifts', 'config_rowid',)
@@ -646,32 +647,12 @@ class IBEISController(object):
     @adder
     def add_names(ibs, name_list):
         """ Adds a list of names. Returns their nids """
-        # Ensure input list is unique
-        # name_list = tuple(set(name_list_))
-        # HACKY, the adder decorator should specify this
-
-        nid_list = ibs.get_name_nids(name_list, ensure=False)
-        dirty_names = utool.get_dirty_items(name_list, nid_list)
-        if len(dirty_names) > 0:
-            print('[ibs] adding %d names' % len(dirty_names))
-            ibsfuncs.assert_valid_names(name_list)
-            notes_list = ['' for _ in xrange(len(dirty_names))]
-            # All names are individuals and so may safely receive the INDIVIDUAL_KEY label
-            key_rowid_list = [ibs.INDIVIDUAL_KEY for name in name_list]
-            new_nid_list = ibs.add_labels(key_rowid_list, dirty_names, notes_list)
-            print('new_nid_list = %r' % (new_nid_list,))
-            #get_rowid_from_uuid = partial(ibs.get_name_nids, ensure=False)
-            #new_nid_list = ibs.db.add_cleanly(LABEL_TABLE, colnames, params_iter, get_rowid_from_uuid)
-            new_nid_list  # this line silences warnings
-
-            # All the names should have been ensured
-            # this nid list should correspond to the input
-            nid_list = ibs.get_name_nids(name_list, ensure=False)
-            print('nid_list = %r' % (new_nid_list,))
-
-        # # Return nids in input order
-        # namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
         # nid_list_ = [namenid_dict[name] for name in name_list_]
+        ibsfuncs.assert_valid_names(name_list)
+        notes_list = [''] * len(name_list)
+        # All names are individuals and so may safely receive the INDIVIDUAL_KEY label
+        key_rowid_list = [ibs.INDIVIDUAL_KEY] * len(name_list)
+        nid_list = ibs.add_labels(key_rowid_list, name_list, notes_list)
         return nid_list
 
     def add_labels(ibs, key_list, value_list, note_list):
@@ -706,7 +687,8 @@ class IBEISController(object):
     @adder
     def add_encounters(ibs, enctext_list):
         """ Adds a list of names. Returns their nids """
-        print('[ibs] adding %d encounters' % len(enctext_list))
+        if utool.VERBOSE:
+            print('[ibs] adding %d encounters' % len(enctext_list))
         # Add encounter text names to database
         notes_list = ['' for _ in xrange(len(enctext_list))]
         encounter_uuid_list = [uuid.uuid4() for _ in xrange(len(enctext_list))]
@@ -760,7 +742,8 @@ class IBEISController(object):
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
         """ Sets the encoutertext of each image """
-        print('[ibs] Setting %r image encounter ids' % len(gid_list))
+        if utool.VERBOSE:
+            print('[ibs] setting %r image encounter ids' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
         egrid_list = ibs.add_image_relationship(gid_list, eid_list)
         del egrid_list
@@ -1616,15 +1599,15 @@ class IBEISController(object):
 
     @getter_1toM
     def get_encounter_rids(ibs, eid_list):
-        print('get_encounter_rids')
-        print('eid_list = %r' % (eid_list,))
+        #print('get_encounter_rids')
+        #print('eid_list = %r' % (eid_list,))
         """ returns a list of list of rids in each encounter """
         gids_list = ibs.get_encounter_gids(eid_list)
-        print('gids_list = %r' % (gids_list,))
+        #print('gids_list = %r' % (gids_list,))
         rids_list_ = ibsfuncs.unflat_map(ibs.get_image_rids, gids_list)
-        print('rids_list_ = %r' % (rids_list_,))
+        #print('rids_list_ = %r' % (rids_list_,))
         rids_list = list(imap(utool.flatten, rids_list_))
-        print('rids_list = %r' % (rids_list,))
+        #print('rids_list = %r' % (rids_list,))
         return rids_list
 
     @getter_1toM
@@ -1642,14 +1625,14 @@ class IBEISController(object):
     def get_encounter_nids(ibs, eid_list):
 
         """ returns a list of list of nids in each encounter """
-        print('get_encounter_nids')
-        print('eid_list = %r' % (eid_list,))
+        #print('get_encounter_nids')
+        #print('eid_list = %r' % (eid_list,))
         rids_list = ibs.get_encounter_rids(eid_list)
-        print('rids_list = %r' % (rids_list,))
+        #print('rids_list = %r' % (rids_list,))
         nids_list_ = ibsfuncs.unflat_map(ibs.get_roi_nids, rids_list)
-        print('nids_list_ = %r' % (nids_list_,))
+        #print('nids_list_ = %r' % (nids_list_,))
         nids_list = list(imap(utool.unique_ordered, nids_list_))
-        print('nids_list = %r' % (nids_list,))
+        #print('nids_list = %r' % (nids_list,))
         return nids_list
 
     @getter_1to1
@@ -1692,13 +1675,15 @@ class IBEISController(object):
         (CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
         ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE)
         """
-        print('[ibs] deleting %d names' % len(nid_list))
+        if utool.VERBOSE:
+            print('[ibs] deleting %d names' % len(nid_list))
         ibs.db.delete(LABEL_TABLE, nid_list)
 
     @deleter
     def delete_rois(ibs, rid_list):
         """ deletes rois from the database """
-        print('[ibs] deleting %d rois' % len(rid_list))
+        if utool.VERBOSE:
+            print('[ibs] deleting %d rois' % len(rid_list))
         # Delete chips and features first
         ibs.delete_roi_chips(rid_list)
         ibs.db.delete(ANNOTATION_TABLE, rid_list)
@@ -1706,7 +1691,8 @@ class IBEISController(object):
     @deleter
     def delete_images(ibs, gid_list):
         """ deletes images from the database that belong to gids"""
-        print('[ibs] deleting %d images' % len(gid_list))
+        if utool.VERBOSE:
+            print('[ibs] deleting %d images' % len(gid_list))
         # Delete rois first
         rid_list = utool.flatten(ibs.get_image_rids(gid_list))
         ibs.delete_rois(rid_list)
@@ -1716,7 +1702,8 @@ class IBEISController(object):
     @deleter
     def delete_features(ibs, fid_list):
         """ deletes images from the database that belong to gids"""
-        print('[ibs] deleting %d features' % len(fid_list))
+        if utool.VERBOSE:
+            print('[ibs] deleting %d features' % len(fid_list))
         ibs.db.delete(FEATURE_TABLE, fid_list)
 
     @deleter
@@ -1744,7 +1731,8 @@ class IBEISController(object):
     @deleter
     def delete_chips(ibs, cid_list):
         """ deletes images from the database that belong to gids"""
-        print('[ibs] deleting %d roi-chips' % len(cid_list))
+        if utool.VERBOSE:
+            print('[ibs] deleting %d roi-chips' % len(cid_list))
         # Delete chip-images from disk
         preproc_chip.delete_chips(ibs, cid_list)
         # Delete chip features from sql
@@ -1757,7 +1745,8 @@ class IBEISController(object):
     @deleter
     def delete_encounters(ibs, eid_list):
         """ Removes encounters (but not any other data) """
-        print('[ibs] deleting %d encounters' % len(eid_list))
+        if utool.VERBOSE:
+            print('[ibs] deleting %d encounters' % len(eid_list))
         ibs.db.delete(ENCOUNTER_TABLE, eid_list)
         ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
 

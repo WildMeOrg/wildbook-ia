@@ -619,7 +619,7 @@ def update_allimage_encounter(ibs):
     ibs.set_image_enctext(gid_list, [constants.ALLIMAGE_ENCTEXT] * len(gid_list))
 
 
-@__injectable
+@__injectable(False)
 def update_special_encounters(ibs):
     ibs.update_exemplar_encounter()
     ibs.update_allimage_encounter()

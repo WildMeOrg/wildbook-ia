@@ -21,14 +21,14 @@ QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 PRINT_SQL = utool.get_flag('--print-sql')
 
 
-def _executor(executor, opeartion, params):
+def _executor(cur, opeartion, params):
     """ HELPER: Send command to SQL (all other results are invalided)
     Execute an SQL Command
     """
-    executor.execute(opeartion, params)
+    cur.execute(opeartion, params)
 
 
-def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
+def _results_gen(cur, verbose=VERBOSE, get_last_id=False):
     """ HELPER - Returns as many results as there are.
     Careful. Overwrites the results once you call it.
     Basically: Dont call this twice.
@@ -37,10 +37,10 @@ def _results_gen(executor, verbose=VERBOSE, get_last_id=False):
         # The sqlite3_last_insert_rowid(D) interface returns the
         # <b> rowid of the most recent successful INSERT </b>
         # into a rowid table in D
-        _executor(executor, 'SELECT last_insert_rowid()', ())
+        _executor(cur, 'SELECT last_insert_rowid()', ())
     # Wraping fetchone in a generator for some pretty tight calls.
     while True:
-        result = executor.fetchone()
+        result = cur.fetchone()
         if not result:
             raise StopIteration()
         else:
@@ -86,7 +86,7 @@ class SQLExecutionContext(object):
             context.operation_label = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
         if context.start_transaction:
-            _executor(context.db.executor, 'BEGIN', ())
+            _executor(context.db.cur, 'BEGIN', ())
         if PRINT_SQL:
             print(context.operation_label)
         # Comment out timeing code
@@ -98,12 +98,12 @@ class SQLExecutionContext(object):
 
     def execute_and_generate_results(context, params):
         """ HELPER FOR CONTEXT STATMENT """
-        executor = context.db.executor
+        cur = context.db.cur
         operation = context.operation
         try:
-            _executor(context.db.executor, operation, params)
+            _executor(context.db.cur, operation, params)
             is_insert = context.operation_type.upper().startswith('INSERT')
-            return _results_gen(executor, get_last_id=is_insert)
+            return _results_gen(cur, get_last_id=is_insert)
         except lite.IntegrityError:
             raise
 

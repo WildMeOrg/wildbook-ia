@@ -70,7 +70,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         """ Switch to the current encounter tab """
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
-            print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
+            if utool.VERBOSE:
+                print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
             enc_tabwgt.ibswgt._change_enc(eid)
 
     @slot_(int)
@@ -330,7 +331,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
-            print('[newgui] Calling model _update_headers')
+            if utool.VERBOSE:
+                print('[newgui] Calling model _update_headers')
             block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
             for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
                 model = ibswgt.models[tblname]
@@ -399,12 +401,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         view = ibswgt.views[tblname]
         index = ibswgt._tab_table_wgt.indexOf(view)
         text = tblname + ' ' + str(nRows)
-        printDBG('Rows updated in index=%r, text=%r' % (index, text))
+        #printDBG('Rows updated in index=%r, text=%r' % (index, text))
         ibswgt._tab_table_wgt.setTabText(index, text)
 
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):
-        printDBG('[newgui] contextmenu')
+        #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
         tblview = ibswgt.views[model.name]
@@ -429,11 +431,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
-        printDBG('on_click')
+        #printDBG('on_click')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
         if model.name == ENCOUNTER_TABLE:
-            printDBG('clicked encounter')
+            pass
+            #printDBG('clicked encounter')
         else:
             eid = model.eid
             if model.name == IMAGE_TABLE:
@@ -448,7 +451,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
-        printDBG('on_doubleclick')
+        #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
         if model.name == ENCOUNTER_TABLE:

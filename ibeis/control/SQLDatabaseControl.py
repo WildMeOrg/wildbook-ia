@@ -13,6 +13,7 @@ from ibeis.control._sql_database_control_helpers import (_unpacker, _executor,
                                                          default_decorator,
                                                          DEBUG)
 
+
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql]', DEBUG=DEBUG)
 
@@ -48,7 +49,8 @@ class SQLDatabaseController(object):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
-        db.executor   = db.connection.cursor()
+        db.cur   = db.connection.cursor()
+        db.optimize()
         db.table_columns     = utool.odict()
         db.table_constraints = utool.odict()
         db.table_docstr      = utool.odict()
@@ -130,10 +132,10 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_sql_version(db):
         """ Conveinience """
-        _executor(db.executor, '''
+        _executor(db.cur, '''
                    SELECT sqlite_version()
                    ''', verbose=False)
-        sql_version = db.executor.fetchone()
+        sql_version = db.cur.fetchone()
 
         print('[sql] SELECT sqlite_version = %r' % (sql_version,))
         # The version number sqlite3 module. NOT the version of SQLite library.
@@ -346,7 +348,7 @@ class SQLDatabaseController(object):
             colnames = (colnames,)
         val_list = list(val_list)
         id_list = list(id_list)
-        if not QUIET:
+        if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))
@@ -414,6 +416,15 @@ class SQLDatabaseController(object):
     #=========
     # SQLDB CORE
     #=========
+
+    @default_decorator
+    def optimize(db):
+        # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
+        print('[sql] executing sql optimizions')
+        #db.cur.execute('PRAGMA cache_size = 1024;')
+        #db.cur.execute('PRAGMA page_size = 1024;')
+        #db.cur.execute('PRAGMA synchronous = OFF;')
+
 
     @profile
     @default_decorator
