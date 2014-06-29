@@ -15,9 +15,9 @@ def define_IBEIS_schema(ibs):
         #('image_original_path',          'TEXT NOT NULL'),
         ('image_width',                  'INTEGER DEFAULT -1'),
         ('image_height',                 'INTEGER DEFAULT -1'),
-        ('image_time_posix',        'INTEGER DEFAULT -1'),
-        ('image_gps_lat',           'REAL DEFAULT -1.0'),   # there doesn't seem to exist a GPSPoint in SQLite
-        ('image_gps_lon',           'REAL DEFAULT -1.0'),
+        ('image_time_posix',             'INTEGER DEFAULT -1'),  # this should probably be UCT
+        ('image_gps_lat',                'REAL DEFAULT -1.0'),   # there doesn't seem to exist a GPSPoint in SQLite (TODO: make one in the __SQLITE3__ custom types
+        ('image_gps_lon',                'REAL DEFAULT -1.0'),
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_aif',             'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
@@ -28,8 +28,8 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema(constants.ANNOTATION_TABLE, (
         ('annot_rowid',                    'INTEGER PRIMARY KEY'),
         ('annot_uuid',                     'UUID NOT NULL'),
-        ('image_rowid',                  'INTEGER NOT NULL'),
-        #('name_rowid',                  'INTEGER NOT NULL'),
+        ('image_rowid',                    'INTEGER NOT NULL'),
+        #('name_rowid',                    'INTEGER NOT NULL'),
         ('annot_xtl',                      'INTEGER NOT NULL'),
         ('annot_ytl',                      'INTEGER NOT NULL'),
         ('annot_width',                    'INTEGER NOT NULL'),
@@ -86,7 +86,7 @@ def define_IBEIS_schema(ibs):
         List of all encounters''')
 
     ibs.db.schema(constants.EG_RELATION_TABLE, (
-        ('egpair_rowid',                  'INTEGER PRIMARY KEY'),
+        ('egr_rowid',                     'INTEGER PRIMARY KEY'),
         ('image_rowid',                   'INTEGER NOT NULL'),
         ('encounter_rowid',               'INTEGER'),
     ),  ['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'],

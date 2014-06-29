@@ -46,7 +46,9 @@ class SQLDatabaseController(object):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
-        db.cur   = db.connection.cursor()
+        # Get a cursor which will preform sql commands / queries / executions
+        db.cur = db.connection.cursor()
+        # Optimize the database (if anything is set)
         db.optimize()
         db.table_columns     = utool.odict()
         db.table_constraints = utool.odict()
@@ -147,8 +149,7 @@ class SQLDatabaseController(object):
 
     #@ider
     def get_all_rowids(db, tblname, **kwargs):
-        """ VALID IDER returns a list of all rowids from a table in ascending
-        order """
+        """ returns a list of all rowids from a table in ascending order """
         fmtdict = {
             'tblname': tblname,
         }
@@ -161,9 +162,9 @@ class SQLDatabaseController(object):
 
     #@ider
     @default_decorator
-    def get_rowids_where(db, tblname, where_clause, params, **kwargs):
-        """ VALID IDER returns a list of all rowids from a table which satisfy a
-        condition in ascending order """
+    def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
+        """ returns a list of rowids from a table in ascending order satisfying
+        a condition """
         fmtdict = {
             'tblname': tblname,
             'where_clause': where_clause,
@@ -320,12 +321,11 @@ class SQLDatabaseController(object):
 
     #@deleter
     @default_decorator
-    def delete(db, tblname, id_list, id_colname=None, **kwargs):
-        """ deleter """
+    def delete(db, tblname, id_list, id_colname='rowid', **kwargs):
+        """ deleter. USE delete_rowids instead """
         fmtdict = {
-            'tblname' : tblname,
-            'tblname': tblname,
-            'rowid_str'   : ('rowid=?' if id_colname is None else id_colname + '=?'),
+            'tblname'   : tblname,
+            'rowid_str' : (id_colname + '=?'),
         }
         operation_fmt = '''
             DELETE
@@ -333,6 +333,23 @@ class SQLDatabaseController(object):
             WHERE {rowid_str}
             '''
         params_iter = ((_rowid,) for _rowid in id_list)
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=params_iter,
+                                             **kwargs)
+
+    @default_decorator
+    def delete_rowids(db, tblname, rowid_list, **kwargs):
+        """ deletes the the rows in rowid_list """
+        fmtdict = {
+            'tblname'   : tblname,
+            'rowid_str' : ('rowid=?'),
+        }
+        operation_fmt = '''
+            DELETE
+            FROM {tblname}
+            WHERE {rowid_str}
+            '''
+        params_iter = ((_rowid,) for _rowid in rowid_list)
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter,
                                              **kwargs)

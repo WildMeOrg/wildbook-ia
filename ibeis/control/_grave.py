@@ -218,3 +218,37 @@
             print('</!!! ERROR>\n')  # DEPRICATE
             raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
 
+
+        #configid_list = ibs.get_config_rowid_from_suffix(cfgsuffix_list, ensure=False)
+        ##print('configid_list %r' % (configid_list,))
+        ##print('cfgsuffix_list %r' % (cfgsuffix_list,))
+        #try:
+        #    # [Jon]FIXME: This check is really weird? Why is it here?
+        #    isdirty_list = [
+        #        rowid is None or (isinstance(rowid, list) and len(rowid) == 0)
+        #        for rowid in configid_list]
+        #    if any(isdirty_list):
+        #        params_iter = ((suffix,) for suffix in cfgsuffix_list)
+        #        colnames = ('config_suffix',)
+        #        get_rowid_from_uuid = partial(ibs.get_config_rowid_from_suffix, ensure=False)
+        #        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        #except Exception as ex:
+        #    utool.printex(ex)
+        #    print('FATAL ERROR')
+        #    utool.sys.exit(1)
+
+
+
+        #label_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
+        # FIXME: This should actually be a random uuid, but (key, vals) should be
+        # enforced as unique as well
+        # NOTE:
+        # A Case for Name UUIDs to not be deterministic
+        # Premise: names should just be uuids
+        # 0) Name text is constrained to be unique
+        # 1) UUIDs are not needed for JOINS.
+        #    The next name are generated each time you merge a name
+        # A Case against deterministic UUIDS:
+        # 0) Changing the nickname would mean you have to change the UUID
+        #label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
+        #                   izip(key_list, value_list)]
