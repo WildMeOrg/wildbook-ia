@@ -176,40 +176,6 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
 
-    #@default_decorator
-    #def get_executeone(db, tblname, colnames, **kwargs):
-    #    """ DEPRICATE """
-    #    if isinstance(colnames, (str, unicode)):
-    #        colnames = (colnames,)
-    #    fmtdict = {
-    #        'tblname'         : tblname,
-    #        'colnames_str'    : ', '.join(colnames),
-    #    }
-    #    operation_fmt = '''
-    #        SELECT {colnames_str}
-    #        FROM {tblname}
-    #        '''
-    #    val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
-    #    return val_list
-
-    #@default_decorator
-    #def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
-    #    """ DEPRICATE """
-    #    if isinstance(colnames, (str, unicode)):
-    #        colnames = (colnames,)
-    #    fmtdict = {
-    #        'tblname'         : tblname,
-    #        'colnames_str'    : ', '.join(colnames),
-    #        'where_clause'    : where_clause
-    #    }
-    #    operation_fmt = '''
-    #        SELECT {colnames_str}
-    #        FROM {tblname}
-    #        WHERE {where_clause}
-    #        '''
-    #    val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
-    #    return val_list
-
     @default_decorator
     def _add(db, tblname, colnames, params_iter, **kwargs):
         """ ADDER NOTE: use add_cleanly """
@@ -220,12 +186,12 @@ class SQLDatabaseController(object):
             'questionmarks' : ', '.join(['?'] * len(colnames)),
             'params'   : ',\n'.join(colnames),
         }
-        operation_fmt = utool.unindent('''
-            INSERT INTO {tblname}(
-            rowid,
-            {params}
-            ) VALUES (NULL, {questionmarks})
-            ''')
+        operation_fmt = '''
+        INSERT INTO {tblname}(
+        rowid,
+        {params}
+        ) VALUES (NULL, {questionmarks})
+        '''
         rowid_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                    params_iter=params_iter, **kwargs)
         return rowid_list
@@ -292,10 +258,10 @@ class SQLDatabaseController(object):
             'where_clauses' :  where_clause,
         }
         operation_fmt = '''
-            SELECT {colnames}
-            FROM {tblname}
-            WHERE {where_clauses}
-            '''
+        SELECT {colnames}
+        FROM {tblname}
+        WHERE {where_clauses}
+        '''
         val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                  params_iter=params_iter,
                                                  unpack_scalars=unpack_scalars,
@@ -321,16 +287,6 @@ class SQLDatabaseController(object):
     @default_decorator
     def set(db, tblname, colnames, val_list, id_list, id_colname='rowid', **kwargs):
         """ setter """
-        #OFF printDBG('------------------------')
-        #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
-        #OFF printDBG('set_(rowid_list=%r, val_list=%r)' % (rowid_list, val_list))
-        #from operator import xor
-        #assert not xor(utool.isiterable(rowid_list),
-        #               utool.isiterable(val_list)), 'invalid mixing of iterable and scalar inputs'
-
-        #if not utool.isiterable(rowid_list) and not utool.isiterable(val_list):
-        #    rowid_list = (rowid_list,)
-        #    val_list = (val_list,)
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
         val_list = list(val_list)
@@ -530,26 +486,19 @@ class SQLDatabaseController(object):
         return results_list
 
     @default_decorator
-    def commit(db, qstat_flag_list=[],  verbose=VERBOSE, errmsg=None):
+    def commit(db,  verbose=VERBOSE):
         """ Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         """
         try:
-            if not all(qstat_flag_list):  # DEPRICATE
-                raise lite.DatabaseError(errmsg)  # DEPRICATE
-            else:
-                db.connection.commit()
-                if AUTODUMP:
-                    db.dump(auto_commit=False)
+            db.connection.commit()
+            if AUTODUMP:
+                db.dump(auto_commit=False)
         except lite.Error as ex2:
-            print('\n<!!! ERROR>')  # DEPRICATE
-            utool.printex(ex2, '[!sql] Caught ex2=')
-            caller_name = utool.util_dbg.get_caller_name()  # DEPRICATE
-            print('[!sql] caller_name=%r' % caller_name)  # DEPRICATE
-            print('</!!! ERROR>\n')  # DEPRICATE
-            raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
+            utool.printex(ex2, '[!sql] Error during commit')
+            raise
 
     @default_decorator
     def dump(db, file_=None, auto_commit=True):
@@ -565,15 +514,14 @@ class SQLDatabaseController(object):
         """
         if file_ is None or isinstance(file_, (str, unicode)):
             if file_ is None:
-                dump_dir = db.dir_
-                dump_fname = db.fname + '.dump.txt'
-                dump_fpath = join(dump_dir, dump_fname)
+                dump_fpath = join(db.dir_, db.fname + '.dump.txt')
             else:
                 dump_fpath = file_
             with open(dump_fpath, 'w') as file_:
                 db.dump(file_, auto_commit)
         else:
-            print('[sql.dump]')  # DEPRICATE
+            if utool.VERYVERBOSE:
+                print('[sql.dump]')
             if auto_commit:
                 db.commit(verbose=False)
             for line in db.connection.iterdump():

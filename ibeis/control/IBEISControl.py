@@ -460,7 +460,6 @@ class IBEISController(object):
         fid_list = ibs.db.get_rowids_where(FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
         return fid_list
 
-
     #
     #
     #---------------

@@ -22,7 +22,6 @@
 #    print('[sql.result] caller_name=%r' % caller_name)
 
 
-
     @adder
     def add_images(ibs, gpath_list):
         """
@@ -122,3 +121,100 @@
         #    #print('nid_list = %r' % (new_nid_list,))
         # # Return nids in input order
         # namenid_dict = {name: nid for name, nid in izip(name_list, nid_list)}
+
+
+
+        #fid_list = ibs.db.get_executeone_where(FEATURE_TABLE, ('feature_rowid',), 'config_rowid=?', (feat_config_rowid,))
+        #fid_list = sorted(fid_list)
+        #params = (chip_config_rowid,)
+        #cid_list = ibs.db.get_executeone_where(CHIP_TABLE, ('chip_rowid',), 'config_rowid=?', params)
+        #cid_list = sorted(cid_list)
+        #return sorted(cid_list)
+
+        #all_nids = ibs.db.get_executeone_where(LABEL_TABLE, ('label_rowid',), where_clause, params)
+        #all_nids = sorted(all_nids)
+
+
+
+        #all_gids = sorted(ibs.db.get_executeone(IMAGE_TABLE, ('image_rowid',)))
+        #all_rids = sorted(ibs.db.get_executeone(ANNOTATION_TABLE, ('annot_rowid',)))
+        #all_eids = sorted(ibs.db.get_executeone(ENCOUNTER_TABLE,
+        #                                        ('encounter_rowid',)))
+        #all_cids = sorted(ibs.db.get_executeone(CHIP_TABLE, ('chip_rowid',)))
+        #all_fids = sorted(ibs.db.get_executeone(FEATURE_TABLE, ('feature_rowid',)))
+
+
+
+
+
+    #@default_decorator
+    #def get_executeone(db, tblname, colnames, **kwargs):
+    #    """ DEPRICATE """
+    #    if isinstance(colnames, (str, unicode)):
+    #        colnames = (colnames,)
+    #    fmtdict = {
+    #        'tblname'         : tblname,
+    #        'colnames_str'    : ', '.join(colnames),
+    #    }
+    #    operation_fmt = '''
+    #        SELECT {colnames_str}
+    #        FROM {tblname}
+    #        '''
+    #    val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+    #    return val_list
+
+    #@default_decorator
+    #def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
+    #    """ DEPRICATE """
+    #    if isinstance(colnames, (str, unicode)):
+    #        colnames = (colnames,)
+    #    fmtdict = {
+    #        'tblname'         : tblname,
+    #        'colnames_str'    : ', '.join(colnames),
+    #        'where_clause'    : where_clause
+    #    }
+    #    operation_fmt = '''
+    #        SELECT {colnames_str}
+    #        FROM {tblname}
+    #        WHERE {where_clause}
+    #        '''
+    #    val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
+    #    return val_list
+
+
+
+        #OFF printDBG('------------------------')
+        #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
+        #OFF printDBG('set_(rowid_list=%r, val_list=%r)' % (rowid_list, val_list))
+        #from operator import xor
+        #assert not xor(utool.isiterable(rowid_list),
+        #               utool.isiterable(val_list)), 'invalid mixing of iterable and scalar inputs'
+
+        #if not utool.isiterable(rowid_list) and not utool.isiterable(val_list):
+        #    rowid_list = (rowid_list,)
+        #    val_list = (val_list,)
+
+
+
+    @default_decorator
+    def commit(db, qstat_flag_list=[],  verbose=VERBOSE, errmsg=None):
+        """ Commits staged changes to the database and saves the binary
+            representation of the database to disk.  All staged changes can be
+            commited one at a time or after a batch - which allows for batch
+            error handling without comprimising the integrity of the database.
+        """
+        try:
+            if not all(qstat_flag_list):  # DEPRICATE
+                raise lite.DatabaseError(errmsg)  # DEPRICATE
+            else:
+                db.connection.commit()
+                if AUTODUMP:
+                    db.dump(auto_commit=False)
+        except lite.Error as ex2:
+            print('\n<!!! ERROR>')  # DEPRICATE
+            utool.printex(ex2, '[!sql] Caught ex2=')
+            caller_name = utool.util_dbg.get_caller_name()  # DEPRICATE
+            print('[!sql] caller_name=%r' % caller_name)  # DEPRICATE
+            print('</!!! ERROR>\n')  # DEPRICATE
+            raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
+
