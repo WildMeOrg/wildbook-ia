@@ -1,17 +1,14 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from itertools import imap, izip
-import re
 from os.path import join, exists
 import utool
 # Tools
 #from ibeis.control._sql_database_control_helpers import *  # NOQA
 #from ibeis.control import _sql_database_control_helpers as sqlhelpers
-from ibeis.control._sql_database_control_helpers import (_unpacker, _executor,
-                                                         lite,
-                                                         SQLExecutionContext,
-                                                         default_decorator,
-                                                         DEBUG)
+from ibeis.control._sql_helpers import (_unpacker, _executor, lite,
+                                        sanatize_sql, SQLExecutionContext,
+                                        default_decorator, DEBUG)
 
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -86,7 +83,7 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_column(db, tablename, name):
         """ Conveinience: """
-        _table, (_column,) = db.sanatize_sql(tablename, (name,))
+        _table, (_column,) = sanatize_sql(db, tablename, (name,))
         column_vals = db.executeone(
             operation='''
             SELECT %s
@@ -425,32 +422,6 @@ class SQLDatabaseController(object):
         #db.cur.execute('PRAGMA page_size = 1024;')
         #db.cur.execute('PRAGMA synchronous = OFF;')
 
-
-    @profile
-    @default_decorator
-    def sanatize_sql(db, tablename, columns=None):
-        """ Sanatizes an sql tablename and column. Use sparingly """
-        tablename = re.sub('[^a-z_0-9]', '', tablename)
-        valid_tables = db.get_table_names()
-        if tablename not in valid_tables:
-            raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
-        if columns is None:
-            return tablename
-        else:
-            def _sanitize_sql_helper(column):
-                column = re.sub('[^a-z_0-9]', '', column)
-                valid_columns = db.get_column_names(tablename)
-                if column not in valid_columns:
-                    raise Exception('UNSAFE COLUMN: tablename=%r column=%r' %
-                                    (tablename, column))
-                    return None
-                else:
-                    return column
-
-            columns = [_sanitize_sql_helper(column) for column in columns]
-            columns = [column for column in columns if columns is not None]
-
-            return tablename, columns
 
     @default_decorator
     def schema(db, tablename, schema_list, table_constraints=[], docstr=''):

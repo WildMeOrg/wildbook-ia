@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import re
 from . import __SQLITE3__ as lite
 DEBUG = False
 
@@ -142,3 +143,29 @@ def get_operation_type(operation):
         operation_args = None
     operation_type += ' ' + operation_args.replace('\n', ' ')
     return operation_type
+
+
+@profile
+def sanatize_sql(db, tablename, columns=None):
+    """ Sanatizes an sql tablename and column. Use sparingly """
+    tablename = re.sub('[^a-z_0-9]', '', tablename)
+    valid_tables = db.get_table_names()
+    if tablename not in valid_tables:
+        raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
+    if columns is None:
+        return tablename
+    else:
+        def _sanitize_sql_helper(column):
+            column = re.sub('[^a-z_0-9]', '', column)
+            valid_columns = db.get_column_names(tablename)
+            if column not in valid_columns:
+                raise Exception('UNSAFE COLUMN: tablename=%r column=%r' %
+                                (tablename, column))
+                return None
+            else:
+                return column
+
+        columns = [_sanitize_sql_helper(column) for column in columns]
+        columns = [column for column in columns if columns is not None]
+
+        return tablename, columns

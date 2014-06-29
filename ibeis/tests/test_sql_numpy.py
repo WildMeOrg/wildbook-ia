@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl as sqldbc
-from ibeis.control._sql_database_control_helpers import _results_gen
+from ibeis.control._sql_helpers import _results_gen
 from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NUMPY] ')
 
