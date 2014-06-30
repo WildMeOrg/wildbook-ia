@@ -42,7 +42,38 @@ BASE_CLASS = QtGui.QIdentityProxyModel
 #                    old_setattr(obj, name, val)
 #            model.__class__.__setattr__ = new_setattr
 
+# makes a metaclass that overrides __getattr__ and __setattr__ to forward some specific attribute references to a specified instance variable
+def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
+    class ForwardingMetaclass(BASE_CLASS.__class__):
+        def __init__(cls, name, bases, dct):
+            print('ForwardingMetaclass.__init__(): {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
+            super(ForwardingMetaclass, cls).__init__(name, bases, dict)
+            old_getattr = cls.__getattribute__
+            def new_getattr(obj, item):
+                if item in whitelist:
+                    #dest = old_getattr(obj, forwarding_dest_name)
+                    dest = forwarding_dest_getter(obj)
+                    try:
+                        val = dest.__class__.__getattribute__(dest, item)
+                    except AttributeError:
+                        val = getattr(dest, item)
+                else:
+                    val = old_getattr(obj, item)
+                return val
+            cls.__getattribute__ = new_getattr
+            old_setattr = cls.__setattr__
+            def new_setattr(obj, name, val):
+                if name in whitelist:
+                    #dest = old_getattr(obj, forwarding_dest_name)
+                    dest = forwarding_dest_getter(obj)
+                    dest.__class__.__setattr__(dest, name, val)
+                else:
+                    old_setattr(obj, name, val)
+            cls.__setattr__ = new_setattr
+    return ForwardingMetaclass
+
 class StripeProxyModel(BASE_CLASS):
+    __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(), ['_update_headers', '_set_context_id', '_get_context_id', '_set_changeblocked', '_get_changeblocked', '_about_to_change', '_change', '_update', '_get_row_id'])
     _rows_updated = signal_(str, int)
 
     @slot_(str, int)
@@ -175,33 +206,5 @@ class StripeProxyModel(BASE_CLASS):
 #    def itemData(self, *args, **kwargs):
 #        return self.sourceModel().itemData(*args, **kwargs)
 
-    def _update_headers(self, **kwargs):
-        print('forwarding update headers')
-        return self.sourceModel()._update_headers(**kwargs)
-
     def _update_rows(self):
         return self.sourceModel()._update_rows()
-
-    def _set_context_id(self, id_):
-        self.sourceModel()._set_context_id(id_)
-
-    def _get_context_id(self):
-        return self.sourceModel()._get_context_id()
-
-    def _set_changeblocked(self, changeblocked_):
-        self.sourceModel()._set_changeblocked(changeblocked_)
-
-    def _get_changeblocked(self):
-        return self.sourceModel()._get_changeblocked()
-
-    def _about_to_change(self, *args, **kwargs):
-        return self.sourceModel()._about_to_change(*args, **kwargs)
-
-    def _change(self, *args, **kwargs):
-        return self.sourceModel()._change(*args, **kwargs)
-
-    def _update(self, *args, **kwargs):
-        return self.sourceModel()._update(*args, **kwargs)
-
-    def _get_row_id(self, *args, **kwargs):
-        return self.sourceModel()._get_row_id(*args, **kwargs)
