@@ -461,8 +461,10 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_row_id(model, qtindex=QtCore.QModelIndex()):
-        node = qtindex.internalPointer()
-        return node.get_id()
+        if qtindex.isValid():
+            node = qtindex.internalPointer()
+            assert isinstance(node, TreeNode), type(node)
+            return node.get_id()
 
     @default_method_decorator
     def _get_type(model, col):
@@ -579,7 +581,9 @@ class APIItemModel(API_MODEL_BASE):
         else:
             # This is a child level > 0 index
             parent_node = parent.internalPointer()
+            assert isinstance(parent_node, TreeNode), type(parent_node)
             node = parent_node[row]
+            assert isinstance(node, TreeNode), type(node)
             return model.createIndex(row, column, object=node)
 
     @default_method_decorator

@@ -40,6 +40,9 @@ class APIItemView(API_VIEW_BASE):
 def infer_delegates(view, **headers):
     """ Infers which columns should be given item delegates """
     col_type_list = headers.get('col_type_list', [])
+    num_cols = view.model().columnCount()
+    num_duplicates = int(num_cols / len(col_type_list))
+    col_type_list = col_type_list * num_duplicates
     for colx, coltype in enumerate(col_type_list):
         if coltype in  qtype.QT_PIXMAP_TYPES:
             if utool.VERBOSE:
