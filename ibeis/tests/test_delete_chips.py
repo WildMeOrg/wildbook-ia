@@ -15,14 +15,15 @@ def TEST_DELETE_CHIPS(ibs, back):
     aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
     cid_list = ibs.add_chips(aid_list)
     cid = cid_list[0]
-    _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
-    fid_list1 = utool.filter_Nones(_fid_list)
+    _fid = ibs.get_chip_fids(cid, ensure=False)
+    assert _fid is None, "_fid=%r should be None" % (_fid,)
+    _fid = ibs.get_chip_fids(cid, ensure=True)
+    assert _fid is not None, "_fid=%r should be computed" % (_fid,)
     ibs.delete_chips(cid)
     cid_list = ibs.get_valid_cids()
     assert cid not in cid_list, "CID not deleted"
-    fid_list2 = ibs.get_valid_fids()
-    for fid in fid_list1:
-        assert fid not in fid_list2, "FID not deleted"
+    all_fids = ibs.get_valid_fids()
+    assert _fid not in all_fids, "FID not deleted"
     return locals()
 
 

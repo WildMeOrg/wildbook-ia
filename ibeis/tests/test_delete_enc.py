@@ -10,11 +10,11 @@ def TEST_DELETE_ENC(ibs, back):
     from ibeis.dev import ibsfuncs
     ibsfuncs.update_allimage_encounter(ibs)
     eid_list = ibs.get_valid_eids()
-    assert len(eid_list) > 0, "All Image encounter not created" 
+    assert len(eid_list) != 0, "All Image encounter not created" 
     eid = eid_list[0]
     ibs.delete_encounters(eid)
     eid_list = ibs.get_valid_eids()
-    assert eid not in eid_list, "EID still exists"
+    assert eid not in eid_list, "eid=%r still exists" % (eid,)
     return locals()
 
 

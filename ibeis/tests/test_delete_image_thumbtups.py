@@ -13,7 +13,9 @@ def TEST_DELETE_IMAGE_THUMBTUPS(ibs, back):
     bbox_list = [(0, 0, 100, 100)]*len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    assert len(aid_list) !=0, "No annotations added"
     thumbtup_list = ibs.get_image_thumbtup(gid_list)
+    assert utool.is_list(thumbtup_list), "thumbtup_list is not a list"
     thumbpath_list = [tup[0] for tup in thumbtup_list]
     gpath_list = [tup[1] for tup in thumbtup_list]
     ibs.delete_image_thumbtups(gid_list)
