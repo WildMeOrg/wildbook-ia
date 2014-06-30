@@ -15,12 +15,12 @@ def printDBG(msg):
     pass
 
 
-def resize_img_and_roi(img_fpath, roi_, new_size=None, sqrt_area=400.0):
+def resize_img_and_bbox(img_fpath, bbox_, new_size=None, sqrt_area=400.0):
     printDBG('[segm] imread(%r) ' % img_fpath)
     full_img = cv2.imread(img_fpath)
     (full_h, full_w) = full_img.shape[:2]                 # Image Shape
     printDBG('[segm] full_img.shape=%r' % (full_img.shape,))
-    (rw_, rh_) = roi_[2:]
+    (rw_, rh_) = bbox_[2:]
     # Ensure that we know the new chip size
     if new_size is None:
         target_area = float(sqrt_area) ** 2
@@ -41,8 +41,8 @@ def resize_img_and_roi(img_fpath, roi_, new_size=None, sqrt_area=400.0):
     # Resize the image
     img_resz = cv2.resize(full_img, dsize, interpolation=cv2.INTER_LANCZOS4)
     # Get new ROI in resized image
-    roi_resz = np.array(np.round(roi_ * fx), dtype=np.int64)
-    return img_resz, roi_resz
+    bbox_resz = np.array(np.round(bbox_ * fx), dtype=np.int64)
+    return img_resz, bbox_resz
 
 
 def clean_mask(mask, num_dilate=3, num_erode=3, window_frac=.025):
@@ -107,9 +107,9 @@ def grabcut(rgb_chip):
     return seg_chip
 
 
-def segment(img_fpath, roi_, new_size=None):
+def segment(img_fpath, bbox_, new_size=None):
     'Runs grabcut'
-    printDBG('[segm] segment(img_fpath=%r, roi=%r)>' % (img_fpath, roi_))
+    printDBG('[segm] segment(img_fpath=%r, bbox=%r)>' % (img_fpath, bbox_))
     num_iters = 5
     bgd_model = np.zeros((1, 13 * 5), np.float64)
     fgd_model = np.zeros((1, 13 * 5), np.float64)
@@ -117,14 +117,14 @@ def segment(img_fpath, roi_, new_size=None):
     # Initialize
     # !!! CV2 READS (H,W) !!!
     #  WH Unsafe
-    img_resz, roi_resz = resize_img_and_roi(img_fpath, roi_, new_size=new_size)
+    img_resz, bbox_resz = resize_img_and_bbox(img_fpath, bbox_, new_size=new_size)
     # WH Unsafe
     (img_h, img_w) = img_resz.shape[:2]                       # Image Shape
     printDBG(' * img_resz.shape=%r' % ((img_h, img_w),))
     # WH Safe
-    tlbr = utool.xywh_to_tlbr(roi_resz, (img_w, img_h))  # Rectangle ROI
+    tlbr = utool.xywh_to_tlbr(bbox_resz, (img_w, img_h))  # Rectangle ROI
     (x1, y1, x2, y2) = tlbr
-    rect = tuple(roi_resz)                               # Initialize: rect
+    rect = tuple(bbox_resz)                               # Initialize: rect
     printDBG(' * rect=%r' % (rect,))
     printDBG(' * tlbr=%r' % (tlbr,))
     # WH Unsafe
