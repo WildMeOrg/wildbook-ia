@@ -173,6 +173,12 @@ EOF
     RUN_TEST ibeis/tests/test_ibs_convert_bbox_poly.py
     RUN_TEST ibeis/tests/test_ibs_control.py
     RUN_TEST ibeis/tests/test_ibs_localize_images.py
+    RUN_TEST ibeis/tests/test_delete_enc.py
+    RUN_TEST ibeis/tests/test_delete_image.py
+    RUN_TEST ibeis/tests/test_delete_image_thumbtups.py
+    RUN_TEST ibeis/tests/test_delete_names.py
+    RUN_TEST ibeis/tests/test_delete_roi_chips.py
+    RUN_TEST ibeis/tests/test_delete_roi.py
 fi
 
 
