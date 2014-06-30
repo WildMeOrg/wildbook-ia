@@ -3,6 +3,7 @@ from PyQt4 import QtCore, QtGui  # NOQA
 from PyQt4.QtCore import Qt
 from os.path import split
 # UTool
+import platform
 import utool
 from utool import util_cache, util_path
 
@@ -90,13 +91,18 @@ def select_directory(caption='Select Directory', directory=None):
     else:
         directory = directory_
     qdlg = QtGui.QFileDialog()
-    qopt = QtGui.QFileDialog.ShowDirsOnly
+    # hack to fix the dialog window on ubuntu
+    if 'ubuntu' in platform.platform().lower():
+        qopt = QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontUseNativeDialog
+    else:
+        qopt = QtGui.QFileDialog.ShowDirsOnly
     qtkw = {
         'caption': caption,
         'options': qopt,
         'directory': directory_
     }
-    dpath = str(qdlg.getExistingDirectory(**qtkw))
+    dpath = str(qdlg.getExistingDirectory(None, **qtkw))
+    print('dpath = %r' % dpath)
     if dpath == '' or dpath is None:
         dpath = None
         return dpath
