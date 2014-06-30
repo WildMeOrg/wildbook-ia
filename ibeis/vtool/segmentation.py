@@ -40,7 +40,7 @@ def resize_img_and_bbox(img_fpath, bbox_, new_size=None, sqrt_area=400.0):
     printDBG('[segm] dsize=%r' % (dsize,))
     # Resize the image
     img_resz = cv2.resize(full_img, dsize, interpolation=cv2.INTER_LANCZOS4)
-    # Get new ROI in resized image
+    # Get new ANNOTATION in resized image
     bbox_resz = np.array(np.round(bbox_ * fx), dtype=np.int64)
     return img_resz, bbox_resz
 
@@ -122,14 +122,14 @@ def segment(img_fpath, bbox_, new_size=None):
     (img_h, img_w) = img_resz.shape[:2]                       # Image Shape
     printDBG(' * img_resz.shape=%r' % ((img_h, img_w),))
     # WH Safe
-    tlbr = utool.xywh_to_tlbr(bbox_resz, (img_w, img_h))  # Rectangle ROI
+    tlbr = utool.xywh_to_tlbr(bbox_resz, (img_w, img_h))  # Rectangle ANNOTATION
     (x1, y1, x2, y2) = tlbr
     rect = tuple(bbox_resz)                               # Initialize: rect
     printDBG(' * rect=%r' % (rect,))
     printDBG(' * tlbr=%r' % (tlbr,))
     # WH Unsafe
     _mask = np.zeros((img_h, img_w), dtype=np.uint8)  # Initialize: mask
-    _mask[y1:y2, x1:x2] = cv2.GC_PR_FGD             # Set ROI to cv2.GC_PR_FGD
+    _mask[y1:y2, x1:x2] = cv2.GC_PR_FGD             # Set ANNOTATION to cv2.GC_PR_FGD
     # Grab Cut
     tt = utool.Timer(' * cv2.grabCut()', verbose=DEBUG_SEGM)
     cv2.grabCut(img_resz, _mask, rect, bgd_model, fgd_model, num_iters, mode=mode)
