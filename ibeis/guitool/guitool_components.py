@@ -203,6 +203,53 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
     button.setEnabled(enabled)
     return button
 
+def newComboBox(parent=None, options=None, changed=None, default=None, visible=True,
+              enabled=True, bgcolor=None, fgcolor=None):
+    """ wrapper around QtGui.QComboBox
+
+        options is a list of tuples, which are a of the following form:
+        options = [
+            (Visible Text 1, Backend Value 1), # default      
+            (Visible Text 2, Backend Value 2),     
+            (Visible Text 3, Backend Value 3),     
+        ]
+    """
+    class CustomComboBox(QtGui.QComboBox):
+        def __init__(combo, parent=None, default=None, options=None, changed=None):
+            QtGui.QComboBox.__init__(combo, parent)
+            combo.ibswgt = parent
+            combo.options = options
+            combo.changed = changed
+            combo.setEditable(True)
+            combo.addItems( [ option[0] for option in combo.options ] )
+            combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom) 
+            combo.setDefault(default)
+
+        def currentIndexChangedCustom(combo, index):
+            combo.changed(index, combo.options[index][1])
+
+        def setDefault(combo, default=None):
+            if default is not None:
+                for index, (text, value) in enumerate(options):
+                    if value == default:
+                        combo.setCurrentIndex(index)
+                        break
+            else:
+                combo.setCurrentIndex(0)
+
+    combo_kwargs = {
+        'parent':  parent,
+        'options': options,
+        'default': default,
+        'changed': changed,
+    }
+    combo = CustomComboBox(**combo_kwargs)
+    if changed is None:
+        enabled = False
+    combo.setVisible(visible)
+    combo.setEnabled(enabled)
+    return combo
+
 
 def make_style_sheet(bgcolor=None, fgcolor=None):
     style_list = []
