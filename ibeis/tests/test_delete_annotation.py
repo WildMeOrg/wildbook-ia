@@ -10,14 +10,20 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ANN
 def TEST_DELETE_ANNOTATION(ibs, back):
     gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
     gid_list = ibs.add_images(gpath_list)
-    bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
     aid = aid_list[0]
-    cid = ibs.get_annotation_cids(aid)
-    fid = ibs.get_annotation_fids(aid)
+    assert aid is not None, "aid is None"
+    cid = ibs.get_annotation_cids(aid, ensure=False)
+    fid = ibs.get_annotation_fids(aid, ensure=False)
+    assert cid is None, "cid should be None"
+    assert fid is None, "fid should be None"
+    cid = ibs.get_annotation_cids(aid, ensure=True)
+    fid = ibs.get_annotation_fids(aid, ensure=True)
+    assert cid is not None, "cid should be computed"
+    assert fid is not None, "fid should be computed"
     thumbtup = ibs.get_annotation_chip_thumbtup(aid)
-    print("thumbtup_list=%r" % (thumbtup,))
     thumbpath = thumbtup[0]    
     ibs.delete_annotations(aid)
     aid_list = ibs.get_valid_aids()
