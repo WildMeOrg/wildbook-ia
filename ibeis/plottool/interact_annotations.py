@@ -1,4 +1,4 @@
-"""
+"""/Ann
 
 guiback.py  -- code/ibeis/ibeis/gui
 ./resetdbs.sh
@@ -11,12 +11,12 @@ TODO:
 
 
 
-3. Change bounding box and update continuously to the original image the new ROIs
+3. Change bounding box and update continuously to the original image the new ANNOTATIONs
 
 2. Make new window and frames inside, double click to pull up normal window with editing
-start with just taking in 6 images and ROIs
+start with just taking in 6 images and ANNOTATIONs
 
-1. ROI ID number, then list of 4 touples
+1. ANNOTATION ID number, then list of 4 touples
 
 
 
@@ -42,6 +42,7 @@ import utool
 
 from plottool import draw_func2 as df2
 from itertools import izip
+
 
 def _nxutils_points_inside_poly(points, verts):
     """ nxutils is depricated """
@@ -119,6 +120,7 @@ def polygon_dims(poly):
     h = max(ys) - min(ys)
     return (w, h)
 
+
 def rotate_points_around(points, theta, ax, ay):
     sin, cos, array = np.sin, np.cos, np.array
     augpts = array([array((x, y, 1)) for (x, y) in points])
@@ -151,11 +153,12 @@ def is_within_distance(dist, p1, p2):
     #print('is_within_distance(%r, (%r, %r), (%r, %r)) = %r' % (dist, p1[0], p1[1], p2[0], p2[1], rv))
     return rv
 
+
 def calc_handle_coords(poly):
     cx, cy = polygon_center(poly)
     w, h = polygon_dims(poly)
-    x0, y0 = cx, (cy - (h / 2)) # start at top edge
-    x1, y1 = (x0, y0-(h/4))
+    x0, y0 = cx, (cy - (h / 2))  # start at top edge
+    x1, y1 = (x0, y0 - (h / 4))
     pts = [(x0, y0), (x1, y1)]
     pts = rotate_points_around(pts, poly.theta, cx, cy)
     return pts
@@ -172,7 +175,7 @@ def make_handle_line(poly):
     return lines
 
 
-class ROIInteraction(object):
+class ANNOTATIONInteraction(object):
     """
     An interactive polygon editor.
 
@@ -237,10 +240,10 @@ class ROIInteraction(object):
 
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
-            'Click and drag to select/move/resize an ROI',
-            'Press \"r\" to remove selected ROI',
-            'Press \"t\" to add an ROI.',
-            'Press \"a\" to Accept new ROIs'])))
+            'Click and drag to select/move/resize an ANNOTATION',
+            'Press \"r\" to remove selected ANNOTATION',
+            'Press \"t\" to add an ANNOTATION.',
+            'Press \"a\" to Accept new ANNOTATIONs'])))
 
         self.showverts = True
         self.max_ds = max_ds
@@ -273,7 +276,7 @@ class ROIInteraction(object):
             lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
             print('make_lines: linetype = %r' % type(lines))
             return lines
-                   
+
         def new_polygon(verts, theta):
             """ verts - list of (x, y) tuples """
             # create new polygon from verts
@@ -296,7 +299,7 @@ class ROIInteraction(object):
             theta_list = [0 for verts in verts_list]
         if bbox_list is not None:
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
-            
+
         # Create the list of polygons
         poly_list = [new_polygon(verts, theta) for (verts, theta) in izip(verts_list, theta_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
@@ -330,8 +333,8 @@ class ROIInteraction(object):
 
         # Define buttons
         self.accept_ax  = plt.axes([0.63, 0.01, 0.2, 0.06])
-        self.accept_but = Button(self.accept_ax, 'Accept New ROIs')
-        self.accept_but.on_clicked(self.accept_new_rois)
+        self.accept_but = Button(self.accept_ax, 'Accept New ANNOTATIONs')
+        self.accept_but.on_clicked(self.accept_new_annotations)
 
         self.add_ax  = plt.axes([0.2, .01, 0.16, 0.06])
         self.add_but = Button(self.add_ax, 'Add Rectangle')
@@ -426,7 +429,7 @@ class ROIInteraction(object):
     def poly_changed(self, poly):
         """ this method is called whenever the polygon object is called """
         # only copy the artist props to the line (except visibility)
-        num = poly.num
+        #num = poly.num
         vis = poly.lines.get_visible()
         vis = poly.handle.get_visible()
         #Artist.update_from(poly.lines, poly)
@@ -459,7 +462,7 @@ class ROIInteraction(object):
         if ignore:
             return
 
-        if event.button == 1: # leftclick
+        if event.button == 1:  # leftclick
             for poly in self.polys.itervalues():
                 if is_within_distance(10, (event.xdata, event.ydata), calc_handle_coords(poly)[1]):
                     self.currently_rotating_poly = poly
@@ -612,7 +615,7 @@ class ROIInteraction(object):
         if not event.inaxes:
             return
         if event.key == 'a':
-            self.accept_new_rois(event)
+            self.accept_new_annotations(event)
 
         if event.key == 't':
             self.draw_new_poly()
@@ -680,7 +683,7 @@ class ROIInteraction(object):
         if self.currently_rotating_poly:
                 poly = self.currently_rotating_poly
                 cx, cy = polygon_center(poly)
-                theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - np.tau/4
+                theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - np.tau / 4
                 dtheta = theta - poly.theta
                 self.rotate_rectangle(poly, dtheta)
                 self.update_UI()
@@ -749,7 +752,7 @@ class ROIInteraction(object):
 
     def move_rectangle(self, poly, dx, dy):
         #print('move_rectangle')
-        new_coords = [(x+dx, y+dy) for (x, y) in poly.basecoords]
+        new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
         if self.check_valid_coords(calc_display_coords(new_coords, poly.theta)):
             poly.basecoords = new_coords
             set_display_coords(poly)
@@ -850,7 +853,7 @@ class ROIInteraction(object):
                 sel_polyind = polyind
         return (sel_polyind, min_ind)
 
-    def accept_new_rois(self, event):
+    def accept_new_annotations(self, event):
         print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
         def get_bbox_list():
@@ -867,13 +870,13 @@ class ROIInteraction(object):
                 h = max(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1]) - y
                 bbox_list.append((int(x), int(y), int(w), int(h), poly.theta))
                 #theta_list.append(poly.theta)
-            return bbox_list# , theta_list
+            return bbox_list  # , theta_list
 
-        def send_back_rois():
+        def send_back_annotations():
             #point_list = self.load_points()
             #theta_list = self.theta_list
             #new_bboxes = verts_to_bbox(point_list)
-            print("send_back_rois")
+            print("send_back_annotations")
             bbox_list = get_bbox_list()
             deleted_list = []
             changed_list = []
@@ -896,12 +899,12 @@ class ROIInteraction(object):
             #print("New")
             #for bbox in new_list:
             #    print(bbox)
-            #print("send_back_rois() completed")
+            #print("send_back_annotations() completed")
             #self.callback(self.img_ind, new_bboxes, theta_list)
             self.callback(deleted_list, changed_list, new_list)
 
         if self.callback is not None:
-            send_back_rois()
+            send_back_annotations()
         #else:
             #just print the updated points
             #self.load_points()
@@ -950,14 +953,14 @@ def default_vertices(img):
 # def update_lists(self, img_ind, new_verts_list, new_thetas_list, new_indices_list):
 #         """for each image: know if any bboxes changed, if any have been deleted, know if any new bboxes
 #         pass all of this information to a function callback, so Jon can use the information"""
-#         print("before: ",self.rids_list[img_ind])
-#         self.rids_list[img_ind] = new_rids
-#         print("after: ", self.rids_list[img_ind])
+#         print("before: ",self.aids_list[img_ind])
+#         self.aids_list[img_ind] = new_aids
+#         print("after: ", self.aids_list[img_ind])
 
-#         """add function call for redrawing the ROIs"""
+#         """add function call for redrawing the ANNOTATIONs"""
 
 
-def ROI_creator(img, verts_list):  # add callback as variable
+def ANNOTATION_creator(img, verts_list):  # add callback as variable
     print('*** START DEMO ***')
 
     if verts_list is None:
@@ -979,7 +982,7 @@ def ROI_creator(img, verts_list):  # add callback as variable
             print('cant read zebra: %r' % ex)
             img = np.random.uniform(0, 255, size=(100, 100))
     #test_bbox = verts_to_bbox(verts_list)
-    mc = ROIInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
+    mc = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
     plt.show()
     # Make mask from selection
@@ -998,4 +1001,4 @@ if __name__ == '__main__':
     #verts = [[0,0,400,400]]
     verts = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
              ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
-    ROI_creator(None, verts_list=verts)
+    ANNOTATION_creator(None, verts_list=verts)

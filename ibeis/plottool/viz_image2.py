@@ -5,13 +5,13 @@ import plottool.draw_func2 as df2
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
 
 
-def annotate_roi(ax, bbox, theta, label, is_sel):
-    """ Draw an roi around a chip in the image """
+def annotate_annotion(ax, bbox, theta, label, is_sel):
+    """ Draw an annotion around a chip in the image """
     lbl_alpha  = .75 if is_sel else .6
     bbox_alpha = .95 if is_sel else .6
     lbl_color  = df2.BLACK * lbl_alpha
     bbox_color = (df2.ORANGE if is_sel else df2.DARK_ORANGE) * bbox_alpha
-    df2.draw_roi(bbox, label, bbox_color, lbl_color, theta=theta, ax=ax)
+    df2.draw_annotion(bbox, label, bbox_color, lbl_color, theta=theta, ax=ax)
 
 
 def annotate_image(ax, bbox_list=[], theta_list=None, label_list=None,
@@ -25,9 +25,9 @@ def annotate_image(ax, bbox_list=[], theta_list=None, label_list=None,
     if sel_list is None:
         sel_list = [False] * len(bbox_list)
     # Draw all bboxes on top on image
-    roi_iter = izip(bbox_list, theta_list, label_list, sel_list)
-    for bbox, theta, label, is_sel in roi_iter:
-        annotate_roi(ax, bbox, theta, label, is_sel)
+    annotion_iter = izip(bbox_list, theta_list, label_list, sel_list)
+    for bbox, theta, label, is_sel in annotion_iter:
+        annotate_annotion(ax, bbox, theta, label, is_sel)
 
 
 @utool.indent_func

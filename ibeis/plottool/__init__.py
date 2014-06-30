@@ -18,6 +18,9 @@ from . import viz_featrow
 from . import viz_keypoints
 from . import viz_image2
 from . import plots
+from . import interact_annotations
+from . import interact_keypoints
+from . import interact_multi_image
 
 # The other module shouldn't exist.
 # Functions in it need to be organized

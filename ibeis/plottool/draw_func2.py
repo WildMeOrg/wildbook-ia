@@ -125,25 +125,25 @@ def draw_border(ax, color=GREEN, lw=2, offset=None):
     rect.set_edgecolor(color)
 
 
-# TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ROI
-def draw_roi(roi, label=None, bbox_color=(1, 0, 0),
+# TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
+def draw_annotion(annotion, label=None, bbox_color=(1, 0, 0),
              lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1),
              draw_arrow=True, theta=0, ax=None):
     if ax is None:
         ax = gca()
-    (rx, ry, rw, rh) = roi
+    (rx, ry, rw, rh) = annotion
     # Transformations are specified in backwards order.
-    trans_roi = mpl.transforms.Affine2D()
-    trans_roi.scale(rw, rh)
-    trans_roi.rotate(theta)
-    trans_roi.translate(rx + rw / 2, ry + rh / 2)
-    t_end = trans_roi + ax.transData
+    trans_annotion = mpl.transforms.Affine2D()
+    trans_annotion.scale(rw, rh)
+    trans_annotion.rotate(theta)
+    trans_annotion.translate(rx + rw / 2, ry + rh / 2)
+    t_end = trans_annotion + ax.transData
     bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=2, transform=t_end)
     bbox.set_fill(False)
     #bbox.set_transform(trans)
     bbox.set_edgecolor(bbox_color)
     ax.add_patch(bbox)
-    # Draw overhead arrow indicating the top of the ROI
+    # Draw overhead arrow indicating the top of the ANNOTATION
     if draw_arrow:
         arw_xydxdy = (-0.5, -0.5, 1.0, 0.0)
         arw_kw = dict(head_width=.1, transform=t_end, length_includes_head=True)
@@ -1108,8 +1108,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         draw_kpts2(kpts1, **all_args)
         draw_kpts2(kpts2, offset=offset2, **all_args)
     if draw_border:
-        draw_roi(xywh1, bbox_color=BLACK, draw_arrow=False)
-        draw_roi(xywh2, bbox_color=BLACK, draw_arrow=False)
+        draw_annotion(xywh1, bbox_color=BLACK, draw_arrow=False)
+        draw_annotion(xywh2, bbox_color=BLACK, draw_arrow=False)
 
     # Draw Lines and Ellipses and Points oh my
     if nMatch > 0:

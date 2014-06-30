@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 #import matplotlib.image as mpimg
 from plottool import viz_image2
-from plottool import interact_rois
+from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
@@ -18,7 +18,7 @@ class MultiImageInteraction(object):
                  nImgs=None, fnum=None):
         print('Creating multi-image interaction')
 
-    #def __init__(self, img_list, nImgs=None, gid_list=None, rids_list=None, bboxes_list=None, nPerPage=10,fnum=None):
+    #def __init__(self, img_list, nImgs=None, gid_list=None, aids_list=None, bboxes_list=None, nPerPage=10,fnum=None):
         print('maX ', nPerPage)
         if nImgs is None:
             nImgs = len(gpath_list)
@@ -206,7 +206,7 @@ class MultiImageInteraction(object):
             #img = mpimg.imread(gpath)
             img = gtool.imread(gpath)
             fnum = df2.next_fnum()
-            mc = interact_rois.ROIInteraction(img, index, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
+            mc = interact_annotations.ANNOTATIONInteraction(img, index, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
             self.mc = mc
             # """wait for accept
             # have a flag to tell if a bbox has been changed, on the bbox list that is brought it"

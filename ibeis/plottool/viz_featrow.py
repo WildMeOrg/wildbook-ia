@@ -10,7 +10,7 @@ from plottool import plot_helpers as ph
 
 @utool.indent_func
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
-                  rid=None, info='', type_=None):
+                  aid=None, info='', type_=None):
 
     pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
 
@@ -23,7 +23,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
     # Draw the unwarped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 1))
     ph.set_plotdat(ax, 'viztype', 'unwarped')
-    ph.set_plotdat(ax, 'rid', rid)
+    ph.set_plotdat(ax, 'aid', aid)
     ph.set_plotdat(ax, 'fx', fx)
     unwarped_lbl = 'affine feature invV =\n' + shape_str + '\n' + ori_str
     df2.set_xlabel(unwarped_lbl, ax)
@@ -31,7 +31,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
     # Draw the warped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 2), warped=True)
     ph.set_plotdat(ax, 'viztype', 'warped')
-    ph.set_plotdat(ax, 'rid', rid)
+    ph.set_plotdat(ax, 'aid', aid)
     ph.set_plotdat(ax, 'fx', fx)
     warped_lbl = ('warped feature\n' +
                   'fx=%r scale=%.1f\n' +
