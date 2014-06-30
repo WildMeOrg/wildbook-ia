@@ -20,8 +20,8 @@ def make_feasible(query_cfg):
     # Ensure the list of on filters is valid given the weight and thresh
     if filt_cfg.ratio_thresh <= 1:
         filt_cfg.ratio_thresh = None
-    if filt_cfg.roidist_thresh >= 1:
-        filt_cfg.roidist_thresh = None
+    if filt_cfg.bboxdist_thresh >= 1:
+        filt_cfg.bboxdist_thresh = None
     if filt_cfg.bursty_thresh   <= 1:
         filt_cfg.bursty_thresh = None
 
@@ -78,7 +78,7 @@ class FilterConfig(ConfigBase):
         # thresh test is: sign * score <= sign * thresh
         # sign +1 --> Lower scores are better
         # sign -1 --> Higher scores are better
-        addfilt(+1, 'roidist',  None,   0.0)
+        addfilt(+1, 'bboxdist',  None,   0.0)
         addfilt(-1,   'recip',   0.0,   0.0, 'filt_cfg.Krecip > 0')
         addfilt(+1,  'bursty',  None,   0.0)
         addfilt(-1,   'ratio',  None,   0.0)

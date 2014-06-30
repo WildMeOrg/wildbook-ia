@@ -11,13 +11,13 @@ vsmany_2 = {
     'K':               [5],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'roidist_weight':  [0],  # 1,]
+    'bboxdist_weight':  [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0, 1],  # 1,]
     'lnbnn_weight':    [0, 1],  # 1,]
     'lnrat_weight':    [0, 1],  # 1,]
-    'roidist_thresh':  [None],  # .5,]
+    'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
@@ -35,13 +35,13 @@ vsone_1 = {
     'K':               [1],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'roidist_weight':  [0],  # 1,]
+    'bboxdist_weight':  [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [1],  # 1,]
     'lnbnn_weight':    [0],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'roidist_thresh':  [None],  # .5,]
+    'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [1.5],  # 1.2, 1.6
@@ -70,13 +70,13 @@ vsmany_scoremethod = {
     'K':               [5],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'roidist_weight':  [0],  # 1,]
+    'bboxdist_weight':  [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'roidist_thresh':  [None],  # .5,]
+    'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
@@ -94,13 +94,13 @@ vsmany_best = {
     'K':               [4],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'roidist_weight':  [0],  # 1,]
+    'bboxdist_weight':  [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'roidist_thresh':  [None],  # .5,]
+    'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
@@ -244,13 +244,13 @@ vsmany_1 = {
     'K':               [5],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'roidist_weight':  [0],  # 1,]
+    'bboxdist_weight':  [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'roidist_thresh':  [None],  # .5,]
+    'bboxdist_thresh':  [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6

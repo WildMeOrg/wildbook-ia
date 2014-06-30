@@ -483,7 +483,7 @@ class IBEISController(object):
         us process images asychronously."""
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
-        print('[ibs] gpath_list = %r' % (gpath_list,))
+        #print('[ibs] gpath_list = %r' % (gpath_list,))
         # Processing an image might fail, yeilding a None instead of a tup
         gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
         # Create param_iter
@@ -685,7 +685,7 @@ class IBEISController(object):
         # 1) UUIDs are not needed for JOINS.
         #    The next name are generated each time you merge a name
         # A Case against deterministic UUIDS:
-        # 0) Changing the nickname would mean you have to change the UUID 
+        # 0) Changing the nickname would mean you have to change the UUID
         #label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
         #                   izip(key_list, value_list)]
         label_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
@@ -694,7 +694,6 @@ class IBEISController(object):
         labelid_list = ibs.db.add_cleanly(LABEL_TABLE, colnames, params_iter,
                                           ibs.get_label_rowid_from_keyval, unique_paramx=[1, 2])
         return labelid_list
-
 
     @getter_1to1
     def get_label_rowid_from_keyval(ibs, key_list, value_list):
@@ -1247,7 +1246,7 @@ class IBEISController(object):
         if label key is specified the relationship ids are filtered to
         be only of a specific key/category/type
         """
-        if configid==None:
+        if configid is None:
             configid = ibs.MANUAL_CONFIGID
         params_iter = ((rid, configid) for rid in rid_list)
         where_clause = 'annot_rowid=? AND config_rowid=?'

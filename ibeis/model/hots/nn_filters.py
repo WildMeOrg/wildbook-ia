@@ -158,13 +158,13 @@ def nn_recip_weight(ibs, qrid2_nns, qreq):
     return qrid2_recip_weight, qrid2_metaweight
 
 
-def nn_roidist_weight(ibs, qrid2_nns, qreq):
+def nn_bboxdist_weight(ibs, qrid2_nns, qreq):
     'Filters a matches to those within roughly the same spatial arangement'
     data_index = qreq.data_index
     K = qreq.cfg.nn_cfg.K
     dx2_rid = data_index.ax2_rid
     dx2_fx = data_index.ax2_fx
-    rid2_roidist_weight = {}
+    rid2_bboxdist_weight = {}
     for qrid in qrid2_nns.iterkeys():
         (qfx2_dx, qfx2_dist) = qrid2_nns[qrid]
         qfx2_nn = qfx2_dx[:, 0:K]
@@ -190,8 +190,8 @@ def nn_roidist_weight(ibs, qrid2_nns, qreq):
         # Get the relative distance # .0010s
         qfx2_K_xy1 = np.rollaxis(np.tile(qfx2_xy1, (K, 1, 1)), 1)
         qfx2_xydist = ((qfx2_K_xy1 - qfx2_xy2) ** 2).sum(2)
-        rid2_roidist_weight[qrid] = qfx2_xydist
-    return rid2_roidist_weight
+        rid2_bboxdist_weight[qrid] = qfx2_xydist
+    return rid2_bboxdist_weight
 
 
 def nn_scale_weight(ibs, qrid2_nns, qreq):
@@ -226,7 +226,7 @@ def nn_scale_weight(ibs, qrid2_nns, qreq):
 # function. A dict is better than eval, but there may be a better way.
 NN_FILTER_FUNC_DICT = {
     'scale':   nn_scale_weight,
-    'roidist': nn_roidist_weight,
+    'bboxdist': nn_bboxdist_weight,
     'recip':   nn_recip_weight,
     'bursty':  nn_bursty_weight,
     'lnrat':   nn_lnrat_weight,
