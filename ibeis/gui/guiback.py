@@ -501,6 +501,8 @@ class MainWindowBackend(QtCore.QObject):
     def compute_encounters(back, refresh=True):
         """ Batch -> Compute Encounters """
         print('[back] compute_encounters')
+        back.ibs.delete_all_encounters()
+        back.ibs.update_special_encounters()
         back.ibs.compute_encounters()
         print('[back] about to finish computing encounters')
         if refresh:

@@ -216,12 +216,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         back = ibswgt.back
         #_SEP = lambda: None
         detection_combo_box_options = [
-                #    Text               Value          
-                    ('Select Species',  'none',        ),
-                    ('Plains Zebras',   'zebra_plains',),
-                    ('Grevy\'s Zebras', 'zebra_grevys',),
-                    ('Giraffes',        'giraffe',     ),
-                ]
+            #    Text               Value
+            ('Select Species',  'none',        ),
+            ('Plains Zebras',   'zebra_plains',),
+            ('Grevy\'s Zebras', 'zebra_grevys',),
+            ('Giraffes',        'giraffe',     ),
+        ]
         ibswgt.button_list = [
             [
                 _NEWBUT('Import Images\n(via files)',
@@ -276,9 +276,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 # _SEP(),
 
-                _NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
-                        bgcolor=(255, 0, 0),
-                        fgcolor=(0, 0, 0)),
+                #_NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
+                #        bgcolor=(255, 0, 0),
+                #        fgcolor=(0, 0, 0)),
             ]
         ]
 
