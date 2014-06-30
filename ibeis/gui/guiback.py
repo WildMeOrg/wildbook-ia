@@ -405,6 +405,12 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
+    def detection_species_changed(back, index, value):
+        ibs = back.ibs
+        ibs.cfg.detect_cfg.species = value
+        ibs.cfg.save()
+
+    @blocking_slot()
     def _run_detection(back, quick=True, refresh=True, **kwargs):
         print('\n\n')
         eid = back._eidfromkw(kwargs)
