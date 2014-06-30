@@ -150,6 +150,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect signals and slots
         ibswgt._connect_signals_and_slots()
         # Connect the IBEIS control
+        print("WIDGET: %r" %(ibswgt.ibs))
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
     #@checks_qt_error
@@ -215,11 +216,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         back = ibswgt.back
         #_SEP = lambda: None
         detection_combo_box_options = [
-                #    Text               value           default selectable
-                    ('Select Species',  'none',         True ,  False),
-                    ('Plains Zebras',   'zebra_plains', False,  True ),
-                    ('Grevy\'s Zebras', 'zebra_grevys', False,  True ),
-                    ('Giraffes',        'giraffe',      False,  True ),
+                #    Text               Value          
+                    ('Select Species',  'none',        ),
+                    ('Plains Zebras',   'zebra_plains',),
+                    ('Grevy\'s Zebras', 'zebra_grevys',),
+                    ('Giraffes',        'giraffe',     ),
                 ]
         ibswgt.button_list = [
             [
@@ -245,7 +246,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #_SEP(),
 
                 _COMBO(detection_combo_box_options,
-                        ibswgt.back.run_detection_coarse,
+                        ibswgt.back.detection_species_changed,
                         bgcolor=(150, 255, 150)),
 
                 _NEWBUT('Detect',
@@ -380,8 +381,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 enctext = constants.ALLIMAGE_ENCTEXT
             else:
                 enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.button_list[4].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
-            ibswgt.button_list[5].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
+            ibswgt.button_list[0][2].setDefault(ibswgt.ibs.cfg.detect_cfg.species)
+            ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
         except Exception:
             pass
 
