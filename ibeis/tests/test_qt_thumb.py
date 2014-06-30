@@ -45,7 +45,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         ibswgt.view = IBEISTableView(parent=ibswgt)
         ibswgt.model = IBEISTableModel(parent=ibswgt.view)
-        ibswgt.view.setModel(ibswgt.model)
+        ibswgt.proxy = StripeProxyModel(numduplicates=3)
+        #ibswgt.proxy = QtGui.QIdentityProxyModel()
+        ibswgt.proxy.setSourceModel(ibswgt.model) 
+        ibswgt.view.setModel(ibswgt.proxy)
+        #ibswgt.view.setModel(ibswgt.model)
 
     def _init_layout(ibswgt):
         """ Lays out the defined components """
@@ -87,6 +91,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         tblview.doubleClicked.connect(ibswgt.on_doubleclick)
         tblview.clicked.connect(ibswgt.on_click)
         tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
+        print('signals and slots connected')
 
     #------------
     # SLOTS
@@ -107,6 +112,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
+        print("on single click")
         printDBG('on_click')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
@@ -119,6 +125,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
+        print("on double click")
         printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
@@ -128,7 +135,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             gid = id_
             if gid is None:
                 return
-            ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
+            ibswgt.roi_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
             print("DOUBLECLICKED ID: %r" % gid)
 
 if __name__ == '__main__':

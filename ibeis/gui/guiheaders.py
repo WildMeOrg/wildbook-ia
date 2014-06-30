@@ -35,16 +35,16 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     IMAGE_TABLE     : [
         'gid',
-        #'image_uuid',
+        'image_uuid',
         'thumb',
-        #'nRids',
-        #'gname',
-        #'ext',
-        #'aif',
-        #'datetime',
-        #'gps',
-        #'gdconf',
-        #'notes',
+        'nRids',
+        'gname',
+        'ext',
+        'aif',
+        'datetime',
+        'gps',
+        'gdconf',
+        'notes',
     ],
 
     ANNOTATION_TABLE       : [
@@ -55,19 +55,19 @@ TABLE_COLNAMES = {
         'exemplar',
         'rdconf',
         'notes',
-        #'gname',
-        #'nGt',
-        #'nFeats',
-        #'bbox',
-        #'theta',
-        #'verts',
-        #'num_verts',
+        'gname',
+        'nGt',
+        'nFeats',
+        'bbox',
+        'theta',
+        'verts',
+        'num_verts',
     ],
 
     NAME_TABLE      : [
         'nid',
         'name',
-        #'nRids',
+        'nRids',
         'notes'
     ],
 
@@ -79,7 +79,7 @@ TABLE_COLNAMES = {
     ],
 
     ENCOUNTER_TABLE : [
-        #'eid',
+        'eid',
         'enctext',
         'nImgs',
     ],
@@ -120,7 +120,8 @@ TABLE_TREE_LEVELS = {
 }
 
 TABLE_HIDDEN_LIST = {
-    IMAGE_TABLE : [False, False, False, False, False, False, False, False],
+    IMAGE_TABLE : [False, True, False, False, False, True, False, False, False, False, False],
+    ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],
     NAMES_TREE : [False, False, False, False, False, False],
     NAME_TABLE : [False, False, False, False],
 }
