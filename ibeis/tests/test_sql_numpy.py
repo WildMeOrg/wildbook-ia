@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool
 from ibeis.control import SQLDatabaseControl as sqldbc
+from ibeis.control._sql_helpers import _results_gen
 from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NUMPY] ')
 
@@ -55,11 +56,11 @@ def TEST_SQL_NUMPY():
     print('[TEST] read from sql database')
 
     tt = utool.tic()
-    db.executor.execute('SELECT temp_hash FROM temp', [])
+    db.cur.execute('SELECT temp_hash FROM temp', [])
     print(' * execute select time=%r sec' % utool.toc(tt))
 
     tt = utool.tic()
-    result_list = sqldbc.sqlhelpers._results_gen(db.executor)
+    result_list = _results_gen(db.cur)
     print(' * iter results time=%r sec' % utool.toc(tt))
     print(' * memory(result_list) = %s' % utool.byte_str2(utool.get_object_size(result_list)))
     del result_list

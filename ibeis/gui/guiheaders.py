@@ -3,13 +3,15 @@ import utool
 #from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
+ENCOUNTER_TABLE = 'encounters'
 IMAGE_TABLE     = 'images'
 ROI_TABLE       = 'rois'
 NAME_TABLE      = 'names'
-QRES_TABLE      = 'qres'
-ENCOUNTER_TABLE = 'encounters'
-THUMB_TABLE     = 'thumbs'
 NAMES_TREE      = 'names_tree'
+
+
+QRES_TABLE      = 'qres'
+THUMB_TABLE     = 'thumbs'
 
 #-----------------
 # Define the tables
@@ -29,22 +31,78 @@ TABLE_NICE = {
     NAMES_TREE      : 'Tree of Names',
 }
 
-# the columns each ibeis table has
+# the columns each ibeis table has,
 TABLE_COLNAMES = {
-    #IMAGE_TABLE     : ['image_uuid', 'gid', 'gname', 'nRids', 'aif', 'enctext', 'datetime', 'notes', 'ext'],
-    #IMAGE_TABLE     : ['gid', 'gname', 'nRids', 'datetime', 'notes'],
-    IMAGE_TABLE     : ['gid', 'thumb', 'nRids', 'gname', 'aif', 'datetime', 'gps', 'gdconf', 'notes'],
-    #ROI_TABLE       : ['rid', 'name', 'gname', 'nGt', 'nFeats', 'bbox', 'theta', 'notes'],
-    #ROI_TABLE       : ['rid', 'thumb', 'name', 'exemplar', 'gname', 'rdconf', 'notes'],
-    ROI_TABLE       : ['rid', 'thumb', 'name', 'bbox', 'num', 'verts', 'exemplar', 'gname', 'rdconf', 'notes'],
-    NAME_TABLE      : ['nid', 'name', 'nRids', 'notes'],
-    QRES_TABLE      : ['rank', 'score', 'name', 'rid'],
-    ENCOUNTER_TABLE : ['eid', 'nImgs', 'enctext'],
-    #THUMB_TABLE     : ['thumb', 'thumb', 'thumb', 'thumb'],
-    THUMB_TABLE     : ['gname', 'thumb'],
-    #NAMES_TREE      : {('name', 'nid', 'nRids') : ['rid', 'bbox', 'thumb']},
-    NAMES_TREE      : ['name', 'nid', 'nRids', 'exemplar', 'rid', 'thumb'],
+    IMAGE_TABLE     : [
+        'gid',
+        #'image_uuid',
+        'thumb',
+        #'nRids',
+        #'gname',
+        #'ext',
+        #'aif',
+        #'datetime',
+        #'gps',
+        #'gdconf',
+        #'notes',
+    ],
+
+    ROI_TABLE       : [
+        #'roi_uuid',
+        'rid',
+        'thumb',
+        'name',
+        'exemplar',
+        'rdconf',
+        'notes',
+        #'gname',
+        #'nGt',
+        #'nFeats',
+        #'bbox',
+        #'theta',
+        #'verts',
+        #'num_verts',
+    ],
+
+    NAME_TABLE      : [
+        'nid',
+        'name',
+        #'nRids',
+        'notes'
+    ],
+
+    QRES_TABLE      : [
+        'rank',
+        'score',
+        'name',
+        'rid'
+    ],
+
+    ENCOUNTER_TABLE : [
+        #'eid',
+        'enctext',
+        'nImgs',
+    ],
+
+    NAMES_TREE      : [
+        'name',
+        'nid',
+        'nRids',
+        'exemplar',
+        'rid',
+        'thumb',
+    ],
+
+    # TEST TABLE
+    THUMB_TABLE     : [
+        'gname',
+        'thumb',
+    ],
+
+
 }
+#THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
+#NAMES_TREE      : {('name' 'nid' 'nRids') : ['rid' 'bbox' 'thumb']}
 
 # the columns which are editable
 TABLE_EDITSET = {
@@ -87,7 +145,7 @@ COL_DEF = dict([
     ('notes',      (str,      'Notes')),
     ('match_name', (str,      'Matching Name')),
     ('bbox',       (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
-    ('num',        (int,      'NumVerts')),
+    ('num_verts',        (int,      'NumVerts')),
     ('verts',      (str,      'Verts')),
     ('score',      (str,      'Confidence')),
     ('theta',      (str,      'Theta')),
@@ -141,7 +199,7 @@ def make_ibeis_headers_dict(ibs):
         'nGt'      : ibs.get_roi_num_groundtruth,
         'theta'    : partial_imap_1to1(utool.theta_str, ibs.get_roi_thetas),
         'bbox'     : partial_imap_1to1(utool.bbox_str,  ibs.get_roi_bboxes),
-        'num'      : ibs.get_roi_num_verts,
+        'num_verts'      : ibs.get_roi_num_verts,
         'verts'    : partial_imap_1to1(utool.verts_str, ibs.get_roi_verts),
         'nFeats'   : ibs.get_roi_num_feats,
         'rdconf'   : ibs.get_roi_detect_confidence,

@@ -30,7 +30,7 @@ def make_testdb0():
     ibs = main_locals['ibs']
     assert ibs is not None, str(main_locals)
     gpath_list = map(utool.unixpath, grabdata.get_test_gpaths())
-    print('[RESET] gpath_list=%r' % gpath_list)
+    #print('[RESET] gpath_list=%r' % gpath_list)
     gid_list = ibs.add_images(gpath_list)  # NOQA
     valid_gids = ibs.get_valid_gids()
     valid_rids = ibs.get_valid_rids()
@@ -42,7 +42,7 @@ def make_testdb0():
     gid_list = valid_gids[0:1]
     bbox_list = [(0, 0, 100, 100)]
     rid = ibs.add_rois(gid_list, bbox_list=bbox_list)[0]
-    print('[RESET] NEW RID=%r' % rid)
+    #print('[RESET] NEW RID=%r' % rid)
     rids = ibs.get_image_rids(gid_list)[0]
     try:
         assert rid in rids, ('bad roi adder: rid = %r, rids = %r' % (rid, rids))

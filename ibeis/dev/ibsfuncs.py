@@ -159,6 +159,12 @@ def delete_all_features(ibs):
 
 
 @__injectable
+def delete_all_rois(ibs):
+    all_rids = ibs._get_all_rids()
+    ibs.delete_rois(all_rids)
+
+
+@__injectable
 def delete_all_chips(ibs):
     all_cids = ibs._get_all_cids()
     ibs.delete_chips(all_cids)
@@ -604,7 +610,7 @@ def delete_non_exemplars(ibs):
 
 @__injectable
 def update_exemplar_encounter(ibs):
-    eid = ibs.get_encounter_eids(constants.EXEMPLAR_ENCTEXT)
+    eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
     ibs.delete_encounters(eid)
     rid_list = ibs.get_valid_rids(is_exemplar=True)
     gid_list = utool.unique_ordered(ibs.get_roi_gids(rid_list))
@@ -613,13 +619,13 @@ def update_exemplar_encounter(ibs):
 
 @__injectable
 def update_allimage_encounter(ibs):
-    eid = ibs.get_encounter_eids(constants.ALLIMAGE_ENCTEXT)
+    eid = ibs.get_encounter_eids_from_text(constants.ALLIMAGE_ENCTEXT)
     ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids()
     ibs.set_image_enctext(gid_list, [constants.ALLIMAGE_ENCTEXT] * len(gid_list))
 
 
-@__injectable
+@__injectable(False)
 def update_special_encounters(ibs):
     ibs.update_exemplar_encounter()
     ibs.update_allimage_encounter()

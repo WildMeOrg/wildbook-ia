@@ -55,7 +55,7 @@ def ingest_testdb1(db):
         flag_list = map(all, izip(plural_flag, unique_flag))
         flagged_rids = utool.filter_items(rid_list, flag_list)
         new_nids = [ibs.UNKNOWN_NID] * len(flagged_rids)
-        if utool.VERBOSE:
+        if utool.VERYVERBOSE:
             def print2(*args):
                 print('[post_testdb1] ' + ', '.join(args))
             print2('rid_list=%r' % rid_list)
@@ -173,7 +173,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     # Add Images
     gid_list_ = ibs.add_images(gpath_list)
     # <DEBUG>
-    print('added: \n' + '\n  *'.join(map(str, zip(gid_list_, gpath_list))))
+    #print('added: ' + utool.indentjoin(map(str, zip(gid_list_, gpath_list))))
     unique_gids = list(set(gid_list_))
     print("[ingest] Length gid list: %d" % len(gid_list_))
     print("[ingest] Length unique gid list: %d" % len(unique_gids))
@@ -197,11 +197,10 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     # Print to show success
     #ibs.print_image_table()
     #ibs.print_tables()
-
     #ibs.print_roi_table()
-    ibs.print_alr_table()
-    ibs.print_label_table()
-    ibs.print_image_table()
+    #ibs.print_alr_table()
+    #ibs.print_label_table()
+    #ibs.print_image_table()
     return rid_list
 
 

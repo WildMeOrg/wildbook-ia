@@ -257,7 +257,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                                     options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
         if ans == 'Confirm':
-            alrid_list = ibs.get_roi_filtered_relationship_ids(self.rid_list, ibs.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
+            alrid_list = ibs.get_roi_filtered_alrids(self.rid_list, ibs.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
             ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
         
         ibs.print_alr_table()

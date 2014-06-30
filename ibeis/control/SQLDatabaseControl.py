@@ -1,34 +1,70 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from itertools import imap, izip
-import re
 from os.path import join, exists
+import utool
 # Tools
-from ibeis.control._sql_database_control_helpers import *  # NOQA
-from ibeis.control import _sql_database_control_helpers as sqlhelpers  # NOQA
-from ibeis.control._sql_database_control_helpers import _unpacker, lite, utool
+#from ibeis.control._sql_database_control_helpers import *  # NOQA
+#from ibeis.control import _sql_database_control_helpers as sqlhelpers
+from ibeis.control._sql_helpers import (_unpacker, _executor, lite,
+                                        sanatize_sql, SQLExecutionContext,
+                                        default_decorator, DEBUG)
+
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql]', DEBUG=DEBUG)
+
+VERBOSE = utool.VERBOSE
+QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
+AUTODUMP = utool.get_flag('--auto-dump')
+
+""" If would be really great if we could get a certain set of setters, getters,
+and deleters to be indexed into only with rowids. If we could do this than for
+that subset of data, we could hook up a least recently used cache which is
+populated whenever you get data from some table/colname using the rowid as the
+key. The cache would then only have to be invalidated if we were going to set /
+get data from that same rowid.  This would offer big speadups for both the
+recognition algorithm and the GUI. """
+
+from functools import wraps
+
+
+def common_decor(func):
+    @wraps(func)
+    def closure_common(db, *args, **kwargs):
+        return func(db, *args, **kwargs)
+    return default_decorator(closure_common)
+
+
+def getter_sql(func):
+    @wraps(func)
+    def closure_getter(db, *args, **kwargs):
+        return func(db, *args, **kwargs)
+    return common_decor(func)
+
+
+def adder_sql(func):
+    return common_decor(func)
+
+
+def setter_sql(func):
+    return common_decor(func)
+
+
+def deleter_sql(func):
+    return common_decor(func)
+
+
+def ider_sql(func):
+    return common_decor(func)
 
 
 class SQLDatabaseController(object):
     """ SQLDatabaseController an efficientish interface into SQL """
 
-    def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3'):
-        """ Creates db and opens connection
-
-            SQLite3 Documentation: http://www.sqlite.org/docs.html
-            -------------------------------------------------------
-            SQL INSERT: http://www.w3schools.com/sql/sql_insert.asp
-            SQL UPDATE: http://www.w3schools.com/sql/sql_update.asp
-            SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
-            SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
-            -------------------------------------------------------
-            Init the SQLite3 database connection and the execution object.
-            If the database does not exist, it will be automatically created
-            upon this object's instantiation.
-        """
+    def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
+                 text_factory=unicode):
+        """ Creates db and opens connection """
         printDBG('[sql.__init__]')
         # Get SQL file path
         db.dir_  = sqldb_dpath
@@ -39,172 +75,71 @@ class SQLDatabaseController(object):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
-        db.executor   = db.connection.cursor()
+        db.connection.text_factory = text_factory
+        # Get a cursor which will preform sql commands / queries / executions
+        db.cur = db.connection.cursor()
+        # Optimize the database (if anything is set)
+        db.optimize()
+        # Table info
         db.table_columns     = utool.odict()
         db.table_constraints = utool.odict()
         db.table_docstr      = utool.odict()
+        # TODO:
         db.stack = []
-        db.cache = {}
-
-    #==============
-    # CONVINENCE
-    #==============
-
-    @default_decorator
-    def dump_tables_to_csv(db):
-        """ Convenience: Dumps all csv database files to disk """
-        dump_dir = join(db.dir_, 'CSV_DUMP')
-        utool.ensuredir(dump_dir)
-        for tablename in db.table_columns.iterkeys():
-            table_fname = tablename + '.csv'
-            table_csv = db.get_table_csv(tablename)
-            with open(join(dump_dir, table_fname), 'w') as file_:
-                file_.write(table_csv)
-
-    @default_decorator
-    def get_column_names(db, tablename):
-        """ Conveinience: Returns the sql tablename columns """
-        column_names = [name for name, type_ in  db.table_columns[tablename]]
-        return column_names
-
-    @default_decorator
-    def get_table_names(db):
-        """ Conveinience: """
-        return db.table_columns.keys()
-
-    @default_decorator
-    def get_column(db, tablename, name):
-        """ Conveinience: """
-        _table, (_column,) = db.sanatize_sql(tablename, (name,))
-        column_vals = db.executeone(
-            operation='''
-            SELECT %s
-            FROM %s
-            ORDER BY rowid ASC
-            ''' % (_column, _table))
-        return column_vals
-
-    @default_decorator
-    def get_table_csv(db, tablename, exclude_columns=[]):
-        """ Conveinience: Converts a tablename to csv format """
-        column_nametypes = db.table_columns[tablename]
-        column_names = [name for (name, type_) in column_nametypes]
-        column_list = []
-        column_labels = []
-        for name in column_names:
-            if name in exclude_columns:
-                continue
-            column_vals = db.get_column(tablename, name)
-            column_list.append(column_vals)
-            column_labels.append(name.replace(tablename[:-1] + '_', ''))
-        # remove column prefix for more compact csvs
-
-        #=None, column_list=[], header='', column_type=None
-        header = db.get_table_csv_header(tablename)
-        csv_table = utool.make_csv_table(column_list, column_labels, header)
-        return csv_table
-
-    @default_decorator
-    def get_table_csv_header(db, tablename):
-        column_nametypes = db.table_columns[tablename]
-        header_constraints = '# CONSTRAINTS: %r' % db.table_constraints[tablename]
-        header_name  = '# TABLENAME: %r' % tablename
-        header_types = utool.indentjoin(column_nametypes, '\n# ')
-        header_doc = utool.indentjoin(utool.unindent(db.table_docstr[tablename]).split('\n'), '\n# ')
-        header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
-        return header
-
-    def print_schema(db):
-        for tablename in db.table_columns.iterkeys():
-            print(db.get_table_csv_header(tablename) + '\n')
-
-    @default_decorator
-    def get_sql_version(db):
-        """ Conveinience """
-        _executor(db.executor, '''
-                   SELECT sqlite_version()
-                   ''', verbose=False)
-        sql_version = db.executor.fetchone()
-
-        print('[sql] SELECT sqlite_version = %r' % (sql_version,))
-        # The version number sqlite3 module. NOT the version of SQLite library.
-        print('[sql] sqlite3.version = %r' % (lite.version,))
-        # The version of the SQLite library
-        print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
-        return sql_version
+        db.cache = {}  # key \in [tblname][colnames][rowid]
 
     #==============
     # API INTERFACE
     #==============
 
-    #@ider
-    def _get_all_ids(db, tblname, **kwargs):
-        """ VALID IDER """
-        fmtdict = {
-            'tblname': tblname,
-        }
+    @ider_sql
+    def get_all_rowids(db, tblname):
+        """ returns a list of all rowids from a table in ascending order """
+        fmtdict = {'tblname': tblname, }
         operation_fmt = '''
-        SELECT rowid FROM {tblname}
+        SELECT rowid
+        FROM {tblname}
         ORDER BY rowid ASC
         '''
-        return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+        return db._executeone_operation_fmt(operation_fmt, fmtdict)
 
-    @default_decorator
-    def get_valid_ids(db, tblname, **kwargs):
-        """ VALID IDER """
-        return db._get_all_ids(tblname, **kwargs)
+    @ider_sql
+    def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
+        """ returns a list of rowids from a table in ascending order satisfying
+        a condition """
+        fmtdict = {'tblname': tblname, 'where_clause': where_clause, }
+        operation_fmt = '''
+        SELECT rowid
+        FROM {tblname}
+        WHERE {where_clause}
+        ORDER BY rowid ASC
+        '''
+        return db._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
 
-    @default_decorator
-    def get_valid_rowids(db, tblname, **kwargs):
-        """ VALID IDER """
-        return db._get_all_ids(tblname, **kwargs)
-
-    @default_decorator
-    def add(db, tblname, colnames, params_iter, **kwargs):
-        """ ADDER
-        NOTE: use add_cleanly
-        """
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
-        fmtdict = {
-            'tblname'  : tblname,
-            'questionmarks' : ', '.join(['?'] * len(colnames)),
-            'params'   : ',\n'.join(colnames),
-        }
-        operation_fmt = utool.unindent('''
-            INSERT INTO {tblname}(
-            rowid,
-            {params}
-            ) VALUES (NULL, {questionmarks})
-            ''')
+    def _add(db, tblname, colnames, params_iter, **kwargs):
+        """ ADDER NOTE: use add_cleanly """
+        fmtdict = {'tblname'  : tblname,
+                    'erotemes' : ', '.join(['?'] * len(colnames)),
+                    'params'   : ',\n'.join(colnames), }
+        operation_fmt = '''
+        INSERT INTO {tblname}(
+        rowid,
+        {params}
+        ) VALUES (NULL, {erotemes})
+        '''
         rowid_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                    params_iter=params_iter, **kwargs)
         return rowid_list
 
-    @default_decorator
+    @adder_sql
     def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, unique_paramx=[0]):
-        """
-        ADDER
-        Extra input:
-            the first item of params_iter must be a uuid,
-        uuid_list - a non-rowid column which identifies a row
-            get_rowid_from_uuid - function which does what it says
-        e.g:
-            get_rowid_from_uuid = ibs.get_image_gids_from_uuid
-            params_list = [(uuid.uuid4(),) for _ in xrange(7)]
-            unique_paramx = [0]
-
-            params_list = [(uuid.uuid4(), 42) for _ in xrange(7)]
-            unique_paramx = [0, 1]
-        """
+        """ ADDER Extra input: the first item of params_iter must be a uuid, """
         # ADD_CLEANLY_1: PREPROCESS INPUT
-        # eagerly evaluate for uuids
-        params_list = list(params_iter)
+        params_list = list(params_iter)  # eagerly evaluate for uuids
         # Extract uuids from the params list (requires eager eval)
-        # FIXME: the uuids being at index 0 is a hack
-
-        uuid_lists = [[None if params is None else
-                       params[x] for params in params_list] for x in unique_paramx]
+        uuid_lists = [[None if params is None else params[x]
+                       for params in params_list]
+                      for x in unique_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
@@ -213,131 +148,71 @@ class SQLDatabaseController(object):
         # Check to see if this already exists in the database
         rowid_list_   = get_rowid_from_uuid(*uuid_lists)
         isnew_list    = [rowid is None for rowid in rowid_list_]
-        if not all(isunique_list):
+        if VERBOSE and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
         isdirty_list = map(all, izip(isvalid_list, isunique_list, isnew_list))
         # ADD_CLEANLY_3.1: EXIT IF CLEAN
         if not any(isdirty_list):
-            # There is nothing to add. Return the rowids
-            return rowid_list_
+            return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
         # Add any unadded parameters to the database
         dirty_params = utool.filter_items(params_list, isdirty_list)
         print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         try:
-            db.add(tblname, colnames, dirty_params)
+            db._add(tblname, colnames, dirty_params)
         except Exception as ex:
-            #unique_uuids = utool.unique_ordered(uuid_list)
-            #assert len(unique_uuids) == len(uuid_list), 'duplicate inputs'
-            #assert unique_uuids == uuid_list, 'duplicate inputs'
-            #ibs = utool.search_stack_for_var('ibs')
-            #print(ibs.get_valid_gids())
             utool.printex(ex, key_list=['isdirty_list', 'uuid_list', 'rowid_list_'])
-            #utool.embed()
             raise
-        #results =
-        # If the result was already in the database (and ignored), it will return None.
-        # Thus, go and get the row_id if the index is None
-        #results = [get_rowid_from_uuid([uuid_list[index]])[0]
-        #           if results[index] is None
-        #           else results[index]
-        #           for index in range(len(results))]
+        # TODO: We should only have to preform a subset of adds here
+        # (at the positions where rowid_list was None in the getter check)
         rowid_list = get_rowid_from_uuid(*uuid_lists)
         # ADD_CLEANLY_4: SANITY CHECK AND RETURN
-        assert len(rowid_list) == len(params_list)
+        assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
-    #@getter
-    @default_decorator
-    def get_where(db, tblname, colnames, params_iter, where_clause,
-                  unpack_scalars=True, **kwargs):
+    @getter_sql
+    def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, **kwargs):
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
-        fmtdict = {
-            'tblname'     : tblname,
-            'colnames'    : ', '.join(colnames),
-            'where_clauses' : 'WHERE ' + where_clause,
-        }
+        fmtdict = { 'tblname'     : tblname,
+                    'colnames'    : ', '.join(colnames),
+                    'where_clauses' :  where_clause, }
         operation_fmt = '''
-            SELECT {colnames}
-            FROM {tblname}
-            {where_clauses}
-            '''
+        SELECT {colnames}
+        FROM {tblname}
+        WHERE {where_clauses}
+        '''
         val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
                                                  params_iter=params_iter,
                                                  unpack_scalars=unpack_scalars,
                                                  **kwargs)
         return val_list
 
-    #@getter
-    @default_decorator
-    def get(db, tblname, colnames, id_iter=None, id_colname='rowid',
-                unpack_scalars=True, **kwargs):
+    @getter_sql
+    def get_rowid_from_superkey(db, tblname, params_iter=None, superkey_colnames=None, **kwargs):
+        """ getter which uses the constrained superkeys instead of rowids """
+        where_clause = 'AND'.join([colname + '=?' for colname in superkey_colnames])
+        return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
+
+    @getter_sql
+    def get(db, tblname, colnames, id_iter=None, id_colname='rowid', **kwargs):
         """ getter """
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
-        if unpack_scalars is None:
-            unpack_scalars = id_colname is None
-        assert unpack_scalars is not None, 'unpack_scalars is None'
         where_clause = (id_colname + '=?')
         params_iter = ((_rowid,) for _rowid in id_iter)
 
-        return db.get_where(tblname, colnames, params_iter, where_clause, unpack_scalars=unpack_scalars)
+        return db.get_where(tblname, colnames, params_iter, where_clause, **kwargs)
 
-    #@getter
-    @default_decorator
-    def get_executeone(db, tblname, colnames, **kwargs):
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
-        fmtdict = {
-            'tblname'         : tblname,
-            'colnames_str'    : ', '.join(colnames),
-        }
-        operation_fmt = '''
-            SELECT {colnames_str}
-            FROM {tblname}
-            '''
-        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
-        return val_list
-
-    #@getter
-    @default_decorator
-    def get_executeone_where(db, tblname, colnames, where_clause, params, **kwargs):
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
-        fmtdict = {
-            'tblname'         : tblname,
-            'colnames_str'    : ', '.join(colnames),
-            'where_clause'    : where_clause
-        }
-        operation_fmt = '''
-            SELECT {colnames_str}
-            FROM {tblname}
-            WHERE {where_clause}
-            '''
-        val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, params=params, **kwargs)
-        return val_list
-
-    #@setter
-    @default_decorator
+    @setter_sql
     def set(db, tblname, colnames, val_list, id_list, id_colname='rowid', **kwargs):
         """ setter """
-        #OFF printDBG('------------------------')
-        #OFF printDBG('set_(table=%r, prop_key=%r)' % (table, prop_key))
-        #OFF printDBG('set_(rowid_list=%r, val_list=%r)' % (rowid_list, val_list))
-        #from operator import xor
-        #assert not xor(utool.isiterable(rowid_list),
-        #               utool.isiterable(val_list)), 'invalid mixing of iterable and scalar inputs'
-
-        #if not utool.isiterable(rowid_list) and not utool.isiterable(val_list):
-        #    rowid_list = (rowid_list,)
-        #    val_list = (val_list,)
         if isinstance(colnames, (str, unicode)):
             colnames = (colnames,)
-        val_list = list(val_list)
-        id_list = list(id_list)
-        if not QUIET:
+        val_list = list(val_list)  # eager evaluation
+        id_list = list(id_list)  # eager evaluation
+        if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))
@@ -360,18 +235,17 @@ class SQLDatabaseController(object):
             SET {assign_str}
             WHERE {where_clause}
             '''
+        #params_iter = utool.flattenize(izip(val_list, id_list))
         params_iter = utool.flattenize(izip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter, **kwargs)
 
-    #@deleter
-    @default_decorator
-    def delete(db, tblname, id_list, id_colname=None, **kwargs):
-        """ deleter """
+    @deleter_sql
+    def delete(db, tblname, id_list, id_colname='rowid', **kwargs):
+        """ deleter. USE delete_rowids instead """
         fmtdict = {
-            'tblname' : tblname,
-            'tblname': tblname,
-            'rowid_str'   : ('rowid=?' if id_colname is None else id_colname + '=?'),
+            'tblname'   : tblname,
+            'rowid_str' : (id_colname + '=?'),
         }
         operation_fmt = '''
             DELETE
@@ -379,6 +253,23 @@ class SQLDatabaseController(object):
             WHERE {rowid_str}
             '''
         params_iter = ((_rowid,) for _rowid in id_list)
+        return db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                             params_iter=params_iter,
+                                             **kwargs)
+
+    @deleter_sql
+    def delete_rowids(db, tblname, rowid_list, **kwargs):
+        """ deletes the the rows in rowid_list """
+        fmtdict = {
+            'tblname'   : tblname,
+            'rowid_str' : ('rowid=?'),
+        }
+        operation_fmt = '''
+            DELETE
+            FROM {tblname}
+            WHERE {rowid_str}
+            '''
+        params_iter = ((_rowid,) for _rowid in rowid_list)
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter,
                                              **kwargs)
@@ -406,31 +297,13 @@ class SQLDatabaseController(object):
     # SQLDB CORE
     #=========
 
-    @profile
     @default_decorator
-    def sanatize_sql(db, tablename, columns=None):
-        """ Sanatizes an sql tablename and column. Use sparingly """
-        tablename = re.sub('[^a-z_0-9]', '', tablename)
-        valid_tables = db.get_table_names()
-        if tablename not in valid_tables:
-            raise Exception('UNSAFE TABLE: tablename=%r' % tablename)
-        if columns is None:
-            return tablename
-        else:
-            def _sanitize_sql_helper(column):
-                column = re.sub('[^a-z_0-9]', '', column)
-                valid_columns = db.get_column_names(tablename)
-                if column not in valid_columns:
-                    raise Exception('UNSAFE COLUMN: tablename=%r column=%r' %
-                                    (tablename, column))
-                    return None
-                else:
-                    return column
-
-            columns = [_sanitize_sql_helper(column) for column in columns]
-            columns = [column for column in columns if columns is not None]
-
-            return tablename, columns
+    def optimize(db):
+        # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
+        print('[sql] executing sql optimizions')
+        #db.cur.execute('PRAGMA cache_size = 1024;')
+        #db.cur.execute('PRAGMA page_size = 1024;')
+        #db.cur.execute('PRAGMA synchronous = OFF;')
 
     @default_decorator
     def schema(db, tablename, schema_list, table_constraints=[], docstr=''):
@@ -550,26 +423,19 @@ class SQLDatabaseController(object):
         return results_list
 
     @default_decorator
-    def commit(db, qstat_flag_list=[],  verbose=VERBOSE, errmsg=None):
+    def commit(db,  verbose=VERBOSE):
         """ Commits staged changes to the database and saves the binary
             representation of the database to disk.  All staged changes can be
             commited one at a time or after a batch - which allows for batch
             error handling without comprimising the integrity of the database.
         """
         try:
-            if not all(qstat_flag_list):  # DEPRICATE
-                raise lite.DatabaseError(errmsg)  # DEPRICATE
-            else:
-                db.connection.commit()
-                if AUTODUMP:
-                    db.dump(auto_commit=False)
+            db.connection.commit()
+            if AUTODUMP:
+                db.dump(auto_commit=False)
         except lite.Error as ex2:
-            print('\n<!!! ERROR>')  # DEPRICATE
-            utool.printex(ex2, '[!sql] Caught ex2=')
-            caller_name = utool.util_dbg.get_caller_name()  # DEPRICATE
-            print('[!sql] caller_name=%r' % caller_name)  # DEPRICATE
-            print('</!!! ERROR>\n')  # DEPRICATE
-            raise lite.DatabaseError('%s --- %s' % (errmsg, ex2))
+            utool.printex(ex2, '[!sql] Error during commit')
+            raise
 
     @default_decorator
     def dump(db, file_=None, auto_commit=True):
@@ -585,16 +451,129 @@ class SQLDatabaseController(object):
         """
         if file_ is None or isinstance(file_, (str, unicode)):
             if file_ is None:
-                dump_dir = db.dir_
-                dump_fname = db.fname + '.dump.txt'
-                dump_fpath = join(dump_dir, dump_fname)
+                dump_fpath = join(db.dir_, db.fname + '.dump.txt')
             else:
                 dump_fpath = file_
             with open(dump_fpath, 'w') as file_:
                 db.dump(file_, auto_commit)
         else:
-            print('[sql.dump]')  # DEPRICATE
+            if utool.VERYVERBOSE:
+                print('[sql.dump]')
             if auto_commit:
                 db.commit(verbose=False)
             for line in db.connection.iterdump():
                 file_.write('%s\n' % line)
+
+    #==============
+    # CONVINENCE
+    #==============
+
+    @default_decorator
+    def dump_tables_to_csv(db):
+        """ Convenience: Dumps all csv database files to disk """
+        dump_dir = join(db.dir_, 'CSV_DUMP')
+        utool.ensuredir(dump_dir)
+        for tablename in db.table_columns.iterkeys():
+            table_fname = tablename + '.csv'
+            table_csv = db.get_table_csv(tablename)
+            with open(join(dump_dir, table_fname), 'w') as file_:
+                file_.write(table_csv)
+
+    @default_decorator
+    def get_column_names(db, tablename):
+        """ Conveinience: Returns the sql tablename columns """
+        column_names = [name for name, type_ in  db.table_columns[tablename]]
+        return column_names
+
+    @default_decorator
+    def get_table_names(db):
+        """ Conveinience: """
+        return db.table_columns.keys()
+
+    @default_decorator
+    def get_column(db, tablename, name):
+        """ Conveinience: """
+        _table, (_column,) = sanatize_sql(db, tablename, (name,))
+        column_vals = db.executeone(
+            operation='''
+            SELECT %s
+            FROM %s
+            ORDER BY rowid ASC
+            ''' % (_column, _table))
+        return column_vals
+
+    @default_decorator
+    def get_table_csv(db, tablename, exclude_columns=[]):
+        """ Conveinience: Converts a tablename to csv format """
+        column_nametypes = db.table_columns[tablename]
+        column_names = [name for (name, type_) in column_nametypes]
+        column_list = []
+        column_labels = []
+        for name in column_names:
+            if name in exclude_columns:
+                continue
+            column_vals = db.get_column(tablename, name)
+            column_list.append(column_vals)
+            column_labels.append(name.replace(tablename[:-1] + '_', ''))
+        # remove column prefix for more compact csvs
+
+        #=None, column_list=[], header='', column_type=None
+        header = db.get_table_csv_header(tablename)
+        csv_table = utool.make_csv_table(column_list, column_labels, header)
+        return csv_table
+
+    @default_decorator
+    def get_table_csv_header(db, tablename):
+        column_nametypes = db.table_columns[tablename]
+        header_constraints = '# CONSTRAINTS: %r' % db.table_constraints[tablename]
+        header_name  = '# TABLENAME: %r' % tablename
+        header_types = utool.indentjoin(column_nametypes, '\n# ')
+        header_doc = utool.indentjoin(utool.unindent(db.table_docstr[tablename]).split('\n'), '\n# ')
+        header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
+        return header
+
+    def print_schema(db):
+        for tablename in db.table_columns.iterkeys():
+            print(db.get_table_csv_header(tablename) + '\n')
+
+    @default_decorator
+    def get_sql_version(db):
+        """ Conveinience """
+        _executor(db.cur, '''
+                   SELECT sqlite_version()
+                   ''', verbose=False)
+        sql_version = db.cur.fetchone()
+
+        print('[sql] SELECT sqlite_version = %r' % (sql_version,))
+        # The version number sqlite3 module. NOT the version of SQLite library.
+        print('[sql] sqlite3.version = %r' % (lite.version,))
+        # The version of the SQLite library
+        print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
+        return sql_version
+
+
+# LONG DOCSTRS
+#SQLDatabaseController.add_cleanly.__docstr__ = """
+#uuid_list - a non-rowid column which identifies a row
+#get_rowid_from_uuid - function which does what it says
+#e.g:
+#    get_rowid_from_uuid = ibs.get_image_gids_from_uuid
+#    params_list = [(uuid.uuid4(),) for _ in xrange(7)]
+#    unique_paramx = [0]
+
+#            params_list = [(uuid.uuid4(), 42) for _ in xrange(7)]
+#            unique_paramx = [0, 1]
+#"""
+
+#SQLDatabaseController.__init__.__docstr__ = """
+#            SQLite3 Documentation: http://www.sqlite.org/docs.html
+#            -------------------------------------------------------
+#            SQL INSERT: http://www.w3schools.com/sql/sql_insert.asp
+#            SQL UPDATE: http://www.w3schools.com/sql/sql_update.asp
+#            SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
+#            SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
+#            -------------------------------------------------------
+#            Init the SQLite3 database connection and the execution object.
+#            If the database does not exist, it will be automatically created
+#            upon this object's instantiation.
+#            """

@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from PyQt4 import QtCore, QtGui
-from guitool import APIItemModel, APITableView, APITreeView, APIItemWidget, StripeProxyModel, ChangeLayoutContext
+#from PyQt4 import QtCore, QtGui
+from guitool import (APIItemModel, APITableView, APITreeView, APIItemWidget,
+                     StripeProxyModel, ChangeLayoutContext)
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
 
 #---------------------
@@ -40,7 +41,7 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
         if IBEISTABLEMODEL_BASE == StripeProxyModel:
             model.sourcemodel = APIItemModel(headers=headers, parent=parent)
             model.setSourceModel(model.sourcemodel)
-            print('just set the sourcemodel')
+            print('[ibs_model] just set the sourcemodel')
 
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):
@@ -90,7 +91,6 @@ class IBEISTreeView(APITreeView):
         model = treeview.model()
         if model is not None:
             model._change_enc(eid)
-
 
 
 #-------------------------
