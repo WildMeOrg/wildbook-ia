@@ -48,7 +48,35 @@ def ibeis_compute_encounters(ibs, gid_list):
     return enctext_list, flat_gids
 
 
+from math import radians, cos, sin, asin, sqrt
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+    http://en.wikipedia.org/wiki/Haversine_formula
+    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * asin(sqrt(a))
+
+    # 6367 km is the radius of the Earth
+    km = 6367 * c
+    return km
+
+
 def _prepare_X_data(ibs, gid_list, use_gps=False):
+    """
+    FIXME: use haversine formula on gps dimensions
+    fix weighting between seconds and gps
+    """
     # Data to cluster
     unixtime_list = ibs.get_image_unixtime(gid_list)
     gid_arr       = np.array(gid_list)
@@ -95,7 +123,7 @@ def _meanshift_cluster_encounters(X_data, quantile):
                       key_list=['X_data', 'quantile'],
                       iswarning=True)
         # Fallback to all from same encounter
-        label_arr = np.zeros(unixtime_arr.size)
+        label_arr = np.zeros(X_data.size)
     return label_arr
 
 
