@@ -209,61 +209,68 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             _NEWLBL(''),
         ]
 
-        ibswgt.buttonBar1 = QtGui.QHBoxLayout(ibswgt)
-        ibswgt.buttonBar2 = QtGui.QHBoxLayout(ibswgt)
+        ibswgt.buttonBars = []
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         back = ibswgt.back
         #_SEP = lambda: None
         ibswgt.button_list = [
-            _NEWBUT('Import Images\n(via files)',
-                    back.import_images_from_file,
-                    bgcolor=(235, 200, 200),),
-            #_NEWBUT('Import Images\n(via dir)',
-            #        back.import_images_from_dir,
-            #        bgcolor=(235, 200, 200)),
-            #_NEWBUT('Import Images\n(via dir + size filter)',
-            #        bgcolor=(235, 200, 200)),
+            [
+                _NEWBUT('Import Images\n(via files)',
+                        back.import_images_from_file,
+                        bgcolor=(235, 200, 200),),
+                #_NEWBUT('Import Images\n(via dir)',
+                #        back.import_images_from_dir,
+                #        bgcolor=(235, 200, 200)),
+                #_NEWBUT('Import Images\n(via dir + size filter)',
+                #        bgcolor=(235, 200, 200)),
 
-            #_SEP(),
+                #_SEP(),
 
-            #_NEWBUT('Filter Images (GIST)'),
+                #_NEWBUT('Filter Images (GIST)'),
 
-            #_SEP(),
+                #_SEP(),
 
-            _NEWBUT('Group Images into Encounters', ibswgt.back.compute_encounters,
-                    bgcolor=(255, 255, 150)),
-            #_NEWBUT('Compute {algid} Encounters'),
+                _NEWBUT('Group Images into Encounters', ibswgt.back.compute_encounters,
+                        bgcolor=(255, 255, 150)),
+                #_NEWBUT('Compute {algid} Encounters'),
 
-            #_SEP(),
+                #_SEP(),
 
-            _NEWBUT('Detect',
-                    ibswgt.back.run_detection_coarse,
-                    bgcolor=(150, 255, 150)),
-            #_NEWBUT('Review Detections',
-            #        ibswgt.back.review_detections,
-            #        bgcolor=(170, 250, 170)),
+                _NEWBUT('Detect',
+                        ibswgt.back.run_detection_coarse,
+                        bgcolor=(150, 255, 150)),
 
-            #_SEP(),
+                _NEWBUT('Detect',
+                        ibswgt.back.run_detection_coarse,
+                        bgcolor=(150, 255, 150)),
+            ],
+            [
+                #_NEWBUT('Review Detections',
+                #        ibswgt.back.review_detections,
+                #        bgcolor=(170, 250, 170)),
 
-            _NEWBUT('Identify\n(intra-encounter)',
-                    ibswgt.back.compute_queries,
-                    bgcolor=(150, 150, 255),
-                    fgcolor=(0, 0, 0)),
+                #_SEP(),
 
-            _NEWBUT('Identify\n(vs exemplar database)',
-                    ibswgt.back.compute_queries,
-                    bgcolor=(150, 150, 255),
-                    fgcolor=(0, 0, 0)),
-            #_NEWBUT('Review Recognitions',
-            #        ibswgt.back.review_queries,
-            #        bgcolor=(170, 170, 250),
-            #        fgcolor=(0, 0, 0)),
+                _NEWBUT('Identify\n(intra-encounter)',
+                        ibswgt.back.compute_queries,
+                        bgcolor=(150, 150, 255),
+                        fgcolor=(0, 0, 0)),
 
-            #_SEP(),
+                _NEWBUT('Identify\n(vs exemplar database)',
+                        ibswgt.back.compute_queries,
+                        bgcolor=(150, 150, 255),
+                        fgcolor=(0, 0, 0)),
+                #_NEWBUT('Review Recognitions',
+                #        ibswgt.back.review_queries,
+                #        bgcolor=(170, 170, 250),
+                #        fgcolor=(0, 0, 0)),
 
-            _NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
-                    bgcolor=(255, 0, 0),
-                    fgcolor=(0, 0, 0)),
+                # _SEP(),
+
+                _NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
+                        bgcolor=(255, 0, 0),
+                        fgcolor=(0, 0, 0)),
+            ]
         ]
 
     def _init_layout(ibswgt):
@@ -279,19 +286,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
         ibswgt.status_wgt.addWidget(ibswgt.progressBar)
-        ibswgt.status_wgt.addLayout(ibswgt.buttonBar1)
-        ibswgt.status_wgt.addLayout(ibswgt.buttonBar2)
+        # Add buttonbar
+        for row in ibswgt.button_list:
+            ibswgt.buttonBars.append(QtGui.QHBoxLayout(ibswgt))
+            ibswgt.status_wgt.addLayout(ibswgt.buttonBars[-1])
+            for button in row:
+                ibswgt.buttonBars[-1].addWidget(button)
         ibswgt.status_wgt.addLayout(ibswgt.statusBar)
         # Add statusbar
         for widget in ibswgt.statusLabel_list:
             ibswgt.statusBar.addWidget(widget)
-        # Add buttonbar
-        mid = int(len(ibswgt.button_list) / 2)
-        for button in ibswgt.button_list[:mid]:
-            ibswgt.buttonBar1.addWidget(button)
-
-        for button in ibswgt.button_list[mid:]:
-            ibswgt.buttonBar2.addWidget(button)
 
     def set_status_label(ibswgt, index, text):
         printDBG('set_status_label[%r] = %r' % (index, text))
@@ -368,8 +372,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 enctext = constants.ALLIMAGE_ENCTEXT
             else:
                 enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.button_list[3].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
-            ibswgt.button_list[4].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
+            ibswgt.button_list[4].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            ibswgt.button_list[5].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
         except Exception:
             pass
 
