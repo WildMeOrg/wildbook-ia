@@ -14,7 +14,9 @@ def TEST_DELETE_FEATURE(ibs, back):
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
     cid_list = ibs.add_chips(aid_list)
+    assert len(cid_list) != 0, "No chips added"
     fid_list = ibs.add_feats(cid_list)
+    assert len(fid_list) != 0, "No features added"
     fid = fid_list[0]
     ibs.delete_features(fid)
     fid_list = ibs.get_valid_fids()
