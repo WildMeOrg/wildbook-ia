@@ -252,3 +252,12 @@
         # 0) Changing the nickname would mean you have to change the UUID
         #label_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
         #                   izip(key_list, value_list)]
+
+
+        #try:
+        #    utool.assert_all_not_None(gid_list, 'gid_list')
+        #except AssertionError as ex:
+        #    ibsfuncs.assert_valid_rids(ibs, rid_list)
+        #    utool.printex(ex, 'Rids must have image ids!', key_list=[
+        #        'gid_list', 'rid_list'])
+        #    raise

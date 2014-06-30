@@ -171,7 +171,7 @@ class IBEISController(object):
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname)
+        ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         DB_SCHEMA.define_IBEIS_schema(ibs)
         ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
         ibs.INDIVIDUAL_KEY = ibs.add_key('INDIVIDUAL_KEY')
@@ -909,8 +909,8 @@ class IBEISController(object):
     @getter_1to1
     def get_image_gids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
-        gid_list = ibs.db.get(IMAGE_TABLE, ('image_rowid',), uuid_list,
-                              id_colname='image_uuid')
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        gid_list = ibs.db.get(IMAGE_TABLE, ('image_rowid',), uuid_list, id_colname='image_uuid')
         return gid_list
 
     @getter_1to1
@@ -953,9 +953,7 @@ class IBEISController(object):
         """ Returns a list of times that the images were taken by gid.
             Returns -1 if no timedata exists for a given gid
         """
-        lat_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lat',), gid_list)
-        lon_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lon',), gid_list)
-        gps_list = [(lat, lon) for (lat, lon) in izip(lat_list, lon_list)]
+        gps_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
         return gps_list
 
     @getter_1to1
@@ -980,8 +978,7 @@ class IBEISController(object):
         """ Returns image detection confidence as the max of ROI confidences """
         rids_list = ibs.get_image_rids(gid_list)
         confs_list = ibsfuncs.unflat_map(ibs.get_roi_detect_confidence, rids_list)
-        maxconf_list = [max(confs) if len(confs) > 0 else -1
-                        for confs in confs_list]
+        maxconf_list = [max(confs) if len(confs) > 0 else -1 for confs in confs_list]
         return maxconf_list
 
     @getter_1to1
@@ -1000,9 +997,9 @@ class IBEISController(object):
     @getter_1toM
     def get_image_eids(ibs, gid_list):
         """ Returns a list of encounter ids for each image by gid """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         colnames = ('encounter_rowid',)
-        eids_list = ibs.db.get(EG_RELATION_TABLE, colnames, gid_list,
-                               id_colname='image_rowid', unpack_scalars=False)
+        eids_list = ibs.db.get(EG_RELATION_TABLE, colnames, gid_list, id_colname='image_rowid', unpack_scalars=False)
         return eids_list
 
     @getter_1toM
@@ -1016,9 +1013,9 @@ class IBEISController(object):
     def get_image_rids(ibs, gid_list):
         """ Returns a list of rids for each image by gid """
         #print('gid_list = %r' % (gid_list,))
-        rids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), gid_list,
-                                id_colname='image_rowid',
-                                unpack_scalars=False)
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        colnames = ('annot_rowid',)
+        rids_list = ibs.db.get(ANNOTATION_TABLE, colnames, gid_list, id_colname='image_rowid', unpack_scalars=False)
         #print('rids_list = %r' % (rids_list,))
         return rids_list
 
@@ -1034,8 +1031,7 @@ class IBEISController(object):
         params_iter = ((gid,) for gid in gid_list)
         where_clause = 'image_rowid=?'
         # list of relationships for each image
-        egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
-                                       params_iter, where_clause, unpack_scalars=False)
+        egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',), params_iter, where_clause, unpack_scalars=False)
         return egrids_list
 
     #
@@ -1055,16 +1051,14 @@ class IBEISController(object):
     @getter_1to1
     def get_roi_rids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
-        rids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), uuid_list,
-                               id_colname='annot_uuid')
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        rids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), uuid_list, id_colname='annot_uuid')
         return rids_list
 
     @getter_1to1
     def get_roi_detect_confidence(ibs, rid_list):
         """ Returns a list confidences that the rois is a valid detection """
-        roi_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE,
-                                                ('annot_detect_confidence',),
-                                                rid_list)
+        roi_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE, ('annot_detect_confidence',), rid_list)
         return roi_detect_confidence_list
 
     @getter_1to1
@@ -1099,25 +1093,19 @@ class IBEISController(object):
         vertstr_list = ibs.db.get(ANNOTATION_TABLE, ('annot_verts',), rid_list)
         # TODO: Sanatize input for eval
         #print('vertstr_list = %r' % (vertstr_list,))
-        return [eval(vertstr) for vertstr in vertstr_list]
+        vert_list = [eval(vertstr) for vertstr in vertstr_list]
+        return vert_list
 
     @utool.accepts_numpy
     @getter_1to1
     def get_roi_gids(ibs, rid_list):
         """ returns roi bounding boxes in image space """
-        gid_list = ibs.db.get(ANNOTATION_TABLE, ('image_rowid',), rid_list,
-                              id_colname='annot_rowid')
-        #try:
-        #    utool.assert_all_not_None(gid_list, 'gid_list')
-        #except AssertionError as ex:
-        #    ibsfuncs.assert_valid_rids(ibs, rid_list)
-        #    utool.printex(ex, 'Rids must have image ids!', key_list=[
-        #        'gid_list', 'rid_list'])
-        #    raise
+        gid_list = ibs.db.get(ANNOTATION_TABLE, ('image_rowid',), rid_list)
         return gid_list
 
     @getter_1to1
     def get_roi_cids(ibs, rid_list, ensure=True, all_configs=False):
+        # FIXME:
         if ensure:
             try:
                 ibs.add_chips(rid_list)
@@ -1126,6 +1114,7 @@ class IBEISController(object):
                 print('[!ibs.get_roi_cids] rid_list = %r' % (rid_list,))
                 raise
         if all_configs:
+            # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
             cid_list = ibs.db.get(CHIP_TABLE, ('chip_rowid',), rid_list, id_colname='annot_rowid')
         else:
             chip_config_rowid = ibs.get_chip_config_rowid()
@@ -1151,6 +1140,7 @@ class IBEISController(object):
 
     @getter_1to1
     def get_key_rowid_from_text(ibs, text_list):
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         key_rowid = ibs.db.get(KEY_TABLE, ('key_rowid',), text_list, id_colname='key_text')
         return key_rowid
 
@@ -1379,8 +1369,8 @@ class IBEISController(object):
 
     @getter_1to1
     def get_labelid_from_uuid(ibs, label_uuid_list):
-        labelid_list = ibs.db.get(LABEL_TABLE, ('label_rowid',), label_uuid_list,
-                                  id_colname='label_uuid')
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        labelid_list = ibs.db.get(LABEL_TABLE, ('label_rowid',), label_uuid_list, id_colname='label_uuid')
         return labelid_list
 
     @getter_1to1
@@ -1441,7 +1431,7 @@ class IBEISController(object):
             name_list  = [name if nid is not None and nid > 0
                           else name + __STR__(-nid) if nid is not None else ibs.UNKNOWN_NAME
                           for (name, nid) in izip(name_list, nid_list)]
-        name_list  = list(imap(__STR__, name_list))
+        #name_list  = list(imap(__STR__, name_list))
 
         return name_list
 
@@ -1508,9 +1498,7 @@ class IBEISController(object):
 
     @getter_1to1
     def get_chip_sizes(ibs, cid_list):
-        width_list  = ibs.db.get(CHIP_TABLE, ('chip_width',), cid_list)
-        height_list = ibs.db.get(CHIP_TABLE, ('chip_height',), cid_list)
-        chipsz_list = [size_ for size_ in izip(width_list, height_list)]
+        chipsz_list  = ibs.db.get(CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
         return chipsz_list
 
     @getter_1to1
@@ -1549,7 +1537,7 @@ class IBEISController(object):
     def get_num_feats(ibs, fid_list):
         """ Returns the number of keypoint / descriptor pairs """
         nFeats_list = ibs.db.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
-        nFeats_list = [ (-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
+        nFeats_list = [(-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
         return nFeats_list
 
     #
@@ -1562,8 +1550,8 @@ class IBEISController(object):
         # FIXME: cfgsuffix should be renamed cfgstr? cfgtext?
         if ensure:
             return ibs.add_config(cfgsuffix_list)
-        configid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list,
-                                   id_colname='config_suffix')
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        configid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
         # executeone always returns a list
         #if configid_list is not None and len(configid_list) == 1:
@@ -1599,9 +1587,8 @@ class IBEISController(object):
     @getter_1toM
     def get_encounter_gids(ibs, eid_list):
         """ returns a list of list of gids in each encounter """
-        gids_list = ibs.db.get(
-            EG_RELATION_TABLE, ('image_rowid',), eid_list,
-            id_colname='encounter_rowid', unpack_scalars=False)
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        gids_list = ibs.db.get(EG_RELATION_TABLE, ('image_rowid',), eid_list, id_colname='encounter_rowid', unpack_scalars=False)
         #print('get_encounter_gids')
         #print('eid_list = %r' % (eid_list,))
         #print('gids_list = %r' % (gids_list,))
@@ -1634,9 +1621,9 @@ class IBEISController(object):
     @getter_1to1
     def get_encounter_enctext(ibs, eid_list):
         """ Returns encounter_text of each eid in eid_list """
-        enctext_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_text',), eid_list,
-                                  id_colname='encounter_rowid')
-        enctext_list = list(imap(__STR__, enctext_list))
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        enctext_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_text',), eid_list, id_colname='encounter_rowid')
+        #enctext_list = list(imap(__STR__, enctext_list))
         return enctext_list
 
     @getter_1to1
@@ -1647,8 +1634,8 @@ class IBEISController(object):
         """
         if ensure:
             ibs.add_encounters(enctext_list)
-        eid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_rowid',),
-                              enctext_list, id_colname='encounter_text')
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        eid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_rowid',), enctext_list, id_colname='encounter_text')
         return eid_list
 
     #

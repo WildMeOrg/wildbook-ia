@@ -159,6 +159,12 @@ def delete_all_features(ibs):
 
 
 @__injectable
+def delete_all_rois(ibs):
+    all_rids = ibs._get_all_rids()
+    ibs.delete_rois(all_rids)
+
+
+@__injectable
 def delete_all_chips(ibs):
     all_cids = ibs._get_all_cids()
     ibs.delete_chips(all_cids)
