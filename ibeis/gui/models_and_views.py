@@ -39,7 +39,7 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
         model.eid = None
         model.original_ider = None
         if IBEISTABLEMODEL_BASE == StripeProxyModel:
-            model._nd = 3
+            model._nd = 1
             model.sourcemodel = APIItemModel(headers=headers, parent=parent)
             model.setSourceModel(model.sourcemodel)
             print('[ibs_model] just set the sourcemodel')

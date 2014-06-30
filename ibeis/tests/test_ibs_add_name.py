@@ -19,17 +19,11 @@ def TEST_ADD_NAMES(ibs):
 
     # add a duplicate
     name_list.append(name_list[0])
-
     nid_list = ibs.add_names(name_list)
-
     assert len(name_list) == len(nid_list), 'bad name adder'
-
     assert nid_list[0] == nid_list[-1], 'first and last names should be the same'
-
     assert len(list(set(nid_list))) == len(list(set(name_list))), 'num unique ids / names should be the same'
-
     return locals()
-
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For win32
