@@ -179,6 +179,8 @@ EOF
     RUN_TEST ibeis/tests/test_delete_names.py
     RUN_TEST ibeis/tests/test_delete_roi_chips.py
     RUN_TEST ibeis/tests/test_delete_roi.py
+    RUN_TEST ibeis/tests/test_delete_chips.py
+    RUN_TEST ibeis/tests/test_delete_features.py
 fi
 
 
