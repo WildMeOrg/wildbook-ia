@@ -1,41 +1,19 @@
 from __future__ import absolute_import, division, print_function
-from os.path import expanduser
-from itertools import izip
-from os.path import normpath, realpath
-import platform
+from meta_util_git import set_userid, unixpath, repo_list
 
-
-def truepath(path):
-    return normpath(realpath(expanduser(path)))
-
-
-def unixpath(path):
-    return truepath(path).replace('\\', '/')
-
+set_userid(userid='Erotemic',
+           owned_computers=['Hyrule', 'BakerStreet', 'Ooo'],
+           permitted_repos=['pyrf', 'detecttools'])
 
 # USER DEFINITIONS
-CODE_DIR = unixpath('~/code')
+HOME_DIR     = unixpath('~')
+CODE_DIR     = unixpath('~/code')
+LATEX_DIR    = unixpath('~/latex')
 BUNDLE_DPATH = unixpath('~/local/vim/vimfiles/bundle')
 
 
-# Local project repositories
-PROJECT_REPOS = map(unixpath, [
-    '~/code/detecttools',
-    '~/code/flann',
-    '~/code/guitool',
-    '~/code/hesaff',
-    '~/code/ibeis',
-    '~/code/IBEIS2014',
-    '~/code/plottool',
-    '~/code/pyrf',
-    '~/code/svm-hog',
-    '~/code/templates',
-    '~/code/utool',
-    '~/code/vtool',
-])
-
 # Non local project repos
-IBEIS_REPOS_URLS = [
+IBEIS_REPOS_URLS, IBEIS_REPOS = repo_list([
     'https://github.com/Erotemic/utool.git',
     'https://github.com/Erotemic/guitool.git',
     'https://github.com/Erotemic/plottool.git',
@@ -43,28 +21,44 @@ IBEIS_REPOS_URLS = [
     'https://github.com/Erotemic/hesaff.git',
     'https://github.com/Erotemic/ibeis.git',
     'https://github.com/bluemellophone/pyrf.git',
+    'https://github.com/bluemellophone/detecttools.git',
+], CODE_DIR)
+
+
+TPL_REPOS_URLS, TPL_REPOS = repo_list([
+    'https://github.com/Erotemic/opencv',
+], CODE_DIR)
+
+CODE_REPO_URLS = IBEIS_REPOS_URLS + TPL_REPOS_URLS
+CODE_REPOS = IBEIS_REPOS + TPL_REPOS
+
+
+VIM_REPO_URLS, VIM_REPOS = repo_list([
+    'https://github.com/dbarsam/vim-vimtweak.git',
+    'https://github.com/bling/vim-airline.git',
+    'https://github.com/davidhalter/jedi-vim.git',
+    'https://github.com/ervandew/supertab.git',
+    'https://github.com/mhinz/vim-startify.git',
+    'https://github.com/scrooloose/nerdcommenter.git',
+    'https://github.com/scrooloose/nerdtree.git',
+    'https://github.com/scrooloose/syntastic.git',
+    'https://github.com/terryma/vim-multiple-cursors.git',
+    'https://github.com/tpope/vim-repeat.git',
+    'https://github.com/tpope/vim-sensible.git',
+    'https://github.com/tpope/vim-surround.git',
+    'https://github.com/tpope/vim-unimpaired.git',
+    'https://github.com/vim-scripts/Conque-Shell.git',
+    'https://github.com/vim-scripts/csv.vim.git',
+    'https://github.com/vim-scripts/highlight.vim.git',
+    #'https://github.com/koron/minimap-vim.git',
+    #'https://github.com/zhaocai/GoldenView.Vim.git',
+], BUNDLE_DPATH)
+
+VIM_REPOS_WITH_SUBMODULES = [
+    'jedi-vim',
+    'syntastic',
 ]
 
 
-def fix_repo_url(repo_url, in_type='https', out_type='ssh'):
-    """ Changes the repo_url format """
-    format_dict = {
-        'https': ('.com/', 'https://'),
-        'ssh':   ('.com:', 'git@'),
-    }
-    for old, new in izip(format_dict[in_type], format_dict[out_type]):
-        repo_url = repo_url.replace(old, new)
-        return repo_url
-
-
-def get_computer_name():
-    return platform.node()
-
-COMPUTER_NAME  = get_computer_name()
-
-# Check to see if you are on one of Jons Computers
-#
-IS_OWNER = COMPUTER_NAME in ['Jasons-MacBook-Pro.local',]
-if IS_OWNER:
-    IBEIS_REPOS_URLS = [fix_repo_url(repo, 'https', 'ssh')
-                         for repo in IBEIS_REPOS_URLS]
+# Local project repositories
+PROJECT_REPOS =  CODE_REPOS
