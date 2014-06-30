@@ -23,8 +23,7 @@ def TEST_DELETE_ANNOTATION(ibs, back):
     fid = ibs.get_annotation_fids(aid, ensure=True)
     assert cid is not None, "cid should be computed"
     assert fid is not None, "fid should be computed"
-    thumbtup = ibs.get_annotation_chip_thumbtup(aid)
-    thumbpath = thumbtup[0]    
+    thumbpath = ibs.get_annotation_chip_thumbpath(aid)
     ibs.delete_annotations(aid)
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.get_valid_cids()

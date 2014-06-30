@@ -877,16 +877,21 @@ class IBEISController(object):
     def get_image_thumbtup(ibs, gid_list):
         """ Returns tuple of image paths, where the thumb path should go,
         and any bboxes """
-        img_uuid_list = ibs.get_image_uuids(gid_list)
         aids_list = ibs.get_image_aids(gid_list)
         bboxes_list = ibsfuncs.unflat_map(ibs.get_annotation_bboxes, aids_list)
         thetas_list = ibsfuncs.unflat_map(ibs.get_annotation_thetas, aids_list)
-        thumb_dpath = ibs.thumb_dpath
-        thumb_gpaths = [join(thumb_dpath, __STR__(uuid)  + constants.IMAGE_THUMB_SUFFIX)
-                        for uuid in img_uuid_list]
+        thumb_gpaths = ibs.get_image_thumbpath(gid_list)
         image_paths = ibs.get_image_paths(gid_list)
         thumbtup_list = list(izip(thumb_gpaths, image_paths, bboxes_list, thetas_list))
         return thumbtup_list
+
+    @getter_1to1
+    def get_image_thumbpath(ibs, gid_list):
+        thumb_dpath = ibs.thumb_dpath
+        img_uuid_list = ibs.get_image_uuids(gid_list)
+        thumbpath_list = [join(thumb_dpath, __STR__(uuid) + constants.IMAGE_THUMB_SUFFIX)
+                          for uuid in img_uuid_list]
+        return thumbpath_list
 
     @getter_1to1
     def get_image_uuids(ibs, gid_list):
@@ -1248,14 +1253,19 @@ class IBEISController(object):
 
     @getter_1to1
     def get_annotation_chip_thumbtup(ibs, aid_list):
-        annotation_uuid_list = ibs.get_annotation_uuids(aid_list)
-        thumb_gpaths = [join(ibs.thumb_dpath, __STR__(uuid) + constants.CHIP_THUMB_SUFFIX)
-                        for uuid in annotation_uuid_list]
+        thumb_gpaths = ibs.get_annotation_chip_thumbpath(aid_list)
         image_paths = ibs.get_annotation_cpaths(aid_list)
         thumbtup_list = [(thumb_path, img_path, [], [])
                          for (thumb_path, img_path) in
                          izip(thumb_gpaths, image_paths,)]
         return thumbtup_list
+    
+    @getter_1to1
+    def get_annotation_chip_thumbpath(ibs, aid_list):
+        annotation_uuid_list = ibs.get_annotation_uuids(aid_list)
+        thumbpath_list = [join(ibs.thumb_dpath, __STR__(uuid) + constants.CHIP_THUMB_SUFFIX)
+                            for uuid in annotation_uuid_list]
+        return thumbpath_list
 
     @utool.accepts_numpy
     @getter_1toM

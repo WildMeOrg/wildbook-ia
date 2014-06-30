@@ -17,10 +17,8 @@ def TEST_DELETE_ANNOTATION_CHIPS(ibs, back):
     aid = aid_list[0]
     gid = ibs.get_annotation_gids(aid)
     assert gid is not None, "gid for aid=%r is None" % (aid,)
-    gthumbtup = ibs.get_image_thumbtup(gid)
-    gthumbpath = gthumbtup[0]
-    annotation_thumbtup = ibs.get_annotation_chip_thumbtup(aid)
-    annotation_thumbpath = annotation_thumbtup[0]
+    gthumbpath = ibs.get_image_thumbpath(gid)
+    annotation_thumbpath = ibs.get_annotation_chip_thumbpath(aid)
     ibs.delete_annotation_chips(aid)
     aid_list = ibs.get_valid_aids()
     assert aid in aid_list, "Error: Annotation deleted"

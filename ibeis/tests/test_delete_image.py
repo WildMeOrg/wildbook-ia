@@ -27,10 +27,8 @@ def TEST_DELETE_IMAGE(ibs, back):
     fid = ibs.get_annotation_fids(aid, ensure=True)
     assert cid is not None, "cid should be computed"
     assert fid is not None, "fid should be computed"
-    gthumbtup = ibs.get_image_thumbtup(gid)
-    gthumbpath = gthumbtup[0]
-    athumbtup = ibs.get_annotation_chip_thumbtup(aid)
-    athumbpath = athumbtup[0]
+    gthumbpath = ibs.get_image_thumbpath(gid)
+    athumbpath = ibs.get_annotation_chip_thumbpath(aid)
     ibs.delete_images(gid)
     all_gids = ibs.get_valid_gids()
     all_aids = ibs.get_valid_aids()
