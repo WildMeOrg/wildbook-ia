@@ -15,13 +15,13 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         fnum = df2.next_fnum()
     try:
         # Flann NN query
-        (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = query_helpers.get_annotionfeat_nn_index(ibs, qaid, qfx)
+        (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = query_helpers.get_annotationfeat_nn_index(ibs, qaid, qfx)
 
         # Adds metadata to a feature match
         def get_extract_tuple(aid, fx, k=-1):
-            rchip = ibs.get_annotion_chips(aid)
-            kp    = ibs.get_annotion_kpts(aid)[fx]
-            sift  = ibs.get_annotion_desc(aid)[fx]
+            rchip = ibs.get_annotation_chips(aid)
+            kp    = ibs.get_annotation_kpts(aid)[fx]
+            sift  = ibs.get_annotation_desc(aid)[fx]
             if k == -1:
                 info = '\nquery %s, fx=%r' % (vh.get_aidstrs(aid), fx)
                 type_ = 'query'

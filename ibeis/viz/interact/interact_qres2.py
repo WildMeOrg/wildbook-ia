@@ -163,11 +163,11 @@ class Interact_QueryResult(object):
         # Begin showing matches
         index = self.start_index
         for index in xrange(self.start_index, self.stop_index):
-            self.plot_annotionmatch(index, draw=False)
+            self.plot_annotationmatch(index, draw=False)
         self.make_hud()
         self.draw()
 
-    def plot_annotionmatch(self, index, draw=True, make_buttons=True):
+    def plot_annotationmatch(self, index, draw=True, make_buttons=True):
         printDBG('[ishow_qres] starting interaction')
         self.select_candidate_match(index)
         # Get index relative to the page
@@ -192,7 +192,7 @@ class Interact_QueryResult(object):
 
         divider = df2.ensure_divider(ax)
 
-        name1, name2 = ibs.get_annotion_names([aid1, aid2])
+        name1, name2 = ibs.get_annotation_names([aid1, aid2])
         #truth = self.ibs.get_match_truth(aid1, aid2)
 
         if make_buttons:
@@ -275,22 +275,22 @@ class Interact_QueryResult(object):
         print(text)
         ibs = self.ibs
         if text.startswith(BREAK_MATCH_PREF):
-            ibs.set_annotion_names([aid1, aid2], ['____', '____'])
+            ibs.set_annotation_names([aid1, aid2], ['____', '____'])
         elif text.startswith(NEW_MATCH_PREF):
             next_name = ibsfuncs.make_next_name(ibs)
-            ibs.set_annotion_names([aid1, aid2], [next_name, next_name])
+            ibs.set_annotation_names([aid1, aid2], [next_name, next_name])
         elif text.startswith(RENAME1_PREF):
-            name2 = ibs.get_annotion_names(aid2)
-            ibs.set_annotion_names([aid1], [name2])
+            name2 = ibs.get_annotation_names(aid2)
+            ibs.set_annotation_names([aid1], [name2])
         elif text.startswith(RENAME2_PREF):
-            name1 = ibs.get_annotion_names(aid1)
-            ibs.set_annotion_names([aid2], [name1])
+            name1 = ibs.get_annotation_names(aid1)
+            ibs.set_annotation_names([aid2], [name1])
         # Emit that something has changed
         self.on_change_callback()
         self.show_page()
 
     def on_figure_clicked(self, event):
-        """ Clicked a match between query annotion and result annotion:
+        """ Clicked a match between query annotation and result annotation:
             parses the type of click it was and execute the correct
             visualiztion
         """

@@ -7,11 +7,11 @@ from itertools import izip
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
 
 
-def get_annotionfeat_nn_index(ibs, qaid, qfx):
+def get_annotationfeat_nn_index(ibs, qaid, qfx):
     from . import match_chips3 as mc3
     ibs._init_query_requestor()
     qreq = mc3.quickly_ensure_qreq(ibs, [qaid])
-    qfx2_desc = ibs.get_annotion_desc(qaid)[qfx:(qfx + 1)]
+    qfx2_desc = ibs.get_annotation_desc(qaid)[qfx:(qfx + 1)]
     (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = qreq.data_index.nn_index2(qreq, qfx2_desc)
     return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
 
@@ -47,8 +47,8 @@ def get_query_components(ibs, qaids):
         qfx2_ax, qfx2_dist = qaid2_nns[qaid]
         qfx2_aid = qreq.data_index.ax2_aid[qfx2_ax]
         qfx2_fx  = qreq.data_index.ax2_fx[qfx2_ax]
-        qfx2_gid = ibs.get_annotion_gids(qfx2_aid)
-        qfx2_nid = ibs.get_annotion_nids(qfx2_aid)
+        qfx2_gid = ibs.get_annotation_gids(qfx2_aid)
+        qfx2_nid = ibs.get_annotation_nids(qfx2_aid)
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
         qaid2_nnfilt_ORIG    = mf.identity_filter(qaid2_nns, qreq)
         qaid2_chipmatch_ORIG = mf.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq)
@@ -70,8 +70,8 @@ def data_index_integrity(ibs, qreq):
     print('checking qreq.data_index integrity')
 
     aid_list = ibs.get_valid_aids()
-    desc_list = ibs.get_annotion_desc(aid_list)
-    fid_list = ibs.get_annotion_fids(aid_list)
+    desc_list = ibs.get_annotation_desc(aid_list)
+    fid_list = ibs.get_annotation_fids(aid_list)
     desc_list2 = ibs.get_feat_desc(fid_list)
 
     assert all([np.all(desc1 == desc2) for desc1, desc2 in izip(desc_list, desc_list2)])

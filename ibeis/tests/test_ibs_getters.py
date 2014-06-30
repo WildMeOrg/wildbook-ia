@@ -24,13 +24,13 @@ def TEST_IBS_GETTERS(ibs=None):
     aid_numpy  = np.array(aid_list).reshape((len(aid_list) / 2, 2))
 
     # tests that scalar, list, and numpy getters are working correctly
-    bboxes_list   = ibs.get_annotion_bboxes(aid_list)
-    bboxes_scalar = ibs.get_annotion_bboxes(aid_scalar)
-    bboxes_numpy  = ibs.get_annotion_bboxes(aid_numpy)
+    bboxes_list   = ibs.get_annotation_bboxes(aid_list)
+    bboxes_scalar = ibs.get_annotation_bboxes(aid_scalar)
+    bboxes_numpy  = ibs.get_annotation_bboxes(aid_numpy)
 
-    kpts_list   = ibs.get_annotion_kpts(aid_list)
-    kpts_scalar = ibs.get_annotion_kpts(aid_scalar)
-    kpts_numpy  = ibs.get_annotion_kpts(aid_numpy)
+    kpts_list   = ibs.get_annotation_kpts(aid_list)
+    kpts_scalar = ibs.get_annotation_kpts(aid_scalar)
+    kpts_numpy  = ibs.get_annotation_kpts(aid_numpy)
 
     def assert_getter_output(list_, scalar, numpy_, label=''):
         item1 = list_[0]

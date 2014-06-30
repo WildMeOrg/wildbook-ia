@@ -41,12 +41,12 @@ def inject_ibeis(ibs):
     utool.inject_func_as_method(ibs, utool.inject_func_as_method)
     # List of getters to unflatten
     to_unflatten = [
-        ibs.get_annotion_uuids,
+        ibs.get_annotation_uuids,
         ibs.get_image_uuids,
         ibs.get_names,
         ibs.get_image_unixtime,
-        ibs.get_annotion_bboxes,
-        ibs.get_annotion_thetas,
+        ibs.get_annotation_bboxes,
+        ibs.get_annotation_thetas,
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
@@ -70,16 +70,16 @@ def export_to_hotspotter(ibs):
 
 
 @__injectable
-def get_image_annotion_bboxes(ibs, gid_list):
+def get_image_annotation_bboxes(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
-    bboxes_list = ibs.get_unflat_annotion_bboxes(aids_list)
+    bboxes_list = ibs.get_unflat_annotation_bboxes(aids_list)
     return bboxes_list
 
 
 @__injectable
-def get_image_annotion_thetas(ibs, gid_list):
+def get_image_annotation_thetas(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
-    thetas_list = ibs.get_unflat_annotion_thetas(aids_list)
+    thetas_list = ibs.get_unflat_annotation_thetas(aids_list)
     return thetas_list
 
 
@@ -95,13 +95,13 @@ def compute_all_chips(ibs):
 def compute_all_features(ibs, **kwargs):
     print('[ibs] compute_all_features')
     aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.get_annotion_cids(aid_list, ensure=True)
+    cid_list = ibs.get_annotation_cids(aid_list, ensure=True)
     fid_list = ibs.add_feats(cid_list)
     return fid_list
 
 
 @__injectable
-def ensure_annotion_data(ibs, aid_list, chips=True, feats=True):
+def ensure_annotation_data(ibs, aid_list, chips=True, feats=True):
     if chips or feats:
         cid_list = ibs.add_chips(aid_list)
     if feats:
@@ -128,7 +128,7 @@ def convert_empty_images_to_annotations(ibs):
 @__injectable
 def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                        notes_list=None, adjust_percent=0.0):
-    """ Adds an annotion the size of the entire image to each image.
+    """ Adds an annotation the size of the entire image to each image.
     adjust_percent - shrinks the ANNOTATION by percentage on each side
     """
     pct = adjust_percent  # Alias
@@ -182,18 +182,18 @@ def vd(ibs):
 
 
 @__injectable
-def get_annotion_desc_cache(ibs, aids):
+def get_annotation_desc_cache(ibs, aids):
     """ When you have a list with duplicates and you dont want to copy data
     creates a reference to each data object idnexed by a dict """
     unique_aids = list(set(aids))
-    unique_desc = ibs.get_annotion_desc(unique_aids)
+    unique_desc = ibs.get_annotation_desc(unique_aids)
     desc_cache = dict(list(izip(unique_aids, unique_desc)))
     return desc_cache
 
 
 @__injectable
-def get_annotion_is_hard(ibs, aid_list):
-    notes_list = ibs.get_annotion_notes(aid_list)
+def get_annotation_is_hard(ibs, aid_list):
+    notes_list = ibs.get_annotation_notes(aid_list)
     is_hard_list = ['hard' in notes.lower().split() for (notes)
                     in notes_list]
     return is_hard_list
@@ -254,14 +254,14 @@ def get_match_text(ibs, aid1, aid2):
 
 
 @__injectable
-def set_annotion_names_to_next_name(ibs, aid_list):
+def set_annotation_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
-    ibs.set_annotion_names(aid_list, [next_name] * len(aid_list))
+    ibs.set_annotation_names(aid_list, [next_name] * len(aid_list))
 
 
 @__injectable
 def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annotion_nids((aid1, aid2))
+    nid1, nid2 = ibs.get_annotation_nids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -368,8 +368,8 @@ def aidstr(aid, ibs=None, notes=False):
         return 'aid%d' % (aid,)
     else:
         assert ibs is not None
-        notes = ibs.get_annotion_notes(aid)
-        name  = ibs.get_annotion_names(aid)
+        notes = ibs.get_annotation_notes(aid)
+        name  = ibs.get_annotation_names(aid)
         return 'aid%d-%r-%r' % (aid, str(name), str(notes))
 
 
@@ -487,7 +487,7 @@ def resolve_name_conflicts(gid_list, name_list):
     return unique_gids, unique_names, unique_notes
 
 
-def make_annotion_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
+def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
     augment_uuid = utool.util_hash.augment_uuid
     random_uuid = utool.util_hash.random_uuid
     try:
@@ -500,19 +500,19 @@ def make_annotion_uuids(image_uuid_list, bbox_list, theta_list, deterministic=Tr
                 utool.printex(ex)
                 print('bbox_list = %r' % (bbox_list,))
                 raise
-        annotion_uuid_list = [augment_uuid(img_uuid, bbox, theta)
+        annotation_uuid_list = [augment_uuid(img_uuid, bbox, theta)
                          for img_uuid, bbox, theta
                          in izip(image_uuid_list, bbox_list, theta_list)]
         if not deterministic:
             # Augment determenistic uuid with a random uuid to ensure randomness
             # (this should be ensured in all hardward situations)
-            annotion_uuid_list = [augment_uuid(random_uuid(), _uuid)
-                             for _uuid in annotion_uuid_list]
+            annotation_uuid_list = [augment_uuid(random_uuid(), _uuid)
+                             for _uuid in annotation_uuid_list]
     except Exception as ex:
-        utool.printex(ex, 'Error building annotion_uuids', '[add_annotion]',
+        utool.printex(ex, 'Error building annotation_uuids', '[add_annotation]',
                       key_list=['image_uuid_list'])
         raise
-    return annotion_uuid_list
+    return annotation_uuid_list
 
 
 def get_species_dbs(species_prefix):
@@ -563,26 +563,26 @@ def merge_databases(ibs_target, ibs_source_list):
     def merge_annotations(ibs_target, ibs_source):
         """ merge annotations helper """
         aid_list1   = ibs_source.get_valid_aids()
-        uuid_list1  = ibs_source.get_annotion_uuids(aid_list1)
+        uuid_list1  = ibs_source.get_annotation_uuids(aid_list1)
         # Get the images in target_db
-        gid_list1   = ibs_source.get_annotion_gids(aid_list1)
-        bbox_list1  = ibs_source.get_annotion_bboxes(aid_list1)
-        theta_list1 = ibs_source.get_annotion_thetas(aid_list1)
-        name_list1  = ibs_source.get_annotion_names(aid_list1, distinguish_unknowns=False)
-        notes_list1 = ibs_source.get_annotion_notes(aid_list1)
+        gid_list1   = ibs_source.get_annotation_gids(aid_list1)
+        bbox_list1  = ibs_source.get_annotation_bboxes(aid_list1)
+        theta_list1 = ibs_source.get_annotation_thetas(aid_list1)
+        name_list1  = ibs_source.get_annotation_names(aid_list1, distinguish_unknowns=False)
+        notes_list1 = ibs_source.get_annotation_notes(aid_list1)
 
         image_uuid_list1 = ibs_source.get_image_uuids(gid_list1)
         gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
         image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
         # Assert that the image uuids have not changed
-        assert image_uuid_list1 == image_uuid_list2, 'error merging annotion image uuids'
+        assert image_uuid_list1 == image_uuid_list2, 'error merging annotation image uuids'
         aid_list2 = ibs_target.add_annotations(gid_list2,
                                         bbox_list1,
                                         theta_list=theta_list1,
                                         name_list=name_list1,
                                         notes_list=notes_list1)
-        uuid_list2 = ibs_target.get_annotion_uuids(aid_list2)
-        assert uuid_list2 == uuid_list1, 'error merging annotion uuids'
+        uuid_list2 = ibs_target.get_annotation_uuids(aid_list2)
+        assert uuid_list2 == uuid_list1, 'error merging annotation uuids'
 
     # Do the merging
     for ibs_source in ibs_source_list:
@@ -600,7 +600,7 @@ def merge_databases(ibs_target, ibs_source_list):
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
     aids_list = ibs.get_image_aids(gid_list)
-    flags_list = unflat_map(ibs.get_annotion_exemplar_flag, aids_list)
+    flags_list = unflat_map(ibs.get_annotation_exemplar_flag, aids_list)
     delete_gid_flag_list = [not any(flags) for flags in flags_list]
     delete_gid_list = utool.filter_items(gid_list, delete_gid_flag_list)
     ibs.delete_images(delete_gid_list)
@@ -613,7 +613,7 @@ def update_exemplar_encounter(ibs):
     eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
     ibs.delete_encounters(eid)
     aid_list = ibs.get_valid_aids(is_exemplar=True)
-    gid_list = utool.unique_ordered(ibs.get_annotion_gids(aid_list))
+    gid_list = utool.unique_ordered(ibs.get_annotation_gids(aid_list))
     ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
 
 
@@ -668,10 +668,10 @@ def get_infostr(ibs):
 
 
 @__injectable(False)
-def print_annotion_table(ibs):
-    """ Dumps annotion table to stdout """
+def print_annotation_table(ibs):
+    """ Dumps annotation table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['annotion_uuid', 'annotion_verts']))
+    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['annotation_uuid', 'annotation_verts']))
 
 
 @__injectable(False)
@@ -745,7 +745,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
         print('\n')
         print(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
     #ibs.print_image_table()
-    #ibs.print_annotion_table()
+    #ibs.print_annotation_table()
     #ibs.print_labels_table()
     #ibs.print_alr_table()
     #ibs.print_config_table()
@@ -757,7 +757,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 #@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
-    nid_list = ibs.get_annotion_nids(aid_list)
+    nid_list = ibs.get_annotation_nids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
 

@@ -22,8 +22,8 @@ FK_DTYPE  = np.int16    # Feature Position datatype
 
 def qres_get_matching_keypoints(qres, ibs, aid2_list):  # aid2 is a name. 2 != 2 to here
     aid1 = qres.qaid
-    kpts1 = ibs.get_annotion_kpts(aid1)
-    kpts2_list = ibs.get_annotion_kpts(aid2_list)
+    kpts1 = ibs.get_annotation_kpts(aid1)
+    kpts2_list = ibs.get_annotation_kpts(aid2_list)
     matching_kpts_list = []
     empty_fm = np.empty((0, 2))
     for aid2, kpts2 in izip(aid2_list, kpts2_list):
@@ -107,7 +107,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fm = None  # feat_match_list
         qres.aid2_fs = None  # feat_score_list
         qres.aid2_fk = None  # feat_rank_list
-        qres.aid2_score = None  # annotion score
+        qres.aid2_score = None  # annotation score
         qres.filt2_meta = None  # messy
 
     def has_cache(qres, qreq):
@@ -281,7 +281,7 @@ class QueryResult(__OBJECT_BASE__):
         if gt_aids is None and ibs is None:
             raise Exception('[qr] must pass in the gt_aids or ibs object')
         if gt_aids is None:
-            gt_aids = ibs.get_annotion_groundtruth(qres.qaid)
+            gt_aids = ibs.get_annotation_groundtruth(qres.qaid)
         gt_ranks = qres.get_aid_ranks(gt_aids)
         if return_gtaids:
             return gt_ranks, gt_aids

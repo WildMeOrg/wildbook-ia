@@ -43,13 +43,13 @@ def export_ibeis_to_hotspotter(ibs):
 
     # Build Chip Table
     aid_list        = ibs.get_valid_aids()
-    annotiongid_list     = ibs.get_annotion_gids(aid_list)
-    annotionnid_list     = ibs.get_annotion_nids(aid_list)
-    bbox_list       = map(list, ibs.get_annotion_bboxes(aid_list))
-    theta_list      = ibs.get_annotion_thetas(aid_list)
-    notes_list      = ibs.get_annotion_notes(aid_list)
+    annotationgid_list     = ibs.get_annotation_gids(aid_list)
+    annotationnid_list     = ibs.get_annotation_nids(aid_list)
+    bbox_list       = map(list, ibs.get_annotation_bboxes(aid_list))
+    theta_list      = ibs.get_annotation_thetas(aid_list)
+    notes_list      = ibs.get_annotation_notes(aid_list)
 
-    chip_column_list = [aid_list, annotiongid_list, annotionnid_list, bbox_list, theta_list, notes_list]
+    chip_column_list = [aid_list, annotationgid_list, annotationnid_list, bbox_list, theta_list, notes_list]
     chip_column_lbls = ['cid', 'gid', 'nid', '[tlx tly w h]', 'theta', 'notes']
     chip_column_types = [int, int, int, list, float, str]
     chip_table_csv = utool.make_csv_table(
@@ -96,19 +96,19 @@ def get_flat_table(ibs):
     aid_list = ibs.get_valid_aids()
     column_tups = [
         (int,   'aids',   aid_list,),
-        (str,   'names',  ibs.get_annotion_names(aid_list),),
-        (list,  'bbox',   map(list, ibs.get_annotion_bboxes(aid_list),)),
-        (float, 'theta',  ibs.get_annotion_thetas(aid_list),),
-        (str,   'gpaths', ibs.get_annotion_gpaths(aid_list),),
-        (str,   'notes',  ibs.get_annotion_notes(aid_list),),
-        (str,   'uuids',  ibs.get_annotion_uuids(aid_list),),
+        (str,   'names',  ibs.get_annotation_names(aid_list),),
+        (list,  'bbox',   map(list, ibs.get_annotation_bboxes(aid_list),)),
+        (float, 'theta',  ibs.get_annotation_thetas(aid_list),),
+        (str,   'gpaths', ibs.get_annotation_gpaths(aid_list),),
+        (str,   'notes',  ibs.get_annotation_notes(aid_list),),
+        (str,   'uuids',  ibs.get_annotation_uuids(aid_list),),
     ]
     column_type   = [tup[0] for tup in column_tups]
     column_labels = [tup[1] for tup in column_tups]
     column_list   = [tup[2] for tup in column_tups]
     header = '\n'.join([
         '# Roi Flat Table',
-        '# aid   - internal annotion index (not gaurenteed unique)',
+        '# aid   - internal annotation index (not gaurenteed unique)',
         '# name  - animal identity',
         '# bbox  - bounding box [tlx tly w h] in image',
         '# theta - bounding box orientation',

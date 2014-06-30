@@ -9,7 +9,7 @@ This file should only define:
     getters
     deleter
 """
-# TODO: rename annotion annotations
+# TODO: rename annotation annotations
 # TODO: make all names consistent
 from __future__ import absolute_import, division, print_function
 # Python
@@ -88,7 +88,7 @@ class IBEISController(object):
         name  - name unique id
         eid   - encounter unique id
         aid   - region of interest unique id
-        annotion   - region of interest for a chip
+        annotation   - region of interest for a chip
         theta - angle of rotation for a chip
     """
 
@@ -413,7 +413,7 @@ class IBEISController(object):
                 is_exemplar = True
             aid_list = ibs.get_encounter_aids(eid)
         if is_exemplar:
-            flag_list = ibs.get_annotion_exemplar_flag(aid_list)
+            flag_list = ibs.get_annotation_exemplar_flag(aid_list)
             aid_list = utool.filter_items(aid_list, flag_list)
         return sorted(aid_list)
 
@@ -534,7 +534,7 @@ class IBEISController(object):
 
         # Build ~~deterministic?~~ random and unique ANNOTATION ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
-        annotion_uuid_list = ibsfuncs.make_annotion_uuids(image_uuid_list, bbox_list,
+        annotation_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
                                                           theta_list, deterministic=False)
         nVert_list = [len(verts) for verts in vert_list]
         vertstr_list = [__STR__(verts) for verts in vert_list]
@@ -546,18 +546,18 @@ class IBEISController(object):
                     'annot_verts', 'annot_detect_confidence',
                     'annot_note',)
 
-        params_iter = list(izip(annotion_uuid_list, gid_list, xtl_list, ytl_list,
+        params_iter = list(izip(annotation_uuid_list, gid_list, xtl_list, ytl_list,
                                 width_list, height_list, theta_list, nVert_list,
                                 vertstr_list, detect_confidence_list,
                                 notes_list))
         #utool.embed()
 
         # Execute add ANNOTATIONs SQL
-        get_rowid_from_uuid = ibs.get_annotion_aids_from_uuid
+        get_rowid_from_uuid = ibs.get_annotation_aids_from_uuid
         aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
-        # Also need to populate annotion_label_relationship table
-        alrid_list = ibs.add_annotion_relationship(aid_list, nid_list)
+        # Also need to populate annotation_label_relationship table
+        alrid_list = ibs.add_annotation_relationship(aid_list, nid_list)
         del alrid_list
         #print('alrid_list = %r' % (alrid_list,))
 
@@ -566,7 +566,7 @@ class IBEISController(object):
         return aid_list
 
     @adder
-    def add_annotion_relationship(ibs, aid_list, labelid_list, configid_list=None,
+    def add_annotation_relationship(ibs, aid_list, labelid_list, configid_list=None,
                                   alr_confidence_list=None):
         if configid_list is None:
             configid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
@@ -594,7 +594,7 @@ class IBEISController(object):
         return cid_list
         """
         # Ensure must be false, otherwise an infinite loop occurs
-        cid_list = ibs.get_annotion_cids(aid_list, ensure=False)
+        cid_list = ibs.get_annotation_cids(aid_list, ensure=False)
         dirty_aids = utool.get_dirty_items(aid_list, cid_list)
         if len(dirty_aids) > 0:
             print('[ibs] adding chips')
@@ -609,7 +609,7 @@ class IBEISController(object):
                 raise
             colnames = ('annot_rowid', 'chip_uri', 'chip_width', 'chip_height',
                         'config_rowid',)
-            get_rowid_from_uuid = partial(ibs.get_annotion_cids, ensure=False)
+            get_rowid_from_uuid = partial(ibs.get_annotation_cids, ensure=False)
             cid_list = ibs.db.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         return cid_list
@@ -734,35 +734,35 @@ class IBEISController(object):
     # SETTERS::ANNOTATION
 
     @setter
-    def set_annotion_exemplar_flag(ibs, aid_list, flag_list):
+    def set_annotation_exemplar_flag(ibs, aid_list, flag_list):
         id_iter = ((aid,) for aid in aid_list)
         val_iter = ((flag,) for flag in flag_list)
         ibs.db.set(ANNOTATION_TABLE, ('annot_exemplar_flag',), val_iter, id_iter)
 
     @setter
-    def set_annotion_bboxes(ibs, aid_list, bbox_list):
-        """ Sets ANNOTATIONs of a list of annotations by aid, where annotion_list is a list of
+    def set_annotation_bboxes(ibs, aid_list, bbox_list):
+        """ Sets ANNOTATIONs of a list of annotations by aid, where annotation_list is a list of
             (x, y, w, h) tuples
 
-        NOTICE: set_annotion_bboxes is a proxy for set_annotion_verts
+        NOTICE: set_annotation_bboxes is a proxy for set_annotation_verts
         """
         # changing the bboxes also changes the bounding polygon
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
         # naively overwrite the bounding polygon with a rectangle - for now trust the user!
-        ibs.set_annotion_verts(aid_list, vert_list)
+        ibs.set_annotation_verts(aid_list, vert_list)
         colnames = ['annot_xtl', 'annot_ytl', 'annot_width', 'annot_height']
         ibs.db.set(ANNOTATION_TABLE, colnames, bbox_list, aid_list)
 
     @setter
-    def set_annotion_thetas(ibs, aid_list, theta_list):
+    def set_annotation_thetas(ibs, aid_list, theta_list):
         """ Sets thetas of a list of chips by aid """
-        ibs.delete_annotion_chips(aid_list)  # Changing theta redefines the chips
+        ibs.delete_annotation_chips(aid_list)  # Changing theta redefines the chips
         id_iter = ((aid,) for aid in aid_list)
         val_list = ((theta,) for theta in theta_list)
         ibs.db.set(ANNOTATION_TABLE, ('annot_theta',), val_list, id_iter)
 
     @setter
-    def set_annotion_verts(ibs, aid_list, verts_list):
+    def set_annotation_verts(ibs, aid_list, verts_list):
         """ Sets the vertices [(x, y), ...] of a list of chips by aid """
         num_params = len(aid_list)
         # Compute data to set
@@ -783,35 +783,35 @@ class IBEISController(object):
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         # SET BBOX in ANNOTATION_TABLE
         ibs.db.set(ANNOTATION_TABLE, colnames, val_iter2, id_iter2, num_params=num_params)
-        ibs.delete_annotion_chips(aid_list)  # INVALIDATE THUMBNAILS
+        ibs.delete_annotation_chips(aid_list)  # INVALIDATE THUMBNAILS
 
     @setter
-    def set_annotion_notes(ibs, aid_list, notes_list):
-        """ Sets annotion notes """
+    def set_annotation_notes(ibs, aid_list, notes_list):
+        """ Sets annotation notes """
         id_iter = ((aid,) for aid in aid_list)
         val_list = ((notes,) for notes in notes_list)
         ibs.db.set(ANNOTATION_TABLE, ('annot_note',), val_list, id_iter)
 
     @setter
-    def set_annotion_names(ibs, aid_list, name_list=None, nid_list=None):
+    def set_annotation_names(ibs, aid_list, name_list=None, nid_list=None):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annotion_nids"""
+        Convenience function for set_annotation_nids"""
         assert name_list is None or nid_list is None, (
             'can only specify one type of name values (nid or name) not both')
         if nid_list is None:
             assert name_list is not None
             # Convert names into nids
             nid_list = ibs.add_names(name_list)
-        ibs.set_annotion_nids(aid_list, nid_list)
+        ibs.set_annotation_nids(aid_list, nid_list)
 
     @setter
-    def set_annotion_nids(ibs, aid_list, nid_list):
+    def set_annotation_nids(ibs, aid_list, nid_list):
         """ Sets nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special labelids
         labelid_list = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
         INDIVIDUAL_KEY = ibs.INDIVIDUAL_KEY
-        alrid_list = ibs.get_annotion_filtered_alrids(aid_list, INDIVIDUAL_KEY)
+        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, INDIVIDUAL_KEY)
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
         ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), labelid_list, alrid_list)
@@ -879,8 +879,8 @@ class IBEISController(object):
         and any bboxes """
         img_uuid_list = ibs.get_image_uuids(gid_list)
         aids_list = ibs.get_image_aids(gid_list)
-        bboxes_list = ibsfuncs.unflat_map(ibs.get_annotion_bboxes, aids_list)
-        thetas_list = ibsfuncs.unflat_map(ibs.get_annotion_thetas, aids_list)
+        bboxes_list = ibsfuncs.unflat_map(ibs.get_annotation_bboxes, aids_list)
+        thetas_list = ibsfuncs.unflat_map(ibs.get_annotation_thetas, aids_list)
         thumb_dpath = ibs.thumb_dpath
         thumb_gpaths = [join(thumb_dpath, __STR__(uuid)  + constants.IMAGE_THUMB_SUFFIX)
                         for uuid in img_uuid_list]
@@ -977,7 +977,7 @@ class IBEISController(object):
     def get_image_detect_confidence(ibs, gid_list):
         """ Returns image detection confidence as the max of ANNOTATION confidences """
         aids_list = ibs.get_image_aids(gid_list)
-        confs_list = ibsfuncs.unflat_map(ibs.get_annotion_detect_confidence, aids_list)
+        confs_list = ibsfuncs.unflat_map(ibs.get_annotation_detect_confidence, aids_list)
         maxconf_list = [max(confs) if len(confs) > 0 else -1 for confs in confs_list]
         return maxconf_list
 
@@ -991,7 +991,7 @@ class IBEISController(object):
     def get_image_nids(ibs, gid_list):
         """ Returns the name ids associated with an image id """
         aids_list = ibs.get_image_aids(gid_list)
-        nids_list = ibsfuncs.unflat_map(ibs.get_annotion_nids, aids_list)
+        nids_list = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list)
         return nids_list
 
     @getter_1toM
@@ -1038,57 +1038,57 @@ class IBEISController(object):
     # GETTERS::ANNOTATION_TABLE
 
     @getter_1to1
-    def get_annotion_exemplar_flag(ibs, aid_list):
-        annotion_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
-        return annotion_uuid_list
+    def get_annotation_exemplar_flag(ibs, aid_list):
+        annotation_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
+        return annotation_uuid_list
 
     @getter_1to1
-    def get_annotion_uuids(ibs, aid_list):
+    def get_annotation_uuids(ibs, aid_list):
         """ Returns a list of image uuids by gid """
-        annotion_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_uuid',), aid_list)
-        return annotion_uuid_list
+        annotation_uuid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_uuid',), aid_list)
+        return annotation_uuid_list
 
     @getter_1to1
-    def get_annotion_aids_from_uuid(ibs, uuid_list):
+    def get_annotation_aids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         aids_list = ibs.db.get(ANNOTATION_TABLE, ('annot_rowid',), uuid_list, id_colname='annot_uuid')
         return aids_list
 
     @getter_1to1
-    def get_annotion_detect_confidence(ibs, aid_list):
+    def get_annotation_detect_confidence(ibs, aid_list):
         """ Returns a list confidences that the annotations is a valid detection """
-        annotion_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list)
-        return annotion_detect_confidence_list
+        annotation_detect_confidence_list = ibs.db.get(ANNOTATION_TABLE, ('annot_detect_confidence',), aid_list)
+        return annotation_detect_confidence_list
 
     @getter_1to1
-    def get_annotion_notes(ibs, aid_list):
-        """ Returns a list of annotion notes """
-        annotion_notes_list = ibs.db.get(ANNOTATION_TABLE, ('annot_note',), aid_list)
-        return annotion_notes_list
+    def get_annotation_notes(ibs, aid_list):
+        """ Returns a list of annotation notes """
+        annotation_notes_list = ibs.db.get(ANNOTATION_TABLE, ('annot_note',), aid_list)
+        return annotation_notes_list
 
     @utool.accepts_numpy
     @getter_1toM
-    def get_annotion_bboxes(ibs, aid_list):
-        """ returns annotion bounding boxes in image space """
+    def get_annotation_bboxes(ibs, aid_list):
+        """ returns annotation bounding boxes in image space """
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height')
         bbox_list = ibs.db.get(ANNOTATION_TABLE, colnames, aid_list)
         return bbox_list
 
     @getter_1to1
-    def get_annotion_thetas(ibs, aid_list):
+    def get_annotation_thetas(ibs, aid_list):
         """ Returns a list of floats describing the angles of each chip """
         theta_list = ibs.db.get(ANNOTATION_TABLE, ('annot_theta',), aid_list)
         return theta_list
 
     @getter_1to1
-    def get_annotion_num_verts(ibs, aid_list):
+    def get_annotation_num_verts(ibs, aid_list):
         """ Returns the number of vertices that form the polygon of each chip """
         num_verts_list = ibs.db.get(ANNOTATION_TABLE, ('annot_num_verts',), aid_list)
         return num_verts_list
 
     @getter_1to1
-    def get_annotion_verts(ibs, aid_list):
+    def get_annotation_verts(ibs, aid_list):
         """ Returns the vertices that form the polygon of each chip """
         vertstr_list = ibs.db.get(ANNOTATION_TABLE, ('annot_verts',), aid_list)
         # TODO: Sanatize input for eval
@@ -1098,20 +1098,20 @@ class IBEISController(object):
 
     @utool.accepts_numpy
     @getter_1to1
-    def get_annotion_gids(ibs, aid_list):
-        """ returns annotion bounding boxes in image space """
+    def get_annotation_gids(ibs, aid_list):
+        """ returns annotation bounding boxes in image space """
         gid_list = ibs.db.get(ANNOTATION_TABLE, ('image_rowid',), aid_list)
         return gid_list
 
     @getter_1to1
-    def get_annotion_cids(ibs, aid_list, ensure=True, all_configs=False):
+    def get_annotation_cids(ibs, aid_list, ensure=True, all_configs=False):
         # FIXME:
         if ensure:
             try:
                 ibs.add_chips(aid_list)
             except AssertionError as ex:
-                utool.printex(ex, '[!ibs.get_annotion_cids]')
-                print('[!ibs.get_annotion_cids] aid_list = %r' % (aid_list,))
+                utool.printex(ex, '[!ibs.get_annotation_cids]')
+                print('[!ibs.get_annotation_cids] aid_list = %r' % (aid_list,))
                 raise
         if all_configs:
             # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
@@ -1133,8 +1133,8 @@ class IBEISController(object):
         return cid_list
 
     @getter_1to1
-    def get_annotion_fids(ibs, aid_list, ensure=False):
-        cid_list = ibs.get_annotion_cids(aid_list, ensure=ensure)
+    def get_annotation_fids(ibs, aid_list, ensure=False):
+        cid_list = ibs.get_annotation_cids(aid_list, ensure=ensure)
         fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
         return fid_list
 
@@ -1145,7 +1145,7 @@ class IBEISController(object):
         return key_rowid
 
     @getter_1toM
-    def get_annotion_alrids(ibs, aid_list, configid=None):
+    def get_annotation_alrids(ibs, aid_list, configid=None):
         """ FIXME: func_name
         Get all the relationship ids belonging to the input annotations
         if label key is specified the relationship ids are filtered to
@@ -1161,12 +1161,12 @@ class IBEISController(object):
         return alrids_list
 
     @getter_1to1
-    def get_annotion_filtered_alrids(ibs, aid_list, key_rowid, configid=None):
+    def get_annotation_filtered_alrids(ibs, aid_list, key_rowid, configid=None):
         """ FIXME: func_name
         Get all the relationship ids belonging to the input annotations where the
         relationship ids are filtered to be only of a specific key/category/type
         """
-        alrids_list = ibs.get_annotion_alrids(aid_list, configid=configid)
+        alrids_list = ibs.get_annotation_alrids(aid_list, configid=configid)
         # Get labelid of each relationship
         labelids_list = ibsfuncs.unflat_map(ibs.get_alr_labelids, alrids_list)
         # Get the type of each label
@@ -1183,12 +1183,12 @@ class IBEISController(object):
 
     @utool.accepts_numpy
     @getter_1to1
-    def get_annotion_nids(ibs, aid_list, distinguish_unknowns=True):
-        """ Returns the name id of each annotion.  If distinguish_uknowns is True,
-        returns negative annotion rowids instead of unknown name id """
-        # Get all the annotion label relationships
+    def get_annotation_nids(ibs, aid_list, distinguish_unknowns=True):
+        """ Returns the name id of each annotation.  If distinguish_uknowns is True,
+        returns negative annotation rowids instead of unknown name id """
+        # Get all the annotation label relationships
         # filter out only the ones which specify names
-        alrid_list = ibs.get_annotion_filtered_alrids(aid_list, ibs.INDIVIDUAL_KEY)
+        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.INDIVIDUAL_KEY)
         labelid_list = ibs.get_alr_labelids(alrid_list)
         nid_list = labelid_list
         if distinguish_unknowns:
@@ -1199,43 +1199,43 @@ class IBEISController(object):
             return nid_list
 
     @getter_1to1
-    def get_annotion_gnames(ibs, aid_list):
-        """ Returns the image names of each annotion """
-        gid_list = ibs.get_annotion_gids(aid_list)
+    def get_annotation_gnames(ibs, aid_list):
+        """ Returns the image names of each annotation """
+        gid_list = ibs.get_annotation_gids(aid_list)
         gname_list = ibs.get_image_gnames(gid_list)
         return gname_list
 
     @getter_1to1
-    def get_annotion_images(ibs, aid_list):
-        """ Returns the images of each annotion """
-        gid_list = ibs.get_annotion_gids(aid_list)
+    def get_annotation_images(ibs, aid_list):
+        """ Returns the images of each annotation """
+        gid_list = ibs.get_annotation_gids(aid_list)
         image_list = ibs.get_images(gid_list)
         return image_list
 
     @getter_1to1
-    def get_annotion_image_uuids(ibs, aid_list):
-        gid_list = ibs.get_annotion_gids(aid_list)
+    def get_annotation_image_uuids(ibs, aid_list):
+        gid_list = ibs.get_annotation_gids(aid_list)
         image_uuid_list = ibs.get_image_uuids(gid_list)
         return image_uuid_list
 
     @getter_1to1
-    def get_annotion_gpaths(ibs, aid_list):
-        """ Returns the image names of each annotion """
-        gid_list = ibs.get_annotion_gids(aid_list)
+    def get_annotation_gpaths(ibs, aid_list):
+        """ Returns the image names of each annotation """
+        gid_list = ibs.get_annotation_gids(aid_list)
         try:
             utool.assert_all_not_None(gid_list, 'gid_list')
         except AssertionError:
-            print('[!get_annotion_gpaths] ' + utool.list_dbgstr('aid_list'))
-            print('[!get_annotion_gpaths] ' + utool.list_dbgstr('gid_list'))
+            print('[!get_annotation_gpaths] ' + utool.list_dbgstr('aid_list'))
+            print('[!get_annotation_gpaths] ' + utool.list_dbgstr('gid_list'))
             raise
         gpath_list = ibs.get_image_paths(gid_list)
         utool.assert_all_not_None(gpath_list, 'gpath_list')
         return gpath_list
 
     @getter_1to1
-    def get_annotion_chips(ibs, aid_list, ensure=True):
+    def get_annotation_chips(ibs, aid_list, ensure=True):
         utool.assert_all_not_None(aid_list, 'aid_list')
-        cid_list = ibs.get_annotion_cids(aid_list, ensure=ensure)
+        cid_list = ibs.get_annotation_cids(aid_list, ensure=ensure)
         if ensure:
             try:
                 utool.assert_all_not_None(cid_list, 'cid_list')
@@ -1247,11 +1247,11 @@ class IBEISController(object):
         return chip_list
 
     @getter_1to1
-    def get_annotion_chip_thumbtup(ibs, aid_list):
-        annotion_uuid_list = ibs.get_annotion_uuids(aid_list)
+    def get_annotation_chip_thumbtup(ibs, aid_list):
+        annotation_uuid_list = ibs.get_annotation_uuids(aid_list)
         thumb_gpaths = [join(ibs.thumb_dpath, __STR__(uuid) + constants.CHIP_THUMB_SUFFIX)
-                        for uuid in annotion_uuid_list]
-        image_paths = ibs.get_annotion_cpaths(aid_list)
+                        for uuid in annotation_uuid_list]
+        image_paths = ibs.get_annotation_cpaths(aid_list)
         thumbtup_list = [(thumb_path, img_path, [], [])
                          for (thumb_path, img_path) in
                          izip(thumb_gpaths, image_paths,)]
@@ -1259,48 +1259,48 @@ class IBEISController(object):
 
     @utool.accepts_numpy
     @getter_1toM
-    def get_annotion_kpts(ibs, aid_list, ensure=True):
+    def get_annotation_kpts(ibs, aid_list, ensure=True):
         """ Returns chip keypoints """
-        fid_list  = ibs.get_annotion_fids(aid_list, ensure=ensure)
+        fid_list  = ibs.get_annotation_fids(aid_list, ensure=ensure)
         kpts_list = ibs.get_feat_kpts(fid_list)
         return kpts_list
 
     @getter_1to1
-    def get_annotion_chipsizes(ibs, aid_list, ensure=True):
+    def get_annotation_chipsizes(ibs, aid_list, ensure=True):
         """ Returns the imagesizes of computed annotation chips """
-        cid_list  = ibs.get_annotion_cids(aid_list, ensure=ensure)
+        cid_list  = ibs.get_annotation_cids(aid_list, ensure=ensure)
         chipsz_list = ibs.get_chip_sizes(cid_list)
         return chipsz_list
 
     @getter_1toM
-    def get_annotion_desc(ibs, aid_list, ensure=True):
+    def get_annotation_desc(ibs, aid_list, ensure=True):
         """ Returns chip descriptors """
-        fid_list  = ibs.get_annotion_fids(aid_list, ensure=ensure)
+        fid_list  = ibs.get_annotation_fids(aid_list, ensure=ensure)
         desc_list = ibs.get_feat_desc(fid_list)
         return desc_list
 
     @getter_1to1
-    def get_annotion_cpaths(ibs, aid_list):
+    def get_annotation_cpaths(ibs, aid_list):
         """ Returns cpaths defined by ANNOTATIONs """
         utool.assert_all_not_None(aid_list, 'aid_list')
-        cfpath_list = preproc_chip.get_annotion_cfpath_list(ibs, aid_list)
+        cfpath_list = preproc_chip.get_annotation_cfpath_list(ibs, aid_list)
         return cfpath_list
 
     @getter_1to1
-    def get_annotion_names(ibs, aid_list, distinguish_unknowns=True):
+    def get_annotation_names(ibs, aid_list, distinguish_unknowns=True):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
-        nid_list  = ibs.get_annotion_nids(aid_list)
+        nid_list  = ibs.get_annotation_nids(aid_list)
         name_list = ibs.get_names(nid_list, distinguish_unknowns=distinguish_unknowns)
         return name_list
 
     @getter_1toM
-    def get_annotion_groundtruth(ibs, aid_list):
+    def get_annotation_groundtruth(ibs, aid_list):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
-        nid_list  = ibs.get_annotion_nids(aid_list)
+        nid_list  = ibs.get_annotation_nids(aid_list)
         where_clause = 'label_rowid=? AND label_rowid!=? AND annot_rowid!=?'
         params_iter = [(nid, ibs.UNKNOWN_NID, aid) for nid, aid in izip(nid_list, aid_list)]
         groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
@@ -1310,20 +1310,20 @@ class IBEISController(object):
         return groundtruth_list
 
     @getter_1to1
-    def get_annotion_num_groundtruth(ibs, aid_list):
+    def get_annotation_num_groundtruth(ibs, aid_list):
         """ Returns number of other chips with the same name """
-        return list(imap(len, ibs.get_annotion_groundtruth(aid_list)))
+        return list(imap(len, ibs.get_annotation_groundtruth(aid_list)))
 
     @getter_1to1
-    def get_annotion_num_feats(ibs, aid_list, ensure=False):
-        cid_list = ibs.get_annotion_cids(aid_list, ensure=ensure)
+    def get_annotation_num_feats(ibs, aid_list, ensure=False):
+        cid_list = ibs.get_annotation_cids(aid_list, ensure=ensure)
         fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
         nFeats_list = ibs.get_num_feats(fid_list)
         return nFeats_list
 
     @getter_1to1
-    def get_annotion_has_groundtruth(ibs, aid_list):
-        numgts_list = ibs.get_annotion_num_groundtruth(aid_list)
+    def get_annotation_has_groundtruth(ibs, aid_list):
+        numgts_list = ibs.get_annotation_num_groundtruth(aid_list)
         has_gt_list = [num_gts > 0 for num_gts in numgts_list]
         return has_gt_list
 
@@ -1445,15 +1445,15 @@ class IBEISController(object):
         return aids_list
 
     @getter_1toM
-    def get_name_annotion_bboxes(ibs, nid_list):
+    def get_name_annotation_bboxes(ibs, nid_list):
         aids_list = ibs.get_name_aids(nid_list)
-        bboxes_list = ibsfuncs.unflat_map(ibs.get_annotion_bboxes, aids_list)
+        bboxes_list = ibsfuncs.unflat_map(ibs.get_annotation_bboxes, aids_list)
         return bboxes_list
 
     @getter_1to1
     def get_name_thumbtups(ibs, nid_list):
         aids_list = ibs.get_name_aids(nid_list)
-        thumbtups_list_ = ibsfuncs.unflat_map(ibs.get_annotion_chip_thumbtup, aids_list)
+        thumbtups_list_ = ibsfuncs.unflat_map(ibs.get_annotation_chip_thumbtup, aids_list)
         thumbtups_list = utool.flatten(thumbtups_list_)
         return thumbtups_list
 
@@ -1472,7 +1472,7 @@ class IBEISController(object):
     def get_name_gids(ibs, nid_list):
         """ Returns the image ids associated with name ids"""
         aids_list = ibs.get_name_aids(nid_list)
-        gids_list = ibsfuncs.unflat_map(ibs.get_annotion_gids, aids_list)
+        gids_list = ibsfuncs.unflat_map(ibs.get_annotation_gids, aids_list)
         return gids_list
 
     #
@@ -1482,7 +1482,7 @@ class IBEISController(object):
     def get_chips(ibs, cid_list, ensure=True):
         """ Returns a list cropped images in numpy array form by their cid """
         aid_list = ibs.get_chip_aids(cid_list)
-        chip_list = preproc_chip.compute_or_read_annotion_chips(ibs, aid_list, ensure=ensure)
+        chip_list = preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure)
         return chip_list
 
     @getter_1to1
@@ -1609,7 +1609,7 @@ class IBEISController(object):
     def get_encounter_nids(ibs, eid_list):
         """ returns a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
-        nids_list_ = ibsfuncs.unflat_map(ibs.get_annotion_nids, aids_list)
+        nids_list_ = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list)
         nids_list = list(imap(utool.unique_ordered, nids_list_))
         #print('get_encounter_nids')
         #print('eid_list = %r' % (eid_list,))
@@ -1663,7 +1663,7 @@ class IBEISController(object):
         if utool.VERBOSE:
             print('[ibs] deleting %d annotations' % len(aid_list))
         # Delete chips and features first
-        ibs.delete_annotion_chips(aid_list)
+        ibs.delete_annotation_chips(aid_list)
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
 
     @deleter
@@ -1688,14 +1688,14 @@ class IBEISController(object):
         ibs.db.delete_rowids(FEATURE_TABLE, fid_list)
 
     @deleter
-    def delete_annotion_chips(ibs, aid_list):
-        """ Clears annotion data but does not remove the annotion """
-        _cid_list = ibs.get_annotion_cids(aid_list, ensure=False)
+    def delete_annotation_chips(ibs, aid_list):
+        """ Clears annotation data but does not remove the annotation """
+        _cid_list = ibs.get_annotation_cids(aid_list, ensure=False)
         cid_list = utool.filter_Nones(_cid_list)
         ibs.delete_chips(cid_list)
-        gid_list = ibs.get_annotion_gids(aid_list)
+        gid_list = ibs.get_annotation_gids(aid_list)
         ibs.delete_image_thumbtups(gid_list)
-        ibs.delete_annotion_chip_thumbs(aid_list)
+        ibs.delete_annotation_chip_thumbs(aid_list)
 
     @deleter
     def delete_image_thumbtups(ibs, gid_list):
@@ -1705,9 +1705,9 @@ class IBEISController(object):
         utool.remove_file_list(thumbpath_list)
 
     @deleter
-    def delete_annotion_chip_thumbs(ibs, aid_list):
+    def delete_annotation_chip_thumbs(ibs, aid_list):
         """ Removes chip thumbnails from disk """
-        thumbtup_list = ibs.get_annotion_chip_thumbtup(aid_list)
+        thumbtup_list = ibs.get_annotation_chip_thumbtup(aid_list)
         thumbpath_list = [tup[0] for tup in thumbtup_list]
         utool.remove_file_list(thumbpath_list)
 
@@ -1715,7 +1715,7 @@ class IBEISController(object):
     def delete_chips(ibs, cid_list):
         """ deletes images from the database that belong to gids"""
         if utool.VERBOSE:
-            print('[ibs] deleting %d annotion-chips' % len(cid_list))
+            print('[ibs] deleting %d annotation-chips' % len(cid_list))
         # Delete chip-images from disk
         preproc_chip.delete_chips(ibs, cid_list)
         # Delete chip features from sql

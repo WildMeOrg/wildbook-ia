@@ -73,7 +73,7 @@ def get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl):
     """
     Runs queries of a specific configuration returns the best rank of each query
 
-    qaids - query annotion ids
+    qaids - query annotation ids
     """
     daids = ibs.get_recognition_database_aids()
     # High level cache load

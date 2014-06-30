@@ -440,7 +440,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
                 guitool.popup_menu(tblview, pos, [
-                    ('delete annotion', lambda: ibswgt.back.delete_annotion(aid)),
+                    ('delete annotation', lambda: ibswgt.back.delete_annotation(aid)),
                 ])
 
     @slot_(QtCore.QModelIndex)
@@ -477,7 +477,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             eid = model.eid
             if model.name == IMAGE_TABLE:
                 gid = id_
-                ibswgt.annotion_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
+                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ANNOTATION_TABLE:
                 aid = id_

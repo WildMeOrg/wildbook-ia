@@ -105,7 +105,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         # because you should be copying and pasting it
         notes = ' ranks = ' + str(rank_mat[qx])
         qaid = qaids[qx]
-        name = ibs.get_annotion_names(qaid)
+        name = ibs.get_annotation_names(qaid)
         new_hardtup_list += [(qaid, name + " - " + notes)]
         new_qaids += [qaid]
 
@@ -136,7 +136,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('\n'.join(map(repr, new_hardtup_list)))
         print('There are %d hard cases ' % len(new_hardtup_list))
         aid_list = [aid_notes[0] for aid_notes in new_hardtup_list]
-        name_list = ibs.get_annotion_names(aid_list)
+        name_list = ibs.get_annotation_names(aid_list)
         name_set = set(name_list)
         print(sorted(aid_list))
         print('Names: %r' % (name_set,))

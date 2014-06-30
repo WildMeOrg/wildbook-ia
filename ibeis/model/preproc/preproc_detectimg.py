@@ -50,7 +50,7 @@ def compute_and_write_detectimg(ibs, gid_list):
     # Get img configuration information
     sqrt_area   = 800
     target_area = sqrt_area ** 2
-    # Get img source information (image, annotion_bbox, theta)
+    # Get img source information (image, annotation_bbox, theta)
     gfpath_list  = ibs.get_image_paths(gid_list)
     gsize_list   = ibs.get_image_sizes(gid_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, gsize_list)

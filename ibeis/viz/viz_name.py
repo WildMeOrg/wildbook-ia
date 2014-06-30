@@ -9,7 +9,7 @@ from .viz_chip import show_chip
 
 
 def show_name_of(ibs, aid, **kwargs):
-    nid = ibs.get_annotion_names(aid)
+    nid = ibs.get_annotation_names(aid)
     show_name(ibs, nid, sel_aids=[aid], **kwargs)
 
 
@@ -19,7 +19,7 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
     print('[viz] show_name nid=%r' % nid)
     aid_list = ibs.get_name_aids(nid)
     name = ibs.get_names((nid,))
-    ibsfuncs.ensure_annotion_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
+    ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
     print('[viz] show_name=%r aid_list=%r' % (name, aid_list))
     nRids = len(aid_list)
     if nRids > 0:

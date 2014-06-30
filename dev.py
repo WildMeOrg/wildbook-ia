@@ -198,16 +198,16 @@ def inspect_matches(ibs, qaid_list):
 
 
 @devcmd('scores', 'score')
-def annotionmatch_scores(ibs, qaid_list):
-    print('[dev] annotionmatch_scores')
+def annotationmatch_scores(ibs, qaid_list):
+    print('[dev] annotationmatch_scores')
     allres = get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
     #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
     markers_map = defaultdict(lambda: 'o')
-    cmatch_scores_map = results_analyzer.get_orgres_annotionmatch_scores(allres, orgtype_list)
-    results_analyzer.print_annotionmatch_scores_map(cmatch_scores_map)
+    cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
+    results_analyzer.print_annotationmatch_scores_map(cmatch_scores_map)
     #true_cmatch_scores  = cmatch_scores_map['true']
     #false_cmatch_scores = cmatch_scores_map['false']
     scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
@@ -249,11 +249,11 @@ def get_ibslist(ibs):
 
 
 @devcmd('gv_scores')
-def compgrav_annotionmatch_scores(ibs, qaid_list):
-    print('[dev] compgrav_annotionmatch_scores')
+def compgrav_annotationmatch_scores(ibs, qaid_list):
+    print('[dev] compgrav_annotationmatch_scores')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
-        annotionmatch_scores(ibs_, qaid_list)
+        annotationmatch_scores(ibs_, qaid_list)
 
 
 #------------------
@@ -279,9 +279,9 @@ def dev_snippets(main_locals):
         valid_aids = ibs.get_valid_aids()
         valid_gids = ibs.get_valid_gids()
         valid_nids = ibs.get_valid_nids()
-        valid_nid_list   = ibs.get_annotion_nids(valid_aids)
-        valid_aid_names  = ibs.get_annotion_names(valid_aids)
-        valid_aid_gtrues = ibs.get_annotion_groundtruth(valid_aids)
+        valid_nid_list   = ibs.get_annotation_nids(valid_aids)
+        valid_aid_names  = ibs.get_annotation_names(valid_aids)
+        valid_aid_gtrues = ibs.get_annotation_groundtruth(valid_aids)
     return locals()
 
 
@@ -290,7 +290,7 @@ def devfunc(ibs, qaid_list):
     print('[dev] devfunc')
     allres = get_allres(ibs, qaid_list)
     locals_ = locals()
-    #locals_.update(annotionmatch_scores(ibs, qaid_list))
+    #locals_.update(annotationmatch_scores(ibs, qaid_list))
     return locals_
 
 

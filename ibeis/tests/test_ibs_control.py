@@ -22,16 +22,16 @@ def TEST_IBS_CONTROL(ibs):
         #print('[TEST] eid_list2 = %r' % eid_list2)
         #print('[TEST] eid = %r' % eid)
 
-    """ set_annotion_notes / get_annotion_notes """
+    """ set_annotation_notes / get_annotation_notes """
     aid_list = ibs.get_valid_aids()
-    annotion_notes_list = len(aid_list) * ["test text"]
+    annotation_notes_list = len(aid_list) * ["test text"]
     assert aid_list, 'aid_list is empty'
-    ibs.set_annotion_notes(aid_list, annotion_notes_list)
-    annotion_notes_list2 = ibs.get_annotion_notes(aid_list)
-    assert annotion_notes_list2, 'get_annotion_notes returned an empty list'
-    #print('[TEST] annotion_notes_list = %r' % annotion_notes_list)
-    #print('[TEST] annotion_notes_list2 = %r' % annotion_notes_list2)
-    assert annotion_notes_list == annotion_notes_list2, 'annotion notes lists do not match'
+    ibs.set_annotation_notes(aid_list, annotation_notes_list)
+    annotation_notes_list2 = ibs.get_annotation_notes(aid_list)
+    assert annotation_notes_list2, 'get_annotation_notes returned an empty list'
+    #print('[TEST] annotation_notes_list = %r' % annotation_notes_list)
+    #print('[TEST] annotation_notes_list2 = %r' % annotation_notes_list2)
+    assert annotation_notes_list == annotation_notes_list2, 'annotation notes lists do not match'
 
     """ set_name_notes / get_name_notes """
     nid_list = ibs.get_valid_nids()
@@ -53,57 +53,57 @@ def TEST_IBS_CONTROL(ibs):
     print('[TEST] gid_notes_list2 = %r' % gid_notes_list2)
     assert gid_notes_list == gid_notes_list2, 'images notes lists do not match'
 
-    """ set_annotion_bboxes / get_annotion_bboxes """
+    """ set_annotation_bboxes / get_annotation_bboxes """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    bbox_list_orig = ibs.get_annotion_bboxes(aid_list)
+    bbox_list_orig = ibs.get_annotation_bboxes(aid_list)
     bbox_list = [(1, 2, 3, 4)] * len(aid_list)
-    ibs.set_annotion_bboxes(aid_list, bbox_list)
-    bbox_list2 = ibs.get_annotion_bboxes(aid_list)
+    ibs.set_annotation_bboxes(aid_list, bbox_list)
+    bbox_list2 = ibs.get_annotation_bboxes(aid_list)
     print('[TEST] aid_list = %r' % (aid_list,))
     print('[TEST] bbox_list = %r' % (bbox_list,))
     print('[TEST] bbox_list2 = %r' % (bbox_list2,))
     assert bbox_list == bbox_list2, 'bbox lists do not match'
     # put bboxes back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
-    ibs.set_annotion_bboxes(aid_list, bbox_list_orig)
+    ibs.set_annotation_bboxes(aid_list, bbox_list_orig)
 
-    """ set_annotion_verts / get_annotion_verts """
+    """ set_annotation_verts / get_annotation_verts """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    bbox_list_orig = ibs.get_annotion_bboxes(aid_list)
-    vert_list_orig = ibs.get_annotion_verts(aid_list)
+    bbox_list_orig = ibs.get_annotation_bboxes(aid_list)
+    vert_list_orig = ibs.get_annotation_verts(aid_list)
     vert_list = [((1, 2), (3, 4), (5, 6), (7, 8))] * len(aid_list)
     print('[TEST] vert_list = %r' % vert_list)
     assert len(aid_list) == len(vert_list), 'lengths do not match, malformed input'
-    ibs.set_annotion_verts(aid_list, vert_list)
-    vert_list2 = ibs.get_annotion_verts(aid_list)
+    ibs.set_annotation_verts(aid_list, vert_list)
+    vert_list2 = ibs.get_annotation_verts(aid_list)
     assert vert_list == vert_list2, 'vert lists do not match'
 
-    """ set_annotion_verts / get_annotion_bboxes """
-    bbox_list = ibs.get_annotion_bboxes(aid_list)
+    """ set_annotation_verts / get_annotation_bboxes """
+    bbox_list = ibs.get_annotation_bboxes(aid_list)
     bbox_list2 = geometry.bboxes_from_vert_list(vert_list2)
     assert bbox_list == bbox_list2, 'bbox lists do not match'
     vert_list = [((10, 10), (120, 10), (120, 120), (10, 120))] * len(aid_list)
-    ibs.set_annotion_verts(aid_list, vert_list)
+    ibs.set_annotation_verts(aid_list, vert_list)
     bbox_list3 = [(10, 10, 110, 110)] * len(aid_list)
-    bbox_list4 = ibs.get_annotion_bboxes(aid_list)
+    bbox_list4 = ibs.get_annotation_bboxes(aid_list)
     assert bbox_list3 == bbox_list4, 'bbox lists do not match'
     # finish this test here
 
-    """ set_annotion_bboxes / get_annotion_verts  """
+    """ set_annotation_bboxes / get_annotation_verts  """
     bbox_list = [(10, 10, 110, 110)] * len(aid_list)
-    ibs.set_annotion_bboxes(aid_list, bbox_list)
+    ibs.set_annotation_bboxes(aid_list, bbox_list)
     # test that setting the bounding boxes overrides the vertices
     vert_list = [((10, 10), (120, 10), (120, 120), (10, 120))] * len(aid_list)
-    vert_list2 = ibs.get_annotion_verts(aid_list)
+    vert_list2 = ibs.get_annotation_verts(aid_list)
     assert vert_list == vert_list2, 'vert lists do not match'
 
     # put verts back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
-    ibs.set_annotion_verts(aid_list, vert_list_orig)
-    assert vert_list_orig == ibs.get_annotion_verts(aid_list), 'Verts were not reset to original state'
-    assert bbox_list_orig == ibs.get_annotion_bboxes(aid_list), 'Bboxes were not reset to original state'
+    ibs.set_annotation_verts(aid_list, vert_list_orig)
+    assert vert_list_orig == ibs.get_annotation_verts(aid_list), 'Verts were not reset to original state'
+    assert bbox_list_orig == ibs.get_annotation_bboxes(aid_list), 'Bboxes were not reset to original state'
 
     """ set_image_gps / get_image_gps """
     gid_list = ibs.get_valid_gids()
