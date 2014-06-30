@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # # Get a list of lists of ANNOTATION-ids (because each image can have more than one ANNOTATION)
     # aids_list = ibs.get_image_aids(gid_list)
     # # Get the list of lists of bounding boxes
-    # bboxes_list = [ibs.get_annotion_bboxes(aids) for aids in aids_list]
+    # bboxes_list = [ibs.get_annotation_bboxes(aids) for aids in aids_list]
 
     # image_paths = ibs.get_image_paths(gid_list)
     # print("gid_list: ", gid_list)
