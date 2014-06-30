@@ -9,6 +9,8 @@ import ctypes as C
 #============================
 
 __QUIET__ = '--quiet' in sys.argv
+__VERBOSE__ = '--verbose' in sys.argv
+
 
 def get_lib_fname_list(libname):
     '''
@@ -50,7 +52,7 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
                 if exists(lib_fpath):
                     if verbose:
                         print('\n[c] Checked: '.join(tried_fpaths))
-                    if not __QUIET__:
+                    if __VERBOSE__ and not __QUIET__:
                         print('using: %r' % lib_fpath)
                     return lib_fpath
                 else:
@@ -74,7 +76,7 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
 
 
 def load_clib(libname, root_dir):
-    '''
+    """
     Does the work.
     Args:
         libname:  library name (e.g. 'hesaff', not 'libhesaff')
@@ -83,7 +85,7 @@ def load_clib(libname, root_dir):
                   library file (dll, dylib, or so).
     Returns:
         clib: a ctypes object used to interface with the library
-    '''
+    """
     lib_fpath = find_lib_fpath(libname, root_dir)
     try:
         clib = C.cdll[lib_fpath]
