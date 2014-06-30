@@ -42,11 +42,11 @@ def infer_delegates(view, **headers):
     col_type_list = headers.get('col_type_list', [])
     for colx, coltype in enumerate(col_type_list):
         if coltype in  qtype.QT_PIXMAP_TYPES:
-            if VERBOSE:
+            if utool.VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
             view.setItemDelegateForColumn(colx, APIThumbDelegate(view))
         elif coltype in qtype.QT_BUTTON_TYPES:
-            if VERBOSE:
+            if utool.VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
             view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
 

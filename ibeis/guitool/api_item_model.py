@@ -14,7 +14,6 @@ import utool
 #printDBG = lambda *args: None
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
 
-#API_MODEL_BASE = QtCore.QAbstractTableModel
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
 VERBOSE = utool.VERBOSE
@@ -28,8 +27,8 @@ class TreeNode(object):
         self.level = level
 
     def __del__(self):
-        if VERBOSE:
-            print('DELETING THE TREE NODE!: id_=%r' % self.id_)
+        if utool.VERBOSE:
+            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def set_children(self, child_nodes):
         self.child_nodes = child_nodes
@@ -712,7 +711,8 @@ class APIItemModel(API_MODEL_BASE):
             if not qtindex.isValid():
                 return None
             flags = model.flags(qtindex)
-            row, col = qtindex.row(), qtindex.column()
+            #row = qtindex.row()
+            col = qtindex.column()
             if not (flags & Qt.ItemIsEditable or flags & Qt.ItemIsUserCheckable):
                 return None
             if role == Qt.CheckStateRole:
