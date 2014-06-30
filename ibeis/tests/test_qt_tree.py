@@ -143,7 +143,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if model.name == NAMES_TREE:
             # eid = model.eid
             gid = id_
-            #ibswgt.annotion_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
+            #ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
             print("DOUBLECLICKED ID: %r" % gid)
 
 if __name__ == '__main__':

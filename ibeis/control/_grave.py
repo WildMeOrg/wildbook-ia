@@ -80,17 +80,17 @@
             operation='''
             INSERT OR REPLACE INTO annotations
             (
-                annotion_rowid,
-                annotion_uuid,
+                annotation_rowid,
+                annotation_uuid,
                 image_rowid,
                 name_rowid,
-                annotion_xtl,
-                annotion_ytl,
-                annotion_width,
-                annotion_height,
-                annotion_theta,
-                annotion_viewpoint,
-                annotion_notes
+                annotation_xtl,
+                annotation_ytl,
+                annotation_width,
+                annotation_height,
+                annotation_theta,
+                annotation_viewpoint,
+                annotation_notes
             )
             VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',

@@ -14,16 +14,16 @@ def TEST_DELETE_ANNOTATION_CHIPS(ibs, back):
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
     aid = aid_list[0]
-    gid = ibs.get_annotion_gids(aid)
+    gid = ibs.get_annotation_gids(aid)
     gthumbtup = ibs.get_image_thumbtup(gid)
     gthumbpath = gthumbtup[0]
-    annotion_thumbtup = ibs.get_annotion_chip_thumbtup(aid)
-    annotion_thumbpath = annotion_thumbtup[0]
-    ibs.delete_annotion_chips(aid)
+    annotation_thumbtup = ibs.get_annotation_chip_thumbtup(aid)
+    annotation_thumbpath = annotation_thumbtup[0]
+    ibs.delete_annotation_chips(aid)
     aid_list = ibs.get_valid_aids()
     assert aid in aid_list, "Error: RID deleted"
     assert not utool.checkpath(gthumbpath), "Image Thumbnail not deleted"
-    assert not utool.checkpath(annotion_thumbpath), "Roi Thumbnail not deleted"
+    assert not utool.checkpath(annotation_thumbpath), "Roi Thumbnail not deleted"
     return locals()
 
 

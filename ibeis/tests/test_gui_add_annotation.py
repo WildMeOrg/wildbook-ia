@@ -12,7 +12,7 @@ def TEST_GUI_ADD_ANNOTATION(ibs, back):
     print('[TEST] SELECT GID=%r' % gid)
     back.select_gid(gid)
     bbox = (0, 0, 100, 100)
-    aid = back.add_annotion(bbox=bbox)
+    aid = back.add_annotation(bbox=bbox)
     print('[TEST] NEW RID=%r' % aid)
     assert aid is not None
     return locals()

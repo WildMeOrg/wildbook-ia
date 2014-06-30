@@ -16,7 +16,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG
 class OrganizedResult(DynStruct):
     """
     Maintains an organized list of:
-        * query annotion indexes
+        * query annotation indexes
         * their top matching result
         * their score
         * their rank
@@ -25,7 +25,7 @@ class OrganizedResult(DynStruct):
     def __init__(self, orgtype=''):
         super(DynStruct, self).__init__()
         self.orgtype = orgtype
-        self.qaids   = []  # query annotion indexes
+        self.qaids   = []  # query annotation indexes
         self.aids    = []  # their top matching result
         self.scores  = []  # their score
         self.ranks   = []  # their rank

@@ -114,17 +114,17 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
     if quickmerge:
         is_unknown = ibs.is_aid_unknown((aid1, aid2))
         if all(is_unknown):
-            ibs.set_annotion_names_to_next_name((aid1, aid2))
+            ibs.set_annotation_names_to_next_name((aid1, aid2))
             update_callback()
             backend_callback()
             return
         elif is_unknown[0]:
-            ibs.set_annotion_nids(aid1, ibs.get_annotion_nids(aid2))
+            ibs.set_annotation_nids(aid1, ibs.get_annotation_nids(aid2))
             update_callback()
             backend_callback()
             return
         elif is_unknown[1]:
-            ibs.set_annotion_nids(aid2, ibs.get_annotion_nids(aid1))
+            ibs.set_annotation_nids(aid2, ibs.get_annotation_nids(aid1))
             update_callback()
             backend_callback()
             return
@@ -315,9 +315,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
         qaid2_qres, ranks_lt=ranks_lt)
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches
-    #qnames = ibs.get_annotion_names(qaids)
-    #names = ibs.get_annotion_names(aids)
-    #truths = np.array((ibs.get_annotion_nids(qaids) - ibs.get_annotion_nids(aids)) == 0)
+    #qnames = ibs.get_annotation_names(qaids)
+    #names = ibs.get_annotation_names(aids)
+    #truths = np.array((ibs.get_annotation_nids(qaids) - ibs.get_annotation_nids(aids)) == 0)
     #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in izip(qaids, aids)]
 
     #def get_review_match_buttontup(aid1, aid2):
@@ -355,10 +355,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
         ('aid',        np.array(aids)),
         ('review',     get_rowid_button),
         ('status',     partial(get_status, ibs)),
-        ('querythumb', ibs.get_annotion_chip_thumbtup),
-        ('resthumb',   ibs.get_annotion_chip_thumbtup),
-        ('qname',      ibs.get_annotion_names),
-        ('name',       ibs.get_annotion_names),
+        ('querythumb', ibs.get_annotation_chip_thumbtup),
+        ('resthumb',   ibs.get_annotation_chip_thumbtup),
+        ('qname',      ibs.get_annotation_names),
+        ('name',       ibs.get_annotation_names),
         ('score',      np.array(scores)),
         ('rank',       np.array(ranks)),
         #('truth',     truths),
@@ -376,8 +376,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
         'name'       : ('aid'),
     }
     col_setter_dict = {
-        'qname': ibs.set_annotion_names,
-        'name': ibs.set_annotion_names
+        'qname': ibs.set_annotation_names,
+        'name': ibs.set_annotation_names
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
     sortby = 'score'

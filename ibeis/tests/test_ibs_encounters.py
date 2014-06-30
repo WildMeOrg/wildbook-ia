@@ -31,7 +31,7 @@ def TEST_ENCOUNTERS(ibs):
 
     enctext_list   = ibs.get_encounter_enctext(eid_list)
     gid_uuids_list = ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)
-    annotion_uuids_list = ibsfuncs.unflat_map(ibs.get_annotion_uuids, aids_list)
+    annotation_uuids_list = ibsfuncs.unflat_map(ibs.get_annotation_uuids, aids_list)
     names_list     = ibsfuncs.unflat_map(ibs.get_names, nids_list)
 
     target_enctexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
@@ -78,7 +78,7 @@ def TEST_ENCOUNTERS(ibs):
 
         print('3a) aids_list = %s' % (utool.list_str(aids_list),))
         print('3a) nids_list = %s' % (utool.list_str(nids_list),))
-        nids_listb = ibsfuncs.unflat_map(ibs.get_annotion_nids, aids_list)
+        nids_listb = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list)
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
         print('3b) names_list = %s' % (utool.list_str(names_list),))
         print('3b) target_names = %s' % (utool.list_str(target_names),))
@@ -96,7 +96,7 @@ def TEST_ENCOUNTERS(ibs):
         utool.printex(ex, 'failed test_encounter')
         raise
 
-    gids_list2 = ibsfuncs.unflat_lookup(ibs.get_annotion_gids, aids_list)
+    gids_list2 = ibsfuncs.unflat_lookup(ibs.get_annotation_gids, aids_list)
     assert gids_list2 == map(tuple, gids_list)
 
     return locals()

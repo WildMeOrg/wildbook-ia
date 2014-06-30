@@ -27,7 +27,7 @@ def print_desc_distances_map(orgres2_distmap):
     print('L-----------------------------')
 
 
-def print_annotionmatch_scores_map(orgres2_scores):
+def print_annotationmatch_scores_map(orgres2_scores):
     print('+-----------------------------')
     print('| CHIPMATCH SCORES:')
     for orgtype, scores in orgres2_scores.iteritems():
@@ -36,7 +36,7 @@ def print_annotionmatch_scores_map(orgres2_scores):
     print('L-----------------------------')
 
 
-def get_orgres_annotionmatch_scores(allres, orgtype_list=['false', 'true']):
+def get_orgres_annotationmatch_scores(allres, orgtype_list=['false', 'true']):
     orgres2_scores = {}
     for orgtype in orgtype_list:
         printDBG('[rr2] getting orgtype=%r distances between sifts' % orgtype)
@@ -74,8 +74,8 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true']):
 
 def get_matching_descriptors(allres, qaids, aids):
     ibs = allres.ibs
-    qdesc_cache = ibsfuncs.get_annotion_desc_cache(ibs, qaids)
-    rdesc_cache = ibsfuncs.get_annotion_desc_cache(ibs, aids)
+    qdesc_cache = ibsfuncs.get_annotation_desc_cache(ibs, qaids)
+    rdesc_cache = ibsfuncs.get_annotation_desc_cache(ibs, aids)
     desc1_list = []
     desc2_list = []
     for qaid, aid in izip(qaids, aids):
@@ -102,5 +102,5 @@ def get_score_stuff_pdfish(allres):
     orgres = true_orgres
     orgres = false_orgres
 
-    def get_interesting_annotionpairs(orgres):
+    def get_interesting_annotationpairs(orgres):
         orgres2 = results_organizer._score_sorted_ranks_lt(orgres, 2)

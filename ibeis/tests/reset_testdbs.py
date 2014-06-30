@@ -45,7 +45,7 @@ def make_testdb0():
     #print('[RESET] NEW RID=%r' % aid)
     aids = ibs.get_image_aids(gid_list)[0]
     try:
-        assert aid in aids, ('bad annotion adder: aid = %r, aids = %r' % (aid, aids))
+        assert aid in aids, ('bad annotation adder: aid = %r, aids = %r' % (aid, aids))
     except Exception as ex:
         utool.printex(ex, key_list=['aid', 'aids'])
         raise

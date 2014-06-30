@@ -13,12 +13,12 @@ def TEST_DELETE_IMAGE(ibs, back):
     bbox_list = [(0, 0, 100, 100)]*len(gid_list1)
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annotations(gid_list1, bbox_list=bbox_list, name_list=name_list)
-    fid_list = ibs.get_annotion_fids(aid_list)
-    cid_list = ibs.get_annotion_cids(aid_list)
+    fid_list = ibs.get_annotation_fids(aid_list)
+    cid_list = ibs.get_annotation_cids(aid_list)
     thumbtup_list = ibs.get_image_thumbtup(gid_list1)
     thumbpath_list = [tup[0] for tup in thumbtup_list]
-    annotion_thumbtup_list = ibs.get_annotion_chip_thumbtup(aid_list)
-    annotion_thumbpath_list = [tup[0] for tup in annotion_thumbtup_list]
+    annotation_thumbtup_list = ibs.get_annotation_chip_thumbtup(aid_list)
+    annotation_thumbpath_list = [tup[0] for tup in annotation_thumbtup_list]
     ibs.delete_images(gid_list1)
     gid_list2 = ibs.get_valid_gids()
     all_aids = ibs.get_valid_aids()
@@ -34,7 +34,7 @@ def TEST_DELETE_IMAGE(ibs, back):
         assert cid not in all_cids, "CID %r still exists" % cid
     for path in thumbpath_list:
         assert not utool.checkpath(path), "Thumbnail still exists"
-    for path in annotion_thumbpath_list:
+    for path in annotation_thumbpath_list:
         assert not utool.checkpath(path), "ANNOTATION Thumbnail still exists"
     return locals()
 

@@ -61,15 +61,15 @@ def get_dbinfo(ibs):
         return '{\n    ' + ret + '}'
 
     print('reading image sizes')
-    annotion_bbox_list = ibs.get_annotion_bboxes(valid_aids)
-    annotion_bbox_arr = np.array(annotion_bbox_list)
-    if len(annotion_bbox_arr) == 0:
-        annotion_size_list = []
+    annotation_bbox_list = ibs.get_annotation_bboxes(valid_aids)
+    annotation_bbox_arr = np.array(annotation_bbox_list)
+    if len(annotation_bbox_arr) == 0:
+        annotation_size_list = []
     else:
-        annotion_size_list = annotion_bbox_arr[:, 2:4]
+        annotation_size_list = annotation_bbox_arr[:, 2:4]
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
-    chip_size_stats = wh_print_stats(annotion_size_list)
+    chip_size_stats = wh_print_stats(annotation_size_list)
     multiton_stats  = utool.common_stats(multiton_nx2_nchips)
 
     num_names = len(valid_nxs)
@@ -100,7 +100,7 @@ def get_keypoint_stats(ibs):
     from ibeis.control.IBEISControl import IBEISController
     assert(isinstance(ibs, IBEISController))
     valid_aids = np.array(ibs.get_valid_aids())
-    cx2_kpts = ibs.get_annotion_kpts(valid_aids)
+    cx2_kpts = ibs.get_annotation_kpts(valid_aids)
     #cx2_kpts = ibs.feats.cx2_kpts
     # Check cx2_kpts
     cx2_nFeats = map(len, cx2_kpts)
@@ -169,8 +169,8 @@ def dbstats(ibs):
 def cache_memory_stats(ibs, cid_list, fnum=None):
     from util import util_latex as latex_formater
     print('[dev stats] cache_memory_stats()')
-    #kpts_list = ibs.get_annotion_kpts(cid_list)
-    #desc_list = ibs.get_annotion_desc(cid_list)
+    #kpts_list = ibs.get_annotation_kpts(cid_list)
+    #desc_list = ibs.get_annotation_desc(cid_list)
     #nFeats_list = map(len, kpts_list)
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 

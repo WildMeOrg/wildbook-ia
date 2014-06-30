@@ -12,8 +12,8 @@ class ANNOTATION_Interaction2:
         self.rows_updated_callback = rows_updated_callback
         img = ibs.get_images(self.gid)
         self.aid_list = ibs.get_image_aids(self.gid)
-        bbox_list = ibs.get_annotion_bboxes(self.aid_list)
-        theta_list = ibs.get_annotion_thetas(self.aid_list)
+        bbox_list = ibs.get_annotation_bboxes(self.aid_list)
+        theta_list = ibs.get_annotation_thetas(self.aid_list)
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(img, callback=self.callback, bbox_list=bbox_list, theta_list=theta_list)
         df2.update()
 
@@ -27,7 +27,7 @@ class ANNOTATION_Interaction2:
         if len(changed_list) > 0:
             changed_aid = [self.aid_list[changed[0]] for changed, theta in changed_list]
             changed_bbox = [changed[1] for (changed, theta) in changed_list]
-            self.ibs.set_annotion_bboxes(changed_aid, changed_bbox)
+            self.ibs.set_annotation_bboxes(changed_aid, changed_bbox)
         if len(new_list) > 0:
             rows_updated = True
             bbox_list, theta_list = izip(*[((x, y, w, h), t) for (x, y, w, h, t) in new_list])
@@ -41,5 +41,5 @@ if __name__ == '__main__':
     ibs = main_locals['ibs']
     gid_list = ibs.get_valid_gids()
     gid = gid_list[len(gid_list) - 1]
-    annotion = ANNOTATION_Interaction2(ibs, gid)
+    annotation = ANNOTATION_Interaction2(ibs, gid)
     exec(df2.present())

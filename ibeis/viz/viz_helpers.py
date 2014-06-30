@@ -34,18 +34,18 @@ set_ibsdat = ph.set_plotdat
 
 
 @getter_vector_output
-def get_annotion_kpts_in_imgspace(ibs, aid_list, **kwargs):
+def get_annotation_kpts_in_imgspace(ibs, aid_list, **kwargs):
     """ Transforms keypoints so they are plotable in imagespace """
     ensure = kwargs.get('ensure', True)
-    bbox_list   = ibs.get_annotion_bboxes(aid_list)
-    theta_list  = ibs.get_annotion_thetas(aid_list)
+    bbox_list   = ibs.get_annotation_bboxes(aid_list)
+    theta_list  = ibs.get_annotation_thetas(aid_list)
     try:
-        chipsz_list = ibs.get_annotion_chipsizes(aid_list, ensure=ensure)
+        chipsz_list = ibs.get_annotation_chipsizes(aid_list, ensure=ensure)
     except AssertionError as ex:
-        utool.printex(ex, '[!ibs.get_annotion_kpts_in_imgspace]')
-        print('[!ibs.get_annotion_kpts_in_imgspace] aid_list = %r' % (aid_list,))
+        utool.printex(ex, '[!ibs.get_annotation_kpts_in_imgspace]')
+        print('[!ibs.get_annotation_kpts_in_imgspace] aid_list = %r' % (aid_list,))
         raise
-    kpts_list    = ibs.get_annotion_kpts(aid_list, ensure=ensure)
+    kpts_list    = ibs.get_annotation_kpts(aid_list, ensure=ensure)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
                     for kpts, bbox, theta, chipsz
                     in izip(kpts_list, bbox_list, theta_list, chipsz_list)]
@@ -57,9 +57,9 @@ def get_chips(ibs, aid_list, in_image=False, **kwargs):
     #if 'chip' in kwargs:
         #return kwargs['chip']
     if in_image:
-        return ibs.get_annotion_images(aid_list)
+        return ibs.get_annotation_images(aid_list)
     else:
-        return ibs.get_annotion_chips(aid_list)
+        return ibs.get_annotation_chips(aid_list)
 
 
 @getter_vector_output
@@ -69,9 +69,9 @@ def get_kpts(ibs, aid_list, in_image=False, **kwargs):
     kpts_subset = kwargs.get('kpts_subset', None)
     ensure = kwargs.get('ensure', True)
     if in_image:
-        kpts_list = get_annotion_kpts_in_imgspace(ibs, aid_list, **kwargs)
+        kpts_list = get_annotation_kpts_in_imgspace(ibs, aid_list, **kwargs)
     else:
-        kpts_list = ibs.get_annotion_kpts(aid_list, ensure=ensure)
+        kpts_list = ibs.get_annotation_kpts(aid_list, ensure=ensure)
     if kpts_subset is not None:
         kpts_list = [utool.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
     return kpts_list
@@ -79,7 +79,7 @@ def get_kpts(ibs, aid_list, in_image=False, **kwargs):
 
 @getter_vector_output
 def get_bboxes(ibs, aid_list, offset_list=None):
-    bbox_list = ibs.get_annotion_bboxes(aid_list)
+    bbox_list = ibs.get_annotation_bboxes(aid_list)
     if offset_list is not None:
         assert len(offset_list) == len(bbox_list)
         # convert (ofx, ofy) offsets to (ofx, ofy, 0, 0) numpy arrays
@@ -137,7 +137,7 @@ def get_truth_color(truth, base255=False, lighten_amount=None):
 
 
 def get_timedelta_str(ibs, aid1, aid2):
-    gid1, gid2 = ibs.get_annotion_gids([aid1, aid2])
+    gid1, gid2 = ibs.get_annotation_gids([aid1, aid2])
     unixtime1, unixtime2 = ibs.get_image_unixtime([gid1, gid2])
     if -1 in [unixtime1, unixtime2]:
         timedelta_str_ = 'NA'
@@ -148,7 +148,7 @@ def get_timedelta_str(ibs, aid1, aid2):
     return timedelta_str
 
 
-def get_annotion_texts(ibs, aid_list, **kwargs):
+def get_annotation_texts(ibs, aid_list, **kwargs):
     """ Add each type of label_list to the strings list """
     try:
         ibsfuncs.assert_valid_aids(ibs, aid_list)
@@ -162,21 +162,21 @@ def get_annotion_texts(ibs, aid_list, **kwargs):
         aidstr_list = get_aidstrs(aid_list)
         texts_list.append(aidstr_list)
     if kwargs.get('show_gname', False):
-        gname_list = ibs.get_annotion_gnames(aid_list)
+        gname_list = ibs.get_annotation_gnames(aid_list)
         texts_list.append(['gname=%s' % gname for gname in gname_list])
     if kwargs.get('show_name', True):
-        name_list = ibs.get_annotion_names(aid_list)
+        name_list = ibs.get_annotation_names(aid_list)
         texts_list.append(['name=%s' % name for name in name_list])
     if kwargs.get('show_exemplar', True):
-        flag_list = ibs.get_annotion_exemplar_flag(aid_list)
+        flag_list = ibs.get_annotation_exemplar_flag(aid_list)
         texts_list.append(['EX' if flag else '' for flag in flag_list])
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
-        annotion_text_list = [', '.join(tup) for tup in izip(*texts_list)]
+        annotation_text_list = [', '.join(tup) for tup in izip(*texts_list)]
     else:
         # no labels were specified return empty string for each input
-        annotion_text_list = [''] * len(aid_list)
-    return annotion_text_list
+        annotation_text_list = [''] * len(aid_list)
+    return annotation_text_list
 
 
 @getter
@@ -189,9 +189,9 @@ def get_image_titles(ibs, gid_list):
     return title_list
 
 
-def get_annotion_labels(ibs, aid_list, draw_lbls):
+def get_annotation_labels(ibs, aid_list, draw_lbls):
     if draw_lbls:
-        label_list = ibs.get_annotion_names(aid_list)
+        label_list = ibs.get_annotation_names(aid_list)
         #label = aid if label == '____' else label
     else:
         label_list = utool.alloc_nones(len(aid_list))
@@ -229,9 +229,9 @@ def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None):
     # Draw the gradient vectors of a patch overlaying the keypoint
     if fnum is None:
         fnum = df2.next_fnum()
-    rchip = ibs.get_annotion_chips(aid)
-    kp    = ibs.get_annotion_kpts(aid)[fx]
-    sift  = ibs.get_annotion_desc(aid)[fx]
+    rchip = ibs.get_annotation_chips(aid)
+    kp    = ibs.get_annotation_kpts(aid)[fx]
+    sift  = ibs.get_annotation_desc(aid)[fx]
     df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
                                             mode='vec', fnum=fnum, pnum=pnum)
     df2.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))

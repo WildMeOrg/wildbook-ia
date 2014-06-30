@@ -31,9 +31,9 @@ def change_names(ibs, qaid_list):
     for aid in qaid_list:
         ibs.print_name_table()
         #(nid,) = ibs.add_names((next_name,))
-        ibs.set_annotion_names(aid, next_name)
+        ibs.set_annotation_names(aid, next_name)
         ibs.print_name_table()
-        ibs.print_annotion_table()
+        ibs.print_annotation_table()
     # FIXME:
     #new_nid = ibs.get_name_nids(next_name, ensure=False)
     #if back is not None:
@@ -110,7 +110,7 @@ def export(ibs, aid_pairs=None):
     """
     3 - 4 different animals
     2 views of each
-    matching keypoint coordinates on each annotion
+    matching keypoint coordinates on each annotation
     """
     if aid_pairs is None:
         if ibs.get_dbname() == 'PZ_MOTHERS':
@@ -169,7 +169,7 @@ def export(ibs, aid_pairs=None):
                 ) + ', '
                 for kp1, kp2 in izip(kpts1_m, kpts2_m)]
 
-            mcpaths_list = ibs.get_annotion_cpaths(mkeys)
+            mcpaths_list = ibs.get_annotation_cpaths(mkeys)
             fnames_list = map(lambda x: split(x)[1], mcpaths_list)
             for path in mcpaths_list:
                 utool.copy(path, export_path)

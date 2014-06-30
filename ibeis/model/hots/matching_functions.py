@@ -100,7 +100,7 @@ def nearest_neighbors(ibs, qaids, qreq):
     if not QUIET:
         print('[mf] Step 1) Assign nearest neighbors: ' + cfgstr_)
     # Grab descriptors
-    qdesc_list = ibs.get_annotion_desc(qaids)
+    qdesc_list = ibs.get_annotation_desc(qaids)
     # NNIndex
     flann = qreq.data_index.flann
     # Output
@@ -202,7 +202,7 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
     if filt_cfg.gravity_weighting:
         # We dont have an easy way to access keypoints from nearest neighbors yet
         aid_list = np.unique(qreq.data_index.ax2_aid)  # FIXME: Highly inefficient
-        kpts_list = ibs.get_annotion_kpts(aid_list)
+        kpts_list = ibs.get_annotation_kpts(aid_list)
         ax2_kpts = np.vstack(kpts_list)
         ax2_oris = ktool.get_oris(ax2_kpts)
         assert len(ax2_oris) == len(qreq.data_index.ax2_data)
@@ -221,7 +221,7 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
                   ((True - qfx2_valid).sum()))
         if filt_cfg.gravity_weighting:
             qfx2_nnori = ax2_oris[qfx2_nnax]
-            qfx2_kpts  = ibs.get_annotion_kpts(qaid)  # FIXME: Highly inefficient
+            qfx2_kpts  = ibs.get_annotation_kpts(qaid)  # FIXME: Highly inefficient
             qfx2_oris  = ktool.get_oris(qfx2_kpts)
             # Get the orientation distance
             qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
@@ -243,8 +243,8 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         if cant_match_sameimg:
-            qfx2_gid = ibs.get_annotion_gids(qfx2_aid)
-            qgid     = ibs.get_annotion_gids(qaid)
+            qfx2_gid = ibs.get_annotation_gids(qfx2_aid)
+            qgid     = ibs.get_annotation_gids(qaid)
             qfx2_notsameimg = qfx2_gid != qgid
             ####DBG
             if VERBOSE:
@@ -255,8 +255,8 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
         if cant_match_samename:
-            qfx2_nid = ibs.get_annotion_nids(qfx2_aid)
-            qnid = ibs.get_annotion_nids(qaid)
+            qfx2_nid = ibs.get_annotation_nids(qfx2_aid)
+            qnid = ibs.get_annotation_nids(qaid)
             qfx2_notsamename = qfx2_nid != qnid
             ####DBG
             if VERBOSE:
@@ -451,8 +451,8 @@ def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
             aid2_svtup = {}  # dbg info (can remove if there is a speed issue)
         aid2_fm_V, aid2_fs_V, aid2_fk_V = new_fmfsfk()
         # Query Keypoints
-        kpts1 = ibs.get_annotion_kpts(qaid)
-        topx2_kpts = ibs.get_annotion_kpts(topx2_aid)
+        kpts1 = ibs.get_annotation_kpts(qaid)
+        topx2_kpts = ibs.get_annotation_kpts(topx2_aid)
         # Check the diaglen sizes before doing the homography
         topx2_dlen_sqrd = _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid,
                                                       topx2_kpts, nRerank,
@@ -504,7 +504,7 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
     """ helper for spatial verification, computes the squared diagonal length of
     matching chips """
     if use_chip_extent:
-        topx2_chipsize = list(ibs.get_annotion_chipsizes(topx2_aid))
+        topx2_chipsize = list(ibs.get_annotation_chipsizes(topx2_aid))
         def chip_dlen_sqrd(tx):
             (chipw, chiph) = topx2_chipsize[tx]
             dlen_sqrd = chipw ** 2 + chiph ** 2

@@ -34,16 +34,16 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=1, select_callback=None,
         else:
             ax          = event.inaxes
             viztype     = vh.get_ibsdat(ax, 'viztype')
-            annotion_centers = vh.get_ibsdat(ax, 'annotion_centers', default=[])
-            printDBG(' annotion_centers=%r' % annotion_centers)
+            annotation_centers = vh.get_ibsdat(ax, 'annotation_centers', default=[])
+            printDBG(' annotation_centers=%r' % annotation_centers)
             printDBG(' viztype=%r' % viztype)
-            if len(annotion_centers) == 0:
+            if len(annotation_centers) == 0:
                 print(' ...no chips exist to click')
                 return
             x, y = event.xdata, event.ydata
             # Find ANNOTATION center nearest to the clicked point
             aid_list = vh.get_ibsdat(ax, 'aid_list', default=[])
-            centx, _dist = utool.nearest_point(x, y, annotion_centers)
+            centx, _dist = utool.nearest_point(x, y, annotation_centers)
             aid = aid_list[centx]
             print(' ...clicked aid=%r' % aid)
             if select_callback is not None:

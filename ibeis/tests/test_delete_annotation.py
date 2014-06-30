@@ -14,9 +14,9 @@ def TEST_DELETE_ANNOTATION(ibs, back):
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
     aid = aid_list[0]
-    cid = ibs.get_annotion_cids(aid)
-    fid = ibs.get_annotion_fids(aid)
-    thumbtup = ibs.get_annotion_chip_thumbtup(aid)
+    cid = ibs.get_annotation_cids(aid)
+    fid = ibs.get_annotation_fids(aid)
+    thumbtup = ibs.get_annotation_chip_thumbtup(aid)
     print("thumbtup_list=%r" % (thumbtup,))
     thumbpath = thumbtup[0]    
     ibs.delete_annotations(aid)

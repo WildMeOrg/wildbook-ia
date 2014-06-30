@@ -26,8 +26,8 @@ class AllResults(utool.DynStruct):
     def get_orgres_desc_match_dists(allres, orgtype_list):
         return results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
 
-    def get_orgres_annotionmatch_scores(allres, orgtype_list):
-        return results_analyzer.get_orgres_annotionmatch_scores(allres, orgtype_list)
+    def get_orgres_annotationmatch_scores(allres, orgtype_list):
+        return results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
 
 
 def init_allres(ibs, qaid2_qres):

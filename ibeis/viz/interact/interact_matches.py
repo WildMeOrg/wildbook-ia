@@ -18,7 +18,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
     qaid = qres.qaid
     if aid is None:
         aid = qres.get_top_aids(num=1)[0]
-    rchip1, rchip2 = ibs.get_annotion_chips([qaid, aid])
+    rchip1, rchip2 = ibs.get_annotation_chips([qaid, aid])
     fm = qres.aid2_fm[aid]
     mx = kwargs.pop('mx', None)
     xywh2_ptr = [None]
@@ -53,8 +53,8 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
         fx1, fx2 = fm[mx]
         fscore2  = qres.aid2_fs[aid2][mx]
         fk2      = qres.aid2_fk[aid2][mx]
-        kpts1, kpts2 = ibs.get_annotion_kpts([aid1, aid2])
-        desc1, desc2 = ibs.get_annotion_desc([aid1, aid2])
+        kpts1, kpts2 = ibs.get_annotation_kpts([aid1, aid2])
+        desc1, desc2 = ibs.get_annotation_desc([aid1, aid2])
         kp1, kp2     = kpts1[fx1], kpts2[fx2]
         sift1, sift2 = desc1[fx1], desc2[fx2]
         info1 = '\nquery'
@@ -69,9 +69,9 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
             qfx2_norm = qres.filt2_meta['lnbnn']
             # Normalizing chip and feature
             (aid3, fx3, normk) = qfx2_norm[fx1]
-            rchip3 = ibs.get_annotion_chips(aid3)
-            kp3 = ibs.get_annotion_kpts(aid3)[fx3]
-            sift3 = ibs.get_annotion_desc(aid3)[fx3]
+            rchip3 = ibs.get_annotation_chips(aid3)
+            kp3 = ibs.get_annotation_kpts(aid3)[fx3]
+            sift3 = ibs.get_annotation_desc(aid3)[fx3]
             info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
             extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
         else:
@@ -141,7 +141,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
             else:
                 # Normal Click
                 # Select nearest feature match to the click
-                kpts1, kpts2 = ibs.get_annotion_kpts([qaid, aid])
+                kpts1, kpts2 = ibs.get_annotation_kpts([qaid, aid])
                 kpts1_m = kpts1[fm[:, 0]]
                 kpts2_m = kpts2[fm[:, 1]]
                 x2, y2, w2, h2 = xywh2_ptr[0]
@@ -196,7 +196,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
 #        qaid = qres.qaid
 #        if aid is None:
 #            aid = qres.get_top_aids(num=1)[0]
-#        rchip1, rchip2 = ibs.get_annotion_chips([qaid, aid])
+#        rchip1, rchip2 = ibs.get_annotation_chips([qaid, aid])
 #        fm = qres.aid2_fm[aid]
 #        mx = kwargs.pop('mx', None)
 #        xywh2_ptr = [None]
@@ -242,8 +242,8 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
 #        fx1, fx2 = fm[mx]
 #        fscore2  = qres.aid2_fs[aid2][mx]
 #        fk2      = qres.aid2_fk[aid2][mx]
-#        kpts1, kpts2 = ibs.get_annotion_kpts([aid1, aid2])
-#        desc1, desc2 = ibs.get_annotion_desc([aid1, aid2])
+#        kpts1, kpts2 = ibs.get_annotation_kpts([aid1, aid2])
+#        desc1, desc2 = ibs.get_annotation_desc([aid1, aid2])
 #        kp1, kp2     = kpts1[fx1], kpts2[fx2]
 #        sift1, sift2 = desc1[fx1], desc2[fx2]
 #        info1 = '\nquery'
@@ -258,9 +258,9 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
 #            qfx2_norm = qres.filt2_meta['lnbnn']
 #            # Normalizing chip and feature
 #            (aid3, fx3, normk) = qfx2_norm[fx1]
-#            rchip3 = ibs.get_annotion_chips(aid3)
-#            kp3 = ibs.get_annotion_kpts(aid3)[fx3]
-#            sift3 = ibs.get_annotion_desc(aid3)[fx3]
+#            rchip3 = ibs.get_annotation_chips(aid3)
+#            kp3 = ibs.get_annotation_kpts(aid3)[fx3]
+#            sift3 = ibs.get_annotation_desc(aid3)[fx3]
 #            info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
 #            extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
 #        else:
@@ -330,7 +330,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
 #            else:
 #                # Normal Click
 #                # Select nearest feature match to the click
-#                kpts1, kpts2 = ibs.get_annotion_kpts([qaid, aid])
+#                kpts1, kpts2 = ibs.get_annotation_kpts([qaid, aid])
 #                kpts1_m = kpts1[fm[:, 0]]
 #                kpts2_m = kpts2[fm[:, 1]]
 #                x2, y2, w2, h2 = xywh2_ptr[0]

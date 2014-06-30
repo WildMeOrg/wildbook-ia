@@ -21,9 +21,9 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
-        chip = ibs.get_annotion_chips(aid)
-        kp = ibs.get_annotion_kpts(aid)[fx]
-        sift = ibs.get_annotion_desc(aid)[fx]
+        chip = ibs.get_annotation_chips(aid)
+        kp = ibs.get_annotation_kpts(aid)[fx]
+        sift = ibs.get_annotation_desc(aid)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots
@@ -53,7 +53,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
                 _chip_view(**kwargs)
                 ih.disconnect_callback(fig, 'button_press_event')
             elif viztype == 'chip':
-                kpts = ibs.get_annotion_kpts(aid)
+                kpts = ibs.get_annotation_kpts(aid)
                 if len(kpts) > 0:
                     fx = utool.nearest_point(x, y, kpts)[0]
                     print('... clicked fx=%r' % fx)

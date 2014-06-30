@@ -26,17 +26,17 @@ def get_flann_cfgstr(ibs, aid_list):
 def aggregate_descriptors(ibs, aid_list):
     """ Aggregates descriptors with inverted information
      Return agg_index to(2) -> desc (descriptor)
-                               aid (annotion rowid)
+                               aid (annotation rowid)
                                fx (feature index w.r.t. aid)
     """
     print('[nn] stacking descriptors from %d annotations' % len(aid_list))
-    desc_list = ibs.get_annotion_desc(aid_list)
+    desc_list = ibs.get_annotation_desc(aid_list)
     # Build inverted index of (aid, fx) pairs
     aid_nFeat_iter = izip(aid_list, imap(len, desc_list))
     nFeat_iter = imap(len, desc_list)
-    # generate aid inverted index for each feature in each annotion
+    # generate aid inverted index for each feature in each annotation
     _ax2_aid = ([aid] * nFeat for (aid, nFeat) in aid_nFeat_iter)
-    # generate featx inverted index for each feature in each annotion
+    # generate featx inverted index for each feature in each annotation
     _ax2_fx  = (xrange(nFeat) for nFeat in nFeat_iter)
     # Flatten generators into the inverted index
     ax2_aid = np.array(list(chain.from_iterable(_ax2_aid)))
@@ -96,9 +96,9 @@ class NNIndex(object):
         nn_index.ax2_fx   = ax2_fx
         nn_index.ax2_data = ax2_desc
         # Grab the keypoints names and image ids before query time
-        #nn_index.rx2_kpts = ibs.get_annotion_kpts(daid_list)
-        #nn_index.rx2_gid  = ibs.get_annotion_gids(daid_list)
-        #nn_index.rx2_nid  = ibs.get_annotion_nids(daid_list)
+        #nn_index.rx2_kpts = ibs.get_annotation_kpts(daid_list)
+        #nn_index.rx2_gid  = ibs.get_annotation_gids(daid_list)
+        #nn_index.rx2_nid  = ibs.get_annotation_nids(daid_list)
         nn_index.flann = flann
 
     def __getstate__(nn_index):

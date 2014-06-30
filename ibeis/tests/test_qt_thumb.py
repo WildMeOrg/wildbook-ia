@@ -128,7 +128,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             gid = id_
             if gid is None:
                 return
-            ibswgt.annotion_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
+            ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
             print("DOUBLECLICKED ID: %r" % gid)
 
 if __name__ == '__main__':
