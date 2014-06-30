@@ -21,9 +21,7 @@ def TEST_DELETE_ENC(ibs, back):
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # For windows
     import ibeis
-    #main_locals = ibeis.main(defaultdb='testdb1', gui=False)
-    main_locals = ibeis.main(defaultdb='testdb1', gui=False,
-                             allow_newdir=True, delete_ibsdir=True)
+    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs  = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_DELETE_ENC, ibs, back)

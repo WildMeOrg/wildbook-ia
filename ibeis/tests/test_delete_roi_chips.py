@@ -3,22 +3,27 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ROI_CHIPS]')
 
 
 def TEST_DELETE_ROI_CHIPS(ibs, back):
-    rid_list = ibs.get_valid_rids()
+    gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+    gid_list = ibs.add_images(gpath_list)
+    bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    name_list = ['a', 'b', 'a', 'd']
+    rid_list = ibs.add_rois(gid_list, bbox_list=bbox_list, name_list=name_list)
     rid = rid_list[0]
+    gid = ibs.get_roi_gids(rid)
+    gthumbtup = ibs.get_image_thumbtup(gid)
+    gthumbpath = gthumbtup[0]
+    roi_thumbtup = ibs.get_roi_chip_thumbtup(rid)
+    roi_thumbpath = roi_thumbtup[0]
     ibs.delete_roi_chips(rid)
     rid_list = ibs.get_valid_rids()
     assert rid in rid_list, "Error: RID deleted"
-    gid_list = get_roi_gids(rid)
-    thumbtup_list = ibs.get_image_thumbtups(gid_list)
-    assert len(thumbtup_list) == 0, "Thumbtup list not deleted"
-    cid_list = ibs.get_roi_cids(rid)
-    assert len(cid_list) == 0, "CID not deleted"
-    roi_thumbtup_list = ibs.get_roi_chip_thumbtup(rid)
-    assert len(roi_thumbtup_list) == 0, "ROI chip thumbtups not deleted"
+    assert not utool.checkpath(gthumbpath), "Image Thumbnail not deleted"
+    assert not utool.checkpath(roi_thumbpath), "Roi Thumbnail not deleted"
     return locals()
 
 

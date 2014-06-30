@@ -3,16 +3,20 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_IMAGE_THUMBTUPS]')
 
 
 def TEST_DELETE_IMAGE_THUMBTUPS(ibs, back):
-    gid_list = ibs.get_valid_gids()
-    gid = gid_list[0]
-    thumbtup_list = ibs.get_image_thumbtup(gid)
+    gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+    gid_list = ibs.add_images(gpath_list)
+    bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    name_list = ['a', 'b', 'a', 'd']
+    rid_list = ibs.add_rois(gid_list, bbox_list=bbox_list, name_list=name_list)
+    thumbtup_list = ibs.get_image_thumbtup(gid_list)
     thumbpath_list = [tup[0] for tup in thumbtup_list]
     gpath_list = [tup[1] for tup in thumbtup_list]
-    ibs.delete_image_thumbtup(gid)
+    ibs.delete_image_thumbtups(gid_list)
     for path in thumbpath_list:
         assert not utool.checkpath(path), "Thumbnail not deleted"
     for path in gpath_list:

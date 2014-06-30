@@ -3,11 +3,16 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ROI]')
 
 
 def TEST_DELETE_ROI(ibs, back):
-    rid_list = ibs.get_valid_rids()
+    gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+    gid_list = ibs.add_images(gpath_list)
+    bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    name_list = ['a', 'b', 'a', 'd']
+    rid_list = ibs.add_rois(gid_list, bbox_list=bbox_list, name_list=name_list)
     rid = rid_list[0]
     cid = ibs.get_roi_cids(rid)
     fid = ibs.get_roi_fids(rid)
