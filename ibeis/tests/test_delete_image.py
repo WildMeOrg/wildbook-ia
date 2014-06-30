@@ -12,30 +12,30 @@ def TEST_DELETE_IMAGE(ibs, back):
     gid_list1 = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)]*len(gid_list1)
     name_list = ['a', 'b', 'a', 'd']
-    rid_list = ibs.add_rois(gid_list1, bbox_list=bbox_list, name_list=name_list)
-    fid_list = ibs.get_roi_fids(rid_list)
-    cid_list = ibs.get_roi_cids(rid_list)
+    aid_list = ibs.add_annotations(gid_list1, bbox_list=bbox_list, name_list=name_list)
+    fid_list = ibs.get_annotion_fids(aid_list)
+    cid_list = ibs.get_annotion_cids(aid_list)
     thumbtup_list = ibs.get_image_thumbtup(gid_list1)
     thumbpath_list = [tup[0] for tup in thumbtup_list]
-    roi_thumbtup_list = ibs.get_roi_chip_thumbtup(rid_list)
-    roi_thumbpath_list = [tup[0] for tup in roi_thumbtup_list]
+    annotion_thumbtup_list = ibs.get_annotion_chip_thumbtup(aid_list)
+    annotion_thumbpath_list = [tup[0] for tup in annotion_thumbtup_list]
     ibs.delete_images(gid_list1)
     gid_list2 = ibs.get_valid_gids()
-    all_rids = ibs.get_valid_rids()
+    all_aids = ibs.get_valid_aids()
     all_cids = ibs.get_valid_cids()
     all_fids = ibs.get_valid_fids()
     for gid in gid_list1:
         assert gid not in gid_list2, "GID still exists"
-    for rid in rid_list:
-        assert rid not in all_rids, "RID %r still exists" % rid
+    for aid in aid_list:
+        assert aid not in all_aids, "RID %r still exists" % aid
     for fid in fid_list:
         assert fid not in all_fids, "FID %r still exists" % fid
     for cid in cid_list:
         assert cid not in all_cids, "CID %r still exists" % cid
     for path in thumbpath_list:
         assert not utool.checkpath(path), "Thumbnail still exists"
-    for path in roi_thumbpath_list:
-        assert not utool.checkpath(path), "ROI Thumbnail still exists"
+    for path in annotion_thumbpath_list:
+        assert not utool.checkpath(path), "ANNOTATION Thumbnail still exists"
     return locals()
 
 

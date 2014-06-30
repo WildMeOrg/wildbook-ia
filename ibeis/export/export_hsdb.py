@@ -42,14 +42,14 @@ def export_ibeis_to_hotspotter(ibs):
         '# name table')
 
     # Build Chip Table
-    rid_list        = ibs.get_valid_rids()
-    roigid_list     = ibs.get_roi_gids(rid_list)
-    roinid_list     = ibs.get_roi_nids(rid_list)
-    bbox_list       = map(list, ibs.get_roi_bboxes(rid_list))
-    theta_list      = ibs.get_roi_thetas(rid_list)
-    notes_list      = ibs.get_roi_notes(rid_list)
+    aid_list        = ibs.get_valid_aids()
+    annotiongid_list     = ibs.get_annotion_gids(aid_list)
+    annotionnid_list     = ibs.get_annotion_nids(aid_list)
+    bbox_list       = map(list, ibs.get_annotion_bboxes(aid_list))
+    theta_list      = ibs.get_annotion_thetas(aid_list)
+    notes_list      = ibs.get_annotion_notes(aid_list)
 
-    chip_column_list = [rid_list, roigid_list, roinid_list, bbox_list, theta_list, notes_list]
+    chip_column_list = [aid_list, annotiongid_list, annotionnid_list, bbox_list, theta_list, notes_list]
     chip_column_lbls = ['cid', 'gid', 'nid', '[tlx tly w h]', 'theta', 'notes']
     chip_column_types = [int, int, int, list, float, str]
     chip_table_csv = utool.make_csv_table(
@@ -58,7 +58,7 @@ def export_ibeis_to_hotspotter(ibs):
         '# chip table', chip_column_types)
 
     if utool.VERBOSE:
-        if len(rid_list) < 87:
+        if len(aid_list) < 87:
             print(chip_table_csv)
         if len(nid_list) < 87:
             print(name_table_csv)
@@ -79,7 +79,7 @@ def dump_tables(ibs):
     ibsdir = ibs.get_ibsdir()
     gtbl_name = join(ibsdir, 'IBEIS_DUMP_images_table.csv')
     ntbl_name = join(ibsdir, 'IBEIS_DUMP_names_table.csv')
-    rtbl_name = join(ibsdir, 'IBEIS_DUMP_rois_table.csv')
+    rtbl_name = join(ibsdir, 'IBEIS_DUMP_annotations_table.csv')
     with open(gtbl_name, 'w') as file_:
         gtbl_str = ibs.db.get_table_csv('images', exclude_columns=[])
         file_.write(gtbl_str)
@@ -87,28 +87,28 @@ def dump_tables(ibs):
         ntbl_str = ibs.db.get_table_csv('names',  exclude_columns=[])
         file_.write(ntbl_str)
     with open(rtbl_name, 'w') as file_:
-        rtbl_str = ibs.db.get_table_csv('rois',   exclude_columns=[])
+        rtbl_str = ibs.db.get_table_csv('annotations',   exclude_columns=[])
         file_.write(rtbl_str)
 
 
 def get_flat_table(ibs):
     """ Dumps hotspotter flat tables """
-    rid_list = ibs.get_valid_rids()
+    aid_list = ibs.get_valid_aids()
     column_tups = [
-        (int,   'rids',   rid_list,),
-        (str,   'names',  ibs.get_roi_names(rid_list),),
-        (list,  'bbox',   map(list, ibs.get_roi_bboxes(rid_list),)),
-        (float, 'theta',  ibs.get_roi_thetas(rid_list),),
-        (str,   'gpaths', ibs.get_roi_gpaths(rid_list),),
-        (str,   'notes',  ibs.get_roi_notes(rid_list),),
-        (str,   'uuids',  ibs.get_roi_uuids(rid_list),),
+        (int,   'aids',   aid_list,),
+        (str,   'names',  ibs.get_annotion_names(aid_list),),
+        (list,  'bbox',   map(list, ibs.get_annotion_bboxes(aid_list),)),
+        (float, 'theta',  ibs.get_annotion_thetas(aid_list),),
+        (str,   'gpaths', ibs.get_annotion_gpaths(aid_list),),
+        (str,   'notes',  ibs.get_annotion_notes(aid_list),),
+        (str,   'uuids',  ibs.get_annotion_uuids(aid_list),),
     ]
     column_type   = [tup[0] for tup in column_tups]
     column_labels = [tup[1] for tup in column_tups]
     column_list   = [tup[2] for tup in column_tups]
     header = '\n'.join([
         '# Roi Flat Table',
-        '# rid   - internal roi index (not gaurenteed unique)',
+        '# aid   - internal annotion index (not gaurenteed unique)',
         '# name  - animal identity',
         '# bbox  - bounding box [tlx tly w h] in image',
         '# theta - bounding box orientation',

@@ -18,48 +18,48 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 def TEST_QUERY_COMP(ibs):
     print('[TEST_QUERY_COMP]')
-    qrid_list = ibs.get_valid_rids()[0:1]
-    print('[TEST_QUERY_COMP] len(qrid_list)=%r' % (qrid_list))
+    qaid_list = ibs.get_valid_aids()[0:1]
+    print('[TEST_QUERY_COMP] len(qaid_list)=%r' % (qaid_list))
     ibs._init_query_requestor()
     qreq = ibs.qreq
 
     #query_helpers.find_matchable_chips(ibs)
 
-    rids = ibs.get_recognition_database_rids()
-    #nn_index = NNIndex.NNIndex(ibs, rid_list)
+    aids = ibs.get_recognition_database_aids()
+    #nn_index = NNIndex.NNIndex(ibs, aid_list)
     index = 0
     index = utool.get_arg('--index', type_=int, default=index)
-    qrid_list = utool.safe_slice(rids, index, index + 1)
+    qaid_list = utool.safe_slice(aids, index, index + 1)
 
-    comp_locals_ = query_helpers.get_query_components(ibs, qrid_list)
+    comp_locals_ = query_helpers.get_query_components(ibs, qaid_list)
     qres_dict = OrderedDict([
         ('ORIG', comp_locals_['qres_ORIG']),
         ('FILT', comp_locals_['qres_FILT']),
         ('SVER', comp_locals_['qres_SVER']),
     ])
 
-    top_rids = qres_dict['SVER'].get_top_rids(ibs)
-    top_rids = utool.safe_slice(top_rids, 3)
-    rid2 = top_rids[0]
+    top_aids = qres_dict['SVER'].get_top_aids(ibs)
+    top_aids = utool.safe_slice(top_aids, 3)
+    aid2 = top_aids[0]
 
     for px, (label, qres) in enumerate(qres_dict.iteritems()):
         print(label)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
-        #viz_matches.show_matches(ibs, qres, rid2, fnum=fnum, in_image=True)
-        #viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
-        interact.ishow_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
+        #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
+        #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
+        interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
         df2.set_figtitle(label)
         df2.adjust_subplots_safe(top=.8)
 
     fnum = df2.next_fnum()
 
-    qrid2_svtups = comp_locals_['qrid2_svtups']
-    qrid2_chipmatch_FILT = comp_locals_['qrid2_chipmatch_FILT']
-    rid1 = qrid = comp_locals_['qrid']
-    rid2_svtup  = qrid2_svtups[rid1]
-    chipmatch_FILT = qrid2_chipmatch_FILT[rid1]
-    viz.show_sver(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup, fnum=fnum)
+    qaid2_svtups = comp_locals_['qaid2_svtups']
+    qaid2_chipmatch_FILT = comp_locals_['qaid2_chipmatch_FILT']
+    aid1 = qaid = comp_locals_['qaid']
+    aid2_svtup  = qaid2_svtups[aid1]
+    chipmatch_FILT = qaid2_chipmatch_FILT[aid1]
+    viz.show_sver(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, fnum=fnum)
     return locals()
 
 

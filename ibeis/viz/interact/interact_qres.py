@@ -23,17 +23,17 @@ def ishow_qres(ibs, qres, **kwargs):
     # Result Interaction
     printDBG('[ishow_qres] starting interaction')
 
-    def _ctrlclicked_rid(rid2):
-        printDBG('ctrl+clicked rid2=%r' % rid2)
+    def _ctrlclicked_aid(aid2):
+        printDBG('ctrl+clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        ishow_sver(ibs, qres.qrid, rid2, fnum=fnum_)
+        ishow_sver(ibs, qres.qaid, aid2, fnum=fnum_)
         fig.canvas.draw()
         df2.bring_to_front(fig)
 
-    def _clicked_rid(rid2):
-        printDBG('clicked rid2=%r' % rid2)
+    def _clicked_aid(aid2):
+        printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        ishow_matches(ibs, qres, rid2, fnum=fnum_)
+        ishow_matches(ibs, qres, aid2, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         df2.bring_to_front(fig)
@@ -57,17 +57,17 @@ def ishow_qres(ibs, qres, **kwargs):
             printDBG('viztype=%r' % viztype)
             # Clicked a specific matches
             if viztype.startswith('matches'):
-                rid2 = vh.get_ibsdat(ax, 'rid2', None)
+                aid2 = vh.get_ibsdat(ax, 'aid2', None)
                 # Ctrl-Click
                 key = '' if event.key is None else event.key
                 print('key = %r' % key)
                 if key.find('control') == 0:
                     print('[viz] result control clicked')
-                    _ctrlclicked_rid(rid2)
+                    _ctrlclicked_aid(aid2)
                 # Left-Click
                 else:
                     print('[viz] result clicked')
-                    _clicked_rid(rid2)
+                    _clicked_aid(aid2)
         vh.draw()
 
     fig = _top_matches_view()

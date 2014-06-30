@@ -20,14 +20,14 @@ FK_DTYPE  = np.int16    # Feature Position datatype
 #=========================
 
 
-def qres_get_matching_keypoints(qres, ibs, rid2_list):  # rid2 is a name. 2 != 2 to here
-    rid1 = qres.qrid
-    kpts1 = ibs.get_roi_kpts(rid1)
-    kpts2_list = ibs.get_roi_kpts(rid2_list)
+def qres_get_matching_keypoints(qres, ibs, aid2_list):  # aid2 is a name. 2 != 2 to here
+    aid1 = qres.qaid
+    kpts1 = ibs.get_annotion_kpts(aid1)
+    kpts2_list = ibs.get_annotion_kpts(aid2_list)
     matching_kpts_list = []
     empty_fm = np.empty((0, 2))
-    for rid2, kpts2 in izip(rid2_list, kpts2_list):
-        fm = qres.rid2_fm.get(rid2, empty_fm)
+    for aid2, kpts2 in izip(aid2_list, kpts2_list):
+        fm = qres.aid2_fm.get(aid2, empty_fm)
         if len(fm) == 0:
             continue
         kpts1_m = kpts1[fm.T[0]]
@@ -48,18 +48,18 @@ def remove_corrupted_queries(qreq, qres, dryrun=True):
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(qreq, qrid, cfgstr):
+def query_result_fpath(qreq, qaid, cfgstr):
     qres_dir  = qreq.qresdir
-    fname = 'res_%s_qrid=%d.npz' % (cfgstr, qrid)
+    fname = 'res_%s_qaid=%d.npz' % (cfgstr, qaid)
     if len(fname) > 64:
         hash_id = utool.hashstr(cfgstr)
-        fname = 'res_%s_qrid=%d.npz' % (hash_id, qrid)
+        fname = 'res_%s_qaid=%d.npz' % (hash_id, qaid)
     fpath = join(qres_dir, fname)
     return fpath
 
 
-def query_result_exists(qreq, qrid, cfgstr):
-    fpath = query_result_fpath(qreq, qrid, cfgstr)
+def query_result_exists(qreq, qaid, cfgstr):
+    fpath = query_result_fpath(qreq, qaid, cfgstr)
     return exists(fpath)
 
 
@@ -68,53 +68,53 @@ __OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
 
 def assert_qres(qres):
     try:
-        assert len(qres.rid2_fm) == len(qres.rid2_fs)
-        assert len(qres.rid2_fm) == len(qres.rid2_fk)
-        assert len(qres.rid2_fm) == len(qres.rid2_score)
+        assert len(qres.aid2_fm) == len(qres.aid2_fs)
+        assert len(qres.aid2_fm) == len(qres.aid2_fk)
+        assert len(qres.aid2_fm) == len(qres.aid2_score)
     except AssertionError:
         raise AssertionError('[!qr] matching dicts do not agree')
     nFeatMatch_list = get_num_feats_in_matches(qres)
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fm) for fm in qres.rid2_fm.itervalues()))])
+                izip(nFeatMatch_list, (len(fm) for fm in qres.aid2_fm.itervalues()))])
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fs) for fs in qres.rid2_fs.itervalues()))])
+                izip(nFeatMatch_list, (len(fs) for fs in qres.aid2_fs.itervalues()))])
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fk) for fk in qres.rid2_fk.itervalues()))])
+                izip(nFeatMatch_list, (len(fk) for fk in qres.aid2_fk.itervalues()))])
 
 
 def get_num_chip_matches(qres):
-    return len(qres.rid2_fm)
+    return len(qres.aid2_fm)
 
 
 def get_num_feats_in_matches(qres):
-    return [len(fm) for fm in qres.rid2_fm.itervalues()]
+    return [len(fm) for fm in qres.aid2_fm.itervalues()]
 
 
 class QueryResult(__OBJECT_BASE__):
     """
-    __slots__ = ['qrid', 'cfgstr', 'nn_time',
+    __slots__ = ['qaid', 'cfgstr', 'nn_time',
                  'weight_time', 'filt_time', 'build_time', 'verify_time',
-                 'rid2_fm', 'rid2_fs', 'rid2_fk', 'rid2_score']
+                 'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score']
     """
-    def __init__(qres, qrid, cfgstr):
+    def __init__(qres, qaid, cfgstr):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
-        qres.qrid = qrid
+        qres.qaid = qaid
         qres.cfgstr = cfgstr
         qres.eid = None  # encounter id
         # Assigned features matches
-        qres.rid2_fm = None  # feat_match_list
-        qres.rid2_fs = None  # feat_score_list
-        qres.rid2_fk = None  # feat_rank_list
-        qres.rid2_score = None  # roi score
+        qres.aid2_fm = None  # feat_match_list
+        qres.aid2_fs = None  # feat_score_list
+        qres.aid2_fk = None  # feat_rank_list
+        qres.aid2_score = None  # annotion score
         qres.filt2_meta = None  # messy
 
     def has_cache(qres, qreq):
-        return query_result_exists(qreq, qres.qrid)
+        return query_result_exists(qreq, qres.qaid)
 
     def get_fpath(qres, qreq):
-        return query_result_fpath(qreq, qres.qrid, qres.cfgstr)
+        return query_result_fpath(qreq, qres.qaid, qres.cfgstr)
 
     @profile
     def save(qres, qreq):
@@ -128,7 +128,7 @@ class QueryResult(__OBJECT_BASE__):
     def load(qres, qreq):
         'Loads the result from the given database'
         fpath = qres.get_fpath(qreq)
-        qrid_good = qres.qrid
+        qaid_good = qres.qaid
         try:
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
@@ -143,14 +143,14 @@ class QueryResult(__OBJECT_BASE__):
                 print('... qres cache miss: %r' % (split(fpath)[1],))
                 raise
             else:
-                msg_list = ['[!qr] QueryResult(qrid=%d) is corrupted' % (qres.qrid),
+                msg_list = ['[!qr] QueryResult(qaid=%d) is corrupted' % (qres.qaid),
                             '%r' % (ex,)]
                 msg = ('\n'.join(msg_list))
                 print(msg)
                 raise Exception(msg)
         except BadZipFile as ex:
             print('[!qr] Caught other BadZipFile: %r' % ex)
-            msg_list = ['[!qr] QueryResult(qrid=%d) is corrupted' % (qres.qrid),
+            msg_list = ['[!qr] QueryResult(qaid=%d) is corrupted' % (qres.qaid),
                         '%r' % (ex,)]
             msg = '\n'.join(msg_list)
             print(''.join(msg))
@@ -163,7 +163,7 @@ class QueryResult(__OBJECT_BASE__):
         except Exception as ex:
             print('Caught other Exception: %r' % ex)
             raise
-        qres.qrid = qrid_good
+        qres.qaid = qaid_good
 
     def cache_bytes(qres, qreq):
         """ Size of the cached query result on disk """
@@ -171,11 +171,11 @@ class QueryResult(__OBJECT_BASE__):
         nBytes = utool.file_bytes(fpath)
         return nBytes
 
-    def get_fmatch_index(qres, rid, qfx):
-        """ Returns the feature index in rid matching the query's qfx-th feature
+    def get_fmatch_index(qres, aid, qfx):
+        """ Returns the feature index in aid matching the query's qfx-th feature
             (if it exists)
         """
-        fm = qres.rid2_fm[rid]
+        fm = qres.aid2_fm[aid]
         mx_list = np.where(fm[:, 0] == qfx)[0]
         if len(mx_list) != 1:
             raise IndexError('[!qr] qfx=%r not found' % (qfx))
@@ -184,48 +184,48 @@ class QueryResult(__OBJECT_BASE__):
             return mx
 
     def get_match_tbldata(qres, ranks_lt=5):
-        """ Returns matchinfo in table format (qrids, rids, scores, ranks) """
-        rid_arr, score_arr = qres.get_rids_and_scores()
+        """ Returns matchinfo in table format (qaids, aids, scores, ranks) """
+        aid_arr, score_arr = qres.get_aids_and_scores()
         # Sort the scores in rank order
         sortx = score_arr.argsort()[::-1]
         score_arr = score_arr[sortx]
-        rid_arr   = rid_arr[sortx]
+        aid_arr   = aid_arr[sortx]
         rank_arr  = np.arange(sortx.size)
         # Return only rows where rank < ranks_lt
         isvalid = rank_arr < ranks_lt
-        rids    =   rid_arr[isvalid]
+        aids    =   aid_arr[isvalid]
         scores  = score_arr[isvalid]
         ranks   =  rank_arr[isvalid]
-        qrids   = np.full(rids.shape, qres.qrid, dtype=rids.dtype)
-        tbldata = (qrids, rids, scores, ranks)
+        qaids   = np.full(aids.shape, qres.qaid, dtype=aids.dtype)
+        tbldata = (qaids, aids, scores, ranks)
         # DEBUG
-        #column_labels = ['qrids', 'rids', 'scores', 'ranks']
-        #qrid_arr      = np.full(rid_arr.shape, qres.qrid, dtype=rid_arr.dtype)
-        #tbldata2      = (qrid_arr, rid_arr, score_arr, rank_arr)
+        #column_labels = ['qaids', 'aids', 'scores', 'ranks']
+        #qaid_arr      = np.full(aid_arr.shape, qres.qaid, dtype=aid_arr.dtype)
+        #tbldata2      = (qaid_arr, aid_arr, score_arr, rank_arr)
         #print(utool.make_csv_table(tbldata, column_labels))
         #print(utool.make_csv_table(tbldata2, column_labels))
         #utool.embed()
         return tbldata
 
-    def get_rids_and_scores(qres):
+    def get_aids_and_scores(qres):
         """ returns a chip index list and associated score list """
-        rid_arr   = np.array(qres.rid2_score.keys())
-        score_arr = np.array(qres.rid2_score.values())
-        return rid_arr, score_arr
+        aid_arr   = np.array(qres.aid2_score.keys())
+        score_arr = np.array(qres.aid2_score.values())
+        return aid_arr, score_arr
 
-    def get_top_rids(qres, num=None):
+    def get_top_aids(qres, num=None):
         """ Returns a ranked list of chip indexes """
         # TODO: rename num to ranks_lt
-        rid_arr, score_arr = qres.get_rids_and_scores()
+        aid_arr, score_arr = qres.get_aids_and_scores()
         # Get chip-ids sorted by scores
-        top_rids = rid_arr[score_arr.argsort()[::-1]]
-        num_indexed = len(top_rids)
+        top_aids = aid_arr[score_arr.argsort()[::-1]]
+        num_indexed = len(top_aids)
         if num is None:
             num = num_indexed
-        return top_rids[0:min(num, num_indexed)]
+        return top_aids[0:min(num, num_indexed)]
 
-    def get_rid_scores(qres, rid_arr):
-        return [qres.rid2_score[rid] for rid in rid_arr]
+    def get_aid_scores(qres, aid_arr):
+        return [qres.aid2_score[aid] for aid in aid_arr]
 
     def get_inspect_str(qres):
         assert_qres(qres)
@@ -233,21 +233,21 @@ class QueryResult(__OBJECT_BASE__):
         nFeatMatch_stats = utool.mystats(nFeatMatch_list)
 
         top_lbl = utool.unindent('''
-                                 top rids
+                                 top aids
                                  scores
                                  ranks''').strip()
 
-        top_rids = qres.get_top_rids(num=5)
-        top_scores = qres.get_rid_scores(top_rids)
-        top_ranks = qres.get_rid_ranks(top_rids)
+        top_aids = qres.get_top_aids(num=5)
+        top_scores = qres.get_aid_scores(top_aids)
+        top_ranks = qres.get_aid_ranks(top_aids)
 
-        top_stack = np.vstack((top_rids, top_scores, top_ranks))
+        top_stack = np.vstack((top_aids, top_scores, top_ranks))
         top_stack = np.array(top_stack, dtype=np.int32)
         top_str = str(top_stack)
 
         inspect_str = '\n'.join([
             'QueryResult',
-            'qrid=%r ' % qres.qrid,
+            'qaid=%r ' % qres.qaid,
             utool.horiz_string(top_lbl, ' ', top_str),
             'num Feat Matches stats:',
             utool.indent(utool.dict_str(nFeatMatch_stats)),
@@ -255,49 +255,49 @@ class QueryResult(__OBJECT_BASE__):
         inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str
 
-    def get_rid_ranks(qres, rid_arr):
-        """ get ranks of chip indexes in rid_arr """
-        top_rids = qres.get_top_rids()
-        foundpos = [np.where(top_rids == rid)[0] for rid in rid_arr]
+    def get_aid_ranks(qres, aid_arr):
+        """ get ranks of chip indexes in aid_arr """
+        top_aids = qres.get_top_aids()
+        foundpos = [np.where(top_aids == aid)[0] for aid in aid_arr]
         ranks_   = [ranks if len(ranks) > 0 else [None] for ranks in foundpos]
-        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(rid_ranks) != 1'
+        assert all([len(ranks) == 1 for ranks in ranks_]), 'len(aid_ranks) != 1'
         rank_list = [ranks[0] for ranks in ranks_]
         return rank_list
 
-    #def get_rid_ranks(qres, rid_arr):
-        #'get ranks of chip indexes in rid_arr'
-        #score_arr = np.array(qres.rid2_score.values())
-        #rid_arr   = np.array(qres.rid2_score.keys())
-        #top_rids = rid_arr[score_arr.argsort()[::-1]]
-        #foundpos = [np.where(top_rids == rid)[0] for rid in rid_arr]
+    #def get_aid_ranks(qres, aid_arr):
+        #'get ranks of chip indexes in aid_arr'
+        #score_arr = np.array(qres.aid2_score.values())
+        #aid_arr   = np.array(qres.aid2_score.keys())
+        #top_aids = aid_arr[score_arr.argsort()[::-1]]
+        #foundpos = [np.where(top_aids == aid)[0] for aid in aid_arr]
         #ranks_   = [r if len(r) > 0 else [-1] for r in foundpos]
         #assert all([len(r) == 1 for r in ranks_])
         #rank_list = [r[0] for r in ranks_]
         #return rank_list
 
-    def get_gt_ranks(qres, gt_rids=None, ibs=None, return_gtrids=False):
+    def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False):
         'returns the 0 indexed ranking of each groundtruth chip'
         # Ensure correct input
-        if gt_rids is None and ibs is None:
-            raise Exception('[qr] must pass in the gt_rids or ibs object')
-        if gt_rids is None:
-            gt_rids = ibs.get_roi_groundtruth(qres.qrid)
-        gt_ranks = qres.get_rid_ranks(gt_rids)
-        if return_gtrids:
-            return gt_ranks, gt_rids
+        if gt_aids is None and ibs is None:
+            raise Exception('[qr] must pass in the gt_aids or ibs object')
+        if gt_aids is None:
+            gt_aids = ibs.get_annotion_groundtruth(qres.qaid)
+        gt_ranks = qres.get_aid_ranks(gt_aids)
+        if return_gtaids:
+            return gt_ranks, gt_aids
         else:
             return gt_ranks
 
     def get_best_gt_rank(qres, ibs):
         """ Returns the best rank over all the groundtruth """
-        gt_ranks, gt_rids = qres.get_gt_ranks(ibs=ibs, return_gtrids=True)
-        ridrank_tups = list(izip(gt_rids, gt_ranks))
-        # Get only the rids that placed in the shortlist
-        #valid_gtrids = np.array([ rid for rid, rank in ridrank_tups if rank is not None])
-        valid_ranks  = np.array([rank for rid, rank in ridrank_tups if rank is not None])
+        gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, return_gtaids=True)
+        aidrank_tups = list(izip(gt_aids, gt_ranks))
+        # Get only the aids that placed in the shortlist
+        #valid_gtaids = np.array([ aid for aid, rank in aidrank_tups if rank is not None])
+        valid_ranks  = np.array([rank for aid, rank in aidrank_tups if rank is not None])
         # Sort so lowest score is first
         best_rankx = valid_ranks.argsort()
-        #best_gtrids  = best_gtrids[best_rankx]
+        #best_gtaids  = best_gtaids[best_rankx]
         best_gtranks = valid_ranks[best_rankx]
         if len(best_gtranks) == 0:
             best_rank = -1
@@ -306,9 +306,9 @@ class QueryResult(__OBJECT_BASE__):
         return best_rank
 
     def get_classified_pos(qres):
-        top_rids = np.array(qres.get_top_rids())
-        pos_rids = top_rids[0:1]
-        return pos_rids
+        top_aids = np.array(qres.get_top_aids())
+        pos_aids = top_aids[0:1]
+        return pos_aids
 
     def show_top(qres, ibs, *args, **kwargs):
         from ibeis.viz import viz_qres
@@ -326,5 +326,5 @@ class QueryResult(__OBJECT_BASE__):
         else:
             raise AssertionError('Uknown type=%r' % type_)
 
-    def get_matching_keypoints(qres, ibs, rid2_list):
-        return qres_get_matching_keypoints(qres, ibs, rid2_list)
+    def get_matching_keypoints(qres, ibs, aid2_list):
+        return qres_get_matching_keypoints(qres, ibs, aid2_list)

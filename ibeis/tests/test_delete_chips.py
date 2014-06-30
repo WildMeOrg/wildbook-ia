@@ -10,10 +10,10 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_CHI
 def TEST_DELETE_CHIPS(ibs, back):
     gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
     gid_list = ibs.add_images(gpath_list)
-    bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    rid_list = ibs.add_rois(gid_list, bbox_list=bbox_list, name_list=name_list)
-    cid_list = ibs.add_chips(rid_list)
+    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    cid_list = ibs.add_chips(aid_list)
     cid = cid_list[0]
     _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
     fid_list1 = utool.filter_Nones(_fid_list)

@@ -10,25 +10,25 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_VIZ]')
 
 def TEST_VIZ(ibs):
     valid_gids = ibs.get_valid_gids()
-    valid_rids = ibs.get_valid_rids()
-    print('len(valid_rids) = %r' % len(valid_rids))
+    valid_aids = ibs.get_valid_aids()
+    print('len(valid_aids) = %r' % len(valid_aids))
     print('len(valid_gids) = %r' % len(valid_gids))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
     gindex = 1
     gid = valid_gids[gindex]
-    rid_list = ibs.get_image_rids(gid)
+    aid_list = ibs.get_image_aids(gid)
     rindex = 0
-    rid = rid_list[rindex]
-    qrid = rid
-    rids = rid_list[1:3]
-    rid = rid_list[-1]
+    aid = aid_list[rindex]
+    qaid = aid
+    aids = aid_list[1:3]
+    aid = aid_list[-1]
 
     try:
-        qres = ibs.query_all([qrid])[qrid]
+        qres = ibs.query_all([qaid])[qaid]
         print(qres)
-        top_rids = qres.get_top_rids(ibs)
-        assert len(top_rids) > 0, 'Results seems to be empty'
-        rid2 = top_rids[0]  # 294
+        top_aids = qres.get_top_aids(ibs)
+        assert len(top_aids) > 0, 'Results seems to be empty'
+        aid2 = top_aids[0]  # 294
         query_failed = False
     except Exception as ex:
         query_failed = True
@@ -37,22 +37,22 @@ def TEST_VIZ(ibs):
 
     #----------------------
     #print('Show Image')
-    viz.show_image(ibs, gid, rids=rids, fnum=1)
+    viz.show_image(ibs, gid, aids=aids, fnum=1)
     df2.set_figtitle('Show Image')
 
     #----------------------
     #print('Show Chip')
     kpts_kwgs = dict(ell=True, ori=True, rect=True,
                      eig=True, pts=False, kpts_subset=10)
-    viz.show_chip(ibs, rid, in_image=False, fnum=2, **kpts_kwgs)
+    viz.show_chip(ibs, aid, in_image=False, fnum=2, **kpts_kwgs)
     df2.set_figtitle('Show Chip (normal)')
-    viz.show_chip(ibs, rid, in_image=True, fnum=3, **kpts_kwgs)
+    viz.show_chip(ibs, aid, in_image=True, fnum=3, **kpts_kwgs)
     df2.set_figtitle('Show Chip (in_image)')
 
     #----------------------
     if not query_failed:
         print('Show Query')
-        viz.show_matches(ibs, qres, rid2, fnum=4)
+        viz.show_matches(ibs, qres, aid2, fnum=4)
         df2.set_figtitle('Show Chipres')
 
         viz.show_qres(ibs, qres, fnum=5)

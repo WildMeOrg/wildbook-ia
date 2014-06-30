@@ -66,7 +66,7 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
 
 class IBEISTableView(APITableView):
     """
-    View for ROI / NAME / IMAGE Tables
+    View for ANNOTATION / NAME / IMAGE Tables
     """
     def __init__(tblview, parent=None):
         APITableView.__init__(tblview, parent)
@@ -81,7 +81,7 @@ class IBEISTableView(APITableView):
 
 class IBEISTreeView(APITreeView):
     """
-    View for NAME / ROI Tree
+    View for NAME / ANNOTATION Tree
     """
     def __init__(treeview, parent=None):
         APITreeView.__init__(treeview, parent)

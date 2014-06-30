@@ -14,26 +14,26 @@ from ibeis.ingest import ingest_hsdb
 
 
 @devcmd
-def vdd(ibs=None, qrid_list=None):
+def vdd(ibs=None, qaid_list=None):
     utool.view_directory(ibs.get_dbdir())
 
 
 @devcmd('show')
-def show_rids(ibs, qrid_list):
-    for rid in qrid_list:
-        interact.ishow_chip(ibs, rid, fnum=df2.next_fnum())
+def show_aids(ibs, qaid_list):
+    for aid in qaid_list:
+        interact.ishow_chip(ibs, aid, fnum=df2.next_fnum())
 
 
 @devcmd()
-def change_names(ibs, qrid_list):
+def change_names(ibs, qaid_list):
     #next_name = utool.get_arg('--name', str, default='<name>_the_<species>')
     next_name = utool.get_arg('--name', str, default='glob')
-    for rid in qrid_list:
+    for aid in qaid_list:
         ibs.print_name_table()
         #(nid,) = ibs.add_names((next_name,))
-        ibs.set_roi_names(rid, next_name)
+        ibs.set_annotion_names(aid, next_name)
         ibs.print_name_table()
-        ibs.print_roi_table()
+        ibs.print_annotion_table()
     # FIXME:
     #new_nid = ibs.get_name_nids(next_name, ensure=False)
     #if back is not None:
@@ -41,26 +41,26 @@ def change_names(ibs, qrid_list):
 
 
 @devcmd('query')
-def query_rids(ibs, qrid_list):
-    qrid2_qres = ibs.query_all(qrid_list)
-    for qrid in qrid_list:
-        qres = qrid2_qres[qrid]
+def query_aids(ibs, qaid_list):
+    qaid2_qres = ibs.query_all(qaid_list)
+    for qaid in qaid_list:
+        qres = qaid2_qres[qaid]
         interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
-    return qrid2_qres
+    return qaid2_qres
 
 
 @devcmd('sver')
-def sver_rids(ibs, qrid_list):
-    qrid2_qres = ibs.query_all(qrid_list)
-    for qrid in qrid_list:
-        qres = qrid2_qres[qrid]
-        rid2 = qres.get_top_rids()[0]
-        interact.ishow_sver(ibs, qrid, rid2, fnum=df2.next_fnum(), annote_mode=1)
-    return qrid2_qres
+def sver_aids(ibs, qaid_list):
+    qaid2_qres = ibs.query_all(qaid_list)
+    for qaid in qaid_list:
+        qres = qaid2_qres[qaid]
+        aid2 = qres.get_top_aids()[0]
+        interact.ishow_sver(ibs, qaid, aid2, fnum=df2.next_fnum(), annote_mode=1)
+    return qaid2_qres
 
 
 @devcmd('cfg')
-def printcfg(ibs, qrid_list):
+def printcfg(ibs, qaid_list):
     ibs.cfg.printme3()
     print(ibs.cfg.query_cfg.get_cfgstr())
 
@@ -106,31 +106,31 @@ GZ_VIEWPOINT_EXPORT_PAIRS = [
 ]
 
 
-def export(ibs, rid_pairs=None):
+def export(ibs, aid_pairs=None):
     """
     3 - 4 different animals
     2 views of each
-    matching keypoint coordinates on each roi
+    matching keypoint coordinates on each annotion
     """
-    if rid_pairs is None:
+    if aid_pairs is None:
         if ibs.get_dbname() == 'PZ_MOTHERS':
-            rid_pair_list = MOTHERS_VIEWPOINT_EXPORT_PAIRS
+            aid_pair_list = MOTHERS_VIEWPOINT_EXPORT_PAIRS
         if ibs.get_dbname() == 'GZ_ALL':
-            rid_pair_list = GZ_VIEWPOINT_EXPORT_PAIRS
+            aid_pair_list = GZ_VIEWPOINT_EXPORT_PAIRS
     ibs.update_query_cfg(ratio_thresh=1.6)
     export_path = expanduser('~/Dropbox/Assignments/dataset')
     #utool.view_directory(export_path)
     # MOTHERS EG:
-    for rid_pair in rid_pair_list:
-        qrid2_qres = ibs.query_intra_encounter(rid_pair)
-        #ibeis.viz.show_qres(ibs, qrid2_qres.values()[1]); df2.iup()
+    for aid_pair in aid_pair_list:
+        qaid2_qres = ibs.query_intra_encounter(aid_pair)
+        #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
-        for qrid, qres in qrid2_qres.iteritems():
-            print('Getting kpts from %r' % qrid)
+        for qaid, qres in qaid2_qres.iteritems():
+            print('Getting kpts from %r' % qaid)
             #qres.show_top(ibs)
             posrid_list = utool.ensure_iterable(qres.get_classified_pos())
-            mrids_list.extend([(qrid, posrid) for posrid in posrid_list])
+            mrids_list.extend([(qaid, posrid) for posrid in posrid_list])
             mkpts_list.extend(qres.get_matching_keypoints(ibs, posrid_list))
 
         mkey2_kpts = {}
@@ -169,19 +169,19 @@ def export(ibs, rid_pairs=None):
                 ) + ', '
                 for kp1, kp2 in izip(kpts1_m, kpts2_m)]
 
-            mcpaths_list = ibs.get_roi_cpaths(mkeys)
+            mcpaths_list = ibs.get_annotion_cpaths(mkeys)
             fnames_list = map(lambda x: split(x)[1], mcpaths_list)
             for path in mcpaths_list:
                 utool.copy(path, export_path)
 
             header_lines = ['# Exported keypoint matches (might be duplicates matches)',
-                            '# matching_rids = %r' % (mkey,)]
+                            '# matching_aids = %r' % (mkey,)]
             header_lines += ['# img%d = %r' % (count, fname) for count, fname in enumerate(fnames_list)]
             header_lines += ['# LINE FORMAT: match_pts = [(img1_xy, img2_xy) ... ]']
             header_text = '\n'.join(header_lines)
             match_text  = '\n'.join(['match_pts = ['] + match_lines + [']'])
             matchfile_text = '\n'.join([header_text, match_text])
-            matchfile_name = ('match_rids(%d,%d).txt' % mkey)
+            matchfile_name = ('match_aids(%d,%d).txt' % mkey)
             matchfile_path = join(export_path, matchfile_name)
             utool.write_to(matchfile_path, matchfile_text)
             print(header_text)

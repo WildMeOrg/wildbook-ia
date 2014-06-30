@@ -19,7 +19,7 @@ from ibeis.viz import viz_chip
 #==========================
 
 
-def ishow_name(ibs, nid, sel_rids=[], select_rid_callback=None, fnum=5, **kwargs):
+def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, **kwargs):
     fig = ih.begin_interaction('name', fnum)
 
     def _on_name_click(event):
@@ -29,26 +29,26 @@ def ishow_name(ibs, nid, sel_rids=[], select_rid_callback=None, fnum=5, **kwargs
             viztype = vh.get_ibsdat(ax, 'viztype')
             print_(' viztype=%r' % viztype)
             if viztype == 'chip':
-                rid = vh.get_ibsdat(ax, 'rid')
-                print('... rid=%r' % rid)
-                viz.show_name(ibs, nid, fnum=fnum, sel_rids=[rid])
-                if select_rid_callback is not None:
-                    select_rid_callback(rid)
+                aid = vh.get_ibsdat(ax, 'aid')
+                print('... aid=%r' % aid)
+                viz.show_name(ibs, nid, fnum=fnum, sel_aids=[aid])
+                if select_aid_callback is not None:
+                    select_aid_callback(aid)
         viz.draw()
 
-    viz.show_name(ibs, nid, fnum=fnum, sel_rids=sel_rids)
+    viz.show_name(ibs, nid, fnum=fnum, sel_aids=sel_aids)
     viz.draw()
     ih.connect_callback(fig, 'button_press_event', _on_name_click)
     pass
 
 
 class MatchVerificationInteraction(AbstractInteraction):
-    def __init__(self, ibs, rid1, rid2, update_callback=None, backend_callback=None, **kwargs):
+    def __init__(self, ibs, aid1, aid2, update_callback=None, backend_callback=None, **kwargs):
         print('[matchver] __init__')
         super(MatchVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
-        self.rid1 = rid1
-        self.rid2 = rid2
+        self.aid1 = aid1
+        self.aid2 = aid2
         if update_callback is None:
             update_callback = lambda: None
         if backend_callback is None:
@@ -59,19 +59,19 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page(bring_to_front=True)
 
     def infer_data(self):
-        """ Initialize data related to the input rids """
+        """ Initialize data related to the input aids """
         ibs = self.ibs
-        # The two matching rids
-        (rid1, rid2) = (self.rid1, self.rid2)
-        self.match_text = ibs.get_match_text(rid1, rid2)
-        # The names of the matching rois
-        self.nid1, self.nid2 = ibs.get_roi_nids((rid1, rid2))
+        # The two matching aids
+        (aid1, aid2) = (self.aid1, self.aid2)
+        self.match_text = ibs.get_match_text(aid1, aid2)
+        # The names of the matching annotations
+        self.nid1, self.nid2 = ibs.get_annotion_nids((aid1, aid2))
         self.name1, self.name2 = ibs.get_names((self.nid1, self.nid2))
-        # The other rois that belong to these two names
-        groundtruth_list = ibs.get_roi_groundtruth((rid1, rid2))
-        self.gt_list = [gt + [rid] for gt, rid in izip(groundtruth_list, (rid1, rid2))]
-        # A flat list of all the rids we are looking at
-        self.rid_list = utool.unique_ordered(utool.flatten(self.gt_list))
+        # The other annotations that belong to these two names
+        groundtruth_list = ibs.get_annotion_groundtruth((aid1, aid2))
+        self.gt_list = [gt + [aid] for gt, aid in izip(groundtruth_list, (aid1, aid2))]
+        # A flat list of all the aids we are looking at
+        self.aid_list = utool.unique_ordered(utool.flatten(self.gt_list))
         # Original sets of groundtruth we are working with
         self.gt1, self.gt2 = self.gt_list
         # Grid that will fit all the names we need to display
@@ -79,7 +79,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.nRows = len(self.gt_list)
         if self.nid1 == self.nid2:
             self.nRows = 1
-            self.gt_list = self.gt_list[0:1]  # remove redundant rids
+            self.gt_list = self.gt_list[0:1]  # remove redundant aids
 
     def prepare_page(self):
         figkw = {'fnum': self.fnum,
@@ -96,19 +96,19 @@ class MatchVerificationInteraction(AbstractInteraction):
             viztype = vh.get_ibsdat(ax, 'viztype')
             print_(' viztype=%r' % viztype)
             if viztype == 'chip':
-                rid = vh.get_ibsdat(ax, 'rid')
-                print('... rid=%r' % rid)
+                aid = vh.get_ibsdat(ax, 'aid')
+                print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
                     import guitool
                     ibs = self.ibs
-                    is_exemplar = ibs.get_roi_exemplar_flag(rid)
+                    is_exemplar = ibs.get_annotion_exemplar_flag(aid)
                     def context_func():
-                        ibs.set_roi_exemplar_flag(rid, not is_exemplar)
+                        ibs.set_annotion_exemplar_flag(aid, not is_exemplar)
                         self.show_page()
                     guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
                             ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                             ])
-                    ibs.print_roi_table()
+                    ibs.print_annotion_table()
                 print(utool.dict_str(event.__dict__))
 
 
@@ -122,18 +122,18 @@ class MatchVerificationInteraction(AbstractInteraction):
         nCols = self.nCols
 
         # Distinct color for every unique name
-        unique_nids = utool.unique_ordered(ibs.get_roi_nids(self.rid_list))
+        unique_nids = utool.unique_ordered(ibs.get_annotion_nids(self.aid_list))
         import ibeis
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
         self.nid2_color = dict(izip(unique_nids, unique_colors))
 
         for count, groundtruth in enumerate(self.gt_list):
             offset = count * nCols + 1
-            for px, rid in enumerate(groundtruth):
-                nid = ibs.get_roi_nids(rid)
+            for px, aid in enumerate(groundtruth):
+                nid = ibs.get_annotion_nids(aid)
                 color = self.nid2_color[nid]
 
-                if ibs.is_rid_unknown(rid):
+                if ibs.is_aid_unknown(aid):
                     color = ibeis.constants.UNKNOWN_PURPLE_RGBA01
                 elif nid == self.nid1:
                     color = ibeis.constants.NAME_RED_RGBA01
@@ -141,7 +141,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     color = ibeis.constants.NAME_BLUE_RGBA01
                 else:
                     color = ibeis.constants.NEW_YELLOW_RGBA01
-                self.plot_chip(rid, nRows, nCols, px + offset, color=color)
+                self.plot_chip(aid, nRows, nCols, px + offset, color=color)
 
         self.show_hud()
         df2.adjust_subplots_safe(top=0.85, hspace=0.03)
@@ -151,20 +151,20 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.bring_to_front()
         #self.update()
 
-    def plot_chip(self, rid, nRows, nCols, px, **kwargs):
+    def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
-        nid = ibs.get_roi_nids(rid)
+        nid = ibs.get_annotion_nids(aid)
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
             'nokpts': True,
             'show_name': True,
             'show_gname': False,
-            'show_ridstr': True,
+            'show_aidstr': True,
             'notitle': True,
         }
-        viz_chip.show_chip(ibs, rid, **viz_chip_kw)
+        viz_chip.show_chip(ibs, aid, **viz_chip_kw)
         ax = df2.gca()
         df2.draw_border(ax, color=kwargs.get('color'), lw=4)
 
@@ -174,36 +174,36 @@ class MatchVerificationInteraction(AbstractInteraction):
                 'divider': divider,
                 'size': '13%'
             }
-        roi_unknown = ibs.is_nid_unknown([nid])[0]
-        if not roi_unknown:
-            callback = partial(self.unname_roi, rid)
+        annotion_unknown = ibs.is_nid_unknown([nid])[0]
+        if not annotion_unknown:
+            callback = partial(self.unname_annotion, aid)
             self.append_button('unname', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
-            callback = partial(self.rename_roi_nid1, rid)
+            callback = partial(self.rename_annotion_nid1, aid)
             text = 'change name to: ' + ibs.get_names(self.nid1)
             self.append_button(text, callback=callback, **butkw)
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
-            callback = partial(self.rename_roi_nid2, rid)
+            callback = partial(self.rename_annotion_nid2, aid)
             text = 'change name to: ' + ibs.get_names(self.nid2)
             self.append_button(text, callback=callback, **butkw)
 
-    def unname_roi(self, rid, event=None):
+    def unname_annotion(self, aid, event=None):
         print('unname')
-        self.ibs.set_roi_nids([rid], [self.ibs.UNKNOWN_NID])
+        self.ibs.set_annotion_nids([aid], [self.ibs.UNKNOWN_NID])
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
-    def rename_roi_nid1(self, rid, event=None):
+    def rename_annotion_nid1(self, aid, event=None):
         print('rename nid1')
-        self.ibs.set_roi_nids([rid], [self.nid1])
+        self.ibs.set_annotion_nids([aid], [self.nid1])
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
-    def rename_roi_nid2(self, rid, event=None):
+    def rename_annotion_nid2(self, aid, event=None):
         print('rename nid2')
-        self.ibs.set_roi_nids([rid], [self.nid2])
+        self.ibs.set_annotion_nids([aid], [self.nid2])
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -218,7 +218,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ibs = self.ibs
         name1, name2 = self.name1, self.name2
 
-        nid_list = ibs.get_roi_nids(self.rid_list, distinguish_unknowns=False)
+        nid_list = ibs.get_annotion_nids(self.aid_list, distinguish_unknowns=False)
 
         def next_rect(accum=[-1]):
             accum[0] += 1
@@ -239,7 +239,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('join all\n into name2=%s' % name2,
                                callback=self.merge_all_into_nid2, rect=next_rect())
         self.append_button('confirm', callback=self.confirm, rect=hl_slot(0))
-        self.vsstr = ibsfuncs.vsstr(self.rid1, self.rid2)
+        self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
         figtitle_fmt = '''
         Match Review Interface
         {match_text}
@@ -257,35 +257,35 @@ class MatchVerificationInteraction(AbstractInteraction):
                                     options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
         if ans == 'Confirm':
-            alrid_list = ibs.get_roi_filtered_alrids(self.rid_list, ibs.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
+            alrid_list = ibs.get_annotion_filtered_alrids(self.aid_list, ibs.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
             ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
         
         ibs.print_alr_table()
 
     def unname_all(self, event=None):
         print('unname')
-        self.ibs.set_roi_nids(self.rid_list, [self.ibs.UNKNOWN_NID] * len(self.rid_list))
+        self.ibs.set_annotion_nids(self.aid_list, [self.ibs.UNKNOWN_NID] * len(self.aid_list))
         self.show_page()
 
     def merge_all_into_nid1(self, event=None):
-        """ All the rois are given nid1 """
-        self.ibs.set_roi_nids(self.rid_list , [self.nid1] * len(self.rid_list))
+        """ All the annotations are given nid1 """
+        self.ibs.set_annotion_nids(self.aid_list , [self.nid1] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
-        """ All the rois are given nid2 """
-        self.ibs.set_roi_nids(self.rid_list , [self.nid2] * len(self.rid_list))
+        """ All the annotations are given nid2 """
+        self.ibs.set_annotion_nids(self.aid_list , [self.nid2] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def merge_all_into_next_name(self, event=None):
-        """ All the rois are given nid2 """
+        """ All the annotations are given nid2 """
         #self.next_name = next_name = ibsfuncs.make_next_name(self.ibs)
-        #self.ibs.set_roi_names(self.rid_list , [next_name] * len(self.rid_list))
-        self.ibs.set_roi_names_to_next_name(self.rid_list)
+        #self.ibs.set_annotion_names(self.aid_list , [next_name] * len(self.aid_list))
+        self.ibs.set_annotion_names_to_next_name(self.aid_list)
         self.update_callback()
         self.backend_callback()
         self.show_page()

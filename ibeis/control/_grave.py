@@ -75,22 +75,22 @@
 
 
 
-        # Insert the new ROIs into the SQL database
-        rid_list = ibs.db.executemany(
+        # Insert the new ANNOTATIONs into the SQL database
+        aid_list = ibs.db.executemany(
             operation='''
-            INSERT OR REPLACE INTO rois
+            INSERT OR REPLACE INTO annotations
             (
-                roi_rowid,
-                roi_uuid,
+                annotion_rowid,
+                annotion_uuid,
                 image_rowid,
                 name_rowid,
-                roi_xtl,
-                roi_ytl,
-                roi_width,
-                roi_height,
-                roi_theta,
-                roi_viewpoint,
-                roi_notes
+                annotion_xtl,
+                annotion_ytl,
+                annotion_width,
+                annotion_height,
+                annotion_theta,
+                annotion_viewpoint,
+                annotion_notes
             )
             VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''',
@@ -137,7 +137,7 @@
 
 
         #all_gids = sorted(ibs.db.get_executeone(IMAGE_TABLE, ('image_rowid',)))
-        #all_rids = sorted(ibs.db.get_executeone(ANNOTATION_TABLE, ('annot_rowid',)))
+        #all_aids = sorted(ibs.db.get_executeone(ANNOTATION_TABLE, ('annot_rowid',)))
         #all_eids = sorted(ibs.db.get_executeone(ENCOUNTER_TABLE,
         #                                        ('encounter_rowid',)))
         #all_cids = sorted(ibs.db.get_executeone(CHIP_TABLE, ('chip_rowid',)))
@@ -257,7 +257,7 @@
         #try:
         #    utool.assert_all_not_None(gid_list, 'gid_list')
         #except AssertionError as ex:
-        #    ibsfuncs.assert_valid_rids(ibs, rid_list)
+        #    ibsfuncs.assert_valid_aids(ibs, aid_list)
         #    utool.printex(ex, 'Rids must have image ids!', key_list=[
-        #        'gid_list', 'rid_list'])
+        #        'gid_list', 'aid_list'])
         #    raise

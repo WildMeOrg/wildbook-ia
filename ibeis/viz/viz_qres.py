@@ -17,13 +17,13 @@ def show_qres_top(ibs, qres, **kwargs):
     Wrapper around show_qres.
     """
     N = kwargs.get('N', 6)
-    top_rids = qres.get_top_rids(num=N)
-    ridstr = ibsfuncs.ridstr(qres.qrid)
+    top_aids = qres.get_top_aids(num=N)
+    aidstr = ibsfuncs.aidstr(qres.qaid)
     figtitle = kwargs.get('figtitle', '')
     if len(figtitle) > 0:
         figtitle = ' ' + figtitle
-    kwargs['figtitle'] = ('q%s -- TOP %r' % (ridstr, N)) + figtitle
-    return show_qres(ibs, qres, top_rids=top_rids,
+    kwargs['figtitle'] = ('q%s -- TOP %r' % (aidstr, N)) + figtitle
+    return show_qres(ibs, qres, top_aids=top_aids,
                      draw_kpts=False, draw_ell=False,
                      all_kpts=False, **kwargs)
 
@@ -35,44 +35,44 @@ def show_qres_analysis(ibs, qres, **kwargs):
     Wrapper around show_qres.
 
     KWARGS:
-        rid_list - show matches against rid_list (default top 5)
+        aid_list - show matches against aid_list (default top 5)
     """
     print('[show_qres] qres.show_analysis()')
     # Parse arguments
     N = kwargs.get('N', 3)
     show_gt  = kwargs.pop('show_gt', True)
     show_query = kwargs.pop('show_query', True)
-    rid_list   = kwargs.pop('rid_list', None)
+    aid_list   = kwargs.pop('aid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
 
     # Debug printing
     #print('[analysis] noshow_gt  = %r' % noshow_gt)
     #print('[analysis] show_query = %r' % show_query)
-    #print('[analysis] rid_list    = %r' % rid_list)
+    #print('[analysis] aid_list    = %r' % aid_list)
 
-    if rid_list is None:
-        # Compare to rid_list instead of using top ranks
-        print('[analysis] showing top rids')
-        top_rids = qres.get_top_rids(num=N)
+    if aid_list is None:
+        # Compare to aid_list instead of using top ranks
+        print('[analysis] showing top aids')
+        top_aids = qres.get_top_aids(num=N)
         if figtitle is None:
-            if len(top_rids) == 0:
-                figtitle = 'WARNING: no top scores!' + ibsfuncs.ridstr(qres.qrid)
+            if len(top_aids) == 0:
+                figtitle = 'WARNING: no top scores!' + ibsfuncs.aidstr(qres.qaid)
             else:
-                topscore = qres.get_rid_scores(top_rids)[0]
-                figtitle = ('q%s -- topscore=%r' % (ibsfuncs.ridstr(qres.qrid), topscore))
+                topscore = qres.get_aid_scores(top_aids)[0]
+                figtitle = ('q%s -- topscore=%r' % (ibsfuncs.aidstr(qres.qaid), topscore))
     else:
-        print('[analysis] showing a given list of rids')
-        top_rids = rid_list
+        print('[analysis] showing a given list of aids')
+        top_aids = aid_list
         if figtitle is None:
-            figtitle = 'comparing to ' + ibsfuncs.ridstr(top_rids) + figtitle
+            figtitle = 'comparing to ' + ibsfuncs.aidstr(top_aids) + figtitle
 
     # Get any groundtruth if you are showing it
-    showgt_rids = []
+    showgt_aids = []
     if show_gt:
-        showgt_rids = ibs.get_roi_groundtruth(qres.qrid)
-        showgt_rids = np.setdiff1d(showgt_rids, top_rids)
+        showgt_aids = ibs.get_annotion_groundtruth(qres.qaid)
+        showgt_aids = np.setdiff1d(showgt_aids, top_aids)
 
-    return show_qres(ibs, qres, gt_rids=showgt_rids, top_rids=top_rids,
+    return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
                         figtitle=figtitle, show_query=show_query, **kwargs)
 
 
@@ -85,8 +85,8 @@ def show_qres(ibs, qres, **kwargs):
     annote_mode = kwargs.get('annote_mode', 1) % 3  # this is toggled
     figtitle    = kwargs.get('figtitle', '')
     aug         = kwargs.get('aug', '')
-    top_rids    = kwargs.get('top_rids', 6)
-    gt_rids     = kwargs.get('gt_rids',   [])
+    top_aids    = kwargs.get('top_aids', 6)
+    gt_aids     = kwargs.get('gt_aids',   [])
     all_kpts    = kwargs.get('all_kpts', False)
     show_query  = kwargs.get('show_query', False)
     in_image    = kwargs.get('in_image', False)
@@ -95,12 +95,12 @@ def show_qres(ibs, qres, **kwargs):
 
     fig = df2.figure(fnum=fnum, docla=True, doclf=True)
 
-    if isinstance(top_rids, int):
-        top_rids = qres.get_top_rids(num=top_rids)
+    if isinstance(top_aids, int):
+        top_aids = qres.get_top_aids(num=top_aids)
 
-    all_gts = ibs.get_roi_groundtruth(qres.qrid)
-    nTop   = len(top_rids)
-    nSelGt = len(gt_rids)
+    all_gts = ibs.get_annotion_groundtruth(qres.qaid)
+    nTop   = len(top_aids)
+    nSelGt = len(gt_aids)
     nAllGt = len(all_gts)
 
     max_nCols = 5
@@ -118,10 +118,10 @@ def show_qres(ibs, qres, **kwargs):
     printDBG('[show_qres] * show_query=%r' % (show_query,))
     printDBG('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
     printDBG(qres.get_inspect_str())
-    ranked_rids = qres.get_top_rids()
+    ranked_aids = qres.get_top_aids()
     # Build a subplot grid
     nQuerySubplts = 1 if show_query else 0
-    nGtSubplts    = nQuerySubplts + (0 if gt_rids is None else len(gt_rids))
+    nGtSubplts    = nQuerySubplts + (0 if gt_aids is None else len(gt_aids))
     nTopNSubplts  = nTop
     nTopNCols     = min(max_nCols, nTopNSubplts)
     nGTCols       = min(max_nCols, nGtSubplts)
@@ -134,7 +134,7 @@ def show_qres(ibs, qres, **kwargs):
 
     # HACK:
     _color_list = df2.distinct_colors(nTop)
-    rid2_color = {rid: _color_list[ox] for ox, rid in enumerate(top_rids)}
+    aid2_color = {aid: _color_list[ox] for ox, aid in enumerate(top_aids)}
 
     # Helpers
     def _show_query_fn(plotx_shift, rowcols):
@@ -146,14 +146,14 @@ def show_qres(ibs, qres, **kwargs):
         _kwshow.update(kwargs)
         _kwshow['prefix'] = 'q'
         _kwshow['pnum'] = pnum
-        _kwshow['rid2_color'] = rid2_color
+        _kwshow['aid2_color'] = aid2_color
         _kwshow['draw_ell'] = annote_mode >= 1
-        viz_chip.show_chip(ibs, qres.qrid, annote=False, **_kwshow)
+        viz_chip.show_chip(ibs, qres.qaid, annote=False, **_kwshow)
 
-    def _plot_matches_rids(rid_list, plotx_shift, rowcols):
-        """ helper for show_qres to draw many rids """
-        def _show_matches_fn(rid, orank, pnum):
-            """ Helper function for drawing matches to one rid """
+    def _plot_matches_aids(aid_list, plotx_shift, rowcols):
+        """ helper for show_qres to draw many aids """
+        def _show_matches_fn(aid, orank, pnum):
+            """ Helper function for drawing matches to one aid """
             aug = 'rank=%r\n' % orank
             #printDBG('[show_qres()] plotting: %r'  % (pnum,))
             _kwshow  = dict(draw_ell=annote_mode, draw_pts=False, draw_lines=annote_mode,
@@ -166,31 +166,31 @@ def show_qres(ibs, qres, **kwargs):
             if sidebyside:
                 _kwshow['draw_ell'] = annote_mode == 1
                 _kwshow['draw_lines'] = annote_mode >= 1
-                viz_matches.show_matches(ibs, qres, rid, in_image=in_image, **_kwshow)
+                viz_matches.show_matches(ibs, qres, aid, in_image=in_image, **_kwshow)
             else:
                 _kwshow['draw_ell'] = annote_mode >= 1
                 if annote_mode == 2:
                     # TODO Find a better name
-                    _kwshow['color'] = rid2_color[rid]
-                    _kwshow['sel_fx2'] = qres.rid2_fm[rid][:, 1]
-                viz_chip.show_chip(ibs, rid, in_image=in_image, annote=False, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, rid, in_image=in_image, show_query=not show_query)
+                    _kwshow['color'] = aid2_color[aid]
+                    _kwshow['sel_fx2'] = qres.aid2_fm[aid][:, 1]
+                viz_chip.show_chip(ibs, aid, in_image=in_image, annote=False, **_kwshow)
+                viz_matches.annotate_matches(ibs, qres, aid, in_image=in_image, show_query=not show_query)
 
-        printDBG('[show_qres()] Plotting Chips %s:' % vh.get_ridstrs(rid_list))
-        if rid_list is None:
+        printDBG('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
+        if aid_list is None:
             return
         # Do lazy load before show
-        vh.get_chips(ibs, rid_list, **kwargs)
-        vh.get_kpts(ibs, rid_list, **kwargs)
-        for ox, rid in enumerate(rid_list):
+        vh.get_chips(ibs, aid_list, **kwargs)
+        vh.get_kpts(ibs, aid_list, **kwargs)
+        for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)
-            oranks = np.where(ranked_rids == rid)[0]
+            oranks = np.where(ranked_aids == aid)[0]
             if len(oranks) == 0:
                 orank = -1
                 continue
             orank = oranks[0] + 1
-            _show_matches_fn(rid, orank, pnum)
+            _show_matches_fn(aid, orank, pnum)
 
     shift_topN = nGtCells
 
@@ -207,9 +207,9 @@ def show_qres(ibs, qres, **kwargs):
         if show_query:
             _show_query_fn(0, (nRows, nGTCols))
         # Plot Ground Truth
-        _plot_matches_rids(gt_rids, nQuerySubplts, (nRows, nGTCols))
-        _plot_matches_rids(top_rids, shift_topN, (nRows, nTopNCols))
-        #figtitle += ' q%s name=%s' % (ibsfuncs.ridstr(qres.qrid), ibs.rid2_name(qres.qrid))
+        _plot_matches_aids(gt_aids, nQuerySubplts, (nRows, nGTCols))
+        _plot_matches_aids(top_aids, shift_topN, (nRows, nTopNCols))
+        #figtitle += ' q%s name=%s' % (ibsfuncs.aidstr(qres.qaid), ibs.aid2_name(qres.qaid))
         figtitle += aug
         df2.set_figtitle(figtitle, incanvas=not vh.NO_LABEL_OVERRIDE)
 

@@ -15,8 +15,8 @@ class QueryRequest(__REQUEST_BASE__):
     def __init__(qreq, qresdir, bigcachedir):
         super(QueryRequest, qreq).__init__()
         qreq.cfg = None  # Query config pointer
-        qreq.qrids = []
-        qreq.drids = []
+        qreq.qaids = []
+        qreq.daids = []
         qreq.data_index = None  # current index
         qreq.dftup2_index = {}  # cached indexes
         qreq.vsmany = False
@@ -29,49 +29,49 @@ class QueryRequest(__REQUEST_BASE__):
     #         del qreq.dftup2_index[key]
     #    qreq.data_index = None
 
-    def set_rids(qreq, qrids, drids):
-        qreq.qrids = qrids
-        qreq.drids = drids
+    def set_aids(qreq, qaids, daids):
+        qreq.qaids = qaids
+        qreq.daids = daids
 
     def set_cfg(qreq, query_cfg):
         qreq.cfg = query_cfg
         qreq.vsmany = query_cfg.agg_cfg.query_type == 'vsmany'
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
 
-    def get_drids_hashid(qreq):
-        assert len(qreq.drids) > 0, 'QueryRequest not populated. len(drids)=0'
-        drids_hashid = utool.hashstr_arr(qreq.drids, '_drids')
-        return drids_hashid
+    def get_daids_hashid(qreq):
+        assert len(qreq.daids) > 0, 'QueryRequest not populated. len(daids)=0'
+        daids_hashid = utool.hashstr_arr(qreq.daids, '_daids')
+        return daids_hashid
 
-    def get_qrids_hashid(qreq):
-        assert len(qreq.qrids) > 0, 'QueryRequest not populated. len(qrids)=0'
-        qrids_hashid = utool.hashstr_arr(qreq.qrids, '_qrids')
-        return qrids_hashid
+    def get_qaids_hashid(qreq):
+        assert len(qreq.qaids) > 0, 'QueryRequest not populated. len(qaids)=0'
+        qaids_hashid = utool.hashstr_arr(qreq.qaids, '_qaids')
+        return qaids_hashid
 
-    def get_cfgstr_list(qreq, use_drids=True, use_qrids=False, **kwargs):
+    def get_cfgstr_list(qreq, use_daids=True, use_qaids=False, **kwargs):
         cfgstr_list = []
-        if use_drids:
-            cfgstr_list.append(qreq.get_drids_hashid())
-        if use_qrids:
-            cfgstr_list.append(qreq.get_qrids_cfgstr())
+        if use_daids:
+            cfgstr_list.append(qreq.get_daids_hashid())
+        if use_qaids:
+            cfgstr_list.append(qreq.get_qaids_cfgstr())
         cfgstr_list.extend(qreq.cfg.get_cfgstr_list(**kwargs))
         return cfgstr_list
 
     def get_cfgstr(qreq, **kwargs):
         return ''.join(qreq.get_cfgstr_list(**kwargs))
 
-    def get_internal_drids(qreq):
-        """ These are not the users drids in vsone mode """
-        drids = qreq.drids if qreq.vsmany else qreq.qrids
-        return drids
+    def get_internal_daids(qreq):
+        """ These are not the users daids in vsone mode """
+        daids = qreq.daids if qreq.vsmany else qreq.qaids
+        return daids
 
-    def get_internal_qrids(qreq):
-        """ These are not the users qrids in vsone mode """
-        qrids = qreq.qrids if qreq.vsmany else qreq.drids
-        return qrids
+    def get_internal_qaids(qreq):
+        """ These are not the users qaids in vsone mode """
+        qaids = qreq.qaids if qreq.vsmany else qreq.daids
+        return qaids
 
-    def get_ridfx_enum(qreq):
-        ax2_rids = qreq.data_index.ax2_rid
+    def get_aidfx_enum(qreq):
+        ax2_aids = qreq.data_index.ax2_aid
         ax2_fxs = qreq.data_index.ax2_fx
-        ridfx_enum = enumerate(izip(ax2_rids, ax2_fxs))
-        return ridfx_enum
+        aidfx_enum = enumerate(izip(ax2_aids, ax2_fxs))
+        return aidfx_enum

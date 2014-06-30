@@ -33,21 +33,21 @@ def make_testdb0():
     #print('[RESET] gpath_list=%r' % gpath_list)
     gid_list = ibs.add_images(gpath_list)  # NOQA
     valid_gids = ibs.get_valid_gids()
-    valid_rids = ibs.get_valid_rids()
+    valid_aids = ibs.get_valid_aids()
     try:
-        assert len(valid_rids) == 0, 'there are more than 0 rois in an empty database!'
+        assert len(valid_aids) == 0, 'there are more than 0 annotations in an empty database!'
     except Exception as ex:
-        utool.printex(ex, key_list=['valid_rids'])
+        utool.printex(ex, key_list=['valid_aids'])
         raise
     gid_list = valid_gids[0:1]
     bbox_list = [(0, 0, 100, 100)]
-    rid = ibs.add_rois(gid_list, bbox_list=bbox_list)[0]
-    #print('[RESET] NEW RID=%r' % rid)
-    rids = ibs.get_image_rids(gid_list)[0]
+    aid = ibs.add_annotations(gid_list, bbox_list=bbox_list)[0]
+    #print('[RESET] NEW RID=%r' % aid)
+    aids = ibs.get_image_aids(gid_list)[0]
     try:
-        assert rid in rids, ('bad roi adder: rid = %r, rids = %r' % (rid, rids))
+        assert aid in aids, ('bad annotion adder: aid = %r, aids = %r' % (aid, aids))
     except Exception as ex:
-        utool.printex(ex, key_list=['rid', 'rids'])
+        utool.printex(ex, key_list=['aid', 'aids'])
         raise
 
 

@@ -27,7 +27,7 @@ def parse_args():
         parser2.add_ints(('--index', '-x'), None, help='test only this index')
         parser2.add_ints(('--sel-rows', '-r'), help='view row')
         parser2.add_ints(('--sel-cols', '-c'), help='view col')
-        parser2.add_ints('--qrid', default=[], help='investigate match cx')
+        parser2.add_ints('--qaid', default=[], help='investigate match cx')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
         parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
         parser2.add_flag(('--fulltb'), help='shows a full traceback (default behavior removes decorators from the trace)')
@@ -88,7 +88,7 @@ def parse_args():
         parser2 = parser2.add_argument_group('Postload GUI Commands')
         parser2.add_int(('--select-nid', '--nid'), help='view col')
         parser2.add_int(('--select-gid', '--gid'), help='view col')
-        parser2.add_int(('--select-rid', '--rid'), help='view col')
+        parser2.add_int(('--select-aid', '--aid'), help='view col')
 
     behavior_argparse(parser2)
     database_argparse(parser2)

@@ -5,7 +5,7 @@ import utool
 
 ENCOUNTER_TABLE = 'encounters'
 IMAGE_TABLE     = 'images'
-ROI_TABLE       = 'rois'
+ANNOTATION_TABLE       = 'annotations'
 NAME_TABLE      = 'names'
 NAMES_TREE      = 'names_tree'
 
@@ -18,12 +18,12 @@ THUMB_TABLE     = 'thumbs'
 #-----------------
 
 # enabled tables
-TABLENAME_LIST = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, ENCOUNTER_TABLE, THUMB_TABLE, NAMES_TREE]
+TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, THUMB_TABLE, NAMES_TREE]
 
 # table nice names
 TABLE_NICE = {
     IMAGE_TABLE     : 'Image Table',
-    ROI_TABLE       : 'ROIs Table',
+    ANNOTATION_TABLE       : 'ANNOTATIONs Table',
     NAME_TABLE      : 'Name Table',
     QRES_TABLE      : 'Query Results Table',
     ENCOUNTER_TABLE : 'Encounter Table',
@@ -47,9 +47,9 @@ TABLE_COLNAMES = {
         #'notes',
     ],
 
-    ROI_TABLE       : [
-        #'roi_uuid',
-        'rid',
+    ANNOTATION_TABLE       : [
+        #'annotion_uuid',
+        'aid',
         'thumb',
         'name',
         'exemplar',
@@ -75,7 +75,7 @@ TABLE_COLNAMES = {
         'rank',
         'score',
         'name',
-        'rid'
+        'aid'
     ],
 
     ENCOUNTER_TABLE : [
@@ -89,7 +89,7 @@ TABLE_COLNAMES = {
         'nid',
         'nRids',
         'exemplar',
-        'rid',
+        'aid',
         'thumb',
     ],
 
@@ -102,12 +102,12 @@ TABLE_COLNAMES = {
 
 }
 #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
-#NAMES_TREE      : {('name' 'nid' 'nRids') : ['rid' 'bbox' 'thumb']}
+#NAMES_TREE      : {('name' 'nid' 'nRids') : ['aid' 'bbox' 'thumb']}
 
 # the columns which are editable
 TABLE_EDITSET = {
     IMAGE_TABLE     : set(['aif', 'notes']),
-    ROI_TABLE       : set(['name', 'notes', 'exemplar']),
+    ANNOTATION_TABLE       : set(['name', 'notes', 'exemplar']),
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
@@ -129,10 +129,10 @@ TABLE_HIDDEN_LIST = {
 COL_DEF = dict([
     ('image_uuid', (str,      'Image UUID')),
     ('gid',        (int,      'Image ID')),
-    ('rid',        (int,      'ROI ID')),
+    ('aid',        (int,      'ANNOTATION ID')),
     ('nid',        (int,      'Name ID')),
     ('eid',        (int,      'Encounter ID')),
-    ('nRids',      (int,      '#ROIs')),
+    ('nRids',      (int,      '#ANNOTATIONs')),
     ('nGt',        (int,      '#GT')),
     ('nImgs',      (int,      '#Imgs')),
     ('nFeats',     (int,      '#Features')),
@@ -175,7 +175,7 @@ def make_ibeis_headers_dict(ibs):
         'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
         'aif'        : ibs.get_image_aifs,
         'gname'      : ibs.get_image_gnames,
-        'nRids'      : ibs.get_image_num_rois,
+        'nRids'      : ibs.get_image_num_annotations,
         'unixtime'   : ibs.get_image_unixtime,
         'datetime'   : partial_imap_1to1(utool.unixtime_to_datetime, ibs.get_image_unixtime),
         'gdconf'     : ibs.get_image_detect_confidence,
@@ -190,27 +190,27 @@ def make_ibeis_headers_dict(ibs):
         'notes': ibs.set_image_notes,
     }
     #
-    # ROI Iders/Setters/Getters
-    iders[ROI_TABLE] = [ibs.get_valid_rids]
-    getters[ROI_TABLE] = {
-        'rid'      : lambda rids: rids,
-        'name'     : ibs.get_roi_names,
-        'gname'    : ibs.get_roi_gnames,
-        'nGt'      : ibs.get_roi_num_groundtruth,
-        'theta'    : partial_imap_1to1(utool.theta_str, ibs.get_roi_thetas),
-        'bbox'     : partial_imap_1to1(utool.bbox_str,  ibs.get_roi_bboxes),
-        'num_verts'      : ibs.get_roi_num_verts,
-        'verts'    : partial_imap_1to1(utool.verts_str, ibs.get_roi_verts),
-        'nFeats'   : ibs.get_roi_num_feats,
-        'rdconf'   : ibs.get_roi_detect_confidence,
-        'notes'    : ibs.get_roi_notes,
-        'thumb'    : ibs.get_roi_chip_thumbtup,
-        'exemplar' : ibs.get_roi_exemplar_flag,
+    # ANNOTATION Iders/Setters/Getters
+    iders[ANNOTATION_TABLE] = [ibs.get_valid_aids]
+    getters[ANNOTATION_TABLE] = {
+        'aid'      : lambda aids: aids,
+        'name'     : ibs.get_annotion_names,
+        'gname'    : ibs.get_annotion_gnames,
+        'nGt'      : ibs.get_annotion_num_groundtruth,
+        'theta'    : partial_imap_1to1(utool.theta_str, ibs.get_annotion_thetas),
+        'bbox'     : partial_imap_1to1(utool.bbox_str,  ibs.get_annotion_bboxes),
+        'num_verts'      : ibs.get_annotion_num_verts,
+        'verts'    : partial_imap_1to1(utool.verts_str, ibs.get_annotion_verts),
+        'nFeats'   : ibs.get_annotion_num_feats,
+        'rdconf'   : ibs.get_annotion_detect_confidence,
+        'notes'    : ibs.get_annotion_notes,
+        'thumb'    : ibs.get_annotion_chip_thumbtup,
+        'exemplar' : ibs.get_annotion_exemplar_flag,
     }
-    setters[ROI_TABLE] = {
-        'name'     : ibs.set_roi_names,
-        'notes'    : ibs.set_roi_notes,
-        'exemplar' : ibs.set_roi_exemplar_flag,
+    setters[ANNOTATION_TABLE] = {
+        'name'     : ibs.set_annotion_names,
+        'notes'    : ibs.set_annotion_notes,
+        'exemplar' : ibs.set_annotion_exemplar_flag,
     }
     #
     # Name Iders/Setters/Getters
@@ -218,7 +218,7 @@ def make_ibeis_headers_dict(ibs):
     getters[NAME_TABLE] = {
         'nid':    lambda nids: nids,
         'name':   ibs.get_names,
-        'nRids':  ibs.get_name_num_rois,
+        'nRids':  ibs.get_name_num_annotations,
         'notes':  ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
@@ -241,22 +241,22 @@ def make_ibeis_headers_dict(ibs):
     getters[THUMB_TABLE] = {
         'thumb'      : ibs.get_image_thumbtup,
         'gname'        : ibs.get_image_gnames,
-        'rid'        : ibs.get_image_rids,
+        'aid'        : ibs.get_image_aids,
     }
     setters[THUMB_TABLE] = {
     }
 
-    iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_rids]
+    iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
         'nid':    lambda nids: nids,
         'name':   ibs.get_names,
-        'nRids':  ibs.get_name_num_rois,
-        'rid':    lambda rids: rids,
-        'exemplar' : ibs.get_roi_exemplar_flag,
-        'thumb':  ibs.get_roi_chip_thumbtup,
+        'nRids':  ibs.get_name_num_annotations,
+        'aid':    lambda aids: aids,
+        'exemplar' : ibs.get_annotion_exemplar_flag,
+        'thumb':  ibs.get_annotion_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
-        'exemplar' : ibs.set_roi_exemplar_flag,
+        'exemplar' : ibs.set_annotion_exemplar_flag,
     }
 
     def make_header(tblname):

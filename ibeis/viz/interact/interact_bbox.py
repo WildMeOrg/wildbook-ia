@@ -10,11 +10,11 @@ import utool
 
 #================
 def iselect_bbox(ibs, gid, fnum=1,
-                 figtitle='Image View - Select ROI (click two points)',
+                 figtitle='Image View - Select ANNOTATION (click two points)',
                  **kwargs):
     #from matplotlib.backend_bases import mplDeprecation
     print('[*interact] select_bbox(gid=%r, fnum=%r)' % (gid, fnum))
-    print('[*interact] Define a Rectanglular ROI by clicking two points.')
+    print('[*interact] Define a Rectanglular ANNOTATION by clicking two points.')
     # Show the image
     fig = ih.begin_interaction('select_bbox', fnum)
     fig_presenter.bring_to_front(fig)
@@ -36,6 +36,6 @@ def iselect_bbox(ibs, gid, fnum=1,
     except Exception as ex:
         print('<!!!>')
         print('[*interact] Caught: %s %s' % (type(ex), ex))
-        print('[*interact] ROI selection Failed:')
+        print('[*interact] ANNOTATION selection Failed:')
         print('</!!!>')
         raise

@@ -85,13 +85,13 @@ def postload_commands(ibs, back):
     if params.args.update_query_cfg is not None:
         cfgdict = parse_cfgstr_list(params.args.update_query_cfg)
         ibs.update_query_cfg(**cfgdict)
-    if params.args.select_rid is not None:
+    if params.args.select_aid is not None:
         try:
-            ibsfuncs.assert_valid_rids(ibs, (params.args.select_rid,))
+            ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
         except AssertionError:
-            print('Valid RIDs are: %r' % (ibs.get_valid_rids(),))
+            print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
             raise
-        back.select_rid(params.args.select_rid)
+        back.select_aid(params.args.select_aid)
     if params.args.select_gid is not None:
         back.select_gid(params.args.select_gid)
     if params.args.select_nid is not None:

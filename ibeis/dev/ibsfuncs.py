@@ -41,12 +41,12 @@ def inject_ibeis(ibs):
     utool.inject_func_as_method(ibs, utool.inject_func_as_method)
     # List of getters to unflatten
     to_unflatten = [
-        ibs.get_roi_uuids,
+        ibs.get_annotion_uuids,
         ibs.get_image_uuids,
         ibs.get_names,
         ibs.get_image_unixtime,
-        ibs.get_roi_bboxes,
-        ibs.get_roi_thetas,
+        ibs.get_annotion_bboxes,
+        ibs.get_annotion_thetas,
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
@@ -70,40 +70,40 @@ def export_to_hotspotter(ibs):
 
 
 @__injectable
-def get_image_roi_bboxes(ibs, gid_list):
-    rids_list = ibs.get_image_rids(gid_list)
-    bboxes_list = ibs.get_unflat_roi_bboxes(rids_list)
+def get_image_annotion_bboxes(ibs, gid_list):
+    aids_list = ibs.get_image_aids(gid_list)
+    bboxes_list = ibs.get_unflat_annotion_bboxes(aids_list)
     return bboxes_list
 
 
 @__injectable
-def get_image_roi_thetas(ibs, gid_list):
-    rids_list = ibs.get_image_rids(gid_list)
-    thetas_list = ibs.get_unflat_roi_thetas(rids_list)
+def get_image_annotion_thetas(ibs, gid_list):
+    aids_list = ibs.get_image_aids(gid_list)
+    thetas_list = ibs.get_unflat_annotion_thetas(aids_list)
     return thetas_list
 
 
 @__injectable
 def compute_all_chips(ibs):
     print('[ibs] compute_all_chips')
-    rid_list = ibs.get_valid_rids()
-    cid_list = ibs.add_chips(rid_list)
+    aid_list = ibs.get_valid_aids()
+    cid_list = ibs.add_chips(aid_list)
     return cid_list
 
 
 @__injectable
 def compute_all_features(ibs, **kwargs):
     print('[ibs] compute_all_features')
-    rid_list = ibs.get_valid_rids(**kwargs)
-    cid_list = ibs.get_roi_cids(rid_list, ensure=True)
+    aid_list = ibs.get_valid_aids(**kwargs)
+    cid_list = ibs.get_annotion_cids(aid_list, ensure=True)
     fid_list = ibs.add_feats(cid_list)
     return fid_list
 
 
 @__injectable
-def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
+def ensure_annotion_data(ibs, aid_list, chips=True, feats=True):
     if chips or feats:
-        cid_list = ibs.add_chips(rid_list)
+        cid_list = ibs.add_chips(aid_list)
     if feats:
         ibs.add_feats(cid_list)
 
@@ -112,24 +112,24 @@ def ensure_roi_data(ibs, rid_list, chips=True, feats=True):
 def get_empty_gids(ibs, eid=None):
     """ returns gid list without any chips """
     gid_list = ibs.get_valid_gids(eid=eid)
-    nRois_list = ibs.get_image_num_rois(gid_list)
+    nRois_list = ibs.get_image_num_annotations(gid_list)
     empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
     return empty_gids
 
 
 @__injectable
-def convert_empty_images_to_rois(ibs):
-    """ images without chips are given an ROI over the entire image """
+def convert_empty_images_to_annotations(ibs):
+    """ images without chips are given an ANNOTATION over the entire image """
     gid_list = ibs.get_empty_gids()
-    rid_list = ibs.use_images_as_rois(gid_list)
-    return rid_list
+    aid_list = ibs.use_images_as_annotations(gid_list)
+    return aid_list
 
 
 @__injectable
-def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
+def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                        notes_list=None, adjust_percent=0.0):
-    """ Adds an roi the size of the entire image to each image.
-    adjust_percent - shrinks the ROI by percentage on each side
+    """ Adds an annotion the size of the entire image to each image.
+    adjust_percent - shrinks the ANNOTATION by percentage on each side
     """
     pct = adjust_percent  # Alias
     gsize_list = ibs.get_image_sizes(gid_list)
@@ -140,16 +140,16 @@ def use_images_as_rois(ibs, gid_list, name_list=None, nid_list=None,
                    int(gh - (gh * pct * 2)))
                   for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
-    rid_list = ibs.add_rois(gid_list, bbox_list, theta_list,
+    aid_list = ibs.add_annotations(gid_list, bbox_list, theta_list,
                             name_list=name_list, nid_list=nid_list, notes_list=notes_list)
-    return rid_list
+    return aid_list
 
 
 @__injectable
-def assert_valid_rids(ibs, rid_list):
-    valid_rids = set(ibs.get_valid_rids())
-    invalid_rids = [rid for rid in rid_list if rid not in valid_rids]
-    assert len(invalid_rids) == 0, 'invalid rids: %r' % (invalid_rids,)
+def assert_valid_aids(ibs, aid_list):
+    valid_aids = set(ibs.get_valid_aids())
+    invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
+    assert len(invalid_aids) == 0, 'invalid aids: %r' % (invalid_aids,)
 
 
 @__injectable
@@ -159,9 +159,9 @@ def delete_all_features(ibs):
 
 
 @__injectable
-def delete_all_rois(ibs):
-    all_rids = ibs._get_all_rids()
-    ibs.delete_rois(all_rids)
+def delete_all_annotations(ibs):
+    all_aids = ibs._get_all_aids()
+    ibs.delete_annotations(all_aids)
 
 
 @__injectable
@@ -182,18 +182,18 @@ def vd(ibs):
 
 
 @__injectable
-def get_roi_desc_cache(ibs, rids):
+def get_annotion_desc_cache(ibs, aids):
     """ When you have a list with duplicates and you dont want to copy data
     creates a reference to each data object idnexed by a dict """
-    unique_rids = list(set(rids))
-    unique_desc = ibs.get_roi_desc(unique_rids)
-    desc_cache = dict(list(izip(unique_rids, unique_desc)))
+    unique_aids = list(set(aids))
+    unique_desc = ibs.get_annotion_desc(unique_aids)
+    desc_cache = dict(list(izip(unique_aids, unique_desc)))
     return desc_cache
 
 
 @__injectable
-def get_roi_is_hard(ibs, rid_list):
-    notes_list = ibs.get_roi_notes(rid_list)
+def get_annotion_is_hard(ibs, aid_list):
+    notes_list = ibs.get_annotion_notes(aid_list)
     is_hard_list = ['hard' in notes.lower().split() for (notes)
                     in notes_list]
     return is_hard_list
@@ -243,8 +243,8 @@ def is_nid_unknown(ibs, nid_list):
 
 
 @__injectable
-def get_match_text(ibs, rid1, rid2):
-    truth = ibs.get_match_truth(rid1, rid2)
+def get_match_text(ibs, aid1, aid2):
+    truth = ibs.get_match_truth(aid1, aid2)
     text = {
         2: 'NEW Match ',
         0: 'JOIN Match ',
@@ -254,14 +254,14 @@ def get_match_text(ibs, rid1, rid2):
 
 
 @__injectable
-def set_roi_names_to_next_name(ibs, rid_list):
+def set_annotion_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
-    ibs.set_roi_names(rid_list, [next_name] * len(rid_list))
+    ibs.set_annotion_names(aid_list, [next_name] * len(aid_list))
 
 
 @__injectable
-def get_match_truth(ibs, rid1, rid2):
-    nid1, nid2 = ibs.get_roi_nids((rid1, rid2))
+def get_match_truth(ibs, aid1, aid2):
+    nid1, nid2 = ibs.get_annotion_nids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -362,22 +362,22 @@ def assert_and_fix_gpath_slashes(gpath_list):
     return gpath_list
 
 
-def ridstr(rid, ibs=None, notes=False):
+def aidstr(aid, ibs=None, notes=False):
     """ Helper to make a string from an RID """
     if not notes:
-        return 'rid%d' % (rid,)
+        return 'aid%d' % (aid,)
     else:
         assert ibs is not None
-        notes = ibs.get_roi_notes(rid)
-        name  = ibs.get_roi_names(rid)
-        return 'rid%d-%r-%r' % (rid, str(name), str(notes))
+        notes = ibs.get_annotion_notes(aid)
+        name  = ibs.get_annotion_names(aid)
+        return 'aid%d-%r-%r' % (aid, str(name), str(notes))
 
 
-def vsstr(qrid, rid, lite=False):
+def vsstr(qaid, aid, lite=False):
     if lite:
-        return '%d-vs-%d' % (qrid, rid)
+        return '%d-vs-%d' % (qaid, aid)
     else:
-        return 'qrid%d-vs-rid%d' % (qrid, rid)
+        return 'qaid%d-vs-aid%d' % (qaid, aid)
 
 
 def list_images(img_dir, fullpath=True, recursive=True):
@@ -422,7 +422,7 @@ class FMT_KEYS:
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
 
 
-def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[rid:d].{ext}'):
+def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
@@ -487,7 +487,7 @@ def resolve_name_conflicts(gid_list, name_list):
     return unique_gids, unique_names, unique_notes
 
 
-def make_roi_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
+def make_annotion_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
     augment_uuid = utool.util_hash.augment_uuid
     random_uuid = utool.util_hash.random_uuid
     try:
@@ -500,19 +500,19 @@ def make_roi_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
                 utool.printex(ex)
                 print('bbox_list = %r' % (bbox_list,))
                 raise
-        roi_uuid_list = [augment_uuid(img_uuid, bbox, theta)
+        annotion_uuid_list = [augment_uuid(img_uuid, bbox, theta)
                          for img_uuid, bbox, theta
                          in izip(image_uuid_list, bbox_list, theta_list)]
         if not deterministic:
             # Augment determenistic uuid with a random uuid to ensure randomness
             # (this should be ensured in all hardward situations)
-            roi_uuid_list = [augment_uuid(random_uuid(), _uuid)
-                             for _uuid in roi_uuid_list]
+            annotion_uuid_list = [augment_uuid(random_uuid(), _uuid)
+                             for _uuid in annotion_uuid_list]
     except Exception as ex:
-        utool.printex(ex, 'Error building roi_uuids', '[add_roi]',
+        utool.printex(ex, 'Error building annotion_uuids', '[add_annotion]',
                       key_list=['image_uuid_list'])
         raise
-    return roi_uuid_list
+    return annotion_uuid_list
 
 
 def get_species_dbs(species_prefix):
@@ -560,29 +560,29 @@ def merge_databases(ibs_target, ibs_source_list):
         gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
         ibs_target.set_image_aifs(gid_list2, aif_list1)
 
-    def merge_rois(ibs_target, ibs_source):
-        """ merge rois helper """
-        rid_list1   = ibs_source.get_valid_rids()
-        uuid_list1  = ibs_source.get_roi_uuids(rid_list1)
+    def merge_annotations(ibs_target, ibs_source):
+        """ merge annotations helper """
+        aid_list1   = ibs_source.get_valid_aids()
+        uuid_list1  = ibs_source.get_annotion_uuids(aid_list1)
         # Get the images in target_db
-        gid_list1   = ibs_source.get_roi_gids(rid_list1)
-        bbox_list1  = ibs_source.get_roi_bboxes(rid_list1)
-        theta_list1 = ibs_source.get_roi_thetas(rid_list1)
-        name_list1  = ibs_source.get_roi_names(rid_list1, distinguish_unknowns=False)
-        notes_list1 = ibs_source.get_roi_notes(rid_list1)
+        gid_list1   = ibs_source.get_annotion_gids(aid_list1)
+        bbox_list1  = ibs_source.get_annotion_bboxes(aid_list1)
+        theta_list1 = ibs_source.get_annotion_thetas(aid_list1)
+        name_list1  = ibs_source.get_annotion_names(aid_list1, distinguish_unknowns=False)
+        notes_list1 = ibs_source.get_annotion_notes(aid_list1)
 
         image_uuid_list1 = ibs_source.get_image_uuids(gid_list1)
         gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
         image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
         # Assert that the image uuids have not changed
-        assert image_uuid_list1 == image_uuid_list2, 'error merging roi image uuids'
-        rid_list2 = ibs_target.add_rois(gid_list2,
+        assert image_uuid_list1 == image_uuid_list2, 'error merging annotion image uuids'
+        aid_list2 = ibs_target.add_annotations(gid_list2,
                                         bbox_list1,
                                         theta_list=theta_list1,
                                         name_list=name_list1,
                                         notes_list=notes_list1)
-        uuid_list2 = ibs_target.get_roi_uuids(rid_list2)
-        assert uuid_list2 == uuid_list1, 'error merging roi uuids'
+        uuid_list2 = ibs_target.get_annotion_uuids(aid_list2)
+        assert uuid_list2 == uuid_list1, 'error merging annotion uuids'
 
     # Do the merging
     for ibs_source in ibs_source_list:
@@ -590,7 +590,7 @@ def merge_databases(ibs_target, ibs_source_list):
             print('Merging ' + ibs_source.get_dbname() +
                   ' into ' + ibs_target.get_dbname())
             merge_images(ibs_target, ibs_source)
-            merge_rois(ibs_target, ibs_source)
+            merge_annotations(ibs_target, ibs_source)
         except Exception as ex:
             utool.printex(ex, 'error merging ' + ibs_source.get_dbname() +
                           ' into ' + ibs_target.get_dbname())
@@ -599,8 +599,8 @@ def merge_databases(ibs_target, ibs_source_list):
 @__injectable
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
-    rids_list = ibs.get_image_rids(gid_list)
-    flags_list = unflat_map(ibs.get_roi_exemplar_flag, rids_list)
+    aids_list = ibs.get_image_aids(gid_list)
+    flags_list = unflat_map(ibs.get_annotion_exemplar_flag, aids_list)
     delete_gid_flag_list = [not any(flags) for flags in flags_list]
     delete_gid_list = utool.filter_items(gid_list, delete_gid_flag_list)
     ibs.delete_images(delete_gid_list)
@@ -612,8 +612,8 @@ def delete_non_exemplars(ibs):
 def update_exemplar_encounter(ibs):
     eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
     ibs.delete_encounters(eid)
-    rid_list = ibs.get_valid_rids(is_exemplar=True)
-    gid_list = utool.unique_ordered(ibs.get_roi_gids(rid_list))
+    aid_list = ibs.get_valid_aids(is_exemplar=True)
+    gid_list = utool.unique_ordered(ibs.get_annotion_gids(aid_list))
     ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
 
 
@@ -655,23 +655,23 @@ def get_infostr(ibs):
     dbname = ibs.get_dbname()
     workdir = utool.unixpath(ibs.get_workdir())
     num_images = ibs.get_num_images()
-    num_rois = ibs.get_num_rois()
+    num_annotations = ibs.get_num_annotations()
     num_names = ibs.get_num_names()
     infostr = '''
     workdir = %r
     dbname = %r
     num_images = %r
-    num_rois = %r
+    num_annotations = %r
     num_names = %r
-    ''' % (workdir, dbname, num_images, num_rois, num_names)
+    ''' % (workdir, dbname, num_images, num_annotations, num_names)
     return infostr
 
 
 @__injectable(False)
-def print_roi_table(ibs):
-    """ Dumps roi table to stdout """
+def print_annotion_table(ibs):
+    """ Dumps annotion table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['roi_uuid', 'roi_verts']))
+    print(ibs.db.get_table_csv(constants.ANNOTATION_TABLE, exclude_columns=['annotion_uuid', 'annotion_verts']))
 
 
 @__injectable(False)
@@ -745,7 +745,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
         print('\n')
         print(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
     #ibs.print_image_table()
-    #ibs.print_roi_table()
+    #ibs.print_annotion_table()
     #ibs.print_labels_table()
     #ibs.print_alr_table()
     #ibs.print_config_table()
@@ -756,8 +756,8 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 
 #@getter_1to1
 @__injectable
-def is_rid_unknown(ibs, rid_list):
-    nid_list = ibs.get_roi_nids(rid_list)
+def is_aid_unknown(ibs, aid_list):
+    nid_list = ibs.get_annotion_nids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
 

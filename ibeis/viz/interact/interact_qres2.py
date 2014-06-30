@@ -38,7 +38,7 @@ def default_interact_qres_params():
 
 
 class Interact_QueryResult(object):
-    def __init__(self, ibs, qrid2_qres, **kwargs):
+    def __init__(self, ibs, qaid2_qres, **kwargs):
         # Initialize variables. No logic
         self.fnum               = None
         self.nPerPage           = None
@@ -46,11 +46,11 @@ class Interact_QueryResult(object):
         self.on_change_callback = None
         self.ibs = None
         self.nCands = 0  # number of candidate matches
-        self.qrid2_qres = {}
+        self.qaid2_qres = {}
         self.cand_match_list = []
         self.start_index = 0
         self.current_pagenum = -1
-        self.current_match_rids = None
+        self.current_match_aids = None
         self.current_qres       = None
         self.scope = []  # for keeping those widgets alive!
         self.nPages = 0
@@ -73,29 +73,29 @@ class Interact_QueryResult(object):
         # Initialize Logic
         # main data
         self.ibs = ibs
-        self.qrid2_qres = qrid2_qres
+        self.qaid2_qres = qaid2_qres
         # update keyword args
         params = default_interact_qres_params()
         utool.updateif_haskey(params, kwargs)
         self.__dict__.update(**params)
         # initialize matches
-        self.init_candidates(qrid2_qres)
+        self.init_candidates(qaid2_qres)
         # show first page
         self.show_page(0)
 
     def get_default_params(self):
         return default_interact_qres_params()
 
-    def init_candidates(self, qrid2_qres):
-        self.qrid2_qres = qrid2_qres
+    def init_candidates(self, qaid2_qres):
+        self.qaid2_qres = qaid2_qres
         get_candidates = results_organizer.get_automatch_candidates
-        self.cand_match_list = get_candidates(self.qrid2_qres,
+        self.cand_match_list = get_candidates(self.qaid2_qres,
                                               ranks_lt=self.ranks_lt,
                                               directed=False)
-        (qrids, rids, scores, ranks) = self.cand_match_list
-        self.qrids = qrids
-        self.rids = rids
-        self.nCands = len(self.qrids)
+        (qaids, aids, scores, ranks) = self.cand_match_list
+        self.qaids = qaids
+        self.aids = aids
+        self.nCands = len(self.qaids)
         self.nPages = utool.iceil(self.nCands / self.nPerPage)
         #if self.nCands > 0:
         #    index = 0
@@ -106,9 +106,9 @@ class Interact_QueryResult(object):
         #    index = index_list
         #if index < 0 or index >= len(self.cand_match_list): raise AssertionError('no results')
             #return None
-        (qrid, rid, rank, score) = [list_[index] for list_ in self.cand_match_list]
-        self.current_match_rids = (self.qrids[index], self.rids[index])
-        self.current_qres       = self.qrid2_qres[qrid]
+        (qaid, aid, rank, score) = [list_[index] for list_ in self.cand_match_list]
+        self.current_match_aids = (self.qaids[index], self.aids[index])
+        self.current_qres       = self.qaid2_qres[qaid]
 
     def append_button(self, text, divider=None, rect=None, callback=None, size='9%', **kwargs):
         """ Adds a button to the current page """
@@ -163,11 +163,11 @@ class Interact_QueryResult(object):
         # Begin showing matches
         index = self.start_index
         for index in xrange(self.start_index, self.stop_index):
-            self.plot_roimatch(index, draw=False)
+            self.plot_annotionmatch(index, draw=False)
         self.make_hud()
         self.draw()
 
-    def plot_roimatch(self, index, draw=True, make_buttons=True):
+    def plot_annotionmatch(self, index, draw=True, make_buttons=True):
         printDBG('[ishow_qres] starting interaction')
         self.select_candidate_match(index)
         # Get index relative to the page
@@ -183,17 +183,17 @@ class Interact_QueryResult(object):
         #self.ax = ax = df2.gca()
         # Get viz params
         qres = self.current_qres
-        rid1, rid2 = self.current_match_rids
+        aid1, aid2 = self.current_match_aids
         ibs = self.ibs
         kwargs = self.interactkw
         # Vizualize
-        ax = viz_matches.show_matches(ibs, qres, rid2, self_fm=[], fnum=fnum,
+        ax = viz_matches.show_matches(ibs, qres, aid2, self_fm=[], fnum=fnum,
                                       pnum=pnum, **kwargs)[0]
 
         divider = df2.ensure_divider(ax)
 
-        name1, name2 = ibs.get_roi_names([rid1, rid2])
-        #truth = self.ibs.get_match_truth(rid1, rid2)
+        name1, name2 = ibs.get_annotion_names([aid1, aid2])
+        #truth = self.ibs.get_match_truth(aid1, aid2)
 
         if make_buttons:
             butkw = {
@@ -270,27 +270,27 @@ class Interact_QueryResult(object):
         index = ph.get_plotdat(ax, 'index', -1)
         text  = ph.get_plotdat(ax, 'text', -1)
         self.select_candidate_match(index)
-        rid1, rid2 = self.current_match_rids
+        aid1, aid2 = self.current_match_aids
         print(index)
         print(text)
         ibs = self.ibs
         if text.startswith(BREAK_MATCH_PREF):
-            ibs.set_roi_names([rid1, rid2], ['____', '____'])
+            ibs.set_annotion_names([aid1, aid2], ['____', '____'])
         elif text.startswith(NEW_MATCH_PREF):
             next_name = ibsfuncs.make_next_name(ibs)
-            ibs.set_roi_names([rid1, rid2], [next_name, next_name])
+            ibs.set_annotion_names([aid1, aid2], [next_name, next_name])
         elif text.startswith(RENAME1_PREF):
-            name2 = ibs.get_roi_names(rid2)
-            ibs.set_roi_names([rid1], [name2])
+            name2 = ibs.get_annotion_names(aid2)
+            ibs.set_annotion_names([aid1], [name2])
         elif text.startswith(RENAME2_PREF):
-            name1 = ibs.get_roi_names(rid1)
-            ibs.set_roi_names([rid2], [name1])
+            name1 = ibs.get_annotion_names(aid1)
+            ibs.set_annotion_names([aid2], [name1])
         # Emit that something has changed
         self.on_change_callback()
         self.show_page()
 
     def on_figure_clicked(self, event):
-        """ Clicked a match between query roi and result roi:
+        """ Clicked a match between query annotion and result annotion:
             parses the type of click it was and execute the correct
             visualiztion
         """
@@ -305,34 +305,34 @@ class Interact_QueryResult(object):
             printDBG('viztype=%r' % viztype)
             # Clicked a specific matches
             if viztype == 'matches':
-                rid1 = ph.get_plotdat(ax, 'rid1', None)
-                rid2 = ph.get_plotdat(ax, 'rid2', None)
+                aid1 = ph.get_plotdat(ax, 'aid1', None)
+                aid2 = ph.get_plotdat(ax, 'aid2', None)
                 # Ctrl-Click
                 key = '' if event.key is None else event.key
                 print('key = %r' % key)
                 if key.find('control') == 0:
                     print('[viz] result control clicked')
-                    self.on_ctrl_clicked_match(rid1, rid2)
+                    self.on_ctrl_clicked_match(aid1, aid2)
                 # Left-Click
                 else:
                     print('[viz] result clicked')
-                    self.on_clicked_match(rid1, rid2)
+                    self.on_clicked_match(aid1, aid2)
 
-    def on_ctrl_clicked_match(self, rid1, rid2):
-        """ HELPER:  Executed when a result ROI is control-clicked """
-        printDBG('ctrl+clicked rid2=%r' % rid2)
+    def on_ctrl_clicked_match(self, aid1, aid2):
+        """ HELPER:  Executed when a result ANNOTATION is control-clicked """
+        printDBG('ctrl+clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        ishow_sver(self.ibs, rid1, rid2, fnum=fnum_)
+        ishow_sver(self.ibs, aid1, aid2, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         df2.bring_to_front(fig)
 
-    def on_clicked_match(self, rid1, rid2):
-        """ HELPER: Executed when a result ROI is clicked """
-        printDBG('clicked rid2=%r' % rid2)
+    def on_clicked_match(self, aid1, aid2):
+        """ HELPER: Executed when a result ANNOTATION is clicked """
+        printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        qres = self.qrid2_qres[rid1]
-        ishow_matches(self.ibs, qres, rid2, fnum=fnum_)
+        qres = self.qaid2_qres[aid1]
+        ishow_matches(self.ibs, qres, aid2, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         df2.bring_to_front(fig)

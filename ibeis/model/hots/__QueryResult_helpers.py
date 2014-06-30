@@ -79,8 +79,8 @@ def compute_seperability(qres, ibs):
 def show_query(qres, ibs, **kwargs):
     from ibeis import viz
     print('[qr] show_query')
-    qrid = ibs.get_chip_rids(qres.qcid)
-    viz.show_chip(ibs, qrid, **kwargs)
+    qaid = ibs.get_chip_aids(qres.qcid)
+    viz.show_chip(ibs, qaid, **kwargs)
 
 
 def show_analysis(qres, ibs, *args, **kwargs):

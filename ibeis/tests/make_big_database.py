@@ -51,11 +51,11 @@ def MAKE_BIG_DB():
     #with utool.Timer('Add %d Images' % nImages):
     gid_list = ibs.add_images(gpath_list)
 
-    #with utool.Timer('Convert %d Images to rois' % nImages):
-    rid_list = ibsfuncs.use_images_as_rois(ibs, gid_list)
+    #with utool.Timer('Convert %d Images to annotations' % nImages):
+    aid_list = ibsfuncs.use_images_as_annotations(ibs, gid_list)
 
     #with utool.Timer('Compute %d chips' % nImages):
-    cid_list = ibs.add_chips(rid_list)
+    cid_list = ibs.add_chips(aid_list)
 
     #with utool.Timer('Compute %d features' % nImages):
     fid_list = ibs.add_feats(cid_list)

@@ -16,21 +16,21 @@ def TEST_IBS_GETTERS(ibs=None):
         print('ibs is none')
 
     gid_list = ibs.get_valid_gids()
-    rid_list = ibs.get_valid_rids()
+    aid_list = ibs.get_valid_aids()
 
-    # Ensure we grab an even number of rids
-    rid_list   = rid_list[0:(len(rid_list) // 2) * 2]
-    rid_scalar = rid_list[0]
-    rid_numpy  = np.array(rid_list).reshape((len(rid_list) / 2, 2))
+    # Ensure we grab an even number of aids
+    aid_list   = aid_list[0:(len(aid_list) // 2) * 2]
+    aid_scalar = aid_list[0]
+    aid_numpy  = np.array(aid_list).reshape((len(aid_list) / 2, 2))
 
     # tests that scalar, list, and numpy getters are working correctly
-    bboxes_list   = ibs.get_roi_bboxes(rid_list)
-    bboxes_scalar = ibs.get_roi_bboxes(rid_scalar)
-    bboxes_numpy  = ibs.get_roi_bboxes(rid_numpy)
+    bboxes_list   = ibs.get_annotion_bboxes(aid_list)
+    bboxes_scalar = ibs.get_annotion_bboxes(aid_scalar)
+    bboxes_numpy  = ibs.get_annotion_bboxes(aid_numpy)
 
-    kpts_list   = ibs.get_roi_kpts(rid_list)
-    kpts_scalar = ibs.get_roi_kpts(rid_scalar)
-    kpts_numpy  = ibs.get_roi_kpts(rid_numpy)
+    kpts_list   = ibs.get_annotion_kpts(aid_list)
+    kpts_scalar = ibs.get_annotion_kpts(aid_scalar)
+    kpts_numpy  = ibs.get_annotion_kpts(aid_numpy)
 
     def assert_getter_output(list_, scalar, numpy_, label=''):
         item1 = list_[0]

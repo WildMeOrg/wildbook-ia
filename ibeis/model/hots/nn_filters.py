@@ -51,33 +51,33 @@ def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
     return qfx2_selnorm
 
 
-def _nn_normalized_weight(normweight_fn, ibs, qrid2_nns, qreq):
+def _nn_normalized_weight(normweight_fn, ibs, qaid2_nns, qreq):
     #import utool
-    #utool.stash_testdata('qrid2_nns')
+    #utool.stash_testdata('qaid2_nns')
     # Only valid for vsone
     K = qreq.cfg.nn_cfg.K
     Knorm = qreq.cfg.nn_cfg.Knorm
     rule  = qreq.cfg.nn_cfg.normalizer_rule
-    qrid2_weight = {qrid: None for qrid in qrid2_nns.iterkeys()}
-    qrid2_selnorms = {qrid: None for qrid in qrid2_nns.iterkeys()}
+    qaid2_weight = {qaid: None for qaid in qaid2_nns.iterkeys()}
+    qaid2_selnorms = {qaid: None for qaid in qaid2_nns.iterkeys()}
     # Database feature index to chip index
-    dx2_rid = qreq.data_index.ax2_rid
+    dx2_aid = qreq.data_index.ax2_aid
     dx2_fx = qreq.data_index.ax2_fx
-    for qrid in qrid2_nns.iterkeys():
-        (qfx2_dx, qfx2_dist) = qrid2_nns[qrid]
+    for qaid in qaid2_nns.iterkeys():
+        (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_nndist = qfx2_dist[:, 0:K]
         if rule == 'last':
             # Use the last normalizer
             qfx2_normk = np.zeros(len(qfx2_dist), np.int32) + (K + Knorm - 1)
         elif rule == 'name':
             # Get the top names you do not want your normalizer to be from
-            qnid = ibs.get_roi_nids(qrid)
+            qnid = ibs.get_annotion_nids(qaid)
             nTop = max(1, K)
             qfx2_topdx = qfx2_dx.T[0:nTop, :].T
             qfx2_normdx = qfx2_dx.T[-Knorm:].T
             # Apply temporary uniquish name
-            qfx2_topnid = ibs.get_roi_nids(dx2_rid[qfx2_topdx])
-            qfx2_normnid = ibs.get_roi_nids(dx2_rid[qfx2_normdx])
+            qfx2_topnid = ibs.get_annotion_nids(dx2_aid[qfx2_topdx])
+            qfx2_normnid = ibs.get_annotion_nids(dx2_aid[qfx2_normdx])
             # Inspect the potential normalizers
             qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
             qfx2_normk += (K + Knorm)  # convert form negative to pos indexes
@@ -87,7 +87,7 @@ def _nn_normalized_weight(normweight_fn, ibs, qrid2_nns, qreq):
                          for (dists, normk) in izip(qfx2_dist, qfx2_normk)]
         qfx2_normdx   = [dxs[normk]
                          for (dxs, normk)   in izip(qfx2_dx, qfx2_normk)]
-        qfx2_normmeta = [(dx2_rid[dx], dx2_fx[dx], normk)
+        qfx2_normmeta = [(dx2_aid[dx], dx2_fx[dx], normk)
                          for (normk, dx) in izip(qfx2_normk, qfx2_normdx)]
         qfx2_normdist = array(qfx2_normdist)
         qfx2_normdx   = array(qfx2_normdx)
@@ -96,9 +96,9 @@ def _nn_normalized_weight(normweight_fn, ibs, qrid2_nns, qreq):
         qfx2_normdist.shape = (len(qfx2_dx), 1)
         qfx2_normweight = normweight_fn(qfx2_nndist, qfx2_normdist)
         # Output
-        qrid2_weight[qrid]   = qfx2_normweight
-        qrid2_selnorms[qrid] = qfx2_normmeta
-    return qrid2_weight, qrid2_selnorms
+        qaid2_weight[qaid]   = qfx2_normweight
+        qaid2_selnorms[qaid] = qfx2_normmeta
+    return qaid2_weight, qaid2_selnorms
 
 
 def nn_ratio_weight(*args):
@@ -113,23 +113,23 @@ def nn_lnrat_weight(*args):
     return _nn_normalized_weight(LNRAT_fn, *args)
 
 
-def nn_bursty_weight(ibs, qrid2_nns, qreq):
+def nn_bursty_weight(ibs, qaid2_nns, qreq):
     'Filters matches to a feature which is matched > burst_thresh #times'
     # Half-generalized to vsmany
     # Assume the first nRows-1 rows are the matches (last row is normalizer)
     K = qreq.cfg.nn_cfg.K
-    qrid2_bursty_weight = {qrid: None for qrid in qrid2_nns.iterkeys()}
-    qrid2_metaweight = {qrid: None for qrid in qrid2_nns.iterkeys()}
-    for qrid in qrid2_nns.iterkeys():
-        (qfx2_dx, qfx2_dist) = qrid2_nns[qrid]
+    qaid2_bursty_weight = {qaid: None for qaid in qaid2_nns.iterkeys()}
+    qaid2_metaweight = {qaid: None for qaid in qaid2_nns.iterkeys()}
+    for qaid in qaid2_nns.iterkeys():
+        (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_nn = qfx2_dx[:, 0:K]
         dx2_frequency  = np.bincount(qfx2_nn.flatten())
         qfx2_bursty = dx2_frequency[qfx2_nn]
-        qrid2_bursty_weight[qrid] = qfx2_bursty
-    return qrid2_bursty_weight, qrid2_metaweight
+        qaid2_bursty_weight[qaid] = qfx2_bursty
+    return qaid2_bursty_weight, qaid2_metaweight
 
 
-def nn_recip_weight(ibs, qrid2_nns, qreq):
+def nn_recip_weight(ibs, qaid2_nns, qreq):
     'Filters a nearest neighbor to only reciprocals'
     data_index = qreq.data_index
     K = qreq.cfg.nn_cfg.K
@@ -137,10 +137,10 @@ def nn_recip_weight(ibs, qrid2_nns, qreq):
     checks = qreq.cfg.nn_cfg.checks
     dx2_data = data_index.ax2_data
     data_flann = data_index.flann
-    qrid2_recip_weight = {qrid: None for qrid in qrid2_nns.iterkeys()}
-    qrid2_metaweight = {qrid: None for qrid in qrid2_nns.iterkeys()}
-    for qrid in qrid2_nns.iterkeys():
-        (qfx2_dx, qfx2_dist) = qrid2_nns[qrid]
+    qaid2_recip_weight = {qaid: None for qaid in qaid2_nns.iterkeys()}
+    qaid2_metaweight = {qaid: None for qaid in qaid2_nns.iterkeys()}
+    for qaid in qaid2_nns.iterkeys():
+        (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         nQuery = len(qfx2_dx)
         dim = dx2_data.shape[1]
         # Get the original K nearest features
@@ -154,72 +154,72 @@ def nn_recip_weight(ibs, qrid2_nns, qreq):
         qfx2_recipmaxdist = _nn2_rdists.max(2)
         # Test if nearest neighbor distance is less than reciprocal distance
         qfx2_reciprocalness = qfx2_recipmaxdist - qx2_nndist
-        qrid2_recip_weight[qrid] = qfx2_reciprocalness
-    return qrid2_recip_weight, qrid2_metaweight
+        qaid2_recip_weight[qaid] = qfx2_reciprocalness
+    return qaid2_recip_weight, qaid2_metaweight
 
 
-def nn_bboxdist_weight(ibs, qrid2_nns, qreq):
+def nn_bboxdist_weight(ibs, qaid2_nns, qreq):
     'Filters a matches to those within roughly the same spatial arangement'
     data_index = qreq.data_index
     K = qreq.cfg.nn_cfg.K
-    dx2_rid = data_index.ax2_rid
+    dx2_aid = data_index.ax2_aid
     dx2_fx = data_index.ax2_fx
-    rid2_bboxdist_weight = {}
-    for qrid in qrid2_nns.iterkeys():
-        (qfx2_dx, qfx2_dist) = qrid2_nns[qrid]
+    aid2_bboxdist_weight = {}
+    for qaid in qaid2_nns.iterkeys():
+        (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_nn = qfx2_dx[:, 0:K]
         # Get matched chip sizes #.0300s
-        qfx2_kpts = ibs.get_roi_kpts(qrid)
+        qfx2_kpts = ibs.get_annotion_kpts(qaid)
         nQuery = len(qfx2_dx)
-        qfx2_rid = dx2_rid[qfx2_nn]
+        qfx2_aid = dx2_aid[qfx2_nn]
         qfx2_fx = dx2_fx[qfx2_nn]
-        qfx2_chipsize2 = array([ibs.get_roi_chipsizes(rid) for rid in qfx2_rid.flat])
+        qfx2_chipsize2 = array([ibs.get_annotion_chipsizes(aid) for aid in qfx2_aid.flat])
         qfx2_chipsize2.shape = (nQuery, K, 2)
         qfx2_chipdiag2 = np.sqrt((qfx2_chipsize2 ** 2).sum(2))
         # Get query relative xy keypoints #.0160s / #.0180s (+cast)
-        qdiag = np.sqrt((array(ibs.get_roi_chipsizes(qrid)) ** 2).sum())
+        qdiag = np.sqrt((array(ibs.get_annotion_chipsizes(qaid)) ** 2).sum())
         qfx2_xy1 = array(qfx2_kpts[:, 0:2], np.float)
         qfx2_xy1[:, 0] /= qdiag
         qfx2_xy1[:, 1] /= qdiag
         # Get database relative xy keypoints
-        qfx2_xy2 = array([ibs.get_roi_kpts(rid)[fx, 0:2] for (rid, fx) in
-                          izip(qfx2_rid.flat, qfx2_fx.flat)], np.float)
+        qfx2_xy2 = array([ibs.get_annotion_kpts(aid)[fx, 0:2] for (aid, fx) in
+                          izip(qfx2_aid.flat, qfx2_fx.flat)], np.float)
         qfx2_xy2.shape = (nQuery, K, 2)
         qfx2_xy2[:, :, 0] /= qfx2_chipdiag2
         qfx2_xy2[:, :, 1] /= qfx2_chipdiag2
         # Get the relative distance # .0010s
         qfx2_K_xy1 = np.rollaxis(np.tile(qfx2_xy1, (K, 1, 1)), 1)
         qfx2_xydist = ((qfx2_K_xy1 - qfx2_xy2) ** 2).sum(2)
-        rid2_bboxdist_weight[qrid] = qfx2_xydist
-    return rid2_bboxdist_weight
+        aid2_bboxdist_weight[qaid] = qfx2_xydist
+    return aid2_bboxdist_weight
 
 
-def nn_scale_weight(ibs, qrid2_nns, qreq):
+def nn_scale_weight(ibs, qaid2_nns, qreq):
     # Filter by scale for funzies
     K = qreq.cfg.nn_cfg.K
-    rid2_scale_weight = {qrid: None for qrid in qrid2_nns.iterkeys()}
-    qrid2_metaweight = {qrid: None for qrid in qrid2_nns.iterkeys()}
+    aid2_scale_weight = {qaid: None for qaid in qaid2_nns.iterkeys()}
+    qaid2_metaweight = {qaid: None for qaid in qaid2_nns.iterkeys()}
     data_index = qreq.data_index
     K = qreq.cfg.nn_cfg.K
-    dx2_rid = data_index.ax2_rid
+    dx2_aid = data_index.ax2_aid
     dx2_fx = data_index.ax2_fx
-    for qrid in qrid2_nns.iterkeys():
-        (qfx2_dx, qfx2_dist) = qrid2_nns[qrid]
-        qfx2_kpts = ibs.get_roi_kpts(qrid)
+    for qaid in qaid2_nns.iterkeys():
+        (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
+        qfx2_kpts = ibs.get_annotion_kpts(qaid)
         qfx2_nn = qfx2_dx[:, 0:K]
         nQuery = len(qfx2_dx)
-        qfx2_rid = dx2_rid[qfx2_nn]
+        qfx2_aid = dx2_aid[qfx2_nn]
         qfx2_fx = dx2_fx[qfx2_nn]
         qfx2_det1 = array(qfx2_kpts[:, [2, 4]], np.float).prod(1)
         qfx2_det1 = np.sqrt(1.0 / qfx2_det1)
         qfx2_K_det1 = np.rollaxis(np.tile(qfx2_det1, (K, 1)), 1)
-        qfx2_det2 = array([ibs.get_roi_kpts(rid)[fx, [2, 4]] for (rid, fx) in
-                           izip(qfx2_rid.flat, qfx2_fx.flat)], np.float).prod(1)
+        qfx2_det2 = array([ibs.get_annotion_kpts(aid)[fx, [2, 4]] for (aid, fx) in
+                           izip(qfx2_aid.flat, qfx2_fx.flat)], np.float).prod(1)
         qfx2_det2.shape = (nQuery, K)
         qfx2_det2 = np.sqrt(1.0 / qfx2_det2)
         qfx2_scaledist = qfx2_det2 / qfx2_K_det1
-        rid2_scale_weight[qrid] = qfx2_scaledist
-    return rid2_scale_weight, qrid2_metaweight
+        aid2_scale_weight[qaid] = qfx2_scaledist
+    return aid2_scale_weight, qaid2_metaweight
 
 
 # TODO: Make a more elegant way of mapping weighting parameters to weighting

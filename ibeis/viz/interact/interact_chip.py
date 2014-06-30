@@ -11,8 +11,8 @@ from plottool import interact_helpers as ih
 
 
 # CHIP INTERACTION 2
-def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
-    vh.ibsfuncs.assert_valid_rids(ibs, (rid,))
+def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
+    vh.ibsfuncs.assert_valid_aids(ibs, (aid,))
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
     fig = ih.begin_interaction('chip', fnum)
@@ -21,9 +21,9 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
-        chip = ibs.get_roi_chips(rid)
-        kp = ibs.get_roi_kpts(rid)[fx]
-        sift = ibs.get_roi_desc(rid)[fx]
+        chip = ibs.get_annotion_chips(aid)
+        kp = ibs.get_annotion_kpts(aid)[fx]
+        sift = ibs.get_annotion_desc(aid)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots
@@ -36,7 +36,7 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
         kwargs['pts'] = mode_ptr[0]  == 2
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
-        viz.show_chip(ibs, rid, fnum=fnum, pnum=pnum, **kwargs)
+        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, **kwargs)
         df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
@@ -53,7 +53,7 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
                 _chip_view(**kwargs)
                 ih.disconnect_callback(fig, 'button_press_event')
             elif viztype == 'chip':
-                kpts = ibs.get_roi_kpts(rid)
+                kpts = ibs.get_annotion_kpts(aid)
                 if len(kpts) > 0:
                     fx = utool.nearest_point(x, y, kpts)[0]
                     print('... clicked fx=%r' % fx)
@@ -63,7 +63,7 @@ def ishow_chip(ibs, rid, fnum=2, fx=None, **kwargs):
             elif viztype in ['warped', 'unwarped']:
                 fx = vh.get_ibsdat(ax, 'fx')
                 if fx is not None and viztype == 'warped':
-                    viz.show_keypoint_gradient_orientations(ibs, rid, fx, fnum=df2.next_fnum())
+                    viz.show_keypoint_gradient_orientations(ibs, aid, fx, fnum=df2.next_fnum())
             else:
                 print('...Unknown viztype: %r' % viztype)
         viz.draw()

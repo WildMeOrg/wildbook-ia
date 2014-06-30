@@ -23,11 +23,11 @@ RANKS_LT = 2
 class QueryResultsWidget(APIItemWidget):
     """ Window for gui inspection """
 
-    def __init__(qres_wgt, ibs, qrid2_qres, parent=None, callback=None, **kwargs):
+    def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None, **kwargs):
         print('[qres_wgt] Init QueryResultsWidget')
         APIItemWidget.__init__(qres_wgt, parent=parent)
         # Set results data
-        qres_wgt.set_query_results(ibs, qrid2_qres, **kwargs)
+        qres_wgt.set_query_results(ibs, qaid2_qres, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
             callback = lambda: None
@@ -38,11 +38,11 @@ class QueryResultsWidget(APIItemWidget):
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
 
-    def set_query_results(qres_wgt, ibs, qrid2_qres, **kwargs):
+    def set_query_results(qres_wgt, ibs, qaid2_qres, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
         qres_wgt.ibs = ibs
-        qres_wgt.qrid2_qres = qrid2_qres
-        qres_wgt.qres_api = make_qres_api(ibs, qrid2_qres, **kwargs)
+        qres_wgt.qaid2_qres = qaid2_qres
+        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, **kwargs)
         headers = qres_wgt.qres_api.make_headers()
         APIItemWidget.change_headers(qres_wgt, headers)
 
@@ -86,7 +86,7 @@ class QueryResultsWidget(APIItemWidget):
     def on_contextMenuRequested(iqrw, qtindex, qpos):
         printDBG('[newgui] contextmenu')
         guitool.popup_menu(iqrw, qpos, [
-            ('view match rois', lambda: show_match_at(iqrw, qtindex)),
+            ('view match annotations', lambda: show_match_at(iqrw, qtindex)),
             ('review match', lambda: review_match_at(iqrw, qtindex)),
         ])
 
@@ -95,9 +95,9 @@ def show_match_at(qres_wgt, qtindex):
     print('interact')
     model = qtindex.model()
     row = qtindex.row()
-    rid  = model.get_header_data('rid', row)
-    qrid = model.get_header_data('qrid', row)
-    fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qrid2_qres[qrid], rid)
+    aid  = model.get_header_data('aid', row)
+    qaid = model.get_header_data('qaid', row)
+    fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid)
     fig_presenter.bring_to_front(fig)
 
 
@@ -106,36 +106,36 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
     ibs = qres_wgt.ibs
     model = qtindex.model()
     row = qtindex.row()
-    rid1 = model.get_header_data('qrid', row)
-    rid2 = model.get_header_data('rid', row)
+    aid1 = model.get_header_data('qaid', row)
+    aid2 = model.get_header_data('aid', row)
     model = qtindex.model()
     update_callback = model._update
     backend_callback = qres_wgt.callback
     if quickmerge:
-        is_unknown = ibs.is_rid_unknown((rid1, rid2))
+        is_unknown = ibs.is_aid_unknown((aid1, aid2))
         if all(is_unknown):
-            ibs.set_roi_names_to_next_name((rid1, rid2))
+            ibs.set_annotion_names_to_next_name((aid1, aid2))
             update_callback()
             backend_callback()
             return
         elif is_unknown[0]:
-            ibs.set_roi_nids(rid1, ibs.get_roi_nids(rid2))
+            ibs.set_annotion_nids(aid1, ibs.get_annotion_nids(aid2))
             update_callback()
             backend_callback()
             return
         elif is_unknown[1]:
-            ibs.set_roi_nids(rid2, ibs.get_roi_nids(rid1))
+            ibs.set_annotion_nids(aid2, ibs.get_annotion_nids(aid1))
             update_callback()
             backend_callback()
             return
-    review_match(ibs, rid1, rid2, update_callback=update_callback,
+    review_match(ibs, aid1, aid2, update_callback=update_callback,
                  backend_callback=backend_callback)
 
 
-def review_match(ibs, rid1, rid2, update_callback=None, backend_callback=None):
-    print('Review match: ' + ibsfuncs.vsstr(rid1, rid2))
+def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None):
+    print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact.interact_name import MatchVerificationInteraction
-    mvinteract = MatchVerificationInteraction(ibs, rid1, rid2, fnum=64,
+    mvinteract = MatchVerificationInteraction(ibs, aid1, aid2, fnum=64,
                                               update_callback=update_callback,
                                               backend_callback=backend_callback)
     ih.register_interaction(mvinteract)
@@ -264,27 +264,27 @@ class CustomAPI(object):
         return [partial(self.set, column) for column in xrange(self.nCols)]
 
 
-def get_status(ibs, rid_pair):
+def get_status(ibs, aid_pair):
     """ Data role for status column
     FIXME: no other function in this project takes a tuple of scalars as an
     argument. Everything else is written in the context of lists, This function
     should follow the same paradigm, but CustomAPI will have to change.
     """
-    rid1, rid2 = rid_pair
-    assert not utool.isiterable(rid1), 'rid1=%r, rid2=%r' % (rid1, rid2)
-    assert not utool.isiterable(rid2), 'rid1=%r, rid2=%r' % (rid1, rid2)
-    #text  = ibsfuncs.vsstr(rid1, rid2)
-    text = ibs.get_match_text(rid1, rid2)
+    aid1, aid2 = aid_pair
+    assert not utool.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not utool.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    #text  = ibsfuncs.vsstr(aid1, aid2)
+    text = ibs.get_match_text(aid1, aid2)
     if text is None:
         raise AssertionError('impossible state inspect_gui')
     return text
 
 
-def get_status_bgrole(ibs, rid_pair):
+def get_status_bgrole(ibs, aid_pair):
     """ Background role for status column """
-    rid1, rid2 = rid_pair
-    truth = ibs.get_match_truth(rid1, rid2)
-    #print('get status bgrole: %r truth=%r' % (rid_pair, truth))
+    aid1, aid2 = aid_pair
+    truth = ibs.get_match_truth(aid1, aid2)
+    #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
     truth_color = vh.get_truth_color(truth, base255=True,
                                         lighten_amount=0.35)
     return truth_color
@@ -293,51 +293,51 @@ def get_status_bgrole(ibs, rid_pair):
 def get_buttontup(ibs, qtindex):
     model = qtindex.model()
     row = qtindex.row()
-    rid1 = model.get_header_data('qrid', row)
-    rid2 = model.get_header_data('rid', row)
-    truth = ibs.get_match_truth(rid1, rid2)
+    aid1 = model.get_header_data('qaid', row)
+    aid2 = model.get_header_data('aid', row)
+    truth = ibs.get_match_truth(aid1, aid2)
     truth_color = vh.get_truth_color(truth, base255=True,
                                         lighten_amount=0.35)
-    truth_text = ibs.get_match_text(rid1, rid2)
-    callback = partial(review_match, ibs, rid1, rid2)
-    #print('get_button, rid1=%r, rid2=%r, row=%r, truth=%r' % (rid1, rid2, row, truth))
+    truth_text = ibs.get_match_text(aid1, aid2)
+    callback = partial(review_match, ibs, aid1, aid2)
+    #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2, row, truth))
     buttontup = (truth_text, callback, truth_color)
     return buttontup
 
 
-def make_qres_api(ibs, qrid2_qres, ranks_lt=None):
+def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     """
     Builds columns which are displayable in a ColumnListTableWidget
     """
     print('[inspect] make_qres_api')
     ranks_lt = ranks_lt if ranks_lt is not None else RANKS_LT
     candidate_matches = results_organizer.get_automatch_candidates(
-        qrid2_qres, ranks_lt=ranks_lt)
+        qaid2_qres, ranks_lt=ranks_lt)
     # Get extra info
-    (qrids, rids, scores, ranks) = candidate_matches
-    #qnames = ibs.get_roi_names(qrids)
-    #names = ibs.get_roi_names(rids)
-    #truths = np.array((ibs.get_roi_nids(qrids) - ibs.get_roi_nids(rids)) == 0)
-    #buttons = [get_review_match_buttontup(rid1, rid2) for (rid1, rid2) in izip(qrids, rids)]
+    (qaids, aids, scores, ranks) = candidate_matches
+    #qnames = ibs.get_annotion_names(qaids)
+    #names = ibs.get_annotion_names(aids)
+    #truths = np.array((ibs.get_annotion_nids(qaids) - ibs.get_annotion_nids(aids)) == 0)
+    #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in izip(qaids, aids)]
 
-    #def get_review_match_buttontup(rid1, rid2):
+    #def get_review_match_buttontup(aid1, aid2):
     #    """ A buttontup is a string and a callback """
-    #    return get_button  # ('Merge', partial(review_match, rid1, rid2))
+    #    return get_button  # ('Merge', partial(review_match, aid1, aid2))
 
     def get_rowid_button(rowid):
         return get_buttontup
-    #opts = np.zeros(len(qrids))
+    #opts = np.zeros(len(qaids))
     # Define column information
 
     # TODO: MAKE A PAIR IDER AND JUST USE EXISTING API_ITEM_MODEL FUNCTIONALITY
     # TO GET THOSE PAIRWISE INDEXES
 
-    col_name_list = ['qrid', 'rid', 'status', 'querythumb', 'resthumb', 'qname',
+    col_name_list = ['qaid', 'aid', 'status', 'querythumb', 'resthumb', 'qname',
                      'name', 'score', 'rank', ]
 
     col_types_dict = dict([
-        ('qrid',       int),
-        ('rid',        int),
+        ('qaid',       int),
+        ('aid',        int),
         ('review',    'BUTTON'),
         ('status',     str),
         ('querythumb', 'PIXMAP'),
@@ -351,14 +351,14 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None):
     ])
 
     col_getters_dict = dict([
-        ('qrid',       np.array(qrids)),
-        ('rid',        np.array(rids)),
+        ('qaid',       np.array(qaids)),
+        ('aid',        np.array(aids)),
         ('review',     get_rowid_button),
         ('status',     partial(get_status, ibs)),
-        ('querythumb', ibs.get_roi_chip_thumbtup),
-        ('resthumb',   ibs.get_roi_chip_thumbtup),
-        ('qname',      ibs.get_roi_names),
-        ('name',       ibs.get_roi_names),
+        ('querythumb', ibs.get_annotion_chip_thumbtup),
+        ('resthumb',   ibs.get_annotion_chip_thumbtup),
+        ('qname',      ibs.get_annotion_names),
+        ('name',       ibs.get_annotion_names),
         ('score',      np.array(scores)),
         ('rank',       np.array(ranks)),
         #('truth',     truths),
@@ -369,15 +369,15 @@ def make_qres_api(ibs, qrid2_qres, ranks_lt=None):
         'status': partial(get_status_bgrole, ibs),
     }
     col_ider_dict = {
-        'status'     : ('qrid', 'rid'),
-        'querythumb' : ('qrid'),
-        'resthumb'   : ('rid'),
-        'qname'      : ('qrid'),
-        'name'       : ('rid'),
+        'status'     : ('qaid', 'aid'),
+        'querythumb' : ('qaid'),
+        'resthumb'   : ('aid'),
+        'qname'      : ('qaid'),
+        'name'       : ('aid'),
     }
     col_setter_dict = {
-        'qname': ibs.set_roi_names,
-        'name': ibs.set_roi_names
+        'qname': ibs.set_annotion_names,
+        'name': ibs.set_annotion_names
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
     sortby = 'score'

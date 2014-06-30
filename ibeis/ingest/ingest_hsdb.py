@@ -116,7 +116,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
     images_gid_to_gid = {images_gid: gid for (images_gid, gid) in izip(image_gid_list, gid_list)}
 
-    #get rois from chip_table
+    #get annotations from chip_table
     chip_bbox_list   = []
     chip_theta_list  = []
     chip_nid_list    = []
@@ -155,13 +155,13 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 chip_note_list.append(notes)
 
     # Add Chips Table
-    ibs.add_rois(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
+    ibs.add_annotations(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
 
     # Set all injested RIDS as exemplars
-    rid_list = ibs.get_valid_rids()
-    flag_list = [True] * len(rid_list)
-    ibs.set_roi_exemplar_flag(rid_list, flag_list)
-    assert(all(ibs.get_roi_exemplar_flag(rid_list))), 'exemplars not set correctly'
+    aid_list = ibs.get_valid_aids()
+    flag_list = [True] * len(aid_list)
+    ibs.set_annotion_exemplar_flag(aid_list, flag_list)
+    assert(all(ibs.get_annotion_exemplar_flag(aid_list))), 'exemplars not set correctly'
 
     # Write file flagging successful conversion
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:

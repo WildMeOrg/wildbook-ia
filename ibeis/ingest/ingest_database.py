@@ -45,36 +45,36 @@ def ingest_testdb1(db):
         unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
         unixtime_list = unixtimes_even + unixtimes_odd
         ibs.set_image_unixtime(gid_list, unixtime_list)
-        # Unname first rid in every name
-        rid_list = ibs.get_valid_rids()
-        nid_list = ibs.get_roi_nids(rid_list)
+        # Unname first aid in every name
+        aid_list = ibs.get_valid_aids()
+        nid_list = ibs.get_annotion_nids(aid_list)
         unique_flag = utool.flag_unique_items(nid_list)
         unique_nids = utool.filter_items(nid_list, unique_flag)
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
         flag_list = map(all, izip(plural_flag, unique_flag))
-        flagged_rids = utool.filter_items(rid_list, flag_list)
-        new_nids = [ibs.UNKNOWN_NID] * len(flagged_rids)
+        flagged_aids = utool.filter_items(aid_list, flag_list)
+        new_nids = [ibs.UNKNOWN_NID] * len(flagged_aids)
         if utool.VERYVERBOSE:
             def print2(*args):
                 print('[post_testdb1] ' + ', '.join(args))
-            print2('rid_list=%r' % rid_list)
+            print2('aid_list=%r' % aid_list)
             print2('nid_list=%r' % nid_list)
             print2('unique_flag=%r' % unique_flag)
             print2('plural_flag=%r' % plural_flag)
             print2('unique_nids=%r' % unique_nids)
             print2('flag_list=%r' % flag_list)
             print2('flagged_nids=%r' % flagged_nids)
-            print2('flagged_rids=%r' % flagged_rids)
+            print2('flagged_aids=%r' % flagged_aids)
             print2('new_nids=%r' % new_nids)
-        # Unname, some rois for testing
-        ibs.set_roi_nids(flagged_rids, new_nids)
-        # Add all rois with names as exemplars
+        # Unname, some annotations for testing
+        ibs.set_annotion_nids(flagged_aids, new_nids)
+        # Add all annotations with names as exemplars
         from ibeis.control.IBEISControl import IBEISController
         assert isinstance(ibs, IBEISController)
-        unflagged_rids = utool.get_dirty_items(rid_list, flag_list)
-        exemplar_flags = [True] * len(unflagged_rids)
-        ibs.set_roi_exemplar_flag(unflagged_rids, exemplar_flags)
+        unflagged_aids = utool.get_dirty_items(aid_list, flag_list)
+        exemplar_flags = [True] * len(unflagged_aids)
+        ibs.set_annotion_exemplar_flag(unflagged_aids, exemplar_flags)
         return None
     return Ingestable(db, ingest_type='named_images',
                       fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
@@ -185,8 +185,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gid_list = utool.filter_Nones(gid_list_)
     unique_gids, unique_names, unique_notes = ibsfuncs.resolve_name_conflicts(
         gid_list, name_list)
-    # Add ROIs with names and notes
-    rid_list = ibsfuncs.use_images_as_rois(ibs, unique_gids,
+    # Add ANNOTATIONs with names and notes
+    aid_list = ibsfuncs.use_images_as_annotations(ibs, unique_gids,
                                            name_list=unique_names,
                                            notes_list=unique_notes,
                                            adjust_percent=adjust_percent)
@@ -197,11 +197,11 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     # Print to show success
     #ibs.print_image_table()
     #ibs.print_tables()
-    #ibs.print_roi_table()
+    #ibs.print_annotion_table()
     #ibs.print_alr_table()
     #ibs.print_label_table()
     #ibs.print_image_table()
-    return rid_list
+    return aid_list
 
 
 def list_ingestable_images(img_dir, fullpath=True, recursive=True):

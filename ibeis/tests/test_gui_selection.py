@@ -13,20 +13,20 @@ def TEST_GUI_SELECTION(ibs, back):
               ''')
     valid_gids = ibs.get_valid_gids()
     print('''
-              get_valid_rids
+              get_valid_aids
               ''')
-    valid_rids = ibs.get_valid_rids()
+    valid_aids = ibs.get_valid_aids()
 
     print('''
-    * len(valid_rids) = %r
+    * len(valid_aids) = %r
     * len(valid_gids) = %r
-    ''' % (len(valid_rids), len(valid_gids)))
+    ''' % (len(valid_aids), len(valid_gids)))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
 
     gid = valid_gids[0]
-    rid_list = ibs.get_image_rids(gid)
-    rid = rid_list[-1]
-    back.select_gid(gid, rids=[rid])
+    aid_list = ibs.get_image_aids(gid)
+    aid = aid_list[-1]
+    back.select_gid(gid, aids=[aid])
 
     return locals()
 

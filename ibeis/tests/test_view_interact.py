@@ -10,33 +10,33 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_INTERACT]'
 def TEST_INTERACT(ibs):
 
     valid_gids = ibs.get_valid_gids()
-    valid_rids = ibs.get_valid_rids()
+    valid_aids = ibs.get_valid_aids()
 
     print('''
-    * len(valid_rids) = %r
+    * len(valid_aids) = %r
     * len(valid_gids) = %r
-    ''' % (len(valid_rids), len(valid_gids)))
+    ''' % (len(valid_aids), len(valid_gids)))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
     gindex = int(utool.get_arg('--gx', default=0))
     cindex = int(utool.get_arg('--rx', default=0))
     gid = valid_gids[gindex]
-    rid_list = ibs.get_image_rids(gid)
-    rid = rid_list[cindex]
+    aid_list = ibs.get_image_aids(gid)
+    aid = aid_list[cindex]
 
     #----------------------
     #print('Show Image')
-    rids = rid_list[1:3]
-    interact.ishow_image(ibs, gid, rids=rids, fnum=1)
+    aids = aid_list[1:3]
+    interact.ishow_image(ibs, gid, aids=aids, fnum=1)
 
     #----------------------
     #print('Show Chip')
-    interact.ishow_chip(ibs, rid, in_image=False, fnum=2)
-    #interact.ishow_chip(ibs, rid, in_image=True, fnum=3)
+    interact.ishow_chip(ibs, aid, in_image=False, fnum=2)
+    #interact.ishow_chip(ibs, aid, in_image=True, fnum=3)
 
     #----------------------
     #print('Show Query')
-    #rid1 = rid
-    #qcid2_qres = ibs.query_all([rid1])
+    #aid1 = aid
+    #qcid2_qres = ibs.query_all([aid1])
     #qres = qcid2_qres.values()[0]
     #top_cids = qres.get_top_cids(ibs)
     #assert len(top_cids) > 0, 'there does not seem to be results'

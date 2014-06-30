@@ -10,29 +10,29 @@ from . import viz_image
 
 
 @utool.indent_func
-def show_chip(ibs, rid, in_image=False, annote=True, **kwargs):
+def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
     """ Driver function to show chips """
     printDBG('[viz] show_chip()')
-    vh.ibsfuncs.assert_valid_rids(ibs, (rid,))
+    vh.ibsfuncs.assert_valid_aids(ibs, (aid,))
     #utool.embed()
     # Get chip
-    chip = vh.get_chips(ibs, rid, in_image, **kwargs)
+    chip = vh.get_chips(ibs, aid, in_image, **kwargs)
     # Create chip title
-    chip_text = vh.get_roi_texts(ibs, [rid], **kwargs)[0]
+    chip_text = vh.get_annotion_texts(ibs, [aid], **kwargs)[0]
     # Draw chip
     fig, ax = df2.imshow(chip, **kwargs)
     # Populate axis user data
     vh.set_ibsdat(ax, 'viztype', 'chip')
-    vh.set_ibsdat(ax, 'rid', rid)
+    vh.set_ibsdat(ax, 'aid', aid)
     if annote and not kwargs.get('nokpts', False):
         # Get and draw keypoints
-        kpts = vh.get_kpts(ibs, rid, in_image, **kwargs)
+        kpts = vh.get_kpts(ibs, aid, in_image, **kwargs)
         _annotate_kpts(kpts, **kwargs)
     df2.upperleft_text(chip_text)
     if not kwargs.get('notitle', False):
         ax.set_title(chip_text)
     if in_image:
-        gid = ibs.get_roi_gids(rid)
-        rid_list = ibs.get_image_rids(gid)
-        annotekw = viz_image.get_roi_annotations(ibs, rid_list, sel_rids=[rid])
+        gid = ibs.get_annotion_gids(aid)
+        aid_list = ibs.get_image_aids(gid)
+        annotekw = viz_image.get_annotion_annotations(ibs, aid_list, sel_aids=[aid])
         viz_image2.annotate_image(ax, **annotekw)
