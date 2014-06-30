@@ -211,8 +211,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.buttonBars = []
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
+        _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
         back = ibswgt.back
         #_SEP = lambda: None
+        detection_combo_box_options = [
+                #    Text               value           default selectable
+                    ('Select Species',  'none',         True ,  False),
+                    ('Plains Zebras',   'zebra_plains', False,  True ),
+                    ('Grevy\'s Zebras', 'zebra_grevys', False,  True ),
+                    ('Giraffes',        'giraffe',      False,  True ),
+                ]
         ibswgt.button_list = [
             [
                 _NEWBUT('Import Images\n(via files)',
@@ -236,7 +244,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 #_SEP(),
 
-                _NEWBUT('Detect',
+                _COMBO(detection_combo_box_options,
                         ibswgt.back.run_detection_coarse,
                         bgcolor=(150, 255, 150)),
 
