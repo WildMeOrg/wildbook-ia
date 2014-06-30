@@ -9,7 +9,7 @@ from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui.guiheaders import THUMB_TABLE
 from ibeis.gui.models_and_views import IBEISTableModel, IBEISTableView
-from ibeis.viz.interact import interact_rois2
+from ibeis.viz.interact import interact_annotations2
 import guitool
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
@@ -45,10 +45,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         ibswgt.view = IBEISTableView(parent=ibswgt)
         ibswgt.model = IBEISTableModel(parent=ibswgt.view)
-        ibswgt.proxy = StripeProxyModel(numduplicates=5)
-        #ibswgt.proxy = QtGui.QIdentityProxyModel()
-        ibswgt.proxy.setSourceModel(ibswgt.model) 
-        ibswgt.view.setModel(ibswgt.proxy)
+        ibswgt.view.setModel(ibswgt.model)
 
     def _init_layout(ibswgt):
         """ Lays out the defined components """
@@ -131,7 +128,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             gid = id_
             if gid is None:
                 return
-            ibswgt.roi_interact = interact_rois2.ROI_Interaction2(ibswgt.ibs, gid)
+            ibswgt.annotion_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid)
             print("DOUBLECLICKED ID: %r" % gid)
 
 if __name__ == '__main__':

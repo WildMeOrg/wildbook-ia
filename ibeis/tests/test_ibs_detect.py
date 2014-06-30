@@ -13,7 +13,7 @@ SPECIAL = utool.get_flag('--special') or utool.inIPython()
 
 def TEST_DETECT(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
-    print('get_valid_ROIS')
+    print('get_valid_ANNOTATIONS')
     gid_list = ibs.get_valid_gids()[0:1]
     if SPECIAL:
         gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)

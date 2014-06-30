@@ -26,12 +26,12 @@ def TEST_ENCOUNTERS(ibs):
 
     eid_list = sorted(ibs.get_valid_eids())
     gids_list = ibs.get_encounter_gids(eid_list)
-    rids_list = ibs.get_encounter_rids(eid_list)
+    aids_list = ibs.get_encounter_aids(eid_list)
     nids_list = ibs.get_encounter_nids(eid_list)
 
     enctext_list   = ibs.get_encounter_enctext(eid_list)
     gid_uuids_list = ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)
-    roi_uuids_list = ibsfuncs.unflat_map(ibs.get_roi_uuids, rids_list)
+    annotion_uuids_list = ibsfuncs.unflat_map(ibs.get_annotion_uuids, aids_list)
     names_list     = ibsfuncs.unflat_map(ibs.get_names, nids_list)
 
     target_enctexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
@@ -71,14 +71,14 @@ def TEST_ENCOUNTERS(ibs):
         print('2) target_enctexts = %r' % (target_enctexts,))
         print('')
 
-        rids_test_list = ibsfuncs.unflat_map(ibs.get_image_rids, gids_test_list)
-        rids_target_list = ibsfuncs.unflat_map(ibs.get_image_rids, gids_target_list)
-        print('a) rids_test_list = %s' % (utool.list_str(rids_test_list),))
-        print('a) rids_target_list = %s' % (utool.list_str(rids_target_list),))
+        aids_test_list = ibsfuncs.unflat_map(ibs.get_image_aids, gids_test_list)
+        aids_target_list = ibsfuncs.unflat_map(ibs.get_image_aids, gids_target_list)
+        print('a) aids_test_list = %s' % (utool.list_str(aids_test_list),))
+        print('a) aids_target_list = %s' % (utool.list_str(aids_target_list),))
 
-        print('3a) rids_list = %s' % (utool.list_str(rids_list),))
+        print('3a) aids_list = %s' % (utool.list_str(aids_list),))
         print('3a) nids_list = %s' % (utool.list_str(nids_list),))
-        nids_listb = ibsfuncs.unflat_map(ibs.get_roi_nids, rids_list)
+        nids_listb = ibsfuncs.unflat_map(ibs.get_annotion_nids, aids_list)
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
         print('3b) names_list = %s' % (utool.list_str(names_list),))
         print('3b) target_names = %s' % (utool.list_str(target_names),))
@@ -96,7 +96,7 @@ def TEST_ENCOUNTERS(ibs):
         utool.printex(ex, 'failed test_encounter')
         raise
 
-    gids_list2 = ibsfuncs.unflat_lookup(ibs.get_roi_gids, rids_list)
+    gids_list2 = ibsfuncs.unflat_lookup(ibs.get_annotion_gids, aids_list)
     assert gids_list2 == map(tuple, gids_list)
 
     return locals()

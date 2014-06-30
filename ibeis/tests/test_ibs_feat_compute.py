@@ -10,9 +10,9 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_COMPUTE_FE
 
 def TEST_COMPUTE_FEATS(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
-    print('get_valid_ROIS')
-    rid_list = ibs.get_valid_rids()
-    cid_list = ibs.add_chips(rid_list)
+    print('get_valid_ANNOTATIONS')
+    aid_list = ibs.get_valid_aids()
+    cid_list = ibs.add_chips(aid_list)
     assert len(cid_list) > 0, 'database chips cannot be empty for TEST_COMPUTE_FEATS'
     print(' * len(cid_list) = %r' % len(cid_list))
     feat_list = list(preproc_feat.add_feat_params_gen(ibs, cid_list))

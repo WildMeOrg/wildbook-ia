@@ -91,7 +91,7 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs  = None
         back.cfg = None
         # State variables
-        back.sel_rids = []
+        back.sel_aids = []
         back.sel_nids = []
         back.sel_gids = []
         back.sel_qres = []
@@ -116,37 +116,37 @@ class MainWindowBackend(QtCore.QObject):
         bbox = interact.iselect_bbox(back.ibs, gid)
         return bbox
 
-    def show_image(back, gid, sel_rids=[], **kwargs):
+    def show_image(back, gid, sel_aids=[], **kwargs):
         kwargs.update({
-            'sel_rids': sel_rids,
+            'sel_aids': sel_aids,
             'select_callback': back.select_gid,
         })
         interact.ishow_image(back.ibs, gid, **kwargs)
 
-    def show_roi(back, rid, show_image=False, **kwargs):
-        interact.ishow_chip(back.ibs, rid, **kwargs)
+    def show_annotion(back, aid, show_image=False, **kwargs):
+        interact.ishow_chip(back.ibs, aid, **kwargs)
         if show_image:
-            gid = back.ibs.get_roi_gids(rid)
-            interact.ishow_image(back.ibs, gid, sel_rids=[rid])
+            gid = back.ibs.get_annotion_gids(aid)
+            interact.ishow_image(back.ibs, gid, sel_aids=[aid])
 
-    def show_name(back, nid, sel_rids=[], **kwargs):
+    def show_name(back, nid, sel_aids=[], **kwargs):
         #nid = back.ibs.get_name_nids(name)
         kwargs.update({
-            'sel_rids': sel_rids,
-            'select_rid_callback': back.select_rid,
+            'sel_aids': sel_aids,
+            'select_aid_callback': back.select_aid,
         })
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
 
     def show_qres(back, qres, **kwargs):
         kwargs['annote_mode'] = kwargs.get('annote_mode', 2)
-        kwargs['top_rids'] = kwargs.get('top_rids', 6)
+        kwargs['top_aids'] = kwargs.get('top_aids', 6)
         interact.ishow_qres(back.ibs, qres, **kwargs)
         # HACK
         from ibeis.gui import inspect_gui
-        qrid2_qres = {qres.qrid: qres}
+        qaid2_qres = {qres.qaid: qres}
         backed_callback = back.front.update_tables
-        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qrid2_qres, callback=backend_callback, ranks_lt=kwargs['top_rids'], )
+        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres, callback=backend_callback, ranks_lt=kwargs['top_aids'], )
         back.qres_wgt1.show()
         back.qres_wgt1.raise_()
         pass
@@ -173,7 +173,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] connect_ibeis()')
         back.ibs = ibs
         back.front.connect_ibeis_control(ibs)
-        back._set_selection(sel_gids=[], sel_rids=[], sel_nids=[],
+        back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_eids=[None])
 
     @blocking_slot()
@@ -188,20 +188,20 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_gid(back):
         """ selected image id """
         if len(back.sel_gids) == 0:
-            if len(back.sel_rids) == 0:
-                gid = back.ibs.get_roi_gids(back.sel_rids)[0]
+            if len(back.sel_aids) == 0:
+                gid = back.ibs.get_annotion_gids(back.sel_aids)[0]
                 return gid
             raise AssertionError('There are no selected images')
         gid = back.sel_gids[0]
         return gid
 
     @utool.indent_func
-    def get_selected_rid(back):
-        """ selected roi id """
-        if len(back.sel_rids) == 0:
-            raise AssertionError('There are no selected ROIs')
-        rid = back.sel_rids[0]
-        return rid
+    def get_selected_aid(back):
+        """ selected annotion id """
+        if len(back.sel_aids) == 0:
+            raise AssertionError('There are no selected ANNOTATIONs')
+        aid = back.sel_aids[0]
+        return aid
 
     @utool.indent_func
     def get_selected_eid(back):
@@ -224,7 +224,7 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
-    def _set_selection(back, sel_gids=None, sel_rids=None, sel_nids=None,
+    def _set_selection(back, sel_gids=None, sel_aids=None, sel_nids=None,
                        sel_qres=None, sel_eids=None, **kwargs):
         if sel_eids is not None:
             back.sel_eids = sel_eids
@@ -232,9 +232,9 @@ class MainWindowBackend(QtCore.QObject):
         if sel_gids is not None:
             back.sel_gids = sel_gids
             back.ibswgt.set_status_label(1, 'Selected Image: %r' % (sel_gids,))
-        if sel_rids is not None:
-            back.sel_rids = sel_rids
-            back.ibswgt.set_status_label(2, 'Selected ROI: %r' % (sel_rids,))
+        if sel_aids is not None:
+            back.sel_aids = sel_aids
+            back.ibswgt.set_status_label(2, 'Selected ANNOTATION: %r' % (sel_aids,))
         if sel_nids is not None:
             back.sel_nids = sel_nids
             back.ibswgt.set_status_label(3, 'Selected Name: %r' % (sel_nids,))
@@ -249,29 +249,29 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] select encounter eid=%r' % (eid))
 
     @backblock
-    def select_gid(back, gid, eid=None, show=True, sel_rids=None, **kwargs):
+    def select_gid(back, gid, eid=None, show=True, sel_aids=None, **kwargs):
         """ Table Click -> Image Table """
-        # Select the first ROI in the image if unspecified
-        if sel_rids is None:
-            sel_rids = back.ibs.get_image_rids(gid)
-            if len(sel_rids) > 0:
-                sel_rids = sel_rids[0:1]
+        # Select the first ANNOTATION in the image if unspecified
+        if sel_aids is None:
+            sel_aids = back.ibs.get_image_aids(gid)
+            if len(sel_aids) > 0:
+                sel_aids = sel_aids[0:1]
             else:
-                sel_rids = []
-        print('[back] select_gid(gid=%r, eid=%r, sel_rids=%r)' % (gid, eid, sel_rids))
-        back._set_selection(sel_gids=(gid,), sel_rids=sel_rids, sel_eids=[eid], **kwargs)
+                sel_aids = []
+        print('[back] select_gid(gid=%r, eid=%r, sel_aids=%r)' % (gid, eid, sel_aids))
+        back._set_selection(sel_gids=(gid,), sel_aids=sel_aids, sel_eids=[eid], **kwargs)
         if show:
-            back.show_image(gid, sel_rids=sel_rids)
+            back.show_image(gid, sel_aids=sel_aids)
 
     @backblock
-    def select_rid(back, rid, eid=None, show=True, show_roi=True, **kwargs):
+    def select_aid(back, aid, eid=None, show=True, show_annotion=True, **kwargs):
         """ Table Click -> Chip Table """
-        print('[back] select rid=%r, eid=%r' % (rid, eid))
-        gid = back.ibs.get_roi_gids(rid)
-        nid = back.ibs.get_roi_nids(rid)
-        back._set_selection(sel_rids=(rid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
-        if show and show_roi:
-            back.show_roi(rid, **kwargs)
+        print('[back] select aid=%r, eid=%r' % (aid, eid))
+        gid = back.ibs.get_annotion_gids(aid)
+        nid = back.ibs.get_annotion_nids(aid)
+        back._set_selection(sel_aids=(aid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
+        if show and show_annotion:
+            back.show_annotion(aid, **kwargs)
 
     @backblock
     def select_nid(back, nid, eid=None, show=True, show_name=True, **kwargs):
@@ -283,85 +283,85 @@ class MainWindowBackend(QtCore.QObject):
             back.show_name(nid, **kwargs)
 
     @backblock
-    def select_qres_rid(back, rid, eid=None, show=True, **kwargs):
+    def select_qres_aid(back, aid, eid=None, show=True, **kwargs):
         """ Table Click -> Result Table """
         eid = cast_from_qt(eid)
-        rid = cast_from_qt(rid)
-        print('[back] select result rid=%r, eid=%r' % (rid, eid))
+        aid = cast_from_qt(aid)
+        print('[back] select result aid=%r, eid=%r' % (aid, eid))
 
     #--------------------------------------------------------------------------
     # Action menu slots
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def add_roi(back, gid=None, bbox=None, theta=0.0, refresh=True):
-        """ Action -> Add ROI"""
-        print('[back] add_roi')
+    def add_annotion(back, gid=None, bbox=None, theta=0.0, refresh=True):
+        """ Action -> Add ANNOTATION"""
+        print('[back] add_annotion')
         if gid is None:
             gid = back.get_selected_gid()
         if bbox is None:
             bbox = back.select_bbox(gid)
-        printDBG('[back.add_roi] * adding bbox=%r' % (bbox,))
-        rid = back.ibs.add_rois([gid], [bbox], [theta])[0]
-        printDBG('[back.add_roi] * added rid=%r' % (rid,))
+        printDBG('[back.add_annotion] * adding bbox=%r' % (bbox,))
+        aid = back.ibs.add_annotations([gid], [bbox], [theta])[0]
+        printDBG('[back.add_annotion] * added aid=%r' % (aid,))
         if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
             #back.show_image(gid)
             pass
-        back.select_gid(gid, sel_rids=[rid])
-        return rid
+        back.select_gid(gid, sel_aids=[aid])
+        return aid
 
     @blocking_slot()
-    def reselect_roi(back, rid=None, bbox=None, refresh=True, **kwargs):
-        """ Action -> Reselect ROI"""
-        if rid is None:
-            rid = back.get_selected_rid()
-        gid = back.ibs.get_roi_gids(rid)
+    def reselect_annotion(back, aid=None, bbox=None, refresh=True, **kwargs):
+        """ Action -> Reselect ANNOTATION"""
+        if aid is None:
+            aid = back.get_selected_aid()
+        gid = back.ibs.get_annotion_gids(aid)
         if bbox is None:
             bbox = back.select_bbox(gid)
-        print('[back] reselect_roi')
-        back.ibs.set_roi_bboxes([rid], [bbox])
+        print('[back] reselect_annotion')
+        back.ibs.set_annotion_bboxes([aid], [bbox])
         if refresh:
-            back.front.update_tables([gh.ROI_TABLE])
+            back.front.update_tables([gh.ANNOTATION_TABLE])
             back.show_image(gid)
 
     @blocking_slot()
-    def query(back, rid=None, refresh=True, **kwargs):
+    def query(back, aid=None, refresh=True, **kwargs):
         """ Action -> Query"""
         print('\n\n[back] query')
-        if rid is None:
-            rid = back.get_selected_rid()
+        if aid is None:
+            aid = back.get_selected_aid()
         eid = back._eidfromkw(kwargs)
         if eid is None:
-            print('[back] query_all(rid=%r)' % (rid,))
-            qrid2_qres = back.ibs.query_all([rid])
+            print('[back] query_all(aid=%r)' % (aid,))
+            qaid2_qres = back.ibs.query_all([aid])
         else:
-            print('[back] query_encounter(rid=%r, eid=%r)' % (rid, eid))
-            qrid2_qres = back.ibs.query_encounter([rid], eid)
-        qres = qrid2_qres[rid]
+            print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
+            qaid2_qres = back.ibs.query_encounter([aid], eid)
+        qres = qaid2_qres[aid]
         back._set_selection(sel_qres=[qres])
         if refresh:
             #back.populate_tables(qres=True, default=False)
             back.show_qres(qres)
 
     @blocking_slot()
-    def reselect_ori(back, rid=None, theta=None, **kwargs):
+    def reselect_ori(back, aid=None, theta=None, **kwargs):
         """ Action -> Reselect ORI"""
         print('[back] reselect_ori')
         raise NotImplementedError()
         pass
 
     @blocking_slot()
-    def delete_roi(back, rid=None):
+    def delete_annotion(back, aid=None):
         """ Action -> Delete Chip"""
-        print('[back] delete_roi')
-        if rid is None:
-            rid = back.get_selected_rid()
-        # get the image-id of the roi we are deleting
-        gid = back.ibs.get_roi_gids(rid)
-        # delete the roi
-        back.ibs.delete_rois([rid])
-        # update display, to show image without the deleted roi
+        print('[back] delete_annotion')
+        if aid is None:
+            aid = back.get_selected_aid()
+        # get the image-id of the annotion we are deleting
+        gid = back.ibs.get_annotion_gids(aid)
+        # delete the annotion
+        back.ibs.delete_annotations([aid])
+        # update display, to show image without the deleted annotion
         back.select_gid(gid)
         back.front.update_tables()
 
@@ -415,7 +415,7 @@ class MainWindowBackend(QtCore.QObject):
         ibs.detect_random_forest(gid_list, species, quick=quick)
         print('[back] about to finish detection')
         if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ROI_TABLE])
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
         print('[back] finished detection')
 
     @blocking_slot()
@@ -441,15 +441,15 @@ class MainWindowBackend(QtCore.QObject):
         eid = back._eidfromkw(kwargs)
         print('[back] compute_queries: eid=%r' % (eid,))
         back.compute_feats(refresh=False, **kwargs)
-        valid_rids = back.ibs.get_valid_rids(eid=eid)
+        valid_aids = back.ibs.get_valid_aids(eid=eid)
         if kwargs.get('get_vs_exemplars', False):
             if eid is None:
-                qrid2_qres = back.ibs.query_all(valid_rids)
+                qaid2_qres = back.ibs.query_all(valid_aids)
             else:
-                qrid2_qres = back.ibs.query_encounter(valid_rids, eid)
+                qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
         else:
-            qrid2_qres = back.ibs.query_exemplars(valid_rids)
-        back.encounter_query_results[eid].update(qrid2_qres)
+            qaid2_qres = back.ibs.query_exemplars(valid_aids)
+        back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
         if refresh:
@@ -462,7 +462,7 @@ class MainWindowBackend(QtCore.QObject):
         eid = back.get_selected_eid()
         if eid not in back.encounter_query_results:
             raise AssertionError('Queries have not been computed yet')
-        qrid2_qres = back.encounter_query_results[eid]
+        qaid2_qres = back.encounter_query_results[eid]
         # review_kw = {
         #     'on_change_callback': back.front.update_tables,
         #     'nPerPage': 6,
@@ -470,12 +470,12 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         # Matplotlib QueryResults interaction
         #from ibeis.viz.interact import interact_qres2
-        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, **review_kw)
+        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
         #back.query_review.show()
         # Qt QueryResults Interaction
         from ibeis.gui import inspect_gui
         backend_callback = back.front.update_tables
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, callback=backend_callback)
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 
@@ -486,8 +486,8 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         gid_list = ibs.get_valid_gids(eid=eid)
         gpath_list = ibs.get_image_paths(gid_list)
-        bboxes_list = ibs.get_image_roi_bboxes(gid_list)
-        thetas_list = ibs.get_image_roi_thetas(gid_list)
+        bboxes_list = ibs.get_image_annotion_bboxes(gid_list)
+        thetas_list = ibs.get_image_annotion_thetas(gid_list)
         multi_image_interaction = MultiImageInteraction(gpath_list, bboxes_list=bboxes_list, thetas_list=thetas_list)
         back.multi_image_interaction = multi_image_interaction
 

@@ -50,7 +50,7 @@ def compute_and_write_detectimg(ibs, gid_list):
     # Get img configuration information
     sqrt_area   = 800
     target_area = sqrt_area ** 2
-    # Get img source information (image, roi_bbox, theta)
+    # Get img source information (image, annotion_bbox, theta)
     gfpath_list  = ibs.get_image_paths(gid_list)
     gsize_list   = ibs.get_image_sizes(gid_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, gsize_list)
@@ -70,7 +70,7 @@ def compute_and_write_detectimg_lazy(ibs, gid_list):
     in the SQL database
     """
     print('[preproc] compute_and_write_detectimg_lazy')
-    # Mark which rid's need their detectimg computed
+    # Mark which aid's need their detectimg computed
     new_gfpath_list = get_image_detectimg_fpath_list(ibs, gid_list)
     exists_flags = [exists(gfpath) for gfpath in new_gfpath_list]
     invalid_gids = utool.get_dirty_items(gid_list, exists_flags)

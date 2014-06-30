@@ -11,42 +11,42 @@ from numpy.linalg import svd
 
 
 def score_chipmatch_csum(chipmatch):
-    (_, rid2_fs, _) = chipmatch
-    rid2_score = {rid: np.sum(fs) for (rid, fs) in rid2_fs.iteritems()}
-    return rid2_score
+    (_, aid2_fs, _) = chipmatch
+    aid2_score = {aid: np.sum(fs) for (aid, fs) in aid2_fs.iteritems()}
+    return aid2_score
 
 
-def score_chipmatch_nsum(ibs, qrid, chipmatch, qreq):
+def score_chipmatch_nsum(ibs, qaid, chipmatch, qreq):
     raise NotImplementedError('nsum')
 
 
-def score_chipmatch_nunique(ibs, qrid, chipmatch, qreq):
+def score_chipmatch_nunique(ibs, qaid, chipmatch, qreq):
     raise NotImplementedError('nunique')
 
 
-def enforce_one_name(ibs, rid2_score, chipmatch=None, rid2_chipscore=None):
+def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
     """ this is a hack to make the same name only show up once in the top ranked
         list
     """
     if chipmatch is not None:
-        (_, rid2_fs, _) = chipmatch
-        rid2_chipscore = np.array([np.sum(fs) for fs in rid2_fs])
+        (_, aid2_fs, _) = chipmatch
+        aid2_chipscore = np.array([np.sum(fs) for fs in aid2_fs])
     # FIXME
     nid2_cxs = ibs.get_nx2_cxs()
-    rid2_score = np.array(rid2_score)
-    for nid, rids in enumerate(nid2_cxs):
-        if len(rids) < 2 or nid <= 1:
+    aid2_score = np.array(aid2_score)
+    for nid, aids in enumerate(nid2_cxs):
+        if len(aids) < 2 or nid <= 1:
             continue
-        #print(rids)
-        # zero the rids with the lowest csum score
-        sortx = rid2_chipscore[rids].argsort()
-        rids_to_zero = np.array(rids)[sortx[0:-1]]
-        rid2_score[rids_to_zero] = 0
-    return rid2_score
+        #print(aids)
+        # zero the aids with the lowest csum score
+        sortx = aid2_chipscore[aids].argsort()
+        aids_to_zero = np.array(aids)[sortx[0:-1]]
+        aid2_score[aids_to_zero] = 0
+    return aid2_score
 
 
 def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
-    (rid2_fm, rid2_fs, rid2_fk) = chipmatch
+    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
     K = qreq.cfg.nn_cfg.K
     isWeighted = qreq.cfg.agg_cfg.isWeighted
     # Create voting vectors of top K utilities
@@ -54,10 +54,10 @@ def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
     # Run Positional Scoring Rule
     altx2_score, altx2_tnx = positional_scoring_rule(qfx2_utilities, rule, isWeighted)
     # Map alternatives back to chips/names
-    rid2_score, nid2_score = get_scores_from_altx2_score(ibs, qcx, altx2_score, altx2_tnx)
+    aid2_score, nid2_score = get_scores_from_altx2_score(ibs, qcx, altx2_score, altx2_tnx)
     # HACK HACK HACK!!!
-    #rid2_score = enforce_one_name_per_cscore(ibs, rid2_score, chipmatch)
-    return rid2_score, nid2_score
+    #aid2_score = enforce_one_name_per_cscore(ibs, aid2_score, chipmatch)
+    return aid2_score, nid2_score
 
 
 # chipmatch = qcx2_chipmatch[qcx]
@@ -81,10 +81,10 @@ def score_chipmatch_PL(ibs, qcx, chipmatch, qreq):
     #print('[vote] gamma = %r' % gamma)
     #print('[vote] altx2_prob = %r' % altx2_prob)
     # Use probabilities as scores
-    rid2_score, nid2_score = get_scores_from_altx2_score(ibs, qcx, altx2_prob, altx2_tnx)
+    aid2_score, nid2_score = get_scores_from_altx2_score(ibs, qcx, altx2_prob, altx2_tnx)
     # HACK HACK HACK!!!
-    #rid2_score = enforce_one_name_per_cscore(ibs, rid2_score, chipmatch)
-    return rid2_score, nid2_score
+    #aid2_score = enforce_one_name_per_cscore(ibs, aid2_score, chipmatch)
+    return aid2_score, nid2_score
 
 
 def _optimize(M):
@@ -112,48 +112,48 @@ def _PL_score(gamma):
 
 def get_scores_from_altx2_score(ibs, qcx, altx2_prob, altx2_tnx):
     nid2_score = np.zeros(len(ibs.tables.nid2_name))
-    rid2_score = np.zeros(len(ibs.tables.rid2_rid))
+    aid2_score = np.zeros(len(ibs.tables.aid2_aid))
     nid2_cxs = ibs.get_nx2_cxs()
     for altx, prob in enumerate(altx2_prob):
         tnx = altx2_tnx[altx]
         if tnx < 0:  # account for temporary names
-            rid2_score[-tnx] = prob
+            aid2_score[-tnx] = prob
             nid2_score[1] += prob
         else:
             nid2_score[tnx] = prob
-            for rid in nid2_cxs[tnx]:
-                if rid == qcx:
+            for aid in nid2_cxs[tnx]:
+                if aid == qcx:
                     continue
-                rid2_score[rid] = prob
-    return rid2_score, nid2_score
+                aid2_score[aid] = prob
+    return aid2_score, nid2_score
 
 
 def _chipmatch2_utilities(ibs, qcx, chipmatch, K):
     """
     returns qfx2_utilities
-    fx1 : [(rid_0, tnx_0, fs_0, fk_0), ..., (rid_m, tnx_m, fs_m, fk_m)]
-    fx2 : [(rid_0, tnx_0, fs_0, fk_0), ..., (rid_m, tnx_m, fs_m, fk_m)]
+    fx1 : [(aid_0, tnx_0, fs_0, fk_0), ..., (aid_m, tnx_m, fs_m, fk_m)]
+    fx2 : [(aid_0, tnx_0, fs_0, fk_0), ..., (aid_m, tnx_m, fs_m, fk_m)]
                     ...
-    fxN : [(rid_0, tnx_0, fs_0, fk_0), ..., (rid_m, tnx_m, fs_m, fk_m)]
+    fxN : [(aid_0, tnx_0, fs_0, fk_0), ..., (aid_m, tnx_m, fs_m, fk_m)]
     """
     #print('[vote] computing utilities')
-    rid2_nx = ibs.tables.rid2_nx
-    nQFeats = len(ibs.feats.rid2_kpts[qcx])
+    aid2_nx = ibs.tables.aid2_nx
+    nQFeats = len(ibs.feats.aid2_kpts[qcx])
     # Stack the feature matches
-    (rid2_fm, rid2_fs, rid2_fk) = chipmatch
-    rids = np.hstack([[rid] * len(rid2_fm[rid]) for rid in xrange(len(rid2_fm))])
-    rids = np.array(rids, np.int)
-    fms = np.vstack(rid2_fm)
+    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+    aids = np.hstack([[aid] * len(aid2_fm[aid]) for aid in xrange(len(aid2_fm))])
+    aids = np.array(aids, np.int)
+    fms = np.vstack(aid2_fm)
     # Get the individual feature match lists
     qfxs = fms[:, 0]
-    fss  = np.hstack(rid2_fs)
-    fks  = np.hstack(rid2_fk)
+    fss  = np.hstack(aid2_fs)
+    fks  = np.hstack(aid2_fk)
     qfx2_utilities = [[] for _ in xrange(nQFeats)]
-    for rid, qfx, fk, fs in izip(rids, qfxs, fks, fss):
-        nid = rid2_nx[rid]
+    for aid, qfx, fk, fs in izip(aids, qfxs, fks, fss):
+        nid = aid2_nx[aid]
         # Apply temporary uniquish name
-        tnx = nid if nid >= 2 else -rid
-        utility = (rid, tnx, fs, fk)
+        tnx = nid if nid >= 2 else -aid
+        utility = (aid, tnx, fs, fk)
         qfx2_utilities[qfx].append(utility)
     for qfx in xrange(len(qfx2_utilities)):
         utilities = qfx2_utilities[qfx]

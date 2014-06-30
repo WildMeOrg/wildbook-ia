@@ -16,7 +16,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG
 class OrganizedResult(DynStruct):
     """
     Maintains an organized list of:
-        * query roi indexes
+        * query annotion indexes
         * their top matching result
         * their score
         * their rank
@@ -25,21 +25,21 @@ class OrganizedResult(DynStruct):
     def __init__(self, orgtype=''):
         super(DynStruct, self).__init__()
         self.orgtype = orgtype
-        self.qrids   = []  # query roi indexes
-        self.rids    = []  # their top matching result
+        self.qaids   = []  # query annotion indexes
+        self.aids    = []  # their top matching result
         self.scores  = []  # their score
         self.ranks   = []  # their rank
 
-    def append(self, qrid, rid, rank, score):
-        self.qrids.append(qrid)
-        self.rids.append(rid)
+    def append(self, qaid, aid, rank, score):
+        self.qaids.append(qaid)
+        self.aids.append(aid)
         self.scores.append(score)
         self.ranks.append(rank)
 
     def freeze(self):
         """ No more appending """
-        self.qrids  = np.array(self.qrids)
-        self.rids   = np.array(self.rids)
+        self.qaids  = np.array(self.qaids)
+        self.aids   = np.array(self.aids)
         self.scores = np.array(self.scores)
         self.ranks  = np.array(self.ranks)
 
@@ -49,24 +49,24 @@ class OrganizedResult(DynStruct):
         return _where_ranks_lt(orgres, num)
 
     def __len__(self):
-        num_qcxs   = len(self.qrids)
-        num_rids   = len(self.rids)
+        num_qcxs   = len(self.qaids)
+        num_aids   = len(self.aids)
         num_scores = len(self.scores)
         num_ranks  = len(self.ranks)
-        assert num_qcxs == num_rids
-        assert num_rids == num_scores
+        assert num_qcxs == num_aids
+        assert num_aids == num_scores
         assert num_scores == num_ranks
         return num_qcxs
 
     def iter(self):
         """ useful for plotting """
-        result_iter = izip(self.qrids, self.rids, self.scores, self.ranks)
-        for qrid, rid, score, rank in result_iter:
-            yield qrid, rid, score, rank
+        result_iter = izip(self.qaids, self.aids, self.scores, self.ranks)
+        for qaid, aid, score, rank in result_iter:
+            yield qaid, aid, score, rank
 
     def printme3(self):
-        column_list = [self.qrids, self.rids, self.scores, self.ranks]
-        column_labels = ['qrids', 'rids', 'scores', 'ranks']
+        column_list = [self.qaids, self.aids, self.scores, self.ranks]
+        column_labels = ['qaids', 'aids', 'scores', 'ranks']
         header = 'Orgres %s' % (self.orgtype)
         print(utool.make_csv_table(column_list, column_labels, header, column_type=None))
 
@@ -77,8 +77,8 @@ def _where_ranks_lt(orgres, num):
     isvalid = [rank is not None and rank <= num and rank != -1
                 for rank in orgres.ranks]
     orgres2 = OrganizedResult(orgres.orgtype + ' < %d' % num)
-    orgres2.qrids  = utool.filter_items(orgres.qrids, isvalid)
-    orgres2.rids   = utool.filter_items(orgres.rids, isvalid)
+    orgres2.qaids  = utool.filter_items(orgres.qaids, isvalid)
+    orgres2.aids   = utool.filter_items(orgres.aids, isvalid)
     orgres2.scores = utool.filter_items(orgres.scores, isvalid)
     orgres2.ranks  = utool.filter_items(orgres.ranks, isvalid)
     return orgres2
@@ -88,8 +88,8 @@ def _sorted_by_score(orgres):
     """ get new orgres where arrays are sorted by score """
     orgres2 = OrganizedResult(orgres.orgtype + ' score-sorted')
     sortx = np.array(orgres.scores).argsort()[::-1]
-    orgres2.qrids  = np.array(orgres.qrids)[sortx]
-    orgres2.rids   = np.array(orgres.rids)[sortx]
+    orgres2.qaids  = np.array(orgres.qaids)[sortx]
+    orgres2.aids   = np.array(orgres.aids)[sortx]
     orgres2.scores = np.array(orgres.scores)[sortx]
     orgres2.ranks  = np.array(orgres.ranks)[sortx]
     return orgres2
@@ -110,24 +110,24 @@ def qres2_true_and_false(ibs, qres):
     a set is a query, its best match, and a score
     """
     # Get top chip indexes and scores
-    top_rids  = qres.get_top_rids()
-    top_score = qres.get_rid_scores(top_rids)
-    top_ranks = range(len(top_rids))
+    top_aids  = qres.get_top_aids()
+    top_score = qres.get_aid_scores(top_aids)
+    top_ranks = range(len(top_aids))
     # True Rids / Scores / Ranks
-    true_ranks, true_rids = qres.get_gt_ranks(ibs=ibs, return_gtrids=True)
+    true_ranks, true_aids = qres.get_gt_ranks(ibs=ibs, return_gtaids=True)
     true_scores  = [-1 if rank is None else top_score[rank] for rank in true_ranks]
     # False Rids / Scores / Ranks
     false_ranks = list(set(top_ranks) - set(true_ranks))
-    false_rids   = [-1 if rank is None else top_rids[rank]  for rank in false_ranks]
+    false_aids   = [-1 if rank is None else top_aids[rank]  for rank in false_ranks]
     false_scores = [-1 if rank is None else top_score[rank] for rank in false_ranks]
     # Construct the true positive tuple
-    true_tup     = (true_rids, true_scores, true_ranks)
-    false_tup    = (false_rids, false_scores, false_ranks)
+    true_tup     = (true_aids, true_scores, true_ranks)
+    false_tup    = (false_aids, false_scores, false_ranks)
     # Return tuples
     return true_tup, false_tup
 
 
-def organize_results(ibs, qrid2_qres):
+def organize_results(ibs, qaid2_qres):
     print('organize_results()')
     org_true          = OrganizedResult('true')
     org_false         = OrganizedResult('false')
@@ -147,33 +147,33 @@ def organize_results(ibs, qrid2_qres):
         #
         # Record: all_true, missed_true, top_true, bot_true
         topx = 0
-        for topx, (rid, score, rank) in enumerate(izip(*true_tup)):
+        for topx, (aid, score, rank) in enumerate(izip(*true_tup)):
             # Record all true results
-            org_true.append(qrid, rid, rank, score)
+            org_true.append(qaid, aid, rank, score)
             # Record non-top (a.k.a problem) true results
             if rank is None or last_rank is None or rank - last_rank > 1:
                 if rank is not None:
                     skipped_ranks.add(rank - 1)
-                org_problem_true.append(qrid, rid, rank, score)
+                org_problem_true.append(qaid, aid, rank, score)
             # Record the best results
             if topx == 0:
-                org_top_true.append(qrid, rid, rank, score)
+                org_top_true.append(qaid, aid, rank, score)
             last_rank = rank
         # Record the worse true result
         if topx > 1:
-            org_bot_true.append(qrid, rid, rank, score)
+            org_bot_true.append(qaid, aid, rank, score)
         #
         # Record the all_false, false_positive, top_false
         topx = 0
-        for rid, score, rank in zip(*false_tup):
-            org_false.append(qrid, rid, rank, score)
+        for aid, score, rank in zip(*false_tup):
+            org_false.append(qaid, aid, rank, score)
             if rank in skipped_ranks:
-                org_problem_false.append(qrid, rid, rank, score)
+                org_problem_false.append(qaid, aid, rank, score)
             if topx == 0:
-                org_top_false.append(qrid, rid, rank, score)
+                org_top_false.append(qaid, aid, rank, score)
             topx += 1
 
-    for qrid, qres in qrid2_qres.iteritems():
+    for qaid, qres in qaid2_qres.iteritems():
         if qres is not None:
             _organize_result(qres)
     #print('[rr2] len(org_true)          = %r' % len(org_true))
@@ -183,7 +183,7 @@ def organize_results(ibs, qrid2_qres):
     #print('[rr2] len(org_bot_true)      = %r' % len(org_bot_true))
     #print('[rr2] len(org_problem_true)  = %r' % len(org_problem_true))
     #print('[rr2] len(org_problem_false) = %r' % len(org_problem_false))
-    # qrid arrays for ttbttf
+    # qaid arrays for ttbttf
     allorg = dict([
         ('true',          org_true),
         ('false',         org_false),
@@ -199,43 +199,43 @@ def organize_results(ibs, qrid2_qres):
     return allorg
 
 
-def get_automatch_candidates(qrid2_qres, ranks_lt=5, directed=True):
+def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True):
     """ Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres
     and will be used in production.
     """
-    qrids_stack  = []
-    rids_stack   = []
+    qaids_stack  = []
+    aids_stack   = []
     ranks_stack  = []
     scores_stack = []
 
     # For each QueryResult, Extract inspectable candidate matches
-    for qrid, qres in qrid2_qres.iteritems():
-        assert qrid == qres.qrid, 'qrid2_qres and qres disagree on qrid'
-        (qrids, rids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt)
-        qrids_stack.append(qrids)
-        rids_stack.append(rids)
+    for qaid, qres in qaid2_qres.iteritems():
+        assert qaid == qres.qaid, 'qaid2_qres and qres disagree on qaid'
+        (qaids, aids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt)
+        qaids_stack.append(qaids)
+        aids_stack.append(aids)
         scores_stack.append(scores)
         ranks_stack.append(ranks)
 
     # Stack them into a giant array
-    qrid_arr  = np.hstack(qrids_stack)
-    rid_arr   = np.hstack(rids_stack)
+    qaid_arr  = np.hstack(qaids_stack)
+    aid_arr   = np.hstack(aids_stack)
     score_arr = np.hstack(scores_stack)
     rank_arr  = np.hstack(ranks_stack)
 
     # Sort by scores
     sortx = score_arr.argsort()[::-1]
-    qrid_arr  = qrid_arr[sortx]
-    rid_arr   = rid_arr[sortx]
+    qaid_arr  = qaid_arr[sortx]
+    aid_arr   = aid_arr[sortx]
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
     # Remove directed edges
     if not directed:
         #nodes = np.unique(directed_edges.flatten())
-        directed_edges = np.vstack((qrid_arr, rid_arr)).T
-        flipped = qrid_arr < rid_arr
+        directed_edges = np.vstack((qaid_arr, aid_arr)).T
+        flipped = qaid_arr < aid_arr
         # standardize edge order
         edges_dupl = directed_edges.copy()
         edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
@@ -243,11 +243,11 @@ def get_automatch_candidates(qrid2_qres, ranks_lt=5, directed=True):
         unique_rowx = utool.unique_row_indexes(edges_dupl)
         #edges_unique = edges_dupl[unique_rowx]
         #flipped_unique = flipped[unique_rowx]
-        qrid_arr  = qrid_arr[unique_rowx]
-        rid_arr   = rid_arr[unique_rowx]
+        qaid_arr  = qaid_arr[unique_rowx]
+        aid_arr   = aid_arr[unique_rowx]
         score_arr = score_arr[unique_rowx]
         rank_arr  = rank_arr[unique_rowx]
 
-    candidate_matches = (qrid_arr, rid_arr, score_arr, rank_arr)
+    candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)
 
     return candidate_matches

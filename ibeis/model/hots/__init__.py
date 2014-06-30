@@ -35,5 +35,5 @@ rrrr = reload_subs
 
 __QUERY_REQUESTOR__ = None  # THERE IS ONLY ONE QUERY REQUESTOR
 
-def query(ibs, qrid_list, drid_list):
+def query(ibs, qaid_list, daid_list):
     pass

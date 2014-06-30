@@ -12,7 +12,7 @@ def TEST_DELETE_NAME(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)]*len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    rid_list = ibs.add_rois(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
     nid_list = ibs.get_valid_nids()
     nid = nid_list[0]
     ibs.delete_names(nid)

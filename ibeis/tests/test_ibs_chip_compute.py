@@ -10,11 +10,11 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_COMPUTE_CH
 
 def TEST_COMPUTE_CHIPS(ibs):
     # Create a HotSpotter API (hs) and GUI backend (back)
-    print('get_valid_ROIS')
-    rid_list = ibs.get_valid_rids()
-    assert len(rid_list) > 0, 'database rois cannot be empty for TEST_COMPUTE_CHIPS'
-    print(' * len(rid_list) = %r' % len(rid_list))
-    preproc_chip.compute_and_write_chips(ibs, rid_list)
+    print('get_valid_ANNOTATIONS')
+    aid_list = ibs.get_valid_aids()
+    assert len(aid_list) > 0, 'database annotations cannot be empty for TEST_COMPUTE_CHIPS'
+    print(' * len(aid_list) = %r' % len(aid_list))
+    preproc_chip.compute_and_write_chips(ibs, aid_list)
     return locals()
 
 

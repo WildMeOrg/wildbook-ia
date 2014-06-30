@@ -3,15 +3,20 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
+from vtool.tests import grabdata
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_FEATURE]')
 
 
 def TEST_DELETE_FEATURE(ibs, back):
-    fid_list = ibs.get_valid_fids()
-    if len(fid_list) == 0:
-        return locals()
+    gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+    gid_list = ibs.add_images(gpath_list)
+    bbox_list = [(0, 0, 100, 100)] * len(gid_list)
+    name_list = ['a', 'b', 'a', 'd']
+    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    cid_list = ibs.add_chips(aid_list)
+    fid_list = ibs.add_feats(cid_list)
     fid = fid_list[0]
-    ibs.delete_names(fid)
+    ibs.delete_features(fid)
     fid_list = ibs.get_valid_fids()
     assert fid not in fid_list, "FID not deleted"
     return locals()

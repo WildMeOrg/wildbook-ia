@@ -13,26 +13,26 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_QUERY]')
 
 def TEST_QUERY(ibs):
     print('[TEST_QUERY]')
-    valid_rids = ibs.get_valid_rids()
-    print('[TEST_QUERY] len(valid_rids)=%r' % (len(valid_rids)))
-    qrid_list = valid_rids[0:1]
-    print('[TEST_QUERY] len(qrid_list)=%r' % (len(qrid_list)))
+    valid_aids = ibs.get_valid_aids()
+    print('[TEST_QUERY] len(valid_aids)=%r' % (len(valid_aids)))
+    qaid_list = valid_aids[0:1]
+    print('[TEST_QUERY] len(qaid_list)=%r' % (len(qaid_list)))
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #query_helpers.find_matchable_chips(ibs)
-    rids = ibs.get_recognition_database_rids()
-    qres_dict = ibs.query_all(qrid_list)
+    aids = ibs.get_recognition_database_aids()
+    qres_dict = ibs.query_all(qaid_list)
 
-    for qrid in qrid_list:
-        qres  = qres_dict[qrid]
-        top_rids = qres.get_top_rids(ibs)
-        top_rids = utool.safe_slice(top_rids, 3)
-        rid2 = top_rids[0]
+    for qaid in qaid_list:
+        qres  = qres_dict[qaid]
+        top_aids = qres.get_top_aids(ibs)
+        top_aids = utool.safe_slice(top_aids, 3)
+        aid2 = top_aids[0]
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
-        #viz_matches.show_matches(ibs, qres, rid2, fnum=fnum, in_image=True)
-        #viz.show_qres(ibs, qres, fnum=fnum, top_rids=top_rids, ensure=False)
-        interact.ishow_qres(ibs, qres, fnum=fnum, top_rids=top_rids,
+        #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
+        #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
+        interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids,
                             ensure=False, annote_mode=1)
         df2.set_figtitle('Query Result')
         df2.adjust_subplots_safe(top=.8)

@@ -11,15 +11,15 @@ from .interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
 
 
-def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
+def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
                   same_fig=True, **kwargs):
     """ Plots a chip result and sets up callbacks for interaction. """
     fig = ih.begin_interaction('matches', fnum)
-    qrid = qres.qrid
-    if rid is None:
-        rid = qres.get_top_rids(num=1)[0]
-    rchip1, rchip2 = ibs.get_roi_chips([qrid, rid])
-    fm = qres.rid2_fm[rid]
+    qaid = qres.qaid
+    if aid is None:
+        aid = qres.get_top_aids(num=1)[0]
+    rchip1, rchip2 = ibs.get_annotion_chips([qaid, aid])
+    fm = qres.aid2_fm[aid]
     mx = kwargs.pop('mx', None)
     xywh2_ptr = [None]
     annote_ptr = [kwargs.pop('mode', 0)]
@@ -35,26 +35,26 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
         annote_ptr[0] = (annote_ptr[0] + 1) % 3
         df2.figure(fnum=fnum, docla=True, doclf=True)
         # TODO RENAME This to remove qres and rectify with show_matches
-        tup = viz.show_matches(ibs, qres, rid, fnum=fnum, pnum=pnum,
+        tup = viz.show_matches(ibs, qres, aid, fnum=fnum, pnum=pnum,
                                draw_lines=draw_lines, draw_ell=draw_ell,
                                colorbar_=True, **kwargs)
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
-        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qrid, rid))
+        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
     # Draw clicked selection
-    def _select_ith_match(mx, qrid, rid):
+    def _select_ith_match(mx, qaid, aid):
         #----------------------
         # Get info for the _select_ith_match plot
         annote_ptr[0] = 1
         # Get the mx-th feature match
-        rid1, rid2 = qrid, rid
+        aid1, aid2 = qaid, aid
         fx1, fx2 = fm[mx]
-        fscore2  = qres.rid2_fs[rid2][mx]
-        fk2      = qres.rid2_fk[rid2][mx]
-        kpts1, kpts2 = ibs.get_roi_kpts([rid1, rid2])
-        desc1, desc2 = ibs.get_roi_desc([rid1, rid2])
+        fscore2  = qres.aid2_fs[aid2][mx]
+        fk2      = qres.aid2_fk[aid2][mx]
+        kpts1, kpts2 = ibs.get_annotion_kpts([aid1, aid2])
+        desc1, desc2 = ibs.get_annotion_desc([aid1, aid2])
         kp1, kp2     = kpts1[fx1], kpts2[fx2]
         sift1, sift2 = desc1[fx1], desc2[fx2]
         info1 = '\nquery'
@@ -62,18 +62,18 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
         last_state.last_fx = fx1
 
         # Extracted keypoints to draw
-        extracted_list = [(rchip1, kp1, sift1, fx1, rid1, info1),
-                          (rchip2, kp2, sift2, fx2, rid2, info2)]
+        extracted_list = [(rchip1, kp1, sift1, fx1, aid1, info1),
+                          (rchip2, kp2, sift2, fx2, aid2, info2)]
         # Normalizng Keypoint
         if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
             qfx2_norm = qres.filt2_meta['lnbnn']
             # Normalizing chip and feature
-            (rid3, fx3, normk) = qfx2_norm[fx1]
-            rchip3 = ibs.get_roi_chips(rid3)
-            kp3 = ibs.get_roi_kpts(rid3)[fx3]
-            sift3 = ibs.get_roi_desc(rid3)[fx3]
-            info3 = '\nnorm %s k=%r' % (vh.get_ridstrs(rid3), normk)
-            extracted_list.append((rchip3, kp3, sift3, fx3, rid3, info3))
+            (aid3, fx3, normk) = qfx2_norm[fx1]
+            rchip3 = ibs.get_annotion_chips(aid3)
+            kp3 = ibs.get_annotion_kpts(aid3)[fx3]
+            sift3 = ibs.get_annotion_desc(aid3)[fx3]
+            info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
+            extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
         else:
             print('WARNING: meta doesnt exist')
 
@@ -93,20 +93,20 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
             fig2 = df2.figure(fnum=fnum2, docla=True, doclf=True)
         else:
             fnum2 = fnum
-        for (rchip, kp, sift, fx, rid, info) in extracted_list:
+        for (rchip, kp, sift, fx, aid, info) in extracted_list:
             px = draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
-                               prevsift=prevsift, rid=rid, info=info)
+                               prevsift=prevsift, aid=aid, info=info)
             prevsift = sift
         if not same_fig:
             ih.connect_callback(fig2, 'button_press_event', _click_matches_click)
-            df2.set_figtitle(figtitle + vh.get_vsstr(qrid, rid))
+            df2.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
 
     # Draw ctrl clicked selection
-    def _sv_view(rid):
+    def _sv_view(aid):
         fnum = viz.FNUMS['special']
         fig = df2.figure(fnum=fnum, docla=True, doclf=True)
         ih.disconnect_callback(fig, 'button_press_event')
-        viz.show_sv(ibs, qres.qrid, rid2=rid, fnum=fnum)
+        viz.show_sv(ibs, qres.qaid, aid2=aid, fnum=fnum)
         viz.draw()
 
     # Callback
@@ -134,14 +134,14 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
         if viztype == 'matches' and ctrl_down:
             # Ctrl-Click
             print('.. control click')
-            return _sv_view(rid)
+            return _sv_view(aid)
         elif viztype == 'matches':
             if len(fm) == 0:
                 print('[inter] no feature matches to click')
             else:
                 # Normal Click
                 # Select nearest feature match to the click
-                kpts1, kpts2 = ibs.get_roi_kpts([qrid, rid])
+                kpts1, kpts2 = ibs.get_annotion_kpts([qaid, aid])
                 kpts1_m = kpts1[fm[:, 0]]
                 kpts2_m = kpts2[fm[:, 1]]
                 x2, y2, w2, h2 = xywh2_ptr[0]
@@ -149,14 +149,14 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
                 _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
-                _select_ith_match(mx, qrid, rid)
+                _select_ith_match(mx, qaid, aid)
         elif viztype in ['warped', 'unwarped']:
-            hs_rid = ax.__dict__.get('_hs_rid', None)
+            hs_aid = ax.__dict__.get('_hs_aid', None)
             hs_fx = ax.__dict__.get('_hs_fx', None)
-            if hs_rid is not None and viztype == 'unwarped':
-                ishow_chip(ibs, hs_rid, fx=hs_fx, fnum=df2.next_fnum())
-            elif hs_rid is not None and viztype == 'warped':
-                viz.show_keypoint_gradient_orientations(ibs, hs_rid, hs_fx, fnum=df2.next_fnum())
+            if hs_aid is not None and viztype == 'unwarped':
+                ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
+            elif hs_aid is not None and viztype == 'warped':
+                viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx, fnum=df2.next_fnum())
         else:
             print('...Unknown viztype: %r' % viztype)
         viz.draw()
@@ -164,14 +164,14 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
     if mx is None:
         _chipmatch_view()
     else:
-        _select_ith_match(mx, qrid, rid)
+        _select_ith_match(mx, qaid, aid)
 
     def toggle_samefig():
         # FIXME: Do not do recursive calls
-        ishow_matches(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
+        ishow_matches(ibs, qres, aid=aid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
 
     def query_last_feature():
-        viz.show_nearest_descriptors(ibs, qrid, last_state.last_fx, df2.next_fnum())
+        viz.show_nearest_descriptors(ibs, qaid, last_state.last_fx, df2.next_fnum())
         fig3 = df2.gcf()
         ih.connect_callback(fig3, 'button_press_event', _click_matches_click)
         df2.update()
@@ -189,15 +189,15 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 
 
 #class MatchInteraction(object):
-#    def __init__(self, ibs, qres, rid=None, fnum=4,
+#    def __init__(self, ibs, qres, aid=None, fnum=4,
 #                 figtitle='Inspect Query Result', same_fig=True, **kwargs):
 #        """ Plots a chip result and sets up callbacks for interaction. """
 #        fig = ih.begin_interaction('matches', fnum)
-#        qrid = qres.qrid
-#        if rid is None:
-#            rid = qres.get_top_rids(num=1)[0]
-#        rchip1, rchip2 = ibs.get_roi_chips([qrid, rid])
-#        fm = qres.rid2_fm[rid]
+#        qaid = qres.qaid
+#        if aid is None:
+#            aid = qres.get_top_aids(num=1)[0]
+#        rchip1, rchip2 = ibs.get_annotion_chips([qaid, aid])
+#        fm = qres.aid2_fm[aid]
 #        mx = kwargs.pop('mx', None)
 #        xywh2_ptr = [None]
 #        annote_ptr = [kwargs.pop('mode', 0)]
@@ -224,26 +224,26 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 #        annote_ptr[0] = (annote_ptr[0] + 1) % 3
 #        df2.figure(fnum=fnum, docla=True, doclf=True)
 #        # TODO RENAME This to remove qres and rectify with show_matches
-#        tup = viz.show_matches(ibs, qres, rid, fnum=fnum, pnum=pnum,
+#        tup = viz.show_matches(ibs, qres, aid, fnum=fnum, pnum=pnum,
 #                            draw_lines=draw_lines, draw_ell=draw_ell,
 #                            colorbar_=True, **kwargs)
 #        ax, xywh1, xywh2 = tup
 #        xywh2_ptr[0] = xywh2
 
-#        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qrid, rid))
+#        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
 #    # Draw clicked selection
-#    def _select_ith_match(mx, qrid, rid):
+#    def _select_ith_match(mx, qaid, aid):
 #        #----------------------
 #        # Get info for the _select_ith_match plot
 #        annote_ptr[0] = 1
 #        # Get the mx-th feature match
-#        rid1, rid2 = qrid, rid
+#        aid1, aid2 = qaid, aid
 #        fx1, fx2 = fm[mx]
-#        fscore2  = qres.rid2_fs[rid2][mx]
-#        fk2      = qres.rid2_fk[rid2][mx]
-#        kpts1, kpts2 = ibs.get_roi_kpts([rid1, rid2])
-#        desc1, desc2 = ibs.get_roi_desc([rid1, rid2])
+#        fscore2  = qres.aid2_fs[aid2][mx]
+#        fk2      = qres.aid2_fk[aid2][mx]
+#        kpts1, kpts2 = ibs.get_annotion_kpts([aid1, aid2])
+#        desc1, desc2 = ibs.get_annotion_desc([aid1, aid2])
 #        kp1, kp2     = kpts1[fx1], kpts2[fx2]
 #        sift1, sift2 = desc1[fx1], desc2[fx2]
 #        info1 = '\nquery'
@@ -251,18 +251,18 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 #        last_state.last_fx = fx1
 
 #        # Extracted keypoints to draw
-#        extracted_list = [(rchip1, kp1, sift1, fx1, rid1, info1),
-#                        (rchip2, kp2, sift2, fx2, rid2, info2)]
+#        extracted_list = [(rchip1, kp1, sift1, fx1, aid1, info1),
+#                        (rchip2, kp2, sift2, fx2, aid2, info2)]
 #        # Normalizng Keypoint
 #        if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
 #            qfx2_norm = qres.filt2_meta['lnbnn']
 #            # Normalizing chip and feature
-#            (rid3, fx3, normk) = qfx2_norm[fx1]
-#            rchip3 = ibs.get_roi_chips(rid3)
-#            kp3 = ibs.get_roi_kpts(rid3)[fx3]
-#            sift3 = ibs.get_roi_desc(rid3)[fx3]
-#            info3 = '\nnorm %s k=%r' % (vh.get_ridstrs(rid3), normk)
-#            extracted_list.append((rchip3, kp3, sift3, fx3, rid3, info3))
+#            (aid3, fx3, normk) = qfx2_norm[fx1]
+#            rchip3 = ibs.get_annotion_chips(aid3)
+#            kp3 = ibs.get_annotion_kpts(aid3)[fx3]
+#            sift3 = ibs.get_annotion_desc(aid3)[fx3]
+#            info3 = '\nnorm %s k=%r' % (vh.get_aidstrs(aid3), normk)
+#            extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))
 #        else:
 #            print('WARNING: meta doesnt exist')
 
@@ -282,20 +282,20 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 #            fig2 = df2.figure(fnum=fnum2, docla=True, doclf=True)
 #        else:
 #            fnum2 = fnum
-#        for (rchip, kp, sift, fx, rid, info) in extracted_list:
+#        for (rchip, kp, sift, fx, aid, info) in extracted_list:
 #            px = draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
-#                            prevsift=prevsift, rid=rid, info=info)
+#                            prevsift=prevsift, aid=aid, info=info)
 #            prevsift = sift
 #        if not same_fig:
 #            ih.connect_callback(fig2, 'button_press_event', _click_matches_click)
-#            df2.set_figtitle(figtitle + vh.get_vsstr(qrid, rid))
+#            df2.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
 
 #    # Draw ctrl clicked selection
-#    def _sv_view(rid):
+#    def _sv_view(aid):
 #        fnum = viz.FNUMS['special']
 #        fig = df2.figure(fnum=fnum, docla=True, doclf=True)
 #        ih.disconnect_callback(fig, 'button_press_event')
-#        viz.show_sv(ibs, qres.qrid, rid2=rid, fnum=fnum)
+#        viz.show_sv(ibs, qres.qaid, aid2=aid, fnum=fnum)
 #        viz.draw()
 
 #    # Callback
@@ -323,14 +323,14 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 #        if viztype == 'matches' and ctrl_down:
 #            # Ctrl-Click
 #            print('.. control click')
-#            return _sv_view(rid)
+#            return _sv_view(aid)
 #        elif viztype == 'matches':
 #            if len(fm) == 0:
 #                print('[inter] no feature matches to click')
 #            else:
 #                # Normal Click
 #                # Select nearest feature match to the click
-#                kpts1, kpts2 = ibs.get_roi_kpts([qrid, rid])
+#                kpts1, kpts2 = ibs.get_annotion_kpts([qaid, aid])
 #                kpts1_m = kpts1[fm[:, 0]]
 #                kpts2_m = kpts2[fm[:, 1]]
 #                x2, y2, w2, h2 = xywh2_ptr[0]
@@ -338,14 +338,14 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 #                _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
 #                mx = _mx1 if _dist1 < _dist2 else _mx2
 #                print('... clicked mx=%r' % mx)
-#                _select_ith_match(mx, qrid, rid)
+#                _select_ith_match(mx, qaid, aid)
 #        elif viztype in ['warped', 'unwarped']:
-#            hs_rid = ax.__dict__.get('_hs_rid', None)
+#            hs_aid = ax.__dict__.get('_hs_aid', None)
 #            hs_fx = ax.__dict__.get('_hs_fx', None)
-#            if hs_rid is not None and viztype == 'unwarped':
-#                ishow_chip(ibs, hs_rid, fx=hs_fx, fnum=df2.next_fnum())
-#            elif hs_rid is not None and viztype == 'warped':
-#                viz.show_keypoint_gradient_orientations(ibs, hs_rid, hs_fx, fnum=df2.next_fnum())
+#            if hs_aid is not None and viztype == 'unwarped':
+#                ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
+#            elif hs_aid is not None and viztype == 'warped':
+#                viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx, fnum=df2.next_fnum())
 #        else:
 #            print('...Unknown viztype: %r' % viztype)
 #        viz.draw()
@@ -353,14 +353,14 @@ def ishow_matches(ibs, qres, rid=None, fnum=4, figtitle='Inspect Query Result',
 #    if mx is None:
 #        _chipmatch_view()
 #    else:
-#        _select_ith_match(mx, qrid, rid)
+#        _select_ith_match(mx, qaid, aid)
 
 #    def toggle_samefig():
 #        # FIXME: Do not do recursive calls
-#        ishow_matches(ibs, qres, rid=rid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
+#        ishow_matches(ibs, qres, aid=aid, fnum=fnum, figtitle=figtitle, same_fig=not same_fig, **kwargs)
 
 #    def query_last_feature():
-#        viz.show_nearest_descriptors(ibs, qrid, last_state.last_fx, df2.next_fnum())
+#        viz.show_nearest_descriptors(ibs, qaid, last_state.last_fx, df2.next_fnum())
 #        fig3 = df2.gcf()
 #        ih.connect_callback(fig3, 'button_press_event', _click_matches_click)
 #        df2.update()

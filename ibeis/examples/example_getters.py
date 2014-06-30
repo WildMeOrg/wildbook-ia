@@ -21,10 +21,10 @@ def run_example(ibs):
     # Each table in the database is indexed with a unique id (rowid)
     # NOTE: This is differnt than a universal unique id (uuid)
     # rowids are ints and uuids are hex strings. Currently
-    # only rois and images have uuids
+    # only annotations and images have uuids
     #
     gid_list = ibs.get_valid_gids()  # Valid Image IDS
-    rid_list = ibs.get_valid_rids()  # Valid ROI IDs
+    aid_list = ibs.get_valid_aids()  # Valid ANNOTATION IDs
     nid_list = ibs.get_valid_nids()  # Valid Name IDs
     eid_list = ibs.get_valid_eids()  # Valid Encounter IDs
     #
@@ -33,10 +33,10 @@ def run_example(ibs):
     # and return lists of values as output
     #
     name_list     = ibs.get_names(nid_list)        # Animal names
-    rids_in_gids  = ibs.get_image_rids(gid_list)   # Rois in images
-    rids_in_nids  = ibs.get_name_rids(nid_list)    # Rois in images
+    aids_in_gids  = ibs.get_image_aids(gid_list)   # Rois in images
+    aids_in_nids  = ibs.get_name_aids(nid_list)    # Rois in images
     img_uuid_list = ibs.get_image_uuids(gid_list)  # Image uuids
-    roi_uuid_list = ibs.get_roi_uuids(rid_list)    # Roi uuids
+    annotion_uuid_list = ibs.get_annotion_uuids(aid_list)    # Roi uuids
     #
     #
     # IBEIS Getter methods can take scalars as input too,

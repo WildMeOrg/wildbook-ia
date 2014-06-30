@@ -10,10 +10,10 @@ from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
-from ibeis.viz.interact import interact_rois2
+from ibeis.viz.interact import interact_annotations2
 from ibeis import constants
 from ibeis.gui.guiheaders import (
-    IMAGE_TABLE, ROI_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+    IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
     IBEISTableModel, IBEISTableView, IBEISTreeView, EncTableModel, EncTableView,
     IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
@@ -142,7 +142,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models       = {}
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
-        ibswgt.tblname_list = [IMAGE_TABLE, ROI_TABLE, NAME_TABLE, NAMES_TREE]
+        ibswgt.tblname_list = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
         ibswgt._init_components()
@@ -169,7 +169,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Define the abstract item models and views for the tables
         ibswgt.modelview_defs = [
             (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (ROI_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (ANNOTATION_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (NAMES_TREE,      IBEISTreeWidget, IBEISTableModel, IBEISTreeView),
             (ENCOUNTER_TABLE, EncTableWidget,   EncTableModel,   EncTableView),
@@ -185,7 +185,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect models and views
         for tblname in ibswgt.super_tblname_list:
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])
-        # Add Image, ROI, and Names as tabs
+        # Add Image, ANNOTATION, and Names as tabs
         for tblname in ibswgt.tblname_list:
             #ibswgt._tab_table_wgt.addTab(ibswgt.widgets[tblname], tblname)
             ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
@@ -435,10 +435,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('view hough image', lambda: ibswgt.back.show_hough(gid)),
                     ('delete image', lambda: ibswgt.back.delete_image(gid)),
                 ])
-            elif model.name == ROI_TABLE:
-                rid = id_
+            elif model.name == ANNOTATION_TABLE:
+                aid = id_
                 guitool.popup_menu(tblview, pos, [
-                    ('delete roi', lambda: ibswgt.back.delete_roi(rid)),
+                    ('delete annotion', lambda: ibswgt.back.delete_annotion(aid)),
                 ])
 
     @slot_(QtCore.QModelIndex)
@@ -454,9 +454,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if model.name == IMAGE_TABLE:
                 gid = id_
                 ibswgt.back.select_gid(gid, eid, show=False)
-            elif model.name == ROI_TABLE:
-                rid = id_
-                ibswgt.back.select_rid(rid, eid, show=False)
+            elif model.name == ANNOTATION_TABLE:
+                aid = id_
+                ibswgt.back.select_aid(aid, eid, show=False)
             elif model.name == NAME_TABLE:
                 nid = id_
                 ibswgt.back.select_nid(nid, eid, show=False)
@@ -475,11 +475,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             eid = model.eid
             if model.name == IMAGE_TABLE:
                 gid = id_
-                ibswgt.roi_interact = interact_rois2.ROI_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
+                ibswgt.annotion_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)
-            elif model.name == ROI_TABLE:
-                rid = id_
-                ibswgt.back.select_rid(rid, eid)
+            elif model.name == ANNOTATION_TABLE:
+                aid = id_
+                ibswgt.back.select_aid(aid, eid)
             elif model.name == NAME_TABLE:
                 nid = id_
                 ibswgt.back.select_nid(nid, eid)

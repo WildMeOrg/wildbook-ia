@@ -75,10 +75,10 @@ def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
     mainwin.menuActions = newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
 #    mainwin.menuActions.newAction(
-#        name='actionAdd_ROI',
-#        text='Add ROI',
+#        name='actionAdd_ANNOTATION',
+#        text='Add ANNOTATION',
 #        shortcut='A',
-#        slot_fn=back.add_roi)
+#        slot_fn=back.add_annotion)
     mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query',
@@ -86,13 +86,13 @@ def setup_actions_menu(mainwin, back):
         slot_fn=back.query)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
-        name='actionReselect_ROI',
-        text='Reselect ROI Bbox',
+        name='actionReselect_ANNOTATION',
+        text='Reselect ANNOTATION Bbox',
         shortcut='R',
-        slot_fn=back.reselect_roi)
+        slot_fn=back.reselect_annotion)
     mainwin.menuActions.newAction(
         name='actionReselect_Ori',
-        text='Reselect ROI Orientation',
+        text='Reselect ANNOTATION Orientation',
         shortcut='O',
         slot_fn=back.reselect_ori)
     mainwin.menuActions.addSeparator()
@@ -108,10 +108,10 @@ def setup_actions_menu(mainwin, back):
         slot_fn=back.select_prev)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
-        name='actionDelete_ROI',
-        text='Delete ROI',
+        name='actionDelete_ANNOTATION',
+        text='Delete ANNOTATION',
         shortcut='Ctrl+Del',
-        slot_fn=back.delete_roi)
+        slot_fn=back.delete_annotion)
     mainwin.menuActions.newAction(
         name='actionDelete_Image',
         text='Trash Image',
@@ -148,14 +148,14 @@ def setup_batch_menu(mainwin, back):
         name='actionCompute_Queries',
         text='Compute Queries',
         tooltip='''This might take anywhere from a coffee break to an
-                    overnight procedure depending on how many ROIs you\'ve
+                    overnight procedure depending on how many ANNOTATIONs you\'ve
                     made. It queries each chip and saves the result which
                     allows multiple queries to be rapidly inspected later.''',
         shortcut='Ctrl+4',
         slot_fn=back.compute_queries)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
-        name='actionPrecomputeROIFeatures',
+        name='actionPrecomputeANNOTATIONFeatures',
         text='Precompute Chips/Features',
         shortcut='Ctrl+Return',
         slot_fn=back.compute_feats)

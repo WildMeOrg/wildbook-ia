@@ -34,7 +34,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 
 #@utool.indent_func('[dev]')
 @profile
-def run_experiments(ibs, qrid_list):
+def run_experiments(ibs, qaid_list):
     """
     This function runs tests passed in with the -t flag
     """
@@ -91,7 +91,7 @@ def run_experiments(ibs, qrid_list):
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
             with utool.Indenter('[dev.' + func.func_name + ']'):
-                ret = func(ibs, qrid_list)
+                ret = func(ibs, qaid_list)
                 if isinstance(ret, dict):
                     locals_.update(ret)
 
@@ -103,7 +103,7 @@ def run_experiments(ibs, qrid_list):
         if intest(test_cfg_name):
             test_cfg_name_list = [test_cfg_name]
             fnum = df2.next_fnum()
-            experiment_harness.test_configurations(ibs, qrid_list, test_cfg_name_list, fnum)
+            experiment_harness.test_configurations(ibs, qaid_list, test_cfg_name_list, fnum)
 
     valid_test_helpstr_list.append('    # --- Help ---')
 
@@ -127,14 +127,14 @@ def run_experiments(ibs, qrid_list):
 __ALLRES_CACHE__ = {}
 
 
-def get_allres(ibs, qrid_list):
+def get_allres(ibs, qaid_list):
     print('[dev] get_allres')
     allres_cfgstr = ibs.qreq.get_cfgstr()
     try:
         allres = __ALLRES_CACHE__[allres_cfgstr]
     except KeyError:
-        qrid2_qres = ibs.query_all(qrid_list)
-        allres = results_all.init_allres(ibs, qrid2_qres)
+        qaid2_qres = ibs.query_all(qaid_list)
+        allres = results_all.init_allres(ibs, qaid2_qres)
     # Cache save
     __ALLRES_CACHE__[allres_cfgstr] = allres
     return allres
@@ -148,11 +148,11 @@ def get_allres(ibs, qrid_list):
 
 
 @devcmd('dists', 'dist', 'desc_dists')
-def desc_dists(ibs, qrid_list):
+def desc_dists(ibs, qaid_list):
     """ Plots the distances between matching descriptors
     labeled with groundtruth (true/false) data """
     print('[dev] desc_dists')
-    allres = get_allres(ibs, qrid_list)
+    allres = get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['top_false', 'true']
     disttype = 'L2'
@@ -170,26 +170,26 @@ def desc_dists(ibs, qrid_list):
 
 
 @devcmd('inspect')
-def inspect_matches(ibs, qrid_list):
+def inspect_matches(ibs, qaid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
     from ibeis.viz.interact import interact_qres2  # NOQA
-    allres = get_allres(ibs, qrid_list)
+    allres = get_allres(ibs, qaid_list)
     guitool.ensure_qapp()
     tblname = 'qres'
-    qrid2_qres = allres.qrid2_qres
+    qaid2_qres = allres.qaid2_qres
     ranks_lt = 5
     # This object is created inside QresResultsWidget
-    #qres_api = inspect_gui.make_qres_api(ibs, qrid2_qres)  # NOQA
+    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
     # This is where you create the result widigt
     print('[inspect_matches] make_qres_widget')
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
     qres_wgt.raise_()
-    #query_review = interact_qres2.Interact_QueryResult(ibs, qrid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qrid2_qres, ranks_lt=ranks_lt)
+    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
+    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
     print('</inspect_matches>')
     # simulate double click
     qres_wgt._on_click(qres_wgt.model.index(2, 2))
@@ -198,16 +198,16 @@ def inspect_matches(ibs, qrid_list):
 
 
 @devcmd('scores', 'score')
-def roimatch_scores(ibs, qrid_list):
-    print('[dev] roimatch_scores')
-    allres = get_allres(ibs, qrid_list)
+def annotionmatch_scores(ibs, qaid_list):
+    print('[dev] annotionmatch_scores')
+    allres = get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['false', 'true']
     orgtype_list = ['top_false', 'top_true']
     #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
     markers_map = defaultdict(lambda: 'o')
-    cmatch_scores_map = results_analyzer.get_orgres_roimatch_scores(allres, orgtype_list)
-    results_analyzer.print_roimatch_scores_map(cmatch_scores_map)
+    cmatch_scores_map = results_analyzer.get_orgres_annotionmatch_scores(allres, orgtype_list)
+    results_analyzer.print_annotionmatch_scores_map(cmatch_scores_map)
     #true_cmatch_scores  = cmatch_scores_map['true']
     #false_cmatch_scores = cmatch_scores_map['false']
     scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
@@ -219,23 +219,23 @@ def roimatch_scores(ibs, qrid_list):
 
 
 @devcmd('gv')
-def gvcomp(ibs, qrid_list):
+def gvcomp(ibs, qaid_list):
     """
     GV = With gravity vector
     RI = With rotation invariance
     """
     print('[dev] gvcomp')
-    def testcomp(ibs, qrid_list):
-        allres = get_allres(ibs, qrid_list)
-        for qrid in qrid_list:
-            qres = allres.get_qres(qrid)
+    def testcomp(ibs, qaid_list):
+        allres = get_allres(ibs, qaid_list)
+        for qaid in qaid_list:
+            qres = allres.get_qres(qaid)
             interact.ishow_qres(ibs, qres, annote_mode=2)
         return allres
     ibs_GV = ibs
     ibs_RI = ibs.clone_handle(nogravity_hack=True)
 
-    allres_GV = testcomp(ibs_GV, qrid_list)
-    allres_RI = testcomp(ibs_RI, qrid_list)
+    allres_GV = testcomp(ibs_GV, qaid_list)
+    allres_RI = testcomp(ibs_RI, qaid_list)
     return locals()
 
 
@@ -249,11 +249,11 @@ def get_ibslist(ibs):
 
 
 @devcmd('gv_scores')
-def compgrav_roimatch_scores(ibs, qrid_list):
-    print('[dev] compgrav_roimatch_scores')
+def compgrav_annotionmatch_scores(ibs, qaid_list):
+    print('[dev] compgrav_annotionmatch_scores')
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
-        roimatch_scores(ibs_, qrid_list)
+        annotionmatch_scores(ibs_, qaid_list)
 
 
 #------------------
@@ -276,21 +276,21 @@ def dev_snippets(main_locals):
             front = getattr(back, 'front', None)
     if ibs is not None:
         #ibs.dump_tables()
-        valid_rids = ibs.get_valid_rids()
+        valid_aids = ibs.get_valid_aids()
         valid_gids = ibs.get_valid_gids()
         valid_nids = ibs.get_valid_nids()
-        valid_nid_list   = ibs.get_roi_nids(valid_rids)
-        valid_rid_names  = ibs.get_roi_names(valid_rids)
-        valid_rid_gtrues = ibs.get_roi_groundtruth(valid_rids)
+        valid_nid_list   = ibs.get_annotion_nids(valid_aids)
+        valid_aid_names  = ibs.get_annotion_names(valid_aids)
+        valid_aid_gtrues = ibs.get_annotion_groundtruth(valid_aids)
     return locals()
 
 
-def devfunc(ibs, qrid_list):
+def devfunc(ibs, qaid_list):
     """ Function for developing something """
     print('[dev] devfunc')
-    allres = get_allres(ibs, qrid_list)
+    allres = get_allres(ibs, qaid_list)
     locals_ = locals()
-    #locals_.update(roimatch_scores(ibs, qrid_list))
+    #locals_.update(annotionmatch_scores(ibs, qaid_list))
     return locals_
 
 
@@ -299,27 +299,27 @@ def run_dev(main_locals):
     # Get references to controller
     ibs  = main_locals['ibs']
     if ibs is not None:
-        # Get rids marked as test cases
-        qrid_list = main_helpers.get_test_qrids(ibs)
-        print('test_qrids = %r' % qrid_list)
-        print('len(test_qrids) = %d' % len(qrid_list))
+        # Get aids marked as test cases
+        qaid_list = main_helpers.get_test_qaids(ibs)
+        print('test_qaids = %r' % qaid_list)
+        print('len(test_qaids) = %d' % len(qaid_list))
         # Warn on no test cases
         try:
-            assert len(qrid_list) > 0, 'assert!'
+            assert len(qaid_list) > 0, 'assert!'
         except AssertionError as ex:
-            utool.printex(ex, 'len(qrid_list) = 0', iswarning=True)
-            #qrid_list = ibs.get_valid_rids()[0]
+            utool.printex(ex, 'len(qaid_list) = 0', iswarning=True)
+            #qaid_list = ibs.get_valid_aids()[0]
 
-        if len(qrid_list) > 0:
+        if len(qaid_list) > 0:
             # Prepare the IBEIS controller for querys
-            ibs.prep_qreq_db(qrid_list)
+            ibs.prep_qreq_db(qaid_list)
             # Run the dev experiments
-            expt_locals = run_experiments(ibs, qrid_list)
+            expt_locals = run_experiments(ibs, qaid_list)
             # Add experiment locals to local namespace
             exec(utool.execstr_dict(expt_locals, 'expt_locals'))
             if '--devmode' in sys.argv:
                 # Execute the dev-func and add to local namespace
-                devfunc_locals = devfunc(ibs, qrid_list)
+                devfunc_locals = devfunc(ibs, qaid_list)
                 exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
     return locals()

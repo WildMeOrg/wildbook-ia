@@ -9,6 +9,7 @@ from . import interact_qres
 from . import interact_bbox
 from . import interact_sver
 from . import interact_matches
+from . import interact_annotations2
 
 from plottool import interact_helpers as ih
 from .interact_image import ishow_image

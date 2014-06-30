@@ -8,20 +8,20 @@ from .viz_chip import show_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
 
 
-def show_name_of(ibs, rid, **kwargs):
-    nid = ibs.get_roi_names(rid)
-    show_name(ibs, nid, sel_rids=[rid], **kwargs)
+def show_name_of(ibs, aid, **kwargs):
+    nid = ibs.get_annotion_names(aid)
+    show_name(ibs, nid, sel_aids=[aid], **kwargs)
 
 
 @utool.indent_func
-def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, sel_rids=[], subtitle='',
+def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subtitle='',
               annote=False, **kwargs):
     print('[viz] show_name nid=%r' % nid)
-    rid_list = ibs.get_name_rids(nid)
+    aid_list = ibs.get_name_aids(nid)
     name = ibs.get_names((nid,))
-    ibsfuncs.ensure_roi_data(ibs, rid_list, chips=(not in_image or annote), feats=annote)
-    print('[viz] show_name=%r rid_list=%r' % (name, rid_list))
-    nRids = len(rid_list)
+    ibsfuncs.ensure_annotion_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
+    print('[viz] show_name=%r aid_list=%r' % (name, aid_list))
+    nRids = len(aid_list)
     if nRids > 0:
         nRows, nCols = ph.get_square_row_cols(nRids)
         print('[viz*] r=%r, c=%r' % (nRows, nCols))
@@ -30,12 +30,12 @@ def show_name(ibs, nid, nid2_rids=None, in_image=True, fnum=0, sel_rids=[], subt
         fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
         fig.clf()
         # Trigger computation of all chips in parallel
-        for px, rid in enumerate(rid_list):
-            show_chip(ibs, rid=rid, pnum=pnum_(px), annote=annote, in_image=in_image)
-            if rid in sel_rids:
+        for px, aid in enumerate(aid_list):
+            show_chip(ibs, aid=aid, pnum=pnum_(px), annote=annote, in_image=in_image)
+            if aid in sel_aids:
                 ax = df2.gca()
                 df2.draw_border(ax, df2.GREEN, 4)
-            #plot_rid3(ibs, rid)
+            #plot_aid3(ibs, aid)
         if isinstance(nid, np.ndarray):
             nid = nid[0]
         if isinstance(name, np.ndarray):

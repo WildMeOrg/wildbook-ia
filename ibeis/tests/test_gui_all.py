@@ -15,7 +15,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     """
     Creates a new database
     Adds test images
-    Creates dummy ROIS
+    Creates dummy ANNOTATIONS
     Selects things
     """
     # DELETE OLD
@@ -47,44 +47,44 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     assert len(gid_list) == len(gpath_list)
     #
     #
-    # ADD ROIS
-    print('[TEST] ADD_ROIS')
-    def add_roi(gid, bbox, theta=0.0):
-        rid = back.add_roi(gid=gid, bbox=bbox, theta=theta, **_kwargs)
-        return rid
+    # ADD ANNOTATIONS
+    print('[TEST] ADD_ANNOTATIONS')
+    def add_annotion(gid, bbox, theta=0.0):
+        aid = back.add_annotion(gid=gid, bbox=bbox, theta=theta, **_kwargs)
+        return aid
 
-    preadd_rids = ibs.get_valid_rids()  # this should be []
-    assert len(preadd_rids) == 0, 'there are already rids in the database!'
-    print('preadd_rids = %r' % preadd_rids)
+    preadd_aids = ibs.get_valid_aids()  # this should be []
+    assert len(preadd_aids) == 0, 'there are already aids in the database!'
+    print('preadd_aids = %r' % preadd_aids)
 
-    rid1 = add_roi(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
-    rid2 = add_roi(gid_list[1], (50, 50, 100, 100))
-    rid3 = add_roi(gid_list[2], (50, 50, 64, 64))
-    rid4 = add_roi(gid_list[2], (50, 50, 200, 200))
-    rid5 = add_roi(gid_list[1], (0, 0, 400, 400))
+    aid1 = add_annotion(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
+    aid2 = add_annotion(gid_list[1], (50, 50, 100, 100))
+    aid3 = add_annotion(gid_list[2], (50, 50, 64, 64))
+    aid4 = add_annotion(gid_list[2], (50, 50, 200, 200))
+    aid5 = add_annotion(gid_list[1], (0, 0, 400, 400))
 
-    print('rid1 = %r' % rid1)
-    print('rid2 = %r' % rid2)
-    print('rid3 = %r' % rid3)
-    print('rid4 = %r' % rid4)
-    print('rid5 = %r' % rid5)
+    print('aid1 = %r' % aid1)
+    print('aid2 = %r' % aid2)
+    print('aid3 = %r' % aid3)
+    print('aid4 = %r' % aid4)
+    print('aid5 = %r' % aid5)
     #
     #
-    # SELECT ROIS
-    print('[TEST] SELECT ROI / Add Chips')
-    # get_valid_rids seems to return rids in an arbitrary order, it's an SQL thing
-    rid_list = sorted(ibs.get_valid_rids())
-    print('\n'.join('  * rid_list[%d] = %r' % (count, rid) for count, rid in enumerate(rid_list)))
+    # SELECT ANNOTATIONS
+    print('[TEST] SELECT ANNOTATION / Add Chips')
+    # get_valid_aids seems to return aids in an arbitrary order, it's an SQL thing
+    aid_list = sorted(ibs.get_valid_aids())
+    print('\n'.join('  * aid_list[%d] = %r' % (count, aid) for count, aid in enumerate(aid_list)))
 
-    back.select_rid(rid_list[0], show_image=True, **_kwargs)
+    back.select_aid(aid_list[0], show_image=True, **_kwargs)
     try:
-        bbox_list = ibs.get_roi_bboxes(rid_list)
+        bbox_list = ibs.get_annotion_bboxes(aid_list)
         assert bbox_list[0] == (50, 50, 100, 100)
     except AssertionError as ex:
-        utool.printex(ex, key_list=['bbox_list', 'rid_list'])
+        utool.printex(ex, key_list=['bbox_list', 'aid_list'])
         raise
-    back.reselect_roi(bbox=[51, 52, 103, 104])
-    assert ibs.get_roi_bboxes(rid_list[0]) == (51, 52, 103, 104)
+    back.reselect_annotion(bbox=[51, 52, 103, 104])
+    assert ibs.get_annotion_bboxes(aid_list[0]) == (51, 52, 103, 104)
 
     back.compute_encounters()
 
@@ -93,10 +93,10 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
 
     back.compute_encounters()
 
-    # Change some ROIs
+    # Change some ANNOTATIONs
 
-    #add_roi(gid_list[2], None)  # user selection
-    #add_roi(None, [42, 42, 8, 8])  # back selection
+    #add_annotion(gid_list[2], None)  # user selection
+    #add_annotion(None, [42, 42, 8, 8])  # back selection
     # I'm not sure how I want to integrate that IPython stuff
     return locals()
 

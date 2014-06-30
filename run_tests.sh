@@ -144,7 +144,7 @@ cat <<EOF
     |__] |__| |     |  |___ ___]  |  ___] 
 EOF
     RUN_TEST ibeis/tests/test_gui_import_images.py 
-    RUN_TEST ibeis/tests/test_gui_add_roi.py 
+    RUN_TEST ibeis/tests/test_gui_add_annotation.py 
     RUN_TEST ibeis/tests/test_gui_selection.py 
     RUN_TEST ibeis/tests/test_gui_open_database.py
     RUN_TEST ibeis/tests/test_gui_all.py
@@ -177,8 +177,10 @@ EOF
     RUN_TEST ibeis/tests/test_delete_image.py
     RUN_TEST ibeis/tests/test_delete_image_thumbtups.py
     RUN_TEST ibeis/tests/test_delete_names.py
-    RUN_TEST ibeis/tests/test_delete_roi_chips.py
-    RUN_TEST ibeis/tests/test_delete_roi.py
+    RUN_TEST ibeis/tests/test_delete_annotation_chips.py
+    RUN_TEST ibeis/tests/test_delete_annotation.py
+    RUN_TEST ibeis/tests/test_delete_chips.py
+    RUN_TEST ibeis/tests/test_delete_features.py
 fi
 
 

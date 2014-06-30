@@ -14,35 +14,35 @@ def get_dbinfo(ibs):
     """ Returns dictionary of digestable database information """
     # Name Info
     #rrr()
-    valid_rids = ibs.get_valid_rids()
+    valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
 
-    num_chips = len(valid_rids)
+    num_chips = len(valid_aids)
     num_images = len(valid_gids)
 
-    name_rids_list = ibs.get_name_rids(valid_nids)
-    nx2_rids = np.array(name_rids_list)
-    unknown_rids = ibs.get_name_rids(ibs.UNKNOWN_NID)
+    name_aids_list = ibs.get_name_aids(valid_nids)
+    nx2_aids = np.array(name_aids_list)
+    unknown_aids = ibs.get_name_aids(ibs.UNKNOWN_NID)
 
     gname_list = ibs.get_image_gnames(valid_gids)
-    nx2_nRois = np.asarray(map(len, nx2_rids))
-    num_uniden = len(unknown_rids)
+    nx2_nRois = np.asarray(map(len, nx2_aids))
+    num_uniden = len(unknown_aids)
     # Seperate singleton / multitons
     multiton_nxs  = np.where(nx2_nRois > 1)[0]
     singleton_nxs = np.where(nx2_nRois == 1)[0]
     valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
     num_names_with_gt = len(multiton_nxs)
     # Chip Info
-    multiton_rids_list = nx2_rids[multiton_nxs]
+    multiton_aids_list = nx2_aids[multiton_nxs]
     print('multiton_nxs = %r' % (multiton_nxs,))
-    print('multiton_rids_list = %r' % (multiton_rids_list,))
-    if len(multiton_rids_list) == 0:
+    print('multiton_aids_list = %r' % (multiton_aids_list,))
+    if len(multiton_aids_list) == 0:
         multiton_cxs = np.array([], dtype=np.int)
     else:
-        multiton_cxs = np.hstack(multiton_rids_list)
-    singleton_cxs = nx2_rids[singleton_nxs]
-    multiton_nx2_nchips = map(len, multiton_rids_list)
+        multiton_cxs = np.hstack(multiton_aids_list)
+    singleton_cxs = nx2_aids[singleton_nxs]
+    multiton_nx2_nchips = map(len, multiton_aids_list)
     # Image info
     gpath_list = ibs.get_image_paths(valid_gids)
     #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True, recursive=True)
@@ -61,15 +61,15 @@ def get_dbinfo(ibs):
         return '{\n    ' + ret + '}'
 
     print('reading image sizes')
-    roi_bbox_list = ibs.get_roi_bboxes(valid_rids)
-    roi_bbox_arr = np.array(roi_bbox_list)
-    if len(roi_bbox_arr) == 0:
-        roi_size_list = []
+    annotion_bbox_list = ibs.get_annotion_bboxes(valid_aids)
+    annotion_bbox_arr = np.array(annotion_bbox_list)
+    if len(annotion_bbox_arr) == 0:
+        annotion_size_list = []
     else:
-        roi_size_list = roi_bbox_arr[:, 2:4]
+        annotion_size_list = annotion_bbox_arr[:, 2:4]
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
-    chip_size_stats = wh_print_stats(roi_size_list)
+    chip_size_stats = wh_print_stats(annotion_size_list)
     multiton_stats  = utool.common_stats(multiton_nx2_nchips)
 
     num_names = len(valid_nxs)
@@ -99,8 +99,8 @@ def get_keypoint_stats(ibs):
     #ibs.refresh_features()
     from ibeis.control.IBEISControl import IBEISController
     assert(isinstance(ibs, IBEISController))
-    valid_rids = np.array(ibs.get_valid_rids())
-    cx2_kpts = ibs.get_roi_kpts(valid_rids)
+    valid_aids = np.array(ibs.get_valid_aids())
+    cx2_kpts = ibs.get_annotion_kpts(valid_aids)
     #cx2_kpts = ibs.feats.cx2_kpts
     # Check cx2_kpts
     cx2_nFeats = map(len, cx2_kpts)
@@ -169,8 +169,8 @@ def dbstats(ibs):
 def cache_memory_stats(ibs, cid_list, fnum=None):
     from util import util_latex as latex_formater
     print('[dev stats] cache_memory_stats()')
-    #kpts_list = ibs.get_roi_kpts(cid_list)
-    #desc_list = ibs.get_roi_desc(cid_list)
+    #kpts_list = ibs.get_annotion_kpts(cid_list)
+    #desc_list = ibs.get_annotion_desc(cid_list)
     #nFeats_list = map(len, kpts_list)
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 

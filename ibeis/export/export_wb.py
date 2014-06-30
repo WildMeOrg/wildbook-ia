@@ -98,37 +98,37 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
     for encounter_id in eid_list:
         encounter = ibs.get_encounter_enctext(encounter_id)
         # make occurrence id from enctext
-        name_roi_mapping = {}
-        image_roi_mapping = {}
+        name_annotion_mapping = {}
+        image_annotion_mapping = {}
         names = ibs.get_encounter_nids(encounter_id)
-        rois = ibs.get_encounter_rids(encounter_id)
+        annotations = ibs.get_encounter_aids(encounter_id)
         images = ibs.get_encounter_gids(encounter_id)
 
         for name_id in names:
             wbenc_name = encounter + str(name_id)
             wb_encounters[name_id] = wbenc_name
-            name_roi_mapping[name_id] = []
-            image_roi_mapping[name_id] = []
+            name_annotion_mapping[name_id] = []
+            image_annotion_mapping[name_id] = []
 
-        for roi_id in rois:
-            assoc_name_id = ibs.get_roi_nids([roi_id])[0]
-            name_roi_mapping[assoc_name_id].append(roi_id)
+        for annotion_id in annotations:
+            assoc_name_id = ibs.get_annotion_nids([annotion_id])[0]
+            name_annotion_mapping[assoc_name_id].append(annotion_id)
 
         print (ibs.get_image_nids(images))
         #for img_id in images:
         #    print (ibs.get_image_nids([img_id]))
         #    assoc_name_id = ibs.get_image_nids([img_id])[0]
-        #    image_roi_mapping[assoc_name_id].append(img_id)
+        #    image_annotion_mapping[assoc_name_id].append(img_id)
 
         #print (names)
         for name_id in names:
             wbenc_name = wb_encounters[name_id]
-            roi_id_list = name_roi_mapping[name_id]
-            image_id_list = image_roi_mapping[name_id]
+            annotion_id_list = name_annotion_mapping[name_id]
+            image_id_list = image_annotion_mapping[name_id]
             print (image_id_list)
-            wbenc_time_avg = int(sum(ibs.get_image_unixtime(ibs.get_roi_gids(roi_id_list))) / len(roi_id_list))
+            wbenc_time_avg = int(sum(ibs.get_image_unixtime(ibs.get_annotion_gids(annotion_id_list))) / len(annotion_id_list))
 
-            lat, lng = map(lambda x: sum(x) / len(x), izip(*ibs.get_image_gps(ibs.get_roi_gids(roi_id_list))))
+            lat, lng = map(lambda x: sum(x) / len(x), izip(*ibs.get_image_gps(ibs.get_annotion_gids(annotion_id_list))))
             print (lat)
             print (lng)
             print (wbenc_time_avg)

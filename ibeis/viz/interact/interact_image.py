@@ -10,15 +10,15 @@ from plottool import interact_helpers as ih
 
 
 @utool.indent_func
-def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
+def ishow_image(ibs, gid, sel_aids=[], fnum=1, select_callback=None,
                 **kwargs):
     fig = ih.begin_interaction('image', fnum)
     #printDBG(utool.func_str(interact_image, [], locals()))
     kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)
 
-    def _image_view(sel_rids=sel_rids, **_kwargs):
+    def _image_view(sel_aids=sel_aids, **_kwargs):
         try:
-            viz.show_image(ibs, gid, sel_rids=sel_rids, fnum=fnum, **_kwargs)
+            viz.show_image(ibs, gid, sel_aids=sel_aids, fnum=fnum, **_kwargs)
             df2.set_figtitle('Image View')
         except TypeError as ex:
             utool.printex(ex, utool.dict_str(_kwargs))
@@ -34,22 +34,22 @@ def ishow_image(ibs, gid, sel_rids=[], fnum=1, select_callback=None,
         else:
             ax          = event.inaxes
             viztype     = vh.get_ibsdat(ax, 'viztype')
-            roi_centers = vh.get_ibsdat(ax, 'roi_centers', default=[])
-            printDBG(' roi_centers=%r' % roi_centers)
+            annotion_centers = vh.get_ibsdat(ax, 'annotion_centers', default=[])
+            printDBG(' annotion_centers=%r' % annotion_centers)
             printDBG(' viztype=%r' % viztype)
-            if len(roi_centers) == 0:
+            if len(annotion_centers) == 0:
                 print(' ...no chips exist to click')
                 return
             x, y = event.xdata, event.ydata
-            # Find ROI center nearest to the clicked point
-            rid_list = vh.get_ibsdat(ax, 'rid_list', default=[])
-            centx, _dist = utool.nearest_point(x, y, roi_centers)
-            rid = rid_list[centx]
-            print(' ...clicked rid=%r' % rid)
+            # Find ANNOTATION center nearest to the clicked point
+            aid_list = vh.get_ibsdat(ax, 'aid_list', default=[])
+            centx, _dist = utool.nearest_point(x, y, annotion_centers)
+            aid = aid_list[centx]
+            print(' ...clicked aid=%r' % aid)
             if select_callback is not None:
-                select_callback(gid, sel_rids=[rid])
+                select_callback(gid, sel_aids=[aid])
             else:
-                _image_view(sel_rids=[rid])
+                _image_view(sel_aids=[aid])
 
         viz.draw()
 

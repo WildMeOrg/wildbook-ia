@@ -13,37 +13,37 @@ USE_BIGCACHE = '--nocache-big' not in sys.argv
 
 
 @utool.indent_func
-def quickly_ensure_qreq(ibs, qrids=None, drids=None):
+def quickly_ensure_qreq(ibs, qaids=None, daids=None):
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
     print(' --- quick ensure qreq --- ')
     ibs._init_query_requestor()
     qreq = ibs.qreq
     query_cfg = ibs.cfg.query_cfg
-    rids = ibs.get_recognition_database_rids()
-    if qrids is None:
-        qrids = rids
-    if drids is None:
-        drids = rids
+    aids = ibs.get_recognition_database_aids()
+    if qaids is None:
+        qaids = aids
+    if daids is None:
+        daids = aids
     qreq = prep_query_request(qreq=qreq, query_cfg=query_cfg,
-                              qrids=qrids, drids=drids)
+                              qaids=qaids, daids=daids)
     pre_exec_checks(ibs, qreq)
     return qreq
 
 
 #@utool.indent_func('[prep_qreq]')
 def prep_query_request(qreq=None, query_cfg=None,
-                       qrids=None, drids=None, **kwargs):
+                       qaids=None, daids=None, **kwargs):
     """  Builds or modifies a query request object """
     print(' --- Prep QueryRequest --- ')
     if qreq is None:
         qreq = QueryRequest.QueryRequest()
-    if qrids is not None:
-        assert len(qrids) > 0, 'cannot query nothing!'
-        qreq.qrids = qrids
-    if drids is not None:
-        assert len(drids) > 0, 'cannot search nothing!'
-        qreq.drids = drids
+    if qaids is not None:
+        assert len(qaids) > 0, 'cannot query nothing!'
+        qreq.qaids = qaids
+    if daids is not None:
+        assert len(daids) > 0, 'cannot search nothing!'
+        qreq.daids = daids
     if query_cfg is None:
         query_cfg = qreq.cfg
     if len(kwargs) > 0:
@@ -64,14 +64,14 @@ def pre_exec_checks(ibs, qreq):
     set of feature descriptors """
     print('  --- Pre Exec ---')
     feat_cfgstr = qreq.cfg._feat_cfg.get_cfgstr()
-    drids_hashid = qreq.get_drids_hashid()
+    daids_hashid = qreq.get_daids_hashid()
     # Ensure the index / inverted index exist for this config
-    dftup_hashid = drids_hashid + feat_cfgstr
+    dftup_hashid = daids_hashid + feat_cfgstr
     if dftup_hashid not in qreq.dftup2_index:
         # Get qreq config information
-        drids = qreq.get_internal_drids()
+        daids = qreq.get_internal_daids()
         # Compute the FLANN Index
-        data_index = NNIndex.NNIndex(ibs, drids)
+        data_index = NNIndex.NNIndex(ibs, daids)
         qreq.dftup2_index[dftup_hashid] = data_index
     qreq.data_index = qreq.dftup2_index[dftup_hashid]
     return qreq
@@ -93,62 +93,62 @@ def process_query_request(ibs, qreq,
     INPUT:
         ibs  - ibeis control object
         qreq - query request object (should be the same as ibs.qreq)
-    Checks a big cache for qrid2_qres.
+    Checks a big cache for qaid2_qres.
     If cache miss, tries to load each qres individually.
     On an individual cache miss, it preforms the query.
     """
     print(' --- Process QueryRequest --- ')
-    if len(qreq.qrids) <= 1:
+    if len(qreq.qaids) <= 1:
         # Do not use bigcache single queries
         use_bigcache = False
     # Try and load directly from a big cache
     if use_bigcache:
         bigcache_dpath = qreq.bigcachedir
         bigcache_fname = (ibs.get_dbname() + '_QRESMAP' +
-                          qreq.get_qrids_hashid() + qreq.get_drids_hashid())
+                          qreq.get_qaids_hashid() + qreq.get_daids_hashid())
         bigcache_cfgstr = qreq.cfg.get_cfgstr()
     if use_cache and use_bigcache:
         try:
-            qrid2_qres = utool.load_cache(bigcache_dpath,
+            qaid2_qres = utool.load_cache(bigcache_dpath,
                                           bigcache_fname,
                                           bigcache_cfgstr)
-            print('... qrid2_qres bigcache hit')
-            return qrid2_qres
+            print('... qaid2_qres bigcache hit')
+            return qaid2_qres
         except IOError:
-            print('... qrid2_qres bigcache miss')
+            print('... qaid2_qres bigcache miss')
     # Try loading as many cached results as possible
     if use_cache:
-        qrid2_qres, failed_qrids = mf.try_load_resdict(qreq)
+        qaid2_qres, failed_qaids = mf.try_load_resdict(qreq)
     else:
-        qrid2_qres = {}
-        failed_qrids = qreq.qrids
+        qaid2_qres = {}
+        failed_qaids = qreq.qaids
 
     # Execute and save queries
-    if len(failed_qrids) > 0:
+    if len(failed_qaids) > 0:
         if safe:
             qreq = pre_exec_checks(ibs, qreq)
-        computed_qrid2_qres = execute_query_and_save_L1(ibs, qreq, failed_qrids)
-        qrid2_qres.update(computed_qrid2_qres)  # Update cached results
+        computed_qaid2_qres = execute_query_and_save_L1(ibs, qreq, failed_qaids)
+        qaid2_qres.update(computed_qaid2_qres)  # Update cached results
     if use_bigcache:
         utool.save_cache(bigcache_dpath,
                          bigcache_fname,
-                         bigcache_cfgstr, qrid2_qres)
-    return qrid2_qres
+                         bigcache_cfgstr, qaid2_qres)
+    return qaid2_qres
 
 
 # Query Level 1
 #@utool.indent_func('[Q1]')
 #@profile
-def execute_query_and_save_L1(ibs, qreq, failed_qrids=[]):
+def execute_query_and_save_L1(ibs, qreq, failed_qaids=[]):
     #print('[q1] execute_query_and_save_L1()')
-    orig_qrids = qreq.qrids
-    if len(failed_qrids) > 0:
-        qreq.qrids = failed_qrids
-    qrid2_qres = execute_query_L0(ibs, qreq)  # Execute Queries
-    for qrid, res in qrid2_qres.iteritems():  # Cache Save
+    orig_qaids = qreq.qaids
+    if len(failed_qaids) > 0:
+        qreq.qaids = failed_qaids
+    qaid2_qres = execute_query_L0(ibs, qreq)  # Execute Queries
+    for qaid, res in qaid2_qres.iteritems():  # Cache Save
         res.save(ibs)
-    qreq.qrids = orig_qrids
-    return qrid2_qres
+    qreq.qaids = orig_qaids
+    return qaid2_qres
 
 
 # Query Level 0
@@ -161,44 +161,44 @@ def execute_query_L0(ibs, qreq):
         ibs   - HotSpotter database object to be queried
         qreq - QueryRequest Object   # use prep_qreq to create one
     Output:
-        qrid2_qres - mapping from query indexes to QueryResult Objects
+        qaid2_qres - mapping from query indexes to QueryResult Objects
     """
     # Query Chip Indexes
-    # * vsone qrids/drids swapping occurs here
-    qrids = qreq.get_internal_qrids()
+    # * vsone qaids/daids swapping occurs here
+    qaids = qreq.get_internal_qaids()
 
-    # Nearest neighbors (qrid2_nns)
+    # Nearest neighbors (qaid2_nns)
     # * query descriptors assigned to database descriptors
     # * FLANN used here
-    qrid2_nns = mf.nearest_neighbors(
-        ibs, qrids, qreq)
+    qaid2_nns = mf.nearest_neighbors(
+        ibs, qaids, qreq)
 
     # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
     # * feature matches are weighted
     filt2_weights, filt2_meta = mf.weight_neighbors(
-        ibs, qrid2_nns, qreq)
+        ibs, qaid2_nns, qreq)
 
-    # Thresholding and weighting (qrid2_nnfilter)
+    # Thresholding and weighting (qaid2_nnfilter)
     # * feature matches are pruned
-    qrid2_nnfilt = mf.filter_neighbors(
-        ibs, qrid2_nns, filt2_weights, qreq)
+    qaid2_nnfilt = mf.filter_neighbors(
+        ibs, qaid2_nns, filt2_weights, qreq)
 
-    # Nearest neighbors to chip matches (qrid2_chipmatch)
-    # * Inverted index used to create rid2_fmfsfk (TODO: crid2_fmfv)
+    # Nearest neighbors to chip matches (qaid2_chipmatch)
+    # * Inverted index used to create aid2_fmfsfk (TODO: crid2_fmfv)
     # * Initial scoring occurs
     # * vsone inverse swapping occurs here
-    qrid2_chipmatch_FILT = mf.build_chipmatches(
-        qrid2_nns, qrid2_nnfilt, qreq)
+    qaid2_chipmatch_FILT = mf.build_chipmatches(
+        qaid2_nns, qaid2_nnfilt, qreq)
 
-    # Spatial verification (qrid2_chipmatch) (TODO: cython)
+    # Spatial verification (qaid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches
-    qrid2_chipmatch_SVER = mf.spatial_verification(
-        ibs, qrid2_chipmatch_FILT, qreq, dbginfo=False)
+    qaid2_chipmatch_SVER = mf.spatial_verification(
+        ibs, qaid2_chipmatch_FILT, qreq, dbginfo=False)
 
-    # Query results format (qrid2_qres) (TODO: SQL / Json Encoding)
+    # Query results format (qaid2_qres) (TODO: SQL / Json Encoding)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qrid2_qres = mf.chipmatch_to_resdict(
-        ibs, qrid2_chipmatch_SVER, filt2_meta, qreq)
+    qaid2_qres = mf.chipmatch_to_resdict(
+        ibs, qaid2_chipmatch_SVER, filt2_meta, qreq)
 
-    return qrid2_qres
+    return qaid2_qres

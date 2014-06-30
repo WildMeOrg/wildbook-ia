@@ -8,15 +8,15 @@ from plottool import interact_helpers as ih
     __name__, '[interact_sver]', DEBUG=False)
 
 
-def ishow_sver(ibs, rid1, rid2, chipmatch_FILT=None, rid2_svtup=None, fnum=None, **kwargs):
+def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None, **kwargs):
     fig = ih.begin_interaction('sver', fnum)
     mode_ptr = [2]
-    if chipmatch_FILT is None or rid2_svtup is None:
-        chipmatch_FILT, rid2_svtup = viz._compute_svvars(ibs, rid1)
+    if chipmatch_FILT is None or aid2_svtup is None:
+        chipmatch_FILT, aid2_svtup = viz._compute_svvars(ibs, aid1)
 
     def _sv_view(**kwargs):
         kwargs['show_assign'] = kwargs.get('show_assign', False)
-        viz.show_sver(ibs, rid1, rid2, chipmatch_FILT, rid2_svtup, fnum=fnum, **kwargs)
+        viz.show_sver(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, fnum=fnum, **kwargs)
 
     def _on_sv_click(event):
         print_('[inter] clicked sv')

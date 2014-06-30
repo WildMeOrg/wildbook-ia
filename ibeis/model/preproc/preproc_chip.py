@@ -19,16 +19,16 @@ import vtool.image as gtool
 
 #@functools32.lru_cache(max_size=16)  # TODO: LRU cache needs to handle cfgstrs first
 @utool.indent_func
-def compute_or_read_roi_chips(ibs, rid_list, ensure=True):
+def compute_or_read_annotion_chips(ibs, aid_list, ensure=True):
     """ Reads chips and tries to compute them if they do not exist """
     #print('[preproc_chip] compute_or_read_chips')
     if ensure:
         try:
-            utool.assert_all_not_None(rid_list, 'rid_list')
+            utool.assert_all_not_None(aid_list, 'aid_list')
         except AssertionError as ex:
-            utool.printex(ex, key_list=['rid_list'])
+            utool.printex(ex, key_list=['aid_list'])
             raise
-    cfpath_list = get_roi_cfpath_list(ibs, rid_list)
+    cfpath_list = get_annotion_cfpath_list(ibs, aid_list)
     try:
         if ensure:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
@@ -37,12 +37,12 @@ def compute_or_read_roi_chips(ibs, rid_list, ensure=True):
     except IOError as ex:
         if not utool.QUIET:
             utool.printex(ex, '[preproc_chip] Handing Exception: ')
-        ibs.add_chips(rid_list)
+        ibs.add_chips(aid_list)
         try:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
         except IOError:
             print('[preproc_chip] cache must have been deleted from disk')
-            compute_and_write_chips_lazy(ibs, rid_list)
+            compute_and_write_chips_lazy(ibs, aid_list)
             # Try just one more time
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
 
@@ -50,16 +50,16 @@ def compute_or_read_roi_chips(ibs, rid_list, ensure=True):
 
 
 @utool.indent_func
-def add_chips_params_gen(ibs, rid_list):
+def add_chips_params_gen(ibs, aid_list):
     """ computes chips if they do not exist.
     generates values for add_chips sqlcommands """
-    cfpath_list = get_roi_cfpath_list(ibs, rid_list)
+    cfpath_list = get_annotion_cfpath_list(ibs, aid_list)
     chip_config_rowid = ibs.get_chip_config_rowid()
-    for cfpath, rid in izip(cfpath_list, rid_list):
+    for cfpath, aid in izip(cfpath_list, aid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
-        #print('Yeild Chip Param: rid=%r, cpath=%r' % (rid, cfpath))
-        yield (rid, cfpath, width, height, chip_config_rowid)
+        #print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
+        yield (aid, cfpath, width, height, chip_config_rowid)
 
 
 #--------------
@@ -95,17 +95,17 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
         chip_cfgstr = chip_cfg.get_cfgstr()   # algo settings cfgstr
         chip_cfgfmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
         suffix = chip_cfgstr + chip_cfgfmt
-    # Chip filenames are a function of roi_rowid and cfgstr
-    _cfname_fmt = ('rid_%s' + suffix)
+    # Chip filenames are a function of annotion_rowid and cfgstr
+    _cfname_fmt = ('aid_%s' + suffix)
     return _cfname_fmt
 
 
 @utool.indent_func
-def get_roi_cfpath_list(ibs, rid_list, suffix=None):
+def get_annotion_cfpath_list(ibs, aid_list, suffix=None):
     """ Returns chip path list """
-    #utool.assert_all_not_None(rid_list, 'rid_list')
+    #utool.assert_all_not_None(aid_list, 'aid_list')
     _cfname_fmt = get_chip_fname_fmt(ibs=ibs, suffix=suffix)
-    cfname_iter = (None if rid is None else _cfname_fmt  % rid for rid in iter(rid_list))
+    cfname_iter = (None if aid is None else _cfname_fmt  % aid for aid in iter(aid_list))
     cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname) for cfname in cfname_iter]
     return cfpath_list
 
@@ -177,17 +177,17 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
 
 
 @utool.indent_func
-def compute_and_write_chips(ibs, rid_list):
+def compute_and_write_chips(ibs, aid_list):
     utool.ensuredir(ibs.chipdir)
     # Get chip configuration information
     sqrt_area   = ibs.cfg.chip_cfg['chip_sqrt_area']
     filter_list = ctool.get_filter_list(ibs.cfg.chip_cfg.to_dict())
     # Get chip dest information (output path)
-    cfpath_list = get_roi_cfpath_list(ibs, rid_list)
-    # Get chip source information (image, roi_bbox, theta)
-    gfpath_list = ibs.get_roi_gpaths(rid_list)
-    bbox_list   = ibs.get_roi_bboxes(rid_list)
-    theta_list  = ibs.get_roi_thetas(rid_list)
+    cfpath_list = get_annotion_cfpath_list(ibs, aid_list)
+    # Get chip source information (image, annotion_bbox, theta)
+    gfpath_list = ibs.get_annotion_gpaths(aid_list)
+    bbox_list   = ibs.get_annotion_bboxes(aid_list)
+    theta_list  = ibs.get_annotion_thetas(aid_list)
     # Get how big to resize each chip
     target_area = sqrt_area ** 2
     bbox_size_iter = ((w, h) for (x, y, w, h) in bbox_list)
@@ -210,16 +210,16 @@ def compute_and_write_chips(ibs, rid_list):
 
 
 @utool.indent_func
-def compute_and_write_chips_lazy(ibs, rid_list):
+def compute_and_write_chips_lazy(ibs, aid_list):
     """
     Will write a chip if it does not exist on disk, regardless of if it exists
     in the SQL database
     """
     print('[preproc_chip] compute_and_write_chips_lazy')
-    # Mark which rid's need their chips computed
-    cfpath_list = get_roi_cfpath_list(ibs, rid_list)
+    # Mark which aid's need their chips computed
+    cfpath_list = get_annotion_cfpath_list(ibs, aid_list)
     exists_flags = [exists(cfpath) for cfpath in cfpath_list]
-    invalid_rids = utool.get_dirty_items(rid_list, exists_flags)
+    invalid_aids = utool.get_dirty_items(aid_list, exists_flags)
     print('[preproc_chip] %d / %d chips need to be computed' %
-          (len(invalid_rids), len(rid_list)))
-    compute_and_write_chips(ibs, invalid_rids)
+          (len(invalid_aids), len(aid_list)))
+    compute_and_write_chips(ibs, invalid_aids)
