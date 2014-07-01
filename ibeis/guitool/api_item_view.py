@@ -87,8 +87,12 @@ def _set_sort(view, col_sort_index, col_sort_reverse=False):
 
 @viewmember
 def hide_cols(view):
-    for col, hidden in enumerate(view.col_hidden_list):
-        view.setColumnHidden(col, hidden)
+    total_num_cols = view.model().columnCount()
+    num_cols = len(view.col_hidden_list)
+    num_duplicates = int(total_num_cols / num_cols)
+    duplicated_hidden_list = view.col_hidden_list * num_duplicates
+    for col, hidden in enumerate(duplicated_hidden_list):
+            view.setColumnHidden(col, hidden)
 
 
 #---------------
