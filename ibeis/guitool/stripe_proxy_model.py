@@ -75,7 +75,7 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
 
 
 class StripeProxyModel(BASE_CLASS):
-    __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(), ['_update_headers', '_set_context_id', '_get_context_id', '_set_changeblocked', '_get_changeblocked', '_about_to_change', '_change', '_update', '_rows_updated', 'name'])
+    __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(), ['_set_context_id', '_get_context_id', '_set_changeblocked', '_get_changeblocked', '_about_to_change', '_change', '_update', '_rows_updated', 'name'])
 
     def __init__(self, parent=None, numduplicates=1):
         BASE_CLASS.__init__(self, parent=parent)
