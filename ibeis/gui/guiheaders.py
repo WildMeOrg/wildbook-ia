@@ -133,6 +133,10 @@ TABLE_HIDDEN_LIST = {
     NAME_TABLE : [False, False, False, False],
 }
 
+TABLE_STRIPE_LIST = {
+    IMAGE_GRID : 3,
+}
+
 # Define the valid columns a table could have
 COL_DEF = dict([
     ('image_uuid', (str,      'Image UUID')),
@@ -289,6 +293,7 @@ def make_ibeis_headers_dict(ibs):
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevels = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
         hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
+        numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
 
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
@@ -314,6 +319,7 @@ def make_ibeis_headers_dict(ibs):
             'col_setter_list': colsetters,
             'col_level_list': collevels,
             'col_hidden_list' : hiddencols,
+            'num_duplicates'  : numstripes,
         }
         return header
 

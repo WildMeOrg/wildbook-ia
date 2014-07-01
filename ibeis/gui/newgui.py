@@ -144,7 +144,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #ibswgt.widgets      = {}
         ibswgt.tblname_list = [IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
-        ibswgt.num_stripes = { IMAGE_GRID : 3, }
         # Create and layout components
         ibswgt._init_components()
         ibswgt._init_layout()
@@ -184,11 +183,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.views[tblname]   = widget.view
             ibswgt.views[tblname]  = ViewClass(parent=ibswgt)  # Make view first to pass as parent
             # FIXME: It is very bad to give the model a view. Only the view should have a model
-            numstripes = ibswgt.num_stripes.get(tblname, None)
-            if numstripes is None:
-                ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
-            else:
-                ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname], numduplicates=numstripes)
+            ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
         # Connect models and views
         for tblname in ibswgt.super_tblname_list:
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])

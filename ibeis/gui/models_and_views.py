@@ -34,14 +34,14 @@ IBEISTREEMODEL_BASE = APIItemModel
 
 
 class IBEISTableModel(IBEISTABLEMODEL_BASE):
-    def __init__(model, headers=None, parent=None, numduplicates=1, *args):
+    def __init__(model, headers=None, parent=None, *args):
         IBEISTABLEMODEL_BASE.__init__(model, parent=parent, *args)
         model.ibswin = parent
         model.eid = None
         model.original_ider = None
         if IBEISTABLEMODEL_BASE == StripeProxyModel:
-            model._nd = numduplicates
-            model.sourcemodel = APIItemModel(headers=headers, parent=parent)
+            #model._nd = numduplicates
+            model.sourcemodel = APIItemModel(parent=parent)
             model.setSourceModel(model.sourcemodel)
             print('[ibs_model] just set the sourcemodel')
 
@@ -53,7 +53,9 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
             model.new_iders = model.original_iders[:]
             model.new_iders[0] = model._ider
         headers['iders'] = model.new_iders
-        return IBEISTABLEMODEL_BASE._update_headers(model, **headers)
+        model._nd = headers.get('num_duplicates', 1)
+        model.sourcemodel._update_headers(**headers)
+        #return IBEISTABLEMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
         """ Overrides the API model ider to give only selected encounter ids """
