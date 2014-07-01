@@ -48,7 +48,7 @@ if __name__ == '__main__':
     import ibeis
     main_locals = ibeis.main(defaultdb='testdb_empty', gui=False,
                              allow_newdir=True, delete_ibsdir=True)
-    ibs  = main_locals['ibs']   # IBEIS Control
+    ibs = main_locals['ibs']   # IBEIS Control
     back = main_locals['back']  # IBEIS GUI backend
     test_locals = utool.run_test(TEST_DELETE_IMAGE, ibs, back)
     exec(utool.execstr_dict(test_locals, 'test_locals'))

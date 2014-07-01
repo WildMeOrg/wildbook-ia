@@ -145,7 +145,7 @@ class MainWindowBackend(QtCore.QObject):
         # HACK
         from ibeis.gui import inspect_gui
         qaid2_qres = {qres.qaid: qres}
-        backed_callback = back.front.update_tables
+        backend_callback = back.front.update_tables
         back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres, callback=backend_callback, ranks_lt=kwargs['top_aids'], )
         back.qres_wgt1.show()
         back.qres_wgt1.raise_()
@@ -461,7 +461,6 @@ class MainWindowBackend(QtCore.QObject):
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
-
 
     @blocking_slot()
     def review_queries(back, **kwargs):

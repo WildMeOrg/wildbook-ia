@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from itertools import izip
-#import os
 
 
 class ANNOTATION_Interaction2:

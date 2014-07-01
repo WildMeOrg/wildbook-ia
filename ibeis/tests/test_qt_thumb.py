@@ -47,7 +47,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.model = IBEISTableModel(parent=ibswgt.view)
         ibswgt.proxy = StripeProxyModel(numduplicates=3)
         #ibswgt.proxy = QtGui.QIdentityProxyModel()
-        ibswgt.proxy.setSourceModel(ibswgt.model) 
+        ibswgt.proxy.setSourceModel(ibswgt.model)
         ibswgt.view.setModel(ibswgt.proxy)
         #ibswgt.view.setModel(ibswgt.model)
 
