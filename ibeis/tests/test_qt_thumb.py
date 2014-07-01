@@ -101,7 +101,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_contextMenuClicked(ibswgt, qtindex, pos):
         printDBG('[newgui] contextmenu')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex)
+        #id_ = model._get_row_id(qtindex)
         if model.name == THUMB_TABLE:
             tblview = ibswgt.view
             # eid = model.eid

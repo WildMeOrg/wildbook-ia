@@ -13,7 +13,7 @@ from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_annotations2
 from ibeis import constants
 from ibeis.gui.guiheaders import (
-    IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+    IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
     IBEISTableModel, IBEISTableView, IBEISTreeModel, IBEISTreeView, EncTableModel, EncTableView,
     IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
@@ -142,7 +142,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models       = {}
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
-        ibswgt.tblname_list = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
+        ibswgt.tblname_list = [IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
         ibswgt._init_components()
@@ -169,20 +169,24 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         # Define the abstract item models and views for the tables
         ibswgt.modelview_defs = [
-            (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (ANNOTATION_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAMES_TREE,      IBEISTreeWidget, IBEISTreeModel, IBEISTreeView),
-            (ENCOUNTER_TABLE, EncTableWidget,   EncTableModel,   EncTableView),
+            (IMAGE_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView, 1),
+            (IMAGE_GRID,       IBEISTableWidget, IBEISTableModel, IBEISTableView, 3),
+            (ANNOTATION_TABLE, IBEISTableWidget, IBEISTableModel, IBEISTableView, 1),
+            (NAME_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView, 1),
+            (NAMES_TREE,       IBEISTreeWidget,  IBEISTreeModel,  IBEISTreeView, None),
+            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView, None),
         ]
-        for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
+        for tblname, WidgetClass, ModelClass, ViewClass, numstripes in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
             #ibswgt.widgets[tblname] = widget
             #ibswgt.models[tblname]  = widget.model
             #ibswgt.views[tblname]   = widget.view
             ibswgt.views[tblname]  = ViewClass(parent=ibswgt)  # Make view first to pass as parent
             # FIXME: It is very bad to give the model a view. Only the view should have a model
-            ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
+            if numstripes is None:
+                ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
+            else:
+                ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname], numduplicates=numstripes)
         # Connect models and views
         for tblname in ibswgt.super_tblname_list:
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])
@@ -456,6 +460,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if model.name == IMAGE_TABLE:
                 gid = id_
                 ibswgt.back.select_gid(gid, eid, show=False)
+            elif model.name == IMAGE_GRID:
+                gid = id_
+                ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
                 ibswgt.back.select_aid(aid, eid, show=False)
@@ -476,6 +483,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             eid = model.eid
             if model.name == IMAGE_TABLE:
+                gid = id_
+                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
+                ibswgt.back.select_gid(gid, eid, show=False)
+            elif model.name == IMAGE_GRID:
                 gid = id_
                 ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)

@@ -5,6 +5,7 @@ import utool
 
 ENCOUNTER_TABLE = 'encounters'
 IMAGE_TABLE     = 'images'
+IMAGE_GRID      = 'image_grid'
 ANNOTATION_TABLE       = 'annotations'
 NAME_TABLE      = 'names'
 NAMES_TREE      = 'names_tree'
@@ -18,7 +19,7 @@ THUMB_TABLE     = 'thumbs'
 #-----------------
 
 # enabled tables
-TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, THUMB_TABLE, NAMES_TREE]
+TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, IMAGE_GRID, NAMES_TREE]
 
 # table nice names
 TABLE_NICE = {
@@ -27,7 +28,7 @@ TABLE_NICE = {
     NAME_TABLE      : 'Name Table',
     QRES_TABLE      : 'Query Results Table',
     ENCOUNTER_TABLE : 'Encounter Table',
-    THUMB_TABLE     : 'Thumbnail Table',
+    IMAGE_GRID     : 'Thumbnail Table',
     NAMES_TREE      : 'Tree of Names',
 }
 
@@ -94,8 +95,7 @@ TABLE_COLNAMES = {
     ],
 
     # TEST TABLE
-    THUMB_TABLE     : [
-        'gname',
+    IMAGE_GRID     : [
         'thumb',
     ],
 
@@ -111,7 +111,7 @@ TABLE_EDITSET = {
     NAME_TABLE      : set(['name', 'notes']),
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
-    THUMB_TABLE     : set([]),
+    IMAGE_GRID     : set([]),
     NAMES_TREE      : set(['exemplar']),
 }
 
@@ -238,13 +238,13 @@ def make_ibeis_headers_dict(ibs):
         'enctext': ibs.set_encounter_enctext,
     }
 
-    iders[THUMB_TABLE] = [ibs.get_valid_gids]
-    getters[THUMB_TABLE] = {
+    iders[IMAGE_GRID] = [ibs.get_valid_gids]
+    getters[IMAGE_GRID] = {
         'thumb'      : ibs.get_image_thumbtup,
         'gname'        : ibs.get_image_gnames,
         'aid'        : ibs.get_image_aids,
     }
-    setters[THUMB_TABLE] = {
+    setters[IMAGE_GRID] = {
     }
 
     iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_aids]

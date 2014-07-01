@@ -28,19 +28,19 @@ class IBEISTreeWidget(APIItemWidget):
                                 view_class=IBEISTreeView)
 
 
-#IBEISTABLEMODEL_BASE = StripeProxyModel
-IBEISTABLEMODEL_BASE = APIItemModel
+IBEISTABLEMODEL_BASE = StripeProxyModel
+#IBEISTABLEMODEL_BASE = APIItemModel
 IBEISTREEMODEL_BASE = APIItemModel
 
 
 class IBEISTableModel(IBEISTABLEMODEL_BASE):
-    def __init__(model, headers=None, parent=None, *args):
+    def __init__(model, headers=None, parent=None, numduplicates=1, *args):
         IBEISTABLEMODEL_BASE.__init__(model, parent=parent, *args)
         model.ibswin = parent
         model.eid = None
         model.original_ider = None
         if IBEISTABLEMODEL_BASE == StripeProxyModel:
-            model._nd = 1
+            model._nd = numduplicates
             model.sourcemodel = APIItemModel(headers=headers, parent=parent)
             model.setSourceModel(model.sourcemodel)
             print('[ibs_model] just set the sourcemodel')
