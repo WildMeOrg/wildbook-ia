@@ -12,7 +12,7 @@ BASE_CLASS = QtGui.QIdentityProxyModel
 # ["__init__", "rowCount", "columnCount", "mapToSource", "mapFromSource", "index", "data", "setData", "sort"]
 
 #_DID_IBEISTABLEMODEL_METACLASS_HACK = False
-    #global _DID_IBEISTABLEMODEL_METACLASS_HACK
+#    global _DID_IBEISTABLEMODEL_METACLASS_HACK
 #        if not _DID_IBEISTABLEMODEL_METACLASS_HACK:
 #            _DID_IBEISTABLEMODEL_METACLASS_HACK = True
 #            exclude_list = ["_update_headers", "_ider", "_change_enc", "sourcemodel", "__class__", "__setattr__", "__getattr__", "_nd", "sourceModel", "__init__", "rowCount", "columnCount", "mapToSource", "mapFromSource", "index", "data", "setData", "sort"]
@@ -41,6 +41,7 @@ BASE_CLASS = QtGui.QIdentityProxyModel
 #                else:
 #                    old_setattr(obj, name, val)
 #            model.__class__.__setattr__ = new_setattr
+
 
 # makes a metaclass that overrides __getattr__ and __setattr__ to forward some specific attribute references to a specified instance variable
 def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
@@ -71,6 +72,7 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
                     old_setattr(obj, name, val)
             cls.__setattr__ = new_setattr
     return ForwardingMetaclass
+
 
 class StripeProxyModel(BASE_CLASS):
     __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(), ['_update_headers', '_set_context_id', '_get_context_id', '_set_changeblocked', '_get_changeblocked', '_about_to_change', '_change', '_update', '_rows_updated', 'name'])
@@ -107,8 +109,8 @@ class StripeProxyModel(BASE_CLASS):
         source_rows = source_model.rowCount(parent=parent)
         source_cols = source_model.columnCount(parent=parent)
         r, c, p = row, col, parent
-        r2 = int(math.floor(r/self._nd))
-        c2 = ((r%self._nd)*source_cols)+c
+        r2 = int(math.floor(r / self._nd))
+        c2 = ((r % self._nd) * source_cols) + c
         p2 = p
         return r2, c2, p2
 
@@ -119,7 +121,7 @@ class StripeProxyModel(BASE_CLASS):
         if proxyIndex.isValid():
             r2, c2, p2 = self.proxy_to_source(proxyIndex.row(), proxyIndex.column())
             #print('StripeProxyModel.mapToSource(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
-            idx = self.sourceModel().index(r2, c2, parent=p2) # self.sourceModel().root_node[r2]
+            idx = self.sourceModel().index(r2, c2, parent=p2)  # self.sourceModel().root_node[r2]
         else:
             idx = QtCore.QModelIndex()
         return idx
@@ -137,7 +139,6 @@ class StripeProxyModel(BASE_CLASS):
         return idx
 
 #    def mapSelectionToSource(self, sel):
-#        
 
     def index(self, row, col, parent=QtCore.QModelIndex()):
         if (row, col) != (-1, -1):
