@@ -80,7 +80,8 @@ class StripeProxyModel(BASE_CLASS):
         self._nd = numduplicates
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        source_rows = self.sourceModel().rowCount(parent=parent)
+        idx = self.mapToSource(parent)
+        source_rows = self.sourceModel().rowCount(parent=idx)
         rows = math.ceil(source_rows / self._nd)
         #print('StripeProxyModel.rowCount(): %r %r' % (source_rows, rows))
         return int(rows)
