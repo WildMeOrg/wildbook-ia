@@ -24,12 +24,13 @@ class IBEISTreeWidget(APIItemWidget):
         widget.ibswin = parent
         widget.eid = None
         APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=IBEISTableModel,
+                                model_class=IBEISTreeModel,
                                 view_class=IBEISTreeView)
 
 
-#IBEISTABLEMODEL_BASE = StripeProxyModel
-IBEISTABLEMODEL_BASE = APIItemModel
+IBEISTABLEMODEL_BASE = StripeProxyModel
+#IBEISTABLEMODEL_BASE = APIItemModel
+IBEISTREEMODEL_BASE = APIItemModel
 
 
 class IBEISTableModel(IBEISTABLEMODEL_BASE):
@@ -77,6 +78,33 @@ class IBEISTableView(APITableView):
         model = tblview.model()
         if model is not None:
             model._change_enc(eid)
+
+
+class IBEISTreeModel(IBEISTREEMODEL_BASE):
+    def __init__(model, headers=None, parent=None, *args):
+        IBEISTREEMODEL_BASE.__init__(model, parent=parent, *args)
+        model.ibswin = parent
+        model.eid = None
+        model.original_ider = None
+
+    def _update_headers(model, **headers):
+        def _null_ider(**kwargs):
+            return []
+        model.original_iders = headers.get('iders', [_null_ider])
+        if len(model.original_iders) > 0:
+            model.new_iders = model.original_iders[:]
+            model.new_iders[0] = model._ider
+        headers['iders'] = model.new_iders
+        return IBEISTREEMODEL_BASE._update_headers(model, **headers)
+
+    def _ider(model):
+        """ Overrides the API model ider to give only selected encounter ids """
+        return model.original_iders[0](eid=model.eid)
+
+    def _change_enc(model, eid):
+        model.eid = eid
+        with ChangeLayoutContext([model]):
+            IBEISTREEMODEL_BASE._update_rows(model)
 
 
 class IBEISTreeView(APITreeView):

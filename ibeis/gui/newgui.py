@@ -15,7 +15,7 @@ from ibeis import constants
 from ibeis.gui.guiheaders import (
     IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
-    IBEISTableModel, IBEISTableView, IBEISTreeView, EncTableModel, EncTableView,
+    IBEISTableModel, IBEISTableView, IBEISTreeModel, IBEISTreeView, EncTableModel, EncTableView,
     IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
 import guitool
 import utool
@@ -172,7 +172,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (ANNOTATION_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
             (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAMES_TREE,      IBEISTreeWidget, IBEISTableModel, IBEISTreeView),
+            (NAMES_TREE,      IBEISTreeWidget, IBEISTreeModel, IBEISTreeView),
             (ENCOUNTER_TABLE, EncTableWidget,   EncTableModel,   EncTableView),
         ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
