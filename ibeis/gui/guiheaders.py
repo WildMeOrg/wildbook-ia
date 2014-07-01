@@ -3,15 +3,13 @@ import utool
 #from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
-ENCOUNTER_TABLE = 'encounters'
-IMAGE_TABLE     = 'images'
-ANNOTATION_TABLE       = 'annotations'
-NAME_TABLE      = 'names'
-NAMES_TREE      = 'names_tree'
-
-
-QRES_TABLE      = 'qres'
-THUMB_TABLE     = 'thumbs'
+ENCOUNTER_TABLE  = 'encounters'
+IMAGE_TABLE      = 'images'
+ANNOTATION_TABLE = 'annotations'
+NAME_TABLE       = 'names'
+NAMES_TREE       = 'names_tree'
+QRES_TABLE       = 'qres'
+THUMB_TABLE      = 'thumbs'
 
 #-----------------
 # Define the tables
@@ -22,13 +20,13 @@ TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, TH
 
 # table nice names
 TABLE_NICE = {
-    IMAGE_TABLE     : 'Image Table',
-    ANNOTATION_TABLE       : 'ANNOTATIONs Table',
-    NAME_TABLE      : 'Name Table',
-    QRES_TABLE      : 'Query Results Table',
-    ENCOUNTER_TABLE : 'Encounter Table',
-    THUMB_TABLE     : 'Thumbnail Table',
-    NAMES_TREE      : 'Tree of Names',
+    IMAGE_TABLE      : 'Image Table',
+    ANNOTATION_TABLE : 'Annotations Table',
+    NAME_TABLE       : 'Name Table',
+    QRES_TABLE       : 'Query Results Table',
+    ENCOUNTER_TABLE  : 'Encounter Table',
+    THUMB_TABLE      : 'Thumbnail Table',
+    NAMES_TREE       : 'Tree of Names',
 }
 
 # the columns each ibeis table has,
@@ -52,6 +50,7 @@ TABLE_COLNAMES = {
         'aid',
         'thumb',
         'name',
+        'species',
         'exemplar',
         'rdconf',
         'notes',
@@ -106,13 +105,13 @@ TABLE_COLNAMES = {
 
 # the columns which are editable
 TABLE_EDITSET = {
-    IMAGE_TABLE     : set(['aif', 'notes']),
-    ANNOTATION_TABLE       : set(['name', 'notes', 'exemplar']),
-    NAME_TABLE      : set(['name', 'notes']),
-    QRES_TABLE      : set(['name']),
-    ENCOUNTER_TABLE : set([]),
-    THUMB_TABLE     : set([]),
-    NAMES_TREE      : set(['exemplar']),
+    IMAGE_TABLE      : set(['aif', 'notes']),
+    ANNOTATION_TABLE : set(['name', 'species', 'notes', 'exemplar']),
+    NAME_TABLE       : set(['name', 'notes']),
+    QRES_TABLE       : set(['name']),
+    ENCOUNTER_TABLE  : set([]),
+    THUMB_TABLE      : set([]),
+    NAMES_TREE       : set(['exemplar']),
 }
 
 TABLE_TREE_LEVELS = {
@@ -120,10 +119,10 @@ TABLE_TREE_LEVELS = {
 }
 
 TABLE_HIDDEN_LIST = {
-    IMAGE_TABLE : [False, True, False, False, False, True, False, False, False, False, False],
+    IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],
     ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],
-    NAMES_TREE : [False, False, False, False, False, False],
-    NAME_TABLE : [False, False, False, False],
+    NAMES_TREE       : [False, False, False, False, False, False],
+    NAME_TABLE       : [False, False, False, False],
 }
 
 # Define the valid columns a table could have
@@ -139,6 +138,7 @@ COL_DEF = dict([
     ('nFeats',     (int,      '#Features')),
     ('rank',       (str,      'Rank')),  # needs to be a string for !Query
     ('unixtime',   (float,    'unixtime')),
+    ('species',    (str,      'Species')),
     ('gname',      (str,      'Image Name')),
     ('gdconf',     (str,      'Detection Confidence')),
     ('rdconf',     (float,    'Detection Confidence')),
@@ -146,7 +146,7 @@ COL_DEF = dict([
     ('notes',      (str,      'Notes')),
     ('match_name', (str,      'Matching Name')),
     ('bbox',       (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
-    ('num_verts',        (int,      'NumVerts')),
+    ('num_verts',  (int,      'NumVerts')),
     ('verts',      (str,      'Verts')),
     ('score',      (str,      'Confidence')),
     ('theta',      (str,      'Theta')),
@@ -169,7 +169,7 @@ def make_ibeis_headers_dict(ibs):
     getters = {}
     #
     # Image Iders/Setters/Getters
-    iders[IMAGE_TABLE] = [ibs.get_valid_gids]
+    iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
         'eid'        : ibs.get_image_eids,
@@ -187,77 +187,79 @@ def make_ibeis_headers_dict(ibs):
         'gps'        : partial_imap_1to1(utool.tupstr, ibs.get_image_gps),
     }
     setters[IMAGE_TABLE] = {
-        'aif':   ibs.set_image_aifs,
-        'notes': ibs.set_image_notes,
+        'aif'        :   ibs.set_image_aifs,
+        'notes'      : ibs.set_image_notes,
     }
     #
     # ANNOTATION Iders/Setters/Getters
-    iders[ANNOTATION_TABLE] = [ibs.get_valid_aids]
+    iders[ANNOTATION_TABLE]   = [ibs.get_valid_aids]
     getters[ANNOTATION_TABLE] = {
-        'aid'      : lambda aids: aids,
-        'name'     : ibs.get_annotation_names,
-        'gname'    : ibs.get_annotation_gnames,
-        'nGt'      : ibs.get_annotation_num_groundtruth,
-        'theta'    : partial_imap_1to1(utool.theta_str, ibs.get_annotation_thetas),
-        'bbox'     : partial_imap_1to1(utool.bbox_str,  ibs.get_annotation_bboxes),
-        'num_verts'      : ibs.get_annotation_num_verts,
-        'verts'    : partial_imap_1to1(utool.verts_str, ibs.get_annotation_verts),
-        'nFeats'   : ibs.get_annotation_num_feats,
-        'rdconf'   : ibs.get_annotation_detect_confidence,
-        'notes'    : ibs.get_annotation_notes,
-        'thumb'    : ibs.get_annotation_chip_thumbtup,
-        'exemplar' : ibs.get_annotation_exemplar_flag,
+        'aid'        : lambda aids: aids,
+        'name'       : ibs.get_annotation_names,
+        'species'    : ibs.get_annotation_species,
+        'gname'      : ibs.get_annotation_gnames,
+        'nGt'        : ibs.get_annotation_num_groundtruth,
+        'theta'      : partial_imap_1to1(utool.theta_str, ibs.get_annotation_thetas),
+        'bbox'       : partial_imap_1to1(utool.bbox_str,  ibs.get_annotation_bboxes),
+        'num_verts'  : ibs.get_annotation_num_verts,
+        'verts'      : partial_imap_1to1(utool.verts_str, ibs.get_annotation_verts),
+        'nFeats'     : ibs.get_annotation_num_feats,
+        'rdconf'     : ibs.get_annotation_detect_confidence,
+        'notes'      : ibs.get_annotation_notes,
+        'thumb'      : ibs.get_annotation_chip_thumbtup,
+        'exemplar'   : ibs.get_annotation_exemplar_flag,
     }
     setters[ANNOTATION_TABLE] = {
-        'name'     : ibs.set_annotation_names,
-        'notes'    : ibs.set_annotation_notes,
-        'exemplar' : ibs.set_annotation_exemplar_flag,
+        'name'       : ibs.set_annotation_names,
+        'species'    : ibs.set_annotation_species,
+        'notes'      : ibs.set_annotation_notes,
+        'exemplar'   : ibs.set_annotation_exemplar_flag,
     }
     #
     # Name Iders/Setters/Getters
-    iders[NAME_TABLE] = [ibs.get_valid_nids]
+    iders[NAME_TABLE]   = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
-        'nid':    lambda nids: nids,
-        'name':   ibs.get_names,
-        'nRids':  ibs.get_name_num_annotations,
-        'notes':  ibs.get_name_notes,
+        'nid'        : lambda nids: nids,
+        'name'       : ibs.get_names,
+        'nRids'      : ibs.get_name_num_annotations,
+        'notes'      : ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
-        'name':  ibs.set_name_names,
-        'notes': ibs.set_name_notes,
+        'name'       : ibs.set_name_names,
+        'notes'      : ibs.set_name_notes,
     }
     #
     # Encounter Iders/Setters/Getters
-    iders[ENCOUNTER_TABLE] = [ibs.get_valid_eids]
+    iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
     getters[ENCOUNTER_TABLE] = {
-        'eid':     lambda eids: eids,
-        'nImgs':   ibs.get_encounter_num_gids,
-        'enctext': ibs.get_encounter_enctext,
+        'eid'        : lambda eids: eids,
+        'nImgs'      : ibs.get_encounter_num_gids,
+        'enctext'    : ibs.get_encounter_enctext,
     }
     setters[ENCOUNTER_TABLE] = {
-        'enctext': ibs.set_encounter_enctext,
+        'enctext'    : ibs.set_encounter_enctext,
     }
 
-    iders[THUMB_TABLE] = [ibs.get_valid_gids]
+    iders[THUMB_TABLE]   = [ibs.get_valid_gids]
     getters[THUMB_TABLE] = {
         'thumb'      : ibs.get_image_thumbtup,
-        'gname'        : ibs.get_image_gnames,
+        'gname'      : ibs.get_image_gnames,
         'aid'        : ibs.get_image_aids,
     }
     setters[THUMB_TABLE] = {
     }
 
-    iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_aids]
+    iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
-        'nid':    lambda nids: nids,
-        'name':   ibs.get_names,
-        'nRids':  ibs.get_name_num_annotations,
-        'aid':    lambda aids: aids,
-        'exemplar' : ibs.get_annotation_exemplar_flag,
-        'thumb':  ibs.get_annotation_chip_thumbtup,
+        'nid'        : lambda nids: nids,
+        'name'       : ibs.get_names,
+        'nRids'      : ibs.get_name_num_annotations,
+        'aid'        : lambda aids: aids,
+        'exemplar'   : ibs.get_annotation_exemplar_flag,
+        'thumb'      : ibs.get_annotation_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
-        'exemplar' : ibs.set_annotation_exemplar_flag,
+        'exemplar'   : ibs.set_annotation_exemplar_flag,
     }
 
     def make_header(tblname):
@@ -265,13 +267,13 @@ def make_ibeis_headers_dict(ibs):
         Input:
             table_name - the internal table name
         """
-        tblnice  = TABLE_NICE[tblname]
-        colnames = TABLE_COLNAMES[tblname]
-        editset  = TABLE_EDITSET[tblname]
+        tblnice    = TABLE_NICE[tblname]
+        colnames   = TABLE_COLNAMES[tblname]
+        editset    = TABLE_EDITSET[tblname]
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
-        collevels = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
+        collevels  = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
         hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
 
         def get_column_data(colname):

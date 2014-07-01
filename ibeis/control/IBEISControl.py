@@ -805,6 +805,18 @@ class IBEISController(object):
         ibs.set_annotation_nids(aid_list, nid_list)
 
     @setter
+    def set_annotation_species(ibs, aid_list, name_list=None, nid_list=None):
+        """ Sets names/nids of a list of annotations.
+        Convenience function for set_annotation_nids"""
+        assert name_list is None or nid_list is None, (
+            'can only specify one type of name values (nid or name) not both')
+        if nid_list is None:
+            assert name_list is not None
+            # Convert names into nids
+            nid_list = ibs.add_names(name_list)
+        ibs.set_annotation_nids(aid_list, nid_list)
+
+    @setter
     def set_annotation_nids(ibs, aid_list, nid_list):
         """ Sets nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
@@ -1298,6 +1310,15 @@ class IBEISController(object):
 
     @getter_1to1
     def get_annotation_names(ibs, aid_list, distinguish_unknowns=True):
+        """ Returns a list of strings ['fred', 'sue', ...] for each chip
+            identifying the animal
+        """
+        nid_list  = ibs.get_annotation_nids(aid_list)
+        name_list = ibs.get_names(nid_list, distinguish_unknowns=distinguish_unknowns)
+        return name_list
+    
+    @getter_1to1
+    def get_annotation_species(ibs, aid_list, distinguish_unknowns=True):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
