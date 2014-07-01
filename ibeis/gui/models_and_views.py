@@ -28,8 +28,8 @@ class IBEISTreeWidget(APIItemWidget):
                                 view_class=IBEISTreeView)
 
 
-IBEISTABLEMODEL_BASE = StripeProxyModel
-#IBEISTABLEMODEL_BASE = APIItemModel
+#IBEISTABLEMODEL_BASE = StripeProxyModel
+IBEISTABLEMODEL_BASE = APIItemModel
 IBEISTREEMODEL_BASE = APIItemModel
 
 
