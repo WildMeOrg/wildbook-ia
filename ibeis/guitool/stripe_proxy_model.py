@@ -1,46 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
-from .guitool_decorators import checks_qt_error, signal_, slot_
-from . import qtype
 import math
 
 #BASE_CLASS = QtGui.QAbstractProxyModel
 #BASE_CLASS = QtGui.QSortFilterProxyModel
 BASE_CLASS = QtGui.QIdentityProxyModel
-
-# ["__init__", "rowCount", "columnCount", "mapToSource", "mapFromSource", "index", "data", "setData", "sort"]
-
-#_DID_IBEISTABLEMODEL_METACLASS_HACK = False
-#    global _DID_IBEISTABLEMODEL_METACLASS_HACK
-#        if not _DID_IBEISTABLEMODEL_METACLASS_HACK:
-#            _DID_IBEISTABLEMODEL_METACLASS_HACK = True
-#            exclude_list = ["_update_headers", "_ider", "_change_enc", "sourcemodel", "__class__", "__setattr__", "__getattr__", "_nd", "sourceModel", "__init__", "rowCount", "columnCount", "mapToSource", "mapFromSource", "index", "data", "setData", "sort"]
-#            old_getattr = model.__class__.__getattr__
-#            #print('old_getattr outside: %r' % old_getattr)
-#            def new_getattr(obj, item):
-#                #print('old_getattr is %r' % old_getattr)
-#                #print('new_getattr(%r, %r)' % (obj, item))
-#                if item not in exclude_list:
-#                    #print('sourcemodel.dict %r' % model.sourcemodel.__dict__)
-#                    try:
-#                        val = old_getattr(model.sourcemodel, item)
-#                    except AttributeError:
-#                        val = getattr(model.sourcemodel, item)
-#                else:
-#                    val = old_getattr(obj, item)
-#                #print('new_getattr returning %r' % val)
-#                return val
-#            model.__class__.__getattr__ = new_getattr
-#
-#            old_setattr = model.__class__.__setattr__
-#            def new_setattr(obj, name, val):
-#                #print('new_setattr(%r, %r, %r)' % (obj, name, val))
-#                if name not in exclude_list:
-#                    old_setattr(model.sourcemodel, name, val)
-#                else:
-#                    old_setattr(obj, name, val)
-#            model.__class__.__setattr__ = new_setattr
 
 
 # makes a metaclass that overrides __getattr__ and __setattr__ to forward some specific attribute references to a specified instance variable
@@ -96,7 +61,6 @@ class StripeProxyModel(BASE_CLASS):
 
     def proxy_to_source(self, row, col, parent=QtCore.QModelIndex()):
         source_model = self.sourceModel()
-        source_rows = source_model.rowCount(parent=parent)
         source_cols = source_model.columnCount(parent=parent)
         r, c, p = row, col, parent
         r2 = int(math.floor(c / source_cols)) + (r * self._nd)
@@ -106,7 +70,6 @@ class StripeProxyModel(BASE_CLASS):
 
     def source_to_proxy(self, row, col, parent=QtCore.QModelIndex()):
         source_model = self.sourceModel()
-        source_rows = source_model.rowCount(parent=parent)
         source_cols = source_model.columnCount(parent=parent)
         r, c, p = row, col, parent
         r2 = int(math.floor(r / self._nd))
