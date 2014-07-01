@@ -19,7 +19,7 @@ THUMB_TABLE     = 'thumbs'
 #-----------------
 
 # enabled tables
-TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, IMAGE_GRID, NAMES_TREE]
+TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, IMAGE_GRID, THUMB_TABLE, NAMES_TREE]
 
 # table nice names
 TABLE_NICE = {
@@ -28,7 +28,8 @@ TABLE_NICE = {
     NAME_TABLE      : 'Name Table',
     QRES_TABLE      : 'Query Results Table',
     ENCOUNTER_TABLE : 'Encounter Table',
-    IMAGE_GRID     : 'Thumbnail Table',
+    IMAGE_GRID     : 'Thumbnail Grid',
+    THUMB_TABLE     : 'Thumbnail Table',
     NAMES_TREE      : 'Tree of Names',
 }
 
@@ -94,8 +95,13 @@ TABLE_COLNAMES = {
         'thumb',
     ],
 
-    # TEST TABLE
     IMAGE_GRID     : [
+        'thumb',
+    ],
+
+    # TEST TABLE
+    THUMB_TABLE     : [
+        'gname',
         'thumb',
     ],
 
@@ -112,6 +118,7 @@ TABLE_EDITSET = {
     QRES_TABLE      : set(['name']),
     ENCOUNTER_TABLE : set([]),
     IMAGE_GRID     : set([]),
+    THUMB_TABLE     : set([]),
     NAMES_TREE      : set(['exemplar']),
 }
 
@@ -245,6 +252,15 @@ def make_ibeis_headers_dict(ibs):
         'aid'        : ibs.get_image_aids,
     }
     setters[IMAGE_GRID] = {
+    }
+
+    iders[THUMB_TABLE] = [ibs.get_valid_gids]
+    getters[THUMB_TABLE] = {
+        'thumb'      : ibs.get_image_thumbtup,
+        'gname'        : ibs.get_image_gnames,
+        'aid'        : ibs.get_image_aids,
+    }
+    setters[THUMB_TABLE] = {
     }
 
     iders[NAMES_TREE] = [ibs.get_valid_nids, ibs.get_name_aids]

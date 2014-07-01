@@ -144,6 +144,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #ibswgt.widgets      = {}
         ibswgt.tblname_list = [IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
+        ibswgt.num_stripes = { IMAGE_GRID : 3, }
         # Create and layout components
         ibswgt._init_components()
         ibswgt._init_layout()
@@ -169,20 +170,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         # Define the abstract item models and views for the tables
         ibswgt.modelview_defs = [
-            (IMAGE_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView, 1),
-            (IMAGE_GRID,       IBEISTableWidget, IBEISTableModel, IBEISTableView, 3),
-            (ANNOTATION_TABLE, IBEISTableWidget, IBEISTableModel, IBEISTableView, 1),
-            (NAME_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView, 1),
-            (NAMES_TREE,       IBEISTreeWidget,  IBEISTreeModel,  IBEISTreeView, None),
-            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView, None),
+            (IMAGE_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (IMAGE_GRID,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (ANNOTATION_TABLE, IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (NAME_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
+            (NAMES_TREE,       IBEISTreeWidget,  IBEISTreeModel,  IBEISTreeView),
+            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
         ]
-        for tblname, WidgetClass, ModelClass, ViewClass, numstripes in ibswgt.modelview_defs:
+        for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
             #ibswgt.widgets[tblname] = widget
             #ibswgt.models[tblname]  = widget.model
             #ibswgt.views[tblname]   = widget.view
             ibswgt.views[tblname]  = ViewClass(parent=ibswgt)  # Make view first to pass as parent
             # FIXME: It is very bad to give the model a view. Only the view should have a model
+            numstripes = ibswgt.num_stripes.get(tblname, None)
             if numstripes is None:
                 ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
             else:
