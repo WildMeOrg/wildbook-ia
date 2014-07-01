@@ -116,9 +116,9 @@ class StripeProxyModel(BASE_CLASS):
         returns index into original model
         """
         if proxyIndex.isValid():
-            r2, c2, p2 = self.proxy_to_source(proxyIndex.row(), proxyIndex.column(), proxyIndex.parent())
+            r2, c2, p2 = self.proxy_to_source(proxyIndex.row(), proxyIndex.column())
             #print('StripeProxyModel.mapToSource(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
-            idx = self.sourceModel().index(r2, c2, parent=p2)
+            idx = self.sourceModel().index(r2, c2, parent=p2) # self.sourceModel().root_node[r2]
         else:
             idx = QtCore.QModelIndex()
         return idx
@@ -165,10 +165,7 @@ class StripeProxyModel(BASE_CLASS):
 #        return self.sourceModel().flags(*args, **kwargs)
 
     def parent(self, index):
-        #print('hello')
-        #return self.sourceModel().parent(*args, **kwargs)
-        #print('in stripeproxymodel.parent: %r' % index.__dict__)
-        return QtCore.QModelIndex()
+        return self.sourceModel().parent(self.mapToSource(index))
 
 #    def headerData(self, *args, **kwargs):
 #        return self.sourceModel().headerData(*args, **kwargs)
