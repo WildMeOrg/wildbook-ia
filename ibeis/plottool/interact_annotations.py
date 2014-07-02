@@ -233,7 +233,7 @@ class ANNOTATIONInteraction(object):
         print(self.fnum)
         #ax = plt.subplot(111)
         ax = df2.gca()
-        self.ax = ax
+        self.fig.ax = ax
         self.img_ind = img_ind
 
         df2.imshow(img, fnum=fnum)
@@ -263,7 +263,6 @@ class ANNOTATIONInteraction(object):
         self.canUncolor = False
         #number of polygons in the image
         self._autoinc_polynum = 0
-
         #Something Jon added
         self.background = None
 
@@ -309,8 +308,8 @@ class ANNOTATIONInteraction(object):
         # Add polygons and lines to the axis
         for poly in self.polys.itervalues():
             ax.add_patch(poly)
-            self.ax.add_line(poly.lines)
-            self.ax.add_line(poly.handle)
+            self.fig.ax.add_line(poly.lines)
+            self.fig.ax.add_line(poly.handle)
 
         # Connect callbacks
         for poly in self.polys.itervalues():
@@ -329,32 +328,38 @@ class ANNOTATIONInteraction(object):
         canvas.mpl_connect('resize_event', self.on_resize)
         # canvas.mpl_connect('figure_enter_event', self.mouse_enter)
         # canvas.mpl_connect('figure_leave_event', self.mouse_leave)
-        self.canvas = canvas
+        self.fig.canvas = canvas
 
         # Define buttons
-        self.accept_ax  = plt.axes([0.63, 0.01, 0.2, 0.06])
+        self.accept_ax  = self.fig.add_axes([0.63, 0.01, 0.2, 0.06])
         self.accept_but = Button(self.accept_ax, 'Accept New ANNOTATIONs')
         self.accept_but.on_clicked(self.accept_new_annotations)
 
-        self.add_ax  = plt.axes([0.2, .01, 0.16, 0.06])
+        self.add_ax  = self.fig.add_axes([0.2, .01, 0.16, 0.06])
         self.add_but = Button(self.add_ax, 'Add Rectangle')
         self.add_but.on_clicked(self.draw_new_poly)
 
-        self.del_ax  = plt.axes([0.4, 0.01, 0.19, 0.06])
+        self.del_ax  = self.fig.add_axes([0.4, 0.01, 0.19, 0.06])
         self.del_but = Button(self.del_ax, 'Delete Rectangle')
         self.del_but.on_clicked(self.delete_current_poly)
 
     def on_resize(self, event):
         #print(utool.dict_str(event.__dict__))
-        #self.canvas.draw()
         #self.fig.canvas.draw()
-        #self.canvas.update()
+        self.fig.canvas.draw()
+        #self.fig.canvas.update()
         #self.fig.canvas.update()
         plt.draw()
-        pass
 
     def show(self):
-        self.fig.canvas.show()
+        self.draw()
+        self.bring_to_front()
+
+    def draw(self):
+        self.fig.canvas.draw()
+
+    def bring_to_front(self):
+        df2.bring_to_front(self.fig)
 
     def next_polynum(self):
         num = self._autoinc_polynum
@@ -419,12 +424,12 @@ class ANNOTATIONInteraction(object):
 
     def update_UI(self):
         self._update_line()
-        self.canvas.restore_region(self.background)
+        self.fig.canvas.restore_region(self.background)
         for poly in self.polys.itervalues():
-            self.ax.draw_artist(poly)
-            self.ax.draw_artist(poly.lines)
-            self.ax.draw_artist(poly.handle)
-        self.canvas.blit(self.ax.bbox)
+            self.fig.ax.draw_artist(poly)
+            self.fig.ax.draw_artist(poly.lines)
+            self.fig.ax.draw_artist(poly.handle)
+        self.fig.canvas.blit(self.fig.ax.bbox)
 
     def poly_changed(self, poly):
         """ this method is called whenever the polygon object is called """
@@ -439,12 +444,11 @@ class ANNOTATIONInteraction(object):
 
     def draw_callback(self, event):
         #print('[mask] draw_callback(event=%r)' % event)
-        self.background = self.canvas.copy_from_bbox(self.ax.bbox)
+        self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
         for poly in self.polys.itervalues():
-            self.ax.draw_artist(poly)
-            self.ax.draw_artist(poly.lines)
-            self.ax.draw_artist(poly.handle)
-        self.canvas.blit(self.ax.bbox)
+            self.fig.ax.draw_artist(poly)
+            self.fig.ax.draw_artist(poly.lines)
+            self.fig.ax.draw_artist(poly.handle)
 
     def get_most_recently_added_poly(self):
         if len(self.polys) != 0:
@@ -497,16 +501,16 @@ class ANNOTATIONInteraction(object):
         self.canUncolor = False
         self._update_line()
         if self.background is not None:
-            self.canvas.restore_region(self.background)
+            self.fig.canvas.restore_region(self.background)
         else:
             print("error: self.background is none. Trying refresh.")
-            self.canvas.restore_region(self.background)
-            self.background = self.canvas.copy_from_bbox(self.ax.bbox)
+            self.fig.canvas.restore_region(self.background)
+            self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
         for poly in self.polys.itervalues():
-            self.ax.draw_artist(poly)
-            self.ax.draw_artist(poly.lines)
-            self.ax.draw_artist(poly.handle)
-        self.canvas.blit(self.ax.bbox)
+            self.fig.ax.draw_artist(poly)
+            self.fig.ax.draw_artist(poly.lines)
+            self.fig.ax.draw_artist(poly.handle)
+        self.fig.canvas.blit(self.fig.ax.bbox)
 
     def button_release_callback(self, event):
         """ whenever a mouse button is released """
@@ -561,7 +565,7 @@ class ANNOTATIONInteraction(object):
         #self.poly_list.append(poly)
         self.polys[poly.num] = poly
         #self.theta_list.append(0)
-        self.ax.add_patch(poly)
+        self.fig.ax.add_patch(poly)
         x, y = zip(*poly.xy)
         color = np.array((1, 1, 1))
         marker_face_color = (1, 1, 1)
@@ -572,8 +576,8 @@ class ANNOTATIONInteraction(object):
         poly.handle = make_handle_line(poly)
         self._update_line()
 
-        self.ax.add_line(poly.lines)
-        self.ax.add_line(poly.handle)
+        self.fig.ax.add_line(poly.lines)
+        self.fig.ax.add_line(poly.handle)
 
         poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
@@ -654,7 +658,7 @@ class ANNOTATIONInteraction(object):
         #                 list(self.poly.xy[i + 1:]))
         #             self._update_line()
         #             break
-        self.canvas.draw()
+        self.fig.canvas.draw()
 
     def motion_notify_callback(self, event):
         """ on mouse movement """
@@ -714,8 +718,8 @@ class ANNOTATIONInteraction(object):
         self._currently_selected_poly = None
 
     def check_dims(self, coords):
-        xlim = self.ax.get_xlim()
-        ylim = self.ax.get_ylim()
+        xlim = self.fig.ax.get_xlim()
+        ylim = self.fig.ax.get_ylim()
         if coords[0] < xlim[0]:
             return False
             #coords[0] = xlim[0]
@@ -731,8 +735,8 @@ class ANNOTATIONInteraction(object):
         return True
 
     def clip_vert_to_bounds(self, coords):
-        xlim = self.ax.get_xlim()
-        ylim = self.ax.get_ylim()
+        xlim = self.fig.ax.get_xlim()
+        ylim = self.fig.ax.get_ylim()
         def clamp(lims, val):
             return max(lims[0], min(lims[1], val))
         return np.array((clamp(xlim, coords[0]), clamp(ylim, coords[1])))
