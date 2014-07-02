@@ -122,6 +122,12 @@ def setup_actions_menu(mainwin, back):
         text='Delete All Encounters',
         shortcut='',
         slot_fn=back.delete_all_encounters)
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
+        name='toggleThumbnails',
+        text='Toggle Thumbnails',
+        shortcut='',
+        slot_fn=back.toggle_thumbnails)
 
 
 def setup_batch_menu(mainwin, back):

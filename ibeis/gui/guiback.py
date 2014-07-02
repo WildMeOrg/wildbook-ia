@@ -365,6 +365,20 @@ class MainWindowBackend(QtCore.QObject):
         back.select_gid(gid)
         back.front.update_tables()
 
+    @blocking_slot()
+    def toggle_thumbnails(back):
+        ibswgt = back.front
+        tabwgt = ibswgt._tab_table_wgt
+        index = tabwgt.currentIndex()
+        tblname = ibswgt.tblname_list[index]
+        view = ibswgt.views[tblname]
+        col_name_list = view.col_name_list
+        if 'thumb' in col_name_list:
+            idx = col_name_list.index('thumb')
+            view.col_hidden_list[idx] = not view.col_hidden_list[idx]
+            view.hide_cols()
+        back.front.update_tables()
+
     @blocking_slot(int)
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
