@@ -260,3 +260,7 @@ def setup_developer_menu(mainwin, back):
         name='actionDeveloper_DumpDB',
         text='Dump SQL Database',
         slot_fn=back.dev_dumpdb)
+    mainwin.menuDev.newAction(
+        name='export_learning_data',
+        text='Export learning data',
+        slot_fn=back.dev_export_annotations)

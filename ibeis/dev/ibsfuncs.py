@@ -9,6 +9,7 @@ import utool
 from ibeis import constants
 from ibeis import sysres
 from ibeis.export import export_hsdb
+from detecttools.pypascalxml import PascalVOC_XML_Annotation
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
 
@@ -62,6 +63,45 @@ def refresh(ibs):
     ibsfuncs.rrr()
     all_imports.reload_all()
     ibsfuncs.inject_ibeis(ibs)
+
+
+def export_to_xml(ibs):
+    count = 0
+    information = {
+        'database_name' : 'IBEIS',
+        'source' : 'olpajeta',
+    }
+    datadir = ibs._ibsdb + "/LearningData/"
+    imagedir = datadir + 'JPEGImages/'
+    annotdir = datadir + 'Annotations/'
+    utool.ensuredir(datadir)
+    print(datadir)
+    utool.ensuredir(imagedir)
+    utool.ensuredir(annotdir)
+    gid_list = ibs.get_valid_gids()
+    for gid in gid_list:
+        image_uri = ibs.get_image_uris(gid)
+        fulldir = image_uri.split('/')
+        filename = fulldir.pop()
+        extension = filename.split('.')[-1]
+        folder = "IBEIS"
+        annotation = PascalVOC_XML_Annotation(image_uri, folder, filename, **information)
+        aid_list = ibs.get_image_aids(gid)
+        bbox_list = ibs.get_annotation_bboxes(aid_list)
+        for bbox in bbox_list:
+            xmin = bbox[0]
+            ymin = bbox[1]
+            xmax = xmin + bbox[2]
+            ymax = ymin + bbox[3]
+            #TODO: Change to getter in IBEISControl once implemented
+            species_name = 'grevys_zebra'
+            annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
+        dst_img = imagedir + str(count) + '.' + extension
+        dst_annot = annotdir + str(count) + '.xml'
+        utool.copy_task([(image_uri, dst_img)])
+        xml_data = open(dst_annot, 'w')
+        xml_data.write(annotation.xml())
+        count += 1
 
 
 @__injectable

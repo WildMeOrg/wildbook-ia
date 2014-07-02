@@ -629,6 +629,10 @@ class MainWindowBackend(QtCore.QObject):
         utool.view_directory(back.ibs._ibsdb)
         back.ibs.db.dump_tables_to_csv()
 
+    def dev_export_annotations(back):
+        ibs = back.ibs
+        ibsfuncs.export_to_xml(ibs)
+
     #--------------------------------------------------------------------------
     # File Slots
     #--------------------------------------------------------------------------
