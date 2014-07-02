@@ -785,50 +785,82 @@ class ANNOTATIONInteraction(object):
         #print('resize_rectangle')
         if poly is None:
             return
-        indBefore = self._ind - 1
-        if(indBefore < 0):
-            indBefore = len(poly.xy) - 2
-        indAfter = (self._ind + 1) % 4
-        selectedX, selectedY = (poly.basecoords[self._ind])
-        beforeX, beforeY = (poly.basecoords[indBefore])
-        afterX, afterY = (poly.basecoords[indAfter])
+#        indBefore = self._ind - 1
+#        if(indBefore < 0):
+#            indBefore = len(poly.xy) - 2
+#        indAfter = (self._ind + 1) % 4
+##        def wrapIndex(i):
+##            if(i < 0):
+##                i += len(poly.xy) - 1 # the minus one is because the last coordinate is duplicated to get a closed polygon
+##            return (i % (len(poly.xy) - 1))
+#        selectedX, selectedY = (poly.basecoords[self._ind])
+#        beforeX, beforeY = (poly.basecoords[indBefore])
+#        afterX, afterY = (poly.basecoords[indAfter])
 
-        changeBefore = -1
-        keepX, changeY = -1, -1
-        changeAfter = -1
-        changeX, keepY = -1, -1
+        def isSegmentBetweenCoordsVertical(c1, c2):
+            return c1[0] == c2[0] # x coordinates are the same
 
-        if beforeX != selectedX:
-            changeBefore = indBefore
-            keepX, changeY = poly.basecoords[indBefore]
-            changeAfter = indAfter
-            changeX, keepY = poly.basecoords[indAfter]
+        #tmpcoords = poly.xy[:-1] # the minus one is because the last coordinate is duplicated (by matplotlib) to get a closed polygon
+        tmpcoords = list(poly.basecoords[:-1])
+        def wrapIndex(i):
+            return (i % len(tmpcoords))
+
+        x, y = rotate_points_around([(x, y)], -poly.theta, *polygon_center(poly))[0] # rotate the mouse coord into where it would be, if the polygon weren't rotated (corresponding to basecoords)
+
+        idx = self._ind
+        tmpcoords[idx] = (x, y)
+        previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
+        #oppidx = wrapIndex(idx + 2)
+        if isSegmentBetweenCoordsVertical(poly.basecoords[idx], poly.basecoords[nextidx]):
+            tmpcoords[previdx] = (tmpcoords[previdx][0], y)
+            tmpcoords[nextidx] = (x, tmpcoords[nextidx][1])
+            #tmpcoords[oppidx]  = (tmpcoords[previdx][0], tmpcoords[nextidx][1])
         else:
-            changeBefore = indAfter
-            keepX, changeY = poly.basecoords[indAfter]
-            changeAfter = indBefore
-            changeX, keepY = poly.basecoords[indBefore]
+            tmpcoords[previdx] = (x, tmpcoords[previdx][1])
+            tmpcoords[nextidx] = (tmpcoords[nextidx][0], y)
+            #tmpcoords[oppidx]  = (tmpcoords[nextidx][0], tmpcoords[previdx][1])
 
-        # Change selected
-        if self._ind == 0 or self._ind == self.last_vert_ind:
-            poly.basecoords[0] = x, y
-            poly.basecoords[self.last_vert_ind] = x, y
-        else:
-            poly.basecoords[self._ind] = x, y
+        #tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
+        tmpcoords = tmpcoords[:] + [tmpcoords[0]]
+        if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)):
+            poly.basecoords = tmpcoords
 
-        # Change vert
-        if changeBefore == 0 or changeBefore == self.last_vert_ind:
-            poly.basecoords[0] = keepX, y
-            poly.basecoords[self.last_vert_ind] = keepX, y
-        else:
-            poly.basecoords[changeBefore] = keepX, y
-
-        # Change horiz
-        if changeAfter == 0 or changeAfter == self.last_vert_ind:
-            poly.basecoords[0] = x, keepY
-            poly.basecoords[self.last_vert_ind] = x, keepY
-        else:
-            poly.basecoords[changeAfter] = x, keepY
+#        changeBefore = -1
+#        keepX, changeY = -1, -1
+#        changeAfter = -1
+#        changeX, keepY = -1, -1
+#
+#        if beforeX != selectedX:
+#            changeBefore = indBefore
+#            keepX, changeY = poly.basecoords[indBefore]
+#            changeAfter = indAfter
+#            changeX, keepY = poly.basecoords[indAfter]
+#        else:
+#            changeBefore = indAfter
+#            keepX, changeY = poly.basecoords[indAfter]
+#            changeAfter = indBefore
+#            changeX, keepY = poly.basecoords[indBefore]
+#
+#        # Change selected
+#        if self._ind == 0 or self._ind == self.last_vert_ind:
+#            poly.basecoords[0] = x, y
+#            poly.basecoords[self.last_vert_ind] = x, y
+#        else:
+#            poly.basecoords[self._ind] = x, y
+#
+#        # Change vert
+#        if changeBefore == 0 or changeBefore == self.last_vert_ind:
+#            poly.basecoords[0] = keepX, y
+#            poly.basecoords[self.last_vert_ind] = keepX, y
+#        else:
+#            poly.basecoords[changeBefore] = keepX, y
+#
+#        # Change horiz
+#        if changeAfter == 0 or changeAfter == self.last_vert_ind:
+#            poly.basecoords[0] = x, keepY
+#            poly.basecoords[self.last_vert_ind] = x, keepY
+#        else:
+#            poly.basecoords[changeAfter] = x, keepY
         set_display_coords(poly)
 
     def _update_line(self):
