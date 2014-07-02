@@ -30,6 +30,9 @@ Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
 from __future__ import absolute_import, division, print_function
 import matplotlib
 from matplotlib.patches import Polygon
+from matplotlib.figure import Text
+#from matplotlib.text import Text
+from matplotlib.text import Annotation
 from matplotlib.widgets import Button
 #import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -141,7 +144,12 @@ def calc_display_coords(oldcoords, theta):
 
 def set_display_coords(poly):
     poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+    poly.species_tag.set_position(calc_tag_position(poly))
+    #print(poly.species_tag.get_position())
 
+def calc_tag_position(poly):
+    tagpos = rotate_points_around([[max(zip(*poly.basecoords)[0]), min(zip(*poly.basecoords)[1])]], poly.theta, *polygon_center(poly))[0]
+    return tagpos
 
 def is_within_distance(dist, p1, p2):
     dx = p2[0] - p1[0]
@@ -176,6 +184,37 @@ def make_handle_line(poly):
 
 
 class ANNOTATIONInteraction(object):
+    def new_polygon(self, verts, theta, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
+        """ verts - list of (x, y) tuples """
+        # create new polygon from verts
+        poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
+        # register this polygon
+        poly.num = self.next_polynum()
+        poly.theta = theta
+        poly.basecoords = poly.xy
+        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+        poly.lines = self.make_lines(poly, line_color, line_width)
+        poly.handle = make_handle_line(poly)
+        tagpos = calc_tag_position(poly)
+        #poly.species_tag = plt.text(tagpos[0], tagpos[1], "zebra")
+        poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], "zebra", bbox={'facecolor': 'white', 'alpha': 1})
+        poly.species_tag.remove() # eliminate "leftover" copies
+        #self.ax.
+        #poly.species_tag = Annotation("zebra", tagpos)
+#        poly.species_tag.axes = self.ax
+#        poly.species_tag.figure = self.ax.figure
+        return poly
+
+    def make_lines(self, poly, line_color, line_width):
+        """ verts - list of (x, y) tuples """
+        _xs, _ys = zip(*poly.xy)
+        color = np.array(line_color)
+        marker_face_color = line_color
+        line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
+        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
+        print('make_lines: linetype = %r' % type(lines))
+        return lines
+
     """
     An interactive polygon editor.
 
@@ -236,6 +275,7 @@ class ANNOTATIONInteraction(object):
         self.fig.ax = ax
         self.img_ind = img_ind
 
+
         df2.imshow(img, fnum=fnum)
 
         ax.set_clip_on(False)
@@ -266,29 +306,6 @@ class ANNOTATIONInteraction(object):
         #Something Jon added
         self.background = None
 
-        def make_lines(poly):
-            """ verts - list of (x, y) tuples """
-            _xs, _ys = zip(*poly.xy)
-            color = np.array(line_color)
-            marker_face_color = line_color
-            line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-            lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
-            print('make_lines: linetype = %r' % type(lines))
-            return lines
-
-        def new_polygon(verts, theta):
-            """ verts - list of (x, y) tuples """
-            # create new polygon from verts
-            poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
-            # register this polygon
-            poly.num = self.next_polynum()
-            poly.theta = theta
-            poly.basecoords = poly.xy
-            poly.xy = calc_display_coords(poly.basecoords, poly.theta)
-            poly.lines = make_lines(poly)
-            poly.handle = make_handle_line(poly)
-            return poly
-
         # print(verts_list)
         # test_list = verts_to_bbox(verts_list)
         # print(test_list)
@@ -300,7 +317,7 @@ class ANNOTATIONInteraction(object):
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
 
         # Create the list of polygons
-        poly_list = [new_polygon(verts, theta) for (verts, theta) in izip(verts_list, theta_list)]
+        poly_list = [self.new_polygon(verts, theta, face_color=face_color) for (verts, theta) in izip(verts_list, theta_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
         self.polys = dict({(poly.num, poly) for poly in poly_list})
         self._update_line()
@@ -429,6 +446,7 @@ class ANNOTATIONInteraction(object):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
+            self.fig.ax.draw_artist(poly.species_tag)
         self.fig.canvas.blit(self.fig.ax.bbox)
 
     def poly_changed(self, poly):
@@ -449,6 +467,7 @@ class ANNOTATIONInteraction(object):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
+            self.fig.ax.draw_artist(poly.species_tag)
 
     def get_most_recently_added_poly(self):
         if len(self.polys) != 0:
@@ -557,23 +576,26 @@ class ANNOTATIONInteraction(object):
     #might be a duplicate of a helper in __init__/part of __init__?
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
-        poly = Polygon(coords, animated=True,
-                            fc='white', ec='none', alpha=0.2, picker=True)
-        poly.num = self.next_polynum()
-        poly.theta = 0
-        poly.basecoords = poly.xy
-        #self.poly_list.append(poly)
-        self.polys[poly.num] = poly
-        #self.theta_list.append(0)
-        self.fig.ax.add_patch(poly)
-        x, y = zip(*poly.xy)
-        color = np.array((1, 1, 1))
-        marker_face_color = (1, 1, 1)
-        line_width = 4
+        #poly = Polygon(coords, animated=True,
+        #                    fc='white', ec='none', alpha=0.2, picker=True)
 
-        line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-        poly.lines = plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs)
-        poly.handle = make_handle_line(poly)
+        poly = self.new_polygon(coords, 0)
+
+        #poly.num = self.next_polynum()
+        #poly.theta = 0
+        #poly.basecoords = poly.xy
+        ##self.poly_list.append(poly)
+        self.polys[poly.num] = poly
+        ##self.theta_list.append(0)
+        self.fig.ax.add_patch(poly)
+        #x, y = zip(*poly.xy)
+        #color = np.array((1, 1, 1))
+        #marker_face_color = (1, 1, 1)
+        #line_width = 4
+
+        #line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
+        #poly.lines = plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs)
+        #poly.handle = make_handle_line(poly)
         self._update_line()
 
         self.fig.ax.add_line(poly.lines)
