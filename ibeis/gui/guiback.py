@@ -377,6 +377,7 @@ class MainWindowBackend(QtCore.QObject):
             idx = col_name_list.index('thumb')
             view.col_hidden_list[idx] = not view.col_hidden_list[idx]
             view.hide_cols()
+            #view.resizeRowsToContents() Too slow to use
         back.front.update_tables()
 
     @blocking_slot(int)
