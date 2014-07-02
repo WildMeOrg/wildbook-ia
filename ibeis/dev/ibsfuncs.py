@@ -98,7 +98,7 @@ def export_to_xml(ibs):
             annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
         dst_img = imagedir + str(count) + '.' + extension
         dst_annot = annotdir + str(count) + '.xml'
-        utool.copy_task([(image_uri, dst_img)])
+        utool.copy(image_uri, dst_img)
         xml_data = open(dst_annot, 'w')
         xml_data.write(annotation.xml())
         count += 1
