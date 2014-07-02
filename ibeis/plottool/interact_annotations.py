@@ -30,9 +30,6 @@ Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
 from __future__ import absolute_import, division, print_function
 import matplotlib
 from matplotlib.patches import Polygon
-from matplotlib.figure import Text
-#from matplotlib.text import Text
-from matplotlib.text import Annotation
 from matplotlib.widgets import Button
 #import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -184,7 +181,7 @@ def make_handle_line(poly):
 
 
 class ANNOTATIONInteraction(object):
-    def new_polygon(self, verts, theta, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
+    def new_polygon(self, verts, theta, species, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
         poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
@@ -196,13 +193,8 @@ class ANNOTATIONInteraction(object):
         poly.lines = self.make_lines(poly, line_color, line_width)
         poly.handle = make_handle_line(poly)
         tagpos = calc_tag_position(poly)
-        #poly.species_tag = plt.text(tagpos[0], tagpos[1], "zebra")
-        poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], "zebra", bbox={'facecolor': 'white', 'alpha': 1})
+        poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
         poly.species_tag.remove() # eliminate "leftover" copies
-        #self.ax.
-        #poly.species_tag = Annotation("zebra", tagpos)
-#        poly.species_tag.axes = self.ax
-#        poly.species_tag.figure = self.ax.figure
         return poly
 
     def make_lines(self, poly, line_color, line_width):
@@ -240,6 +232,7 @@ class ANNOTATIONInteraction(object):
                  verts_list=None,
                  bbox_list=None,  # will get converted to verts_list
                  theta_list=None,
+                 species_list=None,
                  max_ds=10,
                  line_width=4,
                  line_color=(1, 1, 1),
@@ -311,13 +304,15 @@ class ANNOTATIONInteraction(object):
         # print(test_list)
         # Ensure that our input is in verts_list format
         assert verts_list is None or bbox_list is None, 'only one can be specified'
-        if theta_list is None:
-            theta_list = [0 for verts in verts_list]
         if bbox_list is not None:
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
+        if theta_list is None:
+            theta_list = [0 for verts in verts_list]
+        if species_list is None:
+            species_list = ["$SPECIES" for verts in verts_list]
 
         # Create the list of polygons
-        poly_list = [self.new_polygon(verts, theta, face_color=face_color) for (verts, theta) in izip(verts_list, theta_list)]
+        poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
         self.polys = dict({(poly.num, poly) for poly in poly_list})
         self._update_line()
