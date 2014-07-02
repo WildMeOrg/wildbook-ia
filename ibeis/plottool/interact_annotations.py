@@ -44,6 +44,9 @@ from plottool import draw_func2 as df2
 from itertools import izip
 
 
+DEFAULT_SPECIES_TAG = "$SPECIES"
+
+
 def _nxutils_points_inside_poly(points, verts):
     """ nxutils is depricated """
     path = matplotlib.path.Path(verts)
@@ -309,7 +312,7 @@ class ANNOTATIONInteraction(object):
         if theta_list is None:
             theta_list = [0 for verts in verts_list]
         if species_list is None:
-            species_list = ["$SPECIES" for verts in verts_list]
+            species_list = [DEFAULT_SPECIES_TAG for verts in verts_list]
 
         # Create the list of polygons
         poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
@@ -574,7 +577,7 @@ class ANNOTATIONInteraction(object):
         #poly = Polygon(coords, animated=True,
         #                    fc='white', ec='none', alpha=0.2, picker=True)
 
-        poly = self.new_polygon(coords, 0)
+        poly = self.new_polygon(coords, 0, DEFAULT_SPECIES_TAG)
 
         #poly.num = self.next_polynum()
         #poly.theta = 0
@@ -889,7 +892,7 @@ class ANNOTATIONInteraction(object):
                 y = min(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1])
                 w = max(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0]) - x
                 h = max(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1]) - y
-                bbox_list.append((int(x), int(y), int(w), int(h), poly.theta))
+                bbox_list.append((int(x), int(y), int(w), int(h), poly.theta, poly.species_tag.get_text()))
                 #theta_list.append(poly.theta)
             return bbox_list  # , theta_list
 
