@@ -187,7 +187,7 @@ def make_ibeis_headers_dict(ibs):
         'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
         'aif'        : ibs.get_image_aifs,
         'gname'      : ibs.get_image_gnames,
-        'nRids'      : ibs.get_image_num_Annotations,
+        'nRids'      : ibs.get_image_num_annotations,
         'unixtime'   : ibs.get_image_unixtime,
         'datetime'   : partial_imap_1to1(utool.unixtime_to_datetime, ibs.get_image_unixtime),
         'gdconf'     : ibs.get_image_detect_confidence,
@@ -232,7 +232,7 @@ def make_ibeis_headers_dict(ibs):
     getters[NAME_TABLE] = {
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_names,
-        'nRids'      : ibs.get_name_num_Annotations,
+        'nRids'      : ibs.get_name_num_annotations,
         'notes'      : ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
@@ -273,7 +273,7 @@ def make_ibeis_headers_dict(ibs):
     getters[NAMES_TREE] = {
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_names,
-        'nRids'      : ibs.get_name_num_Annotations,
+        'nRids'      : ibs.get_name_num_annotations,
         'aid'        : lambda aids: aids,
         'exemplar'   : ibs.get_annotation_exemplar_flag,
         'thumb'      : ibs.get_annotation_chip_thumbtup,
