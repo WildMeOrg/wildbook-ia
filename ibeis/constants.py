@@ -18,8 +18,11 @@ ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 ENCTEXT_PREFIX = 'enc_'
 KEY_DEFAULTS = {
     'INDIVIDUAL_KEY' : '____',
-    'SPECIES_KEY'    : 'UNKNOWN SPECIES',
+    'SPECIES_KEY'    : '____',
 }
+
+INDIVIDUAL_KEY = 'INDIVIDUAL_KEY'
+SPECIES_KEY = 'SPECIES_KEY'
 
 IMAGE_TABLE       = 'images'
 ANNOTATION_TABLE  = 'annotations'
