@@ -279,7 +279,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             if len(alrid_list) == 0:
                 self.ibs.add_annotation_relationship([aid], self.nid1)
             else:
-                self.ibs.set_annotation_nids([aid], self.nid1)
+                self.ibs.set_annotation_nids([aid], self.nid1, 'INDIVIDUAL_KEY')
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -293,7 +293,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             if len(alrid_list) == 0:
                 self.ibs.add_annotation_relationship([aid], self.nid2)
             else:
-                self.ibs.set_annotation_nids([aid], self.nid2)
+                self.ibs.set_annotation_nids([aid], self.nid2, 'INDIVIDUAL_KEY')
         self.update_callback()
         self.backend_callback()
         self.show_page()
