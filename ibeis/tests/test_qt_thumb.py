@@ -8,7 +8,7 @@ from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui.guiheaders import THUMB_TABLE
-from ibeis.gui.models_and_views import IBEISTableModel, IBEISTableView
+from ibeis.gui.models_and_views import IBEISStripeModel, IBEISTableView
 from ibeis.viz.interact import interact_annotations2
 import guitool
 import utool
@@ -44,11 +44,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
         # Create models and views
         ibswgt.view = IBEISTableView(parent=ibswgt)
-        ibswgt.model = IBEISTableModel(parent=ibswgt.view)
+        ibswgt.model = IBEISStripeModel(parent=ibswgt.view)
         ibswgt.proxy = StripeProxyModel(numduplicates=3)
         #ibswgt.proxy = QtGui.QIdentityProxyModel()
         ibswgt.proxy.setSourceModel(ibswgt.model)
-        ibswgt.view.setModel(ibswgt.proxy)
+        ibswgt.view.setModel(ibswgt.model)
         #ibswgt.view.setModel(ibswgt.model)
 
     def _init_layout(ibswgt):

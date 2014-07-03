@@ -15,7 +15,7 @@ from ibeis import constants
 from ibeis.gui.guiheaders import (
     IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
-    IBEISTableModel, IBEISTableView, IBEISTreeModel, IBEISTreeView, EncTableModel, EncTableView,
+    IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView, EncTableModel, EncTableView,
     IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
 import guitool
 import utool
@@ -169,11 +169,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         # Define the abstract item models and views for the tables
         ibswgt.modelview_defs = [
-            (IMAGE_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (IMAGE_GRID,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (ANNOTATION_TABLE, IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAME_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAMES_TREE,       IBEISTreeWidget,  IBEISTreeModel,  IBEISTreeView),
+            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
+            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
             (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
         ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
