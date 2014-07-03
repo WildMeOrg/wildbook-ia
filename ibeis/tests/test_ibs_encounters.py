@@ -50,8 +50,10 @@ def TEST_ENCOUNTERS(ibs):
                          UUID('588bc218-83a5-d400-21aa-d499832632b0'), 
                          UUID('163a890c-36f2-981e-3529-c552b6d668a3')),]
 
-    target_names = [('____1', 'easy', '____4', 'hard', 'jeff'),
-                    ('lena', '____9', 'occl', '____11', 'polar', 'zebra'),]
+    target_names = [
+        ('easy', 'hard', 'jeff'),
+        ('lena', 'occl', 'polar', 'zebra'),
+    ]
 
 
     ibs.print_label_table()
@@ -78,7 +80,10 @@ def TEST_ENCOUNTERS(ibs):
 
         print('3a) aids_list = %s' % (utool.list_str(aids_list),))
         print('3a) nids_list = %s' % (utool.list_str(nids_list),))
-        nids_listb = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list)
+        kwargs = {
+            '_key': 'INDIVIDUAL_KEY'
+        }
+        nids_listb = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list, **kwargs)
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
         print('3b) names_list = %s' % (utool.list_str(names_list),))
         print('3b) target_names = %s' % (utool.list_str(target_names),))

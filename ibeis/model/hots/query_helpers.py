@@ -48,7 +48,7 @@ def get_query_components(ibs, qaids):
         qfx2_aid = qreq.data_index.ax2_aid[qfx2_ax]
         qfx2_fx  = qreq.data_index.ax2_fx[qfx2_ax]
         qfx2_gid = ibs.get_annotation_gids(qfx2_aid)
-        qfx2_nid = ibs.get_annotation_nids(qfx2_aid)
+        qfx2_nid = ibs.get_annotation_nids(qfx2_aid, 'INDIVIDUAL_KEY')
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
         qaid2_nnfilt_ORIG    = mf.identity_filter(qaid2_nns, qreq)
         qaid2_chipmatch_ORIG = mf.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq)

@@ -70,7 +70,8 @@ def define_IBEIS_schema(ibs):
 
     ibs.db.schema(constants.KEY_TABLE, (
         ('key_rowid',                'INTEGER PRIMARY KEY'),
-        ('key_text',                 'TEXT NOT NULL')
+        ('key_text',                 'TEXT NOT NULL'),
+        ('key_default',              'TEXT NOT NULL'),
     ), ['CONSTRAINT superkey UNIQUE (key_text)'],
         docstr='''
         List of keys used to define the categories of annotation tables, text is
