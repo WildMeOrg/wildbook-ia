@@ -52,7 +52,7 @@ TABLE_COLNAMES = {
         'aid',
         'thumb',
         'name',
-        # 'species',
+        'species',
         'exemplar',
         'rdconf',
         'notes',
@@ -112,7 +112,7 @@ TABLE_COLNAMES = {
 # the columns which are editable
 TABLE_EDITSET = {
     IMAGE_TABLE      : set(['aif', 'notes']),
-    ANNOTATION_TABLE : set(['name', 'notes', 'exemplar']),
+    ANNOTATION_TABLE : set(['name', 'species', 'notes', 'exemplar']),
     NAME_TABLE       : set(['name', 'notes']),
     QRES_TABLE       : set(['name']),
     ENCOUNTER_TABLE  : set([]),
@@ -207,7 +207,7 @@ def make_ibeis_headers_dict(ibs):
     getters[ANNOTATION_TABLE] = {
         'aid'        : lambda aids: aids,
         'name'       : ibs.get_annotation_names,
-        # 'species'    : ibs.get_annotation_species,
+        'species'    : ibs.get_annotation_species,
         'gname'      : ibs.get_annotation_gnames,
         'nGt'        : ibs.get_annotation_num_groundtruth,
         'theta'      : partial_imap_1to1(utool.theta_str, ibs.get_annotation_thetas),
@@ -222,7 +222,7 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annotation_names,
-        # 'species'    : ibs.set_annotation_species,
+        'species'    : ibs.set_annotation_species,
         'notes'      : ibs.set_annotation_notes,
         'exemplar'   : ibs.set_annotation_exemplar_flag,
     }
