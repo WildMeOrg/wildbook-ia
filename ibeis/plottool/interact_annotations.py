@@ -81,8 +81,7 @@ def bbox_to_verts(bbox):
     verts = np.array([(x + 0, y + h),
                       (x + 0, y + 0),
                       (x + w, y + 0),
-                      (x + w, y + h),
-                      (x + 0, y + h)], dtype=np.float32)
+                      (x + w, y + h),], dtype=np.float32)
     return verts
 
 
@@ -99,6 +98,14 @@ def verts_to_bbox(verts):
         bbox = (x, y, w, h)
         new_bbox_list.append(bbox)
     return new_bbox_list
+
+
+def basecoords_to_bbox(basecoords):
+    x = min(basecoords[0][0], basecoords[1][0], basecoords[2][0], basecoords[3][0])
+    y = min(basecoords[0][1], basecoords[1][1], basecoords[2][1], basecoords[3][1])
+    w = max(basecoords[0][0], basecoords[1][0], basecoords[2][0], basecoords[3][0]) - x
+    h = max(basecoords[0][1], basecoords[1][1], basecoords[2][1], basecoords[3][1]) - y
+    return (x, y, w, h)
 
 
 def bbox_to_mask(shape, bbox):
@@ -485,7 +492,7 @@ class ANNOTATIONInteraction(object):
 
         if event.button == 1:  # leftclick
             for poly in self.polys.itervalues():
-                if is_within_distance(10, (event.xdata, event.ydata), calc_handle_coords(poly)[1]):
+                if is_within_distance(self.max_ds, (event.xdata, event.ydata), calc_handle_coords(poly)[1]):
                     self.currently_rotating_poly = poly
                     break
 
@@ -571,29 +578,18 @@ class ANNOTATIONInteraction(object):
         self._ind = None
         self._polyHeld = False
 
-    #might be a duplicate of a helper in __init__/part of __init__?
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
-        #poly = Polygon(coords, animated=True,
-        #                    fc='white', ec='none', alpha=0.2, picker=True)
 
         poly = self.new_polygon(coords, 0, DEFAULT_SPECIES_TAG)
 
-        #poly.num = self.next_polynum()
-        #poly.theta = 0
-        #poly.basecoords = poly.xy
-        ##self.poly_list.append(poly)
-        self.polys[poly.num] = poly
-        ##self.theta_list.append(0)
-        self.fig.ax.add_patch(poly)
-        #x, y = zip(*poly.xy)
-        #color = np.array((1, 1, 1))
-        #marker_face_color = (1, 1, 1)
-        #line_width = 4
+        #<hack reason="brittle resizing algorithm that doesn't work unless the points are in the right order, see resize_rectangle">
+        poly.basecoords = bbox_to_verts(basecoords_to_bbox(poly.basecoords))
+        set_display_coords(poly)
+        #</hack>
 
-        #line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-        #poly.lines = plt.Line2D(x, y, marker='o', alpha=1, animated=True, **line_kwargs)
-        #poly.handle = make_handle_line(poly)
+        self.polys[poly.num] = poly
+        self.fig.ax.add_patch(poly)
         self._update_line()
 
         self.fig.ax.add_line(poly.lines)
@@ -785,82 +781,95 @@ class ANNOTATIONInteraction(object):
         #print('resize_rectangle')
         if poly is None:
             return
-#        indBefore = self._ind - 1
-#        if(indBefore < 0):
-#            indBefore = len(poly.xy) - 2
-#        indAfter = (self._ind + 1) % 4
-##        def wrapIndex(i):
-##            if(i < 0):
-##                i += len(poly.xy) - 1 # the minus one is because the last coordinate is duplicated to get a closed polygon
-##            return (i % (len(poly.xy) - 1))
-#        selectedX, selectedY = (poly.basecoords[self._ind])
-#        beforeX, beforeY = (poly.basecoords[indBefore])
-#        afterX, afterY = (poly.basecoords[indAfter])
+
+        def distance(x, y):
+            return math.sqrt(x**2 + y**2)
+
+        def polarDelta(p1, p2):
+            mag = distance(p2[0]-p1[0], p2[1]-p1[1])
+            theta = math.atan2(p2[1]-p1[1], p2[0]-p1[0])
+            return [mag, theta]
+
+        def apply_polarDelta(poldelt, cart):
+            newx = cart[0] + (poldelt[0] * math.cos(poldelt[1]))
+            newy = cart[1] + (poldelt[0] * math.sin(poldelt[1]))
+            return (newx, newy)
 
         def isSegmentBetweenCoordsVertical(c1, c2):
             return c1[0] == c2[0] # x coordinates are the same
 
-        #tmpcoords = poly.xy[:-1] # the minus one is because the last coordinate is duplicated (by matplotlib) to get a closed polygon
-        tmpcoords = list(poly.basecoords[:-1])
+        def rad2deg(t):
+            return t * 360 / np.tau
+
+        # the minus one is because the last coordinate is duplicated (by matplotlib) to get a closed polygon
+        tmpcoords = poly.xy[:-1]
+        #tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
+        #tmpcoords = list(poly.basecoords[:-1])
         def wrapIndex(i):
             return (i % len(tmpcoords))
 
-        x, y = rotate_points_around([(x, y)], -poly.theta, *polygon_center(poly))[0] # rotate the mouse coord into where it would be, if the polygon weren't rotated (corresponding to basecoords)
-
         idx = self._ind
-        tmpcoords[idx] = (x, y)
         previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
-        #oppidx = wrapIndex(idx + 2)
-        if isSegmentBetweenCoordsVertical(poly.basecoords[idx], poly.basecoords[nextidx]):
-            tmpcoords[previdx] = (tmpcoords[previdx][0], y)
-            tmpcoords[nextidx] = (x, tmpcoords[nextidx][1])
-            #tmpcoords[oppidx]  = (tmpcoords[previdx][0], tmpcoords[nextidx][1])
-        else:
-            tmpcoords[previdx] = (x, tmpcoords[previdx][1])
-            tmpcoords[nextidx] = (tmpcoords[nextidx][0], y)
-            #tmpcoords[oppidx]  = (tmpcoords[nextidx][0], tmpcoords[previdx][1])
+        oppidx = wrapIndex(idx + 2)
+        (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
+        #tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
 
-        #tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
+#a#        newx, newy = tmpcoords[idx][0], tmpcoords[idx][1]
+#a#        oppx, oppy = tmpcoords[oppidx][0], tmpcoords[oppidx][1]
+#a#        prevx, prevy = tmpcoords[previdx][0], tmpcoords[previdx][1]
+#a#        nextx, nexty = tmpcoords[nextidx][0], tmpcoords[nextidx][1]
+#a#
+#a#        hypotenuse_new_opp = distance(oppy - newy, oppx - newx) # green line
+#a#
+#a#
+#a#        angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx) # black theta
+#a#        angle_xaxis_opp_newprev = math.atan2(oppy - prevy, oppx - prevx) # blue theta
+#a#        angle_newprev_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newprev # red theta
+#a#        hypotenuse_opp_newprev = hypotenuse_new_opp * math.cos(angle_xaxis_opp_new)
+#a#
+#a#        newprev_x = hypotenuse_opp_newprev * math.cos(angle_xaxis_opp_newprev)
+#a#        newprev_y = hypotenuse_opp_newprev * math.sin(angle_xaxis_opp_newprev)
+#a#        tmpcoords[previdx] = (newprev_x, newprev_y)
+#a#
+#a#
+#a#        angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx)
+#a#        angle_xaxis_opp_newnext = math.atan2(oppy - nexty, oppx - nextx)
+#a#        angle_newnext_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newnext
+#a#        hypotenuse_opp_newnext = hypotenuse_new_opp * math.sin(angle_xaxis_opp_new)
+#a#
+#a#        newnext_x = hypotenuse_opp_newnext * math.cos(angle_xaxis_opp_newnext)
+#a#        newnext_y = hypotenuse_opp_newnext * math.sin(angle_xaxis_opp_newnext)
+#a#        tmpcoords[nextidx] = (newnext_x, newnext_y)
+
+        # this algorithm worked the best of the ones I tried, but needs "experimentally determined constants" to work properly, since I failed to properly derive them in the allotted time
+        FUDGE_FACTORS = {0: -(np.tau / 4),
+                         1: 0,
+                         2: (np.tau / 4),
+                         3: (np.tau / 2)}
+
+        polar_idx2prev = polarDelta(tmpcoords[idx], tmpcoords[previdx])
+        polar_idx2next = polarDelta(tmpcoords[idx], tmpcoords[nextidx])
+        tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
+        mag_delta = distance(dx, dy)
+        theta_delta = math.atan2(dy, dx)
+        poly_theta = poly.theta + FUDGE_FACTORS.get(idx,0)
+        theta_rot = theta_delta - (poly_theta + np.tau/4)
+        ##print('poly.theta %r' % rad2deg(poly.theta))
+        ##print('poly_theta %r' % rad2deg(poly_theta))
+        ##print('theta_delta %r' % rad2deg(theta_delta))
+        ##print('theta_rot %r' % rad2deg(theta_rot))
+        rotx = mag_delta * math.cos(theta_rot)
+        roty = mag_delta * math.sin(theta_rot)
+        polar_idx2prev[0] -= rotx
+        polar_idx2next[0] += roty
+        tmpcoords[previdx] = apply_polarDelta(polar_idx2prev, tmpcoords[idx])
+        tmpcoords[nextidx] = apply_polarDelta(polar_idx2next, tmpcoords[idx])
+
+        tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
         tmpcoords = tmpcoords[:] + [tmpcoords[0]]
         if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)):
             poly.basecoords = tmpcoords
 
-#        changeBefore = -1
-#        keepX, changeY = -1, -1
-#        changeAfter = -1
-#        changeX, keepY = -1, -1
-#
-#        if beforeX != selectedX:
-#            changeBefore = indBefore
-#            keepX, changeY = poly.basecoords[indBefore]
-#            changeAfter = indAfter
-#            changeX, keepY = poly.basecoords[indAfter]
-#        else:
-#            changeBefore = indAfter
-#            keepX, changeY = poly.basecoords[indAfter]
-#            changeAfter = indBefore
-#            changeX, keepY = poly.basecoords[indBefore]
-#
-#        # Change selected
-#        if self._ind == 0 or self._ind == self.last_vert_ind:
-#            poly.basecoords[0] = x, y
-#            poly.basecoords[self.last_vert_ind] = x, y
-#        else:
-#            poly.basecoords[self._ind] = x, y
-#
-#        # Change vert
-#        if changeBefore == 0 or changeBefore == self.last_vert_ind:
-#            poly.basecoords[0] = keepX, y
-#            poly.basecoords[self.last_vert_ind] = keepX, y
-#        else:
-#            poly.basecoords[changeBefore] = keepX, y
-#
-#        # Change horiz
-#        if changeAfter == 0 or changeAfter == self.last_vert_ind:
-#            poly.basecoords[0] = x, keepY
-#            poly.basecoords[self.last_vert_ind] = x, keepY
-#        else:
-#            poly.basecoords[changeAfter] = x, keepY
         set_display_coords(poly)
 
     def _update_line(self):
@@ -892,11 +901,11 @@ class ANNOTATIONInteraction(object):
         #for poly in self.poly_list:
         #    if poly is not None:
         #        ind_dist_list.append(get_ind_and_dist(poly))
-        ind_dist_list = [get_ind_and_dist(poly) for poly in self.polys.itervalues()]
+        ind_dist_list = [(polyind, get_ind_and_dist(poly)) for (polyind, poly) in self.polys.iteritems()]
         min_dist = None
         min_ind  = None
         sel_polyind = None
-        for polyind, (ind, dist) in enumerate(ind_dist_list):
+        for polyind, (ind, dist) in ind_dist_list:
             if ind is None:
                 continue
             if min_dist is None:
@@ -907,6 +916,7 @@ class ANNOTATIONInteraction(object):
                 min_dist = dist
                 min_ind = ind
                 sel_polyind = polyind
+        print('in get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
         return (sel_polyind, min_ind)
 
     def accept_new_annotations(self, event):
