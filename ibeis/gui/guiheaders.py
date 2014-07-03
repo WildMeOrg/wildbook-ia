@@ -52,7 +52,7 @@ TABLE_COLNAMES = {
         'aid',
         'thumb',
         'name',
-        'species',
+        # 'species',
         'exemplar',
         'rdconf',
         'notes',
@@ -140,7 +140,7 @@ TABLE_STRIPE_LIST = {
 COL_DEF = dict([
     ('image_uuid', (str,      'Image UUID')),
     ('gid',        (int,      'Image ID')),
-    ('aid',        (int,      'ANNOTATION ID')),
+    ('aid',        (int,      'Annotation ID')),
     ('nid',        (int,      'Name ID')),
     ('eid',        (int,      'Encounter ID')),
     ('nRids',      (int,      '#Annotations')),
@@ -207,7 +207,7 @@ def make_ibeis_headers_dict(ibs):
     getters[ANNOTATION_TABLE] = {
         'aid'        : lambda aids: aids,
         'name'       : ibs.get_annotation_names,
-        'species'    : ibs.get_annotation_species,
+        # 'species'    : ibs.get_annotation_species,
         'gname'      : ibs.get_annotation_gnames,
         'nGt'        : ibs.get_annotation_num_groundtruth,
         'theta'      : partial_imap_1to1(utool.theta_str, ibs.get_annotation_thetas),
@@ -222,7 +222,7 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annotation_names,
-        'species'    : ibs.set_annotation_species,
+        # 'species'    : ibs.set_annotation_species,
         'notes'      : ibs.set_annotation_notes,
         'exemplar'   : ibs.set_annotation_exemplar_flag,
     }

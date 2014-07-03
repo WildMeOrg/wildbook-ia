@@ -268,7 +268,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, eid=%r' % (aid, eid))
         gid = back.ibs.get_annotation_gids(aid)
-        nid = back.ibs.get_annotation_nids(aid)
+        nid = back.ibs.get_annotation_nids(aid, 'INDIVIDUAL_KEY')
         back._set_selection(sel_aids=(aid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
         if show and show_annotation:
             back.show_annotation(aid, **kwargs)
