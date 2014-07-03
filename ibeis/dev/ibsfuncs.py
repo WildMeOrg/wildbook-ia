@@ -12,6 +12,8 @@ from ibeis.export import export_hsdb
 from detecttools.pypascalxml import PascalVOC_XML_Annotation
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
+from vtool import linalg, geometry
+import numpy as np
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -66,7 +68,7 @@ def refresh(ibs):
 
 
 def export_to_xml(ibs):
-    count = 0
+    count = 1
     information = {
         'database_name' : 'IBEIS',
         'source' : 'olpajeta',
@@ -75,7 +77,6 @@ def export_to_xml(ibs):
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     utool.ensuredir(datadir)
-    print(datadir)
     utool.ensuredir(imagedir)
     utool.ensuredir(annotdir)
     gid_list = ibs.get_valid_gids()
@@ -84,20 +85,32 @@ def export_to_xml(ibs):
         fulldir = image_uri.split('/')
         filename = fulldir.pop()
         extension = filename.split('.')[-1]
+        out_name = "2014_%05d" % count
         folder = "IBEIS"
-        annotation = PascalVOC_XML_Annotation(image_uri, folder, filename, **information)
+        annotation = PascalVOC_XML_Annotation(image_uri, folder, out_name, **information)
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annotation_bboxes(aid_list)
-        for bbox in bbox_list:
-            xmin = bbox[0]
-            ymin = bbox[1]
-            xmax = xmin + bbox[2]
-            ymax = ymin + bbox[3]
-            #TODO: Change to getter in IBEISControl once implemented
+        theta_list = ibs.get_annotation_thetas(aid_list)
+        for bbox, theta in izip(bbox_list, theta_list):
+            # Transformation matrixes
+            R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+            # Get verticies of the annotation polygon
+            verts = geometry.verts_from_bbox(bbox, close=True)
+            # Rotate and transform to thumbnail space
+            xyz_pts = geometry.homogonize(np.array(verts).T)
+            trans_pts = geometry.unhomogonize(R.dot(xyz_pts))
+            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            x_points = [pt[0] for pt in new_verts]
+            y_points = [pt[1] for pt in new_verts]
+            xmin = min(x_points)
+            xmax = max(x_points)
+            ymin = min(y_points)
+            ymax = max(y_points)
+            #TODO: Change species_name to getter in IBEISControl once implemented
             species_name = 'grevys_zebra'
             annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
-        dst_img = imagedir + str(count) + '.' + extension
-        dst_annot = annotdir + str(count) + '.xml'
+        dst_img = imagedir + out_name + '.' + extension
+        dst_annot = annotdir + out_name  + '.xml'
         utool.copy(image_uri, dst_img)
         xml_data = open(dst_annot, 'w')
         xml_data.write(annotation.xml())
