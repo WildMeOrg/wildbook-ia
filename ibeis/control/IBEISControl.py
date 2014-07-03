@@ -827,11 +827,9 @@ class IBEISController(object):
             nid_list = ibs.add_names(name_list)
         
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants.INDIVIDUAL_KEY])
-        for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list):
-            if len(alrid_list) == 0:
-                ibs.add_annotation_relationship([aid], [nid])
-            else:
-                ibs.set_annotation_nids([aid], [nid], constants.INDIVIDUAL_KEY)
+        [ibs.add_annotation_relationship([aid], [nid]) 
+         if len(alrid_list) == 0 else ibs.set_annotation_nids([aid], [nid], constants.INDIVIDUAL_KEY)
+         for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list)]
 
     @setter
     def set_annotation_species(ibs, aid_list, species_list=None, nid_list=None):
@@ -1722,14 +1720,9 @@ class IBEISController(object):
         """ returns a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
         nids_list = [ ibs.get_annotation_nids(aid_list, constants.INDIVIDUAL_KEY) for aid_list in aids_list ] 
-        nids_list_ = []
-        for nids in nids_list:
-            temp = []
-            for nid in nids:
-                if len(nid) > 0:
-                    temp.append(nid[0])
-            nids_list_.append(temp)
 
+        nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
+        
         nids_list = list(imap(utool.unique_ordered, nids_list_))
         #print('get_encounter_nids')
         #print('eid_list = %r' % (eid_list,))
