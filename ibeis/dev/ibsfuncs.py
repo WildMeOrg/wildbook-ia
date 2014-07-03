@@ -86,17 +86,18 @@ def export_to_xml(ibs):
         filename = fulldir.pop()
         extension = filename.split('.')[-1]
         out_name = "2014_%05d" % count
+        out_img = out_name + "." + extension
         folder = "IBEIS"
-        annotation = PascalVOC_XML_Annotation(image_uri, folder, out_name, **information)
+        annotation = PascalVOC_XML_Annotation(image_uri, folder, out_img, **information)
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annotation_bboxes(aid_list)
         theta_list = ibs.get_annotation_thetas(aid_list)
         for bbox, theta in izip(bbox_list, theta_list):
-            # Transformation matrixes
+            # Transformation matrix
             R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
             # Get verticies of the annotation polygon
             verts = geometry.verts_from_bbox(bbox, close=True)
-            # Rotate and transform to thumbnail space
+            # Rotate and transform vertices
             xyz_pts = geometry.homogonize(np.array(verts).T)
             trans_pts = geometry.unhomogonize(R.dot(xyz_pts))
             new_verts = np.round(trans_pts).astype(np.int).T.tolist()
@@ -109,11 +110,12 @@ def export_to_xml(ibs):
             #TODO: Change species_name to getter in IBEISControl once implemented
             species_name = 'grevys_zebra'
             annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
-        dst_img = imagedir + out_name + '.' + extension
         dst_annot = annotdir + out_name  + '.xml'
+        dst_img = imagedir + out_img
         utool.copy(image_uri, dst_img)
         xml_data = open(dst_annot, 'w')
         xml_data.write(annotation.xml())
+        xml_data.close()
         count += 1
 
 
