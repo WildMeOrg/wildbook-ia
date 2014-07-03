@@ -5,7 +5,8 @@ import utool
 
 ENCOUNTER_TABLE  = 'encounters'
 IMAGE_TABLE      = 'images'
-ANNOTATION_TABLE = 'annotations'
+IMAGE_GRID       = 'image_grid'
+ANNOTATION_TABLE = 'Annotations'
 NAME_TABLE       = 'names'
 NAMES_TREE       = 'names_tree'
 QRES_TABLE       = 'qres'
@@ -16,7 +17,7 @@ THUMB_TABLE      = 'thumbs'
 #-----------------
 
 # enabled tables
-TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, THUMB_TABLE, NAMES_TREE]
+TABLENAME_LIST = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, ENCOUNTER_TABLE, IMAGE_GRID, THUMB_TABLE, NAMES_TREE]
 
 # table nice names
 TABLE_NICE = {
@@ -25,6 +26,7 @@ TABLE_NICE = {
     NAME_TABLE       : 'Name Table',
     QRES_TABLE       : 'Query Results Table',
     ENCOUNTER_TABLE  : 'Encounter Table',
+    IMAGE_GRID       : 'Thumbnail Grid',
     THUMB_TABLE      : 'Thumbnail Table',
     NAMES_TREE       : 'Tree of Names',
 }
@@ -92,6 +94,10 @@ TABLE_COLNAMES = {
         'thumb',
     ],
 
+    IMAGE_GRID     : [
+        'thumb',
+    ],
+
     # TEST TABLE
     THUMB_TABLE     : [
         'gname',
@@ -106,10 +112,11 @@ TABLE_COLNAMES = {
 # the columns which are editable
 TABLE_EDITSET = {
     IMAGE_TABLE      : set(['aif', 'notes']),
-    ANNOTATION_TABLE : set(['name', 'species', 'notes', 'exemplar']),
+    ANNOTATION_TABLE : set(['name', 'notes', 'exemplar']),
     NAME_TABLE       : set(['name', 'notes']),
     QRES_TABLE       : set(['name']),
     ENCOUNTER_TABLE  : set([]),
+    IMAGE_GRID       : set([]),
     THUMB_TABLE      : set([]),
     NAMES_TREE       : set(['exemplar']),
 }
@@ -125,6 +132,10 @@ TABLE_HIDDEN_LIST = {
     NAME_TABLE       : [False, False, False, False],
 }
 
+TABLE_STRIPE_LIST = {
+    IMAGE_GRID : 3,
+}
+
 # Define the valid columns a table could have
 COL_DEF = dict([
     ('image_uuid', (str,      'Image UUID')),
@@ -132,7 +143,7 @@ COL_DEF = dict([
     ('aid',        (int,      'ANNOTATION ID')),
     ('nid',        (int,      'Name ID')),
     ('eid',        (int,      'Encounter ID')),
-    ('nRids',      (int,      '#ANNOTATIONs')),
+    ('nRids',      (int,      '#Annotations')),
     ('nGt',        (int,      '#GT')),
     ('nImgs',      (int,      '#Imgs')),
     ('nFeats',     (int,      '#Features')),
@@ -176,7 +187,7 @@ def make_ibeis_headers_dict(ibs):
         'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
         'aif'        : ibs.get_image_aifs,
         'gname'      : ibs.get_image_gnames,
-        'nRids'      : ibs.get_image_num_annotations,
+        'nRids'      : ibs.get_image_num_Annotations,
         'unixtime'   : ibs.get_image_unixtime,
         'datetime'   : partial_imap_1to1(utool.unixtime_to_datetime, ibs.get_image_unixtime),
         'gdconf'     : ibs.get_image_detect_confidence,
@@ -187,7 +198,7 @@ def make_ibeis_headers_dict(ibs):
         'gps'        : partial_imap_1to1(utool.tupstr, ibs.get_image_gps),
     }
     setters[IMAGE_TABLE] = {
-        'aif'        :   ibs.set_image_aifs,
+        'aif'        : ibs.set_image_aifs,
         'notes'      : ibs.set_image_notes,
     }
     #
@@ -221,7 +232,7 @@ def make_ibeis_headers_dict(ibs):
     getters[NAME_TABLE] = {
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_names,
-        'nRids'      : ibs.get_name_num_annotations,
+        'nRids'      : ibs.get_name_num_Annotations,
         'notes'      : ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
@@ -240,6 +251,15 @@ def make_ibeis_headers_dict(ibs):
         'enctext'    : ibs.set_encounter_enctext,
     }
 
+    iders[IMAGE_GRID]   = [ibs.get_valid_gids]
+    getters[IMAGE_GRID] = {
+        'thumb'      : ibs.get_image_thumbtup,
+        'gname'      : ibs.get_image_gnames,
+        'aid'        : ibs.get_image_aids,
+    }
+    setters[IMAGE_GRID] = {
+    }
+
     iders[THUMB_TABLE]   = [ibs.get_valid_gids]
     getters[THUMB_TABLE] = {
         'thumb'      : ibs.get_image_thumbtup,
@@ -253,7 +273,7 @@ def make_ibeis_headers_dict(ibs):
     getters[NAMES_TREE] = {
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_names,
-        'nRids'      : ibs.get_name_num_annotations,
+        'nRids'      : ibs.get_name_num_Annotations,
         'aid'        : lambda aids: aids,
         'exemplar'   : ibs.get_annotation_exemplar_flag,
         'thumb'      : ibs.get_annotation_chip_thumbtup,
@@ -275,6 +295,7 @@ def make_ibeis_headers_dict(ibs):
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevels  = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
         hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
+        numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
 
         def get_column_data(colname):
             coltype   = COL_DEF[colname][0]
@@ -300,6 +321,7 @@ def make_ibeis_headers_dict(ibs):
             'col_setter_list': colsetters,
             'col_level_list': collevels,
             'col_hidden_list' : hiddencols,
+            'num_duplicates'  : numstripes,
         }
         return header
 

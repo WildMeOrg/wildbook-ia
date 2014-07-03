@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from itertools import izip
-#import os
 
 
 class ANNOTATION_Interaction2:
@@ -14,7 +13,8 @@ class ANNOTATION_Interaction2:
         self.aid_list = ibs.get_image_aids(self.gid)
         bbox_list = ibs.get_annotation_bboxes(self.aid_list)
         theta_list = ibs.get_annotation_thetas(self.aid_list)
-        self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(img, callback=self.callback, bbox_list=bbox_list, theta_list=theta_list)
+        species_list = None #ibs.get_annotation_species(self.aid_list) # Not yet implemented
+        self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(img, callback=self.callback, bbox_list=bbox_list, theta_list=theta_list, species_list=species_list)
         df2.update()
 
     def callback(self, deleted_list, changed_list, new_list):
@@ -30,7 +30,8 @@ class ANNOTATION_Interaction2:
             self.ibs.set_annotation_bboxes(changed_aid, changed_bbox)
         if len(new_list) > 0:
             rows_updated = True
-            bbox_list, theta_list = izip(*[((x, y, w, h), t) for (x, y, w, h, t) in new_list])
+            bbox_list, theta_list, species_list = izip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_list])
+            #print("species_list in annotation_interaction2: %r" % list(species_list))
             self.ibs.add_annotations([self.gid] * len(new_list), bbox_list, theta_list)
         if rows_updated:
             self.rows_updated_callback()

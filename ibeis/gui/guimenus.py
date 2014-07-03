@@ -122,6 +122,12 @@ def setup_actions_menu(mainwin, back):
         text='Delete All Encounters',
         shortcut='',
         slot_fn=back.delete_all_encounters)
+    mainwin.menuActions.addSeparator()
+    mainwin.menuActions.newAction(
+        name='toggleThumbnails',
+        text='Toggle Thumbnails',
+        shortcut='',
+        slot_fn=back.toggle_thumbnails)
 
 
 def setup_batch_menu(mainwin, back):
@@ -254,3 +260,7 @@ def setup_developer_menu(mainwin, back):
         name='actionDeveloper_DumpDB',
         text='Dump SQL Database',
         slot_fn=back.dev_dumpdb)
+    mainwin.menuDev.newAction(
+        name='export_learning_data',
+        text='Export learning data',
+        slot_fn=back.dev_export_annotations)

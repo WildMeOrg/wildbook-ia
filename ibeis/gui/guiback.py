@@ -145,7 +145,7 @@ class MainWindowBackend(QtCore.QObject):
         # HACK
         from ibeis.gui import inspect_gui
         qaid2_qres = {qres.qaid: qres}
-        backed_callback = back.front.update_tables
+        backend_callback = back.front.update_tables
         back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres, callback=backend_callback, ranks_lt=kwargs['top_aids'], )
         back.qres_wgt1.show()
         back.qres_wgt1.raise_()
@@ -365,6 +365,21 @@ class MainWindowBackend(QtCore.QObject):
         back.select_gid(gid)
         back.front.update_tables()
 
+    @blocking_slot()
+    def toggle_thumbnails(back):
+        ibswgt = back.front
+        tabwgt = ibswgt._tab_table_wgt
+        index = tabwgt.currentIndex()
+        tblname = ibswgt.tblname_list[index]
+        view = ibswgt.views[tblname]
+        col_name_list = view.col_name_list
+        if 'thumb' in col_name_list:
+            idx = col_name_list.index('thumb')
+            view.col_hidden_list[idx] = not view.col_hidden_list[idx]
+            view.hide_cols()
+            #view.resizeRowsToContents() Too slow to use
+        back.front.update_tables()
+
     @blocking_slot(int)
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
@@ -461,7 +476,6 @@ class MainWindowBackend(QtCore.QObject):
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
-
 
     @blocking_slot()
     def review_queries(back, **kwargs):
@@ -614,6 +628,10 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.db.dump()
         utool.view_directory(back.ibs._ibsdb)
         back.ibs.db.dump_tables_to_csv()
+
+    def dev_export_annotations(back):
+        ibs = back.ibs
+        ibsfuncs.export_to_xml(ibs)
 
     #--------------------------------------------------------------------------
     # File Slots

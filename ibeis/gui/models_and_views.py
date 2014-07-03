@@ -15,7 +15,7 @@ class IBEISTableWidget(APIItemWidget):
         widget.ibswin = parent
         widget.eid = None
         APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=IBEISTableModel,
+                                model_class=IBEISStripeModel,
                                 view_class=IBEISTableView)
 
 
@@ -24,23 +24,23 @@ class IBEISTreeWidget(APIItemWidget):
         widget.ibswin = parent
         widget.eid = None
         APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=IBEISTableModel,
+                                model_class=IBEISItemModel,
                                 view_class=IBEISTreeView)
 
 
-#IBEISTABLEMODEL_BASE = StripeProxyModel
-IBEISTABLEMODEL_BASE = APIItemModel
+IBEISSTRIPEMODEL_BASE = StripeProxyModel
+#IBEISSTRIPEMODEL_BASE = APIItemModel
+IBEISITEMMODEL_BASE = APIItemModel
 
 
-class IBEISTableModel(IBEISTABLEMODEL_BASE):
+class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
-        IBEISTABLEMODEL_BASE.__init__(model, parent=parent, *args)
+        IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
         model.ibswin = parent
         model.eid = None
         model.original_ider = None
-        if IBEISTABLEMODEL_BASE == StripeProxyModel:
-            model._nd = 1
-            model.sourcemodel = APIItemModel(headers=headers, parent=parent)
+        if IBEISSTRIPEMODEL_BASE == StripeProxyModel:
+            model.sourcemodel = APIItemModel(parent=parent)
             model.setSourceModel(model.sourcemodel)
             print('[ibs_model] just set the sourcemodel')
 
@@ -52,7 +52,9 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
             model.new_iders = model.original_iders[:]
             model.new_iders[0] = model._ider
         headers['iders'] = model.new_iders
-        return IBEISTABLEMODEL_BASE._update_headers(model, **headers)
+        model._nd = headers.get('num_duplicates', 1)
+        model.sourcemodel._update_headers(**headers)
+        #return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
         """ Overrides the API model ider to give only selected encounter ids """
@@ -61,7 +63,7 @@ class IBEISTableModel(IBEISTABLEMODEL_BASE):
     def _change_enc(model, eid):
         model.eid = eid
         with ChangeLayoutContext([model]):
-            IBEISTABLEMODEL_BASE._update_rows(model)
+            IBEISSTRIPEMODEL_BASE._update_rows(model)
 
 
 class IBEISTableView(APITableView):
@@ -77,6 +79,33 @@ class IBEISTableView(APITableView):
         model = tblview.model()
         if model is not None:
             model._change_enc(eid)
+
+
+class IBEISItemModel(IBEISITEMMODEL_BASE):
+    def __init__(model, headers=None, parent=None, *args):
+        IBEISITEMMODEL_BASE.__init__(model, parent=parent, *args)
+        model.ibswin = parent
+        model.eid = None
+        model.original_ider = None
+
+    def _update_headers(model, **headers):
+        def _null_ider(**kwargs):
+            return []
+        model.original_iders = headers.get('iders', [_null_ider])
+        if len(model.original_iders) > 0:
+            model.new_iders = model.original_iders[:]
+            model.new_iders[0] = model._ider
+        headers['iders'] = model.new_iders
+        return IBEISITEMMODEL_BASE._update_headers(model, **headers)
+
+    def _ider(model):
+        """ Overrides the API model ider to give only selected encounter ids """
+        return model.original_iders[0](eid=model.eid)
+
+    def _change_enc(model, eid):
+        model.eid = eid
+        with ChangeLayoutContext([model]):
+            IBEISITEMMODEL_BASE._update_rows(model)
 
 
 class IBEISTreeView(APITreeView):

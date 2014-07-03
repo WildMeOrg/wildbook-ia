@@ -13,9 +13,9 @@ from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_annotations2
 from ibeis import constants
 from ibeis.gui.guiheaders import (
-    IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+    IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
 from ibeis.gui.models_and_views import (
-    IBEISTableModel, IBEISTableView, IBEISTreeView, EncTableModel, EncTableView,
+    IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView, EncTableModel, EncTableView,
     IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
 import guitool
 import utool
@@ -142,7 +142,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models       = {}
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
-        ibswgt.tblname_list = [IMAGE_TABLE, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
+        ibswgt.tblname_list = [IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
         ibswgt._init_components()
@@ -150,7 +150,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Connect signals and slots
         ibswgt._connect_signals_and_slots()
         # Connect the IBEIS control
-        print("WIDGET: %r" %(ibswgt.ibs))
+        print("WIDGET: %r" % (ibswgt.ibs))
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
     #@checks_qt_error
@@ -169,11 +169,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Create models and views
         # Define the abstract item models and views for the tables
         ibswgt.modelview_defs = [
-            (IMAGE_TABLE,     IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (ANNOTATION_TABLE,       IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAME_TABLE,      IBEISTableWidget, IBEISTableModel, IBEISTableView),
-            (NAMES_TREE,      IBEISTreeWidget, IBEISTableModel, IBEISTreeView),
-            (ENCOUNTER_TABLE, EncTableWidget,   EncTableModel,   EncTableView),
+            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
+            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
+            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
         ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
@@ -456,6 +457,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if model.name == IMAGE_TABLE:
                 gid = id_
                 ibswgt.back.select_gid(gid, eid, show=False)
+            elif model.name == IMAGE_GRID:
+                gid = id_
+                ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
                 ibswgt.back.select_aid(aid, eid, show=False)
@@ -476,6 +480,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             eid = model.eid
             if model.name == IMAGE_TABLE:
+                gid = id_
+                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
+                ibswgt.back.select_gid(gid, eid, show=False)
+            elif model.name == IMAGE_GRID:
                 gid = id_
                 ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)
