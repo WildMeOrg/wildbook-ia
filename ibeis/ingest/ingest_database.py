@@ -47,14 +47,15 @@ def ingest_testdb1(db):
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
-        nid_list = ibs.get_annotation_nids(aid_list)
+        nid_list = ibs.get_annotation_nids(aid_list, 'INDIVIDUAL_KEY')
+        nid_list = [ (nid[0] if len(nid) > 0 else None) for nid in nid_list]
         unique_flag = utool.flag_unique_items(nid_list)
         unique_nids = utool.filter_items(nid_list, unique_flag)
+        none_nids = [ nid is not None for nid in nid_list]
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
-        flag_list = map(all, izip(plural_flag, unique_flag))
+        flag_list = map(all, izip(plural_flag, unique_flag, none_nids))
         flagged_aids = utool.filter_items(aid_list, flag_list)
-        new_nids = [ibs.UNKNOWN_NID] * len(flagged_aids)
         if utool.VERYVERBOSE:
             def print2(*args):
                 print('[post_testdb1] ' + ', '.join(args))
@@ -63,18 +64,21 @@ def ingest_testdb1(db):
             print2('unique_flag=%r' % unique_flag)
             print2('plural_flag=%r' % plural_flag)
             print2('unique_nids=%r' % unique_nids)
+            print2('none_nids=%r' % none_nids)
             print2('flag_list=%r' % flag_list)
             print2('flagged_nids=%r' % flagged_nids)
             print2('flagged_aids=%r' % flagged_aids)
-            print2('new_nids=%r' % new_nids)
+            # print2('new_nids=%r' % new_nids)
         # Unname, some annotations for testing
-        ibs.set_annotation_nids(flagged_aids, new_nids)
+        delete_aids = utool.filter_items(aid_list, flag_list)
+        ibs.delete_annotation_nids(delete_aids, 'INDIVIDUAL_KEY')
         # Add all annotations with names as exemplars
         from ibeis.control.IBEISControl import IBEISController
         assert isinstance(ibs, IBEISController)
         unflagged_aids = utool.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
         ibs.set_annotation_exemplar_flag(unflagged_aids, exemplar_flags)
+
         return None
     return Ingestable(db, ingest_type='named_images',
                       fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
@@ -168,7 +172,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if ingest_type == 'named_images':
         name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
-        name_list = [ibsfuncs.UNKNOWN_NAME for _ in xrange(len(gpath_list))]
+        name_list = [ibs.key_defaults['INDIVIDUAL_KEY'] for _ in xrange(len(gpath_list))]
 
     # Add Images
     gid_list_ = ibs.add_images(gpath_list)

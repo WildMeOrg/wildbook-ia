@@ -105,10 +105,10 @@ def get_bbox_centers(bbox_list):
                   for (x, y, w, h) in bbox_list]
     center_pts = np.array(center_pts)
     return center_pts
-
+    
 
 def is_unknown(ibs, nid_list):
-    return [nid == ibs.UNKNOWN_NID or nid < 0 for nid in nid_list]
+    return [ not isinstance(nid, int) and len(nid) == 0 for nid in nid_list]
 
 
 def get_truth_label(ibs, truth):

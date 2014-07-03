@@ -23,11 +23,9 @@ def get_dbinfo(ibs):
 
     name_aids_list = ibs.get_name_aids(valid_nids)
     nx2_aids = np.array(name_aids_list)
-    unknown_aids = ibs.get_name_aids(ibs.UNKNOWN_NID)
-
+    
     gname_list = ibs.get_image_gnames(valid_gids)
     nx2_nRois = np.asarray(map(len, nx2_aids))
-    num_uniden = len(unknown_aids)
     # Seperate singleton / multitons
     multiton_nxs  = np.where(nx2_nRois > 1)[0]
     singleton_nxs = np.where(nx2_nRois == 1)[0]
@@ -79,7 +77,6 @@ def get_dbinfo(ibs):
         (' * #Img   = %d' % num_images),
         (' * #Chips = %d' % num_chips),
         (' * #Names = %d' % len(valid_nxs)),
-        (' * #Unidentified Chips = %d' % num_uniden),
         (' * #Singleton Names    = %d' % len(singleton_nxs)),
         (' * #Multiton Names     = %d' % len(multiton_nxs)),
         (' * #Multiton Chips     = %d' % len(multiton_cxs)),

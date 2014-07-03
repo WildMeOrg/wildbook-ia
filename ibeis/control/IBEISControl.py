@@ -174,18 +174,14 @@ class IBEISController(object):
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         DB_SCHEMA.define_IBEIS_schema(ibs)
         ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
-        ibs.INDIVIDUAL_KEY = ibs.add_key('INDIVIDUAL_KEY')
-        ibs.SPECIES_KEY = ibs.add_key('SPECIES_KEY')
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-        assert ibs.INDIVIDUAL_KEY == 1, 'INDIVIDUAL_KEY = %r' % ibs.INDIVIDUAL_KEY
-        assert ibs.SPECIES_KEY == 2, 'SPECIES_KEY = %r' % ibs.SPECIES_KEY
-        ibs.UNKNOWN_NAME = constants.UNKNOWN_NAME
-        ibs.UNKNOWN_NID = ibs.get_name_nids((ibs.UNKNOWN_NAME,), ensure=True)[0]
-        try:
-            assert ibs.UNKNOWN_NID == 1
-        except AssertionError:
-            print('[!ibs] ERROR: ibs.UNKNOWN_NID = %r' % ibs.UNKNOWN_NID)
-            raise
+
+        ibs.key_defaults = dict(constants.KEY_DEFAULTS)
+        ibs.key_names = sorted(ibs.key_defaults.keys())
+        ibs.key_ids = {}
+        for key_name in ibs.key_names:
+            ibs.key_ids[key_name] = ibs.add_key([key_name], [ibs.key_defaults[key_name]])[0]
+            ibs.key_defaults[key_name] = ibs.get_key_default(ibs.key_ids[key_name])
 
     @default_decorator
     def clone_handle(ibs, **kwargs):
@@ -362,12 +358,10 @@ class IBEISController(object):
         return sorted(gid_list)
 
     @ider
-    def _get_all_known_nids(ibs):
+    def _get_all_known_nids(ibs, _key='INDIVIDUAL_KEY'):
         """ Returns all nids of known animals
             (does not include unknown names) """
-        where_clause = 'label_value!=? AND key_rowid=?'
-        params = (ibs.UNKNOWN_NAME, ibs.INDIVIDUAL_KEY)
-        all_known_nids = ibs.db.get_all_rowids_where(LABEL_TABLE, where_clause, params)
+        all_known_nids = ibs.db.get_all_rowids_where(LABEL_TABLE, 'key_rowid=?', (ibs.key_ids[_key],))
         return all_known_nids
 
     @ider
@@ -440,9 +434,9 @@ class IBEISController(object):
     #---------------
 
     @adder
-    def add_key(ibs, text_list):
-        params_iter = ((text,) for text in text_list)
-        key = ibs.db.add_cleanly(KEY_TABLE, ('key_text',), params_iter, ibs.get_key_rowid_from_text)
+    def add_key(ibs, text_list, default_list):
+        params_iter = izip(text_list, default_list)
+        key = ibs.db.add_cleanly(KEY_TABLE, ('key_text', 'key_default'), params_iter, ibs.get_key_rowid_from_text)
         return key
 
     @adder
@@ -521,8 +515,6 @@ class IBEISController(object):
             theta_list = [0.0 for _ in xrange(len(gid_list))]
         if name_list is not None:
             nid_list = ibs.add_names(name_list)
-        if nid_list is None:
-            nid_list = [ibs.UNKNOWN_NID for _ in xrange(len(gid_list))]
         if detect_confidence_list is None:
             detect_confidence_list = [0.0 for _ in xrange(len(gid_list))]
         if notes_list is None:
@@ -557,8 +549,9 @@ class IBEISController(object):
         aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         # Also need to populate annotation_label_relationship table
-        alrid_list = ibs.add_annotation_relationship(aid_list, nid_list)
-        del alrid_list
+        if nid_list is not None:  
+            alrid_list = ibs.add_annotation_relationship(aid_list, nid_list)
+            del alrid_list
         #print('alrid_list = %r' % (alrid_list,))
 
         # Invalidate image thumbnails
@@ -578,6 +571,18 @@ class IBEISController(object):
         alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
                                         ibs.get_alr_rowid_from_valtup, unique_paramx=range(0, 3))
         return alrid_list
+
+    @adder
+    def add_annotation_names(ibs, aid_list, name_list=None, nid_list=None):
+        """ Sets names/nids of a list of annotations.
+        Convenience function for set_annotation_nids"""
+        assert name_list is None or nid_list is None, (
+            'can only specify one type of name values (nid or name) not both')
+        if nid_list is None:
+            assert name_list is not None
+            # Convert names into nids
+            nid_list = ibs.add_names(name_list)
+        ibs.add_annotation_relationship(aid_list, nid_list)
 
     @adder
     def add_image_relationship(ibs, gid_list, eid_list):
@@ -634,10 +639,10 @@ class IBEISController(object):
     def add_names(ibs, name_list):
         """ Adds a list of names. Returns their nids """
         # nid_list_ = [namenid_dict[name] for name in name_list_]
-        ibsfuncs.assert_valid_names(name_list)
+        # ibsfuncs.assert_valid_names(name_list)
         notes_list = [''] * len(name_list)
         # All names are individuals and so may safely receive the INDIVIDUAL_KEY label
-        key_rowid_list = [ibs.INDIVIDUAL_KEY] * len(name_list)
+        key_rowid_list = [ibs.key_ids['INDIVIDUAL_KEY']] * len(name_list)
         nid_list = ibs.add_labels(key_rowid_list, name_list, notes_list)
         return nid_list
 
@@ -821,12 +826,11 @@ class IBEISController(object):
         """ Sets nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special labelids
-        labelid_list = [nid if nid > 0 else ibs.UNKNOWN_NID for nid in nid_list]
-        INDIVIDUAL_KEY = ibs.INDIVIDUAL_KEY
-        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, INDIVIDUAL_KEY)
+        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids['INDIVIDUAL_KEY'])
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
-        ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), labelid_list, alrid_list)
+        [ ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), [nid] * len(alrid_list), alrid_list) 
+            for nid, alrid_list in izip(nid_list, alrids_list) ]
 
     # SETTERS::NAME
 
@@ -1008,7 +1012,10 @@ class IBEISController(object):
     def get_image_nids(ibs, gid_list):
         """ Returns the name ids associated with an image id """
         aids_list = ibs.get_image_aids(gid_list)
-        nids_list = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list)
+        kwargs = {
+            '_key': 'INDIVIDUAL_KEY'
+        }
+        nids_list = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list **kwargs)
         return nids_list
 
     @getter_1toM
@@ -1161,6 +1168,12 @@ class IBEISController(object):
         key_rowid = ibs.db.get(KEY_TABLE, ('key_rowid',), text_list, id_colname='key_text')
         return key_rowid
 
+    @getter_1to1
+    def get_key_default(ibs, kid_list):
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        key_defaults = ibs.db.get(KEY_TABLE, ('key_default',), kid_list)
+        return key_defaults
+
     @getter_1toM
     def get_annotation_alrids(ibs, aid_list, configid=None):
         """ FIXME: func_name
@@ -1174,10 +1187,10 @@ class IBEISController(object):
         where_clause = 'annot_rowid=? AND config_rowid=?'
         alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
                                        where_clause=where_clause, unpack_scalars=False)
-        assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
+        # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
         return alrids_list
 
-    @getter_1to1
+    @getter_1toM
     def get_annotation_filtered_alrids(ibs, aid_list, key_rowid, configid=None):
         """ FIXME: func_name
         Get all the relationship ids belonging to the input annotations where the
@@ -1185,36 +1198,35 @@ class IBEISController(object):
         """
         alrids_list = ibs.get_annotation_alrids(aid_list, configid=configid)
         # Get labelid of each relationship
-        labelids_list = ibsfuncs.unflat_map(ibs.get_alr_labelids, alrids_list)
+        labelids_list = [ ibs.get_alr_labelids(alr_list) for alr_list in alrids_list ]
         # Get the type of each label
-        labelkeys_list = ibsfuncs.unflat_map(ibs.get_label_keys, labelids_list)
-        try:
-            # only want the nids of individuals, not species, for example
-            index_list = [keys.index(key_rowid) for keys in labelkeys_list]
-            alrid_list = [ids[index] for (ids, index)  in izip(alrids_list, index_list)]
-        except Exception as ex:
-            utool.printex(ex, key_list=['aid_list', 'alrid_list', 'alrids_list', 'key_rowid', 'labelkeys_list',
-                                        'labelids_list', 'index_list'])
-            raise
+        labelkeys_list = [ ibs.get_label_keys(labelid_list) for labelid_list in labelids_list ]
+        # only want the nids of individuals, not species, for example
+        alrid_list = [ 
+                        [ 
+                            alrids_list[index_label][index_key] 
+                            for index_key, key in enumerate(labelkeys) if key == key_rowid 
+                        ] 
+                        for index_label, labelkeys in enumerate(labelkeys_list) 
+                    ]
+        
+        # for index_label, labelkeys in enumerate(labelkeys_list):
+        #     temp = []
+        #     for index_key, key in enumerate(labelkeys):
+        #         if key == key_rowid:
+        #             temp.append(alrids_list[index_label][index_key])
+        #     alrid_list.append(temp)
         return alrid_list
 
     @utool.accepts_numpy
-    @getter_1to1
-    def get_annotation_nids(ibs, aid_list, distinguish_unknowns=True):
-        """ Returns the name id of each annotation.  If distinguish_uknowns is True,
-        returns negative annotation rowids instead of unknown name id """
+    @getter_1toM
+    def get_annotation_nids(ibs, aid_list, _key):
+        """ Returns the name id of each annotation. """
         # Get all the annotation label relationships
         # filter out only the ones which specify names
-        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.INDIVIDUAL_KEY)
-        labelid_list = ibs.get_alr_labelids(alrid_list)
-        nid_list = labelid_list
-        if distinguish_unknowns:
-            tnid_list = [nid if nid != ibs.UNKNOWN_NID else -aid
-                         for (nid, aid) in izip(nid_list, aid_list)]
-            return tnid_list
-        else:
-            return nid_list
-
+        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
+        return [ ibs.get_alr_labelids(alrid) for alrid in alrid_list ] 
+        
     @getter_1to1
     def get_annotation_gnames(ibs, aid_list):
         """ Returns the image names of each annotation """
@@ -1309,21 +1321,41 @@ class IBEISController(object):
         return cfpath_list
 
     @getter_1to1
-    def get_annotation_names(ibs, aid_list, distinguish_unknowns=True):
+    def get_annotation_labels(ibs, aid_list):
+        """ 
+        """
+        def _key_dict(aid):
+            _dict = {}
+            for _key in ibs.key_names:
+                _dict[_key] = ibs.get_annotation_nids(aid, _key)
+            return _dict
+
+        key_dict_list = [ _key_dict(aid) for aid in aid_list ]
+        return key_dict_list
+
+    @getter_1to1
+    def get_annotation_names(ibs, aid_list):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
-        nid_list  = ibs.get_annotation_nids(aid_list)
-        name_list = ibs.get_names(nid_list, distinguish_unknowns=distinguish_unknowns)
+        _key = 'INDIVIDUAL_KEY'
+        key_dict_list = ibs.get_annotation_labels(aid_list)
+        name_list = [ (
+                        ibs.get_names(key_dict[_key])[0] 
+                            if len(key_dict[_key]) > 0 else
+                        ibs.key_defaults[_key]
+                      )
+                      for key_dict in key_dict_list
+                    ]
         return name_list
     
     @getter_1to1
-    def get_annotation_species(ibs, aid_list, distinguish_unknowns=True):
+    def get_annotation_species(ibs, aid_list):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
-        nid_list  = ibs.get_annotation_nids(aid_list)
-        name_list = ibs.get_names(nid_list, distinguish_unknowns=distinguish_unknowns)
+        nid_list  = ibs.get_annotation_nids(aid_list, 'INDIVIDUAL_KEY')
+        name_list = ibs.get_names(nid_list)
         return name_list
 
     @getter_1toM
@@ -1331,13 +1363,16 @@ class IBEISController(object):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
-        nid_list  = ibs.get_annotation_nids(aid_list)
-        where_clause = 'label_rowid=? AND label_rowid!=? AND annot_rowid!=?'
-        params_iter = [(nid, ibs.UNKNOWN_NID, aid) for nid, aid in izip(nid_list, aid_list)]
-        groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
-                                            where_clause,
-                                            unpack_scalars=False)
+        def _individual_ground_truth(nids_list):
+            where_clause = 'label_rowid=? AND annot_rowid!=?'
+            params_iter = [(nid, aid) for nid, aid in izip(nids_list, aid_list)]
+            groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
+                                                where_clause,
+                                                unpack_scalars=False)
+            return utool.flatten(groundtruth_list)
 
+        nids_list  = ibs.get_annotation_nids(aid_list, 'INDIVIDUAL_KEY')
+        groundtruth_list = [ _individual_ground_truth(nids) for nids in nids_list ]
         return groundtruth_list
 
     @getter_1to1
@@ -1438,32 +1473,20 @@ class IBEISController(object):
         """ Returns nid_list. Creates one if it doesnt exist """
         if ensure:
             ibs.add_names(name_list)
-        nid_list = ibs.get_labelids_from_values(name_list, ibs.INDIVIDUAL_KEY)
+        nid_list = ibs.get_labelids_from_values(name_list, ibs.key_ids['INDIVIDUAL_KEY'])
 
         return nid_list
 
     @getter_1to1
-    def get_names(ibs, nid_list, distinguish_unknowns=True):
+    def get_names(ibs, nid_list):
         """ Returns text names """
         #print('get_names: %r' % nid_list)
         # Change the temporary negative indexes back to the unknown NID for the
         # SQL query. Then augment the name list to distinguish unknown names
-        nid_list_  = [nid if nid is not None and nid > 0
-                      else ibs.UNKNOWN_NID
-                      for nid in nid_list]
-        # <TESTS>
-        key_rowid_list = ibs.get_label_keys(nid_list_)
-        assert all([key == ibs.INDIVIDUAL_KEY
+        key_rowid_list = ibs.get_label_keys(nid_list)
+        assert all([key == ibs.key_ids['INDIVIDUAL_KEY']
                     for key in key_rowid_list]), 'label_rowids are not individual_ids'
-        # </TESTS>
-        name_list = ibs.db.get(LABEL_TABLE, ('label_value',), nid_list_)
-        #name_list = ibs.get_name_props('name_text', nid_list_)
-        if distinguish_unknowns:
-            name_list  = [name if nid is not None and nid > 0
-                          else name + __STR__(-nid) if nid is not None else ibs.UNKNOWN_NAME
-                          for (name, nid) in izip(name_list, nid_list)]
-        #name_list  = list(imap(__STR__, name_list))
-
+        name_list = ibs.db.get(LABEL_TABLE, ('label_value',), nid_list)
         return name_list
 
     @getter_1toM
@@ -1640,7 +1663,15 @@ class IBEISController(object):
     def get_encounter_nids(ibs, eid_list):
         """ returns a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
-        nids_list_ = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list)
+        nids_list = [ ibs.get_annotation_nids(aid_list, 'INDIVIDUAL_KEY') for aid_list in aids_list ] 
+        nids_list_ = []
+        for nids in nids_list:
+            temp = []
+            for nid in nids:
+                if len(nid) > 0:
+                    temp.append(nid[0])
+            nids_list_.append(temp)
+
         nids_list = list(imap(utool.unique_ordered, nids_list_))
         #print('get_encounter_nids')
         #print('eid_list = %r' % (eid_list,))
@@ -1696,6 +1727,16 @@ class IBEISController(object):
         # Delete chips and features first
         ibs.delete_annotation_chips(aid_list)
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
+
+    @deleter
+    def delete_annotation_nids(ibs, aid_list, _key):
+        """ Deletes nids of a list of annotations """
+        # Ensure we are setting true nids (not temporary distinguished nids)
+        # nids are really special labelids
+        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
+        # SQL Setter arguments
+        # Cannot use set_table_props for cross-table setters.
+        [ ibs.db.delete_rowids(AL_RELATION_TABLE, alrid) for alrid in alrid_list ]
 
     @deleter
     def delete_images(ibs, gid_list):

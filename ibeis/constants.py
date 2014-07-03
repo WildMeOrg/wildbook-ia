@@ -15,8 +15,11 @@ class PATH_NAMES(object):
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
 # Name used to denote that idkwtfthisis
-UNKNOWN_NAME   = '____'
 ENCTEXT_PREFIX = 'enc_'
+KEY_DEFAULTS = {
+    'INDIVIDUAL_KEY' : '____',
+    'SPECIES_KEY'    : 'UNKNOWN SPECIES',
+}
 
 IMAGE_TABLE       = 'images'
 ANNOTATION_TABLE  = 'annotations'
