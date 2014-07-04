@@ -14,6 +14,7 @@ from . import spatial_verification
 from . import trig
 from . import math
 from . import geometry
+from . import clustering
 
 from . import histogram as htool
 from . import linalg as ltool

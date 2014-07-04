@@ -1,11 +1,11 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
+import pyflann
+import numpy as np
 
 if __name__ == '__main__':
     print('==============================')
     print('____ Running test pyflann ____')
-    import pyflann
-    import numpy as np
 
     """
     build_index(self, pts, **kwargs) method of pyflann.index.FLANN instance

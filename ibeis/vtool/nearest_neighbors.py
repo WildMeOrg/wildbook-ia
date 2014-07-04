@@ -6,6 +6,19 @@ import utool
     __name__, '[nneighbs]', DEBUG=False)
 
 
+def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
+    """
+    Finds the approximate nearest neighbors of qpts in dpts
+    """
+    flann = pyflann.FLANN()
+    flann.build_index(dpts, **flann_params)
+    checks = flann_params.get('checks', 1024)
+    # qx2_dx   = query_index -> nearest database index
+    # qx2_dist = query_index -> distance
+    (qx2_dx, qx2_dist) = flann.nn_index(qpts, num_neighbors, checks=checks)
+    return (qx2_dx, qx2_dist)
+
+
 #@utool.indent_func
 def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params=None):
     cache_dir = '.' if cache_dir is None else cache_dir
