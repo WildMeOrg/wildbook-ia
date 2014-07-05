@@ -169,11 +169,27 @@ def is_within_distance(dist, p1, p2):
     return rv
 
 
+def is_within_distance_from_line(dist, pt, line):
+    # http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+    x0, y0 = pt
+    p1, p2 = line
+    x1, y1 = p1
+    x2, y2 = p2
+    dx = x2 - x1
+    dy = y2 - y1
+    numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
+    denom = math.sqrt((dx ** 2) + (dy ** 2))
+    distance = numer / denom
+    return distance < dist
+
+
 def calc_handle_coords(poly):
     cx, cy = polygon_center(poly)
     w, h = polygon_dims(poly)
     x0, y0 = cx, (cy - (h / 2))  # start at top edge
-    x1, y1 = (x0, y0 - (h / 4))
+    MIN_HANDLE_LENGTH = 25
+    HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
+    x1, y1 = (x0, y0 - HANDLE_LENGTH)
     pts = [(x0, y0), (x1, y1)]
     pts = rotate_points_around(pts, poly.theta, cx, cy)
     return pts
@@ -492,7 +508,7 @@ class ANNOTATIONInteraction(object):
 
         if event.button == 1:  # leftclick
             for poly in self.polys.itervalues():
-                if is_within_distance(self.max_ds, (event.xdata, event.ydata), calc_handle_coords(poly)[1]):
+                if is_within_distance_from_line(self.max_ds, (event.xdata, event.ydata), calc_handle_coords(poly)):
                     self.currently_rotating_poly = poly
                     break
 
