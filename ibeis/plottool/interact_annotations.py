@@ -812,6 +812,13 @@ class ANNOTATIONInteraction(object):
         previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
         oppidx = wrapIndex(idx + 2)
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
+        #(total_dx, total_dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
+        #higher_delta = max(total_dx, total_dy)
+    #print('total (%r, %r), heigher = %r' % (total_dx, total_dy, higher_delta))
+    #for i in range(0, int(higher_delta)):
+        #(dx, dy) = (total_dx / higher_delta, total_dy / higher_delta)
+        #print('dx dy (%r, %r)' % (dx, dy))
+        tmpcoords = poly.xy[:-1]
         #tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
 
 #a#        newx, newy = tmpcoords[idx][0], tmpcoords[idx][1]
@@ -865,9 +872,49 @@ class ANNOTATIONInteraction(object):
         tmpcoords[previdx] = apply_polarDelta(polar_idx2prev, tmpcoords[idx])
         tmpcoords[nextidx] = apply_polarDelta(polar_idx2next, tmpcoords[idx])
 
+        # rotate the points by -theta to get the "unrotated" points for use as basecoords
         tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
+        # ensure the poly is closed, matplotlib might do this, but I'm not sure if it preserves the ordering we depend on, even if it does add the point
         tmpcoords = tmpcoords[:] + [tmpcoords[0]]
-        if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)):
+
+        def within_epsilon(x, y):
+            return x - y < .000001
+
+        def meets_minimum_width_and_height(coords):
+            MIN_W = 5
+            MIN_H = 5
+            """
+            Depends on hardcoded indicies, which is inelegant, but 
+            we're already depending on those for the FUDGE_FACTORS 
+            array above
+            1----2
+            |    |
+            0----3
+            """
+            # the seperate 1 and 2 variables are not strictly necessary, but provide a sanity check to ensure that we're dealing with the right shape
+            width1 = coords[3][0] - coords[0][0]
+            width2 = coords[2][0] - coords[1][0]
+            assert within_epsilon(width1, width2), 'w1: %r, w2: %r' % (width1, width2)
+            height1 = coords[0][1] - coords[1][1]
+            height2 = coords[3][1] - coords[2][1]
+            assert within_epsilon(height1, height2), 'h1: %r, h2: %r' % (height1, height2)
+            #print('w, h = (%r, %r)' % (width1, height1))
+            return (MIN_W < width1) and (MIN_H < height1)
+
+#b#        def pairs(slicable):
+#b#            return izip(slicable[:-1], slicable[1:])
+#b#
+#b#        def is_rectangle(coords):
+#b#            first_samex = within_epsilon(coords[0][0], coords[1][0])
+#b#            which_to_compare = 0 if first_samex else 1
+#b#            for p1, p2 in pairs(coords):
+#b#                if not within_epsilon(p1[which_to_compare], p2[which_to_compare]):
+#b#                    return False
+#b#                else:
+#b#                    which_to_compare = 0 if which_to_compare == 1 else 0
+#b#            return True
+
+        if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)) and meets_minimum_width_and_height(tmpcoords):
             poly.basecoords = tmpcoords
 
         set_display_coords(poly)
