@@ -20,16 +20,23 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
 
 
 #@utool.indent_func
-def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params=None):
-    cache_dir = '.' if cache_dir is None else cache_dir
-    # Generate a unique filename for data and flann parameters
-    fparams_cfgstr = utool.remove_chars(str(flann_params.values()), ', \'[]')
-    data_hashid = utool.hashstr_arr(data, 'dID')  # flann is dependent on the data
-    flann_suffix = '_' + fparams_cfgstr + '_' + data_hashid + '.flann'
+def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params={}):
+    #cache_dir = '.' if cache_dir is None else cache_dir
+    assert cache_dir is not None, 'no cache dir specified'
+    flann_cfgstr = get_flann_cfgstr(data, flann_params, cfgstr)
     # Append any user labels
-    flann_fname = 'flann_index_' + cfgstr + flann_suffix
+    flann_fname = 'flann_index_' + flann_cfgstr + '.flann'
     flann_fpath = normpath(join(cache_dir, flann_fname))
     return flann_fpath
+
+
+def get_flann_cfgstr(data, flann_params, cfgstr='', use_data_hash=True):
+    flann_cfgstr = '_FLANN(' + utool.remove_chars(str(flann_params.values()), ', \'[]') + ')'
+    # Generate a unique filename for data and flann parameters
+    if use_data_hash:
+        data_hashstr = utool.hashstr_arr(data, '_dID')  # flann is dependent on the data
+        flann_cfgstr += data_hashstr
+    return flann_cfgstr
 
 
 #@utool.indent_func

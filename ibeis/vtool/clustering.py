@@ -43,6 +43,58 @@ def akmeans(data, num_clusters, max_iters=5, flann_params={},
     return (datax2_clusterx, clusters)
 
 
+def precompute_akmeans(data, num_clusters, max_iters=5, flann_params={},
+                       cache_dir=None, force_recomp=False, use_data_hash=True,
+                       cfgstr='', refine=False, akmeans_cfgstr=None):
+    """ precompute aproximate kmeans with builtin caching """
+    print('[akmeans] pre_akmeans()')
+    # filename prefix constants
+    assert cache_dir is not None, 'choose a cache directory'
+    # Build a cfgstr if the full one is not specified
+    if akmeans_cfgstr is None:
+        # compute a hashstr based on the data
+        akmeans_cfgstr = nn.get_flann_cfgstr(data, flann_params, cfgstr, use_data_hash)
+    try:
+        # Try and load a previous clustering
+        if force_recomp:
+            raise UserWarning('forceing recommpute')
+        clusters        = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
+        datax2_clusterx = utool.load_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr)
+        print('[akmeans.precompute] load successful')
+        if refine:
+            # Refines the cluster centers if specified
+            (datax2_clusterx, clusters) =\
+                refine_akmeans(data, datax2_clusterx, clusters,
+                               max_iters=max_iters, flann_params=flann_params,
+                               cache_dir=cache_dir, akmeans_cfgstr=akmeans_cfgstr)
+        return (datax2_clusterx, clusters)
+    except IOError as ex:
+        utool.printex(ex, 'cache miss', iswarning=True)
+    except UserWarning:
+        pass
+    # First time computation
+    print('[akmeans.precompute] pre_akmeans(): calling akmeans')
+    (datax2_clusterx, clusters) = akmeans(data, num_clusters, max_iters, flann_params)
+    print('[akmeans.precompute] save and return')
+    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, clusters)
+    utool.save_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr, datax2_clusterx)
+    return (datax2_clusterx, clusters)
+
+
+def refine_akmeans(data, datax2_clusterx, clusters, max_iters=5,
+                   flann_params={}, cache_dir=None, cfgstr='',
+                   use_data_hash=True, akmeans_cfgstr=None):
+    """ Refines the approximates clusters """
+    print('[akmeans.precompute] refining:')
+    if akmeans_cfgstr is None:
+        akmeans_cfgstr = nn.get_flann_cfgstr(data, flann_params, cfgstr, use_data_hash)
+    datax2_clusterx_old = datax2_clusterx
+    (datax2_clusterx, clusters) = _akmeans_iterate(data, clusters, datax2_clusterx_old, max_iters, flann_params, 0, 10)
+    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, clusters)
+    utool.save_cache(cache_dir, DATAX2CL_FNAME, akmeans_cfgstr, datax2_clusterx)
+    return (datax2_clusterx, clusters)
+
+
 def sparse_normalize_rows(csr_mat):
     pass
     #return sklearn.preprocessing.normalize(csr_mat, norm='l2', axis=1, copy=False)
@@ -57,6 +109,7 @@ def sparse_multiply_rows(csr_mat, vec):
 
 
 def force_quit_akmeans(signal, frame):
+    # FIXME OR DEPRICATE
     try:
         print(utool.unindedent('''
                               --- algos ---
@@ -159,94 +212,54 @@ def _akmeans_iterate(data, clusters, datax2_clusterx_old, max_iters,
     return (datax2_clusterx, clusters)
 
 
-def refine_akmeans(data, datax2_clusterx, clusters, max_iters=5,
-                   flann_params={}, cache_dir=None, cfgstr='',
-                   use_data_hash=True):
-    """ Refines the approximates clusters """
-    print('[akmeans.precompute] refining:')
-    if use_data_hash:
-        # compute a hashstr based on the data
-        data_hashstr = utool.hashstr_arr(data, '_dID')
-        cfgstr += data_hashstr
-    datax2_clusterx_old = datax2_clusterx
-    (datax2_clusterx, clusters) = _akmeans_iterate(data, clusters, datax2_clusterx_old, max_iters, flann_params, 0, 10)
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, cfgstr, clusters)
-    utool.save_cache(cache_dir, DATAX2CL_FNAME, cfgstr, datax2_clusterx)
-    return (datax2_clusterx, clusters)
-
-
-def precompute_akmeans(data, num_clusters, max_iters=5, flann_params={},
-                       cache_dir=None, force_recomp=False, use_data_hash=True,
-                       cfgstr='', refine=False):
-    """ precompute aproximate kmeans with builtin caching """
-    print('[akmeans] pre_akmeans()')
-    # filename prefix constants
-    assert cache_dir is not None, 'choose a cache directory'
-    if use_data_hash:
-        # compute a hashstr based on the data
-        data_hashstr = utool.hashstr_arr(data, '_dID')
-        cfgstr += data_hashstr
-    try:
-        # Try and load a previous clustering
-        if force_recomp:
-            raise UserWarning('forceing recommpute')
-        clusters        = utool.load_cache(cache_dir, CLUSTERS_FNAME, cfgstr)
-        datax2_clusterx = utool.load_cache(cache_dir, DATAX2CL_FNAME, cfgstr)
-        print('[akmeans.precompute] load successful')
-        if refine:
-            # Refines the cluster centers if specified
-            (datax2_clusterx, clusters) =\
-                refine_akmeans(data, datax2_clusterx, clusters,
-                               max_iters=max_iters, flann_params=flann_params,
-                               cache_dir=cache_dir, cfgstr=cfgstr,
-                               use_data_hash=False)
-        return (datax2_clusterx, clusters)
-    except IOError as ex:
-        utool.printex(ex, 'cache miss', iswarning=True)
-    except UserWarning:
-        pass
-    # First time computation
-    print('[akmeans.precompute] pre_akmeans(): calling akmeans')
-    (datax2_clusterx, clusters) = akmeans(data, num_clusters, max_iters, flann_params)
-    print('[akmeans.precompute] save and return')
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, cfgstr, clusters)
-    utool.save_cache(cache_dir, DATAX2CL_FNAME, cfgstr, datax2_clusterx)
-    return (datax2_clusterx, clusters)
-
+# ---------------
+# Plotting Code
+# ---------------
 
 def plot_clusters(data, datax2_clusterx, clusters, num_pca_dims=3,
                   whiten=False):
+    """ Plots clusters and datapoints. Plots accurately up to 3 dimensions.
+    If there are more than 3 dimensions, PCA is used to recude the dimenionality
+    to the <num_pca_dims> principal components
+    """
     # http://www.janeriksolem.net/2012/03/isomap-with-scikit-learn.html
-    print('[akmeans] Doing PCA')
     from plottool import draw_func2 as df2
     data_dims = data.shape[1]
-    num_pca_dims = min(num_pca_dims, data_dims)
-    pca = None
-    #pca = sklearn.decomposition.PCA(copy=True, n_components=num_pca_dims,
-                                    #whiten=whiten).fit(data)
-    pca_data = pca.transform(data)
-    pca_clusters = pca.transform(clusters)
+    show_dims = min(num_pca_dims, data_dims)
+    if data_dims != show_dims:
+        # we can't physiologically see the data, so look at a projection
+        print('[akmeans] Doing PCA')
+        from sklearn import decomposition
+        pcakw = dict(copy=True, n_components=show_dims, whiten=whiten)
+        pca = decomposition.PCA(**pcakw).fit(data)
+        pca_data = pca.transform(data)
+        pca_clusters = pca.transform(clusters)
+        print('[akmeans] ...Finished PCA')
+    else:
+        # pca is not necessary
+        print('[akmeans] No need for PCA')
+        pca_data = data
+        pca_clusters = clusters
     K = len(clusters)
-    print('[akmeans] ...Finished PCA')
-    fig = df2.plt.figure(1)
-    fig.clf()
-    #cmap = plt.get_cmap('hsv')
+    print(pca_data.shape)
+    # Make a color for each cluster
+    colors = np.array(df2.distinct_colors(K, brightness=.95))
     data_x = pca_data[:, 0]
     data_y = pca_data[:, 1]
-    colors = np.array(df2.distinct_colors(K))
-    print(colors)
-    print(datax2_clusterx)
     data_colors = colors[np.array(datax2_clusterx, dtype=np.int32)]
     clus_x = pca_clusters[:, 0]
     clus_y = pca_clusters[:, 1]
     clus_colors = colors
-    if num_pca_dims == 2:
+    # Create a figure
+    fig = df2.figure(1, doclf=True, docla=True)
+    if show_dims == 2:
         ax = df2.plt.gca()
         df2.plt.scatter(data_x, data_y, s=20,  c=data_colors, marker='o', alpha=.2)
         df2.plt.scatter(clus_x, clus_y, s=500, c=clus_colors, marker='*')
         ax.autoscale(enable=False)
         ax.set_aspect('equal')
-    if num_pca_dims == 3:
+        df2.dark_background(ax)
+    if show_dims == 3:
         from mpl_toolkits.mplot3d import Axes3D  # NOQA
         ax = fig.add_subplot(111, projection='3d')
         data_z = pca_data[:, 2]
@@ -255,7 +268,14 @@ def plot_clusters(data, datax2_clusterx, clusters, num_pca_dims=3,
         ax.scatter(clus_x, clus_y, clus_z, s=500, c=clus_colors, marker='*')
         ax.autoscale(enable=False)
         ax.set_aspect('equal')
+        df2.dark_background(ax)
+        #ax.set_alpha(.1)
+        #utool.embed()
+        #ax.set_frame_on(False)
     ax = df2.plt.gca()
-    ax.set_title('AKmeans clustering. K=%r. PCA projection %dD -> %dD%s' %
-                 (K, data_dims, num_pca_dims, ' +whitening' * whiten))
+    waswhitestr = ' +whitening' * whiten
+    titlestr = ('AKmeans: K={K}.'
+                'PCA projection {data_dims}D -> {show_dims}D'
+                '{waswhitestr}').format(**locals())
+    ax.set_title(titlestr)
     return fig
