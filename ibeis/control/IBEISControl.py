@@ -500,8 +500,8 @@ class IBEISController(object):
 
     @adder
     def add_annotations(ibs, gid_list, bbox_list=None, theta_list=None, nid_list=None,
-                      name_list=None, detect_confidence_list=None, notes_list=None,
-                      vert_list=None):
+                        name_list=None, detect_confidence_list=None, notes_list=None,
+                        vert_list=None):
         """ Adds oriented ANNOTATION bounding boxes to images """
         if utool.VERBOSE:
             print('[ibs] adding annotations')
@@ -527,7 +527,7 @@ class IBEISController(object):
         # Build ~~deterministic?~~ random and unique ANNOTATION ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
         annotation_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
-                                                          theta_list, deterministic=False)
+                                                              theta_list, deterministic=False)
         nVert_list = [len(verts) for verts in vert_list]
         vertstr_list = [__STR__(verts) for verts in vert_list]
         xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
@@ -560,7 +560,7 @@ class IBEISController(object):
 
     @adder
     def add_annotation_relationship(ibs, aid_list, labelid_list, configid_list=None,
-                                  alr_confidence_list=None):
+                                    alr_confidence_list=None):
         if configid_list is None:
             configid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
         if alr_confidence_list is None:
@@ -1323,7 +1323,7 @@ class IBEISController(object):
                          for (thumb_path, img_path) in
                          izip(thumb_gpaths, image_paths,)]
         return thumbtup_list
-    
+
     @getter_1to1
     def get_annotation_chip_thumbpath(ibs, aid_list):
         annotation_uuid_list = ibs.get_annotation_uuids(aid_list)
@@ -1918,8 +1918,8 @@ class IBEISController(object):
                 return
             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
             ibs.add_annotations(detected_gids, detected_bboxes,
-                              notes_list=notes_list,
-                              detect_confidence_list=detected_confidences)
+                                notes_list=notes_list,
+                                detect_confidence_list=detected_confidences)
 
         # Adding new detections on the fly as they are generated
         for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):

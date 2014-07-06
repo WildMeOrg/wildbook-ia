@@ -182,7 +182,7 @@ def convert_empty_images_to_annotations(ibs):
 
 @__injectable
 def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
-                       notes_list=None, adjust_percent=0.0):
+                              notes_list=None, adjust_percent=0.0):
     """ Adds an annotation the size of the entire image to each image.
     adjust_percent - shrinks the ANNOTATION by percentage on each side
     """

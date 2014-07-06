@@ -7,11 +7,11 @@ from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from ibeis.dev import ibsfuncs
 from functools import partial
+from guitool import guitool_dialogs
+from ibeis.viz import viz_chip
 from plottool.abstract_interaction import AbstractInteraction
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[interact_name]', DEBUG=False)
-
-from ibeis.viz import viz_chip
 
 
 #==========================
@@ -106,11 +106,10 @@ class MatchVerificationInteraction(AbstractInteraction):
                         ibs.set_annotation_exemplar_flag(aid, not is_exemplar)
                         self.show_page()
                     guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
-                            ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
-                            ])
+                        ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
+                    ])
                     ibs.print_annotation_table()
                 print(utool.dict_str(event.__dict__))
-
 
     def show_page(self, bring_to_front=False):
         """ Plots all subaxes on a page """
@@ -132,7 +131,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             offset = count * nCols + 1
             for px, aid in enumerate(groundtruth):
                 nid = ibs.get_annotation_nids(aid, 'INDIVIDUAL_KEY')
-                
+
                 if len(nid) == 0:
                     color = ibeis.constants.UNKNOWN_PURPLE_RGBA01
                 elif len(self.nid1) > 0 and nid[0] == self.nid1[0]:
@@ -225,7 +224,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         def next_rect(accum=[-1]):
             accum[0] += 1
             return hr_slot(accum[0])
-            
+
         is_unknown = ibs.is_nid_unknown(nid_list)
 
         if not all(is_unknown):
@@ -253,16 +252,15 @@ class MatchVerificationInteraction(AbstractInteraction):
     def confirm(self, event=None):
         ibs = self.ibs
         print('confirm')
-        from guitool import guitool_dialogs
-        from ibeis import constants
         ans = guitool_dialogs.user_option(parent=self.fig.canvas, msg='Are you sure?', title='Confirmation',
-                                    options=['Confirm'], use_cache=False)
+                                          options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
         if ans == 'Confirm':
             alrid_list = ibs.get_annotation_filtered_alrids(self.aid_list, ibs.key_ids['INDIVIDUAL_KEY'], configid=ibs.MANUAL_CONFIGID)
+            # For loop in list comprehension. There is no output. Should this
+            # just be a regular for loop? A timeit test might be nice.
             [ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
-            
-        
+            self.close()
         ibs.print_alr_table()
 
     def unname_all(self, event=None):
