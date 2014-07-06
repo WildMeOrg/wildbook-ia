@@ -133,8 +133,8 @@ def draw_border(ax, color=GREEN, lw=2, offset=None):
 
 # TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
 def draw_annotation(annotation, label=None, bbox_color=(1, 0, 0),
-             lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1),
-             draw_arrow=True, theta=0, ax=None):
+                    lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1),
+                    draw_arrow=True, theta=0, ax=None):
     if ax is None:
         ax = gca()
     (rx, ry, rw, rh) = annotation
