@@ -593,8 +593,13 @@ def plot_sift_signature(sift, title='', fnum=None, pnum=None):
 
 
 def dark_background(ax=None, doubleit=False):
+    bgcolor = BLACK * .9
     if ax is None:
         ax = gca()
+    from mpl_toolkits.mplot3d import Axes3D
+    if isinstance(ax, Axes3D):
+        ax.set_axis_bgcolor(bgcolor)
+        return
     xy, width, height = _axis_xy_width_height(ax)
     if doubleit:
         halfw = (doubleit) * (width / 2)
@@ -605,7 +610,7 @@ def dark_background(ax=None, doubleit=False):
     rect = mpl.patches.Rectangle(xy, width, height, lw=0, zorder=0)
     rect.set_clip_on(True)
     rect.set_fill(True)
-    rect.set_color(BLACK * .9)
+    rect.set_color(bgcolor)
     rect = ax.add_patch(rect)
 
 
