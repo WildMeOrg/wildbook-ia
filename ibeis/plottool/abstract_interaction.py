@@ -53,3 +53,7 @@ class AbstractInteraction(object):
 
     def update(self):
         df2.update()
+
+    def close(self):
+        assert isinstance(self.fig, mpl.figure.Figure)
+        df2.close_figure(self.fig)

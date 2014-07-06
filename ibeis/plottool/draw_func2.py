@@ -43,6 +43,12 @@ from .custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PAR
 from .fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 from . import color_funcs as color_fns  # NOQA
 
+from . import custom_figure
+from . import fig_presenter
+
+close_figure = fig_presenter.close_figure
+figure = custom_figure.figure
+
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 

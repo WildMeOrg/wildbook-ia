@@ -221,3 +221,7 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True):
     window_figtitle = ('fig(%d) ' % fig.number) + figtitle
     window_figtitle = window_figtitle.replace('\n', ' ')
     fig.canvas.set_window_title(window_figtitle)
+
+
+def close_figure(fig):
+    plt.close(fig)

@@ -187,6 +187,9 @@ def close_figure(fig):
     qtwin = fig.canvas.manager.window
     qtwin.close()
 
+#def close_figure(fig):
+#    plt.close(fig)
+
 
 def bring_to_front(fig):
     #what is difference between show and show normal?
