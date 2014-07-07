@@ -659,12 +659,12 @@ class IBEISController(object):
     @adder
     def add_species(ibs, species_list, note_list=None):
         """ Adds a list of species. Returns their nids """
-        # nid_list_ = [namenid_dict[name] for name in species_list_]
+        # speciesid_list_ = [namenid_dict[name] for name in species_list_]
         # ibsfuncs.assert_valid_names(species_list)
         # All names are individuals and so may safely receive the SPECIES_KEY label
         key_rowid_list = [ibs.key_ids[constants.SPECIES_KEY]] * len(species_list)
-        nid_list = ibs.add_labels(key_rowid_list, species_list, note_list)
-        return nid_list
+        speciesid_list = ibs.add_labels(key_rowid_list, species_list, note_list)
+        return speciesid_list
 
     @adder
     def add_labels(ibs, key_list, value_list, note_list=None):
@@ -828,7 +828,7 @@ class IBEISController(object):
             _key=constants.INDIVIDUAL_KEY, 
             adder=ibs.add_names, 
             item_list=name_list, 
-            labelid_list=nid_lis
+            labelid_list=nid_list
         )
 
     @setter
@@ -861,12 +861,12 @@ class IBEISController(object):
                                   item == constants.EMPTY_KEY)]
             ibs.delete_annotation_labelids(aid_list_to_delete, _key)
             # remove the relationships that have now been unnamed
-            aid_list = [aid for aid, item in izip(aid_list, item_list) if item != constants.KEY_DEFAULTS[constants._key]]
-            item_list = [item for item in item_list if item != constants.KEY_DEFAULTS[constants._key]]
+            aid_list = [aid for aid, item in izip(aid_list, item_list) if item != constants.KEY_DEFAULTS[_key]]
+            item_list = [item for item in item_list if item != constants.KEY_DEFAULTS[_key]]
             # Convert names into labelid
             labelid_list = adder(item_list)
 
-        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants._key])
+        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
 
         # create the new relationship when none exists
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
@@ -880,10 +880,10 @@ class IBEISController(object):
                            if len(alrid_list) > 0]
         labelid_list_to_set = [labelid for labelid, alrid_list in izip(labelid_list, alrids_list)
                            if len(alrid_list) > 0]
-        ibs.set_annotation_labelids(aid_list_to_set, labelid_list_to_set)
+        ibs.set_annotation_labelids(aid_list_to_set, labelid_list_to_set, _key)
 
     @setter
-    def set_annotation_labelids(ibs, aid_list, nid_list, _key):
+    def set_annotation_labelids(ibs, aid_list, labelid_list, _key):
         """ Sets nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special labelids
@@ -891,7 +891,7 @@ class IBEISController(object):
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
         [ ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), [nid] * len(alrid_list), alrid_list)
-            for nid, alrid_list in izip(nid_list, alrids_list) ]
+            for nid, alrid_list in izip(labelid_list, alrids_list) ]
 
     @setter
     def set_annotation_nids(ibs, aid_list, nid_list):
