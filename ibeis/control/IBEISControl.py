@@ -826,7 +826,7 @@ class IBEISController(object):
 
             # setting a name to '____' is equivalent to unnaming it
             aid_list_to_delete = [aid for aid, name in izip(aid_list, name_list)
-                                  if (name == ibs.key_defaults[constants.INDIVIDUAL_KEY] or
+                                  if (name == constants.KEY_DEFAULTS[constants.INDIVIDUAL_KEY] or
                                       name == constants.EMPTY_KEY)]
             ibs.delete_annotation_nids(aid_list_to_delete, constants.INDIVIDUAL_KEY)
             # remove the relationships that have now been unnamed
@@ -864,7 +864,7 @@ class IBEISController(object):
 
             # setting a name to '____' is equivalent to unnaming it
             aid_list_to_delete = [aid for aid, species in izip(aid_list, species_list)
-                                  if (species == ibs.key_defaults[constants.SPECIES_KEY] or
+                                  if (species == constants.KEY_DEFAULTS[constants.SPECIES_KEY] or
                                   species == constants.EMPTY_KEY)]
             ibs.delete_annotation_nids(aid_list_to_delete, constants.SPECIES_KEY)
             # remove the relationships that have now been unnamed
