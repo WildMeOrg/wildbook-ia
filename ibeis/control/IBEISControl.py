@@ -824,10 +824,10 @@ class IBEISController(object):
         """ Sets names/nids of a list of annotations.
         Convenience function for set_annotation_nids"""
         ibs.set_annotation_from_key(
-            aid_list, 
-            _key=constants.INDIVIDUAL_KEY, 
-            adder=ibs.add_names, 
-            item_list=name_list, 
+            aid_list,
+            _key=constants.INDIVIDUAL_KEY,
+            adder=ibs.add_names,
+            item_list=name_list,
             labelid_list=nid_list
         )
 
@@ -836,10 +836,10 @@ class IBEISController(object):
         """ Sets names/nids of a list of annotations.
         Convenience function for set_annotation_nids"""
         ibs.set_annotation_from_key(
-            aid_list, 
-            _key=constants.SPECIES_KEY, 
-            adder=ibs.add_species, 
-            item_list=species_list, 
+            aid_list,
+            _key=constants.SPECIES_KEY,
+            adder=ibs.add_species,
+            item_list=species_list,
             labelid_list=speciesid_list
         )
 
@@ -872,14 +872,14 @@ class IBEISController(object):
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) == 0]
         labelid_list_to_add = [labelid for labelid, alrid_list in izip(labelid_list, alrids_list)
-                           if len(alrid_list) == 0]
+                                if len(alrid_list) == 0]
         ibs.add_annotation_relationship(aid_list_to_add, labelid_list_to_add)
 
         # set the existing relationship if one already exists
         aid_list_to_set = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) > 0]
         labelid_list_to_set = [labelid for labelid, alrid_list in izip(labelid_list, alrids_list)
-                           if len(alrid_list) > 0]
+                               if len(alrid_list) > 0]
         ibs.set_annotation_labelids(aid_list_to_set, labelid_list_to_set, _key)
 
     @setter
@@ -897,7 +897,7 @@ class IBEISController(object):
     def set_annotation_nids(ibs, aid_list, nid_list):
         """ Sets nids of a list of annotations """
         ibs.set_annotation_labelids(aid_list, nid_list, constants.INDIVIDUAL_KEY)
-        
+
     # SETTERS::NAME
 
     @setter
@@ -1838,7 +1838,7 @@ class IBEISController(object):
     def delete_annotation_speciesids(ibs, aid_list):
         """ Deletes nids of a list of annotations """
         ibs.delete_annotation_labelids(aid_list, constants.SPECIES_KEY)
-        
+
     @deleter
     def delete_images(ibs, gid_list):
         """ deletes images from the database that belong to gids"""
