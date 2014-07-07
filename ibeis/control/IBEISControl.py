@@ -677,8 +677,8 @@ class IBEISController(object):
         colnames = ['annotlabel_uuid', 'key_rowid', 'annotlabel_value', 'annotlabel_note']
         params_iter = list(izip(annotlabel_uuid_list, key_list, value_list, note_list))
         annotlabelid_list = ibs.db.add_cleanly(ANNOTLABEL_TABLE, colnames, params_iter,
-                                          ibs.get_annotlabel_rowid_from_keyval,
-                                          unique_paramx=[1, 2])
+                                               ibs.get_annotlabel_rowid_from_keyval,
+                                               unique_paramx=[1, 2])
         return annotlabelid_list
 
     @adder
@@ -871,14 +871,14 @@ class IBEISController(object):
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) == 0]
         annotlabelid_list_to_add = [annotlabelid for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list)
-                               if len(alrid_list) == 0]
+                                    if len(alrid_list) == 0]
         ibs.add_annotation_relationship(aid_list_to_add, annotlabelid_list_to_add)
 
         # set the existing relationship if one already exists
         aid_list_to_set = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) > 0]
         annotlabelid_list_to_set = [annotlabelid for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list)
-                               if len(alrid_list) > 0]
+                                    if len(alrid_list) > 0]
         ibs.set_annotation_annotlabelids(aid_list_to_set, annotlabelid_list_to_set, _key)
 
     @setter
@@ -890,11 +890,12 @@ class IBEISController(object):
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
         for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list):
-            ibs.db.set(AL_RELATION_TABLE, ('annotlabel_rowid',), [annotlabelid] * len(alrid_list), alrid_list)
+            ibs.set_alr_annotlabelids(alrid_list, [annotlabelid] * len(alrid_list))
 
     @setter
     def set_annotation_nids(ibs, aid_list, nid_list):
         """ Sets nids of a list of annotations """
+        # This dies and set_annotation_names becomes this
         ibs.set_annotation_annotlabelids(aid_list, nid_list, constants.INDIVIDUAL_KEY)
 
     # SETTERS::NAME
@@ -929,6 +930,10 @@ class IBEISController(object):
         ibs.db.set(ENCOUNTER_TABLE, ('encounter_text',), val_list, id_iter)
 
     # SETTERS::ALR
+
+    @setter
+    def set_alr_annotlabelids(ibs, alrid_list, labelid_list):
+        ibs.db.set(AL_RELATION_TABLE, ('annotlabel_rowid',), labelid_list, alrid_list)
 
     @setter
     def set_alr_confidence(ibs, alrid_list, confidence_list):
@@ -1272,6 +1277,7 @@ class IBEISController(object):
             ]
             for index_annotlabel, annotlabelkeys in enumerate(annotlabelkeys_list)
         ]
+        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list])
         return alrids_list
 
     @getter_1toM

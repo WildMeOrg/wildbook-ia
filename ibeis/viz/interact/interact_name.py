@@ -271,32 +271,14 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_nid1(self, event=None):
         """ All the annotations are given nid1 """
-
-        nid_list = [self.nid1] * len(self.aid_list)
-        self.set_annotation_nids(self.aid_list, self.nid_list)
-
-        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
-        nids_list = self.ibs.get_annotation_nids(self.aid_list)
-
-        for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
-            if len(alrid_list) == 0:
-                self.ibs.add_annotation_relationship([aid], [self.nid1])
-            else:
-                self.ibs.set_annotation_nids([aid], [self.nid1])
+        self.ibs.set_annotation_nids(self.aid_list, [self.nid1] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
         """ All the annotations are given nid2 """
-        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
-        nids_list = self.ibs.get_annotation_nids(self.aid_list)
-
-        for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
-            if len(alrid_list) == 0:
-                self.ibs.add_annotation_relationship([aid], [self.nid2])
-            else:
-                self.ibs.set_annotation_nids([aid], [self.nid2])
+        self.ibs.set_annotation_names(self.aid_list, nid_list=[self.nid2] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
