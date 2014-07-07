@@ -92,7 +92,7 @@ def export_to_xml(ibs):
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annotation_bboxes(aid_list)
         theta_list = ibs.get_annotation_thetas(aid_list)
-        for bbox, theta in izip(bbox_list, theta_list):
+        for aid, bbox, theta in izip(aid_list, bbox_list, theta_list):
             # Transformation matrix
             R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
             # Get verticies of the annotation polygon
@@ -108,7 +108,8 @@ def export_to_xml(ibs):
             ymin = min(y_points)
             ymax = max(y_points)
             #TODO: Change species_name to getter in IBEISControl once implemented
-            species_name = 'grevys_zebra'
+            #species_name = 'grevys_zebra'
+            species_name = ibs.get_annotation_species(aid)
             annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
         dst_annot = annotdir + out_name  + '.xml'
         dst_img = imagedir + out_img
