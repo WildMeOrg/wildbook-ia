@@ -866,7 +866,6 @@ class IBEISController(object):
             labelid_list = adder(item_list)
 
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
-        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list])
 
         # create the new relationship when none exists
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
@@ -1280,6 +1279,7 @@ class IBEISController(object):
             ]
             for index_label, labelkeys in enumerate(labelkeys_list)
         ]
+        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list])
         return alrids_list
 
     @getter_1toM
