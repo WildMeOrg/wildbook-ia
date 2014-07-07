@@ -867,6 +867,7 @@ class IBEISController(object):
             labelid_list = adder(item_list)
 
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
+        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list])
 
         # create the new relationship when none exists
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
@@ -880,6 +881,9 @@ class IBEISController(object):
                            if len(alrid_list) > 0]
         labelid_list_to_set = [labelid for labelid, alrid_list in izip(labelid_list, alrids_list)
                                if len(alrid_list) > 0]
+        alrids_list = [alrid_list for alrid_list in alrids_list
+                        if len(alrid_list) > 0]
+        # FIXME: This breaks if the annotation has more than one name already
         ibs.set_annotation_labelids(aid_list_to_set, labelid_list_to_set, _key)
 
     @setter
@@ -891,7 +895,7 @@ class IBEISController(object):
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
         for labelid, alrid_list in izip(labelid_list, alrids_list):
-            ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), [labelid] * len(alrid_list), alrid_list)
+            ibs.set_alr_labelids(alrid_list, [labelid] * len(alrid_list))
 
     @setter
     def set_annotation_nids(ibs, aid_list, nid_list):
@@ -930,6 +934,10 @@ class IBEISController(object):
         ibs.db.set(ENCOUNTER_TABLE, ('encounter_text',), val_list, id_iter)
 
     # SETTERS::ALR
+
+    @setter
+    def set_alr_labelids(ibs, alrid_list, labelid_list):
+        ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), labelid_list, alrid_list)
 
     @setter
     def set_alr_confidence(ibs, alrid_list, confidence_list):

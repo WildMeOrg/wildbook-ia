@@ -124,7 +124,6 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Distinct color for every unique name
         nid_list = ibs.get_annotation_nids(self.aid_list)
         unique_nids = utool.unique_ordered(nid_list)
-        import ibeis
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
         self.nid2_color = dict(izip(unique_nids, unique_colors))
 
@@ -181,7 +180,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('unname', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             callback = partial(self.rename_annotation_nid1, aid)
-            text = 'change name to: ' + ibs.get_names(self.nid1) 
+            text = 'change name to: ' + ibs.get_names(self.nid1)
             self.append_button(text, callback=callback, **butkw)
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
             callback = partial(self.rename_annotation_nid2, aid)
@@ -272,28 +271,14 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_nid1(self, event=None):
         """ All the annotations are given nid1 """
-        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
-        nids_list = self.ibs.get_annotation_nids(self.aid_list)
-
-        for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
-            if len(alrid_list) == 0:
-                self.ibs.add_annotation_relationship([aid], [self.nid1])
-            else:
-                self.ibs.set_annotation_nids([aid], [self.nid1])
+        self.ibs.set_annotation_names(self.aid_list, nid_list=[self.nid1] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
         """ All the annotations are given nid2 """
-        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
-        nids_list = self.ibs.get_annotation_nids(self.aid_list)
-
-        for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
-            if len(alrid_list) == 0:
-                self.ibs.add_annotation_relationship([aid], [self.nid2])
-            else:
-                self.ibs.set_annotation_nids([aid], [self.nid2])
+        self.ibs.set_annotation_names(self.aid_list, nid_list=[self.nid2] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
