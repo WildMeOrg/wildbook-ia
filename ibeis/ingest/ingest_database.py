@@ -192,9 +192,9 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         gid_list, name_list)
     # Add ANNOTATIONs with names and notes
     aid_list = ibsfuncs.use_images_as_annotations(ibs, unique_gids,
-                                           name_list=unique_names,
-                                           notes_list=unique_notes,
-                                           adjust_percent=adjust_percent)
+                                                  name_list=unique_names,
+                                                  notes_list=unique_notes,
+                                                  adjust_percent=adjust_percent)
     if localize:
         ibsfuncs.localize_images(ibs)
     if postingest_func is not None:

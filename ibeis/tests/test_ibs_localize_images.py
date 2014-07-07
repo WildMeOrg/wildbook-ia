@@ -10,7 +10,7 @@ from ibeis.control.IBEISControl import IBEISController
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_LOCALIZE_IMAGES]')
 
 
-def TEST_ENCOUNTERS(ibs):
+def TEST_LOCALIZE_IMAGES(ibs):
     assert isinstance(ibs, IBEISController)
     print('[TEST_LOCALIZE_IMAGES]')
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     import ibeis
     main_locals = ibeis.main(defaultdb='testdb1', gui=False)
     ibs = main_locals['ibs']
-    test_locals = utool.run_test(TEST_ENCOUNTERS, ibs)
+    test_locals = utool.run_test(TEST_LOCALIZE_IMAGES, ibs)
     execstr = utool.execstr_dict(test_locals, 'test_locals')
     exec(execstr)
     exec(utool.ipython_execstr())

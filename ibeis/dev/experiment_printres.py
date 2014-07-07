@@ -24,10 +24,10 @@ def get_diffmat_str(rank_mat, qaids, nCfg):
     diff_aids = row2_aid[diff_rows]
     diff_rank = rank_mat[diff_rows]
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
-    col_labels = list(chain(['qaid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
+    col_lbls = list(chain(['qaid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
     col_types  = list(chain([int], [int] * nCfg))
     header = 'diffmat'
-    diff_matstr = utool.numpy_to_csv(diff_mat, col_labels, header, col_types)
+    diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_types)
     return diff_matstr
 
 
@@ -45,21 +45,21 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     _rowxs = np.arange(nQuery + 1).reshape(nQuery + 1, 1) - 1
     lbld_mat = np.hstack([_rowxs, lbld_mat])
     #------------
-    # Build row labels
+    # Build row lbls
     qx2_lbl = []
     for qx in xrange(nQuery):
         qaid = qaids[qx]
-        label = 'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaid, ibs=ibs, notes=True))
-        qx2_lbl.append(label)
+        lbl = 'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaid, ibs=ibs, notes=True))
+        qx2_lbl.append(lbl)
     qx2_lbl = np.array(qx2_lbl)
     #------------
-    # Build col labels
+    # Build col lbls
     if cfgx2_lbl is None:
         cfgx2_lbl = []
         for cfgx in xrange(nCfg):
             test_cfgstr  = cfg_list[cfgx].get_cfgstr()
-            cfg_label = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
-            cfgx2_lbl.append(cfg_label)
+            cfg_lbl = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
+            cfgx2_lbl.append(cfg_lbl)
         cfgx2_lbl = np.array(cfgx2_lbl)
     #------------
     indent = utool.indent

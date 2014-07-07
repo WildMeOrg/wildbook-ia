@@ -12,8 +12,11 @@ export CWD=$(pwd)
 
 # FIXME: Weird directory dependency
 #export PATHSEP=$(python -c "import os; print(os.pathsep)")
-export PY=python
-#export PY=python2.7
+if [[ "$OSTYPE" == "win32" ]]; then
+    export PY=python
+else
+    export PY=python2.7
+fi
 export PYHESAFF_DIR=$($PY -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
 export VTOOL_DIR=$($PY -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
 echo $VTOOL_DIR

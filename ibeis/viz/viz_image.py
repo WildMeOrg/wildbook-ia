@@ -9,22 +9,22 @@ from ibeis.viz import viz_helpers as vh
     __name__, '[viz_img]', DEBUG=False)
 
 
-def annotate_image(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
+def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
     try:
         # draw chips in the image
         aid_list    = ibs.get_image_aids(gid)
         bbox_list   = ibs.get_annotation_bboxes(aid_list)
         theta_list  = ibs.get_annotation_thetas(aid_list)
-        label_list  = vh.get_annotation_labels(ibs, aid_list, draw_lbls)
+        text_list  = vh.get_annotation_text(ibs, aid_list, draw_lbls)
         annotation_centers = vh.get_bbox_centers(bbox_list)
         sel_list    = [aid in sel_aids for aid in aid_list]
 
-        viz_image2.annotate_image(ax, bbox_list, theta_list, label_list, sel_list, draw_lbls, annote)
+        viz_image2.draw_image_overlay(ax, bbox_list, theta_list, text_list, sel_list, draw_lbls, annote)
         # Draw all chip indexes in the image
         if annote:
-            annotation_iter = izip(bbox_list, theta_list, label_list, sel_list)
-            for bbox, theta, label, is_sel in annotation_iter:
-                viz_image2.annotate_annotation(ax, bbox, theta, label, is_sel)
+            annotation_iter = izip(bbox_list, theta_list, text_list, sel_list)
+            for bbox, theta, lbl, is_sel in annotation_iter:
+                viz_image2.draw_chip_overlay(ax, bbox, theta, lbl, is_sel)
         # Put annotation centers in the axis
         vh.set_ibsdat(ax, 'annotation_centers', np.array(annotation_centers))
         vh.set_ibsdat(ax, 'aid_list', aid_list)
@@ -37,7 +37,7 @@ def get_annotation_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
     annotekw = {
         'bbox_list'  : ibs.get_annotation_bboxes(aid_list),
         'theta_list' : ibs.get_annotation_thetas(aid_list),
-        'label_list' : vh.get_annotation_labels(ibs, aid_list, draw_lbls),
+        'text_list' : vh.get_annotation_text(ibs, aid_list, draw_lbls),
         'sel_list'   : [aid in sel_aids for aid in aid_list],
     }
     return annotekw

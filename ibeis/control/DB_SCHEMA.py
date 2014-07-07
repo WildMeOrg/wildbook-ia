@@ -74,8 +74,9 @@ def define_IBEIS_schema(ibs):
         ('key_default',              'TEXT NOT NULL'),
     ), ['CONSTRAINT superkey UNIQUE (key_text)'],
         docstr='''
-        List of keys used to define the categories of annotation tables, text is
-        for human-readability''')
+        List of keys used to define the categories of annotation lables, text is
+        for human-readability. The key_default specifies the property value of
+        annotations with a relationship of some key_rowid''')
 
     ibs.db.schema(constants.ENCOUNTER_TABLE, (
         ('encounter_rowid',             'INTEGER PRIMARY KEY'),
@@ -134,7 +135,6 @@ def define_IBEIS_schema(ibs):
     #IMAGE_UID_TYPE = 'INTEGER'
     #annot_UID_TYPE = 'INTEGER'
     #NAME_UID_TYPE  = 'INTEGER'
-
 
     # List of recognition directed edges (annot_1) --score--> (annot_2)
     # ibs.db.schema('recognitions', (

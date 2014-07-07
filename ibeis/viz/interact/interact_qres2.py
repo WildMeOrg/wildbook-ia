@@ -235,10 +235,10 @@ class Interact_QueryResult(object):
             self.append_button('prev', callback=self.prev_page, rect=prev_rect)
         if self.current_pagenum != self.nPages - 1:
             self.append_button('next', callback=self.next_page, rect=next_rect)
-        for count, (label, keyword) in enumerate(self.toggleable_kws.iteritems()):
+        for count, (text, keyword) in enumerate(self.toggleable_kws.iteritems()):
             callback = functools.partial(self.toggle_kw, keyword=keyword)
             rect = hlt_slot(count)
-            self.append_button(label, callback=callback, rect=rect)
+            self.append_button(text, callback=callback, rect=rect)
 
         figtitle_fmt = '''
         Match Candidates ({start_index}-{stop_index}) / {nCands}

@@ -81,18 +81,18 @@ class SQLExecutionContext(object):
         """ Checks to see if the operating will change the database """
         #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
         if context.num_params is None:
-            context.operation_label = ('[sql] execute num_params=%d optype=%s: '
+            context.operation_lbl = ('[sql] execute num_params=%d optype=%s: '
                                        % (context.num_params, context.operation_type))
         else:
-            context.operation_label = '[sql] executeone optype=%s: ' % (context.operation_type)
+            context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
         if context.start_transaction:
             _executor(context.db.cur, 'BEGIN', ())
         if PRINT_SQL:
-            print(context.operation_label)
+            print(context.operation_lbl)
         # Comment out timeing code
         #if not QUIET:
-        #    context.tt = utool.tic(context.operation_label)
+        #    context.tt = utool.tic(context.operation_lbl)
         return context
 
     # --- with SQLExecutionContext: statment code happens here ---

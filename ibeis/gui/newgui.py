@@ -307,8 +307,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for widget in ibswgt.statusLabel_list:
             ibswgt.statusBar.addWidget(widget)
 
-    def set_status_label(ibswgt, index, text):
-        printDBG('set_status_label[%r] = %r' % (index, text))
+    def set_status_text(ibswgt, index, text):
+        printDBG('set_status_text[%r] = %r' % (index, text))
         ibswgt.statusLabel_list[index].setText(text)
 
     def changing_models_gen(ibswgt, tblnames=None):

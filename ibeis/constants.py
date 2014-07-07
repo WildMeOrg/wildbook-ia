@@ -16,14 +16,14 @@ ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
 # Name used to denote that idkwtfthisis
 ENCTEXT_PREFIX = 'enc_'
-KEY_DEFAULTS = {
-    'INDIVIDUAL_KEY' : '____',
-    'SPECIES_KEY'    : '____',
-}
 
 INDIVIDUAL_KEY = 'INDIVIDUAL_KEY'
-SPECIES_KEY = 'SPECIES_KEY'
+SPECIES_KEY    = 'SPECIES_KEY'
 EMPTY_KEY = ''
+KEY_DEFAULTS = {
+    INDIVIDUAL_KEY : '____',
+    SPECIES_KEY    : '____',
+}
 
 IMAGE_TABLE       = 'images'
 ANNOTATION_TABLE  = 'annotations'
@@ -35,7 +35,6 @@ CHIP_TABLE        = 'chips'
 FEATURE_TABLE     = 'features'
 CONFIG_TABLE      = 'configs'
 KEY_TABLE         = 'keys'
-
 
 import numpy as np
 UNKNOWN_PURPLE_RGBA255 = np.array((102,   0, 153, 255))

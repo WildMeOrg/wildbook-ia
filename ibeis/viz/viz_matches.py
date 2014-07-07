@@ -72,8 +72,8 @@ def annotate_matches(ibs, qres, aid2,
     truth = ibs.get_match_truth(aid1, aid2)
     truth_color = vh.get_truth_color(truth)
     # Build title
-    title = vh.get_query_label(ibs, qres, aid2, truth, **kwargs)
-    # Build xlabel
+    title = vh.get_query_text(ibs, qres, aid2, truth, **kwargs)
+    # Build xlbl
     ax = df2.gca()
     ph.set_plotdat(ax, 'viztype', 'matches')
     ph.set_plotdat(ax, 'qaid', aid1)
@@ -85,20 +85,18 @@ def annotate_matches(ibs, qres, aid2,
         lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
     else:
         lbl1, lbl2 = None, None
-    if vh.NO_LABEL_OVERRIDE:
+    if vh.NO_LBL_OVERRIDE:
         title = ''
-        #xlabel = ''
     df2.set_title(title, ax)
-    #df2.set_xlabel(xlabel, ax)
     # Plot annotations over images
     if in_image:
         bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
         theta1, theta2 = ibs.get_annotation_thetas([aid1, aid2])
         # HACK!
         if show_query:
-            df2.draw_annotation(bbox1, bbox_color=df2.ORANGE, label=lbl1, theta=theta1)
+            df2.draw_bbox(bbox1, bbox_color=df2.ORANGE, lbl=lbl1, theta=theta1)
         bbox_color2 = truth_color if draw_border else df2.ORANGE
-        df2.draw_annotation(bbox2, bbox_color=bbox_color2, label=lbl2, theta=theta2)
+        df2.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
     else:
         xy, w, h = df2._axis_xy_width_height(ax)
         bbox2 = (xy[0], xy[1], w, h)
@@ -106,7 +104,7 @@ def annotate_matches(ibs, qres, aid2,
         if draw_border:
             df2.draw_border(ax, truth_color, 4, offset=offset2)
         if draw_lbl:
-            # Custom user label for chips 1 and 2
+            # Custom user lbl for chips 1 and 2
             (x1, y1, w1, h1) = xywh1
             (x2, y2, w2, h2) = xywh2
             df2.absolute_lbl(x1 + w1, y1, lbl1)

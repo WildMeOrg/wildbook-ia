@@ -508,18 +508,18 @@ class SQLDatabaseController(object):
         column_nametypes = db.table_columns[tablename]
         column_names = [name for (name, type_) in column_nametypes]
         column_list = []
-        column_labels = []
+        column_lbls = []
         for name in column_names:
             if name in exclude_columns:
                 continue
             column_vals = db.get_column(tablename, name)
             column_list.append(column_vals)
-            column_labels.append(name.replace(tablename[:-1] + '_', ''))
+            column_lbls.append(name.replace(tablename[:-1] + '_', ''))
         # remove column prefix for more compact csvs
 
         #=None, column_list=[], header='', column_type=None
         header = db.get_table_csv_header(tablename)
-        csv_table = utool.make_csv_table(column_list, column_labels, header)
+        csv_table = utool.make_csv_table(column_list, column_lbls, header)
         return csv_table
 
     @default_decorator

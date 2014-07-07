@@ -104,7 +104,7 @@ def get_flat_table(ibs):
         (str,   'uuids',  ibs.get_annotation_uuids(aid_list),),
     ]
     column_type   = [tup[0] for tup in column_tups]
-    column_labels = [tup[1] for tup in column_tups]
+    column_lbls = [tup[1] for tup in column_tups]
     column_list   = [tup[2] for tup in column_tups]
     header = '\n'.join([
         '# Roi Flat Table',
@@ -116,7 +116,7 @@ def get_flat_table(ibs):
         '# notes - user defined notes',
         '# uuids - unique universal ids (gaurenteed unique)',
     ])
-    flat_table_str = utool.make_csv_table(column_list, column_labels, header,
+    flat_table_str = utool.make_csv_table(column_list, column_lbls, header,
                                           column_type)
     return flat_table_str
 

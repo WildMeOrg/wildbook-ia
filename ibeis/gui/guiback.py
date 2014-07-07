@@ -228,16 +228,16 @@ class MainWindowBackend(QtCore.QObject):
                        sel_qres=None, sel_eids=None, **kwargs):
         if sel_eids is not None:
             back.sel_eids = sel_eids
-            back.ibswgt.set_status_label(0, 'Selected Encounter: %r' % (sel_eids,))
+            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_eids,))
         if sel_gids is not None:
             back.sel_gids = sel_gids
-            back.ibswgt.set_status_label(1, 'Selected Image: %r' % (sel_gids,))
+            back.ibswgt.set_status_text(1, 'Selected Image: %r' % (sel_gids,))
         if sel_aids is not None:
             back.sel_aids = sel_aids
-            back.ibswgt.set_status_label(2, 'Selected ANNOTATION: %r' % (sel_aids,))
+            back.ibswgt.set_status_text(2, 'Selected ANNOTATION: %r' % (sel_aids,))
         if sel_nids is not None:
             back.sel_nids = sel_nids
-            back.ibswgt.set_status_label(3, 'Selected Name: %r' % (sel_nids,))
+            back.ibswgt.set_status_text(3, 'Selected Name: %r' % (sel_nids,))
         if sel_qres is not None:
             back.sel_sel_qres = sel_qres
 
