@@ -803,7 +803,7 @@ class IBEISController(object):
         # SET VERTS in ANNOTATION_TABLE
         ibs.db.set(ANNOTATION_TABLE, colnames, val_iter1, id_iter1, num_params=num_params)
         # changing the vertices also changes the bounding boxes
-        bbox_list = geometry.bboxes_from_vert_list(verts_list)  	# new bboxes
+        bbox_list = geometry.bboxes_from_vert_list(verts_list)      # new bboxes
         xtl_list, ytl_list, width_list, height_list = list(izip(*bbox_list))
         val_iter2 = izip(xtl_list, ytl_list, width_list, height_list)
         id_iter2 = ((aid,) for aid in aid_list)
@@ -853,12 +853,11 @@ class IBEISController(object):
             assert item_list is not None
             # a item consisting of an empty string or all spaces is set to the default
             item_list = [constants.KEY_DEFAULTS[_key]
-                            if item.strip() == constants.EMPTY_KEY else item for item in item_list]
+                         if item.strip() == constants.EMPTY_KEY else item for item in item_list]
 
             # setting a name to '____' is equivalent to unnaming it
             aid_list_to_delete = [aid for aid, item in izip(aid_list, item_list)
-                                  if (item == constants.KEY_DEFAULTS[_key] or
-                                  item == constants.EMPTY_KEY)]
+                                  if (item == constants.KEY_DEFAULTS[_key] or item == constants.EMPTY_KEY)]
             ibs.delete_annotation_labelids(aid_list_to_delete, _key)
             # remove the relationships that have now been unnamed
             aid_list = [aid for aid, item in izip(aid_list, item_list) if item != constants.KEY_DEFAULTS[_key]]
@@ -873,7 +872,7 @@ class IBEISController(object):
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) == 0]
         labelid_list_to_add = [labelid for labelid, alrid_list in izip(labelid_list, alrids_list)
-                                if len(alrid_list) == 0]
+                               if len(alrid_list) == 0]
         ibs.add_annotation_relationship(aid_list_to_add, labelid_list_to_add)
 
         # set the existing relationship if one already exists
@@ -1270,9 +1269,9 @@ class IBEISController(object):
         """
         alrids_list = ibs.get_annotation_alrids(aid_list, configid=configid)
         # Get labelid of each relationship
-        labelids_list = [ ibs.get_alr_labelids(alr_list) for alr_list in alrids_list ]
+        labelids_list = [ibs.get_alr_labelids(alr_list) for alr_list in alrids_list]
         # Get the type of each label
-        labelkeys_list = [ ibs.get_label_keys(labelid_list) for labelid_list in labelids_list ]
+        labelkeys_list = [ibs.get_label_keys(labelid_list) for labelid_list in labelids_list]
         # only want the nids of individuals, not species, for example
         alrids_list = [
             [
@@ -1281,13 +1280,6 @@ class IBEISController(object):
             ]
             for index_label, labelkeys in enumerate(labelkeys_list)
         ]
-
-        # for index_label, labelkeys in enumerate(labelkeys_list):
-        #     temp = []
-        #     for index_key, key in enumerate(labelkeys):
-        #         if key == key_rowid:
-        #             temp.append(alrids_list[index_label][index_key])
-        #     alrids_list.append(temp)
         return alrids_list
 
     @getter_1toM
@@ -1296,7 +1288,7 @@ class IBEISController(object):
         # Get all the annotation label relationships
         # filter out only the ones which specify names
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
-        return [ ibs.get_alr_labelids(alrid) for alrid in alrids_list ]
+        return [ibs.get_alr_labelids(alrid) for alrid in alrids_list]
 
     @utool.accepts_numpy
     @getter_1to1
@@ -1380,7 +1372,7 @@ class IBEISController(object):
     def get_annotation_chip_thumbpath(ibs, aid_list):
         annotation_uuid_list = ibs.get_annotation_uuids(aid_list)
         thumbpath_list = [join(ibs.thumb_dpath, __STR__(uuid) + constants.CHIP_THUMB_SUFFIX)
-                            for uuid in annotation_uuid_list]
+                          for uuid in annotation_uuid_list]
         return thumbpath_list
 
     @utool.accepts_numpy
@@ -1423,7 +1415,7 @@ class IBEISController(object):
                 _dict[_key] = ibs.get_annotation_labelids(aid, _key)
             return _dict
 
-        key_dict_list = [ _key_dict(aid) for aid in aid_list ]
+        key_dict_list = [_key_dict(aid) for aid in aid_list]
         return key_dict_list
 
     @getter_1to1
@@ -1464,7 +1456,7 @@ class IBEISController(object):
             return utool.flatten(groundtruth_list)
 
         nids_list  = ibs.get_annotation_labelids(aid_list, constants.INDIVIDUAL_KEY)
-        groundtruth_list = [ _individual_ground_truth(nids) for nids in nids_list ]
+        groundtruth_list = [_individual_ground_truth(nids) for nids in nids_list]
         return groundtruth_list
 
     @getter_1to1
@@ -1767,7 +1759,7 @@ class IBEISController(object):
     def get_encounter_nids(ibs, eid_list):
         """ returns a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
-        nids_list = [ ibs.get_annotation_labelids(aid_list, constants.INDIVIDUAL_KEY) for aid_list in aids_list ]
+        nids_list = [ibs.get_annotation_labelids(aid_list, constants.INDIVIDUAL_KEY) for aid_list in aids_list]
 
         nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
 
@@ -1835,7 +1827,8 @@ class IBEISController(object):
         alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
-        [ ibs.db.delete_rowids(AL_RELATION_TABLE, alrid) for alrid in alrid_list ]
+        for alrid in alrid_list:
+            ibs.db.delete_rowids(AL_RELATION_TABLE, alrid)
 
     @deleter
     def delete_annotation_nids(ibs, aid_list):
