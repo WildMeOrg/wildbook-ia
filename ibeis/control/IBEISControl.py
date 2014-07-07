@@ -835,9 +835,20 @@ class IBEISController(object):
             nid_list = ibs.add_names(name_list)
         
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants.INDIVIDUAL_KEY])
-        [ibs.add_annotation_relationship([aid], [nid]) 
-         if len(alrid_list) == 0 else ibs.set_annotation_nids([aid], [nid], constants.INDIVIDUAL_KEY)
-         for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list)]
+
+        # create the new relationship when none exists
+        aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
+                           if len(alrid_list) == 0]
+        nid_list_to_add = [nid for nid, alrid_list in izip(nid_list, alrids_list)
+                           if len(alrid_list) == 0]
+        ibs.add_annotation_relationship(aid_list_to_add, nid_list_to_add)
+
+        # set the existing relationship if one already exists
+        aid_list_to_set = [aid for aid, alrid_list in izip(aid_list, alrids_list)
+                           if len(alrid_list) > 0]
+        nid_list_to_set = [nid for nid, alrid_list in izip(nid_list, alrids_list)
+                           if len(alrid_list) > 0]
+        ibs.set_annotation_nids(aid_list_to_set, nid_list_to_set, constants.INDIVIDUAL_KEY)
 
     @setter
     def set_annotation_species(ibs, aid_list, species_list=None, nid_list=None):
@@ -864,16 +875,20 @@ class IBEISController(object):
             nid_list = ibs.add_species(species_list)
 
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants.SPECIES_KEY])
-        # for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list):
-        #     if len(alrid_list) == 0:
-        #         ibs.add_annotation_relationship([aid], [nid])
-        #     else:
-        #         ibs.set_annotation_nids([aid], [nid], constants.SPECIES_KEY)
-
-        [ibs.add_annotation_relationship([aid], [nid]) 
-         if len(alrid_list) == 0 else ibs.set_annotation_nids([aid], [nid], constants.SPECIES_KEY)
-         for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list)]
          
+        # create the new relationship when none exists
+        aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
+                           if len(alrid_list) == 0]
+        nid_list_to_add = [nid for nid, alrid_list in izip(nid_list, alrids_list)
+                           if len(alrid_list) == 0]
+        ibs.add_annotation_relationship(aid_list_to_add, nid_list_to_add)
+
+        # set the existing relationship if one already exists
+        aid_list_to_set = [aid for aid, alrid_list in izip(aid_list, alrids_list)
+                           if len(alrid_list) > 0]
+        nid_list_to_set = [nid for nid, alrid_list in izip(nid_list, alrids_list)
+                           if len(alrid_list) > 0]
+        ibs.set_annotation_nids(aid_list_to_set, nid_list_to_set, constants.SPECIES_KEY)
 
     @setter
     def set_annotation_nids(ibs, aid_list, nid_list, _key):
