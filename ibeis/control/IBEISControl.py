@@ -816,10 +816,15 @@ class IBEISController(object):
             'can only specify one type of name values (nid or name) not both')
         if nid_list is None:
             assert name_list is not None
+            # a name consisting of an empty string or all spaces is set to the default
+            name_list = [ibs.key_defaults[constants.INDIVIDUAL_KEY] 
+                         if name.strip() == constants.EMPTY_KEY else name for name in name_list]
             # setting a name to '____' is equivalent to unnaming it
             [ibs.delete_annotation_nids([aid], constants.INDIVIDUAL_KEY)
              for aid, name in izip(aid_list, name_list)
-             if name == ibs.key_defaults[constants.INDIVIDUAL_KEY]]
+             if (name == ibs.key_defaults[constants.INDIVIDUAL_KEY] or
+                 name == constants.EMPTY_KEY)]
+
             # remove the relationships that have now been unnamed
             aid_list = [aid for aid, name in izip(aid_list, name_list) if name != ibs.key_defaults[constants.INDIVIDUAL_KEY]]
             name_list = [name for name in name_list if name != ibs.key_defaults[constants.INDIVIDUAL_KEY]]
@@ -839,10 +844,14 @@ class IBEISController(object):
             'can only specify one type of name values (nid or name) not both')
         if nid_list is None:
             assert species_list is not None
+            # a species consisting of an empty string or all spaces is set to the default
+            species_list = [ibs.key_defaults[constants.SPECIES_KEY] 
+                            if species.strip() == constants.EMPTY_KEY else species for species in species_list]
             # setting a name to '____' is equivalent to unnaming it
             [ibs.delete_annotation_nids([aid], constants.SPECIES_KEY)
              for aid, species in izip(aid_list, species_list)
-             if species == ibs.key_defaults[constants.SPECIES_KEY]]
+             if (species == ibs.key_defaults[constants.SPECIES_KEY] or
+                 species == constants.EMPTY_KEY)]
             # remove the relationships that have now been unnamed
             aid_list = [aid for aid, species in izip(aid_list, species_list) if species != ibs.key_defaults[constants.SPECIES_KEY]]
             species_list = [species for species in species_list if species != ibs.key_defaults[constants.SPECIES_KEY]]
