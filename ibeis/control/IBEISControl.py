@@ -1280,7 +1280,7 @@ class IBEISController(object):
 
     @utool.accepts_numpy
     @getter_1to1
-    def get_annotation_nids(ibs, aid_list):
+    def get_annotation_nids(ibs, aid_list, distinguish_unknowns=True):
         """ Returns the name id of each annotation. """
         # Get all the annotation label relationships
         # filter out only the ones which specify names
@@ -1290,9 +1290,9 @@ class IBEISController(object):
         return [ (
                  label_ids[index] 
                     if len(label_ids) > 0 
-                  else 0
+                  else (-aid if distinguish_unknowns else 0) # UNKNOWN NID = 0
                  ) 
-                 for index, label_ids in izip(index_list, alr_label_ids) 
+                 for aid, index, label_ids in izip(index_list, aid_list, alr_label_ids) 
                ]
         
     @getter_1to1
