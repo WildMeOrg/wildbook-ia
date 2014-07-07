@@ -56,7 +56,7 @@ def TEST_ENCOUNTERS(ibs):
     ]
 
 
-    ibs.print_label_table()
+    ibs.print_annotlabel_table()
     ibs.print_egpairs_table()
     ibs.print_encounter_table()
     ibs.print_alr_table()

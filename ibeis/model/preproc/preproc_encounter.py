@@ -4,6 +4,7 @@ import numpy as np
 from ibeis.dev import ibsfuncs
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
+from scipy.spatial.distance import pdist
 #from ibeis import constants
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[preproc_encounter]', DEBUG=False)
@@ -48,9 +49,6 @@ def ibeis_compute_encounters(ibs, gid_list):
     return enctext_list, flat_gids
 
 
-from math import radians, cos, sin, asin, sqrt
-
-
 def haversine(lon1, lat1, lon2, lat2):
     """
     #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
@@ -60,17 +58,33 @@ def haversine(lon1, lat1, lon2, lat2):
     http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
     """
     # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
 
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    c = 2 * asin(sqrt(a))
+    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
+    c = 2 * np.arcsin(np.sqrt(a))
 
-    # 6367 km is the radius of the Earth
-    km = 6367 * c
+    EARTH_RADIUS = 6367
+    km = EARTH_RADIUS * c
     return km
+
+
+def timespace_distance(pt1, pt2):
+    (sec1, lat1, lon1) = pt1
+    (sec2, lat2, lon2) = pt2
+    gps_dist = haversine(lon1, lat1, lon2, lat2)
+    sec_dist = (sec1 - sec2) ** 2
+    timespace_dist = gps_dist + sec_dist
+    return timespace_dist
+
+
+def timespace_pdist(X_data):
+    if X_data.shape[1] == 3:
+        return pdist(X_data, timespace_distance)
+    if X_data.shape[1] == 3:
+        return pdist(X_data, 'euclidian')
 
 
 def _prepare_X_data(ibs, gid_list, use_gps=False):

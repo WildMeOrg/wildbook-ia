@@ -124,7 +124,6 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Distinct color for every unique name
         nid_list = ibs.get_annotation_nids(self.aid_list)
         unique_nids = utool.unique_ordered(nid_list)
-        import ibeis
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
         self.nid2_color = dict(izip(unique_nids, unique_colors))
 
@@ -181,7 +180,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('unname', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             callback = partial(self.rename_annotation_nid1, aid)
-            text = 'change name to: ' + ibs.get_names(self.nid1) 
+            text = 'change name to: ' + ibs.get_names(self.nid1)
             self.append_button(text, callback=callback, **butkw)
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
             callback = partial(self.rename_annotation_nid2, aid)
@@ -272,6 +271,10 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_nid1(self, event=None):
         """ All the annotations are given nid1 """
+
+        nid_list = [self.nid1] * len(self.aid_list)
+        self.set_annotation_nids(self.aid_list, self.nid_list)
+
         alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
         nids_list = self.ibs.get_annotation_nids(self.aid_list)
 

@@ -27,10 +27,10 @@ KEY_DEFAULTS = {
 
 IMAGE_TABLE       = 'images'
 ANNOTATION_TABLE  = 'annotations'
-LABEL_TABLE       = 'labels'
+ANNOTLABEL_TABLE       = 'annotlabels'
 ENCOUNTER_TABLE   = 'encounters'
 EG_RELATION_TABLE = 'encounter_image_relationship'
-AL_RELATION_TABLE = 'annotation_label_relationship'
+AL_RELATION_TABLE = 'annotation_annotlabel_relationship'
 CHIP_TABLE        = 'chips'
 FEATURE_TABLE     = 'features'
 CONFIG_TABLE      = 'configs'

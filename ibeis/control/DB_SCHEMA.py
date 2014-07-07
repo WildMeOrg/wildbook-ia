@@ -50,21 +50,21 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema(constants.AL_RELATION_TABLE, (
         ('alr_rowid',                      'INTEGER PRIMARY KEY'),
         ('annot_rowid',                    'INTEGER NOT NULL'),
-        ('label_rowid',                    'INTEGER NOT NULL'),
+        ('annotlabel_rowid',                    'INTEGER NOT NULL'),
         ('config_rowid',                   'INTEGER DEFAULT 0'),
         ('alr_confidence',                 'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, label_rowid, config_rowid)'],
+    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, annotlabel_rowid, config_rowid)'],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and Labels''')
 
-    ibs.db.schema(constants.LABEL_TABLE, (
-        ('label_rowid',                   'INTEGER PRIMARY KEY'),
-        ('label_uuid',                    'UUID NOT NULL'),
+    ibs.db.schema(constants.ANNOTLABEL_TABLE, (
+        ('annotlabel_rowid',                   'INTEGER PRIMARY KEY'),
+        ('annotlabel_uuid',                    'UUID NOT NULL'),
         ('key_rowid',                     'INTEGER NOT NULL'),  # this is "category" in the proposal
-        ('label_value',                   'TEXT NOT NULL'),
-        ('label_note',                    'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (key_rowid, label_value)'],
+        ('annotlabel_value',                   'TEXT NOT NULL'),
+        ('annotlabel_note',                    'TEXT'),
+    ), ['CONSTRAINT superkey UNIQUE (key_rowid, annotlabel_value)'],
         docstr='''
         Used to store the attributes of annotations''')
 
@@ -103,7 +103,7 @@ def define_IBEIS_schema(ibs):
     ),  ['CONSTRAINT superkey UNIQUE (config_suffix)'],
         docstr='''
         Used to store the ids of algorithm configurations that generate
-        annotation labels.  Each user will have a config id for manual
+        annotation annotlabels.  Each user will have a config id for manual
         contributions ''')
 
     # TODO: constraint needs modify

@@ -204,7 +204,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #ibs.print_tables()
     #ibs.print_annotation_table()
     #ibs.print_alr_table()
-    #ibs.print_label_table()
+    #ibs.print_annotlabel_table()
     #ibs.print_image_table()
     return aid_list
 

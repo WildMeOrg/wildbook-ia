@@ -754,10 +754,10 @@ def print_image_table(ibs):
 
 
 @__injectable(False)
-def print_label_table(ibs):
+def print_annotlabel_table(ibs):
     """ Dumps chip table to stdout """
     print('\n')
-    print(ibs.db.get_table_csv(constants.LABEL_TABLE))
+    print(ibs.db.get_table_csv(constants.ANNOTLABEL_TABLE))
 
 
 @__injectable(False)
@@ -791,7 +791,7 @@ def print_egpairs_table(ibs):
 @__injectable(False)
 def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     if exclude_columns is None:
-        exclude_columns = ['annot_uuid', 'label_uuid', 'annot_verts', 'feature_keypoints',
+        exclude_columns = ['annot_uuid', 'annotlabel_uuid', 'annot_verts', 'feature_keypoints',
                            'feature_sifts', 'image_uuid', 'image_uri']
     if exclude_tables is None:
         exclude_tables = ['masks', 'recognitions', 'chips', 'features']
@@ -802,7 +802,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
         print(ibs.db.get_table_csv(table_name, exclude_columns=exclude_columns))
     #ibs.print_image_table()
     #ibs.print_annotation_table()
-    #ibs.print_labels_table()
+    #ibs.print_annotlabels_table()
     #ibs.print_alr_table()
     #ibs.print_config_table()
     #ibs.print_chip_table()
