@@ -121,8 +121,7 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
         elif is_unknown[0]:
             ibs.set_annotation_nids(
                 aid1, 
-                ibs.get_annotation_labelids(aid2, 'INDIVIDUAL_KEY'), 
-                'INDIVIDUAL_KEY'
+                ibs.get_annotation_nids(aid2)
             )
             update_callback()
             backend_callback()
@@ -130,8 +129,7 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
         elif is_unknown[1]:
             ibs.set_annotation_nids(
                 aid2, 
-                ibs.get_annotation_labelids(aid1, 'INDIVIDUAL_KEY'), 
-                'INDIVIDUAL_KEY'
+                ibs.get_annotation_nids(aid1)
             )
             update_callback()
             backend_callback()

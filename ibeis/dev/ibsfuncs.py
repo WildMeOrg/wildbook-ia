@@ -295,7 +295,7 @@ def delete_invalid_eids(ibs):
 @__injectable
 @getter_1to1
 def is_nid_unknown(ibs, nid_list):
-    return [ not isinstance(nid, int) and len(nid) == 0 for nid in nid_list]
+    return [ nid <= 0 for nid in nid_list]
 
 
 @__injectable
@@ -317,7 +317,7 @@ def set_annotation_names_to_next_name(ibs, aid_list):
 
 @__injectable
 def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annotation_labelids((aid1, aid2), 'INDIVIDUAL_KEY')
+    nid1, nid2 = ibs.get_annotation_nids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -396,7 +396,7 @@ def assert_valid_names(name_list):
     the standard unknown name """
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
-    valid_namecheck = [not isconflict(name, constants.KEY_DEFAULTS['INDIVIDUAL_KEY'])
+    valid_namecheck = [not isconflict(name, constants.INDIVIDUAL_KEY)
                        for name in name_list]
     assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
                                   'cannot start a name with four underscores')
@@ -425,7 +425,7 @@ def aidstr(aid, ibs=None, notes=False):
     else:
         assert ibs is not None
         notes = ibs.get_annotation_notes(aid)
-        name  = ibs.get_annotation_names(aid, 'INDIVIDUAL_KEY')
+        name  = ibs.get_annotation_names(aid)
         return 'aid%d-%r-%r' % (aid, str(name), str(notes))
 
 
@@ -451,7 +451,7 @@ def normalize_name(name):
     Maps unknonwn names to the standard ____
     """
     if name in constants.ACCEPTED_UNKNOWN_NAMES:
-        name = constants.KEY_DEFAULTS['INDIVIDUAL_KEY']
+        name = constants.INDIVIDUAL_KEY
     return name
 
 
@@ -624,7 +624,7 @@ def merge_databases(ibs_target, ibs_source_list):
         gid_list1   = ibs_source.get_annotation_gids(aid_list1)
         bbox_list1  = ibs_source.get_annotation_bboxes(aid_list1)
         theta_list1 = ibs_source.get_annotation_thetas(aid_list1)
-        name_list1  = ibs_source.get_annotation_names(aid_list1, 'INDIVIDUAL_KEY')
+        name_list1  = ibs_source.get_annotation_names(aid_list1)
         notes_list1 = ibs_source.get_annotation_notes(aid_list1)
 
         image_uuid_list1 = ibs_source.get_image_uuids(gid_list1)
@@ -813,7 +813,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 #@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
-    nid_list = ibs.get_annotation_labelids(aid_list, 'INDIVIDUAL_KEY')
+    nid_list = ibs.get_annotation_nids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
 

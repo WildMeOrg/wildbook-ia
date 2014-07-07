@@ -4,6 +4,7 @@ from itertools import izip
 from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
 from ibeis import viz
+from ibeis import constants
 from ibeis.viz import viz_helpers as vh
 from ibeis.dev import ibsfuncs
 from functools import partial
@@ -65,7 +66,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         (aid1, aid2) = (self.aid1, self.aid2)
         self.match_text = ibs.get_match_text(aid1, aid2)
         # The names of the matching annotations
-        self.nid1, self.nid2 = ibs.get_annotation_labelids((aid1, aid2), 'INDIVIDUAL_KEY')
+        self.nid1, self.nid2 = ibs.get_annotation_nids((aid1, aid2))
         self.name1, self.name2 = ibs.get_annotation_names((aid1, aid2))
         # The other annotations that belong to these two names
         groundtruth_list = ibs.get_annotation_groundtruth((aid1, aid2))
@@ -121,7 +122,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         nCols = self.nCols
 
         # Distinct color for every unique name
-        nid_list = utool.flatten(ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY'))
+        nid_list = ibs.get_annotation_nids(self.aid_list)
         unique_nids = utool.unique_ordered(nid_list)
         import ibeis
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
@@ -130,16 +131,17 @@ class MatchVerificationInteraction(AbstractInteraction):
         for count, groundtruth in enumerate(self.gt_list):
             offset = count * nCols + 1
             for px, aid in enumerate(groundtruth):
-                nid = ibs.get_annotation_labelids(aid, 'INDIVIDUAL_KEY')
+                nid = ibs.get_annotation_nids(aid)
 
-                if len(nid) == 0:
-                    color = ibeis.constants.UNKNOWN_PURPLE_RGBA01
-                elif len(self.nid1) > 0 and nid[0] == self.nid1[0]:
-                    color = ibeis.constants.NAME_RED_RGBA01
-                elif len(self.nid2) > 0 and nid[0] == self.nid2[0]:
-                    color = ibeis.constants.NAME_BLUE_RGBA01
+                print(aid)
+                if ibs.is_nid_unknown(nid):
+                    color = constants.UNKNOWN_PURPLE_RGBA01
+                elif nid == self.nid1:
+                    color = constants.NAME_RED_RGBA01
+                elif nid == self.nid2:
+                    color = constants.NAME_BLUE_RGBA01
                 else:
-                    color = ibeis.constants.NEW_YELLOW_RGBA01
+                    color = constants.NEW_YELLOW_RGBA01
                 self.plot_chip(aid, nRows, nCols, px + offset, color=color)
 
         self.show_hud()
@@ -153,7 +155,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
-        nid = ibs.get_annotation_labelids(aid, 'INDIVIDUAL_KEY')
+        nid = ibs.get_annotation_nids(aid)
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
@@ -179,32 +181,32 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('unname', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             callback = partial(self.rename_annotation_nid1, aid)
-            text = 'change name to: ' + ibs.get_names(self.nid1)[0]
+            text = 'change name to: ' + ibs.get_names(self.nid1) 
             self.append_button(text, callback=callback, **butkw)
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
             callback = partial(self.rename_annotation_nid2, aid)
-            text = 'change name to: ' + ibs.get_names(self.nid2)[0]
+            text = 'change name to: ' + ibs.get_names(self.nid2)
             self.append_button(text, callback=callback, **butkw)
 
     def unname_annotation(self, aid, event=None):
         print('unname')
-        self.ibs.delete_annotation_nids([aid], 'INDIVIDUAL_KEY')
+        self.ibs.delete_annotation_nids([aid])
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def rename_annotation_nid1(self, aid, event=None):
         print('rename nid1')
-        self.ibs.delete_annotation_nids([aid], 'INDIVIDUAL_KEY')
-        self.ibs.add_annotation_relationship([aid], self.nid1)
+        self.ibs.delete_annotation_nids([aid])
+        self.ibs.add_annotation_relationship([aid], [self.nid1])
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def rename_annotation_nid2(self, aid, event=None):
         print('rename nid2')
-        self.ibs.delete_annotation_nids([aid], 'INDIVIDUAL_KEY')
-        self.ibs.add_annotation_relationship([aid], self.nid2)
+        self.ibs.delete_annotation_nids([aid])
+        self.ibs.add_annotation_relationship([aid], [self.nid2])
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -219,7 +221,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ibs = self.ibs
         name1, name2 = self.name1, self.name2
 
-        nid_list = ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY')
+        nid_list = ibs.get_annotation_nids(self.aid_list)
 
         def next_rect(accum=[-1]):
             accum[0] += 1
@@ -256,7 +258,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                                           options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
         if ans == 'Confirm':
-            alrid_list = ibs.get_annotation_filtered_alrids(self.aid_list, ibs.key_ids['INDIVIDUAL_KEY'], configid=ibs.MANUAL_CONFIGID)
+            alrid_list = ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
             # For loop in list comprehension. There is no output. Should this
             # just be a regular for loop? A timeit test might be nice.
             [ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
@@ -265,33 +267,33 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def unname_all(self, event=None):
         print('unname')
-        self.ibs.delete_annotation_nids(self.aid_list, 'INDIVIDUAL_KEY')
+        self.ibs.delete_annotation_nids(self.aid_list)
         self.show_page()
 
     def merge_all_into_nid1(self, event=None):
         """ All the annotations are given nid1 """
-        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, self.ibs.key_ids['INDIVIDUAL_KEY'])
-        nids_list = self.ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY')
+        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
+        nids_list = self.ibs.get_annotation_nids(self.aid_list)
 
         for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
             if len(alrid_list) == 0:
-                self.ibs.add_annotation_relationship([aid], self.nid1)
+                self.ibs.add_annotation_relationship([aid], [self.nid1])
             else:
-                self.ibs.set_annotation_nids([aid], self.nid1, 'INDIVIDUAL_KEY')
+                self.ibs.set_annotation_nids([aid], [self.nid1])
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
         """ All the annotations are given nid2 """
-        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, self.ibs.key_ids['INDIVIDUAL_KEY'])
-        nids_list = self.ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY')
+        alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY)
+        nids_list = self.ibs.get_annotation_nids(self.aid_list)
 
         for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
             if len(alrid_list) == 0:
-                self.ibs.add_annotation_relationship([aid], self.nid2)
+                self.ibs.add_annotation_relationship([aid], [self.nid2])
             else:
-                self.ibs.set_annotation_nids([aid], self.nid2, 'INDIVIDUAL_KEY')
+                self.ibs.set_annotation_nids([aid], [self.nid2])
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -299,7 +301,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def merge_all_into_next_name(self, event=None):
         """ All the annotations are given nid2 """
         # Delete all original names
-        self.ibs.delete_annotation_nids(self.aid_list, 'INDIVIDUAL_KEY')
+        self.ibs.delete_annotation_nids(self.aid_list)
         # Get next name from the controller
         self.next_name = next_name = ibsfuncs.make_next_name(self.ibs)
         # Readd the new names to all aids

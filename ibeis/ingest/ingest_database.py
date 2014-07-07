@@ -8,6 +8,7 @@ import ibeis
 from os.path import exists
 from itertools import izip
 from ibeis.dev import ibsfuncs
+from ibeis import constants
 from ibeis.control import IBEISControl
 import utool
 
@@ -47,8 +48,8 @@ def ingest_testdb1(db):
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
-        nid_list = ibs.get_annotation_labelids(aid_list, 'INDIVIDUAL_KEY')
-        nid_list = [ (nid[0] if len(nid) > 0 else None) for nid in nid_list]
+        nid_list = ibs.get_annotation_nids(aid_list)
+        nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
         unique_flag = utool.flag_unique_items(nid_list)
         unique_nids = utool.filter_items(nid_list, unique_flag)
         none_nids = [ nid is not None for nid in nid_list]
@@ -71,7 +72,7 @@ def ingest_testdb1(db):
             # print2('new_nids=%r' % new_nids)
         # Unname, some annotations for testing
         delete_aids = utool.filter_items(aid_list, flag_list)
-        ibs.delete_annotation_nids(delete_aids, 'INDIVIDUAL_KEY')
+        ibs.delete_annotation_nids(delete_aids)
         # Add all annotations with names as exemplars
         from ibeis.control.IBEISControl import IBEISController
         assert isinstance(ibs, IBEISController)
@@ -172,7 +173,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if ingest_type == 'named_images':
         name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
-        name_list = [ibs.key_defaults['INDIVIDUAL_KEY'] for _ in xrange(len(gpath_list))]
+        name_list = [constants.INDIVIDUAL_KEY for _ in xrange(len(gpath_list))]
 
     # Add Images
     gid_list_ = ibs.add_images(gpath_list)

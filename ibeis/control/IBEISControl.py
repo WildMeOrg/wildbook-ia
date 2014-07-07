@@ -358,10 +358,17 @@ class IBEISController(object):
         return sorted(gid_list)
 
     @ider
-    def _get_all_known_nids(ibs, _key=constants.INDIVIDUAL_KEY):
+    def _get_all_known_labelids(ibs, _key):
         """ Returns all nids of known animals
             (does not include unknown names) """
         all_known_nids = ibs.db.get_all_rowids_where(LABEL_TABLE, 'key_rowid=?', (ibs.key_ids[_key],))
+        return all_known_nids
+
+    @ider
+    def _get_all_known_nids(ibs):
+        """ Returns all nids of known animals
+            (does not include unknown names) """
+        all_known_nids = ibs._get_all_known_labelids(constants.INDIVIDUAL_KEY)
         return all_known_nids
 
     @ider
@@ -655,7 +662,7 @@ class IBEISController(object):
         # nid_list_ = [namenid_dict[name] for name in species_list_]
         # ibsfuncs.assert_valid_names(species_list)
         notes_list = [''] * len(species_list)
-        # All names are individuals and so may safely receive the INDIVIDUAL_KEY label
+        # All names are individuals and so may safely receive the SPECIES_KEY label
         key_rowid_list = [ibs.key_ids[constants.SPECIES_KEY]] * len(species_list)
         nid_list = ibs.add_labels(key_rowid_list, species_list, notes_list)
         return nid_list
@@ -815,66 +822,44 @@ class IBEISController(object):
     def set_annotation_names(ibs, aid_list, name_list=None, nid_list=None):
         """ Sets names/nids of a list of annotations.
         Convenience function for set_annotation_nids"""
-        assert name_list is None or nid_list is None, (
-            'can only specify one type of name values (nid or name) not both')
-        if nid_list is None:
-            assert name_list is not None
-            # a name consisting of an empty string or all spaces is set to the default
-            name_list = [ibs.key_defaults[constants.INDIVIDUAL_KEY] 
-                         if name.strip() == constants.EMPTY_KEY else name for name in name_list]
-            # setting a name to '____' is equivalent to unnaming it
-            [ibs.delete_annotation_nids([aid], constants.INDIVIDUAL_KEY)
-             for aid, name in izip(aid_list, name_list)
-             if (name == ibs.key_defaults[constants.INDIVIDUAL_KEY] or
-                 name == constants.EMPTY_KEY)]
-
-            # remove the relationships that have now been unnamed
-            aid_list = [aid for aid, name in izip(aid_list, name_list) if name != ibs.key_defaults[constants.INDIVIDUAL_KEY]]
-            name_list = [name for name in name_list if name != ibs.key_defaults[constants.INDIVIDUAL_KEY]]
-            # Convert names into nids
-            nid_list = ibs.add_names(name_list)
-        
-        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants.INDIVIDUAL_KEY])
-        [ibs.add_annotation_relationship([aid], [nid]) 
-         if len(alrid_list) == 0 else ibs.set_annotation_nids([aid], [nid], constants.INDIVIDUAL_KEY)
-         for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list)]
+        ibs.set_annotation_from_key(aid_list, _key=constants.INDIVIDUAL_KEY, adder=ibs.add_names, item_list=name_list, nid_list=nid_list)
 
     @setter
     def set_annotation_species(ibs, aid_list, species_list=None, nid_list=None):
         """ Sets names/nids of a list of annotations.
         Convenience function for set_annotation_nids"""
-        assert species_list is None or nid_list is None, (
-            'can only specify one type of name values (nid or name) not both')
+        ibs.set_annotation_from_key(aid_list, _key=constants.SPECIES_KEY, adder=ibs.add_species, item_list=species_list, nid_list=nid_list)
+
+    # @setter
+    def set_annotation_from_key(ibs, aid_list, _key, adder, item_list=None, nid_list=None):
+        """ Sets names/nids of a list of annotations.
+        Convenience function for set_annotation_nids"""
+        assert item_list is None or nid_list is None, (
+            'can only specify one type of name values (nid or item) not both')
         if nid_list is None:
-            assert species_list is not None
-            # a species consisting of an empty string or all spaces is set to the default
-            species_list = [ibs.key_defaults[constants.SPECIES_KEY] 
-                            if species.strip() == constants.EMPTY_KEY else species for species in species_list]
+            assert item_list is not None
+            # a item consisting of an empty string or all spaces is set to the default
+            item_list = [ibs.key_defaults[_key] 
+                            if item.strip() == constants.EMPTY_KEY else item for item in item_list]
             # setting a name to '____' is equivalent to unnaming it
-            [ibs.delete_annotation_nids([aid], constants.SPECIES_KEY)
-             for aid, species in izip(aid_list, species_list)
-             if (species == ibs.key_defaults[constants.SPECIES_KEY] or
-                 species == constants.EMPTY_KEY)]
+            for aid, item in izip(aid_list, item_list):
+                if item == ibs.key_defaults[_key] or item == constants.EMPTY_KEY:
+                    ibs.delete_annotation_nids([aid], _key)
             # remove the relationships that have now been unnamed
-            aid_list = [aid for aid, species in izip(aid_list, species_list) if species != ibs.key_defaults[constants.SPECIES_KEY]]
-            species_list = [species for species in species_list if species != ibs.key_defaults[constants.SPECIES_KEY]]
+            aid_list = [aid for aid, item in izip(aid_list, item_list) if item != ibs.key_defaults[_key]]
+            item_list = [item for item in item_list if item != ibs.key_defaults[_key]]
             # Convert names into nids
-            nid_list = ibs.add_species(species_list)
+            nid_list = adder(item_list)
 
-        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants.SPECIES_KEY])
-        # for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list):
-        #     if len(alrid_list) == 0:
-        #         ibs.add_annotation_relationship([aid], [nid])
-        #     else:
-        #         ibs.set_annotation_nids([aid], [nid], constants.SPECIES_KEY)
-
-        [ibs.add_annotation_relationship([aid], [nid]) 
-         if len(alrid_list) == 0 else ibs.set_annotation_nids([aid], [nid], constants.SPECIES_KEY)
-         for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list)]
-         
+        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
+        for aid, nid, alrid_list in izip(aid_list, nid_list, alrids_list):
+            if len(alrid_list) == 0:
+                ibs.add_annotation_relationship([aid], [nid]) 
+            else:
+                ibs.set_annotation_labelids([aid], [nid], _key)
 
     @setter
-    def set_annotation_nids(ibs, aid_list, nid_list, _key):
+    def set_annotation_labelids(ibs, aid_list, nid_list, _key):
         """ Sets nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special labelids
@@ -883,6 +868,11 @@ class IBEISController(object):
         # Cannot use set_table_props for cross-table setters.
         [ ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), [nid] * len(alrid_list), alrid_list) 
             for nid, alrid_list in izip(nid_list, alrids_list) ]
+
+    @setter
+    def set_annotation_nids(ibs, aid_list, nid_list):
+        """ Sets nids of a list of annotations """
+        ibs.set_annotation_labelids(aid_list, nid_list, constants.INDIVIDUAL_KEY)
 
     # SETTERS::NAME
 
@@ -1064,10 +1054,7 @@ class IBEISController(object):
     def get_image_nids(ibs, gid_list):
         """ Returns the name ids associated with an image id """
         aids_list = ibs.get_image_aids(gid_list)
-        kwargs = {
-            '_key': constants.INDIVIDUAL_KEY
-        }
-        nids_list = ibsfuncs.unflat_map(ibs.get_annotation_labelids, aids_list **kwargs)
+        nids_list = ibs.get_annotation_nids(aids_list)
         return nids_list
 
     @getter_1toM
@@ -1292,7 +1279,7 @@ class IBEISController(object):
                     if len(label_ids) > 0 
                   else (-aid if distinguish_unknowns else 0) # UNKNOWN NID = 0
                  ) 
-                 for aid, index, label_ids in izip(index_list, aid_list, alr_label_ids) 
+                 for index, aid, label_ids in izip(index_list, aid_list, alr_label_ids) 
                ]
         
     @getter_1to1
@@ -1550,27 +1537,27 @@ class IBEISController(object):
         return nid_list
 
     @getter_1to1
+    def get_labels(ibs, labelid_list, _key):
+        """ Returns text labels """
+        #print('get_labels: %r' % labelid_list)
+        # Change the temporary negative indexes back to the unknown NID for the
+        # SQL query. Then augment the label list to distinguish unknown labels
+        key_rowid_list = ibs.get_label_keys(labelid_list)
+        assert all([key == ibs.key_ids[_key]
+                    for key in key_rowid_list]), 'label_rowids are not individual_ids'
+        label_list = ibs.db.get(LABEL_TABLE, ('label_value',), labelid_list)
+        return label_list
+
+    @getter_1to1
     def get_names(ibs, nid_list):
         """ Returns text names """
-        #print('get_names: %r' % nid_list)
-        # Change the temporary negative indexes back to the unknown NID for the
-        # SQL query. Then augment the name list to distinguish unknown names
-        key_rowid_list = ibs.get_label_keys(nid_list)
-        assert all([key == ibs.key_ids[constants.INDIVIDUAL_KEY]
-                    for key in key_rowid_list]), 'label_rowids are not individual_ids'
-        name_list = ibs.db.get(LABEL_TABLE, ('label_value',), nid_list)
+        name_list = ibs.get_labels(nid_list, constants.INDIVIDUAL_KEY)
         return name_list
 
     @getter_1to1
-    def get_species(ibs, nid_list):
+    def get_species(ibs, speciesid_list):
         """ Returns text names """
-        #print('get_species: %r' % nid_list)
-        # Change the temporary negative indexes back to the unknown NID for the
-        # SQL query. Then augment the name list to distinguish unknown names
-        key_rowid_list = ibs.get_label_keys(nid_list)
-        assert all([key == ibs.key_ids[constants.SPECIES_KEY]
-                    for key in key_rowid_list]), 'label_rowids are not species_ids'
-        species_list = ibs.db.get(LABEL_TABLE, ('label_value',), nid_list)
+        species_list = ibs.get_labels(speciesid_list, constants.SPECIES_KEY)
         return species_list
 
     @getter_1toM
@@ -1808,7 +1795,7 @@ class IBEISController(object):
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
 
     @deleter
-    def delete_annotation_nids(ibs, aid_list, _key):
+    def delete_annotation_labelids(ibs, aid_list, _key):
         """ Deletes nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special labelids
@@ -1817,6 +1804,16 @@ class IBEISController(object):
         # Cannot use set_table_props for cross-table setters.
         [ ibs.db.delete_rowids(AL_RELATION_TABLE, alrid) for alrid in alrid_list ]
 
+    @deleter
+    def delete_annotation_nids(ibs, aid_list):
+        """ Deletes nids of a list of annotations """
+        ibs.delete_annotation_labelids(aid_list, constants.INDIVIDUAL_KEY)
+
+    @deleter
+    def delete_annotation_speciesids(ibs, aid_list):
+        """ Deletes nids of a list of annotations """
+        ibs.delete_annotation_labelids(aid_list, constants.SPECIES_KEY)
+        
     @deleter
     def delete_images(ibs, gid_list):
         """ deletes images from the database that belong to gids"""
