@@ -302,9 +302,11 @@ class ANNOTATIONInteraction(object):
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
-            'Press \"r\" to remove selected ANNOTATION',
-            'Press \"t\" to add an ANNOTATION.',
-            'Press \"a\" to Accept new ANNOTATIONs'])))
+            'Press \"ctrl-r\" to remove selected ANNOTATION',
+            'Press \"ctrl-t\" to add an ANNOTATION.',
+            'Press \"ctrl-a\" to Accept new ANNOTATIONs',
+            'Press enter to clear the species tag of the selected ANNOTATION',
+            'Type to set the species tag of the selected ANNOTATION',])))
 
         self.showverts = True
         self.max_ds = max_ds
