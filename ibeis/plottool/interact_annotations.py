@@ -39,12 +39,13 @@ import math as math
 # Scientific
 import numpy as np
 import utool
+import re
 
 from plottool import draw_func2 as df2
 from itertools import izip
 
 
-DEFAULT_SPECIES_TAG = "$SPECIES"
+DEFAULT_SPECIES_TAG = "Unknown species"
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -647,49 +648,46 @@ class ANNOTATIONInteraction(object):
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
-        print('key_press_callback')
+        #print('key_press_callback')
         if not event.inaxes:
             return
-        if event.key == 'a':
-            self.accept_new_annotations(event)
 
-        if event.key == 't':
-            self.draw_new_poly()
-        # old code for adding and deleting Polygon vertices (would need to
-        # rewrite for multiply polygons
+        def handle_command(keychar):
+            if keychar == 'a':
+                self.accept_new_annotations(event)
 
-        # code for deleting a polygon
-        if event.key == 'r':
-            self.delete_current_poly()
+            if keychar == 't':
+                self.draw_new_poly()
 
-        if event.key == 'u':
-            self.load_points()
+            if keychar == 'r':
+                self.delete_current_poly()
 
-        if event.key == 'p':
-            print(plt.get_fignums())
-        # elif event.key == 'd':
-        #     ind = self.get_ind_under_cursor(event)
-        #     if ind is None:
-        #         return
-        #     if ind == 0 or ind == self.last_vert_ind:
-        #         print('[mask] Cannot delete root node')
-        #         return
-        #     self.poly.xy = [tup for i, tup in enumerate(self.poly.xy) if i != ind]
-        #     self._update_line()
-        # elif event.key == 'i':
-        #     xys = self.poly.get_transform().transform(self.poly.xy)
-        #     p = event.x, event.y  # cursor coords
-        #     for i in range(len(xys) - 1):
-        #         s0 = xys[i]
-        #         s1 = xys[i + 1]
-        #         d = dist_point_to_segment(p, s0, s1)
-        #         if d <= self.max_ds:
-        #             self.poly.xy = np.array(
-        #                 list(self.poly.xy[:i + 1]) +
-        #                 [(event.xdata, event.ydata)] +
-        #                 list(self.poly.xy[i + 1:]))
-        #             self._update_line()
-        #             break
+            if keychar == 'u':
+                self.load_points()
+
+            if keychar == 'p':
+                print(plt.get_fignums())
+
+        def handle_label_typing(keychar):
+            if self._currently_selected_poly:
+                text = self._currently_selected_poly.species_tag.get_text()
+                text += keychar
+                text = self._currently_selected_poly.species_tag.set_text(text)
+
+        # perfect use case for anaphoric if, or assignment in if statements (if python had either)
+        match = re.match('^ctrl\+(.)$', event.key)
+        if match:
+            handle_command(match.group(1))
+
+        # enter clears the species tag, workaround since matplotlib doesn't seem to trigger 'key_press_event's for backspace (which would be the preferred interface)
+        match = re.match('^enter$', event.key)
+        if match:
+            text = self._currently_selected_poly.species_tag.set_text('')
+
+        match = re.match('^.$', event.key)
+        if match:
+            handle_label_typing(match.group(0))
+
         self.fig.canvas.draw()
 
     def motion_notify_callback(self, event):
