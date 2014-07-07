@@ -890,8 +890,8 @@ class IBEISController(object):
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
-        for nid, alrid_list in izip(nid_list, alrids_list):
-            ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), [nid] * len(alrid_list), alrid_list)
+        for labelid, alrid_list in izip(labelid_list, alrids_list):
+            ibs.db.set(AL_RELATION_TABLE, ('label_rowid',), [labelid] * len(alrid_list), alrid_list)
 
     @setter
     def set_annotation_nids(ibs, aid_list, nid_list):
