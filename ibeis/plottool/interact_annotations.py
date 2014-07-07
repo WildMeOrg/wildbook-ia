@@ -82,7 +82,7 @@ def bbox_to_verts(bbox):
     verts = np.array([(x + 0, y + h),
                       (x + 0, y + 0),
                       (x + w, y + 0),
-                      (x + w, y + h),], dtype=np.float32)
+                      (x + w, y + h), ], dtype=np.float32)
     return verts
 
 
@@ -155,9 +155,11 @@ def set_display_coords(poly):
     poly.species_tag.set_position(calc_tag_position(poly))
     #print(poly.species_tag.get_position())
 
+
 def calc_tag_position(poly):
     tagpos = rotate_points_around([[max(zip(*poly.basecoords)[0]), min(zip(*poly.basecoords)[1])]], poly.theta, *polygon_center(poly))[0]
     return tagpos
+
 
 def is_within_distance(dist, p1, p2):
     dx = p2[0] - p1[0]
@@ -221,7 +223,7 @@ class ANNOTATIONInteraction(object):
         poly.handle = make_handle_line(poly)
         tagpos = calc_tag_position(poly)
         poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
-        poly.species_tag.remove() # eliminate "leftover" copies
+        poly.species_tag.remove()  # eliminate "leftover" copies
         return poly
 
     def make_lines(self, poly, line_color, line_width):
@@ -294,7 +296,6 @@ class ANNOTATIONInteraction(object):
         ax = df2.gca()
         self.fig.ax = ax
         self.img_ind = img_ind
-
 
         df2.imshow(img, fnum=fnum)
 
@@ -672,7 +673,7 @@ class ANNOTATIONInteraction(object):
             if self._currently_selected_poly:
                 text = self._currently_selected_poly.species_tag.get_text()
                 text += keychar
-                text = self._currently_selected_poly.species_tag.set_text(text)
+                self._currently_selected_poly.species_tag.set_text(text)
 
         # perfect use case for anaphoric if, or assignment in if statements (if python had either)
         match = re.match('^ctrl\+(.)$', event.key)
@@ -682,7 +683,7 @@ class ANNOTATIONInteraction(object):
         # enter clears the species tag, workaround since matplotlib doesn't seem to trigger 'key_press_event's for backspace (which would be the preferred interface)
         match = re.match('^enter$', event.key)
         if match:
-            text = self._currently_selected_poly.species_tag.set_text('')
+            self._currently_selected_poly.species_tag.set_text('')
 
         match = re.match('^.$', event.key)
         if match:
@@ -797,11 +798,11 @@ class ANNOTATIONInteraction(object):
             return
 
         def distance(x, y):
-            return math.sqrt(x**2 + y**2)
+            return math.sqrt(x ** 2 + y ** 2)
 
         def polarDelta(p1, p2):
-            mag = distance(p2[0]-p1[0], p2[1]-p1[1])
-            theta = math.atan2(p2[1]-p1[1], p2[0]-p1[0])
+            mag = distance(p2[0] - p1[0], p2[1] - p1[1])
+            theta = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
             return [mag, theta]
 
         def apply_polarDelta(poldelt, cart):
@@ -810,7 +811,7 @@ class ANNOTATIONInteraction(object):
             return (newx, newy)
 
         def isSegmentBetweenCoordsVertical(c1, c2):
-            return c1[0] == c2[0] # x coordinates are the same
+            return c1[0] == c2[0]  # x coordinates are the same
 
         def rad2deg(t):
             return t * 360 / np.tau
@@ -824,7 +825,7 @@ class ANNOTATIONInteraction(object):
 
         idx = self._ind
         previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
-        oppidx = wrapIndex(idx + 2)
+        #oppidx = wrapIndex(idx + 2)
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
         #(total_dx, total_dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
         #higher_delta = max(total_dx, total_dy)
@@ -873,8 +874,8 @@ class ANNOTATIONInteraction(object):
         tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
         mag_delta = distance(dx, dy)
         theta_delta = math.atan2(dy, dx)
-        poly_theta = poly.theta + FUDGE_FACTORS.get(idx,0)
-        theta_rot = theta_delta - (poly_theta + np.tau/4)
+        poly_theta = poly.theta + FUDGE_FACTORS.get(idx, 0)
+        theta_rot = theta_delta - (poly_theta + np.tau / 4)
         ##print('poly.theta %r' % rad2deg(poly.theta))
         ##print('poly_theta %r' % rad2deg(poly_theta))
         ##print('theta_delta %r' % rad2deg(theta_delta))
@@ -898,8 +899,8 @@ class ANNOTATIONInteraction(object):
             MIN_W = 5
             MIN_H = 5
             """
-            Depends on hardcoded indicies, which is inelegant, but 
-            we're already depending on those for the FUDGE_FACTORS 
+            Depends on hardcoded indicies, which is inelegant, but
+            we're already depending on those for the FUDGE_FACTORS
             array above
             1----2
             |    |
