@@ -82,29 +82,29 @@ def setup_actions_menu(mainwin, back):
     mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query',
-        shortcut='Q',
+        shortcut='Ctrl+Q',
         slot_fn=back.query)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
         name='actionReselect_ANNOTATION',
         text='Reselect ANNOTATION Bbox',
-        shortcut='R',
+        shortcut='Ctrl+R',
         slot_fn=back.reselect_annotation)
     mainwin.menuActions.newAction(
         name='actionReselect_Ori',
         text='Reselect ANNOTATION Orientation',
-        shortcut='O',
+        shortcut='Ctrl+Shift+O',
         slot_fn=back.reselect_ori)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
         name='actionNext',
         text='Select Next',
-        shortcut='N',
+        shortcut='Ctrl+N',
         slot_fn=back.select_next)
     mainwin.menuActions.newAction(
         name='actionPrev',
         text='Select Previous',
-        shortcut='P',
+        shortcut='Ctrl+P',
         slot_fn=back.select_prev)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
