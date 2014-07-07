@@ -301,7 +301,7 @@ if 'os' in ARG_DICT:
     if __OS__.lower() in ['apple', 'darwin', 'mac']:
         MACPORTS = True
         APPLE    = True
-    elif __OS__.lower() in ['debian','ubuntu']:
+    elif __OS__.lower() in ['debian', 'ubuntu']:
         LINUX         = True
         DEBIAN_FAMILY = True
     elif __OS__.lower() in ['centos']:
@@ -536,7 +536,7 @@ def apply_preinstall_fixes():
     if CENTOS:
         prefixes = []
         prefixes.append(update_and_upgrade())
-        return [cmd(command, label='_fix_yum_repos: ' + str(count))
+        return [cmd(command, lbl='_fix_yum_repos: ' + str(count))
                 for count, command in enumerate(_fix_yum_repos())]
     else:
         return []
@@ -587,7 +587,7 @@ def ensure_python_package(pkg):
 # CONVINENCE COMMANDS
 
 
-def cmd(command, label=None):
+def cmd(command, lbl=None):
     if command == '':
         # Base Case
         return ''
@@ -597,15 +597,15 @@ def cmd(command, label=None):
     else:
         # Base Case
         print(command)
-        if label is None:
-            label = command.split('\n')[0]
+        if lbl is None:
+            lbl = command.split('\n')[0]
         delim1 = 'echo "************"'
-        delim2 = 'echo "command = %r"' % label
+        delim2 = 'echo "command = %r"' % lbl
         write_list = [delim1]
         write_list += [delim2]
         if CRASH_ON_FAIL:
             # Augments the bash script to exit on the failure of a command
-            fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % label
+            fail_extra = '|| { echo "FAILED ON COMMAND: %r" ; exit 1; }' % lbl
             write_list += [command + fail_extra]
         else:
             write_list += [command]

@@ -42,14 +42,14 @@ def TEST_QUERY_COMP(ibs):
     top_aids = utool.safe_slice(top_aids, 3)
     aid2 = top_aids[0]
 
-    for px, (label, qres) in enumerate(qres_dict.iteritems()):
-        print(label)
+    for px, (lbl, qres) in enumerate(qres_dict.iteritems()):
+        print(lbl)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
         #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
         #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
         interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
-        df2.set_figtitle(label)
+        df2.set_figtitle(lbl)
         df2.adjust_subplots_safe(top=.8)
 
     fnum = df2.next_fnum()

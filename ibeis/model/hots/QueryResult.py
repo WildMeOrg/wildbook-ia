@@ -199,11 +199,11 @@ class QueryResult(__OBJECT_BASE__):
         qaids   = np.full(aids.shape, qres.qaid, dtype=aids.dtype)
         tbldata = (qaids, aids, scores, ranks)
         # DEBUG
-        #column_labels = ['qaids', 'aids', 'scores', 'ranks']
+        #column_lbls = ['qaids', 'aids', 'scores', 'ranks']
         #qaid_arr      = np.full(aid_arr.shape, qres.qaid, dtype=aid_arr.dtype)
         #tbldata2      = (qaid_arr, aid_arr, score_arr, rank_arr)
-        #print(utool.make_csv_table(tbldata, column_labels))
-        #print(utool.make_csv_table(tbldata2, column_labels))
+        #print(utool.make_csv_table(tbldata, column_lbls))
+        #print(utool.make_csv_table(tbldata2, column_lbls))
         #utool.embed()
         return tbldata
 

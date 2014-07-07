@@ -192,6 +192,13 @@ normrule.update({
     'normalizer_rule': ['name', 'last'],
 })
 
+normrule2 = vsmany_best.copy()
+normrule2.update({
+    'K': [5, 3],
+    'Knorm': [1, 3],
+    'normalizer_rule': ['name', 'last'],
+})
+
 small_scale_test = small_scale = vsmany_best.copy()
 small_scale_test.update({
     'scale_min': [0, 20],

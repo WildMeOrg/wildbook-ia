@@ -10,14 +10,14 @@ from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
 
 
-NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = utool.get_arg('--no-lbl-override', type_=bool, default=None)
 
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
 IN_IMAGE_OVERRIDE = utool.get_arg('--in-image-override', type_=bool, default=None)
 SHOW_QUERY_OVERRIDE = utool.get_arg('--show-query-override', type_=bool, default=None)
-NO_LABEL_OVERRIDE = utool.get_arg('--no-label-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = utool.get_arg('--no-lbl-override', type_=bool, default=None)
 
 SIFT_OR_VECFIELD  = ph.SIFT_OR_VECFIELD
 
@@ -105,19 +105,19 @@ def get_bbox_centers(bbox_list):
                   for (x, y, w, h) in bbox_list]
     center_pts = np.array(center_pts)
     return center_pts
-    
+
 
 def is_unknown(ibs, nid_list):
     return [ not isinstance(nid, int) and len(nid) == 0 for nid in nid_list]
 
 
-def get_truth_label(ibs, truth):
-    truth_labels = [
+def get_truth_text(ibs, truth):
+    truth_texts = [
         'FALSE',
         'TRUE',
         '???'
     ]
-    return truth_labels[truth]
+    return truth_texts[truth]
 
 
 def get_truth_color(truth, base255=False, lighten_amount=None):
@@ -149,7 +149,7 @@ def get_timedelta_str(ibs, aid1, aid2):
 
 
 def get_annotation_texts(ibs, aid_list, **kwargs):
-    """ Add each type of label_list to the strings list """
+    """ Add each type of text_list to the strings list """
     try:
         ibsfuncs.assert_valid_aids(ibs, aid_list)
         assert utool.isiterable(aid_list), 'input must be iterable'
@@ -174,7 +174,7 @@ def get_annotation_texts(ibs, aid_list, **kwargs):
     if len(texts_list) > 0:
         annotation_text_list = [', '.join(tup) for tup in izip(*texts_list)]
     else:
-        # no labels were specified return empty string for each input
+        # no texts were specified return empty string for each input
         annotation_text_list = [''] * len(aid_list)
     return annotation_text_list
 
@@ -189,35 +189,34 @@ def get_image_titles(ibs, gid_list):
     return title_list
 
 
-def get_annotation_labels(ibs, aid_list, draw_lbls):
+def get_annotation_text(ibs, aid_list, draw_lbls):
     if draw_lbls:
-        label_list = ibs.get_annotation_names(aid_list)
-        #label = aid if label == '____' else label
+        text_list = ibs.get_annotation_names(aid_list)
     else:
-        label_list = utool.alloc_nones(len(aid_list))
-    return label_list
+        text_list = utool.alloc_nones(len(aid_list))
+    return text_list
 
 
-def get_query_label(ibs, qres, aid2, truth, **kwargs):
+def get_query_text(ibs, qres, aid2, truth, **kwargs):
     """ returns title based on the query chip and result """
-    label_list = []
+    text_list = []
     if kwargs.get('show_truth', False):
-        truth_str = '*%s*' % get_truth_label(ibs, truth)
-        label_list.append(truth_str)
+        truth_str = '*%s*' % get_truth_text(ibs, truth)
+        text_list.append(truth_str)
     if kwargs.get('show_rank', True):
         rank_str = 'rank=%s' % str(qres.get_aid_ranks([aid2])[0] + 1)
-        label_list.append(rank_str)
+        text_list.append(rank_str)
     if kwargs.get('show_score', True):
         score = qres.aid2_score[aid2]
         score_str = ('score=' + utool.num_fmt(score))
-        if len(label_list) > 0:
+        if len(text_list) > 0:
             score_str = '\n' + score_str
-        label_list.append(score_str)
+        text_list.append(score_str)
     if kwargs.get('show_timedelta', False):
         timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qaid, aid2))
-        label_list.append(timedelta_str)
-    query_label = ', '.join(label_list)
-    return query_label
+        text_list.append(timedelta_str)
+    query_text = ', '.join(text_list)
+    return query_text
 
 
 #==========================#

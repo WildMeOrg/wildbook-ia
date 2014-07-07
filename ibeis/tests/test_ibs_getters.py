@@ -32,16 +32,16 @@ def TEST_IBS_GETTERS(ibs=None):
     kpts_scalar = ibs.get_annotation_kpts(aid_scalar)
     kpts_numpy  = ibs.get_annotation_kpts(aid_numpy)
 
-    def assert_getter_output(list_, scalar, numpy_, label=''):
+    def assert_getter_output(list_, scalar, numpy_, lbl=''):
         item1 = list_[0]
         item2 = scalar
         item3 = numpy_[0, 0]
         assert np.all(np.array(item1) == np.array(item2)), 'getters are broken'
         assert np.all(np.array(item2) == np.array(item3)), 'getters are broken'
-        print(label + ' passed')
+        print(lbl + ' passed')
 
-    assert_getter_output(bboxes_list, bboxes_scalar, bboxes_numpy, 'bboxes')
-    assert_getter_output(kpts_list, kpts_scalar, kpts_numpy, 'kpts')
+    assert_getter_output(bboxes_list, bboxes_scalar, bboxes_numpy, lbl='bboxes')
+    assert_getter_output(kpts_list, kpts_scalar, kpts_numpy, lbl='kpts')
     return locals()
 
 

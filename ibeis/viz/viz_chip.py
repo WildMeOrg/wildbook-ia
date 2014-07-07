@@ -35,4 +35,4 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
         gid = ibs.get_annotation_gids(aid)
         aid_list = ibs.get_image_aids(gid)
         annotekw = viz_image.get_annotation_annotations(ibs, aid_list, sel_aids=[aid])
-        viz_image2.annotate_image(ax, **annotekw)
+        viz_image2.draw_image_overlay(ax, **annotekw)

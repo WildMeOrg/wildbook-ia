@@ -197,7 +197,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                   for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
     aid_list = ibs.add_annotations(gid_list, bbox_list, theta_list,
-                            name_list=name_list, nid_list=nid_list, notes_list=notes_list)
+                                   name_list=name_list, nid_list=nid_list, notes_list=notes_list)
     return aid_list
 
 
@@ -317,7 +317,7 @@ def set_annotation_names_to_next_name(ibs, aid_list):
 
 @__injectable
 def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annotation_labelids((aid1, aid2), 'INDIVIDUAL_KEY')
+    nid1, nid2 = ibs.get_annotation_nids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -557,13 +557,13 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
                 print('bbox_list = %r' % (bbox_list,))
                 raise
         annotation_uuid_list = [augment_uuid(img_uuid, bbox, theta)
-                         for img_uuid, bbox, theta
-                         in izip(image_uuid_list, bbox_list, theta_list)]
+                                for img_uuid, bbox, theta
+                                in izip(image_uuid_list, bbox_list, theta_list)]
         if not deterministic:
             # Augment determenistic uuid with a random uuid to ensure randomness
             # (this should be ensured in all hardward situations)
             annotation_uuid_list = [augment_uuid(random_uuid(), _uuid)
-                             for _uuid in annotation_uuid_list]
+                                    for _uuid in annotation_uuid_list]
     except Exception as ex:
         utool.printex(ex, 'Error building annotation_uuids', '[add_annotation]',
                       key_list=['image_uuid_list'])
@@ -633,10 +633,10 @@ def merge_databases(ibs_target, ibs_source_list):
         # Assert that the image uuids have not changed
         assert image_uuid_list1 == image_uuid_list2, 'error merging annotation image uuids'
         aid_list2 = ibs_target.add_annotations(gid_list2,
-                                        bbox_list1,
-                                        theta_list=theta_list1,
-                                        name_list=name_list1,
-                                        notes_list=notes_list1)
+                                               bbox_list1,
+                                               theta_list=theta_list1,
+                                               name_list=name_list1,
+                                               notes_list=notes_list1)
         uuid_list2 = ibs_target.get_annotation_uuids(aid_list2)
         assert uuid_list2 == uuid_list1, 'error merging annotation uuids'
 
@@ -813,7 +813,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 #@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
-    nid_list = ibs.get_annotation_labelids(aid_list, 'INDIVIDUAL_KEY')
+    nid_list = ibs.get_annotation_nids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
 

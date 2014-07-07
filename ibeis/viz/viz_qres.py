@@ -211,7 +211,7 @@ def show_qres(ibs, qres, **kwargs):
         _plot_matches_aids(top_aids, shift_topN, (nRows, nTopNCols))
         #figtitle += ' q%s name=%s' % (ibsfuncs.aidstr(qres.qaid), ibs.aid2_name(qres.qaid))
         figtitle += aug
-        df2.set_figtitle(figtitle, incanvas=not vh.NO_LABEL_OVERRIDE)
+        df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
 
     # Result Interaction
     df2.adjust_subplots_safe()

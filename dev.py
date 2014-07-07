@@ -150,7 +150,7 @@ def get_allres(ibs, qaid_list):
 @devcmd('dists', 'dist', 'desc_dists')
 def desc_dists(ibs, qaid_list):
     """ Plots the distances between matching descriptors
-    labeled with groundtruth (true/false) data """
+        with groundtruth (true/false) data """
     print('[dev] desc_dists')
     allres = get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches

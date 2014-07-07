@@ -53,6 +53,7 @@ from math import radians, cos, sin, asin, sqrt
 
 def haversine(lon1, lat1, lon2, lat2):
     """
+    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     http://en.wikipedia.org/wiki/Haversine_formula
@@ -96,8 +97,8 @@ def _prepare_X_data(ibs, gid_list, use_gps=False):
 
 def _agglomerative_cluster_encounters(X_data, seconds_thresh):
     """ Agglomerative encounter clustering algorithm
-    Input: Length N array of data to cluster
-    Output: Length N array of labels
+    Input:  Length N array of data to cluster
+    Output: Length N array of cluster indexes
     """
     label_arr = fclusterdata(X_data, seconds_thresh, criterion='distance')
     return label_arr
