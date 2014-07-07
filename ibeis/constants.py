@@ -27,14 +27,14 @@ KEY_DEFAULTS = {
 
 IMAGE_TABLE       = 'images'
 ANNOTATION_TABLE  = 'annotations'
-ANNOTLABEL_TABLE       = 'annotlabels'
+LBLANNOT_TABLE       = 'lblannots'
 ENCOUNTER_TABLE   = 'encounters'
 EG_RELATION_TABLE = 'encounter_image_relationship'
-AL_RELATION_TABLE = 'annotation_annotlabel_relationship'
+AL_RELATION_TABLE = 'annotation_lblannot_relationship'
 CHIP_TABLE        = 'chips'
 FEATURE_TABLE     = 'features'
 CONFIG_TABLE      = 'configs'
-KEY_TABLE         = 'keys'
+LBLTYPE_TABLE         = 'keys'
 
 import numpy as np
 UNKNOWN_PURPLE_RGBA255 = np.array((102,   0, 153, 255))

@@ -107,12 +107,12 @@
         #    print('[ibs] adding %d names' % len(dirty_names))
         #    ibsfuncs.assert_valid_names(name_list)
         #    notes_list = ['' for _ in xrange(len(dirty_names))]
-        #    # All names are individuals and so may safely receive the INDIVIDUAL_KEY annotlabel
-        #    key_rowid_list = [ibs.INDIVIDUAL_KEY for name in name_list]
-        #    new_nid_list = ibs.add_annotlabels(key_rowid_list, dirty_names, notes_list)
+        #    # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
+        #    lbltype_rowid_list = [ibs.INDIVIDUAL_KEY for name in name_list]
+        #    new_nid_list = ibs.add_lblannots(lbltype_rowid_list, dirty_names, notes_list)
         #    #print('new_nid_list = %r' % (new_nid_list,))
         #    #get_rowid_from_uuid = partial(ibs.get_name_nids, ensure=False)
-        #    #new_nid_list = ibs.db.add_cleanly(ANNOTLABEL_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        #    #new_nid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter, get_rowid_from_uuid)
         #    new_nid_list  # this line silences warnings
 
         #    # All the names should have been ensured
@@ -131,7 +131,7 @@
         #cid_list = sorted(cid_list)
         #return sorted(cid_list)
 
-        #all_nids = ibs.db.get_executeone_where(ANNOTLABEL_TABLE, ('annotlabel_rowid',), where_clause, params)
+        #all_nids = ibs.db.get_executeone_where(LBLANNOT_TABLE, ('lblannot_rowid',), where_clause, params)
         #all_nids = sorted(all_nids)
 
 
@@ -239,7 +239,7 @@
 
 
 
-        #annotlabel_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
+        #lblannot_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
         # FIXME: This should actually be a random uuid, but (key, vals) should be
         # enforced as unique as well
         # NOTE:
@@ -250,7 +250,7 @@
         #    The next name are generated each time you merge a name
         # A Case against deterministic UUIDS:
         # 0) Changing the nickname would mean you have to change the UUID
-        #annotlabel_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
+        #lblannot_uuid_list = [utool.deterministic_uuid(repr((key, value))) for key, value in
         #                   izip(key_list, value_list)]
 
 

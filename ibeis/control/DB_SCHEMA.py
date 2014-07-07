@@ -50,33 +50,36 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema(constants.AL_RELATION_TABLE, (
         ('alr_rowid',                      'INTEGER PRIMARY KEY'),
         ('annot_rowid',                    'INTEGER NOT NULL'),
-        ('annotlabel_rowid',                    'INTEGER NOT NULL'),
+        ('lblannot_rowid',                 'INTEGER NOT NULL'),
         ('config_rowid',                   'INTEGER DEFAULT 0'),
         ('alr_confidence',                 'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, annotlabel_rowid, config_rowid)'],
+    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, lblannot_rowid, config_rowid)'],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and Labels''')
 
-    ibs.db.schema(constants.ANNOTLABEL_TABLE, (
-        ('annotlabel_rowid',                   'INTEGER PRIMARY KEY'),
-        ('annotlabel_uuid',                    'UUID NOT NULL'),
-        ('key_rowid',                     'INTEGER NOT NULL'),  # this is "category" in the proposal
-        ('annotlabel_value',                   'TEXT NOT NULL'),
-        ('annotlabel_note',                    'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (key_rowid, annotlabel_value)'],
+    ibs.db.schema(constants.LBLANNOT_TABLE, (
+        ('lblannot_rowid',                   'INTEGER PRIMARY KEY'),
+        ('lblannot_uuid',                    'UUID NOT NULL'),
+        ('lbltype_rowid',                    'INTEGER NOT NULL'),  # this is "category" in the proposal
+        ('lblannot_value',                   'TEXT NOT NULL'),
+        ('lblannot_note',                    'TEXT'),
+    ), ['CONSTRAINT superkey UNIQUE (lbltype_rowid, lblannot_value)'],
         docstr='''
-        Used to store the attributes of annotations''')
+        Used to store the labels / attributes of annotations.
+        E.G name, species ''')
 
-    ibs.db.schema(constants.KEY_TABLE, (
-        ('key_rowid',                'INTEGER PRIMARY KEY'),
-        ('key_text',                 'TEXT NOT NULL'),
-        ('key_default',              'TEXT NOT NULL'),
-    ), ['CONSTRAINT superkey UNIQUE (key_text)'],
+    # SHOULD THIS BE THE LBLTYPE TABLE?
+    ibs.db.schema(constants.LBLTYPE_TABLE, (
+        ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
+        ('lbltype_text',                 'TEXT NOT NULL'),
+        ('lbltype_default',              'TEXT NOT NULL'),
+    ), ['CONSTRAINT superkey UNIQUE (lbltype_text)'],
         docstr='''
-        List of keys used to define the categories of annotation lables, text is
-        for human-readability. The key_default specifies the property value of
-        annotations with a relationship of some key_rowid''')
+        List of keys used to define the categories of annotation lables, text
+        is for human-readability. The lbltype_default specifies the
+        lblannot_value of annotations with a relationship of some
+        lbltype_rowid''')
 
     ibs.db.schema(constants.ENCOUNTER_TABLE, (
         ('encounter_rowid',             'INTEGER PRIMARY KEY'),
@@ -103,7 +106,7 @@ def define_IBEIS_schema(ibs):
     ),  ['CONSTRAINT superkey UNIQUE (config_suffix)'],
         docstr='''
         Used to store the ids of algorithm configurations that generate
-        annotation annotlabels.  Each user will have a config id for manual
+        annotation lblannots.  Each user will have a config id for manual
         contributions ''')
 
     # TODO: constraint needs modify
