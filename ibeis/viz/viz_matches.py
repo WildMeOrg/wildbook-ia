@@ -73,7 +73,7 @@ def annotate_matches(ibs, qres, aid2,
     truth_color = vh.get_truth_color(truth)
     # Build title
     title = vh.get_query_text(ibs, qres, aid2, truth, **kwargs)
-    # Build xlabel
+    # Build xlbl
     ax = df2.gca()
     ph.set_plotdat(ax, 'viztype', 'matches')
     ph.set_plotdat(ax, 'qaid', aid1)
@@ -87,9 +87,7 @@ def annotate_matches(ibs, qres, aid2,
         lbl1, lbl2 = None, None
     if vh.NO_LBL_OVERRIDE:
         title = ''
-        #xlabel = ''
     df2.set_title(title, ax)
-    #df2.set_xlabel(xlabel, ax)
     # Plot annotations over images
     if in_image:
         bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])

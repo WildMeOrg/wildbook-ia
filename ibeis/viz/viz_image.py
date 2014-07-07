@@ -23,8 +23,8 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
         # Draw all chip indexes in the image
         if annote:
             annotation_iter = izip(bbox_list, theta_list, text_list, sel_list)
-            for bbox, theta, label, is_sel in annotation_iter:
-                viz_image2.draw_chip_overlay(ax, bbox, theta, label, is_sel)
+            for bbox, theta, lbl, is_sel in annotation_iter:
+                viz_image2.draw_chip_overlay(ax, bbox, theta, lbl, is_sel)
         # Put annotation centers in the axis
         vh.set_ibsdat(ax, 'annotation_centers', np.array(annotation_centers))
         vh.set_ibsdat(ax, 'aid_list', aid_list)
