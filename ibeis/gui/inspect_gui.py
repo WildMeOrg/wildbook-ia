@@ -119,12 +119,20 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
             backend_callback()
             return
         elif is_unknown[0]:
-            ibs.set_annotation_nids(aid1, ibs.get_annotation_nids(aid2), 'INDIVIDUAL_KEY')
+            ibs.set_annotation_nids(
+                aid1, 
+                ibs.get_annotation_labelids(aid2, 'INDIVIDUAL_KEY'), 
+                'INDIVIDUAL_KEY'
+            )
             update_callback()
             backend_callback()
             return
         elif is_unknown[1]:
-            ibs.set_annotation_nids(aid2, ibs.get_annotation_nids(aid1), 'INDIVIDUAL_KEY')
+            ibs.set_annotation_nids(
+                aid2, 
+                ibs.get_annotation_labelids(aid1, 'INDIVIDUAL_KEY'), 
+                'INDIVIDUAL_KEY'
+            )
             update_callback()
             backend_callback()
             return
@@ -317,7 +325,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     (qaids, aids, scores, ranks) = candidate_matches
     #qnames = ibs.get_annotation_names(qaids)
     #names = ibs.get_annotation_names(aids)
-    #truths = np.array((ibs.get_annotation_nids(qaids) - ibs.get_annotation_nids(aids)) == 0)
+    #truths = np.array((ibs.get_annotation_labelids(qaids) - ibs.get_annotation_labelids(aids)) == 0)
     #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in izip(qaids, aids)]
 
     #def get_review_match_buttontup(aid1, aid2):

@@ -47,7 +47,7 @@ def ingest_testdb1(db):
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
-        nid_list = ibs.get_annotation_nids(aid_list, 'INDIVIDUAL_KEY')
+        nid_list = ibs.get_annotation_labelids(aid_list, 'INDIVIDUAL_KEY')
         nid_list = [ (nid[0] if len(nid) > 0 else None) for nid in nid_list]
         unique_flag = utool.flag_unique_items(nid_list)
         unique_nids = utool.filter_items(nid_list, unique_flag)

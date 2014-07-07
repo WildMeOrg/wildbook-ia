@@ -65,7 +65,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         (aid1, aid2) = (self.aid1, self.aid2)
         self.match_text = ibs.get_match_text(aid1, aid2)
         # The names of the matching annotations
-        self.nid1, self.nid2 = ibs.get_annotation_nids((aid1, aid2), 'INDIVIDUAL_KEY')
+        self.nid1, self.nid2 = ibs.get_annotation_labelids((aid1, aid2), 'INDIVIDUAL_KEY')
         self.name1, self.name2 = ibs.get_annotation_names((aid1, aid2))
         # The other annotations that belong to these two names
         groundtruth_list = ibs.get_annotation_groundtruth((aid1, aid2))
@@ -121,7 +121,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         nCols = self.nCols
 
         # Distinct color for every unique name
-        nid_list = utool.flatten(ibs.get_annotation_nids(self.aid_list, 'INDIVIDUAL_KEY'))
+        nid_list = utool.flatten(ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY'))
         unique_nids = utool.unique_ordered(nid_list)
         import ibeis
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
@@ -130,7 +130,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         for count, groundtruth in enumerate(self.gt_list):
             offset = count * nCols + 1
             for px, aid in enumerate(groundtruth):
-                nid = ibs.get_annotation_nids(aid, 'INDIVIDUAL_KEY')
+                nid = ibs.get_annotation_labelids(aid, 'INDIVIDUAL_KEY')
 
                 if len(nid) == 0:
                     color = ibeis.constants.UNKNOWN_PURPLE_RGBA01
@@ -153,7 +153,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
-        nid = ibs.get_annotation_nids(aid, 'INDIVIDUAL_KEY')
+        nid = ibs.get_annotation_labelids(aid, 'INDIVIDUAL_KEY')
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
@@ -219,7 +219,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ibs = self.ibs
         name1, name2 = self.name1, self.name2
 
-        nid_list = ibs.get_annotation_nids(self.aid_list, 'INDIVIDUAL_KEY')
+        nid_list = ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY')
 
         def next_rect(accum=[-1]):
             accum[0] += 1
@@ -271,7 +271,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def merge_all_into_nid1(self, event=None):
         """ All the annotations are given nid1 """
         alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, self.ibs.key_ids['INDIVIDUAL_KEY'])
-        nids_list = self.ibs.get_annotation_nids(self.aid_list, 'INDIVIDUAL_KEY')
+        nids_list = self.ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY')
 
         for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
             if len(alrid_list) == 0:
@@ -285,7 +285,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def merge_all_into_nid2(self, event=None):
         """ All the annotations are given nid2 """
         alrids_list = self.ibs.get_annotation_filtered_alrids(self.aid_list, self.ibs.key_ids['INDIVIDUAL_KEY'])
-        nids_list = self.ibs.get_annotation_nids(self.aid_list, 'INDIVIDUAL_KEY')
+        nids_list = self.ibs.get_annotation_labelids(self.aid_list, 'INDIVIDUAL_KEY')
 
         for aid, nid_list, alrid_list in izip(self.aid_list, nids_list, alrids_list):
             if len(alrid_list) == 0:

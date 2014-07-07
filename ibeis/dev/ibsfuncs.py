@@ -316,7 +316,7 @@ def set_annotation_names_to_next_name(ibs, aid_list):
 
 @__injectable
 def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annotation_nids((aid1, aid2), 'INDIVIDUAL_KEY')
+    nid1, nid2 = ibs.get_annotation_labelids((aid1, aid2), 'INDIVIDUAL_KEY')
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -812,7 +812,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 #@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
-    nid_list = ibs.get_annotation_nids(aid_list, 'INDIVIDUAL_KEY')
+    nid_list = ibs.get_annotation_labelids(aid_list, 'INDIVIDUAL_KEY')
     return ibs.is_nid_unknown(nid_list)
 
 

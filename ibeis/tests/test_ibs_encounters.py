@@ -83,7 +83,7 @@ def TEST_ENCOUNTERS(ibs):
         kwargs = {
             '_key': 'INDIVIDUAL_KEY'
         }
-        nids_listb = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list, **kwargs)
+        nids_listb = ibsfuncs.unflat_map(ibs.get_annotation_labelids, aids_list, **kwargs)
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
         print('3b) names_list = %s' % (utool.list_str(names_list),))
         print('3b) target_names = %s' % (utool.list_str(target_names),))

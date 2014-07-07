@@ -1055,7 +1055,7 @@ class IBEISController(object):
         kwargs = {
             '_key': constants.INDIVIDUAL_KEY
         }
-        nids_list = ibsfuncs.unflat_map(ibs.get_annotation_nids, aids_list **kwargs)
+        nids_list = ibsfuncs.unflat_map(ibs.get_annotation_labelids, aids_list **kwargs)
         return nids_list
 
     @getter_1toM
@@ -1258,14 +1258,30 @@ class IBEISController(object):
         #     alrid_list.append(temp)
         return alrid_list
 
-    @utool.accepts_numpy
     @getter_1toM
-    def get_annotation_nids(ibs, aid_list, _key):
+    def get_annotation_labelids(ibs, aid_list, _key):
         """ Returns the name id of each annotation. """
         # Get all the annotation label relationships
         # filter out only the ones which specify names
         alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
         return [ ibs.get_alr_labelids(alrid) for alrid in alrid_list ] 
+
+    @utool.accepts_numpy
+    @getter_1to1
+    def get_annotation_nids(ibs, aid_list):
+        """ Returns the name id of each annotation. """
+        # Get all the annotation label relationships
+        # filter out only the ones which specify names
+        alrid_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[constants.INDIVIDUAL_KEY])
+        alr_label_ids = [ ibs.get_alr_labelids(alrid) for alrid in alrid_list ] 
+        index_list = [0] * len(alr_label_ids) # This will eventually get index of highest confidence name
+        return [ (
+                 label_ids[index] 
+                    if len(label_ids) > 0 
+                  else 0
+                 ) 
+                 for index, label_ids in izip(index_list, alr_label_ids) 
+               ]
         
     @getter_1to1
     def get_annotation_gnames(ibs, aid_list):
@@ -1367,7 +1383,7 @@ class IBEISController(object):
         def _key_dict(aid):
             _dict = {}
             for _key in ibs.key_names:
-                _dict[_key] = ibs.get_annotation_nids(aid, _key)
+                _dict[_key] = ibs.get_annotation_labelids(aid, _key)
             return _dict
 
         key_dict_list = [ _key_dict(aid) for aid in aid_list ]
@@ -1415,7 +1431,7 @@ class IBEISController(object):
                                                 unpack_scalars=False)
             return utool.flatten(groundtruth_list)
 
-        nids_list  = ibs.get_annotation_nids(aid_list, constants.INDIVIDUAL_KEY)
+        nids_list  = ibs.get_annotation_labelids(aid_list, constants.INDIVIDUAL_KEY)
         groundtruth_list = [ _individual_ground_truth(nids) for nids in nids_list ]
         return groundtruth_list
 
@@ -1719,7 +1735,7 @@ class IBEISController(object):
     def get_encounter_nids(ibs, eid_list):
         """ returns a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
-        nids_list = [ ibs.get_annotation_nids(aid_list, constants.INDIVIDUAL_KEY) for aid_list in aids_list ] 
+        nids_list = [ ibs.get_annotation_labelids(aid_list, constants.INDIVIDUAL_KEY) for aid_list in aids_list ] 
 
         nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
         
