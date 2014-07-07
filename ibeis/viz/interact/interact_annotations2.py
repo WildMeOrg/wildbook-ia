@@ -13,7 +13,7 @@ class ANNOTATION_Interaction2:
         self.aid_list = ibs.get_image_aids(self.gid)
         bbox_list = ibs.get_annotation_bboxes(self.aid_list)
         theta_list = ibs.get_annotation_thetas(self.aid_list)
-        species_list = None #ibs.get_annotation_species(self.aid_list) # Not yet implemented
+        species_list = ibs.get_annotation_species(self.aid_list)
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(img, callback=self.callback, bbox_list=bbox_list, theta_list=theta_list, species_list=species_list)
         df2.update()
 
@@ -32,7 +32,7 @@ class ANNOTATION_Interaction2:
             rows_updated = True
             bbox_list, theta_list, species_list = izip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_list])
             #print("species_list in annotation_interaction2: %r" % list(species_list))
-            self.ibs.add_annotations([self.gid] * len(new_list), bbox_list, theta_list)
+            self.ibs.add_annotations([self.gid] * len(new_list), bbox_list, theta_list=theta_list, species_list=species_list)
         if rows_updated:
             self.rows_updated_callback()
 

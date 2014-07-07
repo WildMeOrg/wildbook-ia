@@ -499,7 +499,7 @@ class IBEISController(object):
         return gid_list
 
     @adder
-    def add_annotations(ibs, gid_list, bbox_list=None, theta_list=None, nid_list=None,
+    def add_annotations(ibs, gid_list, bbox_list=None, theta_list=None, species_list=None, nid_list=None,
                         name_list=None, detect_confidence_list=None, notes_list=None,
                         vert_list=None):
         """ Adds oriented ANNOTATION bounding boxes to images """
@@ -547,6 +547,9 @@ class IBEISController(object):
         # Execute add ANNOTATIONs SQL
         get_rowid_from_uuid = ibs.get_annotation_aids_from_uuid
         aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_uuid)
+
+        if species_list is not None:
+            ibs.set_annotation_species(aid_list, species_list)
 
         # Also need to populate annotation_label_relationship table
         if nid_list is not None:  
