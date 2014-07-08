@@ -1,6 +1,6 @@
 # -*- mode: python -*-
 a = Analysis(['main.py'],
-             pathex=['/home/zack/code/ibeis'],
+             pathex=['.'],
              hiddenimports=['sklearn.utils.sparsetools._graph_validation', 'sklearn.utils.sparsetools._graph_tools',  'scipy.special._ufuncs_cxx',
                             'sklearn.utils.lgamma', 'sklearn.utils.weight_vector', 'sklearn.neighbors.typedefs', 'mpl_toolkits.axes_grid1'],
              hookspath=None,
