@@ -267,7 +267,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         fgcolor=(0, 0, 0)),
 
                 _NEWBUT('Identify\n(vs exemplar database)',
-                        ibswgt.back.compute_queries,
+                        ibswgt.back.compute_queries_vs_exemplar,
                         bgcolor=(150, 150, 255),
                         fgcolor=(0, 0, 0)),
                 #_NEWBUT('Review Recognitions',

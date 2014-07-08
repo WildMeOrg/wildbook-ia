@@ -18,6 +18,7 @@ from ibeis import viz
 from ibeis.viz import interact
 # Utool
 import utool
+from ibeis import constants
 from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[back]', DEBUG=False)
@@ -463,19 +464,24 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] compute_queries: eid=%r' % (eid,))
         back.compute_feats(refresh=False, **kwargs)
         valid_aids = back.ibs.get_valid_aids(eid=eid)
-        if kwargs.get('get_vs_exemplars', False):
-            if eid is None:
-                qaid2_qres = back.ibs.query_all(valid_aids)
-            else:
-                qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
+        
+        if eid is None:
+            qaid2_qres = back.ibs.query_all(valid_aids)
         else:
-            qaid2_qres = back.ibs.query_exemplars(valid_aids)
+            qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
+        
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
+
+    @blocking_slot()
+    def compute_queries_vs_exemplar(back, refresh=True, **kwargs):
+        """ Batch -> Precompute Queries"""
+        exemplar_eid = back.ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
+        back.compute_queries(eid=exemplar_eid, **kwargs)
 
     @blocking_slot()
     def review_queries(back, **kwargs):

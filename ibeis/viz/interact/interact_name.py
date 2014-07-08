@@ -70,7 +70,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.name1, self.name2 = ibs.get_annotation_names((aid1, aid2))
         # The other annotations that belong to these two names
         groundtruth_list = ibs.get_annotation_groundtruth((aid1, aid2))
-        self.gt_list = [ sorted(set(gt + [aid])) for gt, aid in izip(groundtruth_list, (aid1, aid2))]
+        self.gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(groundtruth_list, (aid1, aid2))]
         # A flat list of all the aids we are looking at
         self.aid_list = utool.unique_ordered(utool.flatten(self.gt_list))
         # Original sets of groundtruth we are working with
@@ -257,13 +257,14 @@ class MatchVerificationInteraction(AbstractInteraction):
                                           options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
         if ans == 'Confirm':
-            alrids_list = ibs.get_alrids_from_aids(self.aid_list, constants.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
+            alrids_list = ibs.get_alrids_from_aids(self.aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY], configid=ibs.MANUAL_CONFIGID)
             alrid_list = utool.flatten(alrids_list)
             # For loop in list comprehension. There is no output. Should this
             # just be a regular for loop? A timeit test might be nice.
             ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
             #[ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
             self.close()
+            print(utool.dict_str(locals()))
         ibs.print_alr_table()
 
     def unname_all(self, event=None):
@@ -292,7 +293,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Get next name from the controller
         self.next_name = next_name = ibsfuncs.make_next_name(self.ibs)
         # Readd the new names to all aids
-        self.ibs.add_annotation_names(self.aid_list , [next_name] * len(self.aid_list))
+        self.ibs.add_annotation_names(self.aid_list, [next_name] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
