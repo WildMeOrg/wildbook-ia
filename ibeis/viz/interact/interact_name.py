@@ -257,10 +257,12 @@ class MatchVerificationInteraction(AbstractInteraction):
                                           options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
         if ans == 'Confirm':
-            alrid_list = ibs.get_annotation_filtered_alrids(self.aid_list, constants.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
+            alrids_list = ibs.get_alrids_from_aids(self.aid_list, constants.INDIVIDUAL_KEY, configid=ibs.MANUAL_CONFIGID)
+            alrid_list = utool.flatten(alrids_list)
             # For loop in list comprehension. There is no output. Should this
             # just be a regular for loop? A timeit test might be nice.
-            [ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
+            ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
+            #[ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
             self.close()
         ibs.print_alr_table()
 

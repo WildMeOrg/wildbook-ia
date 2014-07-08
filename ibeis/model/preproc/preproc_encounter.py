@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from ibeis.dev import ibsfuncs
-from scipy.cluster.hierarchy import fclusterdata
+from scipy.spatial import distance
+import scipy.cluster.hierarchy as hier
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from scipy.spatial.distance import pdist
 #from ibeis import constants
@@ -49,44 +50,6 @@ def ibeis_compute_encounters(ibs, gid_list):
     return enctext_list, flat_gids
 
 
-def haversine(lon1, lat1, lon2, lat2):
-    """
-    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
-    Calculate the great circle distance between two points
-    on the earth (specified in decimal degrees)
-    http://en.wikipedia.org/wiki/Haversine_formula
-    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
-    """
-    # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
-
-    # haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    EARTH_RADIUS = 6367
-    km = EARTH_RADIUS * c
-    return km
-
-
-def timespace_distance(pt1, pt2):
-    (sec1, lat1, lon1) = pt1
-    (sec2, lat2, lon2) = pt2
-    gps_dist = haversine(lon1, lat1, lon2, lat2)
-    sec_dist = (sec1 - sec2) ** 2
-    timespace_dist = gps_dist + sec_dist
-    return timespace_dist
-
-
-def timespace_pdist(X_data):
-    if X_data.shape[1] == 3:
-        return pdist(X_data, timespace_distance)
-    if X_data.shape[1] == 3:
-        return pdist(X_data, 'euclidian')
-
-
 def _prepare_X_data(ibs, gid_list, use_gps=False):
     """
     FIXME: use haversine formula on gps dimensions
@@ -114,7 +77,7 @@ def _agglomerative_cluster_encounters(X_data, seconds_thresh):
     Input:  Length N array of data to cluster
     Output: Length N array of cluster indexes
     """
-    label_arr = fclusterdata(X_data, seconds_thresh, criterion='distance')
+    label_arr = hier.fclusterdata(X_data, seconds_thresh, criterion='distance')
     return label_arr
 
 
@@ -167,3 +130,155 @@ def _filter_and_relabel(labels, label_gids, min_imgs_per_enc):
     enc_ids  = range(label_isvalid.sum())
     enc_gids = label_gids[label_isvalid]
     return enc_ids, enc_gids
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+    http://en.wikipedia.org/wiki/Haversine_formula
+    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    EARTH_RADIUS_KM = 6367
+    kilometers = EARTH_RADIUS_KM * c
+    return kilometers
+
+
+def timespace_distance(pt1, pt2):
+    (sec1, lat1, lon1) = pt1
+    (sec2, lat2, lon2) = pt2
+    km_dist = haversine(lon1, lat1, lon2, lat2)
+    km_per_sec = .002  # conversion ratio for reasonable animal walking speed
+    sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)
+    timespace_dist = km_dist + sec_dist
+    return timespace_dist
+
+
+def timespace_pdist(X_data):
+    if X_data.shape[1] == 3:
+        return pdist(X_data, timespace_distance)
+    if X_data.shape[1] == 3:
+        return pdist(X_data, 'euclidian')
+
+
+def cluster_timespace(X_data):
+    condenced_dist_mat = distance.pdist(X_data, timespace_distance)
+    linkage_mat        = hier.linkage(condenced_dist_mat, method='centroid')
+    X_labels           = hier.fcluster(linkage_mat, thresh, criterion='inconsistent',
+                          depth=depth, R=None, monocrit=monocrit)
+    return X_labels
+
+
+def testdata_gps():
+    lon = np.array([4.54, 104.0, -14.9, 56.26, 103.46, 103.37, 54.22, 23.3,
+                    25.53, 23.31, 118.0, 103.53, 54.40, 103.48, 6.14, 7.25,
+                    2.38, 18.18, 103.54, 103.40, 28.59, 25.21, 29.35, 25.20, ])
+
+    lat = np.array([52.22, 1.14, 27.34, 25.16, 1.16, 1.11, 24.30, 37.54, 37.26,
+                    38.1, 24.25, 1.13, 24.49, 1.13, 42.33, 43.44, 39.34, 70.30,
+                    1.16, 1.10, 40.58, 37.34, 41.18, 38.35, ])
+
+    time = np.zeros(len(lon))
+
+    X_data = np.vstack((time, lat, lon)).T
+
+    X_name = np.array([0, 1, 2, 2, 2, 2, 3, 3, 3])
+    X_data = np.array([
+        (0, 42.727985, -73.683994),  # MRC
+        (0, 42.657872, -73.764148),  # Home
+        (0, 42.657414, -73.774448),  # Park1
+        (0, 42.658333, -73.770993),  # Park2
+        (0, 42.654384, -73.768919),  # Park3
+        (0, 42.655039, -73.769048),  # Park4
+        (0, 42.876974, -73.819311),  # CP1
+        (0, 42.862946, -73.804977),  # CP2
+        (0, 42.849809, -73.758486),  # CP3
+    ])
+
+    timespace_distance(X_data[1], X_data[0])
+
+    from scipy.cluster.hierarchy import fcluster
+    import numpy as np
+    np.set_printoptions(precision=8, threshold=1000, linewidth=200)
+
+    condenced_dist_mat = distance.pdist(X_data, timespace_distance)
+    #linkage_methods = [
+    #    'single',
+    #    'complete',
+    #    'average',
+    #    'weighted',
+    #    'centroid',
+    #    'median',
+    #    'ward',
+    #]
+    # Linkage matrixes are interpeted incrementally starting from the first row
+    # They are unintuitive, but not that difficult to grasp
+    linkage_mat = hier.linkage(condenced_dist_mat, method='single')
+    #print(linkage_mat)
+    #hier.leaves_list(linkage_mat)
+    # FCluster forms flat clusters from the heirarchical linkage matrix
+    #fcluster_criterions = [
+    #    'inconsistent',  # use a threshold
+    #    'distance',  # cophentic distance greter than t
+    #    'maxclust',
+    #    'monogrit',
+    #    'maxclust_monocrit',
+    #]
+    # depth has no meaning outside inconsistent criterion
+    #R = hier.inconsistent(linkage_mat) # calcualted automagically in fcluster
+    thresh = .8
+    depth = 2
+    R = None  # calculated automatically for 'inconsistent' criterion
+    monocrit = None
+    X_labels = fcluster(linkage_mat, thresh, criterion='inconsistent',
+                        depth=depth, R=R, monocrit=monocrit)
+
+    # plot
+    from plottool import draw_func2 as df2
+    fig = df2.figure(fnum=1, doclf=True, docla=True)
+    hier.dendrogram(linkage_mat, orientation='top')
+    fig.show()
+
+    print(X_labels)
+
+
+def plot_annotaiton_gps(X_Data):
+    """ Plots gps coordinates on a map projection """
+    from mpl_toolkits.basemap import Basemap
+    #lat = X_data[1:5, 1]
+    #lon = X_data[1:5, 2]
+    lat = X_data[:, 1]
+    lon = X_data[:, 2]
+    fig = df2.figure(fnum=1, doclf=True, docla=True)
+    df2.close_figure(fig)
+    fig = df2.figure(fnum=1, doclf=True, docla=True)
+    # setup Lambert Conformal basemap.
+    m = Basemap(llcrnrlon=lon.min(),
+                urcrnrlon=lon.max(),
+                llcrnrlat=lat.min(),
+                urcrnrlat=lat.max(),
+                projection='cea',
+                resolution='h')
+    # draw coastlines.
+    #m.drawcoastlines()
+    #m.drawstates()
+    # draw a boundary around the map, fill the background.
+    # this background will end up being the ocean color, since
+    # the continents will be drawn on top.
+    #m.bluemarble()
+    m.drawmapboundary(fill_color='aqua')
+    m.fillcontinents(color='coral', lake_color='aqua')
+    # Convert GPS to projected coordinates
+    x1, y1 = m(lon, lat)  # convert to meters # lon==X, lat==Y
+    m.plot(x1, y1, 'o')
+    fig.show()

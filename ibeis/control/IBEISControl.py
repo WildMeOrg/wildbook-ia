@@ -532,6 +532,27 @@ class IBEISController(object):
         elif bbox_list is None:
             bbox_list = geometry.bboxes_from_vert_list(vert_list)
 
+        len_bbox    = len(bbox_list)
+        len_vert    = len(vert_list)
+        len_gid     = len(gid_list)
+        len_notes   = len(notes_list)
+        len_theta   = len(theta_list)
+        try:
+            assert len_vert == len_bbox, 'bbox and verts are not of same size'
+            assert len_gid  == len_bbox, 'bbox and gid are not of same size'
+            assert len_gid  == len_theta, 'bbox and gid are not of same size'
+            assert len_notes == len_gid, 'notes and gids are not of same size'
+        except AssertionError as ex:
+            utool.printex(ex, key_list=['len_vert', 'len_gid', 'len_bbox'
+                                        'len_theta', 'len_notes'])
+            raise
+
+        if len(gid_list) == 0:
+            # nothing is being added
+            print('[ibs] WARNING: 0 annotations are beign added!')
+            print(utool.dict_str(locals()))
+            return []
+
         # Build ~~deterministic?~~ random and unique ANNOTATION ids
         image_uuid_list = ibs.get_image_uuids(gid_list)
         annotation_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
@@ -1253,16 +1274,18 @@ class IBEISController(object):
         """
         alrids_list = ibs.get_annotation_alrids(aid_list, configid=configid)
         # Get lblannot_rowid of each relationship
-        lblannot_rowids_list = [ibs.get_alr_lblannot_rowids(alr_list) for alr_list in alrids_list]
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
         # Get the type of each lblannot
-        lblannotlbltypes_list = [ibs.get_lblannot_lbltypes(lblannot_rowid_list) for lblannot_rowid_list in lblannot_rowids_list]
+        lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes, lblannot_rowids_list)
         # only want the nids of individuals, not species, for example
+        #lbltype_rowids_list
+
         alrids_list = [
             [
                 alrids_list[index_lblannot][index_lbltype]
                 for index_lbltype, lbltype in enumerate(lblannotlbltypes) if lbltype == lbltype_rowid
             ]
-            for index_lblannot, lblannotlbltypes in enumerate(lblannotlbltypes_list)
+            for index_lblannot, lblannotlbltypes in enumerate(lbltype_rowids_list)
         ]
         msg = "More than one type per lbltype. ALRIDS: " + str(alrids_list) + ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids)
         assert all([ len(alrid_list) < 2 for alrid_list in alrids_list]), msg
@@ -1274,7 +1297,8 @@ class IBEISController(object):
         # Get all the annotation lblannot relationships
         # filter out only the ones which specify names
         alrids_list = ibs.get_alrids_from_aids(aid_list, ibs.lbltype_ids[_lbltype])
-        return [ibs.get_alr_lblannot_rowids(alrid) for alrid in alrids_list]
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        return lblannot_rowids_list
 
     @utool.accepts_numpy
     @getter_1to1

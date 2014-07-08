@@ -36,7 +36,19 @@ PREREQ_PKG_LIST = [
     'fftw3',
     'atlas',
     #'zmq',
+    #libgeos-dev
 ]
+#http://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/
+'''
+# Install mpl_toolkits.basemap
+sudo apt-get install libgeos-dev -y
+cd ~/tmp
+wget http://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
+gunzip -c basemap-1.0.7.tar.gz | tar xvf -
+cd basemap-1.0.7
+sudo checkinstall sudo python setup.py install
+python -c "from mpl_toolkits.basemap import Basemap"
+'''
 
 if APPLE:
     PREREQ_PKG_LIST.extend([
