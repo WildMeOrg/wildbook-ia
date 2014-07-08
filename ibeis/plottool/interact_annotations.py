@@ -39,12 +39,13 @@ import math as math
 # Scientific
 import numpy as np
 import utool
+import re
 
 from plottool import draw_func2 as df2
 from itertools import izip
 
 
-DEFAULT_SPECIES_TAG = "$SPECIES"
+DEFAULT_SPECIES_TAG = "Unknown species"
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -81,7 +82,7 @@ def bbox_to_verts(bbox):
     verts = np.array([(x + 0, y + h),
                       (x + 0, y + 0),
                       (x + w, y + 0),
-                      (x + w, y + h),], dtype=np.float32)
+                      (x + w, y + h), ], dtype=np.float32)
     return verts
 
 
@@ -154,9 +155,11 @@ def set_display_coords(poly):
     poly.species_tag.set_position(calc_tag_position(poly))
     #print(poly.species_tag.get_position())
 
+
 def calc_tag_position(poly):
     tagpos = rotate_points_around([[max(zip(*poly.basecoords)[0]), min(zip(*poly.basecoords)[1])]], poly.theta, *polygon_center(poly))[0]
     return tagpos
+
 
 def is_within_distance(dist, p1, p2):
     dx = p2[0] - p1[0]
@@ -170,17 +173,27 @@ def is_within_distance(dist, p1, p2):
 
 
 def is_within_distance_from_line(dist, pt, line):
-    # http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+#    # http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
     x0, y0 = pt
     p1, p2 = line
     x1, y1 = p1
     x2, y2 = p2
     dx = x2 - x1
     dy = y2 - y1
-    numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
-    denom = math.sqrt((dx ** 2) + (dy ** 2))
-    distance = numer / denom
-    return distance < dist
+#    # This doesn't work due to being for lines, not line segments, leading to potentially confusing behavior
+#    numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
+#    denom = math.sqrt((dx ** 2) + (dy ** 2))
+#    distance = numer / denom
+    # adapted from http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+    squared_mag_of_delta = (dx * dx) + (dy * dy)
+    interpolation_factor = ((x0 - x1) * dx + (y0 - y1) * dy) / float(squared_mag_of_delta)
+    interpolation_factor = max(0, min(1, interpolation_factor)) # clamp to [0, 1]
+    nx = x1 + interpolation_factor * dx
+    ny = y1 + interpolation_factor * dy
+    ndx = nx - x0
+    ndy = ny - y0
+    squared_dist = (ndx * ndx) + (ndy * ndy)
+    return squared_dist < (dist * dist)
 
 
 def calc_handle_coords(poly):
@@ -220,7 +233,7 @@ class ANNOTATIONInteraction(object):
         poly.handle = make_handle_line(poly)
         tagpos = calc_tag_position(poly)
         poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
-        poly.species_tag.remove() # eliminate "leftover" copies
+        poly.species_tag.remove()  # eliminate "leftover" copies
         return poly
 
     def make_lines(self, poly, line_color, line_width):
@@ -264,6 +277,9 @@ class ANNOTATIONInteraction(object):
                  line_color=(1, 1, 1),
                  face_color=(0, 0, 0),
                  fnum=None,
+                 default_species=DEFAULT_SPECIES_TAG,
+                 next_callback=None,
+                 prev_callback=None,
 
                  do_mask=False):
         if fnum is None:
@@ -280,8 +296,12 @@ class ANNOTATIONInteraction(object):
             self.original_theta_list = theta_list
         else:
             self.original_theta_list = []
+        self.next_callback = next_callback
+        self.prev_callback = prev_callback
         self.img = img
         self.do_mask = do_mask
+        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
+        df2.close_figure(self.fig)
         self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
         self.fig.clear()
         self.fig.clf()
@@ -293,16 +313,18 @@ class ANNOTATIONInteraction(object):
         ax = df2.gca()
         self.fig.ax = ax
         self.img_ind = img_ind
-
-
+        self.species_tag = default_species
+        df2.remove_patches(self.fig.ax)
         df2.imshow(img, fnum=fnum)
 
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
-            'Press \"r\" to remove selected ANNOTATION',
-            'Press \"t\" to add an ANNOTATION.',
-            'Press \"a\" to Accept new ANNOTATIONs'])))
+            'Press \"ctrl-r\" to remove selected ANNOTATION',
+            'Press \"ctrl-t\" to add an ANNOTATION.',
+            'Press \"ctrl-a\" to Accept new ANNOTATIONs',
+            'Press enter to clear the species tag of the selected ANNOTATION',
+            'Type to set the species tag of the selected ANNOTATION',])))
 
         self.showverts = True
         self.max_ds = max_ds
@@ -335,7 +357,7 @@ class ANNOTATIONInteraction(object):
         if theta_list is None:
             theta_list = [0 for verts in verts_list]
         if species_list is None:
-            species_list = [DEFAULT_SPECIES_TAG for verts in verts_list]
+            species_list = [self.species_tag for verts in verts_list]
 
         # Create the list of polygons
         poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
@@ -369,17 +391,33 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas = canvas
 
         # Define buttons
-        self.accept_ax  = self.fig.add_axes([0.63, 0.01, 0.2, 0.06])
-        self.accept_but = Button(self.accept_ax, 'Accept New ANNOTATIONs')
-        self.accept_but.on_clicked(self.accept_new_annotations)
+        if self.prev_callback is not None:
+            self.prev_ax = self.fig.add_axes([0.01, 0.01, 0.18, 0.06])
+            self.prev_but = Button(self.prev_ax, 'Previous Annotation')
+            self.prev_but.on_clicked(self.prev_annotation)
 
-        self.add_ax  = self.fig.add_axes([0.2, .01, 0.16, 0.06])
+        self.add_ax  = self.fig.add_axes([0.21, 0.01, 0.18, 0.06])
         self.add_but = Button(self.add_ax, 'Add Rectangle')
         self.add_but.on_clicked(self.draw_new_poly)
 
-        self.del_ax  = self.fig.add_axes([0.4, 0.01, 0.19, 0.06])
+        self.del_ax  = self.fig.add_axes([0.41, 0.01, 0.18, 0.06])
         self.del_but = Button(self.del_ax, 'Delete Rectangle')
         self.del_but.on_clicked(self.delete_current_poly)
+
+        self.accept_ax  = self.fig.add_axes([0.61, 0.01, 0.18, 0.06])
+        self.accept_but = Button(self.accept_ax, 'Accept New Annots')
+        self.accept_but.on_clicked(self.accept_new_annotations)
+
+        if self.next_callback is not None:
+            self.next_ax = self.fig.add_axes([0.81, 0.01, 0.18, 0.06])
+            self.next_but = Button(self.next_ax, 'Next Annotation')
+            self.next_but.on_clicked(self.next_annotation)
+
+    def next_annotation(self, event):
+        self.next_callback()
+
+    def prev_annotation(self, event):
+        self.prev_callback()
 
     def on_resize(self, event):
         #print(utool.dict_str(event.__dict__))
@@ -597,7 +635,7 @@ class ANNOTATIONInteraction(object):
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
 
-        poly = self.new_polygon(coords, 0, DEFAULT_SPECIES_TAG)
+        poly = self.new_polygon(coords, 0, self.species_tag)
 
         #<hack reason="brittle resizing algorithm that doesn't work unless the points are in the right order, see resize_rectangle">
         poly.basecoords = bbox_to_verts(basecoords_to_bbox(poly.basecoords))
@@ -647,49 +685,46 @@ class ANNOTATIONInteraction(object):
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
-        print('key_press_callback')
+        #print('key_press_callback')
         if not event.inaxes:
             return
-        if event.key == 'a':
-            self.accept_new_annotations(event)
 
-        if event.key == 't':
-            self.draw_new_poly()
-        # old code for adding and deleting Polygon vertices (would need to
-        # rewrite for multiply polygons
+        def handle_command(keychar):
+            if keychar == 'a':
+                self.accept_new_annotations(event)
 
-        # code for deleting a polygon
-        if event.key == 'r':
-            self.delete_current_poly()
+            if keychar == 't':
+                self.draw_new_poly()
 
-        if event.key == 'u':
-            self.load_points()
+            if keychar == 'r':
+                self.delete_current_poly()
 
-        if event.key == 'p':
-            print(plt.get_fignums())
-        # elif event.key == 'd':
-        #     ind = self.get_ind_under_cursor(event)
-        #     if ind is None:
-        #         return
-        #     if ind == 0 or ind == self.last_vert_ind:
-        #         print('[mask] Cannot delete root node')
-        #         return
-        #     self.poly.xy = [tup for i, tup in enumerate(self.poly.xy) if i != ind]
-        #     self._update_line()
-        # elif event.key == 'i':
-        #     xys = self.poly.get_transform().transform(self.poly.xy)
-        #     p = event.x, event.y  # cursor coords
-        #     for i in range(len(xys) - 1):
-        #         s0 = xys[i]
-        #         s1 = xys[i + 1]
-        #         d = dist_point_to_segment(p, s0, s1)
-        #         if d <= self.max_ds:
-        #             self.poly.xy = np.array(
-        #                 list(self.poly.xy[:i + 1]) +
-        #                 [(event.xdata, event.ydata)] +
-        #                 list(self.poly.xy[i + 1:]))
-        #             self._update_line()
-        #             break
+            if keychar == 'u':
+                self.load_points()
+
+            if keychar == 'p':
+                print(plt.get_fignums())
+
+        def handle_label_typing(keychar):
+            if self._currently_selected_poly:
+                text = self._currently_selected_poly.species_tag.get_text()
+                text += keychar
+                self._currently_selected_poly.species_tag.set_text(text)
+
+        # perfect use case for anaphoric if, or assignment in if statements (if python had either)
+        match = re.match('^ctrl\+(.)$', event.key)
+        if match:
+            handle_command(match.group(1))
+
+        # enter clears the species tag, workaround since matplotlib doesn't seem to trigger 'key_press_event's for backspace (which would be the preferred interface)
+        match = re.match('^enter$', event.key)
+        if match:
+            self._currently_selected_poly.species_tag.set_text('')
+
+        match = re.match('^.$', event.key)
+        if match:
+            handle_label_typing(match.group(0))
+
         self.fig.canvas.draw()
 
     def motion_notify_callback(self, event):
@@ -799,11 +834,11 @@ class ANNOTATIONInteraction(object):
             return
 
         def distance(x, y):
-            return math.sqrt(x**2 + y**2)
+            return math.sqrt(x ** 2 + y ** 2)
 
         def polarDelta(p1, p2):
-            mag = distance(p2[0]-p1[0], p2[1]-p1[1])
-            theta = math.atan2(p2[1]-p1[1], p2[0]-p1[0])
+            mag = distance(p2[0] - p1[0], p2[1] - p1[1])
+            theta = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
             return [mag, theta]
 
         def apply_polarDelta(poldelt, cart):
@@ -812,7 +847,7 @@ class ANNOTATIONInteraction(object):
             return (newx, newy)
 
         def isSegmentBetweenCoordsVertical(c1, c2):
-            return c1[0] == c2[0] # x coordinates are the same
+            return c1[0] == c2[0]  # x coordinates are the same
 
         def rad2deg(t):
             return t * 360 / np.tau
@@ -826,7 +861,7 @@ class ANNOTATIONInteraction(object):
 
         idx = self._ind
         previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
-        oppidx = wrapIndex(idx + 2)
+        #oppidx = wrapIndex(idx + 2)
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
         #(total_dx, total_dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
         #higher_delta = max(total_dx, total_dy)
@@ -875,8 +910,8 @@ class ANNOTATIONInteraction(object):
         tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
         mag_delta = distance(dx, dy)
         theta_delta = math.atan2(dy, dx)
-        poly_theta = poly.theta + FUDGE_FACTORS.get(idx,0)
-        theta_rot = theta_delta - (poly_theta + np.tau/4)
+        poly_theta = poly.theta + FUDGE_FACTORS.get(idx, 0)
+        theta_rot = theta_delta - (poly_theta + np.tau / 4)
         ##print('poly.theta %r' % rad2deg(poly.theta))
         ##print('poly_theta %r' % rad2deg(poly_theta))
         ##print('theta_delta %r' % rad2deg(theta_delta))
@@ -900,8 +935,8 @@ class ANNOTATIONInteraction(object):
             MIN_W = 5
             MIN_H = 5
             """
-            Depends on hardcoded indicies, which is inelegant, but 
-            we're already depending on those for the FUDGE_FACTORS 
+            Depends on hardcoded indicies, which is inelegant, but
+            we're already depending on those for the FUDGE_FACTORS
             array above
             1----2
             |    |

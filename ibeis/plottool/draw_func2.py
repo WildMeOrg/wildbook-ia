@@ -132,12 +132,11 @@ def draw_border(ax, color=GREEN, lw=2, offset=None):
 
 
 # TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
-def draw_annotation(annotation, label=None, bbox_color=(1, 0, 0),
-                    lbl_bgcolor=(0, 0, 0), lbl_txtcolor=(1, 1, 1),
-                    draw_arrow=True, theta=0, ax=None):
+def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
+              lbl_txtcolor=(1, 1, 1), draw_arrow=True, theta=0, ax=None):
     if ax is None:
         ax = gca()
-    (rx, ry, rw, rh) = annotation
+    (rx, ry, rw, rh) = bbox
     # Transformations are specified in backwards order.
     trans_annotation = mpl.transforms.Affine2D()
     trans_annotation.scale(rw, rh)
@@ -158,8 +157,8 @@ def draw_annotation(annotation, label=None, bbox_color=(1, 0, 0),
         arrow.set_facecolor(bbox_color)
         ax.add_patch(arrow)
     # Draw a label
-    if label is not None:
-        ax_absolute_text(rx, ry, label, ax=ax,
+    if lbl is not None:
+        ax_absolute_text(rx, ry, lbl, ax=ax,
                          horizontalalignment='center',
                          verticalalignment='center',
                          color=lbl_txtcolor,
@@ -1119,8 +1118,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         draw_kpts2(kpts1, **all_args)
         draw_kpts2(kpts2, offset=offset2, **all_args)
     if draw_border:
-        draw_annotation(xywh1, bbox_color=BLACK, draw_arrow=False)
-        draw_annotation(xywh2, bbox_color=BLACK, draw_arrow=False)
+        draw_bbox(xywh1, bbox_color=BLACK, draw_arrow=False)
+        draw_bbox(xywh2, bbox_color=BLACK, draw_arrow=False)
 
     # Draw Lines and Ellipses and Points oh my
     if nMatch > 0:
