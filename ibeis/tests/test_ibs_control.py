@@ -171,9 +171,9 @@ def TEST_IBS_CONTROL(ibs):
     alrid_list = utool.flatten(alrids_list)
     orig_confidences = ibs.get_alr_confidence(alrid_list)
     new_confidences = range(len(alrid_list))
-    ibs.print_alr_table()
+    #ibs.print_alr_table()
     ibs.set_alr_confidence(alrid_list, new_confidences)
-    ibs.print_alr_table()
+    #ibs.print_alr_table()
     new_confidences2 = ibs.get_alr_confidence(alrid_list)
     assert new_confidences == new_confidences2, 'new_confidences == new_confidences2 failed'
     ibs.set_alr_confidence(alrid_list, orig_confidences)
