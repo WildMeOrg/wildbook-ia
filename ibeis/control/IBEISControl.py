@@ -961,6 +961,11 @@ class IBEISController(object):
     # GETTERS::IMAGE_TABLE
 
     @getter_1to1
+    def get_alr_confidence(ibs, alrid_list):
+        alr_confidence_list = ibs.db.get(AL_RELATION_TABLE, ('alr_confidence',), alrid_list)
+        return alr_confidence_list
+
+    @getter_1to1
     def get_images(ibs, gid_list):
         """ Returns a list of images in numpy matrix form by gid """
         gpath_list = ibs.get_image_paths(gid_list)

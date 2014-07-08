@@ -161,7 +161,23 @@ def TEST_IBS_CONTROL(ibs):
     new_species2 = ibs.get_annotation_species(aid_list)
     assert new_species == new_species2, 'new_species == new_species2 failed!'
     ibs.set_annotation_species(aid_list, orig_species)
-    assert orig_species == ibs.get_annotation_species(aid_list)
+    assert orig_species == ibs.get_annotation_species(aid_list), 'species were not reset'
+
+    """ set alr confidence / get alr confidence """
+    aid_list = ibs.get_valid_aids()
+    assert aid_list, 'aid_list is empty'
+    alrids_list = ibs.get_annotation_alrids(aid_list)
+    assert alrids_list, 'alrids_list is empty'
+    alrid_list = utool.flatten(alrids_list)
+    orig_confidences = ibs.get_alr_confidence(alrid_list)
+    new_confidences = range(len(alrid_list))
+    ibs.print_alr_table()
+    ibs.set_alr_confidence(alrid_list, new_confidences)
+    ibs.print_alr_table()
+    new_confidences2 = ibs.get_alr_confidence(alrid_list)
+    assert new_confidences == new_confidences2, 'new_confidences == new_confidences2 failed'
+    ibs.set_alr_confidence(alrid_list, orig_confidences)
+    assert orig_confidences == ibs.get_alr_confidence(alrid_list), 'alr confidences were not reset'
 
     return locals()
 
