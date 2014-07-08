@@ -861,13 +861,11 @@ class IBEISController(object):
         # Call set_annotation_from_annotlabelid to finish the conditional adding
         ibs.set_annotation_from_annotlabelid(aid_list, annotlabelid_list, _key, ibs.add_species)
 
-    # FIXME: Readd setter wrappers
     @setter
     def set_annotation_from_annotlabelid(ibs, aid_list, annotlabelid_list, _key, adder):
         """ Sets items/annotlabelids of a list of annotations."""
         # Get the alrids_list for the aids, using the key as a filter
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
-        print("BEFORE: ", alrids_list)
         # create the new relationship when none exists
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) == 0]
@@ -879,7 +877,6 @@ class IBEISController(object):
                                 if len(alrid_list) > 0 ]
         annotlabelid_list_to_set = [annotlabelid for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list)
                                     if len(alrid_list) > 0]
-        print("AFTER: ", alrids_list_to_set)
         for annotlabelid, alrid_list in izip(annotlabelid_list_to_set, alrids_list_to_set):
             ibs.set_alr_annotlabelids(alrid_list, [annotlabelid] * len(alrid_list))
 
@@ -1388,15 +1385,14 @@ class IBEISController(object):
 
     @getter_1to1
     def get_annotation_annotlabels(ibs, aid_list):
-        """ for each aid, returns a list of annotlabels """
-        # FIXME: Not sure what this is
-
+        """ Convenience function to show, for each aid, the list of annotlabels
+            for all key types in the database.  Returns a list of dictionaries
+        """
         def _key_dict(aid):
             _dict = {}
             for _key in constants.KEY_DEFAULTS.iterkeys():
                 _dict[_key] = ibs.get_annotation_annotlabelids(aid, _key)
             return _dict
-
         key_dict_list = [_key_dict(aid) for aid in aid_list]
         return key_dict_list
 

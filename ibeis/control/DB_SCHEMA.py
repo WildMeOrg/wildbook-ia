@@ -26,20 +26,20 @@ def define_IBEIS_schema(ibs):
         First class table used to store image locations and meta-data''')
 
     ibs.db.schema(constants.ANNOTATION_TABLE, (
-        ('annot_rowid',                    'INTEGER PRIMARY KEY'),
-        ('annot_uuid',                     'UUID NOT NULL'),
-        ('image_rowid',                    'INTEGER NOT NULL'),
-        #('name_rowid',                    'INTEGER NOT NULL'),
-        ('annot_xtl',                      'INTEGER NOT NULL'),
-        ('annot_ytl',                      'INTEGER NOT NULL'),
-        ('annot_width',                    'INTEGER NOT NULL'),
-        ('annot_height',                   'INTEGER NOT NULL'),
-        ('annot_theta',                    'REAL DEFAULT 0.0'),
-        ('annot_num_verts',                'INTEGER NOT NULL'),
-        ('annot_verts',                    'TEXT'),
-        ('annot_detect_confidence',        'REAL DEFAULT -1.0'),
-        ('annot_exemplar_flag',            'INTEGER DEFAULT 0'),
-        ('annot_note',                     'TEXT'),
+        ('annot_rowid',                  'INTEGER PRIMARY KEY'),
+        ('annot_uuid',                   'UUID NOT NULL'),
+        ('image_rowid',                  'INTEGER NOT NULL'),
+        #('name_rowid',                  'INTEGER NOT NULL'),
+        ('annot_xtl',                    'INTEGER NOT NULL'),
+        ('annot_ytl',                    'INTEGER NOT NULL'),
+        ('annot_width',                  'INTEGER NOT NULL'),
+        ('annot_height',                 'INTEGER NOT NULL'),
+        ('annot_theta',                  'REAL DEFAULT 0.0'),
+        ('annot_num_verts',              'INTEGER NOT NULL'),
+        ('annot_verts',                  'TEXT'),
+        ('annot_detect_confidence',      'REAL DEFAULT -1.0'),
+        ('annot_exemplar_flag',          'INTEGER DEFAULT 0'),
+        ('annot_note',                   'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (annot_uuid)'],
         docstr='''
         Mainly used to store the geometry of the annotation within its parent
@@ -48,30 +48,51 @@ def define_IBEIS_schema(ibs):
         Table''')
 
     ibs.db.schema(constants.AL_RELATION_TABLE, (
-        ('alr_rowid',                      'INTEGER PRIMARY KEY'),
-        ('annot_rowid',                    'INTEGER NOT NULL'),
-        ('annotlabel_rowid',                    'INTEGER NOT NULL'),
-        ('config_rowid',                   'INTEGER DEFAULT 0'),
-        ('alr_confidence',                 'REAL DEFAULT 0.0'),
+        ('alr_rowid',                    'INTEGER PRIMARY KEY'),
+        ('annot_rowid',                  'INTEGER NOT NULL'),
+        ('annotlabel_rowid',             'INTEGER NOT NULL'),
+        ('config_rowid',                 'INTEGER DEFAULT 0'),
+        ('alr_confidence',               'REAL DEFAULT 0.0'),
     ), ['CONSTRAINT superkey UNIQUE (annot_rowid, annotlabel_rowid, config_rowid)'],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
-        and Labels''')
+        and labels''')
+
+    ibs.db.schema(constants.IL_RELATION_TABLE, (
+        ('ilr_rowid',                    'INTEGER PRIMARY KEY'),
+        ('image_rowid',                  'INTEGER NOT NULL'),
+        ('imagelabel_rowid',             'INTEGER NOT NULL'),
+        ('config_rowid',                 'INTEGER DEFAULT 0'),
+        ('ilr_confidence',               'REAL DEFAULT 0.0'),
+    ), ['CONSTRAINT superkey UNIQUE (image_rowid, imagelabel_rowid, config_rowid)'],
+        docstr='''
+        Used to store one-to-many the relationship between images
+        and labels''')
 
     ibs.db.schema(constants.ANNOTLABEL_TABLE, (
-        ('annotlabel_rowid',                   'INTEGER PRIMARY KEY'),
-        ('annotlabel_uuid',                    'UUID NOT NULL'),
-        ('key_rowid',                     'INTEGER NOT NULL'),  # this is "category" in the proposal
-        ('annotlabel_value',                   'TEXT NOT NULL'),
-        ('annotlabel_note',                    'TEXT'),
+        ('annotlabel_rowid',             'INTEGER PRIMARY KEY'),
+        ('annotlabel_uuid',              'UUID NOT NULL'),
+        ('key_rowid',                    'INTEGER NOT NULL'),  # this is "category" in the proposal
+        ('annotlabel_value',             'TEXT NOT NULL'),
+        ('annotlabel_note',              'TEXT'),
     ), ['CONSTRAINT superkey UNIQUE (key_rowid, annotlabel_value)'],
         docstr='''
-        Used to store the attributes of annotations''')
+        Used to store the labels (attributes) of annotations''')
+
+    ibs.db.schema(constants.IMAGELABEL_TABLE, (
+        ('imagelabel_rowid',             'INTEGER PRIMARY KEY'),
+        ('imagelabel_uuid',              'UUID NOT NULL'),
+        ('key_rowid',                    'INTEGER NOT NULL'),  # this is "category" in the proposal
+        ('imagelabel_value',             'TEXT NOT NULL'),
+        ('imagelabel_note',              'TEXT'),
+    ), ['CONSTRAINT superkey UNIQUE (key_rowid, imagelabel_value)'],
+        docstr='''
+        Used to store the labels (attributes) of images''')
 
     ibs.db.schema(constants.KEY_TABLE, (
-        ('key_rowid',                'INTEGER PRIMARY KEY'),
-        ('key_text',                 'TEXT NOT NULL'),
-        ('key_default',              'TEXT NOT NULL'),
+        ('key_rowid',                    'INTEGER PRIMARY KEY'),
+        ('key_text',                     'TEXT NOT NULL'),
+        ('key_default',                  'TEXT NOT NULL'),
     ), ['CONSTRAINT superkey UNIQUE (key_text)'],
         docstr='''
         List of keys used to define the categories of annotation lables, text is
@@ -79,18 +100,18 @@ def define_IBEIS_schema(ibs):
         annotations with a relationship of some key_rowid''')
 
     ibs.db.schema(constants.ENCOUNTER_TABLE, (
-        ('encounter_rowid',             'INTEGER PRIMARY KEY'),
-        ('encounter_uuid',              'UUID NOT NULL'),
-        ('encounter_text',              'TEXT NOT NULL'),
-        ('encounter_note',              'TEXT NOT NULL'),
+        ('encounter_rowid',              'INTEGER PRIMARY KEY'),
+        ('encounter_uuid',               'UUID NOT NULL'),
+        ('encounter_text',               'TEXT NOT NULL'),
+        ('encounter_note',               'TEXT NOT NULL'),
     ),  ['CONSTRAINT superkey UNIQUE (encounter_text)'],
         docstr='''
         List of all encounters''')
 
     ibs.db.schema(constants.EG_RELATION_TABLE, (
-        ('egr_rowid',                     'INTEGER PRIMARY KEY'),
-        ('image_rowid',                   'INTEGER NOT NULL'),
-        ('encounter_rowid',               'INTEGER'),
+        ('egr_rowid',                    'INTEGER PRIMARY KEY'),
+        ('image_rowid',                  'INTEGER NOT NULL'),
+        ('encounter_rowid',              'INTEGER'),
     ),  ['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'],
         docstr='''
         Relationship between encounters and images (many to many mapping) the

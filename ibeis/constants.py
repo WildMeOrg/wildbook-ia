@@ -19,17 +19,19 @@ ENCTEXT_PREFIX = 'enc_'
 
 INDIVIDUAL_KEY = 'INDIVIDUAL_KEY'
 SPECIES_KEY    = 'SPECIES_KEY'
-EMPTY_KEY = ''
-KEY_DEFAULTS = {
+EMPTY_KEY      = ''
+KEY_DEFAULTS   = {
     INDIVIDUAL_KEY : '____',
     SPECIES_KEY    : '____',
 }
 
 IMAGE_TABLE       = 'images'
+IMAGELABEL_TABLE  = 'imagelabels'
 ANNOTATION_TABLE  = 'annotations'
-ANNOTLABEL_TABLE       = 'annotlabels'
+ANNOTLABEL_TABLE  = 'annotlabels'
 ENCOUNTER_TABLE   = 'encounters'
 EG_RELATION_TABLE = 'encounter_image_relationship'
+IL_RELATION_TABLE = 'image_imagelabel_relationship'
 AL_RELATION_TABLE = 'annotation_annotlabel_relationship'
 CHIP_TABLE        = 'chips'
 FEATURE_TABLE     = 'features'
