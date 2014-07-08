@@ -136,6 +136,7 @@ def TEST_IBS_CONTROL(ibs):
     new_names = ['TESTNAME_' + str(x) for x in range(len(aid_list))]
     ibs.set_annotation_names(aid_list, new_names)
     new_names2 = ibs.get_annotation_names(aid_list)
+    print(new_names, new_names2)
     assert new_names == new_names2, 'new_names == new_names2 failed!'
     ibs.set_annotation_names(aid_list, orig_names)
     assert orig_names == ibs.get_annotation_names(aid_list)

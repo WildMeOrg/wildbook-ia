@@ -859,7 +859,7 @@ class IBEISController(object):
         # Convert names into annotlabelid
         annotlabelid_list = adder(item_list)
         # Call set_annotation_from_annotlabelid to finish the conditional adding
-        ibs.set_annotation_from_annotlabelid(aid_list, annotlabelid_list, constants.SPECIES_KEY, ibs.add_species)
+        ibs.set_annotation_from_annotlabelid(aid_list, annotlabelid_list, _key, ibs.add_species)
 
     # FIXME: Readd setter wrappers
     @setter
@@ -867,6 +867,7 @@ class IBEISController(object):
         """ Sets items/annotlabelids of a list of annotations."""
         # Get the alrids_list for the aids, using the key as a filter
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
+        print("BEFORE: ", alrids_list)
         # create the new relationship when none exists
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) == 0]
@@ -878,6 +879,7 @@ class IBEISController(object):
                                 if len(alrid_list) > 0 ]
         annotlabelid_list_to_set = [annotlabelid for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list)
                                     if len(alrid_list) > 0]
+        print("AFTER: ", alrids_list_to_set)
         for annotlabelid, alrid_list in izip(annotlabelid_list_to_set, alrids_list_to_set):
             ibs.set_alr_annotlabelids(alrid_list, [annotlabelid] * len(alrid_list))
 
@@ -1258,8 +1260,8 @@ class IBEISController(object):
             ]
             for index_annotlabel, annotlabelkeys in enumerate(annotlabelkeys_list)
         ]
-        status = "More than one type per key. ALRIDS: " + str(alrids_list) + ", ROW: " + str(key_rowid) + ", KEYS:" + str(ibs.key_ids)
-        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list]), status
+        msg = "More than one type per key. ALRIDS: " + str(alrids_list) + ", ROW: " + str(key_rowid) + ", KEYS:" + str(ibs.key_ids)
+        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list]), msg
         return alrids_list
 
     @getter_1toM
