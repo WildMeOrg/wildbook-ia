@@ -173,17 +173,27 @@ def is_within_distance(dist, p1, p2):
 
 
 def is_within_distance_from_line(dist, pt, line):
-    # http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+#    # http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
     x0, y0 = pt
     p1, p2 = line
     x1, y1 = p1
     x2, y2 = p2
     dx = x2 - x1
     dy = y2 - y1
-    numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
-    denom = math.sqrt((dx ** 2) + (dy ** 2))
-    distance = numer / denom
-    return distance < dist
+#    # This doesn't work due to being for lines, not line segments, leading to potentially confusing behavior
+#    numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
+#    denom = math.sqrt((dx ** 2) + (dy ** 2))
+#    distance = numer / denom
+    # adapted from http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+    squared_mag_of_delta = (dx * dx) + (dy * dy)
+    interpolation_factor = ((x0 - x1) * dx + (y0 - y1) * dy) / float(squared_mag_of_delta)
+    interpolation_factor = max(0, min(1, interpolation_factor)) # clamp to [0, 1]
+    nx = x1 + interpolation_factor * dx
+    ny = y1 + interpolation_factor * dy
+    ndx = nx - x0
+    ndy = ny - y0
+    squared_dist = (ndx * ndx) + (ndy * ndy)
+    return squared_dist < (dist * dist)
 
 
 def calc_handle_coords(poly):
