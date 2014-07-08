@@ -468,7 +468,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.back.select_nid(nid, eid, show=False)
 
     @slot_(QtCore.QModelIndex)
-    def on_doubleclick(ibswgt, qtindex, closewin=True):
+    def on_doubleclick(ibswgt, qtindex):
         #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
@@ -486,12 +486,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 prev_qtindex = model._get_adjacent_qtindex(qtindex, -1)
                 if next_qtindex is not None:
                     def next_callback():
-                        ibswgt.on_doubleclick(next_qtindex, closewin=False)
+                        ibswgt.on_doubleclick(next_qtindex)
                 else:
                     next_callback = None
                 if prev_qtindex is not None:
                     def prev_callback():
-                        ibswgt.on_doubleclick(prev_qtindex, closewin=False)
+                        ibswgt.on_doubleclick(prev_qtindex)
                 else:
                     prev_callback = None
                 ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, next_callback=next_callback, prev_callback=prev_callback, rows_updated_callback=ibswgt.update_tables)
