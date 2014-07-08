@@ -116,6 +116,7 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_image_gps(gid_list, gps_list_orig)
     assert gps_list_orig == ibs.get_image_gps(gid_list), 'gps was not reset to original state'
 
+    """ set encounter enctext / get encounter enctext """
     eid_list = ibs.get_valid_eids()
     enc_text_list_orig = ibs.get_encounter_enctext(eid_list)
     enc_text_list = [str(x) for x in range(len(eid_list))]
