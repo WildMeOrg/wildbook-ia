@@ -895,11 +895,11 @@ class IBEISController(object):
         for lblannot_rowid, alrid_list in izip(lblannot_rowid_list, alrids_list):
             ibs.set_alr_lblannot_rowids(alrid_list, [lblannot_rowid] * len(alrid_list))
 
-    @setter
-    def set_annotation_nids(ibs, aid_list, nid_list):
-        """ Sets nids of a list of annotations """
-        # This dies and set_annotation_names becomes this
-        ibs.set_annotation_lblannot_rowids(aid_list, nid_list, constants.INDIVIDUAL_KEY)
+    #@setter
+    #def set_annotation_nids(ibs, aid_list, nid_list):
+    #    """ Sets nids of a list of annotations """
+    #    # This dies and set_annotation_names becomes this
+    #    ibs.set_annotation_lblannot_rowids(aid_list, nid_list, constants.INDIVIDUAL_KEY)
 
     # SETTERS::NAME
 
