@@ -14,12 +14,10 @@ def TEST_IBS_CONTROL(ibs):
     eid_list = ibs.get_valid_eids()
     assert eid_list, 'eid_list is empty'
     gids_list = ibs.get_encounter_gids(eid_list)
-    print('[TEST] gids_list = %r' % gids_list)
+    # print('[TEST] gids_list = %r' % gids_list)
     assert gids_list, 'gids_list is empty'
     for gids, eid in izip(gids_list, eid_list):
         eid_list2 = ibs.get_image_eids(gids)
-        print(eid_list2)
-        print([[eid]] * len(eid_list2))
         assert ([[eid]] * len(eid_list2)) == eid_list2
         #print('[TEST] eid_list2 = %r' % eid_list2)
         #print('[TEST] eid = %r' % eid)

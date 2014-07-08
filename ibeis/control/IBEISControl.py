@@ -822,25 +822,25 @@ class IBEISController(object):
     @setter
     def set_annotation_names(ibs, aid_list, name_list):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annotation_from_key"""
+        Convenience function for set_annotation_from_item"""
         ibs.set_annotation_from_item(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
 
     @setter
     def set_annotation_species(ibs, aid_list, species_list):
         """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annotation_from_key"""
+        Convenience function for set_annotation_from_item"""
         ibs.set_annotation_from_item(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter
     def set_annotation_nids(ibs, aid_list, nid_list):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annotation_from_key"""
+        Convenience function for set_annotation_from_annotlabelid"""
         ibs.set_annotation_from_annotlabelid(aid_list, nid_list, constants.INDIVIDUAL_KEY, ibs.add_names)
 
     @setter
     def set_annotation_speciesids(ibs, aid_list, speciesid_list):
         """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annotation_from_key"""
+        Convenience function for set_annotation_from_annotlabelid"""
         ibs.set_annotation_from_annotlabelid(aid_list, speciesid_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter
@@ -859,12 +859,7 @@ class IBEISController(object):
         # Convert names into annotlabelid
         annotlabelid_list = adder(item_list)
         # Call set_annotation_from_annotlabelid to finish the conditional adding
-        ibs.set_annotation_from_key(
-            aid_list,
-            _key=constants.SPECIES_KEY,
-            adder=ibs.add_species,
-            annotlabelid_list=annotlabelid_list
-        )
+        ibs.set_annotation_from_annotlabelid(aid_list, annotlabelid_list, constants.SPECIES_KEY, ibs.add_species)
 
     # FIXME: Readd setter wrappers
     @setter
@@ -1263,7 +1258,8 @@ class IBEISController(object):
             ]
             for index_annotlabel, annotlabelkeys in enumerate(annotlabelkeys_list)
         ]
-        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list])
+        status = "More than one type per key. ALRIDS: " + str(alrids_list) + ", ROW: " + str(key_rowid) + ", KEYS:" + str(ibs.key_ids)
+        assert all([ len(alrid_list) < 2 for alrid_list in alrids_list]), status
         return alrids_list
 
     @getter_1toM
