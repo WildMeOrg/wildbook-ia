@@ -4,8 +4,8 @@ from plottool import draw_func2 as df2
 from itertools import izip
 
 
-class ANNOTATION_Interaction2:
-    def __init__(self, ibs, gid, rows_updated_callback=lambda: None):
+class ANNOTATION_Interaction2(object):
+    def __init__(self, ibs, gid, next_callback=None, prev_callback=None, rows_updated_callback=lambda: None):
         self.ibs = ibs
         self.gid = gid
         self.rows_updated_callback = rows_updated_callback
@@ -14,7 +14,19 @@ class ANNOTATION_Interaction2:
         bbox_list = ibs.get_annotation_bboxes(self.aid_list)
         theta_list = ibs.get_annotation_thetas(self.aid_list)
         species_list = ibs.get_annotation_species(self.aid_list)
-        self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(img, callback=self.callback, bbox_list=bbox_list, theta_list=theta_list, species_list=species_list)
+        self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
+            img,
+            bbox_list=bbox_list,
+            theta_list=theta_list,
+            species_list=species_list,
+            callback=self.callback,
+            default_species=self.ibs.cfg.detect_cfg.species,
+            next_callback=next_callback,
+            prev_callback=prev_callback,
+            fnum=12
+        )
+
+
         df2.update()
 
     def callback(self, deleted_list, changed_list, new_list):

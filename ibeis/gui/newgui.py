@@ -481,11 +481,24 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             eid = model.eid
             if model.name == IMAGE_TABLE:
                 gid = id_
-                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
+
+                next_qtindex = model._get_adjacent_qtindex(qtindex, 1)
+                prev_qtindex = model._get_adjacent_qtindex(qtindex, -1)
+                if next_qtindex is not None:
+                    def next_callback():
+                        ibswgt.on_doubleclick(next_qtindex)
+                else:
+                    next_callback = None
+                if prev_qtindex is not None:
+                    def prev_callback():
+                        ibswgt.on_doubleclick(prev_qtindex)
+                else:
+                    prev_callback = None
+                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, next_callback=next_callback, prev_callback=prev_callback, rows_updated_callback=ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == IMAGE_GRID:
                 gid = id_
-                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, ibswgt.update_tables)
+                ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, next_callback=next_callback, prev_callback=prev_callback, rows_updated_callback=ibswgt.update_tables)
                 ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
