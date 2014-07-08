@@ -25,18 +25,18 @@ KEY_DEFAULTS   = {
     SPECIES_KEY    : '____',
 }
 
-IMAGE_TABLE       = 'images'
-IMAGELABEL_TABLE  = 'imagelabels'
+AL_RELATION_TABLE = 'annotation_lblannot_relationship'
 ANNOTATION_TABLE  = 'annotations'
-ANNOTLABEL_TABLE  = 'annotlabels'
-ENCOUNTER_TABLE   = 'encounters'
-EG_RELATION_TABLE = 'encounter_image_relationship'
-IL_RELATION_TABLE = 'image_imagelabel_relationship'
-AL_RELATION_TABLE = 'annotation_annotlabel_relationship'
 CHIP_TABLE        = 'chips'
-FEATURE_TABLE     = 'features'
 CONFIG_TABLE      = 'configs'
-KEY_TABLE         = 'keys'
+EG_RELATION_TABLE = 'encounter_image_relationship'
+ENCOUNTER_TABLE   = 'encounters'
+FEATURE_TABLE     = 'features'
+GL_RELATION_TABLE = 'image_lblimage_relationship'
+IMAGE_TABLE       = 'images'
+LBLANNOT_TABLE    = 'lblannot'
+LBLIMAGE_TABLE    = 'lblimage'
+LBLTYPE_TABLE     = 'keys'
 
 import numpy as np
 UNKNOWN_PURPLE_RGBA255 = np.array((102,   0, 153, 255))

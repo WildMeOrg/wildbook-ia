@@ -132,14 +132,24 @@ def TEST_IBS_CONTROL(ibs):
     """ set annotation names / get_annotation_names """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
+
     orig_names = ibs.get_annotation_names(aid_list)
-    new_names = ['TESTNAME_' + str(x) for x in range(len(aid_list))]
+    new_names = ['TESTNAME_' + str(x) for x in xrange(len(aid_list))]
     ibs.set_annotation_names(aid_list, new_names)
     new_names2 = ibs.get_annotation_names(aid_list)
-    print(new_names, new_names2)
-    assert new_names == new_names2, 'new_names == new_names2 failed!'
+    try:
+        assert new_names == new_names2, 'new_names == new_names2 failed!'
+    except AssertionError as ex:
+        utool.printex(ex, key_list=['new_names', 'new_names2'])
+        raise
+
     ibs.set_annotation_names(aid_list, orig_names)
-    assert orig_names == ibs.get_annotation_names(aid_list)
+    try:
+        test_names = ibs.get_annotation_names(aid_list)
+        assert orig_names == test_names
+    except AssertionError as ex:
+        utool.printex(ex, key_list=['orig_names', 'test_names'])
+        raise
 
     """ set annotation species / get annotation species """
     aid_list = ibs.get_valid_aids()

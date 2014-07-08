@@ -31,13 +31,13 @@ fi
 #set -e
 #/bin/command-that-fails
 
-export SYSNAME="$(expr substr $(uname -s) 1 10)"
 
 # Choose one # plop or lineprof, or runsnake
 #export PROFILE_TYPE="runsnake"  
 export PROFILE_TYPE="lineprof"
 
 # Platform independent kernprof
+export SYSNAME="$(expr substr $(uname -s) 1 10)"
 if [ "$SYSNAME" = "MINGW32_NT" ]; then
     # MINGW
     export MINGW_PYDIR=$(python -c "import sys, os; print(os.path.dirname(sys.executable))")

@@ -18,7 +18,7 @@ def get_gt_cases(ibs):
     return aid_list
 
 
-def get_annotlabeled_descriptors(allres, orgtype_='false'):
+def get_lblannoted_descriptors(allres, orgtype_='false'):
     qcxs = allres[orgtype_].qcxs
     aids  = allres[orgtype_].aids
     match_list = zip(qcxs, aids)
@@ -29,8 +29,8 @@ def get_annotlabeled_descriptors(allres, orgtype_='false'):
 def train_classifier(ibs):
     aid_list = get_gt_cases(ibs)
     allres = rr2.get_allres(ibs, aid_list)
-    neg_eg = get_annotlabeled_descriptors(allres, 'false')
-    pos_eg = get_annotlabeled_descriptors(allres, 'true')
+    neg_eg = get_lblannoted_descriptors(allres, 'false')
+    pos_eg = get_lblannoted_descriptors(allres, 'true')
 
     # Cast to a datatype we can manipulate
     neg_eg = np.array(neg_eg, np.int32)
