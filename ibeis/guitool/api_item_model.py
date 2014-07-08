@@ -467,6 +467,24 @@ class APIItemModel(API_MODEL_BASE):
             return node.get_id()
 
     @default_method_decorator
+    def _get_adjacent_qtindex(model, qtindex=QtCore.QModelIndex(), offset=1):
+        if qtindex.isValid():
+            node = qtindex.internalPointer()
+            assert isinstance(node, TreeNode), type(node)
+            if node.parent_node is None:
+                return None
+            next_index = node.parent_node.child_nodes.index(node) + offset
+            if next_index > 0 and next_index < len(node.parent_node.child_nodes):
+                next_node = node.parent_node.child_nodes[next_index]
+                row = next_node.get_row()
+                col = model.col_level_list.index(next_node.get_level())
+                parent_qtindex = model.parent(qtindex)
+                next_qtindex = model.index(row, col, parent_qtindex)
+                return next_qtindex
+            else:
+                return None
+
+    @default_method_decorator
     def _get_type(model, col):
         return model.col_type_list[col]
 
