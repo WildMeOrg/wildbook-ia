@@ -1845,7 +1845,8 @@ class IBEISController(object):
         """ Deletes nids of a list of annotations """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special lblannot_rowids
-        alrid_list = ibs.get_alrids_from_aids(aid_list, ibs.lbltype_ids[_lbltype])
+        alrids_list = ibs.get_alrids_from_aids(aid_list, ibs.lbltype_ids[_lbltype])
+        alrid_list = utool.flatten(alrids_list)
         # SQL Setter arguments
         # Cannot use set_table_props for cross-table setters.
         ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
