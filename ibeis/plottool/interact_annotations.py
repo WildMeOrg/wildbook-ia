@@ -277,6 +277,9 @@ class ANNOTATIONInteraction(object):
                  line_color=(1, 1, 1),
                  face_color=(0, 0, 0),
                  fnum=None,
+                 default_species=DEFAULT_SPECIES_TAG,
+                 next_callback=None,
+                 prev_callback=None,
 
                  do_mask=False):
         if fnum is None:
@@ -293,8 +296,12 @@ class ANNOTATIONInteraction(object):
             self.original_theta_list = theta_list
         else:
             self.original_theta_list = []
+        self.next_callback = next_callback
+        self.prev_callback = prev_callback
         self.img = img
         self.do_mask = do_mask
+        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
+        df2.close_figure(self.fig)
         self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
         self.fig.clear()
         self.fig.clf()
@@ -306,7 +313,8 @@ class ANNOTATIONInteraction(object):
         ax = df2.gca()
         self.fig.ax = ax
         self.img_ind = img_ind
-
+        self.species_tag = default_species
+        df2.remove_patches(self.fig.ax)
         df2.imshow(img, fnum=fnum)
 
         ax.set_clip_on(False)
@@ -349,7 +357,7 @@ class ANNOTATIONInteraction(object):
         if theta_list is None:
             theta_list = [0 for verts in verts_list]
         if species_list is None:
-            species_list = [DEFAULT_SPECIES_TAG for verts in verts_list]
+            species_list = [self.species_tag for verts in verts_list]
 
         # Create the list of polygons
         poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
@@ -383,17 +391,33 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas = canvas
 
         # Define buttons
-        self.accept_ax  = self.fig.add_axes([0.63, 0.01, 0.2, 0.06])
-        self.accept_but = Button(self.accept_ax, 'Accept New ANNOTATIONs')
-        self.accept_but.on_clicked(self.accept_new_annotations)
+        if self.prev_callback is not None:
+            self.prev_ax = self.fig.add_axes([0.01, 0.01, 0.18, 0.06])
+            self.prev_but = Button(self.prev_ax, 'Previous Annotation')
+            self.prev_but.on_clicked(self.prev_annotation)
 
-        self.add_ax  = self.fig.add_axes([0.2, .01, 0.16, 0.06])
+        self.add_ax  = self.fig.add_axes([0.21, 0.01, 0.18, 0.06])
         self.add_but = Button(self.add_ax, 'Add Rectangle')
         self.add_but.on_clicked(self.draw_new_poly)
 
-        self.del_ax  = self.fig.add_axes([0.4, 0.01, 0.19, 0.06])
+        self.del_ax  = self.fig.add_axes([0.41, 0.01, 0.18, 0.06])
         self.del_but = Button(self.del_ax, 'Delete Rectangle')
         self.del_but.on_clicked(self.delete_current_poly)
+
+        self.accept_ax  = self.fig.add_axes([0.61, 0.01, 0.18, 0.06])
+        self.accept_but = Button(self.accept_ax, 'Accept New Annots')
+        self.accept_but.on_clicked(self.accept_new_annotations)
+
+        if self.next_callback is not None:
+            self.next_ax = self.fig.add_axes([0.81, 0.01, 0.18, 0.06])
+            self.next_but = Button(self.next_ax, 'Next Annotation')
+            self.next_but.on_clicked(self.next_annotation)
+
+    def next_annotation(self, event):
+        self.next_callback()
+
+    def prev_annotation(self, event):
+        self.prev_callback()
 
     def on_resize(self, event):
         #print(utool.dict_str(event.__dict__))
@@ -611,7 +635,7 @@ class ANNOTATIONInteraction(object):
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
 
-        poly = self.new_polygon(coords, 0, DEFAULT_SPECIES_TAG)
+        poly = self.new_polygon(coords, 0, self.species_tag)
 
         #<hack reason="brittle resizing algorithm that doesn't work unless the points are in the right order, see resize_rectangle">
         poly.basecoords = bbox_to_verts(basecoords_to_bbox(poly.basecoords))
