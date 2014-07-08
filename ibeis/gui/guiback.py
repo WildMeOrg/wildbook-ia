@@ -465,10 +465,13 @@ class MainWindowBackend(QtCore.QObject):
         back.compute_feats(refresh=False, **kwargs)
         valid_aids = back.ibs.get_valid_aids(eid=eid)
         
-        if eid is None:
-            qaid2_qres = back.ibs.query_all(valid_aids)
+        if kwargs.get('vs_exemplar', False):
+            qaid2_qres = back.ibs.query_exemplars(valid_aids)
         else:
-            qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
+            if eid is None:
+                qaid2_qres = back.ibs.query_all(valid_aids)
+            else:
+                qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
         
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
@@ -478,10 +481,9 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
 
     @blocking_slot()
-    def compute_queries_vs_exemplar(back, refresh=True, **kwargs):
+    def compute_queries_vs_exemplar(back, **kwargs):
         """ Batch -> Precompute Queries"""
-        exemplar_eid = back.ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
-        back.compute_queries(eid=exemplar_eid, **kwargs)
+        back.compute_queries(vs_exemplar=True, **kwargs)
 
     @blocking_slot()
     def review_queries(back, **kwargs):
