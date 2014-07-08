@@ -586,7 +586,7 @@ class IBEISController(object):
     @adder
     def add_annotation_names(ibs, aid_list, name_list=None, nid_list=None):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annotation_nids"""
+        Convenience function for add_annotation_relationship"""
         assert name_list is None or nid_list is None, (
             'can only specify one type of name values (nid or name) not both')
         if nid_list is None:
@@ -820,85 +820,71 @@ class IBEISController(object):
         ibs.db.set(ANNOTATION_TABLE, ('annot_note',), val_list, id_iter)
 
     @setter
-    def set_annotation_names(ibs, aid_list, name_list=None, nid_list=None):
+    def set_annotation_names(ibs, aid_list, name_list):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annotation_nids"""
-        ibs.set_annotation_from_key(
-            aid_list,
-            _key=constants.INDIVIDUAL_KEY,
-            adder=ibs.add_names,
-            item_list=name_list,
-            annotlabelid_list=nid_list
-        )
+        Convenience function for set_annotation_from_key"""
+        ibs.set_annotation_from_item(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
 
     @setter
-    def set_annotation_species(ibs, aid_list, species_list=None, speciesid_list=None):
+    def set_annotation_species(ibs, aid_list, species_list):
+        """ Sets species/speciesids of a list of annotations.
+        Convenience function for set_annotation_from_key"""
+        ibs.set_annotation_from_item(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
+
+    @setter
+    def set_annotation_nids(ibs, aid_list, nid_list):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annotation_nids"""
+        Convenience function for set_annotation_from_key"""
+        ibs.set_annotation_from_annotlabelid(aid_list, nid_list, constants.INDIVIDUAL_KEY, ibs.add_names)
+
+    @setter
+    def set_annotation_speciesids(ibs, aid_list, speciesid_list):
+        """ Sets species/speciesids of a list of annotations.
+        Convenience function for set_annotation_from_key"""
+        ibs.set_annotation_from_annotlabelid(aid_list, speciesid_list, constants.SPECIES_KEY, ibs.add_species)
+
+    @setter
+    def set_annotation_from_item(ibs, aid_list, item_list, _key, adder):
+        assert item_list is not None
+        # a item consisting of an empty string or all spaces is set to the default
+        item_list = [constants.KEY_DEFAULTS[_key]
+                     if item.strip() == constants.EMPTY_KEY else item for item in item_list]
+        # setting a name to '____' is equivalent to unnaming it
+        aid_list_to_delete = [aid for aid, item in izip(aid_list, item_list)
+                              if (item == constants.KEY_DEFAULTS[_key] or item == constants.EMPTY_KEY)]
+        ibs.delete_annotation_annotlabelids(aid_list_to_delete, _key)
+        # remove the relationships that have now been unnamed
+        aid_list = [aid for aid, item in izip(aid_list, item_list) if item != constants.KEY_DEFAULTS[_key]]
+        item_list = [item for item in item_list if item != constants.KEY_DEFAULTS[_key]]
+        # Convert names into annotlabelid
+        annotlabelid_list = adder(item_list)
+        # Call set_annotation_from_annotlabelid to finish the conditional adding
         ibs.set_annotation_from_key(
             aid_list,
             _key=constants.SPECIES_KEY,
             adder=ibs.add_species,
-            item_list=species_list,
-            annotlabelid_list=speciesid_list
+            annotlabelid_list=annotlabelid_list
         )
 
-    # @setter
-    def set_annotation_from_key(ibs, aid_list, _key, adder, item_list=None, annotlabelid_list=None):
-        """ Sets items/annotlabelids of a list of annotations.
-        Convenience function for set_annotation_annotlabelids"""
-        assert item_list is None or annotlabelid_list is None, (
-            'can only specify one type of name values (annotlabelid or item) not both')
-        if annotlabelid_list is None:
-            assert item_list is not None
-            # a item consisting of an empty string or all spaces is set to the default
-            item_list = [constants.KEY_DEFAULTS[_key]
-                         if item.strip() == constants.EMPTY_KEY else item for item in item_list]
-
-            # setting a name to '____' is equivalent to unnaming it
-            aid_list_to_delete = [aid for aid, item in izip(aid_list, item_list)
-                                  if (item == constants.KEY_DEFAULTS[_key] or item == constants.EMPTY_KEY)]
-            ibs.delete_annotation_annotlabelids(aid_list_to_delete, _key)
-            # remove the relationships that have now been unnamed
-            aid_list = [aid for aid, item in izip(aid_list, item_list) if item != constants.KEY_DEFAULTS[_key]]
-            item_list = [item for item in item_list if item != constants.KEY_DEFAULTS[_key]]
-            # Convert names into annotlabelid
-            annotlabelid_list = adder(item_list)
-
+    # FIXME: Readd setter wrappers
+    @setter
+    def set_annotation_from_annotlabelid(ibs, aid_list, annotlabelid_list, _key, adder):
+        """ Sets items/annotlabelids of a list of annotations."""
+        # Get the alrids_list for the aids, using the key as a filter
         alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
-
         # create the new relationship when none exists
         aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
                            if len(alrid_list) == 0]
         annotlabelid_list_to_add = [annotlabelid for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list)
                                     if len(alrid_list) == 0]
         ibs.add_annotation_relationship(aid_list_to_add, annotlabelid_list_to_add)
-
         # set the existing relationship if one already exists
-        aid_list_to_set = [aid for aid, alrid_list in izip(aid_list, alrids_list)
-                           if len(alrid_list) > 0]
+        alrids_list_to_set = [ alrid_list for alrid_list in alrids_list
+                                if len(alrid_list) > 0 ]
         annotlabelid_list_to_set = [annotlabelid for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list)
                                     if len(alrid_list) > 0]
-        ibs.set_annotation_annotlabelids(aid_list_to_set, annotlabelid_list_to_set, _key)
-
-    @setter
-    def set_annotation_annotlabelids(ibs, aid_list, annotlabelid_list, _key):
-        """ Sets nids of a list of annotations """
-        # Ensure we are setting true nids (not temporary distinguished nids)
-        # nids are really special annotlabelids
-        alrids_list = ibs.get_annotation_filtered_alrids(aid_list, ibs.key_ids[_key])
-        # SQL Setter arguments
-        # Cannot use set_table_props for cross-table setters.
-        for annotlabelid, alrid_list in izip(annotlabelid_list, alrids_list):
+        for annotlabelid, alrid_list in izip(annotlabelid_list_to_set, alrids_list_to_set):
             ibs.set_alr_annotlabelids(alrid_list, [annotlabelid] * len(alrid_list))
-
-    @setter
-    def set_annotation_nids(ibs, aid_list, nid_list):
-        """ Sets nids of a list of annotations """
-        # This dies and set_annotation_names becomes this
-        ibs.set_annotation_annotlabelids(aid_list, nid_list, constants.INDIVIDUAL_KEY)
-
-    # SETTERS::NAME
 
     @setter
     def set_name_notes(ibs, nid_list, notes_list):

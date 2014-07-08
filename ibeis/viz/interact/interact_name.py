@@ -278,7 +278,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_nid2(self, event=None):
         """ All the annotations are given nid2 """
-        self.ibs.set_annotation_names(self.aid_list, nid_list=[self.nid2] * len(self.aid_list))
+        self.ibs.set_annotation_nids(self.aid_list, [self.nid2] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
