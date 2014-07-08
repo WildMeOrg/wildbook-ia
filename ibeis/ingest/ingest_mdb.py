@@ -8,7 +8,7 @@ import utool
 
 # FIX THIS TO POINT TO THE CORRECT DIRECTORY
 #prefix = expanduser(join('~', 'Desktop'))
-prefix = '/media/Store/data/raw/Dan_2014-03-26_Ol_Pejeta__100GB/Ol_pejeta_zebra_stuff__2GB/'
+prefix = '/Volumes/EXTERNAL/BACKUPS/Dan_2014-03-26_Ol_Pejeta__100GB/Ol_pejeta_zebra_stuff__2GB/'
 
 print('''
       =====================
@@ -59,6 +59,7 @@ with open(join(exportedmdb_fpath), 'r') as file_:
         line = [ item.strip() for item in line.strip().split(',')]
         if len(line) == 1:
             print('WARNING: INVALID DATA ON LINE', linenum, '[FIX TO CONTINUE]')
+            raw_input()
             continue
         filename = line[2].strip('"\'')
         sighting = line[1]
