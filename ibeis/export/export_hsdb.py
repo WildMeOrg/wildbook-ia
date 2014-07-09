@@ -43,11 +43,11 @@ def export_ibeis_to_hotspotter(ibs):
 
     # Build Chip Table
     aid_list        = ibs.get_valid_aids()
-    annotationgid_list     = ibs.get_annotation_gids(aid_list)
-    annotationnid_list     = ibs.get_annotation_nids(aid_list)
-    bbox_list       = map(list, ibs.get_annotation_bboxes(aid_list))
-    theta_list      = ibs.get_annotation_thetas(aid_list)
-    notes_list      = ibs.get_annotation_notes(aid_list)
+    annotationgid_list     = ibs.get_annot_gids(aid_list)
+    annotationnid_list     = ibs.get_annot_nids(aid_list)
+    bbox_list       = map(list, ibs.get_annot_bboxes(aid_list))
+    theta_list      = ibs.get_annot_thetas(aid_list)
+    notes_list      = ibs.get_annot_notes(aid_list)
 
     chip_column_list = [aid_list, annotationgid_list, annotationnid_list, bbox_list, theta_list, notes_list]
     chip_column_lbls = ['cid', 'gid', 'nid', '[tlx tly w h]', 'theta', 'notes']
@@ -96,12 +96,12 @@ def get_flat_table(ibs):
     aid_list = ibs.get_valid_aids()
     column_tups = [
         (int,   'aids',   aid_list,),
-        (str,   'names',  ibs.get_annotation_names(aid_list),),
-        (list,  'bbox',   map(list, ibs.get_annotation_bboxes(aid_list),)),
-        (float, 'theta',  ibs.get_annotation_thetas(aid_list),),
-        (str,   'gpaths', ibs.get_annotation_gpaths(aid_list),),
-        (str,   'notes',  ibs.get_annotation_notes(aid_list),),
-        (str,   'uuids',  ibs.get_annotation_uuids(aid_list),),
+        (str,   'names',  ibs.get_annot_names(aid_list),),
+        (list,  'bbox',   map(list, ibs.get_annot_bboxes(aid_list),)),
+        (float, 'theta',  ibs.get_annot_thetas(aid_list),),
+        (str,   'gpaths', ibs.get_annot_gpaths(aid_list),),
+        (str,   'notes',  ibs.get_annot_notes(aid_list),),
+        (str,   'uuids',  ibs.get_annot_uuids(aid_list),),
     ]
     column_type   = [tup[0] for tup in column_tups]
     column_lbls = [tup[1] for tup in column_tups]

@@ -48,7 +48,7 @@ def ingest_testdb1(db):
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
-        nid_list = ibs.get_annotation_nids(aid_list)
+        nid_list = ibs.get_annot_nids(aid_list)
         nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
         unique_flag = utool.flag_unique_items(nid_list)
         unique_nids = utool.filter_items(nid_list, unique_flag)
@@ -72,13 +72,13 @@ def ingest_testdb1(db):
             # print2('new_nids=%r' % new_nids)
         # Unname, some annotations for testing
         delete_aids = utool.filter_items(aid_list, flag_list)
-        ibs.delete_annotation_nids(delete_aids)
+        ibs.delete_annot_nids(delete_aids)
         # Add all annotations with names as exemplars
         from ibeis.control.IBEISControl import IBEISController
         assert isinstance(ibs, IBEISController)
         unflagged_aids = utool.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
-        ibs.set_annotation_exemplar_flag(unflagged_aids, exemplar_flags)
+        ibs.set_annot_exemplar_flag(unflagged_aids, exemplar_flags)
 
         return None
     return Ingestable(db, ingest_type='named_images',

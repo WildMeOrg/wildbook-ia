@@ -42,13 +42,13 @@ def get_test_qaids(ibs):
         test_qaids.extend(valid_aids)
         printDBG('2. test_qaids = %r' % test_qaids[0:5])
     else:
-        is_hard_list = ibsfuncs.get_annotation_is_hard(ibs, valid_aids)
+        is_hard_list = ibsfuncs.get_annot_is_hard(ibs, valid_aids)
         hard_aids = utool.filter_items(valid_aids, is_hard_list)
         printDBG('Testing %d known hard cases' % len(hard_aids))
         test_qaids.extend(hard_aids)
 
     if params.args.all_gt_cases:
-        has_gt_list = ibs.get_annotation_has_groundtruth(valid_aids)
+        has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
         hasgt_aids = utool.filter_items(valid_aids, has_gt_list)
         print('Testing all %d ground-truthed cases' % len(hasgt_aids))
         test_qaids.extend(hasgt_aids)

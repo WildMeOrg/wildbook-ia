@@ -22,13 +22,13 @@ def TEST_IBS_CONTROL(ibs):
         #print('[TEST] eid_list2 = %r' % eid_list2)
         #print('[TEST] eid = %r' % eid)
 
-    """ set_annotation_notes / get_annotation_notes """
+    """ set_annot_notes / get_annot_notes """
     aid_list = ibs.get_valid_aids()
     annotation_notes_list = len(aid_list) * ["test text"]
     assert aid_list, 'aid_list is empty'
-    ibs.set_annotation_notes(aid_list, annotation_notes_list)
-    annotation_notes_list2 = ibs.get_annotation_notes(aid_list)
-    assert annotation_notes_list2, 'get_annotation_notes returned an empty list'
+    ibs.set_annot_notes(aid_list, annotation_notes_list)
+    annotation_notes_list2 = ibs.get_annot_notes(aid_list)
+    assert annotation_notes_list2, 'get_annot_notes returned an empty list'
     #print('[TEST] annotation_notes_list = %r' % annotation_notes_list)
     #print('[TEST] annotation_notes_list2 = %r' % annotation_notes_list2)
     assert annotation_notes_list == annotation_notes_list2, 'annotation notes lists do not match'
@@ -53,57 +53,57 @@ def TEST_IBS_CONTROL(ibs):
     print('[TEST] gid_notes_list2 = %r' % gid_notes_list2)
     assert gid_notes_list == gid_notes_list2, 'images notes lists do not match'
 
-    """ set_annotation_bboxes / get_annotation_bboxes """
+    """ set_annot_bboxes / get_annot_bboxes """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    bbox_list_orig = ibs.get_annotation_bboxes(aid_list)
+    bbox_list_orig = ibs.get_annot_bboxes(aid_list)
     bbox_list = [(1, 2, 3, 4)] * len(aid_list)
-    ibs.set_annotation_bboxes(aid_list, bbox_list)
-    bbox_list2 = ibs.get_annotation_bboxes(aid_list)
+    ibs.set_annot_bboxes(aid_list, bbox_list)
+    bbox_list2 = ibs.get_annot_bboxes(aid_list)
     print('[TEST] aid_list = %r' % (aid_list,))
     print('[TEST] bbox_list = %r' % (bbox_list,))
     print('[TEST] bbox_list2 = %r' % (bbox_list2,))
     assert bbox_list == bbox_list2, 'bbox lists do not match'
     # put bboxes back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
-    ibs.set_annotation_bboxes(aid_list, bbox_list_orig)
+    ibs.set_annot_bboxes(aid_list, bbox_list_orig)
 
-    """ set_annotation_verts / get_annotation_verts """
+    """ set_annot_verts / get_annot_verts """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    bbox_list_orig = ibs.get_annotation_bboxes(aid_list)
-    vert_list_orig = ibs.get_annotation_verts(aid_list)
+    bbox_list_orig = ibs.get_annot_bboxes(aid_list)
+    vert_list_orig = ibs.get_annot_verts(aid_list)
     vert_list = [((1, 2), (3, 4), (5, 6), (7, 8))] * len(aid_list)
     print('[TEST] vert_list = %r' % vert_list)
     assert len(aid_list) == len(vert_list), 'lengths do not match, malformed input'
-    ibs.set_annotation_verts(aid_list, vert_list)
-    vert_list2 = ibs.get_annotation_verts(aid_list)
+    ibs.set_annot_verts(aid_list, vert_list)
+    vert_list2 = ibs.get_annot_verts(aid_list)
     assert vert_list == vert_list2, 'vert lists do not match'
 
-    """ set_annotation_verts / get_annotation_bboxes """
-    bbox_list = ibs.get_annotation_bboxes(aid_list)
+    """ set_annot_verts / get_annot_bboxes """
+    bbox_list = ibs.get_annot_bboxes(aid_list)
     bbox_list2 = geometry.bboxes_from_vert_list(vert_list2)
     assert bbox_list == bbox_list2, 'bbox lists do not match'
     vert_list = [((10, 10), (120, 10), (120, 120), (10, 120))] * len(aid_list)
-    ibs.set_annotation_verts(aid_list, vert_list)
+    ibs.set_annot_verts(aid_list, vert_list)
     bbox_list3 = [(10, 10, 110, 110)] * len(aid_list)
-    bbox_list4 = ibs.get_annotation_bboxes(aid_list)
+    bbox_list4 = ibs.get_annot_bboxes(aid_list)
     assert bbox_list3 == bbox_list4, 'bbox lists do not match'
     # finish this test here
 
-    """ set_annotation_bboxes / get_annotation_verts  """
+    """ set_annot_bboxes / get_annot_verts  """
     bbox_list = [(10, 10, 110, 110)] * len(aid_list)
-    ibs.set_annotation_bboxes(aid_list, bbox_list)
+    ibs.set_annot_bboxes(aid_list, bbox_list)
     # test that setting the bounding boxes overrides the vertices
     vert_list = [((10, 10), (120, 10), (120, 120), (10, 120))] * len(aid_list)
-    vert_list2 = ibs.get_annotation_verts(aid_list)
+    vert_list2 = ibs.get_annot_verts(aid_list)
     assert vert_list == vert_list2, 'vert lists do not match'
 
     # put verts back to original state
     # (otherwise other tests will fail on the second run of run_tests.sh)
-    ibs.set_annotation_verts(aid_list, vert_list_orig)
-    assert vert_list_orig == ibs.get_annotation_verts(aid_list), 'Verts were not reset to original state'
-    assert bbox_list_orig == ibs.get_annotation_bboxes(aid_list), 'Bboxes were not reset to original state'
+    ibs.set_annot_verts(aid_list, vert_list_orig)
+    assert vert_list_orig == ibs.get_annot_verts(aid_list), 'Verts were not reset to original state'
+    assert bbox_list_orig == ibs.get_annot_bboxes(aid_list), 'Bboxes were not reset to original state'
 
     """ set_image_gps / get_image_gps """
     gid_list = ibs.get_valid_gids()
@@ -130,23 +130,23 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_encounter_enctext(eid_list, enc_text_list_orig)
     assert enc_text_list_orig == ibs.get_encounter_enctext(eid_list), 'enc text was not reset'
 
-    """ set annotation names / get_annotation_names """
+    """ set annotation names / get_annot_names """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
 
-    orig_names = ibs.get_annotation_names(aid_list)
+    orig_names = ibs.get_annot_names(aid_list)
     new_names = ['TESTNAME_' + str(x) for x in xrange(len(aid_list))]
-    ibs.set_annotation_names(aid_list, new_names)
-    new_names2 = ibs.get_annotation_names(aid_list)
+    ibs.set_annot_names(aid_list, new_names)
+    new_names2 = ibs.get_annot_names(aid_list)
     try:
         assert new_names == new_names2, 'new_names == new_names2 failed!'
     except AssertionError as ex:
         utool.printex(ex, key_list=['new_names', 'new_names2'])
         raise
 
-    ibs.set_annotation_names(aid_list, orig_names)
+    ibs.set_annot_names(aid_list, orig_names)
     try:
-        test_names = ibs.get_annotation_names(aid_list)
+        test_names = ibs.get_annot_names(aid_list)
         assert orig_names == test_names
     except AssertionError as ex:
         utool.printex(ex, key_list=['orig_names', 'test_names'])
@@ -155,18 +155,18 @@ def TEST_IBS_CONTROL(ibs):
     """ set annotation species / get annotation species """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    orig_species = ibs.get_annotation_species(aid_list)
+    orig_species = ibs.get_annot_species(aid_list)
     new_species = ['TESTSPECIES_' + str(x) for x in range(len(aid_list))]
-    ibs.set_annotation_species(aid_list, new_species)
-    new_species2 = ibs.get_annotation_species(aid_list)
+    ibs.set_annot_species(aid_list, new_species)
+    new_species2 = ibs.get_annot_species(aid_list)
     assert new_species == new_species2, 'new_species == new_species2 failed!'
-    ibs.set_annotation_species(aid_list, orig_species)
-    assert orig_species == ibs.get_annotation_species(aid_list), 'species were not reset'
+    ibs.set_annot_species(aid_list, orig_species)
+    assert orig_species == ibs.get_annot_species(aid_list), 'species were not reset'
 
     """ set alr confidence / get alr confidence """
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
-    alrids_list = ibs.get_annotation_alrids(aid_list)
+    alrids_list = ibs.get_annot_alrids(aid_list)
     assert alrids_list, 'alrids_list is empty'
     alrid_list = utool.flatten(alrids_list)
     orig_confidences = ibs.get_alr_confidence(alrid_list)

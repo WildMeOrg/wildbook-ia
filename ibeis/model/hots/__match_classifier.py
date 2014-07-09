@@ -14,7 +14,7 @@ from ibeis.model.hots import report_results2 as rr2
 
 def get_gt_cases(ibs):
     valid_aids = ibs.get_valid_aids()
-    aid_list = [aid for aid in valid_aids if len(ibs.get_annotation_groundtruth(aid)) > 0]
+    aid_list = [aid for aid in valid_aids if len(ibs.get_annot_groundtruth(aid)) > 0]
     return aid_list
 
 

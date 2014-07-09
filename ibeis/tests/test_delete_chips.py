@@ -12,7 +12,7 @@ def TEST_DELETE_CHIPS(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     cid_list = ibs.add_chips(aid_list)
     cid = cid_list[0]
     _fid = ibs.get_chip_fids(cid, ensure=False)

@@ -71,13 +71,13 @@ def _nn_normalized_weight(normweight_fn, ibs, qaid2_nns, qreq):
             qfx2_normk = np.zeros(len(qfx2_dist), np.int32) + (K + Knorm - 1)
         elif rule == 'name':
             # Get the top names you do not want your normalizer to be from
-            qnid = ibs.get_annotation_nids(qaid)
+            qnid = ibs.get_annot_nids(qaid)
             nTop = max(1, K)
             qfx2_topdx = qfx2_dx.T[0:nTop, :].T
             qfx2_normdx = qfx2_dx.T[-Knorm:].T
             # Apply temporary uniquish name
-            qfx2_topnid = ibs.get_annotation_nids(dx2_aid[qfx2_topdx])
-            qfx2_normnid = ibs.get_annotation_nids(dx2_aid[qfx2_normdx])
+            qfx2_topnid = ibs.get_annot_nids(dx2_aid[qfx2_topdx])
+            qfx2_normnid = ibs.get_annot_nids(dx2_aid[qfx2_normdx])
             # Inspect the potential normalizers
             qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
             qfx2_normk += (K + Knorm)  # convert form negative to pos indexes
@@ -169,20 +169,20 @@ def nn_bboxdist_weight(ibs, qaid2_nns, qreq):
         (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_nn = qfx2_dx[:, 0:K]
         # Get matched chip sizes #.0300s
-        qfx2_kpts = ibs.get_annotation_kpts(qaid)
+        qfx2_kpts = ibs.get_annot_kpts(qaid)
         nQuery = len(qfx2_dx)
         qfx2_aid = dx2_aid[qfx2_nn]
         qfx2_fx = dx2_fx[qfx2_nn]
-        qfx2_chipsize2 = array([ibs.get_annotation_chipsizes(aid) for aid in qfx2_aid.flat])
+        qfx2_chipsize2 = array([ibs.get_annot_chipsizes(aid) for aid in qfx2_aid.flat])
         qfx2_chipsize2.shape = (nQuery, K, 2)
         qfx2_chipdiag2 = np.sqrt((qfx2_chipsize2 ** 2).sum(2))
         # Get query relative xy keypoints #.0160s / #.0180s (+cast)
-        qdiag = np.sqrt((array(ibs.get_annotation_chipsizes(qaid)) ** 2).sum())
+        qdiag = np.sqrt((array(ibs.get_annot_chipsizes(qaid)) ** 2).sum())
         qfx2_xy1 = array(qfx2_kpts[:, 0:2], np.float)
         qfx2_xy1[:, 0] /= qdiag
         qfx2_xy1[:, 1] /= qdiag
         # Get database relative xy keypoints
-        qfx2_xy2 = array([ibs.get_annotation_kpts(aid)[fx, 0:2] for (aid, fx) in
+        qfx2_xy2 = array([ibs.get_annot_kpts(aid)[fx, 0:2] for (aid, fx) in
                           izip(qfx2_aid.flat, qfx2_fx.flat)], np.float)
         qfx2_xy2.shape = (nQuery, K, 2)
         qfx2_xy2[:, :, 0] /= qfx2_chipdiag2
@@ -205,7 +205,7 @@ def nn_scale_weight(ibs, qaid2_nns, qreq):
     dx2_fx = data_index.ax2_fx
     for qaid in qaid2_nns.iterkeys():
         (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
-        qfx2_kpts = ibs.get_annotation_kpts(qaid)
+        qfx2_kpts = ibs.get_annot_kpts(qaid)
         qfx2_nn = qfx2_dx[:, 0:K]
         nQuery = len(qfx2_dx)
         qfx2_aid = dx2_aid[qfx2_nn]
@@ -213,7 +213,7 @@ def nn_scale_weight(ibs, qaid2_nns, qreq):
         qfx2_det1 = array(qfx2_kpts[:, [2, 4]], np.float).prod(1)
         qfx2_det1 = np.sqrt(1.0 / qfx2_det1)
         qfx2_K_det1 = np.rollaxis(np.tile(qfx2_det1, (K, 1)), 1)
-        qfx2_det2 = array([ibs.get_annotation_kpts(aid)[fx, [2, 4]] for (aid, fx) in
+        qfx2_det2 = array([ibs.get_annot_kpts(aid)[fx, [2, 4]] for (aid, fx) in
                            izip(qfx2_aid.flat, qfx2_fx.flat)], np.float).prod(1)
         qfx2_det2.shape = (nQuery, K)
         qfx2_det2 = np.sqrt(1.0 / qfx2_det2)

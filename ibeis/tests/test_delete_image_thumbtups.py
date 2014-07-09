@@ -12,7 +12,7 @@ def TEST_DELETE_IMAGE_THUMBTUPS(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)]*len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     assert len(aid_list) !=0, "No annotations added"
     thumbpath_list = ibs.get_image_thumbpath(gid_list)
     gpath_list = ibs.get_image_paths(gid_list)

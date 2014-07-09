@@ -192,7 +192,7 @@ class Interact_QueryResult(object):
 
         divider = df2.ensure_divider(ax)
 
-        name1, name2 = ibs.get_annotation_names([aid1, aid2])
+        name1, name2 = ibs.get_annot_names([aid1, aid2])
         #truth = self.ibs.get_match_truth(aid1, aid2)
 
         if make_buttons:
@@ -275,16 +275,16 @@ class Interact_QueryResult(object):
         print(text)
         ibs = self.ibs
         if text.startswith(BREAK_MATCH_PREF):
-            ibs.set_annotation_names([aid1, aid2], ['____', '____'])
+            ibs.set_annot_names([aid1, aid2], ['____', '____'])
         elif text.startswith(NEW_MATCH_PREF):
             next_name = ibsfuncs.make_next_name(ibs)
-            ibs.set_annotation_names([aid1, aid2], [next_name, next_name])
+            ibs.set_annot_names([aid1, aid2], [next_name, next_name])
         elif text.startswith(RENAME1_PREF):
-            name2 = ibs.get_annotation_names(aid2)
-            ibs.set_annotation_names([aid1], [name2])
+            name2 = ibs.get_annot_names(aid2)
+            ibs.set_annot_names([aid1], [name2])
         elif text.startswith(RENAME2_PREF):
-            name1 = ibs.get_annotation_names(aid1)
-            ibs.set_annotation_names([aid2], [name1])
+            name1 = ibs.get_annot_names(aid1)
+            ibs.set_annot_names([aid2], [name1])
         # Emit that something has changed
         self.on_change_callback()
         self.show_page()

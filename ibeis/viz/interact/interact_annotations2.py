@@ -11,9 +11,9 @@ class ANNOTATION_Interaction2(object):
         self.rows_updated_callback = rows_updated_callback
         img = ibs.get_images(self.gid)
         self.aid_list = ibs.get_image_aids(self.gid)
-        bbox_list = ibs.get_annotation_bboxes(self.aid_list)
-        theta_list = ibs.get_annotation_thetas(self.aid_list)
-        species_list = ibs.get_annotation_species(self.aid_list)
+        bbox_list = ibs.get_annot_bboxes(self.aid_list)
+        theta_list = ibs.get_annot_thetas(self.aid_list)
+        species_list = ibs.get_annot_species(self.aid_list)
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
@@ -35,16 +35,16 @@ class ANNOTATION_Interaction2(object):
             print(deleted_list)
             rows_updated = True
             deleted = [self.aid_list[del_index] for del_index in deleted_list]
-            self.ibs.delete_annotations(deleted)
+            self.ibs.delete_annots(deleted)
         if len(changed_list) > 0:
             changed_aid = [self.aid_list[changed[0]] for changed, theta in changed_list]
             changed_bbox = [changed[1] for (changed, theta) in changed_list]
-            self.ibs.set_annotation_bboxes(changed_aid, changed_bbox)
+            self.ibs.set_annot_bboxes(changed_aid, changed_bbox)
         if len(new_list) > 0:
             rows_updated = True
             bbox_list, theta_list, species_list = izip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_list])
             #print("species_list in annotation_interaction2: %r" % list(species_list))
-            self.ibs.add_annotations([self.gid] * len(new_list), bbox_list, theta_list=theta_list, species_list=species_list)
+            self.ibs.add_annots([self.gid] * len(new_list), bbox_list, theta_list=theta_list, species_list=species_list)
         if rows_updated:
             self.rows_updated_callback()
 

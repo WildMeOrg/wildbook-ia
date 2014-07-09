@@ -12,14 +12,14 @@ def TEST_DELETE_ANNOTATION_CHIPS(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     assert len(aid_list) != 0, "No annotations"
     aid = aid_list[0]
-    gid = ibs.get_annotation_gids(aid)
+    gid = ibs.get_annot_gids(aid)
     assert gid is not None, "gid for aid=%r is None" % (aid,)
     gthumbpath = ibs.get_image_thumbpath(gid)
-    annotation_thumbpath = ibs.get_annotation_chip_thumbpath(aid)
-    ibs.delete_annotation_chips(aid)
+    annotation_thumbpath = ibs.get_annot_chip_thumbpath(aid)
+    ibs.delete_annot_chips(aid)
     aid_list = ibs.get_valid_aids()
     assert aid in aid_list, "Error: Annotation deleted"
     assert not utool.checkpath(gthumbpath), "Image Thumbnail not deleted"

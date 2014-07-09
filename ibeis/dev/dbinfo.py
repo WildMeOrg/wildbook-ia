@@ -59,7 +59,7 @@ def get_dbinfo(ibs):
         return '{\n    ' + ret + '}'
 
     print('reading image sizes')
-    annotation_bbox_list = ibs.get_annotation_bboxes(valid_aids)
+    annotation_bbox_list = ibs.get_annot_bboxes(valid_aids)
     annotation_bbox_arr = np.array(annotation_bbox_list)
     if len(annotation_bbox_arr) == 0:
         annotation_size_list = []
@@ -97,7 +97,7 @@ def get_keypoint_stats(ibs):
     from ibeis.control.IBEISControl import IBEISController
     assert(isinstance(ibs, IBEISController))
     valid_aids = np.array(ibs.get_valid_aids())
-    cx2_kpts = ibs.get_annotation_kpts(valid_aids)
+    cx2_kpts = ibs.get_annot_kpts(valid_aids)
     #cx2_kpts = ibs.feats.cx2_kpts
     # Check cx2_kpts
     cx2_nFeats = map(len, cx2_kpts)
@@ -166,8 +166,8 @@ def dbstats(ibs):
 def cache_memory_stats(ibs, cid_list, fnum=None):
     from util import util_latex as latex_formater
     print('[dev stats] cache_memory_stats()')
-    #kpts_list = ibs.get_annotation_kpts(cid_list)
-    #desc_list = ibs.get_annotation_desc(cid_list)
+    #kpts_list = ibs.get_annot_kpts(cid_list)
+    #desc_list = ibs.get_annot_desc(cid_list)
     #nFeats_list = map(len, kpts_list)
     gx_list = np.unique(ibs.cx2_gx(cid_list))
 

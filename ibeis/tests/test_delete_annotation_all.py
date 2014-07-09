@@ -8,8 +8,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ANN
 
 def TEST_DELETE_ANNOTATION_ALL(ibs, back):
     aid_list = ibs.get_valid_aids()
-    thumbpath_list = ibs.get_annotation_chip_thumbpath(aid_list)
-    ibs.delete_annotations(aid_list)
+    thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
+    ibs.delete_annots(aid_list)
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.get_valid_cids()
     fid_list = ibs.get_valid_fids()

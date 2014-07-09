@@ -12,23 +12,23 @@ def TEST_DELETE_IMAGE(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     gid = gid_list[0]
     assert gid is not None, "gid is None"
     aid_list = ibs.get_image_aids(gid)
     assert len(aid_list) == 1, "Length of aid_list=%r" % (len(aid_list),)
     aid = aid_list[0]
     assert aid is not None, "aid is None"
-    cid = ibs.get_annotation_cids(aid, ensure=False)
-    fid = ibs.get_annotation_fids(aid, ensure=False)
+    cid = ibs.get_annot_cids(aid, ensure=False)
+    fid = ibs.get_annot_fids(aid, ensure=False)
     assert cid is None, "cid=%r should be None" % (cid,)
     assert fid is None, "fid=%r should be None" % (fid,)
-    cid = ibs.get_annotation_cids(aid, ensure=True)
-    fid = ibs.get_annotation_fids(aid, ensure=True)
+    cid = ibs.get_annot_cids(aid, ensure=True)
+    fid = ibs.get_annot_fids(aid, ensure=True)
     assert cid is not None, "cid should be computed"
     assert fid is not None, "fid should be computed"
     gthumbpath = ibs.get_image_thumbpath(gid)
-    athumbpath = ibs.get_annotation_chip_thumbpath(aid)
+    athumbpath = ibs.get_annot_chip_thumbpath(aid)
     ibs.delete_images(gid)
     all_gids = ibs.get_valid_gids()
     all_aids = ibs.get_valid_aids()

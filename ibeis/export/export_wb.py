@@ -111,7 +111,7 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
             image_annotation_mapping[name_id] = []
 
         for annotation_id in annotations:
-            assoc_name_id = ibs.get_annotation_nids([annotation_id])[0]
+            assoc_name_id = ibs.get_annot_nids([annotation_id])[0]
             name_annotation_mapping[assoc_name_id].append(annotation_id)
 
         print (ibs.get_image_nids(images))
@@ -126,9 +126,9 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
             annotation_id_list = name_annotation_mapping[name_id]
             image_id_list = image_annotation_mapping[name_id]
             print (image_id_list)
-            wbenc_time_avg = int(sum(ibs.get_image_unixtime(ibs.get_annotation_gids(annotation_id_list))) / len(annotation_id_list))
+            wbenc_time_avg = int(sum(ibs.get_image_unixtime(ibs.get_annot_gids(annotation_id_list))) / len(annotation_id_list))
 
-            lat, lng = map(lambda x: sum(x) / len(x), izip(*ibs.get_image_gps(ibs.get_annotation_gids(annotation_id_list))))
+            lat, lng = map(lambda x: sum(x) / len(x), izip(*ibs.get_image_gps(ibs.get_annot_gids(annotation_id_list))))
             print (lat)
             print (lng)
             print (wbenc_time_avg)

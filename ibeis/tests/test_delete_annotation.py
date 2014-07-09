@@ -12,19 +12,19 @@ def TEST_DELETE_ANNOTATION(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     aid = aid_list[0]
     assert aid is not None, "aid is None"
-    cid = ibs.get_annotation_cids(aid, ensure=False)
-    fid = ibs.get_annotation_fids(aid, ensure=False)
+    cid = ibs.get_annot_cids(aid, ensure=False)
+    fid = ibs.get_annot_fids(aid, ensure=False)
     assert cid is None, "cid should be None"
     assert fid is None, "fid should be None"
-    cid = ibs.get_annotation_cids(aid, ensure=True)
-    fid = ibs.get_annotation_fids(aid, ensure=True)
+    cid = ibs.get_annot_cids(aid, ensure=True)
+    fid = ibs.get_annot_fids(aid, ensure=True)
     assert cid is not None, "cid should be computed"
     assert fid is not None, "fid should be computed"
-    thumbpath = ibs.get_annotation_chip_thumbpath(aid)
-    ibs.delete_annotations(aid)
+    thumbpath = ibs.get_annot_chip_thumbpath(aid)
+    ibs.delete_annots(aid)
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.get_valid_cids()
     fid_list = ibs.get_valid_fids()
