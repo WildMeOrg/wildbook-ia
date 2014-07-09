@@ -132,16 +132,16 @@ class MatchVerificationInteraction(AbstractInteraction):
             offset = count * nCols + 1
             for px, aid in enumerate(groundtruth):
                 nid = ibs.get_annot_nids(aid)
-
-                print(aid)
-                if ibs.is_nid_unknown(nid):
+                color = self.nid2_color[nid]
+                # print(aid)
+                if ibsfuncs.is_nid_unknown(ibs, [nid])[0]:
                     color = constants.UNKNOWN_PURPLE_RGBA01
-                elif nid == self.nid1:
-                    color = constants.NAME_RED_RGBA01
-                elif nid == self.nid2:
-                    color = constants.NAME_BLUE_RGBA01
-                else:
-                    color = constants.NEW_YELLOW_RGBA01
+                # elif nid == self.nid1:
+                #     color = constants.NAME_RED_RGBA01
+                # elif nid == self.nid2:
+                #     color = constants.NAME_BLUE_RGBA01
+                # else:
+                #     color = constants.NEW_YELLOW_RGBA01
                 self.plot_chip(aid, nRows, nCols, px + offset, color=color)
 
         self.show_hud()
@@ -176,6 +176,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 'size': '13%'
             }
         annotation_unknown = ibs.is_nid_unknown([nid])[0]
+        flag = True
         if not annotation_unknown:
             callback = partial(self.unname_annotation, aid)
             self.append_button('remove name', callback=callback, **butkw)
@@ -183,7 +184,8 @@ class MatchVerificationInteraction(AbstractInteraction):
             callback = partial(self.rename_annotation_nid1, aid)
             text = 'change name to: ' + ibs.get_names(self.nid1)
             self.append_button(text, callback=callback, **butkw)
-        if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0]:
+            flag = self.nid1 != self.nid2
+        if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0] and flag:
             callback = partial(self.rename_annotation_nid2, aid)
             text = 'change name to: ' + ibs.get_names(self.nid2)
             self.append_button(text, callback=callback, **butkw)
@@ -235,6 +237,8 @@ class MatchVerificationInteraction(AbstractInteraction):
         if all(is_unknown):
             self.append_button('merge all\n into a NEW NAME',
                                callback=self.merge_all_into_next_name, rect=next_rect())
+        if any(is_unknown):
+            self.append_button('dismiss all', callback=self.dismiss_all, rect=next_rect())
         if not name1.startswith('____'):
             self.append_button('join all\n into name2=%s' % name1, callback=self.merge_all_into_nid1, rect=next_rect())
         if name1 != name2 and not name2.startswith('____') and \
@@ -251,6 +255,22 @@ class MatchVerificationInteraction(AbstractInteraction):
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
+
+    def dismiss_all(self, event=None):
+        """ All annotations are given different new names """
+        # Delete all original names
+        ibs = self.ibs
+        ibs.delete_annot_nids(self.aid_list)
+        # Get next name from the controller
+        nid_list = ibs.get_annot_nids(self.aid_list)
+        is_unknown = ibsfuncs.is_nid_unknown(ibs, nid_list)
+        aid_list_filtered = utool.filter_items(self.aid_list, is_unknown)
+        next_names = ibsfuncs.make_next_name(ibs, num=len(aid_list_filtered))
+        # Readd the new names to all aids
+        ibs.add_annot_names(aid_list_filtered, next_names)
+        self.update_callback()
+        self.backend_callback()
+        self.show_page()
 
     def review(self, event=None):
         if self.qres_callback is not None:
@@ -294,11 +314,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def merge_all_into_next_name(self, event=None):
-        """ All the annotations are given nid2 """
+        """ All the annotations are given the same new name """
         # Delete all original names
         self.ibs.delete_annot_nids(self.aid_list)
         # Get next name from the controller
-        self.next_name = next_name = ibsfuncs.make_next_name(self.ibs)
+        next_name = ibsfuncs.make_next_name(self.ibs)
         # Readd the new names to all aids
         self.ibs.add_annot_names(self.aid_list, [next_name] * len(self.aid_list))
         self.update_callback()

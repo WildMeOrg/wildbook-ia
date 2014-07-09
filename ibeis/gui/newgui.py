@@ -487,7 +487,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 def make_callback_pair(idx):
                     next_qtindex = model._get_adjacent_qtindex(idx, 1)
                     prev_qtindex = model._get_adjacent_qtindex(idx, -1)
-                    cur_gid = model._get_row_id(idx)
                     if next_qtindex is not None:
                         def next_callback(numclicks=[0]):
                             if numclicks[0] == 0:
