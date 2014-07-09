@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from vtool import geometry
 from itertools import izip
+from ibeis import constants
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS_CONTROL]')
 
 
@@ -156,7 +157,9 @@ def TEST_IBS_CONTROL(ibs):
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
     orig_species = ibs.get_annot_species(aid_list)
-    new_species = ['testspecies_' + str(x) for x in range(len(aid_list))]
+    print('orig_species = %r' % (orig_species,))
+    new_species = [constants.VALID_SPECIES[x % len(constants.VALID_SPECIES)] for x in range(len(aid_list))]
+    print('new_species = %r' % (new_species,))
     ibs.set_annot_species(aid_list, new_species)
     try:
         new_species2 = ibs.get_annot_species(aid_list)

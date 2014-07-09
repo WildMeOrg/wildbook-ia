@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import division
-from os.path import join, expanduser, exists, basename
+from os.path import join, expanduser, exists, basename  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from detecttools.directory import Directory
@@ -109,5 +109,7 @@ ibsfuncs.localize_images(ibs)
 ibs.set_image_notes(gid_list, notes_list)
 ibs.set_image_unixtime(gid_list, times_list)
 bbox_list = [ (0, 0, w, h) for (w, h) in ibs.get_image_sizes(gid_list) ]
-ibs.add_annots(gid_list, bbox_list)
+aid_list = ibs.add_annots(gid_list, bbox_list)
+name_list = [ basename(image_path).split(".")[0] for image_path in image_gpath_list ]
+ibs.set_annot_names(aid_list, name_list)
 ibs.db.commit()

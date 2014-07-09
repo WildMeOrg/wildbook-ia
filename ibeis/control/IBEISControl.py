@@ -866,10 +866,6 @@ class IBEISController(object):
         """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
         list of annotations.  Convenience function for
         set_annot_from_value"""
-        #nid_list = ibs.add_names(name_list)
-        #print('nid_list = %r' % (nid_list,))
-        #print('name_list = %r' % (name_list,))
-        #ibs.set_annot_nids(aid_list, nid_list)
         ibs.set_annot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
 
     @setter
