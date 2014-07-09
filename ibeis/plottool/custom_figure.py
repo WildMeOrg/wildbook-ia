@@ -8,9 +8,9 @@ from .custom_constants import FIGSIZE, DPI, FONTS
 
 
 def customize_figure(fig, docla):
-    if 'user_stat_list' not in fig.__dict__.keys() or docla:
-        fig.user_stat_list = []
-        fig.user_notes = []
+    #if 'user_stat_list' not in fig.__dict__.keys() or docla:
+    #    fig.user_stat_list = []
+    #    fig.user_notes = []
     fig.df2_closed = False
 
 
@@ -56,6 +56,15 @@ def get_ax(fnum=None, pnum=None):
     return ax
 
 
+def _convert_pnum_int_to_tup(int_pnum):
+    # Convert pnum to tuple format if in integer format
+    nr = int_pnum // 100
+    nc = int_pnum // 10 - (nr * 10)
+    px = int_pnum - (nr * 100) - (nc * 10)
+    pnum = (nr, nc, px)
+    return pnum
+
+
 def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
            doclf=False, **kwargs):
     """
@@ -67,14 +76,17 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     axes_list = fig.get_axes()
     # Ensure my customized settings
     customize_figure(fig, docla)
-    # Convert pnum to tuple format
     if utool.is_int(pnum):
-        nr = pnum // 100
-        nc = pnum // 10 - (nr * 10)
-        px = pnum - (nr * 100) - (nc * 10)
-        pnum = (nr, nc, px)
+        pnum = _convert_pnum_int_to_tup(pnum)
     if doclf:  # a bit hacky. Need to rectify docla and doclf
         fig.clf()
+        # <HACK TO CLEAR AXES>
+        #for ax in axes_list:
+        #    ax.clear()
+        #for ax in fig.get_axes:
+        #    fig.delaxes(ax)
+        #axes_list = []
+        # </HACK TO CLEAR AXES>
     # Get the subplot
     if docla or len(axes_list) == 0:
         printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))

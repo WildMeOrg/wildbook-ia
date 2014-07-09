@@ -75,7 +75,7 @@ def get_all_figures():
     all_figures = []
     # Make sure you dont show figures that this module closed
     for fig in iter(all_figures_):
-        if 'df2_closed' not in fig.__dict__.keys() or not fig.df2_closed:
+        if not fig.__dict__.get('df2_closed', False):
             all_figures.append(fig)
     # Return all the figures sorted by their number
     all_figures = sorted(all_figures, key=lambda fig: fig.number)
