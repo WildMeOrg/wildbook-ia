@@ -247,8 +247,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #_SEP(),
 
                 _COMBO(detection_combo_box_options,
-                        ibswgt.back.detection_species_changed,
-                        bgcolor=(150, 255, 150)),
+                        ibswgt.back.detection_species_changed),
 
                 _NEWBUT('Detect',
                         ibswgt.back.run_detection_coarse,

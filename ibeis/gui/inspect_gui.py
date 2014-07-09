@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import functools  # NOQA
 from functools import partial
 #from itertools import izip
 #utool.rrrr()
@@ -7,8 +8,8 @@ from ibeis.viz import interact
 from plottool import interact_helpers as ih
 from ibeis.dev import results_organizer
 from plottool import fig_presenter
-from guitool import qtype, APIItemWidget
-from PyQt4 import QtCore
+from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
+from PyQt4 import QtCore, QtGui
 import guitool
 from ibeis.dev import ibsfuncs
 import numpy as np
@@ -25,8 +26,15 @@ class QueryResultsWidget(APIItemWidget):
 
     def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None, **kwargs):
         print('[qres_wgt] Init QueryResultsWidget')
+        # Uncomment below to turn on FilterProxyModel
+        # APIItemWidget.__init__(qres_wgt, parent=parent,
+        #                         model_class=CustomFilterModel)
         APIItemWidget.__init__(qres_wgt, parent=parent)
+        qres_wgt.show_new = True
+        qres_wgt.show_join = True
+        qres_wgt.show_split = True
         # Set results data
+        qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join, qres_wgt.show_split)
         qres_wgt.set_query_results(ibs, qaid2_qres, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
@@ -38,6 +46,41 @@ class QueryResultsWidget(APIItemWidget):
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
 
+    def add_checkboxes(qres_wgt, show_new, show_join, show_split):
+        _CHECK  = functools.partial(guitool.newCheckBox, qres_wgt)
+        qres_wgt.button_list = [
+            [
+                _CHECK('Show New Matches',
+                        qres_wgt._check_changed,
+                        checked=show_new),
+
+                _CHECK('Show Join Matches',
+                        qres_wgt._check_changed,
+                        checked=show_join),
+
+                _CHECK('Show Split Matches',
+                        qres_wgt._check_changed,
+                        checked=show_split),
+            ]
+        ]
+
+        qres_wgt.buttonBars = []
+        for row in qres_wgt.button_list:
+            qres_wgt.buttonBars.append(QtGui.QHBoxLayout(qres_wgt))
+            qres_wgt.vert_layout.addLayout(qres_wgt.buttonBars[-1])
+            for button in row:
+                qres_wgt.buttonBars[-1].addWidget(button)
+
+    def update_checkboxes(qres_wgt):
+        show_new = qres_wgt.button_list[0][0].isChecked()
+        show_join = qres_wgt.button_list[0][1].isChecked()
+        show_split = qres_wgt.button_list[0][2].isChecked()
+        print("UPDATED: %r, %r, %r" % (show_new, show_join, show_split))
+        qres_wgt.model._update_rows()
+
+    def _check_changed(qres_wgt, value):
+        qres_wgt.update_checkboxes()
+
     def sizeHint(qres_wgt):
         # should eventually improve this to use the widths of the header columns
         return QtCore.QSize(1000, 500)
@@ -47,6 +90,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
         qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, **kwargs)
+        qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
         APIItemWidget.change_headers(qres_wgt, headers)
 
@@ -144,6 +188,37 @@ def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, *
                                               update_callback=update_callback,
                                               backend_callback=backend_callback, **kwargs)
     ih.register_interaction(mvinteract)
+
+
+class CustomFilterModel(FilterProxyModel):
+    def __init__(model, headers=None, parent=None, *args):
+        FilterProxyModel.__init__(model, parent=parent, numduplicates=1, *args)
+        model.ibswin = parent
+        model.eid = -1  # negative one is an invalid eid
+        model.original_ider = None
+        model.sourcemodel = APIItemModel(parent=parent)
+        model.setSourceModel(model.sourcemodel)
+        print('[ibs_model] just set the sourcemodel')
+
+    def _update_headers(model, **headers):
+        def _null_ider(**kwargs):
+            return []
+        model.original_iders = headers.get('iders', [_null_ider])
+        if len(model.original_iders) > 0:
+            model.new_iders = model.original_iders[:]
+            model.new_iders[0] = model._ider
+        headers['iders'] = model.new_iders
+        model._nd = headers.get('num_duplicates', 1)
+        model.sourcemodel._update_headers(**headers)
+
+    def _ider(model):
+        """ Overrides the API model ider to give only selected encounter ids """
+        return model.original_iders[0]()
+
+    def _change_enc(model, eid):
+        model.eid = eid
+        with ChangeLayoutContext([model]):
+            FilterProxyModel._update_rows(model)
 
 
 class CustomAPI(object):
@@ -343,7 +418,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
-        ('review',    'BUTTON'),
+        ('review',     'BUTTON'),
         ('status',     str),
         ('querythumb', 'PIXMAP'),
         ('resthumb',   'PIXMAP'),
@@ -351,8 +426,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
         ('name',       str),
         ('score',      float),
         ('rank',       int),
-        ('truth',     bool),
-        ('opt',       int),
+        ('truth',      bool),
+        ('opt',        int),
     ])
 
     col_getters_dict = dict([
