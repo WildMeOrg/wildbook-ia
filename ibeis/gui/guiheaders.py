@@ -6,7 +6,7 @@ import utool
 ENCOUNTER_TABLE  = 'encounters'
 IMAGE_TABLE      = 'images'
 IMAGE_GRID       = 'image_grid'
-ANNOTATION_TABLE = 'Annotations'
+ANNOTATION_TABLE = 'annotations'
 NAME_TABLE       = 'names'
 NAMES_TREE       = 'names_tree'
 QRES_TABLE       = 'qres'
@@ -40,7 +40,7 @@ TABLE_COLNAMES = {
         'nRids',
         'gname',
         'ext',
-        'aif',
+        'reviewed',
         'datetime',
         'gps',
         'gdconf',
@@ -111,7 +111,7 @@ TABLE_COLNAMES = {
 
 # the columns which are editable
 TABLE_EDITSET = {
-    IMAGE_TABLE      : set(['aif', 'notes']),
+    IMAGE_TABLE      : set(['reviewed', 'notes']),
     ANNOTATION_TABLE : set(['name', 'species', 'notes', 'exemplar']),
     NAME_TABLE       : set(['name', 'notes']),
     QRES_TABLE       : set(['name']),
@@ -161,7 +161,7 @@ COL_DEF = dict([
     ('verts',      (str,      'Verts')),
     ('score',      (str,      'Confidence')),
     ('theta',      (str,      'Theta')),
-    ('aif',        (bool,     'Reviewed')),
+    ('reviewed',        (bool,     'Reviewed')),
     ('exemplar',   (bool,     'Is Exemplar')),
     ('enctext',    (str,      'Encounter Text')),
     ('datetime',   (str,      'Date / Time')),
@@ -185,7 +185,7 @@ def make_ibeis_headers_dict(ibs):
         'gid'        : lambda gids: gids,
         'eid'        : ibs.get_image_eids,
         'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
-        'aif'        : ibs.get_image_aifs,
+        'reviewed'        : ibs.get_image_reviewed,
         'gname'      : ibs.get_image_gnames,
         'nRids'      : ibs.get_image_num_annotations,
         'unixtime'   : ibs.get_image_unixtime,
@@ -198,7 +198,7 @@ def make_ibeis_headers_dict(ibs):
         'gps'        : partial_imap_1to1(utool.tupstr, ibs.get_image_gps),
     }
     setters[IMAGE_TABLE] = {
-        'aif'        : ibs.set_image_aifs,
+        'reviewed'        : ibs.set_image_reviewed,
         'notes'      : ibs.set_image_notes,
     }
     #

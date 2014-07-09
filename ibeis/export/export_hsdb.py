@@ -27,9 +27,10 @@ def export_ibeis_to_hotspotter(ibs):
     # Build Image Table
     gid_list        = ibs.get_valid_gids()
     gpath_list      = ibs.get_hsdb_image_gpaths(gid_list)
-    aif_list        = ibs.get_image_aifs(gid_list)
+    reviewed_list        = ibs.get_image_reviewed(gid_list)
+    # aif in hotspotter is equivilant to reviewed in IBEIS
     image_table_csv = utool.make_csv_table(
-        [gid_list, gpath_list, aif_list],
+        [gid_list, gpath_list, reviewed_list],
         ['gid', 'gname', 'aif'],
         '# image table')
 
