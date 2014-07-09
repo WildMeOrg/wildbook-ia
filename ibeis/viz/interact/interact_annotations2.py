@@ -49,6 +49,7 @@ class ANNOTATION_Interaction2(object):
             self.rows_updated_callback()
 
     def update_image_and_callbacks(self, gid, nextcb, prevcb):
+        self.interact_ANNOTATIONS.accept_new_annotations(None) # save the current changes when pressing next or previous
         ANNOTATION_Interaction2.__init__(self, self.ibs, gid, next_callback=nextcb, prev_callback=prevcb, rows_updated_callback=self.rows_updated_callback)
 
 
