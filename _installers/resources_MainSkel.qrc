@@ -1,5 +1,0 @@
-<RCC>
-  <qresource prefix="newPrefix">
-    <file>hsicon.ico</file>
-  </qresource>
-</RCC>
