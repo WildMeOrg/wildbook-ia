@@ -1,4 +1,4 @@
-"""/Ann
+"""
 
 guiback.py  -- code/ibeis/ibeis/gui
 ./resetdbs.sh
@@ -45,7 +45,7 @@ from plottool import draw_func2 as df2
 from itertools import izip
 
 
-DEFAULT_SPECIES_TAG = "Unknown species"
+DEFAULT_SPECIES_TAG = "____"
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -87,7 +87,6 @@ def bbox_to_verts(bbox):
 
 
 def verts_to_bbox(verts):
-    print()
     new_bbox_list = []
     print(verts)
     for i in range(0, len(verts)):
@@ -116,7 +115,9 @@ def bbox_to_mask(shape, bbox):
 
 
 def points_center(pts):
-    # the polygons have the first point listed twice in order for them to be drawn as closed, but that point shouldn't be counted twice for computing the center (hence the [:-1] slice)
+    # the polygons have the first point listed twice in order for them to be
+    # drawn as closed, but that point shouldn't be counted twice for computing
+    # the center (hence the [:-1] slice)
     return np.array(pts[:-1]).mean(axis=0)
 
 
@@ -141,7 +142,7 @@ def rotate_points_around(points, theta, ax, ay):
     rot_mat = array(
         [(ct, -st, ax - ct * ax + st * ay),
          (st,  ct, ay - st * ax - ct * ay),
-         ( 0,   0,                                 1)]
+         ( 0,   0,                      1)]
     )
     return [(x, y) for (x, y, z) in rot_mat.dot(augpts.T).T]
 
@@ -173,21 +174,21 @@ def is_within_distance(dist, p1, p2):
 
 
 def is_within_distance_from_line(dist, pt, line):
-#    # http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+    """ http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line """
     x0, y0 = pt
     p1, p2 = line
     x1, y1 = p1
     x2, y2 = p2
     dx = x2 - x1
     dy = y2 - y1
-#    # This doesn't work due to being for lines, not line segments, leading to potentially confusing behavior
-#    numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
-#    denom = math.sqrt((dx ** 2) + (dy ** 2))
-#    distance = numer / denom
+    # # This doesn't work due to being for lines, not line segments, leading to potentially confusing behavior
+    # numer = abs((dy * x0) - (dx * y0) - (x1 * y2) + (x2 * y1))
+    # denom = math.sqrt((dx ** 2) + (dy ** 2))
+    # distance = numer / denom
     # adapted from http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
     squared_mag_of_delta = (dx * dx) + (dy * dy)
     interpolation_factor = ((x0 - x1) * dx + (y0 - y1) * dy) / float(squared_mag_of_delta)
-    interpolation_factor = max(0, min(1, interpolation_factor)) # clamp to [0, 1]
+    interpolation_factor = max(0, min(1, interpolation_factor))  # clamp to [0, 1]
     nx = x1 + interpolation_factor * dx
     ny = y1 + interpolation_factor * dy
     ndx = nx - x0
@@ -280,7 +281,6 @@ class ANNOTATIONInteraction(object):
                  default_species=DEFAULT_SPECIES_TAG,
                  next_callback=None,
                  prev_callback=None,
-
                  do_mask=False,):
         if fnum is None:
             fnum = df2.next_fnum()
@@ -313,7 +313,7 @@ class ANNOTATIONInteraction(object):
             #Something Jon added
             self.background = None
         initialize_variables()
-        self.initialize_variables = initialize_variables # hack involving exploting lexical scoping to save defaults for a restore operation
+        self.initialize_variables = initialize_variables  # hack involving exploting lexical scoping to save defaults for a restore operation
         self.handle_matplotlib_initialization(fnum=fnum)
         # print(verts_list)
         # test_list = verts_to_bbox(verts_list)
@@ -361,7 +361,7 @@ class ANNOTATIONInteraction(object):
             'Press \"ctrl-t\" to add an ANNOTATION.',
             'Press \"ctrl-a\" to Accept new ANNOTATIONs',
             'Press enter to clear the species tag of the selected ANNOTATION',
-            'Type to set the species tag of the selected ANNOTATION',])))
+            'Type to set the species tag of the selected ANNOTATION', ])))
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list):
         if bbox_list is not None:
@@ -388,16 +388,28 @@ class ANNOTATIONInteraction(object):
         for poly in self.polys.itervalues():
             poly.add_callback(self.poly_changed)
 
-
     def connect_callbacks(self, canvas):
         #http://matplotlib.org/1.3.1/api/backend_bases_api.html
-        canvas.mpl_connect('draw_event', self.draw_callback)
-        canvas.mpl_connect('button_press_event', self.button_press_callback)
-        canvas.mpl_connect('button_release_event', self.button_release_callback)
-        canvas.mpl_connect('key_press_event', self.key_press_callback)
-        canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
-        canvas.mpl_connect('pick_event', self.onpick)
-        canvas.mpl_connect('resize_event', self.on_resize)
+        self.callback_funcs = dict([
+            ('draw_event', self.draw_callback),
+            ('button_press_event', self.button_press_callback),
+            ('button_release_event', self.button_release_callback),
+            ('key_press_event', self.key_press_callback),
+            ('motion_notify_event', self.motion_notify_callback),
+            ('pick_event', self.onpick),
+            ('resize_event', self.on_resize),
+        ])
+        for name, func in self.callback_funcs.iteritems():
+            callback_id = canvas.mpl_connect(name, func)
+            self.callback_ids[name] = callback_id
+
+        #canvas.mpl_connect('draw_event', self.draw_callback)
+        #canvas.mpl_connect('button_press_event', self.button_press_callback)
+        #canvas.mpl_connect('button_release_event', self.button_release_callback)
+        #canvas.mpl_connect('key_press_event', self.key_press_callback)
+        #canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
+        #canvas.mpl_connect('pick_event', self.onpick)
+        #canvas.mpl_connect('resize_event', self.on_resize)
         # canvas.mpl_connect('figure_enter_event', self.mouse_enter)
         # canvas.mpl_connect('figure_leave_event', self.mouse_leave)
         self.fig.canvas = canvas
@@ -434,8 +446,7 @@ class ANNOTATIONInteraction(object):
                                     theta_list,
                                     species_list,
                                     next_callback,
-                                    prev_callback,
-                                ):
+                                    prev_callback):
         for poly in self.polys.itervalues():
             poly.remove()
         self.polys = {}
@@ -448,7 +459,6 @@ class ANNOTATIONInteraction(object):
         print('drawing')
         self.fig.canvas.draw()
         pass
-
 
     def next_annotation(self, event):
         self.next_callback()
@@ -489,51 +499,6 @@ class ANNOTATIONInteraction(object):
         if(poly_ind is not None and poly_ind >= 0):
             self.polys[poly_ind].lines.set_color(df2.ORANGE)
         plt.draw()
-
-    def rotate45(self, poly):
-        """
-        starting to figure out rotation
-        called when a certain button is clicked (currently when a key is clicked)
-        move the points clockwise
-        """
-        # How I might do something like this:
-        sin, cos, array = np.sin, np.cos, np.array
-
-        # get a vector of the points I want to rotate around (0, 0):
-        # e.g. pts = array([(1, 1), (2, 1), (1, 0), (0, 0)])
-        pts = poly.xy
-
-        # Because tau is twice as good as pi
-        tau = 2 * np.pi  # tauday.com
-
-        # Convert degrees to radians
-        theta = 45 * tau / 360.0
-
-        # Define rotation matrix (relative to the origin (0, 0))
-        rot_mat = array(
-            [(cos(theta), -sin(theta)),
-             (sin(theta),  cos(theta))]
-        )
-
-        # LINEAR ALGEBRA TIME!
-        # Given:
-        #   rot_mat = A (2 x 2) rotation matrix
-        #   pts = a (2 x 1) vector representing a point
-        # rot_mat dotted with pts results in that point rotated theta radians around the origin
-        #
-        # FURTHERMORE:
-        # Let pts = a (2 x N) matrix representing a list of N points
-        # rot_mat dotted with this matrix results in all a a new (2 x N) matrix
-        # representing all of the rotated points.
-        #
-        # Notes the .T is a numpy commmand for transpose
-        # ie: change a (M x N) to an (N x M)
-        # we do this because poly.xy is (N x 2), and we want a (2 x N)
-        # then we do a second transpose to get us back to the original format
-        new_pts = rot_mat.dot(pts.T).T
-
-        poly.xy = new_pts
-        pass
 
     def update_UI(self):
         self._update_line()
@@ -753,7 +718,9 @@ class ANNOTATIONInteraction(object):
         if match:
             handle_command(match.group(1))
 
-        # enter clears the species tag, workaround since matplotlib doesn't seem to trigger 'key_press_event's for backspace (which would be the preferred interface)
+        # enter clears the species tag, workaround since matplotlib doesn't seem
+        # to trigger 'key_press_event's for backspace (which would be the
+        # preferred interface)
         match = re.match('^enter$', event.key)
         if match:
             self._currently_selected_poly.species_tag.set_text('')
@@ -902,41 +869,43 @@ class ANNOTATIONInteraction(object):
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
         #(total_dx, total_dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
         #higher_delta = max(total_dx, total_dy)
-    #print('total (%r, %r), heigher = %r' % (total_dx, total_dy, higher_delta))
-    #for i in range(0, int(higher_delta)):
-        #(dx, dy) = (total_dx / higher_delta, total_dy / higher_delta)
-        #print('dx dy (%r, %r)' % (dx, dy))
+        #print('total (%r, %r), heigher = %r' % (total_dx, total_dy, higher_delta))
+        #for i in range(0, int(higher_delta)):
+        #    (dx, dy) = (total_dx / higher_delta, total_dy / higher_delta)
+        #    print('dx dy (%r, %r)' % (dx, dy))
         tmpcoords = poly.xy[:-1]
         #tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
 
-#a#        newx, newy = tmpcoords[idx][0], tmpcoords[idx][1]
-#a#        oppx, oppy = tmpcoords[oppidx][0], tmpcoords[oppidx][1]
-#a#        prevx, prevy = tmpcoords[previdx][0], tmpcoords[previdx][1]
-#a#        nextx, nexty = tmpcoords[nextidx][0], tmpcoords[nextidx][1]
-#a#
-#a#        hypotenuse_new_opp = distance(oppy - newy, oppx - newx) # green line
-#a#
-#a#
-#a#        angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx) # black theta
-#a#        angle_xaxis_opp_newprev = math.atan2(oppy - prevy, oppx - prevx) # blue theta
-#a#        angle_newprev_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newprev # red theta
-#a#        hypotenuse_opp_newprev = hypotenuse_new_opp * math.cos(angle_xaxis_opp_new)
-#a#
-#a#        newprev_x = hypotenuse_opp_newprev * math.cos(angle_xaxis_opp_newprev)
-#a#        newprev_y = hypotenuse_opp_newprev * math.sin(angle_xaxis_opp_newprev)
-#a#        tmpcoords[previdx] = (newprev_x, newprev_y)
-#a#
-#a#
-#a#        angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx)
-#a#        angle_xaxis_opp_newnext = math.atan2(oppy - nexty, oppx - nextx)
-#a#        angle_newnext_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newnext
-#a#        hypotenuse_opp_newnext = hypotenuse_new_opp * math.sin(angle_xaxis_opp_new)
-#a#
-#a#        newnext_x = hypotenuse_opp_newnext * math.cos(angle_xaxis_opp_newnext)
-#a#        newnext_y = hypotenuse_opp_newnext * math.sin(angle_xaxis_opp_newnext)
-#a#        tmpcoords[nextidx] = (newnext_x, newnext_y)
+        #a#newx, newy = tmpcoords[idx][0], tmpcoords[idx][1]
+        #a#oppx, oppy = tmpcoords[oppidx][0], tmpcoords[oppidx][1]
+        #a#prevx, prevy = tmpcoords[previdx][0], tmpcoords[previdx][1]
+        #a#nextx, nexty = tmpcoords[nextidx][0], tmpcoords[nextidx][1]
+        #a#
+        #a#hypotenuse_new_opp = distance(oppy - newy, oppx - newx) # green line
+        #a#
+        #a#
+        #a#angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx) # black theta
+        #a#angle_xaxis_opp_newprev = math.atan2(oppy - prevy, oppx - prevx) # blue theta
+        #a#angle_newprev_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newprev # red theta
+        #a#hypotenuse_opp_newprev = hypotenuse_new_opp * math.cos(angle_xaxis_opp_new)
+        #a#
+        #a#newprev_x = hypotenuse_opp_newprev * math.cos(angle_xaxis_opp_newprev)
+        #a#newprev_y = hypotenuse_opp_newprev * math.sin(angle_xaxis_opp_newprev)
+        #a#tmpcoords[previdx] = (newprev_x, newprev_y)
+        #a#
+        #a#
+        #a#angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx)
+        #a#angle_xaxis_opp_newnext = math.atan2(oppy - nexty, oppx - nextx)
+        #a#angle_newnext_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newnext
+        #a#hypotenuse_opp_newnext = hypotenuse_new_opp * math.sin(angle_xaxis_opp_new)
+        #a#
+        #a#newnext_x = hypotenuse_opp_newnext * math.cos(angle_xaxis_opp_newnext)
+        #a#newnext_y = hypotenuse_opp_newnext * math.sin(angle_xaxis_opp_newnext)
+        #a#tmpcoords[nextidx] = (newnext_x, newnext_y)
 
-        # this algorithm worked the best of the ones I tried, but needs "experimentally determined constants" to work properly, since I failed to properly derive them in the allotted time
+        # this algorithm worked the best of the ones I tried, but needs
+        # "experimentally determined constants" to work properly, since I failed
+        # to properly derive them in the allotted time
         FUDGE_FACTORS = {0: -(np.tau / 4),
                          1: 0,
                          2: (np.tau / 4),
@@ -962,7 +931,9 @@ class ANNOTATIONInteraction(object):
 
         # rotate the points by -theta to get the "unrotated" points for use as basecoords
         tmpcoords = rotate_points_around(tmpcoords, -poly.theta, *polygon_center(poly))
-        # ensure the poly is closed, matplotlib might do this, but I'm not sure if it preserves the ordering we depend on, even if it does add the point
+        # ensure the poly is closed, matplotlib might do this, but I'm not sure
+        # if it preserves the ordering we depend on, even if it does add the
+        # point
         tmpcoords = tmpcoords[:] + [tmpcoords[0]]
 
         def within_epsilon(x, y):
@@ -979,7 +950,9 @@ class ANNOTATIONInteraction(object):
             |    |
             0----3
             """
-            # the seperate 1 and 2 variables are not strictly necessary, but provide a sanity check to ensure that we're dealing with the right shape
+            # the seperate 1 and 2 variables are not strictly necessary, but
+            # provide a sanity check to ensure that we're dealing with the right
+            # shape
             width1 = coords[3][0] - coords[0][0]
             width2 = coords[2][0] - coords[1][0]
             assert within_epsilon(width1, width2), 'w1: %r, w2: %r' % (width1, width2)
@@ -989,18 +962,17 @@ class ANNOTATIONInteraction(object):
             #print('w, h = (%r, %r)' % (width1, height1))
             return (MIN_W < width1) and (MIN_H < height1)
 
-#b#        def pairs(slicable):
-#b#            return izip(slicable[:-1], slicable[1:])
-#b#
-#b#        def is_rectangle(coords):
-#b#            first_samex = within_epsilon(coords[0][0], coords[1][0])
-#b#            which_to_compare = 0 if first_samex else 1
-#b#            for p1, p2 in pairs(coords):
-#b#                if not within_epsilon(p1[which_to_compare], p2[which_to_compare]):
-#b#                    return False
-#b#                else:
-#b#                    which_to_compare = 0 if which_to_compare == 1 else 0
-#b#            return True
+            #b#def pairs(slicable):
+            #b#    return izip(slicable[:-1], slicable[1:])
+            #b#def is_rectangle(coords):
+            #b#    first_samex = within_epsilon(coords[0][0], coords[1][0])
+            #b#    which_to_compare = 0 if first_samex else 1
+            #b#    for p1, p2 in pairs(coords):
+            #b#        if not within_epsilon(p1[which_to_compare], p2[which_to_compare]):
+            #b#            return False
+            #b#        else:
+            #b#            which_to_compare = 0 if which_to_compare == 1 else 0
+            #b#    return True
 
         if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)) and meets_minimum_width_and_height(tmpcoords):
             poly.basecoords = tmpcoords
