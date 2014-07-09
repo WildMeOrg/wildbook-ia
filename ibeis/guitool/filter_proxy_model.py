@@ -4,8 +4,8 @@ from PyQt4.QtCore import Qt
 import math
 
 #BASE_CLASS = QtGui.QAbstractProxyModel
-#BASE_CLASS = QtGui.QSortFilterProxyModel
-BASE_CLASS = QtGui.QIdentityProxyModel
+BASE_CLASS = QtGui.QSortFilterProxyModel
+# BASE_CLASS = QtGui.QIdentityProxyModel
 
 
 # makes a metaclass that overrides __getattr__ and __setattr__ to forward some specific attribute references to a specified instance variable
@@ -39,7 +39,7 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
     return ForwardingMetaclass
 
 
-class StripeProxyModel(BASE_CLASS):
+class FilterProxyModel(BASE_CLASS):
     __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(), ['_set_context_id', '_get_context_id', '_set_changeblocked', '_get_changeblocked', '_about_to_change', '_change', '_update', '_rows_updated', 'name'])
 
     def __init__(self, parent=None, numduplicates=1):
@@ -101,7 +101,9 @@ class StripeProxyModel(BASE_CLASS):
             idx = QtCore.QModelIndex()
         return idx
 
-#    def mapSelectionToSource(self, sel):
+    def filterAcceptsColumn(self, source_column, source_parent):
+        print(source_column, source_parent)
+        return False
 
     def index(self, row, col, parent=QtCore.QModelIndex()):
         if (row, col) != (-1, -1):
@@ -126,20 +128,8 @@ class StripeProxyModel(BASE_CLASS):
         if source_cols > 0:
             source_model.sort(column % source_cols, order)
 
-#    def flags(self, *args, **kwargs):
-#        return self.sourceModel().flags(*args, **kwargs)
-
     def parent(self, index):
         return self.sourceModel().parent(self.mapToSource(index))
-
-#    def headerData(self, *args, **kwargs):
-#        return self.sourceModel().headerData(*args, **kwargs)
-#
-#    def hasChildren(self, *args, **kwargs):
-#        return self.sourceModel().hasChildren(*args, **kwargs)
-#
-#    def itemData(self, *args, **kwargs):
-#        return self.sourceModel().itemData(*args, **kwargs)
 
     def _update_rows(self):
         return self.sourceModel()._update_rows()

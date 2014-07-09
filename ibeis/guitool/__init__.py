@@ -30,6 +30,7 @@ from .api_table_view import *
 from .api_tree_view import *
 from .api_item_widget import *
 from .stripe_proxy_model import *
+from .filter_proxy_model import *
 from .qtype import *
 
 import utool
