@@ -22,21 +22,6 @@ def test_interact_multimage(imgpaths):
     return iteract_obj
 
 if __name__ == '__main__':
-    # main_locals = ibeis.main(defaultdb='testdb1', gui=False)
-    # ibs = main_locals['ibs']
-    # # List of imaGe-ids:
-    # gid_list  = ibs.get_valid_gids()
-    # # Get a list of lists of ANNOTATION-ids (because each image can have more than one ANNOTATION)
-    # aids_list = ibs.get_image_aids(gid_list)
-    # # Get the list of lists of bounding boxes
-    # bboxes_list = [ibs.get_annot_bboxes(aids) for aids in aids_list]
-
-    # image_paths = ibs.get_image_paths(gid_list)
-    # print("gid_list: ", gid_list)
-    # print("aids_list", aids_list)
-    # iteract_obj = test_interact_multimage(image_paths, gid_list, aids_list, bboxes_list)
-
-
     TEST_IMAGES_URL = 'https://dl.dropboxusercontent.com/s/of2s82ed4xf86m6/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths       = utool.list_images(test_image_dir, fullpath=True, recursive=False)   # test image paths
