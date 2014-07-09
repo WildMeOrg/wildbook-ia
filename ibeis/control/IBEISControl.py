@@ -593,6 +593,7 @@ class IBEISController(object):
         aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         if species_list is not None:
+            species_list = [species.lower() for species in species_list]
             ibs.set_annot_species(aid_list, species_list)
 
         # Also need to populate annotation_lblannot_relationship table
@@ -697,6 +698,7 @@ class IBEISController(object):
         # speciesid_list_ = [namenid_dict[name] for name in species_list_]
         # ibsfuncs.assert_valid_names(species_list)
         # All names are individuals and so may safely receive the SPECIES_KEY lblannot
+        species_list = [species.lower() for species in species_list]
         lbltype_rowid_list = [ibs.lbltype_ids[constants.SPECIES_KEY]] * len(species_list)
         speciesid_list = ibs.add_lblannots(lbltype_rowid_list, species_list, note_list)
         return speciesid_list
@@ -870,6 +872,7 @@ class IBEISController(object):
     def set_annot_species(ibs, aid_list, species_list):
         """ Sets species/speciesids of a list of annotations.
         Convenience function for set_annot_from_value """
+        species_list = [species.lower() for species in species_list]
         ibs.set_annot_from_value(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter

@@ -156,10 +156,14 @@ def TEST_IBS_CONTROL(ibs):
     aid_list = ibs.get_valid_aids()
     assert aid_list, 'aid_list is empty'
     orig_species = ibs.get_annot_species(aid_list)
-    new_species = ['TESTSPECIES_' + str(x) for x in range(len(aid_list))]
+    new_species = ['testspecies_' + str(x) for x in range(len(aid_list))]
     ibs.set_annot_species(aid_list, new_species)
-    new_species2 = ibs.get_annot_species(aid_list)
-    assert new_species == new_species2, 'new_species == new_species2 failed!'
+    try:
+        new_species2 = ibs.get_annot_species(aid_list)
+        assert new_species == new_species2, 'new_species == new_species2 failed!'
+    except AssertionError as ex:
+        utool.printex(ex, key_list=['new_species', 'new_species2'])
+        raise
     ibs.set_annot_species(aid_list, orig_species)
     assert orig_species == ibs.get_annot_species(aid_list), 'species were not reset'
 
