@@ -281,72 +281,40 @@ class ANNOTATIONInteraction(object):
                  next_callback=None,
                  prev_callback=None,
 
-                 do_mask=False):
+                 do_mask=False,):
         if fnum is None:
             fnum = df2.next_fnum()
-        if callback is not None:
-            self.callback = callback
-        else:
-            self.callback = None
-        if bbox_list is not None:
-            self.original_bbox_list = bbox_list
-        else:
-            self.original_bbox_list = []
-        if theta_list is not None:
-            self.original_theta_list = theta_list
-        else:
-            self.original_theta_list = []
-        self.next_callback = next_callback
-        self.prev_callback = prev_callback
+        self.callback = callback
         self.img = img
-        self.do_mask = do_mask
-        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
-        df2.close_figure(self.fig)
-        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
-        self.fig.clear()
-        self.fig.clf()
-        #self.fig.cla()
-        #utool.qflag()
-        self.fnum = fnum
-        print(self.fnum)
-        #ax = plt.subplot(111)
-        ax = df2.gca()
-        self.fig.ax = ax
-        self.img_ind = img_ind
-        self.species_tag = default_species
-        df2.remove_patches(self.fig.ax)
-        df2.imshow(img, fnum=fnum)
-
-        ax.set_clip_on(False)
-        ax.set_title(('\n'.join([
-            'Click and drag to select/move/resize an ANNOTATION',
-            'Press \"ctrl-r\" to remove selected ANNOTATION',
-            'Press \"ctrl-t\" to add an ANNOTATION.',
-            'Press \"ctrl-a\" to Accept new ANNOTATIONs',
-            'Press enter to clear the species tag of the selected ANNOTATION',
-            'Type to set the species tag of the selected ANNOTATION',])))
-
-        self.showverts = True
-        self.max_ds = max_ds
-        self.fc_default = face_color
-        #mouse coordinates
-        self.mouseX = None
-        self.mouseY = None
-        self.indX = None
-        self.indY = None
-        #if a polygon is currently active
-        self._polyHeld = False
-        #the polygon that is currently active
-        self._currently_selected_poly = None
-        #used in small case to determine if polygon should be highlighted or not
-        self.press1 = False
-        #boolean to tell if the polygon SHOULD be active
-        self.canUncolor = False
-        #number of polygons in the image
-        self._autoinc_polynum = 0
-        #Something Jon added
-        self.background = None
-
+        def initialize_variables():
+            #self.next_callback = next_callback
+            #self.prev_callback = prev_callback
+            self.do_mask = do_mask
+            self.img_ind = img_ind
+            self.species_tag = default_species
+            self.showverts = True
+            self.max_ds = max_ds
+            self.fc_default = face_color
+            #mouse coordinates
+            self.mouseX = None
+            self.mouseY = None
+            self.indX = None
+            self.indY = None
+            #if a polygon is currently active
+            self._polyHeld = False
+            #the polygon that is currently active
+            self._currently_selected_poly = None
+            #used in small case to determine if polygon should be highlighted or not
+            self.press1 = False
+            #boolean to tell if the polygon SHOULD be active
+            self.canUncolor = False
+            #number of polygons in the image
+            self._autoinc_polynum = 0
+            #Something Jon added
+            self.background = None
+        initialize_variables()
+        self.initialize_variables = initialize_variables # hack involving exploting lexical scoping to save defaults for a restore operation
+        self.handle_matplotlib_initialization(fnum=fnum)
         # print(verts_list)
         # test_list = verts_to_bbox(verts_list)
         # print(test_list)
@@ -360,24 +328,68 @@ class ANNOTATIONInteraction(object):
             species_list = [self.species_tag for verts in verts_list]
 
         # Create the list of polygons
+        self.handle_polygon_creation(bbox_list, theta_list, species_list)
+        self._ind = None  # the active vert
+        self.currently_rotating_poly = None
+
+        self.connect_callbacks(self.fig.ax.figure.canvas)
+
+        self.add_action_buttons()
+        self.update_callbacks(next_callback, prev_callback)
+
+    def handle_matplotlib_initialization(self, fnum=None, instantiate_window=True):
+        if instantiate_window:
+            self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
+            df2.close_figure(self.fig)
+            self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
+        self.fig.clear()
+        self.fig.clf()
+        #self.fig.cla()
+        #utool.qflag()
+        self.fnum = fnum
+        print(self.fnum)
+        #ax = plt.subplot(111)
+        ax = df2.gca()
+        self.fig.ax = ax
+        df2.remove_patches(self.fig.ax)
+        df2.imshow(self.img, fnum=fnum)
+
+        ax.set_clip_on(False)
+        ax.set_title(('\n'.join([
+            'Click and drag to select/move/resize an ANNOTATION',
+            'Press \"ctrl-r\" to remove selected ANNOTATION',
+            'Press \"ctrl-t\" to add an ANNOTATION.',
+            'Press \"ctrl-a\" to Accept new ANNOTATIONs',
+            'Press enter to clear the species tag of the selected ANNOTATION',
+            'Type to set the species tag of the selected ANNOTATION',])))
+
+    def handle_polygon_creation(self, bbox_list, theta_list, species_list):
+        if bbox_list is not None:
+            self.original_bbox_list = bbox_list
+        else:
+            self.original_bbox_list = []
+        if theta_list is not None:
+            self.original_theta_list = theta_list
+        else:
+            self.original_theta_list = []
+        verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
+        assert len(species_list) == len(poly_list), 'species_list: %r, poly_list: %r' % (species_list, poly_list)
         self.polys = dict({(poly.num, poly) for poly in poly_list})
         self._update_line()
 
         # Add polygons and lines to the axis
         for poly in self.polys.itervalues():
-            ax.add_patch(poly)
+            self.fig.ax.add_patch(poly)
             self.fig.ax.add_line(poly.lines)
             self.fig.ax.add_line(poly.handle)
 
-        # Connect callbacks
         for poly in self.polys.itervalues():
             poly.add_callback(self.poly_changed)
-        self._ind = None  # the active vert
-        self.currently_rotating_poly = None
 
-        canvas = ax.figure.canvas
+
+    def connect_callbacks(self, canvas):
         #http://matplotlib.org/1.3.1/api/backend_bases_api.html
         canvas.mpl_connect('draw_event', self.draw_callback)
         canvas.mpl_connect('button_press_event', self.button_press_callback)
@@ -390,12 +402,7 @@ class ANNOTATIONInteraction(object):
         # canvas.mpl_connect('figure_leave_event', self.mouse_leave)
         self.fig.canvas = canvas
 
-        # Define buttons
-        if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.01, 0.01, 0.18, 0.06])
-            self.prev_but = Button(self.prev_ax, 'Previous Annotation')
-            self.prev_but.on_clicked(self.prev_annotation)
-
+    def add_action_buttons(self):
         self.add_ax  = self.fig.add_axes([0.21, 0.01, 0.18, 0.06])
         self.add_but = Button(self.add_ax, 'Add Rectangle')
         self.add_but.on_clicked(self.draw_new_poly)
@@ -408,10 +415,40 @@ class ANNOTATIONInteraction(object):
         self.accept_but = Button(self.accept_ax, 'Accept New Annots')
         self.accept_but.on_clicked(self.accept_new_annotations)
 
+    def update_callbacks(self, next_callback, prev_callback):
+        self.prev_callback = prev_callback
+        self.next_callback = next_callback
+        if self.prev_callback is not None:
+            self.prev_ax = self.fig.add_axes([0.01, 0.01, 0.18, 0.06])
+            self.prev_but = Button(self.prev_ax, 'Previous Annotation')
+            self.prev_but.on_clicked(self.prev_annotation)
+
         if self.next_callback is not None:
             self.next_ax = self.fig.add_axes([0.81, 0.01, 0.18, 0.06])
             self.next_but = Button(self.next_ax, 'Next Annotation')
             self.next_but.on_clicked(self.next_annotation)
+
+    def update_image_and_callbacks(self,
+                                    img,
+                                    bbox_list,
+                                    theta_list,
+                                    species_list,
+                                    next_callback,
+                                    prev_callback,
+                                ):
+        for poly in self.polys.itervalues():
+            poly.remove()
+        self.polys = {}
+        self.initialize_variables()
+        self.img = img
+        self.handle_matplotlib_initialization(fnum=self.fnum, instantiate_window=False)
+        self.handle_polygon_creation(bbox_list, theta_list, species_list)
+        self.add_action_buttons()
+        self.update_callbacks(next_callback, prev_callback)
+        print('drawing')
+        self.fig.canvas.draw()
+        pass
+
 
     def next_annotation(self, event):
         self.next_callback()
@@ -1017,7 +1054,7 @@ class ANNOTATIONInteraction(object):
         print('in get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
         return (sel_polyind, min_ind)
 
-    def accept_new_annotations(self, event):
+    def accept_new_annotations(self, event, do_close=True):
         print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
         def get_bbox_list():
@@ -1090,7 +1127,8 @@ class ANNOTATIONInteraction(object):
             return
 
         print('Accept Over')
-        df2.close_figure(self.fig)
+        if do_close:
+            df2.close_figure(self.fig)
         #plt.close(self.fnum)
         #plt.draw()
 
