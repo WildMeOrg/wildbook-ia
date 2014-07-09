@@ -470,7 +470,12 @@ class APIItemModel(API_MODEL_BASE):
     def _get_adjacent_qtindex(model, qtindex=QtCore.QModelIndex(), offset=1):
         if qtindex.isValid():
             node = qtindex.internalPointer()
-            assert isinstance(node, TreeNode), type(node)
+            try:
+                assert isinstance(node, TreeNode), type(node)
+            except AssertionError as ex:
+                utool.printex(ex)
+                print(node.func_name)
+                raise
             if node.parent_node is None:
                 return None
             next_index = node.parent_node.child_nodes.index(node) + offset
