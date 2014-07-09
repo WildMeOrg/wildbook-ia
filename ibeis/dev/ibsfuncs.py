@@ -609,12 +609,12 @@ def merge_databases(ibs_target, ibs_source_list):
         gid_list1   = ibs_source.get_valid_gids()
         uuid_list1  = ibs_source.get_image_uuids(gid_list1)
         gpath_list1 = ibs_source.get_image_paths(gid_list1)
-        aif_list1   = ibs_source.get_image_aifs(gid_list1)
+        reviewed_list1   = ibs_source.get_image_reviewed(gid_list1)
         # Add images to target
         ibs_target.add_images(gpath_list1)
         # Merge properties
         gid_list2  = ibs_target.get_image_gids_from_uuid(uuid_list1)
-        ibs_target.set_image_aifs(gid_list2, aif_list1)
+        ibs_target.set_image_reviewed(gid_list2, reviewed_list1)
 
     def merge_annotations(ibs_target, ibs_source):
         """ merge annotations helper """
