@@ -48,6 +48,10 @@ class ANNOTATION_Interaction2(object):
         if rows_updated:
             self.rows_updated_callback()
 
+    def update_image_and_callbacks(self, gid, nextcb, prevcb):
+        ANNOTATION_Interaction2.__init__(self, self.ibs, gid, next_callback=nextcb, prev_callback=prevcb, rows_updated_callback=self.rows_updated_callback)
+
+
 if __name__ == '__main__':
     import ibeis
     main_locals = ibeis.main(gui=False)
