@@ -375,7 +375,7 @@ class IBEISController(object):
         return all_known_nids
 
     @ider
-    def get_valid_gids(ibs, eid=None, require_unixtime=False):
+    def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
         if eid is None:
             gid_list = ibs._get_all_gids()
         else:
@@ -384,6 +384,10 @@ class IBEISController(object):
             # Remove images without timestamps
             unixtime_list = ibs.get_image_unixtime(gid_list)
             isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
+            gid_list = utool.filter_items(gid_list, isvalid_list)
+        if reviewed is not None:
+            reviewed_list = ibs.get_image_reviewed(gid_list)
+            isvalid_list = [reviewed == flag for flag in reviewed_list]
             gid_list = utool.filter_items(gid_list, isvalid_list)
         return sorted(gid_list)
 
@@ -1986,7 +1990,7 @@ class IBEISController(object):
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         print('[ibs] Computing and adding encounters.')
-        gid_list = ibs.get_valid_gids(require_unixtime=True)
+        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=True)
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)

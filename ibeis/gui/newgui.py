@@ -63,7 +63,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         enc_tabwgt.currentChanged.connect(enc_tabwgt._on_change)
 
         enc_tabwgt.eid_list = []
-        enc_tabwgt._add_enc_tab(None, constants.ALLIMAGE_ENCTEXT)
+        # TURNING ON / OFF ALL IMAGES
+        # enc_tabwgt._add_enc_tab(-1, constants.ALL_IMAGE_ENCTEXT)
 
     @slot_(int)
     def _on_change(enc_tabwgt, index):
@@ -73,6 +74,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             if utool.VERBOSE:
                 print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
             enc_tabwgt.ibswgt._change_enc(eid)
+        else:
+            enc_tabwgt.ibswgt._change_enc(-1)
 
     @slot_(int)
     def _close_tab(enc_tabwgt, index):
@@ -82,8 +85,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
     def _add_enc_tab(enc_tabwgt, eid, enctext):
         # <HACK>
-        if enctext == constants.ALLIMAGE_ENCTEXT:
-            eid = None
+        # if enctext == constants.ALL_IMAGE_ENCTEXT:
+        #     eid = None
         # </HACK>
         if eid not in enc_tabwgt.eid_list:
             # tab_name = str(eid) + ' - ' + str(enctext)
@@ -363,7 +366,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 view = ibswgt.views[tblname]
                 view.hide_cols()
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
-            ibswgt._change_enc(None)
+            ibswgt._change_enc(-1)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
@@ -379,7 +382,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         try:
             if eid is None:
                 # HACK
-                enctext = constants.ALLIMAGE_ENCTEXT
+                enctext = constants.ALL_IMAGE_ENCTEXT
             else:
                 enctext = ibswgt.ibs.get_encounter_enctext(eid)
             ibswgt.button_list[0][2].setDefault(ibswgt.ibs.cfg.detect_cfg.species)
@@ -413,9 +416,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if tblname == ENCOUNTER_TABLE:  # Hack
             return
         tblname = str(tblname)
+        tblnice = gh.TABLE_NICE[tblname]
         view = ibswgt.views[tblname]
         index = ibswgt._tab_table_wgt.indexOf(view)
-        text = tblname + ' ' + str(nRows)
+        text = tblnice + ' ' + str(nRows)
         #printDBG('Rows updated in index=%r, text=%r' % (index, text))
         ibswgt._tab_table_wgt.setTabText(index, text)
 

@@ -6,7 +6,7 @@ import utool
 ENCOUNTER_TABLE  = 'encounters'
 IMAGE_TABLE      = 'images'
 IMAGE_GRID       = 'image_grid'
-ANNOTATION_TABLE = 'Annotations'
+ANNOTATION_TABLE = 'annotations'
 NAME_TABLE       = 'names'
 NAMES_TREE       = 'names_tree'
 QRES_TABLE       = 'qres'

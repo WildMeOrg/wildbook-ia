@@ -674,17 +674,35 @@ def update_exemplar_encounter(ibs):
 
 
 @__injectable
-def update_allimage_encounter(ibs):
-    eid = ibs.get_encounter_eids_from_text(constants.ALLIMAGE_ENCTEXT)
+def update_all_image_encounter(ibs):
+    eid = ibs.get_encounter_eids_from_text(constants.ALL_IMAGE_ENCTEXT)
     ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids()
-    ibs.set_image_enctext(gid_list, [constants.ALLIMAGE_ENCTEXT] * len(gid_list))
+    ibs.set_image_enctext(gid_list, [constants.ALL_IMAGE_ENCTEXT] * len(gid_list))
+
+
+@__injectable
+def update_unreviewed_image_encounter(ibs):
+    eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
+    ibs.delete_encounters(eid)
+    gid_list = ibs.get_valid_gids(reviewed=False)
+    ibs.set_image_enctext(gid_list, [constants.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+
+
+@__injectable
+def update_reviewed_image_encounter(ibs):
+    eid = ibs.get_encounter_eids_from_text(constants.REVIEWED_IMAGE_ENCTEXT)
+    ibs.delete_encounters(eid)
+    gid_list = ibs.get_valid_gids(reviewed=True)
+    ibs.set_image_enctext(gid_list, [constants.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
 
 
 @__injectable(False)
 def update_special_encounters(ibs):
     ibs.update_exemplar_encounter()
-    ibs.update_allimage_encounter()
+    # ibs.update_all_image_encounter()
+    ibs.update_unreviewed_image_encounter()
+    ibs.update_reviewed_image_encounter()
 
 
 def get_title(ibs):
