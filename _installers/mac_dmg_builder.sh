@@ -27,7 +27,7 @@ echo "Mouting DMG"
 ibs_device=$(hdiutil attach -readwrite -noverify -noautoopen ""${ibs_working}"" | egrep '^/dev/' | sed 1q | awk '{print $1}')
 echo "Formatting DMG"
 mkdir /Volumes/"${ibs_title}"/.background
-cp ../_setup/"${ibs_backgroundPictureName}" /Volumes/"${ibs_title}"/.background/"${ibs_backgroundPictureName}"
+cp ../_installers/"${ibs_backgroundPictureName}" /Volumes/"${ibs_title}"/.background/"${ibs_backgroundPictureName}"
 echo '
       tell application "Finder"
        tell disk "'${ibs_title}'"
