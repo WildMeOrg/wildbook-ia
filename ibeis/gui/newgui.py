@@ -483,31 +483,30 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 gid = id_
 
                 ibswgt.annotation_interact = interact_annotations2.ANNOTATION_Interaction2(ibswgt.ibs, gid, rows_updated_callback=ibswgt.update_tables)
-
                 def make_callback_pair(idx):
                     next_qtindex = model._get_adjacent_qtindex(idx, 1)
                     prev_qtindex = model._get_adjacent_qtindex(idx, -1)
                     cur_gid = model._get_row_id(idx)
                     if next_qtindex is not None:
-                        def next_callback():
-                            next_gid = model._get_row_id(next_qtindex)
-                            print('cur_gid %r' % cur_gid)
-                            print('next_gid %r' % next_gid)
-                            #ibswgt.on_doubleclick(next_qtindex)
-                            ibswgt.annotation_interact.update_image_and_callbacks(next_gid, *make_callback_pair(next_qtindex))
+                        def next_callback(numclicks=[0]):
+                            if numclicks[0] == 0:
+                                numclicks[0] += 1
+                                next_gid = model._get_row_id(next_qtindex)
+                                print('next_gid %r' % next_gid)
+                                ibswgt.annotation_interact.update_image_and_callbacks(next_gid, *make_callback_pair(next_qtindex))
                     else:
                         next_callback = None
                     if prev_qtindex is not None:
-                        def prev_callback():
-                            prev_gid = model._get_row_id(prev_qtindex)
-                            print('cur_gid %r' % cur_gid)
-                            print('prev_gid %r' % prev_gid)
-                            #ibswgt.on_doubleclick(prev_qtindex)
-                            ibswgt.annotation_interact.update_image_and_callbacks(prev_gid, *make_callback_pair(prev_qtindex))
+                        def prev_callback(numclicks=[0]):
+                            if numclicks[0] == 0:
+                                numclicks[0] += 1
+                                prev_gid = model._get_row_id(prev_qtindex)
+                                print('prev_gid %r' % prev_gid)
+                                ibswgt.annotation_interact.update_image_and_callbacks(prev_gid, *make_callback_pair(prev_qtindex))
                     else:
                         prev_callback = None
                     return [next_callback, prev_callback]
-                ibswgt.annotation_interact.update_image_and_callbacks(gid, *make_callback_pair(qtindex))
+                ibswgt.annotation_interact.update_image_and_callbacks(gid, *make_callback_pair(qtindex), do_save=False)
                 ibswgt.back.select_gid(gid, eid, show=False)
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
