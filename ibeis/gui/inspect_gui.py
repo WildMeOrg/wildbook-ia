@@ -38,6 +38,10 @@ class QueryResultsWidget(APIItemWidget):
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
 
+    def sizeHint(qres_wgt):
+        # should eventually improve this to use the widths of the header columns
+        return QtCore.QSize(1000, 500)
+
     def set_query_results(qres_wgt, ibs, qaid2_qres, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
         qres_wgt.ibs = ibs

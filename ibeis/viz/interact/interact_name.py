@@ -177,7 +177,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         annotation_unknown = ibs.is_nid_unknown([nid])[0]
         if not annotation_unknown:
             callback = partial(self.unname_annotation, aid)
-            self.append_button('unname', callback=callback, **butkw)
+            self.append_button('remove name', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             callback = partial(self.rename_annotation_nid1, aid)
             text = 'change name to: ' + ibs.get_names(self.nid1)
@@ -188,7 +188,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button(text, callback=callback, **butkw)
 
     def unname_annotation(self, aid, event=None):
-        print('unname')
+        print('remove name')
         self.ibs.delete_annotation_nids([aid])
         self.update_callback()
         self.backend_callback()
@@ -229,10 +229,10 @@ class MatchVerificationInteraction(AbstractInteraction):
         is_unknown = ibs.is_nid_unknown(nid_list)
 
         if not all(is_unknown):
-            self.append_button('unname all', callback=self.unname_all,
+            self.append_button('remove all names', callback=self.unname_all,
                                rect=next_rect())
         if all(is_unknown):
-            self.append_button('merge all\n into NEW NAME',
+            self.append_button('merge all\n into a NEW NAME',
                                callback=self.merge_all_into_next_name, rect=next_rect())
         if not name1.startswith('____'):
             self.append_button('join all\n into name2=%s' % name1, callback=self.merge_all_into_nid1, rect=next_rect())
@@ -268,7 +268,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ibs.print_alr_table()
 
     def unname_all(self, event=None):
-        print('unname')
+        print('remove name')
         self.ibs.delete_annotation_nids(self.aid_list)
         self.show_page()
 
