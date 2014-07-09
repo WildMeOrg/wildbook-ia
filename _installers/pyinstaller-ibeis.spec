@@ -1,7 +1,4 @@
 # -*- mode: python -*-
-# sudo python pyinstaller.py -F -w /ibeis/main.py -i /ibeis/_setup/ibsicon.icns -n IBEIS
-#http://www.pyinstaller.org/export/develop/project/doc/Manual.html
-#toc-class-table-of-contents
 import os
 import sys
 from os.path import join, exists
@@ -20,17 +17,6 @@ def join_SITE_PACKAGES(*args):
     msg += 'Tried: \n    ' + '\n    '.join(tried_list)
     print(msg)
     raise Exception(msg)
-
-# run from root
-root_dir = os.getcwd()
-try:
-    assert exists(join(root_dir, 'setup.py'))
-    assert exists('../ibeis')
-    assert exists('../ibeis/ibeis')
-    # assert exists('../ibeis/setup.py')
-    assert exists(root_dir)
-except AssertionError:
-    raise Exception('setup.py must be run from ibeis root')
 
 
 def add_data(a, dst, src):
@@ -81,7 +67,10 @@ def add_data(a, dst, src):
           (pretty_path(dst), pretty_path(src), dtype))
     a.datas.append((dst, src, dtype))
 
+
+##################################
 # System Variables
+##################################
 PLATFORM = sys.platform
 APPLE = PLATFORM == 'darwin'
 WIN32 = PLATFORM == 'win32'
@@ -91,17 +80,32 @@ LIB_EXT = {'win32': '.dll',
            'darwin': '.dylib',
            'linux2': '.so'}[PLATFORM]
 
+##################################
+# Asserts
 # This needs to be relative to build directory. Leave as is.
+# run from root
+##################################
 ibsbuild = ''
+root_dir = os.getcwd()
+try:
+    assert exists(join(root_dir, 'installers.py'))
+    assert exists('../ibeis')
+    assert exists('../ibeis/ibeis')
+    assert exists(root_dir)
+except AssertionError:
+    raise Exception('installers.py must be run from ibeis root')
 
+##################################
+# Explicitly add modules in case they are not in the Python PATH
+##################################
 modules = ['utool', 'vtool', 'guitool', 'plottool', 'pyrf', 'pygist', 'ibeis', 'hesaff', 'detecttools']
+
 apple = []
-# IF MPL FAILS:
-# MPL has a problem where the __init__.py is not created in the library.  touch __init__.py in the module's path should fix the issue
 if APPLE:
+    # We need to explicitly add the MacPorts and system Python site-packages folders on Mac
     apple.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/')
     apple.append('/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/')
-# Build Analysis
+
 a = Analysis(
     ['main.py'],
     pathex=['.'] + [ join('..', module) for module in modules ] + apple,
@@ -117,35 +121,23 @@ a = Analysis(
     hookspath=None,
     runtime_hooks=None
 )
+# IF MPL FAILS:
+# MPL has a problem where the __init__.py is not created in the library.  touch __init__.py in the module's path should fix the issue
 
-for _list in sorted(a.pure):
-    print(_list)
-
-print("\n\n\n")
-
-for _list in sys.path:
-    print(_list)
-
-# ------
+##################################
 # Specify Data in TOC (table of contents) format (SRC, DEST, TYPE)
-splash_src   = join(root_dir, '_frontend/splash.png')
-splash_dst  = join(ibsbuild, '_frontend/splash.png')
-add_data(a, splash_dst, splash_src)
-
-src = join(root_dir, '_frontend/ibsicon.ico')
-dst = join(ibsbuild, '_frontend/ibsicon.ico')
+##################################
+src = join(root_dir, '_installers/ibsicon.ico')
+dst = join(ibsbuild, '_installers/ibsicon.ico')
 add_data(a, dst, src)
 
-src = join(root_dir, '_frontend/resources_MainSkel.qrc')
-dst = join(ibsbuild, '_frontend/resources_MainSkel.qrc')
+src = join(root_dir, '_installers/resources_MainSkel.qrc')
+dst = join(ibsbuild, '_installers/resources_MainSkel.qrc')
 add_data(a, dst, src)
 
-# Add TPL Libs for current PLATFORM
-ROOT_DLLS = ['libgcc_s_dw2-1.dll', 'libstdc++-6.dll']
-
-
-#/usr/local/lib/python2.7/dist-packages/pyflann/lib/libflann.so
-# FLANN Library
+##################################
+# Hesaff + FLANN + PyRF Libraries
+##################################
 libflann_fname = 'libflann' + LIB_EXT
 if WIN32:
     libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
@@ -153,6 +145,7 @@ if WIN32:
     add_data(a, libflann_dst, libflann_src)
 
 if APPLE:
+    # FLANN
     try:
         libflann_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/pyflann/lib/libflann.dylib'
         libflann_dst = join(ibsbuild, libflann_fname)
@@ -160,6 +153,7 @@ if APPLE:
     except Exception as ex:
         print(repr(ex))
 
+    # BSDDB, Fix for the modules that PyInstaller needs and (for some reason) are not being added by PyInstaller
     try:
         libbsddb_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_bsddb.so'
         libbsddb_dst = join(ibsbuild, '_bsddb.so')
@@ -167,11 +161,13 @@ if APPLE:
     except Exception as ex:
         print(repr(ex))
 
+    # Hesaff
     libhesaff_fname = 'libhesaff' + LIB_EXT
     libhesaff_src = join('..', 'hesaff', 'build', libhesaff_fname)
     libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
     add_data(a, libhesaff_dst, libhesaff_src)
 
+    # PyRF
     libpyrf_fname = 'libpyrf' + LIB_EXT
     libpyrf_src = join('..', 'pyrf', 'build', libpyrf_fname)
     libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
@@ -190,7 +186,9 @@ if APPLE:
         add_data(a, dst, src)
 
 
-# Qt GUI Libraries
+##################################
+# QT Gui dependencies
+##################################
 walk_path = '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib'
 for root, dirs, files in os.walk(walk_path):
     for lib_fname in files:
@@ -198,6 +196,9 @@ for root, dirs, files in os.walk(walk_path):
         toc_dst = join('qt_menu.nib', lib_fname)
         add_data(a, toc_dst, toc_src)
 
+##################################
+# Documentation and Icon
+##################################
 # Documentation
 userguide_dst = join('.', '_docs', 'IBEISUserGuide.pdf')
 userguide_src = join(root_dir, '_docs', 'IBEISUserGuide.pdf')
@@ -207,17 +208,16 @@ add_data(a, userguide_dst, userguide_src)
 ICON_EXT = {'darwin': 'icns',
             'win32':  'ico',
             'linux2': 'ico'}[PLATFORM]
-iconfile = join(root_dir, '_setup', 'ibsicon.' + ICON_EXT)
+iconfile = join(root_dir, '_installers', 'ibsicon.' + ICON_EXT)
 
+##################################
+# Build executable
+##################################
 # Executable name
 exe_name = {'win32':  'build/IBEISApp.exe',
             'darwin': 'build/pyi.darwin/IBEISApp/IBEISApp',
             'linux2': 'build/IBEISApp.ln'}[PLATFORM]
 
-# TODO:
-# http://www.pyinstaller.org/export/develop/project/doc/Manual.html?format=raw#accessing-data-files
-
-# http://www.pyinstaller.org/export/develop/project/doc/Manual.html?format=raw#exe
 pyz = PYZ(a.pure)   # NOQA
 
 exe_kwargs = {
@@ -233,20 +233,6 @@ collect_kwargs = {
     'upx': True,
     'name': join('dist', 'ibeis')
 }
-
-# PYINSTALLER DOC:
-# Only the following command-line options have an effect when
-# building from a spec file:
-# --upx-dir=
-# --distpath=
-# --workpath=
-# --noconfirm
-# --ascii
-
-#exe_kwargs['upx']   = True
-#exe_kwargs['onedir'] = True
-#exe_kwargs['onefile'] = False
-#exe_kwargs['windowed'] = False
 
 # Windows only EXE options
 if WIN32:
