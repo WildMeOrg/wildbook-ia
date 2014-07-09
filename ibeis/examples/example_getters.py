@@ -36,7 +36,7 @@ def run_example(ibs):
     aids_in_gids  = ibs.get_image_aids(gid_list)   # Rois in images
     aids_in_nids  = ibs.get_name_aids(nid_list)    # Rois in images
     img_uuid_list = ibs.get_image_uuids(gid_list)  # Image uuids
-    annotation_uuid_list = ibs.get_annotation_uuids(aid_list)    # Roi uuids
+    annotation_uuid_list = ibs.get_annot_uuids(aid_list)    # Roi uuids
     #
     #
     # IBEIS Getter methods can take scalars as input too,

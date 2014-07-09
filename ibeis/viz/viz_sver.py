@@ -9,8 +9,8 @@ WRITE_SV_DEBUG = utool.get_flag('--write-sv-debug')
 
 def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup):
     """ Compiles IBEIS information into info suitable for plottool """
-    chip1, chip2 = ibs.get_annotation_chips([aid1, aid2])
-    kpts1, kpts2 = ibs.get_annotation_kpts([aid1, aid2])
+    chip1, chip2 = ibs.get_annot_chips([aid1, aid2])
+    kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2])
     aid2_fm, aid2_fs, aid2_fk = chipmatch_FILT
     fm = aid2_fm[aid2]
     (homog_inliers, H, aff_inliers, Aff) = aid2_svtup[aid2]

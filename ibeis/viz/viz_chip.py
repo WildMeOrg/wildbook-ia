@@ -18,7 +18,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
     # Get chip
     chip = vh.get_chips(ibs, aid, in_image, **kwargs)
     # Create chip title
-    chip_text = vh.get_annotation_texts(ibs, [aid], **kwargs)[0]
+    chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
     # Draw chip
     fig, ax = df2.imshow(chip, **kwargs)
     # Populate axis user data
@@ -32,7 +32,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
     if not kwargs.get('notitle', False):
         ax.set_title(chip_text)
     if in_image:
-        gid = ibs.get_annotation_gids(aid)
+        gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)
-        annotekw = viz_image.get_annotation_annotations(ibs, aid_list, sel_aids=[aid])
+        annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid])
         viz_image2.draw_image_overlay(ax, **annotekw)

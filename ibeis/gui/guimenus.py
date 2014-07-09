@@ -78,7 +78,7 @@ def setup_actions_menu(mainwin, back):
 #        name='actionAdd_ANNOTATION',
 #        text='Add ANNOTATION',
 #        shortcut='A',
-#        slot_fn=back.add_annotation)
+#        slot_fn=back.add_annot)
     mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query',
@@ -111,7 +111,7 @@ def setup_actions_menu(mainwin, back):
         name='actionDelete_ANNOTATION',
         text='Delete ANNOTATION',
         shortcut='Ctrl+Del',
-        slot_fn=back.delete_annotation)
+        slot_fn=back.delete_annot)
     mainwin.menuActions.newAction(
         name='actionDelete_Image',
         text='Trash Image',

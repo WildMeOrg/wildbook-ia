@@ -30,7 +30,7 @@ def aggregate_descriptors(ibs, aid_list):
                                fx (feature index w.r.t. aid)
     """
     print('[nn] stacking descriptors from %d annotations' % len(aid_list))
-    desc_list = ibs.get_annotation_desc(aid_list)
+    desc_list = ibs.get_annot_desc(aid_list)
     # Build inverted index of (aid, fx) pairs
     aid_nFeat_iter = izip(aid_list, imap(len, desc_list))
     nFeat_iter = imap(len, desc_list)
@@ -96,9 +96,9 @@ class NNIndex(object):
         nn_index.ax2_fx   = ax2_fx
         nn_index.ax2_data = ax2_desc
         # Grab the keypoints names and image ids before query time
-        #nn_index.rx2_kpts = ibs.get_annotation_kpts(daid_list)
-        #nn_index.rx2_gid  = ibs.get_annotation_gids(daid_list)
-        #nn_index.rx2_nid  = ibs.get_annotation_nids(daid_list)
+        #nn_index.rx2_kpts = ibs.get_annot_kpts(daid_list)
+        #nn_index.rx2_gid  = ibs.get_annot_gids(daid_list)
+        #nn_index.rx2_nid  = ibs.get_annot_nids(daid_list)
         nn_index.flann = flann
 
     def __getstate__(nn_index):

@@ -80,7 +80,7 @@ def annotate_matches(ibs, qres, aid2,
     ph.set_plotdat(ax, 'aid1', aid1)
     ph.set_plotdat(ax, 'aid2', aid2)
     if draw_lbl:
-        name1, name2 = ibs.get_annotation_names([aid1, aid2])
+        name1, name2 = ibs.get_annot_names([aid1, aid2])
         lbl1 = repr(name1)  + ' : ' + 'q' + vh.get_aidstrs(aid1)
         lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
     else:
@@ -91,7 +91,7 @@ def annotate_matches(ibs, qres, aid2,
     # Plot annotations over images
     if in_image:
         bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
-        theta1, theta2 = ibs.get_annotation_thetas([aid1, aid2])
+        theta1, theta2 = ibs.get_annot_thetas([aid1, aid2])
         # HACK!
         if show_query:
             df2.draw_bbox(bbox1, bbox_color=df2.ORANGE, lbl=lbl1, theta=theta1)

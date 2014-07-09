@@ -441,7 +441,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
                 guitool.popup_menu(tblview, pos, [
-                    ('delete annotation', lambda: ibswgt.back.delete_annotation(aid)),
+                    ('delete annotation', lambda: ibswgt.back.delete_annot(aid)),
                 ])
 
     @slot_(QtCore.QModelIndex)

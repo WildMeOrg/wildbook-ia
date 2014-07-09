@@ -127,7 +127,7 @@ class MainWindowBackend(QtCore.QObject):
     def show_annotation(back, aid, show_image=False, **kwargs):
         interact.ishow_chip(back.ibs, aid, **kwargs)
         if show_image:
-            gid = back.ibs.get_annotation_gids(aid)
+            gid = back.ibs.get_annot_gids(aid)
             interact.ishow_image(back.ibs, gid, sel_aids=[aid])
 
     def show_name(back, nid, sel_aids=[], **kwargs):
@@ -190,7 +190,7 @@ class MainWindowBackend(QtCore.QObject):
         """ selected image id """
         if len(back.sel_gids) == 0:
             if len(back.sel_aids) == 0:
-                gid = back.ibs.get_annotation_gids(back.sel_aids)[0]
+                gid = back.ibs.get_annot_gids(back.sel_aids)[0]
                 return gid
             raise AssertionError('There are no selected images')
         gid = back.sel_gids[0]
@@ -268,8 +268,8 @@ class MainWindowBackend(QtCore.QObject):
     def select_aid(back, aid, eid=None, show=True, show_annotation=True, **kwargs):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, eid=%r' % (aid, eid))
-        gid = back.ibs.get_annotation_gids(aid)
-        nid = back.ibs.get_annotation_nids(aid)
+        gid = back.ibs.get_annot_gids(aid)
+        nid = back.ibs.get_annot_nids(aid)
         back._set_selection(sel_aids=(aid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
         if show and show_annotation:
             back.show_annotation(aid, **kwargs)
@@ -295,16 +295,16 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def add_annotation(back, gid=None, bbox=None, theta=0.0, refresh=True):
+    def add_annot(back, gid=None, bbox=None, theta=0.0, refresh=True):
         """ Action -> Add ANNOTATION"""
-        print('[back] add_annotation')
+        print('[back] add_annot')
         if gid is None:
             gid = back.get_selected_gid()
         if bbox is None:
             bbox = back.select_bbox(gid)
-        printDBG('[back.add_annotation] * adding bbox=%r' % (bbox,))
-        aid = back.ibs.add_annotations([gid], [bbox], [theta])[0]
-        printDBG('[back.add_annotation] * added aid=%r' % (aid,))
+        printDBG('[back.add_annot] * adding bbox=%r' % (bbox,))
+        aid = back.ibs.add_annots([gid], [bbox], [theta])[0]
+        printDBG('[back.add_annot] * added aid=%r' % (aid,))
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
             #back.show_image(gid)
@@ -317,11 +317,11 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> Reselect ANNOTATION"""
         if aid is None:
             aid = back.get_selected_aid()
-        gid = back.ibs.get_annotation_gids(aid)
+        gid = back.ibs.get_annot_gids(aid)
         if bbox is None:
             bbox = back.select_bbox(gid)
         print('[back] reselect_annotation')
-        back.ibs.set_annotation_bboxes([aid], [bbox])
+        back.ibs.set_annot_bboxes([aid], [bbox])
         if refresh:
             back.front.update_tables([gh.ANNOTATION_TABLE])
             back.show_image(gid)
@@ -353,15 +353,15 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def delete_annotation(back, aid=None):
+    def delete_annot(back, aid=None):
         """ Action -> Delete Chip"""
-        print('[back] delete_annotation')
+        print('[back] delete_annot')
         if aid is None:
             aid = back.get_selected_aid()
         # get the image-id of the annotation we are deleting
-        gid = back.ibs.get_annotation_gids(aid)
+        gid = back.ibs.get_annot_gids(aid)
         # delete the annotation
-        back.ibs.delete_annotations([aid])
+        back.ibs.delete_annots([aid])
         # update display, to show image without the deleted annotation
         back.select_gid(gid)
         back.front.update_tables()

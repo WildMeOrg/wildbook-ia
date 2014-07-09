@@ -155,13 +155,13 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 chip_note_list.append(notes)
 
     # Add Chips Table
-    ibs.add_annotations(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
+    ibs.add_annots(chip_gid_list, chip_bbox_list, chip_theta_list, nid_list=chip_nid_list, notes_list=chip_note_list)
 
     # Set all injested RIDS as exemplars
     aid_list = ibs.get_valid_aids()
     flag_list = [True] * len(aid_list)
-    ibs.set_annotation_exemplar_flag(aid_list, flag_list)
-    assert(all(ibs.get_annotation_exemplar_flag(aid_list))), 'exemplars not set correctly'
+    ibs.set_annot_exemplar_flag(aid_list, flag_list)
+    assert(all(ibs.get_annot_exemplar_flag(aid_list))), 'exemplars not set correctly'
 
     # Write file flagging successful conversion
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:

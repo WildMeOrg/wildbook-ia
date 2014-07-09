@@ -69,7 +69,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
     # Get any groundtruth if you are showing it
     showgt_aids = []
     if show_gt:
-        showgt_aids = ibs.get_annotation_groundtruth(qres.qaid)
+        showgt_aids = ibs.get_annot_groundtruth(qres.qaid)
         showgt_aids = np.setdiff1d(showgt_aids, top_aids)
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
@@ -98,7 +98,7 @@ def show_qres(ibs, qres, **kwargs):
     if isinstance(top_aids, int):
         top_aids = qres.get_top_aids(num=top_aids)
 
-    all_gts = ibs.get_annotation_groundtruth(qres.qaid)
+    all_gts = ibs.get_annot_groundtruth(qres.qaid)
     nTop   = len(top_aids)
     nSelGt = len(gt_aids)
     nAllGt = len(all_gts)

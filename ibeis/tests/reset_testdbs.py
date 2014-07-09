@@ -41,7 +41,7 @@ def make_testdb0():
         raise
     gid_list = valid_gids[0:1]
     bbox_list = [(0, 0, 100, 100)]
-    aid = ibs.add_annotations(gid_list, bbox_list=bbox_list)[0]
+    aid = ibs.add_annots(gid_list, bbox_list=bbox_list)[0]
     #print('[RESET] NEW RID=%r' % aid)
     aids = ibs.get_image_aids(gid_list)[0]
     try:

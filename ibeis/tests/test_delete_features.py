@@ -12,7 +12,7 @@ def TEST_DELETE_FEATURE(ibs, back):
     gid_list = ibs.add_images(gpath_list)
     bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
-    aid_list = ibs.add_annotations(gid_list, bbox_list=bbox_list, name_list=name_list)
+    aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     cid_list = ibs.add_chips(aid_list)
     assert len(cid_list) != 0, "No chips added"
     fid_list = ibs.add_feats(cid_list)

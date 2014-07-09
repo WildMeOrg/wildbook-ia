@@ -279,9 +279,9 @@ def dev_snippets(main_locals):
         valid_aids = ibs.get_valid_aids()
         valid_gids = ibs.get_valid_gids()
         valid_nids = ibs.get_valid_nids()
-        valid_nid_list   = ibs.get_annotation_nids(valid_aids)
-        valid_aid_names  = ibs.get_annotation_names(valid_aids)
-        valid_aid_gtrues = ibs.get_annotation_groundtruth(valid_aids)
+        valid_nid_list   = ibs.get_annot_nids(valid_aids)
+        valid_aid_names  = ibs.get_annot_names(valid_aids)
+        valid_aid_gtrues = ibs.get_annot_groundtruth(valid_aids)
     return locals()
 
 

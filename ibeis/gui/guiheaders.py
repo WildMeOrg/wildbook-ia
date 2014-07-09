@@ -206,25 +206,25 @@ def make_ibeis_headers_dict(ibs):
     iders[ANNOTATION_TABLE]   = [ibs.get_valid_aids]
     getters[ANNOTATION_TABLE] = {
         'aid'        : lambda aids: aids,
-        'name'       : ibs.get_annotation_names,
-        'species'    : ibs.get_annotation_species,
-        'gname'      : ibs.get_annotation_gnames,
-        'nGt'        : ibs.get_annotation_num_groundtruth,
-        'theta'      : partial_imap_1to1(utool.theta_str, ibs.get_annotation_thetas),
-        'bbox'       : partial_imap_1to1(utool.bbox_str,  ibs.get_annotation_bboxes),
-        'num_verts'  : ibs.get_annotation_num_verts,
-        'verts'      : partial_imap_1to1(utool.verts_str, ibs.get_annotation_verts),
-        'nFeats'     : ibs.get_annotation_num_feats,
-        'rdconf'     : ibs.get_annotation_detect_confidence,
-        'notes'      : ibs.get_annotation_notes,
-        'thumb'      : ibs.get_annotation_chip_thumbtup,
-        'exemplar'   : ibs.get_annotation_exemplar_flag,
+        'name'       : ibs.get_annot_names,
+        'species'    : ibs.get_annot_species,
+        'gname'      : ibs.get_annot_gnames,
+        'nGt'        : ibs.get_annot_num_groundtruth,
+        'theta'      : partial_imap_1to1(utool.theta_str, ibs.get_annot_thetas),
+        'bbox'       : partial_imap_1to1(utool.bbox_str,  ibs.get_annot_bboxes),
+        'num_verts'  : ibs.get_annot_num_verts,
+        'verts'      : partial_imap_1to1(utool.verts_str, ibs.get_annot_verts),
+        'nFeats'     : ibs.get_annot_num_feats,
+        'rdconf'     : ibs.get_annot_detect_confidence,
+        'notes'      : ibs.get_annot_notes,
+        'thumb'      : ibs.get_annot_chip_thumbtup,
+        'exemplar'   : ibs.get_annot_exemplar_flag,
     }
     setters[ANNOTATION_TABLE] = {
-        'name'       : ibs.set_annotation_names,
-        'species'    : ibs.set_annotation_species,
-        'notes'      : ibs.set_annotation_notes,
-        'exemplar'   : ibs.set_annotation_exemplar_flag,
+        'name'       : ibs.set_annot_names,
+        'species'    : ibs.set_annot_species,
+        'notes'      : ibs.set_annot_notes,
+        'exemplar'   : ibs.set_annot_exemplar_flag,
     }
     #
     # Name Iders/Setters/Getters
@@ -275,11 +275,11 @@ def make_ibeis_headers_dict(ibs):
         'name'       : ibs.get_names,
         'nRids'      : ibs.get_name_num_annotations,
         'aid'        : lambda aids: aids,
-        'exemplar'   : ibs.get_annotation_exemplar_flag,
-        'thumb'      : ibs.get_annotation_chip_thumbtup,
+        'exemplar'   : ibs.get_annot_exemplar_flag,
+        'thumb'      : ibs.get_annot_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
-        'exemplar'   : ibs.set_annotation_exemplar_flag,
+        'exemplar'   : ibs.set_annot_exemplar_flag,
     }
 
     def make_header(tblname):

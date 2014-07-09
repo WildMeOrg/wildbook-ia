@@ -12,20 +12,20 @@ def TEST_CONVERT_BBOX_POLY(ibs):
 
     gids = ibs.get_valid_gids()
     bbox_list = [(0, 0, 100, 100)]
-    aid_list = ibs.add_annotations(gids[0:1], bbox_list=bbox_list)
-    vert_list = ibs.get_annotation_verts(aid_list)
+    aid_list = ibs.add_annots(gids[0:1], bbox_list=bbox_list)
+    vert_list = ibs.get_annot_verts(aid_list)
     bbox_list_new = geometry.bboxes_from_vert_list(vert_list)
     assert bbox_list_new == bbox_list, 'Original bbox does not match the returned one'
 
     bbox_list = [(0, 0, 100, 100)]
-    aid_list = ibs.add_annotations(gids[1:2], bbox_list=bbox_list)
-    vert_list = ibs.get_annotation_verts(aid_list)
+    aid_list = ibs.add_annots(gids[1:2], bbox_list=bbox_list)
+    vert_list = ibs.get_annot_verts(aid_list)
     vert_list_new = geometry.verts_list_from_bboxes_list(bbox_list)
     assert vert_list_new == vert_list, 'Vertices and their bounding box do not match'
 
     vert_list = [((0, 50), (50, 100), (100, 50), (50, 0))]
-    aid_list = ibs.add_annotations(gids[2:3], vert_list=vert_list)
-    bbox_list = ibs.get_annotation_bboxes(aid_list)
+    aid_list = ibs.add_annots(gids[2:3], vert_list=vert_list)
+    bbox_list = ibs.get_annot_bboxes(aid_list)
     bbox_list_new = geometry.bboxes_from_vert_list(vert_list)
     assert bbox_list_new == bbox_list, 'Original bbox does not match the returned one'
 

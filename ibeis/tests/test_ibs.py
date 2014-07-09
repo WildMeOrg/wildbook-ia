@@ -34,7 +34,7 @@ def TEST_IBS(ibs):
     mult_cols_list = ibs.db.get('images', ('image_uri', 'image_width', 'image_height'), gid_list)
     print(' * gps_list=%r' % mult_cols_list)
 
-    print('[TEST] 5. add_annotations')
+    print('[TEST] 5. add_annots')
     gid = gid_list[0]
     gid_list = [gid, gid]
     bbox_list = [(50, 50, 100, 100), (75, 75, 102, 101)]
@@ -42,15 +42,15 @@ def TEST_IBS(ibs):
     nid_list = None
     name_list = None
     notes_list = None
-    aid_list = ibs.add_annotations(gid_list, bbox_list, theta_list=theta_list,
+    aid_list = ibs.add_annots(gid_list, bbox_list, theta_list=theta_list,
                             nid_list=nid_list, name_list=name_list,
                             notes_list=notes_list)
     print(' * aid_list=%r' % aid_list)
 
-    print('[TEST] 6. get_annotation_props')
-    gid_list    = ibs.get_annotation_gids(aid_list)
-    bbox_list   = ibs.get_annotation_bboxes(aid_list)
-    theta_list  = ibs.get_annotation_thetas(aid_list)
+    print('[TEST] 6. get_annot_props')
+    gid_list    = ibs.get_annot_gids(aid_list)
+    bbox_list   = ibs.get_annot_bboxes(aid_list)
+    theta_list  = ibs.get_annot_thetas(aid_list)
     aids_list   = ibs.get_image_aids(gid)
     print(' * gid_list=%r' % gid_list)
     print(' * bbox_list=%r' % bbox_list)

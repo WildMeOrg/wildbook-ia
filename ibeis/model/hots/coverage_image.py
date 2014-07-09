@@ -50,10 +50,10 @@ def get_match_coverage_score(ibs, aid1, aid2, fm, fs, **kwargs):
         kwargs['method'] = METHOD_DEFAULT
     sel_fx1, sel_fx2 = fm.T
     method = kwargs.get('method', 0)
-    score1 = get_annotation_match_covscore(ibs, aid1, sel_fx1, fs, **kwargs)
+    score1 = get_annot_match_covscore(ibs, aid1, sel_fx1, fs, **kwargs)
     if method in [0, 2]:
         # 0 and 2 use both score
-        score2 = get_annotation_match_covscore(ibs, aid2, sel_fx2, fs, **kwargs)
+        score2 = get_annot_match_covscore(ibs, aid2, sel_fx2, fs, **kwargs)
         covscore = (score1 + score2) / 2
     elif method in [1, 3]:
         # 1 and 3 use just score 1
@@ -63,15 +63,15 @@ def get_match_coverage_score(ibs, aid1, aid2, fm, fs, **kwargs):
     return covscore
 
 
-def get_annotation_match_covscore(ibs, aid, sel_fx, mx2_score, **kwargs):
-    dstimg = get_annotation_match_covimg(ibs, aid, sel_fx, mx2_score, **kwargs)
+def get_annot_match_covscore(ibs, aid, sel_fx, mx2_score, **kwargs):
+    dstimg = get_annot_match_covimg(ibs, aid, sel_fx, mx2_score, **kwargs)
     score = dstimg.sum() / (dstimg.shape[0] * dstimg.shape[1])
     return score
 
 
-def get_annotation_match_covimg(ibs, aid, sel_fx, mx2_score, **kwargs):
-    chip = ibs.get_annotation_chips(aid)
-    kpts = ibs.get_annotation_kpts(aid)
+def get_annot_match_covimg(ibs, aid, sel_fx, mx2_score, **kwargs):
+    chip = ibs.get_annot_chips(aid)
+    kpts = ibs.get_annot_kpts(aid)
     mx2_kp = kpts[sel_fx]
     srcimg = ptool.gaussian_patch()
     # 2 and 3 are scale modes
@@ -86,8 +86,8 @@ def get_annotation_match_covimg(ibs, aid, sel_fx, mx2_score, **kwargs):
 
 def get_match_coverage_images(ibs, aid1, aid2, fm, mx2_score, **kwargs):
     sel_fx1, sel_fx2 = fm.T
-    dstimg1 = get_annotation_match_covimg(ibs, aid1, sel_fx1, mx2_score, **kwargs)
-    dstimg2 = get_annotation_match_covimg(ibs, aid1, sel_fx1, mx2_score, **kwargs)
+    dstimg1 = get_annot_match_covimg(ibs, aid1, sel_fx1, mx2_score, **kwargs)
+    dstimg2 = get_annot_match_covimg(ibs, aid1, sel_fx1, mx2_score, **kwargs)
     return dstimg1, dstimg2
 
 

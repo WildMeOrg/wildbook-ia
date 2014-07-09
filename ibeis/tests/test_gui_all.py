@@ -49,19 +49,19 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     #
     # ADD ANNOTATIONS
     print('[TEST] ADD_ANNOTATIONS')
-    def add_annotation(gid, bbox, theta=0.0):
-        aid = back.add_annotation(gid=gid, bbox=bbox, theta=theta, **_kwargs)
+    def add_annot(gid, bbox, theta=0.0):
+        aid = back.add_annot(gid=gid, bbox=bbox, theta=theta, **_kwargs)
         return aid
 
     preadd_aids = ibs.get_valid_aids()  # this should be []
     assert len(preadd_aids) == 0, 'there are already aids in the database!'
     print('preadd_aids = %r' % preadd_aids)
 
-    aid1 = add_annotation(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
-    aid2 = add_annotation(gid_list[1], (50, 50, 100, 100))
-    aid3 = add_annotation(gid_list[2], (50, 50, 64, 64))
-    aid4 = add_annotation(gid_list[2], (50, 50, 200, 200))
-    aid5 = add_annotation(gid_list[1], (0, 0, 400, 400))
+    aid1 = add_annot(gid_list[0], (50, 50, 100, 100), (np.tau / 8))
+    aid2 = add_annot(gid_list[1], (50, 50, 100, 100))
+    aid3 = add_annot(gid_list[2], (50, 50, 64, 64))
+    aid4 = add_annot(gid_list[2], (50, 50, 200, 200))
+    aid5 = add_annot(gid_list[1], (0, 0, 400, 400))
 
     print('aid1 = %r' % aid1)
     print('aid2 = %r' % aid2)
@@ -78,13 +78,13 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
 
     back.select_aid(aid_list[0], show_image=True, **_kwargs)
     try:
-        bbox_list = ibs.get_annotation_bboxes(aid_list)
+        bbox_list = ibs.get_annot_bboxes(aid_list)
         assert bbox_list[0] == (50, 50, 100, 100)
     except AssertionError as ex:
         utool.printex(ex, key_list=['bbox_list', 'aid_list'])
         raise
     back.reselect_annotation(bbox=[51, 52, 103, 104])
-    assert ibs.get_annotation_bboxes(aid_list[0]) == (51, 52, 103, 104)
+    assert ibs.get_annot_bboxes(aid_list[0]) == (51, 52, 103, 104)
 
     back.compute_encounters()
 
@@ -95,8 +95,8 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
 
     # Change some ANNOTATIONs
 
-    #add_annotation(gid_list[2], None)  # user selection
-    #add_annotation(None, [42, 42, 8, 8])  # back selection
+    #add_annot(gid_list[2], None)  # user selection
+    #add_annot(None, [42, 42, 8, 8])  # back selection
     # I'm not sure how I want to integrate that IPython stuff
     return locals()
 

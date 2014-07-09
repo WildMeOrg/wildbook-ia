@@ -15,7 +15,7 @@ __test__ = False  # This is not a test
 
 def get_test_kpts(ibs, n=11):
     aid = ibs.get_valid_aids()[0]
-    kpts = ibs.get_annotation_kpts(aid)
+    kpts = ibs.get_annot_kpts(aid)
     kpts_samp = utool.util_list.spaced_items(kpts, n=n)
     return kpts_samp
 

@@ -9,7 +9,7 @@ from .viz_chip import show_chip
 
 
 def show_name_of(ibs, aid, **kwargs):
-    nid = ibs.get_annotation_names(aid)
+    nid = ibs.get_annot_names(aid)
     show_name(ibs, nid, sel_aids=[aid], **kwargs)
 
 

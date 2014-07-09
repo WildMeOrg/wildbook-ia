@@ -13,9 +13,9 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
     try:
         # draw chips in the image
         aid_list    = ibs.get_image_aids(gid)
-        bbox_list   = ibs.get_annotation_bboxes(aid_list)
-        theta_list  = ibs.get_annotation_thetas(aid_list)
-        text_list  = vh.get_annotation_text(ibs, aid_list, draw_lbls)
+        bbox_list   = ibs.get_annot_bboxes(aid_list)
+        theta_list  = ibs.get_annot_thetas(aid_list)
+        text_list  = vh.get_annot_text(ibs, aid_list, draw_lbls)
         annotation_centers = vh.get_bbox_centers(bbox_list)
         sel_list    = [aid in sel_aids for aid in aid_list]
 
@@ -33,11 +33,11 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
         raise
 
 
-def get_annotation_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
+def get_annot_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
     annotekw = {
-        'bbox_list'  : ibs.get_annotation_bboxes(aid_list),
-        'theta_list' : ibs.get_annotation_thetas(aid_list),
-        'text_list' : vh.get_annotation_text(ibs, aid_list, draw_lbls),
+        'bbox_list'  : ibs.get_annot_bboxes(aid_list),
+        'theta_list' : ibs.get_annot_thetas(aid_list),
+        'text_list' : vh.get_annot_text(ibs, aid_list, draw_lbls),
         'sel_list'   : [aid in sel_aids for aid in aid_list],
     }
     return annotekw
@@ -52,7 +52,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
     # Read Image
     img = ibs.get_images(gid)
     aid_list    = ibs.get_image_aids(gid)
-    annotekw = get_annotation_annotations(ibs, aid_list, sel_aids, draw_lbls)
+    annotekw = get_annot_annotations(ibs, aid_list, sel_aids, draw_lbls)
     annotation_centers = vh.get_bbox_centers(annotekw['bbox_list'])
     showkw = {
         'title'      : vh.get_image_titles(ibs, gid),

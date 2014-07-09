@@ -44,12 +44,12 @@ def inject_ibeis(ibs):
     utool.inject_func_as_method(ibs, utool.inject_func_as_method)
     # List of getters to unflatten
     to_unflatten = [
-        ibs.get_annotation_uuids,
+        ibs.get_annot_uuids,
         ibs.get_image_uuids,
         ibs.get_names,
         ibs.get_image_unixtime,
-        ibs.get_annotation_bboxes,
-        ibs.get_annotation_thetas,
+        ibs.get_annot_bboxes,
+        ibs.get_annot_thetas,
     ]
     for flat_getter in to_unflatten:
         unflat_getter = _make_unflat_getter_func(flat_getter)
@@ -90,8 +90,8 @@ def export_to_xml(ibs):
         folder = "IBEIS"
         annotation = PascalVOC_XML_Annotation(image_uri, folder, out_img, **information)
         aid_list = ibs.get_image_aids(gid)
-        bbox_list = ibs.get_annotation_bboxes(aid_list)
-        theta_list = ibs.get_annotation_thetas(aid_list)
+        bbox_list = ibs.get_annot_bboxes(aid_list)
+        theta_list = ibs.get_annot_thetas(aid_list)
         for aid, bbox, theta in izip(aid_list, bbox_list, theta_list):
             # Transformation matrix
             R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
@@ -109,7 +109,7 @@ def export_to_xml(ibs):
             ymax = max(y_points)
             #TODO: Change species_name to getter in IBEISControl once implemented
             #species_name = 'grevys_zebra'
-            species_name = ibs.get_annotation_species(aid)
+            species_name = ibs.get_annot_species(aid)
             annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
         dst_annot = annotdir + out_name  + '.xml'
         dst_img = imagedir + out_img
@@ -151,7 +151,7 @@ def compute_all_chips(ibs):
 def compute_all_features(ibs, **kwargs):
     print('[ibs] compute_all_features')
     aid_list = ibs.get_valid_aids(**kwargs)
-    cid_list = ibs.get_annotation_cids(aid_list, ensure=True)
+    cid_list = ibs.get_annot_cids(aid_list, ensure=True)
     fid_list = ibs.add_feats(cid_list)
     return fid_list
 
@@ -196,7 +196,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                    int(gh - (gh * pct * 2)))
                   for (gw, gh) in gsize_list]
     theta_list = [0.0 for _ in xrange(len(gsize_list))]
-    aid_list = ibs.add_annotations(gid_list, bbox_list, theta_list,
+    aid_list = ibs.add_annots(gid_list, bbox_list, theta_list,
                                    name_list=name_list, nid_list=nid_list, notes_list=notes_list)
     return aid_list
 
@@ -217,7 +217,7 @@ def delete_all_features(ibs):
 @__injectable
 def delete_all_annotations(ibs):
     all_aids = ibs._get_all_aids()
-    ibs.delete_annotations(all_aids)
+    ibs.delete_annots(all_aids)
 
 
 @__injectable
@@ -238,18 +238,18 @@ def vd(ibs):
 
 
 @__injectable
-def get_annotation_desc_cache(ibs, aids):
+def get_annot_desc_cache(ibs, aids):
     """ When you have a list with duplicates and you dont want to copy data
     creates a reference to each data object idnexed by a dict """
     unique_aids = list(set(aids))
-    unique_desc = ibs.get_annotation_desc(unique_aids)
+    unique_desc = ibs.get_annot_desc(unique_aids)
     desc_cache = dict(list(izip(unique_aids, unique_desc)))
     return desc_cache
 
 
 @__injectable
-def get_annotation_is_hard(ibs, aid_list):
-    notes_list = ibs.get_annotation_notes(aid_list)
+def get_annot_is_hard(ibs, aid_list):
+    notes_list = ibs.get_annot_notes(aid_list)
     is_hard_list = ['hard' in notes.lower().split() for (notes)
                     in notes_list]
     return is_hard_list
@@ -310,14 +310,14 @@ def get_match_text(ibs, aid1, aid2):
 
 
 @__injectable
-def set_annotation_names_to_next_name(ibs, aid_list):
+def set_annot_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
-    ibs.set_annotation_names(aid_list, [next_name] * len(aid_list))
+    ibs.set_annot_names(aid_list, [next_name] * len(aid_list))
 
 
 @__injectable
 def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annotation_nids((aid1, aid2))
+    nid1, nid2 = ibs.get_annot_nids((aid1, aid2))
     isunknown_list = ibs.is_nid_unknown((nid1, nid2))
     if any(isunknown_list):
         truth = 2  # Unknown
@@ -424,8 +424,8 @@ def aidstr(aid, ibs=None, notes=False):
         return 'aid%d' % (aid,)
     else:
         assert ibs is not None
-        notes = ibs.get_annotation_notes(aid)
-        name  = ibs.get_annotation_names(aid)
+        notes = ibs.get_annot_notes(aid)
+        name  = ibs.get_annot_names(aid)
         return 'aid%d-%r-%r' % (aid, str(name), str(notes))
 
 
@@ -565,7 +565,7 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
             annotation_uuid_list = [augment_uuid(random_uuid(), _uuid)
                                     for _uuid in annotation_uuid_list]
     except Exception as ex:
-        utool.printex(ex, 'Error building annotation_uuids', '[add_annotation]',
+        utool.printex(ex, 'Error building annotation_uuids', '[add_annot]',
                       key_list=['image_uuid_list'])
         raise
     return annotation_uuid_list
@@ -619,25 +619,25 @@ def merge_databases(ibs_target, ibs_source_list):
     def merge_annotations(ibs_target, ibs_source):
         """ merge annotations helper """
         aid_list1   = ibs_source.get_valid_aids()
-        uuid_list1  = ibs_source.get_annotation_uuids(aid_list1)
+        uuid_list1  = ibs_source.get_annot_uuids(aid_list1)
         # Get the images in target_db
-        gid_list1   = ibs_source.get_annotation_gids(aid_list1)
-        bbox_list1  = ibs_source.get_annotation_bboxes(aid_list1)
-        theta_list1 = ibs_source.get_annotation_thetas(aid_list1)
-        name_list1  = ibs_source.get_annotation_names(aid_list1)
-        notes_list1 = ibs_source.get_annotation_notes(aid_list1)
+        gid_list1   = ibs_source.get_annot_gids(aid_list1)
+        bbox_list1  = ibs_source.get_annot_bboxes(aid_list1)
+        theta_list1 = ibs_source.get_annot_thetas(aid_list1)
+        name_list1  = ibs_source.get_annot_names(aid_list1)
+        notes_list1 = ibs_source.get_annot_notes(aid_list1)
 
         image_uuid_list1 = ibs_source.get_image_uuids(gid_list1)
         gid_list2  = ibs_target.get_image_gids_from_uuid(image_uuid_list1)
         image_uuid_list2 = ibs_target.get_image_uuids(gid_list2)
         # Assert that the image uuids have not changed
         assert image_uuid_list1 == image_uuid_list2, 'error merging annotation image uuids'
-        aid_list2 = ibs_target.add_annotations(gid_list2,
+        aid_list2 = ibs_target.add_annots(gid_list2,
                                                bbox_list1,
                                                theta_list=theta_list1,
                                                name_list=name_list1,
                                                notes_list=notes_list1)
-        uuid_list2 = ibs_target.get_annotation_uuids(aid_list2)
+        uuid_list2 = ibs_target.get_annot_uuids(aid_list2)
         assert uuid_list2 == uuid_list1, 'error merging annotation uuids'
 
     # Do the merging
@@ -656,7 +656,7 @@ def merge_databases(ibs_target, ibs_source_list):
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
     aids_list = ibs.get_image_aids(gid_list)
-    flags_list = unflat_map(ibs.get_annotation_exemplar_flag, aids_list)
+    flags_list = unflat_map(ibs.get_annot_exemplar_flag, aids_list)
     delete_gid_flag_list = [not any(flags) for flags in flags_list]
     delete_gid_list = utool.filter_items(gid_list, delete_gid_flag_list)
     ibs.delete_images(delete_gid_list)
@@ -669,7 +669,7 @@ def update_exemplar_encounter(ibs):
     eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
     ibs.delete_encounters(eid)
     aid_list = ibs.get_valid_aids(is_exemplar=True)
-    gid_list = utool.unique_ordered(ibs.get_annotation_gids(aid_list))
+    gid_list = utool.unique_ordered(ibs.get_annot_gids(aid_list))
     ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
 
 
@@ -813,7 +813,7 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
 #@getter_1to1
 @__injectable
 def is_aid_unknown(ibs, aid_list):
-    nid_list = ibs.get_annotation_nids(aid_list)
+    nid_list = ibs.get_annot_nids(aid_list)
     return ibs.is_nid_unknown(nid_list)
 
 
