@@ -3,12 +3,6 @@ import os
 import sys
 from os.path import join, exists
 
-#import pyflann
-#import pyhesaff
-#import pyrf
-#pyrf.__lib__
-#sys.exit(1)
-
 
 def join_SITE_PACKAGES(*args):
     import site
@@ -88,8 +82,6 @@ LIB_EXT = {'win32': '.dll',
 
 ##################################
 # Asserts
-# This needs to be relative to build directory. Leave as is.
-# run from root
 ##################################
 ibsbuild = ''
 root_dir = os.getcwd()
@@ -105,7 +97,6 @@ except AssertionError:
 # Explicitly add modules in case they are not in the Python PATH
 ##################################
 module_repos = ['utool', 'vtool', 'guitool', 'plottool', 'pyrf', 'pygist', 'ibeis', 'hesaff', 'detecttools']
-
 apple = []
 if APPLE:
     # We need to explicitly add the MacPorts and system Python site-packages folders on Mac
@@ -131,39 +122,28 @@ a = Analysis(  # NOQA
 # MPL has a problem where the __init__.py is not created in the library.  touch __init__.py in the module's path should fix the issue
 
 ##################################
-# Specify Data in TOC (table of contents) format (SRC, DEST, TYPE)
+# Hesaff + PyRF + FLANN Library
 ##################################
-src = join(root_dir, '_installers/ibsicon.ico')
-dst = join(ibsbuild, '_installers/ibsicon.ico')
-add_data(a, dst, src)
 
-src = join(root_dir, '_installers/resources_MainSkel.qrc')
-dst = join(ibsbuild, '_installers/resources_MainSkel.qrc')
-add_data(a, dst, src)
-
-##################################
-# Hesaff + FLANN + PyRF Libraries
-##################################
-libflann_fname = 'libflann' + LIB_EXT
-
-#Hesaff
+# Hesaff
 libhesaff_fname = 'libhesaff' + LIB_EXT
-libhesaff_src = join('..', 'hesaff', 'build', libhesaff_fname)
+libhesaff_src = join(root_dir, '..', 'hesaff', 'build', libhesaff_fname)
 libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
 add_data(a, libhesaff_dst, libhesaff_src)
 
-#PyRF
+# PyRF
 libpyrf_fname = 'libpyrf' + LIB_EXT
-libpyrf_src = join('..', 'pyrf', 'build', libpyrf_fname)
+libpyrf_src = join(root_dir, '..', 'pyrf', 'build', libpyrf_fname)
 libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
 add_data(a, libpyrf_dst, libpyrf_src)
 
+# FLANN
+libflann_fname = 'libflann' + LIB_EXT
 if WIN32 or LINUX:
     # FLANN
     libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
     libflann_dst = join(ibsbuild, libflann_fname)
     add_data(a, libflann_dst, libflann_src)
-
 if APPLE:
     # FLANN
     try:
@@ -216,7 +196,10 @@ add_data(a, userguide_dst, userguide_src)
 ICON_EXT = {'darwin': 'icns',
             'win32':  'ico',
             'linux2': 'ico'}[PLATFORM]
-iconfile = join(root_dir, '_installers', 'ibsicon.' + ICON_EXT)
+iconfile = join('_installers', 'ibsicon.' + ICON_EXT)
+icon_src = join(root_dir, iconfile)
+icon_dst = join(ibsbuild, iconfile)
+add_data(a, icon_dst, icon_src)
 
 ##################################
 # Build executable
@@ -244,10 +227,8 @@ collect_kwargs = {
 
 # Windows only EXE options
 if WIN32:
-    exe_kwargs['icon'] = iconfile
+    exe_kwargs['icon'] = join(root_dir, iconfile)
     #exe_kwargs['version'] = 1.5
-
-
 if APPLE:
     exe_kwargs['console'] = False
 
