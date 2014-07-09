@@ -221,11 +221,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #_SEP = lambda: None
         detection_combo_box_options = [
             #    Text               Value
-            ('Select Species',  'none',        ),
-            ('Plains Zebras',   'zebra_plains',),
-            ('Grevy\'s Zebras', 'zebra_grevys',),
-            ('Giraffes',        'giraffe',     ),
-        ]
+            ('Select Species',  'none'),
+        ] + zip(constants.SPECIES_NICE, constants.VALID_SPECIES)
         ibswgt.button_list = [
             [
                 _NEWBUT('Import Images\n(via files)',
