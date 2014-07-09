@@ -90,7 +90,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 
     image_gid_list   = []
     image_gname_list = []
-    image_aif_list   = []
+    image_reviewed_list   = []
     with open(join(hsdb_dir, '_hsdb/image_table.csv'), 'rb') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
         for ix, row in enumerate(image_reader):
@@ -100,10 +100,10 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
             else:
                 gid = int(row[0])
                 gname_ = row[1].strip()
-                aif = bool(row[2])
+                reviewed = bool(row[2])  # aif in hotspotter is equivilant to reviewed in IBEIS
                 image_gid_list.append(gid)
                 image_gname_list.append(gname_)
-                image_aif_list.append(aif)
+                image_reviewed_list.append(reviewed)
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
     assert all(map(exists, image_gpath_list)), 'some images dont exist'

@@ -753,11 +753,11 @@ class IBEISController(object):
         ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_iter)
 
     @setter
-    def set_image_aifs(ibs, gid_list, aif_list):
+    def set_image_reviewed(ibs, gid_list, reviewed_list):
         """ Sets the image all instances found bit """
         id_iter = ((gid,) for gid in gid_list)
-        val_list = ((aif,) for aif in aif_list)
-        ibs.db.set(IMAGE_TABLE, ('image_toggle_aif',), val_list, id_iter)
+        val_list = ((reviewed,) for reviewed in reviewed_list)
+        ibs.db.set(IMAGE_TABLE, ('image_toggle_reviewed',), val_list, id_iter)
 
     @setter
     def set_image_notes(ibs, gid_list, notes_list):
@@ -1087,11 +1087,11 @@ class IBEISController(object):
         return lon_list
 
     @getter_1to1
-    def get_image_aifs(ibs, gid_list):
+    def get_image_reviewed(ibs, gid_list):
         """ Returns "All Instances Found" flag, true if all objects of interest
         (animals) have an ANNOTATION in the image """
-        aif_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_aif',), gid_list)
-        return aif_list
+        reviewed_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_reviewed',), gid_list)
+        return reviewed_list
 
     @getter_1to1
     def get_image_detect_confidence(ibs, gid_list):
