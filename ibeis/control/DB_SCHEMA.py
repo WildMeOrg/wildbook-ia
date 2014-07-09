@@ -61,21 +61,21 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema(constants.GL_RELATION_TABLE, (
         ('glr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
-        ('imagelabel_rowid',             'INTEGER NOT NULL'),
+        ('lblimage_rowid',               'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('glr_confidence',               'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (image_rowid, imagelabel_rowid, config_rowid)'],
+    ), ['CONSTRAINT superkey UNIQUE (image_rowid, lblimage_rowid, config_rowid)'],
         docstr='''
         Used to store one-to-many the relationship between images
         and labels''')
 
     ibs.db.schema(constants.LBLIMAGE_TABLE, (
-        ('imagelabel_rowid',             'INTEGER PRIMARY KEY'),
-        ('imagelabel_uuid',              'UUID NOT NULL'),
-        ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
-        ('imagelabel_value',             'TEXT NOT NULL'),
-        ('imagelabel_note',              'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (lbltype_rowid, imagelabel_value)'],
+        ('lblimage_rowid',             'INTEGER PRIMARY KEY'),
+        ('lblimage_uuid',              'UUID NOT NULL'),
+        ('lbltype_rowid',              'INTEGER NOT NULL'),  # this is "category" in the proposal
+        ('lblimage_value',             'TEXT NOT NULL'),
+        ('lblimage_note',              'TEXT'),
+    ), ['CONSTRAINT superkey UNIQUE (lbltype_rowid, lblimage_value)'],
         docstr='''
         Used to store the labels (attributes) of images''')
 
