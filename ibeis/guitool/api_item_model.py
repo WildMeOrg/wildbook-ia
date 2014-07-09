@@ -474,7 +474,7 @@ class APIItemModel(API_MODEL_BASE):
             if node.parent_node is None:
                 return None
             next_index = node.parent_node.child_nodes.index(node) + offset
-            if next_index > 0 and next_index < len(node.parent_node.child_nodes):
+            if next_index >= 0 and next_index < len(node.parent_node.child_nodes):
                 next_node = node.parent_node.child_nodes[next_index]
                 row = next_node.get_row()
                 col = model.col_level_list.index(next_node.get_level())
