@@ -42,4 +42,5 @@ def build_pyinstaller():
         # utool.cmd('./_scripts/mac_dmg_builder.sh')
 
 
-build_pyinstaller()
+if __name__ == '__main__':
+    build_pyinstaller()
