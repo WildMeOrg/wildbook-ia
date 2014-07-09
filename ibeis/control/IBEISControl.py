@@ -1974,9 +1974,9 @@ class IBEISController(object):
 
     #
     #
-    #--------------
-    # --- MODEL ---
-    #--------------
+    #-----------------------------
+    # --- ENCOUNTER CLUSTERING ---
+    #-----------------------------
 
     #@default_decorator
     @utool.indent_func('[ibs.compute_encounters]')
@@ -1988,6 +1988,12 @@ class IBEISController(object):
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
         print('[ibs] Finished computing and adding encounters.')
+
+    #
+    #
+    #------------------
+    # --- DETECTION ---
+    #------------------
 
     @default_decorator
     def detect_existence(ibs, gid_list, **kwargs):
@@ -2036,6 +2042,12 @@ class IBEISController(object):
                             detected_confidence_list,
                             detected_img_confs)
         print('[ibs] finshed detecting')
+
+    #
+    #
+    #-----------------------
+    # --- IDENTIFICATION ---
+    #-----------------------
 
     @default_decorator
     def get_recognition_database_aids(ibs):

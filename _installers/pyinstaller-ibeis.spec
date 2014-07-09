@@ -3,6 +3,12 @@ import os
 import sys
 from os.path import join, exists
 
+#import pyflann
+#import pyhesaff
+#import pyrf
+#pyrf.__lib__
+#sys.exit(1)
+
 
 def join_SITE_PACKAGES(*args):
     import site
@@ -98,7 +104,7 @@ except AssertionError:
 ##################################
 # Explicitly add modules in case they are not in the Python PATH
 ##################################
-modules = ['utool', 'vtool', 'guitool', 'plottool', 'pyrf', 'pygist', 'ibeis', 'hesaff', 'detecttools']
+module_repos = ['utool', 'vtool', 'guitool', 'plottool', 'pyrf', 'pygist', 'ibeis', 'hesaff', 'detecttools']
 
 apple = []
 if APPLE:
@@ -106,9 +112,9 @@ if APPLE:
     apple.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/')
     apple.append('/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/')
 
-a = Analysis(
+a = Analysis(  # NOQA
     ['main.py'],
-    pathex=['.'] + [ join('..', module) for module in modules ] + apple,
+    pathex=['.'] + [ join('..', repo) for repo in module_repos ] + apple,
     hiddenimports=[
         'sklearn.utils.sparsetools._graph_validation',
         'sklearn.utils.sparsetools._graph_tools',
@@ -139,28 +145,24 @@ add_data(a, dst, src)
 # Hesaff + FLANN + PyRF Libraries
 ##################################
 libflann_fname = 'libflann' + LIB_EXT
-if WIN32:
-    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
-    libflann_dst = join(ibsbuild, libflann_fname)
-    add_data(a, libflann_dst, libflann_src)
 
-if LINUX:
+#Hesaff
+libhesaff_fname = 'libhesaff' + LIB_EXT
+libhesaff_src = join('..', 'hesaff', 'build', libhesaff_fname)
+libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
+add_data(a, libhesaff_dst, libhesaff_src)
+
+#PyRF
+libpyrf_fname = 'libpyrf' + LIB_EXT
+libpyrf_src = join('..', 'pyrf', 'build', libpyrf_fname)
+libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
+add_data(a, libpyrf_dst, libpyrf_src)
+
+if WIN32 or LINUX:
     # FLANN
     libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
     libflann_dst = join(ibsbuild, libflann_fname)
     add_data(a, libflann_dst, libflann_src)
-    
-    #Hesaff
-    libhesaff_fname = 'libhesaff' + LIB_EXT
-    libhesaff_src = join('..', 'hesaff', 'build', libhesaff_fname)
-    libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
-    add_data(a, libhesaff_dst, libhesaff_src)
-
-    #PyRF
-    libpyrf_fname = 'libpyrf' + LIB_EXT
-    libpyrf_src = join('..', 'pyrf', 'build', libpyrf_fname)
-    libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
-    add_data(a, libpyrf_dst, libpyrf_src)
 
 if APPLE:
     # FLANN
@@ -178,18 +180,6 @@ if APPLE:
         add_data(a, libbsddb_dst, libbsddb_src)
     except Exception as ex:
         print(repr(ex))
-
-    # Hesaff
-    libhesaff_fname = 'libhesaff' + LIB_EXT
-    libhesaff_src = join('..', 'hesaff', 'build', libhesaff_fname)
-    libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
-    add_data(a, libhesaff_dst, libhesaff_src)
-
-    # PyRF
-    libpyrf_fname = 'libpyrf' + LIB_EXT
-    libpyrf_src = join('..', 'pyrf', 'build', libpyrf_fname)
-    libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
-    add_data(a, libpyrf_dst, libpyrf_src)
 
     # We need to add these 4 opencv libraries because pyinstaller does not find them.
     missing_cv_name_list = [
