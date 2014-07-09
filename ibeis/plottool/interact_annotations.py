@@ -332,6 +332,7 @@ class ANNOTATIONInteraction(object):
         self._ind = None  # the active vert
         self.currently_rotating_poly = None
 
+        self.callback_ids = {}
         self.connect_callbacks(self.fig.ax.figure.canvas)
 
         self.add_action_buttons()
