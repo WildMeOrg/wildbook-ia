@@ -40,7 +40,16 @@ def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
 
 
 class StripeProxyModel(BASE_CLASS):
-    __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(), ['_set_context_id', '_get_context_id', '_set_changeblocked', '_get_changeblocked', '_about_to_change', '_change', '_update', '_rows_updated', 'name'])
+    __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(),
+                                            ['_set_context_id',
+                                             '_get_context_id',
+                                             '_set_changeblocked',
+                                             '_get_changeblocked',
+                                             '_about_to_change',
+                                             '_change',
+                                             '_update',
+                                             '_rows_updated',
+                                             'name'])
 
     def __init__(self, parent=None, numduplicates=1):
         BASE_CLASS.__init__(self, parent=parent)
@@ -81,6 +90,8 @@ class StripeProxyModel(BASE_CLASS):
         """
         returns index into original model
         """
+        if proxyIndex is None:
+            return None
         if proxyIndex.isValid():
             r2, c2, p2 = self.proxy_to_source(proxyIndex.row(), proxyIndex.column())
             #print('StripeProxyModel.mapToSource(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
@@ -93,6 +104,8 @@ class StripeProxyModel(BASE_CLASS):
         """
         returns index into proxy model
         """
+        if sourceIndex is None:
+            return None
         if sourceIndex.isValid():
             r2, c2, p2 = self.source_to_proxy(sourceIndex.row(), sourceIndex.column(), sourceIndex.parent())
             #print('StripeProxyModel.mapFromSource(): %r %r %r; %r %r %r' % (r, c, p, r2, c2, p2))
@@ -146,3 +159,9 @@ class StripeProxyModel(BASE_CLASS):
 
     def _get_row_id(self, proxyIndex):
         return self.sourceModel()._get_row_id(self.mapToSource(proxyIndex))
+
+    def _get_adjacent_qtindex(self, proxyIndex, *args, **kwargs):
+        qtindex = self.mapToSource(proxyIndex)
+        next_qtindex = self.sourceModel()._get_adjacent_qtindex(qtindex, *args, **kwargs)
+        next_proxyindex = self.mapFromSource(next_qtindex)
+        return next_proxyindex
