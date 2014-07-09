@@ -50,7 +50,12 @@ NAME_RED_RGBA01       = NAME_RED_RGBA255 / 255.0
 NEW_YELLOW_RGBA01     = NEW_YELLOW_RGBA255 / 255.0
 
 EXEMPLAR_ENCTEXT = 'Exemplars'
-ALLIMAGE_ENCTEXT = 'All_Images'
+ALL_IMAGE_ENCTEXT = 'All Images'
+UNREVIEWED_IMAGE_ENCTEXT = 'Unreviewed Images'
+REVIEWED_IMAGE_ENCTEXT = 'Reviewed Images'
 
 IMAGE_THUMB_SUFFIX = '_thumb.png'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
+
+VALID_SPECIES = ['zebra_plains', 'zebra_grevys', 'giraffe', '____']
+SPECIES_NICE = ['Plains Zebras', 'Grevy\'s Zebras', 'Giraffes', 'Unknown']

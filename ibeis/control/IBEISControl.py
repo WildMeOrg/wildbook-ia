@@ -375,7 +375,7 @@ class IBEISController(object):
         return all_known_nids
 
     @ider
-    def get_valid_gids(ibs, eid=None, require_unixtime=False):
+    def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
         if eid is None:
             gid_list = ibs._get_all_gids()
         else:
@@ -384,6 +384,10 @@ class IBEISController(object):
             # Remove images without timestamps
             unixtime_list = ibs.get_image_unixtime(gid_list)
             isvalid_list = [unixtime != -1 for unixtime in unixtime_list]
+            gid_list = utool.filter_items(gid_list, isvalid_list)
+        if reviewed is not None:
+            reviewed_list = ibs.get_image_reviewed(gid_list)
+            isvalid_list = [reviewed == flag for flag in reviewed_list]
             gid_list = utool.filter_items(gid_list, isvalid_list)
         return sorted(gid_list)
 
@@ -753,11 +757,11 @@ class IBEISController(object):
         ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_iter)
 
     @setter
-    def set_image_aifs(ibs, gid_list, aif_list):
+    def set_image_reviewed(ibs, gid_list, reviewed_list):
         """ Sets the image all instances found bit """
         id_iter = ((gid,) for gid in gid_list)
-        val_list = ((aif,) for aif in aif_list)
-        ibs.db.set(IMAGE_TABLE, ('image_toggle_aif',), val_list, id_iter)
+        val_list = ((reviewed,) for reviewed in reviewed_list)
+        ibs.db.set(IMAGE_TABLE, ('image_toggle_reviewed',), val_list, id_iter)
 
     @setter
     def set_image_notes(ibs, gid_list, notes_list):
@@ -862,10 +866,6 @@ class IBEISController(object):
         """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
         list of annotations.  Convenience function for
         set_annot_from_value"""
-        #nid_list = ibs.add_names(name_list)
-        #print('nid_list = %r' % (nid_list,))
-        #print('name_list = %r' % (name_list,))
-        #ibs.set_annot_nids(aid_list, nid_list)
         ibs.set_annot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
 
     @setter
@@ -873,6 +873,7 @@ class IBEISController(object):
         """ Sets species/speciesids of a list of annotations.
         Convenience function for set_annot_from_value """
         species_list = [species.lower() for species in species_list]
+        assert all([species in constants.VALID_SPECIES for species in species_list]), 'invalid species added'
         ibs.set_annot_from_value(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter
@@ -991,6 +992,7 @@ class IBEISController(object):
     @getter_1to1
     def get_image_thumbtup(ibs, gid_list):
         """ Returns tuple of image paths, thumb paths, bboxes and thetas """
+        # print('gid_list = %r' % (gid_list,))
         aids_list = ibs.get_image_aids(gid_list)
         bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
@@ -1087,11 +1089,11 @@ class IBEISController(object):
         return lon_list
 
     @getter_1to1
-    def get_image_aifs(ibs, gid_list):
+    def get_image_reviewed(ibs, gid_list):
         """ Returns "All Instances Found" flag, true if all objects of interest
         (animals) have an ANNOTATION in the image """
-        aif_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_aif',), gid_list)
-        return aif_list
+        reviewed_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_reviewed',), gid_list)
+        return reviewed_list
 
     @getter_1to1
     def get_image_detect_confidence(ibs, gid_list):
@@ -1132,7 +1134,7 @@ class IBEISController(object):
     @getter_1toM
     def get_image_aids(ibs, gid_list):
         """ Returns a list of aids for each image by gid """
-        #print('gid_list = %r' % (gid_list,))
+        # print('gid_list = %r' % (gid_list,))
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         colnames = ('annot_rowid',)
         aids_list = ibs.db.get(ANNOTATION_TABLE, colnames, gid_list, id_colname='image_rowid', unpack_scalars=False)
@@ -1919,15 +1921,14 @@ class IBEISController(object):
     @deleter
     def delete_image_thumbtups(ibs, gid_list):
         """ Removes image thumbnails from disk """
-        thumbtup_list = ibs.get_image_thumbtup(gid_list)
-        thumbpath_list = [tup[0] for tup in thumbtup_list]
+        # print('gid_list = %r' % (gid_list,))
+        thumbpath_list = ibs.get_image_thumbpath(gid_list)
         utool.remove_file_list(thumbpath_list)
 
     @deleter
     def delete_annot_chip_thumbs(ibs, aid_list):
         """ Removes chip thumbnails from disk """
-        thumbtup_list = ibs.get_annot_chip_thumbtup(aid_list)
-        thumbpath_list = [tup[0] for tup in thumbtup_list]
+        thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
         utool.remove_file_list(thumbpath_list)
 
     @deleter
@@ -1986,7 +1987,7 @@ class IBEISController(object):
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         print('[ibs] Computing and adding encounters.')
-        gid_list = ibs.get_valid_gids(require_unixtime=True)
+        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)

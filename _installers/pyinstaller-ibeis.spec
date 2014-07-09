@@ -2,7 +2,7 @@
 import os
 import sys
 from os.path import join, exists
-
+import utool
 
 def join_SITE_PACKAGES(*args):
     import site
@@ -57,7 +57,8 @@ def add_data(a, dst, src):
     dtype = 'DATA'
     # Infer datatype from extension
     extension = splitext(dst)[1].lower()
-    if extension == LIB_EXT.lower():
+    #if extension == LIB_EXT.lower():
+    if LIB_EXT[1:] in dst.split('.'):
         dtype = 'BINARY'
     print(textwrap.dedent('''
     [setup] a.add_data(
@@ -137,6 +138,7 @@ libpyrf_src = join(root_dir, '..', 'pyrf', 'build', libpyrf_fname)
 libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
 add_data(a, libpyrf_dst, libpyrf_src)
 
+
 # FLANN
 libflann_fname = 'libflann' + LIB_EXT
 if WIN32 or LINUX:
@@ -144,6 +146,13 @@ if WIN32 or LINUX:
     libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
     libflann_dst = join(ibsbuild, libflann_fname)
     add_data(a, libflann_dst, libflann_src)
+
+if LINUX:
+    # OpenMP
+    libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
+    utool.assertpath(libgomp_src)
+    a.binaries.append(('libgomp.so.1', libgomp_src, 'BINARY'))
+
 if APPLE:
     # FLANN
     try:
@@ -160,18 +169,36 @@ if APPLE:
         add_data(a, libbsddb_dst, libbsddb_src)
     except Exception as ex:
         print(repr(ex))
+    try:
+        libgomp_src = '/opt/local/lib/libgomp.1.dylib'
+        a.binaries.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
+    except Exception as ex:
+        print(repr(ex))
 
-    # We need to add these 4 opencv libraries because pyinstaller does not find them.
-    missing_cv_name_list = [
-        'libopencv_videostab.2.4',
-        'libopencv_superres.2.4',
-        'libopencv_stitching.2.4',
-    ]
-    for name in missing_cv_name_list:
-        fname = name + LIB_EXT
+
+# We need to add these 4 opencv libraries because pyinstaller does not find them.
+OPENCV_EXT = {'win32': '.dll',
+              'darwin': '.2.4.dylib',
+              'linux2': '.so.2.4'}[PLATFORM]
+
+missing_cv_name_list = [
+    'libopencv_videostab',
+    'libopencv_superres',
+    'libopencv_stitching',
+    'libopencv_gpu',
+]
+for name in missing_cv_name_list:
+    fname = name + OPENCV_EXT
+    src = ''
+    dst = ''
+    if APPLE:
         src = join('/opt/local/lib', fname)
         dst = join(ibsbuild, fname)
-        add_data(a, dst, src)
+    if LINUX:
+        src = join('/usr/lib', fname)
+        dst = join(ibsbuild, fname)
+    utool.assertpath(src)
+    add_data(a, dst, src)
 
 
 ##################################

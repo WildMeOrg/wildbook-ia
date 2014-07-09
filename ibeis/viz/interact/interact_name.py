@@ -56,6 +56,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             backend_callback = lambda: None
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
+        self.qres_callback = kwargs.get('qres_callback', None)
         self.infer_data()
         self.show_page(bring_to_front=True)
 
@@ -241,6 +242,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('join all\n into name2=%s' % name2,
                                callback=self.merge_all_into_nid2, rect=next_rect())
         self.append_button('confirm', callback=self.confirm, rect=hl_slot(0))
+        self.append_button('review', callback=self.review, rect=hl_slot(1))
         self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
         figtitle_fmt = '''
         Match Review Interface
@@ -249,6 +251,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
+
+    def review(self, event=None):
+        if self.qres_callback is not None:
+            self.qres_callback()
+        print('review pressed')
 
     def confirm(self, event=None):
         ibs = self.ibs

@@ -1,3 +1,4 @@
+# flake8: NOQA
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
@@ -29,14 +30,19 @@ def ibeis_compute_encounters(ibs, gid_list):
     if len(gid_list) == 0:
         print('WARNING: No unixtime data to compute encounters with')
         return [], []
-    X_data, gid_arr = _prepare_X_data(ibs, gid_list, use_gps=False)
-    # Agglomerative clustering of unixtimes
-    if cluster_algo == 'agglomerative':
-        label_arr = _agglomerative_cluster_encounters(X_data, seconds_thresh)
-    elif cluster_algo == 'meanshift':
-        label_arr = _meanshift_cluster_encounters(X_data, quantile)
+    elif len(gid_list) == 1:
+        print('WARNING: custering 1 image into its own encounter')
+        gid_arr = np.array(gid_list)
+        label_arr = np.zeros(gid_arr.shape)
     else:
-        raise AssertionError('Uknown clustering algorithm: %r' % cluster_algo)
+        X_data, gid_arr = _prepare_X_data(ibs, gid_list, use_gps=False)
+        # Agglomerative clustering of unixtimes
+        if cluster_algo == 'agglomerative':
+            label_arr = _agglomerative_cluster_encounters(X_data, seconds_thresh)
+        elif cluster_algo == 'meanshift':
+            label_arr = _meanshift_cluster_encounters(X_data, quantile)
+        else:
+            raise AssertionError('Uknown clustering algorithm: %r' % cluster_algo)
     # Group images by unique label
     labels, label_gids = _group_images_by_label(label_arr, gid_arr)
     # Remove encounters less than the threshold
@@ -171,11 +177,11 @@ def timespace_pdist(X_data):
         return pdist(X_data, 'euclidian')
 
 
-def cluster_timespace(X_data):
+def cluster_timespace(X_data, thresh):
     condenced_dist_mat = distance.pdist(X_data, timespace_distance)
     linkage_mat        = hier.linkage(condenced_dist_mat, method='centroid')
     X_labels           = hier.fcluster(linkage_mat, thresh, criterion='inconsistent',
-                          depth=depth, R=None, monocrit=monocrit)
+                                        depth=2, R=None, monocrit=None)
     return X_labels
 
 

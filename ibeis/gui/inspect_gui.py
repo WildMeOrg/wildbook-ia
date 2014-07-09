@@ -63,7 +63,8 @@ class QueryResultsWidget(APIItemWidget):
         model = qtindex.model()
         colname = model.get_header_name(col)
         if colname == 'status':
-            review_match_at(iqrw, qtindex, quickmerge=False)
+            qres_callback = partial(show_match_at, iqrw, qtindex)
+            review_match_at(iqrw, qtindex, quickmerge=False, qres_callback=qres_callback)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
@@ -105,7 +106,7 @@ def show_match_at(qres_wgt, qtindex):
     fig_presenter.bring_to_front(fig)
 
 
-def review_match_at(qres_wgt, qtindex, quickmerge=False):
+def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
     print('review')
     ibs = qres_wgt.ibs
     model = qtindex.model()
@@ -133,15 +134,15 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False):
             backend_callback()
             return
     review_match(ibs, aid1, aid2, update_callback=update_callback,
-                 backend_callback=backend_callback)
+                 backend_callback=backend_callback, **kwargs)
 
 
-def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None):
+def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact.interact_name import MatchVerificationInteraction
     mvinteract = MatchVerificationInteraction(ibs, aid1, aid2, fnum=64,
                                               update_callback=update_callback,
-                                              backend_callback=backend_callback)
+                                              backend_callback=backend_callback, **kwargs)
     ih.register_interaction(mvinteract)
 
 

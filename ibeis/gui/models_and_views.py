@@ -37,7 +37,7 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
         IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
         model.ibswin = parent
-        model.eid = None
+        model.eid = -1  # negative one is an invalid eid
         model.original_ider = None
         if IBEISSTRIPEMODEL_BASE == StripeProxyModel:
             model.sourcemodel = APIItemModel(parent=parent)
@@ -85,7 +85,7 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
         IBEISITEMMODEL_BASE.__init__(model, parent=parent, *args)
         model.ibswin = parent
-        model.eid = None
+        model.eid = -1
         model.original_ider = None
 
     def _update_headers(model, **headers):
