@@ -144,6 +144,24 @@ if WIN32:
     libflann_dst = join(ibsbuild, libflann_fname)
     add_data(a, libflann_dst, libflann_src)
 
+if LINUX:
+    # FLANN
+    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
+    libflann_dst = join(ibsbuild, libflann_fname)
+    add_data(a, libflann_dst, libflann_src)
+    
+    #Hesaff
+    libhesaff_fname = 'libhesaff' + LIB_EXT
+    libhesaff_src = join('..', 'hesaff', 'build', libhesaff_fname)
+    libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
+    add_data(a, libhesaff_dst, libhesaff_src)
+
+    #PyRF
+    libpyrf_fname = 'libpyrf' + LIB_EXT
+    libpyrf_src = join('..', 'pyrf', 'build', libpyrf_fname)
+    libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
+    add_data(a, libpyrf_dst, libpyrf_src)
+
 if APPLE:
     # FLANN
     try:
