@@ -841,7 +841,12 @@ def make_enctext_list(eid_list, enc_cfgstr):
 
 
 @__injectable
-def make_next_name(ibs):
+def make_next_name(ibs, num=None):
+    num_names = ibs.get_num_names()
     name_prefix = utool.get_timestamp('tag')
-    next_name = name_prefix + '_AUTO%04d' % ibs.get_num_names()
-    return next_name
+    if num is None:
+        next_name = name_prefix + '_AUTO%04d' % num_names
+        return next_name
+    else:
+        next_names = [name_prefix + '_AUTO%04d' % (num_names + x) for x in xrange(num)]
+        return next_names

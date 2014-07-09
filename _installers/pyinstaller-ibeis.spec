@@ -189,6 +189,8 @@ missing_cv_name_list = [
 ]
 for name in missing_cv_name_list:
     fname = name + OPENCV_EXT
+    src = ''
+    dst = ''
     if APPLE:
         src = join('/opt/local/lib', fname)
         dst = join(ibsbuild, fname)

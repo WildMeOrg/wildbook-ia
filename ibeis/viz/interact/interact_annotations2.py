@@ -3,9 +3,10 @@ from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from itertools import izip
 
+DESTROY_OLD_WINDOW=True
 
 class ANNOTATION_Interaction2(object):
-    def __init__(self, ibs, gid, next_callback=None, prev_callback=None, rows_updated_callback=lambda: None):
+    def __init__(self, ibs, gid, next_callback=None, prev_callback=None, rows_updated_callback=lambda: None, reset_window=True):
         self.ibs = ibs
         self.gid = gid
         self.rows_updated_callback = rows_updated_callback
@@ -23,7 +24,8 @@ class ANNOTATION_Interaction2(object):
             default_species=self.ibs.cfg.detect_cfg.species,
             next_callback=next_callback,
             prev_callback=prev_callback,
-            fnum=12
+            fnum=12,
+            #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
 
 
@@ -47,6 +49,29 @@ class ANNOTATION_Interaction2(object):
             self.ibs.add_annots([self.gid] * len(new_list), bbox_list, theta_list=theta_list, species_list=species_list)
         if rows_updated:
             self.rows_updated_callback()
+
+    def update_image_and_callbacks(self, gid, nextcb, prevcb, do_save=True):
+        if do_save:
+            self.interact_ANNOTATIONS.accept_new_annotations(None, do_close=False) # save the current changes when pressing next or previous
+        if DESTROY_OLD_WINDOW:
+            ANNOTATION_Interaction2.__init__(self, self.ibs, gid, next_callback=nextcb, prev_callback=prevcb, rows_updated_callback=self.rows_updated_callback, reset_window=False)
+        else:
+            ibs = self.ibs
+            self.gid = gid
+            img = ibs.get_images(self.gid)
+            self.aid_list = ibs.get_image_aids(self.gid)
+            bbox_list = ibs.get_annot_bboxes(self.aid_list)
+            theta_list = ibs.get_annot_thetas(self.aid_list)
+            species_list = ibs.get_annot_species(self.aid_list)
+            self.interact_ANNOTATIONS.update_image_and_callbacks(
+                img,
+                bbox_list=bbox_list,
+                theta_list=theta_list,
+                species_list=species_list,
+                next_callback=nextcb,
+                prev_callback=prevcb,
+            )
+
 
 if __name__ == '__main__':
     import ibeis
