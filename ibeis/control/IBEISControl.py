@@ -873,6 +873,7 @@ class IBEISController(object):
         """ Sets species/speciesids of a list of annotations.
         Convenience function for set_annot_from_value """
         species_list = [species.lower() for species in species_list]
+        assert all([species in constants.VALID_SPECIES for species in species_list]), 'invalid species added'
         ibs.set_annot_from_value(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter
@@ -991,6 +992,7 @@ class IBEISController(object):
     @getter_1to1
     def get_image_thumbtup(ibs, gid_list):
         """ Returns tuple of image paths, thumb paths, bboxes and thetas """
+        # print('gid_list = %r' % (gid_list,))
         aids_list = ibs.get_image_aids(gid_list)
         bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
@@ -1132,7 +1134,7 @@ class IBEISController(object):
     @getter_1toM
     def get_image_aids(ibs, gid_list):
         """ Returns a list of aids for each image by gid """
-        #print('gid_list = %r' % (gid_list,))
+        # print('gid_list = %r' % (gid_list,))
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         colnames = ('annot_rowid',)
         aids_list = ibs.db.get(ANNOTATION_TABLE, colnames, gid_list, id_colname='image_rowid', unpack_scalars=False)
@@ -1919,15 +1921,14 @@ class IBEISController(object):
     @deleter
     def delete_image_thumbtups(ibs, gid_list):
         """ Removes image thumbnails from disk """
-        thumbtup_list = ibs.get_image_thumbtup(gid_list)
-        thumbpath_list = [tup[0] for tup in thumbtup_list]
+        # print('gid_list = %r' % (gid_list,))
+        thumbpath_list = ibs.get_image_thumbpath(gid_list)
         utool.remove_file_list(thumbpath_list)
 
     @deleter
     def delete_annot_chip_thumbs(ibs, aid_list):
         """ Removes chip thumbnails from disk """
-        thumbtup_list = ibs.get_annot_chip_thumbtup(aid_list)
-        thumbpath_list = [tup[0] for tup in thumbtup_list]
+        thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
         utool.remove_file_list(thumbpath_list)
 
     @deleter
@@ -1986,7 +1987,7 @@ class IBEISController(object):
     def compute_encounters(ibs):
         """ Clusters images into encounters """
         print('[ibs] Computing and adding encounters.')
-        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=True)
+        gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
         enctext_list, flat_gids = preproc_encounter.ibeis_compute_encounters(ibs, gid_list)
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)

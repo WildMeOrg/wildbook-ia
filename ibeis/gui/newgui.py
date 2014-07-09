@@ -198,7 +198,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
-                                                  visible=True, verticalStretch=6)
+                                                  visible=utool.get_flag('--guilog'), verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         # New widget has black magic (for implicit layouts) in it
         ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,
@@ -221,11 +221,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #_SEP = lambda: None
         detection_combo_box_options = [
             #    Text               Value
-            ('Select Species',  'none',        ),
-            ('Plains Zebras',   'zebra_plains',),
-            ('Grevy\'s Zebras', 'zebra_grevys',),
-            ('Giraffes',        'giraffe',     ),
-        ]
+            ('Select Species',  'none'),
+        ] + zip(constants.SPECIES_NICE, constants.VALID_SPECIES)
         ibswgt.button_list = [
             [
                 _NEWBUT('Import Images\n(via files)',

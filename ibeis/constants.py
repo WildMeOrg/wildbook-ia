@@ -56,3 +56,6 @@ REVIEWED_IMAGE_ENCTEXT = 'Reviewed Images'
 
 IMAGE_THUMB_SUFFIX = '_thumb.png'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
+
+VALID_SPECIES = ['zebra_plains', 'zebra_grevys', 'giraffe', '____']
+SPECIES_NICE = ['Plains Zebras', 'Grevy\'s Zebras', 'Giraffes', 'Unknown']
