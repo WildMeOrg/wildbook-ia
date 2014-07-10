@@ -598,7 +598,7 @@ class ANNOTATIONInteraction(object):
 
     def button_release_callback(self, event):
         """ whenever a mouse button is released """
-        if self._polyHeld is True and (self._ind is None or self.press1 is False):
+        if self._polyHeld is True: # and (self._ind is None or self.press1 is False):
             self._polyHeld = False
 
         self.currently_rotating_poly = None
