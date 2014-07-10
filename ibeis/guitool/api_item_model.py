@@ -434,10 +434,11 @@ class APIItemModel(API_MODEL_BASE):
     #----------------------------------
 
     @default_method_decorator
-    def get_header_data(model, colname, row):
+    def get_header_data(model, colname, qtindex):
         """ Use _get_data if the column number is known """
         # <HACK>
         # Hacked to only work on tables. Should be in terms of qtindex
+        row = qtindex.row()
         assert max(model.col_level_list) == 0, "Must be a table. Input is a tree"
         col = model.col_name_list.index(colname)
         id_ = model.root_node[row].get_id()
