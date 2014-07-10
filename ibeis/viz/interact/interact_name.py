@@ -50,6 +50,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.ibs = ibs
         self.aid1 = aid1
         self.aid2 = aid2
+        #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
         if update_callback is None:
             update_callback = lambda: None
         if backend_callback is None:
@@ -130,6 +131,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         for count, groundtruth in enumerate(self.gt_list):
             offset = count * nCols + 1
+            #ibsfuncs.assert_valid_aids(ibs, groundtruth)
             for px, aid in enumerate(groundtruth):
                 nid = ibs.get_annot_nids(aid)
                 color = self.nid2_color[nid]
