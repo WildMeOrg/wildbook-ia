@@ -431,12 +431,12 @@ class ANNOTATIONInteraction(object):
         self.next_callback = next_callback
         if self.prev_callback is not None:
             self.prev_ax = self.fig.add_axes([0.01, 0.01, but_width, but_height])
-            self.prev_but = Button(self.prev_ax, 'Previous Annotation')
+            self.prev_but = Button(self.prev_ax, 'Previous Annotation\n(left arrow)')
             self.prev_but.on_clicked(self.prev_annotation)
 
         if self.next_callback is not None:
             self.next_ax = self.fig.add_axes([0.81, 0.01, but_width, but_height])
-            self.next_but = Button(self.next_ax, 'Next Annotation')
+            self.next_but = Button(self.next_ax, 'Next Annotation\n(right arrow)')
             self.next_but.on_clicked(self.next_annotation)
 
     def update_image_and_callbacks(self,
@@ -731,6 +731,11 @@ class ANNOTATIONInteraction(object):
         match = re.match('^.$', event.key)
         if match:
             handle_label_typing(match.group(0))
+
+        if re.match('left', event.key) and self.prev_callback:
+            self.prev_callback()
+        if re.match('right', event.key) and self.next_callback:
+            self.next_callback()
 
         self.fig.canvas.draw()
 
