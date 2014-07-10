@@ -374,6 +374,9 @@ class ANNOTATIONInteraction(object):
         else:
             self.original_theta_list = []
         verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
+        for verts in verts_list:
+            for vert in verts:
+                self.enforce_dims(vert)
         poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
         assert len(species_list) == len(poly_list), 'species_list: %r, poly_list: %r' % (species_list, poly_list)
@@ -789,24 +792,38 @@ class ANNOTATIONInteraction(object):
         self._currently_selected_poly.set_alpha(0)
         self._currently_selected_poly = None
 
-    def check_dims(self, coords):
+    def check_dims(self, coords, margin=0.5):
         xlim = self.fig.ax.get_xlim()
         ylim = self.fig.ax.get_ylim()
-        if coords[0] < xlim[0]:
+        if coords[0] < xlim[0] + margin:
             return False
             #coords[0] = xlim[0]
-        if coords[0] > xlim[1]:
+        if coords[0] > xlim[1] - margin:
             return False
             #coords[0] = xlim[1]
-        if coords[1] < ylim[1]:
+        if coords[1] < ylim[1] + margin:
             return False
             #coords[1] = ylim[1]
-        if coords[1] > ylim[0]:
+        if coords[1] > ylim[0] - margin:
             return False
             #coords[1] = ylim[0]
         return True
 
-    def clip_vert_to_bounds(self, coords):
+    # ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield arbitrary polygons
+    def enforce_dims(self, coords, margin=0.5):
+        xlim = self.fig.ax.get_xlim()
+        ylim = self.fig.ax.get_ylim()
+        if coords[0] < xlim[0] + margin:
+            coords[0] = xlim[0] + margin
+        if coords[0] > xlim[1] - margin:
+            coords[0] = xlim[1] - margin
+        if coords[1] < ylim[1] + margin:
+            coords[1] = ylim[1] + margin
+        if coords[1] > ylim[0] - margin:
+            coords[1] = ylim[0] - margin
+        return True
+
+    def clip_vert_to_bounds(self, coords, margin=0):
         xlim = self.fig.ax.get_xlim()
         ylim = self.fig.ax.get_ylim()
         def clamp(lims, val):
