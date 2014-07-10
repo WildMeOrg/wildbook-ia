@@ -2,45 +2,15 @@ from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 import math
+import utool
 
 #BASE_CLASS = QtGui.QAbstractProxyModel
 #BASE_CLASS = QtGui.QSortFilterProxyModel
 BASE_CLASS = QtGui.QIdentityProxyModel
 
 
-# makes a metaclass that overrides __getattr__ and __setattr__ to forward some specific attribute references to a specified instance variable
-def makeForwardingMetaclass(forwarding_dest_getter, whitelist):
-    class ForwardingMetaclass(BASE_CLASS.__class__):
-        def __init__(cls, name, bases, dct):
-            # print('ForwardingMetaclass.__init__(): {forwarding_dest_getter: %r; whitelist: %r}' % (forwarding_dest_getter, whitelist))
-            super(ForwardingMetaclass, cls).__init__(name, bases, dict)
-            old_getattr = cls.__getattribute__
-            def new_getattr(obj, item):
-                if item in whitelist:
-                    #dest = old_getattr(obj, forwarding_dest_name)
-                    dest = forwarding_dest_getter(obj)
-                    try:
-                        val = dest.__class__.__getattribute__(dest, item)
-                    except AttributeError:
-                        val = getattr(dest, item)
-                else:
-                    val = old_getattr(obj, item)
-                return val
-            cls.__getattribute__ = new_getattr
-            old_setattr = cls.__setattr__
-            def new_setattr(obj, name, val):
-                if name in whitelist:
-                    #dest = old_getattr(obj, forwarding_dest_name)
-                    dest = forwarding_dest_getter(obj)
-                    dest.__class__.__setattr__(dest, name, val)
-                else:
-                    old_setattr(obj, name, val)
-            cls.__setattr__ = new_setattr
-    return ForwardingMetaclass
-
-
 class StripeProxyModel(BASE_CLASS):
-    __metaclass__ = makeForwardingMetaclass(lambda self: self.sourceModel(),
+    __metaclass__ = utool.makeForwardingMetaclass(lambda self: self.sourceModel(),
                                             ['_set_context_id',
                                              '_get_context_id',
                                              '_set_changeblocked',
@@ -49,7 +19,8 @@ class StripeProxyModel(BASE_CLASS):
                                              '_change',
                                              '_update',
                                              '_rows_updated',
-                                             'name'])
+                                             'name'],
+                                             base_class=BASE_CLASS)
 
     def __init__(self, parent=None, numduplicates=1):
         BASE_CLASS.__init__(self, parent=parent)
