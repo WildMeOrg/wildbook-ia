@@ -217,7 +217,6 @@ class CustomFilterModel(FilterProxyModel):
             model.new_iders = model.original_iders[:]
             model.new_iders[0] = model._ider
         headers['iders'] = model.new_iders
-        model._nd = headers.get('num_duplicates', 1)
         model.sourcemodel._update_headers(**headers)
 
     def _ider(model):
