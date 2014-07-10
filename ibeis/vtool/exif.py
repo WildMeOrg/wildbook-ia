@@ -14,6 +14,7 @@ from . import image as gtool
 EXIF_TAG_TO_TAGID = {val: key for (key, val) in TAGS.iteritems()}
 
 
+@profile
 def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     if default_list is None:
         default_list = [None for _ in xrange(len(exif_tagid_list))]
@@ -23,6 +24,7 @@ def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     return exif_val_list
 
 
+@profile
 def get_exif_dict(pil_img):
     """ Returns exif dictionary by TAGID """
     try:
@@ -42,6 +44,7 @@ def get_exif_dict(pil_img):
     return exif_dict
 
 
+@profile
 def get_exif_dict2(pil_img):
     """ Returns exif dictionary by TAG (less efficient)"""
     try:
@@ -57,6 +60,7 @@ def get_exif_dict2(pil_img):
     return exif_dict2
 
 
+@profile
 def check_exif_keys(pil_img):
     info_ = pil_img._getexif()
     valid_keys = []
@@ -73,6 +77,7 @@ def check_exif_keys(pil_img):
     #exec(df2.present())
 
 
+@profile
 def read_all_exif_tags(pil_img):
     info_ = pil_img._getexif()
     info_iter = info_.iteritems()
@@ -81,11 +86,13 @@ def read_all_exif_tags(pil_img):
     return exif
 
 
+@profile
 def get_exif_tagids(tag_list):
     tagid_list = [EXIF_TAG_TO_TAGID[tag] for tag in tag_list]
     return tagid_list
 
 
+@profile
 def read_one_exif_tag(pil_img, tag):
     try:
         exif_key = TAGS.keys()[TAGS.values().index(tag)]
@@ -100,6 +107,7 @@ def read_one_exif_tag(pil_img, tag):
     return exif_val
 
 
+@profile
 def read_exif(fpath, tag=None):
     try:
         pil_img = Image.open(fpath)
@@ -118,6 +126,7 @@ def read_exif(fpath, tag=None):
     return exif
 
 
+@profile
 def get_exist(data, key):
     if key in data:
         return data[key]
@@ -141,6 +150,7 @@ def convert_degrees(value):
     return d + (m / 60.0) + (s / 3600.0)
 
 
+@profile
 def get_lat_lon(exif_data):
     """Returns the latitude and longitude, if available, from the provided exif_data (obtained through get_exif above)"""
     lat = -1.0
