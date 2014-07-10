@@ -12,6 +12,7 @@ class PATH_NAMES(object):
     thumbs    = 'thumbs'
 
 # Names normalized to the standard UNKNOWN_NAME
+UNKNOWN_NID = 0
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
 # Name used to denote that idkwtfthisis

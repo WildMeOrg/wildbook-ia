@@ -17,8 +17,8 @@ from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_filters
 from ibeis.model.hots import voting_rules2 as vr2
 import utool
-print, print_,  printDBG, rrr, profile =\
-    utool.inject(__name__, '[mf]', DEBUG=False)
+#profile = utool.profile
+print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[mf]', DEBUG=False)
 
 
 np.tau = 2 * np.pi  # tauday.com
@@ -266,7 +266,7 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
                 print('[mf] * %d are newly invalided by nid' % nName_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
-        printDBG('[mf] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
+        #printDBG('[mf] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
         qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
     end_prog()
     return qaid2_nnfilt

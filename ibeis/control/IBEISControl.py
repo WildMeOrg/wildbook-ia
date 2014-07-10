@@ -44,7 +44,8 @@ from ibeis.control import DB_SCHEMA
 from ibeis.control import SQLDatabaseControl as sqldbc
 from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
-                                           default_decorator)
+                                           default_decorator, cache_getter,
+                                           cache_invalidator, init_tablecache)
 # CONSTANTS
 from ibeis.constants import (IMAGE_TABLE,
                              ANNOTATION_TABLE,
@@ -102,6 +103,7 @@ class IBEISController(object):
         global __ALL_CONTROLLERS__
         if utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
+        ibs.table_cache = init_tablecache()
         ibs.qreq = None  # query requestor object
         ibs.ibschanged_callback = None
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
@@ -1220,6 +1222,7 @@ class IBEISController(object):
 
     @utool.accepts_numpy
     @getter_1to1
+    @cache_getter(ANNOTATION_TABLE, 'image_rowid')
     def get_annot_gids(ibs, aid_list):
         """ returns annotation bounding boxes in image space """
         gid_list = ibs.db.get(ANNOTATION_TABLE, ('image_rowid',), aid_list)
@@ -1413,6 +1416,7 @@ class IBEISController(object):
 
     @utool.accepts_numpy
     @getter_1toM
+    @cache_getter(ANNOTATION_TABLE, 'kpts')
     def get_annot_kpts(ibs, aid_list, ensure=True):
         """ Returns chip keypoints """
         fid_list  = ibs.get_annot_fids(aid_list, ensure=ensure)
@@ -1420,6 +1424,7 @@ class IBEISController(object):
         return kpts_list
 
     @getter_1to1
+    @cache_getter(ANNOTATION_TABLE, 'chipsizes')
     def get_annot_chipsizes(ibs, aid_list, ensure=True):
         """ Returns the imagesizes of computed annotation chips """
         cid_list  = ibs.get_annot_cids(aid_list, ensure=ensure)
@@ -1691,6 +1696,7 @@ class IBEISController(object):
         return chip_fpath_list
 
     @getter_1to1
+    #@cache_getter('CHIP_TABLE', 'chip_size')
     def get_chip_sizes(ibs, cid_list):
         chipsz_list  = ibs.db.get(CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
         return chipsz_list
@@ -1716,18 +1722,21 @@ class IBEISController(object):
     # GETTERS::FEATURE_TABLE
 
     @getter_1toM
+    #@cache_getter(FEATURE_TABLE, 'feature_keypoints')
     def get_feat_kpts(ibs, fid_list):
         """ Returns chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
         kpts_list = ibs.db.get(FEATURE_TABLE, ('feature_keypoints',), fid_list)
         return kpts_list
 
     @getter_1toM
+    #@cache_getter(FEATURE_TABLE, 'feature_sifts')
     def get_feat_desc(ibs, fid_list):
         """ Returns chip SIFT descriptors """
         desc_list = ibs.db.get(FEATURE_TABLE, ('feature_sifts',), fid_list)
         return desc_list
 
     @getter_1to1
+    #@cache_getter(FEATURE_TABLE, 'feature_num_feats')
     def get_num_feats(ibs, fid_list):
         """ Returns the number of keypoint / descriptor pairs """
         nFeats_list = ibs.db.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
@@ -1844,6 +1853,7 @@ class IBEISController(object):
     #-----------------
 
     @deleter
+    #@cache_invalidator(LBLANNOT_TABLE)
     def delete_names(ibs, nid_list):
         """ deletes names from the database (CAREFUL. YOU PROBABLY DO NOT WANT
         TO USE THIS ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE) """
@@ -1857,6 +1867,7 @@ class IBEISController(object):
         ibs.db.delete_rowids(LBLANNOT_TABLE, lblannot_rowid_list)
 
     @deleter
+    @cache_invalidator(ANNOTATION_TABLE)
     def delete_annots(ibs, aid_list):
         """ deletes annotations from the database """
         if utool.VERBOSE:
@@ -1880,11 +1891,15 @@ class IBEISController(object):
     @deleter
     def delete_annot_nids(ibs, aid_list):
         """ Deletes nids of a list of annotations """
+        # FIXME: This should be implicit by setting the anotation name to the
+        # unknown name
         ibs.delete_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
 
     @deleter
     def delete_annot_speciesids(ibs, aid_list):
         """ Deletes nids of a list of annotations """
+        # FIXME: This should be implicit by setting the anotation name to the
+        # unknown species
         ibs.delete_annot_lblannot_rowids(aid_list, constants.SPECIES_KEY)
 
     @deleter
@@ -1902,6 +1917,7 @@ class IBEISController(object):
         ibs.db.delete(EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
     @deleter
+    @cache_invalidator(FEATURE_TABLE)
     def delete_features(ibs, fid_list):
         """ deletes images from the database that belong to fids"""
         if utool.VERBOSE:
@@ -1932,6 +1948,7 @@ class IBEISController(object):
         utool.remove_file_list(thumbpath_list)
 
     @deleter
+    @cache_invalidator(CHIP_TABLE)
     def delete_chips(ibs, cid_list):
         """ deletes images from the database that belong to gids"""
         if utool.VERBOSE:
@@ -2126,7 +2143,9 @@ class IBEISController(object):
         """
         qreq = ibs._prep_qreq(qaid_list, daid_list, **kwargs)
         # TODO: Except query error
-        qaid2_qres = mc3.process_query_request(ibs, qreq)
+        # NOTE: maybe kwargs should not be passed here, or the previous
+        # kwargs should become querycfgkw
+        qaid2_qres = mc3.process_query_request(ibs, qreq, **kwargs)
         return qaid2_qres
 
     #

@@ -22,50 +22,95 @@ def default_decorator(input_):
 
 
 # DECORATORS::ADDER
-TABLE_CACHE = {}
+#TABLE_CACHE = {}
 
 
-def cache_getter(tblname):
+#class ColumnsCache(object):
+#    def __init__(self):
+#        self._cache = {}
+
+#    def __setitem__(self, index, value):
+#        self._cache[index] = value
+
+#    def __getitem__(self, index):
+#        return self._cache[index]
+
+#    def __delitem__(self, index):
+#        del self._cache[index]
+
+
+API_CACHE = utool.get_flag('--api-cache')
+if API_CACHE:
+    print('[accessor_decors] API_CACHE IS ENABLED')
+else:
+    print('[accessor_decors] API_CACHE IS DISABLED')
+
+
+def init_tablecache():
+    #return utool.ddict(ColumnsCache)
+    return utool.ddict(lambda: utool.ddict(dict))
+
+
+def _delete_items(dict_, key_list):
+    invalid_keys = iter(set(key_list) - set(dict_.rows()))
+    for key in invalid_keys:
+        del dict_[key]
+
+
+def cache_getter(tblname, colname):
     """ Creates a getter cacher """
-    if not tblname in TABLE_CACHE:
-        TABLE_CACHE[tblname] = {}
-    cache_ = TABLE_CACHE[tblname]
     def closure_getter_cacher(getter_func):
+        getter_func = profile(getter_func)  # Autoprofilehack
+        if not API_CACHE:
+            return getter_func
         def wrp_getter_cacher(self, rowid_list, *args, **kwargs):
+            # the class must have a table_cache property
+            cache_ = self.table_cache[tblname][colname]
             # Get cached values for each rowid
             vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
             # Compute any cache misses
-            cachemiss_list = [val is None for val in vals_list]
-            cachemiss_rowid_list = utool.filter_items(rowid_list, cachemiss_list)
-            cachemiss_vals = getter_func(self, cachemiss_rowid_list, *args, **kwargs)
+            miss_list = [val is None for val in vals_list]
+            #DEBUG_CACHE_HITS = False
+            #if DEBUG_CACHE_HITS:
+            #    num_miss  = sum(miss_list)
+            #    num_total = len(rowid_list)
+            #    num_hit   = num_total - num_miss
+            #    print('\n[get] %s.%s %d / %d cache hits' % (tblname, colname, num_hit, num_total))
+            if not any(miss_list):
+                return vals_list
+            miss_rowid_list = utool.filter_items(rowid_list, miss_list)
+            miss_vals = getter_func(self, miss_rowid_list, *args, **kwargs)
             # Write the misses to the cache
-            miss_iter_ = iter(enumerate(iter(cachemiss_vals)))
-            for index, flag in enumerate(cachemiss_list):
+            miss_iter_ = iter(enumerate(iter(miss_vals)))
+            for index, flag in enumerate(miss_list):
                 if flag:
                     miss_index, miss_val = miss_iter_.next()
-                    vals_list[index] = miss_val  # Cache write
+                    rowid = rowid_list[index]
+                    vals_list[index] = miss_val  # Output write
+                    cache_[rowid] = miss_val  # Cache write
             return vals_list
 
         return wrp_getter_cacher
     return closure_getter_cacher
 
 
-def cache_invalidater(tblname):
+def cache_invalidator(tblname, colnames=None):
     """ cacher setter decorator """
-    if not tblname in TABLE_CACHE:
-        TABLE_CACHE[tblname] = {}
-    cache_ = TABLE_CACHE[tblname]
-    def closure_cache_invalidater(setter_func):
-        def wrp_cache_invalidater(self, rowid_list, *args, **kwargs):
-            # Invalidate cached rowids
-            invalid_rowids = iter(set(rowid_list) - set(cache_.rows()))
-            for rowid in invalid_rowids:
-                del cache_[rowid]
+    def closure_cache_invalidator(setter_func):
+        if not API_CACHE:
+            return setter_func
+        def wrp_cache_invalidator(self, rowid_list, *args, **kwargs):
+            # the class must have a table_cache property
+            colscache_ = self.table_cache[tblname]
+            colnames_ =  colscache_.keys() if colnames is None else colnames
+            # Delete the cached values for the rowids in these columns of this table
+            for colname in colnames_:
+                cache_ = colscache_[colname]
+                _delete_items(cache_, rowid_list)
             # Preform set action
             setter_func(self, rowid_list, *args, **kwargs)
-
-        return wrp_cache_invalidater
-    return closure_cache_invalidater
+        return wrp_cache_invalidator
+    return closure_cache_invalidator
 
 
 def adder(func):

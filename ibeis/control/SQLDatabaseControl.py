@@ -4,19 +4,15 @@ from itertools import imap, izip
 from os.path import join, exists
 import utool
 # Tools
-#from ibeis.control._sql_database_control_helpers import *  # NOQA
-#from ibeis.control import _sql_database_control_helpers as sqlhelpers
-from ibeis.control._sql_helpers import (_unpacker, _executor, lite,
-                                        sanatize_sql, SQLExecutionContext,
-                                        DEBUG)
-
-
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[sql]', DEBUG=DEBUG)
+from ibeis.control._sql_helpers import (_unpacker, _executor, sanatize_sql,
+                                        SQLExecutionContext)
+from . import __SQLITE3__ as lite
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
 
 
 def default_decorator(func):
-    return profile(func)
+    return func
+    #return profile(func)
     #return utool.indent_func('[sql.' + func.func_name + ']')(func)
 
 VERBOSE = utool.VERBOSE

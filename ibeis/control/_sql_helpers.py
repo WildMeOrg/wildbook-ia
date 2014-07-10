@@ -2,10 +2,9 @@ from __future__ import absolute_import, division, print_function
 import utool
 import re
 from . import __SQLITE3__ as lite
-DEBUG = False
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[sql-helpers]', DEBUG=DEBUG)
+    __name__, '[sql-helpers]')
 
 
 # =======================
@@ -107,16 +106,16 @@ class SQLExecutionContext(object):
     def __exit__(context, type_, value, trace):
         #if not QUIET:
         #    utool.tic(context.tt)
-        if trace is None:
+        if trace is not None:
+            # An SQLError is a serious offence.
+            print('[sql] FATAL ERROR IN QUERY')
+            context.db.dump()  # Dump on error
+            print('[sql] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
+        else:
             # Commit the transaction
             if context.auto_commit:
                 context.db.commit(verbose=False)
-        else:
-            # An SQLError is a serious offence.
-            # Dump on error
-            print('[sql] FATAL ERROR IN QUERY')
-            context.db.dump()
-            # utool.sys.exit(1)
 
 
 @profile

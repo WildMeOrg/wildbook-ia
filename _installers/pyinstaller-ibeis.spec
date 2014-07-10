@@ -4,6 +4,7 @@ import sys
 from os.path import join, exists
 import utool
 
+
 def join_SITE_PACKAGES(*args):
     import site
     from os.path import join, exists
@@ -21,7 +22,7 @@ def join_SITE_PACKAGES(*args):
 
 def add_data(a, dst, src):
     import textwrap
-    from os.path import dirname, normpath, splitext
+    from os.path import dirname, normpath
     global LIB_EXT
 
     def fixwin32_shortname(path1):
@@ -56,7 +57,7 @@ def add_data(a, dst, src):
     # Default datatype is DATA
     dtype = 'DATA'
     # Infer datatype from extension
-    extension = splitext(dst)[1].lower()
+    #extension = splitext(dst)[1].lower()
     #if extension == LIB_EXT.lower():
     if LIB_EXT[1:] in dst.split('.'):
         dtype = 'BINARY'

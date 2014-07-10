@@ -37,7 +37,7 @@ def _parse_args():
     params.parse_args()
 
 
-@profile
+#@profile
 def _init_matplotlib():
     import matplotlib as mpl
     import utool
@@ -74,7 +74,7 @@ def _init_matplotlib():
             #mpl.rcParams['interactive'] = True
 
 
-@profile
+#@profile
 def _init_gui():
     import guitool
     import utool
@@ -92,7 +92,7 @@ def _init_gui():
     return back
 
 
-@profile
+#@profile
 def _init_ibeis(dbdir=None):
     import utool
     from ibeis.control import IBEISControl
