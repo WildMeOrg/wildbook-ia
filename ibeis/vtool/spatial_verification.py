@@ -78,10 +78,34 @@ def compute_homog(xy1_mn, xy2_mn):
 
 
 @profile
+def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
+                             xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+    # Map keypoints from image 1 onto image 2
+    invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
+    # Get projection components
+    _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
+    _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
+    _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
+    # Check for projection errors
+    xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+    scale_err = ltool.det_distance(_det1_mt, det2_m)
+    ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
+    # Mark keypoints which are inliers to this hypothosis
+    xy_inliers_flag    = xy_err    < xy_thresh_sqrd
+    scale_inliers_flag = scale_err < scale_thresh_sqrd
+    ori_inliers_flag   = ori_err   < ori_thresh
+    # TODO Add uniqueness of matches constraint
+    hypo_inliers_flag = ltool.and_lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+    hypo_errors = (xy_err, ori_err, scale_err)
+    hypo_inliers = np.where(hypo_inliers_flag)[0]
+    return hypo_inliers, hypo_errors
+
+
+@profile
 def get_affine_inliers(kpts1, kpts2, fm,
-                       xy_thresh_sqrd,
-                       scale_thresh_sqrd,
-                       ori_thresh):
+                        xy_thresh_sqrd,
+                        scale_thresh_sqrd,
+                        ori_thresh):
     """ Estimates inliers deterministically using elliptical shapes
     Compute all transforms from kpts1 to kpts2 (enumerate all hypothesis)
     We transform from chip1 -> chip2
@@ -106,33 +130,16 @@ def get_affine_inliers(kpts1, kpts2, fm,
     det2_m = ktool.get_sqrd_scales(kpts2_m)  # PYX FLOAT_1D
     ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
 
-    @profile
-    def test_hypothosis_inliers(Aff):
-        """ tests a single affine hypothesis """
-        # Map keypoints from image 1 onto image 2
-        invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
-        # Get projection components
-        _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-        _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-        _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
-        # Check for projection errors
-        xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-        scale_err = ltool.det_distance(_det1_mt, det2_m)
-        ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
-        # Mark keypoints which are inliers to this hypothosis
-        xy_inliers_flag    = xy_err    < xy_thresh_sqrd
-        scale_inliers_flag = scale_err < scale_thresh_sqrd
-        ori_inliers_flag   = ori_err   < ori_thresh
-        hypo_inliers_flag = ltool.and_lists(xy_inliers_flag,
-                                            ori_inliers_flag,
-                                            scale_inliers_flag)
-        hypo_errors = (xy_err, ori_err, scale_err)
-        hypo_inliers = np.where(hypo_inliers_flag)[0]
-        # TODO Add uniqueness of matches constraint
-        return hypo_inliers, hypo_errors
-
-    # Enumerate all hypothesis
-    inliers_and_errors_list = [test_hypothosis_inliers(Aff) for Aff in Aff_mats]
+    # The previous versions of this function were all roughly comparable.
+    # The for loop one was the slowest. I'm deciding to go with the one
+    # where there is no internal function definition. It was moderately faster,
+    # but it gives us access to profile that function
+    inliers_and_errors_list = [_test_hypothosis_inliers(Aff, invVR1s_m, xy2_m,
+                                                        det2_m, ori2_m,
+                                                        xy_thresh_sqrd,
+                                                        scale_thresh_sqrd,
+                                                        ori_thresh)
+                               for Aff in Aff_mats]
     inliers_list = [tup[0] for tup in inliers_and_errors_list]
     errors_list  = [tup[1] for tup in inliers_and_errors_list]
     return inliers_list, errors_list, Aff_mats

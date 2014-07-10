@@ -274,10 +274,11 @@ class ThumbnailCacheContext(object):
         """ Returns only items marked by the context as dirty """
         return utool.filter_items(list_, self.dirty_list)
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        if traceback is not None:
+    def __exit__(self, type_, value, trace):
+        if trace is not None:
             print('[gtool.thumb] Error while in thumbnail context')
-            return
+            print('[gtool.thumb] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
         # Try to read thumbnails on disk
         self.thumb_list = [_trimread(gpath) for gpath in self.thumb_gpaths]
         if self.asrgb:
