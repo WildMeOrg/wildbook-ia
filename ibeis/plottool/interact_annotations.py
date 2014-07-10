@@ -78,6 +78,7 @@ def apply_mask(img, mask):
 
 
 def bbox_to_verts(bbox):
+    # TODO: Can use vtool for this
     (x, y, w, h) = bbox
     verts = np.array([(x + 0, y + h),
                       (x + 0, y + 0),
@@ -134,6 +135,7 @@ def polygon_dims(poly):
 
 
 def rotate_points_around(points, theta, ax, ay):
+    # TODO: Can use vtool for this
     sin, cos, array = np.sin, np.cos, np.array
     augpts = array([array((x, y, 1)) for (x, y) in points])
     ct = cos(theta)
@@ -221,32 +223,6 @@ def make_handle_line(poly):
 
 
 class ANNOTATIONInteraction(object):
-    def new_polygon(self, verts, theta, species, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
-        """ verts - list of (x, y) tuples """
-        # create new polygon from verts
-        poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
-        # register this polygon
-        poly.num = self.next_polynum()
-        poly.theta = theta
-        poly.basecoords = poly.xy
-        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
-        poly.lines = self.make_lines(poly, line_color, line_width)
-        poly.handle = make_handle_line(poly)
-        tagpos = calc_tag_position(poly)
-        poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
-        poly.species_tag.remove()  # eliminate "leftover" copies
-        return poly
-
-    def make_lines(self, poly, line_color, line_width):
-        """ verts - list of (x, y) tuples """
-        _xs, _ys = zip(*poly.xy)
-        color = np.array(line_color)
-        marker_face_color = line_color
-        line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
-        print('make_lines: linetype = %r' % type(lines))
-        return lines
-
     """
     An interactive polygon editor.
 
@@ -265,6 +241,7 @@ class ANNOTATIONInteraction(object):
     'i' : insert a vertex at point.  You must be within max_ds of the
           line connecting two existing vertices
     """
+
     def __init__(self,
                  img,
                  img_ind=None,
@@ -285,6 +262,18 @@ class ANNOTATIONInteraction(object):
         if fnum is None:
             fnum = df2.next_fnum()
         self.callback = callback
+        self.but_width = .18
+        self.but_height = .08
+        self.callback_funcs = dict([
+            ('draw_event', self.draw_callback),
+            ('button_press_event', self.button_press_callback),
+            ('button_release_event', self.button_release_callback),
+            ('key_press_event', self.key_press_callback),
+            ('motion_notify_event', self.motion_notify_callback),
+            ('pick_event', self.onpick),
+            ('resize_event', self.on_resize),
+        ])
+        self.callback_ids = {}
         self.img = img
         def initialize_variables():
             #self.next_callback = next_callback
@@ -333,7 +322,8 @@ class ANNOTATIONInteraction(object):
         self.currently_rotating_poly = None
 
         self.callback_ids = {}
-        self.connect_callbacks(self.fig.ax.figure.canvas)
+        assert self.fig.canvas is self.fig.ax.figure.canvas, 'wow. something is weird'
+        self.connect_callbacks(self.fig.canvas)
 
         self.add_action_buttons()
         self.update_callbacks(next_callback, prev_callback)
@@ -358,9 +348,9 @@ class ANNOTATIONInteraction(object):
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
-            'Press \"ctrl-r\" to remove selected ANNOTATION',
-            'Press \"ctrl-t\" to add an ANNOTATION.',
-            'Press \"ctrl-a\" to Accept new ANNOTATIONs',
+            #'Press \"ctrl+r\" to remove selected ANNOTATION',
+            #'Press \"ctrl+t\" to add an ANNOTATION.',
+            #'Press \"ctrl+a\" to Accept new ANNOTATIONs',
             'Press enter to clear the species tag of the selected ANNOTATION',
             'Type to set the species tag of the selected ANNOTATION', ])))
 
@@ -390,9 +380,9 @@ class ANNOTATIONInteraction(object):
                 return (curind, curarea)
             else:
                 return (oldmaxind, oldmaxarea)
-        initially_selected_poly, _ = reduce(argmax_area, self.polys.iteritems(), (None, 0))
-        self._currently_selected_poly = poly_list[initially_selected_poly]
-        self.update_colors(initially_selected_poly)
+        poly_index, _ = reduce(argmax_area, self.polys.iteritems(), (None, 0))
+        self._currently_selected_poly = poly_list[poly_index] if poly_index else None
+        self.update_colors(poly_index)
         self._update_line()
 
         # Add polygons and lines to the axis
@@ -404,55 +394,48 @@ class ANNOTATIONInteraction(object):
         for poly in self.polys.itervalues():
             poly.add_callback(self.poly_changed)
 
+    def disconnect_callbacks(self, canvas):
+        for name, callbackid in self.callback_ids.iteritems():
+            canvas.mpl_disconnect(callbackid)
+        self.callback_ids = {}
+
     def connect_callbacks(self, canvas):
         #http://matplotlib.org/1.3.1/api/backend_bases_api.html
-        self.callback_funcs = dict([
-            ('draw_event', self.draw_callback),
-            ('button_press_event', self.button_press_callback),
-            ('button_release_event', self.button_release_callback),
-            ('key_press_event', self.key_press_callback),
-            ('motion_notify_event', self.motion_notify_callback),
-            ('pick_event', self.onpick),
-            ('resize_event', self.on_resize),
-        ])
-        for name, func in self.callback_funcs.iteritems():
-            callback_id = canvas.mpl_connect(name, func)
-            self.callback_ids[name] = callback_id
-
-        #canvas.mpl_connect('draw_event', self.draw_callback)
-        #canvas.mpl_connect('button_press_event', self.button_press_callback)
-        #canvas.mpl_connect('button_release_event', self.button_release_callback)
-        #canvas.mpl_connect('key_press_event', self.key_press_callback)
-        #canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
-        #canvas.mpl_connect('pick_event', self.onpick)
-        #canvas.mpl_connect('resize_event', self.on_resize)
-        # canvas.mpl_connect('figure_enter_event', self.mouse_enter)
-        # canvas.mpl_connect('figure_leave_event', self.mouse_leave)
+        # Create callback ids
+        self.disconnect_callbacks(canvas)
+        self.callback_ids = {
+            name: canvas.mpl_connect(name, func)
+            for name, func in self.callback_funcs.iteritems()
+        }
         self.fig.canvas = canvas
 
     def add_action_buttons(self):
-        self.add_ax  = self.fig.add_axes([0.21, 0.01, 0.18, 0.06])
-        self.add_but = Button(self.add_ax, 'Add Rectangle')
+        but_width = self.but_width
+        but_height = self.but_height
+        self.add_ax  = self.fig.add_axes([0.21, 0.01, but_width, but_height])
+        self.add_but = Button(self.add_ax, 'Add Rectangle\n(ctrl+t)')
         self.add_but.on_clicked(self.draw_new_poly)
 
-        self.del_ax  = self.fig.add_axes([0.41, 0.01, 0.18, 0.06])
-        self.del_but = Button(self.del_ax, 'Delete Rectangle')
+        self.del_ax  = self.fig.add_axes([0.41, 0.01, but_width, but_height])
+        self.del_but = Button(self.del_ax, 'Delete Rectangle\n(ctrl+r)')
         self.del_but.on_clicked(self.delete_current_poly)
 
-        self.accept_ax  = self.fig.add_axes([0.61, 0.01, 0.18, 0.06])
-        self.accept_but = Button(self.accept_ax, 'Accept New Annots')
+        self.accept_ax  = self.fig.add_axes([0.61, 0.01, but_width, but_height])
+        self.accept_but = Button(self.accept_ax, 'Accept and Save\n(ctrl+a)')
         self.accept_but.on_clicked(self.accept_new_annotations)
 
     def update_callbacks(self, next_callback, prev_callback):
+        but_width = self.but_width
+        but_height = self.but_height
         self.prev_callback = prev_callback
         self.next_callback = next_callback
         if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.01, 0.01, 0.18, 0.06])
+            self.prev_ax = self.fig.add_axes([0.01, 0.01, but_width, but_height])
             self.prev_but = Button(self.prev_ax, 'Previous Annotation')
             self.prev_but.on_clicked(self.prev_annotation)
 
         if self.next_callback is not None:
-            self.next_ax = self.fig.add_axes([0.81, 0.01, 0.18, 0.06])
+            self.next_ax = self.fig.add_axes([0.81, 0.01, but_width, but_height])
             self.next_but = Button(self.next_ax, 'Next Annotation')
             self.next_but.on_clicked(self.next_annotation)
 
@@ -463,6 +446,7 @@ class ANNOTATIONInteraction(object):
                                     species_list,
                                     next_callback,
                                     prev_callback):
+        self.disconnect_callbacks(self.fig.canvas)
         for poly in self.polys.itervalues():
             poly.remove()
         self.polys = {}
@@ -471,10 +455,12 @@ class ANNOTATIONInteraction(object):
         self.handle_matplotlib_initialization(fnum=self.fnum, instantiate_window=False)
         self.handle_polygon_creation(bbox_list, theta_list, species_list)
         self.add_action_buttons()
+        self.fig.canvas.draw()
+        self.connect_callbacks(self.fig.canvas)
         self.update_callbacks(next_callback, prev_callback)
         print('drawing')
         self.fig.canvas.draw()
-        pass
+        self.update_UI()
 
     def next_annotation(self, event):
         self.next_callback()
@@ -610,7 +596,7 @@ class ANNOTATIONInteraction(object):
 
     def button_release_callback(self, event):
         """ whenever a mouse button is released """
-        if self._polyHeld is True: # and (self._ind is None or self.press1 is False):
+        if self._polyHeld is True:  # and (self._ind is None or self.press1 is False):
             self._polyHeld = False
 
         self.currently_rotating_poly = None
@@ -649,6 +635,7 @@ class ANNOTATIONInteraction(object):
             self.update_colors(None)
         self._ind = None
         self._polyHeld = False
+        self.fig.canvas.draw()
 
     def draw_new_poly(self, event=None):
         coords = default_vertices(self.img)
@@ -1056,6 +1043,32 @@ class ANNOTATIONInteraction(object):
         print('in get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
         return (sel_polyind, min_ind)
 
+    def new_polygon(self, verts, theta, species, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
+        """ verts - list of (x, y) tuples """
+        # create new polygon from verts
+        poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
+        # register this polygon
+        poly.num = self.next_polynum()
+        poly.theta = theta
+        poly.basecoords = poly.xy
+        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+        poly.lines = self.make_lines(poly, line_color, line_width)
+        poly.handle = make_handle_line(poly)
+        tagpos = calc_tag_position(poly)
+        poly.species_tag = self.fig.ax.text(tagpos[0], tagpos[1], species, bbox={'facecolor': 'white', 'alpha': 1})
+        poly.species_tag.remove()  # eliminate "leftover" copies
+        return poly
+
+    def make_lines(self, poly, line_color, line_width):
+        """ verts - list of (x, y) tuples """
+        _xs, _ys = zip(*poly.xy)
+        color = np.array(line_color)
+        marker_face_color = line_color
+        line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
+        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
+        print('make_lines: linetype = %r' % type(lines))
+        return lines
+
     def accept_new_annotations(self, event, do_close=True):
         print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
@@ -1064,9 +1077,9 @@ class ANNOTATIONInteraction(object):
             #theta_list = []
             for poly in self.polys.itervalues():
                 assert poly is not None
-#                if poly is None:
-#                    bbox_list.append(None)
-#                else:
+                #if poly is None:
+                #    bbox_list.append(None)
+                #else:
                 x = min(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0])
                 y = min(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1])
                 w = max(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0]) - x
@@ -1087,11 +1100,11 @@ class ANNOTATIONInteraction(object):
             for i, bbox_theta in enumerate(zip(self.original_bbox_list, self.original_theta_list)):
                 if bbox_theta not in bbox_list:
                     deleted_list.append(i)
-#                elif bbox_list[i] != self.original_list[i]:
-#                    changed_list.append((i, bbox_list[i]))
-#            for i in range(len(self.original_list), len(self.poly_list)):
-#                if bbox_list[i] is not None:
-#                    new_list.append(bbox_list[i])
+            #    elif bbox_list[i] != self.original_list[i]:
+            #        changed_list.append((i, bbox_list[i]))
+            #for i in range(len(self.original_list), len(self.poly_list)):
+            #    if bbox_list[i] is not None:
+            #        new_list.append(bbox_list[i])
             new_list = filter(lambda bbox_theta: bbox_theta not in zip(self.original_bbox_list, self.original_theta_list), bbox_list)
             #print("Deleted")
             #for bbox in deleted_list:
