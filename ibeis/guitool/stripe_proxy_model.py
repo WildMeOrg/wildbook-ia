@@ -11,16 +11,16 @@ BASE_CLASS = QtGui.QIdentityProxyModel
 
 class StripeProxyModel(BASE_CLASS):
     __metaclass__ = utool.makeForwardingMetaclass(lambda self: self.sourceModel(),
-                                            ['_set_context_id',
-                                             '_get_context_id',
-                                             '_set_changeblocked',
-                                             '_get_changeblocked',
-                                             '_about_to_change',
-                                             '_change',
-                                             '_update',
-                                             '_rows_updated',
-                                             'name'],
-                                             base_class=BASE_CLASS)
+                                                    ['_set_context_id',
+                                                     '_get_context_id',
+                                                     '_set_changeblocked',
+                                                     '_get_changeblocked',
+                                                     '_about_to_change',
+                                                     '_change',
+                                                     '_update',
+                                                     '_rows_updated',
+                                                     'name'],
+                                                     base_class=BASE_CLASS)
 
     def __init__(self, parent=None, numduplicates=1):
         BASE_CLASS.__init__(self, parent=parent)
