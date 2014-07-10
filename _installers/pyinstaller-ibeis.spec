@@ -126,6 +126,11 @@ a = Analysis(  # NOQA
 # Hesaff + PyRF + FLANN Library
 ##################################
 
+
+#import pyhesaff
+#pyhesaff.HESAFF_CLIB.__LIB_FPATH__
+#import pyrf
+#pyrf.RF_CLIB.__LIB_FPATH__
 # Hesaff
 libhesaff_fname = 'libhesaff' + LIB_EXT
 libhesaff_src = join(root_dir, '..', 'hesaff', 'build', libhesaff_fname)

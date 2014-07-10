@@ -82,30 +82,30 @@ def setup_actions_menu(mainwin, back):
     mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query',
-        shortcut='Ctrl+Q',
+        shortcut='Q',
         slot_fn=back.query)
-    mainwin.menuActions.addSeparator()
-    mainwin.menuActions.newAction(
-        name='actionReselect_ANNOTATION',
-        text='Reselect ANNOTATION Bbox',
-        shortcut='Ctrl+R',
-        slot_fn=back.reselect_annotation)
-    mainwin.menuActions.newAction(
-        name='actionReselect_Ori',
-        text='Reselect ANNOTATION Orientation',
-        shortcut='Ctrl+Shift+O',
-        slot_fn=back.reselect_ori)
-    mainwin.menuActions.addSeparator()
-    mainwin.menuActions.newAction(
-        name='actionNext',
-        text='Select Next',
-        shortcut='Ctrl+N',
-        slot_fn=back.select_next)
-    mainwin.menuActions.newAction(
-        name='actionPrev',
-        text='Select Previous',
-        shortcut='Ctrl+P',
-        slot_fn=back.select_prev)
+    #mainwin.menuActions.addSeparator()
+    #mainwin.menuActions.newAction(
+    #    name='actionReselect_ANNOTATION',
+    #    text='Reselect ANNOTATION Bbox',
+    #    shortcut='Ctrl+R',
+    #    slot_fn=back.reselect_annotation)
+    #mainwin.menuActions.newAction(
+    #    name='actionReselect_Ori',
+    #    text='Reselect ANNOTATION Orientation',
+    #    shortcut='Ctrl+Shift+O',
+    #    slot_fn=back.reselect_ori)
+    #mainwin.menuActions.addSeparator()
+    #mainwin.menuActions.newAction(
+    #    name='actionNext',
+    #    text='Select Next',
+    #    shortcut='Ctrl+N',
+    #    slot_fn=back.select_next)
+    #mainwin.menuActions.newAction(
+    #    name='actionPrev',
+    #    text='Select Previous',
+    #    shortcut='Ctrl+P',
+    #    slot_fn=back.select_prev)
     mainwin.menuActions.addSeparator()
     mainwin.menuActions.newAction(
         name='actionDelete_ANNOTATION',
