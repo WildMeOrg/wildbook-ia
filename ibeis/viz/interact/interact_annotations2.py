@@ -3,7 +3,8 @@ from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from itertools import izip
 
-DESTROY_OLD_WINDOW=True
+DESTROY_OLD_WINDOW = False
+
 
 class ANNOTATION_Interaction2(object):
     def __init__(self, ibs, gid, next_callback=None, prev_callback=None, rows_updated_callback=lambda: None, reset_window=True):
@@ -28,7 +29,6 @@ class ANNOTATION_Interaction2(object):
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
 
-
         df2.update()
 
     def callback(self, deleted_list, changed_list, new_list):
@@ -52,7 +52,7 @@ class ANNOTATION_Interaction2(object):
 
     def update_image_and_callbacks(self, gid, nextcb, prevcb, do_save=True):
         if do_save:
-            self.interact_ANNOTATIONS.accept_new_annotations(None, do_close=False) # save the current changes when pressing next or previous
+            self.interact_ANNOTATIONS.accept_new_annotations(None, do_close=False)  # save the current changes when pressing next or previous
         if DESTROY_OLD_WINDOW:
             ANNOTATION_Interaction2.__init__(self, self.ibs, gid, next_callback=nextcb, prev_callback=prevcb, rows_updated_callback=self.rows_updated_callback, reset_window=False)
         else:
