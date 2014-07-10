@@ -105,7 +105,10 @@ class ChangeLayoutContext(object):
             model._set_changeblocked(True)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, type_, value, trace):
+        if trace is not None:
+            print('[api_model] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
         for model in self.model_list:
             if model._get_context_id() == id(self):
                 model._set_context_id(None)
