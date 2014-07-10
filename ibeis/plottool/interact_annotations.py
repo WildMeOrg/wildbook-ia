@@ -381,6 +381,18 @@ class ANNOTATIONInteraction(object):
         assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
         assert len(species_list) == len(poly_list), 'species_list: %r, poly_list: %r' % (species_list, poly_list)
         self.polys = dict({(poly.num, poly) for poly in poly_list})
+        def argmax_area(acc, elem):
+            oldmaxind, oldmaxarea = acc
+            curind, curpoly = elem
+            _, _, w, h = basecoords_to_bbox(curpoly.basecoords)
+            curarea = w * h
+            if curarea > oldmaxarea:
+                return (curind, curarea)
+            else:
+                return (oldmaxind, oldmaxarea)
+        initially_selected_poly, _ = reduce(argmax_area, self.polys.iteritems(), (None, 0))
+        self._currently_selected_poly = poly_list[initially_selected_poly]
+        self.update_colors(initially_selected_poly)
         self._update_line()
 
         # Add polygons and lines to the axis
@@ -494,14 +506,14 @@ class ANNOTATIONInteraction(object):
         return num
 
     def update_colors(self, poly_ind):
-        if poly_ind is None:
-            print("WARNING: poly_ind is None in update_colors")
+        if poly_ind is None or poly_ind < 0:
+            print("WARNING: poly_ind is %r in update_colors" % poly_ind)
             return
-        line = self.polys[poly_ind].lines
-        if line.get_color() != 'white':
-            line.set_color('white')
-        if(poly_ind is not None and poly_ind >= 0):
-            self.polys[poly_ind].lines.set_color(df2.ORANGE)
+        for poly in self.polys.itervalues():
+            line = poly.lines
+            if line.get_color() != 'white':
+                line.set_color('white')
+        self.polys[poly_ind].lines.set_color(df2.ORANGE)
         plt.draw()
 
     def update_UI(self):
