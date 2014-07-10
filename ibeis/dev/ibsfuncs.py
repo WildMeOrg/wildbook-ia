@@ -703,7 +703,7 @@ def update_reviewed_image_encounter(ibs):
 @__injectable(False)
 def update_special_encounters(ibs):
     ibs.update_exemplar_encounter()
-    # ibs.update_all_image_encounter()
+    ibs.update_all_image_encounter()
     ibs.update_unreviewed_image_encounter()
     ibs.update_reviewed_image_encounter()
 

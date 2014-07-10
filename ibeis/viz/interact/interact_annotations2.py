@@ -3,6 +3,7 @@ from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from itertools import izip
 
+#DESTROY_OLD_WINDOW = True
 DESTROY_OLD_WINDOW = False
 
 
@@ -28,7 +29,6 @@ class ANNOTATION_Interaction2(object):
             fnum=12,
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
-
         df2.update()
 
     def callback(self, deleted_list, changed_list, new_list):
