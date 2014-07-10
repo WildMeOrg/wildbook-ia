@@ -8,11 +8,16 @@ import utool
 #from ibeis.control import _sql_database_control_helpers as sqlhelpers
 from ibeis.control._sql_helpers import (_unpacker, _executor, lite,
                                         sanatize_sql, SQLExecutionContext,
-                                        default_decorator, DEBUG)
+                                        DEBUG)
 
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql]', DEBUG=DEBUG)
+
+
+def default_decorator(func):
+    return profile(func)
+    #return utool.indent_func('[sql.' + func.func_name + ']')(func)
 
 VERBOSE = utool.VERBOSE
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')

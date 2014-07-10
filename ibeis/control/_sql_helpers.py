@@ -8,10 +8,6 @@ DEBUG = False
     __name__, '[sql-helpers]', DEBUG=DEBUG)
 
 
-def default_decorator(func):
-    return func
-    #return utool.indent_func('[sql.' + func.func_name + ']')(func)
-
 # =======================
 # Helper Functions
 # =======================
@@ -123,6 +119,7 @@ class SQLExecutionContext(object):
             # utool.sys.exit(1)
 
 
+@profile
 def get_operation_type(operation):
     """
     Parses the operation_type from an SQL operation

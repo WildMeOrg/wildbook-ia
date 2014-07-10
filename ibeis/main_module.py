@@ -123,6 +123,7 @@ def _init_parallel():
     from utool import util_parallel
     from ibeis.dev import params
     __import_parallel_modules()
+    util_parallel.set_num_procs(params.args.num_procs)
     if __PREINIT_MULTIPROCESSING_POOLS__:
         util_parallel.init_pool(params.args.num_procs)
 
@@ -174,7 +175,7 @@ def _guitool_loop(main_locals, ipy=False):
             print('WARNING: back was not expected to be None')
 
 
-@profile
+#@profile
 def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, **kwargs):
     """
     Program entry point
@@ -221,7 +222,7 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, *
     return main_locals
 
 
-@profile
+#@profile
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool
@@ -249,7 +250,7 @@ def _preload(mpl=True, par=True, logging=True):
     return params.args
 
 
-@profile
+#@profile
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     """
     Runs the qt loop if the GUI was initialized and returns an executable string

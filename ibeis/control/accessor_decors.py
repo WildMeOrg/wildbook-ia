@@ -22,6 +22,50 @@ def default_decorator(input_):
 
 
 # DECORATORS::ADDER
+TABLE_CACHE = {}
+
+
+def cache_getter(tblname):
+    """ Creates a getter cacher """
+    if not tblname in TABLE_CACHE:
+        TABLE_CACHE[tblname] = {}
+    cache_ = TABLE_CACHE[tblname]
+    def closure_getter_cacher(getter_func):
+        def wrp_getter_cacher(self, rowid_list, *args, **kwargs):
+            # Get cached values for each rowid
+            vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
+            # Compute any cache misses
+            cachemiss_list = [val is None for val in vals_list]
+            cachemiss_rowid_list = utool.filter_items(rowid_list, cachemiss_list)
+            cachemiss_vals = getter_func(self, cachemiss_rowid_list, *args, **kwargs)
+            # Write the misses to the cache
+            miss_iter_ = iter(enumerate(iter(cachemiss_vals)))
+            for index, flag in enumerate(cachemiss_list):
+                if flag:
+                    miss_index, miss_val = miss_iter_.next()
+                    vals_list[index] = miss_val  # Cache write
+            return vals_list
+
+        return wrp_getter_cacher
+    return closure_getter_cacher
+
+
+def cache_invalidater(tblname):
+    """ cacher setter decorator """
+    if not tblname in TABLE_CACHE:
+        TABLE_CACHE[tblname] = {}
+    cache_ = TABLE_CACHE[tblname]
+    def closure_cache_invalidater(setter_func):
+        def wrp_cache_invalidater(self, rowid_list, *args, **kwargs):
+            # Invalidate cached rowids
+            invalid_rowids = iter(set(rowid_list) - set(cache_.rows()))
+            for rowid in invalid_rowids:
+                del cache_[rowid]
+            # Preform set action
+            setter_func(self, rowid_list, *args, **kwargs)
+
+        return wrp_cache_invalidater
+    return closure_cache_invalidater
 
 
 def adder(func):
