@@ -756,12 +756,11 @@ class ANNOTATIONInteraction(object):
             return
         if self.press1 is True:
             self.canUncolor = True
-        if self._ind is None and event.button == 1:
-            # move all vertices
-            if self._polyHeld is True and not (deltaX is None or deltaY is None):
-                self.move_rectangle(self._currently_selected_poly, deltaX, deltaY)
+
+        if self._polyHeld is True and self._ind is not None:
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY)
             self.update_UI()
-            self._ind = None
+            return
 
         if self.currently_rotating_poly:
                 poly = self.currently_rotating_poly
@@ -770,14 +769,18 @@ class ANNOTATIONInteraction(object):
                 dtheta = theta - poly.theta
                 self.rotate_rectangle(poly, dtheta)
                 self.update_UI()
+                return
 
-        if self._ind is None:
+        if self._ind is None and event.button == 1:
+            # move all vertices
+            if self._polyHeld is True and not (deltaX is None or deltaY is None):
+                self.move_rectangle(self._currently_selected_poly, deltaX, deltaY)
+            self.update_UI()
+            self._ind = None
             return
-        if self._polyHeld is True:
-            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY)
+
         else:
             print('error no poly known')
-        self.update_UI()
 
     def onpick(self, event):
         """ Makes selected polygon translucent """
