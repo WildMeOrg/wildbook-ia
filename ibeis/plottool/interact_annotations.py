@@ -732,9 +732,9 @@ class ANNOTATIONInteraction(object):
         if match:
             handle_label_typing(match.group(0))
 
-        if re.match('left', event.key) and self.prev_callback:
+        if re.match('left', event.key) and self.prev_callback is not None:
             self.prev_callback()
-        if re.match('right', event.key) and self.next_callback:
+        if re.match('right', event.key) and self.next_callback is not None:
             self.next_callback()
 
         self.fig.canvas.draw()
