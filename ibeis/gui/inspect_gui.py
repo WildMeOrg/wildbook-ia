@@ -19,6 +19,7 @@ from ibeis.viz import viz_helpers as vh
 
 
 RANKS_LT = 2
+USE_FILTER_PROXY = True
 
 
 class QueryResultsWidget(APIItemWidget):
@@ -27,9 +28,11 @@ class QueryResultsWidget(APIItemWidget):
     def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None, **kwargs):
         print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
-        # APIItemWidget.__init__(qres_wgt, parent=parent,
-        #                         model_class=CustomFilterModel)
-        APIItemWidget.__init__(qres_wgt, parent=parent)
+        if USE_FILTER_PROXY:
+            APIItemWidget.__init__(qres_wgt, parent=parent,
+                                    model_class=CustomFilterModel)
+        else:
+            APIItemWidget.__init__(qres_wgt, parent=parent)
         qres_wgt.show_new = True
         qres_wgt.show_join = True
         qres_wgt.show_split = True
@@ -76,6 +79,12 @@ class QueryResultsWidget(APIItemWidget):
         show_join = qres_wgt.button_list[0][1].isChecked()
         show_split = qres_wgt.button_list[0][2].isChecked()
         print("UPDATED: %r, %r, %r" % (show_new, show_join, show_split))
+        if USE_FILTER_PROXY:
+            qres_wgt.model.update_filterdict({
+                'NEW Match ':   show_new,
+                'JOIN Match ':  show_join,
+                'SPLIT Match ': show_split,
+            })
         qres_wgt.model._update_rows()
 
     def _check_changed(qres_wgt, value):
@@ -143,9 +152,8 @@ class QueryResultsWidget(APIItemWidget):
 def show_match_at(qres_wgt, qtindex):
     print('interact')
     model = qtindex.model()
-    row = qtindex.row()
-    aid  = model.get_header_data('aid', row)
-    qaid = model.get_header_data('qaid', row)
+    aid  = model.get_header_data('aid', qtindex)
+    qaid = model.get_header_data('qaid', qtindex)
     fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid)
     fig_presenter.bring_to_front(fig)
 
@@ -154,9 +162,9 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
     print('review')
     ibs = qres_wgt.ibs
     model = qtindex.model()
-    row = qtindex.row()
-    aid1 = model.get_header_data('qaid', row)
-    aid2 = model.get_header_data('aid', row)
+    aid1 = model.get_header_data('qaid', qtindex)
+    aid2 = model.get_header_data('aid', qtindex)
+    #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     model = qtindex.model()
     update_callback = model._update
     backend_callback = qres_wgt.callback
@@ -184,6 +192,7 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
 def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact.interact_name import MatchVerificationInteraction
+    #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     mvinteract = MatchVerificationInteraction(ibs, aid1, aid2, fnum=64,
                                               update_callback=update_callback,
                                               backend_callback=backend_callback, **kwargs)
@@ -192,7 +201,7 @@ def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, *
 
 class CustomFilterModel(FilterProxyModel):
     def __init__(model, headers=None, parent=None, *args):
-        FilterProxyModel.__init__(model, parent=parent, numduplicates=1, *args)
+        FilterProxyModel.__init__(model, parent=parent, *args)
         model.ibswin = parent
         model.eid = -1  # negative one is an invalid eid
         model.original_ider = None
@@ -208,7 +217,6 @@ class CustomFilterModel(FilterProxyModel):
             model.new_iders = model.original_iders[:]
             model.new_iders[0] = model._ider
         headers['iders'] = model.new_iders
-        model._nd = headers.get('num_duplicates', 1)
         model.sourcemodel._update_headers(**headers)
 
     def _ider(model):
@@ -372,9 +380,8 @@ def get_status_bgrole(ibs, aid_pair):
 
 def get_buttontup(ibs, qtindex):
     model = qtindex.model()
-    row = qtindex.row()
-    aid1 = model.get_header_data('qaid', row)
-    aid2 = model.get_header_data('aid', row)
+    aid1 = model.get_header_data('qaid', qtindex)
+    aid2 = model.get_header_data('aid', qtindex)
     truth = ibs.get_match_truth(aid1, aid2)
     truth_color = vh.get_truth_color(truth, base255=True,
                                         lighten_amount=0.35)

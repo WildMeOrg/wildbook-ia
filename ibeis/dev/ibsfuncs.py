@@ -204,8 +204,11 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 @__injectable
 def assert_valid_aids(ibs, aid_list):
     valid_aids = set(ibs.get_valid_aids())
-    invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
-    assert len(invalid_aids) == 0, 'invalid aids: %r' % (invalid_aids,)
+    #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
+    isinvalid_list = [aid not in valid_aids for aid in aid_list]
+    assert not any(isinvalid_list), 'invalid aids: %r' % (utool.filter_items(aid_list, isinvalid_list),)
+    isinvalid_list = [not isinstance(aid, int) for aid in aid_list]
+    assert not any(isinvalid_list), 'invalidly typed aids: %r' % (utool.filter_items(aid_list, isinvalid_list),)
 
 
 @__injectable
