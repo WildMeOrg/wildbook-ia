@@ -156,9 +156,23 @@ if utool.get_flag('--develop'):
     utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**envcmds))
 
 
+if utool.get_flag('--tag-status'):
+    utool.gg_command('git tag')
+
+# Tag everything
+tag_name = utool.get_arg('--newtag', type_=str, default=None)
+if tag_name is not None:
+    utool.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
+    utool.gg_command('git push --tags')
+
+
 if utool.get_flag('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))
+
+
+if utool.get_flag('--push'):
+    utool.gg_command('git push')
 
 
 gg_cmd = utool.get_arg('--gg', None)  # global command
