@@ -71,7 +71,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.nid1, self.nid2 = ibs.get_annot_nids((aid1, aid2))
         self.name1, self.name2 = ibs.get_annot_names((aid1, aid2))
         # The other annotations that belong to these two names
-        groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2))
+        groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2), is_exemplar=True)
         self.gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(groundtruth_list, (aid1, aid2))]
         # A flat list of all the aids we are looking at
         self.aid_list = utool.unique_ordered(utool.flatten(self.gt_list))
@@ -158,6 +158,13 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
         nid = ibs.get_annot_nids(aid)
+        if aid in [self.aid1, self.aid2]:
+            lw = 5
+            import numpy as np
+            text_color = np.array((135, 206, 235, 255)) / 255.0
+        else:
+            lw = 2
+            text_color = None
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
@@ -166,10 +173,11 @@ class MatchVerificationInteraction(AbstractInteraction):
             'show_gname': False,
             'show_aidstr': True,
             'notitle': True,
+            'text_color': text_color,
         }
         viz_chip.show_chip(ibs, aid, **viz_chip_kw)
         ax = df2.gca()
-        df2.draw_border(ax, color=kwargs.get('color'), lw=4)
+        df2.draw_border(ax, color=kwargs.get('color'), lw=lw)
 
         if kwargs.get('make_buttons', True):
             divider = df2.ensure_divider(ax)

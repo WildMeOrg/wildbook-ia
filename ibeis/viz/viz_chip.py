@@ -28,7 +28,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, **kwargs):
         # Get and draw keypoints
         kpts = vh.get_kpts(ibs, aid, in_image, **kwargs)
         _annotate_kpts(kpts, **kwargs)
-    df2.upperleft_text(chip_text)
+    df2.upperleft_text(chip_text, color=kwargs.get('text_color', None))
     if not kwargs.get('notitle', False):
         ax.set_title(chip_text)
     if in_image:

@@ -1482,21 +1482,31 @@ class IBEISController(object):
         return ibs.get_annot_from_lbltype(aid_list, constants.SPECIES_KEY, ibs.get_species)
 
     @getter_1toM
-    def get_annot_groundtruth(ibs, aid_list):
+    def get_annot_groundtruth(ibs, aid_list, is_exemplar=None):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
-        def _individual_ground_truth(nids_list):
-            where_clause = 'lblannot_rowid=? AND annot_rowid!=?'
-            params_iter = [(nid, aid) for nid, aid in izip(nids_list, aid_list)]
-            groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
-                                                where_clause,
-                                                unpack_scalars=False)
-            return utool.flatten(groundtruth_list)
-
-        nids_list  = ibs.get_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
-        groundtruth_list = [_individual_ground_truth(nids) for nids in nids_list]
+        nid_list = ibs.get_annot_nids(aid_list)
+        aids_list = ibs.get_name_aids(nid_list)
+        if is_exemplar is None:
+            groundtruth_list = aids_list
+        else:
+            exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+            isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
+            groundtruth_list = [utool.filter_items(aids, isvalids)
+                                for aids, isvalids in izip(aids_list, isvalids_list)]
         return groundtruth_list
+        # def _individual_ground_truth(nids_list):
+        #     where_clause = 'lblannot_rowid=? AND annot_rowid!=?'
+        #     params_iter = [(nid, aid) for nid, aid in izip(nids_list, aid_list)]
+        #     groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
+        #                                         where_clause,
+        #                                         unpack_scalars=False)
+        #     return utool.flatten(groundtruth_list)
+
+        # nids_list  = ibs.get_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
+        # groundtruth_list = [_individual_ground_truth(nids) for nids in nids_list]
+        # return groundtruth_list
 
     @getter_1to1
     def get_annot_num_groundtruth(ibs, aid_list):
