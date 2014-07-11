@@ -308,11 +308,11 @@ def adjust_subplots(left=0.02,  bottom=0.02,
 #=======================
 
 
-def upperleft_text(txt, alpha=.6):
+def upperleft_text(txt, alpha=.6, color=None):
     txtargs = dict(horizontalalignment='left',
                    verticalalignment='top',
                    backgroundcolor=(0, 0, 0, alpha),
-                   color=ORANGE)
+                   color=ORANGE if color is None else color)
     ax_relative_text(.02, .02, txt, **txtargs)
 
 
