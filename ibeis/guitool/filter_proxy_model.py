@@ -27,7 +27,7 @@ class FilterProxyModel(BASE_CLASS):
 
     def filterAcceptsRow(self, source_row, source_parent):
         source = self.sourceModel()
-        row_type = str(source.data(source.index(source_row, 7, parent=source_parent)).typeName())
+        row_type = str(source.data(source.index(source_row, 2, parent=source_parent)))
         #print('%r \'%r\'' % (source_row, row_type))
         #print(self.filter_dict)
         rv = self.filter_dict.get(row_type, True)
