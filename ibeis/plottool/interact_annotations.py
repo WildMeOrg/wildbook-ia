@@ -46,6 +46,9 @@ from itertools import izip
 
 
 DEFAULT_SPECIES_TAG = "____"
+ACCEPT_SAVE_HOTKEY   = 'a'
+ADD_RECTANGLE_HOTKEY = 'd'
+DEL_RECTANGLE_HOTKEY = 'r'
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -413,15 +416,15 @@ class ANNOTATIONInteraction(object):
         but_width = self.but_width
         but_height = self.but_height
         self.add_ax  = self.fig.add_axes([0.21, 0.01, but_width, but_height])
-        self.add_but = Button(self.add_ax, 'Add Rectangle\n(ctrl+t)')
+        self.add_but = Button(self.add_ax, 'Add Rectangle\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
         self.del_ax  = self.fig.add_axes([0.41, 0.01, but_width, but_height])
-        self.del_but = Button(self.del_ax, 'Delete Rectangle\n(ctrl+r)')
+        self.del_but = Button(self.del_ax, 'Delete Rectangle\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
         self.del_but.on_clicked(self.delete_current_poly)
 
         self.accept_ax  = self.fig.add_axes([0.61, 0.01, but_width, but_height])
-        self.accept_but = Button(self.accept_ax, 'Accept and Save\n(ctrl+a)')
+        self.accept_but = Button(self.accept_ax, 'Accept and Save\n(ctrl+%r)' % (ACCEPT_SAVE_HOTKEY))
         self.accept_but.on_clicked(self.accept_new_annotations)
 
     def update_callbacks(self, next_callback, prev_callback):
@@ -695,13 +698,14 @@ class ANNOTATIONInteraction(object):
             return
 
         def handle_command(keychar):
-            if keychar == 'a':
+            print(ACCEPT_SAVE_HOTKEY)
+            if keychar == ACCEPT_SAVE_HOTKEY:
                 self.accept_new_annotations(event)
 
-            if keychar == 't':
+            if keychar == ADD_RECTANGLE_HOTKEY:
                 self.draw_new_poly()
 
-            if keychar == 'r':
+            if keychar == DEL_RECTANGLE_HOTKEY:
                 self.delete_current_poly()
 
             if keychar == 'u':
@@ -778,9 +782,6 @@ class ANNOTATIONInteraction(object):
             self.update_UI()
             self._ind = None
             return
-
-        else:
-            print('error no poly known')
 
     def onpick(self, event):
         """ Makes selected polygon translucent """
