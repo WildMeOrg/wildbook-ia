@@ -12,7 +12,7 @@ from ibeis.export import export_hsdb
 from detecttools.pypascalxml import PascalVOC_XML_Annotation
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
-from vtool import linalg, geometry
+from vtool import linalg, geometry, image
 import numpy as np
 
 # Inject utool functions
@@ -68,7 +68,8 @@ def refresh(ibs):
 
 
 def export_to_xml(ibs):
-    count = 1
+    count = 2523
+    target_size = 900
     information = {
         'database_name' : 'IBEIS',
         'source' : 'olpajeta',
@@ -81,43 +82,64 @@ def export_to_xml(ibs):
     utool.ensuredir(annotdir)
     gid_list = ibs.get_valid_gids()
     for gid in gid_list:
-        image_uri = ibs.get_image_uris(gid)
-        fulldir = image_uri.split('/')
-        filename = fulldir.pop()
-        extension = filename.split('.')[-1]
-        out_name = "2014_%05d" % count
-        out_img = out_name + "." + extension
-        folder = "IBEIS"
-        annotation = PascalVOC_XML_Annotation(image_uri, folder, out_img, **information)
         aid_list = ibs.get_image_aids(gid)
-        bbox_list = ibs.get_annot_bboxes(aid_list)
-        theta_list = ibs.get_annot_thetas(aid_list)
-        for aid, bbox, theta in izip(aid_list, bbox_list, theta_list):
-            # Transformation matrix
-            R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
-            # Get verticies of the annotation polygon
-            verts = geometry.verts_from_bbox(bbox, close=True)
-            # Rotate and transform vertices
-            xyz_pts = geometry.homogonize(np.array(verts).T)
-            trans_pts = geometry.unhomogonize(R.dot(xyz_pts))
-            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
-            x_points = [pt[0] for pt in new_verts]
-            y_points = [pt[1] for pt in new_verts]
-            xmin = min(x_points)
-            xmax = max(x_points)
-            ymin = min(y_points)
-            ymax = max(y_points)
-            #TODO: Change species_name to getter in IBEISControl once implemented
-            #species_name = 'grevys_zebra'
-            species_name = ibs.get_annot_species(aid)
-            annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
-        dst_annot = annotdir + out_name  + '.xml'
-        dst_img = imagedir + out_img
-        utool.copy(image_uri, dst_img)
-        xml_data = open(dst_annot, 'w')
-        xml_data.write(annotation.xml())
-        xml_data.close()
-        count += 1
+        image_uri = ibs.get_image_paths(gid)
+        if len(aid_list) > 0:
+            fulldir = image_uri.split('/')
+            filename = fulldir.pop()
+            extension = filename.split('.')[-1]
+            out_name = "2014_%06d" % count
+            out_img = out_name + "." + extension
+            folder = "IBEIS"
+
+            _image = image.imread(image_uri)
+            height, width, channels = _image.shape
+            if width > height:
+                ratio = height / width
+                decrease = target_size / width
+                width = target_size
+                height = int(target_size * ratio)
+            else:
+                ratio = width / height
+                decrease = target_size / height
+                height = target_size
+                width = int(target_size * ratio)
+
+            dst_img = imagedir + out_img
+            _image = image.resize(_image, (width, height))
+            image.imwrite(dst_img, _image)
+            print("Copying:\n%r\n%r\n%r\n\n" % (image_uri, dst_img, (width, height), ))
+
+            annotation = PascalVOC_XML_Annotation(dst_img, folder, out_img, **information)
+            bbox_list = ibs.get_annot_bboxes(aid_list)
+            theta_list = ibs.get_annot_thetas(aid_list)
+            for aid, bbox, theta in izip(aid_list, bbox_list, theta_list):
+                # Transformation matrix
+                R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+                # Get verticies of the annotation polygon
+                verts = geometry.verts_from_bbox(bbox, close=True)
+                # Rotate and transform vertices
+                xyz_pts = geometry.homogonize(np.array(verts).T)
+                trans_pts = geometry.unhomogonize(R.dot(xyz_pts))
+                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+                x_points = [pt[0] for pt in new_verts]
+                y_points = [pt[1] for pt in new_verts]
+                xmin = int(min(x_points) * decrease)
+                xmax = int(max(x_points) * decrease)
+                ymin = int(min(y_points) * decrease)
+                ymax = int(max(y_points) * decrease)
+                #TODO: Change species_name to getter in IBEISControl once implemented
+                #species_name = 'grevys_zebra'
+                species_name = ibs.get_annot_species(aid)
+                annotation.add_object(species_name, (xmax, xmin, ymax, ymin))
+            dst_annot = annotdir + out_name  + '.xml'
+            # Write XML
+            xml_data = open(dst_annot, 'w')
+            xml_data.write(annotation.xml())
+            xml_data.close()
+            count += 1
+        else:
+            print("Skipping:\n%r\n\n" % (image_uri, ))
 
 
 @__injectable

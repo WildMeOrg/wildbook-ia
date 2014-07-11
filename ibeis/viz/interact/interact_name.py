@@ -144,7 +144,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 #     color = constants.NAME_BLUE_RGBA01
                 # else:
                 #     color = constants.NEW_YELLOW_RGBA01
-                self.plot_chip(aid, nRows, nCols, px + offset, color=color)
+                self.plot_chip(int(aid), nRows, nCols, px + offset, color=color)
 
         self.show_hud()
         df2.adjust_subplots_safe(top=0.85, hspace=0.03)
