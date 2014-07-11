@@ -78,7 +78,6 @@ class QueryResultsWidget(APIItemWidget):
         show_new = qres_wgt.button_list[0][0].isChecked()
         show_join = qres_wgt.button_list[0][1].isChecked()
         show_split = qres_wgt.button_list[0][2].isChecked()
-        print("UPDATED: %r, %r, %r" % (show_new, show_join, show_split))
         if USE_FILTER_PROXY:
             qres_wgt.model.update_filterdict({
                 'NEW Match ':   show_new,
