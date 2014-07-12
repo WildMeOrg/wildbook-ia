@@ -4,7 +4,7 @@ from itertools import imap, izip
 from os.path import join, exists
 import utool
 # Tools
-from ibeis.control._sql_helpers import (_unpacker, _executor, sanatize_sql,
+from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
                                         SQLExecutionContext)
 from . import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
@@ -66,7 +66,14 @@ class SQLDatabaseController(object):
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
                  text_factory=unicode):
         """ Creates db and opens connection """
-        printDBG('[sql.__init__]')
+        #printDBG('[sql.__init__]')
+        # Table info
+        db.table_columns     = utool.odict()
+        db.table_constraints = utool.odict()
+        db.table_docstr      = utool.odict()
+        # TODO:
+        db.stack = []
+        db.cache = {}  # key \in [tblname][colnames][rowid]
         # Get SQL file path
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
@@ -77,17 +84,11 @@ class SQLDatabaseController(object):
         # Open the SQL database connection with support for custom types
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.connection.text_factory = text_factory
+        #db.connection.isolation_level = None  # turns sqlite3 autocommit off
         # Get a cursor which will preform sql commands / queries / executions
         db.cur = db.connection.cursor()
         # Optimize the database (if anything is set)
-        db.optimize()
-        # Table info
-        db.table_columns     = utool.odict()
-        db.table_constraints = utool.odict()
-        db.table_docstr      = utool.odict()
-        # TODO:
-        db.stack = []
-        db.cache = {}  # key \in [tblname][colnames][rowid]
+        #db.optimize()
 
     #==============
     # API INTERFACE
@@ -308,29 +309,6 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def schema(db, tablename, schema_list, table_constraints=[], docstr=''):
-        """ Creates a table in the database with some schema and constraints
-
-            schema_list - list of tablename columns tuples
-                {
-                    (column_1_name, column_1_type),
-                    (column_2_name, column_2_type),
-                    ...
-                    (column_N_name, column_N_type),
-                }
-            ---------------------------------------------
-            column_n_name - string name of column heading
-            column_n_type - NULL | INTEGER | REAL | TEXT | BLOB | NUMPY
-                The column type can be appended with ' PRIMARY KEY' to indicate
-                the unique id for the tablename.  It can also specify a default
-                value for the column with ' DEFAULT [VALUE]'.  It can also
-                specify ' NOT NULL' to indicate the column cannot be empty.
-            ---------------------------------------------
-            The tablename will only be created if it does not exist.  Therefore,
-            this can be done on every tablename without fear of deleting old data.
-            ---------------------------------------------
-            TODO: Add handling for column addition between software versions.
-            Column deletions will not be removed from the database schema.
-        """
         printDBG('[sql] schema ensuring tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
@@ -349,22 +327,6 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
-        """
-        operation - parameterized SQL operation string.
-            Parameterized prevents SQL injection attacks by using an ordered
-            representation ( ? ) or by using an ordered, text representation
-            name ( :value )
-
-        params - list of values or a dictionary of representations and
-                        corresponding values
-            * Ordered Representation -
-                List of values in the order the question marks appear in the
-                sql operation string
-            * Unordered Representation -
-                Dictionary of (text representation name -> value) in an
-                arbirtary order that will be filled into the cooresponging
-                slots of the sql operation string
-        """
         with SQLExecutionContext(db, operation, num_params=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
@@ -378,21 +340,6 @@ class SQLDatabaseController(object):
     @default_decorator
     def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE, unpack_scalars=True, num_params=None):
-        """
-        TODO: SEPARATE
-        Input:
-            operation - an sql command to be executed e.g.
-                operation = '''
-                SELECT colname
-                FROM tblname
-                WHERE
-                (colname_1=?, ..., colname_N=?)
-                '''
-            params_iter - a sequence of params e.g.
-                params_iter = [(col1, ..., colN), ..., (col1, ..., colN),]
-        Output:
-            results_iter - a sequence of data results
-        """
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
@@ -400,36 +347,26 @@ class SQLDatabaseController(object):
             num_params  = len(params_iter)
         # Do not compute executemany without params
         if num_params == 0:
-            utool.printif(
-                lambda: ('[sql!] WARNING: dont use executemany'
-                         'with no params use executeone instead.'), VERBOSE)
+            if VERBOSE:
+                print('[sql!] WARNING: dont use executemany'
+                      'with no params use executeone instead.')
             return []
-        # --- SQL EXECUTION CODE ---
-        def closure_execute_many(context):
-            _sql_exec_gen = context.execute_and_generate_results
-            results_iter = map(list, (_sql_exec_gen(params) for params in params_iter))  # list of iterators
-            if unpack_scalars:
-                results_iter = list(imap(_unpacker, results_iter))  # list of iterators
-            results_list = list(results_iter)  # Eager evaluation
-            return results_list
         # --- SQL EXECUTION ---
         contextkw = {'num_params': num_params, 'start_transaction': True}
         with SQLExecutionContext(db, operation, **contextkw) as context:
             try:
-                locals_ = locals()
-                results_list = closure_execute_many(context)
+                _sql_exec_gen = context.execute_and_generate_results
+                results_iter = map(list, (_sql_exec_gen(params) for params in params_iter))  # list of iterators
+                if unpack_scalars:
+                    results_iter = list(imap(_unpacker, results_iter))  # list of iterators
+                results_list = list(results_iter)  # Eager evaluation
             except Exception as ex:
-                utool.printex(ex, utool.dict_str(locals_))
+                utool.printex(ex)
                 raise
         return results_list
 
     @default_decorator
     def commit(db,  verbose=VERBOSE):
-        """ Commits staged changes to the database and saves the binary
-            representation of the database to disk.  All staged changes can be
-            commited one at a time or after a batch - which allows for batch
-            error handling without comprimising the integrity of the database.
-        """
         try:
             db.connection.commit()
             if AUTODUMP:
@@ -439,35 +376,28 @@ class SQLDatabaseController(object):
             raise
 
     @default_decorator
-    def dump(db, file_=None, auto_commit=True):
-        """ Same output as shell command below
-            > sqlite3 database.sqlite3 .dump > database.dump.txt
-
-            If file_=sys.stdout dumps to standard out
-
-            This saves the current database schema structure and data into a
-            text dump. The entire database can be recovered from this dump
-            file. The default will store a dump parallel to the current
-            database file.
-        """
-        if file_ is None or isinstance(file_, (str, unicode)):
-            if file_ is None:
-                dump_fpath = join(db.dir_, db.fname + '.dump.txt')
-            else:
-                dump_fpath = file_
-            with open(dump_fpath, 'w') as file_:
-                db.dump(file_, auto_commit)
-        else:
-            if utool.VERYVERBOSE:
-                print('[sql.dump]')
-            if auto_commit:
-                db.commit(verbose=False)
-            for line in db.connection.iterdump():
-                file_.write('%s\n' % line)
+    def dump_to_file(db, file_, auto_commit=True):
+        if utool.VERYVERBOSE:
+            print('[sql.dump]')
+        if auto_commit:
+            db.commit(verbose=False)
+        for line in db.connection.iterdump():
+            file_.write('%s\n' % line)
 
     #==============
     # CONVINENCE
     #==============
+
+    @default_decorator
+    def dump(db, file_=None, auto_commit=True):
+        if file_ is None or isinstance(file_, (str, unicode)):
+            dump_fpath = file_
+            if dump_fpath is None:
+                dump_fpath = join(db.dir_, db.fname + '.dump.txt')
+            with open(dump_fpath, 'w') as file_:
+                db.dump_to_file(file_, auto_commit)
+        else:
+            db.dump_to_file(file_)
 
     @default_decorator
     def dump_tables_to_csv(db):
@@ -540,11 +470,8 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_sql_version(db):
         """ Conveinience """
-        _executor(db.cur, '''
-                   SELECT sqlite_version()
-                   ''', verbose=False)
+        db.cur.execute('SELECT sqlite_version()')
         sql_version = db.cur.fetchone()
-
         print('[sql] SELECT sqlite_version = %r' % (sql_version,))
         # The version number sqlite3 module. NOT the version of SQLite library.
         print('[sql] sqlite3.version = %r' % (lite.version,))
@@ -578,3 +505,71 @@ class SQLDatabaseController(object):
 #            If the database does not exist, it will be automatically created
 #            upon this object's instantiation.
 #            """
+#""" Same output as shell command below
+#    > sqlite3 database.sqlite3 .dump > database.dump.txt
+
+#    If file_=sys.stdout dumps to standard out
+
+#    This saves the current database schema structure and data into a
+#    text dump. The entire database can be recovered from this dump
+#    file. The default will store a dump parallel to the current
+#    database file.
+#"""
+#""" Commits staged changes to the database and saves the binary
+#    representation of the database to disk.  All staged changes can be
+#    commited one at a time or after a batch - which allows for batch
+#    error handling without comprimising the integrity of the database.
+#"""
+#"""
+#TODO: SEPARATE
+#Input:
+#    operation - an sql command to be executed e.g.
+#        operation = '''
+#        SELECT colname
+#        FROM tblname
+#        WHERE
+#        (colname_1=?, ..., colname_N=?)
+#        '''
+#    params_iter - a sequence of params e.g.
+#        params_iter = [(col1, ..., colN), ..., (col1, ..., colN),]
+#Output:
+#    results_iter - a sequence of data results
+#"""
+#"""
+#operation - parameterized SQL operation string.
+#    Parameterized prevents SQL injection attacks by using an ordered
+#    representation ( ? ) or by using an ordered, text representation
+#    name ( :value )
+
+#params - list of values or a dictionary of representations and
+#                corresponding values
+#    * Ordered Representation -
+#        List of values in the order the question marks appear in the
+#        sql operation string
+#    * Unordered Representation -
+#        Dictionary of (text representation name -> value) in an
+#        arbirtary order that will be filled into the cooresponging
+#        slots of the sql operation string
+#"""
+#""" Creates a table in the database with some schema and constraints
+#    schema_list - list of tablename columns tuples
+#        {
+#            (column_1_name, column_1_type),
+#            (column_2_name, column_2_type),
+#            ...
+#            (column_N_name, column_N_type),
+#        }
+#    ---------------------------------------------
+#    column_n_name - string name of column heading
+#    column_n_type - NULL | INTEGER | REAL | TEXT | BLOB | NUMPY
+#        The column type can be appended with ' PRIMARY KEY' to indicate
+#        the unique id for the tablename.  It can also specify a default
+#        value for the column with ' DEFAULT [VALUE]'.  It can also
+#        specify ' NOT NULL' to indicate the column cannot be empty.
+#    ---------------------------------------------
+#    The tablename will only be created if it does not exist.  Therefore,
+#    this can be done on every tablename without fear of deleting old data.
+#    ---------------------------------------------
+#    TODO: Add handling for column addition between software versions.
+#    Column deletions will not be removed from the database schema.
+#"""

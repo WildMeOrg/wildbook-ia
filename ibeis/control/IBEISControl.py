@@ -486,7 +486,7 @@ class IBEISController(object):
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
-        >>> from ibeis.dev.all_imports import *
+        >>> from ibeis.dev.all_imports import *  # NOQA
         >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
         print('[ibs] add_images')

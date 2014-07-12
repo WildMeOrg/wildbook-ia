@@ -17,13 +17,6 @@ QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 PRINT_SQL = utool.get_flag('--print-sql')
 
 
-def _executor(cur, opeartion, params):
-    """ HELPER: Send command to SQL (all other results are invalided)
-    Execute an SQL Command
-    """
-    cur.execute(opeartion, params)
-
-
 def _results_gen(cur, verbose=VERBOSE, get_last_id=False):
     """ HELPER - Returns as many results as there are.
     Careful. Overwrites the results once you call it.
@@ -33,7 +26,7 @@ def _results_gen(cur, verbose=VERBOSE, get_last_id=False):
         # The sqlite3_last_insert_rowid(D) interface returns the
         # <b> rowid of the most recent successful INSERT </b>
         # into a rowid table in D
-        _executor(cur, 'SELECT last_insert_rowid()', ())
+        cur.execute('SELECT last_insert_rowid()', ())
     # Wraping fetchone in a generator for some pretty tight calls.
     while True:
         result = cur.fetchone()
@@ -82,7 +75,7 @@ class SQLExecutionContext(object):
             context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
         if context.start_transaction:
-            _executor(context.db.cur, 'BEGIN', ())
+            context.db.cur.execute('BEGIN', ())
         if PRINT_SQL:
             print(context.operation_lbl)
         # Comment out timeing code
@@ -97,8 +90,8 @@ class SQLExecutionContext(object):
         cur = context.db.cur
         operation = context.operation
         try:
-            _executor(context.db.cur, operation, params)
-            is_insert = context.operation_type.upper().startswith('INSERT')
+            context.db.cur.execute(operation, params)
+            is_insert = context.operation_type.startswith('INSERT')
             return _results_gen(cur, get_last_id=is_insert)
         except lite.IntegrityError:
             raise
@@ -138,7 +131,7 @@ def get_operation_type(operation):
     else:
         operation_args = None
     operation_type += ' ' + operation_args.replace('\n', ' ')
-    return operation_type
+    return operation_type.upper()
 
 
 @profile
