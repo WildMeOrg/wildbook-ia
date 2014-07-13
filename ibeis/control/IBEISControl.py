@@ -892,20 +892,20 @@ class IBEISController(object):
     @setter
     def set_annot_nids(ibs, aid_list, nid_list):
         """ Sets names/nids of a list of annotations.
-        Convenience function for set_annot_from_lblannot_rowid """
-        ibs.set_annot_from_lblannot_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY)
+        Convenience function for set_annot_lblannot_from_rowid """
+        ibs.set_annot_lblannot_from_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY)
 
     @setter
     def set_annot_speciesids(ibs, aid_list, speciesid_list):
         """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_from_lblannot_rowid"""
-        ibs.set_annot_from_lblannot_rowid(aid_list, speciesid_list, constants.SPECIES_KEY)
+        Convenience function for set_annot_lblannot_from_rowid"""
+        ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, constants.SPECIES_KEY)
 
     @setter
     def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, adder):
         """ Associates the annot and lblannot of a specific type and value
         Adds the lblannot if it doesnt exist.
-        Wrapper around convenience function for set_annot_from_lblannot_rowid
+        Wrapper around convenience function for set_annot_lblannot_from_rowid
         """
         assert value_list is not None
         assert _lbltype is not None
@@ -926,11 +926,11 @@ class IBEISController(object):
                       if value != DEFAULT_VALUE]
         # Convert names into lblannot_rowid
         lblannot_rowid_list = adder(value_list)
-        # Call set_annot_from_lblannot_rowid to finish the conditional adding
-        ibs.set_annot_from_lblannot_rowid(aid_list, lblannot_rowid_list, _lbltype)
+        # Call set_annot_lblannot_from_rowid to finish the conditional adding
+        ibs.set_annot_lblannot_from_rowid(aid_list, lblannot_rowid_list, _lbltype)
 
     @setter
-    def set_annot_from_lblannot_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
+    def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
         """ Sets items/lblannot_rowids of a list of annotations."""
         # Get the alrids_list for the aids, using the lbltype as a filter
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
