@@ -277,7 +277,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         aid_list_filtered = utool.filter_items(self.aid_list, is_unknown)
         next_names = ibsfuncs.make_next_name(ibs, num=len(aid_list_filtered))
         # Readd the new names to all aids
-        ibs.add_annot_names(aid_list_filtered, next_names)
+        ibs.set_annot_names(aid_list_filtered, next_names)
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -330,7 +330,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Get next name from the controller
         next_name = ibsfuncs.make_next_name(self.ibs)
         # Readd the new names to all aids
-        self.ibs.add_annot_names(self.aid_list, [next_name] * len(self.aid_list))
+        self.ibs.set_annot_names(self.aid_list, [next_name] * len(self.aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()

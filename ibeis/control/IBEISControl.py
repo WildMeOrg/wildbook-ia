@@ -636,18 +636,18 @@ class IBEISController(object):
         speciesid_list = ibs.add_lblannots(lbltype_rowid_list, species_list, note_list)
         return speciesid_list
 
-    @adder
+    #@adder
     # DEPRICATE
-    def add_annot_names(ibs, aid_list, name_list=None, nid_list=None):
-        """ Sets names/nids of a list of annotations.
-        Convenience function for add_annot_relationship"""
-        assert name_list is None or nid_list is None, (
-            'can only specify one type of name values (nid or name) not both')
-        if nid_list is None:
-            assert name_list is not None
-            # Convert names into nids
-            nid_list = ibs.add_names(name_list)
-        ibs.add_annot_relationship(aid_list, nid_list)
+    #def add_annot_names(ibs, aid_list, name_list=None, nid_list=None):
+    #    """ Sets names/nids of a list of annotations.
+    #    Convenience function for add_annot_relationship"""
+    #    assert name_list is None or nid_list is None, (
+    #        'can only specify one type of name values (nid or name) not both')
+    #    if nid_list is None:
+    #        assert name_list is not None
+    #        # Convert names into nids
+    #        nid_list = ibs.add_names(name_list)
+    #    ibs.add_annot_relationship(aid_list, nid_list)
 
     # Internal
 
@@ -893,42 +893,50 @@ class IBEISController(object):
     def set_annot_nids(ibs, aid_list, nid_list):
         """ Sets names/nids of a list of annotations.
         Convenience function for set_annot_from_lblannot_rowid """
-        ibs.set_annot_from_lblannot_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY, ibs.add_names)
+        ibs.set_annot_from_lblannot_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY)
 
     @setter
     def set_annot_speciesids(ibs, aid_list, speciesid_list):
         """ Sets species/speciesids of a list of annotations.
         Convenience function for set_annot_from_lblannot_rowid"""
-        ibs.set_annot_from_lblannot_rowid(aid_list, speciesid_list, constants.SPECIES_KEY, ibs.add_species)
+        ibs.set_annot_from_lblannot_rowid(aid_list, speciesid_list, constants.SPECIES_KEY)
 
     @setter
     def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, adder):
-        """ Associates the annot and lblannot of a specific type and value """
+        """ Associates the annot and lblannot of a specific type and value
+        Adds the lblannot if it doesnt exist.
+        Wrapper around convenience function for set_annot_from_lblannot_rowid
+        """
         assert value_list is not None
         assert _lbltype is not None
         # a value consisting of an empty string or all spaces is set to the default
-        value_list = [constants.KEY_DEFAULTS[_lbltype]
+        DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
+        value_list = [DEFAULT_VALUE
                       if value.strip() == constants.EMPTY_KEY else value for value in value_list]
         # setting a name to '____' is equivalent to unnaming it
         aid_list_to_delete = [aid for aid, value in izip(aid_list, value_list)
-                              if (value == constants.KEY_DEFAULTS[_lbltype] or value == constants.EMPTY_KEY)]
+                              if (value == DEFAULT_VALUE or value == constants.EMPTY_KEY)]
         ibs.delete_annot_lblannot_rowids(aid_list_to_delete, _lbltype)
         # remove the relationships that have now been unnamed
         aid_list = [aid for aid, value in izip(aid_list, value_list)
-                    if value != constants.KEY_DEFAULTS[_lbltype]]
+                    if value != DEFAULT_VALUE]
         value_list = [value for value in value_list
-                      if value != constants.KEY_DEFAULTS[_lbltype]]
+                      if value != DEFAULT_VALUE]
         # Convert names into lblannot_rowid
         lblannot_rowid_list = adder(value_list)
         # Call set_annot_from_lblannot_rowid to finish the conditional adding
-        ibs.set_annot_from_lblannot_rowid(aid_list, lblannot_rowid_list, _lbltype, ibs.add_species)
+        ibs.set_annot_from_lblannot_rowid(aid_list, lblannot_rowid_list, _lbltype)
 
     @setter
-    def set_annot_from_lblannot_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype, adder):
+    def set_annot_from_lblannot_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
         """ Sets items/lblannot_rowids of a list of annotations."""
         # Get the alrids_list for the aids, using the lbltype as a filter
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
+        # Find the aids which do not currently have any relationships (of _lbltype)
         # create the new relationship when none exists
+        #addflag_list = [len(alrids) == 0 for alrids in alrids_list]
+        #aid_list_to_add = utool.filter_items(aid_list, addflag_list)
+        #lblannot_rowid_list_to_add = utool.filter_items(lblannot_rowid_list, addflag_list)
         aid_list_to_add = \
                 [aid for aid, alrid_list in izip(aid_list, alrids_list)
                  if len(alrid_list) == 0]
