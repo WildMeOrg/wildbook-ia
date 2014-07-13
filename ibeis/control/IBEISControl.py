@@ -174,6 +174,7 @@ class IBEISController(object):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         DB_SCHEMA.define_IBEIS_schema(ibs)
+        ibs.UNKNOWN_NID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
 
@@ -330,6 +331,10 @@ class IBEISController(object):
     # --- IDERS ---
     #---------------
 
+    # Standard
+
+    # Internal
+
     @ider
     def _get_all_gids(ibs):
         """ returns all unfiltered gids (image rowids) """
@@ -465,22 +470,6 @@ class IBEISController(object):
     #---------------
 
     @adder
-    def add_lbltype(ibs, text_list, default_list):
-        """ Adds a label type and its default value """
-        params_iter = izip(text_list, default_list)
-        lbltype_rowid_list = ibs.db.add_cleanly(LBLTYPE_TABLE, ('lbltype_text', 'lbltype_default'), params_iter, ibs.get_lbltype_rowid_from_text)
-        return lbltype_rowid_list
-
-    @adder
-    def add_config(ibs, cfgsuffix_list):
-        """ Adds an algorithm / actor configuration as a string """
-        # FIXME: Configs are still handled poorly
-        params_iter = ((suffix,) for suffix in cfgsuffix_list)
-        get_rowid_from_uuid = partial(ibs.get_config_rowid_from_suffix, ensure=False)
-        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',), params_iter, get_rowid_from_uuid)
-        return configid_list
-
-    @adder
     def add_images(ibs, gpath_list):
         """ Adds a list of image paths to the database.  Returns gids
         Initially we set the image_uri to exactely the given gpath.
@@ -526,6 +515,21 @@ class IBEISController(object):
             print('[postadd] uuid / gid = ' + utool.indentjoin(zip(uuid_list, gid_list)))
             print('[postadd] valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
         return gid_list
+
+    @adder
+    def add_encounters(ibs, enctext_list):
+        """ Adds a list of names. Returns their nids """
+        if utool.VERBOSE:
+            print('[ibs] adding %d encounters' % len(enctext_list))
+        # Add encounter text names to database
+        notes_list = [''] * len(enctext_list)
+        encounter_uuid_list = [uuid.uuid4() for _ in xrange(len(enctext_list))]
+        colnames = ['encounter_text', 'encounter_uuid', 'encounter_note']
+        params_iter = izip(enctext_list, encounter_uuid_list, notes_list)
+        get_rowid_from_uuid = partial(ibs.get_encounter_eids_from_text, ensure=False)
+
+        eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        return eid_list
 
     @adder
     def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
@@ -612,20 +616,28 @@ class IBEISController(object):
         return aid_list
 
     @adder
-    def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, configid_list=None,
-                                    alr_confidence_list=None):
-        if configid_list is None:
-            configid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
-        if alr_confidence_list is None:
-            alr_confidence_list = [0.0] * len(aid_list)
-        colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence')
-        params_iter = list(izip(aid_list, lblannot_rowid_list, configid_list,
-                                alr_confidence_list))
-        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
-                                        ibs.get_alr_rowid_from_valtup, unique_paramx=range(0, 3))
-        return alrid_list
+    def add_names(ibs, name_list, note_list=None):
+        """ Adds a list of names. Returns their nids """
+        # nid_list_ = [namenid_dict[name] for name in name_list_]
+        # ibsfuncs.assert_valid_names(name_list)
+        # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
+        lbltype_rowid_list = [ibs.lbltype_ids[constants.INDIVIDUAL_KEY]] * len(name_list)
+        nid_list = ibs.add_lblannots(lbltype_rowid_list, name_list, note_list)
+        return nid_list
 
     @adder
+    def add_species(ibs, species_list, note_list=None):
+        """ Adds a list of species. Returns their nids """
+        # speciesid_list_ = [namenid_dict[name] for name in species_list_]
+        # ibsfuncs.assert_valid_names(species_list)
+        # All names are individuals and so may safely receive the SPECIES_KEY lblannot
+        species_list = [species.lower() for species in species_list]
+        lbltype_rowid_list = [ibs.lbltype_ids[constants.SPECIES_KEY]] * len(species_list)
+        speciesid_list = ibs.add_lblannots(lbltype_rowid_list, species_list, note_list)
+        return speciesid_list
+
+    @adder
+    # DEPRICATE
     def add_annot_names(ibs, aid_list, name_list=None, nid_list=None):
         """ Sets names/nids of a list of annotations.
         Convenience function for add_annot_relationship"""
@@ -637,8 +649,59 @@ class IBEISController(object):
             nid_list = ibs.add_names(name_list)
         ibs.add_annot_relationship(aid_list, nid_list)
 
+    # Internal
+
+    @adder
+    def add_lbltype(ibs, text_list, default_list):
+        """ Adds a label type and its default value """
+        params_iter = izip(text_list, default_list)
+        lbltype_rowid_list = ibs.db.add_cleanly(LBLTYPE_TABLE, ('lbltype_text', 'lbltype_default'), params_iter, ibs.get_lbltype_rowid_from_text)
+        return lbltype_rowid_list
+
+    @adder
+    def add_config(ibs, cfgsuffix_list):
+        """ Adds an algorithm / actor configuration as a string """
+        # FIXME: Configs are still handled poorly
+        params_iter = ((suffix,) for suffix in cfgsuffix_list)
+        get_rowid_from_uuid = partial(ibs.get_config_rowid_from_suffix, ensure=False)
+        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',), params_iter, get_rowid_from_uuid)
+        return configid_list
+
+    @adder
+    def add_lblannots(ibs, lbltype_list, value_list, note_list=None):
+        """ Adds new lblannots (labels of annotations)
+        creates a new uuid for any new pair(type, value) """
+        # Get random uuids
+        if note_list is None:
+            note_list = [''] * len(value_list)
+        lblannot_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
+        colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
+        params_iter = list(izip(lblannot_uuid_list, lbltype_list, value_list, note_list))
+        lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
+                                                 ibs.get_lblannot_rowid_from_lbltypeval,
+                                                 unique_paramx=[1, 2])
+        return lblannot_rowid_list
+
+    @adder
+    def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, configid_list=None,
+                                    alr_confidence_list=None):
+        """ Adds a relationship between annots and lblannots
+            (annotations and labels of annotations) """
+        if configid_list is None:
+            configid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
+        if alr_confidence_list is None:
+            alr_confidence_list = [0.0] * len(aid_list)
+        colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence')
+        params_iter = list(izip(aid_list, lblannot_rowid_list, configid_list,
+                                alr_confidence_list))
+        get_rowid_from_uuid = ibs.get_alr_rowid_from_label_and_config
+        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
+                                        get_rowid_from_uuid, unique_paramx=range(0, 3))
+        return alrid_list
+
     @adder
     def add_image_relationship(ibs, gid_list, eid_list):
+        """ Adds a relationship between an image and and encounter """
         colnames = ('image_rowid', 'encounter_rowid')
         params_iter = list(izip(gid_list, eid_list))
         egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
@@ -647,10 +710,9 @@ class IBEISController(object):
 
     @adder
     def add_chips(ibs, aid_list):
-        """ Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
-        and then pass them here to ensure chips are computed)
-        return cid_list
         """
+        Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
+        and then pass them here to ensure chips are computed) """
         # Ensure must be false, otherwise an infinite loop occurs
         cid_list = ibs.get_annot_cids(aid_list, ensure=False)
         dirty_aids = utool.get_dirty_items(aid_list, cid_list)
@@ -687,57 +749,6 @@ class IBEISController(object):
             fid_list = ibs.db.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_uuid)
 
         return fid_list
-
-    @adder
-    def add_names(ibs, name_list, note_list=None):
-        """ Adds a list of names. Returns their nids """
-        # nid_list_ = [namenid_dict[name] for name in name_list_]
-        # ibsfuncs.assert_valid_names(name_list)
-        # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
-        lbltype_rowid_list = [ibs.lbltype_ids[constants.INDIVIDUAL_KEY]] * len(name_list)
-        nid_list = ibs.add_lblannots(lbltype_rowid_list, name_list, note_list)
-        return nid_list
-
-    @adder
-    def add_species(ibs, species_list, note_list=None):
-        """ Adds a list of species. Returns their nids """
-        # speciesid_list_ = [namenid_dict[name] for name in species_list_]
-        # ibsfuncs.assert_valid_names(species_list)
-        # All names are individuals and so may safely receive the SPECIES_KEY lblannot
-        species_list = [species.lower() for species in species_list]
-        lbltype_rowid_list = [ibs.lbltype_ids[constants.SPECIES_KEY]] * len(species_list)
-        speciesid_list = ibs.add_lblannots(lbltype_rowid_list, species_list, note_list)
-        return speciesid_list
-
-    @adder
-    def add_lblannots(ibs, lbltype_list, value_list, note_list=None):
-        """ Adds new lblannots and creates a new uuid for them if it doesn't
-        already exist """
-        # Get random uuids
-        if note_list is None:
-            note_list = [''] * len(value_list)
-        lblannot_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
-        colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
-        params_iter = list(izip(lblannot_uuid_list, lbltype_list, value_list, note_list))
-        lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
-                                                 ibs.get_lblannot_rowid_from_lbltypeval,
-                                                 unique_paramx=[1, 2])
-        return lblannot_rowid_list
-
-    @adder
-    def add_encounters(ibs, enctext_list):
-        """ Adds a list of names. Returns their nids """
-        if utool.VERBOSE:
-            print('[ibs] adding %d encounters' % len(enctext_list))
-        # Add encounter text names to database
-        notes_list = [''] * len(enctext_list)
-        encounter_uuid_list = [uuid.uuid4() for _ in xrange(len(enctext_list))]
-        colnames = ['encounter_text', 'encounter_uuid', 'encounter_note']
-        params_iter = izip(enctext_list, encounter_uuid_list, notes_list)
-        get_rowid_from_uuid = partial(ibs.get_encounter_eids_from_text, ensure=False)
-
-        eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_uuid)
-        return eid_list
 
     #
     #
@@ -790,7 +801,7 @@ class IBEISController(object):
 
     @setter
     def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
-        """ see get_image_gps for how the gps_list should look
+        """ see get_image_gps for how the gps_list should look.
             lat and lon should be given in degrees """
         if gps_list is not None:
             assert lat_list is None
@@ -1336,15 +1347,14 @@ class IBEISController(object):
         """ Returns the name id of each annotation. """
         # Get all the annotation lblannot relationships
         # filter out only the ones which specify names
-        UNKNOWN_NID = 0  # ADD TO CONSTANTS
         alrids_list  = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
         # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
         # TODO: get index of highest confidence name
-        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else UNKNOWN_NID for
+        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_NID for
                      lblannot_rowids in lblannot_rowids_list]
         if distinguish_unknowns:
-            nid_list = [-aid if nid == UNKNOWN_NID else nid
+            nid_list = [-aid if nid == ibs.UNKNOWN_NID else nid
                         for nid, aid in izip(nid_list_, aid_list)]
         else:
             nid_list = nid_list_
@@ -1486,16 +1496,6 @@ class IBEISController(object):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
-        nid_list = ibs.get_annot_nids(aid_list)
-        aids_list = ibs.get_name_aids(nid_list)
-        if is_exemplar is None:
-            groundtruth_list = aids_list
-        else:
-            exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
-            isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
-            groundtruth_list = [utool.filter_items(aids, isvalids)
-                                for aids, isvalids in izip(aids_list, isvalids_list)]
-        return groundtruth_list
         # def _individual_ground_truth(nids_list):
         #     where_clause = 'lblannot_rowid=? AND annot_rowid!=?'
         #     params_iter = [(nid, aid) for nid, aid in izip(nids_list, aid_list)]
@@ -1507,6 +1507,16 @@ class IBEISController(object):
         # nids_list  = ibs.get_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
         # groundtruth_list = [_individual_ground_truth(nids) for nids in nids_list]
         # return groundtruth_list
+        nid_list = ibs.get_annot_nids(aid_list)
+        aids_list = ibs.get_name_aids(nid_list)
+        if is_exemplar is None:
+            groundtruth_list = aids_list
+        else:
+            exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+            isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
+            groundtruth_list = [utool.filter_items(aids, isvalids)
+                                for aids, isvalids in izip(aids_list, isvalids_list)]
+        return groundtruth_list
 
     @getter_1to1
     def get_annot_num_groundtruth(ibs, aid_list):
@@ -1536,7 +1546,11 @@ class IBEISController(object):
         return alr_confidence_list
 
     @getter_1to1
-    def get_alr_rowid_from_valtup(ibs, aid_list, lblannot_rowid_list, configid_list):
+    def get_alr_rowid_from_label_and_config(ibs, aid_list, lblannot_rowid_list, configid_list):
+        """
+        Input: lblannotid_list (label id) + configid_list
+        Output: annot-label relationship id list
+        """
         colnames = ('annot_rowid',)
         params_iter = izip(aid_list, lblannot_rowid_list, configid_list)
         where_clause = 'annot_rowid=? AND lblannot_rowid=? AND config_rowid=?'
@@ -1575,7 +1589,8 @@ class IBEISController(object):
     @getter_1to1
     def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        lblannot_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_rowid',), lblannot_uuid_list, id_colname='lblannot_uuid')
+        lblannot_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_rowid',),
+                                         lblannot_uuid_list, id_colname='lblannot_uuid')
         return lblannot_rowid_list
 
     @getter_1to1

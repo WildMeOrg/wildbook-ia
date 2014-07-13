@@ -2,8 +2,6 @@ from __future__ import absolute_import, division, print_function
 import utool
 import functools  # NOQA
 from functools import partial
-#from itertools import izip
-#utool.rrrr()
 from ibeis.viz import interact
 from plottool import interact_helpers as ih
 from ibeis.dev import results_organizer

@@ -15,7 +15,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TIME_QUERY]')
 def TIME_QUERY(ibs):
     print('[TIME_QUERY]')
     #valid_aids = ibs.get_valid_aids()  # [0:20]
-    valid_aids = ibs.get_valid_aids()[0:3]  # [0:20]
+    valid_aids = ibs.get_valid_aids()[0:10]  # [0:20]
     qaid_list = valid_aids
     daid_list = valid_aids
 
