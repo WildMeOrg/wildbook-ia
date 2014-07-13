@@ -914,6 +914,8 @@ class IBEISController(object):
         value_list = [DEFAULT_VALUE
                       if value.strip() == constants.EMPTY_KEY else value for value in value_list]
         # setting a name to '____' is equivalent to unnaming it
+        #isdefault_list = [value in [DEFAULT_VALUE, constants.EMPTY_KEY] for value in value_list]
+        #aid_list_to_delete =
         aid_list_to_delete = [aid for aid, value in izip(aid_list, value_list)
                               if (value == DEFAULT_VALUE or value == constants.EMPTY_KEY)]
         ibs.delete_annot_lblannot_rowids(aid_list_to_delete, _lbltype)
@@ -932,26 +934,21 @@ class IBEISController(object):
         """ Sets items/lblannot_rowids of a list of annotations."""
         # Get the alrids_list for the aids, using the lbltype as a filter
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        # Find the aids which do not currently have any relationships (of _lbltype)
-        # create the new relationship when none exists
-        #addflag_list = [len(alrids) == 0 for alrids in alrids_list]
-        #aid_list_to_add = utool.filter_items(aid_list, addflag_list)
-        #lblannot_rowid_list_to_add = utool.filter_items(lblannot_rowid_list, addflag_list)
-        aid_list_to_add = \
-                [aid for aid, alrid_list in izip(aid_list, alrids_list)
-                 if len(alrid_list) == 0]
-        lblannot_rowid_list_to_add = \
-                [lblannot_rowid for lblannot_rowid, alrid_list in izip(lblannot_rowid_list, alrids_list)
-                 if len(alrid_list) == 0]
-        ibs.add_annot_relationship(aid_list_to_add, lblannot_rowid_list_to_add)
+        # Find the aids which already have relationships (of _lbltype)
+        setflag_list = [len(alrids) == 0 for alrids in alrids_list]
+        # Add the relationship if it doesn't exist
+        aid_list_to_add = utool.dirty_items(aid_list, setflag_list)
+        lblannot_rowid_list_to_add = utool.dirty_items(lblannot_rowid_list, setflag_list)
         # set the existing relationship if one already exists
-        alrids_list_to_set = \
-                [alrid_list for alrid_list in alrids_list if len(alrid_list) > 0]
-        lblannot_rowid_list_to_set = \
-                [lblannot_rowid for lblannot_rowid, alrid_list in
-                 izip(lblannot_rowid_list, alrids_list) if len(alrid_list) > 0]
-        for lblannot_rowid, alrid_list in izip(lblannot_rowid_list_to_set, alrids_list_to_set):
-            ibs.set_alr_lblannot_rowids(alrid_list, [lblannot_rowid] * len(alrid_list))
+        alrids_list_to_set = utool.filter_items(alrids_list, setflag_list)
+        lblannot_rowid_list_to_set = utool.filter_items(lblannot_rowid_list, setflag_list)
+        assert all([len(alrids) == 1 for alrids in alrids_list_to_set]),\
+                'must only have one relationship of a type'
+        alrid_list_to_set = utool.flatten(alrids_list_to_set)
+        # Add the new relationships
+        ibs.add_annot_relationship(aid_list_to_add, lblannot_rowid_list_to_add)
+        # Set the old relationships
+        ibs.set_alr_lblannot_rowids(alrid_list_to_set, lblannot_rowid_list_to_set)
 
     # SETTERS::NAME
 
