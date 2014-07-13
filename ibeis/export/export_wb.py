@@ -17,7 +17,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
     target_url_encounter = ibs.wbaddr + '/rest/org.ecocean.Encounter'
     target_url_encounter_add_image = ibs.wbaddr + '/EncounterAddImage'
     target_url_occurrence_add_encounter = ibs.wbaddr + '/OccurrenceAddEncounter'
-    
+
     # list of tuples, each has the names associated with the encounter
     nids_list = ibs.get_encounter_nids(eid_list)
 
@@ -43,7 +43,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
         # create a Wildbook Occurrence to represent this IBEIS Encounter
         response = requests.post(target_url_occurrence, data=json.dumps(payload_create_occurrence))
         print ('POSTed IBEIS Encounter / Wildbook Occurrence %s to %s with status %d' % (enctext, target_url_occurrence, response.status_code))
-        
+
         # creates wildbook encounters for each name in an ibeis encounter
         for nid, name_text, gids in izip(nids, names_text, gids_lists):
             # create a unique name for this inidividual by concatenating the encounter and name
@@ -64,7 +64,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
             # create this wildbook encounter
             response = requests.post(target_url_encounter, data=json.dumps(payload_create_encounter))
             print ('POSTed Wildbook Encounter %s to %s with status %d' % (wbenc_name, target_url_encounter, response.status_code))
-            
+
             payload_occurrence_add_encounter = {'number': wbenc_name,
                                                 'occurrence': occurrence_id}
 
@@ -132,6 +132,7 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
             print (lat)
             print (lng)
             print (wbenc_time_avg)
+            # TODO: Pass the verts, theta, and name_uuid
             payload_encounter = {'dwcImageURL': wbaddr + '/encounters/encounter.jsp?number=' + wbenc_name,  # NOQA
                                  'state': 'unapproved',
                                  'dateInMilliseconds': wbenc_time_avg,

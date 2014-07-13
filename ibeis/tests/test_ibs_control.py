@@ -9,6 +9,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS_CONTRO
 
 
 def TEST_IBS_CONTROL(ibs):
+    ibs.delete_all_encounters()
     ibs.compute_encounters()
 
     """ get_image_eids / get_encounter_gids """
@@ -19,9 +20,11 @@ def TEST_IBS_CONTROL(ibs):
     assert gids_list, 'gids_list is empty'
     for gids, eid in izip(gids_list, eid_list):
         eid_list2 = ibs.get_image_eids(gids)
-        assert ([[eid]] * len(eid_list2)) == eid_list2
-        #print('[TEST] eid_list2 = %r' % eid_list2)
-        #print('[TEST] eid = %r' % eid)
+        try:
+            assert ([[eid]] * len(eid_list2)) == eid_list2
+        except AssertionError as ex:
+            utool.printex(ex, key_list=['eid_list2', 'eid'])
+            raise
 
     """ set_annot_notes / get_annot_notes """
     aid_list = ibs.get_valid_aids()

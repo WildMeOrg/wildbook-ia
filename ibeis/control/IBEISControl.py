@@ -905,29 +905,30 @@ class IBEISController(object):
     def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, adder):
         """ Associates the annot and lblannot of a specific type and value
         Adds the lblannot if it doesnt exist.
-        Wrapper around convenience function for set_annot_lblannot_from_rowid
+        Wrapper around convenience function for set_annot_from_lblannot_rowid
         """
         assert value_list is not None
         assert _lbltype is not None
         # a value consisting of an empty string or all spaces is set to the default
         DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
-        value_list = [DEFAULT_VALUE
-                      if value.strip() == constants.EMPTY_KEY else value for value in value_list]
+        EMPTY_KEY = constants.EMPTY_KEY
+        # Set empty values to the default
         # setting a name to '____' is equivalent to unnaming it
-        #isdefault_list = [value in [DEFAULT_VALUE, constants.EMPTY_KEY] for value in value_list]
-        #aid_list_to_delete =
-        aid_list_to_delete = [aid for aid, value in izip(aid_list, value_list)
-                              if (value == DEFAULT_VALUE or value == constants.EMPTY_KEY)]
+        value_list_ = [DEFAULT_VALUE if value.strip() == EMPTY_KEY else value for value in value_list]
+        notdefault_list = [value != DEFAULT_VALUE for value in value_list_]
+        aid_list_to_delete = utool.get_dirty_items(aid_list, notdefault_list)
+        # Set all the valid valids
+        aids_to_set   = utool.filter_items(aid_list, notdefault_list)
+        values_to_set = utool.filter_items(value_list_, notdefault_list)
         ibs.delete_annot_lblannot_rowids(aid_list_to_delete, _lbltype)
         # remove the relationships that have now been unnamed
-        aid_list = [aid for aid, value in izip(aid_list, value_list)
-                    if value != DEFAULT_VALUE]
-        value_list = [value for value in value_list
-                      if value != DEFAULT_VALUE]
         # Convert names into lblannot_rowid
-        lblannot_rowid_list = adder(value_list)
-        # Call set_annot_lblannot_from_rowid to finish the conditional adding
-        ibs.set_annot_lblannot_from_rowid(aid_list, lblannot_rowid_list, _lbltype)
+        # FIXME: This function should not be able to set label realationships
+        # to labels that have not been added!!
+        # This is an inefficient way of getting lblannot_rowids!
+        lblannot_rowid_list = adder(values_to_set)
+        # Call set_annot_from_lblannot_rowid to finish the conditional adding
+        ibs.set_annot_lblannot_from_rowid(aids_to_set, lblannot_rowid_list, _lbltype)
 
     @setter
     def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
@@ -935,15 +936,25 @@ class IBEISController(object):
         # Get the alrids_list for the aids, using the lbltype as a filter
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
         # Find the aids which already have relationships (of _lbltype)
-        setflag_list = [len(alrids) == 0 for alrids in alrids_list]
+        setflag_list = [len(alrids) > 0 for alrids in alrids_list]
         # Add the relationship if it doesn't exist
-        aid_list_to_add = utool.dirty_items(aid_list, setflag_list)
-        lblannot_rowid_list_to_add = utool.dirty_items(lblannot_rowid_list, setflag_list)
+        aid_list_to_add = utool.get_dirty_items(aid_list, setflag_list)
+        lblannot_rowid_list_to_add = utool.get_dirty_items(lblannot_rowid_list, setflag_list)
         # set the existing relationship if one already exists
         alrids_list_to_set = utool.filter_items(alrids_list, setflag_list)
         lblannot_rowid_list_to_set = utool.filter_items(lblannot_rowid_list, setflag_list)
-        assert all([len(alrids) == 1 for alrids in alrids_list_to_set]),\
+        try:
+            assert all([len(alrids) == 1 for alrids in alrids_list_to_set]),\
                 'must only have one relationship of a type'
+        except AssertionError as ex:
+            utool.printex(ex, key_list=[
+                '_lbltype',
+                'alrids',
+                'aid_list',
+                'lblannot_rowid_list',
+                'alrids_list_to_set',
+            ])
+            raise
         alrid_list_to_set = utool.flatten(alrids_list_to_set)
         # Add the new relationships
         ibs.add_annot_relationship(aid_list_to_add, lblannot_rowid_list_to_add)
