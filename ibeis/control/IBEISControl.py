@@ -878,16 +878,16 @@ class IBEISController(object):
     def set_annot_names(ibs, aid_list, name_list):
         """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
         list of annotations.  Convenience function for
-        set_annot_from_value"""
-        ibs.set_annot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
+        set_annot_lblannot_from_value"""
+        ibs.set_annot_lblannot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
 
     @setter
     def set_annot_species(ibs, aid_list, species_list):
         """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_from_value """
+        Convenience function for set_annot_lblannot_from_value """
         species_list = [species.lower() for species in species_list]
         assert all([species in constants.VALID_SPECIES for species in species_list]), 'invalid species added'
-        ibs.set_annot_from_value(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
+        ibs.set_annot_lblannot_from_value(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter
     def set_annot_nids(ibs, aid_list, nid_list):
@@ -902,9 +902,10 @@ class IBEISController(object):
         ibs.set_annot_from_lblannot_rowid(aid_list, speciesid_list, constants.SPECIES_KEY, ibs.add_species)
 
     @setter
-    def set_annot_from_value(ibs, aid_list, value_list, _lbltype, adder):
-        # FIXME: this should be set annotation lblannot_value or something to that effect
+    def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, adder):
+        """ Associates the annot and lblannot of a specific type and value """
         assert value_list is not None
+        assert _lbltype is not None
         # a value consisting of an empty string or all spaces is set to the default
         value_list = [constants.KEY_DEFAULTS[_lbltype]
                       if value.strip() == constants.EMPTY_KEY else value for value in value_list]
@@ -913,8 +914,10 @@ class IBEISController(object):
                               if (value == constants.KEY_DEFAULTS[_lbltype] or value == constants.EMPTY_KEY)]
         ibs.delete_annot_lblannot_rowids(aid_list_to_delete, _lbltype)
         # remove the relationships that have now been unnamed
-        aid_list = [aid for aid, value in izip(aid_list, value_list) if value != constants.KEY_DEFAULTS[_lbltype]]
-        value_list = [value for value in value_list if value != constants.KEY_DEFAULTS[_lbltype]]
+        aid_list = [aid for aid, value in izip(aid_list, value_list)
+                    if value != constants.KEY_DEFAULTS[_lbltype]]
+        value_list = [value for value in value_list
+                      if value != constants.KEY_DEFAULTS[_lbltype]]
         # Convert names into lblannot_rowid
         lblannot_rowid_list = adder(value_list)
         # Call set_annot_from_lblannot_rowid to finish the conditional adding
@@ -926,16 +929,19 @@ class IBEISController(object):
         # Get the alrids_list for the aids, using the lbltype as a filter
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
         # create the new relationship when none exists
-        aid_list_to_add = [aid for aid, alrid_list in izip(aid_list, alrids_list)
-                           if len(alrid_list) == 0]
-        lblannot_rowid_list_to_add = [lblannot_rowid for lblannot_rowid, alrid_list in izip(lblannot_rowid_list, alrids_list)
-                                      if len(alrid_list) == 0]
+        aid_list_to_add = \
+                [aid for aid, alrid_list in izip(aid_list, alrids_list)
+                 if len(alrid_list) == 0]
+        lblannot_rowid_list_to_add = \
+                [lblannot_rowid for lblannot_rowid, alrid_list in izip(lblannot_rowid_list, alrids_list)
+                 if len(alrid_list) == 0]
         ibs.add_annot_relationship(aid_list_to_add, lblannot_rowid_list_to_add)
         # set the existing relationship if one already exists
-        alrids_list_to_set = [alrid_list for alrid_list in alrids_list
-                               if len(alrid_list) > 0 ]
-        lblannot_rowid_list_to_set = [lblannot_rowid for lblannot_rowid, alrid_list in izip(lblannot_rowid_list, alrids_list)
-                                      if len(alrid_list) > 0]
+        alrids_list_to_set = \
+                [alrid_list for alrid_list in alrids_list if len(alrid_list) > 0]
+        lblannot_rowid_list_to_set = \
+                [lblannot_rowid for lblannot_rowid, alrid_list in
+                 izip(lblannot_rowid_list, alrids_list) if len(alrid_list) > 0]
         for lblannot_rowid, alrid_list in izip(lblannot_rowid_list_to_set, alrids_list_to_set):
             ibs.set_alr_lblannot_rowids(alrid_list, [lblannot_rowid] * len(alrid_list))
 
@@ -957,13 +963,6 @@ class IBEISController(object):
         ibs.db.set(LBLANNOT_TABLE, ('lblannot_value',), val_list, id_iter)
 
     # SETTERS::ENCOUNTER
-
-    @setter
-    def set_encounter_props(ibs, eid_list, lbltype, value_list):
-        print('[ibs] set_encounter_props')
-        id_iter = ((eid,) for eid in eid_list)
-        val_list = ((value,) for value in value_list)
-        ibs.db.set(ENCOUNTER_TABLE, lbltype, val_list, id_iter)
 
     @setter
     def set_encounter_enctext(ibs, eid_list, names_list):
@@ -1274,21 +1273,6 @@ class IBEISController(object):
         fid_list = ibs.get_chip_fids(cid_list, ensure=ensure)
         return fid_list
 
-    @getter_1to1
-    def get_lbltype_rowid_from_text(ibs, text_list):
-        """ Returns lbltype_rowid where the lbltype_text is given """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        # FIXME: Use unique SUPERKEYS instead of specifying id_colname
-        lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')
-        return lbltype_rowid
-
-    @getter_1to1
-    def get_lbltype_default(ibs, lbltype_rowid_list):
-        """ Returns the labeltype default value """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        lbltype_defaults = ibs.db.get(LBLTYPE_TABLE, ('lbltype_default',), lbltype_rowid_list)
-        return lbltype_defaults
-
     @getter_1toM
     def get_annot_alrids(ibs, aid_list, configid=None):
         """ FIXME: func_name
@@ -1574,6 +1558,24 @@ class IBEISController(object):
         where_clause = 'image_rowid=? AND encounter_rowid=?'
         egrid_list = ibs.db.get_where(EG_RELATION_TABLE, colnames, params_iter, where_clause)
         return egrid_list
+
+    #
+    # GETTERS::LBLTYPE
+
+    @getter_1to1
+    def get_lbltype_rowid_from_text(ibs, text_list):
+        """ Returns lbltype_rowid where the lbltype_text is given """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        # FIXME: Use unique SUPERKEYS instead of specifying id_colname
+        lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')
+        return lbltype_rowid
+
+    @getter_1to1
+    def get_lbltype_default(ibs, lbltype_rowid_list):
+        """ Returns the labeltype default value """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        lbltype_defaults = ibs.db.get(LBLTYPE_TABLE, ('lbltype_default',), lbltype_rowid_list)
+        return lbltype_defaults
 
     #
     # GETTERS::LBLANNOT_TABLE
