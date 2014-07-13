@@ -2,16 +2,19 @@ from __future__ import absolute_import, division, print_function
 from guitool import qtype
 from guitool.api_thumb_delegate import APIThumbDelegate
 from guitool.api_button_delegate import APIButtonDelegate
-#from guitool.stripe_proxy_model import StripeProxyModel
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 #import guitool
 #from guitool.guitool_decorators import signal_, slot_
-#from guitool.api_item_model import APIItemModel
 from guitool.guitool_main import get_qtapp
 from guitool.guitool_misc import get_view_selection_as_str
 import utool
 from functools import partial
+
+# Valid API Models
+from guitool.stripe_proxy_model import StripeProxyModel
+from guitool.filter_proxy_model import FilterProxyModel
+from guitool.api_item_model import APIItemModel
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APIItemView]', DEBUG=False)
@@ -23,9 +26,13 @@ viewmember = utool.classmember(API_VIEW_BASE)
 injectviewinstance = partial(utool.inject_instance, API_VIEW_BASE)
 
 
+VALID_API_MODELS = (FilterProxyModel, StripeProxyModel, APIItemModel)
+
+
 class APIItemView(API_VIEW_BASE):
     """
-    Base class for all IBEIS Tables
+    Trees and Tables implicitly inherit from this class.
+    Abstractish class.
     """
 
     def __init__(view, parent=None):
@@ -104,7 +111,22 @@ def hide_cols(view):
 @viewmember
 def itemDelegate(view, qindex):
     """ QtOverride: Returns item delegate for this index """
+    # Does this even work? TODO: testme
     return API_VIEW_BASE.itemDelegate(view, qindex)
+
+
+def setModel(view, model):
+    """ QtOverride: Returns item delegate for this index """
+    assert isinstance(model, VALID_API_MODELS),\
+            ('APIItemViews only accepts APIItemModels (or one of its proxys),'
+             'received a %r' % type(model))
+    # Learn some things about the model before you fully connect it.
+    if utool.VERBOSE:
+        print('[view] setting model')
+    model._rows_updated.connect(view.on_rows_updated)
+    #view.infer_delegates_from_model(model=model)
+    # TODO: Update headers
+    return view.API_VIEW_BASE.setModel(view, model)
 
 
 #---------------

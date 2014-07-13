@@ -1,17 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
-#from PyQt4.QtCore import Qt
-#import guitool
-#from guitool import qtype
-#from guitool.api_thumb_delegate import APIThumbDelegate
-#from guitool.api_button_delegate import APIButtonDelegate
-from guitool.api_item_view import injectviewinstance
+from guitool import api_item_view
 from guitool.guitool_decorators import signal_, slot_
-from guitool.api_item_model import APIItemModel
-from guitool.stripe_proxy_model import StripeProxyModel
-from guitool.filter_proxy_model import FilterProxyModel
-#from guitool.guitool_main import get_qtapp
-#from guitool.guitool_misc import get_view_selection_as_str
 import utool
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -29,14 +19,18 @@ API_VIEW_BASE = QtGui.QTableView
 
 class APITableView(API_VIEW_BASE):
     """
-    Base class for all IBEIS Tables
+    Table view of API data.
+    Implicitly inherits from APIItemView
     """
     rows_updated = signal_(str, int)
     contextMenuClicked = signal_(QtCore.QModelIndex, QtCore.QPoint)
+    API_VIEW_BASE = API_VIEW_BASE
 
     def __init__(view, parent=None):
+        # Qt Inheritance
         API_VIEW_BASE.__init__(view, parent)
-        injectviewinstance(view)
+        # Implicitly inject common APIItemView functions
+        api_item_view.injectviewinstance(view)
         # Allow sorting by column
         view._init_table_behavior()
         view._init_header_behavior()
@@ -115,13 +109,7 @@ class APITableView(API_VIEW_BASE):
 
     def setModel(view, model):
         """ QtOverride: Returns item delegate for this index """
-        assert isinstance(model, (FilterProxyModel, StripeProxyModel, APIItemModel)), 'apitblview only accepts apitblemodels, received a %r' % type(model)
-        # Learn some things about the model before you fully connect it.
-        print('[view] setting model')
-        model._rows_updated.connect(view.on_rows_updated)
-        #view.infer_delegates_from_model(model=model)
-        # TODO: Update headers
-        return API_VIEW_BASE.setModel(view, model)
+        api_item_view.setModel(view, model)
 
     def keyPressEvent(view, event):
         assert isinstance(event, QtGui.QKeyEvent)
