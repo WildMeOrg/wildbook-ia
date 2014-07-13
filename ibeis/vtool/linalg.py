@@ -65,7 +65,8 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
             raise NameError('The covariance matrix cant be singular')
     denom1 = np.tau ** (size / 2.0)
     denom2 = np.sqrt(det)
-    norm_const = 1.0 / (denom1 * denom2)
+    #norm_const = 1.0 / (denom1 * denom2)
+    norm_const = np.reciprocal(denom1 * denom2)
     x_mu = x - mu  # deviation from mean
     invSigma = npl.inv(sigma)  # inverse covariance
     exponent = -0.5 * (x_mu.dot(invSigma).dot(x_mu.T))
@@ -220,6 +221,7 @@ def ori_distance(ori1, ori2):
     # TODO: Cython
     ori_dist = np.abs(ori1 - ori2) % np.tau
     ori_dist = np.minimum(ori_dist, np.tau - ori_dist)
+    #np.minimum(ori_dist, np.tau - ori_dist, ori_dist)
     return ori_dist
 
 
@@ -230,7 +232,8 @@ def det_distance(det1, det2):
     det_dist = det1 / det2
     # Flip ratios that are less than 1
     _flip_flag = det_dist < 1
-    det_dist[_flip_flag] = (1.0 / det_dist[_flip_flag])
+    #det_dist[_flip_flag] = (1.0 / det_dist[_flip_flag])
+    det_dist[_flip_flag] = np.reciprocal(det_dist[_flip_flag])
     return det_dist
 
 
@@ -241,12 +244,24 @@ def L1(hist1, hist2):
 
 
 @profile
-def L2_sqrd(hist1, hist2):
+def L2_sqrd(hist1, hist2, out=None):
     """ returns the squared L2 distance
     seealso L2
+    Test:
+    hist1 = np.random.rand(4, 2)
+    hist2 = np.random.rand(4, 2)
+    out = np.empty(hist1.shape, dtype=hist1.dtype)
     """
+    # TODO: np.ufunc
     # TODO: Cython
-    return (np.abs(hist1 - hist2) ** 2).sum(-1)
+    # temp memory
+    #temp = np.empty(hist1.shape, dtype=hist1.dtype)
+    #np.subtract(hist1, hist2, temp)
+    #np.abs(temp, temp)
+    #np.power(temp, 2, temp)
+    #out = temp.sum(-1)
+    return (np.abs(hist1 - hist2) ** 2).sum(-1, out)  # this is faster
+    #return out
 
 
 @profile
