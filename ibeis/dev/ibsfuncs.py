@@ -501,7 +501,7 @@ def get_names_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
 class FMT_KEYS:
     name_fmt = '{name:*}[id:d].{ext}'
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
-
+    singleton_fmt = 'singleton'
 
 def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
     """
@@ -512,6 +512,12 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
         FMT_KEYS.name_fmt: utool.named_field_regex([
             ('name', r'[a-zA-Z]+'),  # all alpha characters
             ('id',   r'\d*'),        # first numbers (if existant)
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
+
+        FMT_KEYS.singleton_fmt: utool.named_field_regex([
+            ('name', r'[^.]+'),  # all alpha characters
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
@@ -533,6 +539,7 @@ def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
             print('FAILED TO PARSE: %r' % gpath)
             anyfailed = True
     if anyfailed:
+        print(gname_list)
         msg = ('FAILED REGEX: %r' % regex)
         raise Exception(msg)
 

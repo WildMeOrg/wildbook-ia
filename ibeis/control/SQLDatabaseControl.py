@@ -160,7 +160,8 @@ class SQLDatabaseController(object):
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
         # Add any unadded parameters to the database
         dirty_params = utool.filter_items(params_list, isdirty_list)
-        print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
+        if utool.VERBOSE:
+            print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         try:
             db._add(tblname, colnames, dirty_params)
         except Exception as ex:
