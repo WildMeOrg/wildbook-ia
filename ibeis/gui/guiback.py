@@ -18,7 +18,7 @@ from ibeis import viz
 from ibeis.viz import interact
 # Utool
 import utool
-from ibeis import constants
+#from ibeis import constants
 from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[back]', DEBUG=False)
@@ -464,7 +464,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] compute_queries: eid=%r' % (eid,))
         back.compute_feats(refresh=False, **kwargs)
         valid_aids = back.ibs.get_valid_aids(eid=eid)
-        
+
         if kwargs.get('vs_exemplar', False):
             qaid2_qres = back.ibs.query_exemplars(valid_aids)
         else:
@@ -472,7 +472,7 @@ class MainWindowBackend(QtCore.QObject):
                 qaid2_qres = back.ibs.query_all(valid_aids)
             else:
                 qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
-        
+
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(eid=eid)

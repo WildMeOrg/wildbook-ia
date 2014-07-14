@@ -175,6 +175,10 @@ if utool.get_flag('--push'):
     utool.gg_command('git push')
 
 
+if utool.get_flag('--clean'):
+    utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
+
+
 gg_cmd = utool.get_arg('--gg', None)  # global command
 if gg_cmd is not None:
     ans = raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))

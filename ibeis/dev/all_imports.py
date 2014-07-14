@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
-                     expanduser, relpath, isabs)
+                     expanduser, relpath, isabs, commonprefix, basename)
 from itertools import izip, chain, imap, cycle
 from itertools import product as iprod
 import argparse

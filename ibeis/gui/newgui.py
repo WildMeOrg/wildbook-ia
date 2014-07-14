@@ -12,11 +12,13 @@ from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_annotations2
 from ibeis import constants
-from ibeis.gui.guiheaders import (
-    IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
-from ibeis.gui.models_and_views import (
-    IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView, EncTableModel, EncTableView,
-    IBEISTableWidget, IBEISTreeWidget, EncTableWidget)
+from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
+                                  NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
+                                        IBEISItemModel, IBEISTreeView,
+                                        EncTableModel, EncTableView,
+                                        IBEISTableWidget, IBEISTreeWidget,
+                                        EncTableWidget)
 import guitool
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
@@ -449,6 +451,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #printDBG('on_click')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
+        #model_name = model.name
+        #print('clicked: %s' + utool.dict_str(locals()))
         if model.name == ENCOUNTER_TABLE:
             pass
             #printDBG('clicked encounter')
@@ -463,9 +467,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
                 ibswgt.back.select_aid(aid, eid, show=False)
-            elif model.name == NAME_TABLE:
-                nid = id_
-                ibswgt.back.select_nid(nid, eid, show=False)
+            elif model.name in (NAME_TABLE, NAMES_TREE,):
+                level = model._get_level(qtindex)
+                if level == 0:
+                    nid = id_
+                    ibswgt.back.select_nid(nid, eid, show=False)
+                elif level == 1:
+                    aid = id_
+                    ibswgt.back.select_aid(aid, eid, show=False)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
