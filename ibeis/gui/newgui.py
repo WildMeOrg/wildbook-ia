@@ -451,8 +451,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #printDBG('on_click')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
-        model_name = model.name
-        print('clicked: %s' + utool.dict_str(locals()))
+        #model_name = model.name
+        #print('clicked: %s' + utool.dict_str(locals()))
         if model.name == ENCOUNTER_TABLE:
             pass
             #printDBG('clicked encounter')

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import types
 from itertools import izip
 from functools import partial
-from os.path import relpath, split, join, exists
+from os.path import relpath, split, join, exists, commonprefix
 import utool
 from ibeis import constants
 from ibeis import sysres
@@ -300,6 +300,29 @@ def localize_images(ibs, gid_list=None):
     utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
     ibs.set_image_uris(gid_list, loc_gname_list)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'
+
+
+@__injectable
+def rebase_images(ibs, new_path, gid_list=None):
+    """
+    Moves the images into the ibeis image cache.
+    Images are renamed to img_uuid.ext
+    """
+    if gid_list is None:
+        gid_list  = ibs.get_valid_gids()
+        #new_path = 'G:\PZ_Ol_Pejeta_All'
+    gpath_list = ibs.get_image_paths(gid_list)
+    len_prefix = len(commonprefix(gpath_list))
+    #if common_prefix.rfind('/')
+    # assum
+    gname_list = [gpath[len_prefix:] for gpath in gpath_list]
+    new_gpath_list = [join(new_path, gname) for gname in gname_list]
+    new_gpath_list = map(utool.unixpath, new_gpath_list)
+    #orig_exists = map(exists, gpath_list)
+    new_exists = map(exists, new_gpath_list)
+    assert all(new_exists), 'some rebased images do not exist'
+    ibs.set_image_uris(gid_list, new_gpath_list)
+    assert  'not all images copied'
 
 
 @__injectable
