@@ -225,7 +225,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 
 @__injectable
 def assert_valid_aids(ibs, aid_list):
-    if utool.NOASSERT:
+    if utool.USE_ASSERT:
         return
     valid_aids = set(ibs.get_valid_aids())
     #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
@@ -444,7 +444,7 @@ def delete_ibeis_database(dbdir):
 def assert_valid_names(name_list):
     """ Asserts that user specified names do not conflict with
     the standard unknown name """
-    if utool.NOASSERT:
+    if utool.USE_ASSERT:
         return
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
@@ -459,7 +459,7 @@ def assert_and_fix_gpath_slashes(gpath_list):
     Asserts that all paths are given with forward slashes.
     If not it fixes them
     """
-    if utool.NOASSERT:
+    if utool.USE_ASSERT:
         return
     try:
         msg = ('gpath_list must be in unix format (no backslashes).'
