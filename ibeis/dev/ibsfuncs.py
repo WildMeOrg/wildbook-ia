@@ -454,13 +454,13 @@ def assert_valid_names(name_list):
                                   'cannot start a name with four underscores')
 
 
-def assert_and_fix_gpath_slashes(gpath_list):
+def ensure_unix_gpaths(gpath_list):
     """
     Asserts that all paths are given with forward slashes.
     If not it fixes them
     """
-    if utool.USE_ASSERT:
-        return
+    #if utool.USE_ASSERT:
+    #    return
     try:
         msg = ('gpath_list must be in unix format (no backslashes).'
                'Failed on %d-th gpath=%r')

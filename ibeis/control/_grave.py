@@ -38,7 +38,7 @@
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
         # Processing an image might fail, yeilding a None instead of a tup
-        gpath_list = ibsfuncs.assert_and_fix_gpath_slashes(gpath_list)
+        gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
         # Create param_iter and filter out nones before passing to SQL
         # Eager Evaluation for working with uuids
         params_list  = list(preproc_image.add_images_params_gen(gpath_list))
