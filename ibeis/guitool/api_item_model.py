@@ -63,6 +63,7 @@ class TreeNode(object):
         return str_
 
 
+@profile
 def _build_internal_structure(model):
     ider_list = model.iders
     num_levels = len(ider_list)
@@ -210,6 +211,7 @@ class APIItemModel(API_MODEL_BASE):
         if headers is not None:
             model._update_headers(**headers)
 
+    @profile
     @updater
     def _update_headers(model, **headers):
         iders            = headers.get('iders', None)
@@ -244,6 +246,7 @@ class APIItemModel(API_MODEL_BASE):
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse)
 
+    @profile
     @updater
     def _update_rows(model):
         """
@@ -452,8 +455,16 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def get_header_name(model, column):
+        # TODO: use qtindex?
         colname = model.col_name_list[column]
         return colname
+
+    @default_method_decorator
+    def _get_level(model, qtindex):
+        node = qtindex.internalPointer()
+        level = node.get_level()
+        #level = model.col_level_list[column]
+        return level
 
     #--------------------------------
     # --- API Interface Functions ---
