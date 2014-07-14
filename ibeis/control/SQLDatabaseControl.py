@@ -574,4 +574,3 @@ class SQLDatabaseController(object):
 #    TODO: Add handling for column addition between software versions.
 #    Column deletions will not be removed from the database schema.
 #"""
-

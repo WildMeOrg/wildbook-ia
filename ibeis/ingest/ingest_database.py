@@ -92,16 +92,8 @@ def ingest_testdb1(db):
 def ingest_snails_drop1(db):
     return Ingestable(db,
                       ingest_type='named_images',
-                      fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
-                      adjust_percent=0.20)
-
-
-@__standard('Ol_Pejeta')
-def ingest_snails_drop1(db):
-    return Ingestable(db,
-                      ingest_type='named_images',
-                      fmtkey='singleton',
-                      adjust_percent=0.00)
+                      fmtkey=ibsfuncs.FMT_KEYS.snails_fmt,
+                      adjust_percent=.20)
 
 
 @__standard('JAG_Kieryn')
