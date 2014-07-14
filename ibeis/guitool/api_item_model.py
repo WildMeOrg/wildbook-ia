@@ -20,6 +20,7 @@ VERBOSE = utool.VERBOSE
 
 
 class TreeNode(object):
+    __slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level=-1):
         self.id_ = id_
         self.parent_node = parent_node
@@ -83,7 +84,7 @@ def _build_internal_structure(model):
         root_id_list = ider_list[0]()
     root_node = populate_tree(TreeNode(None, None), root_id_list, level=0)
     #print(root_node.full_str())
-    assert root_node.__dict__, "root_node.__dict__ is empty"
+    #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
 
 
@@ -282,7 +283,8 @@ class APIItemModel(API_MODEL_BASE):
                 if level == 0:
                     model.root_node.set_children(nodes)
                 # end sort
-            assert nodes is not None, 'no indices'
+            if utool.USE_ASSERT:
+                assert nodes is not None, 'no indices'
             model.level_index_list = nodes
             model._rows_updated.emit(model.name, len(model.level_index_list))
             #print("Rows updated")
@@ -292,9 +294,10 @@ class APIItemModel(API_MODEL_BASE):
         """ sets iders """
         if iders is None:
             iders = []
-        assert utool.is_list(iders), 'bad type: %r' % type(iders)
-        for index, ider in enumerate(iders):
-            assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
+        if utool.USE_ASSERT:
+            assert utool.is_list(iders), 'bad type: %r' % type(iders)
+            for index, ider in enumerate(iders):
+                assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
         #printDBG('NEW IDER')
         model.iders = iders
 
@@ -304,8 +307,9 @@ class APIItemModel(API_MODEL_BASE):
             col_name_list = []
         if col_type_list is None:
             col_type_list = []
-        assert len(col_name_list) == len(col_type_list), \
-            'inconsistent colnametype'
+        if utool.USE_ASSERT:
+            assert len(col_name_list) == len(col_type_list), \
+                'inconsistent colnametype'
         model.col_name_list = col_name_list
         model.col_type_list = col_type_list
 
@@ -313,32 +317,36 @@ class APIItemModel(API_MODEL_BASE):
     def _set_col_nice(model, col_nice_list=None):
         if col_nice_list is None:
             col_nice_list = model.col_name_list[:]
-        assert len(model.col_name_list) == len(col_nice_list), \
-            'inconsistent colnice'
+        if utool.USE_ASSERT:
+            assert len(model.col_name_list) == len(col_nice_list), \
+                'inconsistent colnice'
         model.col_nice_list = col_nice_list
 
     @default_method_decorator
     def _set_col_edit(model, col_edit_list=None):
         if col_edit_list is None:
             col_edit_list = [False] * len(model.col_name_list)
-        assert len(model.col_name_list) == len(col_edit_list), \
-            'inconsistent coledit'
+        if utool.USE_ASSERT:
+            assert len(model.col_name_list) == len(col_edit_list), \
+                'inconsistent coledit'
         model.col_edit_list = col_edit_list
 
     @default_method_decorator
     def _set_col_setter(model, col_setter_list=None):
         if col_setter_list is None:
             col_setter_list = []
-        assert len(model.col_name_list) == len(col_setter_list), \
-            'inconsistent colsetter'
+        if utool.USE_ASSERT:
+            assert len(model.col_name_list) == len(col_setter_list), \
+                'inconsistent colsetter'
         model.col_setter_list = col_setter_list
 
     @default_method_decorator
     def _set_col_getter(model, col_getter_list=None):
         if col_getter_list is None:
             col_getter_list = []
-        assert len(model.col_name_list) == len(col_getter_list), \
-            'inconsistent colgetter'
+        if utool.USE_ASSERT:
+            assert len(model.col_name_list) == len(col_getter_list), \
+                'inconsistent colgetter'
         model.col_getter_list = col_getter_list
 
     @default_method_decorator
@@ -347,8 +355,9 @@ class APIItemModel(API_MODEL_BASE):
         if col_bgrole_getter_list is None:
             model.col_bgrole_getter_list = [None] * len(model.col_name_list)
         else:
-            assert len(col_bgrole_getter_list) == len(model.col_name_list), \
-                'inconsistent col_bgrole_getter_list'
+            if utool.USE_ASSERT:
+                assert len(col_bgrole_getter_list) == len(model.col_name_list), \
+                    'inconsistent col_bgrole_getter_list'
             model.col_bgrole_getter_list = col_bgrole_getter_list
 
     @default_method_decorator
@@ -357,24 +366,27 @@ class APIItemModel(API_MODEL_BASE):
         if col_visible_list is None:
             model.col_visible_list = [True] * len(model.col_name_list)
         else:
-            assert len(col_visible_list) == len(model.col_name_list), \
-                'inconsistent col_visible_list'
+            if utool.USE_ASSERT:
+                assert len(col_visible_list) == len(model.col_name_list), \
+                    'inconsistent col_visible_list'
             model.col_visible_list = col_visible_list
 
     @default_method_decorator
     def _set_col_level(model, col_level_list=None):
         if col_level_list is None:
             col_level_list = [0] * len(model.col_name_list)
-        assert len(model.col_name_list) == len(col_level_list), \
-            'inconsistent collevel'
+        if utool.USE_ASSERT:
+            assert len(model.col_name_list) == len(col_level_list), \
+                'inconsistent collevel'
         model.col_level_list = col_level_list
 
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False):
         #printDBG('SET SORT')
         if len(model.col_name_list) > 0:
-            assert col_sort_index < len(model.col_name_list), \
-                'sort index out of bounds by: %r' % col_sort_index
+            if utool.USE_ASSERT:
+                assert col_sort_index < len(model.col_name_list), \
+                    'sort index out of bounds by: %r' % col_sort_index
             model.col_sort_index = col_sort_index
             model.col_sort_reverse = col_sort_reverse
             # Update the row-id order
@@ -445,7 +457,8 @@ class APIItemModel(API_MODEL_BASE):
         # <HACK>
         # Hacked to only work on tables. Should be in terms of qtindex
         row = qtindex.row()
-        assert max(model.col_level_list) == 0, "Must be a table. Input is a tree"
+        if utool.USE_ASSERT:
+            assert max(model.col_level_list) == 0, "Must be a table. Input is a tree"
         col = model.col_name_list.index(colname)
         id_ = model.root_node[row].get_id()
         getter = model.col_getter_list[col]
@@ -472,13 +485,16 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_col_align(model, col):
-        assert col is not None, 'bad column'
+        if utool.USE_ASSERT:
+            assert col is not None, 'bad column'
+        raise NotImplementedError('_get_col_align')
 
     @default_method_decorator
     def _get_row_id(model, qtindex=QtCore.QModelIndex()):
         if qtindex.isValid():
             node = qtindex.internalPointer()
-            assert isinstance(node, TreeNode), type(node)
+            if utool.USE_ASSERT:
+                assert isinstance(node, TreeNode), type(node)
             return node.get_id()
 
     @default_method_decorator
@@ -486,7 +502,8 @@ class APIItemModel(API_MODEL_BASE):
         if qtindex.isValid():
             node = qtindex.internalPointer()
             try:
-                assert isinstance(node, TreeNode), type(node)
+                if utool.USE_ASSERT:
+                    assert isinstance(node, TreeNode), type(node)
             except AssertionError as ex:
                 utool.printex(ex)
                 print(node.func_name)
@@ -585,7 +602,7 @@ class APIItemModel(API_MODEL_BASE):
             if not isinstance(node, TreeNode):
                 print("WARNING: tried to access parent of %r type object" % type(node))
                 return QtCore.QModelIndex()
-            assert node.__dict__, "node.__dict__=%r" % node.__dict__
+            #assert node.__dict__, "node.__dict__=%r" % node.__dict__
             #</HACK>
             parent_node = node.get_parent()
             if parent_node.get_id() is None:
@@ -619,9 +636,10 @@ class APIItemModel(API_MODEL_BASE):
         else:
             # This is a child level > 0 index
             parent_node = parent.internalPointer()
-            assert isinstance(parent_node, TreeNode), type(parent_node)
             node = parent_node[row]
-            assert isinstance(node, TreeNode), type(node)
+            if utool.USE_ASSERT:
+                assert isinstance(parent_node, TreeNode), type(parent_node)
+                assert isinstance(node, TreeNode), type(node)
             return model.createIndex(row, column, object=node)
 
     @default_method_decorator
