@@ -134,14 +134,14 @@ class SQLDatabaseController(object):
         return rowid_list
 
     @adder_sql
-    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, unique_paramx=[0]):
+    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, superkey_paramx=[0]):
         """ ADDER Extra input: the first item of params_iter must be a uuid, """
         # ADD_CLEANLY_1: PREPROCESS INPUT
         params_list = list(params_iter)  # eagerly evaluate for uuids
         # Extract uuids from the params list (requires eager eval)
         uuid_lists = [[None if params is None else params[x]
                        for params in params_list]
-                      for x in unique_paramx]
+                      for x in superkey_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
@@ -488,10 +488,10 @@ class SQLDatabaseController(object):
 #e.g:
 #    get_rowid_from_uuid = ibs.get_image_gids_from_uuid
 #    params_list = [(uuid.uuid4(),) for _ in xrange(7)]
-#    unique_paramx = [0]
+#    superkey_paramx = [0]
 
 #            params_list = [(uuid.uuid4(), 42) for _ in xrange(7)]
-#            unique_paramx = [0, 1]
+#            superkey_paramx = [0, 1]
 #"""
 
 #SQLDatabaseController.__init__.__docstr__ = """

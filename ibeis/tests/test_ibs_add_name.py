@@ -8,6 +8,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_ADD_NAMES]
 
 def TEST_ADD_NAMES(ibs):
     print('[TEST] GET_TEST_IMAGE_PATHS')
+    orig_nids = ibs.get_valid_nids()
+    assert len(orig_nids) == 0, 'the database should be empty'
     # The test api returns a list of interesting chip indexes
     name_list = ['____', '06_410', '07_061', '02_044', '07_091', '04_110',
                  '07_233', '07_267', '07_272', '07_300', '04_035', '08_013',
@@ -19,10 +21,16 @@ def TEST_ADD_NAMES(ibs):
 
     # add a duplicate
     name_list.append(name_list[0])
-    nid_list = ibs.add_names(name_list)
-    assert len(name_list) == len(nid_list), 'bad name adder'
-    assert nid_list[0] == nid_list[-1], 'first and last names should be the same'
-    assert len(list(set(nid_list))) == len(list(set(name_list))), 'num unique ids / names should be the same'
+    try:
+        nid_list = ibs.add_names(name_list)
+        name_list_test = ibs.get_names(nid_list)
+        assert name_list_test == name_list, 'sanity check'
+        assert len(name_list) == len(nid_list), 'bad name adder'
+        assert nid_list[0] == nid_list[-1], 'first and last names should be the same'
+        assert len(list(set(nid_list))) == len(list(set(name_list))), 'num unique ids / names should be the same'
+    except AssertionError as ex:
+        utool.printex(ex, key_list=locals().keys())
+        raise
     return locals()
 
 if __name__ == '__main__':

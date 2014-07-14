@@ -120,6 +120,8 @@ def adder(func):
     def wrp_adder(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
             print('[ADD]: ' + func.func_name)
+            import __builtin__
+            __builtin__.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -133,6 +135,8 @@ def deleter(func):
     def wrp_adder(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
             print('[DELETE]: ' + func.func_name)
+            import __builtin__
+            __builtin__.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -151,6 +155,8 @@ def setter(func):
     def wrp_setter(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
             print('[SET]: ' + func.func_name)
+            import __builtin__
+            __builtin__.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         #print('set: func_name=%r, args=%r, kwargs=%r' % (func.func_name, args, kwargs))
         return func(*args, **kwargs)
     return wrp_setter

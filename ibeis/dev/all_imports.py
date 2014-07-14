@@ -174,6 +174,7 @@ from ibeis.control import IBEISControl
 from ibeis.control import accessor_decors
 # IBEIS
 import ibeis
+from ibeis import constants
 from ibeis import model
 from ibeis import control
 from ibeis import gui

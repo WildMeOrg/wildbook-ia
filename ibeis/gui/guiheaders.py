@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from ibeis import constants
 #from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
@@ -169,6 +170,25 @@ COL_DEF = dict([
     ('thumb',      ('PIXMAP', 'Thumb')),
     ('gps',        (str,      'GPS')),
 ])
+
+#----
+# Define the special metadata for annotation
+
+
+def expand_special_colnames(annot_metadata):
+    global COL_DEF
+    for name, nice, valid in annot_metadata:
+        #TABLE_COLNAMES[ANNOTATION_TABLE]
+        if isinstance(valid, list):
+            type_ = str
+        else:
+            type_ = valid
+        COL_DEF[name] = (type_, nice)
+
+
+expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
+
+#-----
 
 
 def make_ibeis_headers_dict(ibs):
