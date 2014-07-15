@@ -10,9 +10,9 @@ def __define_schema(db):
     NAME_UID_TYPE = 'INTEGER'
     db.schema('names', (
         ('name_rowid',   '%s PRIMARY KEY' % NAME_UID_TYPE),
-        ('name_text',  'TEXT NOT NULL'),
-        ('CONSTRAINT superkey UNIQUE (name_text)', '')
-    ))
+        ('name_text',  'TEXT NOT NULL'),),
+        ['CONSTRAINT superkey UNIQUE (name_text)']
+    )
 
 
 def __insert_names(db, name_list):

@@ -17,7 +17,7 @@ QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 PRINT_SQL = utool.get_flag('--print-sql')
 
 
-def _results_gen(cur, verbose=VERBOSE, get_last_id=False):
+def _results_gen(cur, get_last_id=False):
     """ HELPER - Returns as many results as there are.
     Careful. Overwrites the results once you call it.
     Basically: Dont call this twice.
@@ -87,14 +87,13 @@ class SQLExecutionContext(object):
 
     def execute_and_generate_results(context, params):
         """ HELPER FOR CONTEXT STATMENT """
-        cur = context.db.cur
-        operation = context.operation
         try:
-            context.db.cur.execute(operation, params)
-            is_insert = context.operation_type.startswith('INSERT')
-            return _results_gen(cur, get_last_id=is_insert)
+            context.db.cur.execute(context.operation, params)
         except lite.IntegrityError:
+            print('[sql.IntegrityError] params=<%r>' % (params,))
             raise
+        is_insert = context.operation_type.startswith('INSERT')
+        return _results_gen(context.db.cur, get_last_id=is_insert)
 
     def __exit__(context, type_, value, trace):
         #if not QUIET:
@@ -102,13 +101,15 @@ class SQLExecutionContext(object):
         if trace is not None:
             # An SQLError is a serious offence.
             print('[sql] FATAL ERROR IN QUERY')
+            print('[sql] operation=\n' + context.operation)
             context.db.dump()  # Dump on error
             print('[sql] Error in context manager!: ' + str(value))
             return False  # return a falsey value on error
         else:
             # Commit the transaction
             if context.auto_commit:
-                context.db.commit(verbose=False)
+                context.db.connection.commit()
+                #context.db.commit(verbose=False)
 
 
 @profile

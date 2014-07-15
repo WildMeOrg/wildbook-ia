@@ -7,9 +7,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NAMES]
 
 
 def __define_schema(db):
-    NAME_UID_TYPE = 'INTEGER'
     db.schema('names', (
-        ('name_rowid',   '%s PRIMARY KEY' % NAME_UID_TYPE),
+        ('name_rowid', 'INTEGER PRIMARY KEY'),
         ('name_text',  'TEXT NOT NULL'),
         ('CONSTRAINT superkey UNIQUE (name_text)', '')
     ))
@@ -65,7 +64,7 @@ def TEST_SQL_NAMES():
     name_text_results = db.executeone('SELECT name_text FROM names', [])
     print(' * name_text_results=%r' % name_text_results)
     #assert name_text_results == test_names, 'unexpected results from select names'
-   
+
     return locals()
 
 

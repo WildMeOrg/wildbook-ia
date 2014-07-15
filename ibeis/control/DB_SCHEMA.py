@@ -19,7 +19,7 @@ def define_IBEIS_schema(ibs):
         ('image_gps_lat',                'REAL DEFAULT -1.0'),   # there doesn't seem to exist a GPSPoint in SQLite (TODO: make one in the __SQLITE3__ custom types
         ('image_gps_lon',                'REAL DEFAULT -1.0'),
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
-        ('image_toggle_reviewed',             'INTEGER DEFAULT 0'),
+        ('image_toggle_reviewed',        'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
     ), ['CONSTRAINT superkey UNIQUE (image_uuid)'],
         docstr='''

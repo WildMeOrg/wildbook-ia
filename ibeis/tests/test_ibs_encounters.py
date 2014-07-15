@@ -32,7 +32,7 @@ def TEST_ENCOUNTERS(ibs):
     enctext_list   = ibs.get_encounter_enctext(eid_list)
     gid_uuids_list = ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)
     annotation_uuids_list = ibsfuncs.unflat_map(ibs.get_annot_uuids, aids_list)
-    names_list     = ibsfuncs.unflat_map(ibs.get_names, nids_list)
+    names_list     = ibsfuncs.unflat_map(ibs.get_name_text, nids_list)
 
     target_enctexts = ['E0_ENC(agg,sec_60,1)', 'E1_ENC(agg,sec_60,1)']
 
@@ -50,7 +50,7 @@ def TEST_ENCOUNTERS(ibs):
                          UUID('588bc218-83a5-d400-21aa-d499832632b0'), 
                          UUID('163a890c-36f2-981e-3529-c552b6d668a3')),]
 
-    target_names = [
+    target_name_text = [
         ('easy', 'hard', 'jeff'),
         ('lena', 'occl', 'polar', 'zebra'),
     ]
@@ -83,7 +83,7 @@ def TEST_ENCOUNTERS(ibs):
         nids_listb = [ ibs.get_annot_nids(aid_list) for aid_list in aids_list ]
         print('3a) nids_listb = %s' % (utool.list_str(nids_listb),))
         print('3b) names_list = %s' % (utool.list_str(names_list),))
-        print('3b) target_names = %s' % (utool.list_str(target_names),))
+        print('3b) target_name_text = %s' % (utool.list_str(target_name_text),))
         print('')
 
         assert gids_test_list == gids_target_list, 'gids_test_list does not match gids_target_list'
@@ -92,7 +92,7 @@ def TEST_ENCOUNTERS(ibs):
 
         assert enctext_list == target_enctexts, 'enctext_list does not match target_enctexts'
 
-        assert names_list == target_names, 'names_list does not match target_names'
+        assert names_list == target_name_text, 'names_list does not match target_name_text'
 
     except AssertionError as ex:
         utool.printex(ex, 'failed test_encounter')

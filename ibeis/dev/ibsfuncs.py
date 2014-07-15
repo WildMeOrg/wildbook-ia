@@ -46,7 +46,7 @@ def inject_ibeis(ibs):
     to_unflatten = [
         ibs.get_annot_uuids,
         ibs.get_image_uuids,
-        ibs.get_names,
+        ibs.get_name_text,
         ibs.get_image_unixtime,
         ibs.get_annot_bboxes,
         ibs.get_annot_thetas,
@@ -224,8 +224,29 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 
 
 @__injectable
+def assert_valid_species(ibs, species_list):
+    if not utool.USE_ASSERT:
+        return
+    assert all([species in constants.VALID_SPECIES
+                for species in species_list]), 'invalid species added'
+
+
+@__injectable
+def assert_singleton_relationship(ibs, alrids_list):
+    if not utool.USE_ASSERT:
+        return
+    try:
+        assert all([len(alrids) == 1 for alrids in alrids_list]),\
+            'must only have one relationship of a type'
+    except AssertionError as ex:
+        parent_locals = utool.get_parent_locals()
+        utool.printex(ex, 'parent_locals=' + utool.dict_str(parent_locals), key_list=['alrids_list', ])
+        raise
+
+
+@__injectable
 def assert_valid_aids(ibs, aid_list):
-    if utool.USE_ASSERT:
+    if not utool.USE_ASSERT:
         return
     valid_aids = set(ibs.get_valid_aids())
     #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
@@ -444,14 +465,28 @@ def delete_ibeis_database(dbdir):
 def assert_valid_names(name_list):
     """ Asserts that user specified names do not conflict with
     the standard unknown name """
-    if utool.USE_ASSERT:
+    if not utool.USE_ASSERT:
         return
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
-    valid_namecheck = [not isconflict(name, constants.INDIVIDUAL_KEY)
-                       for name in name_list]
+    valid_namecheck = [not isconflict(name, constants.UNKNOWN) for name in name_list]
     assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
                                   'cannot start a name with four underscores')
+
+
+def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
+    if not utool.USE_ASSERT:
+        return
+    lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
+    try:
+        assert all([lbltype_rowid == valid_lbltype_rowid
+                    for lbltype_rowid in lbltype_rowid_list]), 'not all types match valid type'
+    except AssertionError as ex:
+        print('[!!!] lbltype_rowid_list = : ' + utool.indentjoin(map(str, lbltype_rowid_list)))
+        print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
+        utool.printex(ex, 'not all types match valid type',
+                      key_list=['valid_lbltype_rowid'])
+        raise
 
 
 def ensure_unix_gpaths(gpath_list):
@@ -459,7 +494,7 @@ def ensure_unix_gpaths(gpath_list):
     Asserts that all paths are given with forward slashes.
     If not it fixes them
     """
-    #if utool.USE_ASSERT:
+    #if not utool.USE_ASSERT:
     #    return
     try:
         msg = ('gpath_list must be in unix format (no backslashes).'
@@ -516,7 +551,7 @@ def normalize_names(name_list):
     return map(normalize_name, name_list)
 
 
-def get_names_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
+def get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
@@ -532,7 +567,7 @@ class FMT_KEYS:
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
 
 
-def get_names_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
+def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image

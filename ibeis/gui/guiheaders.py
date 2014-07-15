@@ -251,7 +251,7 @@ def make_ibeis_headers_dict(ibs):
     iders[NAME_TABLE]   = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
         'nid'        : lambda nids: nids,
-        'name'       : ibs.get_names,
+        'name'       : ibs.get_name_text,
         'nRids'      : ibs.get_name_num_annotations,
         'notes'      : ibs.get_name_notes,
     }
@@ -292,7 +292,7 @@ def make_ibeis_headers_dict(ibs):
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
         'nid'        : lambda nids: nids,
-        'name'       : ibs.get_names,
+        'name'       : ibs.get_name_text,
         'nRids'      : ibs.get_name_num_annotations,
         'aid'        : lambda aids: aids,
         'exemplar'   : ibs.get_annot_exemplar_flag,

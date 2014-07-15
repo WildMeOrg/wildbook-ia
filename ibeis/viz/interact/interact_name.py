@@ -192,12 +192,12 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('remove name', callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             callback = partial(self.rename_annotation_nid1, aid)
-            text = 'change name to: ' + ibs.get_names(self.nid1)
+            text = 'change name to: ' + ibs.get_name_text(self.nid1)
             self.append_button(text, callback=callback, **butkw)
             flag = self.nid1 != self.nid2
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0] and flag:
             callback = partial(self.rename_annotation_nid2, aid)
-            text = 'change name to: ' + ibs.get_names(self.nid2)
+            text = 'change name to: ' + ibs.get_name_text(self.nid2)
             self.append_button(text, callback=callback, **butkw)
 
     def unname_annotation(self, aid, event=None):

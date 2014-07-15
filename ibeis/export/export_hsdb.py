@@ -36,7 +36,7 @@ def export_ibeis_to_hotspotter(ibs):
 
     # Build Name Table
     nid_list       =  ibs.get_valid_nids()
-    name_list      = ibs.get_names(nid_list)
+    name_list      = ibs.get_name_text(nid_list)
     name_table_csv = utool.make_csv_table(
         [nid_list, name_list],
         ['nid', 'name'],

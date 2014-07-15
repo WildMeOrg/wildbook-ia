@@ -59,3 +59,4 @@ tmp.py
 install_prereqs.sh
 __install_prereqs__.sh
 failed.txt
+test_times.txt

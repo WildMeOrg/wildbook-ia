@@ -47,23 +47,17 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            default_decorator, cache_getter,
                                            cache_invalidator, init_tablecache)
 # CONSTANTS
-from ibeis.constants import (IMAGE_TABLE,
-                             ANNOTATION_TABLE,
-                             LBLANNOT_TABLE,
-                             ENCOUNTER_TABLE,
-                             EG_RELATION_TABLE,
-                             AL_RELATION_TABLE,
-                             CHIP_TABLE,
-                             FEATURE_TABLE,
-                             CONFIG_TABLE,
-                             LBLTYPE_TABLE,)
+from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
+                             ENCOUNTER_TABLE, EG_RELATION_TABLE,
+                             AL_RELATION_TABLE, CHIP_TABLE, FEATURE_TABLE,
+                             CONFIG_TABLE, LBLTYPE_TABLE,)
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[ibs]', DEBUG=False)
 
 
-__STR__ = str  # change to unicode if needed
+__STR__ = unicode  # change to unicode if needed
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 
 
@@ -177,12 +171,6 @@ class IBEISController(object):
         ibs.UNKNOWN_NID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-
-        #ibs.lbltype_defaults = dict(constants.KEY_DEFAULTS)
-        # ibs.lbltype_ids = {}
-        # for lbltype_name in constants.KEY_DEFAULTS.iterkeys():
-        #     ibs.lbltype_ids[lbltype_name] = ibs.add_lbltype([lbltype_name], [constants.KEY_DEFAULTS[lbltype_name]])[0]
-        #     #ibs.lbltype_defaults[lbltype_name] = ibs.get_lbltype_default(ibs.lbltype_ids[lbltype_name])
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
@@ -528,9 +516,9 @@ class IBEISController(object):
         encounter_uuid_list = [uuid.uuid4() for _ in xrange(len(enctext_list))]
         colnames = ['encounter_text', 'encounter_uuid', 'encounter_note']
         params_iter = izip(enctext_list, encounter_uuid_list, notes_list)
-        get_rowid_from_uuid = partial(ibs.get_encounter_eids_from_text, ensure=False)
+        get_rowid_from_superkey = partial(ibs.get_encounter_eids_from_text, ensure=False)
 
-        eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return eid_list
 
     @adder
@@ -601,8 +589,8 @@ class IBEISController(object):
         #utool.embed()
 
         # Execute add ANNOTATIONs SQL
-        get_rowid_from_uuid = ibs.get_annot_aids_from_uuid
-        aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
+        aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         if species_list is not None:
             species_list = [species.lower() for species in species_list]
@@ -637,8 +625,9 @@ class IBEISController(object):
         """ Adds an algorithm / actor configuration as a string """
         # FIXME: Configs are still handled poorly
         params_iter = ((suffix,) for suffix in cfgsuffix_list)
-        get_rowid_from_uuid = partial(ibs.get_config_rowid_from_suffix, ensure=False)
-        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',), params_iter, get_rowid_from_uuid)
+        get_rowid_from_superkey = partial(ibs.get_config_rowid_from_suffix, ensure=False)
+        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',),
+                                           params_iter, get_rowid_from_superkey)
         return configid_list
 
     @adder
@@ -662,8 +651,8 @@ class IBEISController(object):
                 raise
             colnames = ('annot_rowid', 'chip_uri', 'chip_width', 'chip_height',
                         'config_rowid',)
-            get_rowid_from_uuid = partial(ibs.get_annot_cids, ensure=False)
-            cid_list = ibs.db.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_uuid)
+            get_rowid_from_superkey = partial(ibs.get_annot_cids, ensure=False)
+            cid_list = ibs.db.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         return cid_list
 
@@ -678,8 +667,8 @@ class IBEISController(object):
             params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
             colnames = ('chip_rowid', 'feature_num_feats', 'feature_keypoints',
                         'feature_sifts', 'config_rowid',)
-            get_rowid_from_uuid = partial(ibs.get_chip_fids, ensure=False)
-            fid_list = ibs.db.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_uuid)
+            get_rowid_from_superkey = partial(ibs.get_chip_fids, ensure=False)
+            fid_list = ibs.db.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         return fid_list
 
@@ -765,7 +754,7 @@ class IBEISController(object):
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
         # naively overwrite the bounding polygon with a rectangle - for now trust the user!
         ibs.set_annot_verts(aid_list, vert_list)
-        colnames = ['annot_xtl', 'annot_ytl', 'annot_width', 'annot_height']
+        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         ibs.db.set(ANNOTATION_TABLE, colnames, bbox_list, aid_list)
 
     @setter
@@ -806,33 +795,6 @@ class IBEISController(object):
         id_iter = ((aid,) for aid in aid_list)
         val_iter = ((notes,) for notes in notes_list)
         ibs.db.set(ANNOTATION_TABLE, ('annot_note',), val_iter, id_iter)
-
-    @setter
-    def set_annot_names(ibs, aid_list, name_list):
-        """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
-        list of annotations.  Convenience function for
-        set_annot_lblannot_from_value"""
-        ibs.set_annot_lblannot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY, ibs.add_names)
-
-    @setter
-    def set_annot_species(ibs, aid_list, species_list):
-        """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_value """
-        species_list = [species.lower() for species in species_list]
-        assert all([species in constants.VALID_SPECIES for species in species_list]), 'invalid species added'
-        ibs.set_annot_lblannot_from_value(aid_list, species_list, constants.SPECIES_KEY, ibs.add_species)
-
-    @setter
-    def set_annot_nids(ibs, aid_list, nid_list):
-        """ Sets names/nids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_rowid """
-        ibs.set_annot_lblannot_from_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY)
-
-    @setter
-    def set_annot_speciesids(ibs, aid_list, speciesid_list):
-        """ Sets species/speciesids of a list of annotations.
-        Convenience function for set_annot_lblannot_from_rowid"""
-        ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, constants.SPECIES_KEY)
 
     # SETTERS::ENCOUNTER
 
@@ -991,7 +953,8 @@ class IBEISController(object):
         """ Returns a list of encounter ids for each image by gid """
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         colnames = ('encounter_rowid',)
-        eids_list = ibs.db.get(EG_RELATION_TABLE, colnames, gid_list, id_colname='image_rowid', unpack_scalars=False)
+        eids_list = ibs.db.get(EG_RELATION_TABLE, colnames, gid_list,
+                               id_colname='image_rowid', unpack_scalars=False)
         return eids_list
 
     @getter_1toM
@@ -1007,7 +970,8 @@ class IBEISController(object):
         # print('gid_list = %r' % (gid_list,))
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         colnames = ('annot_rowid',)
-        aids_list = ibs.db.get(ANNOTATION_TABLE, colnames, gid_list, id_colname='image_rowid', unpack_scalars=False)
+        aids_list = ibs.db.get(ANNOTATION_TABLE, colnames, gid_list,
+                               id_colname='image_rowid', unpack_scalars=False)
         #print('aids_list = %r' % (aids_list,))
         return aids_list
 
@@ -1063,7 +1027,7 @@ class IBEISController(object):
     @getter_1toM
     def get_annot_bboxes(ibs, aid_list):
         """ returns annotation bounding boxes in image space """
-        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height')
+        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         bbox_list = ibs.db.get(ANNOTATION_TABLE, colnames, aid_list)
         return bbox_list
 
@@ -1234,108 +1198,6 @@ class IBEISController(object):
         return nFeats_list
 
     @getter_1toM
-    def get_annot_alrids(ibs, aid_list, configid=None):
-        """ FIXME: func_name
-        Get all the relationship ids belonging to the input annotations
-        if lblannot lbltype is specified the relationship ids are filtered to
-        be only of a specific lbltype/category/type
-        """
-        if configid is None:
-            configid = ibs.MANUAL_CONFIGID
-        params_iter = ((aid, configid) for aid in aid_list)
-        where_clause = 'annot_rowid=? AND config_rowid=?'
-        alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
-                                       where_clause=where_clause, unpack_scalars=False)
-        # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
-        return alrids_list
-
-    @getter_1toM
-    def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid, configid=None):
-        """ FIXME: func_name
-        Get all the relationship ids belonging to the input annotations where the
-        relationship ids are filtered to be only of a specific lbltype/category/type
-        """
-        alrids_list = ibs.get_annot_alrids(aid_list, configid=configid)
-        # Get lblannot_rowid of each relationship
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        # Get the type of each lblannot
-        lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
-        # only want the nids of individuals, not species, for example
-        valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
-        alrids_list = [utool.filter_items(alrids, valids) for alrids, valids in izip(alrids_list, valids_list)]
-        assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
-            ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
-             ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
-        return alrids_list
-
-    @getter_1toM
-    def get_annot_lblannot_rowids(ibs, aid_list, _lbltype=None):
-        """ Returns the name id of each annotation. """
-        # Get all the annotation lblannot relationships
-        # filter out only the ones which specify names
-        assert _lbltype is not None, 'should be using lbltype_rowids anyway'
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        return lblannot_rowids_list
-
-    @utool.accepts_numpy
-    @getter_1to1
-    def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
-        """ Returns the name id of each annotation. """
-        # Get all the annotation lblannot relationships
-        # filter out only the ones which specify names
-        alrids_list  = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-        # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
-        # TODO: get index of highest confidence name
-        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_NID for
-                     lblannot_rowids in lblannot_rowids_list]
-        if distinguish_unknowns:
-            nid_list = [-aid if nid == ibs.UNKNOWN_NID else nid
-                        for nid, aid in izip(nid_list_, aid_list)]
-        else:
-            nid_list = nid_list_
-        return nid_list
-
-    # DEPRICATED
-    #@getter_1to1
-    #def get_annot_lblannots(ibs, aid_list):
-    #    """ for each aid, returns a list of lblannots """
-    #    # FIXME: Not sure what this is
-    #    def _lbltype_dict(aid):
-    #        _dict = {}
-    #        for _lbltype in constants.KEY_DEFAULTS.iterkeys():
-    #            _dict[_lbltype] = ibs.get_annot_lblannot_rowids(aid, _lbltype)
-    #        return _dict
-    #    lbltype_dict_list = [_lbltype_dict(aid) for aid in aid_list]
-    #    return lbltype_dict_list
-
-    @getter_1to1
-    def get_annot_lblannot_value_of_lbltype(ibs, aid_list, _lbltype, lblannot_value_getter):
-        """ Returns a list of strings ['fred', 'sue', ...] for each chip
-            identifying the animal
-        """
-        lbltype_dict_list = ibs.get_annot_lblannot_rowids(aid_list, _lbltype)
-        default = constants.KEY_DEFAULTS[_lbltype]
-        # FIXME: Use filters and unflat maps
-        lblannot_value_list = [lblannot_value_getter(lblannot_rowids)[0]
-                               if len(lblannot_rowids) > 0 else default
-                               for lblannot_rowids in lbltype_dict_list]
-        return lblannot_value_list
-
-    @getter_1to1
-    def get_annot_names(ibs, aid_list):
-        """ Returns a list of strings ['fred', 'sue', ...] for each chip
-            identifying the individual """
-        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, constants.INDIVIDUAL_KEY, ibs.get_names)
-
-    @getter_1to1
-    def get_annot_species(ibs, aid_list):
-        """ Returns a list of strings ['fred', 'sue', ...] for each chip
-            identifying the species """
-        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, constants.SPECIES_KEY, ibs.get_species)
-
-    @getter_1toM
     def get_annot_groundtruth(ibs, aid_list, is_exemplar=None):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
@@ -1372,194 +1234,6 @@ class IBEISController(object):
         numgts_list = ibs.get_annot_num_groundtruth(aid_list)
         has_gt_list = [num_gts > 0 for num_gts in numgts_list]
         return has_gt_list
-
-    #
-    # GETTERS::AL_RELATION_TABLE
-
-    @getter_1to1
-    def get_alr_confidence(ibs, alrid_list):
-        """ returns confidence in an annotation relationship """
-        alr_confidence_list = ibs.db.get(AL_RELATION_TABLE, ('alr_confidence',), alrid_list)
-        return alr_confidence_list
-
-    @getter_1to1
-    def get_alr_rowid_from_label_and_config(ibs, aid_list, lblannot_rowid_list, configid_list):
-        """
-        Input: lblannotid_list (label id) + configid_list
-        Output: annot-label relationship id list
-        """
-        colnames = ('annot_rowid',)
-        params_iter = izip(aid_list, lblannot_rowid_list, configid_list)
-        where_clause = 'annot_rowid=? AND lblannot_rowid=? AND config_rowid=?'
-        alrid_list = ibs.db.get_where(AL_RELATION_TABLE, colnames, params_iter, where_clause)
-        return alrid_list
-
-    @getter_1to1
-    def get_alr_lblannot_rowids(ibs, alrid_list):
-        """ get the lblannot_rowid belonging to each relationship """
-        lblannot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('lblannot_rowid',), alrid_list)
-        return lblannot_rowids_list
-
-    #
-    # GETTERS::EG_RELATION_TABLE
-
-    @getter_1to1
-    def get_egr_rowid_from_valtup(ibs, gid_list, eid_list):
-        """ Gets eg-relate-ids from info constrained to be unique (eid, gid) """
-        colnames = ('image_rowid',)
-        params_iter = izip(gid_list, eid_list)
-        where_clause = 'image_rowid=? AND encounter_rowid=?'
-        egrid_list = ibs.db.get_where(EG_RELATION_TABLE, colnames, params_iter, where_clause)
-        return egrid_list
-
-    #
-    # GETTERS::LBLTYPE
-
-    @getter_1to1
-    def get_lbltype_rowid_from_text(ibs, text_list):
-        """ Returns lbltype_rowid where the lbltype_text is given """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        # FIXME: Use unique SUPERKEYS instead of specifying id_colname
-        lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')
-        return lbltype_rowid
-
-    @getter_1to1
-    def get_lbltype_default(ibs, lbltype_rowid_list):
-        """ Returns the labeltype default value """
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        lbltype_defaults = ibs.db.get(LBLTYPE_TABLE, ('lbltype_default',), lbltype_rowid_list)
-        return lbltype_defaults
-
-    #
-    # GETTERS::LBLANNOT_TABLE
-
-    @getter_1to1
-    def get_lblannot_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
-        """
-        Gets lblannot_rowid_list from the superkey (lbltype, value)
-        """
-        colnames = ('lblannot_rowid',)
-        params_iter = izip(lbltype_rowid_list, value_list)
-        where_clause = 'lbltype_rowid=? AND lblannot_value=?'
-        lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, colnames, params_iter, where_clause)
-        return lblannot_rowid_list
-
-    #@getter_1to1
-    #def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):
-    #    # FIXME: MAKE SQL-METHOD FOR SUPERKEY GETTERS
-    #    lblannot_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_rowid',),
-    #                                     lblannot_uuid_list, id_colname='lblannot_uuid')
-    #    return lblannot_rowid_list
-
-    @getter_1to1
-    def get_lblannot_rowids_from_values(ibs, value_list, lbltype_rowid):
-        params_iter = [(value, lbltype_rowid) for value in value_list]
-        where_clause = 'lblannot_value=? AND lbltype_rowid=?'
-        lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, ('lblannot_rowid',), params_iter, where_clause)
-        return lblannot_rowid_list
-
-    @getter_1to1
-    def get_lblannot_uuids(ibs, lblannot_rowid_list):
-        lblannotuuid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_uuid',), lblannot_rowid_list)
-        return lblannotuuid_list
-
-    @getter_1to1
-    def get_lblannot_lbltypes_rowids(ibs, lblannot_rowid_list):
-        lbltype_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lbltype_rowid',), lblannot_rowid_list)
-        return lbltype_rowid_list
-
-    @getter_1to1
-    def get_lblannot_values(ibs, lblannot_rowid_list):
-        lblannotvalues_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
-        return lblannotvalues_list
-
-    @getter_1to1
-    def get_lblannot_notes(ibs, lblannot_rowid_list):
-        lblannotnotes_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_note',), lblannot_rowid_list)
-        return lblannotnotes_list
-
-    @getter_1to1
-    def get_lblannots(ibs, lblannot_rowid_list, _lbltype=None):
-        """ Returns text lblannots """
-        #print('get_lblannots: %r' % lblannot_rowid_list)
-        # Change the temporary negative indexes back to the unknown NID for the
-        # SQL query. Then augment the lblannot list to distinguish unknown lblannots
-        lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
-        if utool.USE_ASSERT:
-            assert _lbltype is not None
-            assert all([lbltype == ibs.lbltype_ids[_lbltype]
-                        for lbltype in lbltype_rowid_list]), 'lblannot_rowids are not individual_ids'
-        lblannot_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
-        return lblannot_list
-
-    #
-    # GETTERS::SPECIES (subset of LBLANNOTS_TABLE)
-
-    @getter_1to1
-    def get_species(ibs, speciesid_list):
-        """ Returns text names """
-        species_list = ibs.get_lblannots(speciesid_list, constants.SPECIES_KEY)
-        return species_list
-
-    #
-    # GETTERS::NAME (subset of LBLANNOTS_TABLE)
-
-    @getter_1to1
-    def get_name_nids(ibs, name_list, ensure=True):
-        """ Returns nid_list. Creates one if it doesnt exist """
-        if ensure:
-            nid_list = ibs.add_names(name_list)
-            return nid_list
-        lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
-        lbltype_rowid_list = [lbltype_rowid] * len(name_list)
-        nid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, name_list)
-        return nid_list
-
-    @getter_1to1
-    def get_names(ibs, nid_list):
-        """ Returns text names """
-        name_list = ibs.get_lblannots(nid_list, constants.INDIVIDUAL_KEY)
-        return name_list
-
-    @getter_1toM
-    def get_name_aids(ibs, nid_list):
-        """ returns a list of list of cids in each name """
-        where_clause = 'lblannot_rowid=?'
-        params_iter = [(nid,) for nid in nid_list]
-        aids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
-                                     where_clause, unpack_scalars=False)
-        return aids_list
-
-    @getter_1toM
-    def get_name_annotation_bboxes(ibs, nid_list):
-        aids_list = ibs.get_name_aids(nid_list)
-        bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
-        return bboxes_list
-
-    @getter_1to1
-    def get_name_thumbtups(ibs, nid_list):
-        aids_list = ibs.get_name_aids(nid_list)
-        thumbtups_list_ = ibsfuncs.unflat_map(ibs.get_annot_chip_thumbtup, aids_list)
-        thumbtups_list = utool.flatten(thumbtups_list_)
-        return thumbtups_list
-
-    @getter_1to1
-    def get_name_num_annotations(ibs, nid_list):
-        """ returns the number of detections for each name """
-        return list(imap(len, ibs.get_name_aids(nid_list)))
-
-    @getter_1to1
-    def get_name_notes(ibs, nid_list):
-        """ Returns name notes """
-        notes_list = ibs.get_lblannot_notes(nid_list)
-        return notes_list
-
-    @getter_1toM
-    def get_name_gids(ibs, nid_list):
-        """ Returns the image ids associated with name ids"""
-        aids_list = ibs.get_name_aids(nid_list)
-        gids_list = ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)
-        return gids_list
 
     #
     # GETTERS::CHIP_TABLE
@@ -1740,20 +1414,6 @@ class IBEISController(object):
     #-----------------
 
     @deleter
-    #@cache_invalidator(LBLANNOT_TABLE)
-    def delete_names(ibs, nid_list):
-        """ deletes names from the database (CAREFUL. YOU PROBABLY DO NOT WANT
-        TO USE THIS ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE) """
-        ibs.delete_lblannots(nid_list)
-
-    @deleter
-    def delete_lblannots(ibs, lblannot_rowid_list):
-        """ deletes lblannots from the database """
-        if utool.VERBOSE:
-            print('[ibs] deleting %d lblannots' % len(lblannot_rowid_list))
-        ibs.db.delete_rowids(LBLANNOT_TABLE, lblannot_rowid_list)
-
-    @deleter
     @cache_invalidator(ANNOTATION_TABLE)
     def delete_annots(ibs, aid_list):
         """ deletes annotations from the database """
@@ -1762,32 +1422,6 @@ class IBEISController(object):
         # Delete chips and features first
         ibs.delete_annot_chips(aid_list)
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
-
-    @deleter
-    def delete_annot_lblannot_rowids(ibs, aid_list, _lbltype):
-        """ Deletes nids of a list of annotations """
-        # Ensure we are setting true nids (not temporary distinguished nids)
-        # nids are really special lblannot_rowids
-        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        # BAD BAD BAD!!
-        #for alrid in alrids_list:
-        #    ibs.db.delete_rowids(AL_RELATION_TABLE, alrid)
-        alrid_list = utool.flatten(alrids_list)
-        ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
-
-    @deleter
-    def delete_annot_nids(ibs, aid_list):
-        """ Deletes nids of a list of annotations """
-        # FIXME: This should be implicit by setting the anotation name to the
-        # unknown name
-        ibs.delete_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
-
-    @deleter
-    def delete_annot_speciesids(ibs, aid_list):
-        """ Deletes nids of a list of annotations """
-        # FIXME: This should be implicit by setting the anotation name to the
-        # unknown species
-        ibs.delete_annot_lblannot_rowids(aid_list, constants.SPECIES_KEY)
 
     @deleter
     def delete_images(ibs, gid_list):
@@ -2050,19 +1684,150 @@ class IBEISController(object):
     # IN QUESTION
     #--------------
 
+    # SETTERS::ALR
+
     @setter
-    def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, adder):
+    def set_alr_lblannot_rowids(ibs, alrid_list, lblannot_rowid_list):
+        """ Associates whatever annotation is at row(alrid) with a new
+        lblannot_rowid. (effectively changes the label value of the rowid)
+        """
+        id_iter = ((alrid,) for alrid in alrid_list)
+        val_iter = ((lblannot_rowid,) for lblannot_rowid in lblannot_rowid_list)
+        colnames = ('lblannot_rowid',)
+        ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
+
+    @setter
+    def set_alr_confidence(ibs, alrid_list, confidence_list):
+        """ sets annotation-lblannot-relationship confidence """
+        id_iter = ((alrid,) for alrid in alrid_list)
+        val_iter = ((confidence,) for confidence in confidence_list)
+        colnames = ('alr_confidence',)
+        ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
+
+    # ADDERS::ALR
+
+    @adder
+    def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, configid_list=None,
+                                    alr_confidence_list=None):
+        """ Adds a relationship between annots and lblannots
+            (annotations and labels of annotations) """
+        if configid_list is None:
+            configid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
+        if alr_confidence_list is None:
+            alr_confidence_list = [0.0] * len(aid_list)
+        colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence',)
+        params_iter = list(izip(aid_list, lblannot_rowid_list, configid_list, alr_confidence_list))
+        get_rowid_from_superkey = ibs.get_alrid_from_superkey
+        superkey_paramx = (0, 1, 3)
+        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
+                                        get_rowid_from_superkey, superkey_paramx)
+        return alrid_list
+
+    @getter_1to1
+    def get_alrid_from_superkey(ibs, aid_list, lblannot_rowid_list, configid_list):
+        """
+        Input: lblannotid_list (label id) + configid_list
+        Output: annot-label relationship id list
+        """
+        colnames = ('annot_rowid',)
+        params_iter = izip(aid_list, lblannot_rowid_list, configid_list)
+        where_clause = 'annot_rowid=? AND lblannot_rowid=? AND config_rowid=?'
+        alrid_list = ibs.db.get_where(AL_RELATION_TABLE, colnames, params_iter, where_clause)
+        return alrid_list
+
+    #
+    # GETTERS::AL_RELATION_TABLE
+
+    @getter_1to1
+    def get_alr_confidence(ibs, alrid_list):
+        """ returns confidence in an annotation relationship """
+        alr_confidence_list = ibs.db.get(AL_RELATION_TABLE, ('alr_confidence',), alrid_list)
+        return alr_confidence_list
+
+    @getter_1to1
+    def get_alr_lblannot_rowids(ibs, alrid_list):
+        """ get the lblannot_rowid belonging to each relationship """
+        lblannot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('lblannot_rowid',), alrid_list)
+        return lblannot_rowids_list
+
+    # ADDERS::IMAGE->ENCOUNTER
+
+    @adder
+    def add_image_relationship(ibs, gid_list, eid_list):
+        """ Adds a relationship between an image and and encounter """
+        colnames = ('image_rowid', 'encounter_rowid',)
+        params_iter = list(izip(gid_list, eid_list))
+        get_rowid_from_superkey = ibs.get_egr_rowid_from_superkey
+        superkey_paramx = (0, 1)
+        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
+                                        get_rowid_from_superkey, superkey_paramx)
+        return egrid_list
+
+    # SETTERS::LBLANNOT(NAME)
+
+    @setter
+    def set_name_notes(ibs, nid_list, notes_list):
+        """ Sets notes of names (groups of animals) """
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        ibs.set_lblannot_notes(nid_list, notes_list)
+
+    @setter
+    def set_name_names(ibs, nid_list, name_list):
+        """ Changes the name text. Does not affect the animals of this name.
+        Effectively an alias.
+        """
+        ibsfuncs.assert_valid_names(name_list)
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        ibs.set_lblannot_values(nid_list, name_list)
+
+    # SETTERS::LBLANNOT
+
+    def set_lblannot_values(ibs, lblannot_rowid_list, value_list):
+        """ Updates the value for lblannots. Note this change applies to
+        all annotations related to this lblannot_rowid """
+        id_iter = ((rowid,) for rowid in lblannot_rowid_list)
+        val_list = ((value,) for value in value_list)
+        ibs.db.set(LBLANNOT_TABLE, ('lblannot_value',), val_list, id_iter)
+
+    def set_lblannot_notes(ibs, lblannot_rowid_list, value_list):
+        """ Updates the value for lblannots. Note this change applies to
+        all annotations related to this lblannot_rowid """
+        id_iter = ((rowid,) for rowid in lblannot_rowid_list)
+        val_list = ((value,) for value in value_list)
+        ibs.db.set(LBLANNOT_TABLE, ('lblannot_note',), val_list, id_iter)
+
+    # SETTERS::ANNOT->LBLANNOT(NAME)
+
+    @setter
+    def set_annot_names(ibs, aid_list, name_list):
+        """ Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
+        list of annotations.  Convenience function for
+        set_annot_lblannot_from_value"""
+        ibs.set_annot_lblannot_from_value(aid_list, name_list, constants.INDIVIDUAL_KEY)
+
+    @setter
+    def set_annot_species(ibs, aid_list, species_list):
+        """ Sets species/speciesids of a list of annotations.
+        Convenience function for set_annot_lblannot_from_value """
+        species_list = [species.lower() for species in species_list]
+        ibsfuncs.assert_valid_species(ibs, species_list)
+        ibs.set_annot_lblannot_from_value(aid_list, species_list, constants.SPECIES_KEY)
+
+    @setter
+    def set_annot_lblannot_from_value(ibs, aid_list, value_list, _lbltype, ensure=True):
         """ Associates the annot and lblannot of a specific type and value
         Adds the lblannot if it doesnt exist.
         Wrapper around convenience function for set_annot_from_lblannot_rowid
         """
         assert value_list is not None
         assert _lbltype is not None
+        if ensure:
+            pass
+
         # a value consisting of an empty string or all spaces is set to the default
         DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
         EMPTY_KEY = constants.EMPTY_KEY
-        # Set empty values to the default
-        # setting a name to '____' is equivalent to unnaming it
+        # setting a name to DEFAULT_VALUE or EMPTY is equivalent to unnaming it
         value_list_ = [DEFAULT_VALUE if value.strip() == EMPTY_KEY else value for value in value_list]
         notdefault_list = [value != DEFAULT_VALUE for value in value_list_]
         aid_list_to_delete = utool.get_dirty_items(aid_list, notdefault_list)
@@ -2075,9 +1840,25 @@ class IBEISController(object):
         # FIXME: This function should not be able to set label realationships
         # to labels that have not been added!!
         # This is an inefficient way of getting lblannot_rowids!
-        lblannot_rowid_list = adder(values_to_set)
+        lbltype_rowid_list = [ibs.lbltype_ids[_lbltype]] * len(values_to_set)
+        # auto ensure
+        lblannot_rowid_list = ibs.add_lblannots(lbltype_rowid_list, values_to_set)
         # Call set_annot_from_lblannot_rowid to finish the conditional adding
         ibs.set_annot_lblannot_from_rowid(aids_to_set, lblannot_rowid_list, _lbltype)
+
+    @setter
+    def set_annot_nids(ibs, aid_list, nid_list):
+        """ Sets names/nids of a list of annotations.
+        Convenience function for set_annot_lblannot_from_rowid """
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        ibs.set_annot_lblannot_from_rowid(aid_list, nid_list, constants.INDIVIDUAL_KEY)
+
+    @setter
+    def set_annot_speciesids(ibs, aid_list, speciesid_list):
+        """ Sets species/speciesids of a list of annotations.
+        Convenience function for set_annot_lblannot_from_rowid"""
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, speciesid_list, ibs.lbltype_ids[constants.SPECIES_KEY])
+        ibs.set_annot_lblannot_from_rowid(aid_list, speciesid_list, constants.SPECIES_KEY)
 
     @setter
     def set_annot_lblannot_from_rowid(ibs, aid_list, lblannot_rowid_list, _lbltype):
@@ -2092,56 +1873,34 @@ class IBEISController(object):
         # set the existing relationship if one already exists
         alrids_list_to_set = utool.filter_items(alrids_list, setflag_list)
         lblannot_rowid_list_to_set = utool.filter_items(lblannot_rowid_list, setflag_list)
-        try:
-            assert all([len(alrids) == 1 for alrids in alrids_list_to_set]),\
-                'must only have one relationship of a type'
-        except AssertionError as ex:
-            utool.printex(ex, key_list=[
-                '_lbltype',
-                'alrids',
-                'aid_list',
-                'lblannot_rowid_list',
-                'alrids_list_to_set',
-            ])
-            raise
+        # Assert each annot has only one relationship of this type
+        ibsfuncs.assert_singleton_relationship(ibs, alrids_list_to_set)
         alrid_list_to_set = utool.flatten(alrids_list_to_set)
         # Add the new relationships
         ibs.add_annot_relationship(aid_list_to_add, lblannot_rowid_list_to_add)
         # Set the old relationships
         ibs.set_alr_lblannot_rowids(alrid_list_to_set, lblannot_rowid_list_to_set)
 
-    # SETTERS::NAME
+    # ADDERS::LBLANNOT
 
-    @setter
-    def set_name_notes(ibs, nid_list, notes_list):
-        """ Sets notes of names (groups of animals) """
-        id_iter = ((nid,) for nid in nid_list)
-        val_list = ((notes,) for notes in notes_list)
-        ibs.db.set(LBLANNOT_TABLE, ('lblannot_note',), val_list, id_iter)
-
-    @setter
-    def set_name_names(ibs, nid_list, name_list):
-        """ Changes the name text. Does not affect the animals of this name """
-        ibsfuncs.assert_valid_names(name_list)
-        id_iter = ((nid,) for nid in nid_list)
-        val_list = ((name,) for name in name_list)
-        ibs.db.set(LBLANNOT_TABLE, ('lblannot_value',), val_list, id_iter)
-
-    # SETTERS::ALR
-
-    @setter
-    def set_alr_lblannot_rowids(ibs, alrid_list, lblannot_rowid_list):
-        ibs.db.set(AL_RELATION_TABLE, ('lblannot_rowid',), lblannot_rowid_list, alrid_list)
-
-    @setter
-    def set_alr_confidence(ibs, alrid_list, confidence_list):
-        """ sets annotation-lblannot-relationship confidence """
-        id_iter = ((alrid,) for alrid in alrid_list)
-        val_iter = ((confidence,) for confidence in confidence_list)
-        colnames = ('alr_confidence')
-        ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
-
-    # INQUESTION::adders
+    @adder
+    def add_lblannots(ibs, lbltype_rowid_list, value_list, note_list=None):
+        """ Adds new lblannots (labels of annotations)
+        creates a new uuid for any new pair(type, value)
+        JON.OKISH
+        #TODO: reverse order of rowid_list value_list in input
+        """
+        if note_list is None:
+            note_list = [''] * len(value_list)
+        # Get random uuids
+        lblannot_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
+        colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
+        params_iter = list(izip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
+        get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
+        superkey_paramx = (1, 2)
+        lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
+                                                 get_rowid_from_superkey, superkey_paramx)
+        return lblannot_rowid_list
 
     @adder
     def add_names(ibs, name_list, note_list=None):
@@ -2167,55 +1926,285 @@ class IBEISController(object):
         speciesid_list = ibs.add_lblannots(lbltype_rowid_list, species_list, note_list)
         return speciesid_list
 
+    # INVESTIGATE::adders
+
     @adder
     def add_lbltype(ibs, text_list, default_list):
-        """ Adds a label type and its default value """
+        """ Adds a label type and its default value
+        Should only be called at the begining of the program.
+        JON.OK
+        """
         params_iter = izip(text_list, default_list)
-        lbltype_rowid_list = ibs.db.add_cleanly(LBLTYPE_TABLE, ('lbltype_text', 'lbltype_default'), params_iter, ibs.get_lbltype_rowid_from_text)
+        colnames = ('lbltype_text', 'lbltype_default',)
+        get_rowid_from_superkey = ibs.get_lbltype_rowid_from_text
+        lbltype_rowid_list = ibs.db.add_cleanly(LBLTYPE_TABLE, colnames, params_iter,
+                                                get_rowid_from_superkey)
         return lbltype_rowid_list
 
-    @adder
-    def add_lblannots(ibs, lbltype_rowid_list, value_list, note_list=None):
-        """ Adds new lblannots (labels of annotations)
-        creates a new uuid for any new pair(type, value)
-        JON.OKISH_STAMP
-        #TODO: reverse order of rowid_list value_list in input
+    # INVEST::getters
+
+    @getter_1toM
+    def get_annot_alrids(ibs, aid_list, configid=None):
+        """ FIXME: func_name
+        Get all the relationship ids belonging to the input annotations
+        if lblannot lbltype is specified the relationship ids are filtered to
+        be only of a specific lbltype/category/type
         """
-        if note_list is None:
-            note_list = [''] * len(value_list)
-        # Get random uuids
-        lblannot_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
-        colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
-        params_iter = list(izip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
-        lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
-                                                 ibs.get_lblannot_rowid_from_superkey,
-                                                 superkey_paramx=[1, 2])
+        if configid is None:
+            configid = ibs.MANUAL_CONFIGID
+        params_iter = ((aid, configid) for aid in aid_list)
+        where_clause = 'annot_rowid=? AND config_rowid=?'
+        alrids_list = ibs.db.get_where(AL_RELATION_TABLE, ('alr_rowid',), params_iter,
+                                       where_clause=where_clause, unpack_scalars=False)
+        # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
+        return alrids_list
+
+    @getter_1toM
+    def get_annot_alrids_oftype(ibs, aid_list, lbltype_rowid, configid=None):
+        """
+        Get all the relationship ids belonging to the input annotations where the
+        relationship ids are filtered to be only of a specific lbltype/category/type
+        """
+        alrids_list = ibs.get_annot_alrids(aid_list, configid=configid)
+        # Get lblannot_rowid of each relationship
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        # Get the type of each lblannot
+        lbltype_rowids_list = ibsfuncs.unflat_map(ibs.get_lblannot_lbltypes_rowids, lblannot_rowids_list)
+        # only want the nids of individuals, not species, for example
+        valids_list = [[typeid == lbltype_rowid for typeid in rowids] for rowids in lbltype_rowids_list]
+        alrids_list = [utool.filter_items(alrids, valids) for alrids, valids in izip(alrids_list, valids_list)]
+        assert all([len(alrid_list) < 2 for alrid_list in alrids_list]),\
+            ("More than one type per lbltype.  ALRIDS: " + str(alrids_list) +
+             ", ROW: " + str(lbltype_rowid) + ", KEYS:" + str(ibs.lbltype_ids))
+        return alrids_list
+
+    @getter_1toM
+    def get_annot_lblannot_rowids(ibs, aid_list, _lbltype=None):
+        """ Returns the name id of each annotation. """
+        # Get all the annotation lblannot relationships
+        # filter out only the ones which specify names
+        assert _lbltype is not None, 'should be using lbltype_rowids anyway'
+        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        return lblannot_rowids_list
+
+    @utool.accepts_numpy
+    @getter_1to1
+    def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
+        """ Returns the name id of each annotation. """
+        # Get all the annotation lblannot relationships
+        # filter out only the ones which specify names
+        alrids_list  = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
+        # TODO: get index of highest confidence name
+        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_NID for
+                     lblannot_rowids in lblannot_rowids_list]
+        if distinguish_unknowns:
+            nid_list = [-aid if nid == ibs.UNKNOWN_NID else nid
+                        for nid, aid in izip(nid_list_, aid_list)]
+        else:
+            nid_list = nid_list_
+        return nid_list
+
+    # DELTERS
+
+    @deleter
+    #@cache_invalidator(LBLANNOT_TABLE)
+    def delete_names(ibs, nid_list):
+        """ deletes names from the database (CAREFUL. YOU PROBABLY DO NOT WANT
+        TO USE THIS ENSURE THAT NONE OF THE NIDS HAVE ANNOTATION_TABLE) """
+        ibs.delete_lblannots(nid_list)
+
+    @deleter
+    def delete_lblannots(ibs, lblannot_rowid_list):
+        """ deletes lblannots from the database """
+        if utool.VERBOSE:
+            print('[ibs] deleting %d lblannots' % len(lblannot_rowid_list))
+        ibs.db.delete_rowids(LBLANNOT_TABLE, lblannot_rowid_list)
+
+    @deleter
+    def delete_annot_lblannot_rowids(ibs, aid_list, _lbltype):
+        """ Deletes nids of a list of annotations """
+        # Ensure we are setting true nids (not temporary distinguished nids)
+        # nids are really special lblannot_rowids
+        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
+        # BAD BAD BAD!!
+        #for alrid in alrids_list:
+        #    ibs.db.delete_rowids(AL_RELATION_TABLE, alrid)
+        alrid_list = utool.flatten(alrids_list)
+        ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
+
+    @deleter
+    def delete_annot_nids(ibs, aid_list):
+        """ Deletes nids of a list of annotations """
+        # FIXME: This should be implicit by setting the anotation name to the
+        # unknown name
+        ibs.delete_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
+
+    @deleter
+    def delete_annot_speciesids(ibs, aid_list):
+        """ Deletes nids of a list of annotations """
+        # FIXME: This should be implicit by setting the anotation name to the
+        # unknown species
+        ibs.delete_annot_lblannot_rowids(aid_list, constants.SPECIES_KEY)
+
+    # MORE GETTERS
+
+    @getter_1to1
+    def get_annot_lblannot_value_of_lbltype(ibs, aid_list, _lbltype, lblannot_value_getter):
+        """ Returns a list of strings ['fred', 'sue', ...] for each chip
+            identifying the animal
+        """
+        lbltype_dict_list = ibs.get_annot_lblannot_rowids(aid_list, _lbltype)
+        default = constants.KEY_DEFAULTS[_lbltype]
+        # FIXME: Use filters and unflat maps
+        lblannot_value_list = [lblannot_value_getter(lblannot_rowids)[0]
+                               if len(lblannot_rowids) > 0 else default
+                               for lblannot_rowids in lbltype_dict_list]
+        return lblannot_value_list
+
+    @getter_1to1
+    def get_annot_names(ibs, aid_list):
+        """ Returns a list of strings ['fred', 'sue', ...] for each chip
+            identifying the individual """
+        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, constants.INDIVIDUAL_KEY, ibs.get_name_text)
+
+    @getter_1to1
+    def get_annot_species(ibs, aid_list):
+        """ Returns a list of strings ['fred', 'sue', ...] for each chip
+            identifying the species """
+        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, constants.SPECIES_KEY, ibs.get_species)
+
+    #
+    # GETTERS::EG_RELATION_TABLE
+
+    @getter_1to1
+    def get_egr_rowid_from_superkey(ibs, gid_list, eid_list):
+        """ Gets eg-relate-ids from info constrained to be unique (eid, gid) """
+        colnames = ('image_rowid',)
+        params_iter = izip(gid_list, eid_list)
+        where_clause = 'image_rowid=? AND encounter_rowid=?'
+        egrid_list = ibs.db.get_where(EG_RELATION_TABLE, colnames, params_iter, where_clause)
+        return egrid_list
+
+    #
+    # GETTERS::LBLTYPE
+
+    @getter_1to1
+    def get_lbltype_rowid_from_text(ibs, text_list):
+        """ Returns lbltype_rowid where the lbltype_text is given """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        # FIXME: Use unique SUPERKEYS instead of specifying id_colname
+        lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')
+        return lbltype_rowid
+
+    #
+    # GETTERS::LBLANNOT_TABLE
+
+    @getter_1to1
+    def get_lblannot_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
+        """
+        Gets lblannot_rowid_list from the superkey (lbltype, value)
+        """
+        colnames = ('lblannot_rowid',)
+        params_iter = izip(lbltype_rowid_list, value_list)
+        where_clause = 'lbltype_rowid=? AND lblannot_value=?'
+        lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, colnames, params_iter, where_clause)
         return lblannot_rowid_list
 
-    @adder
-    def add_annot_relationship(ibs, aid_list, lblannot_rowid_list, configid_list=None,
-                                    alr_confidence_list=None):
-        """ Adds a relationship between annots and lblannots
-            (annotations and labels of annotations) """
-        if configid_list is None:
-            configid_list = [ibs.MANUAL_CONFIGID] * len(aid_list)
-        if alr_confidence_list is None:
-            alr_confidence_list = [0.0] * len(aid_list)
-        colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence')
-        params_iter = list(izip(aid_list, lblannot_rowid_list, configid_list, alr_confidence_list))
-        get_rowid_from_uuid = ibs.get_alr_rowid_from_label_and_config
-        alrid_list = ibs.db.add_cleanly(AL_RELATION_TABLE, colnames, params_iter,
-                                        get_rowid_from_uuid, superkey_paramx=range(0, 3))
-        return alrid_list
+    @getter_1to1
+    def get_lblannot_uuids(ibs, lblannot_rowid_list):
+        lblannotuuid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_uuid',), lblannot_rowid_list)
+        return lblannotuuid_list
 
-    @adder
-    def add_image_relationship(ibs, gid_list, eid_list):
-        """ Adds a relationship between an image and and encounter """
-        colnames = ('image_rowid', 'encounter_rowid')
-        params_iter = list(izip(gid_list, eid_list))
-        egrid_list = ibs.db.add_cleanly(EG_RELATION_TABLE, colnames, params_iter,
-                                        ibs.get_egr_rowid_from_valtup, superkey_paramx=range(0, 2))
-        return egrid_list
+    @getter_1to1
+    def get_lblannot_lbltypes_rowids(ibs, lblannot_rowid_list):
+        lbltype_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lbltype_rowid',), lblannot_rowid_list)
+        return lbltype_rowid_list
+
+    @getter_1to1
+    def get_lblannot_notes(ibs, lblannot_rowid_list):
+        lblannotnotes_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_note',), lblannot_rowid_list)
+        return lblannotnotes_list
+
+    @getter_1to1
+    def get_lblannot_values(ibs, lblannot_rowid_list, _lbltype=None):
+        """ Returns text lblannots """
+        if utool.USE_ASSERT:
+            assert _lbltype is not None
+            ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])
+
+        lblannot_value_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
+        return lblannot_value_list
+
+    #
+    # GETTERS::SPECIES (subset of LBLANNOTS_TABLE)
+
+    @getter_1to1
+    def get_species(ibs, speciesid_list):
+        """ Returns text names """
+        species_list = ibs.get_lblannot_values(speciesid_list, constants.SPECIES_KEY)
+        return species_list
+
+    #
+    # GETTERS::NAME (subset of LBLANNOTS_TABLE)
+
+    @getter_1to1
+    def get_name_nids(ibs, name_list, ensure=True):
+        """ Returns nid_list. Creates one if it doesnt exist """
+        if ensure:
+            nid_list = ibs.add_names(name_list)
+            return nid_list
+        lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
+        lbltype_rowid_list = [lbltype_rowid] * len(name_list)
+        nid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, name_list)
+        return nid_list
+
+    @getter_1to1
+    def get_name_text(ibs, nid_list):
+        """ Returns text names """
+        # TODO:
+        # Change the temporary negative indexes back to the unknown NID for the
+        # SQL query. Then augment the lblannot list to distinguish unknown lblannots
+        name_list = ibs.get_lblannot_values(nid_list, constants.INDIVIDUAL_KEY)
+        return name_list
+
+    @getter_1toM
+    def get_name_aids(ibs, nid_list):
+        """ returns a list of list of cids in each name """
+        where_clause = 'lblannot_rowid=?'
+        params_iter = [(nid,) for nid in nid_list]
+        aids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
+                                     where_clause, unpack_scalars=False)
+        return aids_list
+
+    @getter_1to1
+    def get_name_num_annotations(ibs, nid_list):
+        """ returns the number of detections for each name """
+        return list(imap(len, ibs.get_name_aids(nid_list)))
+
+    @getter_1to1
+    def get_name_notes(ibs, nid_list):
+        """ Returns name notes """
+        notes_list = ibs.get_lblannot_notes(nid_list)
+        return notes_list
+
+    @getter_1toM
+    def get_name_gids(ibs, nid_list):
+        """ Returns the image ids associated with name ids"""
+        aids_list = ibs.get_name_aids(nid_list)
+        gids_list = ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)
+        return gids_list
+
+    ## NEW
+
+    @getter_1to1
+    def get_annot_meta_lblannot_rowids(ibs, aid_list, _lbltype):
+        """ ugg """
+        #get_lblannot_values
+        getter = partial(ibs.get_lblannot_values, _lbltype=constants.INDIVIDUAL_KEY)
+        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, _lbltype, getter)
 
     @adder
     def add_meta_lblannots(ibs, value_list, note_list=None, _lbltype=None):
@@ -2228,12 +2217,4 @@ class IBEISController(object):
     @setter
     def set_annot_meta_lblannot_values(ibs, aid_list, value_list, _lbltype):
         """ docstr """
-        adder = partial(ibs.add_lblannots)
-        return ibs.set_annot_lblannot_from_value(aid_list, value_list, _lbltype, adder)
-
-    @getter_1to1
-    def get_annot_meta_lblannot_rowids(ibs, aid_list, _lbltype):
-        """ ugg """
-        #get_lblannot_values
-        getter = partial(ibs.get_lblannots, _lbltype=constants.INDIVIDUAL_KEY)
-        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, _lbltype, getter)
+        return ibs.set_annot_lblannot_from_value(aid_list, value_list, _lbltype)

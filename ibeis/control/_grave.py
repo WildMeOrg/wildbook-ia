@@ -111,8 +111,8 @@
         #    lbltype_rowid_list = [ibs.INDIVIDUAL_KEY for name in name_list]
         #    new_nid_list = ibs.add_lblannots(lbltype_rowid_list, dirty_names, notes_list)
         #    #print('new_nid_list = %r' % (new_nid_list,))
-        #    #get_rowid_from_uuid = partial(ibs.get_name_nids, ensure=False)
-        #    #new_nid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        #    #get_rowid_from_superkey = partial(ibs.get_name_nids, ensure=False)
+        #    #new_nid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter, get_rowid_from_superkey)
         #    new_nid_list  # this line silences warnings
 
         #    # All the names should have been ensured
@@ -230,8 +230,8 @@
         #    if any(isdirty_list):
         #        params_iter = ((suffix,) for suffix in cfgsuffix_list)
         #        colnames = ('config_suffix',)
-        #        get_rowid_from_uuid = partial(ibs.get_config_rowid_from_suffix, ensure=False)
-        #        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, colnames, params_iter, get_rowid_from_uuid)
+        #        get_rowid_from_superkey = partial(ibs.get_config_rowid_from_suffix, ensure=False)
+        #        configid_list = ibs.db.add_cleanly(CONFIG_TABLE, colnames, params_iter, get_rowid_from_superkey)
         #except Exception as ex:
         #    utool.printex(ex)
         #    print('FATAL ERROR')
@@ -261,3 +261,41 @@
         #    utool.printex(ex, 'Rids must have image ids!', key_list=[
         #        'gid_list', 'aid_list'])
         #    raise
+
+
+    #@getter_1to1
+    #def get_lbltype_default(ibs, lbltype_rowid_list):
+    #    """ Returns the labeltype default value """
+    #    # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    #    lbltype_defaults = ibs.db.get(LBLTYPE_TABLE, ('lbltype_default',), lbltype_rowid_list)
+    #    return lbltype_defaults
+
+    #@getter_1to1
+    #def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):
+    #    # FIXME: MAKE SQL-METHOD FOR SUPERKEY GETTERS
+    #    lblannot_rowid_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_rowid',),
+    #                                     lblannot_uuid_list, id_colname='lblannot_uuid')
+    #    return lblannot_rowid_list
+
+    #@getter_1to1
+    #def get_lblannot_rowids_from_values(ibs, value_list, lbltype_rowid):
+    #    params_iter = [(value, lbltype_rowid) for value in value_list]
+    #    where_clause = 'lblannot_value=? AND lbltype_rowid=?'
+    #    lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, ('lblannot_rowid',), params_iter, where_clause)
+    #    return lblannot_rowid_list
+
+
+    # DEPRICATED
+    #@getter_1to1
+    #def get_annot_lblannots(ibs, aid_list):
+    #    """ for each aid, returns a list of lblannots """
+    #    # FIXME: Not sure what this is
+    #    def _lbltype_dict(aid):
+    #        _dict = {}
+    #        for _lbltype in constants.KEY_DEFAULTS.iterkeys():
+    #            _dict[_lbltype] = ibs.get_annot_lblannot_rowids(aid, _lbltype)
+    #        return _dict
+    #    lbltype_dict_list = [_lbltype_dict(aid) for aid in aid_list]
+    #    return lbltype_dict_list
+
+lblannot_value_list

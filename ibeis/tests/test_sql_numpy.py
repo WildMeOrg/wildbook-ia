@@ -50,7 +50,8 @@ def TEST_SQL_NUMPY():
 
     print('[TEST] save sql database')
     tt = utool.tic()
-    db.commit()
+    #db.cur.commit()
+    db.connection.commit()
     print(' * commit time=%r sec' % utool.toc(tt))
 
     print('[TEST] read from sql database')

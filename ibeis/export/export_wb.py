@@ -24,7 +24,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
     assert len(nids_list) == len(eid_list)
     for eid, nids in izip(eid_list, nids_list):
         # the actual names corresponding to the name ids
-        names_text = ibs.get_names(nids)
+        names_text = ibs.get_name_text(nids)
         # list of list of images that correspond to each name id
         gids_lists = ibs.get_name_gids(nids)
 

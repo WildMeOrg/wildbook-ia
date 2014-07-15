@@ -189,6 +189,11 @@ def TEST_IBS_CONTROL(ibs):
     ibs.set_alr_confidence(alrid_list, orig_confidences)
     assert orig_confidences == ibs.get_alr_confidence(alrid_list), 'alr confidences were not reset'
 
+    """ test metadata  """
+    #ibs.print_tables()
+    ibs.print_lblannot_table()
+    ibs.print_alr_table()
+
     return locals()
 
 

@@ -45,19 +45,23 @@ def getter_sql(func):
 
 
 def adder_sql(func):
-    return common_decor(func)
+    #return common_decor(func)
+    return func
 
 
 def setter_sql(func):
-    return common_decor(func)
+    #return common_decor(func)
+    return func
 
 
 def deleter_sql(func):
-    return common_decor(func)
+    #return common_decor(func)
+    return func
 
 
 def ider_sql(func):
-    return common_decor(func)
+    #return common_decor(func)
+    return func
 
 
 class SQLDatabaseController(object):
@@ -82,6 +86,7 @@ class SQLDatabaseController(object):
         if not exists(fpath):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
+        lite.enable_callback_tracebacks(True)
         db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
         db.connection.text_factory = text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
@@ -94,7 +99,7 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
-    @ider_sql
+    #@ider_sql
     def get_all_rowids(db, tblname):
         """ returns a list of all rowids from a table in ascending order """
         fmtdict = {'tblname': tblname, }
@@ -105,7 +110,7 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict)
 
-    @ider_sql
+    #@ider_sql
     def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
         """ returns a list of rowids from a table in ascending order satisfying
         a condition """
@@ -133,23 +138,24 @@ class SQLDatabaseController(object):
                                                    params_iter=params_iter, **kwargs)
         return rowid_list
 
-    @adder_sql
-    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_uuid, superkey_paramx=[0]):
-        """ ADDER Extra input: the first item of params_iter must be a uuid, """
+    #@adder_sql
+    def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx=(0,)):
+        """ ADDER Extra input:
+            the first item of params_iter must be a superkey (like a uuid), """
         # ADD_CLEANLY_1: PREPROCESS INPUT
-        params_list = list(params_iter)  # eagerly evaluate for uuids
-        # Extract uuids from the params list (requires eager eval)
-        uuid_lists = [[None if params is None else params[x]
-                       for params in params_list]
-                      for x in superkey_paramx]
+        params_list = list(params_iter)  # eagerly evaluate for superkeys
+        # Extract superkeys from the params list (requires eager eval)
+        superkey_lists = [[None if params is None else params[x]
+                           for params in params_list]
+                          for x in superkey_paramx]
         # ADD_CLEANLY_2: PREFORM INPUT CHECKS
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
         # Check for duplicate inputs
-        isunique_list = utool.flag_unique_items(list(izip(*uuid_lists)))
+        isunique_list = utool.flag_unique_items(list(izip(*superkey_lists)))
         # Check to see if this already exists in the database
-        rowid_list_   = get_rowid_from_uuid(*uuid_lists)
-        isnew_list    = [rowid is None for rowid in rowid_list_]
+        rowid_list_ = get_rowid_from_superkey(*superkey_lists)
+        isnew_list  = [rowid is None for rowid in rowid_list_]
         if VERBOSE and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
@@ -158,26 +164,27 @@ class SQLDatabaseController(object):
         if not any(isdirty_list):
             return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
-        # Add any unadded parameters to the database
         dirty_params = utool.filter_items(params_list, isdirty_list)
         if utool.VERBOSE:
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
+        # Add any unadded parameters to the database
         try:
             db._add(tblname, colnames, dirty_params)
         except Exception as ex:
-            utool.printex(ex, key_list=['isdirty_list', 'uuid_list', 'rowid_list_'])
+            utool.printex(ex, key_list=['isdirty_list', 'superkey_lists', 'rowid_list_'])
             raise
         # TODO: We should only have to preform a subset of adds here
         # (at the positions where rowid_list was None in the getter check)
-        rowid_list = get_rowid_from_uuid(*uuid_lists)
+        rowid_list = get_rowid_from_superkey(*superkey_lists)
         # ADD_CLEANLY_4: SANITY CHECK AND RETURN
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
-    @getter_sql
+    #@getter_sql
     def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, **kwargs):
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
+        assert isinstance(colnames, tuple)
+        #if isinstance(colnames, (str, unicode)):
+        #    colnames = (colnames,)
         fmtdict = { 'tblname'     : tblname,
                     'colnames'    : ', '.join(colnames),
                     'where_clauses' :  where_clause, }
@@ -192,29 +199,30 @@ class SQLDatabaseController(object):
                                                  **kwargs)
         return val_list
 
-    @getter_sql
+    #@getter_sql
     def get_rowid_from_superkey(db, tblname, params_iter=None, superkey_colnames=None, **kwargs):
         """ getter which uses the constrained superkeys instead of rowids """
         where_clause = 'AND'.join([colname + '=?' for colname in superkey_colnames])
         return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
 
-    @getter_sql
+    #@getter_sql
     def get(db, tblname, colnames, id_iter=None, id_colname='rowid', **kwargs):
         """ getter """
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
+        assert isinstance(colnames, tuple)
+        #if isinstance(colnames, (str, unicode)):
+        #    colnames = (colnames,)
         where_clause = (id_colname + '=?')
         params_iter = ((_rowid,) for _rowid in id_iter)
-
         return db.get_where(tblname, colnames, params_iter, where_clause, **kwargs)
 
-    @setter_sql
-    def set(db, tblname, colnames, val_list, id_list, id_colname='rowid', **kwargs):
+    #@setter_sql
+    def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid', **kwargs):
         """ setter """
-        if isinstance(colnames, (str, unicode)):
-            colnames = (colnames,)
-        val_list = list(val_list)  # eager evaluation
-        id_list = list(id_list)  # eager evaluation
+        assert isinstance(colnames, tuple)
+        #if isinstance(colnames, (str, unicode)):
+        #    colnames = (colnames,)
+        val_list = list(val_iter)  # eager evaluation
+        id_list = list(id_iter)  # eager evaluation
         if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
@@ -238,12 +246,14 @@ class SQLDatabaseController(object):
             SET {assign_str}
             WHERE {where_clause}
             '''
-        #params_iter = utool.flattenize(izip(val_list, id_list))
+
+        # TODO: The flattenize can be removed if we pass in val_lists instead
         params_iter = utool.flattenize(izip(val_list, id_list))
+        #params_iter = list(izip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter, **kwargs)
 
-    @deleter_sql
+    #@deleter_sql
     def delete(db, tblname, id_list, id_colname='rowid', **kwargs):
         """ deleter. USE delete_rowids instead """
         fmtdict = {
@@ -260,7 +270,7 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter,
                                              **kwargs)
 
-    @deleter_sql
+    #@deleter_sql
     def delete_rowids(db, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """
         fmtdict = {
@@ -355,33 +365,34 @@ class SQLDatabaseController(object):
         # --- SQL EXECUTION ---
         contextkw = {'num_params': num_params, 'start_transaction': True}
         with SQLExecutionContext(db, operation, **contextkw) as context:
-            try:
-                _sql_exec_gen = context.execute_and_generate_results
-                results_iter = map(list, (_sql_exec_gen(params) for params in params_iter))  # list of iterators
-                if unpack_scalars:
-                    results_iter = list(imap(_unpacker, results_iter))  # list of iterators
-                results_list = list(results_iter)  # Eager evaluation
-            except Exception as ex:
-                utool.printex(ex)
-                raise
+            #try:
+            results_iter = map(list, (context.execute_and_generate_results(params)
+                                      for params in params_iter))  # list of iterators
+            if unpack_scalars:
+                results_iter = list(imap(_unpacker, results_iter))  # list of iterators
+            results_list = list(results_iter)  # Eager evaluation
+            #except Exception as ex:
+            #    utool.printex(ex)
+            #    raise
         return results_list
 
-    @default_decorator
-    def commit(db,  verbose=VERBOSE):
-        try:
-            db.connection.commit()
-            if AUTODUMP:
-                db.dump(auto_commit=False)
-        except lite.Error as ex2:
-            utool.printex(ex2, '[!sql] Error during commit')
-            raise
+    #@default_decorator
+    #def commit(db,  verbose=VERBOSE):
+    #    try:
+    #        db.connection.commit()
+    #        if AUTODUMP:
+    #            db.dump(auto_commit=False)
+    #    except lite.Error as ex2:
+    #        utool.printex(ex2, '[!sql] Error during commit')
+    #        raise
 
     @default_decorator
     def dump_to_file(db, file_, auto_commit=True):
         if utool.VERYVERBOSE:
             print('[sql.dump]')
         if auto_commit:
-            db.commit(verbose=False)
+            db.connection.commit()
+            #db.commit(verbose=False)
         for line in db.connection.iterdump():
             file_.write('%s\n' % line)
 
@@ -484,9 +495,9 @@ class SQLDatabaseController(object):
 # LONG DOCSTRS
 #SQLDatabaseController.add_cleanly.__docstr__ = """
 #uuid_list - a non-rowid column which identifies a row
-#get_rowid_from_uuid - function which does what it says
+#get_rowid_from_superkey - function which does what it says
 #e.g:
-#    get_rowid_from_uuid = ibs.get_image_gids_from_uuid
+#    get_rowid_from_superkey = ibs.get_image_gids_from_uuid
 #    params_list = [(uuid.uuid4(),) for _ in xrange(7)]
 #    superkey_paramx = [0]
 

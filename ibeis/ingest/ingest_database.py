@@ -168,10 +168,10 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gpath_list  = list_ingestable_images(img_dir, recursive=True)
     # Parse structure for image names
     if ingest_type == 'named_folders':
-        name_list = ibsfuncs.get_names_from_parent_folder(gpath_list, img_dir, fmtkey)
+        name_list = ibsfuncs.get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey)
         pass
     if ingest_type == 'named_images':
-        name_list = ibsfuncs.get_names_from_gnames(gpath_list, img_dir, fmtkey)
+        name_list = ibsfuncs.get_name_text_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
         name_list = [constants.INDIVIDUAL_KEY for _ in xrange(len(gpath_list))]
 
