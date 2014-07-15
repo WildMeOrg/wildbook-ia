@@ -168,7 +168,7 @@ class IBEISController(object):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         DB_SCHEMA.define_IBEIS_schema(ibs)
-        ibs.UNKNOWN_NID = 0  # ADD TO CONSTANTS
+        ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
@@ -1202,17 +1202,6 @@ class IBEISController(object):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
-        # def _individual_ground_truth(nids_list):
-        #     where_clause = 'lblannot_rowid=? AND annot_rowid!=?'
-        #     params_iter = [(nid, aid) for nid, aid in izip(nids_list, aid_list)]
-        #     groundtruth_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
-        #                                         where_clause,
-        #                                         unpack_scalars=False)
-        #     return utool.flatten(groundtruth_list)
-
-        # nids_list  = ibs.get_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
-        # groundtruth_list = [_individual_ground_truth(nids) for nids in nids_list]
-        # return groundtruth_list
         nid_list = ibs.get_annot_nids(aid_list)
         aids_list = ibs.get_name_aids(nid_list)
         if is_exemplar is None:
@@ -1375,8 +1364,6 @@ class IBEISController(object):
         aids_list = ibs.get_encounter_aids(eid_list)
         nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids, aids_list,
                                         _lbltype=constants.INDIVIDUAL_KEY)
-        #nids_list = [ibs.get_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY) for aid_list in aids_list]
-
         nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
 
         nids_list = list(imap(utool.unique_ordered, nids_list_))
@@ -1666,7 +1653,12 @@ class IBEISController(object):
         # TODO: Except query error
         # NOTE: maybe kwargs should not be passed here, or the previous
         # kwargs should become querycfgkw
-        qaid2_qres = mc3.process_query_request(ibs, qreq, **kwargs)
+        process_qreqkw = {
+            'safe'         : kwargs.get('safe', True),
+            'use_cache'    : kwargs.get('use_cache', mc3.USE_CACHE),
+            'use_bigcache' : kwargs.get('use_bigcache', mc3.USE_BIGCACHE),
+        }
+        qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
         return qaid2_qres
 
     #
@@ -1736,7 +1728,7 @@ class IBEISController(object):
         return alrid_list
 
     #
-    # GETTERS::AL_RELATION_TABLE
+    # GETTERS::ALR
 
     @getter_1to1
     def get_alr_confidence(ibs, alrid_list):
@@ -1823,7 +1815,6 @@ class IBEISController(object):
         assert _lbltype is not None
         if ensure:
             pass
-
         # a value consisting of an empty string or all spaces is set to the default
         DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
         EMPTY_KEY = constants.EMPTY_KEY
@@ -1834,7 +1825,7 @@ class IBEISController(object):
         # Set all the valid valids
         aids_to_set   = utool.filter_items(aid_list, notdefault_list)
         values_to_set = utool.filter_items(value_list_, notdefault_list)
-        ibs.delete_annot_lblannot_rowids(aid_list_to_delete, _lbltype)
+        ibs.delete_annot_lblannot_rowids_oftype(aid_list_to_delete, _lbltype)
         # remove the relationships that have now been unnamed
         # Convert names into lblannot_rowid
         # FIXME: This function should not be able to set label realationships
@@ -1887,7 +1878,6 @@ class IBEISController(object):
     def add_lblannots(ibs, lbltype_rowid_list, value_list, note_list=None):
         """ Adds new lblannots (labels of annotations)
         creates a new uuid for any new pair(type, value)
-        JON.OKISH
         #TODO: reverse order of rowid_list value_list in input
         """
         if note_list is None:
@@ -1905,7 +1895,6 @@ class IBEISController(object):
     @adder
     def add_names(ibs, name_list, note_list=None):
         """ Adds a list of names. Returns their nids
-        JON.OK_STAMP
         """
         # nid_list_ = [namenid_dict[name] for name in name_list_]
         # ibsfuncs.assert_valid_names(name_list)
@@ -1918,7 +1907,6 @@ class IBEISController(object):
     @adder
     def add_species(ibs, species_list, note_list=None):
         """ Adds a list of species. Returns their nids
-        JON.OK_STAMP
         """
         species_list = [species.lower() for species in species_list]
         lbltype_rowid = ibs.lbltype_ids[constants.SPECIES_KEY]
@@ -1932,7 +1920,6 @@ class IBEISController(object):
     def add_lbltype(ibs, text_list, default_list):
         """ Adds a label type and its default value
         Should only be called at the begining of the program.
-        JON.OK
         """
         params_iter = izip(text_list, default_list)
         colnames = ('lbltype_text', 'lbltype_default',)
@@ -1994,14 +1981,14 @@ class IBEISController(object):
         """ Returns the name id of each annotation. """
         # Get all the annotation lblannot relationships
         # filter out only the ones which specify names
-        alrids_list  = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
         # Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
         # TODO: get index of highest confidence name
-        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_NID for
+        nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) else ibs.UNKNOWN_LBLANNOT_ROWID for
                      lblannot_rowids in lblannot_rowids_list]
         if distinguish_unknowns:
-            nid_list = [-aid if nid == ibs.UNKNOWN_NID else nid
+            nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
                         for nid, aid in izip(nid_list_, aid_list)]
         else:
             nid_list = nid_list_
@@ -2024,8 +2011,8 @@ class IBEISController(object):
         ibs.db.delete_rowids(LBLANNOT_TABLE, lblannot_rowid_list)
 
     @deleter
-    def delete_annot_lblannot_rowids(ibs, aid_list, _lbltype):
-        """ Deletes nids of a list of annotations """
+    def delete_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype):
+        """ Deletes the relationship between an annotation and a label """
         # Ensure we are setting true nids (not temporary distinguished nids)
         # nids are really special lblannot_rowids
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
@@ -2040,14 +2027,14 @@ class IBEISController(object):
         """ Deletes nids of a list of annotations """
         # FIXME: This should be implicit by setting the anotation name to the
         # unknown name
-        ibs.delete_annot_lblannot_rowids(aid_list, constants.INDIVIDUAL_KEY)
+        ibs.delete_annot_lblannot_rowids_oftype(aid_list, constants.INDIVIDUAL_KEY)
 
     @deleter
     def delete_annot_speciesids(ibs, aid_list):
         """ Deletes nids of a list of annotations """
         # FIXME: This should be implicit by setting the anotation name to the
         # unknown species
-        ibs.delete_annot_lblannot_rowids(aid_list, constants.SPECIES_KEY)
+        ibs.delete_annot_lblannot_rowids_oftype(aid_list, constants.SPECIES_KEY)
 
     # MORE GETTERS
 
@@ -2057,10 +2044,10 @@ class IBEISController(object):
             identifying the animal
         """
         lbltype_dict_list = ibs.get_annot_lblannot_rowids(aid_list, _lbltype)
-        default = constants.KEY_DEFAULTS[_lbltype]
+        DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
         # FIXME: Use filters and unflat maps
         lblannot_value_list = [lblannot_value_getter(lblannot_rowids)[0]
-                               if len(lblannot_rowids) > 0 else default
+                               if len(lblannot_rowids) > 0 else DEFAULT_VALUE
                                for lblannot_rowids in lbltype_dict_list]
         return lblannot_value_list
 
@@ -2131,24 +2118,25 @@ class IBEISController(object):
     @getter_1to1
     def get_lblannot_values(ibs, lblannot_rowid_list, _lbltype=None):
         """ Returns text lblannots """
-        if utool.USE_ASSERT:
-            assert _lbltype is not None
-            ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])
-
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])
         lblannot_value_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
         return lblannot_value_list
 
+    def get_lblannot_aids(ibs, lblannot_rowid_list):
+        where_clause = 'lblannot_rowid=?'
+        params_iter = [(lblannot_rowid,) for lblannot_rowid in lblannot_rowid_list]
+        aids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
+                                     where_clause, unpack_scalars=False)
+        return aids_list
+
     #
-    # GETTERS::SPECIES (subset of LBLANNOTS_TABLE)
+    # GETTERS::LBLANNOTS_SUBSET
 
     @getter_1to1
     def get_species(ibs, speciesid_list):
         """ Returns text names """
         species_list = ibs.get_lblannot_values(speciesid_list, constants.SPECIES_KEY)
         return species_list
-
-    #
-    # GETTERS::NAME (subset of LBLANNOTS_TABLE)
 
     @getter_1to1
     def get_name_nids(ibs, name_list, ensure=True):
@@ -2173,11 +2161,9 @@ class IBEISController(object):
     @getter_1toM
     def get_name_aids(ibs, nid_list):
         """ returns a list of list of cids in each name """
-        where_clause = 'lblannot_rowid=?'
-        params_iter = [(nid,) for nid in nid_list]
-        aids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
-                                     where_clause, unpack_scalars=False)
-        return aids_list
+        nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
+        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        return ibs.get_lblannot_aids(nid_list_)
 
     @getter_1to1
     def get_name_num_annotations(ibs, nid_list):

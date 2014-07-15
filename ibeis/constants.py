@@ -16,7 +16,7 @@ class PATH_NAMES(object):
     detectimg = 'detectimg'
     thumbs    = 'thumbs'
 
-UNKNOWN_NID = 0
+UNKNOWN_LBLANNOT_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME
 ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
 
