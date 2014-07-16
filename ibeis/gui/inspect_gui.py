@@ -108,7 +108,8 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_click(iqrw, qtindex):
-        print('Clicked: ' + str(qtype.qindexinfo(qtindex)))
+        print('[inspect_gui] _on_click: ')
+        print('[inspect_gui] _on_click: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
@@ -119,6 +120,7 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(iqrw, qtindex):
+        print('[inspect_gui] _on_doubleclick: ')
         print('DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
@@ -129,6 +131,7 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_pressed(iqrw, qtindex):
+        print('[inspect_gui] _on_pressed: ')
         #print('Pressed: ' + str(qtype.qindexinfo(qtindex)))
         pass
 
@@ -151,7 +154,7 @@ def show_match_at(qres_wgt, qtindex):
     model = qtindex.model()
     aid  = model.get_header_data('aid', qtindex)
     qaid = model.get_header_data('qaid', qtindex)
-    fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid)
+    fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
     fig_presenter.bring_to_front(fig)
 
 

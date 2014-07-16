@@ -162,7 +162,7 @@ COL_DEF = dict([
     ('verts',      (str,      'Verts')),
     ('score',      (str,      'Confidence')),
     ('theta',      (str,      'Theta')),
-    ('reviewed',   (bool,     'Reviewed')),
+    ('reviewed',   (bool,     'Detection Reviewed')),
     ('exemplar',   (bool,     'Is Exemplar')),
     ('enctext',    (str,      'Encounter Text')),
     ('datetime',   (str,      'Date / Time')),

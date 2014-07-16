@@ -224,11 +224,16 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 
 
 @__injectable
-def assert_valid_species(ibs, species_list):
+def assert_valid_species(ibs, species_list, iswarning=True):
     if not utool.USE_ASSERT:
         return
-    assert all([species in constants.VALID_SPECIES
-                for species in species_list]), 'invalid species added'
+    try:
+        assert all([species in constants.VALID_SPECIES
+                    for species in species_list]), 'invalid species added'
+    except AssertionError as ex:
+        utool.printex(ex, iswarning=iswarning)
+        if not iswarning:
+            raise
 
 
 @__injectable
@@ -941,10 +946,10 @@ def make_enctext_list(eid_list, enc_cfgstr):
 @__injectable
 def make_next_name(ibs, num=None):
     num_names = ibs.get_num_names()
-    name_prefix = utool.get_timestamp('tag')
+    name_prefix = utool.get_timestamp('tag') + '_TMP'
     if num is None:
-        next_name = name_prefix + '_AUTO%04d' % num_names
+        next_name = name_prefix + '%04d' % num_names
         return next_name
     else:
-        next_names = [name_prefix + '_AUTO%04d' % (num_names + x) for x in xrange(num)]
+        next_names = [name_prefix + '%04d' % (num_names + x) for x in xrange(num)]
         return next_names

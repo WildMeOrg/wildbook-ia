@@ -29,7 +29,6 @@ def define_IBEIS_schema(ibs):
         ('annot_rowid',                  'INTEGER PRIMARY KEY'),
         ('annot_uuid',                   'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),
-        #('name_rowid',                  'INTEGER NOT NULL'),
         ('annot_xtl',                    'INTEGER NOT NULL'),
         ('annot_ytl',                    'INTEGER NOT NULL'),
         ('annot_width',                  'INTEGER NOT NULL'),

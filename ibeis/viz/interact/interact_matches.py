@@ -11,6 +11,12 @@ from .interact_chip import ishow_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
 
 
+class LastState(object):
+    def __init__(last_state):
+        last_state.same_fig = None
+        last_state.last_fx = None
+
+
 def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
                   same_fig=True, **kwargs):
     """ Plots a chip result and sets up callbacks for interaction. """
@@ -23,7 +29,7 @@ def ishow_matches(ibs, qres, aid=None, fnum=4, figtitle='Inspect Query Result',
     mx = kwargs.pop('mx', None)
     xywh2_ptr = [None]
     annote_ptr = [kwargs.pop('mode', 0)]
-    last_state = utool.DynStruct()
+    last_state = LastState()
     last_state.same_fig = same_fig
     last_state.last_fx = 0
 

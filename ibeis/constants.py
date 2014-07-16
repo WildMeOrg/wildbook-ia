@@ -84,8 +84,15 @@ IMAGE_THUMB_SUFFIX = '_thumb.png'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
 
 # FIXME UNKNOWN should not be a valid species
-VALID_SPECIES = ['zebra_plains', 'zebra_grevys', 'giraffe', UNKNOWN]
-SPECIES_NICE = ['Plains Zebras', 'Grevy\'s Zebras', 'Giraffes', 'Unknown']
+VALID_SPECIES = ['zebra_plains',
+                 'zebra_grevys',
+                 'giraffe',
+                 UNKNOWN]
+
+SPECIES_NICE = ['Plains Zebras',
+                'Grevy\'s Zebras',
+                'Giraffes',
+                'Unknown']
 
 
 # clean namespace

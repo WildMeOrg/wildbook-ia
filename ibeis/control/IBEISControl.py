@@ -1802,7 +1802,7 @@ class IBEISController(object):
         """ Sets species/speciesids of a list of annotations.
         Convenience function for set_annot_lblannot_from_value """
         species_list = [species.lower() for species in species_list]
-        ibsfuncs.assert_valid_species(ibs, species_list)
+        ibsfuncs.assert_valid_species(ibs, species_list, iswarning=True)
         ibs.set_annot_lblannot_from_value(aid_list, species_list, constants.SPECIES_KEY)
 
     @setter
