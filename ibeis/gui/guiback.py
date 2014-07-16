@@ -531,6 +531,13 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
         print('[back] finished computing encounters')
 
+
+    def encounter_reviewed_all_images(back):
+        eid = back.get_selected_eid()
+        gids = back.ibs.get_valid_gids(eid=eid)
+        flags = [1] * len(gids)
+        back.ibs.set_image_reviewed(gids, flags)
+
     #--------------------------------------------------------------------------
     # Option menu slots
     #--------------------------------------------------------------------------

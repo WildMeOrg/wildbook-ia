@@ -12,7 +12,7 @@ def _val1(i):
 def _val2(i):
     return str(i * 2) + "_string"
 
-def test_query(connection, cur, _type, alter_callback, isolation_level, bound=1000, transaction=True, commit=False):
+def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10, transaction=True, commit=False):
     # Offset bound by 1
     bound += 1
     retval = True
@@ -50,7 +50,7 @@ def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10
         retval = False
         expected = None
         print("%s (isolation=%r, trans=%r, commit=%r) Failed Alter: %r" %(_type, isolation_level, transaction, commit, e))
-    
+
     # Commit change
     if commit:
         connection.commit()
@@ -75,10 +75,10 @@ def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10
             # Must check extreme case where there are no transactions, no commiting and the isolation is None
             if commit or (isolation_level is None and not transaction and not commit):
                 if _type == 'UPDATE' and (row[1] == _val1(i) or row[2] == _val2(i)):
-                    raise IOError, "ERROR, DATA SHOULD HAVE BEEN COMMITED AND CANNOT ROLLBACK"
+                    raise IOError("ERROR, DATA SHOULD HAVE BEEN COMMITED AND CANNOT ROLLBACK")
             else:
                 if row[1] != _val1(i) or row[2] != _val2(i):
-                    raise IOError, "ERROR, DATA SHOULD HAVE BEEN ROLLED BACK"
+                    raise IOError("ERROR, DATA SHOULD HAVE BEEN ROLLED BACK")
         
         # Check for INSERT / DELETE
         original = 0
@@ -94,10 +94,10 @@ def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10
                 original += 1
 
         if commit and _type == 'DELETE' and missing != expected:
-            raise IOError, "ERROR, DATA MISMATCH MISSING %r - %r" % (missing, expected)
+            raise IOError("ERROR, DATA MISMATCH MISSING %r - %r" % (missing, expected))
 
         if commit and _type == 'INSERT' and added != expected:
-            raise IOError, "ERROR, DATA MISMATCH ADDED %r - %r" % (added, expected)
+            raise IOError("ERROR, DATA MISMATCH ADDED %r - %r" % (added, expected))
 
         print("%s (isolation=%r, trans=%r, commit=%r) Passed Rollback" %(_type, isolation_level, transaction, commit))
         print('Original: %r, Missing: %r, Added: %r, Expected: %r' % (original, missing, added, expected))
@@ -131,9 +131,9 @@ def alter_update(connection, cur, bound):
     for row in rows:
         i = row[0]
         if row[1] == _val1(i) or row[2] == _val2(i):
-            raise IOError, "ERROR, DATA SHOULD HAVE BEEN ALTERED"
+            raise IOError("ERROR, DATA SHOULD HAVE BEEN ALTERED")
 
-    return None
+    return 0
 
 
 def alter_delete(connection, cur, bound):
@@ -159,7 +159,7 @@ def alter_delete(connection, cur, bound):
     for row in rows:
         i = row[0]
         if (i in randoms and row is not None) or (i not in randoms and row is None):
-            raise IOError, "ERROR, DATA SHOULD HAVE BEEN ALTERED"
+            raise IOError("ERROR, DATA SHOULD HAVE BEEN ALTERED")
 
     return len(randoms)
 
@@ -191,7 +191,7 @@ def alter_insert(connection, cur, bound):
     for row in rows:
         i = row[0]
         if row is None or row[1] != _val1(i) or row[2] != _val2(i):
-            raise IOError, "ERROR, DATA SHOULD HAVE BEEN ALTERED"
+            raise IOError("ERROR, DATA SHOULD HAVE BEEN ALTERED")
 
     return added
 
@@ -234,7 +234,7 @@ def TEST_SQL_REVERT(isolation_level=None):
         status.append(test_query(connection, cur, 'INSERT', alter_insert, isolation_level, transaction=trans, commit=True))
 
     if not all(status):
-        raise Exception, "Tests failed for %r" % (isolation_level)
+        raise Exception("Tests failed for %r" % (isolation_level))
         # This will never happen unless SQLite 3 freaks out
 
     return locals()

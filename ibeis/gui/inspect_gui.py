@@ -99,7 +99,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
         APIItemWidget.change_headers(qres_wgt, headers)
-
+        
     def connect_signals_and_slots(qres_wgt):
         qres_wgt.view.clicked.connect(qres_wgt._on_click)
         qres_wgt.view.doubleClicked.connect(qres_wgt._on_doubleclick)
