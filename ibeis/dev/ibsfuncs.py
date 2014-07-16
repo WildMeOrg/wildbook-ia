@@ -482,14 +482,16 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         # HACK: the unknown_lblannot_rowid will have a None type
         # the unknown lblannot_rowid should be handled more gracefully
         # this should just check the first condition (get rid of the or)
+        assert len(lbltype_rowid_list) == len(lbltype_rowid_list), 'lens dont match'
         validtype_list = [
             (lbltype_rowid == valid_lbltype_rowid) or
-            (valid_lbltype_rowid is None and lblannot_rowid == constants.UNKNOWN_LBLANNOT_ROWID)
-            for lblannot_rowid, lbltype_rowid in
-            izip(lblannot_rowid_list, lbltype_rowid_list)]
+            (lbltype_rowid is None and lblannot_rowid == constants.UNKNOWN_LBLANNOT_ROWID)
+            for lbltype_rowid, lblannot_rowid in
+            izip(lbltype_rowid_list, lblannot_rowid_list)]
         assert all(validtype_list), 'not all types match valid type'
     except AssertionError as ex:
-        print('[!!!] lbltype_rowid_list = : ' + utool.indentjoin(map(str, lbltype_rowid_list)))
+        tup_list = map(str, list(izip(lbltype_rowid_list, lblannot_rowid_list)))
+        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + utool.indentjoin(tup_list))
         print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
         utool.printex(ex, 'not all types match valid type',
                       key_list=['valid_lbltype_rowid'])

@@ -6,7 +6,7 @@ import utool
 # Tools
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
                                         SQLExecutionContext)
-from . import __SQLITE3__ as lite
+from ibeis.control import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
 
 
@@ -86,8 +86,13 @@ class SQLDatabaseController(object):
         if not exists(fpath):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
-        lite.enable_callback_tracebacks(True)
-        db.connection = lite.connect(fpath, detect_types=lite.PARSE_DECLTYPES)
+        #lite.enable_callback_tracebacks(True)
+        #fpath = ':memory:'
+        db.connection = lite.connect(fpath,
+                                     #timeout=5,
+                                     detect_types=lite.PARSE_DECLTYPES)
+                                     #isolation_level='DEFERRED',
+                                     #cached_statements=1000
         db.connection.text_factory = text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
         # Get a cursor which will preform sql commands / queries / executions
