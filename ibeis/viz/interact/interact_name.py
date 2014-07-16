@@ -111,7 +111,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
                         ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     ])
-                    ibs.print_annotation_table()
+                    #ibs.print_annotation_table()
                 print(utool.dict_str(event.__dict__))
 
     def show_page(self, bring_to_front=False):
@@ -301,8 +301,8 @@ class MatchVerificationInteraction(AbstractInteraction):
             ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
             #[ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
             self.close()
-            print(utool.dict_str(locals()))
-        ibs.print_alr_table()
+            #print(utool.dict_str(locals()))
+        #ibs.print_alr_table()
 
     def unname_all(self, event=None):
         print('remove name')

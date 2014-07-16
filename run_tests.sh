@@ -241,6 +241,8 @@ cat <<EOF
 EOF
     RUN_TEST ibeis/tests/test_sql_numpy.py 
     RUN_TEST ibeis/tests/test_sql_names.py 
+    RUN_TEST ibeis/tests/test_sql_control.py 
+    RUN_TEST ibeis/tests/test_sql_revert.py 
 fi
 
 
