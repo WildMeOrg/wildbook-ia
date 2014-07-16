@@ -161,6 +161,11 @@ def setup_batch_menu(mainwin, back):
         slot_fn=back.compute_queries)
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
+        name='actionEncounterImagesReviewed',
+        text='Reviewed All Encounter Images',
+        shortcut='',
+        slot_fn=back.encounter_reviewed_all_images)
+    mainwin.menuBatch.newAction(
         name='actionPrecomputeANNOTATIONFeatures',
         text='Precompute Chips/Features',
         shortcut='Ctrl+Return',
