@@ -226,6 +226,11 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
             combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom)
             combo.setDefault(default)
 
+        def setOptionText(combo, option_text_list):
+            for index, text in enumerate(option_text_list):
+                combo.setItemText(index, text)
+            #combo.removeItem()
+
         def currentIndexChangedCustom(combo, index):
             combo.changed(index, combo.options[index][1])
 
