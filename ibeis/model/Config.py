@@ -423,7 +423,7 @@ class EncounterConfig(ConfigBase):
             enc_cfgstrs.append('sec_%r' % enc_cfg.seconds_thresh)
         if enc_cfg.use_gps:
             enc_cfgstrs.append('gps')
-        
+
         enc_cfgstrs.append(str(enc_cfg.min_imgs_per_encounter))
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
@@ -456,6 +456,7 @@ class OtherConfig(ConfigBase):
     def __init__(othercfg, **kwargs):
         super(OtherConfig, othercfg).__init__(name='othercfg')
         othercfg.thumb_size     = 64
+        othercfg.ranks_lt       = 2
 
 
 # Convinience

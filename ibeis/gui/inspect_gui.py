@@ -16,7 +16,6 @@ from ibeis.viz import viz_helpers as vh
     __name__, '[inspect_gui]', DEBUG=False)
 
 
-RANKS_LT = 2
 USE_FILTER_PROXY = True
 
 
@@ -99,7 +98,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
         APIItemWidget.change_headers(qres_wgt, headers)
-        
+
     def connect_signals_and_slots(qres_wgt):
         qres_wgt.view.clicked.connect(qres_wgt._on_click)
         qres_wgt.view.doubleClicked.connect(qres_wgt._on_doubleclick)
@@ -108,8 +107,8 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_click(iqrw, qtindex):
-        print('[inspect_gui] _on_click: ')
-        print('[inspect_gui] _on_click: ' + str(qtype.qindexinfo(qtindex)))
+        print('[qres_wgt] _on_click: ')
+        print('[qres_wgt] _on_click: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
@@ -120,8 +119,8 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(iqrw, qtindex):
-        print('[inspect_gui] _on_doubleclick: ')
-        print('DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
+        print('[qres_wgt] _on_doubleclick: ')
+        print('[qres_wgt] DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
@@ -397,7 +396,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     Builds columns which are displayable in a ColumnListTableWidget
     """
     print('[inspect] make_qres_api')
-    ranks_lt = ranks_lt if ranks_lt is not None else RANKS_LT
+    if not hasattr(ibs.cfg.other_cfg, 'ranks_lt'):
+        ibs.cfg.other_cfg.ranks_lt = 2
+    ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
     candidate_matches = results_organizer.get_automatch_candidates(
         qaid2_qres, ranks_lt=ranks_lt)
     # Get extra info
