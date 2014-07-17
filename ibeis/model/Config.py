@@ -44,11 +44,11 @@ class NNConfig(ConfigBase):
 
     def get_cfgstr_list(nn_cfg):
         nn_cfgstr  = ['_NN(',
-                   'K', str(nn_cfg.K),
-                   '+', str(nn_cfg.Knorm),
-                   ',', nn_cfg.normalizer_rule,
-                   ',cks', str(nn_cfg.checks),
-                   ')']
+                      'K', str(nn_cfg.K),
+                      '+', str(nn_cfg.Knorm),
+                      ',', nn_cfg.normalizer_rule,
+                      ',cks', str(nn_cfg.checks),
+                      ')']
         return nn_cfgstr
 
     def get_cfgstr(nn_cfg):

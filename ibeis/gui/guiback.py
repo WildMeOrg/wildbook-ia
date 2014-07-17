@@ -18,7 +18,7 @@ from ibeis import viz
 from ibeis.viz import interact
 # Utool
 import utool
-#from ibeis import constants
+from ibeis import constants
 from ibeis.control import IBEISControl
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[back]', DEBUG=False)
@@ -97,6 +97,7 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_gids = []
         back.sel_qres = []
         back.active_enc = 0
+        back.query_mode = 'intra_encounter'
         back.encounter_query_results = utool.ddict(dict)
 
         # Create GUIFrontend object
@@ -421,10 +422,19 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def detection_species_changed(back, index, value):
+    def change_detection_species(back, index, value):
+        print('[back] change_detection_species(%r, %r)' % (index, value))
         ibs = back.ibs
         ibs.cfg.detect_cfg.species = value
         ibs.cfg.save()
+
+    @blocking_slot()
+    def change_query_mode(back, index, value):
+        print('[back] change_query_mode(%r, %r)' % (index, value))
+        back.query_mode = value
+        #ibs = back.ibs
+        #ibs.cfg.detect_cfg.species = value
+        #ibs.cfg.save()
 
     @blocking_slot()
     def _run_detection(back, quick=True, refresh=True, **kwargs):
@@ -461,17 +471,23 @@ class MainWindowBackend(QtCore.QObject):
     def compute_queries(back, refresh=True, **kwargs):
         """ Batch -> Precompute Queries"""
         eid = back._eidfromkw(kwargs)
+        print('------')
         print('[back] compute_queries: eid=%r' % (eid,))
+        if eid is None:
+            print('[back] invalid eid')
+            return
         back.compute_feats(refresh=False, **kwargs)
         valid_aids = back.ibs.get_valid_aids(eid=eid)
 
-        if kwargs.get('vs_exemplar', False):
+        if back.query_mode == constants.VS_EXEMPLARS_KEY:
             qaid2_qres = back.ibs.query_exemplars(valid_aids)
-        else:
+        elif back.query_mode == constants.INTRA_ENC_KEY:
             if eid is None:
                 qaid2_qres = back.ibs.query_all(valid_aids)
             else:
                 qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
+        else:
+            print('Unknown query mode: %r' % (back.query_mode))
 
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
@@ -480,10 +496,10 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
 
-    @blocking_slot()
-    def compute_queries_vs_exemplar(back, **kwargs):
-        """ Batch -> Precompute Queries"""
-        back.compute_queries(vs_exemplar=True, **kwargs)
+    #@blocking_slot()
+    #def compute_queries_vs_exemplar(back, **kwargs):
+    #    """ Batch -> Precompute Queries"""
+    #    back.compute_queries(vs_exemplar=True, **kwargs)
 
     @blocking_slot()
     def review_queries(back, **kwargs):
@@ -530,7 +546,6 @@ class MainWindowBackend(QtCore.QObject):
         if refresh:
             back.front.update_tables()
         print('[back] finished computing encounters')
-
 
     def encounter_reviewed_all_images(back):
         eid = back.get_selected_eid()

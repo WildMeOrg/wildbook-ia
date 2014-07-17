@@ -939,7 +939,7 @@ def is_aid_unknown(ibs, aid_list):
 
 
 def make_enctext_list(eid_list, enc_cfgstr):
-    enctext_list = ['E' + str(eid) + enc_cfgstr for eid in eid_list]
+    enctext_list = [str(eid) + enc_cfgstr for eid in eid_list]
     return enctext_list
 
 

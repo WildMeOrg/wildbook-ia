@@ -73,8 +73,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         """ Switch to the current encounter tab """
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
-            if utool.VERBOSE:
-                print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
+            #if utool.VERBOSE:
+            print('[ENCTAB.ONCHANGE] eid = %r' % (eid,))
             enc_tabwgt.ibswgt._change_enc(eid)
         else:
             enc_tabwgt.ibswgt._change_enc(-1)
@@ -221,10 +221,35 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
         back = ibswgt.back
         #_SEP = lambda: None
+
+        ibswgt.query_button = _NEWBUT('Run Identification',
+                                      ibswgt.back.compute_queries,
+                                      bgcolor=(150, 150, 255),
+                                      fgcolor=(0, 0, 0))
+
         detection_combo_box_options = [
-            #    Text               Value
+            # Text              # Value
             ('Select Species',  'none'),
         ] + zip(constants.SPECIES_NICE, constants.VALID_SPECIES)
+        ibswgt.species_combo = _COMBO(detection_combo_box_options,
+                                      ibswgt.back.change_detection_species)
+
+        detection_combo_box_options = [
+            # Text              # Value
+            ('Intra Encounter', constants.INTRA_ENC_KEY),
+            ('Vs Exemplars',    constants.VS_EXEMPLARS_KEY),
+        ]
+        ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
+                                      ibswgt.back.change_query_mode)
+
+        ibswgt.detect_button = _NEWBUT('Detect',
+                                       ibswgt.back.run_detection_coarse,
+                                       bgcolor=(150, 255, 150))
+
+        ibswgt.encounter_button = _NEWBUT('Group Images into Encounters',
+                                          ibswgt.back.compute_encounters,
+                                          bgcolor=(255, 255, 150))
+
         ibswgt.button_list = [
             [
                 _NEWBUT('Import Images\n(via files)',
@@ -236,41 +261,29 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #_NEWBUT('Import Images\n(via dir + size filter)',
                 #        bgcolor=(235, 200, 200)),
 
-                #_SEP(),
-
                 #_NEWBUT('Filter Images (GIST)'),
 
-                #_SEP(),
+                ibswgt.encounter_button,
 
-                _NEWBUT('Group Images into Encounters', ibswgt.back.compute_encounters,
-                        bgcolor=(255, 255, 150)),
-                #_NEWBUT('Compute {algid} Encounters'),
+                ibswgt.species_combo,
 
-                #_SEP(),
+                ibswgt.detect_button,
 
-                _COMBO(detection_combo_box_options,
-                        ibswgt.back.detection_species_changed),
-
-                _NEWBUT('Detect',
-                        ibswgt.back.run_detection_coarse,
-                        bgcolor=(150, 255, 150)),
             ],
             [
                 #_NEWBUT('Review Detections',
                 #        ibswgt.back.review_detections,
                 #        bgcolor=(170, 250, 170)),
 
-                #_SEP(),
+                ibswgt.querydb_combo,
 
-                _NEWBUT('Identify\n(intra-encounter)',
-                        ibswgt.back.compute_queries,
-                        bgcolor=(150, 150, 255),
-                        fgcolor=(0, 0, 0)),
+                ibswgt.query_button,
 
-                _NEWBUT('Identify\n(vs exemplar database)',
-                        ibswgt.back.compute_queries_vs_exemplar,
-                        bgcolor=(150, 150, 255),
-                        fgcolor=(0, 0, 0)),
+                #_NEWBUT('Identify\n(vs exemplar database)',
+                #        ibswgt.back.compute_queries_vs_exemplar,
+                #        bgcolor=(150, 150, 255),
+                #        fgcolor=(0, 0, 0)),
+
                 #_NEWBUT('Review Recognitions',
                 #        ibswgt.back.review_queries,
                 #        bgcolor=(170, 170, 250),
@@ -374,18 +387,30 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
+        print('_change_enc(%r)' % eid)
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
             ibswgt.models[tblname]._change_enc(eid)
         try:
-            if eid is None:
-                # HACK
-                enctext = constants.ALL_IMAGE_ENCTEXT
-            else:
-                enctext = ibswgt.ibs.get_encounter_enctext(eid)
-            ibswgt.button_list[0][2].setDefault(ibswgt.ibs.cfg.detect_cfg.species)
-            ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
-            ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
+            #if eid is None:
+            #    # HACK
+            #    enctext = constants.ALL_IMAGE_ENCTEXT
+            #else:
+            #    enctext = ibswgt.ibs.get_encounter_enctext(eid)
+            ibswgt.back.select_eid(eid)
+            ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species)
+            #text_list = [
+            #    'Identify Mode: Within-Encounter (%s vs. %s)' % (enctext, enctext),
+            #    'Identify Mode: Exemplars (%s vs. %s)' % (enctext, constants.EXEMPLAR_ENCTEXT)]
+            text_list = [
+                'Identify Mode: Within-Encounter' ,
+                'Identify Mode: Exemplars']
+            #query_text =
+            #ibswgt.query_button
+            ibswgt.querydb_combo.setOptionText(text_list)
+            #ibswgt.query_
+            #ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, constants.EXEMPLAR_ENCTEXT))
         except Exception:
             pass
 
@@ -522,6 +547,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             elif model.name == NAME_TABLE:
                 nid = id_
                 ibswgt.back.select_nid(nid, eid)
+            elif model.name == NAMES_TREE:
+                level = model._get_level(qtindex)
+                if level == 0:
+                    nid = id_
+                    ibswgt.back.select_nid(nid, eid, show=True)
+                elif level == 1:
+                    aid = id_
+                    ibswgt.back.select_aid(aid, eid, show=True)
 
 if __name__ == '__main__':
     import ibeis

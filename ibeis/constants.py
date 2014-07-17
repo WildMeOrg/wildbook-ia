@@ -95,6 +95,10 @@ SPECIES_NICE = ['Plains Zebras',
                 'Unknown']
 
 
+VS_EXEMPLARS_KEY = 'vs_exemplars'
+INTRA_ENC_KEY = 'intra_encounter'
+
+
 # clean namespace
 del utool
 del np

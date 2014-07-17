@@ -151,6 +151,13 @@ def define_IBEIS_schema(ibs):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
+    ibs.db.schema('IBEIS_VERSION_TABLE', (
+        ('version_rowid',          'INTEGER PRIMARY KEY'),
+        ('version_text',           'TEXT'),
+    ),
+        docstr='''
+        holds the schema version info''')
+
     #
     # UNUSED / DEPRECATED
     #

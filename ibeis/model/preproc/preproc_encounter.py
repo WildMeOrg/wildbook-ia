@@ -2,12 +2,14 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
+from itertools import izip
 from ibeis.dev import ibsfuncs
 from scipy.spatial import distance
 import scipy.cluster.hierarchy as hier
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from scipy.spatial.distance import pdist
-#from ibeis import constants
+#from ibeis.control.IBEISControl import IBEISController
+from ibeis import constants
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[preproc_encounter]', DEBUG=False)
 
@@ -46,15 +48,27 @@ def ibeis_compute_encounters(ibs, gid_list):
     # Group images by unique label
     labels, label_gids = _group_images_by_label(label_arr, gid_arr)
     # Remove encounters less than the threshold
+    enc_labels    = labels
+    enc_gids      = label_gids
+    enc_datetimes = _compute_encounter_time(ibs, enc_gids)
     enc_labels, enc_gids = _filter_and_relabel(labels, label_gids, min_imgs_per_enc)
     # Flatten gids list by enounter
     flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
     # Create enctext for each image
-    #enctext_list = [constants.ENCTEXT_PREFIX + repr(eid) for eid in flat_eids]
-    enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
+    enctext_list = ['E' + str(eid) + enc_cfgstr for eid in flat_eids]
+    #enctext_list = [dt + '_E' + str(num) + enc_cfgstr for num, dt in izip(enc_labels, enc_datetimes)]
+    #enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
     print('Found %d clusters.' % len(labels))
     return enctext_list, flat_gids
 
+def _compute_encounter_time(ibs, enc_gids):
+    #assert isinstance(ibs, IBEISController)
+    from ibeis.dev import ibsfuncs
+    unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, enc_gids)
+    time_arrs = map(np.array, unixtimes)
+    enc_secs = map(np.mean, time_arrs)
+    enc_datetimes = map(utool.unixtime_to_datetime, enc_secs)
+    return enc_datetimes
 
 def _prepare_X_data(ibs, gid_list, use_gps=False):
     """
