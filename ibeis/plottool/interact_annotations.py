@@ -370,23 +370,33 @@ class ANNOTATIONInteraction(object):
         for verts in verts_list:
             for vert in verts:
                 self.enforce_dims(vert)
-        poly_list = [self.new_polygon(verts, theta, species) for (verts, theta, species) in izip(verts_list, theta_list, species_list)]
-        assert len(theta_list) == len(poly_list), 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
-        assert len(species_list) == len(poly_list), 'species_list: %r, poly_list: %r' % (species_list, poly_list)
-        self.polys = dict({(poly.num, poly) for poly in poly_list})
-        def argmax_area(acc, elem):
-            oldmaxind, oldmaxarea = acc
-            curind, curpoly = elem
-            _, _, w, h = basecoords_to_bbox(curpoly.basecoords)
-            curarea = w * h
-            if curarea > oldmaxarea:
-                return (curind, curarea)
-            else:
-                return (oldmaxind, oldmaxarea)
-        poly_index, _ = reduce(argmax_area, self.polys.iteritems(), (None, 0))
-        self._currently_selected_poly = poly_list[poly_index] if poly_index else None
-        self.update_colors(poly_index)
-        self._update_line()
+        poly_list = [self.new_polygon(verts, theta, species)
+                     for (verts, theta, species) in
+                     izip(verts_list, theta_list, species_list)]
+        assert len(theta_list) == len(poly_list),\
+                'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
+        assert len(species_list) == len(poly_list),\
+                'species_list: %r, poly_list: %r' % (species_list, poly_list)
+        self.polys = {poly.num: poly for poly in poly_list}
+        #def argmax_area(acc, elem):
+        #    oldmaxind, oldmaxarea = acc
+        #    curind, curpoly = elem
+        #    _, _, w, h = basecoords_to_bbox(curpoly.basecoords)
+        #    curarea = w * h
+        #    if curarea > oldmaxarea:
+        #        return (curind, curarea)
+        #    else:
+        #        return (oldmaxind, oldmaxarea)
+        #poly_index, _ = reduce(argmax_area, self.polys.iteritems(), (None, 0))
+        if len(self.polys) != 0:
+            wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
+                                self.polys.itervalues()])
+            poly_index = self.polys.keys()[wh_list.prod(axis=1).argmax()]
+            self._currently_selected_poly = self.polys[poly_index]
+            self.update_colors(poly_index)
+            self._update_line()
+        else:
+            self._currently_selected_poly = None
 
         # Add polygons and lines to the axis
         for poly in self.polys.itervalues():
@@ -442,13 +452,8 @@ class ANNOTATIONInteraction(object):
             self.next_but = Button(self.next_ax, 'Next Annotation\n(right arrow)')
             self.next_but.on_clicked(self.next_annotation)
 
-    def update_image_and_callbacks(self,
-                                    img,
-                                    bbox_list,
-                                    theta_list,
-                                    species_list,
-                                    next_callback,
-                                    prev_callback):
+    def update_image_and_callbacks(self, img, bbox_list, theta_list,
+                                   species_list, next_callback, prev_callback):
         self.disconnect_callbacks(self.fig.canvas)
         for poly in self.polys.itervalues():
             poly.remove()
@@ -536,11 +541,11 @@ class ANNOTATIONInteraction(object):
             self.fig.ax.draw_artist(poly.species_tag)
 
     def get_most_recently_added_poly(self):
-        if len(self.polys) != 0:
-            poly_ind = max(self.polys.iterkeys())  # most recently added polygon has the highest index
-            return poly_ind, self.polys[poly_ind]
-        else:
+        if len(self.polys) == 0:
             return (None, None)
+        else:
+            poly_ind = max(self.polys.keys())  # most recently added polygon has the highest index
+            return poly_ind, self.polys[poly_ind]
 
     def button_press_callback(self, event):
         """ whenever a mouse button is pressed """
@@ -631,11 +636,13 @@ class ANNOTATIONInteraction(object):
             if math.fabs(self.indX - currX) < 3 and math.fabs(self.indY - currY) < 3:
                 return
 
-        if (self._ind is None) or self._polyHeld is False or \
-           (self._ind is not None and self.press1 is True) and \
-           self._currently_selected_poly is not None:
-            self._currently_selected_poly = None
-            self.update_colors(None)
+        if ((self._ind is None) or
+           (self._polyHeld is False) or
+           (self._ind is not None and self.press1 is True) and
+           self._currently_selected_poly is not None):
+            #self._currently_selected_poly = None
+            #self.update_colors(None)
+            pass
         self._ind = None
         self._polyHeld = False
         self.fig.canvas.draw()
