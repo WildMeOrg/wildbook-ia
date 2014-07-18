@@ -115,10 +115,10 @@ def _build_internal_structure(model):
     ider_list = model.iders
     num_levels = len(ider_list)
 
-    if num_levels == 0:
-        root_id_list = []
-    else:
-        root_id_list = ider_list[0]()
+    #if num_levels == 0:
+    #    root_id_list = []
+    #else:
+    #    root_id_list = ider_list[0]()
     #with utool.Timer('build_internal_structure(%r)' % (model.name,)):
     # this is slow
     #root_node = TreeNode(None, None)
