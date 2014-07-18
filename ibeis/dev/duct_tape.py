@@ -23,6 +23,7 @@ def fix_compname_configs(ibs):
     for rowid, suffix in filter(lambda tup:
                                 tup[1].startswith('_MANUAL_'),
                                 izip(configid_list, cfgsuffix_list)):
+        print("EVALUATING: %r, %r" % (rowid, suffix))
         # Fix the tables with bad config_rowids
         ibs.db.executeone(
             '''
@@ -39,4 +40,4 @@ def fix_compname_configs(ibs):
             FROM {CONFIG_TABLE}
             WHERE config_rowid=?
             '''.format(**constants.__dict__),
-            params=(rowid))
+            params=(rowid,))

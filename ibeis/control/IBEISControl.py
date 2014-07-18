@@ -169,10 +169,10 @@ class IBEISController(object):
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         DB_SCHEMA.define_IBEIS_schema(ibs)
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
-        #from ibeis.dev import duct_tape
-        #duct_tape.fix_compname_configs(ibs)
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
+        # from ibeis.dev import duct_tape
+        # duct_tape.fix_compname_configs(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
