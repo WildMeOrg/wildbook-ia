@@ -65,39 +65,49 @@ class TreeNode(object):
 
     def populate(self, child_ids, num_levels, ider_list, level=-1):
         # FIXME / TODO
+        parent_node = self
         if level == num_levels - 1:
             child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
         else:
             child_ider = ider_list[level + 1]
             child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
             for node in child_nodes:
-                node.populate(child_ider(id_), num_levels, ider_list, level + 1) 
+                node.populate(child_ider(id_), num_levels, ider_list, level + 1)
         self.set_children(child_nodes)
         return self
+
+
+def _populate_tree(parent_node, child_ids, num_levels, ider_list, level):
+    if level == num_levels - 1:
+        child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
+    else:
+        child_ider = ider_list[level + 1]
+        child_nodes =  [_populate_tree(
+            TreeNode(id_, parent_node, level),
+            child_ider(id_),
+            num_levels,
+            ider_list,
+            level + 1)
+            for id_ in child_ids]
+    parent_node.set_children(child_nodes)
+    return parent_node
+
 
 @profile
 def _build_internal_structure(model):
     ider_list = model.iders
     num_levels = len(ider_list)
 
-    def populate_tree(parent_node, child_ids, level=0):
-        if level == num_levels - 1:
-            child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
-        else:
-            child_ider = ider_list[level + 1]
-            child_nodes =  [populate_tree(TreeNode(id_, parent_node, level), child_ider(id_), level + 1) for id_ in child_ids]
-        parent_node.set_children(child_nodes)
-        return parent_node
-
     if num_levels == 0:
         root_id_list = []
     else:
         root_id_list = ider_list[0]()
-    #with utool.Timer('populate tree'):
-    # this is slow
-    #root_node = TreeNode(None, None)
-    #root_node.populate(root_id_list, level=0)
-    root_node = populate_tree(TreeNode(None, None), root_id_list, level=0)
+    with utool.Timer('build_internal_structure(%r)' % (model.name,)):
+        # this is slow
+        #root_node = TreeNode(None, None)
+        #root_node.populate(root_id_list, level=0)
+        level = 0
+        root_node = _populate_tree(TreeNode(None, None), root_id_list, num_levels, ider_list, level)
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
@@ -266,7 +276,7 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def _update_rows(model):
         # this is not slow
-        #with utool.Timer('update_rows'): 
+        #with utool.Timer('update_rows'):
         """
         Uses the current ider and col_sort_index to create
         row_indicies
@@ -276,8 +286,8 @@ class APIItemModel(API_MODEL_BASE):
         #print('num_rows=%r' % len(model.col_level_list))
         #print('UPDATE model(%s) rows' % model.name)
         if len(model.col_level_list) > 0:
-            with utool.Timer('table: %r' %(model.name,)):
-                model.root_node = _build_internal_structure(model)
+            #with utool.Timer('table: %r' %(model.name,)):
+            model.root_node = _build_internal_structure(model)
             #print('-----')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
