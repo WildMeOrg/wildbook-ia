@@ -163,7 +163,6 @@ class IBEISController(object):
             utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
         assert dbdir is not None, 'must specify database directory'
 
-
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
