@@ -173,6 +173,9 @@ python dev.py --convert --force-delete
 python dev.py --cmd --gui 
 > rid_list = ibs.get_valid_rids()
 
+# Convinience: Convert ALL hotspotter databases
+python dev.py -t convert_hsdbs --force-delete
+
 
 #--------------
 # Run Result Inspection

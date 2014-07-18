@@ -276,6 +276,7 @@ def dev_snippets(main_locals):
             front = getattr(back, 'front', None)
             ibswgt = front
             view = ibswgt.views['images']
+            model = ibswgt.models['names_tree']
             selection_model = view.selectionModel()
     if ibs is not None:
         #ibs.dump_tables()
