@@ -433,7 +433,6 @@ class MainWindowBackend(QtCore.QObject):
         enctext = 'NEW ENCOUNTER'
         enctext_list = [enctext] * len(gid_list)
         ibs.set_image_enctext(gid_list, enctext_list)
-        back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
         eid = back.get_selected_eid()
         eid_list = [eid] * len(gid_list)
         if mode == 'move':
@@ -442,6 +441,7 @@ class MainWindowBackend(QtCore.QObject):
             pass
         else:
             raise AssertionError('invalid mode=%r' % (mode,))
+        back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE], clear_view_selection=True)
 
     @blocking_slot()
     def select_next(back):
