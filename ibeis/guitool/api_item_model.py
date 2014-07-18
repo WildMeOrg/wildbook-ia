@@ -102,12 +102,12 @@ def _build_internal_structure(model):
         root_id_list = []
     else:
         root_id_list = ider_list[0]()
-    with utool.Timer('build_internal_structure(%r)' % (model.name,)):
-        # this is slow
-        #root_node = TreeNode(None, None)
-        #root_node.populate(root_id_list, level=0)
-        level = 0
-        root_node = _populate_tree(TreeNode(None, None), root_id_list, num_levels, ider_list, level)
+    #with utool.Timer('build_internal_structure(%r)' % (model.name,)):
+    # this is slow
+    #root_node = TreeNode(None, None)
+    #root_node.populate(root_id_list, level=0)
+    level = 0
+    root_node = _populate_tree(TreeNode(None, None), root_id_list, num_levels, ider_list, level)
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
@@ -243,6 +243,7 @@ class APIItemModel(API_MODEL_BASE):
         iders            = headers.get('iders', None)
         name             = headers.get('name', None)
         nice             = headers.get('nice', None)
+        print('[api_model] UPDATE HEADERS: %r' % (name,))
         col_name_list    = headers.get('col_name_list', None)
         col_type_list    = headers.get('col_type_list', None)
         col_nice_list    = headers.get('col_nice_list', None)
@@ -285,6 +286,8 @@ class APIItemModel(API_MODEL_BASE):
         #print('UPDATE ROWS!')
         #print('num_rows=%r' % len(model.col_level_list))
         #print('UPDATE model(%s) rows' % model.name)
+        #print('[api_model] UPDATE ROWS: %r' % (model.name,))
+        #print(utool.get_caller_name(range(4, 12)))
         if len(model.col_level_list) > 0:
             #with utool.Timer('table: %r' %(model.name,)):
             model.root_node = _build_internal_structure(model)
