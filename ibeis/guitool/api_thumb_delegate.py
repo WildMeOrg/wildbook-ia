@@ -188,7 +188,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         # scroll position when this was initially requested.
         return abs(current_offset - thread.offset) < height
 
-    def run(thread):
+    def _run(thread):
         if not thread.thumb_would_be_visible():
             #unregister_thread(thread.thumb_path)
             return
@@ -204,6 +204,9 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         sx, sy = gtool.get_scale_factor(image, thumb)
         # Draw bboxes on thumb (not image)
         for bbox, theta in izip(thread.bbox_list, theta_list):
+            if not thread.thumb_would_be_visible():
+                #unregister_thread(thread.thumb_path)
+                return
             #pt1, pt2 = gtool.cvt_bbox_xywh_to_pt1pt2(bbox, sx=sx, sy=sy, round_=True)
             # --- OLD CODE ---
             #x, y, w, h = bbox
@@ -233,6 +236,13 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
         #unregister_thread(thread.thumb_path)
+
+    def run(thread):
+        try:
+            thread._run()
+        except Exception as ex:
+            utool.printex(ex, 'thread failed')
+            raise
 
 
 # GRAVE:
