@@ -63,7 +63,7 @@ class TreeNode(object):
         str_ = "\n".join([self_str] + child_strs)
         return str_
 
-
+@profile
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """ Recursively builds the tree structure """
     if level == num_levels - 1:
@@ -80,7 +80,7 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
     parent_node.set_children(child_nodes)
     return parent_node
 
-
+@profile
 def _populate_tree_iterative(root_node, num_levels, ider_list):
     """ Recursively builds the tree structure """
     root_ids = ider_list[0]()

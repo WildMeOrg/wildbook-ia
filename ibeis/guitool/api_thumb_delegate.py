@@ -189,6 +189,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         return abs(current_offset - thread.offset) < height
 
     def run(thread):
+        print(thread.img_path)
         if not thread.thumb_would_be_visible():
             #unregister_thread(thread.thumb_path)
             return

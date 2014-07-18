@@ -56,10 +56,10 @@ class APITableView(API_VIEW_BASE):
         view.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
 
         # Selection behavior
-        #view.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        view.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        # view.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        # view.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+        view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        # view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
         #view.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
 
         # Edit Triggers
