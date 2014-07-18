@@ -44,11 +44,11 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     IMAGE_TABLE     : [
         'gid',
-        'image_uuid',
+        #'image_uuid',
         'thumb',
-        'nRids',
+        #'nRids',
         'gname',
-        'ext',
+        #'ext',
         'reviewed',
         'datetime',
         'gps',
