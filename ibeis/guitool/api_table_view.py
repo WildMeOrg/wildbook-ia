@@ -135,6 +135,10 @@ class APITableView(API_VIEW_BASE):
         view.setEditTriggers(view._defaultEditTriggers)
         API_VIEW_BASE.mouseReleaseEvent(view, event)
 
+    def clearSelection(view, *args, **kwargs):
+        print('[table_view] clear selection')
+        API_VIEW_BASE.clearSelection(view, *args, **kwargs)
+
     #---------------
     # Slots
     #---------------

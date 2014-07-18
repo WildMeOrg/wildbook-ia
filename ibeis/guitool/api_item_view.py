@@ -100,7 +100,7 @@ def hide_cols(view):
     num_duplicates = int(total_num_cols / num_cols)
     duplicated_hidden_list = view.col_hidden_list * num_duplicates
     for col, hidden in enumerate(duplicated_hidden_list):
-            view.setColumnHidden(col, hidden)
+        view.setColumnHidden(col, hidden)
 
 
 #---------------
