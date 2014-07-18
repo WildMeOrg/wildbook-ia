@@ -362,7 +362,7 @@ class MainWindowBackend(QtCore.QObject):
         # get the image-id of the annotation we are deleting
         gid = back.ibs.get_annot_gids(aid)
         # delete the annotation
-        back.ibs.delete_annots([aid])
+        back.ibs.delete_annots(aid)
         # update display, to show image without the deleted annotation
         back.select_gid(gid)
         back.front.update_tables()
@@ -387,7 +387,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> Delete Images"""
         print('[back] delete_image')
         gid = cast_from_qt(gid)
-        back.ibs.delete_images([gid])
+        back.ibs.delete_images(gid)
         back.front.update_tables()
 
     @blocking_slot()
@@ -398,10 +398,43 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot(int)
-    def delete_encounter(back, eid):
+    def delete_encounter(back, eid_list):
         print('\n\n[back] delete encounter')
-        back.ibs.delete_encounters([eid])
+        back.ibs.delete_encounters(eid_list)
         back.front.update_tables()
+
+    @blocking_slot(int)
+    def merge_encounters(back, eid_list):
+        assert len(eid_list) > 1, "Cannot merge fewer than two encounters"
+        print('\n\n[back] merge_encounters')
+        ibs = back.ibs
+        destination_eid = eid_list[0]
+        deprecated_eids = eid_list[1:]
+        gid_list = utool.flatten([ ibs.get_valid_gids(eid=eid) for eid in eid_list] )
+        eid_list = [destination_eid] * len(gid_list)
+        ibs.set_image_eids(gid_list, eid_list)
+        ibs.delete_encounters(deprecated_eids)
+        for eid in deprecated_eids:
+            back.front.enc_tabwgt._close_tab_with_eid(eid)
+        back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
+
+    @blocking_slot(int)
+    def send_to_new_encounter(back, gid_list, mode='move'):
+        assert len(gid_list) > 1, "Cannot create a new encounter with no images"
+        print('\n\n[back] send_to_new_encounter')
+        ibs = back.ibs
+        enctext = 'NEW ENCOUNTER'
+        enctext_list = [enctext] * len(gid_list)
+        ibs.set_image_enctext(gid_list, enctext_list)
+        back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
+        eid = back.get_selected_eid()
+        eid_list = [eid] * len(gid_list)
+        if mode == 'move':
+            ibs.delete_image_eids(gid_list, eid_list)
+        elif mode == 'copy':
+            pass
+        else:
+            raise AssertionError('invalid mode=%r' % (mode,))
 
     @blocking_slot()
     def select_next(back):
@@ -420,6 +453,17 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
     # Batch menu slots
     #--------------------------------------------------------------------------
+
+    @blocking_slot()
+    def encounter_set_species(back, refresh=True):
+        print('[back] encounter_set_species')
+        ibs = back.ibs
+        eid = back.get_selected_eid()
+        aid_list = back.ibs.get_valid_aids(eid=eid)
+        species_list = [ibs.cfg.detect_cfg.species] * len(aid_list)
+        ibs.set_annot_species(aid_list, species_list)
+        if refresh:
+            back.front.update_tables([gh.ANNOTATION_TABLE])
 
     @blocking_slot()
     def change_detection_species(back, index, value):
@@ -543,15 +587,19 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.update_special_encounters()
         back.ibs.compute_encounters()
         print('[back] about to finish computing encounters')
+        back.front.enc_tabwgt._close_all_tabs()
         if refresh:
             back.front.update_tables()
         print('[back] finished computing encounters')
 
-    def encounter_reviewed_all_images(back):
+    def encounter_reviewed_all_images(back, refresh=True, all_image_bypass=False):
         eid = back.get_selected_eid()
-        gids = back.ibs.get_valid_gids(eid=eid)
-        flags = [1] * len(gids)
-        back.ibs.set_image_reviewed(gids, flags)
+        if eid is not None or all_image_bypass:
+            gid_list = back.ibs.get_valid_gids(eid=eid)
+            flag_list = [1] * len(gid_list)
+            back.ibs.set_image_reviewed(gid_list, flag_list)
+            if refresh:
+                back.front.f([gh.IMAGE_TABLE])
 
     #--------------------------------------------------------------------------
     # Option menu slots

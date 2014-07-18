@@ -85,6 +85,22 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             enc_tabwgt.eid_list.pop(index)
             enc_tabwgt.removeTab(index)
 
+
+    @slot_()
+    def _close_all_tabs(enc_tabwgt):
+        while len(enc_tabwgt.eid_list) > 0:
+            index = 0
+            enc_tabwgt.eid_list.pop(index)
+            enc_tabwgt.removeTab(index)
+
+    @slot_(int)
+    def _close_tab_with_eid(enc_tabwgt, eid):
+        try:
+            index = enc_tabwgt.eid_list.index(eid)
+            enc_tabwgt._close_tab(index)
+        except:
+            pass
+        
     def _add_enc_tab(enc_tabwgt, eid, enctext):
         # <HACK>
         # if enctext == constants.ALL_IMAGE_ENCTEXT:
@@ -147,7 +163,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models       = {}
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
-        ibswgt.tblname_list = [IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE]
+        ibswgt.tblname_list = [
+            IMAGE_TABLE, 
+            IMAGE_GRID, 
+            ANNOTATION_TABLE, 
+            NAME_TABLE, 
+            NAMES_TREE
+        ]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
         ibswgt._init_components()
@@ -242,6 +264,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_query_mode)
 
+        ibswgt.species_button = _NEWBUT('Update Encounter Species',
+                                       ibswgt.back.encounter_set_species,
+                                       bgcolor=(150, 255, 150))
+
+        ibswgt.reviewed_button = _NEWBUT('Set Encounter as Reviewed',
+                                       ibswgt.back.encounter_reviewed_all_images,
+                                       bgcolor=(0, 232, 211))
+
         ibswgt.detect_button = _NEWBUT('Detect',
                                        ibswgt.back.run_detection_coarse,
                                        bgcolor=(150, 255, 150))
@@ -274,6 +304,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 #_NEWBUT('Review Detections',
                 #        ibswgt.back.review_detections,
                 #        bgcolor=(170, 250, 170)),
+                ibswgt.species_button,
+
+                ibswgt.reviewed_button,
 
                 ibswgt.querydb_combo,
 
@@ -337,11 +370,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             for tblname in tblnames:
                 yield tblname
 
-    def update_tables(ibswgt, tblnames=None):
+    def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """ forces changing models """
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
+            # if clear_view_selection:
+            #     print("CLEARING %r" % (tblname, ))
+            #     view = ibswgt.views[tblname]
+            #     hack_clear_selection_views.append(view)
+            #     view.clearSelection()
             model = ibswgt.models[tblname]
             model._update()
+
 
     def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
@@ -450,26 +489,46 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def on_contextMenuClicked(ibswgt, qtindex, pos):
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
-        id_ = model._get_row_id(qtindex)
         tblview = ibswgt.views[model.name]
+        id_list = [model._get_row_id(qtindex) for qtindex in tblview.selectedIndexes()]
         if model.name == ENCOUNTER_TABLE:
-            eid = id_
-            guitool.popup_menu(tblview, pos, [
-                ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
-            ])
-        else:
+            if len(id_list) == 1:
+                eid = id_list[0]
+                guitool.popup_menu(tblview, pos, [
+                    ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
+                ])
+            else:
+                guitool.popup_menu(tblview, pos, [
+                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list)),
+                    ('delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
+                ])
+        elif model.name == IMAGE_TABLE:
             eid = model.eid
-            if model.name == IMAGE_TABLE:
-                gid = id_
+            if len(id_list) == 1:
+                gid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
                     ('view hough image', lambda: ibswgt.back.show_hough(gid)),
                     ('delete image', lambda: ibswgt.back.delete_image(gid)),
                 ])
-            elif model.name == ANNOTATION_TABLE:
-                aid = id_
+            else:
+                print(id_list)
+                guitool.popup_menu(tblview, pos, [
+                    ('move to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
+                    ('copy to new encounter', lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                    ('delete images', lambda: ibswgt.back.delete_image(id_list)),
+                ])
+        elif model.name == ANNOTATION_TABLE:
+            eid = model.eid
+            if len(id_list) == 1:
+                aid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
                     ('delete annotation', lambda: ibswgt.back.delete_annot(aid)),
                 ])
+            else:
+                guitool.popup_menu(tblview, pos, [
+                    ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
+                ])
+
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):

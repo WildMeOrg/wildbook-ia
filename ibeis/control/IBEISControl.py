@@ -716,8 +716,15 @@ class IBEISController(object):
     def set_image_enctext(ibs, gid_list, enctext_list):
         """ Sets the encoutertext of each image """
         if utool.VERBOSE:
-            print('[ibs] setting %r image encounter ids' % len(gid_list))
+            print('[ibs] setting %r image encounter ids (from text)' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
+        ibs.set_image_eids(gid_list, eid_list)
+
+    @setter
+    def set_image_eids(ibs, gid_list, eid_list):
+        """ Sets the encoutertext of each image """
+        if utool.VERBOSE:
+            print('[ibs] setting %r image encounter ids' % len(gid_list))
         egrid_list = ibs.add_image_relationship(gid_list, eid_list)
         del egrid_list
 
@@ -1347,15 +1354,31 @@ class IBEISController(object):
         #print('gids_list = %r' % (gids_list,))
         return gids_list
 
-    @getter_1to1
-    def get_encounter_egrids(ibs, eid_list):
+    # @getter_1to1
+    def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
+        assert eid_list is not None or gid_list is not None, "Either eid_list or gid_list must be None"
         """ Gets a list of encounter-image-relationship rowids for each encouterid """
-        # TODO: Group type
-        params_iter = ((eid,) for eid in eid_list)
-        where_clause = 'encounter_rowid=?'
-        # list of relationships for each encounter
-        egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
-                                       params_iter, where_clause, unpack_scalars=False)
+        if eid_list is not None and gid_list is None:
+            # TODO: Group type
+            params_iter = ((eid,) for eid in eid_list)
+            where_clause = 'encounter_rowid=?'
+            # list of relationships for each encounter
+            egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
+                                           params_iter, where_clause, unpack_scalars=False)
+        elif gid_list is not None and eid_list is None:
+            # TODO: Group type
+            params_iter = ((gid,) for gid in gid_list)
+            where_clause = 'image_rowid=?'
+            # list of relationships for each encounter
+            egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
+                                           params_iter, where_clause, unpack_scalars=False)
+        else:
+            # TODO: Group type
+            params_iter = ((eid, gid,) for eid, gid in izip(eid_list, gid_list))
+            where_clause = 'encounter_rowid=? AND image_rowid=?'
+            # list of relationships for each encounter
+            egrids_list = ibs.db.get_where(EG_RELATION_TABLE, ('egr_rowid',),
+                                           params_iter, where_clause, unpack_scalars=False)
         return egrids_list
 
     @getter_1toM
@@ -1475,9 +1498,17 @@ class IBEISController(object):
         """ Removes encounters (images are not effected) """
         if utool.VERBOSE:
             print('[ibs] deleting %d encounters' % len(eid_list))
-        egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list))
+        egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
         ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
         ibs.db.delete_rowids(ENCOUNTER_TABLE, eid_list)
+
+    @deleter
+    def delete_image_eids(ibs, gid_list, eid_list):
+        """ Sets the encoutertext of each image """
+        if utool.VERBOSE:
+            print('[ibs] deleting %r image\'s encounter ids' % len(gid_list))
+        egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list, gid_list=gid_list))
+        ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
 
     #
     #

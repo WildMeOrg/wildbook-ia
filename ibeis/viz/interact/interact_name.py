@@ -270,7 +270,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         """ All annotations are given different new names """
         # Delete all original names
         ibs = self.ibs
-        ibs.delete_annot_nids(self.aid_list)
+        # ibs.delete_annot_nids(self.aid_list)
         # Get next name from the controller
         nid_list = ibs.get_annot_nids(self.aid_list)
         is_unknown = ibsfuncs.is_nid_unknown(ibs, nid_list)

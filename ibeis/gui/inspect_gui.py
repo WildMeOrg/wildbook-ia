@@ -33,6 +33,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.show_new = True
         qres_wgt.show_join = True
         qres_wgt.show_split = True
+        qres_wgt.tt = utool.tic()
         # Set results data
         qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join, qres_wgt.show_split)
         qres_wgt.set_query_results(ibs, qaid2_qres, **kwargs)
@@ -130,8 +131,20 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_pressed(iqrw, qtindex):
-        print('[inspect_gui] _on_pressed: ')
-        #print('Pressed: ' + str(qtype.qindexinfo(qtindex)))
+        def _check_for_double_click(iqrw, qtindex):
+            threshold = 0.30 # seconds
+            distance = utool.toc(iqrw.tt)
+            print('Pressed %r' %(distance,))
+            col = qtindex.column()
+            model = qtindex.model()
+            colname = model.get_header_name(col)
+            if distance <= threshold:
+                if colname == 'status':
+                    iqrw.view.clicked.emit(qtindex)
+                else:
+                    iqrw.view.doubleClicked.emit(qtindex)
+            iqrw.tt = utool.tic()
+        _check_for_double_click(iqrw, qtindex)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
