@@ -97,7 +97,7 @@ TABLE_COLNAMES = {
     NAMES_TREE      : [
         'name',
         'nid',
-        #'nRids',
+        'nRids',
         'exemplar',
         'aid',
         'thumb',
@@ -131,7 +131,16 @@ TABLE_EDITSET = {
 }
 
 TABLE_TREE_LEVELS = {
-    NAMES_TREE : [0, 0, 1, 1, 1],
+    NAMES_TREE :
+    {
+        'name': 0,
+        'nid': 0,
+        'nRids': 0,
+        'exemplar': 1,
+        'aid': 1,
+        'thumb': 1,
+
+    },
 }
 
 TABLE_HIDDEN_LIST = {
@@ -321,7 +330,8 @@ def make_ibeis_headers_dict(ibs):
         tblgetters = getters[tblname]
         tblsetters = setters[tblname]
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
-        collevels  = TABLE_TREE_LEVELS.get(tblname, [0 for _ in xrange(len(colnames))])
+        collevel_dict = TABLE_TREE_LEVELS.get(tblname, {})
+        collevels  = [collevel_dict.get(colname, 0) for colname in colnames]
         hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
         numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
 

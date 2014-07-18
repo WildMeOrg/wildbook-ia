@@ -354,7 +354,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.statusBar.addWidget(widget)
 
     def set_status_text(ibswgt, index, text):
-        printDBG('set_status_text[%r] = %r' % (index, text))
+        #printDBG('set_status_text[%r] = %r' % (index, text))
         ibswgt.statusLabel_list[index].setText(text)
 
     def changing_models_gen(ibswgt, tblnames=None):
@@ -372,8 +372,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """ forces changing models """
         hack_selections = []
+        print('[new_gui.UPDATE_TABLES]')
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
-            print("[new_gui.update_tables] tblname=%r" % (tblname, ))
+            print('[new_gui.update_tables] tblname=%r' % (tblname, ))
             model = ibswgt.models[tblname]
             view  = ibswgt.views[tblname]
             #if clear_view_selection:
@@ -432,7 +433,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         print('_change_enc(%r)' % eid)
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
             ibswgt.views[tblname]._change_enc(eid)
-            ibswgt.models[tblname]._change_enc(eid)
+            #ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call
         try:
             #if eid is None:
             #    # HACK
@@ -477,7 +478,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         """ When the rows are updated change the tab names """
-        printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
+        #printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:  # Hack
             return
         tblname = str(tblname)
