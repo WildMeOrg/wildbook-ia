@@ -532,7 +532,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
 
-
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):
         #printDBG('on_click')

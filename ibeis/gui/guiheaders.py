@@ -19,12 +19,12 @@ THUMB_TABLE      = 'thumbs'
 
 # enabled tables
 TABLENAME_LIST = [
-    IMAGE_TABLE, 
-    ANNOTATION_TABLE, 
-    NAME_TABLE, 
-    ENCOUNTER_TABLE, 
-    IMAGE_GRID, 
-    THUMB_TABLE, 
+    IMAGE_TABLE,
+    ANNOTATION_TABLE,
+    NAME_TABLE,
+    ENCOUNTER_TABLE,
+    IMAGE_GRID,
+    THUMB_TABLE,
     NAMES_TREE
 ]
 
@@ -97,7 +97,7 @@ TABLE_COLNAMES = {
     NAMES_TREE      : [
         'name',
         'nid',
-        'nRids',
+        #'nRids',
         'exemplar',
         'aid',
         'thumb',
@@ -131,14 +131,14 @@ TABLE_EDITSET = {
 }
 
 TABLE_TREE_LEVELS = {
-    NAMES_TREE : [0, 0, 0, 1, 1, 1],
+    NAMES_TREE : [0, 0, 1, 1, 1],
 }
 
 TABLE_HIDDEN_LIST = {
-    IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],
-    ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],
-    NAMES_TREE       : [False, False, False, False, False, False],
-    NAME_TABLE       : [False, False, False, False],
+    #IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],
+    #ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],
+    #NAMES_TREE       : [False, False, False, False, False, False],
+    #NAME_TABLE       : [False, False, False, False],
 }
 
 TABLE_STRIPE_LIST = {
