@@ -132,9 +132,9 @@ class QueryResultsWidget(APIItemWidget):
     @guitool.slot_(QtCore.QModelIndex)
     def _on_pressed(iqrw, qtindex):
         def _check_for_double_click(iqrw, qtindex):
-            threshold = 0.30 # seconds
+            threshold = 0.30  # seconds
             distance = utool.toc(iqrw.tt)
-            print('Pressed %r' %(distance,))
+            print('Pressed %r' % (distance,))
             col = qtindex.column()
             model = qtindex.model()
             colname = model.get_header_name(col)

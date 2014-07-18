@@ -75,6 +75,14 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(groundtruth_list, (aid1, aid2))]
         # A flat list of all the aids we are looking at
         self.aid_list = utool.unique_ordered(utool.flatten(self.gt_list))
+
+        # Grab not just the exemplars
+        # <HACK>
+        all_groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2), is_exemplar=True)
+        all_gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(all_groundtruth_list, (aid1, aid2))]
+        self.all_aid_list = utool.unique_ordered(utool.flatten(all_gt_list))
+        # </HACK>
+
         # Original sets of groundtruth we are working with
         self.gt1, self.gt2 = self.gt_list
         # Grid that will fit all the names we need to display
@@ -311,14 +319,16 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def merge_all_into_nid1(self, event=None):
         """ All the annotations are given nid1 """
-        self.ibs.set_annot_nids(self.aid_list, [self.nid1] * len(self.aid_list))
+        aid_list = self.all_aid_list
+        self.ibs.set_annot_nids(aid_list, [self.nid1] * len(aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
 
     def merge_all_into_nid2(self, event=None):
         """ All the annotations are given nid2 """
-        self.ibs.set_annot_nids(self.aid_list, [self.nid2] * len(self.aid_list))
+        aid_list = self.all_aid_list
+        self.ibs.set_annot_nids(aid_list, [self.nid2] * len(aid_list))
         self.update_callback()
         self.backend_callback()
         self.show_page()
