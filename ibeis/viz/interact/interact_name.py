@@ -78,7 +78,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         # Grab not just the exemplars
         # <HACK>
-        all_groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2), is_exemplar=True)
+        all_groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2))
         all_gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(all_groundtruth_list, (aid1, aid2))]
         self.all_aid_list = utool.unique_ordered(utool.flatten(all_gt_list))
         # </HACK>
