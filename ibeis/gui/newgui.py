@@ -363,6 +363,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         if tblnames is None:
             tblnames = ibswgt.super_tblname_list
+        print('[newgui] change models: %r' % (tblnames,))
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
         with ChangeLayoutContext(model_list):
@@ -372,9 +373,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """ forces changing models """
         hack_selections = []
-        print('[new_gui.UPDATE_TABLES]')
+        #print('[new_gui.UPDATE_TABLES]')
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
-            print('[new_gui.update_tables] tblname=%r' % (tblname, ))
+            #print('[new_gui.update_tables] tblname=%r' % (tblname, ))
             model = ibswgt.models[tblname]
             view  = ibswgt.views[tblname]
             #if clear_view_selection:
