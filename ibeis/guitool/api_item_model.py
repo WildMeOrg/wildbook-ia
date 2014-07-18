@@ -123,7 +123,7 @@ def _build_internal_structure(model):
     # this is slow
     #root_node = TreeNode(None, None)
     #root_node.populate(root_id_list, level=0)
-    level = 0
+    #level = 0
     #with utool.Timer('1) build_internal_structure(%r)' % (model.name,)):
     #    root_node = TreeNode(None, None, -1)
     #    _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
