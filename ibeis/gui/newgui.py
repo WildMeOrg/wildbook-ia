@@ -490,7 +490,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
-        id_list = [model._get_row_id(qtindex) for qtindex in tblview.selectedIndexes()]
+        id_list = [model._get_row_id(_qtindex) for _qtindex in tblview.selectedIndexes()]
         if model.name == ENCOUNTER_TABLE:
             if len(id_list) == 1:
                 eid = id_list[0]
@@ -498,8 +498,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
                 ])
             else:
+                merge_destination_id = model._get_row_id(qtindex) # This is for the benefit of merge encounters
                 guitool.popup_menu(tblview, pos, [
-                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list)),
+                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                     ('delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
                 ])
         elif model.name == IMAGE_TABLE:

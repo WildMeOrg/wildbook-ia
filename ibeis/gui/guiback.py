@@ -404,12 +404,19 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot(int)
-    def merge_encounters(back, eid_list):
+    def merge_encounters(back, eid_list, destination_eid):
         assert len(eid_list) > 1, "Cannot merge fewer than two encounters"
-        print('\n\n[back] merge_encounters')
+        print('[back] merge_encounters: %r, %r' % (destination_eid, eid_list))
         ibs = back.ibs
-        destination_eid = eid_list[0]
-        deprecated_eids = eid_list[1:]
+        try:
+            destination_index = eid_list.index(destination_eid)
+        except:
+            # Default to the first value selected if the eid doesn't exist in eid_list
+            print('[back] merge_encounters cannot find index for %r' % (destination_eid,))
+            destination_index = 0
+            destination_eid = eid_list[destination_index]
+        deprecated_eids = list(eid_list)
+        deprecated_eids.pop(destination_index)
         gid_list = utool.flatten([ ibs.get_valid_gids(eid=eid) for eid in eid_list] )
         eid_list = [destination_eid] * len(gid_list)
         ibs.set_image_eids(gid_list, eid_list)
