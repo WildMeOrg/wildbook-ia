@@ -274,6 +274,9 @@ def dev_snippets(main_locals):
         if back is not None:
             # Get reference to GUI Frontend
             front = getattr(back, 'front', None)
+            ibswgt = front
+            view = ibswgt.views['images']
+            selection_model = view.selectionModel()
     if ibs is not None:
         #ibs.dump_tables()
         valid_aids = ibs.get_valid_aids()

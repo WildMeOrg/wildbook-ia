@@ -85,7 +85,6 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             enc_tabwgt.eid_list.pop(index)
             enc_tabwgt.removeTab(index)
 
-
     @slot_()
     def _close_all_tabs(enc_tabwgt):
         while len(enc_tabwgt.eid_list) > 0:
@@ -100,7 +99,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             enc_tabwgt._close_tab(index)
         except:
             pass
-        
+
     def _add_enc_tab(enc_tabwgt, eid, enctext):
         # <HACK>
         # if enctext == constants.ALL_IMAGE_ENCTEXT:
@@ -164,10 +163,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.views        = {}
         #ibswgt.widgets      = {}
         ibswgt.tblname_list = [
-            IMAGE_TABLE, 
-            IMAGE_GRID, 
-            ANNOTATION_TABLE, 
-            NAME_TABLE, 
+            IMAGE_TABLE,
+            IMAGE_GRID,
+            ANNOTATION_TABLE,
+            NAME_TABLE,
             NAMES_TREE
         ]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
@@ -265,12 +264,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                       ibswgt.back.change_query_mode)
 
         ibswgt.species_button = _NEWBUT('Update Encounter Species',
-                                       ibswgt.back.encounter_set_species,
-                                       bgcolor=(150, 255, 150))
+                                        ibswgt.back.encounter_set_species,
+                                        bgcolor=(150, 255, 150))
 
         ibswgt.reviewed_button = _NEWBUT('Set Encounter as Reviewed',
-                                       ibswgt.back.encounter_reviewed_all_images,
-                                       bgcolor=(0, 232, 211))
+                                         ibswgt.back.encounter_reviewed_all_images,
+                                         bgcolor=(0, 232, 211))
 
         ibswgt.detect_button = _NEWBUT('Detect',
                                        ibswgt.back.run_detection_coarse,
@@ -372,15 +371,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """ forces changing models """
+        hack_selections = []
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
-            # if clear_view_selection:
-            #     print("CLEARING %r" % (tblname, ))
-            #     view = ibswgt.views[tblname]
-            #     hack_clear_selection_views.append(view)
-            #     view.clearSelection()
+            print("[new_gui.update_tables] tblname=%r" % (tblname, ))
             model = ibswgt.models[tblname]
+            view  = ibswgt.views[tblname]
+            #if clear_view_selection:
+            selection_model = view.selectionModel()
+            selection_model.clearSelection()
+            hack_selections.append(selection_model)
             model._update()
-
+        # Hack: Call this outside changing models gen
+        for selection_model in hack_selections:
+            selection_model.clearSelection()
 
     def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
@@ -490,7 +493,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
-        id_list = [model._get_row_id(qtindex) for qtindex in tblview.selectedIndexes()]
+        id_list = [model._get_row_id(_qtindex) for _qtindex in tblview.selectedIndexes()]
         if model.name == ENCOUNTER_TABLE:
             if len(id_list) == 1:
                 eid = id_list[0]
