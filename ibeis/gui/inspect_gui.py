@@ -418,7 +418,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     (qaids, aids, scores, ranks) = candidate_matches
     #qnames = ibs.get_annot_names(qaids)
     #names = ibs.get_annot_names(aids)
-    #truths = np.array((ibs.get_annot_lblannot_rowids(qaids) - ibs.get_annot_lblannot_rowids(aids)) == 0)
+    #truths = np.array((ibs.get_annot_lblannot_rowids_oftype(qaids) - ibs.get_annot_lblannot_rowids_oftype(aids)) == 0)
     #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in izip(qaids, aids)]
 
     #def get_review_match_buttontup(aid1, aid2):

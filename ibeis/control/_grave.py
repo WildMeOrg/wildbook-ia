@@ -293,7 +293,7 @@
     #    def _lbltype_dict(aid):
     #        _dict = {}
     #        for _lbltype in constants.KEY_DEFAULTS.iterkeys():
-    #            _dict[_lbltype] = ibs.get_annot_lblannot_rowids(aid, _lbltype)
+    #            _dict[_lbltype] = ibs.get_annot_lblannot_rowids_oftype(aid, _lbltype)
     #        return _dict
     #    lbltype_dict_list = [_lbltype_dict(aid) for aid in aid_list]
     #    return lbltype_dict_list

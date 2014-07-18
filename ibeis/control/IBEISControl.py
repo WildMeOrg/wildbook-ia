@@ -163,13 +163,16 @@ class IBEISController(object):
             utool.ensuredir(ibs.thumb_dpath, verbose=_verbose)
         assert dbdir is not None, 'must specify database directory'
 
+
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         DB_SCHEMA.define_IBEIS_schema(ibs)
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
-        ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_' + utool.get_computer_name()
+        #from ibeis.dev import duct_tape
+        #duct_tape.fix_compname_configs(ibs)
+        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
@@ -450,6 +453,11 @@ class IBEISController(object):
         feat_config_rowid = ibs.get_feat_config_rowid()
         fid_list = ibs.db.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
         return fid_list
+
+    @ider
+    def get_valid_configids(ibs):
+        configid_list = ibs.db.get_all_rowids(constants.CONFIG_TABLE)
+        return configid_list
 
     #
     #
@@ -1385,7 +1393,7 @@ class IBEISController(object):
     def get_encounter_nids(ibs, eid_list):
         """ returns a list of list of nids in each encounter """
         aids_list = ibs.get_encounter_aids(eid_list)
-        nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids, aids_list,
+        nids_list = ibsfuncs.unflat_map(ibs.get_annot_lblannot_rowids_oftype, aids_list,
                                         _lbltype=constants.INDIVIDUAL_KEY)
         nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]
 
@@ -1997,7 +2005,16 @@ class IBEISController(object):
         return alrids_list
 
     @getter_1toM
-    def get_annot_lblannot_rowids(ibs, aid_list, _lbltype=None):
+    def get_annot_lblannot_rowids(ibs, aid_list):
+        """ Returns the name id of each annotation. """
+        # Get all the annotation lblannot relationships
+        # filter out only the ones which specify names
+        alrids_list = ibs.get_annot_alrids(aid_list)
+        lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+        return lblannot_rowids_list
+
+    @getter_1toM
+    def get_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype=None):
         """ Returns the name id of each annotation. """
         # Get all the annotation lblannot relationships
         # filter out only the ones which specify names
@@ -2074,7 +2091,7 @@ class IBEISController(object):
         """ Returns a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
-        lbltype_dict_list = ibs.get_annot_lblannot_rowids(aid_list, _lbltype)
+        lbltype_dict_list = ibs.get_annot_lblannot_rowids_oftype(aid_list, _lbltype)
         DEFAULT_VALUE = constants.KEY_DEFAULTS[_lbltype]
         # FIXME: Use filters and unflat maps
         lblannot_value_list = [lblannot_value_getter(lblannot_rowids)[0]
