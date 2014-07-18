@@ -21,7 +21,7 @@ VERBOSE = utool.VERBOSE
 
 class TreeNode(object):
     __slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
-    def __init__(self, id_, parent_node, level=-1):
+    def __init__(self, id_, parent_node, level):
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
@@ -63,26 +63,14 @@ class TreeNode(object):
         str_ = "\n".join([self_str] + child_strs)
         return str_
 
-    def populate(self, child_ids, num_levels, ider_list, level=-1):
-        # FIXME / TODO
-        parent_node = self
-        if level == num_levels - 1:
-            child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
-        else:
-            child_ider = ider_list[level + 1]
-            child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
-            for node in child_nodes:
-                node.populate(child_ider(id_), num_levels, ider_list, level + 1)
-        self.set_children(child_nodes)
-        return self
 
-
-def _populate_tree(parent_node, child_ids, num_levels, ider_list, level):
+def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
+    """ Recursively builds the tree structure """
     if level == num_levels - 1:
         child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
     else:
         child_ider = ider_list[level + 1]
-        child_nodes =  [_populate_tree(
+        child_nodes =  [_populate_tree_recursive(
             TreeNode(id_, parent_node, level),
             child_ider(id_),
             num_levels,
@@ -93,8 +81,37 @@ def _populate_tree(parent_node, child_ids, num_levels, ider_list, level):
     return parent_node
 
 
+def _populate_tree_iterative(root_node, num_levels, ider_list):
+    """ Recursively builds the tree structure """
+    root_ids = ider_list[0]()
+    parent_node_list = [root_node]
+    ids_list = [root_ids]
+    for level in xrange(num_levels):
+        #print('------------ level=%r -----------' % (level,))
+        #print(utool.dict_str(locals()))
+        new_node_lists = []
+        new_ids_lists  = []
+        for parent_node, id_list in izip(parent_node_list, ids_list):
+            #pass
+            #assert isinstance(parent_node, TreeNode), '%r\n%s' % (parent_node,
+            #                                                      utool.dict_str(locals()))
+            node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
+            if level + 1 < num_levels:
+                child_ider = ider_list[level + 1]
+                next_ids =  child_ider(id_list)
+                #[child_ider(id_) for id_ in child_ids]
+            else:
+                next_ids = []
+            parent_node.set_children(node_list)
+            new_node_lists.extend(node_list)
+            new_ids_lists.extend(next_ids)
+        parent_node_list = new_node_lists
+        ids_list = new_ids_lists
+
+
 @profile
 def _build_internal_structure(model):
+    #from guitool.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)
 
@@ -107,7 +124,12 @@ def _build_internal_structure(model):
     #root_node = TreeNode(None, None)
     #root_node.populate(root_id_list, level=0)
     level = 0
-    root_node = _populate_tree(TreeNode(None, None), root_id_list, num_levels, ider_list, level)
+    #with utool.Timer('1) build_internal_structure(%r)' % (model.name,)):
+    #    root_node = TreeNode(None, None, -1)
+    #    _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
+    #with utool.Timer('2) build_internal_structure(%r)' % (model.name,)):
+    root_node = TreeNode(None, None, -1)
+    _populate_tree_iterative(root_node, num_levels, ider_list)
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
@@ -230,7 +252,7 @@ class APIItemModel(API_MODEL_BASE):
         model.col_sort_reverse = False
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
-        model.root_node = TreeNode(None, None)
+        model.root_node = TreeNode(None, None, -1)
         # Initialize member variables
         #model._about_to_change()
         model.headers = headers  # save the headers
