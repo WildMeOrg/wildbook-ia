@@ -243,7 +243,7 @@ class APIItemModel(API_MODEL_BASE):
         iders            = headers.get('iders', None)
         name             = headers.get('name', None)
         nice             = headers.get('nice', None)
-        print('[api_model] UPDATE HEADERS: %r' % (name,))
+        #print('[api_model] UPDATE HEADERS: %r' % (name,))
         col_name_list    = headers.get('col_name_list', None)
         col_type_list    = headers.get('col_type_list', None)
         col_nice_list    = headers.get('col_nice_list', None)
