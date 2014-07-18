@@ -648,7 +648,7 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas.draw()
 
     def draw_new_poly(self, event=None):
-        coords = default_vertices(self.img, self.polys)
+        coords = default_vertices(self.img, self.polys, self.mouseX, self.mouseY)
 
         poly = self.new_polygon(coords, 0, self.species_tag)
 
@@ -1175,10 +1175,17 @@ class ANNOTATIONInteraction(object):
         return mask
 
 
-def default_vertices(img, polys=None):
+def default_vertices(img, polys=None, mouseX=None, mouseY=None):
     """Default to rectangle that has a quarter-width/height border."""
     (h, w) = img.shape[0:2]
     w_, h_ = (w // 4, h // 4)
+    if mouseX is not None and mouseY is not None:
+        center_x = mouseX
+        center_h = mouseY
+    else:
+        center_x = w // 2
+        center_h = h // 2
+
     if polys is not None and len(polys) > 0:
         # HACK HACK HACK
         wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
@@ -1187,13 +1194,18 @@ def default_vertices(img, polys=None):
         #w_ = w - w_
         #h_ = h - h_
         # just bad code
-        center_x = w // 2
-        center_h = h // 2
-        x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
-        y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
-    else:
-        x1, x2 = np.array([0, w]) + (w_ * np.array([1, -1]))
-        y1, y2 = np.array([0, h]) + (h_ * np.array([1, -1]))
+        #x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
+        #y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
+    #else:
+    #    x1, x2 = np.array([0, w]) + (w_ * np.array([1, -1]))
+    #    y1, y2 = np.array([0, h]) + (h_ * np.array([1, -1]))
+    x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
+    y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
+    # Clip to bounds
+    x1 = max(x1, 1)
+    y1 = max(y1, 1)
+    x2 = min(x2, h - 1)
+    y2 = min(y2, w - 1)
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
 
 
