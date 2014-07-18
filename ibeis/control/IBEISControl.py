@@ -387,7 +387,7 @@ class IBEISController(object):
             reviewed_list = ibs.get_image_reviewed(gid_list)
             isvalid_list = [reviewed == flag for flag in reviewed_list]
             gid_list = utool.filter_items(gid_list, isvalid_list)
-        return sorted(gid_list)
+        return gid_list
 
     @ider
     def get_valid_eids(ibs, min_num_gids=0):
@@ -397,7 +397,7 @@ class IBEISController(object):
             num_gids_list = ibs.get_encounter_num_gids(eid_list)
             flag_list = [num_gids >= min_num_gids for num_gids in num_gids_list]
             eid_list  = utool.filter_items(eid_list, flag_list)
-        return sorted(eid_list)
+        return eid_list
 
     @ider
     def get_valid_aids(ibs, eid=None, is_exemplar=False):
@@ -414,10 +414,10 @@ class IBEISController(object):
         if is_exemplar:
             flag_list = ibs.get_annot_exemplar_flag(aid_list)
             aid_list = utool.filter_items(aid_list, flag_list)
-        return sorted(aid_list)
+        return aid_list
 
     @ider
-    def get_valid_nids(ibs, eid=None):
+    def get_valid_nids(ibs, eid=None, filter_empty=False):
         """ Returns all valid names with at least one animal
             (does not include unknown names) """
         if eid is None:
@@ -425,9 +425,12 @@ class IBEISController(object):
         else:
             _nid_list = ibs.get_encounter_nids(eid)
         nRois_list = ibs.get_name_num_annotations(_nid_list)
-        nid_list = [nid for nid, nRois in izip(_nid_list, nRois_list)
-                    if nRois > 0]
-        return sorted(nid_list)
+        if filter_empty:
+            nid_list = [nid for nid, nRois in izip(_nid_list, nRois_list)
+                        if nRois > 0]
+        else:
+            nid_list = _nid_list
+        return nid_list
 
     @ider
     def get_invalid_nids(ibs):
@@ -436,7 +439,7 @@ class IBEISController(object):
         nRois_list = ibs.get_name_num_annotations(_nid_list)
         nid_list = [nid for nid, nRois in izip(_nid_list, nRois_list)
                     if nRois <= 0]
-        return sorted(nid_list)
+        return nid_list
 
     @ider
     def get_valid_cids(ibs):
@@ -2210,7 +2213,7 @@ class IBEISController(object):
     def get_name_aids(ibs, nid_list):
         """ returns a list of list of cids in each name """
         nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         return ibs.get_lblannot_aids(nid_list_)
 
     @getter_1to1
