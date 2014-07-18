@@ -501,8 +501,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
                 ])
             else:
+                merge_destination_id = model._get_row_id(qtindex) # This is for the benefit of merge encounters
                 guitool.popup_menu(tblview, pos, [
-                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list)),
+                    ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
                     ('delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
                 ])
         elif model.name == IMAGE_TABLE:
