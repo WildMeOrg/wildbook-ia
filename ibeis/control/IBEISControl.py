@@ -1448,6 +1448,7 @@ class IBEISController(object):
         # Delete chips and features first
         ibs.delete_annot_chips(aid_list)
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
+        ibs.delete_annot_relations(aid_list)
 
     @deleter
     def delete_images(ibs, gid_list):
@@ -1525,6 +1526,7 @@ class IBEISController(object):
             print('[ibs] deleting %r image\'s encounter ids' % len(gid_list))
         egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list, gid_list=gid_list))
         ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
+
 
     #
     #
@@ -1872,7 +1874,7 @@ class IBEISController(object):
         # Set all the valid valids
         aids_to_set   = utool.filter_items(aid_list, notdefault_list)
         values_to_set = utool.filter_items(value_list_, notdefault_list)
-        ibs.delete_annot_lblannot_rowids_oftype(aid_list_to_delete, _lbltype)
+        ibs.delete_annot_relations_oftype(aid_list_to_delete, _lbltype)
         # remove the relationships that have now been unnamed
         # Convert names into lblannot_rowid
         # FIXME: This function should not be able to set label realationships
@@ -2067,14 +2069,16 @@ class IBEISController(object):
         ibs.db.delete_rowids(LBLANNOT_TABLE, lblannot_rowid_list)
 
     @deleter
-    def delete_annot_lblannot_rowids_oftype(ibs, aid_list, _lbltype):
+    def delete_annot_relations_oftype(ibs, aid_list, _lbltype):
         """ Deletes the relationship between an annotation and a label """
-        # Ensure we are setting true nids (not temporary distinguished nids)
-        # nids are really special lblannot_rowids
         alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[_lbltype])
-        # BAD BAD BAD!!
-        #for alrid in alrids_list:
-        #    ibs.db.delete_rowids(AL_RELATION_TABLE, alrid)
+        alrid_list = utool.flatten(alrids_list)
+        ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
+
+    @deleter
+    def delete_annot_relations(ibs, aid_list):
+        """ Deletes the relationship between an annotation and a label """
+        alrids_list = ibs.get_annot_alrids(aid_list)
         alrid_list = utool.flatten(alrids_list)
         ibs.db.delete_rowids(AL_RELATION_TABLE, alrid_list)
 
@@ -2083,14 +2087,14 @@ class IBEISController(object):
         """ Deletes nids of a list of annotations """
         # FIXME: This should be implicit by setting the anotation name to the
         # unknown name
-        ibs.delete_annot_lblannot_rowids_oftype(aid_list, constants.INDIVIDUAL_KEY)
+        ibs.delete_annot_relations_oftype(aid_list, constants.INDIVIDUAL_KEY)
 
     @deleter
     def delete_annot_speciesids(ibs, aid_list):
         """ Deletes nids of a list of annotations """
         # FIXME: This should be implicit by setting the anotation name to the
         # unknown species
-        ibs.delete_annot_lblannot_rowids_oftype(aid_list, constants.SPECIES_KEY)
+        ibs.delete_annot_relations_oftype(aid_list, constants.SPECIES_KEY)
 
     # MORE GETTERS
 
