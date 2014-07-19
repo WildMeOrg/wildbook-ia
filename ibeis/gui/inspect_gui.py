@@ -131,8 +131,9 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_pressed(iqrw, qtindex):
+        print('[qres_wgt] _on_pressed: ')
         def _check_for_double_click(iqrw, qtindex):
-            threshold = 0.30  # seconds
+            threshold = 0.50  # seconds
             distance = utool.toc(iqrw.tt)
             print('Pressed %r' % (distance,))
             col = qtindex.column()
@@ -141,8 +142,10 @@ class QueryResultsWidget(APIItemWidget):
             if distance <= threshold:
                 if colname == 'status':
                     iqrw.view.clicked.emit(qtindex)
+                    iqrw._on_click(qtindex)
                 else:
-                    iqrw.view.doubleClicked.emit(qtindex)
+                    #iqrw.view.doubleClicked.emit(qtindex)
+                    iqrw._on_doubleclick(qtindex)
             iqrw.tt = utool.tic()
         _check_for_double_click(iqrw, qtindex)
         pass
