@@ -41,3 +41,8 @@ def fix_compname_configs(ibs):
             WHERE config_rowid=?
             '''.format(**constants.__dict__),
             params=(rowid,))
+
+def remove_database_slag(ibs):
+    """ duct tape to get rid of bad data (ralationships) """
+    
+    
