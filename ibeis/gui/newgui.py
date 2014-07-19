@@ -166,8 +166,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IMAGE_TABLE,
             IMAGE_GRID,
             ANNOTATION_TABLE,
-            NAME_TABLE,
+            #NAME_TABLE,
             NAMES_TREE
+        ]
+        # FIXME: Duplicate models
+        # Create models and views
+        # Define the abstract item models and views for the tables
+        ibswgt.modelview_defs = [
+            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
+            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            #(NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
+            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
         ]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
@@ -192,16 +203,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Tables Tab
         ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
         #guitool.newTabWidget(ibswgt, horizontalStretch=81)
-        # Create models and views
-        # Define the abstract item models and views for the tables
-        ibswgt.modelview_defs = [
-            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
-            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
-            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
-        ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
             #ibswgt.widgets[tblname] = widget
