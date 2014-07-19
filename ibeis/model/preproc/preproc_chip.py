@@ -96,7 +96,7 @@ def get_chip_fname_fmt(ibs=None, suffix=None):
         chip_cfgfmt = chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
         suffix = chip_cfgstr + chip_cfgfmt
     # Chip filenames are a function of annotation_rowid and cfgstr
-    _cfname_fmt = ('aid_%s' + suffix)
+    _cfname_fmt = ('aid_%d' + suffix)
     return _cfname_fmt
 
 
@@ -105,7 +105,7 @@ def get_annot_cfpath_list(ibs, aid_list, suffix=None):
     """ Returns chip path list """
     #utool.assert_all_not_None(aid_list, 'aid_list')
     _cfname_fmt = get_chip_fname_fmt(ibs=ibs, suffix=suffix)
-    cfname_iter = (None if aid is None else _cfname_fmt  % aid for aid in iter(aid_list))
+    cfname_iter = (None if aid is None else _cfname_fmt % aid for aid in iter(aid_list))
     cfpath_list = [None if cfname is None else join(ibs.chipdir, cfname) for cfname in cfname_iter]
     return cfpath_list
 

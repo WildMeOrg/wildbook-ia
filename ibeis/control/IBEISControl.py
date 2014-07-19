@@ -1181,7 +1181,9 @@ class IBEISController(object):
     @getter_1to1
     def get_annot_cpaths(ibs, aid_list):
         """ Returns cpaths defined by ANNOTATIONs """
-        utool.assert_all_not_None(aid_list, 'aid_list')
+        #utool.assert_all_not_None(aid_list, 'aid_list')
+        assert all([aid is not None for aid in aid_list])
+        assert all([not isinstance(aid, float) for aid in aid_list]), str(aid_list)
         cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
         return cfpath_list
 

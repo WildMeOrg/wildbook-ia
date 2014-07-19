@@ -328,25 +328,6 @@ class MainWindowBackend(QtCore.QObject):
             back.show_image(gid)
 
     @blocking_slot()
-    def query(back, aid=None, refresh=True, **kwargs):
-        """ Action -> Query"""
-        print('\n\n[back] query')
-        if aid is None:
-            aid = back.get_selected_aid()
-        eid = back._eidfromkw(kwargs)
-        if eid is None:
-            print('[back] query_all(aid=%r)' % (aid,))
-            qaid2_qres = back.ibs.query_all([aid])
-        else:
-            print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
-            qaid2_qres = back.ibs.query_encounter([aid], eid)
-        qres = qaid2_qres[aid]
-        back._set_selection(sel_qres=[qres])
-        if refresh:
-            #back.populate_tables(qres=True, default=False)
-            back.show_qres(qres)
-
-    @blocking_slot()
     def reselect_ori(back, aid=None, theta=None, **kwargs):
         """ Action -> Reselect ORI"""
         print('[back] reselect_ori')
@@ -519,11 +500,35 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
 
     @blocking_slot()
+    def query(back, aid=None, refresh=True, **kwargs):
+        """ Action -> Query"""
+        if aid is None:
+            aid = back.get_selected_aid()
+        eid = back._eidfromkw(kwargs)
+        print('------')
+        print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
+
+        if back.query_mode == constants.VS_EXEMPLARS_KEY:
+            print('[back] query_exemplars(aid=%r)' % (aid,))
+            qaid2_qres = back.ibs.query_exemplars([aid])
+        elif back.query_mode == constants.INTRA_ENC_KEY:
+            print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
+            qaid2_qres = back.ibs.query_encounter([aid], eid)
+        else:
+            print('Unknown query mode: %r' % (back.query_mode))
+
+        qres = qaid2_qres[aid]
+        back._set_selection(sel_qres=[qres])
+        if refresh:
+            #back.populate_tables(qres=True, default=False)
+            back.show_qres(qres)
+
+    @blocking_slot()
     def compute_queries(back, refresh=True, **kwargs):
         """ Batch -> Precompute Queries"""
         eid = back._eidfromkw(kwargs)
         print('------')
-        print('[back] compute_queries: eid=%r' % (eid,))
+        print('[\n\nback] compute_queries: eid=%r, mode=%r' % (eid, back.query_mode))
         if eid is None:
             print('[back] invalid eid')
             return
@@ -531,12 +536,11 @@ class MainWindowBackend(QtCore.QObject):
         valid_aids = back.ibs.get_valid_aids(eid=eid)
 
         if back.query_mode == constants.VS_EXEMPLARS_KEY:
+            print('query_exemplars')
             qaid2_qres = back.ibs.query_exemplars(valid_aids)
         elif back.query_mode == constants.INTRA_ENC_KEY:
-            if eid is None:
-                qaid2_qres = back.ibs.query_all(valid_aids)
-            else:
-                qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
+            print('query_encounter')
+            qaid2_qres = back.ibs.query_encounter(valid_aids, eid)
         else:
             print('Unknown query mode: %r' % (back.query_mode))
 

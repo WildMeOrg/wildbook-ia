@@ -178,7 +178,8 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
     aid2 = model.get_header_data('aid', qtindex)
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     model = qtindex.model()
-    update_callback = model._update
+    #update_callback = model._update
+    update_callback = None  # hack (checking if necessary)
     backend_callback = qres_wgt.callback
     if quickmerge:
         is_unknown = ibs.is_aid_unknown((aid1, aid2))
