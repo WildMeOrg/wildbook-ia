@@ -81,15 +81,17 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return
             thumb_path, img_path, bbox_list, theta_list = data
             if thumb_path is None or img_path is None or bbox_list is None:
+                print('something is wrong')
                 return
         except AssertionError as ex:
             utool.printex(ex)
             return
-        if not exists(img_path):
-            if VERBOSE:
-                print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED')
-            return None
+
         if not exists(thumb_path):
+            if not exists(img_path):
+                #if VERBOSE:
+                print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
+                return None
             # Start computation of thumb if needed
             #qtindex.model()._update()  # should probably be deleted
             view = dgt.parent()
@@ -108,7 +110,7 @@ class APIThumbDelegate(DELEGATE_BASE):
             )
             #register_thread(thumb_path, thumb_creation_thread)
             dgt.pool.start(thumb_creation_thread)
-            #print('[ThumbDelegate] Waiting to compute')
+            print('[ThumbDelegate] Waiting to compute')
             return None
         else:
             # thumb is computed return the path
