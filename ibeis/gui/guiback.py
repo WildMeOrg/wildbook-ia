@@ -812,7 +812,8 @@ class MainWindowBackend(QtCore.QObject):
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE])
+            back.ibs.update_special_encounters()
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
             #back.populate_image_table()
         return gid_list
 
@@ -830,7 +831,8 @@ class MainWindowBackend(QtCore.QObject):
             raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
         if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE])
+            back.ibs.update_special_encounters()
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
         return gid_list
         #print('')
 
