@@ -417,6 +417,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
         qaid2_qres, ranks_lt=ranks_lt)
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches
+    # assert all([isinstance(qaid, np.int32) for qaid in qaids]), "ERROR not all qaids are ints: %r" % (qaids)
+    # assert all([isinstance(aid, np.int32)  for aid  in aids]), "ERROR not all aids are ints: %r" % (aids)
     #qnames = ibs.get_annot_names(qaids)
     #names = ibs.get_annot_names(aids)
     #truths = np.array((ibs.get_annot_lblannot_rowids_oftype(qaids) - ibs.get_annot_lblannot_rowids_oftype(aids)) == 0)

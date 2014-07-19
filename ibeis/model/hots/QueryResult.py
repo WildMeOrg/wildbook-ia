@@ -209,8 +209,8 @@ class QueryResult(__OBJECT_BASE__):
 
     def get_aids_and_scores(qres):
         """ returns a chip index list and associated score list """
-        aid_arr   = np.array(qres.aid2_score.keys())
-        score_arr = np.array(qres.aid2_score.values())
+        aid_arr   = np.array(qres.aid2_score.keys(), dtype=np.int32)
+        score_arr = np.array(qres.aid2_score.values(), dtype=np.float64)
         return aid_arr, score_arr
 
     def get_top_aids(qres, num=None):

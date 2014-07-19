@@ -219,6 +219,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True):
         ranks_stack.append(ranks)
 
     # Stack them into a giant array
+    # utool.embed()
     qaid_arr  = np.hstack(qaids_stack)
     aid_arr   = np.hstack(aids_stack)
     score_arr = np.hstack(scores_stack)
