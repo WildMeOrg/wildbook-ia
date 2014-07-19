@@ -50,7 +50,7 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
 from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
                              AL_RELATION_TABLE, CHIP_TABLE, FEATURE_TABLE,
-                             CONFIG_TABLE, LBLTYPE_TABLE,)
+                             CONFIG_TABLE, LBLTYPE_TABLE, VERSIONS_TABLE)
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -172,7 +172,9 @@ class IBEISController(object):
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # from ibeis.dev import duct_tape
-        # duct_tape.fix_compname_configs(ibs)
+        # uct_tape.fix_compname_configs(ibs)
+        # duct_tape.remove_database_slag(ibs)
+        # duct_tape.ensure_correct_version(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
@@ -629,6 +631,21 @@ class IBEISController(object):
     #    ibs.add_annot_relationship(aid_list, nid_list)
 
     # Internal
+
+    @adder
+    def add_version(ibs, versiontext_list):
+        """ Adds an algorithm / actor configuration as a string """
+        # FIXME: Configs are still handled poorly
+        params_iter = ((versiontext,) for versiontext in versiontext_list)
+        get_rowid_from_superkey = ibs.get_version_rowid_from_superkey
+        versionid_list = ibs.db.add_cleanly(VERSIONS_TABLE, ('version_text',),
+                                           params_iter, get_rowid_from_superkey)
+        return versionid_list
+
+    @getter_1to1
+    def get_version_rowid_from_superkey(ibs, versiontext_list):
+        versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',), versiontext_list, id_colname='version_text')
+        return versionid_list
 
     @adder
     def add_config(ibs, cfgsuffix_list):

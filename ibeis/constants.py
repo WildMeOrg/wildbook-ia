@@ -64,6 +64,7 @@ IMAGE_TABLE       = 'images'
 LBLANNOT_TABLE    = 'lblannot'
 LBLIMAGE_TABLE    = 'lblimage'
 LBLTYPE_TABLE     = 'keys'
+VERSIONS_TABLE    = 'versions'
 
 UNKNOWN_PURPLE_RGBA255 = np.array((102,   0, 153, 255))
 NAME_BLUE_RGBA255      = np.array((20, 20, 235, 255))

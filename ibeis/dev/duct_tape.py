@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from itertools import izip
+from ibeis import constants
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[duct_tape]', DEBUG=False)
@@ -9,7 +10,6 @@ from itertools import izip
 
 def fix_compname_configs(ibs):
     """ duct tape to keep version in check """
-    from ibeis import constants
     #ibs.MANUAL_CONFIG_SUFFIX = '_MANUAL_'  #+ utool.get_computer_name()
     #ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
     # We need to fix the manual config suffix to not use computer names anymore
@@ -42,7 +42,108 @@ def fix_compname_configs(ibs):
             '''.format(**constants.__dict__),
             params=(rowid,))
 
-def remove_database_slag(ibs):
-    """ duct tape to get rid of bad data (ralationships) """
+def ensure_correct_version(ibs):
+    ibs.add_version(['schema_v1.0'])
+
+def remove_database_slag(ibs, 
+        delete_invalid_names                    =True, 
+        delete_invalid_encounters               =True, 
+        delete_annotations_for_missing_images   =True,
+        delete_image_labels_for_missing_types   =True,
+        delete_annot_labels_for_missing_types   =True,
+        delete_chips_for_missing_annotations    =True,
+        delete_features_for_missing_annotations =True,
+        delete_invalid_eg_relations             =True,
+        delete_invalid_gl_relations             =True,
+        delete_invalid_al_relations             =True):
+    # ZERO ORDER
+    if delete_invalid_names:
+        ibs.delete_invalid_nids()
     
+    if delete_invalid_encounters:
+        ibs.delete_invalid_eids()
+    
+    # FIRST ORDER
+    if delete_annotations_for_missing_images:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {ANNOTATION_TABLE}
+            WHERE 
+                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE})
+            '''.format(**constants.__dict__))
+    
+    if delete_image_labels_for_missing_types:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {LBLIMAGE_TABLE}
+            WHERE 
+                lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})
+            '''.format(**constants.__dict__))
+    
+    if delete_annot_labels_for_missing_types:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {LBLANNOT_TABLE}
+            WHERE 
+                lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})
+            '''.format(**constants.__dict__))
+
+    # SECOND ORDER 
+    if delete_chips_for_missing_annotations:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {CHIP_TABLE}
+            WHERE 
+                annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE})
+            '''.format(**constants.__dict__))
+            # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
+
+    if delete_features_for_missing_annotations:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {FEATURE_TABLE}
+            WHERE 
+                chip_rowid NOT IN (SELECT rowid FROM {CHIP_TABLE})
+            '''.format(**constants.__dict__))
+            # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
+
+    if delete_invalid_eg_relations:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {EG_RELATION_TABLE}
+            WHERE 
+                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR
+                encounter_rowid NOT IN (SELECT rowid FROM {ENCOUNTER_TABLE})
+            '''.format(**constants.__dict__))
+
+    # THIRD ORDER 
+    if delete_invalid_gl_relations:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {GL_RELATION_TABLE}
+            WHERE 
+                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR
+                lblimage_rowid NOT IN (SELECT rowid FROM {LBLIMAGE_TABLE})
+            '''.format(**constants.__dict__))
+            # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
+    
+    if delete_invalid_al_relations:
+        ibs.db.executeone(
+            '''
+            DELETE
+            FROM {AL_RELATION_TABLE}
+            WHERE 
+                annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE}) OR
+                lblannot_rowid NOT IN (SELECT rowid FROM {LBLANNOT_TABLE})
+            '''.format(**constants.__dict__))
+            # OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})
+
+
     

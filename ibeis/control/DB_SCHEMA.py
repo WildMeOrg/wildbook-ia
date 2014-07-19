@@ -6,6 +6,9 @@ from ibeis import constants
 
 
 def define_IBEIS_schema(ibs):
+    ##########################
+    # ZERO ORDER             #
+    ##########################
     ibs.db.schema(constants.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
         ('image_uuid',                   'UUID NOT NULL'),
@@ -25,6 +28,46 @@ def define_IBEIS_schema(ibs):
         docstr='''
         First class table used to store image locations and meta-data''')
 
+    ibs.db.schema(constants.ENCOUNTER_TABLE, (
+        ('encounter_rowid',              'INTEGER PRIMARY KEY'),
+        ('encounter_uuid',               'UUID NOT NULL'),
+        ('encounter_text',               'TEXT NOT NULL'),
+        ('encounter_note',               'TEXT NOT NULL'),
+    ),  ['CONSTRAINT superkey UNIQUE (encounter_text)'],
+        docstr='''
+        List of all encounters''')
+
+    ibs.db.schema(constants.LBLTYPE_TABLE, (
+        ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
+        ('lbltype_text',                 'TEXT NOT NULL'),
+        ('lbltype_default',              'TEXT NOT NULL'),
+    ), ['CONSTRAINT superkey UNIQUE (lbltype_text)'],
+        docstr='''
+        List of keys used to define the categories of annotation lables, text
+        is for human-readability. The lbltype_default specifies the
+        lblannot_value of annotations with a relationship of some
+        lbltype_rowid''')
+
+    ibs.db.schema(constants.CONFIG_TABLE, (
+        ('config_rowid',                 'INTEGER PRIMARY KEY'),
+        ('config_suffix',                'TEXT NOT NULL'),
+    ),  ['CONSTRAINT superkey UNIQUE (config_suffix)'],
+        docstr='''
+        Used to store the ids of algorithm configurations that generate
+        annotation lblannots.  Each user will have a config id for manual
+        contributions ''')
+
+    ibs.db.schema(constants.VERSIONS_TABLE, (
+        ('version_rowid',          'INTEGER PRIMARY KEY'),
+        ('version_text',           'TEXT'),
+    ), ['CONSTRAINT superkey UNIQUE (version_text)'],
+        docstr='''
+        holds the schema version info''')
+
+
+    ##########################
+    # FIRST ORDER            #
+    ##########################
     ibs.db.schema(constants.ANNOTATION_TABLE, (
         ('annot_rowid',                  'INTEGER PRIMARY KEY'),
         ('annot_uuid',                   'UUID NOT NULL'),
@@ -45,28 +88,6 @@ def define_IBEIS_schema(ibs):
         image The one-to-many relationship between images and annotations is
         encoded here Attributes are stored in the Annotation Label Relationship
         Table''')
-
-    ibs.db.schema(constants.AL_RELATION_TABLE, (
-        ('alr_rowid',                      'INTEGER PRIMARY KEY'),
-        ('annot_rowid',                    'INTEGER NOT NULL'),
-        ('lblannot_rowid',                 'INTEGER NOT NULL'),
-        ('config_rowid',                   'INTEGER DEFAULT 0'),
-        ('alr_confidence',                 'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, lblannot_rowid, config_rowid)'],
-        docstr='''
-        Used to store one-to-many the relationship between annotations (annots)
-        and labels''')
-
-    ibs.db.schema(constants.GL_RELATION_TABLE, (
-        ('glr_rowid',                    'INTEGER PRIMARY KEY'),
-        ('image_rowid',                  'INTEGER NOT NULL'),
-        ('lblimage_rowid',               'INTEGER NOT NULL'),
-        ('config_rowid',                 'INTEGER DEFAULT 0'),
-        ('glr_confidence',               'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (image_rowid, lblimage_rowid, config_rowid)'],
-        docstr='''
-        Used to store one-to-many the relationship between images
-        and labels''')
 
     ibs.db.schema(constants.LBLIMAGE_TABLE, (
         ('lblimage_rowid',             'INTEGER PRIMARY KEY'),
@@ -89,45 +110,10 @@ def define_IBEIS_schema(ibs):
         Used to store the labels / attributes of annotations.
         E.G name, species ''')
 
-    ibs.db.schema(constants.LBLTYPE_TABLE, (
-        ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
-        ('lbltype_text',                 'TEXT NOT NULL'),
-        ('lbltype_default',              'TEXT NOT NULL'),
-    ), ['CONSTRAINT superkey UNIQUE (lbltype_text)'],
-        docstr='''
-        List of keys used to define the categories of annotation lables, text
-        is for human-readability. The lbltype_default specifies the
-        lblannot_value of annotations with a relationship of some
-        lbltype_rowid''')
 
-    ibs.db.schema(constants.ENCOUNTER_TABLE, (
-        ('encounter_rowid',              'INTEGER PRIMARY KEY'),
-        ('encounter_uuid',               'UUID NOT NULL'),
-        ('encounter_text',               'TEXT NOT NULL'),
-        ('encounter_note',               'TEXT NOT NULL'),
-    ),  ['CONSTRAINT superkey UNIQUE (encounter_text)'],
-        docstr='''
-        List of all encounters''')
-
-    ibs.db.schema(constants.EG_RELATION_TABLE, (
-        ('egr_rowid',                    'INTEGER PRIMARY KEY'),
-        ('image_rowid',                  'INTEGER NOT NULL'),
-        ('encounter_rowid',              'INTEGER'),
-    ),  ['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'],
-        docstr='''
-        Relationship between encounters and images (many to many mapping) the
-        many-to-many relationship between images and encounters is encoded here
-        encounter_image_relationship stands for encounter-image-pairs.''')
-
-    ibs.db.schema(constants.CONFIG_TABLE, (
-        ('config_rowid',                 'INTEGER PRIMARY KEY'),
-        ('config_suffix',                'TEXT NOT NULL'),
-    ),  ['CONSTRAINT superkey UNIQUE (config_suffix)'],
-        docstr='''
-        Used to store the ids of algorithm configurations that generate
-        annotation lblannots.  Each user will have a config id for manual
-        contributions ''')
-
+    ##########################
+    # SECOND ORDER           #
+    ##########################
     # TODO: constraint needs modify
     ibs.db.schema(constants.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
@@ -151,12 +137,41 @@ def define_IBEIS_schema(ibs):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
-    ibs.db.schema('versions', (
-        ('version_rowid',          'INTEGER PRIMARY KEY'),
-        ('version_text',           'TEXT'),
-    ),
+    ibs.db.schema(constants.EG_RELATION_TABLE, (
+        ('egr_rowid',                    'INTEGER PRIMARY KEY'),
+        ('image_rowid',                  'INTEGER NOT NULL'),
+        ('encounter_rowid',              'INTEGER'),
+    ),  ['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'],
         docstr='''
-        holds the schema version info''')
+        Relationship between encounters and images (many to many mapping) the
+        many-to-many relationship between images and encounters is encoded here
+        encounter_image_relationship stands for encounter-image-pairs.''')
+
+
+    ##########################
+    # THIRD ORDER            #
+    ##########################
+    ibs.db.schema(constants.GL_RELATION_TABLE, (
+        ('glr_rowid',                    'INTEGER PRIMARY KEY'),
+        ('image_rowid',                  'INTEGER NOT NULL'),
+        ('lblimage_rowid',               'INTEGER NOT NULL'),
+        ('config_rowid',                 'INTEGER DEFAULT 0'),
+        ('glr_confidence',               'REAL DEFAULT 0.0'),
+    ), ['CONSTRAINT superkey UNIQUE (image_rowid, lblimage_rowid, config_rowid)'],
+        docstr='''
+        Used to store one-to-many the relationship between images
+        and labels''')
+
+    ibs.db.schema(constants.AL_RELATION_TABLE, (
+        ('alr_rowid',                      'INTEGER PRIMARY KEY'),
+        ('annot_rowid',                    'INTEGER NOT NULL'),
+        ('lblannot_rowid',                 'INTEGER NOT NULL'),
+        ('config_rowid',                   'INTEGER DEFAULT 0'),
+        ('alr_confidence',                 'REAL DEFAULT 0.0'),
+    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, lblannot_rowid, config_rowid)'],
+        docstr='''
+        Used to store one-to-many the relationship between annotations (annots)
+        and labels''')
 
     #
     # UNUSED / DEPRECATED
