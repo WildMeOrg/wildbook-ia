@@ -131,6 +131,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
 class IBEISMainWindow(QtGui.QMainWindow):
     quitSignal = signal_()
+    dropSignal = signal_(list)
     def __init__(mainwin, back=None, ibs=None, parent=None):
         QtGui.QMainWindow.__init__(mainwin, parent)
         # Menus
@@ -139,10 +140,12 @@ class IBEISMainWindow(QtGui.QMainWindow):
         # Central Widget
         mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
         mainwin.setCentralWidget(mainwin.ibswgt)
+        mainwin.setAcceptDrops(True)
         if back is not None:
             mainwin.quitSignal.connect(back.quit)
         else:
             raise AssertionError('need backend')
+        mainwin.dropSignal.connect(mainwin.ibswgt.imagesDropped)
         #
         mainwin.resize(900, 600)
 
@@ -150,6 +153,23 @@ class IBEISMainWindow(QtGui.QMainWindow):
     def closeEvent(mainwin, event):
         event.accept()
         mainwin.quitSignal.emit()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                links.append(str(url.toLocalFile()))
+            self.dropSignal.emit(links)
+        else:
+            event.ignore()
 
 
 class IBEISGuiWidget(IBEIS_WIDGET_BASE):
@@ -166,8 +186,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IMAGE_TABLE,
             IMAGE_GRID,
             ANNOTATION_TABLE,
-            NAME_TABLE,
+            #NAME_TABLE,
             NAMES_TREE
+        ]
+        # FIXME: Duplicate models
+        # Create models and views
+        # Define the abstract item models and views for the tables
+        ibswgt.modelview_defs = [
+            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
+            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            #(NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
+            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
+            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
         ]
         ibswgt.super_tblname_list = ibswgt.tblname_list + [ENCOUNTER_TABLE]
         # Create and layout components
@@ -192,16 +223,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Tables Tab
         ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
         #guitool.newTabWidget(ibswgt, horizontalStretch=81)
-        # Create models and views
-        # Define the abstract item models and views for the tables
-        ibswgt.modelview_defs = [
-            (IMAGE_TABLE,      IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (IMAGE_GRID,       IBEISTableWidget, IBEISStripeModel, IBEISTableView),
-            (ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (NAME_TABLE,       IBEISTableWidget, IBEISItemModel, IBEISTableView),
-            (NAMES_TREE,       IBEISTreeWidget,  IBEISItemModel,  IBEISTreeView),
-            (ENCOUNTER_TABLE,  EncTableWidget,   EncTableModel,   EncTableView),
-        ]
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
             #ibswgt.widgets[tblname] = widget
@@ -622,6 +643,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 elif level == 1:
                     aid = id_
                     ibswgt.back.select_aid(aid, eid, show=True)
+
+    @slot_(list)
+    def imagesDropped(ibswgt, url_list):
+        print('[drop_event] url_list=%r' % (url_list,))
+        gpath_list = [gpath for gpath in url_list if utool.matches_image(gpath)]
+        print('[drop_event] gpath_list=%r' % (gpath_list,))
+        if len(gpath_list) > 0:
+            ibswgt.back.import_images_from_file(gpath_list=gpath_list)
 
 if __name__ == '__main__':
     import ibeis

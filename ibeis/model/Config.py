@@ -457,6 +457,7 @@ class OtherConfig(ConfigBase):
         super(OtherConfig, othercfg).__init__(name='othercfg')
         othercfg.thumb_size     = 64
         othercfg.ranks_lt       = 2
+        othercfg.auto_localize  = True
 
 
 # Convinience

@@ -17,11 +17,11 @@ THUMB_TABLE      = 'thumbs'
 # Define the tables
 #-----------------
 
-# enabled tables
+# available tables
 TABLENAME_LIST = [
     IMAGE_TABLE,
     ANNOTATION_TABLE,
-    NAME_TABLE,
+    #NAME_TABLE,
     ENCOUNTER_TABLE,
     IMAGE_GRID,
     THUMB_TABLE,
@@ -101,6 +101,7 @@ TABLE_COLNAMES = {
         'exemplar',
         'aid',
         'thumb',
+        'notes',
     ],
 
     IMAGE_GRID     : [
@@ -127,13 +128,14 @@ TABLE_EDITSET = {
     ENCOUNTER_TABLE  : set([]),
     IMAGE_GRID       : set([]),
     THUMB_TABLE      : set([]),
-    NAMES_TREE       : set(['exemplar']),
+    NAMES_TREE       : set(['exemplar', 'name', 'notes']),
 }
 
 TABLE_TREE_LEVELS = {
     NAMES_TREE :
     {
         'name': 0,
+        'notes': 0,
         'nid': 0,
         'nRids': 0,
         'exemplar': 1,
@@ -311,12 +313,15 @@ def make_ibeis_headers_dict(ibs):
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_name_text,
         'nRids'      : ibs.get_name_num_annotations,
+        'notes'      : ibs.get_name_notes,
         'aid'        : lambda aids: aids,
         'exemplar'   : ibs.get_annot_exemplar_flag,
         'thumb'      : ibs.get_annot_chip_thumbtup,
     }
     setters[NAMES_TREE] = {
         'exemplar'   : ibs.set_annot_exemplar_flag,
+        'name'       : ibs.set_name_names,
+        'notes'      : ibs.set_name_notes,
     }
 
     def make_header(tblname):

@@ -516,6 +516,10 @@ class IBEISController(object):
             print('[postadd] uuid / gid_ = ' + utool.indentjoin(zip(uuid_list, gid_list_)))
             print('[postadd] uuid / gid = ' + utool.indentjoin(zip(uuid_list, gid_list)))
             print('[postadd] valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
+
+        ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
+        if ibs.cfg.other_cfg.auto_localize:
+            ibs.localize_images(gid_list)
         return gid_list
 
     @adder
