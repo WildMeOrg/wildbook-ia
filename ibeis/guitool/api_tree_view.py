@@ -47,6 +47,8 @@ class APITreeView(API_VIEW_BASE):
         """ Tree behavior """
         view.setWordWrap(True)
         view.setSortingEnabled(True)
+        view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers
+        view.setEditTriggers(view._defaultEditTriggers)
 
     def _init_header_behavior(view):
         """ Header behavior """
