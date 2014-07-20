@@ -20,7 +20,7 @@ VERBOSE = utool.VERBOSE
 
 def read_thumb_as_qimg(thumb_path):
     # Read thumbnail image and convert to 32bit aligned for Qt
-    npimg   = gtool.imread(thumb_path)
+    npimg   = gtool.imread(thumb_path, delete_if_corrupted=True)
     npimg   = cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
     data    = npimg.astype(np.uint8)
     (height, width, nDims) = npimg.shape[0:3]
@@ -48,8 +48,6 @@ class APIThumbDelegate(DELEGATE_BASE):
     to resize the rows to fit the images.  It probably should not resize columns
     but it can get the column width and resize the image to that size.  """
     def __init__(dgt, parent=None):
-        """ PSA: calling super is unsafe in pyqt4 code super(APIThumbDelegate,
-        dgt).__init__(parent) Instead call the parent classes init directly """
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = QtCore.QThreadPool()
         dgt.thumb_size = 128
@@ -210,19 +208,6 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
             if not thread.thumb_would_be_visible():
                 #unregister_thread(thread.thumb_path)
                 return
-            #pt1, pt2 = gtool.cvt_bbox_xywh_to_pt1pt2(bbox, sx=sx, sy=sy, round_=True)
-            # --- OLD CODE ---
-            #x, y, w, h = bbox
-            #pts = [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]
-            #pts = np.array([(x, y, 1) for (x, y) in pts])
-            #pts = linalg.rotation_around_mat3x3(theta, x + (w / 2), y + (h / 2)).dot(pts.T).T
-            #pts = [(int(x * sx), int(y * sy)) for (x, y, dummy) in pts]
-            #color = orange_bgr
-            #thickness = 2
-            #for (p1, p2) in line_sequence:
-            #    #print('p1, p2: (%r, %r)' % (p1, p2))
-            #    cv2.line(thumb, tuple(p1), tuple(p2), color, thickness)
-            # --- NEW CODE ---
             # Transformation matrixes
             R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
             S = linalg.scale_mat3x3(sx, sy)
@@ -244,8 +229,8 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         try:
             thread._run()
         except Exception as ex:
-            utool.printex(ex, 'thread failed')
-            raise
+            utool.printex(ex, 'thread failed', traceback=True)
+            #raise
 
 
 # GRAVE:

@@ -63,6 +63,7 @@ class TreeNode(object):
         str_ = "\n".join([self_str] + child_strs)
         return str_
 
+
 @profile
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """ Recursively builds the tree structure """
@@ -80,9 +81,10 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
     parent_node.set_children(child_nodes)
     return parent_node
 
+
 @profile
 def _populate_tree_iterative(root_node, num_levels, ider_list):
-    """ Recursively builds the tree structure """
+    """ Iteratively builds the tree structure. I dont quite trust this yet """
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]
@@ -114,22 +116,20 @@ def _build_internal_structure(model):
     #from guitool.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)
-
-    #if num_levels == 0:
-    #    root_id_list = []
-    #else:
-    #    root_id_list = ider_list[0]()
-    #with utool.Timer('build_internal_structure(%r)' % (model.name,)):
-    # this is slow
-    #root_node = TreeNode(None, None)
-    #root_node.populate(root_id_list, level=0)
-    #level = 0
-    #with utool.Timer('1) build_internal_structure(%r)' % (model.name,)):
-    #    root_node = TreeNode(None, None, -1)
-    #    _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
-    #with utool.Timer('2) build_internal_structure(%r)' % (model.name,)):
-    root_node = TreeNode(None, None, -1)
-    _populate_tree_iterative(root_node, num_levels, ider_list)
+    USE_RECURSIVE = True
+    if USE_RECURSIVE:
+        # I trust this code more although it is slightly slower
+        if num_levels == 0:
+            root_id_list = []
+        else:
+            root_id_list = ider_list[0]()
+        root_node = TreeNode(None, None, -1)
+        level = 0
+        _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
+    else:
+        # TODO: Vet this code a bit more.
+        root_node = TreeNode(None, None, -1)
+        _populate_tree_iterative(root_node, num_levels, ider_list)
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
@@ -597,8 +597,9 @@ class APIItemModel(API_MODEL_BASE):
     def _get_data(model, qtindex):
         #row = qtindex.row()
         col = qtindex.column()
-        getter = model.col_getter_list[col]  # getter for this column
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
+        getter = model.col_getter_list[col]  # getter for this column
+        # Using this getter may not be thread safe
         data = getter(row_id)
         # <HACK: MODEL CACHE>
         #cachekey = (row_id, col)
@@ -736,6 +737,7 @@ class APIItemModel(API_MODEL_BASE):
 
         if row >= model.rowCount():
             # Yuck.
+            print('[item_model] Yuck. row excedes row count')
             return QtCore.QVariant()
 
         #if role == Qt.SizeHintRole:
