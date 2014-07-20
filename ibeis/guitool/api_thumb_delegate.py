@@ -49,10 +49,8 @@ class APIThumbDelegate(DELEGATE_BASE):
     but it can get the column width and resize the image to that size.  """
     def __init__(dgt, parent=None):
         DELEGATE_BASE.__init__(dgt, parent)
-        dgt.pool = QtCore.QThreadPool()
+        dgt.pool = None
         dgt.thumb_size = 128
-        # Initialize threadcount
-        dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
 
     def get_model_data(dgt, qtindex):
         """ The model data for a thumb should be a (thumb_path, img_path, bbox_list) tuple """
@@ -107,6 +105,9 @@ class APIThumbDelegate(DELEGATE_BASE):
                 theta_list
             )
             #register_thread(thumb_path, thumb_creation_thread)
+            # Initialize threadcount
+            dgt.pool = QtCore.QThreadPool()
+            dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
             dgt.pool.start(thumb_creation_thread)
             # print('[ThumbDelegate] Waiting to compute')
             return None
