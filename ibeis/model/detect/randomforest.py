@@ -27,6 +27,7 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     #
     # Resize to a standard image size prior to detection
     src_gpath_list = list(imap(str, ibs.get_image_detectpaths(gid_list)))
+    utool.close_pool()
 
     # Get sizes of the original and resized images for final scale correction
     neww_list = [gtool.open_image_size(gpath)[0] for gpath in src_gpath_list]
@@ -143,7 +144,7 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
                        in results if supressed == 0]
 
         if len(results) > 0:
-            image_confidence = max( [ float(result[6]) for result in results] )
+            image_confidence = max([float(result[6]) for result in results])
         else:
             image_confidence = 0.0
 
