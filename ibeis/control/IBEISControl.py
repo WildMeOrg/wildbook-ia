@@ -643,12 +643,13 @@ class IBEISController(object):
         params_iter = ((versiontext,) for versiontext in versiontext_list)
         get_rowid_from_superkey = ibs.get_version_rowid_from_superkey
         versionid_list = ibs.db.add_cleanly(VERSIONS_TABLE, ('version_text',),
-                                           params_iter, get_rowid_from_superkey)
+                                            params_iter, get_rowid_from_superkey)
         return versionid_list
 
     @getter_1to1
     def get_version_rowid_from_superkey(ibs, versiontext_list):
-        versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',), versiontext_list, id_colname='version_text')
+        versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',),
+                                    versiontext_list, id_colname='version_text')
         return versionid_list
 
     @adder
@@ -664,6 +665,7 @@ class IBEISController(object):
     @adder
     def add_chips(ibs, aid_list):
         """
+        FIXME: This is a dirty dirty function
         Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
         and then pass them here to ensure chips are computed) """
         # Ensure must be false, otherwise an infinite loop occurs
@@ -1177,6 +1179,8 @@ class IBEISController(object):
 
     @getter_1to1
     def get_annot_chip_thumbtup(ibs, aid_list):
+        # HACK TO MAKE CHIPS COMPUTE
+        #cid_list = ibs.get_annot_cids(aid_list, ensure=True)  # NOQA
         thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list)
         image_paths = ibs.get_annot_cpaths(aid_list)
         thumbtup_list = [(thumb_path, img_path, [], [])
@@ -1203,8 +1207,7 @@ class IBEISController(object):
     def get_annot_cpaths(ibs, aid_list):
         """ Returns cpaths defined by ANNOTATIONs """
         #utool.assert_all_not_None(aid_list, 'aid_list')
-        assert all([aid is not None for aid in aid_list])
-        assert all([not isinstance(aid, float) for aid in aid_list]), str(aid_list)
+        #assert all([aid is not None for aid in aid_list])
         cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
         return cfpath_list
 
@@ -1543,7 +1546,6 @@ class IBEISController(object):
             print('[ibs] deleting %r image\'s encounter ids' % len(gid_list))
         egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list, gid_list=gid_list))
         ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
-
 
     #
     #

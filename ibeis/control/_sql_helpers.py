@@ -74,8 +74,10 @@ class SQLExecutionContext(object):
         else:
             context.operation_lbl = '[sql] executeone optype=%s: ' % (context.operation_type)
         # Start SQL Transaction
+        context.cur = context.db.connection.cursor()  # HACK in a new cursor
         if context.start_transaction:
-            context.db.cur.execute('BEGIN', ())
+            # http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
+            context.cur.execute('BEGIN', ())
         if PRINT_SQL:
             print(context.operation_lbl)
         # Comment out timeing code
@@ -88,12 +90,12 @@ class SQLExecutionContext(object):
     def execute_and_generate_results(context, params):
         """ HELPER FOR CONTEXT STATMENT """
         try:
-            context.db.cur.execute(context.operation, params)
+            context.cur.execute(context.operation, params)
         except lite.IntegrityError:
             print('[sql.IntegrityError] params=<%r>' % (params,))
             raise
         is_insert = context.operation_type.startswith('INSERT')
-        return _results_gen(context.db.cur, get_last_id=is_insert)
+        return _results_gen(context.cur, get_last_id=is_insert)
 
     def __exit__(context, type_, value, trace):
         #if not QUIET:

@@ -1,15 +1,23 @@
 # -*- mode: python -*-
 import os
 import sys
-from os.path import join, exists
+from os.path import join, exists, realpath
 import utool
+
+# Pyinstaller Variables (enumerated for readability, not needed)
+#Analysis = Analysis  # NOQA
 
 
 def join_SITE_PACKAGES(*args):
     import site
     from os.path import join, exists
+    import sys
+    sitepackages = site.getsitepackages()
+    if sys.platform.startswith('darwin'):
+        macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
+        sitepackages = [macports_site] + sitepackages
     tried_list = []
-    for dir_ in site.getsitepackages():
+    for dir_ in sitepackages:
         path = join(dir_, *args)
         tried_list.append(path)
         if exists(path):
@@ -21,36 +29,11 @@ def join_SITE_PACKAGES(*args):
 
 
 def add_data(a, dst, src):
-    import textwrap
-    from os.path import dirname, normpath
     global LIB_EXT
-
-    def fixwin32_shortname(path1):
-        import ctypes
-        try:
-            #import win32file
-            #buf = ctypes.create_unicode_buffer(buflen)
-            path1 = unicode(path1)
-            buflen = 260  # max size
-            buf = ctypes.create_unicode_buffer(buflen)
-            ctypes.windll.kernel32.GetLongPathNameW(path1, buf, buflen)
-            #win32file.GetLongPathName(path1, )
-            path2 = buf.value
-        except Exception as ex:
-            path2 = path1
-            print(ex)
-        return path2
-
-    def platform_path(path):
-        path1 = normpath(path)
-        if sys.platform == 'win32':
-            path2 = fixwin32_shortname(path1)
-        else:
-            path2 = path1
-        return path2
-
-    src = platform_path(src)
-    dst = dst
+    import textwrap
+    from os.path import dirname, exists
+    import utool
+    src = utool.platform_path(src)
     if not os.path.exists(dirname(dst)) and dirname(dst) != "":
         os.makedirs(dirname(dst))
     pretty_path = lambda str_: str_.replace('\\', '/')
@@ -62,21 +45,26 @@ def add_data(a, dst, src):
     if LIB_EXT[1:] in dst.split('.'):
         dtype = 'BINARY'
     print(textwrap.dedent('''
-    [setup] a.add_data(
-    [setup]    dst=%r,
-    [setup]    src=%r,
-    [setup]    dtype=%s)''').strip('\n') %
+    [installer] a.add_data(
+    [installer]    dst=%r,
+    [installer]    src=%r,
+    [installer]    dtype=%s)''').strip('\n') %
           (pretty_path(dst), pretty_path(src), dtype))
+    assert exists(src), 'src=%r does not exist'
     a.datas.append((dst, src, dtype))
 
+
+# Build data before running analysis for quick debugging
+DATATUP_LIST = []
+BINARYTUP_LIST = []
 
 ##################################
 # System Variables
 ##################################
 PLATFORM = sys.platform
-APPLE = PLATFORM == 'darwin'
-WIN32 = PLATFORM == 'win32'
-LINUX = PLATFORM == 'linux2'
+APPLE = PLATFORM.startswith('darwin')
+WIN32 = PLATFORM.startswith('win32')
+LINUX = PLATFORM.startswith('linux2')
 
 LIB_EXT = {'win32': '.dll',
            'darwin': '.dylib',
@@ -99,27 +87,12 @@ except AssertionError:
 # Explicitly add modules in case they are not in the Python PATH
 ##################################
 module_repos = ['utool', 'vtool', 'guitool', 'plottool', 'pyrf', 'pygist', 'ibeis', 'hesaff', 'detecttools']
-apple = []
+pathex = ['.'] + [ join('..', repo) for repo in module_repos ]
 if APPLE:
     # We need to explicitly add the MacPorts and system Python site-packages folders on Mac
-    apple.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/')
-    apple.append('/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/')
+    pathex.append('/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/')
+    pathex.append('/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/')
 
-a = Analysis(  # NOQA
-    ['main.py'],
-    pathex=['.'] + [ join('..', repo) for repo in module_repos ] + apple,
-    hiddenimports=[
-        'sklearn.utils.sparsetools._graph_validation',
-        'sklearn.utils.sparsetools._graph_tools',
-        'scipy.special._ufuncs_cxx',
-        'sklearn.utils.lgamma',
-        'sklearn.utils.weight_vector',
-        'sklearn.neighbors.typedefs',
-        'mpl_toolkits.axes_grid1'
-    ],
-    hookspath=None,
-    runtime_hooks=None
-)
 # IF MPL FAILS:
 # MPL has a problem where the __init__.py is not created in the library.  touch __init__.py in the module's path should fix the issue
 
@@ -127,22 +100,27 @@ a = Analysis(  # NOQA
 # Hesaff + PyRF + FLANN Library
 ##################################
 
-
 #import pyhesaff
 #pyhesaff.HESAFF_CLIB.__LIB_FPATH__
 #import pyrf
 #pyrf.RF_CLIB.__LIB_FPATH__
 # Hesaff
 libhesaff_fname = 'libhesaff' + LIB_EXT
-libhesaff_src = join(root_dir, '..', 'hesaff', 'build', libhesaff_fname)
+if WIN32:
+    libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'pyhesaff', libhesaff_fname))
+else:
+    libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'build', libhesaff_fname))
 libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
-add_data(a, libhesaff_dst, libhesaff_src)
+DATATUP_LIST.append((libhesaff_dst, libhesaff_src))
 
 # PyRF
 libpyrf_fname = 'libpyrf' + LIB_EXT
-libpyrf_src = join(root_dir, '..', 'pyrf', 'build', libpyrf_fname)
+if WIN32:
+    libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'pyrf', libpyrf_fname))
+else:
+    libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'build', libpyrf_fname))
 libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
-add_data(a, libpyrf_dst, libpyrf_src)
+DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
 
 # FLANN
@@ -151,39 +129,29 @@ if WIN32 or LINUX:
     # FLANN
     libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
     libflann_dst = join(ibsbuild, libflann_fname)
-    add_data(a, libflann_dst, libflann_src)
+elif APPLE:
+    libflann_src = '/pyflann/lib/libflann.dylib'
+    libflann_dst = join(ibsbuild, libflann_fname)
+DATATUP_LIST.append((libflann_dst, libflann_src))
 
+
+# OpenMP
+if APPLE:
+    # BSDDB, Fix for the modules that PyInstaller needs and (for some reason)
+    # are not being added by PyInstaller
+    libbsddb_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_bsddb.so'
+    libbsddb_dst = join(ibsbuild, '_bsddb.so')
+    DATATUP_LIST.append((libbsddb_dst, libbsddb_src))
+    libgomp_src = '/opt/local/lib/libgomp.1.dylib'
+    BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
 if LINUX:
-    # OpenMP
     libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
     utool.assertpath(libgomp_src)
-    a.binaries.append(('libgomp.so.1', libgomp_src, 'BINARY'))
-
-if APPLE:
-    # FLANN
-    try:
-        libflann_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/pyflann/lib/libflann.dylib'
-        libflann_dst = join(ibsbuild, libflann_fname)
-        add_data(a, libflann_dst, libflann_src)
-    except Exception as ex:
-        print(repr(ex))
-
-    # BSDDB, Fix for the modules that PyInstaller needs and (for some reason) are not being added by PyInstaller
-    try:
-        libbsddb_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_bsddb.so'
-        libbsddb_dst = join(ibsbuild, '_bsddb.so')
-        add_data(a, libbsddb_dst, libbsddb_src)
-    except Exception as ex:
-        print(repr(ex))
-    try:
-        libgomp_src = '/opt/local/lib/libgomp.1.dylib'
-        a.binaries.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
-    except Exception as ex:
-        print(repr(ex))
+    BINARYTUP_LIST.append(('libgomp.so.1', libgomp_src, 'BINARY'))
 
 
 # We need to add these 4 opencv libraries because pyinstaller does not find them.
-OPENCV_EXT = {'win32': '.dll',
+OPENCV_EXT = {'win32': '248.dll',
               'darwin': '.2.4.dylib',
               'linux2': '.so.2.4'}[PLATFORM]
 
@@ -199,31 +167,34 @@ for name in missing_cv_name_list:
     dst = ''
     if APPLE:
         src = join('/opt/local/lib', fname)
-        dst = join(ibsbuild, fname)
-    if LINUX:
+    elif LINUX:
         src = join('/usr/lib', fname)
-        dst = join(ibsbuild, fname)
+    elif WIN32:
+        #src = join(r'C:/Program Files (x86)/OpenCV/x86/mingw/bin', fname)
+        src = join(root_dir, '../opencv/build/bin', fname)
+    dst = join(ibsbuild, fname)
     utool.assertpath(src)
-    add_data(a, dst, src)
+    DATATUP_LIST.append((dst, src))
 
 
 ##################################
 # QT Gui dependencies
 ##################################
-walk_path = '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib'
-for root, dirs, files in os.walk(walk_path):
-    for lib_fname in files:
-        toc_src = join(walk_path, lib_fname)
-        toc_dst = join('qt_menu.nib', lib_fname)
-        add_data(a, toc_dst, toc_src)
+if APPLE:
+    walk_path = '/opt/local/Library/Frameworks/QtGui.framework/Versions/4/Resources/qt_menu.nib'
+    for root, dirs, files in os.walk(walk_path):
+        for lib_fname in files:
+            toc_src = join(walk_path, lib_fname)
+            toc_dst = join('qt_menu.nib', lib_fname)
+            DATATUP_LIST.append((toc_dst, toc_src))
 
 ##################################
 # Documentation and Icon
 ##################################
 # Documentation
-userguide_dst = join('.', '_docs', 'IBEISUserGuide.pdf')
-userguide_src = join(root_dir, '_docs', 'IBEISUserGuide.pdf')
-add_data(a, userguide_dst, userguide_src)
+#userguide_dst = join('.', '_docs', 'IBEISUserGuide.pdf')
+#userguide_src = join(root_dir, '_docs', 'IBEISUserGuide.pdf')
+#DATATUP_LIST.append((userguide_dst, userguide_src))
 
 # Icon File
 ICON_EXT = {'darwin': 'icns',
@@ -232,7 +203,7 @@ ICON_EXT = {'darwin': 'icns',
 iconfile = join('_installers', 'ibsicon.' + ICON_EXT)
 icon_src = join(root_dir, iconfile)
 icon_dst = join(ibsbuild, iconfile)
-add_data(a, icon_dst, icon_src)
+DATATUP_LIST.append((icon_dst, icon_src))
 
 ##################################
 # Build executable
@@ -242,6 +213,40 @@ exe_name = {'win32':  'build/IBEISApp.exe',
             'darwin': 'build/pyi.darwin/IBEISApp/IBEISApp',
             'linux2': 'build/IBEISApp.ln'}[PLATFORM]
 
+print('[installer] Checking Data')
+for (dst, src) in DATATUP_LIST:
+    assert utool.checkpath(src, verbose=True), 'checkpath failed'
+
+#import sys
+#print('exiting')
+#sys.exit(1)
+
+print('[installer] Running Analysis')
+a = Analysis(  # NOQA
+    ['main.py'],
+    pathex=pathex,
+    hiddenimports=[
+        'sklearn.utils.sparsetools._graph_validation',
+        'sklearn.utils.sparsetools._graph_tools',
+        'scipy.special._ufuncs_cxx',
+        'sklearn.utils.lgamma',
+        'sklearn.utils.weight_vector',
+        'sklearn.neighbors.typedefs',
+        'mpl_toolkits.axes_grid1'
+    ],
+    hookspath=None,
+    runtime_hooks=None
+)
+
+print('[installer] Adding %d Datatups' % (len(DATATUP_LIST,)))
+for (dst, src) in DATATUP_LIST:
+    add_data(a, dst, src)
+
+print('[installer] Adding %d Binaries' % (len(BINARYTUP_LIST),))
+for binarytup in BINARYTUP_LIST:
+    a.binaries.append(binarytup)
+
+print('[installer] PYZ Step')
 pyz = PYZ(a.pure)   # NOQA
 
 exe_kwargs = {
@@ -266,13 +271,16 @@ if APPLE:
     exe_kwargs['console'] = False
 
 # Pyinstaller will gather .pyos
+print('[installer] EXE Step')
 opt_flags = [('O', '', 'OPTION')]
 exe = EXE(pyz, a.scripts + opt_flags, **exe_kwargs)   # NOQA
 
+print('[installer] COLLECT Step')
 coll = COLLECT(exe, a.binaries, a.zipfiles, a.datas, **collect_kwargs)  # NOQA
 
 bundle_name = 'IBEIS'
 if APPLE:
     bundle_name += '.app'
 
+print('[installer] BUNDLE Step')
 app = BUNDLE(coll, name=join('dist', bundle_name))  # NOQA

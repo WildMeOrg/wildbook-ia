@@ -1,5 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import sys
+import io
+import uuid
+import numpy as np
 from utool.util_inject import inject_print_functions
 print, print_, printDBG = inject_print_functions(__name__, '[SQLITE3]', DEBUG=False)
 
@@ -31,9 +34,6 @@ except ImportError as ex:
 
 
 def REGISTER_SQLITE3_TYPES():
-    import io
-    import uuid
-    import numpy as np
     def _read_numpy_from_sqlite3(blob):
         out = io.BytesIO(blob)
         out.seek(0)

@@ -12,6 +12,7 @@ def get_setup_dpath():
 
 
 def clean_pyinstaller():
+    print('[installer] clean_pyinstaller()')
     cwd = get_setup_dpath()
     utool.remove_files_in_dir(cwd, 'IBEISApp.pkg', recursive=False)
     utool.remove_files_in_dir(cwd, 'qt_menu.nib', recursive=False)
@@ -20,6 +21,7 @@ def clean_pyinstaller():
     utool.delete(join(cwd, 'build'))
     utool.delete(join(cwd, 'pyrf'))
     utool.delete(join(cwd, 'pyhesaff'))
+    print('[installer] finished clean_pyinstaller()')
 
 
 def build_pyinstaller():
@@ -42,5 +44,23 @@ def build_pyinstaller():
         # utool.cmd('./_scripts/mac_dmg_builder.sh')
 
 
+def build_win32_inno_installer():
+    inno_dir = r'C:\Program Files (x86)\Inno Setup 5'
+    inno_fname = 'ISCC.exe'
+    inno_fpath = join(inno_dir, inno_fname)
+    cwd = get_setup_dpath()
+    iss_script = join(cwd, '_installers', 'win_installer_script.iss')
+    assert utool.checkpath(inno_fpath, verbose=True)
+    assert utool.checkpath(iss_script, verbose=True)
+    utool.cmd([inno_fpath, iss_script])
+    import shutil
+    installer_src = join(cwd, '_installers', 'Output', 'ibeis-win32-setup.exe')
+    installer_dst = join(cwd, 'dist', 'ibeis-win32-setup.exe')
+    shutil.move(installer_src, installer_dst)
+
+
 if __name__ == '__main__':
-    build_pyinstaller()
+    if 'inno' in sys.argv:
+        build_win32_inno_installer()
+    else:
+        build_pyinstaller()

@@ -169,6 +169,7 @@ python dev.py --prequit --dump-argv
 python dev.py --db PZ_MOTHERS --setdb
 # If its in the same location as a hotspotter db, convert it
 python dev.py --convert --force-delete
+python dev.py --convert --force-delete --db Database_MasterGrevy_Elleni
 # Then interact with your new IBEIS database
 python dev.py --cmd --gui 
 > rid_list = ibs.get_valid_rids()
