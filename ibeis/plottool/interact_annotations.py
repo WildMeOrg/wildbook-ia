@@ -45,7 +45,7 @@ from plottool import draw_func2 as df2
 from itertools import izip
 
 
-DEFAULT_SPECIES_TAG = "____"
+DEFAULT_SPECIES_TAG = '____'
 ACCEPT_SAVE_HOTKEY   = 'a'
 ADD_RECTANGLE_HOTKEY = 'd'
 DEL_RECTANGLE_HOTKEY = 'r'
@@ -1178,7 +1178,7 @@ class ANNOTATIONInteraction(object):
 def default_vertices(img, polys=None, mouseX=None, mouseY=None):
     """Default to rectangle that has a quarter-width/height border."""
     (h, w) = img.shape[0:2]
-    w_, h_ = (w // 4, h // 4)
+    # Center the new verts around wherever the mouse is
     if mouseX is not None and mouseY is not None:
         center_x = mouseX
         center_h = mouseY
@@ -1187,25 +1187,20 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
         center_h = h // 2
 
     if polys is not None and len(polys) > 0:
-        # HACK HACK HACK
+        # Use the largest polygon size as the default verts
         wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
                             polys.itervalues()])
         w_, h_ = wh_list.max(axis=0) // 2
-        #w_ = w - w_
-        #h_ = h - h_
-        # just bad code
-        #x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
-        #y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
-    #else:
-    #    x1, x2 = np.array([0, w]) + (w_ * np.array([1, -1]))
-    #    y1, y2 = np.array([0, h]) + (h_ * np.array([1, -1]))
+    else:
+        # If no poly exists use 1/4 of the image size
+        w_, h_ = (w // 4, h // 4)
     x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
     y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
     # Clip to bounds
     x1 = max(x1, 1)
     y1 = max(y1, 1)
-    x2 = min(x2, h - 1)
-    y2 = min(y2, w - 1)
+    x2 = min(x2, w - 1)
+    y2 = min(y2, h - 1)
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
 
 
