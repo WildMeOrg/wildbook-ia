@@ -1194,6 +1194,7 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
     else:
         # If no poly exists use 1/4 of the image size
         w_, h_ = (w // 4, h // 4)
+    # Get the x/y extents by offseting the centers
     x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
     y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
     # Clip to bounds
