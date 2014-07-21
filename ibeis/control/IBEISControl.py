@@ -1606,7 +1606,7 @@ class IBEISController(object):
         print('[ibs] detecting using random forests')
         detect_gen = randomforest.generate_detections(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
-        ibs.cfg.other_cfg.ensure_attr('detect_add_after', 8)
+        ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
 
         def commit_detections(detected_gids, detected_bboxes, detected_confidences, img_confs):

@@ -35,7 +35,11 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     scale_list = [oldw / neww for oldw, neww in izip(oldw_list, neww_list)]
 
     # Detect on scaled images
-    generator = detect_species_bboxes(src_gpath_list, species, **detectkw)
+    ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
+    use_chunks = ibs.cfg.other_cfg.detect_use_chunks
+
+    generator = detect_species_bboxes(src_gpath_list, species,
+                                      use_chunks=use_chunks, **detectkw)
 
     for gid, scale, (bboxes, confidences, img_conf) in izip(gid_list, scale_list, generator):
         # Unscale results
@@ -115,7 +119,7 @@ def _get_detect_config(**detectkw):
 #=================
 
 
-def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
+def detect_species_bboxes(src_gpath_list, species, quick=True, use_chunks=False, **detectkw):
     """
     Generates bounding boxes for each source image
     For each image yeilds a list of bounding boxes
@@ -134,29 +138,11 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
     # Maybe there is a better way of doing this, or generating results
     # in batch. It could be a utool batch serial process
 
-    USE_CHUNKS = False
+    chunksize = 8
+    use_chunks_ = use_chunks and nImgs >= chunksize
 
-    if not USE_CHUNKS:
-        pathtup_iter = izip(src_gpath_list, dst_gpath_list)
-        for ix, (src_gpath, dst_gpath) in enumerate(pathtup_iter):
-            mark_prog(ix)
-            results = detector.detect(forest, src_gpath, dst_gpath)
-            bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
-                      for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                      in results if supressed == 0]
-
-            confidences = [confidence
-                           for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                           in results if supressed == 0]
-
-            if len(results) > 0:
-                image_confidence = max([float(result[6]) for result in results])
-            else:
-                image_confidence = 0.0
-
-            yield bboxes, confidences, image_confidence
-    else:
-        chunksize = 8
+    if use_chunks_:
+        print('[rf] detect in chunks')
         pathtup_iter = zip(src_gpath_list, dst_gpath_list)
         for ic, chunk in enumerate(utool.ichunks(pathtup_iter, chunksize)):
             src_gpath_list = [tup[0] for tup in chunk]
@@ -186,4 +172,24 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
                     image_confidence = 0.0
 
                 yield bboxes, confidences, image_confidence
+    else:
+        print('[rf] detect one image at a time')
+        pathtup_iter = izip(src_gpath_list, dst_gpath_list)
+        for ix, (src_gpath, dst_gpath) in enumerate(pathtup_iter):
+            mark_prog(ix)
+            results = detector.detect(forest, src_gpath, dst_gpath)
+            bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
+                      for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                      in results if supressed == 0]
+
+            confidences = [confidence
+                           for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                           in results if supressed == 0]
+
+            if len(results) > 0:
+                image_confidence = max([float(result[6]) for result in results])
+            else:
+                image_confidence = 0.0
+
+            yield bboxes, confidences, image_confidence
     end_prog()
