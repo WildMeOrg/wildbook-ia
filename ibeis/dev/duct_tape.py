@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from itertools import izip
 from ibeis import constants
+from ibeis.dev import ibsfuncs
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[duct_tape]', DEBUG=False)
@@ -46,22 +47,22 @@ def ensure_correct_version(ibs):
     ibs.add_version(['schema_v1.0'])
 
 def remove_database_slag(ibs, 
-        delete_invalid_names                    =True, 
-        delete_invalid_encounters               =True, 
-        delete_annotations_for_missing_images   =True,
-        delete_image_labels_for_missing_types   =True,
-        delete_annot_labels_for_missing_types   =True,
-        delete_chips_for_missing_annotations    =True,
-        delete_features_for_missing_annotations =True,
-        delete_invalid_eg_relations             =True,
-        delete_invalid_gl_relations             =True,
+        delete_invalid_names                    =False, 
+        delete_invalid_encounters               =False, 
+        delete_annotations_for_missing_images   =False,
+        delete_image_labels_for_missing_types   =False,
+        delete_annot_labels_for_missing_types   =False,
+        delete_chips_for_missing_annotations    =False,
+        delete_features_for_missing_annotations =False,
+        delete_invalid_eg_relations             =False,
+        delete_invalid_gl_relations             =False,
         delete_invalid_al_relations             =True):
     # ZERO ORDER
     if delete_invalid_names:
-        ibs.delete_invalid_nids()
+        ibsfuncs.delete_invalid_nids(ibs)
     
     if delete_invalid_encounters:
-        ibs.delete_invalid_eids()
+        ibsfuncs.delete_invalid_eids(ibs)
     
     # FIRST ORDER
     if delete_annotations_for_missing_images:

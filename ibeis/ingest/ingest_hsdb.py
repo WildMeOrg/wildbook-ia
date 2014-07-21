@@ -106,7 +106,13 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 image_reviewed_list.append(reviewed)
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
-    assert all(map(exists, image_gpath_list)), 'some images dont exist'
+    print(image_gpath_list)
+    flags = map(exists, image_gpath_list)
+    for image_gpath, flag in izip(image_gpath_list, flags):
+        if not flag:
+            print(image_gpath, flag)
+
+    assert all(flags), 'some images dont exist'
 
     # Add Images Table
     gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None

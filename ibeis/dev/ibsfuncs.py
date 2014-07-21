@@ -579,6 +579,7 @@ def get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
 class FMT_KEYS:
     name_fmt = '{name:*}[id:d].{ext}'
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
+    giraffe1_fmt = '{name:*}_{id:d}.{ext}'
 
 
 def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
@@ -600,11 +601,19 @@ def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
+
+        FMT_KEYS.giraffe1_fmt: utool.named_field_regex([
+            ('name', r'G\d+'),  # species and 2 numbers
+            ('under',r'_'),  # 2 more numbers
+            ('id',   r'\d+'),  # 2 more numbers
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
     }
     regex = INGEST_FORMATS.get(fmtkey, fmtkey)
     gname_list = utool.fpaths_to_fnames(gpath_list)
     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
-
+    
     anyfailed = False
     for gpath, parsed in izip(gpath_list, parsed_list):
         if parsed is None:
