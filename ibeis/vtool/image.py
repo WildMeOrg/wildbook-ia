@@ -36,14 +36,19 @@ def dummy_img(w, h):
     return img
 
 
-def imread(img_fpath):
+def imread(img_fpath, delete_if_corrupted=False):
     # opencv always reads in BGR mode (fastest load time)
     imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
     if imgBGR is None:
         if not exists(img_fpath):
             raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)
         else:
-            raise IOError('cannot read img_fpath=%r seems corrupted.' % img_fpath)
+            msg = 'cannot read img_fpath=%r seems corrupted.' % img_fpath
+            print('[gtool] ' + msg)
+            if delete_if_corrupted:
+                print('[gtool] deleting corrupted image')
+                utool.delete(img_fpath)
+            raise IOError(msg)
     return imgBGR
 
 
