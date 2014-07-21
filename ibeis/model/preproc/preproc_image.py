@@ -70,8 +70,8 @@ def parse_imageinfo(tup):
     # Try to open the image
     try:
         pil_img = Image.open(gpath, 'r')  # Open PIL Image
-    except IOError:
-        print('[preproc] IOError')
+    except IOError as ex:
+        print('[preproc] IOError: %s' % (str(ex),))
         return None
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
