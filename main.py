@@ -9,6 +9,15 @@ import ibeis
 import sys
 import utool
 
+# For Pyinstaller
+from ibeis.dev.all_imports import *  # NOQA
+
+
+def dependencies_for_myprogram():
+    # Let pyintaller find these modules
+    from scipy.sparse.csgraph import _validation  # NOQA
+    from scipy.special import _ufuncs_cxx  # NOQA
+
 
 @utool.profile
 def main():

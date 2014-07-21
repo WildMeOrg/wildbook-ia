@@ -90,7 +90,9 @@ class SQLDatabaseController(object):
         #fpath = ':memory:'
         db.connection = lite.connect(fpath,
                                      #timeout=5,
-                                     detect_types=lite.PARSE_DECLTYPES)
+                                     detect_types=lite.PARSE_DECLTYPES,
+                                     )
+                                     #check_same_thread=False)
                                      #isolation_level='DEFERRED',
                                      #cached_statements=1000
         db.connection.text_factory = text_factory

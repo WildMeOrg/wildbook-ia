@@ -46,7 +46,7 @@ TABLE_COLNAMES = {
         'gid',
         #'image_uuid',
         'thumb',
-        #'nRids',
+        #'nAids',
         'gname',
         #'ext',
         'reviewed',
@@ -77,7 +77,7 @@ TABLE_COLNAMES = {
     NAME_TABLE      : [
         'nid',
         'name',
-        'nRids',
+        'nAids',
         'notes'
     ],
 
@@ -97,7 +97,8 @@ TABLE_COLNAMES = {
     NAMES_TREE      : [
         'name',
         'nid',
-        'nRids',
+        'nAids',
+        'nExAids',
         'exemplar',
         'aid',
         'thumb',
@@ -117,7 +118,7 @@ TABLE_COLNAMES = {
 
 }
 #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
-#NAMES_TREE      : {('name' 'nid' 'nRids') : ['aid' 'bbox' 'thumb']}
+#NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}
 
 # the columns which are editable
 TABLE_EDITSET = {
@@ -137,7 +138,8 @@ TABLE_TREE_LEVELS = {
         'name': 0,
         'notes': 0,
         'nid': 0,
-        'nRids': 0,
+        'nAids': 0,
+        'nExAids': 0,
         'exemplar': 1,
         'aid': 1,
         'thumb': 1,
@@ -163,7 +165,8 @@ COL_DEF = dict([
     ('aid',        (int,      'Annotation ID')),
     ('nid',        (int,      'Name ID')),
     ('eid',        (int,      'Encounter ID')),
-    ('nRids',      (int,      '#Annots')),
+    ('nAids',      (int,      '#Annots')),
+    ('nExAids',    (int,      '#Exemplars')),
     ('nGt',        (int,      '#GT')),
     ('nImgs',      (int,      '#Imgs')),
     ('nFeats',     (int,      '#Features')),
@@ -226,7 +229,7 @@ def make_ibeis_headers_dict(ibs):
         'enctext'    : partial_imap_1to1(utool.tupstr, ibs.get_image_enctext),
         'reviewed'   : ibs.get_image_reviewed,
         'gname'      : ibs.get_image_gnames,
-        'nRids'      : ibs.get_image_num_annotations,
+        'nAids'      : ibs.get_image_num_annotations,
         'unixtime'   : ibs.get_image_unixtime,
         'datetime'   : partial_imap_1to1(utool.unixtime_to_datetime, ibs.get_image_unixtime),
         'gdconf'     : ibs.get_image_detect_confidence,
@@ -271,7 +274,7 @@ def make_ibeis_headers_dict(ibs):
     getters[NAME_TABLE] = {
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_name_text,
-        'nRids'      : ibs.get_name_num_annotations,
+        'nAids'      : ibs.get_name_num_annotations,
         'notes'      : ibs.get_name_notes,
     }
     setters[NAME_TABLE] = {
@@ -312,7 +315,8 @@ def make_ibeis_headers_dict(ibs):
     getters[NAMES_TREE] = {
         'nid'        : lambda nids: nids,
         'name'       : ibs.get_name_text,
-        'nRids'      : ibs.get_name_num_annotations,
+        'nAids'      : ibs.get_name_num_annotations,
+        'nExAids'    : ibs.get_name_num_exemplar_annotations,
         'notes'      : ibs.get_name_notes,
         'aid'        : lambda aids: aids,
         'exemplar'   : ibs.get_annot_exemplar_flag,

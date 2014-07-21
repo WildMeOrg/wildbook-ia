@@ -62,12 +62,12 @@ def blocking_slot(*types_):
         @backblock
         @functools.wraps(func)
         def wrapped_bslot(*args, **kwargs):
-            printDBG('[back*] ' + utool.func_str(func))
-            printDBG('[back*] ' + utool.func_str(func, args, kwargs))
+            #printDBG('[back*] ' + utool.func_str(func))
+            #printDBG('[back*] ' + utool.func_str(func, args, kwargs))
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
-        printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.func_name, types_))
+        #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.func_name, types_))
         return wrapped_bslot
     return wrap_bslot
 
@@ -303,9 +303,9 @@ class MainWindowBackend(QtCore.QObject):
             gid = back.get_selected_gid()
         if bbox is None:
             bbox = back.select_bbox(gid)
-        printDBG('[back.add_annot] * adding bbox=%r' % (bbox,))
+        #printDBG('[back.add_annot] * adding bbox=%r' % (bbox,))
         aid = back.ibs.add_annots([gid], [bbox], [theta])[0]
-        printDBG('[back.add_annot] * added aid=%r' % (aid,))
+        #printDBG('[back.add_annot] * added aid=%r' % (aid,))
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
             #back.show_image(gid)
@@ -823,7 +823,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] import_images_from_dir')
         if dir_ is None:
             dir_ = guitool.select_directory('Select directory with images in it')
-        printDBG('[back] dir=%r' % dir_)
+        #printDBG('[back] dir=%r' % dir_)
         if dir_ is None:
             return
         gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)

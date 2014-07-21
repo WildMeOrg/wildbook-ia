@@ -643,12 +643,13 @@ class IBEISController(object):
         params_iter = ((versiontext,) for versiontext in versiontext_list)
         get_rowid_from_superkey = ibs.get_version_rowid_from_superkey
         versionid_list = ibs.db.add_cleanly(VERSIONS_TABLE, ('version_text',),
-                                           params_iter, get_rowid_from_superkey)
+                                            params_iter, get_rowid_from_superkey)
         return versionid_list
 
     @getter_1to1
     def get_version_rowid_from_superkey(ibs, versiontext_list):
-        versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',), versiontext_list, id_colname='version_text')
+        versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',),
+                                    versiontext_list, id_colname='version_text')
         return versionid_list
 
     @adder
@@ -664,6 +665,7 @@ class IBEISController(object):
     @adder
     def add_chips(ibs, aid_list):
         """
+        FIXME: This is a dirty dirty function
         Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
         and then pass them here to ensure chips are computed) """
         # Ensure must be false, otherwise an infinite loop occurs
@@ -1177,6 +1179,8 @@ class IBEISController(object):
 
     @getter_1to1
     def get_annot_chip_thumbtup(ibs, aid_list):
+        # HACK TO MAKE CHIPS COMPUTE
+        #cid_list = ibs.get_annot_cids(aid_list, ensure=True)  # NOQA
         thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list)
         image_paths = ibs.get_annot_cpaths(aid_list)
         thumbtup_list = [(thumb_path, img_path, [], [])
@@ -1203,8 +1207,7 @@ class IBEISController(object):
     def get_annot_cpaths(ibs, aid_list):
         """ Returns cpaths defined by ANNOTATIONs """
         #utool.assert_all_not_None(aid_list, 'aid_list')
-        assert all([aid is not None for aid in aid_list])
-        assert all([not isinstance(aid, float) for aid in aid_list]), str(aid_list)
+        #assert all([aid is not None for aid in aid_list])
         cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
         return cfpath_list
 
@@ -1544,7 +1547,6 @@ class IBEISController(object):
         egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list, gid_list=gid_list))
         ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
 
-
     #
     #
     #----------------
@@ -1604,7 +1606,8 @@ class IBEISController(object):
         print('[ibs] detecting using random forests')
         detect_gen = randomforest.generate_detections(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
-        ADD_AFTER_THRESHOLD = 1
+        ibs.cfg.other_cfg.ensure_attr('detect_add_after', 8)
+        ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
 
         def commit_detections(detected_gids, detected_bboxes, detected_confidences, img_confs):
             """ helper to commit detections on the fly """
@@ -2240,12 +2243,29 @@ class IBEISController(object):
         """ returns a list of list of cids in each name """
         nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
         #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        return ibs.get_lblannot_aids(nid_list_)
+        aids_list = ibs.get_lblannot_aids(nid_list_)
+        return aids_list
+
+    @getter_1toM
+    def get_name_exemplar_aids(ibs, nid_list):
+        """ returns a list of list of cids in each name """
+        nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
+        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        aids_list = ibs.get_lblannot_aids(nid_list_)
+        flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+        exemplar_aids_list = [utool.filter_items(aids, flags) for aids, flags in
+                              izip(aids_list, flags_list)]
+        return exemplar_aids_list
 
     @getter_1to1
     def get_name_num_annotations(ibs, nid_list):
-        """ returns the number of detections for each name """
+        """ returns the number of annotations for each name """
         return list(imap(len, ibs.get_name_aids(nid_list)))
+
+    @getter_1to1
+    def get_name_num_exemplar_annotations(ibs, nid_list):
+        """ returns the number of annotations, which are exemplars for each name """
+        return list(imap(len, ibs.get_name_exemplar_aids(nid_list)))
 
     @getter_1to1
     def get_name_notes(ibs, nid_list):

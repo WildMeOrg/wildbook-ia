@@ -21,9 +21,9 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
     name = ibs.get_name_text((nid,))
     ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
     print('[viz] show_name=%r aid_list=%r' % (name, aid_list))
-    nRids = len(aid_list)
-    if nRids > 0:
-        nRows, nCols = ph.get_square_row_cols(nRids)
+    nAids = len(aid_list)
+    if nAids > 0:
+        nRows, nCols = ph.get_square_row_cols(nAids)
         print('[viz*] r=%r, c=%r' % (nRows, nCols))
         #gs2 = gridspec.GridSpec(nRows, nCols)
         pnum_ = df2.get_pnum_func(nRows, nCols)
