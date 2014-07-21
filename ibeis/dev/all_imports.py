@@ -48,6 +48,7 @@ import psutil
 # Matplotlib
 import matplotlib
 import matplotlib as mpl
+mpl.use('Qt4Agg')  # pyinstaller hack
 import matplotlib.pyplot as plt
 # Scientific
 import numpy as np

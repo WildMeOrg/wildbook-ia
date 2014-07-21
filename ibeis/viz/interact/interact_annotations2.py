@@ -73,11 +73,12 @@ class ANNOTATION_Interaction2(object):
             )
 
 
-if __name__ == '__main__':
-    import ibeis
-    main_locals = ibeis.main(gui=False)
-    ibs = main_locals['ibs']
-    gid_list = ibs.get_valid_gids()
-    gid = gid_list[len(gid_list) - 1]
-    annotation = ANNOTATION_Interaction2(ibs, gid)
-    exec(df2.present())
+# Removed for pyinstaller?
+#if __name__ == '__main__':
+#    import ibeis
+#    main_locals = ibeis.main(gui=False)
+#    ibs = main_locals['ibs']
+#    gid_list = ibs.get_valid_gids()
+#    gid = gid_list[len(gid_list) - 1]
+#    annotation = ANNOTATION_Interaction2(ibs, gid)
+#    exec(df2.present())

@@ -106,19 +106,13 @@ if APPLE:
 #pyrf.RF_CLIB.__LIB_FPATH__
 # Hesaff
 libhesaff_fname = 'libhesaff' + LIB_EXT
-if WIN32:
-    libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'pyhesaff', libhesaff_fname))
-else:
-    libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'build', libhesaff_fname))
+libhesaff_src = realpath(join(root_dir, '..', 'hesaff', 'pyhesaff', libhesaff_fname))
 libhesaff_dst = join(ibsbuild, 'pyhesaff', 'lib', libhesaff_fname)
 DATATUP_LIST.append((libhesaff_dst, libhesaff_src))
 
 # PyRF
 libpyrf_fname = 'libpyrf' + LIB_EXT
-if WIN32:
-    libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'pyrf', libpyrf_fname))
-else:
-    libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'build', libpyrf_fname))
+libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'pyrf', libpyrf_fname))
 libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
 DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
@@ -150,6 +144,15 @@ if LINUX:
     BINARYTUP_LIST.append(('libgomp.so.1', libgomp_src, 'BINARY'))
 
 
+# MinGW
+if WIN32:
+    mingw_root = r'C:\MinGW\bin'
+    mingw_dlls = ['libgcc_s_dw2-1.dll', 'libstdc++-6.dll', 'libgomp-1.dll', 'pthreadGC2.dll']
+    for lib_fname in mingw_dlls:
+        lib_src = join(mingw_root, lib_fname)
+        lib_dst = join(ibsbuild, lib_fname)
+        DATATUP_LIST.append((lib_dst, lib_src))
+
 # We need to add these 4 opencv libraries because pyinstaller does not find them.
 OPENCV_EXT = {'win32': '248.dll',
               'darwin': '.2.4.dylib',
@@ -160,6 +163,9 @@ missing_cv_name_list = [
     'libopencv_superres',
     'libopencv_stitching',
     'libopencv_gpu',
+    'libopencv_core',
+    'libopencv_highgui',
+    'libopencv_imgproc',
 ]
 for name in missing_cv_name_list:
     fname = name + OPENCV_EXT

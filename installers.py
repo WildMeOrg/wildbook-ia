@@ -59,8 +59,22 @@ def build_win32_inno_installer():
     shutil.move(installer_src, installer_dst)
 
 
+def package_installer():
+    if sys.platform.startswith('win32'):
+        build_win32_inno_installer()
+    elif sys.platform.startswith('darwin'):
+        raise NotImplementedError('TODO: package into dmg')
+        pass
+    elif sys.platform.startswith('linux'):
+        raise NotImplementedError('no linux packager (rpm or deb) supported')
+        pass
+
+
 if __name__ == '__main__':
-    if 'inno' in sys.argv:
+    if 'all' in sys.argv:
+        build_pyinstaller()
+        package_installer()
+    elif 'inno' in sys.argv:
         build_win32_inno_installer()
     else:
         build_pyinstaller()

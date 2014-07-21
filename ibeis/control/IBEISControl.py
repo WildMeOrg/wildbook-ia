@@ -2243,12 +2243,29 @@ class IBEISController(object):
         """ returns a list of list of cids in each name """
         nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
         #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
-        return ibs.get_lblannot_aids(nid_list_)
+        aids_list = ibs.get_lblannot_aids(nid_list_)
+        return aids_list
+
+    @getter_1toM
+    def get_name_exemplar_aids(ibs, nid_list):
+        """ returns a list of list of cids in each name """
+        nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
+        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
+        aids_list = ibs.get_lblannot_aids(nid_list_)
+        flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
+        exemplar_aids_list = [utool.filter_items(aids, flags) for aids, flags in
+                              izip(aids_list, flags_list)]
+        return exemplar_aids_list
 
     @getter_1to1
     def get_name_num_annotations(ibs, nid_list):
-        """ returns the number of detections for each name """
+        """ returns the number of annotations for each name """
         return list(imap(len, ibs.get_name_aids(nid_list)))
+
+    @getter_1to1
+    def get_name_num_exemplar_annotations(ibs, nid_list):
+        """ returns the number of annotations, which are exemplars for each name """
+        return list(imap(len, ibs.get_name_exemplar_aids(nid_list)))
 
     @getter_1to1
     def get_name_notes(ibs, nid_list):
