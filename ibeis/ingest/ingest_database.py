@@ -103,6 +103,14 @@ def ingest_JAG_Kieryn(db):
                       adjust_percent=0.00)
 
 
+@__standard('Giraffes')
+def ingest_Giraffes1(db):
+    return Ingestable(db,
+                      ingest_type='named_images',
+                      fmtkey=ibsfuncs.FMT_KEYS.giraffe1_fmt,
+                      adjust_percent=0.00)
+
+
 def get_standard_ingestable(db):
     if db in STANDARD_INGEST_FUNCS:
         return STANDARD_INGEST_FUNCS[db](db)
