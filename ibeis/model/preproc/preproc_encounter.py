@@ -50,8 +50,8 @@ def ibeis_compute_encounters(ibs, gid_list):
     # Remove encounters less than the threshold
     enc_labels    = labels
     enc_gids      = label_gids
-    enc_datetimes = _compute_encounter_time(ibs, enc_gids)
-    enc_labels, enc_gids = _filter_and_relabel(labels, label_gids, min_imgs_per_enc)
+    enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
+    enc_labels, enc_gids = _filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes)
     # Flatten gids list by enounter
     flat_eids, flat_gids = utool.flatten_membership_mapping(enc_labels, enc_gids)
     # Create enctext for each image
@@ -62,13 +62,20 @@ def ibeis_compute_encounters(ibs, gid_list):
     print('Found %d clusters.' % len(labels))
     return enctext_list, flat_gids
 
-def _compute_encounter_time(ibs, enc_gids):
+
+def _compute_encounter_unixtime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
     from ibeis.dev import ibsfuncs
     unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, enc_gids)
     time_arrs = map(np.array, unixtimes)
-    enc_secs = map(np.mean, time_arrs)
-    enc_datetimes = map(utool.unixtime_to_datetime, enc_secs)
+    enc_unixtimes = map(np.mean, time_arrs)
+    return enc_unixtimes
+
+def _compute_encounter_datetime(ibs, enc_gids):
+    #assert isinstance(ibs, IBEISController)
+    from ibeis.dev import ibsfuncs
+    enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
+    enc_datetimes = map(utool.unixtime_to_datetime, enc_unixtimes)
     return enc_datetimes
 
 def _prepare_X_data(ibs, gid_list, use_gps=False):
@@ -140,16 +147,23 @@ def _group_images_by_label(labels_arr, gid_arr):
     return labels, label_gids
 
 
-def _filter_and_relabel(labels, label_gids, min_imgs_per_enc):
+def _filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None):
     """
     Removes clusters with too few members.
     Relabels clusters-labels such that label 0 has the most members
     """
     label_nGids = np.array(map(len, label_gids))
     label_isvalid = label_nGids >= min_imgs_per_enc
-    # Rebase ids so encounter0 has the most images
-    enc_ids  = range(label_isvalid.sum())
-    enc_gids = label_gids[label_isvalid]
+    if enc_unixtimes is None:
+        # Rebase ids so encounter0 has the most images
+        enc_ids  = range(label_isvalid.sum())
+        enc_gids = label_gids[label_isvalid]
+    else:
+        # sort by time instead
+        unixtime_arr = np.array(enc_unixtimes)
+        # Reorder encounters so the oldest has the lowest number
+        enc_gids = label_gids[unixtime_arr.argsort()]
+        enc_ids = range(len(enc_gids))
     return enc_ids, enc_gids
 
 
