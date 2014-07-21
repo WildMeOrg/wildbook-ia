@@ -200,7 +200,7 @@ if APPLE:
 ICON_EXT = {'darwin': 'icns',
             'win32':  'ico',
             'linux2': 'ico'}[PLATFORM]
-iconfile = join('_installers', 'ibsicon.' + ICON_EXT)
+iconfile = join('_installers', 'ibsicon1.' + ICON_EXT)
 icon_src = join(root_dir, iconfile)
 icon_dst = join(ibsbuild, iconfile)
 DATATUP_LIST.append((icon_dst, icon_src))

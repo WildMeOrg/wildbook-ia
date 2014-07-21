@@ -127,26 +127,63 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, **detectkw):
 
     detect_config = _get_detect_config(**detectkw)
     detector, forest = _get_detector(species, quick=quick)
+    detector.set_detect_params(**detect_config)
 
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
-    pathtup_iter = izip(src_gpath_list, dst_gpath_list)
-    for ix, (src_gpath, dst_gpath) in enumerate(pathtup_iter):
-        mark_prog(ix)
-        results, timing = detector.detect(forest, src_gpath, dst_gpath,
-                                          **detect_config)
-        # Unpack unsupressed bounding boxes
-        bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
-                  for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                  in results if supressed == 0]
+    # FIXME: Doing this in a generator may cause unnecessary page-faults
+    # Maybe there is a better way of doing this, or generating results
+    # in batch. It could be a utool batch serial process
 
-        confidences = [confidence
-                       for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
-                       in results if supressed == 0]
+    USE_CHUNKS = False
 
-        if len(results) > 0:
-            image_confidence = max([float(result[6]) for result in results])
-        else:
-            image_confidence = 0.0
+    if not USE_CHUNKS:
+        pathtup_iter = izip(src_gpath_list, dst_gpath_list)
+        for ix, (src_gpath, dst_gpath) in enumerate(pathtup_iter):
+            mark_prog(ix)
+            results = detector.detect(forest, src_gpath, dst_gpath)
+            bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
+                      for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                      in results if supressed == 0]
 
-        yield bboxes, confidences, image_confidence
+            confidences = [confidence
+                           for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                           in results if supressed == 0]
+
+            if len(results) > 0:
+                image_confidence = max([float(result[6]) for result in results])
+            else:
+                image_confidence = 0.0
+
+            yield bboxes, confidences, image_confidence
+    else:
+        chunksize = 8
+        pathtup_iter = zip(src_gpath_list, dst_gpath_list)
+        for ic, chunk in enumerate(utool.ichunks(pathtup_iter, chunksize)):
+            src_gpath_list = [tup[0] for tup in chunk]
+            dst_gpath_list = [tup[1] for tup in chunk]
+            mark_prog(ic * chunksize)
+            results_list = detector.detect_many(forest, src_gpath_list, dst_gpath_list)
+
+            for results in results_list:
+                bboxes = [(minx, miny, (maxx - minx), (maxy - miny))
+                          for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                          in results if supressed == 0]
+
+                #x_arr = results[:, 2]
+                #y_arr = results[:, 3]
+                #w_arr = results[:, 4] - results[:, 2]
+                #h_arr = results[:, 5] - results[:, 3]
+                #bboxes = np.hstack((x_arr, y_arr, w_arr, h_arr))
+                # Unpack unsupressed bounding boxes
+
+                confidences = [confidence
+                               for (centx, centy, minx, miny, maxx, maxy, confidence, supressed)
+                               in results if supressed == 0]
+
+                if len(results) > 0:
+                    image_confidence = max([float(result[6]) for result in results])
+                else:
+                    image_confidence = 0.0
+
+                yield bboxes, confidences, image_confidence
     end_prog()

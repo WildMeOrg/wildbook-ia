@@ -1614,9 +1614,9 @@ class IBEISController(object):
             if len(detected_gids) == 0:
                 return
             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
-            ibs.add_annots(detected_gids, detected_bboxes,
-                                notes_list=notes_list,
-                                detect_confidence_list=detected_confidences)
+            #ibs.add_annots(detected_gids, detected_bboxes,
+            #                    notes_list=notes_list,
+            #                    detect_confidence_list=detected_confidences)
 
         # Adding new detections on the fly as they are generated
         for count, (gid, bbox, confidence, img_conf) in enumerate(detect_gen):

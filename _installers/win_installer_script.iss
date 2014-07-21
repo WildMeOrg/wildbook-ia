@@ -18,7 +18,7 @@ AppUpdatesURL=www.rpi.edu/~crallj/
 DefaultDirName={pf}\IBEIS
 DefaultGroupName=IBEIS
 OutputBaseFilename=ibeis-win32-setup
-SetupIconFile=ibsicon.ico
+SetupIconFile=ibsicon1.ico
 Compression=lzma
 SolidCompression=yes
 
