@@ -27,3 +27,8 @@ from . import chip as ctool
 from . import spatial_verification as svtool
 from . import trig
 from . import math as mtool
+
+try:
+    from . import linalg_cython
+except ImportError:
+    pass
