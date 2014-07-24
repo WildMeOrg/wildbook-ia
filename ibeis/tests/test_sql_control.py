@@ -88,22 +88,28 @@ def TEST_SQL_CONTROL():
     old_rowid_sublist = add_names(target_name_text_sublist)
     assert len(set(old_rowid_sublist) & set(new_rowid_sublist)) == 0
 
-    csv_target = '''
-            1,                                 fred
-            2,                                  sue
-            3,  newset_Robert');DROP TABLE names;--
-            4,                           newset_joe
-            5,                           newset_rob
-            6,         Robert');DROP TABLE names;--
-            7,                                  joe
-            8,                                  rob
+    csv_target = u'''
+        1,                                 fred
+        2,                                  sue
+        3,  newset_Robert');DROP TABLE names;--
+        4,                           newset_joe
+        5,                           newset_rob
+        6,         Robert');DROP TABLE names;--
+        7,                                  joe
+        8,                                  rob
     '''.strip()
 
     csv_test = db.get_table_csv('names')
+    print('test=')
     print(csv_test)
-    #print(csv_target)
 
-    assert csv_test.endswith(csv_target)
+    try:
+        assert csv_test.endswith(csv_target)
+    except AssertionError as ex:
+        print('target=')
+        print(csv_target)
+        utool.printex(ex)
+        raise
 
     return locals()
 

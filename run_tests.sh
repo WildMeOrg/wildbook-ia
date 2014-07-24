@@ -11,15 +11,16 @@ http://patorjk.com/software/taag/#p=display&f=Cybermedium&t=VTOOL%20TESTS
 # Win32 path hacks
 export CWD=$(pwd)
 
-# FIXME: Weird directory dependency
-#export PATHSEP=$(python -c "import os; print(os.pathsep)")
-#if [[ "$OSTYPE" == "win32" ]]; then
+# <CORRECT_PYTHON>
+# GET CORRECT PYTHON ON ALL PLATFORMS
 export SYSNAME="$(expr substr $(uname -s) 1 10)"
 if [ "$SYSNAME" = "MINGW32_NT" ]; then
     export PY=python
 else
     export PY=python2.7
 fi
+# </CORRECT_PYTHON>
+
 export PYHESAFF_DIR=$($PY -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
 export VTOOL_DIR=$($PY -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
 echo $VTOOL_DIR
