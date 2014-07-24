@@ -613,7 +613,7 @@ def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}
     regex = INGEST_FORMATS.get(fmtkey, fmtkey)
     gname_list = utool.fpaths_to_fnames(gpath_list)
     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
-    
+
     anyfailed = False
     for gpath, parsed in izip(gpath_list, parsed_list):
         if parsed is None:
@@ -948,14 +948,19 @@ def is_aid_unknown(ibs, aid_list):
 
 
 def make_enctext_list(eid_list, enc_cfgstr):
+    # DEPRICATE
     enctext_list = [str(eid) + enc_cfgstr for eid in eid_list]
     return enctext_list
 
 
 @__injectable
 def make_next_name(ibs, num=None):
+    """ Creates a number of names which are not in the database, but does not
+    add them """
     num_names = ibs.get_num_names()
-    name_prefix = utool.get_timestamp('tag') + '_TMP'
+    userid = utool.get_user_name()
+    timestamp = utool.get_timestamp('tag')
+    name_prefix = timestamp + '_TMP_' + userid + '_'
     if num is None:
         next_name = name_prefix + '%04d' % num_names
         return next_name
