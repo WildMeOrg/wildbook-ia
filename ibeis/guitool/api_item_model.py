@@ -198,7 +198,7 @@ class APIItemModel(API_MODEL_BASE):
         #print(utool.get_caller_name(range(4, 12)))
         if len(model.col_level_list) > 0:
             #with utool.Timer('table: %r' %(model.name,)):
-            model.root_node = _build_internal_structure(model)
+            model.root_node = build_internal_structure(model)
             #print('-----')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index

@@ -104,7 +104,7 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
 
 
 @profile
-def _build_internal_structure(model):
+def build_internal_structure(model):
     #from guitool.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)
