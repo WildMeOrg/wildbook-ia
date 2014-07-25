@@ -21,8 +21,8 @@ else
 fi
 # </CORRECT_PYTHON>
 
-export PYHESAFF_DIR=$($PY -c "import os, pyhesaff; print(os.path.dirname(pyhesaff.__file__))")
-export VTOOL_DIR=$($PY -c "import os, vtool; print(os.path.dirname(vtool.__file__))")
+export PYHESAFF_DIR=$($PY -c "import os, pyhesaff; print(str(os.path.dirname(pyhesaff.__file__)))")
+export VTOOL_DIR=$($PY -c "import os, vtool; print(str(os.path.dirname(vtool.__file__)))")
 echo $VTOOL_DIR
 echo $PYTHONPATH
 
@@ -136,9 +136,10 @@ cat <<EOF
      \/   |  |__| |__| |___     |  |___ ___]  |  ___] 
 EOF
     RUN_TEST $VTOOL_DIR/tests/test_draw_keypoint.py --noshow 
-    RUN_TEST $VTOOL_DIR/tests/test_spatial_verification.py --noshow 
     RUN_TEST $VTOOL_DIR/tests/test_exhaustive_ori_extract.py --noshow 
     RUN_TEST $VTOOL_DIR/tests/test_vtool.py 
+    RUN_TEST $VTOOL_DIR/tests/test_linalg.py --noshow 
+    RUN_TEST $VTOOL_DIR/tests/test_spatial_verification.py --noshow 
 
 fi
 

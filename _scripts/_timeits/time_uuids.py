@@ -6,7 +6,6 @@ import __builtin__
 import os
 import multiprocessing
 import time
-import timeit
 from PIL import Image
 import hashlib
 import numpy as np
@@ -141,6 +140,7 @@ if __name__ == '__main__':
                 func(gpath)
             total_time = time.time() - start
         else:
+            import timeit
             stmt = '%s(gpath)' % func_name
             total_time = timeit.timeit(stmt=stmt, setup=setup, number=number)
         print('timed: %r seconds in %s' % (total_time, func_name))
