@@ -18,7 +18,7 @@ API_MODEL_BASE = QtCore.QAbstractItemModel
 
 VERBOSE = utool.VERBOSE
 
-from .api_tree_node import *  # NOQA
+from .api_tree_node_Python import *  # NOQA
 
 
 class ChangeLayoutContext(object):
