@@ -13,9 +13,9 @@ from  vtool.spatial_verification import *  # NOQA
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tets_sv]', DEBUG=False)
 
 
-xy_thresh = .009
-scale_thresh_sqrd = 2
-ori_thresh = np.tau / 4
+xy_thresh = ktool.KPTS_DTYPE(.009)
+scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
+ori_thresh = ktool.KPTS_DTYPE(np.tau / 4)
 
 
 def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
@@ -37,6 +37,9 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
         return errors_dict
 
     # Test each affine hypothesis
+    #assert kpts1.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts1.dtype=%r' % (kpts1.dtype)
+    #assert kpts2.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts2.dtype=%r' % (kpts2.dtype)
+    #assert xy_thresh_sqrd.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere xy_thresh_sqrd.dtype=%r' % (xy_thresh_sqrd.dtype)
     aff_hypo_tups = sver.get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd,
                                             scale_thresh_sqrd, ori_thresh)
     inliers_list, errors_list, Aff_mats = aff_hypo_tups
@@ -75,6 +78,8 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
 def get_dummy_test_vars():
     kpts1 = dummy.pertebed_grid_kpts(seed=12, damping=1.2)
     kpts2 = dummy.pertebed_grid_kpts(seed=24, damping=1.6)
+    assert kpts1.dtype == np.float32
+    assert kpts2.dtype == np.float32
     chip1 = dummy.get_kpts_dummy_img(kpts1)
     chip2 = dummy.get_kpts_dummy_img(kpts2)
     #kpts2 = ktool.get_grid_kpts()

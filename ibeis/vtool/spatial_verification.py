@@ -76,6 +76,34 @@ def compute_homog(xy1_mn, xy2_mn):
     H = np.vstack((h[0:3], h[3:6], h[6:9]))
     return H
 
+# Total time: 6.39448 s
+#
+# Line #      Hits         Time  Per Hit   % Time  Line Contents
+#==============================================================
+# 80                                           @profile
+# 81                                           def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
+# 82                                                                        xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+# 83                                               # Map keypoints from image 1 onto image 2
+# 84     18581      1380010     74.3      6.6      invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
+# 85                                               # Get projection components
+# 86     18581       899671     48.4      4.3      _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
+# 87     18581      7374378    396.9     35.2      _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
+# 88     18581      3133362    168.6     15.0      _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
+# 89                                               # Check for projection errors
+# 90                                               #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+# 91     18581      2434911    131.0     11.6      xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+# 92     18581      1999379    107.6      9.5      scale_err = ltool.det_distance(_det1_mt, det2_m)
+# 93     18581      1786259     96.1      8.5      ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
+# 94                                               # Mark keypoints which are inliers to this hypothosis
+# 95     18581       231433     12.5      1.1      xy_inliers_flag    = xy_err    < xy_thresh_sqrd
+# 96     18581       278045     15.0      1.3      scale_inliers_flag = scale_err < scale_thresh_sqrd
+# 97     18581       217338     11.7      1.0      ori_inliers_flag   = ori_err   < ori_thresh
+# 98                                               # TODO Add uniqueness of matches constraint
+# 99     18581       840893     45.3      4.0      hypo_inliers_flag = ltool.and_lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+#100     18581        55803      3.0      0.3      hypo_errors = (xy_err, ori_err, scale_err)
+#101     18581       249742     13.4      1.2      hypo_inliers = np.where(hypo_inliers_flag)[0]
+#102     18581        58484      3.1      0.3      return hypo_inliers, hypo_errors
+
 
 @profile
 def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
@@ -84,10 +112,12 @@ def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
     # Get projection components
     _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-    _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
+    #_det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
+    _det1_mt  = ktool.get_invVR_mats_det_float64(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     # Check for projection errors
-    xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+    #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+    xy_err    = ltool.L2_sqrd_cython(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
     scale_err = ltool.det_distance(_det1_mt, det2_m)
     ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
     # Mark keypoints which are inliers to this hypothosis
@@ -198,7 +228,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     # --- Find (Squared) Homography Distance Error ---
     # You cannot test for scale or orientation easilly here because
     # you no longer have an ellipse when using a projective transformation
-    xy_err = ltool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    xy_err = ltool.L2_sqrd(xy1_mt.T, xy2_m.T)  # FIXME: cython version seems to crash here, why?
     # Estimate final inliers
     homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0]
     return homog_inliers, H

@@ -33,6 +33,12 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[kpts]', DEBUG=False)
 
 
+try:
+    from .keypoint_cython import (get_invVR_mats_det_float64,)  # NOQA
+except ImportError as ex:
+    pass
+
+
 np.tau = 2 * np.pi  # tauday.com
 
 
@@ -61,7 +67,7 @@ SHAPE_DIMS = np.array([SCAX_DIM, SKEW_DIM, SCAY_DIM])
 
 
 @profile
-def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, **kwargs):
+def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, dtype=np.float32, **kwargs):
     """ Returns a regular grid of keypoints """
     (w, h) = wh
     (wstride, hstride) = wh_stride
@@ -72,12 +78,12 @@ def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, **kwargs):
     _xs = xs_grid.flatten()
     _ys = ys_grid.flatten()
     nKpts = len(_xs)
-    _zeros = np.zeros(nKpts)
+    _zeros = np.zeros(nKpts, dtype=dtype)
     _iv11s = _zeros + scale
     _iv21s = _zeros
     _iv22s = _zeros + scale
     _oris = _zeros
-    kpts = np.vstack((_xs, _ys, _iv11s, _iv21s, _iv22s, _oris)).T
+    kpts = np.vstack((_xs, _ys, _iv11s, _iv21s, _iv22s, _oris)).astype(dtype).T
     return kpts
 
 

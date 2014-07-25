@@ -5,8 +5,22 @@ import numpy as np
 import numpy.linalg as npl
 from numpy import (array, sin, cos)
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[linalg]', DEBUG=False)
+
+try:
+    from .linalg_cython import (L2_sqrd_float32, L2_sqrd_float64,)  # NOQA
+
+    def L2_sqrd_cython(hist1, hist2):
+        if hist1.dtype == np.float32:
+            return L2_sqrd_float32(hist1, hist2)
+        else:
+            return L2_sqrd_float64(hist1, hist2)
+except ImportError as ex:
+    raise
+    pass
+
+profile = utool.profile
+#(print, print_, printDBG, rrr, profile) = utool.inject(
+#    __name__, '[linalg]', DEBUG=False)
 
 np.tau = 2 * np.pi  # tauday.com
 
@@ -244,7 +258,7 @@ def L1(hist1, hist2):
 
 
 @profile
-def L2_sqrd(hist1, hist2, out=None):
+def L2_sqrd(hist1, hist2):
     """ returns the squared L2 distance
     seealso L2
     Test:
@@ -260,7 +274,7 @@ def L2_sqrd(hist1, hist2, out=None):
     #np.abs(temp, temp)
     #np.power(temp, 2, temp)
     #out = temp.sum(-1)
-    return (np.abs(hist1 - hist2) ** 2).sum(-1, out)  # this is faster
+    return ((hist1 - hist2) ** 2).sum(-1)  # this is faster
     #return out
 
 

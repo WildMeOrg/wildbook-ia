@@ -8,13 +8,16 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[dummy]', DEBUG=False)
 
 
-def get_dummy_kpts(num):
+DEFAULT_DTYPE = ktool.KPTS_DTYPE
+
+
+def get_dummy_kpts(num, dtype=DEFAULT_DTYPE):
     """ Some testing data """
     kpts = array([[0, 0, 5.21657705, -5.11095951, 24.1498699, 0],
                   [0, 0, 2.35508823, -5.11095952, 24.1498692, 0],
                   [0, 0, 12.2165705, 12.01909553, 10.5286992, 0],
                   [0, 0, 13.3555705, 17.63429554, 14.1040992, 0],
-                  [0, 0, 16.0527005, 3.407312351, 11.7353722, 0]])
+                  [0, 0, 16.0527005, 3.407312351, 11.7353722, 0]], dtype=dtype)
     kpts = np.vstack([kpts] * num)
     return kpts
 
@@ -25,7 +28,7 @@ def get_kpts_dummy_img(kpts, sf=1.0):
     return img
 
 
-def get_dummy_invV_mats():
+def get_dummy_invV_mats(dtype=DEFAULT_DTYPE):
     invV_mats = np.array((((1.0, 0.0),
                            (0.0, 1.0),),
 
@@ -36,11 +39,11 @@ def get_dummy_invV_mats():
                            (0.5, 2.0),),
 
                           ((1.0, 0.0),
-                           (0.5, 1.0),),))
+                           (0.5, 1.0),),), dtype=np.float32)
     return invV_mats
 
 
-def get_dummy_matching_kpts():
+def get_dummy_matching_kpts(dtype=DEFAULT_DTYPE):
     kpts1 = array([[  3.28846716e+02,   1.21753590e+02,   1.25637716e+01,  -1.18816503e+01,   1.00417606e+01,   1.14933074e-02],
                    [  3.01069363e+02,   1.31472857e+02,   1.29744163e+01,  -1.26813604e+01,   1.23529540e+01,   2.56660535e-01],
                    [  4.08240651e+02,   1.86241170e+02,   1.68589858e+01,  -1.33149406e+01,   1.42353870e+01,   1.20307208e-02],
@@ -53,7 +56,8 @@ def get_dummy_matching_kpts():
                    [  4.12149038e+02,   3.85985588e+02,   3.25077165e+01,  -1.86535559e+01,   7.91420083e+00,   6.23798141e+00],
                    [  3.76955263e+02,   3.62479481e+02,   2.50461522e+01,  -6.14592975e+00,   1.45263025e+01,   2.53605042e-01],
                    [  3.86279299e+02,   3.98880867e+02,   3.92990884e+01,  -1.95396603e+01,   1.51900915e+01,   2.34707827e-01],
-                   [  2.72267165e+02,   3.39945945e+02,   1.80826449e+01,   5.12738475e+00,   5.43937103e+01,   6.00411182e-01]])
+                   [  2.72267165e+02,   3.39945945e+02,   1.80826449e+01, 5.12738475e+00,   5.43937103e+01,   6.00411182e-01]],
+                  dtype=dtype)
     ##
     kpts2 = array([[  3.09621904e+02,   1.01906467e+02,   1.01749649e+01,  -8.13185135e+00,   9.76679199e+00,   5.98161838e+00],
                    [  2.95794687e+02,   1.32017193e+02,   1.31069994e+01,  -1.24562360e+01,   1.12054328e+01,   2.65517495e-01],
@@ -67,7 +71,8 @@ def get_dummy_matching_kpts():
                    [  4.06788317e+02,   3.33934196e+02,   3.04510906e+01,  -1.78787314e+01,   1.28190063e+01,   1.59551101e-01],
                    [  3.55198510e+02,   3.52797004e+02,   2.31707674e+01,  -5.17600302e+00,   2.02805843e+01,   8.69594936e-02],
                    [  3.81289714e+02,   4.07277352e+02,   3.63608634e+01,  -2.03970279e+01,   1.69257319e+01,   7.12531509e-03],
-                   [  2.66126484e+02,   4.21403317e+02,   2.23173801e+01,   6.71736273e+00,   5.26069906e+01,   5.96099364e+00]])
+                   [  2.66126484e+02,   4.21403317e+02,   2.23173801e+01,   6.71736273e+00,   5.26069906e+01,   5.96099364e+00]],
+                  dtype=dtype)
     ##
     fm = array([[ 0,  0],
                 [ 1,  1],
@@ -81,7 +86,7 @@ def get_dummy_matching_kpts():
                 [ 9,  9],
                 [10, 10],
                 [11, 11],
-                [12, 12]])
+                [12, 12]], dtype=np.int32)
     return kpts1, kpts2, fm
 
 
@@ -132,16 +137,18 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     if seed is not None:
         np.random.seed(seed)
     # Create normally distributed pertibations
-    xy_aug   = np.random.normal(0, scale=xy_std,   size=(len(kpts), 2))
+    xy_aug   = np.random.normal(0, scale=xy_std, size=(len(kpts), 2)).astype(ktool.KPTS_DTYPE)
     try:
-        invV_aug = np.random.normal(0, scale=invV_std, size=(len(kpts), 3))
+        invV_aug = np.random.normal(0, scale=invV_std, size=(len(kpts), 3)).astype(ktool.KPTS_DTYPE)
     except ValueError as ex:
         utool.printex(ex, key_list=[(type, 'invV_std')])
         raise
-    ori_aug  = np.random.normal(0, scale=ori_std,  size=(len(kpts), 1))
+    ori_aug = np.random.normal(0, scale=ori_std, size=(len(kpts), 1)).astype(ktool.KPTS_DTYPE)
     # Augment keypoints
     aug = np.hstack((xy_aug, invV_aug, ori_aug))
     kpts_ = kpts + aug
     # Ensure keypoint feasibility
     kpts_ = force_kpts_feasibility(kpts_)
+    #print(utool.dict_str({key: type(val) if not isinstance(val, np.ndarray) else val.dtype for key, val in locals().iteritems()}))
+    assert kpts_.dtype == ktool.KPTS_DTYPE, 'bad cast somewhere kpts_.dtype=%r' % (kpts_.dtype)
     return kpts_
