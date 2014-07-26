@@ -19,7 +19,7 @@ DateTimeOriginal_TAGID = exif.EXIF_TAG_TO_TAGID['DateTimeOriginal']
 def parse_exif(pil_img):
     """ Image EXIF helper """
     exif_dict = exif.get_exif_dict(pil_img)
-    exiftime = exif_dict.get(DateTimeOriginal_TAGID, -1)
+    exiftime  = exif_dict.get(DateTimeOriginal_TAGID, -1)
     # TODO: Fixme
     #latlon = exif_dict.get(GPSInfo_TAGID, (-1, -1))
     latlon = (-1, -1)

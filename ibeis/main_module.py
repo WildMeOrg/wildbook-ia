@@ -130,7 +130,7 @@ def _init_parallel():
 
 def _close_parallel():
     from utool import util_parallel
-    util_parallel.close_pool()
+    util_parallel.close_pool(terminate=True)
 
 
 def _init_numpy():
