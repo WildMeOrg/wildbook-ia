@@ -20,10 +20,8 @@ def get_invVR_mats_det_float64(np.ndarray[float64_t, ndim=3] invVRs):
     cdef unsigned int nMats = invVRs.shape[0]
     # Prealloc output
     cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=float64)
-
-    for ix in xrange(nMats):
+    cdef size_t ix
+    for ix in range(nMats):
         # simple determinant: ad - bc
         out[ix] = (invVRs[ix, 0, 0] * invVRs[ix, 1, 1]) - (invVRs[ix, 0, 1] * invVRs[ix, 1, 0])
     return out
-
-

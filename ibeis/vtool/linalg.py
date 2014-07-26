@@ -7,13 +7,16 @@ from numpy import (array, sin, cos)
 import utool
 
 try:
-    from .linalg_cython import (L2_sqrd_float32, L2_sqrd_float64,)  # NOQA
+    from .linalg_cython import (  # NOQA
+        L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
+                                det_distance_float64, L2_sqrd_cython, det_distance_cython
+                               )
 
-    def L2_sqrd_cython(hist1, hist2):
-        if hist1.dtype == np.float32:
-            return L2_sqrd_float32(hist1, hist2)
-        else:
-            return L2_sqrd_float64(hist1, hist2)
+    #def L2_sqrd_cython(hist1, hist2):
+    #    if hist1.dtype == np.float32:
+    #        return L2_sqrd_float32(hist1, hist2)
+    #    else:
+    #        return L2_sqrd_float64(hist1, hist2)
 except ImportError as ex:
     raise
     pass
