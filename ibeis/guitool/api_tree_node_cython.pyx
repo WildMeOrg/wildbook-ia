@@ -1,18 +1,9 @@
 from __future__ import absolute_import, division, print_function
+cimport cython
 import cython
-ctypedef int ITYPE_t
 
 
-cdef class TreeNode():  # (object):
-    # USE THIS IN CONTROLLER
-    # Available in Python-space:
-    #property period:
-    #    def __get__(self):
-    #        return 1.0 / self.freq
-    #    def __set__(self, value):
-    #        self.freq = 1.0 / value
-
-    #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
+cdef class TreeNode:  # (object):
     def __init__(self, int id_, parent_node, level):
         cdef int self.id_ = id_
         TreeNode self.parent_node = parent_node
@@ -55,9 +46,13 @@ cdef class TreeNode():  # (object):
         str_ = "\n".join([self_str] + child_strs)
         return str_
 
-@cython.nonecheck(False)
-@profile
-def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef TreeNode _populate_tree_recursive(TreeNode parent_node, 
+                             object child_ids, 
+                             int num_levels,
+                             object ider_list,
+                             int level):
     """ Recursively builds the tree structure """
     if level == num_levels - 1:
         child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
@@ -74,7 +69,8 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
     return parent_node
 
 
-@profile
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _populate_tree_iterative(root_node, num_levels, ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet """
     root_ids = ider_list[0]()
@@ -103,7 +99,8 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         ids_list = new_ids_lists
 
 
-@profile
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def build_internal_structure(model):
     #from guitool.api_item_model import *
     ider_list = model.iders
