@@ -47,7 +47,7 @@ def _init_matplotlib():
         TARGET_BACKEND = 'PDF'
     else:
         TARGET_BACKEND = 'Qt4Agg'
-    if  multiprocessing.current_process().name == 'MainProcess':
+    if utool.in_main_process():
         if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
             print('[main] current backend is: %r' % backend)

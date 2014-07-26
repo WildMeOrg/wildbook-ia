@@ -130,5 +130,5 @@ def add_images_params_gen(gpath_list, **kwargs):
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))
-    params_gen = utool.generate(parse_imageinfo, gpath_list, ordered=True)
+    params_gen = utool.generate(parse_imageinfo, gpath_list, **kwargs)
     return params_gen

@@ -40,10 +40,11 @@ def default_decorator(input_):
 
 
 API_CACHE = utool.get_flag('--api-cache')
-if API_CACHE:
-    print('[accessor_decors] API_CACHE IS ENABLED')
-else:
-    print('[accessor_decors] API_CACHE IS DISABLED')
+if utool.in_main_process():
+    if API_CACHE:
+        print('[accessor_decors] API_CACHE IS ENABLED')
+    else:
+        print('[accessor_decors] API_CACHE IS DISABLED')
 
 
 def init_tablecache():
