@@ -12,7 +12,7 @@ from vtool import keypoint as ktool
 from vtool import linalg as ltool
 from vtool import spatial_verification as sver
 # Hotspotter
-from ibeis.model.hots import QueryResult
+from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_filters
 from ibeis.model.hots import voting_rules2 as vr2
@@ -172,7 +172,7 @@ def _weight_neighbors(ibs, qaid2_nns, qreq):
 
 @profile
 def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
-    qfx2_score = np.ones(qfx2_nndx.shape, dtype=QueryResult.FS_DTYPE)
+    qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, aid2_weights in filt2_weights.iteritems():
@@ -282,7 +282,7 @@ def identity_filter(qaid2_nns, qreq):
     for count, qaid in enumerate(qaid2_nns.iterkeys()):
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
-        qfx2_score = np.ones(qfx2_nndx.shape, dtype=QueryResult.FS_DTYPE)
+        qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
         qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
         # Check that you are not matching yourself
         qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
@@ -302,9 +302,9 @@ def identity_filter(qaid2_nns, qreq):
 def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
     minMatches = 2  # TODO: paramaterize
     # Convert to numpy
-    fm_dtype = QueryResult.FM_DTYPE
-    fs_dtype = QueryResult.FS_DTYPE
-    fk_dtype = QueryResult.FK_DTYPE
+    fm_dtype = hots_query_result.FM_DTYPE
+    fs_dtype = hots_query_result.FS_DTYPE
+    fk_dtype = hots_query_result.FK_DTYPE
     # FIXME: This is slow
     aid2_fm_ = {aid: np.array(fm, fm_dtype)
                 for aid, fm in aid2_fm.iteritems()
@@ -542,7 +542,7 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
         # Perform final scoring
         aid2_score = score_chipmatch(ibs, qaid, chipmatch, score_method, qreq)
         # Create a query result structure
-        res = QueryResult.QueryResult(qaid, cfgstr)
+        res = hots_query_result.QueryResult(qaid, cfgstr)
         res.aid2_score = aid2_score
         (res.aid2_fm, res.aid2_fs, res.aid2_fk) = chipmatch
         res.filt2_meta = {}  # dbgstats
@@ -564,7 +564,7 @@ def try_load_resdict(qreq):
     failed_qaids = []
     for qaid in qaids:
         try:
-            res = QueryResult.QueryResult(qaid, cfgstr)
+            res = hots_query_result.QueryResult(qaid, cfgstr)
             res.load(qreq)
             qaid2_qres[qaid] = res
         except IOError:

@@ -140,11 +140,13 @@ from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips3 as nn_filters
 from ibeis.model.hots import hots_nn_index
 from ibeis.model.hots.hots_nn_index import NNIndex, NNSplitIndex
-from ibeis.model.hots import QueryResult
-from ibeis.model.hots import QueryRequest
+from ibeis.model.hots import hots_query_result
+from ibeis.model.hots import hots_query_request
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import coverage_image
 from ibeis.model.hots import query_helpers
+from ibeis.model.hots.hots_query_request import QueryRequest
+from ibeis.model.hots.hots_query_result QueryResult
 # IBEIS MODEL DETECT
 from ibeis.model.detect import randomforest
 from ibeis.model.detect import grabmodels

@@ -1,8 +1,8 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 from . import hots_nn_index
-from . import QueryRequest
-from . import QueryResult
+from . import hots_query_request
+from . import hots_query_result
 #from . import coverage_image
 #from . import encounter
 from . import match_chips3
@@ -18,8 +18,8 @@ def reload_subs():
     """ Reloads hots and submodules """
     rrr()
     getattr(hots_nn_index, 'rrr', lambda: None)()
-    getattr(QueryRequest, 'rrr', lambda: None)()
-    getattr(QueryResult, 'rrr', lambda: None)()
+    getattr(hots_query_request, 'rrr', lambda: None)()
+    getattr(hots_query_result, 'rrr', lambda: None)()
     #getattr(coverage_image, 'rrr', lambda: None)()
     #getattr(encounter, 'rrr', lambda: None)()
     getattr(match_chips3, 'rrr', lambda: None)()

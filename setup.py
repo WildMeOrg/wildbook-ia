@@ -11,8 +11,8 @@ CHMOD_PATTERNS = [
 ]
 
 CYTHON_FILES = [
-    'ibeis/model/hots/QueryRequest.py',
-    'ibeis/model/hots/QueryResult.py',
+    'ibeis/model/hots/hots_query_result.py.py',
+    'ibeis/model/hots/hots_query_request.py.py',
     'ibeis/model/hots/voting_rules2.py',
     'ibeis/model/hots/nn_filters.py',
     'ibeis/model/hots/matching_functions.py',

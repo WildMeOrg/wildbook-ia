@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
-from ibeis.model.hots import QueryRequest
+from ibeis.model.hots import hots_query_request
 from ibeis.model.hots import hots_nn_index
 from ibeis.model.hots import matching_functions as mf
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -37,7 +37,7 @@ def prep_query_request(qreq=None, query_cfg=None,
     """  Builds or modifies a query request object """
     print(' --- Prep QueryRequest --- ')
     if qreq is None:
-        qreq = QueryRequest.QueryRequest()
+        qreq = hots_query_request.QueryRequest()
     if qaids is not None:
         assert len(qaids) > 0, 'cannot query nothing!'
         qreq.qaids = qaids

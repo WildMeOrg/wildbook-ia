@@ -38,7 +38,7 @@ from ibeis.model.preproc import preproc_detectimg
 from ibeis.model.preproc import preproc_encounter
 from ibeis.model.detect import randomforest
 from ibeis.model.hots import match_chips3 as mc3
-from ibeis.model.hots import QueryRequest
+from ibeis.model.hots import hots_query_request
 # IBEIS
 from ibeis.control import DB_SCHEMA
 from ibeis.control import SQLDatabaseControl as sqldbc
@@ -1698,7 +1698,7 @@ class IBEISController(object):
     @default_decorator
     def _init_query_requestor(ibs):
         # Create query request object
-        ibs.qreq = QueryRequest.QueryRequest(ibs.qresdir, ibs.bigcachedir)
+        ibs.qreq = hots_query_request.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
     @default_decorator
