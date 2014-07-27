@@ -18,7 +18,14 @@ API_MODEL_BASE = QtCore.QAbstractItemModel
 
 VERBOSE = utool.VERBOSE
 
-from .api_tree_node import *  # NOQA
+try:
+    #from . import api_tree_node_cython as _atn
+    if '_atn' not in globals():
+        raise ImportError('')
+    print('[guitool] cython ON')
+except ImportError:
+    print('[guitool] cython OFF')
+    from . import api_tree_node as _atn
 
 
 class ChangeLayoutContext(object):
@@ -138,7 +145,7 @@ class APIItemModel(API_MODEL_BASE):
         model.col_sort_reverse = False
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
-        model.root_node = TreeNode(None, None, -1)
+        model.root_node = _atn.TreeNode(-1, None, -1)
         # Initialize member variables
         #model._about_to_change()
         model.headers = headers  # save the headers
@@ -197,9 +204,9 @@ class APIItemModel(API_MODEL_BASE):
         #print('[api_model] UPDATE ROWS: %r' % (model.name,))
         #print(utool.get_caller_name(range(4, 12)))
         if len(model.col_level_list) > 0:
-            #with utool.Timer('table: %r' %(model.name,)):
-            model.root_node = build_internal_structure(model)
-            #print('-----')
+            with utool.Timer('BUILD: %r' % (model.name,), newline=False):
+                model.root_node = _atn.build_internal_structure(model)
+                #print('-----')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
             children = model.root_node.get_children()
@@ -434,7 +441,7 @@ class APIItemModel(API_MODEL_BASE):
         if qtindex.isValid():
             node = qtindex.internalPointer()
             if utool.USE_ASSERT:
-                assert isinstance(node, TreeNode), type(node)
+                assert isinstance(node, _atn.TreeNode), type(node)
             return node.get_id()
 
     @default_method_decorator
@@ -443,7 +450,7 @@ class APIItemModel(API_MODEL_BASE):
             node = qtindex.internalPointer()
             try:
                 if utool.USE_ASSERT:
-                    assert isinstance(node, TreeNode), type(node)
+                    assert isinstance(node, _atn.TreeNode), type(node)
             except AssertionError as ex:
                 utool.printex(ex)
                 print(node.func_name)
@@ -540,13 +547,13 @@ class APIItemModel(API_MODEL_BASE):
         if qindex.isValid():
             node = qindex.internalPointer()
             #<HACK>
-            if not isinstance(node, TreeNode):
+            if not isinstance(node, _atn.TreeNode):
                 print("WARNING: tried to access parent of %r type object" % type(node))
                 return QtCore.QModelIndex()
             #assert node.__dict__, "node.__dict__=%r" % node.__dict__
             #</HACK>
             parent_node = node.get_parent()
-            if parent_node.get_id() is None:
+            if parent_node.get_id() == -1 or parent_node.get_id() is None:
                 return QtCore.QModelIndex()
             row = parent_node.get_row()
             col = model.col_level_list.index(parent_node.get_level())
@@ -579,8 +586,8 @@ class APIItemModel(API_MODEL_BASE):
             parent_node = parent.internalPointer()
             node = parent_node[row]
             if utool.USE_ASSERT:
-                assert isinstance(parent_node, TreeNode), type(parent_node)
-                assert isinstance(node, TreeNode), type(node)
+                assert isinstance(parent_node, _atn.TreeNode), type(parent_node)
+                assert isinstance(node, _atn.TreeNode), type(node)
             return model.createIndex(row, column, object=node)
 
     @default_method_decorator

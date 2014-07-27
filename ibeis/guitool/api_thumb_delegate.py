@@ -86,7 +86,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         if not exists(thumb_path):
             if not exists(img_path):
                 #if VERBOSE:
-                print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
+                #print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
                 return None
             # Start computation of thumb if needed
             #qtindex.model()._update()  # should probably be deleted

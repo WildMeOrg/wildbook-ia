@@ -51,11 +51,26 @@ class TreeNode(object):
     def get_level(self):
         return self.level
 
-    def full_str(self, indent=''):
-        self_str = indent + 'TreeNode(id_=%r, parent_node=%r, level=%r)' % (self.id_, id(self.parent_node), self.level)
-        child_strs = [child.full_str(indent=indent + '    ') for child in self.child_nodes]
-        str_ = '\n'.join([self_str] + child_strs)
-        return str_
+
+def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
+    id_ = self.get_id()
+    level = self.get_level()
+    id_self = id(self)
+    id_parent = id(self.get_parent())
+    if charids:
+        if id_parent not in id_dict:
+            id_dict[id_parent] = last[0]
+            last[0] = chr(ord(last[0]) + 1)
+        if id_self not in id_dict:
+            id_dict[id_self] = last[0]
+            last[0] = chr(ord(last[0]) + 1)
+        id_self = id_dict[id_self]
+        id_parent = id_dict[id_parent]
+    tup = (id_, level, str(id_self), str(id_parent))
+    self_str = (indent + "TreeNode(id_=%r, level=%r, self=%s, parent_node=%s)" % tup)
+    child_strs = [tree_node_string(child, indent=indent + '    ') for child in self.get_children()]
+    str_ = '\n'.join([self_str] + child_strs)
+    return str_
 
 
 @profile
@@ -117,20 +132,21 @@ def build_internal_structure(model):
             root_id_list = []
         else:
             root_id_list = ider_list[0]()
-        root_node = TreeNode(None, None, -1)
+        root_node = TreeNode(-1, None, -1)
         level = 0
         _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
     else:
         # TODO: Vet this code a bit more.
-        root_node = TreeNode(None, None, -1)
+        root_node = TreeNode(-1, None, -1)
         _populate_tree_iterative(root_node, num_levels, ider_list)
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
 
 
-try:
-    from api_tree_node_cython import *  # NOQA
-    print('[guitool] Using Cython TreeNode')
-except ImportError:
-    print('[guitool] Using Python TreeNode')
+#try:
+#    #from . import api_tree_node_cython  # NOQA
+#    #TreeNode = api_tree_node_cython.TreeNode  # NOQA
+#    print('[guitool] Using Cython TreeNode')
+#except ImportError:
+#    print('[guitool] Using Python TreeNode')
