@@ -175,6 +175,10 @@ if utool.get_flag('--push'):
     utool.gg_command('git push')
 
 
+if utool.get_flag('--bext'):
+    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
+
+
 if utool.get_flag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
 
