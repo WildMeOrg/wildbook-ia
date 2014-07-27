@@ -19,7 +19,9 @@ API_MODEL_BASE = QtCore.QAbstractItemModel
 VERBOSE = utool.VERBOSE
 
 try:
-    #from . import api_tree_node_cython as _atn
+    if not utool.get_flag('--nocython'):
+        from . import api_tree_node_cython as _atn
+        _atn.CYTHONIZED = True
     if '_atn' not in globals():
         raise ImportError('')
     print('[guitool] cython ON')
@@ -186,11 +188,11 @@ class APIItemModel(API_MODEL_BASE):
 
         model._set_col_level(col_level_list)
         # calls model._update_rows()
-        model._set_sort(col_sort_index, col_sort_reverse)
+        model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
     @profile
     @updater
-    def _update_rows(model):
+    def _update_rows(model, rebuild_structure=True):
         # this is not slow
         #with utool.Timer('update_rows'):
         """
@@ -204,8 +206,11 @@ class APIItemModel(API_MODEL_BASE):
         #print('[api_model] UPDATE ROWS: %r' % (model.name,))
         #print(utool.get_caller_name(range(4, 12)))
         if len(model.col_level_list) > 0:
-            with utool.Timer('BUILD: %r' % (model.name,), newline=False):
-                model.root_node = _atn.build_internal_structure(model)
+            if rebuild_structure:
+                with utool.Timer('%s BUILD: %r' %
+                                 ('cython' if _atn.CYTHONIZED else 'python',
+                                  model.name,), newline=False):
+                    model.root_node = _atn.build_internal_structure(model)
                 #print('-----')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
@@ -327,7 +332,7 @@ class APIItemModel(API_MODEL_BASE):
         model.col_level_list = col_level_list
 
     @updater
-    def _set_sort(model, col_sort_index, col_sort_reverse=False):
+    def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
         #with utool.Timer('set_sort'):
         #printDBG('SET SORT')
         if len(model.col_name_list) > 0:
@@ -337,7 +342,7 @@ class APIItemModel(API_MODEL_BASE):
             model.col_sort_index = col_sort_index
             model.col_sort_reverse = col_sort_reverse
             # Update the row-id order
-            model._update_rows()
+            model._update_rows(rebuild_structure=rebuild_structure)
 
     #------------------------------------
     # --- Data maintainence functions ---

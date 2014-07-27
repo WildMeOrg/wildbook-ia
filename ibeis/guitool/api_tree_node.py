@@ -5,6 +5,9 @@ from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
 
 
+CYTHONIZED = False
+
+
 class TreeNode(object):
     # USE THIS IN CONTROLLER
     # Available in Python-space:

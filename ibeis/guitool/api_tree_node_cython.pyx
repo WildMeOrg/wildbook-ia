@@ -3,6 +3,9 @@ cimport cython
 import cython
 
 
+CYTHONIZED = True
+
+
 cdef class TreeNode:
     cdef long id_
     cdef long level
