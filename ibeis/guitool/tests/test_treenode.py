@@ -12,7 +12,7 @@ from guitool import api_tree_node
 def test_build_internal_structure():
     if 'api_tree_node_cython' in globals():
         print('test cython ON')
-        #_test_build_internal_structure(api_tree_node_cython, 'cython')
+        _test_build_internal_structure(api_tree_node_cython, 'cython')
     else:
         print('test cython OFF')
 
@@ -23,8 +23,8 @@ def test_build_internal_structure():
 def _test_build_internal_structure(_module, lang):
     import utool
     # Test data
-    N = 3
-    #N = 1000
+    N = 6
+    #N = 2000
 
     def ider_level0():
         return range(N)
@@ -53,17 +53,17 @@ def _test_build_internal_structure(_module, lang):
             root_node1, root_id_list, num_levels, ider_list, level)
     if N < 10:
         print('')
-        print(api_tree_node.tree_node_string(root_node1, indent=' *  '))
+        print(api_tree_node.tree_node_string(root_node1, indent=' *  ', id_dict={}, last=['A']))
     print('================')
-    with utool.Timer(lang + ' iterative:'):
-        # TEST ITERATIVE
-        # TODO: Vet this code a bit more.
-        root_node2 = _module.TreeNode(-1, None, -1)
-        _module._populate_tree_iterative(
-            root_node2, num_levels, ider_list)
-    if N < 10:
-        print('')
-        print(api_tree_node.tree_node_string(root_node2, indent=' *  '))
+    #with utool.Timer(lang + ' iterative:'):
+    #    # TEST ITERATIVE
+    #    # TODO: Vet this code a bit more.
+    #    root_node2 = _module.TreeNode(-1, None, -1)
+    #    _module._populate_tree_iterative(
+    #        root_node2, num_levels, ider_list)
+    #if N < 10:
+    #    print('')
+    #    print(api_tree_node.tree_node_string(root_node2, indent=' *  '))
     print('================')
     print('finished %s test' % lang)
 

@@ -71,7 +71,7 @@ def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
         id_parent = id_dict[id_parent]
     tup = (id_, level, str(id_self), str(id_parent))
     self_str = (indent + "TreeNode(id_=%r, level=%r, self=%s, parent_node=%s)" % tup)
-    child_strs = [tree_node_string(child, indent=indent + '    ') for child in self.get_children()]
+    child_strs = [tree_node_string(child, indent=indent + '    ', charids=charids, id_dict=id_dict, last=last) for child in self.get_children()]
     str_ = '\n'.join([self_str] + child_strs)
     return str_
 

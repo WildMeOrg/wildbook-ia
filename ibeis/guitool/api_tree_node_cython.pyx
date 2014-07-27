@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 cimport cython
 import cython
+from itertools import izip
 #from libc.stdlib cimport malloc, free  # TODO: convert lists to arrays
 
 
@@ -14,78 +15,90 @@ cdef class TreeNode:
     cdef list child_nodes
     cdef TreeNode parent_node
 
-    def __init__(self, long id_, TreeNode parent_node, long level):
+    def __init__(TreeNode self, long id_, TreeNode parent_node, long level):
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
         self.level = level
 
-    cpdef set_children(self, list child_nodes):
+    cpdef set_children(TreeNode self, list child_nodes):
         self.child_nodes = child_nodes
 
-    cpdef list get_children(self):
+    cpdef list get_children(TreeNode self):
         return self.child_nodes
 
-    def __getitem__(self, long index):
+    def __getitem__(TreeNode self, const long index):
         return self.child_nodes[index]
 
-    cpdef get_parent(self):
+    cpdef get_parent(TreeNode self):
         return self.parent_node
 
-    cpdef long get_num_children(self):
+    cpdef long get_num_children(TreeNode self):
         return len(self.child_nodes)
 
-    cpdef long get_id(self):
+    cpdef long get_id(TreeNode self):
         return self.id_
 
-    cpdef long get_row(self):
+    cpdef long get_row(TreeNode self):
         cdef list sibling_nodes = self.parent_node.child_nodes
         cdef long row = sibling_nodes.index(self)
         return row
 
-    cpdef long get_level(self):
+    cpdef long get_level(TreeNode self):
         return self.level
 
 
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef TreeNode _populate_tree_recursive(TreeNode parent_node,
                              list child_ids,
                              long num_levels,
                              list ider_list,
                              long level):
     """ Recursively builds the tree structure """
+    cdef:
+        size_t ix
+        long id_
+        list child_nodes
+        TreeNode next_node
+        list next_ids
     if level == num_levels - 1:
         #def TreeNode* child_nodes = malloc(sizeof(TreeNode) * len(child_ids))
-        #for ix, id_ in enumerate(child_ids):
-        #  child_nodes[ix] = TreeNode(id_, parent_node, level)
-        child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
+        child_nodes = [None] * len(child_ids)
+        for ix in range(len(child_ids)):
+            id_ = child_ids[ix]
+            child_nodes[ix] = TreeNode(id_, parent_node, level)
+        #child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
     else:
-        child_ider = ider_list[level + 1]
-        child_nodes =  [_populate_tree_recursive(
-            TreeNode(id_, parent_node, level),
-            child_ider(id_),
-            num_levels,
-            ider_list,
-            level + 1)
-            for id_ in child_ids]
+        child_nodes = [None] * len(child_ids)
+        for ix in range(len(child_ids)):
+            id_ = child_ids[ix]
+            next_ids = ider_list[level + 1](id_)
+            next_node = TreeNode(id_, parent_node, level)
+            child_nodes[ix] = _populate_tree_recursive(next_node, next_ids, num_levels, ider_list, level + 1)
+        #child_nodes =  [ for id_ in child_ids]
     parent_node.child_nodes = child_nodes
     return parent_node
 
 
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet """
-    cdef TreeNode parent_node
-    cdef size_t level
-    cdef size_t id_
-    cdef list root_ids
-    cdef list parent_node_list
-    cdef list ids_list
-    cdef list next_ids
-    cdef list new_node_lists 
-    cdef list new_ids_lists  
+    cdef: 
+        TreeNode parent_node
+        size_t level
+        size_t ix
+        size_t sx
+        long id_
+        list root_ids
+        list parent_node_list
+        list ids_list
+        list id_list
+        list next_ids
+        list node_list
+        list new_node_lists 
+        list new_ids_lists  
 
     root_ids = ider_list[0]()
     ids_list = [root_ids]
@@ -95,14 +108,16 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
         #print(utool.dict_str(locals()))
         new_node_lists = []
         new_ids_lists  = []
-        for parent_node, id_list in zip(parent_node_list, ids_list):
-            #pass
-            #assert isinstance(parent_node, TreeNode), '%r\n%s' % (parent_node,
-            #                                                      utool.dict_str(locals()))
-            node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
+        #for parent_node, id_list in izip(parent_node_list, ids_list):
+        for sx in range(len(ids_list)):
+            parent_node = parent_node_list[sx]
+            id_list = ids_list[sx] 
+            node_list = [None] * len(id_list)
+            #node_list =  [TreeNode(id_, parent_node, level) for id_ in id_list]
+            for ix, id_ in enumerate(id_list):
+                node_list[ix] = TreeNode(id_, parent_node, level) 
             if level + 1 < num_levels:
-                child_ider = ider_list[level + 1]
-                next_ids =  child_ider(id_list)
+                next_ids =  ider_list[level + 1](id_list)
                 #[child_ider(id_) for id_ in child_ids]
             else:
                 next_ids = []
@@ -113,9 +128,9 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
         ids_list = new_ids_lists
 
 
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
-def build_internal_structure(model):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef TreeNode build_internal_structure(object model):
     #from guitool.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)

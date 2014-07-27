@@ -19,8 +19,8 @@ API_MODEL_BASE = QtCore.QAbstractItemModel
 VERBOSE = utool.VERBOSE
 
 try:
-    if not utool.get_flag('--nocython'):
-        #from . import api_tree_node_cython as _atn
+    if utool.get_flag('--cython'):
+        from . import api_tree_node_cython as _atn
         pass
     if '_atn' not in globals():
         raise ImportError('')
