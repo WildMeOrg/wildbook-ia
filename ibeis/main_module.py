@@ -145,7 +145,7 @@ def _init_numpy():
     }
     numpy_print = {
         'precision': 8,
-        'threshold': 1000,
+        'threshold': 500,
         'edgeitems': 3,
         'linewidth': 200,  # default 75
         'suppress': False,

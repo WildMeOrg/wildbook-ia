@@ -5,7 +5,7 @@ import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath, isabs, commonprefix, basename)
-from itertools import izip, chain, imap, cycle
+from itertools import izip, chain, imap, cycle, izip_longest
 from itertools import product as iprod
 import argparse
 import atexit
@@ -138,7 +138,8 @@ from ibeis.model.preproc import preproc_detectimg
 from ibeis.model.hots import matching_functions as mf
 from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips3 as nn_filters
-from ibeis.model.hots import NNIndex
+from ibeis.model.hots import hots_nn_index
+from ibeis.model.hots.hots_nn_index import NNIndex, NNSplitIndex
 from ibeis.model.hots import QueryResult
 from ibeis.model.hots import QueryRequest
 from ibeis.model.hots import voting_rules2 as vr2

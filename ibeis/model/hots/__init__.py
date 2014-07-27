@@ -1,6 +1,6 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
-from . import NNIndex
+from . import hots_nn_index
 from . import QueryRequest
 from . import QueryResult
 #from . import coverage_image
@@ -17,7 +17,7 @@ print, print_, printDBG, rrr, profile = utool.inject(
 def reload_subs():
     """ Reloads hots and submodules """
     rrr()
-    getattr(NNIndex, 'rrr', lambda: None)()
+    getattr(hots_nn_index, 'rrr', lambda: None)()
     getattr(QueryRequest, 'rrr', lambda: None)()
     getattr(QueryResult, 'rrr', lambda: None)()
     #getattr(coverage_image, 'rrr', lambda: None)()

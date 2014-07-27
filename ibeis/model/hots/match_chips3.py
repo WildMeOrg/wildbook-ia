@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import sys
 from ibeis.model.hots import QueryRequest
-from ibeis.model.hots import NNIndex
+from ibeis.model.hots import hots_nn_index
 from ibeis.model.hots import matching_functions as mf
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[mc3]', DEBUG=False)
@@ -71,7 +71,7 @@ def pre_exec_checks(ibs, qreq):
         # Get qreq config information
         daids = qreq.get_internal_daids()
         # Compute the FLANN Index
-        data_index = NNIndex.NNIndex(ibs, daids)
+        data_index = hots_nn_index.NNIndex(ibs, daids)
         qreq.dftup2_index[dftup_hashid] = data_index
     qreq.data_index = qreq.dftup2_index[dftup_hashid]
     return qreq

@@ -26,7 +26,6 @@ def TEST_QUERY_COMP(ibs):
     #query_helpers.find_matchable_chips(ibs)
 
     aids = ibs.get_recognition_database_aids()
-    #nn_index = NNIndex.NNIndex(ibs, aid_list)
     index = 0
     index = utool.get_arg('--index', type_=int, default=index)
     qaid_list = utool.safe_slice(aids, index, index + 1)

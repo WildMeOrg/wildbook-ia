@@ -101,7 +101,7 @@ def nearest_neighbors(ibs, qaids, qreq):
         print('[mf] Step 1) Assign nearest neighbors: ' + cfgstr_)
     # Grab descriptors
     qdesc_list = ibs.get_annot_desc(qaids)
-    # NNIndex
+    # Approximate Nearest Neighbor
     flann = qreq.data_index.flann
     # Output
     qaid2_nns = {}
