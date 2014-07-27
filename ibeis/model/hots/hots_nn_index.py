@@ -39,16 +39,16 @@ def aggregate_descriptors(ibs, aid_list):
     # generate featx inverted index for each feature in each annotation
     _ax2_fx  = (xrange(nFeat) for nFeat in nFeat_iter)
     # Flatten generators into the inverted index
-    ax2_aid = np.array(list(chain.from_iterable(_ax2_aid)))
-    ax2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
+    dx2_aid = np.array(list(chain.from_iterable(_ax2_aid)))
+    dx2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
     try:
         # Stack descriptors into numpy array corresponding to inverted inexed
-        ax2_desc = np.vstack(desc_list)
-        print('[agg_desc] stacked %d descriptors from %d annotations' % (len(ax2_desc), len(aid_list)))
+        dx2_desc = np.vstack(desc_list)
+        print('[agg_desc] stacked %d descriptors from %d annotations' % (len(dx2_desc), len(aid_list)))
     except MemoryError as ex:
         utool.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
-    return ax2_desc, ax2_aid, ax2_fx
+    return dx2_desc, dx2_aid, dx2_fx
 
 
 #@utool.indent_func('[build_invx]')
@@ -61,7 +61,7 @@ def build_flann_inverted_index(ibs, aid_list):
             msg = ('len(aid_list) == 0\n'
                     'Cannot build inverted index without features!')
             raise AssertionError(msg)
-        ax2_desc, ax2_aid, ax2_fx = aggregate_descriptors(ibs, aid_list)
+        dx2_desc, dx2_aid, dx2_fx = aggregate_descriptors(ibs, aid_list)
     except Exception as ex:
         intostr = ibs.get_infostr()  # NOQA
         dbname = ibs.get_dbname()  # NOQA
@@ -77,19 +77,19 @@ def build_flann_inverted_index(ibs, aid_list):
                       'cfgstr': flann_cfgstr,
                       'flann_params': flann_params,
                       'force_recompute': NOCACHE_FLANN}
-    flann = nntool.flann_cache(ax2_desc, **precomp_kwargs)
-    return ax2_desc, ax2_aid, ax2_fx, flann
+    flann = nntool.flann_cache(dx2_desc, **precomp_kwargs)
+    return dx2_desc, dx2_aid, dx2_fx, flann
 
 
 class NNIndex(object):
     """ Nearest Neighbor (FLANN) Index Class """
     def __init__(nn_index, ibs, daid_list):
         print('[nnindex] building NNIndex object')
-        ax2_desc, ax2_aid, ax2_fx, flann = build_flann_inverted_index(ibs, daid_list)
+        dx2_desc, dx2_aid, dx2_fx, flann = build_flann_inverted_index(ibs, daid_list)
         # Agg Data
-        nn_index.ax2_aid  = ax2_aid
-        nn_index.ax2_fx   = ax2_fx
-        nn_index.ax2_data = ax2_desc
+        nn_index.dx2_aid  = dx2_aid
+        nn_index.dx2_fx   = dx2_fx
+        nn_index.dx2_data = dx2_desc
         # Grab the keypoints names and image ids before query time
         #nn_index.rx2_kpts = ibs.get_annot_kpts(daid_list)
         #nn_index.rx2_gid  = ibs.get_annot_gids(daid_list)
@@ -117,8 +117,8 @@ class NNIndex(object):
         checks  = qreq.cfg.nn_cfg.checks
 
         (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm, checks=checks)
-        qfx2_aid = nn_index.ax2_aid[qfx2_dx]
-        qfx2_fx  = nn_index.ax2_fx[qfx2_dx]
+        qfx2_aid = nn_index.dx2_aid[qfx2_dx]
+        qfx2_fx  = nn_index.dx2_fx[qfx2_dx]
         return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
 
 
@@ -170,8 +170,10 @@ class NNSplitIndex(object):
 
 @utool.classmember(NNSplitIndex)
 def nn_index(split_index, qfx2_desc, num_neighbors):
-    qfx2_dx_list = []
+    qfx2_dx_list   = []
     qfx2_dist_list = []
+    qfx2_aid_list  = []
+    qfx2_fx_list   = []
     qfx2_rankx_list = []  # ranks index
     qfx2_treex_list = []  # tree index
     for tx, nn_index in enumerate(split_index.forest_indexes):
@@ -180,28 +182,35 @@ def nn_index(split_index, qfx2_desc, num_neighbors):
         (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, num_neighbors, checks=1024)
         qfx2_dx_list.append(qfx2_dx)
         qfx2_dist_list.append(qfx2_dist)
-        qfx2_aid = nn_index.ax2_aid[qfx2_dx]
-        qfx2_fx = nn_index.ax2_fx[qfx2_dx]
+        qfx2_fx = nn_index.dx2_fx[qfx2_dx]
+        qfx2_aid = nn_index.dx2_aid[qfx2_dx]
+        qfx2_fx_list.append(qfx2_fx)
+        qfx2_aid_list.append(qfx2_aid)
         qfx2_rankx_list.append(np.array([[rankx for rankx in xrange(qfx2_dx.shape[1])]] * len(qfx2_dx)))
         qfx2_treex_list.append(np.array([[tx for rankx in xrange(qfx2_dx.shape[1])]] * len(qfx2_dx)))
     # Combine results from each tree
-    (qfx2_dist_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,) = \
+    (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,) = \
             join_split_nn(qfx2_dist_list, qfx2_dist_list, qfx2_rankx_list, qfx2_treex_list)
 
 
-def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_rankx_list, qfx2_treex_list):
+def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx2_rankx_list, qfx2_treex_list):
     qfx2_dx    = np.hstack(qfx2_dx_list)
     qfx2_dist  = np.hstack(qfx2_dist_list)
     qfx2_rankx = np.hstack(qfx2_rankx_list)
     qfx2_treex = np.hstack(qfx2_treex_list)
+    qfx2_aid   = np.hstack(qfx2_aid_list)
+    qfx2_fx    = np.hstack(qfx2_fx_list)
+
     # Sort over all tree result distances
     qfx2_sortx = qfx2_dist.argsort(axis=1)
     # Apply sorting to concatenated results
     qfx2_dist_  = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_dist)]
-    qfx2_dx_    = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_dx)]
+    qfx2_aid_   = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_dx)]
+    qfx2_fx_    = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_aid)]
+    qfx2_dx_    = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_fx)]
     qfx2_rankx_ = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_rankx)]
     qfx2_treex_ = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_treex)]
-    return (qfx2_dist_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,)
+    return (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,)
 
 
 @utool.classmember(NNSplitIndex)

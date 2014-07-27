@@ -61,8 +61,8 @@ def _nn_normalized_weight(normweight_fn, ibs, qaid2_nns, qreq):
     qaid2_weight = {qaid: None for qaid in qaid2_nns.iterkeys()}
     qaid2_selnorms = {qaid: None for qaid in qaid2_nns.iterkeys()}
     # Database feature index to chip index
-    dx2_aid = qreq.data_index.ax2_aid
-    dx2_fx = qreq.data_index.ax2_fx
+    dx2_aid = qreq.data_index.dx2_aid
+    dx2_fx = qreq.data_index.dx2_fx
     for qaid in qaid2_nns.iterkeys():
         (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_nndist = qfx2_dist[:, 0:K]
@@ -135,7 +135,7 @@ def nn_recip_weight(ibs, qaid2_nns, qreq):
     K = qreq.cfg.nn_cfg.K
     Krecip = qreq.cfg.filt_cfg.Krecip
     checks = qreq.cfg.nn_cfg.checks
-    dx2_data = data_index.ax2_data
+    dx2_data = data_index.dx2_data
     data_flann = data_index.flann
     qaid2_recip_weight = {qaid: None for qaid in qaid2_nns.iterkeys()}
     qaid2_metaweight = {qaid: None for qaid in qaid2_nns.iterkeys()}
@@ -162,8 +162,8 @@ def nn_bboxdist_weight(ibs, qaid2_nns, qreq):
     'Filters a matches to those within roughly the same spatial arangement'
     data_index = qreq.data_index
     K = qreq.cfg.nn_cfg.K
-    dx2_aid = data_index.ax2_aid
-    dx2_fx = data_index.ax2_fx
+    dx2_aid = data_index.dx2_aid
+    dx2_fx = data_index.dx2_fx
     aid2_bboxdist_weight = {}
     for qaid in qaid2_nns.iterkeys():
         (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
@@ -201,8 +201,8 @@ def nn_scale_weight(ibs, qaid2_nns, qreq):
     qaid2_metaweight = {qaid: None for qaid in qaid2_nns.iterkeys()}
     data_index = qreq.data_index
     K = qreq.cfg.nn_cfg.K
-    dx2_aid = data_index.ax2_aid
-    dx2_fx = data_index.ax2_fx
+    dx2_aid = data_index.dx2_aid
+    dx2_fx = data_index.dx2_fx
     for qaid in qaid2_nns.iterkeys():
         (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_kpts = ibs.get_annot_kpts(qaid)

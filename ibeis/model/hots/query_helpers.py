@@ -44,9 +44,9 @@ def get_query_components(ibs, qaids):
     # Testing components
     #####################
     with utool.Indenter('[components]'):
-        qfx2_ax, qfx2_dist = qaid2_nns[qaid]
-        qfx2_aid = qreq.data_index.ax2_aid[qfx2_ax]
-        qfx2_fx  = qreq.data_index.ax2_fx[qfx2_ax]
+        qfx2_dx, qfx2_dist = qaid2_nns[qaid]
+        qfx2_aid = qreq.data_index.dx2_aid[qfx2_dx]
+        qfx2_fx  = qreq.data_index.dx2_fx[qfx2_dx]
         qfx2_gid = ibs.get_annot_gids(qfx2_aid)
         qfx2_nid = ibs.get_annot_nids(qfx2_aid)
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
@@ -76,28 +76,28 @@ def data_index_integrity(ibs, qreq):
 
     assert all([np.all(desc1 == desc2) for desc1, desc2 in izip(desc_list, desc_list2)])
 
-    ax2_data = qreq.data_index.ax2_data
-    check_sift_desc(ax2_data)
-    ax2_aid  = qreq.data_index.ax2_aid
-    ax2_fx   = qreq.data_index.ax2_fx
+    dx2_data = qreq.data_index.dx2_data
+    check_sift_desc(dx2_data)
+    dx2_aid  = qreq.data_index.dx2_aid
+    dx2_fx   = qreq.data_index.dx2_fx
 
     # For each descriptor create a (aid, fx) pair indicating its
     # chip id and the feature index in that chip id.
     nFeat_list = map(len, desc_list)
-    _ax2_aid = [[aid] * nFeat for (aid, nFeat) in izip(aid_list, nFeat_list)]
-    _ax2_fx = [range(nFeat) for nFeat in nFeat_list]
+    _dx2_aid = [[aid] * nFeat for (aid, nFeat) in izip(aid_list, nFeat_list)]
+    _dx2_fx = [range(nFeat) for nFeat in nFeat_list]
 
-    assert len(_ax2_fx) == len(aid_list)
-    assert len(_ax2_aid) == len(aid_list)
+    assert len(_dx2_fx) == len(aid_list)
+    assert len(_dx2_aid) == len(aid_list)
     print('... loop checks')
 
     for count in xrange(len(aid_list)):
         aid = aid_list[count]
-        assert np.all(np.array(_ax2_aid[count]) == aid)
-        assert len(_ax2_fx[count]) == desc_list[count].shape[0]
-        ax_list = np.where(ax2_aid == aid)[0]
-        np.all(ax2_data[ax_list] == desc_list[count])
-        np.all(ax2_fx[ax_list] == np.arange(len(ax_list)))
+        assert np.all(np.array(_dx2_aid[count]) == aid)
+        assert len(_dx2_fx[count]) == desc_list[count].shape[0]
+        dx_list = np.where(dx2_aid == aid)[0]
+        np.all(dx2_data[dx_list] == desc_list[count])
+        np.all(dx2_fx[dx_list] == np.arange(len(dx_list)))
     print('... seems ok')
 
 

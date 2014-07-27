@@ -47,9 +47,9 @@ def get_fmatch_iter(res):
 
 
 def get_cxfx_enum(qreq):
-    ax2_cxs = qreq._data_index.ax2_cx
-    ax2_fxs = qreq._data_index.ax2_fx
-    aidfx_enum = enumerate(izip(ax2_cxs, ax2_fxs))
+    dx2_cxs = qreq._data_index.dx2_cx
+    dx2_fxs = qreq._data_index.dx2_fx
+    aidfx_enum = enumerate(izip(dx2_cxs, dx2_fxs))
     return aidfx_enum
 
 

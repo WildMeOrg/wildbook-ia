@@ -103,8 +103,8 @@ def _PL_score(gamma):
     #print('[vote] computing probabilities')
     nAlts = len(gamma)
     altx2_prob = np.zeros(nAlts)
-    for ax in xrange(nAlts):
-        altx2_prob[ax] = gamma[ax] / np.sum(gamma)
+    for altx in xrange(nAlts):
+        altx2_prob[altx] = gamma[altx] / np.sum(gamma)
     #print('[vote] altx2_prob: '+str(altx2_prob))
     #print('[vote] sum(prob): '+str(sum(altx2_prob)))
     return altx2_prob

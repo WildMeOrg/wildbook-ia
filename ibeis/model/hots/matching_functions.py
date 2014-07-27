@@ -35,11 +35,11 @@ qaid2_XXX - prefix mapping query chip index to
 qfx2_XXX  - prefix mapping query chip feature index to
 
 TUPLES:
- * nns    - a (qfx2_ax, qfx2_dist) tuple
+ * nns    - a (qfx2_dx, qfx2_dist) tuple
  * nnfilt - a (qfx2_fs, qfx2_valid) tuple
 
 SCALARS
- * ax     - the index into the database of features
+ * dx     - the index into the database of features
  * dist   - the distance to a corresponding feature
  * fs     - a score of a corresponding feature
  * valid  - a valid bit for a corresponding feature
@@ -47,7 +47,7 @@ SCALARS
 REALIZATIONS:
 qaid2_nns - maping from query chip index to nns
 {
- * qfx2_ax   - ranked list of query feature indexes to database feature indexes
+ * qfx2_dx   - ranked list of query feature indexes to database feature indexes
  * qfx2_dist - ranked list of query feature indexes to database feature indexes
 }
 
@@ -114,21 +114,21 @@ def nearest_neighbors(ibs, qaids, qreq):
         if len(qfx2_desc) == 0:
             if True or not utool.STRICT:
                 # Assign empty nearest neighbors
-                empty_qfx2_ax   = np.empty((0, K + Knorm), dtype=np.int)
+                empty_qfx2_dx   = np.empty((0, K + Knorm), dtype=np.int)
                 empty_qfx2_dist = np.empty((0, K + Knorm), dtype=np.float)
-                qaid2_nns[qaid] = (empty_qfx2_ax, empty_qfx2_dist)
+                qaid2_nns[qaid] = (empty_qfx2_dx, empty_qfx2_dist)
                 continue
             else:
                 # Raise error if strict
                 raise NoDescriptorsException(ibs, qaid)
 
         # Find Neareset Neighbors
-        (qfx2_ax, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm,
+        (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm,
                                               checks=checks)
         # Store nearest neighbors
-        qaid2_nns[qaid] = (qfx2_ax, qfx2_dist)
+        qaid2_nns[qaid] = (qfx2_dx, qfx2_dist)
         # record number of query and result desc
-        nNN += qfx2_ax.size
+        nNN += qfx2_dx.size
         nDesc += len(qfx2_desc)
     end_prog()
     if not QUIET:
@@ -171,9 +171,9 @@ def _weight_neighbors(ibs, qaid2_nns, qreq):
 
 
 @profile
-def _apply_filter_scores(qaid, qfx2_nnax, filt2_weights, filt_cfg):
-    qfx2_score = np.ones(qfx2_nnax.shape, dtype=QueryResult.FS_DTYPE)
-    qfx2_valid = np.ones(qfx2_nnax.shape, dtype=np.bool)
+def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
+    qfx2_score = np.ones(qfx2_nndx.shape, dtype=QueryResult.FS_DTYPE)
+    qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, aid2_weights in filt2_weights.iteritems():
         qfx2_weights = aid2_weights[qaid]
@@ -201,26 +201,26 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         print('[mf] Step 3) Filter neighbors: ')
     if filt_cfg.gravity_weighting:
         # We dont have an easy way to access keypoints from nearest neighbors yet
-        aid_list = np.unique(qreq.data_index.ax2_aid)  # FIXME: Highly inefficient
+        aid_list = np.unique(qreq.data_index.dx2_aid)  # FIXME: Highly inefficient
         kpts_list = ibs.get_annot_kpts(aid_list)
-        ax2_kpts = np.vstack(kpts_list)
-        ax2_oris = ktool.get_oris(ax2_kpts)
-        assert len(ax2_oris) == len(qreq.data_index.ax2_data)
+        dx2_kpts = np.vstack(kpts_list)
+        dx2_oris = ktool.get_oris(dx2_kpts)
+        assert len(dx2_oris) == len(qreq.data_index.dx2_data)
     # Filter matches based on config and weights
     mark_prog, end_prog = progress_func(len(qaid2_nns), lbl='Filter NN: ')
     for count, qaid in enumerate(qaid2_nns.iterkeys()):
         mark_prog(count)
-        (qfx2_ax, _) = qaid2_nns[qaid]
-        qfx2_nnax = qfx2_ax[:, 0:K]
+        (qfx2_dx, _) = qaid2_nns[qaid]
+        qfx2_nndx = qfx2_dx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
         qfx2_score, qfx2_valid = _apply_filter_scores(
-            qaid, qfx2_nnax, filt2_weights, filt_cfg)
-        qfx2_aid = qreq.data_index.ax2_aid[qfx2_nnax]
+            qaid, qfx2_nndx, filt2_weights, filt_cfg)
+        qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
         if VERBOSE:
             print('[mf] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
         if filt_cfg.gravity_weighting:
-            qfx2_nnori = ax2_oris[qfx2_nnax]
+            qfx2_nnori = dx2_oris[qfx2_nndx]
             qfx2_kpts  = ibs.get_annot_kpts(qaid)  # FIXME: Highly inefficient
             qfx2_oris  = ktool.get_oris(qfx2_kpts)
             # Get the orientation distance
@@ -280,12 +280,12 @@ def identity_filter(qaid2_nns, qreq):
     qaid2_nnfilt = {}
     K = qreq.cfg.nn_cfg.K
     for count, qaid in enumerate(qaid2_nns.iterkeys()):
-        (qfx2_ax, _) = qaid2_nns[qaid]
-        qfx2_nnax = qfx2_ax[:, 0:K]
-        qfx2_score = np.ones(qfx2_nnax.shape, dtype=QueryResult.FS_DTYPE)
-        qfx2_valid = np.ones(qfx2_nnax.shape, dtype=np.bool)
+        (qfx2_dx, _) = qaid2_nns[qaid]
+        qfx2_nndx = qfx2_dx[:, 0:K]
+        qfx2_score = np.ones(qfx2_nndx.shape, dtype=QueryResult.FS_DTYPE)
+        qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
         # Check that you are not matching yourself
-        qfx2_aid = qreq.data_index.ax2_aid[qfx2_nnax]
+        qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
         qfx2_notsamechip = qfx2_aid != qaid
         qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
@@ -355,13 +355,13 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
     mark_prog, end_prog = progress_func(len(qaid2_nns), 'Build Chipmatch: ')
     for count, qaid in enumerate(qaid2_nns.iterkeys()):
         mark_prog(count)
-        (qfx2_ax, _) = qaid2_nns[qaid]
+        (qfx2_dx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
-        nQKpts = len(qfx2_ax)
+        nQKpts = len(qfx2_dx)
         # Build feature matches
-        qfx2_nnax = qfx2_ax[:, 0:K]
-        qfx2_aid  = qreq.data_index.ax2_aid[qfx2_nnax]
-        qfx2_fx   = qreq.data_index.ax2_fx[qfx2_nnax]
+        qfx2_nndx = qfx2_dx[:, 0:K]
+        qfx2_aid  = qreq.data_index.dx2_aid[qfx2_nndx]
+        qfx2_fx   = qreq.data_index.dx2_fx[qfx2_nndx]
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator

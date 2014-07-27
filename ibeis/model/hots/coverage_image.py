@@ -16,26 +16,26 @@ SCALE_FACTOR_DEFAULT = .05
 METHOD_DEFAULT = 0
 
 
-def score_chipmatch_coverage(ibs, qcx, chipmatch, qreq, method=0):
+def score_chipmatch_coverage(ibs, qaid, chipmatch, qreq, method=0):
     # THIS IS TERRIBLE AWFUL LOCAL IMPORT
     from ibeis.model.hots import matching_functions as mf
     prescore_method = 'csum'
     nShortlist = 100
-    dcxs_ = set(qreq._dcxs)
+    daids_ = set(qreq._daids)
     (aid2_fm, aid2_fs, aid2_fk) = chipmatch
-    aid2_prescore = mf.score_chipmatch(ibs, qcx, chipmatch, prescore_method, qreq)
-    topx2_cx = aid2_prescore.argsort()[::-1]  # Only allow indexed aids to be in the top results
-    topx2_cx = [aid for aid in iter(topx2_cx) if aid in dcxs_]
-    nRerank = min(len(topx2_cx), nShortlist)
+    aid2_prescore = mf.score_chipmatch(ibs, qaid, chipmatch, prescore_method, qreq)
+    topx2_aid = aid2_prescore.argsort()[::-1]  # Only allow indexed aids to be in the top results
+    topx2_aid = [aid for aid in iter(topx2_aid) if aid in daids_]
+    nRerank = min(len(topx2_aid), nShortlist)
     aid2_score = [0 for _ in xrange(len(aid2_fm))]
     mark_progress, end_progress = utool.progress_func(nRerank, flush_after=10,
                                                       lbl='[cov] Compute coverage')
     for topx in xrange(nRerank):
         mark_progress(topx)
-        aid2 = topx2_cx[topx]
+        aid2 = topx2_aid[topx]
         fm = aid2_fm[aid2]
         fs = aid2_fs[aid2]
-        covscore = get_match_coverage_score(ibs, qcx, aid2, fm, fs, method=method)
+        covscore = get_match_coverage_score(ibs, qaid, aid2, fm, fs, method=method)
         aid2_score[aid2] = covscore
     end_progress()
     return aid2_score
