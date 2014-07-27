@@ -1,18 +1,20 @@
 from __future__ import absolute_import, division, print_function
 try:
     from guitool import api_tree_node_cython
-    print('guitool cython ON')
+    if 'api_tree_node_cython' not in globals():
+        raise ImportError('')
+    print('[test_treenode] cython ON')
 except ImportError:
-    print('guitool cython OFF')
+    print('[test_treenode] cython OFF')
 from guitool import api_tree_node
 
 
 def test_build_internal_structure():
     if 'api_tree_node_cython' in globals():
-        print('guitool cython ON')
-        _test_build_internal_structure(api_tree_node_cython, 'cython')
+        print('test cython ON')
+        #_test_build_internal_structure(api_tree_node_cython, 'cython')
     else:
-        print('guitool cython OFF')
+        print('test cython OFF')
 
     _test_build_internal_structure(api_tree_node, 'python')
     print('finished all tests')
@@ -22,7 +24,7 @@ def _test_build_internal_structure(_module, lang):
     import utool
     # Test data
     N = 3
-    N = 1000
+    #N = 1000
 
     def ider_level0():
         return range(N)

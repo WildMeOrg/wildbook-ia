@@ -24,9 +24,9 @@ class TreeNode(object):
         self.child_nodes = []
         self.level = level
 
-    def __del__(self):
-        if utool.VERBOSE:
-            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+    #def __del__(self):
+    #    if utool.VERBOSE:
+    #        print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def set_children(self, child_nodes):
         self.child_nodes = child_nodes
@@ -76,7 +76,7 @@ def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
     return str_
 
 
-@profile
+#@profile
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """ Recursively builds the tree structure """
     if level == num_levels - 1:

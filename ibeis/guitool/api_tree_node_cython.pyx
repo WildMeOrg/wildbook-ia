@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function
 cimport cython
 import cython
+#from libc.stdlib cimport malloc, free  # TODO: convert lists to arrays
 
 
+global CYTHONIZED
 CYTHONIZED = True
 
 
@@ -47,13 +49,16 @@ cdef class TreeNode:
 
 #@cython.boundscheck(False)
 #@cython.wraparound(False)
-def _populate_tree_recursive(TreeNode parent_node,
+cpdef TreeNode _populate_tree_recursive(TreeNode parent_node,
                              list child_ids,
                              long num_levels,
                              list ider_list,
                              long level):
     """ Recursively builds the tree structure """
     if level == num_levels - 1:
+        #def TreeNode* child_nodes = malloc(sizeof(TreeNode) * len(child_ids))
+        #for ix, id_ in enumerate(child_ids):
+        #  child_nodes[ix] = TreeNode(id_, parent_node, level)
         child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
     else:
         child_ider = ider_list[level + 1]
@@ -123,10 +128,12 @@ def build_internal_structure(model):
             root_id_list = ider_list[0]()
         root_node = TreeNode(-1, None, -1)
         level = 0
+        #with nogil:
         _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
     else:
         # TODO: Vet this code a bit more.
         root_node = TreeNode(-1, None, -1)
+        #with nogil:
         _populate_tree_iterative(root_node, num_levels, ider_list)
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"

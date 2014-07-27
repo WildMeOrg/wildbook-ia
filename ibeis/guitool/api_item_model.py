@@ -20,8 +20,8 @@ VERBOSE = utool.VERBOSE
 
 try:
     if not utool.get_flag('--nocython'):
-        from . import api_tree_node_cython as _atn
-        _atn.CYTHONIZED = True
+        #from . import api_tree_node_cython as _atn
+        pass
     if '_atn' not in globals():
         raise ImportError('')
     print('[guitool] cython ON')
