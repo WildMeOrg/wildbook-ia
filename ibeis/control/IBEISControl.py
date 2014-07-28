@@ -1666,7 +1666,7 @@ class IBEISController(object):
         daid_list = qaid_list
         ibs._prep_qreq(qaid_list, daid_list)
 
-    @default_decorator('[querydb]')
+    @default_decorator  # ('[querydb]')
     def query_all(ibs, qaid_list, **kwargs):
         """ _query_chips wrapper """
         daid_list = ibs.get_valid_aids()

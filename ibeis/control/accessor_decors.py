@@ -14,7 +14,9 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 def default_decorator(input_):
     if utool.is_funclike(input_):
         func_ = input_
-        return utool.indent_func(profile(func_))
+        #return utool.indent_func(profile(func_))
+        #return profile(func_)
+        return func_
     else:
         def closure_default(func):
             return utool.indent_func(input_)(profile(func))

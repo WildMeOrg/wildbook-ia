@@ -54,6 +54,19 @@ qaid2_nns - maping from query chip index to nns
 * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
          = qaid2_nnfilt[qaid]
 """
+
+#=================
+# Cython Metadata
+#=================
+"""
+<CYTH>
+ctypedef np.float32_t float32_t
+ctypedef np.float64_t float64_t
+ctypedef np.uint8_t uint8_t
+ctypedef np.uint8_t desc_t
+</CYTH>
+"""
+
 #=================
 # Globals
 #=================
@@ -90,49 +103,79 @@ def NoDescriptorsException(ibs, qaid):
 
 @profile
 def nearest_neighbors(ibs, qaids, qreq):
-    """ Plain Nearest Neighbors """
+    """ Plain Nearest Neighbors
+    Input:
+        ibs   - an IBEIS Controller
+        qaids - query annotation-ids
+        qreq  - a QueryRequest object
+    Output:
+        qaid2_nnds - a dict mapping query annnotation-ids to a nearest neighbor
+                     tuple (indexes, dists). indexes and dist have the shape
+                     (nDesc x K) where nDesc is the number of descriptors in the
+                     annotation, and K is the number of approximate nearest
+                     neighbors.
+    """
     # Neareset neighbor configuration
     nn_cfg = qreq.cfg.nn_cfg
     K      = nn_cfg.K
     Knorm  = nn_cfg.Knorm
     checks = nn_cfg.checks
-    cfgstr_   = nn_cfg.get_cfgstr()
     if not QUIET:
+        cfgstr_   = nn_cfg.get_cfgstr()
         print('[mf] Step 1) Assign nearest neighbors: ' + cfgstr_)
-    # Grab descriptors
-    qdesc_list = ibs.get_annot_desc(qaids)
-    # Approximate Nearest Neighbor
-    flann = qreq.data_index.flann
+    num_neighbors = K + Knorm  # number of nearest neighbors
+    qdesc_list = ibs.get_annot_desc(qaids)  # Get descriptors
+    nn_func = qreq.data_index.flann.nn_index  # Approx nearest neighbor func
+    # Call a tighter (hopefully cythonized) nearest neighbor function
+    qaid2_nns = _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks)
+    return qaid2_nns
+
+
+def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
+    """ Helper worker function for nearest_neighbors
+    <CYTH>
+    cpdef dict _nearest_neighbors(...):
+        cdef:
+            list qaids
+            list qdesc_list
+            long num_neighbors
+            long checks
+            dict qaid2_nns
+            long nTotalNN
+            long nTotalDesc
+            np.ndarray[desc_t, ndim=2] qfx2_desc
+            np.ndarray[int32_t, ndim=2] qfx2_dx
+            np.ndarray[float64_t, ndim=2] qfx2_dist
+            np.ndarray[int32_t, ndim=2] empty_qfx2_dx
+            np.ndarray[float64_t, ndim=2] empty_qfx2_dist
+    </CYTH>
+    """
     # Output
     qaid2_nns = {}
-    nNN, nDesc = 0, 0
+    # Internal statistics reporting
+    nTotalNN, nTotalDesc = 0, 0
     mark_prog, end_prog = progress_func(len(qaids), lbl='Assign NN: ')
     for count, qaid in enumerate(qaids):
-        mark_prog(count)
+        mark_prog(count)  # progress
         qfx2_desc = qdesc_list[count]
-        # Check that we can query this chip
+        # Check that we can query this annotation
         if len(qfx2_desc) == 0:
-            if True or not utool.STRICT:
-                # Assign empty nearest neighbors
-                empty_qfx2_dx   = np.empty((0, K + Knorm), dtype=np.int)
-                empty_qfx2_dist = np.empty((0, K + Knorm), dtype=np.float)
-                qaid2_nns[qaid] = (empty_qfx2_dx, empty_qfx2_dist)
-                continue
-            else:
-                # Raise error if strict
-                raise NoDescriptorsException(ibs, qaid)
-
-        # Find Neareset Neighbors
-        (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, K + Knorm,
-                                              checks=checks)
-        # Store nearest neighbors
+            # Assign empty nearest neighbors
+            empty_qfx2_dx   = np.empty((0, num_neighbors), dtype=np.int32)
+            empty_qfx2_dist = np.empty((0, num_neighbors), dtype=np.float64)
+            qaid2_nns[qaid] = (empty_qfx2_dx, empty_qfx2_dist)
+            continue
+        # Find Neareset Neighbors nntup = (indexes, dists)
+        (qfx2_dx, qfx2_dist) = nn_func(qfx2_desc, num_neighbors, checks=checks)
+        # Associate query annotation with its nearest descriptors
         qaid2_nns[qaid] = (qfx2_dx, qfx2_dist)
         # record number of query and result desc
-        nNN += qfx2_dx.size
-        nDesc += len(qfx2_desc)
+        nTotalNN += qfx2_dx.size
+        nTotalDesc += len(qfx2_desc)
     end_prog()
     if not QUIET:
-        print('[mf] * assigned %d desc from %d chips to %r nearest neighbors' % (nDesc, len(qaids), nNN))
+        print('[mf] * assigned %d desc from %d chips to %r nearest neighbors'
+              % (nTotalDesc, len(qaids), nTotalNN))
     return qaid2_nns
 
 
@@ -209,12 +252,11 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
     # Filter matches based on config and weights
     mark_prog, end_prog = progress_func(len(qaid2_nns), lbl='Filter NN: ')
     for count, qaid in enumerate(qaid2_nns.iterkeys()):
-        mark_prog(count)
+        mark_prog(count)  # progress
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
-        qfx2_score, qfx2_valid = _apply_filter_scores(
-            qaid, qfx2_nndx, filt2_weights, filt_cfg)
+        qfx2_score, qfx2_valid = _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg)
         qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
         if VERBOSE:
             print('[mf] * %d assignments are invalid by thresh' %
@@ -332,6 +374,19 @@ def new_fmfsfk():
 @profile
 def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
     """
+    Input:
+        qaid2_nns    - dict of assigned nearest features (only indexes are used here)
+        qaid2_nnfilt - dict of (featmatch_scores, featmatch_mask)
+                        where the scores and matches correspond to the assigned
+                        nearest features
+        qreq         - QueryRequest object
+
+    Output:
+        qaid2_chipmatch - dict of (
+
+    Notes:
+        The prefix qaid2_ denotes a mapping where keys are query-annotation-id
+
     vsmany/vsone counts here. also this is where the filter
     weights and thershold are applied to the matches. Essientally
     nearest neighbors are converted into weighted assignments
@@ -344,17 +399,15 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
         print('[mf] Step 4) Building chipmatches %s' % (query_type,))
     # Return var
     qaid2_chipmatch = {}
-
     nFeatMatches = 0
     #Vsone
     if is_vsone:
         assert len(qreq.qaids) == 1
         aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
-
     # Iterate over chips with nearest neighbors
     mark_prog, end_prog = progress_func(len(qaid2_nns), 'Build Chipmatch: ')
     for count, qaid in enumerate(qaid2_nns.iterkeys()):
-        mark_prog(count)
+        mark_prog(count)  # Mark progress
         (qfx2_dx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
         nQKpts = len(qfx2_dx)
