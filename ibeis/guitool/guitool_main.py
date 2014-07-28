@@ -69,6 +69,22 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
     start_event_loop_qt4(QAPP)
 
 
+#if 'PyQt4' in sys.modules:
+    #from PyQt4 import QtCore
+    #from IPython.lib.inputhook import enable_qt4
+    #from IPython.lib.guisupport import start_event_loop_qt4
+    #qapp = QtCore.QCoreApplication.instance()
+    ##qapp.exec_()
+    #print('[utool.dbg] Starting ipython qt4 hook')
+    #enable_qt4()
+    #start_event_loop_qt4(qapp)
+
+
+def remove_pyqt_input_hook():
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
+
+
 def qtapp_loop(qwin=None, ipy=False, **kwargs):
     global QAPP
     #if not QUIET and VERBOSE:

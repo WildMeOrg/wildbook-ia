@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
+#from . import __PYQT__
+
 from . import api_item_model
 from . import api_table_view
 from . import api_tree_view
