@@ -4,7 +4,10 @@ from __future__ import absolute_import, division, print_function
 from itertools import izip
 from itertools import product as iprod
 import functools
-import functools32
+try:
+    from functools import lru_cache  # Python3 only
+except ImportError:
+    from functools32 import lru_cache  # Python2.7 support
 # Science
 import cv2
 import numpy as np
@@ -48,8 +51,7 @@ def patch_ori(gradx, grady):
     return gori
 
 
-#from hscom import tools
-@functools32.lru_cache(maxsize=1000)
+@lru_cache(maxsize=1000)
 def gaussian_patch(width=3, height=3, shape=(7, 7), sigma=None, norm_01=True):
     """
     It is essential that this function is cached!
