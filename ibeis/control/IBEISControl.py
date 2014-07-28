@@ -172,7 +172,7 @@ class IBEISController(object):
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # from ibeis.dev import duct_tape
-        # uct_tape.fix_compname_configs(ibs)
+        # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
         # duct_tape.ensure_correct_version(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
@@ -403,6 +403,10 @@ class IBEISController(object):
     @ider
     def get_valid_aids(ibs, eid=None, is_exemplar=False):
         """ returns a list of valid ANNOTATION unique ids """
+        if eid is None and is_exemplar:
+            # Optimization Hack
+            aid_list = ibs.db.get_all_rowids_where(ANNOTATION_TABLE, 'annot_exemplar_flag=?', (True,))
+            return aid_list
         if eid is None:
             aid_list = ibs._get_all_aids()
         else:
@@ -748,6 +752,7 @@ class IBEISController(object):
     @setter
     def set_image_enctext(ibs, gid_list, enctext_list):
         """ Sets the encoutertext of each image """
+        # FIXME: Slow and weird
         if utool.VERBOSE:
             print('[ibs] setting %r image encounter ids (from text)' % len(gid_list))
         eid_list = ibs.add_encounters(enctext_list)
@@ -1392,6 +1397,7 @@ class IBEISController(object):
 
     # @getter_1to1
     def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
+        # WEIRD FUNCTION FIXME
         assert eid_list is not None or gid_list is not None, "Either eid_list or gid_list must be None"
         """ Gets a list of encounter-image-relationship rowids for each encouterid """
         if eid_list is not None and gid_list is None:
@@ -1535,12 +1541,15 @@ class IBEISController(object):
         """ Removes encounters (images are not effected) """
         if utool.VERBOSE:
             print('[ibs] deleting %d encounters' % len(eid_list))
-        egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
-        ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
         ibs.db.delete_rowids(ENCOUNTER_TABLE, eid_list)
+        # Optimization hack, less SQL calls
+        #egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
+        #ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
+        ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
 
     @deleter
     def delete_image_eids(ibs, gid_list, eid_list):
+        # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
         """ Sets the encoutertext of each image """
         if utool.VERBOSE:
             print('[ibs] deleting %r image\'s encounter ids' % len(gid_list))

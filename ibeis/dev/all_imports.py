@@ -43,7 +43,10 @@ import zipfile
 if not sys.platform.startswith('win32'):
     import resource
 # PIPI
-import functools32
+try:
+    import functools32
+except ImportError as ex:
+    assert sys.version_info[0] == 3, 'must be in python3'
 import psutil
 # Matplotlib
 import matplotlib

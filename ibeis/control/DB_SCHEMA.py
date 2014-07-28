@@ -64,7 +64,6 @@ def define_IBEIS_schema(ibs):
         docstr='''
         holds the schema version info''')
 
-
     ##########################
     # FIRST ORDER            #
     ##########################
@@ -110,7 +109,6 @@ def define_IBEIS_schema(ibs):
         Used to store the labels / attributes of annotations.
         E.G name, species ''')
 
-
     ##########################
     # SECOND ORDER           #
     ##########################
@@ -146,7 +144,6 @@ def define_IBEIS_schema(ibs):
         Relationship between encounters and images (many to many mapping) the
         many-to-many relationship between images and encounters is encoded here
         encounter_image_relationship stands for encounter-image-pairs.''')
-
 
     ##########################
     # THIRD ORDER            #

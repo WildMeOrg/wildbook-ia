@@ -603,11 +603,11 @@ def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}
         ]),
 
         FMT_KEYS.giraffe1_fmt: utool.named_field_regex([
-            ('name', r'G\d+'),  # species and 2 numbers
-            ('under',r'_'),  # 2 more numbers
-            ('id',   r'\d+'),  # 2 more numbers
-            ( None,  r'\.'),
-            ('ext',  r'\w+'),
+            ('name',  r'G\d+'),  # species and 2 numbers
+            ('under', r'_'),     # 2 more numbers
+            ('id',    r'\d+'),   # 2 more numbers
+            ( None,   r'\.'),
+            ('ext',   r'\w+'),
         ]),
     }
     regex = INGEST_FORMATS.get(fmtkey, fmtkey)
@@ -765,6 +765,8 @@ def merge_databases(ibs_target, ibs_source_list):
 
 
 @__injectable
+@utool.time_func
+@profile
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
     aids_list = ibs.get_image_aids(gid_list)
@@ -777,7 +779,10 @@ def delete_non_exemplars(ibs):
 
 
 @__injectable
+@utool.time_func
+@profile
 def update_exemplar_encounter(ibs):
+    # FIXME SLOW
     eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
     ibs.delete_encounters(eid)
     aid_list = ibs.get_valid_aids(is_exemplar=True)
@@ -786,15 +791,10 @@ def update_exemplar_encounter(ibs):
 
 
 @__injectable
-def update_all_image_encounter(ibs):
-    eid = ibs.get_encounter_eids_from_text(constants.ALL_IMAGE_ENCTEXT)
-    ibs.delete_encounters(eid)
-    gid_list = ibs.get_valid_gids()
-    ibs.set_image_enctext(gid_list, [constants.ALL_IMAGE_ENCTEXT] * len(gid_list))
-
-
-@__injectable
+@utool.time_func
+@profile
 def update_unreviewed_image_encounter(ibs):
+    # FIXME SLOW
     eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
     ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids(reviewed=False)
@@ -802,15 +802,32 @@ def update_unreviewed_image_encounter(ibs):
 
 
 @__injectable
+@utool.time_func
+@profile
 def update_reviewed_image_encounter(ibs):
+    # FIXME SLOW
     eid = ibs.get_encounter_eids_from_text(constants.REVIEWED_IMAGE_ENCTEXT)
     ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids(reviewed=True)
     ibs.set_image_enctext(gid_list, [constants.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
 
 
+@__injectable
+@utool.time_func
+@profile
+def update_all_image_encounter(ibs):
+    # FIXME SLOW
+    eid = ibs.get_encounter_eids_from_text(constants.ALL_IMAGE_ENCTEXT)
+    ibs.delete_encounters(eid)
+    gid_list = ibs.get_valid_gids()
+    ibs.set_image_enctext(gid_list, [constants.ALL_IMAGE_ENCTEXT] * len(gid_list))
+
+
 @__injectable(False)
+@utool.time_func
+@profile
 def update_special_encounters(ibs):
+    # FIXME SLOW
     ibs.update_exemplar_encounter()
     ibs.update_unreviewed_image_encounter()
     ibs.update_reviewed_image_encounter()

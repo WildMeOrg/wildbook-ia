@@ -422,28 +422,31 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             # Give the frontend the new control
             ibswgt.ibs = ibs
-            ibs.update_special_encounters()
+            with utool.Timer('update special'):
+                ibs.update_special_encounters()
             # Update the api models to use the new control
-            header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
+            with utool.Timer('make headers'):
+                header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             if utool.VERBOSE:
                 print('[newgui] Calling model _update_headers')
             block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
-            for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
-                model = ibswgt.models[tblname]
-                view = ibswgt.views[tblname]
-                header = header_dict[tblname]
-                #widget = ibswgt.widgets[tblname]
-                #widget.change_headers(header)
-                block_model_flag = model.blockSignals(True)
-                model._update_headers(**header)
-                view._update_headers(**header)  # should use model headers
-                model.blockSignals(block_model_flag)
-                #view.infer_delegates_from_model()
-            for tblname in ibswgt.super_tblname_list:
-                view = ibswgt.views[tblname]
-                view.hide_cols()
+            with utool.Timer('update models'):
+                for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
+                    model = ibswgt.models[tblname]
+                    view = ibswgt.views[tblname]
+                    header = header_dict[tblname]
+                    #widget = ibswgt.widgets[tblname]
+                    #widget.change_headers(header)
+                    block_model_flag = model.blockSignals(True)
+                    model._update_headers(**header)
+                    view._update_headers(**header)  # should use model headers
+                    model.blockSignals(block_model_flag)
+                    #view.infer_delegates_from_model()
+                for tblname in ibswgt.super_tblname_list:
+                    view = ibswgt.views[tblname]
+                    view.hide_cols()
             ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
             ibswgt._change_enc(-1)
 
