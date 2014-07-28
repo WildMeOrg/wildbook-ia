@@ -146,7 +146,7 @@ from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import coverage_image
 from ibeis.model.hots import query_helpers
 from ibeis.model.hots.hots_query_request import QueryRequest
-from ibeis.model.hots.hots_query_result QueryResult
+from ibeis.model.hots.hots_query_result import QueryResult
 # IBEIS MODEL DETECT
 from ibeis.model.detect import randomforest
 from ibeis.model.detect import grabmodels
