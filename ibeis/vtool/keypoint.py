@@ -42,15 +42,20 @@ except ImportError as ex:
 np.tau = 2 * np.pi  # tauday.com
 
 
-#PYX START
 """
 // These are cython style comments used to maintaining python compatibility
+<CYTH>
+
 cimport numpy as np
-ctypedef np.float64_t FLOAT64
+cimport cython
+
+import numpy as np
+import cython
+
+ctypedef np.float32_t float32_t
+ctypedef np.float64_t float64_t
+</CYTH>
 """
-#PYX MAP FLOAT_2D np.ndarray[FLOAT64, ndim=2]
-#PYX MAP FLOAT_1D np.ndarray[FLOAT64, ndim=1]
-#PYX END
 
 tau = np.tau = np.pi * 2  # tauday.com
 GRAVITY_THETA = np.tau / 4
@@ -259,6 +264,22 @@ def transform_kpts(kpts, M):
 @profile
 def get_invVR_mats_sqrd_scale(invVR_mats):
     """ Returns the squared scale of the invVR keyponts """
+    '''
+    <CYTH:REPLACE>
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def get_invVR_mats_sqrd_scale_float64(np.ndarray[float64_t, ndim=3] invVRs):
+        # TODO: Move to ktool_cython
+        cdef unsigned int nMats = invVRs.shape[0]
+        # Prealloc output
+        cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=float64)
+        cdef size_t ix
+        for ix in range(nMats):
+            # simple determinant: ad - bc
+            out[ix] = (invVRs[ix, 0, 0] * invVRs[ix, 1, 1]) - (invVRs[ix, 0, 1] * invVRs[ix, 1, 0])
+        return out
+    </CYTH>
+    '''
     return npl.det(invVR_mats[:, 0:2, 0:2])
 
 
@@ -295,6 +316,24 @@ def rectify_invV_mats_are_up(invVR_mats):
     """
     Useful if invVR_mats is no longer lower triangular
     rotates affine shape matrixes into downward (lower triangular) position
+    """
+    """
+    <CYTH>
+    # TODO: Template this for [float64_t, float32_t]
+    cdef:
+        np.ndarray[float64_t, ndim=2] invVR_mats
+        np.ndarray[float64_t, ndim=2] invV_mats
+        np.ndarray[float64_t, ndim=1] _oris
+        np.ndarray[float64_t, ndim=1] _a
+        np.ndarray[float64_t, ndim=1] _b
+        np.ndarray[float64_t, ndim=1] _c
+        np.ndarray[float64_t, ndim=1] _d
+        np.ndarray[float64_t, ndim=1] _det
+        np.ndarray[float64_t, ndim=1] _b2a2
+        np.ndarray[float64_t, ndim=1] iv11
+        np.ndarray[float64_t, ndim=1] iv21
+        np.ndarray[float64_t, ndim=1] iv22
+    </CYTH>
     """
     # Get orientation encoded in the matrix
     _oris = get_invVR_mats_oris(invVR_mats)
