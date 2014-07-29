@@ -106,9 +106,9 @@ class SQLDatabaseController(object):
 
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
-        import StringIO
+        from six.moves import cStringIO
         print('[sql] Copying database into RAM')
-        tempfile = StringIO.StringIO()
+        tempfile = cStringIO()
         for line in db.connection.iterdump():
             tempfile.write('%s\n' % line)
         db.connection.close()
