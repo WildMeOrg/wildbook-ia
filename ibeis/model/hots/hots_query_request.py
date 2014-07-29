@@ -71,7 +71,7 @@ class QueryRequest(__REQUEST_BASE__):
         return qaids
 
     def get_aidfx_enum(qreq):
-        ax2_aids = qreq.data_index.ax2_aid
-        ax2_fxs = qreq.data_index.ax2_fx
-        aidfx_enum = enumerate(izip(ax2_aids, ax2_fxs))
+        dx2_aids = qreq.data_index.dx2_aid
+        dx2_fxs = qreq.data_index.dx2_fx
+        aidfx_enum = enumerate(izip(dx2_aids, dx2_fxs))
         return aidfx_enum

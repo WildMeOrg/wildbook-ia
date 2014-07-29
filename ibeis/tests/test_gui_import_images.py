@@ -21,8 +21,9 @@ def TEST_GUI_IMPORT_IMAGES(ibs, back):
         gid_list = back.import_images(gpath_list=gpath_list)
         thumbtup_list = ibs.get_image_thumbtup(gid_list)
         imgpath_list = [tup[1] for tup in thumbtup_list]
-        for path in gpath_list:
-            assert path in imgpath_list, "Imported Image not in db, path=%r" % path 
+        gpath_list2 = ibs.get_image_paths(gid_list)
+        for path in gpath_list2:
+            assert path in imgpath_list, "Imported Image not in db, path=%r" % path
     elif mode == 'DIR':
         dir_ = grabdata.get_testdata_dir()
         print('[TEST] IMPORT IMAGES FROM DIR\n * dir_=%r' % dir_)

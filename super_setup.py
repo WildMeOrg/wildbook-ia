@@ -146,7 +146,7 @@ if utool.get_flag('--pull'):
 if utool.get_flag('--build'):
     # Build tpl repos
     for repo in TPL_REPO_DIRS:
-        utool.util_git.std_build_command(repo)
+        utool.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
     # Build only IBEIS repos with setup.py
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
     utool.gg_command('sudo {pythoncmd} setup.py build'.format(**envcmds))
@@ -173,6 +173,10 @@ if utool.get_flag('--test'):
 
 if utool.get_flag('--push'):
     utool.gg_command('git push')
+
+
+if utool.get_flag('--bext'):
+    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
 
 
 if utool.get_flag('--clean'):

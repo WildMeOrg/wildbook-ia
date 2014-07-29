@@ -280,12 +280,12 @@ def dev_snippets(main_locals):
             selection_model = view.selectionModel()
     if ibs is not None:
         #ibs.dump_tables()
-        valid_aids = ibs.get_valid_aids()
-        valid_gids = ibs.get_valid_gids()
-        valid_nids = ibs.get_valid_nids()
-        valid_nid_list   = ibs.get_annot_nids(valid_aids)
-        valid_aid_names  = ibs.get_annot_names(valid_aids)
-        valid_aid_gtrues = ibs.get_annot_groundtruth(valid_aids)
+        aid_list = ibs.get_valid_aids()
+        gid_list = ibs.get_valid_gids()
+        nid_list = ibs.get_valid_nids()
+        #valid_nid_list   = ibs.get_annot_nids(aid_list)
+        #valid_aid_names  = ibs.get_annot_names(aid_list)
+        #valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)
     return locals()
 
 

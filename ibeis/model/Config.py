@@ -458,7 +458,8 @@ class OtherConfig(ConfigBase):
         othercfg.thumb_size     = 64
         othercfg.ranks_lt       = 2
         othercfg.auto_localize  = True
-        othercfg.detect_add_after = 8
+        othercfg.detect_add_after = 1
+        othercfg.detect_use_chunks = True
 
 
 # Convinience

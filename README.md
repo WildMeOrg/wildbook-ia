@@ -223,4 +223,10 @@ python dev.py --allgt -t best --echo-hardcase
 python dev.py --allgt -t inspect -w
 
 
+#----------------
+# Profiling Code
+#----------------
+
+profiler.sh dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
+profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spatial;linalg;keypoint"
 ```

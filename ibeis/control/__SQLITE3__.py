@@ -78,5 +78,16 @@ def REGISTER_SQLITE3_TYPES():
     register_uuid()
 REGISTER_SQLITE3_TYPES()
 
+
+def connect2(fpath, text_factory=None):
+    """ wrapper around lite.connect """
+    connection = connect(fpath, detect_types=PARSE_DECLTYPES)
+    return connection
+    #timeout=5,
+    # check_same_thread=False)
+    # isolation_level='DEFERRED',
+    # cached_statements=1000
+
+
 # Clean namespace
 del REGISTER_SQLITE3_TYPES

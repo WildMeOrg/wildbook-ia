@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
-from ibeis.model.hots import QueryRequest
-from ibeis.model.hots import NNIndex
+from ibeis.model.hots import hots_query_request
+from ibeis.model.hots import hots_nn_index
 from ibeis.model.hots import matching_functions as mf
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[mc3]', DEBUG=False)
@@ -14,6 +14,7 @@ USE_BIGCACHE = '--nocache-big' not in sys.argv
 
 @utool.indent_func
 def quickly_ensure_qreq(ibs, qaids=None, daids=None):
+    """ </CYTH> """
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
     print(' --- quick ensure qreq --- ')
@@ -34,10 +35,11 @@ def quickly_ensure_qreq(ibs, qaids=None, daids=None):
 #@utool.indent_func('[prep_qreq]')
 def prep_query_request(qreq=None, query_cfg=None,
                        qaids=None, daids=None, **kwargs):
-    """  Builds or modifies a query request object """
+    """  Builds or modifies a query request object
+    </CYTH> """
     print(' --- Prep QueryRequest --- ')
     if qreq is None:
-        qreq = QueryRequest.QueryRequest()
+        qreq = hots_query_request.QueryRequest()
     if qaids is not None:
         assert len(qaids) > 0, 'cannot query nothing!'
         qreq.qaids = qaids
@@ -61,7 +63,8 @@ def prep_query_request(qreq=None, query_cfg=None,
 #@profile
 def pre_exec_checks(ibs, qreq):
     """ Ensures that the NNIndex's data_index is pointing to the correct
-    set of feature descriptors """
+    set of feature descriptors
+    </CYTH> """
     print('  --- Pre Exec ---')
     feat_cfgstr = qreq.cfg._feat_cfg.get_cfgstr()
     daids_hashid = qreq.get_daids_hashid()
@@ -71,7 +74,7 @@ def pre_exec_checks(ibs, qreq):
         # Get qreq config information
         daids = qreq.get_internal_daids()
         # Compute the FLANN Index
-        data_index = NNIndex.NNIndex(ibs, daids)
+        data_index = hots_nn_index.NNIndex(ibs, daids)
         qreq.dftup2_index[dftup_hashid] = data_index
     qreq.data_index = qreq.dftup2_index[dftup_hashid]
     return qreq
@@ -96,7 +99,8 @@ def process_query_request(ibs, qreq,
     Checks a big cache for qaid2_qres.
     If cache miss, tries to load each qres individually.
     On an individual cache miss, it preforms the query.
-    """
+    </CYTH> """
+
     print(' --- Process QueryRequest --- ')
     if len(qreq.qaids) <= 1:
         # Do not use bigcache single queries
@@ -140,6 +144,7 @@ def process_query_request(ibs, qreq,
 #@utool.indent_func('[Q1]')
 #@profile
 def execute_query_and_save_L1(ibs, qreq, failed_qaids=[]):
+    """ </CYTH> """
     #print('[q1] execute_query_and_save_L1()')
     orig_qaids = qreq.qaids
     if len(failed_qaids) > 0:
@@ -162,7 +167,8 @@ def execute_query_L0(ibs, qreq):
         qreq - QueryRequest Object   # use prep_qreq to create one
     Output:
         qaid2_qres - mapping from query indexes to QueryResult Objects
-    """
+    </CYTH> """
+
     # Query Chip Indexes
     # * vsone qaids/daids swapping occurs here
     qaids = qreq.get_internal_qaids()

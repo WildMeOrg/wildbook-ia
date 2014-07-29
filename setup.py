@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 from utool.util_setup import setuptools_setup
+from setuptools import setup
 
 
 CHMOD_PATTERNS = [
@@ -10,8 +11,8 @@ CHMOD_PATTERNS = [
 ]
 
 CYTHON_FILES = [
-    'ibeis/model/hots/QueryRequest.py',
-    'ibeis/model/hots/QueryResult.py',
+    'ibeis/model/hots/hots_query_result.py.py',
+    'ibeis/model/hots/hots_query_request.py.py',
     'ibeis/model/hots/voting_rules2.py',
     'ibeis/model/hots/nn_filters.py',
     'ibeis/model/hots/matching_functions.py',
@@ -67,7 +68,7 @@ INSTALL_REQUIRES = [
 
 if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
-    setuptools_setup(
+    kwargs = setuptools_setup(
         setup_fpath=__file__,
         name='ibeis',
         project_dirs=PROJECT_DIRS,
@@ -77,3 +78,4 @@ if __name__ == '__main__':
         install_requires=INSTALL_REQUIRES
         #cython_files=CYTHON_FILES,
     )
+    setup(**kwargs)

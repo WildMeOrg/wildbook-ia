@@ -47,7 +47,7 @@ def _init_matplotlib():
         TARGET_BACKEND = 'PDF'
     else:
         TARGET_BACKEND = 'Qt4Agg'
-    if  multiprocessing.current_process().name == 'MainProcess':
+    if utool.in_main_process():
         if not utool.QUIET and utool.VERBOSE:
             print('--- INIT MPL---')
             print('[main] current backend is: %r' % backend)
@@ -130,7 +130,7 @@ def _init_parallel():
 
 def _close_parallel():
     from utool import util_parallel
-    util_parallel.close_pool()
+    util_parallel.close_pool(terminate=True)
 
 
 def _init_numpy():
@@ -145,7 +145,7 @@ def _init_numpy():
     }
     numpy_print = {
         'precision': 8,
-        'threshold': 1000,
+        'threshold': 500,
         'edgeitems': 3,
         'linewidth': 200,  # default 75
         'suppress': False,
