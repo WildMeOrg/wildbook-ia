@@ -31,7 +31,16 @@ SV_DTYPE = np.float64
 
 @profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
-    """ Builds the M x 9 least squares matrix """
+    """ Builds the M x 9 least squares matrix
+    <CYTHE: returns=np.ndarray[float64_t, ndims=2]>
+    cdef:
+        np.ndarray[float64_t, ndims=1] (xy1_m, xy2_mn, u2, v2, d, e, f, g, h, i,
+                                        j, k, l, p, q, r,)
+        np.ndarray[float64_t, ndims=2] Mx9
+        long num_pts
+        long ix
+    </CYTHE>
+    """
     x1_mn, y1_mn = xy1_mn
     x2_mn, y2_mn = xy2_mn
     num_pts = len(x1_mn)
@@ -55,6 +64,12 @@ def compute_homog(xy1_mn, xy2_mn):
     Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1
+    <CYTHE: returns=np.ndarray[float64_t, ndims=2]>
+    cdef:
+        np.ndarray[float64_t, ndims=1] xy1_mn
+        np.ndarray[float64_t, ndims=1] xy2_mn
+        np.ndarray[float64_t, ndims=1] Mx9
+    </CYTHE>
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
@@ -146,6 +161,20 @@ def get_affine_inliers(kpts1, kpts2, fm,
         H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
         H = inv(Aj).dot(Ai)
         The input invVs = perdoch.invA's
+
+    <CYTHE: returns=tuple>
+    cdef:
+        np.ndarray[float64_t, ndims=2] invVR1s_m
+        np.ndarray[float64_t, ndims=2] V1s_m
+        np.ndarray[float64_t, ndims=2] invVR2s_m
+        np.ndarray[float64_t, ndims=2] Aff_mats
+        np.ndarray[float32_t, ndims=1] xy2_m
+        np.ndarray[float32_t, ndims=1] det2_m
+        np.ndarray[float32_t, ndims=1] ori2_m
+        list inliers_and_errors_list
+        list errors_list
+        list errors_list
+    </CYTHE>
     """
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
@@ -179,7 +208,16 @@ def get_affine_inliers(kpts1, kpts2, fm,
 @profile
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
-    """ Tests each hypothesis and returns only the best transformation and inliers """
+    """ Tests each hypothesis and returns only the best transformation and inliers
+    <CYTH; returns=tuple>
+    cdef:
+        list inliers_list
+        list aff_inliers
+         ??? Aff
+        list Aff_mats
+        list errors_list
+    <CYTH>
+    """
     # Test each affine hypothesis
     inliers_list, errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
                                                              xy_thresh_sqrd,
@@ -191,7 +229,11 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
 
 @profile
 def determine_best_inliers(inliers_list, errors_list, Aff_mats):
-    """ Currently this function just uses the number of inliers as a metric """
+    """ Currently this function just uses the number of inliers as a metric
+    <CYTH; returns=tuple>
+    cdef:
+    <CYTH>
+    """
     # Determine the best hypothesis using the number of inliers
     nInliers_list = np.array(map(len, inliers_list))
     best_mxs = nInliers_list.argsort()[::-1]
@@ -204,7 +246,12 @@ def determine_best_inliers(inliers_list, errors_list, Aff_mats):
 
 @profile
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
-    """ Given a set of hypothesis inliers, computes a homography and refines inliers """
+    """
+    Given a set of hypothesis inliers, computes a homography and refines inliers
+    <CYTH; returns=tuple>
+    cdef:
+    <CYTH>
+    """
     fm_affine = fm[aff_inliers]
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
@@ -245,6 +292,10 @@ def spatial_verification(kpts1, kpts2, fm,
     """
     Driver function
     Spatially validates feature matches
+
+    <CYTH; returns=tuple>
+    cdef:
+    <CYTH>
     """
     # Get diagonal length if not provided
     if dlen_sqrd2 is None:
