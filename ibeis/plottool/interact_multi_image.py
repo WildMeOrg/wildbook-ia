@@ -8,6 +8,7 @@ from plottool import interact_annotations
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
+import six
 import utool
 from vtool import image as gtool
 #import utool
@@ -60,7 +61,7 @@ class MultiImageInteraction(object):
             new_but.on_clicked(callback)
         ph.set_plotdat(new_ax, 'viztype', 'button')
         ph.set_plotdat(new_ax, 'text', text)
-        for key, val in kwargs.iteritems():
+        for key, val in six.iteritems(kwargs):
             ph.set_plotdat(new_ax, key, val)
         # Keep buttons from losing scrop
         self.scope.append((new_but, new_ax))
@@ -187,7 +188,7 @@ class MultiImageInteraction(object):
 
     def on_figure_clicked(self, event):
         #don't do other stuff if we clicked a button
-        point = (event.x, event.y)
+        #point = (event.x, event.y)
         #if self.next_ax.contains_point(point) or self.prev_ax.contains_point(point):
             #print('in button click')
             #return

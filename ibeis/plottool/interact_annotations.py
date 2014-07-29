@@ -28,6 +28,7 @@ Adapted from matplotlib/examples/event_handling/poly_editor.py
 Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
 """
 from __future__ import absolute_import, division, print_function
+import six
 import matplotlib
 from matplotlib.patches import Polygon
 from matplotlib.widgets import Button
@@ -42,7 +43,7 @@ import utool
 import re
 
 from plottool import draw_func2 as df2
-from itertools import izip
+from six.moves import zip
 
 
 DEFAULT_SPECIES_TAG = '____'
@@ -215,7 +216,7 @@ def calc_handle_coords(poly):
 
 
 def make_handle_line(poly):
-    _xs, _ys = zip(*calc_handle_coords(poly))
+    _xs, _ys = list(zip(*calc_handle_coords(poly)))
     line_width = 4
     line_color = (0, 1, 0)
     color = np.array(line_color)
@@ -372,7 +373,7 @@ class ANNOTATIONInteraction(object):
                 self.enforce_dims(vert)
         poly_list = [self.new_polygon(verts, theta, species)
                      for (verts, theta, species) in
-                     izip(verts_list, theta_list, species_list)]
+                     zip(verts_list, theta_list, species_list)]
         assert len(theta_list) == len(poly_list),\
                 'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
         assert len(species_list) == len(poly_list),\
@@ -387,10 +388,10 @@ class ANNOTATIONInteraction(object):
         #        return (curind, curarea)
         #    else:
         #        return (oldmaxind, oldmaxarea)
-        #poly_index, _ = reduce(argmax_area, self.polys.iteritems(), (None, 0))
+        #poly_index, _ = reduce(argmax_area, six.iteritems(self.polys), (None, 0))
         if len(self.polys) != 0:
             wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
-                                self.polys.itervalues()])
+                                six.itervalues(self.polys)])
             poly_index = self.polys.keys()[wh_list.prod(axis=1).argmax()]
             self._currently_selected_poly = self.polys[poly_index]
             self.update_colors(poly_index)
@@ -399,16 +400,16 @@ class ANNOTATIONInteraction(object):
             self._currently_selected_poly = None
 
         # Add polygons and lines to the axis
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             self.fig.ax.add_patch(poly)
             self.fig.ax.add_line(poly.lines)
             self.fig.ax.add_line(poly.handle)
 
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             poly.add_callback(self.poly_changed)
 
     def disconnect_callbacks(self, canvas):
-        for name, callbackid in self.callback_ids.iteritems():
+        for name, callbackid in six.iteritems(self.callback_ids):
             canvas.mpl_disconnect(callbackid)
         self.callback_ids = {}
 
@@ -418,7 +419,7 @@ class ANNOTATIONInteraction(object):
         self.disconnect_callbacks(canvas)
         self.callback_ids = {
             name: canvas.mpl_connect(name, func)
-            for name, func in self.callback_funcs.iteritems()
+            for name, func in six.iteritems(self.callback_funcs)
         }
         self.fig.canvas = canvas
 
@@ -455,7 +456,7 @@ class ANNOTATIONInteraction(object):
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
                                    species_list, next_callback, prev_callback):
         self.disconnect_callbacks(self.fig.canvas)
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             poly.remove()
         self.polys = {}
         self.initialize_variables()
@@ -503,7 +504,7 @@ class ANNOTATIONInteraction(object):
         if poly_ind is None or poly_ind < 0:
             print("WARNING: poly_ind is %r in update_colors" % poly_ind)
             return
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             line = poly.lines
             if line.get_color() != 'white':
                 line.set_color('white')
@@ -513,7 +514,7 @@ class ANNOTATIONInteraction(object):
     def update_UI(self):
         self._update_line()
         self.fig.canvas.restore_region(self.background)
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
@@ -534,7 +535,7 @@ class ANNOTATIONInteraction(object):
     def draw_callback(self, event):
         #print('[mask] draw_callback(event=%r)' % event)
         self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
@@ -557,7 +558,7 @@ class ANNOTATIONInteraction(object):
             return
 
         if event.button == 1:  # leftclick
-            for poly in self.polys.itervalues():
+            for poly in six.itervalues(self.polys):
                 if is_within_distance_from_line(self.max_ds, (event.xdata, event.ydata), calc_handle_coords(poly)):
                     self.currently_rotating_poly = poly
                     break
@@ -596,7 +597,7 @@ class ANNOTATIONInteraction(object):
             print("error: self.background is none. Trying refresh.")
             self.fig.canvas.restore_region(self.background)
             self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
@@ -696,7 +697,7 @@ class ANNOTATIONInteraction(object):
         plt.draw()
 
     def load_points(self):
-        return [poly.xy for poly in self.polys.itervalues()]
+        return [poly.xy for poly in six.itervalues(self.polys)]
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
@@ -1014,10 +1015,10 @@ class ANNOTATIONInteraction(object):
 
     def _update_line(self):
         # save verts because polygon gets deleted when figure is closed
-        for poly in self.polys.itervalues():
+        for poly in six.itervalues(self.polys):
             self.last_vert_ind = len(poly.xy) - 1
-            poly.lines.set_data(zip(*poly.xy))
-            poly.handle.set_data(zip(*calc_handle_coords(poly)))
+            poly.lines.set_data(list(zip(*poly.xy)))
+            poly.handle.set_data(list(zip(*calc_handle_coords(poly))))
             pass
 
     def get_ind_under_cursor(self, event):
@@ -1041,7 +1042,7 @@ class ANNOTATIONInteraction(object):
         #for poly in self.poly_list:
         #    if poly is not None:
         #        ind_dist_list.append(get_ind_and_dist(poly))
-        ind_dist_list = [(polyind, get_ind_and_dist(poly)) for (polyind, poly) in self.polys.iteritems()]
+        ind_dist_list = [(polyind, get_ind_and_dist(poly)) for (polyind, poly) in six.iteritems(self.polys)]
         min_dist = None
         min_ind  = None
         sel_polyind = None
@@ -1077,7 +1078,7 @@ class ANNOTATIONInteraction(object):
 
     def make_lines(self, poly, line_color, line_width):
         """ verts - list of (x, y) tuples """
-        _xs, _ys = zip(*poly.xy)
+        _xs, _ys = list(zip(*poly.xy))
         color = np.array(line_color)
         marker_face_color = line_color
         line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
@@ -1091,7 +1092,7 @@ class ANNOTATIONInteraction(object):
         def get_bbox_list():
             bbox_list = []
             #theta_list = []
-            for poly in self.polys.itervalues():
+            for poly in six.itervalues(self.polys):
                 assert poly is not None
                 #if poly is None:
                 #    bbox_list.append(None)
@@ -1121,7 +1122,9 @@ class ANNOTATIONInteraction(object):
             #for i in range(len(self.original_list), len(self.poly_list)):
             #    if bbox_list[i] is not None:
             #        new_list.append(bbox_list[i])
-            new_list = filter(lambda bbox_theta: bbox_theta not in zip(self.original_bbox_list, self.original_theta_list), bbox_list)
+            new_list = list(filter(lambda bbox_theta: bbox_theta not in
+                                   zip(self.original_bbox_list,
+                                       self.original_theta_list), bbox_list))
             #print("Deleted")
             #for bbox in deleted_list:
             #    print(bbox)
@@ -1165,7 +1168,7 @@ class ANNOTATIONInteraction(object):
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
-        mask_list = [verts_to_mask(shape, poly.xy) for poly in self.polys.itervalues()]
+        mask_list = [verts_to_mask(shape, poly.xy) for poly in six.itervalues(self.polys)]
         if len(mask_list) == 0:
             print('No polygons to make mask out of')
             return 0
@@ -1189,7 +1192,7 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
     if polys is not None and len(polys) > 0:
         # Use the largest polygon size as the default verts
         wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
-                            polys.itervalues()])
+                            six.itervalues(polys)])
         w_, h_ = wh_list.max(axis=0) // 2
     else:
         # If no poly exists use 1/4 of the image size

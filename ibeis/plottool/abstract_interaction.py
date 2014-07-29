@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from plottool import plot_helpers as ph
+import six
 import utool
 import plottool.draw_func2 as df2
 import matplotlib as mpl
@@ -31,7 +32,7 @@ class AbstractInteraction(object):
             new_but.on_clicked(callback)
         ph.set_plotdat(new_ax, 'viztype', 'button')
         ph.set_plotdat(new_ax, 'text', text)
-        for key, val in kwargs.iteritems():
+        for key, val in six.iteritems(kwargs):
             ph.set_plotdat(new_ax, key, val)
         # Keep buttons from losing scrop
         self.scope.append((new_but, new_ax))

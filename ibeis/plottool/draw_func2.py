@@ -6,6 +6,7 @@
 # plot_<func_name> will not clear the axes or figure. More useful for graphs
 # draw_<func_name> same as plot for now. More useful for images
 from __future__ import absolute_import, division, print_function
+import six
 import os
 import sys
 import utool
@@ -281,7 +282,7 @@ SAFE_POS = {
 
 
 def adjust_subplots_safe(**kwargs):
-    for key in SAFE_POS.iterkeys():
+    for key in six.iterkeys(SAFE_POS):
         if key not in kwargs:
             kwargs[key] = SAFE_POS[key]
     adjust_subplots(**kwargs)

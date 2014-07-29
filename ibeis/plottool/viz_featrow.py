@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 # UTool
 import utool
 # Drawtool
+import six
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -59,6 +60,6 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
             #dist_list = ['L2', 'hist_isect']
             dist_list = ['L2']
             distmap = utool.compute_distances(sift, prevsift, dist_list)
-            dist_str = ', '.join(['(%s, %.2E)' % (key, val) for key, val in distmap.iteritems()])
+            dist_str = ', '.join(['(%s, %.2E)' % (key, val) for key, val in six.iteritems(distmap)])
             df2.set_xlabel(dist_str)
     return px + nCols
