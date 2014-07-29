@@ -164,7 +164,8 @@ def set_display_coords(poly):
 
 
 def calc_tag_position(poly):
-    tagpos = rotate_points_around([[max(zip(*poly.basecoords)[0]), min(zip(*poly.basecoords)[1])]], poly.theta, *polygon_center(poly))[0]
+    points = [[max(list(zip(*poly.basecoords))[0]), min(list(zip(*poly.basecoords))[1])]]
+    tagpos = rotate_points_around(points, poly.theta, *polygon_center(poly))[0]
     return tagpos
 
 
