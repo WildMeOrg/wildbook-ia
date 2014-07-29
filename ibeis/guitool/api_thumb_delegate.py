@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import cv2
 import numpy as np
 import utool
-from itertools import izip
+from six.moves import zip
 from os.path import exists
 from PyQt4 import QtGui, QtCore
 from vtool import image as gtool
@@ -205,7 +205,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         # Get scale factor
         sx, sy = gtool.get_scale_factor(image, thumb)
         # Draw bboxes on thumb (not image)
-        for bbox, theta in izip(thread.bbox_list, theta_list):
+        for bbox, theta in zip(thread.bbox_list, theta_list):
             if not thread.thumb_would_be_visible():
                 #unregister_thread(thread.thumb_path)
                 return

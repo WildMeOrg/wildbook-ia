@@ -5,7 +5,12 @@ import utool
 import uuid
 import numpy as np
 from PyQt4 import QtGui
-from PyQt4.QtCore import QString, QVariant
+from PyQt4.QtCore import QVariant
+import six
+if six.PY2:
+    from PyQt4.QtCore import QString
+elif six.PY3:
+    QString = str
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qtype]', DEBUG=False)
 
@@ -118,7 +123,7 @@ def cast_from_qt(var, type_=None):
     elif isinstance(var, QVariant):
         if var.typeName() == 'bool':
             data = bool(var.toBool())
-        if var.typeName() == 'QString':
+        if var.typeName() in ['QString', 'str']:
             data = str(var.toString())
     elif isinstance(var, QString):
         data = str(var)

@@ -6,7 +6,7 @@ from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error, signal_
 #from .api_thumb_delegate import APIThumbDelegate
-from itertools import izip
+from six.moves import zip
 import functools
 import utool
 #import numpy as np
@@ -19,6 +19,7 @@ API_MODEL_BASE = QtCore.QAbstractItemModel
 VERBOSE = utool.VERBOSE
 
 try:
+    # TODO Cyth should take care of this stuff
     if utool.get_flag('--cython'):
         from . import api_tree_node_cython as _atn
         pass
@@ -228,7 +229,7 @@ class APIItemModel(API_MODEL_BASE):
                 else:
                     values = id_list
                 reverse = model.col_sort_reverse
-                sorted_pairs = sorted(list(izip(values, id_list, children)), reverse=reverse)
+                sorted_pairs = sorted(list(zip(values, id_list, children)), reverse=reverse)
                 nodes = [child for (value, id_, child) in sorted_pairs]
                 level = model.col_level_list[sort_index]
                 #print("row_indices sorted")
