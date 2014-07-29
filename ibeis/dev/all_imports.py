@@ -5,7 +5,7 @@ import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath, isabs, commonprefix, basename)
-from itertools import chain, map, cycle,
+from itertools import chain, cycle
 import six
 from six.moves import zip, map, zip_longest
 from itertools import product as iprod
