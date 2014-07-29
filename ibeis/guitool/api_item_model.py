@@ -20,6 +20,7 @@ VERBOSE = utool.VERBOSE
 
 try:
     # TODO Cyth should take care of this stuff
+    # also, it should be a function level import not module?
     if utool.get_flag('--cython'):
         from . import api_tree_node_cython as _atn
         pass
