@@ -154,7 +154,7 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     def show_hough(back, gid, **kwargs):
-        viz.show_hough(back.ibs, gid, **kwargs)
+        viz.show_hough(back.ibs, gid, back.ibs.cfg.detect_cfg.species, **kwargs)
         viz.draw()
 
     #----------------------

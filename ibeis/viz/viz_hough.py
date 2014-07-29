@@ -10,7 +10,7 @@ from plottool import draw_func2 as df2
 
 
 @utool.indent_func
-def show_hough(ibs, gid, species='zebra_grevys', fnum=None, **kwargs):
+def show_hough(ibs, gid, species, fnum=None, **kwargs):
     if fnum is None:
         fnum = df2.next_fnum()
     title = 'Hough Image: ' + vh.get_image_titles(ibs, gid)

@@ -610,7 +610,7 @@ class IBEISController(object):
 
         if species_list is not None:
             species_list = [species.lower() for species in species_list]
-            ibs.set_annot_species(aid_list, species_list)
+            ibs.set_annot_species(aid_list, species_list)            
 
         # Also need to populate annotation_lblannot_relationship table
         if nid_list is not None:
@@ -1614,8 +1614,11 @@ class IBEISController(object):
             if len(detected_gids) == 0:
                 return
             notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+            # Ideally, species will come from the detector with confidences that actually mean something
+            species_list = [ibs.cfg.detect_cfg.species] * len(notes_list)
             ibs.add_annots(detected_gids, detected_bboxes,
                                 notes_list=notes_list,
+                                species_list=species_list,
                                 detect_confidence_list=detected_confidences)
 
         # Adding new detections on the fly as they are generated
