@@ -296,6 +296,8 @@ def resize_worker(tup):
     """ worker function for parallel generator """
     gfpath, new_gfpath, new_size = tup
     #print('[preproc] writing detectimg: %r' % new_gfpath)
+    #if not exists(new_gfpath):
+    #    return new_gfpath
     img = imread(gfpath)
     new_img = resize(img, new_size)
     imwrite(new_gfpath, new_img)
@@ -313,7 +315,8 @@ def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwarg
 
 
 def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
-                                 sqrt_area=800, output_dir=None, **kwargs):
+                                 sqrt_area=800, output_dir=None,
+                                 **kwargs):
     """ Resizes images and yeilds results asynchronously  """
     from .chip import get_scaled_sizes_with_area
     target_area = sqrt_area ** 2
@@ -334,6 +337,15 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
     assert len(newsize_list) == len(gpath_list), 'unequal len'
     # Evaluate generator
-    generator = resize_imagelist_generator(gpath_list, new_gpath_list,
-                                           newsize_list, **kwargs)
+    #if checkexists:
+    #    exists_list = list(map(exists, new_gpath_list))
+    #    gpath_list_ = utool.filterfalse_items(gpath_list, exists_list)
+    #    new_gpath_list_ = utool.filterfalse_items(new_gpath_list, exists_list)
+    #    newsize_list_ = utool.filterfalse_items(newsize_list, exists_list)
+    #else:
+    gpath_list_ = gpath_list
+    new_gpath_list_ = new_gpath_list
+    newsize_list_ = newsize_list
+    generator = resize_imagelist_generator(gpath_list_, new_gpath_list_,
+                                           newsize_list_, **kwargs)
     return [res for res in generator]
