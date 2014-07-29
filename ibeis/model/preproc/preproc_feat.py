@@ -16,12 +16,20 @@ USE_OPENMP = False  # do not use openmp until we have the gravity vector
 
 def gen_feat_worker(tup):
     """
+    <CYTH: returns=tuple>
+    cdef:
+        long cid
+        str cpath
+        dict dict_args
+        np.ndarray[kpts_t, ndims=2] kpts
+        np.ndarray[desc_t, ndims=2] desc
+    </CYTHE>
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
     """
     cid, cpath, dict_args = tup
     kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)
-    return cid, len(kpts), kpts, desc
+    return (cid, len(kpts), kpts, desc)
 
 
 def gen_feat_openmp(cid_list, cfpath_list, dict_args):
@@ -56,6 +64,18 @@ def add_feat_params_gen(ibs, cid_list, nFeat=None, **kwargs):
 
 def generate_feats(cfpath_list, dict_args={}, cid_list=None, nFeat=None, **kwargs):
     # chip-ids are an artifact of the IBEIS Controller. Make dummyones if needbe.
+    """ Function to be parallelized by multiprocessing / joblib / whatever.
+    Must take in one argument to be used by multiprocessing.map_async
+
+    <CYTH: yeilds=tuple>
+    cdef:
+        list cfpath_list
+        long nFeat
+        object cid_list
+        dict dict_args
+        dict kwargs
+    </CYTHE>
+    """
     if cid_list is None:
         cid_list = range(len(cfpath_list))
     if nFeat is None:

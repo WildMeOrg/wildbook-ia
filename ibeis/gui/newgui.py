@@ -649,8 +649,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     @slot_(list)
     def imagesDropped(ibswgt, url_list):
+        from os.path import isdir
         print('[drop_event] url_list=%r' % (url_list,))
-        gpath_list = [gpath for gpath in url_list if utool.matches_image(gpath)]
+        gpath_list = filter(utool.matches_image, url_list)
+        dir_list   = filter(isdir, url_list)
+        if len(dir_list) > 0:
+            ans = guitool.user_option(ibswgt, title='Non-Images dropped',
+                                      msg='Recursively import from directories?')
+            if ans == 'Yes':
+                gpath_list.extend(map(utool.unixpath,
+                                      utool.flatten([utool.list_images(dir_, fullpath=True, recursive=True)
+                                                     for dir_ in dir_list])))
+            else:
+                return
         print('[drop_event] gpath_list=%r' % (gpath_list,))
         if len(gpath_list) > 0:
             ibswgt.back.import_images_from_file(gpath_list=gpath_list)

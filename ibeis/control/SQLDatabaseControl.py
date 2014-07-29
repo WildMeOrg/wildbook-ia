@@ -65,7 +65,9 @@ def ider_sql(func):
 
 
 class SQLDatabaseController(object):
-    """ SQLDatabaseController an efficientish interface into SQL """
+    """ SQLDatabaseController an efficientish interface into SQL
+    </CYTH>
+    """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
                  text_factory=unicode):

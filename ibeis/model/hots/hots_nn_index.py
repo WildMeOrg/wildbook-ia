@@ -16,6 +16,7 @@ NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 #@utool.indent_func('[get_flann_cfgstr]')
 def get_flann_cfgstr(ibs, aid_list):
+    """ </CYTHE> """
     feat_cfgstr   = ibs.cfg.feat_cfg.get_cfgstr()
     sample_cfgstr = utool.hashstr_arr(aid_list, 'daids')
     cfgstr = '_' + sample_cfgstr + feat_cfgstr
@@ -28,7 +29,7 @@ def aggregate_descriptors(ibs, aid_list):
      Return agg_index to(2) -> desc (descriptor)
                                aid (annotation rowid)
                                fx (feature index w.r.t. aid)
-    """
+    </CYTH> """
     print('[agg_desc] stacking descriptors from %d annotations' % len(aid_list))
     desc_list = ibs.get_annot_desc(aid_list)
     # Build inverted index of (aid, fx) pairs
@@ -55,7 +56,7 @@ def aggregate_descriptors(ibs, aid_list):
 def build_flann_inverted_index(ibs, aid_list):
     """
     Build a inverted index (using FLANN)
-    """
+    </CYTH> """
     try:
         if len(aid_list) == 0:
             msg = ('len(aid_list) == 0\n'
@@ -82,7 +83,7 @@ def build_flann_inverted_index(ibs, aid_list):
 
 
 class NNIndex(object):
-    """ Nearest Neighbor (FLANN) Index Class """
+    """ Nearest Neighbor (FLANN) Index Class </CYTH> """
     def __init__(nn_index, ibs, daid_list):
         print('[nnindex] building NNIndex object')
         dx2_desc, dx2_aid, dx2_fx, flann = build_flann_inverted_index(ibs, daid_list)
@@ -123,7 +124,7 @@ class NNIndex(object):
 
 
 class NNSplitIndex(object):
-    """ Nearest Neighbor (FLANN) Index Class """
+    """ Nearest Neighbor (FLANN) Index Class </CYTH> """
     def __init__(split_index, ibs, daid_list, num_forests=8):
         print('[nnsindex] make NNSplitIndex over %d annots' % (len(daid_list),))
         aid_list = daid_list
@@ -170,6 +171,7 @@ class NNSplitIndex(object):
 
 @utool.classmember(NNSplitIndex)
 def nn_index(split_index, qfx2_desc, num_neighbors):
+    """ </CYTH> """
     qfx2_dx_list   = []
     qfx2_dist_list = []
     qfx2_aid_list  = []
@@ -194,6 +196,7 @@ def nn_index(split_index, qfx2_desc, num_neighbors):
 
 
 def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx2_rankx_list, qfx2_treex_list):
+    """ </CYTH> """
     qfx2_dx    = np.hstack(qfx2_dx_list)
     qfx2_dist  = np.hstack(qfx2_dist_list)
     qfx2_rankx = np.hstack(qfx2_rankx_list)
@@ -215,5 +218,6 @@ def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx
 
 @utool.classmember(NNSplitIndex)
 def split_index_daids(split_index):
+    """ </CYTH> """
     for nn_index in split_index.forest_indexes:
         pass

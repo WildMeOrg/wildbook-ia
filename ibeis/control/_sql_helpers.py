@@ -6,7 +6,6 @@ from . import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql-helpers]')
 
-
 # =======================
 # Helper Functions
 # =======================

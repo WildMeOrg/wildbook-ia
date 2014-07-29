@@ -17,19 +17,40 @@ DateTimeOriginal_TAGID = exif.EXIF_TAG_TO_TAGID['DateTimeOriginal']
 
 @profile
 def parse_exif(pil_img):
-    """ Image EXIF helper """
+    """ Image EXIF helper
+    <CYTH: returns=str>
+    cdef:
+        Image pil_img
+        dict exif_dict
+        tuple latlon
+        long lat
+        long lon
+        long exiftime
+    </CYTH>
+    """
     exif_dict = exif.get_exif_dict(pil_img)
     exiftime  = exif_dict.get(DateTimeOriginal_TAGID, -1)
     # TODO: Fixme
-    #latlon = exif_dict.get(GPSInfo_TAGID, (-1, -1))
+    #try:
+    #    latlon = exif_dict.get(GPSInfo_TAGID, (-1, -1))
+    #except EXIFError:
+    #    latlon = (-1, -1)
     latlon = (-1, -1)
-    time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
     lat, lon = latlon
+    time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
     return time, lat, lon
 
 
 @profile
 def get_image_uuid(pil_img):
+    """<CYTH: returns=uuid.UUID>
+    cdef:
+        UUID uuid_
+        ??? img_bytes_
+        ??? bytes_sha1
+        ??? hashbytes_16
+        ??? hashbytes_20
+    </CYTH>"""
     # DEPRICATE
     # Read PIL image data (every 64th byte)
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
@@ -48,11 +69,16 @@ def get_image_uuid(pil_img):
 
 
 def get_standard_ext(gpath):
-    """ Returns standardized image extension """
+    """ Returns standardized image extension
+    <CYTH: returns=str>
+    cdef:
+        str gpath
+        str ext
+    </CYTH>
+    """
+
     ext = splitext(gpath)[1].lower()
-    if ext == '.jpeg':
-        ext = '.jpg'
-    return ext
+    return '.jpg' if ext == '.jpeg' else ext
 
 
 @profile
@@ -63,6 +89,19 @@ def parse_imageinfo(tup):
     Output:
         if successful: returns a tuple of image parameters which are values for SQL columns on
         else: returns None
+    <CYTH>
+    cdef:
+        str gpath
+        Image pil_img
+        str orig_gname
+        str ext
+        long width
+        long height
+        long time
+        long lat
+        long lon
+        str notes
+    </CYTH>
     """
     # Parse arguments from tuple
     gpath = tup
@@ -126,7 +165,11 @@ def add_images_params_gen(gpath_list, **kwargs):
         from ibeis.dev.all_imports import *
         gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
         params_list = list(preproc_image.add_images_params_gen(gpath_list))
-
+    <CYTH: yeilds=tup>
+    cdef:
+        list gpath_list
+        dict kwargs
+    </CYTH>
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))
