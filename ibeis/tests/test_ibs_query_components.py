@@ -2,6 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 # Python
+import six
 import sys
 from collections import OrderedDict
 import multiprocessing
@@ -41,7 +42,7 @@ def TEST_QUERY_COMP(ibs):
     top_aids = utool.safe_slice(top_aids, 3)
     aid2 = top_aids[0]
 
-    for px, (lbl, qres) in enumerate(qres_dict.iteritems()):
+    for px, (lbl, qres) in enumerate(six.iteritems(qres_dict)):
         print(lbl)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)

@@ -2,8 +2,9 @@
 # TODO: Restructure
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import six
 import utool
-from itertools import izip
+from six.moves import zip
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
 
 
@@ -74,7 +75,7 @@ def data_index_integrity(ibs, qreq):
     fid_list = ibs.get_annot_fids(aid_list)
     desc_list2 = ibs.get_feat_desc(fid_list)
 
-    assert all([np.all(desc1 == desc2) for desc1, desc2 in izip(desc_list, desc_list2)])
+    assert all([np.all(desc1 == desc2) for desc1, desc2 in zip(desc_list, desc_list2)])
 
     dx2_data = qreq.data_index.dx2_data
     check_sift_desc(dx2_data)
@@ -84,7 +85,7 @@ def data_index_integrity(ibs, qreq):
     # For each descriptor create a (aid, fx) pair indicating its
     # chip id and the feature index in that chip id.
     nFeat_list = map(len, desc_list)
-    _dx2_aid = [[aid] * nFeat for (aid, nFeat) in izip(aid_list, nFeat_list)]
+    _dx2_aid = [[aid] * nFeat for (aid, nFeat) in zip(aid_list, nFeat_list)]
     _dx2_fx = [range(nFeat) for nFeat in nFeat_list]
 
     assert len(_dx2_fx) == len(aid_list)
@@ -115,10 +116,10 @@ def find_matchable_chips(ibs):
     qaid2_chipmatch_FILT = mf.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
     qaid2_ranked_list = {}
     qaid2_ranked_scores = {}
-    for qaid, chipmatch in qaid2_chipmatch_FILT.iteritems():
+    for qaid, chipmatch in six.iteritems(qaid2_chipmatch_FILT):
         (aid2_fm, aid2_fs, aid2_fk) = chipmatch
-        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in aid2_fs.iteritems()}
-        aid2_nMatches = {aid: len(fm) for (aid, fm) in aid2_fs.iteritems()}
+        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}
+        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}
         nMatches_list = np.array(aid2_nMatches.values())
         aid_list      = np.array(aid2_nMatches.keys())
         sortx = nMatches_list.argsort()[::-1]

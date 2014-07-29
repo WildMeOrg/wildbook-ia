@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+import six
+from six.moves import zip
 import numpy as np
 # Tools
 import utool
@@ -60,7 +61,7 @@ class OrganizedResult(DynStruct):
 
     def iter(self):
         """ useful for plotting """
-        result_iter = izip(self.qaids, self.aids, self.scores, self.ranks)
+        result_iter = zip(self.qaids, self.aids, self.scores, self.ranks)
         for qaid, aid, score, rank in result_iter:
             yield qaid, aid, score, rank
 
@@ -147,7 +148,7 @@ def organize_results(ibs, qaid2_qres):
         #
         # Record: all_true, missed_true, top_true, bot_true
         topx = 0
-        for topx, (aid, score, rank) in enumerate(izip(*true_tup)):
+        for topx, (aid, score, rank) in enumerate(zip(*true_tup)):
             # Record all true results
             org_true.append(qaid, aid, rank, score)
             # Record non-top (a.k.a problem) true results
@@ -173,7 +174,7 @@ def organize_results(ibs, qaid2_qres):
                 org_top_false.append(qaid, aid, rank, score)
             topx += 1
 
-    for qaid, qres in qaid2_qres.iteritems():
+    for qaid, qres in six.iteritems(qaid2_qres):
         if qres is not None:
             _organize_result(qres)
     #print('[rr2] len(org_true)          = %r' % len(org_true))
@@ -194,7 +195,7 @@ def organize_results(ibs, qaid2_qres):
         ('problem_false', org_problem_false),
     ])
 
-    for org in allorg.itervalues():
+    for org in six.itervalues(allorg):
         org.freeze()
     return allorg
 
@@ -210,7 +211,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True):
     scores_stack = []
 
     # For each QueryResult, Extract inspectable candidate matches
-    for qaid, qres in qaid2_qres.iteritems():
+    for qaid, qres in six.iteritems(qaid2_qres):
         assert qaid == qres.qaid, 'qaid2_qres and qres disagree on qaid'
         (qaids, aids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt)
         qaids_stack.append(qaids)

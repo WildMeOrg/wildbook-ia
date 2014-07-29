@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import itertools
-from itertools import chain, imap
+import six
+from itertools import chain
+from six.moves import map
 import utool
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
@@ -24,7 +26,7 @@ def get_diffmat_str(rank_mat, qaids, nCfg):
     diff_aids = row2_aid[diff_rows]
     diff_rank = rank_mat[diff_rows]
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
-    col_lbls = list(chain(['qaid'], imap(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
+    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
     col_types  = list(chain([int], [int] * nCfg))
     header = 'diffmat'
     diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_types)
@@ -207,7 +209,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     best_rankscore_summary = []
     to_intersect_list = []
     # print each configs scores less than X=thresh
-    for X, cfgx2_nLessX in nLessX_dict.iteritems():
+    for X, cfgx2_nLessX in six.iteritems(nLessX_dict):
         max_LessX = cfgx2_nLessX.max()
         bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
         best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)
@@ -225,7 +227,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('[harn] Best Configurations: %s' % testnameid)
         print('==========================')
         # print each configs scores less than X=thresh
-        for X, cfgx2_nLessX in nLessX_dict.iteritems():
+        for X, cfgx2_nLessX in six.iteritems(nLessX_dict):
             max_LessX = cfgx2_nLessX.max()
             bestCFG_X = np.where(cfgx2_nLessX == max_LessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestCFG_X)

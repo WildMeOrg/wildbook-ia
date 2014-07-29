@@ -33,7 +33,8 @@ qaid2_nns - maping from query chip index to nns
 # TODO: Remove ibs control as much as possible or abstract it away
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+from six.moves import zip
+import six
 from collections import defaultdict
 import sys
 # Scientific
@@ -254,7 +255,7 @@ def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
     qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
-    for filt, aid2_weights in filt2_weights.iteritems():
+    for filt, aid2_weights in six.iteritems(filt2_weights):
         qfx2_weights = aid2_weights[qaid]
         sign, thresh, weight = filt_cfg.get_stw(filt)  # stw = sign, thresh, weight
         if thresh is not None and thresh != 'None':
@@ -293,7 +294,7 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         assert len(dx2_oris) == len(qreq.data_index.dx2_data)
     # Filter matches based on config and weights
     mark_prog, end_prog = progress_func(len(qaid2_nns), lbl='Filter NN: ')
-    for count, qaid in enumerate(qaid2_nns.iterkeys()):
+    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_prog(count)  # progress
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
@@ -364,7 +365,7 @@ def identity_filter(qaid2_nns, qreq):
     """
     qaid2_nnfilt = {}
     K = qreq.cfg.nn_cfg.K
-    for count, qaid in enumerate(qaid2_nns.iterkeys()):
+    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
         qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
@@ -393,16 +394,16 @@ def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
     fk_dtype = hots_query_result.FK_DTYPE
     # FIXME: This is slow
     aid2_fm_ = {aid: np.array(fm, fm_dtype)
-                for aid, fm in aid2_fm.iteritems()
+                for aid, fm in six.iteritems(aid2_fm)
                 if len(fm) > minMatches}
     aid2_fs_ = {aid: np.array(fs, fs_dtype)
-                for aid, fs in aid2_fs.iteritems()
+                for aid, fs in six.iteritems(aid2_fs)
                 if len(fs) > minMatches}
     aid2_fk_ = {aid: np.array(fk, fk_dtype)
-                for aid, fk in aid2_fk.iteritems()
+                for aid, fk in six.iteritems(aid2_fk)
                 if len(fk) > minMatches}
     # Ensure shape
-    for aid, fm in aid2_fm_.iteritems():
+    for aid, fm in six.iteritems(aid2_fm_):
         fm.shape = (fm.size // 2, 2)
     chipmatch = (aid2_fm_, aid2_fs_, aid2_fk_)
     return chipmatch
@@ -452,7 +453,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
         aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
     # Iterate over chips with nearest neighbors
     mark_prog, end_prog = progress_func(len(qaid2_nns), 'Build Chipmatch: ')
-    for count, qaid in enumerate(qaid2_nns.iterkeys()):
+    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_prog(count)  # Mark progress
         (qfx2_dx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
@@ -468,7 +469,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
         # TODO: Sorting the valid lists by aid might help the speed of this
         # code. Also, consolidating fm, fs, and fk into one vector will reduce
         # the amount of appends.
-        match_iter = izip(*valid_lists)
+        match_iter = zip(*valid_lists)
         # Vsmany - Append query feature matches to database aids
         if not is_vsone:
             aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
@@ -480,7 +481,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
             chipmatch = _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk)
             qaid2_chipmatch[qaid] = chipmatch
             #if not QUIET:
-            #    nFeats_in_matches = [len(fm) for fm in aid2_fm.itervalues()]
+            #    nFeats_in_matches = [len(fm) for fm in six.itervalues(aid2_fm)]
             #    print('nFeats_in_matches_stats = ' + utool.dict_str(utool.mystats(nFeats_in_matches)))
         # Vsone - Append database feature matches to query aids
         else:
@@ -540,7 +541,7 @@ def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
                 sys.stdout.write(msg)
             count += 1
     # Find a transform from chip2 to chip1 (the old way was 1 to 2)
-    for qaid in qaid2_chipmatch.iterkeys():
+    for qaid in six.iterkeys(qaid2_chipmatch):
         chipmatch = qaid2_chipmatch[qaid]
         aid2_prescore = score_chipmatch(ibs, qaid, chipmatch, prescore_method, qreq)
         #print('Prescore: %r' % (aid2_prescore,))
@@ -639,7 +640,7 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
     score_method = qreq.cfg.agg_cfg.score_method
     # Create the result structures for each query.
     qaid2_qres = {}
-    for qaid in qaid2_chipmatch.iterkeys():
+    for qaid in six.iterkeys(qaid2_chipmatch):
         # For each query's chipmatch
         chipmatch = qaid2_chipmatch[qaid]
         # Perform final scoring
@@ -649,7 +650,7 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
         res.aid2_score = aid2_score
         (res.aid2_fm, res.aid2_fs, res.aid2_fk) = chipmatch
         res.filt2_meta = {}  # dbgstats
-        for filt, qaid2_meta in filt2_meta.iteritems():
+        for filt, qaid2_meta in six.iteritems(filt2_meta):
             res.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
         qaid2_qres[qaid] = res
     # Retain original score method

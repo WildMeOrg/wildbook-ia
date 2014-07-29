@@ -2,8 +2,8 @@ from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[QRes]', DEBUG=False)
 # Python
-import cPickle
-from itertools import izip
+import six
+from six.moves import zip, cPickle
 from os.path import exists, split, join
 from zipfile import error as BadZipFile  # Screwy naming convention.
 import os
@@ -26,7 +26,7 @@ def qres_get_matching_keypoints(qres, ibs, aid2_list):  # aid2 is a name. 2 != 2
     kpts2_list = ibs.get_annot_kpts(aid2_list)
     matching_kpts_list = []
     empty_fm = np.empty((0, 2))
-    for aid2, kpts2 in izip(aid2_list, kpts2_list):
+    for aid2, kpts2 in zip(aid2_list, kpts2_list):
         fm = qres.aid2_fm.get(aid2, empty_fm)
         if len(fm) == 0:
             continue
@@ -75,11 +75,11 @@ def assert_qres(qres):
         raise AssertionError('[!qr] matching dicts do not agree')
     nFeatMatch_list = get_num_feats_in_matches(qres)
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fm) for fm in qres.aid2_fm.itervalues()))])
+                zip(nFeatMatch_list, (len(fm) for fm in six.itervalues(qres.aid2_fm)))])
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fs) for fs in qres.aid2_fs.itervalues()))])
+                zip(nFeatMatch_list, (len(fs) for fs in six.itervalues(qres.aid2_fs)))])
     assert all([num1 == num2 for (num1, num2) in
-                izip(nFeatMatch_list, (len(fk) for fk in qres.aid2_fk.itervalues()))])
+                zip(nFeatMatch_list, (len(fk) for fk in six.itervalues(qres.aid2_fk)))])
 
 
 def get_num_chip_matches(qres):
@@ -87,7 +87,7 @@ def get_num_chip_matches(qres):
 
 
 def get_num_feats_in_matches(qres):
-    return [len(fm) for fm in qres.aid2_fm.itervalues()]
+    return [len(fm) for fm in six.itervalues(qres.aid2_fm)]
 
 
 class QueryResult(__OBJECT_BASE__):
@@ -291,7 +291,7 @@ class QueryResult(__OBJECT_BASE__):
     def get_best_gt_rank(qres, ibs):
         """ Returns the best rank over all the groundtruth """
         gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, return_gtaids=True)
-        aidrank_tups = list(izip(gt_aids, gt_ranks))
+        aidrank_tups = list(zip(gt_aids, gt_ranks))
         # Get only the aids that placed in the shortlist
         #valid_gtaids = np.array([ aid for aid, rank in aidrank_tups if rank is not None])
         valid_ranks  = np.array([rank for aid, rank in aidrank_tups if rank is not None])

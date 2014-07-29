@@ -2,6 +2,7 @@
 'Removes profiled output of code that never ran'
 from __future__ import absolute_import, division, print_function
 import sys
+import six
 import operator
 from collections import defaultdict
 from utool import regex_search, regex_split
@@ -46,7 +47,7 @@ def clean_line_profile_text(text):
         elif total_time != 0:
             timemap[total_time].append(block)
     # Sort the blocks by time
-    sorted_lists = sorted(timemap.iteritems(), key=operator.itemgetter(0))
+    sorted_lists = sorted(six.iteritems(timemap), key=operator.itemgetter(0))
     newlist = prefix_list[:]
     for key, val in sorted_lists:
         newlist.extend(val)

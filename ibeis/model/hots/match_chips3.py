@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
+import six
 from ibeis.model.hots import hots_query_request
 from ibeis.model.hots import hots_nn_index
 from ibeis.model.hots import matching_functions as mf
@@ -150,7 +151,7 @@ def execute_query_and_save_L1(ibs, qreq, failed_qaids=[]):
     if len(failed_qaids) > 0:
         qreq.qaids = failed_qaids
     qaid2_qres = execute_query_L0(ibs, qreq)  # Execute Queries
-    for qaid, res in qaid2_qres.iteritems():  # Cache Save
+    for qaid, res in six.iteritems(qaid2_qres):  # Cache Save
         res.save(ibs)
     qreq.qaids = orig_qaids
     return qaid2_qres

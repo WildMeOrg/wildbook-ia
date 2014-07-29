@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import imap, izip
+import six
+from six.moves import map, zip
 from os.path import join, exists
 import utool
 # Tools
@@ -175,14 +176,14 @@ class SQLDatabaseController(object):
         # check which parameters are valid
         isvalid_list = [params is not None for params in params_list]
         # Check for duplicate inputs
-        isunique_list = utool.flag_unique_items(list(izip(*superkey_lists)))
+        isunique_list = utool.flag_unique_items(list(zip(*superkey_lists)))
         # Check to see if this already exists in the database
         rowid_list_ = get_rowid_from_superkey(*superkey_lists)
         isnew_list  = [rowid is None for rowid in rowid_list_]
         if VERBOSE and not all(isunique_list):
             print('[WARNING]: duplicate inputs to db.add_cleanly')
         # Flag each item that needs to added to the database
-        isdirty_list = map(all, izip(isvalid_list, isunique_list, isnew_list))
+        isdirty_list = list(map(all, zip(isvalid_list, isunique_list, isnew_list)))
         # ADD_CLEANLY_3.1: EXIT IF CLEAN
         if not any(isdirty_list):
             return rowid_list_  # There is nothing to add. Return the rowids
@@ -271,8 +272,8 @@ class SQLDatabaseController(object):
             '''
 
         # TODO: The flattenize can be removed if we pass in val_lists instead
-        params_iter = utool.flattenize(izip(val_list, id_list))
-        #params_iter = list(izip(val_list, id_list))
+        params_iter = utool.flattenize(list(zip(val_list, id_list)))
+        #params_iter = list(zip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter, **kwargs)
 
@@ -389,10 +390,9 @@ class SQLDatabaseController(object):
         contextkw = {'num_params': num_params, 'start_transaction': True}
         with SQLExecutionContext(db, operation, **contextkw) as context:
             #try:
-            results_iter = map(list, (context.execute_and_generate_results(params)
-                                      for params in params_iter))  # list of iterators
+            results_iter = list(map(list, (context.execute_and_generate_results(params) for params in params_iter)))  # list of iterators
             if unpack_scalars:
-                results_iter = list(imap(_unpacker, results_iter))  # list of iterators
+                results_iter = list(map(_unpacker, results_iter))  # list of iterators
             results_list = list(results_iter)  # Eager evaluation
             #except Exception as ex:
             #    utool.printex(ex)
@@ -439,7 +439,7 @@ class SQLDatabaseController(object):
         """ Convenience: Dumps all csv database files to disk """
         dump_dir = join(db.dir_, 'CSV_DUMP')
         utool.ensuredir(dump_dir)
-        for tablename in db.table_columns.iterkeys():
+        for tablename in six.iterkeys(db.table_columns):
             table_fname = tablename + '.csv'
             table_csv = db.get_table_csv(tablename)
             with open(join(dump_dir, table_fname), 'w') as file_:
@@ -499,7 +499,7 @@ class SQLDatabaseController(object):
         return header
 
     def print_schema(db):
-        for tablename in db.table_columns.iterkeys():
+        for tablename in six.iterkeys(db.table_columns):
             print(db.get_table_csv_header(tablename) + '\n')
 
     @default_decorator

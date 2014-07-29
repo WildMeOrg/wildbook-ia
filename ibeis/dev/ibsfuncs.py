@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 #import uuid
 import types
-from itertools import izip
+from six.moves import zip
 from functools import partial
 from os.path import relpath, split, join, exists, commonprefix
 import utool
@@ -113,7 +113,7 @@ def export_to_xml(ibs):
             annotation = PascalVOC_XML_Annotation(dst_img, folder, out_img, **information)
             bbox_list = ibs.get_annot_bboxes(aid_list)
             theta_list = ibs.get_annot_thetas(aid_list)
-            for aid, bbox, theta in izip(aid_list, bbox_list, theta_list):
+            for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
                 # Transformation matrix
                 R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
                 # Get verticies of the annotation polygon
@@ -191,7 +191,7 @@ def get_empty_gids(ibs, eid=None):
     """ returns gid list without any chips """
     gid_list = ibs.get_valid_gids(eid=eid)
     nRois_list = ibs.get_image_num_annotations(gid_list)
-    empty_gids = [gid for gid, nRois in izip(gid_list, nRois_list) if nRois == 0]
+    empty_gids = [gid for gid, nRois in zip(gid_list, nRois_list) if nRois == 0]
     return empty_gids
 
 
@@ -296,7 +296,7 @@ def get_annot_desc_cache(ibs, aids):
     creates a reference to each data object idnexed by a dict """
     unique_aids = list(set(aids))
     unique_desc = ibs.get_annot_desc(unique_aids)
-    desc_cache = dict(list(izip(unique_aids, unique_desc)))
+    desc_cache = dict(list(zip(unique_aids, unique_desc)))
     return desc_cache
 
 
@@ -321,7 +321,7 @@ def localize_images(ibs, gid_list=None):
     gext_list  = ibs.get_image_exts(gid_list)
     # Build list of image names based on uuid in the ibeis imgdir
     guuid_strs = (str(guuid) for guuid in guuid_list)
-    loc_gname_list = [guuid + ext for (guuid, ext) in izip(guuid_strs, gext_list)]
+    loc_gname_list = [guuid + ext for (guuid, ext) in zip(guuid_strs, gext_list)]
     loc_gpath_list = [join(ibs.imgdir, gname) for gname in loc_gname_list]
     utool.copy_list(gpath_list, loc_gpath_list, lbl='Localizing Images: ')
     ibs.set_image_uris(gid_list, loc_gname_list)
@@ -492,10 +492,10 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
             (lbltype_rowid == valid_lbltype_rowid) or
             (lbltype_rowid is None and lblannot_rowid == constants.UNKNOWN_LBLANNOT_ROWID)
             for lbltype_rowid, lblannot_rowid in
-            izip(lbltype_rowid_list, lblannot_rowid_list)]
+            zip(lbltype_rowid_list, lblannot_rowid_list)]
         assert all(validtype_list), 'not all types match valid type'
     except AssertionError as ex:
-        tup_list = map(str, list(izip(lbltype_rowid_list, lblannot_rowid_list)))
+        tup_list = map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list)))
         print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + utool.indentjoin(tup_list))
         print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
         utool.printex(ex, 'not all types match valid type',
@@ -615,7 +615,7 @@ def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}
     parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
 
     anyfailed = False
-    for gpath, parsed in izip(gpath_list, parsed_list):
+    for gpath, parsed in zip(gpath_list, parsed_list):
         if parsed is None:
             print('FAILED TO PARSE: %r' % gpath)
             anyfailed = True
@@ -670,7 +670,7 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
                 raise
         annotation_uuid_list = [augment_uuid(img_uuid, bbox, theta)
                                 for img_uuid, bbox, theta
-                                in izip(image_uuid_list, bbox_list, theta_list)]
+                                in zip(image_uuid_list, bbox_list, theta_list)]
         if not deterministic:
             # Augment determenistic uuid with a random uuid to ensure randomness
             # (this should be ensured in all hardward situations)

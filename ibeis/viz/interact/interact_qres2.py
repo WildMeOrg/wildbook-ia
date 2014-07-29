@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # UTool
 import utool
+import six
 import functools
 from collections import OrderedDict as odict
 # Drawtool
@@ -121,7 +122,7 @@ class Interact_QueryResult(object):
             new_but.on_clicked(callback)
         ph.set_plotdat(new_ax, 'viztype', 'button')
         ph.set_plotdat(new_ax, 'text', text)
-        for key, val in kwargs.iteritems():
+        for key, val in six.iteritems(kwargs):
             ph.set_plotdat(new_ax, key, val)
         # Keep buttons from losing scrop
         self.scope.append((new_but, new_ax))
@@ -235,7 +236,7 @@ class Interact_QueryResult(object):
             self.append_button('prev', callback=self.prev_page, rect=prev_rect)
         if self.current_pagenum != self.nPages - 1:
             self.append_button('next', callback=self.next_page, rect=next_rect)
-        for count, (text, keyword) in enumerate(self.toggleable_kws.iteritems()):
+        for count, (text, keyword) in enumerate(six.iteritems(self.toggleable_kws)):
             callback = functools.partial(self.toggle_kw, keyword=keyword)
             rect = hlt_slot(count)
             self.append_button(text, callback=callback, rect=rect)

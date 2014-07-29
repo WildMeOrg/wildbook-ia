@@ -1,9 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
-from itertools import izip
+import six
+from six.moves import zip
 from ibeis.dev import ibsfuncs
-from ibeis.dev import results_organizer
+#from ibeis.dev import results_organizer
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG=False)
 
 
@@ -20,9 +21,9 @@ def get_feat_matches(allres, qaid, aid):
 def print_desc_distances_map(orgres2_distmap):
     print('+-----------------------------')
     print('| DESCRIPTOR MATCHE DISTANCES:')
-    for orgtype, distmap in orgres2_distmap.iteritems():
+    for orgtype, distmap in six.iteritems(orgres2_distmap):
         print('| orgtype(%r)' % (orgtype,))
-        for disttype, dists in distmap.iteritems():
+        for disttype, dists in six.iteritems(distmap):
             print('|     disttype(%12r): %s' % (disttype, utool.common_stats(dists)))
     print('L-----------------------------')
 
@@ -30,7 +31,7 @@ def print_desc_distances_map(orgres2_distmap):
 def print_annotationmatch_scores_map(orgres2_scores):
     print('+-----------------------------')
     print('| CHIPMATCH SCORES:')
-    for orgtype, scores in orgres2_scores.iteritems():
+    for orgtype, scores in six.iteritems(orgres2_scores):
         print('| orgtype(%r)' % (orgtype,))
         print('|     scores: %s' % (utool.common_stats(scores)))
     print('L-----------------------------')
@@ -78,7 +79,7 @@ def get_matching_descriptors(allres, qaids, aids):
     rdesc_cache = ibsfuncs.get_annot_desc_cache(ibs, aids)
     desc1_list = []
     desc2_list = []
-    for qaid, aid in izip(qaids, aids):
+    for qaid, aid in zip(qaids, aids):
         try:
             fm = get_feat_matches(allres, qaid, aid)
             if len(fm) == 0:
@@ -94,13 +95,11 @@ def get_matching_descriptors(allres, qaids, aids):
     return aggdesc1, aggdesc2
 
 
-def get_score_stuff_pdfish(allres):
-    """ In development """
-    true_orgres  = allres.get_orgtype('true')
-    false_orgres = allres.get_orgtype('false')
-
-    orgres = true_orgres
-    orgres = false_orgres
-
-    def get_interesting_annotationpairs(orgres):
-        orgres2 = results_organizer._score_sorted_ranks_lt(orgres, 2)
+#def get_score_stuff_pdfish(allres):
+#    """ In development """
+#    true_orgres  = allres.get_orgtype('true')
+#    false_orgres = allres.get_orgtype('false')
+#    orgres = true_orgres
+#    orgres = false_orgres
+#    def get_interesting_annotationpairs(orgres):
+#        orgres2 = results_organizer._score_sorted_ranks_lt(orgres, 2)

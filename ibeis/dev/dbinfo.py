@@ -23,9 +23,9 @@ def get_dbinfo(ibs):
 
     name_aids_list = ibs.get_name_aids(valid_nids)
     nx2_aids = np.array(name_aids_list)
-    
+
     gname_list = ibs.get_image_gnames(valid_gids)
-    nx2_nRois = np.asarray(map(len, nx2_aids))
+    nx2_nRois = np.asarray(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
     multiton_nxs  = np.where(nx2_nRois > 1)[0]
     singleton_nxs = np.where(nx2_nRois == 1)[0]
@@ -40,7 +40,7 @@ def get_dbinfo(ibs):
     else:
         multiton_cxs = np.hstack(multiton_aids_list)
     singleton_cxs = nx2_aids[singleton_nxs]
-    multiton_nx2_nchips = map(len, multiton_aids_list)
+    multiton_nx2_nchips = list(map(len, multiton_aids_list))
     # Image info
     gpath_list = ibs.get_image_paths(valid_gids)
     #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True, recursive=True)
@@ -54,7 +54,7 @@ def get_dbinfo(ibs):
              ( 'min', wh_list.min(0)),
              ('mean', wh_list.mean(0)),
              ( 'std', wh_list.std(0))])
-        arr2str = lambda var: '[' + (', '.join(map(lambda x: '%.1f' % x, var))) + ']'
+        arr2str = lambda var: '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
         ret = (',\n    '.join(['%r:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]))
         return '{\n    ' + ret + '}'
 
@@ -100,7 +100,7 @@ def get_keypoint_stats(ibs):
     cx2_kpts = ibs.get_annot_kpts(valid_aids)
     #cx2_kpts = ibs.feats.cx2_kpts
     # Check cx2_kpts
-    cx2_nFeats = map(len, cx2_kpts)
+    cx2_nFeats = list(map(len, cx2_kpts))
     kpts = np.vstack(cx2_kpts)
     print('[dbinfo] --- LaTeX --- ')
     _printopts = np.get_printoptions()
@@ -187,7 +187,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
     ]
 
     convert_to = 'KB'
-    for key, val in bytes_map.iteritems():
+    for key, val in six.iteritems(bytes_map):
         key2 = key.replace('bytes', convert_to)
         if isinstance(val, list):
             val2 = [bytes_ / byte_units[convert_to] for bytes_ in val]

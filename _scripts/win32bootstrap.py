@@ -1,9 +1,10 @@
 from __future__ import division, print_function
+import six
 from selenium import webdriver
 import os
 import parse
 import distutils
-from os.path import join, normpath
+from os.path import join
 # Get packages we are updating
 
 
@@ -150,4 +151,4 @@ print('Unsupported packages: %r' % (unsuported_list,))
 # Find elements in the browser
 elements_dict = dict(find_elements(pkgname) for pkgname in pkgname_list)
 # Fix conflicts
-element_list = [choose_element(*tup) for tup in elements_dict.iteritems()]
+element_list = [choose_element(*tup) for tup in six.iteritems(elements_dict)]

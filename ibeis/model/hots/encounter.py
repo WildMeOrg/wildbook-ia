@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import utool
-(print, print_,  rrr, profile,
- printDBG) = utool.inject(__name__, '[encounter]', DEBUG=False)
+(print, print_,  rrr, profile, printDBG) = utool.inject(__name__, '[encounter]', DEBUG=False)
 # Python
-from itertools import izip
+import six
+from six.moves import zip
 # Science
 import networkx as netx
 import numpy as np
@@ -39,17 +39,17 @@ def get_chip_encounters(ibs):
 
 def get_fmatch_iter(res):
     # USE res.get_fmatch_iter()
-    fmfsfk_enum = enumerate(izip(res.aid2_fm, res.aid2_fs, res.aid2_fk))
+    fmfsfk_enum = enumerate(zip(res.aid2_fm, res.aid2_fs, res.aid2_fk))
     fmatch_iter = ((aid, fx_tup, score, rank)
                    for aid, (fm, fs, fk) in fmfsfk_enum
-                   for (fx_tup, score, rank) in izip(fm, fs, fk))
+                   for (fx_tup, score, rank) in zip(fm, fs, fk))
     return fmatch_iter
 
 
 def get_cxfx_enum(qreq):
     dx2_cxs = qreq._data_index.dx2_cx
     dx2_fxs = qreq._data_index.dx2_fx
-    aidfx_enum = enumerate(izip(dx2_cxs, dx2_fxs))
+    aidfx_enum = enumerate(zip(dx2_cxs, dx2_fxs))
     return aidfx_enum
 
 
@@ -98,8 +98,8 @@ def inter_encounter_match(ibs, eid2_names=None, **kwargs):
     qcx2_res = name_result.chip_results()
     graph = netx.Graph()
     graph.add_nodes_from(range(len(qcx2_res)))
-    graph.add_edges_from([res.aid2_fm for res in qcx2_res.itervalues()])
-    graph.setWeights([(res.aid2_fs, res.aid2_fk) for res in qcx2_res.itervalues()])
+    graph.add_edges_from([res.aid2_fm for res in six.itervalues(qcx2_res)])
+    graph.setWeights([(res.aid2_fs, res.aid2_fk) for res in six.itervalues(qcx2_res)])
     graph.cutEdges(**kwargs)
     aid2_nx, nid2_cxs = graph.getConnectedComponents()
     return aid2_nx

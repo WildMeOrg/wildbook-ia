@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
 # Python
-from itertools import izip
+import six
+from six.moves import zip
 # Scientific
 import numpy as np
 from numpy.linalg import svd
@@ -12,7 +13,7 @@ from numpy.linalg import svd
 
 def score_chipmatch_csum(chipmatch):
     (_, aid2_fs, _) = chipmatch
-    aid2_score = {aid: np.sum(fs) for (aid, fs) in aid2_fs.iteritems()}
+    aid2_score = {aid: np.sum(fs) for (aid, fs) in six.iteritems(aid2_fs)}
     return aid2_score
 
 
@@ -149,7 +150,7 @@ def _chipmatch2_utilities(ibs, qcx, chipmatch, K):
     fss  = np.hstack(aid2_fs)
     fks  = np.hstack(aid2_fk)
     qfx2_utilities = [[] for _ in xrange(nQFeats)]
-    for aid, qfx, fk, fs in izip(aids, qfxs, fks, fss):
+    for aid, qfx, fk, fs in zip(aids, qfxs, fks, fss):
         nid = aid2_nx[aid]
         # Apply temporary uniquish name
         tnx = nid if nid >= 2 else -aid
@@ -216,7 +217,7 @@ def _utilities2_pairwise_breaking(qfx2_utilities):
         # pairwise winners and losers
         pw_winners = [porder[r:r + 1] for r in xrange(nReport)]
         pw_losers = [hstack((corder, porder[r + 1:])) for r in xrange(nReport)]
-        pw_iter = izip(pw_winners, pw_losers)
+        pw_iter = zip(pw_winners, pw_losers)
         pw_votes_ = [cartesian((winner, losers)) for winner, losers in pw_iter]
         pw_votes = np.vstack(pw_votes_)
         #pw_votes = [(w,l) for votes in pw_votes_ for w,l in votes if w != l]

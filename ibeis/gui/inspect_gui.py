@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import six
 import functools  # NOQA
 from functools import partial
 from ibeis.viz import interact
@@ -276,7 +277,7 @@ class CustomAPI(object):
         self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
         # Init iders to default and then overwite based on dict inputs
         self.col_ider_list = utool.alloc_nones(self.nCols)
-        for colname, ider_colnames in col_ider_dict.iteritems():
+        for colname, ider_colnames in six.iteritems(col_ider_dict):
             col = self.col_name_list.index(colname)
             # Col iders might have tuple input
             ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
@@ -284,7 +285,7 @@ class CustomAPI(object):
             self.col_ider_list[col] = col_ider
         # Init setters to data, and then overwrite based on dict inputs
         self.col_setter_list = list(self.col_getter_list)
-        for colname, col_setter in col_setter_dict.iteritems():
+        for colname, col_setter in six.iteritems(col_setter_dict):
             col = self.col_name_list.index(colname)
             self.col_setter_list[col] = col_setter
         # Init bgrole_getters to None, and then overwrite based on dict inputs
@@ -425,7 +426,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None):
     #qnames = ibs.get_annot_names(qaids)
     #names = ibs.get_annot_names(aids)
     #truths = np.array((ibs.get_annot_lblannot_rowids_oftype(qaids) - ibs.get_annot_lblannot_rowids_oftype(aids)) == 0)
-    #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in izip(qaids, aids)]
+    #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in zip(qaids, aids)]
 
     #def get_review_match_buttontup(aid1, aid2):
     #    """ A buttontup is a string and a callback """

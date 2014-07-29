@@ -1,7 +1,8 @@
 # This is supposed to be pristine, it turns out to be mostly clutter
 from __future__ import absolute_import, division, print_function
+import six
 from _devscript import devcmd
-from itertools import izip
+from six.moves import zip
 from os.path import split, join, expanduser
 from plottool import draw_func2 as df2
 import numpy as np
@@ -126,7 +127,7 @@ def export(ibs, aid_pairs=None):
         #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
-        for qaid, qres in qaid2_qres.iteritems():
+        for qaid, qres in six.iteritems(qaid2_qres):
             print('Getting kpts from %r' % qaid)
             #qres.show_top(ibs)
             posrid_list = utool.ensure_iterable(qres.get_classified_pos())
@@ -134,7 +135,7 @@ def export(ibs, aid_pairs=None):
             mkpts_list.extend(qres.get_matching_keypoints(ibs, posrid_list))
 
         mkey2_kpts = {}
-        for mrids_tup, mkpts_tup in izip(mrids_list, mkpts_list):
+        for mrids_tup, mkpts_tup in zip(mrids_list, mkpts_list):
             assert len(mrids_tup) == 2, 'must be a match tuple'
             mrids_ = np.array(mrids_tup)
             sortx = mrids_.argsort()
@@ -155,7 +156,7 @@ def export(ibs, aid_pairs=None):
         mkeys_list = mkey2_kpts.keys()
         mkeys_keypoints = mkey2_kpts.values()
 
-        for mkeys, mkpts_list in izip(mkeys_list, mkeys_keypoints):
+        for mkeys, mkpts_list in zip(mkeys_list, mkeys_keypoints):
             print(mkeys)
             print(len(kpts_list))
             kpts1_m = np.vstack([mkpts[0] for mkpts in mkpts_list])
@@ -167,7 +168,7 @@ def export(ibs, aid_pairs=None):
                         tuple(kp2[ktool.LOC_DIMS].tolist()),
                     )
                 ) + ', '
-                for kp1, kp2 in izip(kpts1_m, kpts2_m)]
+                for kp1, kp2 in zip(kpts1_m, kpts2_m)]
 
             mcpaths_list = ibs.get_annot_cpaths(mkeys)
             fnames_list = map(lambda x: split(x)[1], mcpaths_list)

@@ -5,7 +5,9 @@ import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath, isabs, commonprefix, basename)
-from itertools import izip, chain, imap, cycle, izip_longest
+from itertools import chain, map, cycle,
+import six
+from six.moves import zip, map, zip_longest
 from itertools import product as iprod
 import argparse
 import atexit
@@ -43,10 +45,8 @@ import zipfile
 if not sys.platform.startswith('win32'):
     import resource
 # PIPI
-try:
+if six.PY2:
     import functools32
-except ImportError as ex:
-    assert sys.version_info[0] == 3, 'must be in python3'
 import psutil
 # Matplotlib
 import matplotlib
