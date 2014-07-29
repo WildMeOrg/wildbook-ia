@@ -26,7 +26,6 @@ import colorsys
 import pylab
 import sys
 import warnings
-#from itertools import izip
 # Qt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
@@ -1315,7 +1314,7 @@ def axes_bottom_button_bar(ax, text_list=[]):
         rect_list.append(rect)
         left += width + xpad
     ax_list = [plt.axes(rect) for rect in rect_list]
-    but_list = [mpl.widgets.Button(ax_, text) for ax_, text in izip(ax_list, text_list)]
+    but_list = [mpl.widgets.Button(ax_, text) for ax_, text in zip(ax_list, text_list)]
     return but_list
     """
 

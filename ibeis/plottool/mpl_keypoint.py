@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Standard
-from itertools import izip
+from six.moves import zip
 # Science
 import numpy as np
 # Matplotlib
@@ -167,7 +167,7 @@ def orientation_actors(kpts):
         }
         ori_actors = [mpl.patches.FancyArrow(x, y, dx, dy, head_width=hw, **kwargs)
                       for (x, y, dx, dy, hw) in
-                      izip(_xs, _ys, _dxs, _dys, head_width_list)]
+                      zip(_xs, _ys, _dxs, _dys, head_width_list)]
     except ValueError as ex:
         print('\n[mplkp.2] !!! ERROR %s: ' % str(ex))
         print('_oris.shape = %r' % (_oris.shape,))

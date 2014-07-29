@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from itertools import izip
+from six.moves import zip
 import utool
 import plottool.draw_func2 as df2
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
@@ -25,7 +25,7 @@ def draw_image_overlay(ax, bbox_list=[], theta_list=None, text_list=None,
     if sel_list is None:
         sel_list = [False] * len(bbox_list)
     # Draw all bboxes on top on image
-    annotation_iter = izip(bbox_list, theta_list, text_list, sel_list)
+    annotation_iter = zip(bbox_list, theta_list, text_list, sel_list)
     for bbox, theta, text, is_sel in annotation_iter:
         draw_chip_overlay(ax, bbox, theta, text, is_sel)
 

@@ -1,7 +1,7 @@
 # I'm not quite sure how to organize these functions yet
 from __future__ import absolute_import, division, print_function
 # Standard
-from itertools import izip
+from six.moves import zip
 # Science
 import numpy as np
 import cv2
@@ -36,7 +36,9 @@ def draw_hist_subbin_maxima(hist, centers=None):
     submaxima_x, submaxima_y = htool.interpolate_submaxima(argmaxima, hist, centers)
     xpoints = []
     ypoints = []
-    for (x1, x2, x3), (y1, y2, y3) in zip(x123.T, y123.T):
+    for xtup, ytup in zip(x123.T, y123.T):
+        (x1, x2, x3) = xtup
+        (y1, y2, y3) = ytup
         coeff = np.polyfit((x1, x2, x3), (y1, y2, y3), 2)
         x_pts = np.linspace(x1, x3, 50)
         y_pts = np.polyval(coeff, x_pts)
@@ -46,5 +48,5 @@ def draw_hist_subbin_maxima(hist, centers=None):
     plt.plot(centers, hist, 'bo-')            # Draw hist
     plt.plot(maxima_x, maxima_y, 'ro')        # Draw maxbin
     plt.plot(submaxima_x, submaxima_y, 'rx')  # Draw maxsubbin
-    for x_pts, y_pts in izip(xpoints, ypoints):
+    for x_pts, y_pts in zip(xpoints, ypoints):
         plt.plot(x_pts, y_pts, 'g--')         # Draw parabola

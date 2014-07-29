@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Standard
 from itertools import product as iprod
-from itertools import izip
+from six.moves import zip, range
 # Science
 import numpy as np
 # Matplotlib
@@ -69,13 +69,13 @@ def get_sift_collection(sift,
     arm_mag = sift / 255.0
     arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
     # Arm orientation in dxdy format
-    arm_dxy = np.array(zip(*_cirlce_rad2xy(arm_ori, arm_mag)))
+    arm_dxy = np.array(list(zip(*_cirlce_rad2xy(arm_ori, arm_mag))))
     # Arm locations and dxdy index
-    yxt_gen = iprod(xrange(NY),
-                    xrange(NX),
-                    xrange(NORI))
+    yxt_gen = iprod(range(NY),
+                    range(NX),
+                    range(NORI))
     # Circle x,y locations
-    yx_gen  = iprod(xrange(NY), xrange(NX))
+    yx_gen  = iprod(range(NY), range(NX))
     # Draw 8 directional arms in each of the 4x4 grid cells
     arm_args_list = []
     for y, x, t in yxt_gen:
@@ -107,9 +107,9 @@ def get_sift_collection(sift,
 
 def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
     if invVR_aff2Ds is None:
-        invVR_aff2Ds = [mpl.transforms.Affine2D() for _ in xrange(len(sifts))]
+        invVR_aff2Ds = [mpl.transforms.Affine2D() for _ in range(len(sifts))]
     colltup_list = [get_sift_collection(sift, aff, **kwargs)
-                    for sift, aff in izip(sifts, invVR_aff2Ds)]
+                    for sift, aff in zip(sifts, invVR_aff2Ds)]
     ax.invert_xaxis()
     _set_colltup_list_transform(colltup_list, ax.transData)
     _draw_colltup_list(ax, colltup_list)

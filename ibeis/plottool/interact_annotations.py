@@ -997,7 +997,7 @@ class ANNOTATIONInteraction(object):
             return (MIN_W < width1) and (MIN_H < height1)
 
             #b#def pairs(slicable):
-            #b#    return izip(slicable[:-1], slicable[1:])
+            #b#    return zip(slicable[:-1], slicable[1:])
             #b#def is_rectangle(coords):
             #b#    first_samex = within_epsilon(coords[0][0], coords[1][0])
             #b#    which_to_compare = 0 if first_samex else 1
