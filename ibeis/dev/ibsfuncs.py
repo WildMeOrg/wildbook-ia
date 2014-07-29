@@ -984,3 +984,33 @@ def make_next_name(ibs, num=None):
     else:
         next_names = [name_prefix + '%04d' % (num_names + x) for x in xrange(num)]
         return next_names
+
+
+@__injectable
+def prune_exemplars(ibs):
+    nid_list = ibs.get_valid_nids()
+    aids_list = ibs.get_name_exemplar_aids(nid_list)
+    MAX_EXEMPLAR = 6
+    problem_aids = [np.array(aids) for aids in aids_list if len(aids) > MAX_EXEMPLAR]
+    problem_bboxes = unflat_map(ibs.get_annot_bboxes, problem_aids)
+    #problem_gids   = unflat_map(ibs.get_annot_gids, problem_aids)
+    #problem_sizes  = unflat_map(ibs.get_image_sizes, problem_gids)
+    def bbox_area(bbox):
+        return bbox[-2] * bbox[-1]
+    def bboxes_area(bbox_list):
+        return list(map(bbox_area, bbox_list))
+
+    # Get area of annotations, area of parent images, and the ratio
+
+    problem_annot_areas = list(map(np.array, (map(bboxes_area, problem_bboxes))))
+
+    #problem_img_areas = list(map(np.array, (map(bboxes_area, problem_sizes))))
+
+    #problem_ratios = [(annot_areas / img_areas) for annot_areas, img_areas in
+    #                  zip(problem_annot_areas, problem_img_areas)]
+
+    problem_sortx = [areas.argsort() for areas in problem_annot_areas]
+    # Get aids with the smallest bounding boxes to unexemplar
+    small_aids_list = [aids[sortx][:-MAX_EXEMPLAR] for aids, sortx in zip(problem_aids, problem_sortx)]
+    small_aids = utool.flatten(small_aids_list)
+    ibs.set_annot_exemplar_flag(small_aids, [False] * len(small_aids))
