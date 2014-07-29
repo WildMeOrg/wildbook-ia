@@ -33,13 +33,6 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[kpts]', DEBUG=False)
 
 
-try:
-    # TODO Give cyth this functionality
-    from .keypoint_cython import (get_invVR_mats_det_float64,)  # NOQA
-except ImportError as ex:
-    pass
-
-
 np.tau = 2 * np.pi  # tauday.com
 
 
@@ -489,3 +482,17 @@ def get_kpts_strs(kpts):
     ori_strs = get_ori_strs(kpts)
     kpts_strs = ['\n---\n'.join(tup) for tup in zip(xy_strs, shape_strs, ori_strs)]
     return kpts_strs
+
+
+# CYTH PROTOTYPE CODE:
+try:
+    # TODO Give cyth this functionality
+    if utool.get_flag('--cython'):
+        from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
+        get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
+    else:
+        # default to python
+        get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
+        pass
+except ImportError as ex:
+    pass

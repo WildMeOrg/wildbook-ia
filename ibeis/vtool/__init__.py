@@ -28,14 +28,14 @@ from . import spatial_verification as svtool
 from . import trig
 from . import math as mtool
 
-try:
-    from . import linalg_cython
-    #print('[vtool] cython is on')
-except ImportError as ex:
-    #import utool
-    #utool.printex(ex, iswarning=True)
-    #print('[vtool] cython is off')
-    raise
+#try:
+#    from . import linalg_cython
+#    #print('[vtool] cython is on')
+#except ImportError as ex:
+#    #import utool
+#    #utool.printex(ex, iswarning=True)
+#    #print('[vtool] cython is off')
+#    raise
 
 
 r"""

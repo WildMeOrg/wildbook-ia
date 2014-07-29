@@ -15,7 +15,7 @@ ctypedef np.float64_t float64_t
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_invVR_mats_det_float64(np.ndarray[float64_t, ndim=3] invVRs):
+def get_invVR_mats_sqrd_scale_float64(np.ndarray[float64_t, ndim=3] invVRs):
     # TODO: Move to ktool_cython
     cdef unsigned int nMats = invVRs.shape[0]
     # Prealloc output

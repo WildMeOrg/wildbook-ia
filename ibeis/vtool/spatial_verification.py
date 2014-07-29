@@ -128,7 +128,7 @@ def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     # Get projection components
     _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
     #_det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-    _det1_mt  = ktool.get_invVR_mats_det_float64(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
+    _det1_mt  = ktool.get_invVR_mats_sqrd_scale_cython(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     # Check for projection errors
     #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)

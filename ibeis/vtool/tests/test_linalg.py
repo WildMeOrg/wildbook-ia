@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# This tests cython stuff not linalg stuff :P
 from __future__ import absolute_import, division, print_function
 import utool
 import vtool
@@ -54,7 +55,7 @@ def test_invVR_det():
     invVRs = np.random.rand(4, 3, 3).astype(np.float64)
 
     out1 = ktool.get_invVR_mats_sqrd_scale(invVRs)
-    out2 = ktool.get_invVR_mats_det_float64(invVRs)
+    out2 = ktool.get_invVR_mats_sqrd_scale_float64(invVRs)
 
     print('out1 = %r' % (out1,))
     print('out2 = %r' % (out2,))
@@ -101,7 +102,7 @@ def benchmark_invVR_det():
         ''')
     func_list = [
         'vtool.keypoint.get_invVR_mats_sqrd_scale',
-        'vtool.keypoint.get_invVR_mats_det_float64',
+        'vtool.keypoint.get_invVR_mats_sqrd_scale_float64',
     ]
     argstr = '(invVRs)'
     return _run_benchmark(setup, func_list, argstr)

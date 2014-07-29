@@ -6,21 +6,6 @@ import numpy.linalg as npl
 from numpy import (array, sin, cos)
 import utool
 
-try:
-    from .linalg_cython import (  # NOQA
-        L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
-                                det_distance_float64, L2_sqrd_cython, det_distance_cython
-                               )
-
-    #def L2_sqrd_cython(hist1, hist2):
-    #    if hist1.dtype == np.float32:
-    #        return L2_sqrd_float32(hist1, hist2)
-    #    else:
-    #        return L2_sqrd_float64(hist1, hist2)
-except ImportError as ex:
-    raise
-    pass
-
 profile = utool.profile
 #(print, print_, printDBG, rrr, profile) = utool.inject(
 #    __name__, '[linalg]', DEBUG=False)
@@ -244,7 +229,25 @@ def ori_distance(ori1, ori2):
 
 @profile
 def det_distance(det1, det2):
-    """ Returns how far off determinants are from one another """
+    """ Returns how far off determinants are from one another
+    <CYTH:REPLACE>
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] det1
+    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] det2
+    # TODO: Move to ktool_cython
+    cdef unsigned int nDets = det1.shape[0]
+    # Prealloc output
+    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] out = np.zeros((nDets,), dtype=<float_dtypes>)
+    cdef size_t ix
+    for ix in range(nDets):
+        # simple determinant: ad - bc
+        if det1[ix] > det2[ix]:
+            out[ix] = det1[ix] / det2[ix]
+        else:
+            out[ix] = det2[ix] / det1[ix]
+    </CYTH>
+    """
     # TODO: Cython
     det_dist = det1 / det2
     # Flip ratios that are less than 1
@@ -268,6 +271,19 @@ def L2_sqrd(hist1, hist2):
     hist1 = np.random.rand(4, 2)
     hist2 = np.random.rand(4, 2)
     out = np.empty(hist1.shape, dtype=hist1.dtype)
+    <CYTH:REPLACE>
+    cdef np.ndarray[<FLOAT_TYPES>, ndim=2] hist1
+    cdef np.ndarray[<FLOAT_TYPES>, ndim=2] hist2
+    cdef unsigned int rows = hist1.shape[0]
+    cdef unsigned int cols = hist1.shape[1]
+    # Prealloc output
+    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] out = np.zeros((rows,), dtype=<float_dtypes>)
+    cdef size_t cx
+    cdef size_t rx
+    for rx in range(rows):
+        for cx in range(cols):
+            out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
+    <CYTH>
     """
     # TODO: np.ufunc
     # TODO: Cython
@@ -382,3 +398,20 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
     for row_result in row_result_list[1:]:
         output = logic_op(output, row_result)
     return output
+
+# CYTH PROTOTYPE CODE:
+#cython_funcs = [('det_distance', ['float32', 'float64']), ('L2_sqrd', ['float32', 'float64'])]
+#for
+try:
+    if utool.get_flag('--cython'):
+        from .linalg_cython import (  # NOQA
+            L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
+                                    det_distance_float64, L2_sqrd_cython,
+                                    det_distance_cython)
+    else:
+        # default to python
+        L2_sqrd_cython = L2_sqrd
+        det_distance_cython = det_distance
+except ImportError as ex:
+    raise
+    pass
