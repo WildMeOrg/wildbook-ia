@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from os.path import exists, join
-from itertools import izip
+from six.moves import zip
 # Science
 import cv2
 import numpy as np
@@ -272,7 +272,7 @@ class ThumbnailCacheContext(object):
         max_dsize = (self.thumb_size, self.thumb_size)
         valid_thumbs = [resize_thumb(img, max_dsize) for img in valid_images]
         # Write thumbs to disk
-        for gpath, thumb in izip(valid_fpath, valid_thumbs):
+        for gpath, thumb in zip(valid_fpath, valid_thumbs):
             imwrite(gpath, thumb)
 
     def filter_dirty_items(self, list_):
@@ -307,7 +307,7 @@ def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwarg
     # Compute and write detectimg in asychronous process
     kwargs['force_serial'] = kwargs.get('force_serial', True)
     kwargs['ordered']      = kwargs.get('ordered', True)
-    arg_iter = izip(gpath_list, new_gpath_list, newsize_list)
+    arg_iter = zip(gpath_list, new_gpath_list, newsize_list)
     arg_list = list(arg_iter)
     return utool.util_parallel.generate(resize_worker, arg_list, **kwargs)
 

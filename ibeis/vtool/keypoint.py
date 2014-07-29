@@ -18,7 +18,7 @@ invV = ((iv11, iv12, x),
 """
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+from six.moves import zip
 # Science
 import numpy as np
 import numpy.linalg as npl
@@ -34,6 +34,7 @@ import utool
 
 
 try:
+    # TODO Give cyth this functionality
     from .keypoint_cython import (get_invVR_mats_det_float64,)  # NOQA
 except ImportError as ex:
     pass
@@ -459,7 +460,7 @@ def cast_split(kpts, dtype=KPTS_DTYPE):
 def get_xy_strs(kpts):
     """ strings debugging and output """
     _xs, _ys   = get_xys(kpts)
-    xy_strs = [('xy=(%.1f, %.1f)' % (x, y,)) for x, y, in izip(_xs, _ys)]
+    xy_strs = [('xy=(%.1f, %.1f)' % (x, y,)) for x, y, in zip(_xs, _ys)]
     return xy_strs
 
 
@@ -469,7 +470,7 @@ def get_shape_strs(kpts):
     invVs = get_invVs(kpts)
     shape_strs  = [(('[(%3.1f,  0.00),\n' +
                      ' (%3.1f, %3.1f)]') % (iv11, iv21, iv22,))
-                   for iv11, iv21, iv22 in izip(*invVs)]
+                   for iv11, iv21, iv22 in zip(*invVs)]
     shape_strs = ['invV=\n' +  _str for _str in shape_strs]
     return shape_strs
 
@@ -486,5 +487,5 @@ def get_kpts_strs(kpts):
     xy_strs = get_xy_strs(kpts)
     shape_strs = get_shape_strs(kpts)
     ori_strs = get_ori_strs(kpts)
-    kpts_strs = ['\n---\n'.join(tup) for tup in izip(xy_strs, shape_strs, ori_strs)]
+    kpts_strs = ['\n---\n'.join(tup) for tup in zip(xy_strs, shape_strs, ori_strs)]
     return kpts_strs

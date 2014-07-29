@@ -1,7 +1,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+from six.moves import zip
 # Science
 from scipy.signal import argrelextrema
 import numpy as np
@@ -11,7 +11,7 @@ from utool.util_inject import inject
 
 @profile
 def hist_edges_to_centers(edges):
-    return np.array([(e1 + e2) / 2 for (e1, e2) in izip(edges[:-1], edges[1:])])
+    return np.array([(e1 + e2) / 2 for (e1, e2) in zip(edges[:-1], edges[1:])])
 
 
 @profile

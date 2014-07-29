@@ -1,5 +1,6 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
+from six.moves import zip
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[geom]', DEBUG=False)
@@ -61,9 +62,8 @@ def unhomogonize(xyz_arr):
 def draw_verts(img, verts, color=(0, 128, 255), thickness=2):
     if isinstance(verts, np.ndarray):
         verts = verts.tolist()
-    from itertools import izip
     import cv2
-    line_sequence = izip(verts[:-1], verts[1:])
+    line_sequence = zip(verts[:-1], verts[1:])
     for (p1, p2) in line_sequence:
         #print('p1, p2: (%r, %r)' % (p1, p2))
         cv2.line(img, tuple(p1), tuple(p2), color, thickness)

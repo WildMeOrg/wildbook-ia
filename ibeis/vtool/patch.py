@@ -1,13 +1,14 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+import six
+from six.moves import zip
 from itertools import product as iprod
 import functools
-try:
-    from functools import lru_cache  # Python3 only
-except ImportError:
+if six.PY2:
     from functools32 import lru_cache  # Python2.7 support
+elif six.PY3:
+    from functools import lru_cache  # Python3 only
 # Science
 import cv2
 import numpy as np
@@ -82,7 +83,7 @@ def get_unwarped_patches(chip, kpts):
     patches = []
     subkpts = []
 
-    for (kp, x, y, (sfx, sfy)) in izip(kpts, _xs, _ys, xyexnts):
+    for (kp, x, y, (sfx, sfy)) in zip(kpts, _xs, _ys, xyexnts):
         radius_x = sfx * 1.5
         radius_y = sfy * 1.5
         (chip_h, chip_w) = chip.shape[0:2]
@@ -109,7 +110,7 @@ def get_warped_patches(chip, kpts):
     oris = ktool.get_oris(kpts)
     invV_mats = ktool.get_invV_mats(kpts, with_trans=False, ashomog=True)
     V_mats = ktool.invert_invV_mats(invV_mats)
-    kpts_iter = izip(xs, ys, V_mats, oris)
+    kpts_iter = zip(xs, ys, V_mats, oris)
     s = 41  # sf
     for x, y, V, ori in kpts_iter:
         ss = sqrt(s) * 3
