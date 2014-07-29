@@ -1,6 +1,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
-from itertools import izip
+from six.moves import zip
+import six
 from PIL.ExifTags import TAGS
 from PIL import Image
 #from utool import util_progress
@@ -11,7 +12,7 @@ from . import image as gtool
 
 
 # Inverse of PIL.ExifTags.TAGS
-EXIF_TAG_TO_TAGID = {val: key for (key, val) in TAGS.iteritems()}
+EXIF_TAG_TO_TAGID = {val: key for (key, val) in six.iteritems(TAGS)}
 
 
 @profile
@@ -20,7 +21,7 @@ def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
         default_list = [None for _ in xrange(len(exif_tagid_list))]
     exif_dict = get_exif_dict(pil_img)
     exif_val_list = [exif_dict.get(key, default) for key, default in
-                     izip(exif_tagid_list, default_list)]
+                     zip(exif_tagid_list, default_list)]
     return exif_val_list
 
 
@@ -52,7 +53,7 @@ def get_exif_dict2(pil_img):
         if exif_dict is None:
             raise AttributeError
         assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
-        exif_dict2 = {TAGS.get(key, key): val for (key, val) in exif_dict.iteritems()}
+        exif_dict2 = {TAGS.get(key, key): val for (key, val) in six.iteritems(exif_dict)}
     except AttributeError:
         exif_dict2 = {}
     except OverflowError:
@@ -65,7 +66,7 @@ def check_exif_keys(pil_img):
     info_ = pil_img._getexif()
     valid_keys = []
     invalid_keys = []
-    for key, val in info_.iteritems():
+    for key, val in six.iteritems(info_):
         try:
             exif_keyval = TAGS[key]
             valid_keys.append((key, exif_keyval))
@@ -80,7 +81,7 @@ def check_exif_keys(pil_img):
 @profile
 def read_all_exif_tags(pil_img):
     info_ = pil_img._getexif()
-    info_iter = info_.iteritems()
+    info_iter = six.iteritems(info_)
     tag_ = lambda key: TAGS.get(key, key)
     exif = {} if info_ is None else {tag_(k): v for k, v in info_iter}
     return exif
