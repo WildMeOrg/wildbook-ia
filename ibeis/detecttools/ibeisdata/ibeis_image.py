@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function
 
 import cv2
 import os
 import xml.etree.ElementTree as xml
 
-import common as com
-from ibeis_object import IBEIS_Object
+from . import common as com
+from .ibeis_object import IBEIS_Object
 
 
 class IBEIS_Image(object):
@@ -88,10 +89,9 @@ class IBEIS_Image(object):
                     ibsi.objects.append(IBEIS_Object(obj, ibsi.width, ibsi.height, implicit=False))
                     negatives += 1
 
-
     def __str__(ibsi):
         return "<IBEIS Image Object | %s | %d objects>" \
-            %(ibsi.filename, len(ibsi.objects))
+            % (ibsi.filename, len(ibsi.objects))
 
     def __repr__(ibsi):
         return "<IBEIS Image Object | %s>" % (ibsi.filename)

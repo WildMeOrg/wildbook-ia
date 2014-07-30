@@ -1,15 +1,16 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function
 
-import xml.etree.ElementTree as xml
+#import xml.etree.ElementTree as xml
 
-import common as com
+from . import common as com
 
 
 class IBEIS_Part(object):
 
     def __init__(ibsp, _xml, **kwargs):
         ibsp.name = com.get(_xml, 'name')
-            
+
         bndbox = com.get(_xml, 'bndbox', text=False)
         ibsp.xmax = int(float(com.get(bndbox, 'xmax')))
         ibsp.xmin = int(float(com.get(bndbox, 'xmin')))

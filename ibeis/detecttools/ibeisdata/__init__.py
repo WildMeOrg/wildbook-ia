@@ -1,15 +1,16 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
-from datetime import date
-import cv2
-import numpy as np
+#from datetime import date
+#import cv2
+#import numpy as np
 import os
-import random
+#import random
 from detecttools.directory import Directory
-import xml.etree.ElementTree as xml
+#import xml.etree.ElementTree as xml
 
-import common as com
-from ibeis_image import IBEIS_Image
+from . import common as com
+from .ibeis_image import IBEIS_Image
 
 
 class IBEIS_Data(object):
@@ -33,13 +34,13 @@ class IBEIS_Data(object):
         direct = Directory(os.path.join(ibsd.dataset_path, "Annotations") , include_file_extensions=["xml"])
         ibsd.images = []
         files = direct.files()
-        print "Loading Database"
+        print("Loading Database")
         for i, filename in enumerate(files):
             if len(files) > 10:
                 if i % (len(files) / 10) == 0:
-                    print "%0.2f" % (float(i) / len(files))
+                    print("%0.2f" % (float(i) / len(files)))
             ibsd.images.append(IBEIS_Image(filename, ibsd.absolute_dataset_path, **kwargs))
-        print "    ...Loaded"
+        print("    ...Loaded")
 
         ibsd.categories_images = []
         ibsd.categories_rois = []
@@ -81,7 +82,8 @@ class IBEIS_Data(object):
         def _print_line(category, spacing, images, rois):
             images = str(images)
             rois = str(rois)
-            print "%s%s\t%s" % (category + " " * (spacing - len(category)), images, rois)
+            print("%s%s\t%s" % (category + " " * (spacing - len(category)),
+                                images, rois))
 
         _max = max([ len(category) for category in ibsd.distribution_rois.keys() + ['TOTAL', 'CATEGORY'] ]) + 3
 
@@ -105,7 +107,7 @@ class IBEIS_Data(object):
                     line = [line[0], line[-1]]
                     _dict[line[0]] = True
             except IOError as e:
-                print "<", e, ">", filepath
+                print("<%r> %s" % (e, filepath))
 
             return _dict
 
@@ -121,7 +123,7 @@ class IBEIS_Data(object):
         pos_rois = 0
         neg_rois = 0
         for image in ibsd.images:
-            filename = image.filename
+            #filename = image.filename
             _train = train_values.get(image.filename[:-4], False)
             _val = val_values.get(image.filename[:-4], False)
             _test = test_values.get(image.filename[:-4], False)
@@ -159,7 +161,7 @@ class IBEIS_Data(object):
         if max_rois_pos is not None and len(positives) > 0:
             pos_density = float(pos_rois) / len(positives)
             target_num = int(max_rois_pos / pos_density)
-            print "Normalizing Positives, Target:", target_num
+            print("Normalizing Positives, Target: %d" % target_num)
 
             # Remove images to match target
             while len(positives) > target_num:
@@ -177,7 +179,7 @@ class IBEIS_Data(object):
         if max_rois_neg is not None and len(negatives) > 0:
             neg_density = float(neg_rois) / len(negatives)
             target_num = int(max_rois_neg / neg_density)
-            print "Normalizing Negatives, Target:", target_num
+            print("Normalizing Negatives, Target: %d " % target_num)
 
             # Remove images to match target
             while len(negatives) > target_num:
@@ -191,9 +193,9 @@ class IBEIS_Data(object):
                     if val not in positive_category:
                         neg_rois += 1
 
-        print("%s\t%s\t%s\t%s\t%s" %("       ", "Pos", "Neg", "Val", "Test"))
-        print("%s\t%s\t%s\t%s\t%s" %("Images:", len(positives), len(negatives), len(validation), len(test)))
-        print("%s\t%s\t%s\t%s\t%s" %("ROIs:  ", pos_rois, neg_rois, "", ""))
+        print("%s\t%s\t%s\t%s\t%s" % ("       ", "Pos", "Neg", "Val", "Test"))
+        print("%s\t%s\t%s\t%s\t%s" % ("Images:", len(positives), len(negatives), len(validation), len(test)))
+        print("%s\t%s\t%s\t%s\t%s" % ("ROIs:  ", pos_rois, neg_rois, "", ""))
 
         return (positives, pos_rois), (negatives, neg_rois), validation, test
 
@@ -269,7 +271,6 @@ class IBEIS_Data(object):
     #         output.close()
 
 
-
 if __name__ == "__main__":
 
     information = {
@@ -279,26 +280,25 @@ if __name__ == "__main__":
     }
 
     dataset = IBEIS_Data('test/', **information)
-    print dataset
-    print
+    print(dataset)
 
     # dataset.export_yaml()
 
     # Access specific information about the dataset
-    print "Categories:", dataset.categories
-    print "Number of images:", len(dataset)
+    print("Categories:", dataset.categories)
+    print("Number of images:", len(dataset))
 
-    print
+    print('')
     dataset.print_distribution()
-    print
+    print('')
 
     # Access specific image from dataset using filename or index
-    print dataset['2014_000002']
-    print dataset['_000002']  # partial also works (takes first match)
+    print(dataset['2014_000002'])
+    print(dataset['_000002'])  # partial also works (takes first match)
     cont = True
     while cont:
         # Show the detection regions by drawing them on the source image
-        print "Enter something to continue, empty to get new image"
+        print("Enter something to continue, empty to get new image")
         cont = dataset[com.randInt(0, len(dataset) - 1)].show()
 
     # Get all images using a specific positive set
@@ -307,22 +307,22 @@ if __name__ == "__main__":
     # Get a specific number of images (-1 for auto normalize to what the other gives)
     # (pos, pos_rois), (neg, neg_rois), val, test = dataset.dataset('zebra_grevys', max_rois_neg=-1)
 
-    print "\nPositives:"
+    print("\nPositives:")
     for _pos in pos:
-        print _pos.image_path()
-        print _pos.bounding_boxes(parts=True)
+        print(_pos.image_path())
+        print(_pos.bounding_boxes(parts=True))
 
-    print "\nNegatives:"
+    print("\nNegatives:")
     for _neg in neg:
-        print _neg.image_path()
-        print _neg.bounding_boxes(parts=True)
+        print(_neg.image_path())
+        print(_neg.bounding_boxes(parts=True))
 
-    print "\nValidation:"
+    print("\nValidation:")
     for _val in val:
-        print _val.image_path()
-        print _val.bounding_boxes(parts=True)
+        print(_val.image_path())
+        print(_val.bounding_boxes(parts=True))
 
-    print "\nTest:"
+    print("\nTest:")
     for _test in test:
-        print _test.image_path()
-        print _test.bounding_boxes(parts=True)
+        print(_test.image_path())
+        print(_test.bounding_boxes(parts=True))

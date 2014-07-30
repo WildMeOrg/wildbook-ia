@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-
+from __future__ import print_function, absolute_import, division
+from six.moves import map
 from datetime import date
 import cv2
-import numpy as np
+#import numpy as np
 import os
 
 
@@ -16,13 +17,13 @@ def _kwargs(kwargs, key, value):
 
 class PascalVOC_XML_Annotation(object):
 
-    def __init__(an, fullpath, folder, filename, **kwargs): 
+    def __init__(an, fullpath, folder, filename, **kwargs):
         _kwargs(kwargs, 'database_name', 'Image Database')
         _kwargs(kwargs, 'database_year', str(date.today().year))
-        _kwargs(kwargs, 'source', 'Unknown') # images source (e.g., flickr, reservation, etc.)
-        _kwargs(kwargs, 'segmented', '0') # image has an associated semgnetation
-        _kwargs(kwargs, 'color', True) # open the image with color
-        _kwargs(kwargs, 'alpha', False) # open the image with alpha
+        _kwargs(kwargs, 'source', 'Unknown')  # images source (e.g., flickr, reservation, etc.)
+        _kwargs(kwargs, 'segmented', '0')  # image has an associated semgnetation
+        _kwargs(kwargs, 'color', True)  # open the image with color
+        _kwargs(kwargs, 'alpha', False)  # open the image with alpha
 
         an.folder = folder
         an.filename = filename
@@ -36,19 +37,19 @@ class PascalVOC_XML_Annotation(object):
             raise IOError('Image file not found')
 
         if not kwargs['color']:
-            mode = 0 # Greyscale by default
+            mode = 0  # Greyscale by default
         elif not kwargs['alpha']:
-            mode = 1 # Color without alpha channel
+            mode = 1  # Color without alpha channel
         else:
-            mode = -1 # Color with alpha channel
+            mode = -1  # Color with alpha channel
 
         temp = cv2.imread(fullpath, mode)
-        an.height, an.width, an.channels = map(str, temp.shape)
+        an.height, an.width, an.channels = list(map(str, temp.shape))
 
         an.segmented = kwargs['segmented']
         an.objects = []
 
-    def add_object(an, name, bounding_box, **kwargs):   
+    def add_object(an, name, bounding_box, **kwargs):
         an.objects.append(PascalVOC_XML_Object(name, bounding_box, **kwargs))
 
     def add_part(an, object_index, name, bounding_box):
@@ -72,17 +73,18 @@ class PascalVOC_XML_Annotation(object):
 
         objects = [ob.xml() for ob in an.objects]
         template = template.replace('_^_OBJECT_MULTIPLE_^_', ''.join(objects))
-        
+
         return template
 
 
 class PascalVOC_XML_Object(object):
 
     # take bounding box coordinates in the same order as PASCAL-VOC
-    def __init__(ob, name, (xmax, xmin, ymax, ymin), **kwargs):
-        _kwargs(kwargs, 'pose', 'Unspecified') # Left, Right, Frontal, Rear
-        _kwargs(kwargs, 'truncated', '0') # boolean flag, if there exists a partial object in the image
-        _kwargs(kwargs, 'difficult', '0') # boolean flag, if difficult case from previous years
+    def __init__(ob, name, bbox_XxYy, **kwargs):
+        (xmax, xmin, ymax, ymin) = bbox_XxYy
+        _kwargs(kwargs, 'pose', 'Unspecified')  # Left, Right, Frontal, Rear
+        _kwargs(kwargs, 'truncated', '0')  # boolean flag, if there exists a partial object in the image
+        _kwargs(kwargs, 'difficult', '0')  # boolean flag, if difficult case from previous years
 
         ob.name = name
         ob.pose = kwargs['pose']
@@ -115,15 +117,16 @@ class PascalVOC_XML_Object(object):
 
         parts = [pt.xml() for pt in ob.parts]
         template = template.replace('_^_PART_MULTIPLE_OPTIONAL_^_', ''.join(parts))
-        
+
         return template
 
 
 class PascalVOC_XML_Part(object):
 
-    def __init__(pt, name, (xmin, ymin, xmax, ymax)): 
+    def __init__(pt, name, bbox):
+        (xmin, ymin, xmax, ymax) = bbox
         pt.name = name
-        
+
         pt.bounding_box = (xmin, ymin, xmax, ymax)
         pt.xmin = str(xmin)
         pt.ymin = str(ymin)
@@ -139,7 +142,7 @@ class PascalVOC_XML_Part(object):
         template = template.replace('_^_YMIN_^_', pt.ymin)
         template = template.replace('_^_XMAX_^_', pt.xmax)
         template = template.replace('_^_YMAX_^_', pt.ymax)
-        
+
         return template
 
 
@@ -151,11 +154,10 @@ if __name__ == "__main__":
     }
 
     annotation = PascalVOC_XML_Annotation('.', 'test.png', **information)
-    annotation.add_object('person', (100,100,400,400))
-    annotation.add_object('dog', (10,200,100,800))
+    annotation.add_object('person', (100, 100, 400, 400))
+    annotation.add_object('dog', (10, 200, 100, 800))
 
-    annotation.add_part(0, 'head', (10,200,20,210))
-    annotation.add_part(0, 'foot', (1000,2000,200,2100))
+    annotation.add_part(0, 'head', (10, 200, 20, 210))
+    annotation.add_part(0, 'foot', (1000, 2000, 200, 2100))
 
-    print annotation.xml()
-    
+    print(annotation.xml())

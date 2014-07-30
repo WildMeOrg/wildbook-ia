@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function
 
-import xml.etree.ElementTree as xml
+#import xml.etree.ElementTree as xml
 
-import common as com
-from ibeis_part import IBEIS_Part
+from . import common as com
+from .ibeis_part import IBEIS_Part
 
 
 class IBEIS_Object(object):
@@ -14,7 +15,7 @@ class IBEIS_Object(object):
             ibso.pose = com.get(_xml, 'pose')
             ibso.truncated = com.get(_xml, 'truncated') == "1"
             ibso.difficult = com.get(_xml, 'difficult') == "1"
-                
+
             bndbox = com.get(_xml, 'bndbox', text=False)
             ibso.xmax = min(width,  int(float(com.get(bndbox, 'xmax'))))
             ibso.xmin = max(0,      int(float(com.get(bndbox, 'xmin'))))
@@ -27,7 +28,7 @@ class IBEIS_Object(object):
             ibso.pose = 'Unspecified'
             ibso.truncated = False
             ibso.difficult = False
-                
+
             ibso.xmax = min(width,  _xml['xmax'])
             ibso.xmin = max(0,      _xml['xmin'])
             ibso.ymax = min(height, _xml['ymax'])
@@ -38,7 +39,6 @@ class IBEIS_Object(object):
         ibso.width = ibso.xmax - ibso.xmin
         ibso.height = ibso.ymax - ibso.ymin
         ibso.area = ibso.width * ibso.height
-
 
     def __len__(ibso):
         return len(ibso.parts)
