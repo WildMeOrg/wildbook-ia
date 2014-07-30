@@ -6,6 +6,7 @@ import vtool
 from vtool import keypoint as ktool
 from vtool import linalg
 import numpy as np
+from utool._internal.meta_util_six import get_funcname
 
 GLOBAL_SETUP = '''
 import numpy as np
@@ -20,9 +21,9 @@ def _run_benchmark(setup_, func_list, argstr, number=1000):
     print('----------')
     print('BENCHMARK: ' + utool.get_caller_name())
     for func in func_list:
-        func_name = func if isinstance(func, str) else func.func_name
-        print('Running: %s' % func_name)
-        stmt = func_name + argstr
+        funcname = func if isinstance(func, str) else get_funcname(func)
+        print('Running: %s' % funcname)
+        stmt = funcname + argstr
         try:
             total_time = timeit.timeit(stmt=stmt, setup=setup, number=number)
         except ImportError as ex:
@@ -30,7 +31,7 @@ def _run_benchmark(setup_, func_list, argstr, number=1000):
         except Exception as ex:
             utool.printex(ex, iswarning=False)
             raise
-        print(' * timed: %r seconds in %s' % (total_time, func_name))
+        print(' * timed: %r seconds in %s' % (total_time, funcname))
     return locals()
 
 

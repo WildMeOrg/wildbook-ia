@@ -1,7 +1,7 @@
 'This module should handle all things elliptical'
 from __future__ import absolute_import, division, print_function
 # Python
-from six.moves import zip
+from six.moves import zip, range
 # Scientific
 from numpy import array, zeros, ones
 from scipy.signal import argrelextrema
@@ -221,7 +221,7 @@ def sample_uniform(kpts, nSamples=128):
     assert distsT.shape == (nSamples, nKp)
 
     # This loops over the pt samples and performs the operation for every keypoint
-    for count in xrange(nSamples):
+    for count in range(nSamples):
         segment_len = distsT[count]
         # Find where your starting location is
         offset_list.append(total_dist - dist_walked)

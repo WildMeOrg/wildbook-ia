@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 from plottool import draw_func2 as df2
 from plottool import mpl_keypoint
 from plottool import mpl_sift  # NOQA
@@ -116,7 +117,7 @@ MAX_Y = 2
 kp_list = []
 
 
-for row, col in iprod(xrange(nRows), xrange(nCols)):
+for row, col in iprod(range(nRows), range(nCols)):
     #print((row, col))
     alpha = col / (nCols)
     beta  = row / (nRows)

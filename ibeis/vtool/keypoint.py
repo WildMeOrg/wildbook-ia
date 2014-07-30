@@ -263,7 +263,6 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def get_invVR_mats_sqrd_scale_float64(np.ndarray[float64_t, ndim=3] invVRs):
-        # TODO: Move to ktool_cython
         cdef unsigned int nMats = invVRs.shape[0]
         # Prealloc output
         cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=float64)
@@ -485,6 +484,13 @@ def get_kpts_strs(kpts):
 
 
 # CYTH PROTOTYPE CODE:
+#import cyth
+#exec(cyth.module_execstr(__name__))
+#
+# def module_execstr(module_name):
+#     module = sys.modules[module_name]
+#     __import__
+#     module.__dict__['func_cyth'] = func_cyth
 try:
     # TODO Give cyth this functionality
     if utool.get_flag('--cython'):

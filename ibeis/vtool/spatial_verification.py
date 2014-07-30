@@ -13,6 +13,7 @@ Look Into:
     skimage.transform.fast_homography(im, H)
 """
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import utool
 # Science
 import numpy as np
@@ -45,7 +46,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     x2_mn, y2_mn = xy2_mn
     num_pts = len(x1_mn)
     Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
-    for ix in xrange(num_pts):  # Loop over inliers
+    for ix in range(num_pts):  # Loop over inliers
         # Concatinate all 2x9 matrices into an Mx9 matrix
         u2        = x2_mn[ix]
         v2        = y2_mn[ix]
@@ -235,7 +236,7 @@ def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     <CYTH>
     """
     # Determine the best hypothesis using the number of inliers
-    nInliers_list = np.array(map(len, inliers_list))
+    nInliers_list = np.array([len(inliers) for inliers in inliers_list])
     best_mxs = nInliers_list.argsort()[::-1]
     # Return inliers and transformation
     best_mx = best_mxs[0]

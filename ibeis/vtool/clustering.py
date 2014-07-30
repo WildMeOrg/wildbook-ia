@@ -1,5 +1,6 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import utool
 import sys
 import numpy as np
@@ -152,7 +153,7 @@ def _compute_cluster_centers(num_data, num_clusters, data, clusters, datax2_clus
     # group datapoints by cluster using a sliding grouping algorithm
     _L = 0
     clusterx2_dataLRx = utool.alloc_nones(num_clusters)
-    for _R in xrange(len(datax_sort) + 1):  # Slide R
+    for _R in range(len(datax_sort) + 1):  # Slide R
         if _R == num_data or clusterx_sort[_L] != clusterx_sort[_R]:
             clusterx2_dataLRx[clusterx_sort[_L]] = (_L, _R)
             _L = _R
@@ -183,7 +184,7 @@ def _akmeans_iterate(data, clusters, datax2_clusterx_old, max_iters,
           (ave_unchanged_thresh, ave_unchanged_iterwin))
     #print('[akmeans] Printing akmeans info in format: time (iterx, ave(#changed), #unchanged)')
     xx = 0
-    for xx in xrange(0, max_iters):
+    for xx in range(0, max_iters):
         tt = utool.tic()
         utool.print_('...tic')
         # 1) Find each datapoints nearest cluster center

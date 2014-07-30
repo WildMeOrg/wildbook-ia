@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 import numpy as np
@@ -15,7 +16,7 @@ def test_get_invR_mats_orientation():
     invV_mats = dummy.get_dummy_invV_mats()
 
     def R_mats(theta):
-        return np.array([ltool.rotation_mat2x2(theta) for _ in xrange(len(invV_mats))])
+        return np.array([ltool.rotation_mat2x2(theta) for _ in range(len(invV_mats))])
 
     def test_rots(theta):
         invVR_mats = ltool.matrix_multiply(invV_mats, R_mats(theta))

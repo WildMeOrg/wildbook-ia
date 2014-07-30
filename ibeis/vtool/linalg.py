@@ -18,6 +18,19 @@ TRANSFORM_DTYPE = np.float64
 # Function which multiplies many matrices at once
 from numpy.core.umath_tests import matrix_multiply  # NOQA
 
+'''
+<CYTH>
+cimport numpy as np
+cimport cython
+import cython
+import numpy as np
+
+ctypedef np.float32_t float32_t
+ctypedef np.float64_t float64_t
+#<FLOAT_TYPES> = [float32_t, float64_t]
+</CYTH>
+'''
+
 
 @profile
 def svd(M):

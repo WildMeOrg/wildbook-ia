@@ -1,6 +1,6 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
-from six.moves import zip
+from six.moves import zip, range
 import six
 from PIL.ExifTags import TAGS
 from PIL import Image
@@ -18,7 +18,7 @@ EXIF_TAG_TO_TAGID = {val: key for (key, val) in six.iteritems(TAGS)}
 @profile
 def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     if default_list is None:
-        default_list = [None for _ in xrange(len(exif_tagid_list))]
+        default_list = [None for _ in range(len(exif_tagid_list))]
     exif_dict = get_exif_dict(pil_img)
     exif_val_list = [exif_dict.get(key, default) for key, default in
                      zip(exif_tagid_list, default_list)]

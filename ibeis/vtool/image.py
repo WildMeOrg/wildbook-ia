@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from os.path import exists, join
-from six.moves import zip
+from six.moves import zip, map
 # Science
 import cv2
 import numpy as np
@@ -333,7 +333,7 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
         size_suffix_list = ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
         new_gname_list = utool.append_suffixlist_to_namelist(gpath_list, size_suffix_list)
         new_gpath_list = [join(output_dir, gname) for gname in new_gname_list]
-        new_gpath_list = map(utool.unixpath, new_gpath_list)
+        new_gpath_list = list(map(utool.unixpath, new_gpath_list))
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
     assert len(newsize_list) == len(gpath_list), 'unequal len'
     # Evaluate generator

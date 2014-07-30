@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from os.path import join, realpath
 from itertools import cycle
+from six.moves import range
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[testdata]')
 
 
@@ -31,7 +32,7 @@ def get_test_gpaths(ndata=None, names=None, **kwargs):
     # Get a some number of test images
     if ndata is not None:
         gpath_cycle = cycle(gpath_list)
-        gpath_list  = [gpath_cycle.next() for _ in xrange(ndata)]
+        gpath_list  = [gpath_cycle.next() for _ in range(ndata)]
     return gpath_list
 
 

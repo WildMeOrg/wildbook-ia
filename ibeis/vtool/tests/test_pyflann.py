@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
+#from six.moves import range
 import pyflann
 import numpy as np
 
@@ -26,7 +27,7 @@ if __name__ == '__main__':
 
     """
 
-    #alpha = xrange(0,128)
+    #alpha = range(0,128)
     #pts  = np.random.dirichlet(alpha,size=10000, dtype=np.uint8)
     #qpts = np.random.dirichlet(alpha,size=100, dtype=np.uint8)
 

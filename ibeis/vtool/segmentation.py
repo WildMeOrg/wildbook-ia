@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import numpy as np
 import cv2
 # Tools
@@ -55,9 +56,9 @@ def clean_mask(mask, num_dilate=3, num_erode=3, window_frac=.025):
     element = cv2.getStructuringElement(cv2.MORPH_CROSS, (w, h))
     _mask = mask
     # compute the closing
-    for ix in xrange(num_dilate):
+    for ix in range(num_dilate):
         _mask = cv2.dilate(_mask, element)
-    for ix in xrange(num_erode):
+    for ix in range(num_erode):
         _mask = cv2.erode(_mask, element)
     return _mask
 
