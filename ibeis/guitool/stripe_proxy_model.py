@@ -4,13 +4,12 @@ from PyQt4.QtCore import Qt
 import math
 import utool
 
+import six
+
 #BASE_CLASS = QtGui.QAbstractProxyModel
 #BASE_CLASS = QtGui.QSortFilterProxyModel
 BASE_CLASS = QtGui.QIdentityProxyModel
-
-
-class StripeProxyModel(BASE_CLASS):
-    __metaclass__ = utool.makeForwardingMetaclass(lambda self: self.sourceModel(),
+META_CLASS = utool.makeForwardingMetaclass(lambda self: self.sourceModel(),
                                                     ['_set_context_id',
                                                      '_get_context_id',
                                                      '_set_changeblocked',
@@ -21,6 +20,12 @@ class StripeProxyModel(BASE_CLASS):
                                                      '_rows_updated',
                                                      'name'],
                                                      base_class=BASE_CLASS)
+
+SIX_BASE = six.with_metaclass(META_CLASS, BASE_CLASS)
+
+
+class StripeProxyModel(SIX_BASE):  # (BASE_CLASS, metaclass=META_CLASS):
+    #__metaclass__ = META_CLASS
 
     def __init__(self, parent=None, numduplicates=1):
         BASE_CLASS.__init__(self, parent=parent)

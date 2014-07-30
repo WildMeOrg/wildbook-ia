@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
+from six.moves import range, map
 from . import qtype
 from .guitool_delegates import ComboDelegate, ButtonDelegate
 import utool
@@ -100,18 +101,18 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         if model.sortcolumn is not None:
             print('using: sortcolumn=%r' % model.sortcolumn)
             column_data = model.col_data_list[model.sortcolumn]
-            indicies = range(len(column_data))
+            indicies = list(range(len(column_data)))
             model.row_sortx = utool.sortedby(indicies, column_data,
                                              reverse=model.sortreverse)
         elif len(model.col_data_list) > 0:
-            model.row_sortx = range(len(model.col_data_list[0]))
+            model.row_sortx = list(range(len(model.col_data_list[0])))
         else:
             model.row_sortx = []
         #print('[model] new len(row_sortx) = %r' % (len(model.row_sortx),))
 
     def _assert_feasibility(model):
         assert len(model.col_name_list) == len(model.col_data_list)
-        nrows = map(len, model.col_data_list)
+        nrows = list(map(len, model.col_data_list))
         assert all([nrows[0] == num for num in nrows]), 'inconsistent data'
         #print('[model] is feasible')
 
@@ -298,7 +299,7 @@ class ColumnListTableWidget(QtGui.QWidget):
         if col_type_list is not None:
             print('cltw.change_data: %r' % len(col_type_list))
             col_type_list = list(col_type_list)
-            for column in xrange(len(col_type_list)):
+            for column in range(len(col_type_list)):
                 if isinstance(col_type_list[column], tuple):
                     delegate_type, coltype = col_type_list[column]
                     col_type_list[column] = coltype
@@ -329,7 +330,7 @@ class ColumnListTableWidget(QtGui.QWidget):
         """
         num_rows = cltw.model.rowCount()
         print('cltw.set_persistant: %r rows' % num_rows)
-        for row in xrange(num_rows):
+        for row in range(num_rows):
             index  = cltw.model.index(row, column)
             cltw.view.openPersistentEditor(index)
 

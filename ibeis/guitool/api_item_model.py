@@ -1,14 +1,14 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-#import __builtin__
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error, signal_
-#from .api_thumb_delegate import APIThumbDelegate
-from six.moves import zip
+from six.moves import zip  # builtins
+from utool._internal.meta_util_six import get_funcname
 import functools
 import utool
+#from .api_thumb_delegate import APIThumbDelegate
 #import numpy as np
 #profile = lambda func: func
 #printDBG = lambda *args: None
@@ -66,14 +66,6 @@ class ChangeLayoutContext(object):
 def default_method_decorator(func):
     """ Dummy decorator """
     return checks_qt_error(profile(func))
-    #func_name = func.func_name
-    ##func_ = checks_qt_error(profile(func))
-    #func_ = func
-    #@functools.wraps(func)
-    #def wrapper(*args, **kwargs):
-    #    __builtin__.print('func_name = ' + func_name)
-    #    return func_(*args, **kwargs)
-    #return wrapper
 
 
 def updater(func):
@@ -171,7 +163,7 @@ class APIItemModel(API_MODEL_BASE):
         col_setter_list  = headers.get('col_setter_list', None)
         col_getter_list  = headers.get('col_getter_list', None)
         col_level_list   = headers.get('col_level_list', None)
-        col_sort_index   = headers.get('col_sort_index', None)
+        col_sort_index   = headers.get('col_sort_index', 0)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # New for dynamically getting non-data roles for each row
         col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
@@ -340,7 +332,7 @@ class APIItemModel(API_MODEL_BASE):
         #printDBG('SET SORT')
         if len(model.col_name_list) > 0:
             if utool.USE_ASSERT:
-                assert col_sort_index < len(model.col_name_list), \
+                assert isinstance(col_sort_index, int) and col_sort_index < len(model.col_name_list), \
                     'sort index out of bounds by: %r' % col_sort_index
             model.col_sort_index = col_sort_index
             model.col_sort_reverse = col_sort_reverse
@@ -461,7 +453,7 @@ class APIItemModel(API_MODEL_BASE):
                     assert isinstance(node, _atn.TreeNode), type(node)
             except AssertionError as ex:
                 utool.printex(ex)
-                print(node.func_name)
+                print(get_funcname(node))
                 raise
             if node.parent_node is None:
                 return None
@@ -709,9 +701,9 @@ class APIItemModel(API_MODEL_BASE):
                 value = qtype.cast_into_qt(data)
                 return value
         else:
-            #import __builtin__
+            #import builtins
             #role_name = qtype.ItemDataRoles[role]
-            #__builtin__.print('UNHANDLED ROLE=%r' % role_name)
+            #builtins.print('UNHANDLED ROLE=%r' % role_name)
             pass
         # else return an empty QVariant
         value = QtCore.QVariant()

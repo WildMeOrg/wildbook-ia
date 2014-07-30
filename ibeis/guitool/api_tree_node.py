@@ -1,6 +1,6 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from six.moves import zip
+from six.moves import zip, range
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
 
@@ -100,7 +100,7 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]
-    for level in xrange(num_levels):
+    for level in range(num_levels):
         #print('------------ level=%r -----------' % (level,))
         #print(utool.dict_str(locals()))
         new_node_lists = []

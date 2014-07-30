@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
+from six.moves import range
 import utool
 import sys
 import logging
@@ -105,7 +106,7 @@ def get_view_selection_as_str(view):
         return text.replace('\n', '<NEWLINE>').replace(',', '<COMMA>')
 
     #
-    for ix in xrange(1, len(qindex_list)):
+    for ix in range(1, len(qindex_list)):
         text = astext(model.data(previous))
         copy_table.append(text)
         qindex = qindex_list[ix]

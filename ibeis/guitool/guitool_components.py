@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QSizePolicy
 from PyQt4.QtCore import Qt
@@ -317,7 +318,7 @@ def newLabel(parent, text):
 
 def getAvailableFonts():
     fontdb = QtGui.QFontDatabase()
-    available_fonts = map(str, list(fontdb.families()))
+    available_fonts = list(map(str, list(fontdb.families())))
     return available_fonts
 
 

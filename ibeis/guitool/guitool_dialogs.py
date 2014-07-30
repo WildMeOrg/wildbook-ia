@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 from PyQt4 import QtCore, QtGui  # NOQA
 from PyQt4.QtCore import Qt
 from os.path import split
@@ -124,7 +125,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None):
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
     qdlg = QtGui.QFileDialog()
     qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
-    file_list = map(str, qfile_list)
+    file_list = list(map(str, qfile_list))
     print('Selected %d files' % len(file_list))
     _guitool_cache_write(SELDIR_CACHEID, directory)
     return file_list

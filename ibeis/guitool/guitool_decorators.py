@@ -3,6 +3,7 @@ import functools
 from PyQt4 import QtCore, QtGui  # NOQA
 from PyQt4.QtCore import Qt      # NOQA
 import utool
+from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[guitool.decorators]', DEBUG=False)
 
@@ -19,8 +20,8 @@ def slot_(*types):  # This is called at wrap time to get args
     *args = types
     """
     def pyqtSlotWrapper(func):
-        #printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.func_name)
-        @QtCore.pyqtSlot(*types, name=func.func_name)
+        #printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.__name__)
+        @QtCore.pyqtSlot(*types, name=get_funcname(func))
         @utool.ignores_exc_tb
         def slot_wrapper(self, *args, **kwargs):
             result = func(self, *args, **kwargs)
@@ -40,7 +41,7 @@ def checks_qt_error(func):
         try:
             result = func(self, *args, **kwargs)
         except Exception as ex:
-            utool.printex(ex, 'caught exception in %r' % func.func_name,
+            utool.printex(ex, 'caught exception in %r' % get_funcname(func),
                           tb=True, separate=True)
             raise
         return result

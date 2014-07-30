@@ -1,18 +1,31 @@
 from __future__ import absolute_import, division, print_function
 #from PyQt4.QtCore import Qt
+import six
 from PyQt4.QtCore import QLocale
 import utool
 import uuid
 import numpy as np
-from PyQt4 import QtGui
-from PyQt4.QtCore import QVariant
-import six
+from PyQt4 import QtGui, QtCore
 if six.PY2:
     from PyQt4.QtCore import QString
 elif six.PY3:
     QString = str
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qtype]', DEBUG=False)
+
+
+if six.PY2:
+    def QVariant6(*args):
+        return QtCore.QVariant(*args)
+        pass
+elif six.PY3:
+    def QVariant6(*args):
+        if len(args) == 0:
+            return None
+        elif len(args) == 1:
+            return args[0]
+        else:
+            return args
 
 
 ItemDataRoles = {
@@ -128,7 +141,7 @@ def cast_from_qt(var, type_=None):
     elif isinstance(var, QString):
         data = str(var)
     #elif isinstance(var, (int, long, str, float)):
-    elif isinstance(var, (int, str, unicode)):
+    elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
         # comboboxes return ints
         data = var
     else:

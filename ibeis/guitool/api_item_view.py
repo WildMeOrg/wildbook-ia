@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 from guitool import qtype
 from guitool.api_thumb_delegate import APIThumbDelegate
 from guitool.api_button_delegate import APIButtonDelegate
@@ -66,7 +67,7 @@ def set_column_persistant_editor(view, column):
     """ Set each row in a column as persistant """
     num_rows = view.model.rowCount()
     print('view.set_persistant: %r rows' % num_rows)
-    for row in xrange(num_rows):
+    for row in range(num_rows):
         index  = view.model.index(row, column)
         view.view.openPersistentEditor(index)
 
