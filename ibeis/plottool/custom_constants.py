@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 import utool
 import sys
 import numpy as np
@@ -76,7 +77,7 @@ def golden_wh2(sz):
 
 def golden_wh(x):
     'returns a width / height with a golden aspect ratio'
-    return map(int, map(round, (x * .618, x * .312)))
+    return list(map(int, list(map(round, (x * .618, x * .312)))))
 
 
 # FIGURE GEOMETRY

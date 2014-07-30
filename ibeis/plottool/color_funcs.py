@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import colorsys
 import numpy as np  # NOQA
 import utool
@@ -68,7 +69,7 @@ def distinct_colors(N, brightness=.878):
     # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
     sat = brightness
     val = brightness
-    HSV_tuples = [(x * 1.0 / N, sat, val) for x in xrange(N)]
+    HSV_tuples = [(x * 1.0 / N, sat, val) for x in range(N)]
     RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
     utool.deterministic_shuffle(RGB_tuples)
     return RGB_tuples

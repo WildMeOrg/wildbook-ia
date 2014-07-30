@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import sys
 import utool
 import numpy as np
@@ -49,7 +50,7 @@ def get_monitor_geometries():
     ensure_app_is_running()
     monitor_geometries = {}
     desktop = QtGui.QDesktopWidget()
-    for screenx in xrange(desktop.numScreens()):
+    for screenx in range(desktop.numScreens()):
         rect = desktop.availableGeometry(screen=screenx)
         geom = (rect.x(), rect.y(), rect.width(), rect.height())
         monitor_geometries[screenx] = geom
@@ -139,5 +140,5 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
         x = startx + colx * (win_width)  + x_pad
         y = starty + rowx * (win_height) + y_pad
         return (x, y, w, h)
-    valid_positions = [get_position_ix(ix) for ix in xrange(num_wins)]
+    valid_positions = [get_position_ix(ix) for ix in range(num_wins)]
     return valid_positions

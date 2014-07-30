@@ -1,11 +1,12 @@
 """ Lots of functions for drawing and plotting visiony things """
 # TODO: New naming scheme
-# viz_<func_name> will clear everything. The current axes and fig: clf, cla.  # Will add annotations
-# interact_<func_name> will clear everything and start user interactions.
-# show_<func_name> will always clear the current axes, but not fig: cla # Might # add annotates?
-# plot_<func_name> will not clear the axes or figure. More useful for graphs
-# draw_<func_name> same as plot for now. More useful for images
+# viz_<funcname> will clear everything. The current axes and fig: clf, cla.  # Will add annotations
+# interact_<funcname> will clear everything and start user interactions.
+# show_<funcname> will always clear the current axes, but not fig: cla # Might # add annotates?
+# plot_<funcname> will not clear the axes or figure. More useful for graphs
+# draw_<funcname> same as plot for now. More useful for images
 from __future__ import absolute_import, division, print_function
+from six.moves import range, zip, map
 import six
 import os
 import sys
@@ -95,8 +96,8 @@ def distinct_colors(N, brightness=.878):
     # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
     sat = brightness
     val = brightness
-    HSV_tuples = [(x * 1.0 / N, sat, val) for x in xrange(N)]
-    RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+    HSV_tuples = [(x * 1.0 / N, sat, val) for x in range(N)]
+    RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
     utool.deterministic_shuffle(RGB_tuples)
     return RGB_tuples
 
@@ -650,7 +651,7 @@ def plot_bars(y_data, nColorSplits=1):
     ori_colors = distinct_colors(nColorSplits)
     x_data = np.arange(nDims)
     ax = gca()
-    for ix in xrange(nColorSplits):
+    for ix in range(nColorSplits):
         xs = np.arange(nGroup) + (nGroup * ix)
         color = ori_colors[ix]
         x_dat = x_data[xs]
@@ -732,7 +733,7 @@ def scores_to_color(score_list, cmap_='hot', logscale=False):
     mins = score_list.min()
     rnge = score_list.max() - mins
     if rnge == 0:
-        return [cmap(.5) for fx in xrange(len(score_list))]
+        return [cmap(.5) for fx in range(len(score_list))]
     else:
         if logscale:
             score2_01 = lambda score: np.log2(1.1 + .9 * (float(score) - mins) / (rnge))
@@ -740,7 +741,7 @@ def scores_to_color(score_list, cmap_='hot', logscale=False):
             #rank_multiplier = score_list.argsort() / len(score_list)
             #normscore = np.array(map(score2_01, score_list)) * rank_multiplier
             normscore = np.array(map(score2_01, score_list))
-            colors =  map(cmap, normscore)
+            colors =  list(map(cmap, normscore))
         else:
             score2_01 = lambda score: .1 + .9 * (float(score) - mins) / (rnge)
         colors    = [cmap(score2_01(score)) for score in score_list]
@@ -821,11 +822,11 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                          kpts2_m[1] * scale_factor + hoff))
     if color_list is None:
         if fs is None:  # Draw with solid color
-            color_list    = [RED for fx in xrange(len(fm))]
+            color_list    = [RED for fx in range(len(fm))]
         else:  # Draw with colors proportional to score difference
             color_list = scores_to_color(fs)
     segments  = [((x1, y1), (x2, y2)) for (x1, x2, y1, y2) in xxyy_iter]
-    linewidth = [lw for fx in xrange(len(fm))]
+    linewidth = [lw for fx in range(len(fm))]
     line_alpha = line_alpha
     line_group = LineCollection(segments, linewidth, color_list, alpha=line_alpha)
     #plt.colorbar(line_group, ax=ax)
@@ -856,7 +857,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         ell_color = color_list
         pts_color = color_list
     #else:
-        #pts_color = [pts_color for _ in xrange(len(kpts))]
+        #pts_color = [pts_color for _ in range(len(kpts))]
     if ell_color == 'distinct':
         ell_color = distinct_colors(len(kpts))
 
@@ -981,7 +982,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             imgGRAY = img
             if cmap is None:
                 cmap = plt.get_cmap('gray')
-            if isinstance(cmap, (str, unicode)):
+            if isinstance(cmap, six.string_types):
                 cmap = plt.get_cmap(cmap)
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
@@ -1309,7 +1310,7 @@ def axes_bottom_button_bar(ax, text_list=[]):
     height = root_height * .05
     left = root_left
     bottom = root_bottom - height
-    for ix in xrange(num):
+    for ix in range(num):
         rect = [left, bottom, width, height]
         rect_list.append(rect)
         left += width + xpad

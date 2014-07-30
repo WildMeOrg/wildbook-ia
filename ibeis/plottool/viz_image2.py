@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from six.moves import zip
+from six.moves import zip, map
 import utool
 import plottool.draw_func2 as df2
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
@@ -21,7 +21,7 @@ def draw_image_overlay(ax, bbox_list=[], theta_list=None, text_list=None,
     if theta_list is None:
         theta_list = [0] * len(bbox_list)
     if text_list is None:
-        text_list = map(str, range(len(bbox_list)))
+        text_list = list(map(str, range(len(bbox_list))))
     if sel_list is None:
         sel_list = [False] * len(bbox_list)
     # Draw all bboxes on top on image

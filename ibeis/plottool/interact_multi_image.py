@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 from matplotlib.widgets import Button
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -137,7 +138,7 @@ class MultiImageInteraction(object):
         index = self.start_index
         start_index = self.start_index
         stop_index = self.stop_index
-        for px, index in enumerate(xrange(start_index, stop_index)):
+        for px, index in enumerate(range(start_index, stop_index)):
             self.plot_image(index)
         self.make_hud()
         self.draw()
@@ -152,9 +153,9 @@ class MultiImageInteraction(object):
         print('bbox_list %r in display for px: %r ' % (bbox_list, px))
         theta_list = self.thetas_list[index]
         img = gtool.imread(gpath)
-        label_list = [ix + 1 for ix in xrange(len(bbox_list))]
+        label_list = [ix + 1 for ix in range(len(bbox_list))]
         #Add true values for every bbox to display
-        sel_list = [True for ix in xrange(len(bbox_list))]
+        sel_list = [True for ix in range(len(bbox_list))]
         _vizkw = {
             'fnum': self.fnum,
             'pnum': self.pnum_(px),

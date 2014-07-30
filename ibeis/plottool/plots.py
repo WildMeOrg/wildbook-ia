@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Standard
-from six.moves import zip
+from six.moves import zip, range
 from plottool import draw_func2 as df2
 # Matplotlib
 import matplotlib.pyplot as plt
@@ -45,9 +45,9 @@ def draw_scores_cdf(scores_list,
     Plots them in a CDF with different types of scores labeled
     """
     if scores_lbls is None:
-        scores_lbls = [lblx for lblx in xrange(len(scores_list))]
+        scores_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
-        score_markers = ['o' for lbl in xrange(len(scores_list))]
+        score_markers = ['o' for lbl in range(len(scores_list))]
     if score_colors is None:
         score_colors = df2.distinct_colors(len(scores_list))[::-1]
     labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
@@ -64,7 +64,7 @@ def draw_scores_cdf(scores_list,
 
     df2.figure(fnum=fnum, doclf=True, docla=True)
 
-    for lblx in xrange(len(scores_list)):
+    for lblx in range(len(scores_list)):
         label = scores_lbls[lblx]
         color = score_colors[lblx]
         marker = score_markers[lblx]
