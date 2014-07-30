@@ -90,8 +90,9 @@ class SQLExecutionContext(object):
         """ HELPER FOR CONTEXT STATMENT """
         try:
             context.cur.execute(context.operation, params)
-        except lite.IntegrityError:
-            print('[sql.IntegrityError] params=<%r>' % (params,))
+        except lite.Error as ex:
+            print('[sql.Error] %r' % (type(ex),))
+            print('[sql.Error] params=<%r>' % (params,))
             raise
         is_insert = context.operation_type.startswith('INSERT')
         return _results_gen(context.cur, get_last_id=is_insert)
@@ -101,7 +102,7 @@ class SQLExecutionContext(object):
         #    utool.tic(context.tt)
         if trace is not None:
             # An SQLError is a serious offence.
-            print('[sql] FATAL ERROR IN QUERY')
+            print('[sql] FATAL ERROR IN QUERY CONTEXT')
             print('[sql] operation=\n' + context.operation)
             context.db.dump()  # Dump on error
             print('[sql] Error in context manager!: ' + str(value))

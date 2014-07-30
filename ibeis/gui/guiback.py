@@ -29,7 +29,7 @@ VERBOSE = utool.VERBOSE
 
 def default_decorator(func):
     return func
-    #return utool.indent_func('[back.' + func.func_name + ']')(func)
+    #return utool.indent_func('[back.' + func.__name__ + ']')(func)
 
 
 def backblock(func):
@@ -67,7 +67,7 @@ def blocking_slot(*types_):
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
-        #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.func_name, types_))
+        #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.__name__, types_))
         return wrapped_bslot
     return wrap_bslot
 

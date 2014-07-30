@@ -45,9 +45,13 @@ CLUTTER_PATTERNS = [
     '*.prof.txt',
     '*.lprof',
     '\'',
+    '*.ln.pkg',
+    '*.egg-info',
+    'test_times.txt',
+    'logs/',
+    '__pycache__/',
+    'dist/'
 ]
-
-CLUTTER_DIRS = ['logs', '__pycache__']
 
 INSTALL_REQUIRES = [
     'utool >= 1.0.0.dev1',
@@ -73,7 +77,6 @@ if __name__ == '__main__':
         name='ibeis',
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
-        clutter_dirs=CLUTTER_DIRS,
         clutter_patterns=CLUTTER_PATTERNS,
         install_requires=INSTALL_REQUIRES
         #cython_files=CYTHON_FILES,

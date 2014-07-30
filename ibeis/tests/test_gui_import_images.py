@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 import multiprocessing
 import utool
 from vtool.tests import grabdata
@@ -12,7 +13,7 @@ def TEST_GUI_IMPORT_IMAGES(ibs, back):
     # The test api returns a list of interesting chip indexes
     mode = 'FILE'
     if mode == 'FILE':
-        gpath_list = map(utool.unixpath, grabdata.get_test_gpaths())
+        gpath_list = list(map(utool.unixpath, grabdata.get_test_gpaths()))
 
         # else:
         #    dir_ = utool.truepath(join(sysres.get_workdir(), 'PZ_MOTHERS/images'))

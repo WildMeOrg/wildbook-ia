@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+from six.moves import zip, range
 # Science
 import pyhesaff
 # UTool
 import utool
+
+
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[preproc_feat]', DEBUG=False)
@@ -36,7 +38,7 @@ def gen_feat_openmp(cid_list, cfpath_list, dict_args):
     """ Compute features in parallel on the C++ side, return generator here """
     print('Detecting %r features in parallel: ' % len(cid_list))
     kpts_list, desc_list = pyhesaff.detect_kpts_list(cfpath_list, **dict_args)
-    for cid, kpts, desc in izip(cid_list, kpts_list, desc_list):
+    for cid, kpts, desc in zip(cid_list, kpts_list, desc_list):
         yield cid, len(kpts), kpts, desc
 
 
@@ -77,11 +79,11 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nFeat=None, **kwarg
     </CYTHE>
     """
     if cid_list is None:
-        cid_list = range(len(cfpath_list))
+        cid_list = list(range(len(cfpath_list)))
     if nFeat is None:
         nFeat = len(cfpath_list)
-    dictargs_iter = (dict_args for _ in xrange(nFeat))
-    arg_iter = izip(cid_list, cfpath_list, dictargs_iter)
+    dictargs_iter = (dict_args for _ in range(nFeat))
+    arg_iter = zip(cid_list, cfpath_list, dictargs_iter)
     arg_list = list(arg_iter)
     featgen = utool.util_parallel.generate(gen_feat_worker, arg_list, **kwargs)
     return featgen

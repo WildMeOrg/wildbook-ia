@@ -4,9 +4,9 @@
 This module lists known raw databases and how to ingest them.
 """
 from __future__ import absolute_import, division, print_function
+from six.moves import zip, map, range
 import ibeis
 from os.path import exists
-from itertools import izip
 from ibeis.dev import ibsfuncs
 from ibeis import constants
 from ibeis.control import IBEISControl
@@ -55,7 +55,7 @@ def ingest_testdb1(db):
         none_nids = [ nid is not None for nid in nid_list]
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
-        flag_list = map(all, izip(plural_flag, unique_flag, none_nids))
+        flag_list = list(map(all, zip(plural_flag, unique_flag, none_nids)))
         flagged_aids = utool.filter_items(aid_list, flag_list)
         if utool.VERYVERBOSE:
             def print2(*args):
@@ -181,7 +181,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if ingest_type == 'named_images':
         name_list = ibsfuncs.get_name_text_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
-        name_list = [constants.INDIVIDUAL_KEY for _ in xrange(len(gpath_list))]
+        name_list = [constants.INDIVIDUAL_KEY for _ in range(len(gpath_list))]
 
     # Add Images
     gid_list_ = ibs.add_images(gpath_list)
@@ -224,7 +224,7 @@ def list_ingestable_images(img_dir, fullpath=True, recursive=True):
                                    recursive=recursive,
                                    ignore_list=ignore_list)
     # Ensure in unix format
-    gpath_list = map(utool.unixpath, gpath_list)
+    gpath_list = list(map(utool.unixpath, gpath_list))
     return gpath_list
 
 

@@ -17,7 +17,7 @@ import six
 import atexit
 import requests
 import uuid
-from six.moves import zip, map
+from six.moves import zip, map, range
 from functools import partial
 from os.path import join, split
 # VTool
@@ -58,7 +58,11 @@ from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
     __name__, '[ibs]', DEBUG=False)
 
 
-__STR__ = unicode  # change to unicode if needed
+if six.PY2:
+    __STR__ = unicode  # change to str if needed
+else:
+    __STR__ = str
+
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 
 
@@ -534,7 +538,7 @@ class IBEISController(object):
             print('[ibs] adding %d encounters' % len(enctext_list))
         # Add encounter text names to database
         notes_list = [''] * len(enctext_list)
-        encounter_uuid_list = [uuid.uuid4() for _ in xrange(len(enctext_list))]
+        encounter_uuid_list = [uuid.uuid4() for _ in range(len(enctext_list))]
         colnames = ['encounter_text', 'encounter_uuid', 'encounter_note']
         params_iter = zip(enctext_list, encounter_uuid_list, notes_list)
         get_rowid_from_superkey = partial(ibs.get_encounter_eids_from_text, ensure=False)
@@ -556,13 +560,13 @@ class IBEISController(object):
         assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
 
         if theta_list is None:
-            theta_list = [0.0 for _ in xrange(len(gid_list))]
+            theta_list = [0.0 for _ in range(len(gid_list))]
         if name_list is not None:
             nid_list = ibs.add_names(name_list)
         if detect_confidence_list is None:
-            detect_confidence_list = [0.0 for _ in xrange(len(gid_list))]
+            detect_confidence_list = [0.0 for _ in range(len(gid_list))]
         if notes_list is None:
-            notes_list = ['' for _ in xrange(len(gid_list))]
+            notes_list = ['' for _ in range(len(gid_list))]
         if vert_list is None:
             vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
         elif bbox_list is None:
@@ -816,8 +820,8 @@ class IBEISController(object):
         """ Sets the vertices [(x, y), ...] of a list of chips by aid """
         num_params = len(aid_list)
         # Compute data to set
-        num_verts_list   = map(len, verts_list)
-        verts_as_strings = map(__STR__, verts_list)
+        num_verts_list   = list(map(len, verts_list))
+        verts_as_strings = list(map(__STR__, verts_list))
         id_iter1 = ((aid,) for aid in aid_list)
         # also need to set the internal number of vertices
         val_iter1 = ((num_verts, verts) for (num_verts, verts)
@@ -1524,12 +1528,12 @@ class IBEISController(object):
 
     @deleter
     @cache_invalidator(CHIP_TABLE)
-    def delete_chips(ibs, cid_list):
+    def delete_chips(ibs, cid_list, verbose=utool.VERBOSE):
         """ deletes images from the database that belong to gids"""
-        if utool.VERBOSE:
+        if verbose:
             print('[ibs] deleting %d annotation-chips' % len(cid_list))
         # Delete chip-images from disk
-        preproc_chip.delete_chips(ibs, cid_list)
+        preproc_chip.delete_chips(ibs, cid_list, verbose=verbose)
         # Delete chip features from sql
         _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
         fid_list = utool.filter_Nones(_fid_list)
@@ -1623,7 +1627,7 @@ class IBEISController(object):
             """ helper to commit detections on the fly """
             if len(detected_gids) == 0:
                 return
-            notes_list = ['rfdetect' for _ in xrange(len(detected_gid_list))]
+            notes_list = ['rfdetect' for _ in range(len(detected_gid_list))]
             # Ideally, species will come from the detector with confidences that actually mean something
             species_list = [ibs.cfg.detect_cfg.species] * len(notes_list)
             ibs.add_annots(detected_gids, detected_bboxes,
@@ -1965,7 +1969,7 @@ class IBEISController(object):
         if note_list is None:
             note_list = [''] * len(value_list)
         # Get random uuids
-        lblannot_uuid_list = [uuid.uuid4() for _ in xrange(len(value_list))]
+        lblannot_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
         colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
         params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
         get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
@@ -2014,7 +2018,7 @@ class IBEISController(object):
 
     @getter_1toM
     def get_annot_alrids(ibs, aid_list, configid=None):
-        """ FIXME: func_name
+        """ FIXME: __name__
         Get all the relationship ids belonging to the input annotations
         if lblannot lbltype is specified the relationship ids are filtered to
         be only of a specific lbltype/category/type

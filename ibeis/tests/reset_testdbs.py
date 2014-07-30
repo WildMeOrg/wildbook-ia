@@ -29,7 +29,7 @@ def make_testdb0():
     main_locals = ibeis.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
     ibs = main_locals['ibs']
     assert ibs is not None, str(main_locals)
-    gpath_list = map(utool.unixpath, grabdata.get_test_gpaths())
+    gpath_list = list(map(utool.unixpath, grabdata.get_test_gpaths()))
     #print('[RESET] gpath_list=%r' % gpath_list)
     gid_list = ibs.add_images(gpath_list)  # NOQA
     valid_gids = ibs.get_valid_gids()

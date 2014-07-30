@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
@@ -29,7 +30,7 @@ def create_databse():
     db.schema('encounters', encounters)
 
     rows = 1 * (10 ** 3)
-    feats_iter = ( (_randstr(), ) for i in xrange(rows) )
+    feats_iter = ( (_randstr(), ) for i in range(rows) )
 
     print('[TEST] insert encounters')
     tt = utool.tic()
@@ -68,7 +69,7 @@ def create_databse():
 
     rows = 1 * (10 ** 4)
     feats_iter = ((random.randint(0, 1000), random.uniform(0.0, 1.0), random.randint(0, 100), _randstr(), _randstr())
-                        for i in xrange(rows) )
+                        for i in range(rows) )
 
     print('[TEST] insert data')
     tt = utool.tic()

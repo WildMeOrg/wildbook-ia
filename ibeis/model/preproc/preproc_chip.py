@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+from six.moves import zip, range
 from os.path import exists, join
 import os
 # UTool
@@ -55,7 +55,7 @@ def add_chips_params_gen(ibs, aid_list):
     generates values for add_chips sqlcommands """
     cfpath_list = get_annot_cfpath_list(ibs, aid_list)
     chip_config_rowid = ibs.get_chip_config_rowid()
-    for cfpath, aid in izip(cfpath_list, aid_list):
+    for cfpath, aid in zip(cfpath_list, aid_list):
         pil_chip = gtool.open_pil_image(cfpath)
         width, height = pil_chip.size
         #print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
@@ -67,11 +67,12 @@ def add_chips_params_gen(ibs, aid_list):
 #--------------
 
 @utool.indent_func
-def delete_chips(ibs, cid_list):
+def delete_chips(ibs, cid_list, verbose=utool.VERBOSE):
     """ Removes chips from disk (not SQL)"""
     # TODO: Fixme, depends on current algo config
     chip_fpath_list = ibs.get_chip_paths(cid_list)
-    print('[preproc_chip] deleting %d chips' % len(cid_list))
+    if verbose:
+        print('[preproc_chip] deleting %d chips' % len(cid_list))
     for cfpath in chip_fpath_list:
         if cfpath is None:
             continue
@@ -145,8 +146,8 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
     # Compute and write chips in asychronous process
     if nChips is None:
         nChips = len(cfpath_list)
-    filtlist_iter = (filter_list for _ in xrange(nChips))
-    arg_prepend_iter = izip(cfpath_list, gfpath_list, bbox_list, theta_list,
+    filtlist_iter = (filter_list for _ in range(nChips))
+    arg_prepend_iter = zip(cfpath_list, gfpath_list, bbox_list, theta_list,
                             newsize_list, filtlist_iter)
     arg_list = list(arg_prepend_iter)
     return utool.util_parallel.generate(gen_chip2, arg_list)
@@ -156,7 +157,7 @@ def gen_chips_async(cfpath_list, gfpath_list, bbox_list, theta_list,
 #def gen_chips_async_OLD(cfpath_list, gfpath_list, bbox_list, theta_list,
                     #newsize_list, filter_list=[]):
     # TODO: Actually make this compute in parallel
-    #chipinfo_iter = izip(cfpath_list, gfpath_list, bbox_list,
+    #chipinfo_iter = zip(cfpath_list, gfpath_list, bbox_list,
                          #theta_list, newsize_list)
     #num_chips = len(cfpath_list)
     #mark_prog, end_prog = utool.progress_func(num_chips, lbl='chips: ',

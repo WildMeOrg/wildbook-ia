@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from itertools import izip
+from six.moves import zip
 import utool
 import plottool.draw_func2 as df2
 from plottool import viz_image2
@@ -22,7 +22,7 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
         viz_image2.draw_image_overlay(ax, bbox_list, theta_list, text_list, sel_list, draw_lbls, annote)
         # Draw all chip indexes in the image
         if annote:
-            annotation_iter = izip(bbox_list, theta_list, text_list, sel_list)
+            annotation_iter = zip(bbox_list, theta_list, text_list, sel_list)
             for bbox, theta, lbl, is_sel in annotation_iter:
                 viz_image2.draw_chip_overlay(ax, bbox, theta, lbl, is_sel)
         # Put annotation centers in the axis

@@ -4,8 +4,12 @@ import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_CONTROL]')
+import six
 
-__STR__ = unicode
+if six.PY2:
+    __STR__ = unicode
+else:
+    __STR__ = str
 
 
 def _define_test_schema(db):
@@ -33,13 +37,13 @@ def TEST_SQL_CONTROL():
     #
     # -------- RUN INSERTS --------------
     print('[TEST] --- INSERT NAMES --- ')
-    target_name_text_list = map(__STR__, [
+    target_name_text_list = list(map(__STR__, [
         'fred',
         'sue',
         'Robert\');DROP TABLE names;--',
         'joe',
         'rob',
-    ])
+    ]))
     target_name_text_sublist = target_name_text_list[2:]
 
     def get_nameid_from_text(text_list):

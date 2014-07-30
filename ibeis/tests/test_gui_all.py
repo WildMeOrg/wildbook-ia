@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
+from os.path import join
 import numpy as np
 from ibeis.dev import sysres
 from vtool.tests import grabdata
@@ -22,7 +23,7 @@ def TEST_GUI_ALL(ibs, back, gpath_list):
     print('[TEST] DELETE_OLD_DATABASE')
     work_dir   = sysres.get_workdir()
     new_dbname = 'testdb_guiall'
-    new_dbdir = utool.truepath(utool.join(work_dir, new_dbname))
+    new_dbdir = utool.truepath(join(work_dir, new_dbname))
     ibs_dbdir = utool.truepath(ibs.dbdir)
     msg = 'must start in different dir new_dbdir=%r != ibs_dbdir=%r,' % (new_dbdir, ibs_dbdir)
     assert new_dbdir != ibs_dbdir, msg

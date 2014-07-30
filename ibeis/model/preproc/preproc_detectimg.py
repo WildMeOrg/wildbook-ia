@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 # Python
-from itertools import izip
+from six.moves import zip
 from os.path import exists, join
 # UTool
 import utool
@@ -27,7 +27,7 @@ def gen_detectimg_async(gid_list, gfpath_list, new_gfpath_list,
     # Compute and write detectimg in asychronous process
     if nImgs is None:
         nImgs = len(gid_list)
-    arg_iter = izip(gid_list, gfpath_list, new_gfpath_list, newsize_list)
+    arg_iter = zip(gid_list, gfpath_list, new_gfpath_list, newsize_list)
     arg_list = list(arg_iter)
     return utool.util_parallel.generate(gen_detectimg_and_write, arg_list)
 
@@ -39,7 +39,7 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
     guuid_list   = ibs.get_image_uuids(gid_list)
     cachedir = ibs.get_detectimg_cachedir()
     new_gfpath_list = [join(cachedir, 'reszd_' + str(guuid) + ext)
-                       for (guuid, ext) in izip(guuid_list, gext_list)]
+                       for (guuid, ext) in zip(guuid_list, gext_list)]
     return new_gfpath_list
 
 

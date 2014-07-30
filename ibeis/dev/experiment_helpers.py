@@ -1,8 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from itertools import izip
+from six.moves import zip, map
 import re
-from itertools import imap
 from ibeis.dev import experiment_configs
 from ibeis.model import Config
 print, print_, printDBG, rrr, profile = utool.inject(
@@ -67,7 +66,7 @@ def wrap_cfgstr(cfgstr):
 
 def format_cfgstr_list(cfgstr_list):
     indented_list = utool.indent_list('    ', cfgstr_list)
-    wrapped_list = imap(wrap_cfgstr, indented_list)
+    wrapped_list = list(map(wrap_cfgstr, indented_list))
     return utool.joins('\n', wrapped_list)
 
 
@@ -80,7 +79,7 @@ def get_varied_params_list(test_cfg_name_list):
     dict_comb_list = [utool.all_dict_combinations(dict_) for dict_ in vary_dicts]
     dict_comb_lbls = [utool.all_dict_combinations_lbls(dict_) for dict_ in vary_dicts]
     # Append testname
-    dict_comb_lbls = [[name_lbl + lbl for lbl in comb_lbls] for name_lbl, comb_lbls in izip(test_cfg_name_list, dict_comb_lbls)]
+    dict_comb_lbls = [[name_lbl + lbl for lbl in comb_lbls] for name_lbl, comb_lbls in zip(test_cfg_name_list, dict_comb_lbls)]
     varied_params_list = utool.flatten(dict_comb_list)  # [comb for dict_comb in dict_comb_list for comb in dict_comb]
     varied_param_lbls = utool.flatten(dict_comb_lbls)
     return varied_params_list, varied_param_lbls
@@ -92,7 +91,7 @@ def _get_cfg_list(test_cfg_name_list):
     cfg_list = []
     cfgx2_lbl = []
     cfg_set = set([])
-    for dict_, lbl in izip(varied_params_list, varied_param_lbls):
+    for dict_, lbl in zip(varied_params_list, varied_param_lbls):
         cfg = Config.QueryConfig(**dict_)
         if cfg not in cfg_set:
             cfgx2_lbl.append(lbl)

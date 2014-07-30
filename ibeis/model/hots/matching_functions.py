@@ -33,7 +33,7 @@ qaid2_nns - maping from query chip index to nns
 # TODO: Remove ibs control as much as possible or abstract it away
 from __future__ import absolute_import, division, print_function
 # Python
-from six.moves import zip
+from six.moves import zip, range
 import six
 from collections import defaultdict
 import sys
@@ -560,7 +560,7 @@ def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
                                                       topx2_kpts, nRerank,
                                                       use_chip_extent)
         # spatially verify the top __NUM_RERANK__ results
-        for topx in xrange(nRerank):
+        for topx in range(nRerank):
             aid = topx2_aid[topx]
             fm = aid2_fm[aid]
             dlen_sqrd = topx2_dlen_sqrd[topx]
@@ -612,7 +612,7 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
             (chipw, chiph) = topx2_chipsize[tx]
             dlen_sqrd = chipw ** 2 + chiph ** 2
             return dlen_sqrd
-        topx2_dlen_sqrd = [chip_dlen_sqrd(tx) for tx in xrange(nRerank)]
+        topx2_dlen_sqrd = [chip_dlen_sqrd(tx) for tx in range(nRerank)]
     else:
         # Use extent of matching keypoints
         def kpts_dlen_sqrd(tx):
@@ -622,7 +622,7 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
             x_m, y_m = ktool.get_xys(kpts2[fm[:, 1]])
             dlensqrd = (x_m.max() - x_m.min()) ** 2 + (y_m.max() - y_m.min()) ** 2
             return dlensqrd
-        topx2_dlen_sqrd = [kpts_dlen_sqrd(tx) for tx in xrange(nRerank)]
+        topx2_dlen_sqrd = [kpts_dlen_sqrd(tx) for tx in range(nRerank)]
     return topx2_dlen_sqrd
 
 

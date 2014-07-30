@@ -10,7 +10,7 @@ from ibeis.control import IBEISControl
 from ibeis import sysres
 from ibeis import constants
 from ibeis.dev import ibsfuncs
-from itertools import izip
+from six.moves import zip, map
 import utool
 import re
 import csv
@@ -35,8 +35,8 @@ def get_unconverted_hsdbs(workdir=None):
         workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
-    is_hsdb_list        = np.array(map(sysres.is_hsdb, dbpath_list))
-    is_ibs_cvt_list     = np.array(map(is_succesful_convert, dbpath_list))
+    is_hsdb_list        = np.array(list(map(sysres.is_hsdb, dbpath_list)))
+    is_ibs_cvt_list     = np.array(list(map(is_succesful_convert, dbpath_list)))
     if FORCE_DELETE:
         needs_convert = is_hsdb_list
     else:
@@ -107,8 +107,8 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
     print(image_gpath_list)
-    flags = map(exists, image_gpath_list)
-    for image_gpath, flag in izip(image_gpath_list, flags):
+    flags = list(map(exists, image_gpath_list))
+    for image_gpath, flag in zip(image_gpath_list, flags):
         if not flag:
             print(image_gpath, flag)
 
@@ -118,9 +118,9 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     gid_list = ibs.add_images(image_gpath_list)  # any failed gids will be None
     assert len(gid_list) == len(image_gpath_list), 'bad image adder'
     # Build mappings to new indexes
-    names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in izip(name_nid_list, nid_list)}
+    names_nid_to_nid  = {names_nid: nid for (names_nid, nid) in zip(name_nid_list, nid_list)}
     names_nid_to_nid[1] = names_nid_to_nid[0]  # hsdb unknknown is 0 or 1
-    images_gid_to_gid = {images_gid: gid for (images_gid, gid) in izip(image_gid_list, gid_list)}
+    images_gid_to_gid = {images_gid: gid for (images_gid, gid) in zip(image_gid_list, gid_list)}
 
     #get annotations from chip_table
     chip_bbox_list   = []

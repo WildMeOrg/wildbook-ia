@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-#from itertools import izip
 # Python
 import multiprocessing
 # Tools

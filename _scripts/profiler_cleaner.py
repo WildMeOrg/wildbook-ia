@@ -1,8 +1,9 @@
 #/usr/bin/env python
 'Removes profiled output of code that never ran'
 from __future__ import absolute_import, division, print_function
-import sys
+from six.moves import range
 import six
+import sys
 import operator
 from collections import defaultdict
 from utool import regex_search, regex_split
@@ -32,12 +33,12 @@ def clean_line_profile_text(text):
     """
     # Use a regluar expression to find profile delimeters
     list_ = regex_split('^File: ', text)
-    for ix in xrange(1, len(list_)):
+    for ix in range(1, len(list_)):
         list_[ix] = 'File: ' + list_[ix]
     # Build a map from times to line_profile blocks
     prefix_list = []
     timemap = defaultdict(list)
-    for ix in xrange(len(list_)):
+    for ix in range(len(list_)):
         block = list_[ix]
         total_time = get_block_totaltime(block)
         # Blocks without time go at the front of sorted output

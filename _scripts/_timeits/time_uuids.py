@@ -2,7 +2,7 @@
 Script to help time determenistic uuid creation
 """
 from __future__ import absolute_import, division, print_function
-import __builtin__
+from six.moves import range, builtins
 import os
 import multiprocessing
 import time
@@ -10,6 +10,7 @@ from PIL import Image
 import hashlib
 import numpy as np
 import uuid
+from utool._internal.meta_util_six import get_funcname
 
 # My data getters
 from vtool.tests import grabdata
@@ -23,7 +24,7 @@ if not os.path.exists(gpath):
 
 
 try:
-    getattr(__builtin__, 'profile')
+    getattr(builtins, 'profile')
     __LINE_PROFILE__ = True
 except AttributeError:
     __LINE_PROFILE__ = False
@@ -125,22 +126,22 @@ if __name__ == '__main__':
         make_uuid_CONTIG_NUMPY_STRIDE_16_bytes,
         make_uuid_CONTIG_NUMPY_STRIDE_64_bytes,
     ]
-    func_strs = ', '.join([func.func_name for func in test_funcs])
+    func_strs = ', '.join([get_funcname(func) for func in test_funcs])
     # cool trick
     setup = 'from __main__ import (gpath, %s) ' % (func_strs,)
 
     number = 10
 
     for func in test_funcs:
-        func_name = func.func_name
-        print('Running: %s' % func_name)
+        funcname = get_funcname(func)
+        print('Running: %s' % funcname)
         if __LINE_PROFILE__:
             start = time.time()
-            for _ in xrange(number):
+            for _ in range(number):
                 func(gpath)
             total_time = time.time() - start
         else:
             import timeit
-            stmt = '%s(gpath)' % func_name
+            stmt = '%s(gpath)' % funcname
             total_time = timeit.timeit(stmt=stmt, setup=setup, number=number)
-        print('timed: %r seconds in %s' % (total_time, func_name))
+        print('timed: %r seconds in %s' % (total_time, funcname))

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from six.moves import range
 from plottool import draw_func2 as df2
 from plottool.viz_featrow import draw_feat_row
 from . import viz_helpers as vh
@@ -38,7 +39,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         extracted_list = []
         extracted_list.append(get_extract_tuple(qaid, qfx, -1))
         skipped = 0
-        for k in xrange(K + Knorm):
+        for k in range(K + Knorm):
             if qfx2_aid[0, k] == qaid and qfx2_fx[0, k] == qfx:
                 skipped += 1
                 continue

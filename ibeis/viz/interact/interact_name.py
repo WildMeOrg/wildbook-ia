@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from itertools import izip
+from six.moves import zip
 from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
 from ibeis import viz
@@ -72,14 +72,14 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.name1, self.name2 = ibs.get_annot_names((aid1, aid2))
         # The other annotations that belong to these two names
         groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2), is_exemplar=True)
-        self.gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(groundtruth_list, (aid1, aid2))]
+        self.gt_list = [sorted(set(gt + [aid])) for gt, aid in zip(groundtruth_list, (aid1, aid2))]
         # A flat list of all the aids we are looking at
         self.aid_list = utool.unique_ordered(utool.flatten(self.gt_list))
 
         # Grab not just the exemplars
         # <HACK>
         all_groundtruth_list = ibs.get_annot_groundtruth((aid1, aid2))
-        all_gt_list = [sorted(set(gt + [aid])) for gt, aid in izip(all_groundtruth_list, (aid1, aid2))]
+        all_gt_list = [sorted(set(gt + [aid])) for gt, aid in zip(all_groundtruth_list, (aid1, aid2))]
         self.all_aid_list = utool.unique_ordered(utool.flatten(all_gt_list))
         # </HACK>
 
@@ -135,7 +135,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         nid_list = ibs.get_annot_nids(self.aid_list)
         unique_nids = utool.unique_ordered(nid_list)
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
-        self.nid2_color = dict(izip(unique_nids, unique_colors))
+        self.nid2_color = dict(zip(unique_nids, unique_colors))
 
         for count, groundtruth in enumerate(self.gt_list):
             offset = count * nCols + 1

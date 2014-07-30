@@ -1,37 +1,41 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 import utool
+from six.moves import range
 from ibeis.control import __SQLITE3__ as lite
 from os.path import join, realpath
 import random
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_REVERT]')
 
+
 def _val1(i):
     return i * 2
 
+
 def _val2(i):
     return str(i * 2) + "_string"
+
 
 def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10, transaction=True, commit=False):
     # Offset bound by 1
     bound += 1
     retval = True
-    
+
     # Clear test data
     operation = '''
-        DELETE FROM test 
+        DELETE FROM test
         WHERE rowid > 0
     '''
     cur.execute(operation, [])
 
     # Add dummy data and commit it
-    for i in xrange(1, bound):
+    for i in range(1, bound):
         operation = '''
-            INSERT INTO test 
+            INSERT INTO test
             (
                 rowid,
                 test_int,
-                test_string   
+                test_string
             )
             VALUES (NULL, ?, ?)
         '''
@@ -45,24 +49,24 @@ def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10
     # Alter the data
     try:
         expected = alter_callback(connection, cur, bound)
-        print("%s (isolation=%r, trans=%r, commit=%r) Passed Alter" %(_type, isolation_level, transaction, commit))
+        print("%s (isolation=%r, trans=%r, commit=%r) Passed Alter" % (_type, isolation_level, transaction, commit))
     except Exception as e:
         retval = False
         expected = None
-        print("%s (isolation=%r, trans=%r, commit=%r) Failed Alter: %r" %(_type, isolation_level, transaction, commit, e))
+        print("%s (isolation=%r, trans=%r, commit=%r) Failed Alter: %r" % (_type, isolation_level, transaction, commit, e))
 
     # Commit change
     if commit:
         connection.commit()
-        
+
     try:
         # Rollback to previous state
         connection.rollback()
 
         # Check for consistency
         operation = '''
-            SELECT * 
-            FROM test 
+            SELECT *
+            FROM test
             ORDER BY rowid ASC
         '''
         cur.execute(operation, [])
@@ -79,12 +83,12 @@ def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10
             else:
                 if row[1] != _val1(i) or row[2] != _val2(i):
                     raise IOError("ERROR, DATA SHOULD HAVE BEEN ROLLED BACK")
-        
+
         # Check for INSERT / DELETE
         original = 0
         missing = 0
         added = 0
-        originals = range(1, bound)
+        originals = list(range(1, bound))
         for i in set(originals + indices):
             if i not in indices:
                 missing += 1
@@ -99,22 +103,21 @@ def test_query(connection, cur, _type, alter_callback, isolation_level, bound=10
         if commit and _type == 'INSERT' and added != expected:
             raise IOError("ERROR, DATA MISMATCH ADDED %r - %r" % (added, expected))
 
-        print("%s (isolation=%r, trans=%r, commit=%r) Passed Rollback" %(_type, isolation_level, transaction, commit))
+        print("%s (isolation=%r, trans=%r, commit=%r) Passed Rollback" % (_type, isolation_level, transaction, commit))
         print('Original: %r, Missing: %r, Added: %r, Expected: %r' % (original, missing, added, expected))
     except IOError as e:
         retval = False
-        print("%s (isolation=%r, trans=%r, commit=%r) Failed Rollback: %r" %(_type, isolation_level, transaction, commit, e))
+        print("%s (isolation=%r, trans=%r, commit=%r) Failed Rollback: %r" % (_type, isolation_level, transaction, commit, e))
 
     print('')
     return retval
 
 
-
 def alter_update(connection, cur, bound):
     # Modify Data
-    for i in xrange(1, bound):
+    for i in range(1, bound):
         operation = '''
-            UPDATE test 
+            UPDATE test
             SET test_int=?, test_string=?
             WHERE rowid=?
         '''
@@ -122,8 +125,8 @@ def alter_update(connection, cur, bound):
 
     # Check for change
     operation = '''
-        SELECT * 
-        FROM test 
+        SELECT *
+        FROM test
         ORDER BY rowid ASC
     '''
     cur.execute(operation, [])
@@ -138,8 +141,8 @@ def alter_update(connection, cur, bound):
 
 def alter_delete(connection, cur, bound):
     # Get random indices
-    randoms = sorted(set([random.randint(1, bound - 1) for x in xrange( int(bound * 0.10) )]))
-    
+    randoms = sorted(set([random.randint(1, bound - 1) for x in range( int(bound * 0.10) )]))
+
     # Modify Data
     for i in randoms:
         operation = '''
@@ -150,8 +153,8 @@ def alter_delete(connection, cur, bound):
 
     # Check for change
     operation = '''
-        SELECT * 
-        FROM test 
+        SELECT *
+        FROM test
         ORDER BY rowid ASC
     '''
     cur.execute(operation, [])
@@ -168,13 +171,13 @@ def alter_insert(connection, cur, bound):
     added = int(bound * 0.10)
 
     # Modify Data
-    for i in xrange(bound, bound + added):
+    for i in range(bound, bound + added):
         operation = '''
-            INSERT INTO test 
+            INSERT INTO test
             (
                 rowid,
                 test_int,
-                test_string   
+                test_string
             )
             VALUES (NULL, ?, ?)
         '''
@@ -182,8 +185,8 @@ def alter_insert(connection, cur, bound):
 
     # Check for change
     operation = '''
-        SELECT * 
-        FROM test 
+        SELECT *
+        FROM test
         ORDER BY rowid ASC
     '''
     cur.execute(operation, [])
@@ -195,17 +198,18 @@ def alter_insert(connection, cur, bound):
 
     return added
 
+
 def TEST_SQL_REVERT(isolation_level=None):
     base = realpath('.')
-    
+
     # Create SQLITE3 object
     connection = lite.connect(
-        join(base, 'test_sql_revert.sqlite3'), 
-        detect_types=lite.PARSE_DECLTYPES, 
+        join(base, 'test_sql_revert.sqlite3'),
+        detect_types=lite.PARSE_DECLTYPES,
         isolation_level=isolation_level
     )
     cur = connection.cursor()
-    
+
     # Clear the database and drop all current test data
     operation = '''
         DROP TABLE IF EXISTS test
@@ -214,10 +218,10 @@ def TEST_SQL_REVERT(isolation_level=None):
 
     # Create the test database because it will not exist
     operation = '''
-        CREATE TABLE IF NOT EXISTS test 
+        CREATE TABLE IF NOT EXISTS test
         (
-            test_id INTEGER PRIMARY KEY, 
-            test_int INTEGER NOT NULL, 
+            test_id INTEGER PRIMARY KEY,
+            test_int INTEGER NOT NULL,
             test_string TEXT
         )
     '''

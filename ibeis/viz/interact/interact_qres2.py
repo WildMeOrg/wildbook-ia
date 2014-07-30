@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # UTool
 import utool
+from six.moves import range
 import six
 import functools
 from collections import OrderedDict as odict
@@ -163,7 +164,7 @@ class Interact_QueryResult(object):
         self.prepare_page(pagenum)
         # Begin showing matches
         index = self.start_index
-        for index in xrange(self.start_index, self.stop_index):
+        for index in range(self.start_index, self.stop_index):
             self.plot_annotationmatch(index, draw=False)
         self.make_hud()
         self.draw()

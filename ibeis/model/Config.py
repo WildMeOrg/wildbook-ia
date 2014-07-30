@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import six
 import copy
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[Config]', DEBUG=False)
@@ -18,18 +19,18 @@ def make_feasible(query_cfg):
     feat_cfg = query_cfg._feat_cfg
 
     # Ensure the list of on filters is valid given the weight and thresh
-    if filt_cfg.ratio_thresh <= 1:
+    if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
         filt_cfg.ratio_thresh = None
-    if filt_cfg.bboxdist_thresh >= 1:
+    if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
         filt_cfg.bboxdist_thresh = None
-    if filt_cfg.bursty_thresh   <= 1:
+    if filt_cfg.bursty_thresh  is None or filt_cfg.bursty_thresh <= 1:
         filt_cfg.bursty_thresh = None
 
     if feat_cfg.nogravity_hack is False:
         filt_cfg.gravity_weighting = False
 
     # normalizer rule depends on Knorm
-    if nn_cfg.Knorm == 1:
+    if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
         nn_cfg.normalizer_rule = 'last'
 
 
@@ -89,7 +90,7 @@ class FilterConfig(ConfigBase):
 
     def get_stw(filt_cfg, filt):
         # stw = sign, thresh, weight
-        if not isinstance(filt, (str, unicode)):
+        if not isinstance(filt, six.string_types):
             raise AssertionError('Global cache seems corrupted')
         sign   = filt_cfg['_' + filt + '_sign']
         thresh = filt_cfg[filt + '_thresh']

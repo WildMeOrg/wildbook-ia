@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
-from itertools import izip  # noqa
+from six.moves import zip, map
 import functools  # NOQA
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
@@ -272,7 +272,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         detection_combo_box_options = [
             # Text              # Value
             ('Select Species',  'none'),
-        ] + zip(constants.SPECIES_NICE, constants.VALID_SPECIES)
+        ] + list(zip(constants.SPECIES_NICE, constants.VALID_SPECIES))
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species)
 
@@ -657,9 +657,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ans = guitool.user_option(ibswgt, title='Non-Images dropped',
                                       msg='Recursively import from directories?')
             if ans == 'Yes':
-                gpath_list.extend(map(utool.unixpath,
-                                      utool.flatten([utool.list_images(dir_, fullpath=True, recursive=True)
-                                                     for dir_ in dir_list])))
+                gpath_list.extend(list(map(utool.unixpath,
+                                           utool.flatten([utool.list_images(dir_, fullpath=True, recursive=True)
+                                                          for dir_ in dir_list]))))
             else:
                 return
         print('[drop_event] gpath_list=%r' % (gpath_list,))

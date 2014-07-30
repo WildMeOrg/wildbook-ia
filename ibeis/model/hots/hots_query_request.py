@@ -3,7 +3,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qreq]', DEBUG=False)
 # Standard
-from itertools import izip
+from six.moves import zip
 # Scientific
 import utool
 
@@ -73,5 +73,5 @@ class QueryRequest(__REQUEST_BASE__):
     def get_aidfx_enum(qreq):
         dx2_aids = qreq.data_index.dx2_aid
         dx2_fxs = qreq.data_index.dx2_fx
-        aidfx_enum = enumerate(izip(dx2_aids, dx2_fxs))
+        aidfx_enum = enumerate(zip(dx2_aids, dx2_fxs))
         return aidfx_enum

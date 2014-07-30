@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import json
 import requests
-from itertools import izip
+from six.moves import zip, map
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[export_wb]')
 
 
@@ -22,7 +22,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
     nids_list = ibs.get_encounter_nids(eid_list)
 
     assert len(nids_list) == len(eid_list)
-    for eid, nids in izip(eid_list, nids_list):
+    for eid, nids in zip(eid_list, nids_list):
         # the actual names corresponding to the name ids
         names_text = ibs.get_name_text(nids)
         # list of list of images that correspond to each name id
@@ -45,7 +45,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
         print ('POSTed IBEIS Encounter / Wildbook Occurrence %s to %s with status %d' % (enctext, target_url_occurrence, response.status_code))
 
         # creates wildbook encounters for each name in an ibeis encounter
-        for nid, name_text, gids in izip(nids, names_text, gids_lists):
+        for nid, name_text, gids in zip(nids, names_text, gids_lists):
             # create a unique name for this inidividual by concatenating the encounter and name
             wbenc_name = enctext + '_' + str(nid)
             payload_create_encounter = {'dwcImageURL': ibs.wbaddr + '/encounters/encounter.jsp?number=' + wbenc_name,
@@ -128,7 +128,7 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
             print (image_id_list)
             wbenc_time_avg = int(sum(ibs.get_image_unixtime(ibs.get_annot_gids(annotation_id_list))) / len(annotation_id_list))
 
-            lat, lng = map(lambda x: sum(x) / len(x), izip(*ibs.get_image_gps(ibs.get_annot_gids(annotation_id_list))))
+            lat, lng = list(map(lambda x: sum(x) / len(x), zip(*ibs.get_image_gps(ibs.get_annot_gids(annotation_id_list)))))
             print (lat)
             print (lng)
             print (wbenc_time_avg)

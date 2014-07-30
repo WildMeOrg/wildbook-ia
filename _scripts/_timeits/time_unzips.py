@@ -4,7 +4,8 @@ Timeit tests for various ways of unziping lists
 from __future__ import absolute_import, division, print_function
 import timeit
 import numpy as np
-from itertools import izip
+from six.moves import zip
+from utool._internal.meta_util_six import get_funcname
 
 number = 2000
 num_data = 5000
@@ -15,12 +16,12 @@ list2 = np.random.rand(num_data).tolist()
 
 def test_unizip():
     """ WINNER """
-    list1_, list2_ = list(izip(*tup_list))
+    list1_, list2_ = list(zip(*tup_list))
     return list1_, list2_
 
 
 def test_unzip():
-    list1_, list2_ = zip(*tup_list)
+    list1_, list2_ = list(zip(*tup_list))
     return list1_, list2_
 
 
@@ -36,7 +37,7 @@ def test_listcomp2():
     return list1_, list2_
 
 
-tup_list = list(izip(list1, list2))
+tup_list = list(zip(list1, list2))
 
 
 if __name__ == '__main__':
@@ -46,15 +47,15 @@ if __name__ == '__main__':
         test_listcomp1,
         test_listcomp2,
     ]
-    func_strs = ', '.join([func.func_name for func in test_funcs])
+    func_strs = ', '.join([get_funcname(func) for func in test_funcs])
     # Timeit main trick
     setup = 'from __main__ import (list1, list2, %s) ' % (func_strs,)
     for func in test_funcs:
-        func_name = func.func_name
-        stmt = '%s()' % func_name
+        funcname = get_funcname(func)
+        stmt = '%s()' % funcname
         print('Running: %s' % stmt)
         total_time = timeit.timeit(stmt=stmt, setup=setup, number=number)
-        print('timed: %r seconds in %s' % (total_time, func_name))
+        print('timed: %r seconds in %s' % (total_time, funcname))
 
 
 """

@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from itertools import izip
+from six.moves import zip
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
 import utool
@@ -48,7 +48,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
     kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
                     for kpts, bbox, theta, chipsz
-                    in izip(kpts_list, bbox_list, theta_list, chipsz_list)]
+                    in zip(kpts_list, bbox_list, theta_list, chipsz_list)]
     return imgkpts_list
 
 
@@ -85,7 +85,7 @@ def get_bboxes(ibs, aid_list, offset_list=None):
         # convert (ofx, ofy) offsets to (ofx, ofy, 0, 0) numpy arrays
         np_offsts = [np.array(list(offst) + [0, 0]) for offst in offset_list]
         # add offsets to (x, y, w, h) bounding boxes
-        bbox_list = [bbox + offst for bbox, offst in izip(bbox_list, np_offsts)]
+        bbox_list = [bbox + offst for bbox, offst in zip(bbox_list, np_offsts)]
     return bbox_list
 
 
@@ -172,7 +172,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         texts_list.append(['EX' if flag else '' for flag in flag_list])
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
-        annotation_text_list = [', '.join(tup) for tup in izip(*texts_list)]
+        annotation_text_list = [', '.join(tup) for tup in zip(*texts_list)]
     else:
         # no texts were specified return empty string for each input
         annotation_text_list = [''] * len(aid_list)
@@ -184,7 +184,7 @@ def get_image_titles(ibs, gid_list):
     gname_list = ibs.get_image_gnames(gid_list)
     title_list = [
         'gid=%r gname=%r' % (gid, str(gname))
-        for gid, gname in izip(gid_list, gname_list)
+        for gid, gname in zip(gid_list, gname_list)
     ]
     return title_list
 

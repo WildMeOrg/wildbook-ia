@@ -81,7 +81,7 @@ def TIME_GEN_PREPROC_IMG(ibs):
 def TIME_GEN_PREPROC_FEAT(ibs):
     print('[TIME_GEN_PREPROC_FEAT]')
     from ibeis.model.preproc.preproc_feat import generate_feats
-    from itertools import izip
+    from six.moves import zip
     import numpy as np
 
     def _listeq(x1, x2):
@@ -106,16 +106,16 @@ def TIME_GEN_PREPROC_FEAT(ibs):
             output2 = list(generate_feats(cfpath_list, chunksize=2))
         print(utool.truncate_str(str(output2), 80))
 
-        assert all([_listeq(*xtup) for tup in izip(output1, output2)
-                    for xtup in izip(*tup)]), 'chuncksize changes output'
+        assert all([_listeq(*xtup) for tup in zip(output1, output2)
+                    for xtup in zip(*tup)]), 'chuncksize changes output'
 
         # TEST N
         with utool.Timer('parallel chunksize=None'):
             outputN = list(generate_feats(cfpath_list, chunksize=None))
         print(utool.truncate_str(str(output2), 80))
 
-        assert all([_listeq(*xtup) for tup in izip(outputN, output2)
-                    for xtup in izip(*tup)]), 'chuncksize changes output'
+        assert all([_listeq(*xtup) for tup in zip(outputN, output2)
+                    for xtup in zip(*tup)]), 'chuncksize changes output'
 
     # BENCHMARK
 

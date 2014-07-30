@@ -4,6 +4,7 @@ Converts an IBEIS database to a hotspotter db
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 from os.path import join, relpath
 #import ibeis
 import utool
@@ -46,7 +47,7 @@ def export_ibeis_to_hotspotter(ibs):
     aid_list        = ibs.get_valid_aids()
     annotationgid_list     = ibs.get_annot_gids(aid_list)
     annotationnid_list     = ibs.get_annot_nids(aid_list)
-    bbox_list       = map(list, ibs.get_annot_bboxes(aid_list))
+    bbox_list       = list(map(list, ibs.get_annot_bboxes(aid_list)))
     theta_list      = ibs.get_annot_thetas(aid_list)
     notes_list      = ibs.get_annot_notes(aid_list)
 
@@ -98,7 +99,7 @@ def get_flat_table(ibs):
     column_tups = [
         (int,   'aids',   aid_list,),
         (str,   'names',  ibs.get_annot_names(aid_list),),
-        (list,  'bbox',   map(list, ibs.get_annot_bboxes(aid_list),)),
+        (list,  'bbox',   list(map(list, ibs.get_annot_bboxes(aid_list),))),
         (float, 'theta',  ibs.get_annot_thetas(aid_list),),
         (str,   'gpaths', ibs.get_annot_gpaths(aid_list),),
         (str,   'notes',  ibs.get_annot_notes(aid_list),),

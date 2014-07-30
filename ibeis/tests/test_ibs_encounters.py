@@ -1,8 +1,8 @@
 #!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 from ibeis.dev import ibsfuncs
-#from itertools import izip
 # Python
 import multiprocessing
 #import numpy as np
@@ -49,7 +49,8 @@ def TEST_ENCOUNTERS(ibs):
                          UUID('33fd9813-3a2b-774b-3fcc-4360d1ae151b'),
                          UUID('97e8ea74-873f-2092-b372-f928a7be30fa'),
                          UUID('588bc218-83a5-d400-21aa-d499832632b0'),
-                         UUID('163a890c-36f2-981e-3529-c552b6d668a3')),]
+                         UUID('163a890c-36f2-981e-3529-c552b6d668a3')),
+                        ]
 
     target_name_text = [
         ('easy', 'hard', 'jeff'),
@@ -99,7 +100,7 @@ def TEST_ENCOUNTERS(ibs):
         raise
 
     gids_list2 = ibsfuncs.unflat_lookup(ibs.get_annot_gids, aids_list)
-    assert gids_list2 == map(tuple, gids_list)
+    assert gids_list2 == list(map(tuple, gids_list))
 
     return locals()
 

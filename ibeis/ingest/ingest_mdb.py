@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
-from __future__ import division
+from __future__ import absoulte_import, division, print_function
+from six.moves import range, input
 from os.path import join, expanduser, exists, basename  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
@@ -40,7 +41,7 @@ exts = []
 for image in images.files():
     exts.append(image.split('.')[-1])
 exts = list(set(exts))
-print 'EXTENSIONS:', exts
+print('EXTENSIONS: %r ' % (exts,))
 
 print('''
       =====================
@@ -59,14 +60,14 @@ with open(join(exportedmdb_fpath), 'r') as file_:
         line = [ item.strip() for item in line.strip().split(',')]
         if len(line) == 1:
             print('WARNING: INVALID DATA ON LINE', linenum, '[FIX TO CONTINUE]')
-            raw_input()
+            input()
             continue
         filename = line[2].strip('"\'')
         sighting = line[1]
         files = [ join(originals, filename + '.' + ext) in image_set for ext in exts]
 
         if sighting in activities and True in files:
-            for i in xrange(len(files)):
+            for i in range(len(files)):
                 if files[i]:
                     filename += '.' + exts[i]
                     break

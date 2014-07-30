@@ -1,17 +1,15 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 # Python
-import __builtin__
 from collections import OrderedDict, defaultdict
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath, isabs, commonprefix, basename)
 from itertools import chain, cycle
 import six
-from six.moves import zip, map, zip_longest
+from six.moves import zip, map, zip_longest, builtins, cPickle
 from itertools import product as iprod
 import argparse
 import atexit
-import cPickle
 import copy
 import colorsys
 import datetime
@@ -73,7 +71,7 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
 import PyQt4
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
-from PyQt4.QtCore import (QString, QVariant)
+#from PyQt4.QtCore import (QString, QVariant)
 import sip
 
 # Tools

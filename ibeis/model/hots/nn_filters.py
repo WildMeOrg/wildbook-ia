@@ -6,7 +6,7 @@ print, print_,  printDBG, rrr, profile =\
 import numpy as np
 import vtool.linalg as ltool
 from numpy import array
-from itertools import izip
+from six.moves import zip
 
 
 eps = 1E-8
@@ -85,11 +85,11 @@ def _nn_normalized_weight(normweight_fn, ibs, qaid2_nns, qreq):
         else:
             raise NotImplementedError('[nn_filters] no rule=%r' % rule)
         qfx2_normdist = [dists[normk]
-                         for (dists, normk) in izip(qfx2_dist, qfx2_normk)]
+                         for (dists, normk) in zip(qfx2_dist, qfx2_normk)]
         qfx2_normdx   = [dxs[normk]
-                         for (dxs, normk)   in izip(qfx2_dx, qfx2_normk)]
+                         for (dxs, normk)   in zip(qfx2_dx, qfx2_normk)]
         qfx2_normmeta = [(dx2_aid[dx], dx2_fx[dx], normk)
-                         for (normk, dx) in izip(qfx2_normk, qfx2_normdx)]
+                         for (normk, dx) in zip(qfx2_normk, qfx2_normdx)]
         qfx2_normdist = array(qfx2_normdist)
         qfx2_normdx   = array(qfx2_normdx)
         qfx2_normmeta = array(qfx2_normmeta)
@@ -184,7 +184,7 @@ def nn_bboxdist_weight(ibs, qaid2_nns, qreq):
         qfx2_xy1[:, 1] /= qdiag
         # Get database relative xy keypoints
         qfx2_xy2 = array([ibs.get_annot_kpts(aid)[fx, 0:2] for (aid, fx) in
-                          izip(qfx2_aid.flat, qfx2_fx.flat)], np.float)
+                          zip(qfx2_aid.flat, qfx2_fx.flat)], np.float)
         qfx2_xy2.shape = (nQuery, K, 2)
         qfx2_xy2[:, :, 0] /= qfx2_chipdiag2
         qfx2_xy2[:, :, 1] /= qfx2_chipdiag2
@@ -215,7 +215,7 @@ def nn_scale_weight(ibs, qaid2_nns, qreq):
         qfx2_det1 = np.sqrt(1.0 / qfx2_det1)
         qfx2_K_det1 = np.rollaxis(np.tile(qfx2_det1, (K, 1)), 1)
         qfx2_det2 = array([ibs.get_annot_kpts(aid)[fx, [2, 4]] for (aid, fx) in
-                           izip(qfx2_aid.flat, qfx2_fx.flat)], np.float).prod(1)
+                           zip(qfx2_aid.flat, qfx2_fx.flat)], np.float).prod(1)
         qfx2_det2.shape = (nQuery, K)
         qfx2_det2 = np.sqrt(1.0 / qfx2_det2)
         qfx2_scaledist = qfx2_det2 / qfx2_K_det1

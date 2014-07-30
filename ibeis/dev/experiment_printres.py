@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import itertools
 import six
 from itertools import chain
-from six.moves import map
+from six.moves import map, range
 import utool
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
@@ -26,7 +26,7 @@ def get_diffmat_str(rank_mat, qaids, nCfg):
     diff_aids = row2_aid[diff_rows]
     diff_rank = rank_mat[diff_rows]
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
-    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, xrange(nCfg))))
+    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nCfg))))
     col_types  = list(chain([int], [int] * nCfg))
     header = 'diffmat'
     diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_types)
@@ -49,7 +49,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     #------------
     # Build row lbls
     qx2_lbl = []
-    for qx in xrange(nQuery):
+    for qx in range(nQuery):
         qaid = qaids[qx]
         lbl = 'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaid, ibs=ibs, notes=True))
         qx2_lbl.append(lbl)
@@ -58,7 +58,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     # Build col lbls
     if cfgx2_lbl is None:
         cfgx2_lbl = []
-        for cfgx in xrange(nCfg):
+        for cfgx in range(nCfg):
             test_cfgstr  = cfg_list[cfgx].get_cfgstr()
             cfg_lbl = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
             cfgx2_lbl.append(cfg_lbl)
@@ -93,7 +93,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     new_hard_qx_list = []
     new_qaids = []
     new_hardtup_list = []
-    for qx in xrange(nQuery):
+    for qx in range(nQuery):
         ranks = rank_mat[qx]
         min_rank = ranks.min()
         bestCFG_X = np.where(ranks == min_rank)[0]
@@ -116,7 +116,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('=======================')
         print('[harn] Scores per Query: %s' % testnameid)
         print('=======================')
-        for qx in xrange(nQuery):
+        for qx in range(nQuery):
             bestCFG_X = qx2_argmin_rank[qx]
             min_rank = qx2_min_rank[qx]
             minimizing_cfg_str = indent('\n'.join(cfgx2_lbl[bestCFG_X]), '    ')
@@ -159,7 +159,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     X_list = [1, 5]
     # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
     nLessX_dict = {int(X): np.zeros(nCfg) for X in iter(X_list)}
-    for cfgx in xrange(nCfg):
+    for cfgx in range(nCfg):
         ranks = rank_mat[:, cfgx]
         for X in iter(X_list):
             #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
@@ -171,7 +171,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
         print('==================')
-        for cfgx in xrange(nCfg):
+        for cfgx in range(nCfg):
             print('[score] %s' % (cfgx2_lbl[cfgx]))
             for X in iter(X_list):
                 nLessX_ = nLessX_dict[int(X)][cfgx]
@@ -218,7 +218,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         to_intersect_list += [cfgx2_lbl[bestCFG_X]]
 
     intersected = to_intersect_list[0] if len(to_intersect_list) > 0 else []
-    for ix in xrange(1, len(to_intersect_list)):
+    for ix in range(1, len(to_intersect_list)):
         intersected = np.intersect1d(intersected, to_intersect_list[ix])
 
     @utool.argv_flag_dec
@@ -282,12 +282,12 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     if not QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
-        sel_cols = range(len(cfg_list))
+        sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
-        sel_rows = range(len(qaids))
+        sel_rows = list(range(len(qaids)))
     if utool.get_arg('--view-all'):
-        sel_rows = range(len(qaids))
-        sel_cols = range(len(cfg_list))
+        sel_rows = list(range(len(qaids)))
+        sel_cols = list(range(len(cfg_list)))
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
     total = len(sel_cols) * len(sel_rows)

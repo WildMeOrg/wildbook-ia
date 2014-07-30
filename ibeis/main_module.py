@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import __builtin__
+from six.moves import builtins
 import sys
 import os
 import multiprocessing
@@ -7,7 +7,7 @@ import multiprocessing
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
 
 try:
-    profile = getattr(__builtin__, 'profile')
+    profile = getattr(builtins, 'profile')
 except AttributeError:
     def profile(func):
         return func

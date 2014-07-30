@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function
 #import uuid
 import types
-from six.moves import zip
+from six.moves import zip, range
+from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from functools import partial
 from os.path import relpath, split, join, exists, commonprefix
 import utool
@@ -217,7 +218,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
                    int(gw - (gw * pct * 2)),
                    int(gh - (gh * pct * 2)))
                   for (gw, gh) in gsize_list]
-    theta_list = [0.0 for _ in xrange(len(gsize_list))]
+    theta_list = [0.0 for _ in range(len(gsize_list))]
     aid_list = ibs.add_annots(gid_list, bbox_list, theta_list,
                                    name_list=name_list, nid_list=nid_list, notes_list=notes_list)
     return aid_list
@@ -343,9 +344,9 @@ def rebase_images(ibs, new_path, gid_list=None):
     # assum
     gname_list = [gpath[len_prefix:] for gpath in gpath_list]
     new_gpath_list = [join(new_path, gname) for gname in gname_list]
-    new_gpath_list = map(utool.unixpath, new_gpath_list)
+    new_gpath_list = list(map(utool.unixpath, new_gpath_list))
     #orig_exists = map(exists, gpath_list)
-    new_exists = map(exists, new_gpath_list)
+    new_exists = list(map(exists, new_gpath_list))
     assert all(new_exists), 'some rebased images do not exist'
     ibs.set_image_uris(gid_list, new_gpath_list)
     assert  'not all images copied'
@@ -442,11 +443,11 @@ unflat_lookup = unflat_map
 def _make_unflat_getter_func(flat_getter):
     if isinstance(flat_getter, types.MethodType):
         # Unwrap fmethods
-        func = flat_getter.im_func
+        func = get_imfunc(flat_getter)
     else:
         func = flat_getter
-    func_name = func.func_name
-    assert func_name.startswith('get_'), 'only works on getters, not: ' + func_name
+    funcname = get_funcname(func)
+    assert funcname.startswith('get_'), 'only works on getters, not: ' + funcname
     # Create new function
     def unflat_getter(self, unflat_rowids, *args, **kwargs):
         # First flatten the list
@@ -456,7 +457,7 @@ def _make_unflat_getter_func(flat_getter):
         # Then unflatten the list
         unflat_vals = utool.util_list.unflatten(flat_vals, reverse_list)
         return unflat_vals
-    unflat_getter.func_name = func_name.replace('get_', 'get_unflat_')
+    set_funcname(unflat_getter, funcname.replace('get_', 'get_unflat_'))
     return unflat_getter
 
 
@@ -495,7 +496,7 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
             zip(lbltype_rowid_list, lblannot_rowid_list)]
         assert all(validtype_list), 'not all types match valid type'
     except AssertionError as ex:
-        tup_list = map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list)))
+        tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
         print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + utool.indentjoin(tup_list))
         print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
         utool.printex(ex, 'not all types match valid type',
@@ -517,7 +518,7 @@ def ensure_unix_gpaths(gpath_list):
             assert gpath.find('\\') == -1, (msg % (count, gpath))
     except AssertionError as ex:
         utool.printex(ex, iswarning=True)
-        gpath_list = map(utool.unixpath, gpath_list)
+        gpath_list = list(map(utool.unixpath, gpath_list))
     return gpath_list
 
 
@@ -562,7 +563,7 @@ def normalize_names(name_list):
     """
     Maps unknonwn names to the standard ____
     """
-    return map(normalize_name, name_list)
+    return list(map(normalize_name, name_list))
 
 
 def get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
@@ -982,7 +983,7 @@ def make_next_name(ibs, num=None):
         next_name = name_prefix + '%04d' % num_names
         return next_name
     else:
-        next_names = [name_prefix + '%04d' % (num_names + x) for x in xrange(num)]
+        next_names = [name_prefix + '%04d' % (num_names + x) for x in range(num)]
         return next_names
 
 
@@ -1002,7 +1003,7 @@ def prune_exemplars(ibs):
 
     # Get area of annotations, area of parent images, and the ratio
 
-    problem_annot_areas = list(map(np.array, (map(bboxes_area, problem_bboxes))))
+    problem_annot_areas = list(map(np.array, list(map(bboxes_area, problem_bboxes))))
 
     #problem_img_areas = list(map(np.array, (map(bboxes_area, problem_sizes))))
 

@@ -3,7 +3,7 @@ import utool
 (print, print_,  rrr, profile, printDBG) = utool.inject(__name__, '[encounter]', DEBUG=False)
 # Python
 import six
-from six.moves import zip
+from six.moves import zip, range
 # Science
 import networkx as netx
 import numpy as np
@@ -27,12 +27,12 @@ def build_encounter_ids(ex2_gxs, gid2_clusterid):
 def get_chip_encounters(ibs):
     gid2_ex, ex2_gxs = compute_encounters(ibs)  # NOQA
     # Build encounter to chips from encounter to images
-    ex2_cxs = [None for _ in xrange(len(ex2_gxs))]
+    ex2_cxs = [None for _ in range(len(ex2_gxs))]
     for ex, gids in enumerate(ex2_gxs):
         ex2_cxs[ex] = utool.flatten(ibs.gid2_cxs(gids))
     # optional
     # resort encounters by number of chips
-    ex2_nCxs = map(len, ex2_cxs)
+    ex2_nCxs = list(map(len, ex2_cxs))
     ex2_cxs = [y for (x, y) in sorted(zip(ex2_nCxs, ex2_cxs))]
     return ex2_cxs
 
@@ -97,7 +97,7 @@ def inter_encounter_match(ibs, eid2_names=None, **kwargs):
         name_result = ibs.query(qnxs=qnxs, dnxs=dnxs)
     qcx2_res = name_result.chip_results()
     graph = netx.Graph()
-    graph.add_nodes_from(range(len(qcx2_res)))
+    graph.add_nodes_from(list(range(len(qcx2_res))))
     graph.add_edges_from([res.aid2_fm for res in six.itervalues(qcx2_res)])
     graph.setWeights([(res.aid2_fs, res.aid2_fk) for res in six.itervalues(qcx2_res)])
     graph.cutEdges(**kwargs)
@@ -106,7 +106,7 @@ def inter_encounter_match(ibs, eid2_names=None, **kwargs):
 
 
 def print_encounter_stats(ex2_cxs):
-    ex2_nCxs = map(len, ex2_cxs)
+    ex2_nCxs = list(map(len, ex2_cxs))
     ex_statstr = utool.common_stats(ex2_nCxs)
     print('num_encounters = %r' % len(ex2_nCxs))
     print('encounter_stats = %r' % (ex_statstr,))

@@ -137,4 +137,30 @@ sudo pip remove PIL
 sudo pip remove pillow
 sudo pip install pillow
 
+
+
+pip uninstall utool -y
+pip uninstall vtool -y
+pip uninstall pyhesaff -y
+pip uninstall detectools -y
+pip uninstall pyrf -y
+pip uninstall guitool -y
+pip uninstall plottool -y
+
+cd ~/code/utool
+python setup.py install
+cd ~/code/hesaff
+python setup.py install
+cd ~/code/vtool
+python setup.py install
+cd ~/code/hesaff
+python setup.py install
+cd ~/code/detecttools/
+python setup.py install
+cd ~/code/pyrf
+python setup.py install
+cd ~/code/guitool
+python setup.py install
+cd ~/code/plottool
+python setup.py install
 """

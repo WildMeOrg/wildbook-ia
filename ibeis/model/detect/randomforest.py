@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 #from os.path import exists, join, split  # UNUSED
 from os.path import splitext, exists
 # UTool
-from itertools import izip, imap
+from six.moves import zip, map, range
 import utool
 from vtool import image as gtool
 from ibeis.model.detect import grabmodels
@@ -26,13 +26,13 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     """
     #
     # Resize to a standard image size prior to detection
-    src_gpath_list = list(imap(str, ibs.get_image_detectpaths(gid_list)))
+    src_gpath_list = list(map(str, ibs.get_image_detectpaths(gid_list)))
     utool.close_pool()
 
     # Get sizes of the original and resized images for final scale correction
     neww_list = [gtool.open_image_size(gpath)[0] for gpath in src_gpath_list]
     oldw_list = [oldw for (oldw, oldh) in ibs.get_image_sizes(gid_list)]
-    scale_list = [oldw / neww for oldw, neww in izip(oldw_list, neww_list)]
+    scale_list = [oldw / neww for oldw, neww in zip(oldw_list, neww_list)]
 
     # Detect on scaled images
     ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
@@ -41,10 +41,10 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     generator = detect_species_bboxes(src_gpath_list, species,
                                       use_chunks=use_chunks, **detectkw)
 
-    for gid, scale, (bboxes, confidences, img_conf) in izip(gid_list, scale_list, generator):
+    for gid, scale, (bboxes, confidences, img_conf) in zip(gid_list, scale_list, generator):
         # Unscale results
         unscaled_bboxes = [_scale_bbox(bbox_, scale) for bbox_ in bboxes]
-        for index in xrange(len(unscaled_bboxes)):
+        for index in range(len(unscaled_bboxes)):
             bbox = unscaled_bboxes[index]
             confidence = float(confidences[index])
             yield gid, bbox, confidence, img_conf
@@ -58,7 +58,7 @@ def get_image_hough_gpaths(ibs, gid_list, species, quick=True):
     }
     #
     # Resize to a standard image size prior to detection
-    src_gpath_list = list(imap(str, ibs.get_image_detectpaths(gid_list)))
+    src_gpath_list = list(map(str, ibs.get_image_detectpaths(gid_list)))
     dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
     hough_gpath_list = [gpath + '_hough.png' for gpath in dst_gpath_list]
     isvalid_list = [exists(gpath) for gpath in hough_gpath_list]
@@ -83,8 +83,8 @@ def get_image_hough_gpaths(ibs, gid_list, species, quick=True):
 
 def _scale_bbox(bbox, s):
     bbox_scaled = (s * _ for _ in bbox)
-    bbox_round = imap(round, bbox_scaled)
-    bbox_int   = imap(int,   bbox_round)
+    bbox_round = list(map(round, bbox_scaled))
+    bbox_int   = list(map(int,   bbox_round))
     bbox2      = tuple(bbox_int)
     return bbox2
 
@@ -143,7 +143,7 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, use_chunks=False,
 
     if use_chunks_:
         print('[rf] detect in chunks')
-        pathtup_iter = zip(src_gpath_list, dst_gpath_list)
+        pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))
         for ic, chunk in enumerate(utool.ichunks(pathtup_iter, chunksize)):
             src_gpath_list = [tup[0] for tup in chunk]
             dst_gpath_list = [tup[1] for tup in chunk]
@@ -174,7 +174,7 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, use_chunks=False,
                 yield bboxes, confidences, image_confidence
     else:
         print('[rf] detect one image at a time')
-        pathtup_iter = izip(src_gpath_list, dst_gpath_list)
+        pathtup_iter = zip(src_gpath_list, dst_gpath_list)
         for ix, (src_gpath, dst_gpath) in enumerate(pathtup_iter):
             mark_prog(ix)
             results = detector.detect(forest, src_gpath, dst_gpath)

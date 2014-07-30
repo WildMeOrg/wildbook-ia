@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+from six.moves import map
 from ibeis.model.preproc import preproc_image
 from PIL import Image
 
@@ -18,5 +19,5 @@ def TEST_UUID_CONSISTENCY(ibs):
         uuid = preproc_image.get_image_uuid(pil_img)
         return uuid
 
-    uuid_list_test = map(_uuid_from_gpath, gpath_list)
+    uuid_list_test = list(map(_uuid_from_gpath, gpath_list))
     assert uuid_list == uuid_list_test, 'uuids are inconsistent!'

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import functools
 from pkg_resources import parse_version
+from utool._internal.meta_util_six import get_funcname
 
 ASSERT_FUNCS = []
 
@@ -12,7 +13,7 @@ def version_check(target=None):
         global ASSERT_FUNCS
         @functools.wraps(func)
         def wrapper2(*args, **kwargs):
-            name = func.func_name
+            name = get_funcname(func)
             current_version = func(*args, **kwargs)
             print('%s: %r >= (target=%r)?' % (name, current_version, target))
             if target is None:
@@ -67,9 +68,9 @@ def assert_modules():
     for func in ASSERT_FUNCS:
         try:
             func()
-            print(func.func_name + ' passed')
+            print(get_funcname(func) + ' passed')
         except AssertionError as ex:
-            print(func.func_name + ' FAILED!!!')
+            print(get_funcname(func) + ' FAILED!!!')
             print(ex)
 
 if __name__ == '__main__':

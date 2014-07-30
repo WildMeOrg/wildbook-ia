@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 import utool
 import six
 import functools  # NOQA
@@ -338,7 +339,7 @@ class CustomAPI(object):
         return utool.general_get(bgrole_getter, index)
 
     def ider(self):
-        return range(self.nRows)
+        return list(range(self.nRows))
 
     def make_headers(self, tblname='qres_api', tblnice='Query Results'):
         """ Builds headers for APIItemModel """
@@ -360,13 +361,13 @@ class CustomAPI(object):
         return headers
 
     def _make_bgrole_getter_list(self):
-        return [partial(self.get_bgrole, column) for column in xrange(self.nCols)]
+        return [partial(self.get_bgrole, column) for column in range(self.nCols)]
 
     def _make_getter_list(self):
-        return [partial(self.get, column) for column in xrange(self.nCols)]
+        return [partial(self.get, column) for column in range(self.nCols)]
 
     def _make_setter_list(self):
-        return [partial(self.set, column) for column in xrange(self.nCols)]
+        return [partial(self.set, column) for column in range(self.nCols)]
 
 
 def get_status(ibs, aid_pair):

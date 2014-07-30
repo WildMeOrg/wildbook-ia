@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from vtool import geometry
-from itertools import izip
+from six.moves import zip, range
 from ibeis import constants
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_IBS_CONTROL]')
 
@@ -18,7 +18,7 @@ def TEST_IBS_CONTROL(ibs):
     gids_list = ibs.get_encounter_gids(eid_list)
     # print('[TEST] gids_list = %r' % gids_list)
     assert gids_list, 'gids_list is empty'
-    for gids, eid in izip(gids_list, eid_list):
+    for gids, eid in zip(gids_list, eid_list):
         eid_list2 = ibs.get_image_eids(gids)
         try:
             assert ([[eid]] * len(eid_list2)) == eid_list2
@@ -139,7 +139,7 @@ def TEST_IBS_CONTROL(ibs):
     assert aid_list, 'aid_list is empty'
 
     orig_names = ibs.get_annot_names(aid_list)
-    new_names = ['TESTNAME_' + str(x) for x in xrange(len(aid_list))]
+    new_names = ['TESTNAME_' + str(x) for x in range(len(aid_list))]
     ibs.set_annot_names(aid_list, new_names)
     new_names2 = ibs.get_annot_names(aid_list)
     try:
@@ -180,7 +180,7 @@ def TEST_IBS_CONTROL(ibs):
     assert alrids_list, 'alrids_list is empty'
     alrid_list = utool.flatten(alrids_list)
     orig_confidences = ibs.get_alr_confidence(alrid_list)
-    new_confidences = range(len(alrid_list))
+    new_confidences = list(range(len(alrid_list)))
     #ibs.print_alr_table()
     ibs.set_alr_confidence(alrid_list, new_confidences)
     #ibs.print_alr_table()

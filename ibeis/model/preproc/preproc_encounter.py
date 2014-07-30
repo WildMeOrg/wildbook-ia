@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
-from itertools import izip
+from six.moves import zip, map
 from ibeis.dev import ibsfuncs
 from scipy.spatial import distance
 import scipy.cluster.hierarchy as hier
@@ -57,7 +57,7 @@ def ibeis_compute_encounters(ibs, gid_list):
     # Create enctext for each image
     enctext_list = ['Encounter ' + str(eid) for eid in flat_eids]
     # enctext_list = ['E' + str(eid) + enc_cfgstr for eid in flat_eids]
-    #enctext_list = [dt + '_E' + str(num) + enc_cfgstr for num, dt in izip(enc_labels, enc_datetimes)]
+    #enctext_list = [dt + '_E' + str(num) + enc_cfgstr for num, dt in zip(enc_labels, enc_datetimes)]
     #enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
     print('Found %d clusters.' % len(labels))
     return enctext_list, flat_gids
@@ -67,15 +67,15 @@ def _compute_encounter_unixtime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
     from ibeis.dev import ibsfuncs
     unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, enc_gids)
-    time_arrs = map(np.array, unixtimes)
-    enc_unixtimes = map(np.mean, time_arrs)
+    time_arrs = list(map(np.array, unixtimes))
+    enc_unixtimes = list(map(np.mean, time_arrs))
     return enc_unixtimes
 
 def _compute_encounter_datetime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
     from ibeis.dev import ibsfuncs
     enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
-    enc_datetimes = map(utool.unixtime_to_datetime, enc_unixtimes)
+    enc_datetimes = list(map(utool.unixtime_to_datetime, enc_unixtimes))
     return enc_datetimes
 
 def _prepare_X_data(ibs, gid_list, use_gps=False):
@@ -152,7 +152,7 @@ def _filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None
     Removes clusters with too few members.
     Relabels clusters-labels such that label 0 has the most members
     """
-    label_nGids = np.array(map(len, label_gids))
+    label_nGids = np.array(list(map(len, label_gids)))
     label_isvalid = label_nGids >= min_imgs_per_enc
     if enc_unixtimes is None:
         # Rebase ids so encounter0 has the most images
@@ -176,7 +176,7 @@ def haversine(lon1, lat1, lon2, lat2):
     http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
     """
     # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+    lon1, lat1, lon2, lat2 = list(map(np.radians, [lon1, lat1, lon2, lat2]))
 
     # haversine formula
     dlon = lon2 - lon1

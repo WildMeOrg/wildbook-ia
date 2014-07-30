@@ -14,7 +14,7 @@ from ibeis.control import __SQLITE3__ as lite
 def default_decorator(func):
     return func
     #return profile(func)
-    #return utool.indent_func('[sql.' + func.func_name + ']')(func)
+    #return utool.indent_func('[sql.' + func.__name__ + ']')(func)
 
 VERBOSE = utool.VERBOSE
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
@@ -65,13 +65,16 @@ def ider_sql(func):
     return func
 
 
+__STR__ = str if six.PY3 else unicode
+
+
 class SQLDatabaseController(object):
     """ SQLDatabaseController an efficientish interface into SQL
     </CYTH>
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
-                 text_factory=unicode):
+                 text_factory=__STR__):
         """ Creates db and opens connection """
         with utool.Timer('New SQLDatabaseController'):
             #printDBG('[sql.__init__]')
@@ -207,7 +210,7 @@ class SQLDatabaseController(object):
     #@getter_sql
     def get_where(db, tblname, colnames, params_iter, where_clause, unpack_scalars=True, **kwargs):
         assert isinstance(colnames, tuple)
-        #if isinstance(colnames, (str, unicode)):
+        #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         fmtdict = { 'tblname'     : tblname,
                     'colnames'    : ', '.join(colnames),
@@ -233,7 +236,7 @@ class SQLDatabaseController(object):
     def get(db, tblname, colnames, id_iter=None, id_colname='rowid', **kwargs):
         """ getter """
         assert isinstance(colnames, tuple)
-        #if isinstance(colnames, (str, unicode)):
+        #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         where_clause = (id_colname + '=?')
         params_iter = ((_rowid,) for _rowid in id_iter)
@@ -243,7 +246,7 @@ class SQLDatabaseController(object):
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid', **kwargs):
         """ setter """
         assert isinstance(colnames, tuple)
-        #if isinstance(colnames, (str, unicode)):
+        #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
@@ -425,7 +428,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def dump(db, file_=None, auto_commit=True):
-        if file_ is None or isinstance(file_, (str, unicode)):
+        if file_ is None or isinstance(file_, six.string_types):
             dump_fpath = file_
             if dump_fpath is None:
                 dump_fpath = join(db.dir_, db.fname + '.dump.txt')
@@ -521,10 +524,10 @@ class SQLDatabaseController(object):
 #get_rowid_from_superkey - function which does what it says
 #e.g:
 #    get_rowid_from_superkey = ibs.get_image_gids_from_uuid
-#    params_list = [(uuid.uuid4(),) for _ in xrange(7)]
+#    params_list = [(uuid.uuid4(),) for _ in range(7)]
 #    superkey_paramx = [0]
 
-#            params_list = [(uuid.uuid4(), 42) for _ in xrange(7)]
+#            params_list = [(uuid.uuid4(), 42) for _ in range(7)]
 #            superkey_paramx = [0, 1]
 #"""
 

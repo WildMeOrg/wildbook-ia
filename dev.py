@@ -90,7 +90,7 @@ def run_experiments(ibs, qaid_list):
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
-            with utool.Indenter('[dev.' + func.func_name + ']'):
+            with utool.Indenter('[dev.' + get_funcname(func) + ']'):
                 ret = func(ibs, qaid_list)
                 if isinstance(ret, dict):
                     locals_.update(ret)

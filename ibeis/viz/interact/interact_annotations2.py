@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 from plottool import draw_func2 as df2
-from itertools import izip
+from six.moves import zip
 
 #DESTROY_OLD_WINDOW = True
 DESTROY_OLD_WINDOW = False
@@ -44,7 +44,7 @@ class ANNOTATION_Interaction2(object):
             self.ibs.set_annot_bboxes(changed_aid, changed_bbox)
         if len(new_list) > 0:
             rows_updated = True
-            bbox_list, theta_list, species_list = izip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_list])
+            bbox_list, theta_list, species_list = zip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_list])
             #print("species_list in annotation_interaction2: %r" % list(species_list))
             self.ibs.add_annots([self.gid] * len(new_list), bbox_list, theta_list=theta_list, species_list=species_list)
         if rows_updated:

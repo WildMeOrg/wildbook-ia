@@ -1,9 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
-from itertools import izip  # noqa
-import functools  # NOQA
 from PyQt4 import QtGui, QtCore
-from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext, StripeProxyModel  # NOQA
+from guitool import slot_, StripeProxyModel
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs
 from ibeis.gui import guiheaders as gh

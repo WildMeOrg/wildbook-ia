@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import six
 import utool
-from six.moves import zip
+from six.moves import zip, range, map
 print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
 
 
@@ -84,15 +84,15 @@ def data_index_integrity(ibs, qreq):
 
     # For each descriptor create a (aid, fx) pair indicating its
     # chip id and the feature index in that chip id.
-    nFeat_list = map(len, desc_list)
+    nFeat_list = list(map(len, desc_list))
     _dx2_aid = [[aid] * nFeat for (aid, nFeat) in zip(aid_list, nFeat_list)]
-    _dx2_fx = [range(nFeat) for nFeat in nFeat_list]
+    _dx2_fx = [list(range(nFeat)) for nFeat in nFeat_list]
 
     assert len(_dx2_fx) == len(aid_list)
     assert len(_dx2_aid) == len(aid_list)
     print('... loop checks')
 
-    for count in xrange(len(aid_list)):
+    for count in range(len(aid_list)):
         aid = aid_list[count]
         assert np.all(np.array(_dx2_aid[count]) == aid)
         assert len(_dx2_fx[count]) == desc_list[count].shape[0]

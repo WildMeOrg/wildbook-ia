@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from six.moves import zip, map, range
 from ibeis import constants
-#from itertools import izip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[headers]', DEBUG=False)
 
 ENCOUNTER_TABLE  = 'encounters'
@@ -347,7 +347,7 @@ def make_ibeis_headers_dict(ibs):
         #if levels aren't found, we're not dealing with a tree, so everything is at level 0
         collevel_dict = TABLE_TREE_LEVELS.get(tblname, utool.ddict(lambda: 0))
         collevels  = [collevel_dict[colname] for colname in colnames]
-        hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in xrange(len(colnames))])
+        hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in range(len(colnames))])
         numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
 
         def get_column_data(colname):
@@ -358,7 +358,7 @@ def make_ibeis_headers_dict(ibs):
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
         try:
-            (coltypes, colnices, coledits, colgetters, colsetters) = zip(*map(get_column_data, colnames))
+            (coltypes, colnices, coledits, colgetters, colsetters) = list(zip(*list(map(get_column_data, colnames))))
         except KeyError as ex:
             utool.printex(ex,  key_list=['tblname', 'colnames'])
             raise

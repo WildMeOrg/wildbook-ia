@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import utool
+from six.moves import builtins
 from functools import wraps
+from utool._internal.meta_util_six import get_funcname
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[decor]')
 
 #
@@ -122,9 +124,8 @@ def adder(func):
     @wraps(func)
     def wrp_adder(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
-            print('[ADD]: ' + func.func_name)
-            import __builtin__
-            __builtin__.print('\n' + utool.func_str(func, args, kwargs) + '\n')
+            print('[ADD]: ' + get_funcname(func))
+            builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -137,9 +138,8 @@ def deleter(func):
     @wraps(func)
     def wrp_adder(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
-            print('[DELETE]: ' + func.func_name)
-            import __builtin__
-            __builtin__.print('\n' + utool.func_str(func, args, kwargs) + '\n')
+            print('[DELETE]: ' + get_funcname(func))
+            builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
     return wrp_adder
 
@@ -157,10 +157,9 @@ def setter(func):
     @wraps(func)
     def wrp_setter(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
-            print('[SET]: ' + func.func_name)
-            import __builtin__
-            __builtin__.print('\n' + utool.func_str(func, args, kwargs) + '\n')
-        #print('set: func_name=%r, args=%r, kwargs=%r' % (func.func_name, args, kwargs))
+            print('[SET]: ' + get_funcname(func))
+            builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
+        #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func(*args, **kwargs)
     return wrp_setter
 

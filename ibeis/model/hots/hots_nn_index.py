@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Standard
-from itertools import izip, chain, imap
+from six.moves import zip, map, range
+from itertools import chain
 import sys
 # Science
 import numpy as np
@@ -33,12 +34,12 @@ def aggregate_descriptors(ibs, aid_list):
     print('[agg_desc] stacking descriptors from %d annotations' % len(aid_list))
     desc_list = ibs.get_annot_desc(aid_list)
     # Build inverted index of (aid, fx) pairs
-    aid_nFeat_iter = izip(aid_list, imap(len, desc_list))
-    nFeat_iter = imap(len, desc_list)
+    aid_nFeat_iter = zip(aid_list, map(len, desc_list))
+    nFeat_iter = map(len, desc_list)
     # generate aid inverted index for each feature in each annotation
     _ax2_aid = ([aid] * nFeat for (aid, nFeat) in aid_nFeat_iter)
     # generate featx inverted index for each feature in each annotation
-    _ax2_fx  = (xrange(nFeat) for nFeat in nFeat_iter)
+    _ax2_fx  = (range(nFeat) for nFeat in nFeat_iter)
     # Flatten generators into the inverted index
     dx2_aid = np.array(list(chain.from_iterable(_ax2_aid)))
     dx2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
@@ -188,8 +189,8 @@ def nn_index(split_index, qfx2_desc, num_neighbors):
         qfx2_aid = nn_index.dx2_aid[qfx2_dx]
         qfx2_fx_list.append(qfx2_fx)
         qfx2_aid_list.append(qfx2_aid)
-        qfx2_rankx_list.append(np.array([[rankx for rankx in xrange(qfx2_dx.shape[1])]] * len(qfx2_dx)))
-        qfx2_treex_list.append(np.array([[tx for rankx in xrange(qfx2_dx.shape[1])]] * len(qfx2_dx)))
+        qfx2_rankx_list.append(np.array([[rankx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
+        qfx2_treex_list.append(np.array([[tx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
     # Combine results from each tree
     (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,) = \
             join_split_nn(qfx2_dist_list, qfx2_dist_list, qfx2_rankx_list, qfx2_treex_list)
@@ -207,12 +208,12 @@ def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx
     # Sort over all tree result distances
     qfx2_sortx = qfx2_dist.argsort(axis=1)
     # Apply sorting to concatenated results
-    qfx2_dist_  = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_dist)]
-    qfx2_aid_   = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_dx)]
-    qfx2_fx_    = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_aid)]
-    qfx2_dx_    = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_fx)]
-    qfx2_rankx_ = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_rankx)]
-    qfx2_treex_ = [row[sortx] for sortx, row in izip(qfx2_sortx, qfx2_treex)]
+    qfx2_dist_  = [row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_dist)]
+    qfx2_aid_   = [row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_dx)]
+    qfx2_fx_    = [row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_aid)]
+    qfx2_dx_    = [row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_fx)]
+    qfx2_rankx_ = [row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_rankx)]
+    qfx2_treex_ = [row[sortx] for sortx, row in zip(qfx2_sortx, qfx2_treex)]
     return (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,)
 
 

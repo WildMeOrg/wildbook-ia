@@ -1,7 +1,7 @@
 # TODO: Integrate this with vtool instead
 from __future__ import absolute_import, division, print_function
 # Standard
-from itertools import izip
+from six.moves import zip, range, map
 # Science
 import cv2
 import numpy as np
@@ -27,10 +27,10 @@ def score_chipmatch_coverage(ibs, qaid, chipmatch, qreq, method=0):
     topx2_aid = aid2_prescore.argsort()[::-1]  # Only allow indexed aids to be in the top results
     topx2_aid = [aid for aid in iter(topx2_aid) if aid in daids_]
     nRerank = min(len(topx2_aid), nShortlist)
-    aid2_score = [0 for _ in xrange(len(aid2_fm))]
+    aid2_score = [0 for _ in range(len(aid2_fm))]
     mark_progress, end_progress = utool.progress_func(nRerank, flush_after=10,
                                                       lbl='[cov] Compute coverage')
-    for topx in xrange(nRerank):
+    for topx in range(nRerank):
         mark_progress(topx)
         aid2 = topx2_aid[topx]
         fm = aid2_fm[aid2]
@@ -98,7 +98,7 @@ def warp_srcimg_to_kpts(fx2_kp, srcimg, chip_shape, fx2_score=None, **kwargs):
         fx2_score = np.ones(len(fx2_kp))
     scale_factor = kwargs.get('scale_Factor', SCALE_FACTOR_DEFAULT)
     # Build destination image
-    (h, w) = map(int, (chip_shape[0] * scale_factor, chip_shape[1] * scale_factor))
+    (h, w) = list(map(int, (chip_shape[0] * scale_factor, chip_shape[1] * scale_factor)))
     dstimg = np.zeros((h, w), dtype=np.float32)
     dst_copy = dstimg.copy()
     src_shape = srcimg.shape
@@ -116,7 +116,7 @@ def warp_srcimg_to_kpts(fx2_kp, srcimg, chip_shape, fx2_score=None, **kwargs):
     # For each keypoint warp a gaussian scaled by the feature score
     # into the image
     count = 0
-    for count, (M, score) in enumerate(izip(fx2_M, fx2_score)):
+    for count, (M, score) in enumerate(zip(fx2_M, fx2_score)):
         mark_progress(count)
         warped = cv2.warpAffine(srcimg * score, M, dsize,
                                 dst=dst_copy,
