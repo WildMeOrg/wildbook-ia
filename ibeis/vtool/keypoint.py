@@ -39,6 +39,7 @@ np.tau = 2 * np.pi  # tauday.com
 """
 // These are cython style comments used to maintaining python compatibility
 <CYTH>
+from vtool.keypoint import get_invVR_mats_shape, get_invVR_mats_sqrd_scale, get_invVR_mats_oris
 
 cimport numpy as np
 cimport cython
@@ -265,7 +266,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     def get_invVR_mats_sqrd_scale_float64(np.ndarray[float64_t, ndim=3] invVRs):
         cdef unsigned int nMats = invVRs.shape[0]
         # Prealloc output
-        cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=float64)
+        cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
         cdef size_t ix
         for ix in range(nMats):
             # simple determinant: ad - bc
