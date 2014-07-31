@@ -5,7 +5,7 @@ from PyQt4.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error, signal_
 from six.moves import zip  # builtins
-from utool._internal.meta_util_six import get_funcname
+#from utool._internal.meta_util_six import get_funcname
 import functools
 import utool
 #from .api_thumb_delegate import APIThumbDelegate
@@ -163,7 +163,7 @@ class APIItemModel(API_MODEL_BASE):
         col_setter_list  = headers.get('col_setter_list', None)
         col_getter_list  = headers.get('col_getter_list', None)
         col_level_list   = headers.get('col_level_list', None)
-        col_sort_index   = headers.get('col_sort_index', 0)
+        col_sort_index   = headers.get('col_sort_index', -1)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # New for dynamically getting non-data roles for each row
         col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
@@ -441,32 +441,57 @@ class APIItemModel(API_MODEL_BASE):
         if qtindex.isValid():
             node = qtindex.internalPointer()
             if utool.USE_ASSERT:
-                assert isinstance(node, _atn.TreeNode), type(node)
-            return node.get_id()
+                try:
+                    assert isinstance(node, _atn.TreeNode), 'type(node)=%r, node=%r' % (type(node), node)
+                except AssertionError as ex:
+                    utool.printex(ex, 'error in _get_row_id')
+                    raise
+            try:
+                id_ = node.get_id()
+            except AttributeError as ex:
+                utool.printex(ex, key_list=['node', 'model', 'qtindex'])
+                raise
+            return id_
 
     @default_method_decorator
     def _get_adjacent_qtindex(model, qtindex=QtCore.QModelIndex(), offset=1):
-        if qtindex.isValid():
-            node = qtindex.internalPointer()
-            try:
-                if utool.USE_ASSERT:
-                    assert isinstance(node, _atn.TreeNode), type(node)
-            except AssertionError as ex:
-                utool.printex(ex)
-                print(get_funcname(node))
-                raise
-            if node.parent_node is None:
-                return None
-            next_index = node.parent_node.child_nodes.index(node) + offset
-            if next_index >= 0 and next_index < len(node.parent_node.child_nodes):
-                next_node = node.parent_node.child_nodes[next_index]
-                row = next_node.get_row()
-                col = model.col_level_list.index(next_node.get_level())
-                parent_qtindex = model.parent(qtindex)
-                next_qtindex = model.index(row, col, parent_qtindex)
-                return next_qtindex
-            else:
-                return None
+        # check qtindex
+        if not qtindex.isValid():
+            return None
+        node = qtindex.internalPointer()
+        # check node
+        try:
+            if utool.USE_ASSERT:
+                assert isinstance(node, _atn.TreeNode), type(node)
+        except AssertionError as ex:
+            utool.printex(ex, key_list=['node'], separate=True)
+            raise
+        # get node parent
+        try:
+            node_parent = node.get_parent()
+        except Exception as ex:
+            utool.printex(ex, key_list=['node'], reraise=False, separate=True)
+            raise
+        # parent_node check
+        if node_parent is None:
+            print('[model._get_adjacent_qtindex] node_parent is None!')
+            return None
+        # Offset to find the next qtindex
+        next_index = node_parent.child_index(node) + offset
+        nChildren = node_parent.get_num_children()
+        # check next index validitiy
+        if next_index >= 0 and next_index < nChildren:
+            next_node = node_parent.get_child(next_index)
+            next_level = next_node.get_level()
+            col = model.col_level_list.index(next_level)
+            row = next_node.get_row()
+            # Create qtindex for the adjacent note
+            parent_qtindex = model.parent(qtindex)
+            next_qtindex = model.index(row, col, parent_qtindex)
+            return next_qtindex
+        else:
+            # There is no adjacent node
+            return None
 
     @default_method_decorator
     def _get_type(model, col):
@@ -494,7 +519,7 @@ class APIItemModel(API_MODEL_BASE):
         getter = model.col_getter_list[col]  # getter for this column
         # Using this getter may not be thread safe
         data = getter(row_id)
-        # <HACK: MODEL CACHE>
+        # <HACK: MODEL_CACHE>
         #cachekey = (row_id, col)
         #try:
         #    if True:  # Cache is disabled
@@ -503,7 +528,7 @@ class APIItemModel(API_MODEL_BASE):
         #except KeyError:
         #    data = getter(row_id)
         #    #model.cache[cachekey] = data
-        # </HACK: MODEL CACHE>
+        # </HACK: MODEL_CACHE>
         return data
 
     @default_method_decorator
@@ -516,11 +541,13 @@ class APIItemModel(API_MODEL_BASE):
         was successfull or not """
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)
-        cachekey = (row_id, col)
-        try:
-            del model.cache[cachekey]
-        except KeyError:
-            pass
+        # <HACK: MODEL_CACHE>
+        #cachekey = (row_id, col)
+        #try:
+        #    del model.cache[cachekey]
+        #except KeyError:
+        #    pass
+        # </HACK: MODEL_CACHE>
         setter = model.col_setter_list[col]
         if VERBOSE:
             print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
@@ -553,7 +580,8 @@ class APIItemModel(API_MODEL_BASE):
             #assert node.__dict__, "node.__dict__=%r" % node.__dict__
             #</HACK>
             parent_node = node.get_parent()
-            if parent_node.get_id() == -1 or parent_node.get_id() is None:
+            parent_id = parent_node.get_id()
+            if parent_id == -1 or parent_id is None:
                 return QtCore.QModelIndex()
             row = parent_node.get_row()
             col = model.col_level_list.index(parent_node.get_level())

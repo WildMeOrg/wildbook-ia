@@ -8,6 +8,7 @@ import numpy as np
 from PyQt4 import QtGui, QtCore
 if six.PY2:
     from PyQt4.QtCore import QString
+    from PyQt4.QtCore import QVariant
 elif six.PY3:
     QString = str
 (print, print_, printDBG, rrr, profile) = utool.inject(

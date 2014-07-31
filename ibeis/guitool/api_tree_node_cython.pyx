@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 cimport cython
 import cython
-from itertools import izip
 #from libc.stdlib cimport malloc, free  # TODO: convert lists to arrays
 
 
@@ -108,7 +107,6 @@ cpdef _populate_tree_iterative(TreeNode root_node, long num_levels, list ider_li
         #print(utool.dict_str(locals()))
         new_node_lists = []
         new_ids_lists  = []
-        #for parent_node, id_list in izip(parent_node_list, ids_list):
         for sx in range(len(ids_list)):
             parent_node = parent_node_list[sx]
             id_list = ids_list[sx] 

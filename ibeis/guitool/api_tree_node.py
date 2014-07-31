@@ -1,5 +1,6 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
+from PyQt4 import QtCore
 from six.moves import zip, range
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
@@ -8,50 +9,90 @@ import utool
 CYTHONIZED = False
 
 
-class TreeNode(object):
-    # USE THIS IN CONTROLLER
-    # Available in Python-space:
-    #property period:
-    #    def __get__(self):
-    #        return 1.0 / self.freq
-    #    def __set__(self, value):
-    #        self.freq = 1.0 / value
+TREE_NODE_BASE = QtCore.QObject
+#TREE_NODE_BASE = object
 
-    __slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
+
+class TreeNode(TREE_NODE_BASE):
+    """
+    <CYTH>
+    cdef:
+        long id_
+        long level
+        list child_nodes
+        TreeNode parent_node
+    </CYTH>
+    """
+    #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
         self.level = level
 
-    #def __del__(self):
-    #    if utool.VERBOSE:
-    #        print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
+    def __del__(self):
+        if utool.VERBOSE:
+            print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def set_children(self, child_nodes):
+        """ </CYTH: returns void> """
         self.child_nodes = child_nodes
 
     def get_children(self):
+        """ </CYTH: returns list> """
         return self.child_nodes
 
-    def __getitem__(self, index):
+    def child_index(self, child_node):
+        """ <CYTH: returns=int>
+        cdef TreeNode child_node """
+        return self.child_nodes.index(child_node)
+
+    def get_child(self, index):
+        """ <CYTH: returns=TreeNode>
+        cdef long index
+        </CYTH> """
         return self.child_nodes[index]
 
+    def __getitem__(self, index):
+        """ <CYTH: returns=TreeNode>
+        cdef long index
+        </CYTH> """
+        return self.get_child(index)
+
     def get_parent(self):
-        return self.parent_node
+        """ </CYTH: returns=TreeNode> """
+        try:
+            return self.parent_node
+        except AttributeError as ex:
+            print(ex)
+            print('[tree_node] dir(self)=')
+            print(dir(self))
+            print('[tree_node] self.__dict__=')
+            print(utool.dict_str(self.__dict__))
+            raise
 
     def get_num_children(self):
+        """ </CYTH: returns=long> """
         return len(self.child_nodes)
 
     def get_id(self):
+        """ Returns python internal id of this class
+        </CYTH: returns=long> """
         return self.id_
 
     def get_row(self):
+        """ Returns the row_index of this node w.r.t its parent.
+        <CYTH: returns long>
+        cdef list sibling_nodes
+        cdef long row
+        </CYTH>
+        """
         sibling_nodes = self.parent_node.child_nodes
         row = sibling_nodes.index(self)
         return row
 
     def get_level(self):
+        """ </CYTH: returns long> """
         return self.level
 
 
@@ -78,7 +119,19 @@ def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
 
 #@profile
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
-    """ Recursively builds the tree structure """
+    """
+    Recursively builds the tree structure
+    <CYTH: returns TreeNode>
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef:
+        size_t ix
+        long id_
+        list child_nodes
+        TreeNode next_node
+        list next_ids
+    </CYTH>
+    """
     if level == num_levels - 1:
         child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
     else:
@@ -96,7 +149,26 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
 
 @profile
 def _populate_tree_iterative(root_node, num_levels, ider_list):
-    """ Iteratively builds the tree structure. I dont quite trust this yet """
+    """ Iteratively builds the tree structure. I dont quite trust this yet
+    <CYTH:returns=TreeNode>
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef:
+        TreeNode parent_node
+        size_t level
+        size_t ix
+        size_t sx
+        long id_
+        list root_ids
+        list parent_node_list
+        list ids_list
+        list id_list
+        list next_ids
+        list node_list
+        list new_node_lists
+        list new_ids_lists
+    </CYTH>
+    """
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]
@@ -125,6 +197,12 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
 
 @profile
 def build_internal_structure(model):
+    """
+    <CYTH: returns=TreeNode>
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    <CYTH>
+    """
     #from guitool.api_item_model import *
     ider_list = model.iders
     num_levels = len(ider_list)
@@ -145,11 +223,3 @@ def build_internal_structure(model):
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
-
-
-#try:
-#    #from . import api_tree_node_cython  # NOQA
-#    #TreeNode = api_tree_node_cython.TreeNode  # NOQA
-#    print('[guitool] Using Cython TreeNode')
-#except ImportError:
-#    print('[guitool] Using Python TreeNode')
