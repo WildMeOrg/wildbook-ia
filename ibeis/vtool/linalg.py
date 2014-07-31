@@ -416,7 +416,7 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
 #cython_funcs = [('det_distance', ['float32', 'float64']), ('L2_sqrd', ['float32', 'float64'])]
 #for
 try:
-    if utool.get_flag('--cython'):
+    if not utool.get_flag('--nocyth'):
         from .linalg_cython import (  # NOQA
             L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
                                     det_distance_float64, L2_sqrd_cython,

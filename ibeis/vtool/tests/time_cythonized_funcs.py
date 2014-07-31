@@ -35,7 +35,7 @@ def _run_benchmark(setup_, func_list, argstr, number=1000):
     return locals()
 
 
-def test_linalg():
+def test_L2_sqrd():
     hist1 = np.random.rand(4, 2).astype(np.float32)
     hist2 = np.random.rand(4, 2).astype(np.float32)
 
@@ -52,7 +52,7 @@ def test_linalg():
     return locals()
 
 
-def test_invVR_det():
+def test_invVR_sqrd_scale():
     invVRs = np.random.rand(4, 3, 3).astype(np.float64)
 
     out1 = ktool.get_invVR_mats_sqrd_scale(invVRs)
@@ -93,7 +93,7 @@ def benchmark_det_dist():
     return _run_benchmark(setup, func_list, argstr)
 
 
-def benchmark_invVR_det():
+def benchmark_invVR_sqrd_scale():
     setup = utool.unindent(
         '''
         import numpy as np
@@ -132,11 +132,11 @@ if __name__ == '__main__':
         print('[vtool] cython is off')
         # raise
     #from vtool import linalg
-    test_locals1 = utool.run_test(test_linalg)
-    test_locals2 = utool.run_test(test_invVR_det)
+    test_locals1 = utool.run_test(test_L2_sqrd)
+    test_locals2 = utool.run_test(test_invVR_sqrd_scale)
     test_locals2 = utool.run_test(test_det_dist)
     benchmark_L2_dist()
-    benchmark_invVR_det()
+    benchmark_invVR_sqrd_scale()
     benchmark_det_dist()
     #execstr = utool.execstr_dict(test_linalg, 'test_locals')
     #exec(execstr)

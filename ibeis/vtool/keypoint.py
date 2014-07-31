@@ -493,7 +493,7 @@ def get_kpts_strs(kpts):
 #     module.__dict__['func_cyth'] = func_cyth
 try:
     # TODO Give cyth this functionality
-    if utool.get_flag('--cython'):
+    if not utool.get_flag('--nocyth'):
         from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
         get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
     else:
