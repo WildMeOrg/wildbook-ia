@@ -197,6 +197,11 @@ if utool.get_flag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
 
 
+upstream_branch = utool.get_arg('--set-upstream', type_=str, default=None)
+if upstream_branch is not None:
+    utool.gg_command('git branch --set-upstream "{upstream_branch} origin/{upstream_branch}"'.format(**locals()))
+
+
 gg_cmd = utool.get_arg('--gg', None)  # global command
 if gg_cmd is not None:
     ans = raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
