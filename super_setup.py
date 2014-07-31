@@ -201,7 +201,7 @@ if newbranch_name is not None:
 # Creates new branches
 mergebranch_name = utool.get_arg('--merge', type_=str, default=None)
 if mergebranch_name is not None:
-    utool.gg_command('git merge "{newbranch_name}"'.format(**locals()))
+    utool.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
 
 newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
 if newbranch_name2 is not None:
