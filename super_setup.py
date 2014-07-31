@@ -178,6 +178,11 @@ if utool.get_flag('--test'):
 if utool.get_flag('--push'):
     utool.gg_command('git push')
 
+
+commit_msg = utool.get_arg('--commit', type_=str, default=None)
+if commit_msg is not None:
+    utool.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
+
 if utool.get_flag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
 
@@ -196,6 +201,10 @@ if newbranch_name is not None:
 newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
 if newbranch_name2 is not None:
     utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
+    utool.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
+
+if utool.get_flag('--serverchmod'):
+    utool.gg_command('chmod -R 755 *')
 
 upstream_branch = utool.get_arg('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
