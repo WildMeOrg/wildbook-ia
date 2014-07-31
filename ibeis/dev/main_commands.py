@@ -51,7 +51,7 @@ def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
     if params.args.dump_argv:
-        print(utool.dict_str(vars(params.args)))
+        print(utool.dict_str(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
         utool.global_cache_dump()  # debug command, dumps to stdout
     if params.args.workdir is not None:

@@ -158,7 +158,7 @@ python dev.py --vwd --prequit
 python dev.py -t list_dbs
 
 
-# Dump contents of params.args
+# Dump/Print contents of params.args as a dict
 python dev.py --prequit --dump-argv
 
 
@@ -229,4 +229,14 @@ python dev.py --allgt -t inspect -w
 
 profiler.sh dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
 profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+
+
+
+#-----
+# Scores plot
+# dev.py --setdb --db yourdb
+dev.py -t score --allgt
+
+
+dev.py -t sver --allgt
 ```

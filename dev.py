@@ -308,8 +308,8 @@ def run_dev(main_locals):
     if ibs is not None:
         # Get aids marked as test cases
         qaid_list = main_helpers.get_test_qaids(ibs)
-        print('test_qaids = %r' % qaid_list)
-        print('len(test_qaids) = %d' % len(qaid_list))
+        print('[run_dev] test_qaids = %r' % qaid_list)
+        print('[run_dev] len(test_qaids) = %d' % len(qaid_list))
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
