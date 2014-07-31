@@ -85,7 +85,11 @@ def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
         else:
             monitor_num = 0
     monitor_geometries = get_monitor_geometries()
-    (startx, starty, availw, availh) = monitor_geometries[monitor_num]
+    try:
+        (startx, starty, availw, availh) = monitor_geometries[monitor_num]
+    except KeyError:
+        import six
+        (startx, starty, availw, availh) = six.itervalues(monitor_geometries).next()
     available_geom = (startx,
                       starty,
                       availw * percent_w,
