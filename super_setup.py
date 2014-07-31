@@ -156,23 +156,6 @@ if tag_name is not None:
     utool.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
     utool.gg_command('git push --tags')
 
-# Change Branch
-branch_name = utool.get_arg('--checkout', type_=str, default=None)
-if branch_name is not None:
-    utool.gg_command('git checkout "{branch_name}"'.format(**locals()))
-
-
-# Creates new branches
-newbranch_name = utool.get_arg('--newbranch', type_=str, default=None)
-if newbranch_name is not None:
-    utool.gg_command('git stash"'.format(**locals()))
-    utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
-    utool.gg_command('git pop"'.format(**locals()))
-
-newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
-if newbranch_name is not None:
-    utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
-
 if utool.get_flag('--bext'):
     utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
 
@@ -197,6 +180,22 @@ if utool.get_flag('--push'):
 
 if utool.get_flag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
+
+# Change Branch
+branch_name = utool.get_arg('--checkout', type_=str, default=None)
+if branch_name is not None:
+    utool.gg_command('git checkout "{branch_name}"'.format(**locals()))
+
+# Creates new branches
+newbranch_name = utool.get_arg('--newbranch', type_=str, default=None)
+if newbranch_name is not None:
+    utool.gg_command('git stash"'.format(**locals()))
+    utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
+    utool.gg_command('git pop"'.format(**locals()))
+
+newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
+if newbranch_name2 is not None:
+    utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
 
 upstream_branch = utool.get_arg('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
