@@ -169,6 +169,10 @@ if newbranch_name is not None:
     utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
     utool.gg_command('git pop"'.format(**locals()))
 
+newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
+if newbranch_name is not None:
+    utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
+
 if utool.get_flag('--bext'):
     utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
 

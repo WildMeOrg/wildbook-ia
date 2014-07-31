@@ -522,7 +522,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
-        id_list = [model._get_row_id(_qtindex) for _qtindex in tblview.selectedIndexes()]
+        id_list = sorted(list(set([model._get_row_id(_qtindex) for _qtindex in
+                                   tblview.selectedIndexes()])))
         if model.name == ENCOUNTER_TABLE:
             if len(id_list) == 1:
                 eid = id_list[0]
@@ -552,12 +553,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ])
         elif model.name == ANNOTATION_TABLE:
             eid = model.eid
-            if len(id_list) == 1:
-                aid = id_list[0]
-                guitool.popup_menu(tblview, pos, [
-                    ('delete annotation', lambda: ibswgt.back.delete_annot(aid)),
-                ])
-            else:
+            if len(id_list) > 0:
                 guitool.popup_menu(tblview, pos, [
                     ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
                 ])

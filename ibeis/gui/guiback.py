@@ -335,17 +335,23 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     @blocking_slot()
-    def delete_annot(back, aid=None):
+    def delete_annot(back, aid_list=None):
         """ Action -> Delete Chip"""
         print('[back] delete_annot')
-        if aid is None:
-            aid = back.get_selected_aid()
+        if aid_list is None:
+            aid_list = back.get_selected_aid()
         # get the image-id of the annotation we are deleting
-        gid = back.ibs.get_annot_gids(aid)
+        gid_list = back.ibs.get_annot_gids(aid_list)
         # delete the annotation
-        back.ibs.delete_annots(aid)
+        back.ibs.delete_annots(aid_list)
+        # Select only one image
+        try:
+            if len(gid_list) > 0:
+                gid = gid_list[0]
+        except AttributeError:
+            gid = gid_list
+        back.select_gid(gid, show=False)
         # update display, to show image without the deleted annotation
-        back.select_gid(gid)
         back.front.update_tables()
 
     @blocking_slot()
