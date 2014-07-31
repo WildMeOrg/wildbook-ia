@@ -183,7 +183,14 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
     dy_stats = utool.mystats(dy)
     dy_sorted = dy[dy_sortx]
     # Find the number of standard deveations past the mean each datapoint is
-    nStdDevs = np.abs(dy_sorted - dy_stats['mean']) / dy_stats['std']
+    try:
+        nStdDevs = np.abs(dy_sorted - dy_stats['mean']) / dy_stats['std']
+    except Exception as ex:
+        utool.printex(ex, key_list=['dy_stats',
+                                    (len, 'y_data'),
+                                    'y_data',
+                                    ])
+        raise
     # Mark any above a threshold as knee points
     knee_indexes = np.where(nStdDevs > nStdDevs_thresh)[0]
     knee_mag = nStdDevs[knee_indexes]
