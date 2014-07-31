@@ -802,7 +802,7 @@ class IBEISController(object):
         ibs.db.set(ANNOTATION_TABLE, ('annot_exemplar_flag',), val_iter, id_iter)
 
     @setter
-    def set_annot_bboxes(ibs, aid_list, bbox_list):
+    def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
         """ Sets bboxes of a list of annotations by aid, where bbox_list is a list of
             (x, y, w, h) tuples
         NOTICE: set_annot_bboxes is a proxy for set_annot_verts
@@ -810,20 +810,19 @@ class IBEISController(object):
         # changing the bboxes also changes the bounding polygon
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
         # naively overwrite the bounding polygon with a rectangle - for now trust the user!
-        ibs.set_annot_verts(aid_list, vert_list)
-        colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
-        ibs.db.set(ANNOTATION_TABLE, colnames, bbox_list, aid_list)
+        ibs.set_annot_verts(aid_list, vert_list, delete_thumbs=delete_thumbs)
 
     @setter
-    def set_annot_thetas(ibs, aid_list, theta_list):
+    def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
         """ Sets thetas of a list of chips by aid """
-        ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
         id_iter = ((aid,) for aid in aid_list)
         val_list = ((theta,) for theta in theta_list)
         ibs.db.set(ANNOTATION_TABLE, ('annot_theta',), val_list, id_iter)
+        if delete_thumbs:
+            ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
 
     @setter
-    def set_annot_verts(ibs, aid_list, verts_list):
+    def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
         """ Sets the vertices [(x, y), ...] of a list of chips by aid """
         num_params = len(aid_list)
         # Compute data to set
@@ -844,7 +843,8 @@ class IBEISController(object):
         colnames = ('annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',)
         # SET BBOX in ANNOTATION_TABLE
         ibs.db.set(ANNOTATION_TABLE, colnames, val_iter2, id_iter2, num_params=num_params)
-        ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
+        if delete_thumbs:
+            ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
 
     @setter
     def set_annot_notes(ibs, aid_list, notes_list):

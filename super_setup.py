@@ -136,24 +136,15 @@ utool.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 if utool.get_flag('--status'):
     utool.gg_command('git status')
     utool.sys.exit(0)
-else:
-    utool.gg_command('ensure')
+
+if utool.get_flag('--branch'):
+    utool.gg_command('git branch')
+    utool.sys.exit(0)
+
+utool.gg_command('ensure')
 
 if utool.get_flag('--pull'):
     utool.gg_command('git pull')
-
-
-if utool.get_flag('--build'):
-    # Build tpl repos
-    for repo in TPL_REPO_DIRS:
-        utool.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
-    # Build only IBEIS repos with setup.py
-    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py build'.format(**envcmds))
-
-if utool.get_flag('--develop'):
-    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**envcmds))
 
 
 if utool.get_flag('--tag-status'):
@@ -164,7 +155,6 @@ tag_name = utool.get_arg('--newtag', type_=str, default=None)
 if tag_name is not None:
     utool.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
     utool.gg_command('git push --tags')
-
 
 # Change Branch
 branch_name = utool.get_arg('--checkout', type_=str, default=None)
@@ -179,27 +169,35 @@ if newbranch_name is not None:
     utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
     utool.gg_command('git pop"'.format(**locals()))
 
+if utool.get_flag('--bext'):
+    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
+
+if utool.get_flag('--build'):
+    # Build tpl repos
+    for repo in TPL_REPO_DIRS:
+        utool.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
+    # Build only IBEIS repos with setup.py
+    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    utool.gg_command('sudo {pythoncmd} setup.py build'.format(**envcmds))
+
+if utool.get_flag('--develop'):
+    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**envcmds))
 
 if utool.get_flag('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))
 
-
 if utool.get_flag('--push'):
     utool.gg_command('git push')
-
-
-if utool.get_flag('--bext'):
-    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
-
 
 if utool.get_flag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
 
-
 upstream_branch = utool.get_arg('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
-    utool.gg_command('git branch --set-upstream "{upstream_branch} origin/{upstream_branch}"'.format(**locals()))
+    # git 2.0
+    utool.gg_command('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
 
 
 gg_cmd = utool.get_arg('--gg', None)  # global command

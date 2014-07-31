@@ -138,9 +138,9 @@ EOF
     RUN_TEST $VTOOL_DIR/tests/test_draw_keypoint.py --noshow 
     RUN_TEST $VTOOL_DIR/tests/test_exhaustive_ori_extract.py --noshow 
     RUN_TEST $VTOOL_DIR/tests/test_vtool.py 
-    RUN_TEST $VTOOL_DIR/tests/test_linalg.py --noshow 
+    RUN_TEST $VTOOL_DIR/tests/test_akmeans.py 
     RUN_TEST $VTOOL_DIR/tests/test_spatial_verification.py --noshow 
-
+    #RUN_TEST $VTOOL_DIR/tests/time_cythonized_funcs.py 
 fi
 
 #---------------------------------------------

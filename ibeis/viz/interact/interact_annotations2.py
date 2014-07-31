@@ -18,15 +18,15 @@ class ANNOTATION_Interaction2(object):
         self.rows_updated_callback = rows_updated_callback
         img = ibs.get_images(self.gid)
         self.aid_list = ibs.get_image_aids(self.gid)
-        bbox_list = ibs.get_annot_bboxes(self.aid_list)
-        theta_list = ibs.get_annot_thetas(self.aid_list)
-        species_list = ibs.get_annot_species(self.aid_list)
+        bbox_list     = ibs.get_annot_bboxes(self.aid_list)
+        theta_list    = ibs.get_annot_thetas(self.aid_list)
+        species_list  = ibs.get_annot_species(self.aid_list)
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
             theta_list=theta_list,
             species_list=species_list,
-            callback=self.callback,
+            commit_callback=self.commit_callback,
             default_species=self.ibs.cfg.detect_cfg.species,
             next_callback=next_callback,
             prev_callback=prev_callback,
@@ -35,39 +35,49 @@ class ANNOTATION_Interaction2(object):
         )
         df2.update()
 
-    def callback(self, deleted_list, changed_list, new_list):
+    def commit_callback(self, unchanged_indicies, deleted_indicies, changed_indicies, changed_annottups, new_annottups):
         """
+        TODO: Rename to commit_callback
         Callback from interact_annotations to ibs for when data is modified
         """
-        print('[interact_annot2] enter callback')
+        print('[interact_annot2] enter commit_callback')
+        print('[interact_annot2] nUnchanged=%d, nDelete=%d, nChanged=%d, nNew=%d' %
+              (len(unchanged_indicies), len(deleted_indicies), len(changed_indicies), len(new_annottups)))
         rows_updated = False
         # Delete annotations
-        if len(deleted_list) > 0:
+        if len(deleted_indicies) > 0:
             rows_updated = True
-            deleted_aids = [self.aid_list[del_index] for del_index in deleted_list]
-            print('[interact_annot2] deleted_indexes: %r' % (deleted_list,))
+            deleted_aids = [self.aid_list[del_index] for del_index in deleted_indicies]
+            print('[interact_annot2] deleted_indexes: %r' % (deleted_indicies,))
             print('[interact_annot2] deleted_aids: %r' % (deleted_aids,))
             self.ibs.delete_annots(deleted_aids)
         # Set/Change annotations
-        if len(changed_list) > 0:
-            changed_aid = [self.aid_list[changed[0]] for changed, theta in changed_list]
-            changed_bbox = [changed[1] for (changed, theta) in changed_list]
-            self.ibs.set_annot_bboxes(changed_aid, changed_bbox)
+        if len(changed_annottups) > 0:
+            changed_aid  = [self.aid_list[index] for index in changed_indicies]
+            bbox_list1    = [bbox for (bbox, t, s) in changed_annottups]
+            theta_list1   = [t    for (bbox, t, s) in changed_annottups]
+            species_list1 = [s    for (bbox, t, s) in changed_annottups]
+            print('[interact_annot2] changed_indexes: %r' % (changed_indicies,))
+            print('[interact_annot2] changed_aid: %r' % (changed_aid,))
+            self.ibs.set_annot_species(changed_aid, species_list1)
+            self.ibs.set_annot_thetas(changed_aid, theta_list1, delete_thumbs=False)
+            self.ibs.set_annot_bboxes(changed_aid, bbox_list1, delete_thumbs=True)
         # Add annotations
-        if len(new_list) > 0:
+        if len(new_annottups) > 0:
             #print("species_list in annotation_interaction2: %r" % list(species_list))
-            #btslist_tup = list(zip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_list]))
+            #btslist_tup = list(zip(*[((x, y, w, h), t, s) for (x, y, w, h, t, s) in new_annottups]))
             #bbox_list, theta_list, species_list = btslist_tup
             # New list returns a list of tuples [(x, y, w, h, theta, species) ...]
             rows_updated = True
-            bbox_list    = [(x, y, w, h) for (x, y, w, h, t, s) in new_list]
-            theta_list   = [t            for (x, y, w, h, t, s) in new_list]
-            species_list = [s            for (x, y, w, h, t, s) in new_list]
-            gid_list = [self.gid] * len(new_list)
-            self.ibs.add_annots(gid_list,
-                                bbox_list=bbox_list,
-                                theta_list=theta_list,
-                                species_list=species_list)
+            bbox_list2    = [bbox for (bbox, t, s) in new_annottups]
+            theta_list2   = [t    for (bbox, t, s) in new_annottups]
+            species_list2 = [s    for (bbox, t, s) in new_annottups]
+            gid_list = [self.gid] * len(new_annottups)
+            new_aids = self.ibs.add_annots(gid_list, bbox_list=bbox_list2,
+                                           theta_list=theta_list2,
+                                           species_list=species_list2)
+            print('[interact_annot2] new_indexes: %r' % (new_annottups,))
+            print('[interact_annot2] new_aids: %r' % (new_aids,))
 
         print('[interact_annot2] about to exit callback')
         if rows_updated:
