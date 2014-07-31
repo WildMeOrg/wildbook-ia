@@ -110,7 +110,8 @@ def basecoords_to_bbox(basecoords):
     y = min(basecoords[0][1], basecoords[1][1], basecoords[2][1], basecoords[3][1])
     w = max(basecoords[0][0], basecoords[1][0], basecoords[2][0], basecoords[3][0]) - x
     h = max(basecoords[0][1], basecoords[1][1], basecoords[2][1], basecoords[3][1]) - y
-    return (x, y, w, h)
+    bbox = (x, y, w, h)
+    return bbox
 
 
 def bbox_to_mask(shape, bbox):
@@ -247,14 +248,17 @@ class ANNOTATIONInteraction(object):
           line connecting two existing vertices
     """
 
-    def __init__(self, img, img_ind=None, callback=None, verts_list=None,
-                 bbox_list=None, theta_list=None, species_list=None, max_ds=10,
+    def __init__(self, img, img_ind=None, commit_callback=None, verts_list=None,
+                 bbox_list=None,
+                 theta_list=None,
+                 species_list=None,
+                 max_ds=10,
                  line_width=4, line_color=(1, 1, 1), face_color=(0, 0, 0),
                  fnum=None, default_species=DEFAULT_SPECIES_TAG,
                  next_callback=None, prev_callback=None, do_mask=False,):
         if fnum is None:
             fnum = df2.next_fnum()
-        self.callback = callback  # commit_changes_callback
+        self.commit_callback = commit_callback  # commit_callback
         self.but_width = .18
         self.but_height = .08
         self.callback_funcs = dict([
@@ -340,25 +344,27 @@ class ANNOTATIONInteraction(object):
             'Type to set the species tag of the selected ANNOTATION', ])))
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list):
-        if bbox_list is not None:
-            self.original_bbox_list = bbox_list
-        else:
-            self.original_bbox_list = []
-        if theta_list is not None:
-            self.original_theta_list = theta_list
-        else:
-            self.original_theta_list = []
+        # Maintain original input
+        assert bbox_list is not None
+        if theta_list is None:
+            theta_list = [0.0 for _ in range(len(bbox_list))]
+        if species_list is None:
+            species_list = ['' for _ in range(len(bbox_list))]
+        assert len(bbox_list) == len(theta_list), 'inconconsitent data1'
+        assert len(bbox_list) == len(species_list), 'inconconsitent data2'
+        self.original_indicies     = list(range(len(bbox_list)))
+        self.original_bbox_list    = bbox_list
+        self.original_theta_list   = theta_list
+        self.original_species_list = species_list
+        # Convert bbox to verticies
         verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         for verts in verts_list:
             for vert in verts:
                 self.enforce_dims(vert)
-        poly_list = [self.new_polygon(verts, theta, species)
+        # Create polygons
+        poly_list = [self.new_polygon(verts, theta, species, is_orig=True)
                      for (verts, theta, species) in
                      zip(verts_list, theta_list, species_list)]
-        assert len(theta_list) == len(poly_list),\
-                'theta_list: %r, poly_list: %r' % (theta_list, poly_list)
-        assert len(species_list) == len(poly_list),\
-                'species_list: %r, poly_list: %r' % (species_list, poly_list)
         self.polys = {poly.num: poly for poly in poly_list}
         if len(self.polys) != 0:
             wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
@@ -369,13 +375,12 @@ class ANNOTATIONInteraction(object):
             self._update_line()
         else:
             self._currently_selected_poly = None
-
         # Add polygons and lines to the axis
         for poly in six.itervalues(self.polys):
             self.fig.ax.add_patch(poly)
             self.fig.ax.add_line(poly.lines)
             self.fig.ax.add_line(poly.handle)
-
+        # Give polygons mpl change callbacks
         for poly in six.itervalues(self.polys):
             poly.add_callback(self.poly_changed)
 
@@ -767,18 +772,18 @@ class ANNOTATIONInteraction(object):
 
     def onpick(self, event):
         """ Makes selected polygon translucent """
-        print('onpick')
+        #print('onpick')
         self._currently_selected_poly = event.artist
         #x, y = event.mouseevent.xdata, event.mouseevent.xdata
         self._polyHeld = True
 
     def mouse_enter(self, event):
-        print('mouse_enter')
+        #print('mouse_enter')
         self._currently_selected_poly = event.artist
         self._currently_selected_poly.set_alpha(.2)
 
     def mouse_leave(self, event):
-        print('mouse_leave')
+        #print('mouse_leave')
         self._currently_selected_poly.set_alpha(0)
         self._currently_selected_poly = None
 
@@ -998,7 +1003,7 @@ class ANNOTATIONInteraction(object):
     def get_ind_under_cursor(self, event):
         """ get the index of the vertex under cursor if within max_ds tolerance
         """
-
+        #print('[interact_annotion] enter get_ind_under_cursor')
         def get_ind_and_dist(poly):
             if poly is None:
                 return (None, -1)
@@ -1013,7 +1018,6 @@ class ANNOTATIONInteraction(object):
                 ind = None
                 mindist = None
             return (ind, mindist)
-        print('[interact_annotion] enter get_ind_under_cursor')
         ind_dist_list = []
         #for poly in self.poly_list:
         #    if poly is not None:
@@ -1033,15 +1037,20 @@ class ANNOTATIONInteraction(object):
                 min_dist = dist
                 min_ind = ind
                 sel_polyind = polyind
-        print('[interact_annotion] exit get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
+        #print('[interact_annotion] exit get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
         return (sel_polyind, min_ind)
 
-    def new_polygon(self, verts, theta, species, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
+    def new_polygon(self, verts, theta, species,
+                    face_color=(0, 0, 0),
+                    line_color=(1, 1, 1),
+                    line_width=4,
+                    is_orig=False):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
         poly = Polygon(verts, animated=True, fc=face_color, ec='none', alpha=0, picker=True)
         # register this polygon
         poly.num = self.next_polynum()
+        poly.status = 'orig' if is_orig else 'new'
         poly.theta = theta
         poly.basecoords = poly.xy
         poly.xy = calc_display_coords(poly.basecoords, poly.theta)
@@ -1065,56 +1074,50 @@ class ANNOTATIONInteraction(object):
     def accept_new_annotations(self, event, do_close=True):
         print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
-        def get_bbox_list():
-            bbox_list = []
+
+        def get_annottup_list():
+            annottup_list = []
+            indicies_list = []
             #theta_list = []
             for poly in six.itervalues(self.polys):
                 assert poly is not None
-                #if poly is None:
-                #    bbox_list.append(None)
-                #else:
-                x = min(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0])
-                y = min(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1])
-                w = max(poly.basecoords[0][0], poly.basecoords[1][0], poly.basecoords[2][0], poly.basecoords[3][0]) - x
-                h = max(poly.basecoords[0][1], poly.basecoords[1][1], poly.basecoords[2][1], poly.basecoords[3][1]) - y
-                bbox_list.append((int(x), int(y), int(w), int(h), poly.theta, poly.species_tag.get_text()))
-                #theta_list.append(poly.theta)
-            return bbox_list  # , theta_list
+                index   = poly.num
+                bbox    = tuple(map(int, basecoords_to_bbox(poly.basecoords)))
+                theta   = poly.theta
+                species = poly.species_tag.get_text()
+                annottup = (bbox, theta, species)
+                indicies_list.append(index)
+                annottup_list.append(annottup)
+            return indicies_list, annottup_list
 
         def send_back_annotations():
             #point_list = self.load_points()
             #theta_list = self.theta_list
             #new_bboxes = verts_to_bbox(point_list)
             print("send_back_annotations")
-            bbox_list = get_bbox_list()
-            deleted_list = []
-            changed_list = []
-            new_list = []
-            for i, bbox_theta in enumerate(zip(self.original_bbox_list, self.original_theta_list)):
-                if bbox_theta not in bbox_list:
-                    deleted_list.append(i)
-            #    elif bbox_list[i] != self.original_list[i]:
-            #        changed_list.append((i, bbox_list[i]))
-            #for i in range(len(self.original_list), len(self.poly_list)):
-            #    if bbox_list[i] is not None:
-            #        new_list.append(bbox_list[i])
-            new_list = list(filter(lambda bbox_theta: bbox_theta not in
-                                   zip(self.original_bbox_list,
-                                       self.original_theta_list), bbox_list))
-            #print("Deleted")
-            #for bbox in deleted_list:
-            #    print(bbox)
-            #print("Changed")
-            #for bbox in changed_list:
-            #    print(bbox)
-            #print("New")
-            #for bbox in new_list:
-            #    print(bbox)
-            #print("send_back_annotations() completed")
-            #self.callback(self.img_ind, new_bboxes, theta_list)
-            self.callback(deleted_list, changed_list, new_list)
+            indicies_list, annottup_list = get_annottup_list()
+            # Delete if index is in original_indicies but no in indicies_list
+            deleted_indicies   = list(set(self.original_indicies) - set(indicies_list))
+            changed_indicies   = []
+            unchanged_indicies = []  # sanity check
+            changed_annottups  = []
+            new_annottups      = []
+            original_annottup_list = list(zip(self.original_bbox_list,
+                                              self.original_theta_list,
+                                              self.original_species_list))
+            for index, annottup in zip(indicies_list, annottup_list):
+                # If the index is not in the originals then it is new
+                if index not in self.original_indicies:
+                    new_annottups.append(annottup)
+                else:
+                    if annottup not in original_annottup_list:
+                        changed_annottups.append(annottup)
+                        changed_indicies.append(index)
+                    else:
+                        unchanged_indicies.append(index)
+            self.commit_callback(unchanged_indicies, deleted_indicies, changed_indicies, changed_annottups, new_annottups)
 
-        if self.callback is not None:
+        if self.commit_callback is not None:
             send_back_annotations()
         #else:
             #just print the updated points
