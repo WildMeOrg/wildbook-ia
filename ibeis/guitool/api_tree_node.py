@@ -34,6 +34,12 @@ class TreeNode(TREE_NODE_BASE):
         if utool.VERBOSE:
             print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
+    def __getitem__(self, index):
+        """ <CYTH: returns=TreeNode>
+        cdef long index
+        </CYTH> """
+        return self.get_child(index)
+
     def set_children(self, child_nodes):
         """ </CYTH: returns void> """
         self.child_nodes = child_nodes
@@ -43,7 +49,7 @@ class TreeNode(TREE_NODE_BASE):
         return self.child_nodes
 
     def child_index(self, child_node):
-        """ <CYTH: returns=int>
+        """ <CYTH: returns=long>
         cdef TreeNode child_node """
         return self.child_nodes.index(child_node)
 
@@ -52,12 +58,6 @@ class TreeNode(TREE_NODE_BASE):
         cdef long index
         </CYTH> """
         return self.child_nodes[index]
-
-    def __getitem__(self, index):
-        """ <CYTH: returns=TreeNode>
-        cdef long index
-        </CYTH> """
-        return self.get_child(index)
 
     def get_parent(self):
         """ </CYTH: returns=TreeNode> """

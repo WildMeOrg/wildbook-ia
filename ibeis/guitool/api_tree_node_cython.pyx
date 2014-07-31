@@ -20,17 +20,23 @@ cdef class TreeNode:
         self.child_nodes = []
         self.level = level
 
+    def __getitem__(self, long index):
+        return self.get_child(index)
+
     cpdef set_children(TreeNode self, list child_nodes):
         self.child_nodes = child_nodes
 
     cpdef list get_children(TreeNode self):
         return self.child_nodes
 
-    def __getitem__(TreeNode self, const long index):
+    cpdef TreeNode get_child(self, long index):
         return self.child_nodes[index]
 
     cpdef get_parent(TreeNode self):
         return self.parent_node
+
+    cpdef long child_index(self, TreeNode child_node):
+        return self.child_nodes.index(child_node)
 
     cpdef long get_num_children(TreeNode self):
         return len(self.child_nodes)
