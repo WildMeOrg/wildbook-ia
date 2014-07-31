@@ -247,26 +247,14 @@ class ANNOTATIONInteraction(object):
           line connecting two existing vertices
     """
 
-    def __init__(self,
-                 img,
-                 img_ind=None,
-                 callback=None,
-                 verts_list=None,
-                 bbox_list=None,  # will get converted to verts_list
-                 theta_list=None,
-                 species_list=None,
-                 max_ds=10,
-                 line_width=4,
-                 line_color=(1, 1, 1),
-                 face_color=(0, 0, 0),
-                 fnum=None,
-                 default_species=DEFAULT_SPECIES_TAG,
-                 next_callback=None,
-                 prev_callback=None,
-                 do_mask=False,):
+    def __init__(self, img, img_ind=None, callback=None, verts_list=None,
+                 bbox_list=None, theta_list=None, species_list=None, max_ds=10,
+                 line_width=4, line_color=(1, 1, 1), face_color=(0, 0, 0),
+                 fnum=None, default_species=DEFAULT_SPECIES_TAG,
+                 next_callback=None, prev_callback=None, do_mask=False,):
         if fnum is None:
             fnum = df2.next_fnum()
-        self.callback = callback
+        self.callback = callback  # commit_changes_callback
         self.but_width = .18
         self.but_height = .08
         self.callback_funcs = dict([
@@ -278,9 +266,10 @@ class ANNOTATIONInteraction(object):
             ('pick_event', self.onpick),
             ('resize_event', self.on_resize),
         ])
-        self.callback_ids = {}
+        self.mpl_callback_ids = {}
         self.img = img
         def initialize_variables():
+            # Jon: I don't like this nested function. I want a better solution.
             #self.next_callback = next_callback
             #self.prev_callback = prev_callback
             self.do_mask = do_mask
@@ -289,23 +278,16 @@ class ANNOTATIONInteraction(object):
             self.showverts = True
             self.max_ds = max_ds
             self.fc_default = face_color
-            #mouse coordinates
-            self.mouseX = None
-            self.mouseY = None
+            self.mouseX = None  # mouse X coordinate
+            self.mouseY = None  # mouse Y coordinate
             self.indX = None
             self.indY = None
-            #if a polygon is currently active
-            self._polyHeld = False
-            #the polygon that is currently active
-            self._currently_selected_poly = None
-            #used in small case to determine if polygon should be highlighted or not
-            self.press1 = False
-            #boolean to tell if the polygon SHOULD be active
-            self.canUncolor = False
-            #number of polygons in the image
-            self._autoinc_polynum = 0
-            #Something Jon added
-            self.background = None
+            self.press1 = False        # HACK (corner case): flag if polygon is highlighted
+            self.canUncolor = False    # flag if the polygon SHOULD be active
+            self._autoinc_polynum = 0  # num polys in image
+            self._polyHeld = False                # if any poly is active
+            self._currently_selected_poly = None  # active polygon
+            self.background = None  # Something Jon added
         initialize_variables()
         self.initialize_variables = initialize_variables  # hack involving exploting lexical scoping to save defaults for a restore operation
         self.handle_matplotlib_initialization(fnum=fnum)
@@ -314,6 +296,7 @@ class ANNOTATIONInteraction(object):
         # print(test_list)
         # Ensure that our input is in verts_list format
         assert verts_list is None or bbox_list is None, 'only one can be specified'
+        # bbox_list will get converted to verts_list
         if bbox_list is not None:
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         if theta_list is None:
@@ -326,9 +309,9 @@ class ANNOTATIONInteraction(object):
         self._ind = None  # the active vert
         self.currently_rotating_poly = None
 
-        self.callback_ids = {}
+        self.mpl_callback_ids = {}
         assert self.fig.canvas is self.fig.ax.figure.canvas, 'wow. something is weird'
-        self.connect_callbacks(self.fig.canvas)
+        self.connect_mpl_callbacks(self.fig.canvas)
 
         self.add_action_buttons()
         self.update_callbacks(next_callback, prev_callback)
@@ -353,9 +336,6 @@ class ANNOTATIONInteraction(object):
         ax.set_clip_on(False)
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
-            #'Press \"ctrl+r\" to remove selected ANNOTATION',
-            #'Press \"ctrl+t\" to add an ANNOTATION.',
-            #'Press \"ctrl+a\" to Accept new ANNOTATIONs',
             'Press enter to clear the species tag of the selected ANNOTATION',
             'Type to set the species tag of the selected ANNOTATION', ])))
 
@@ -380,16 +360,6 @@ class ANNOTATIONInteraction(object):
         assert len(species_list) == len(poly_list),\
                 'species_list: %r, poly_list: %r' % (species_list, poly_list)
         self.polys = {poly.num: poly for poly in poly_list}
-        #def argmax_area(acc, elem):
-        #    oldmaxind, oldmaxarea = acc
-        #    curind, curpoly = elem
-        #    _, _, w, h = basecoords_to_bbox(curpoly.basecoords)
-        #    curarea = w * h
-        #    if curarea > oldmaxarea:
-        #        return (curind, curarea)
-        #    else:
-        #        return (oldmaxind, oldmaxarea)
-        #poly_index, _ = reduce(argmax_area, six.iteritems(self.polys), (None, 0))
         if len(self.polys) != 0:
             wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
                                 six.itervalues(self.polys)])
@@ -409,16 +379,19 @@ class ANNOTATIONInteraction(object):
         for poly in six.itervalues(self.polys):
             poly.add_callback(self.poly_changed)
 
-    def disconnect_callbacks(self, canvas):
-        for name, callbackid in six.iteritems(self.callback_ids):
+    def disconnect_mpl_callbacks(self, canvas):
+        """ disconnects all connected matplotlib callbacks """
+        for name, callbackid in six.iteritems(self.mpl_callback_ids):
             canvas.mpl_disconnect(callbackid)
-        self.callback_ids = {}
+        self.mpl_callback_ids = {}
 
-    def connect_callbacks(self, canvas):
+    def connect_mpl_callbacks(self, canvas):
+        """ disconnects matplotlib callbacks specified in the
+        self.mpl_callback_ids dict """
         #http://matplotlib.org/1.3.1/api/backend_bases_api.html
         # Create callback ids
-        self.disconnect_callbacks(canvas)
-        self.callback_ids = {
+        self.disconnect_mpl_callbacks(canvas)
+        self.mpl_callback_ids = {
             name: canvas.mpl_connect(name, func)
             for name, func in six.iteritems(self.callback_funcs)
         }
@@ -456,7 +429,7 @@ class ANNOTATIONInteraction(object):
 
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
                                    species_list, next_callback, prev_callback):
-        self.disconnect_callbacks(self.fig.canvas)
+        self.disconnect_mpl_callbacks(self.fig.canvas)
         for poly in six.itervalues(self.polys):
             poly.remove()
         self.polys = {}
@@ -466,7 +439,7 @@ class ANNOTATIONInteraction(object):
         self.handle_polygon_creation(bbox_list, theta_list, species_list)
         self.add_action_buttons()
         self.fig.canvas.draw()
-        self.connect_callbacks(self.fig.canvas)
+        self.connect_mpl_callbacks(self.fig.canvas)
         self.update_callbacks(next_callback, prev_callback)
         print('drawing')
         self.fig.canvas.draw()
@@ -1023,7 +996,8 @@ class ANNOTATIONInteraction(object):
             pass
 
     def get_ind_under_cursor(self, event):
-        'get the index of the vertex under cursor if within max_ds tolerance'
+        """ get the index of the vertex under cursor if within max_ds tolerance
+        """
 
         def get_ind_and_dist(poly):
             if poly is None:
@@ -1039,6 +1013,7 @@ class ANNOTATIONInteraction(object):
                 ind = None
                 mindist = None
             return (ind, mindist)
+        print('[interact_annotion] enter get_ind_under_cursor')
         ind_dist_list = []
         #for poly in self.poly_list:
         #    if poly is not None:
@@ -1058,7 +1033,7 @@ class ANNOTATIONInteraction(object):
                 min_dist = dist
                 min_ind = ind
                 sel_polyind = polyind
-        print('in get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
+        print('[interact_annotion] exit get_ind_under_cursor, (%r, %r)' % (sel_polyind, min_ind))
         return (sel_polyind, min_ind)
 
     def new_polygon(self, verts, theta, species, face_color=(0, 0, 0), line_color=(1, 1, 1), line_width=4):
