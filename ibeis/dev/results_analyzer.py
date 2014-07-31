@@ -90,8 +90,12 @@ def get_matching_descriptors(allres, qaids, aids):
         desc2_m = rdesc_cache[aid][fm.T[1]]
         desc1_list.append(desc1_m)
         desc2_list.append(desc2_m)
-    aggdesc1 = np.vstack(desc1_list)
-    aggdesc2 = np.vstack(desc2_list)
+    try:
+        aggdesc1 = np.vstack(desc1_list)
+        aggdesc2 = np.vstack(desc2_list)
+    except Exception as ex:
+        utool.printex(ex, '[!!!!] get_matching_descriptors', key_list=['qaids', 'aids', 'desc1_list', 'desc2_list' 'aggdesc1', 'aggdesc2'])
+        raise
     return aggdesc1, aggdesc2
 
 

@@ -166,6 +166,20 @@ if tag_name is not None:
     utool.gg_command('git push --tags')
 
 
+# Change Branch
+branch_name = utool.get_arg('--checkout', type_=str, default=None)
+if branch_name is not None:
+    utool.gg_command('git checkout "{branch_name}"'.format(**locals()))
+
+
+# Creates new branches
+newbranch_name = utool.get_arg('--newbranch', type_=str, default=None)
+if newbranch_name is not None:
+    utool.gg_command('git stash"'.format(**locals()))
+    utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
+    utool.gg_command('git pop"'.format(**locals()))
+
+
 if utool.get_flag('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))

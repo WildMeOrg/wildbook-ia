@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
 from _devscript import devcmd,  DEVCMD_FUNCTIONS
+from utool.util_six import get_funcname
+from utool.util_six import *  # NOQA
 import utool
 import ibeis
 if __name__ == '__main__':
@@ -91,6 +93,7 @@ def run_experiments(ibs, qaid_list):
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
             with utool.Indenter('[dev.' + get_funcname(func) + ']'):
+                print('[dev] qid_list=%r' % (qaid_list,))
                 ret = func(ibs, qaid_list)
                 if isinstance(ret, dict):
                     locals_.update(ret)
