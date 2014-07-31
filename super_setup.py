@@ -198,6 +198,11 @@ if newbranch_name is not None:
     utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
     utool.gg_command('git pop"'.format(**locals()))
 
+# Creates new branches
+mergebranch_name = utool.get_arg('--merge', type_=str, default=None)
+if mergebranch_name is not None:
+    utool.gg_command('git merge "{newbranch_name}"'.format(**locals()))
+
 newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
 if newbranch_name2 is not None:
     utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
