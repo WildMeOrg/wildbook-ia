@@ -123,8 +123,8 @@ for name, repo_url in TPL_MODULES_AND_REPOS:
     'https://github.com/bluemellophone/detecttools.git',
     'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/pyrf.git',
-    'https://github.com/hjweide/pygist',
     'https://github.com/Erotemic/ibeis.git',
+    #'https://github.com/hjweide/pygist',
 ], CODE_DIR, forcessh=False)
 
 
