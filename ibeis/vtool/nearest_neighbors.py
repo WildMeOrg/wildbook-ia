@@ -43,7 +43,8 @@ def get_flann_cfgstr(data, flann_params, cfgstr='', use_data_hash=True):
 def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
                 force_recompute=False):
     """ Tries to load a cached flann index before doing anything """
-    print('...flann_cache cfgstr = %r: ' % cfgstr)
+    if not utool.QUIET:
+        print('...flann_cache cfgstr = %r: ' % cfgstr)
     flann_fpath = get_flann_fpath(data, cache_dir, cfgstr, flann_params)
     flann = pyflann.FLANN()
     load_success = False
@@ -53,7 +54,8 @@ def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
     if exists(flann_fpath) and not force_recompute:
         try:
             flann.load_index(flann_fpath, data)
-            print('...flann cache hit')
+            if not utool.QUIET:
+                print('...flann cache hit')
             load_success = True
         except Exception as ex:
             print('...cannot load index')
