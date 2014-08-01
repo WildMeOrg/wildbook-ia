@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
+import six
 from utool.util_setup import setuptools_setup
 from setuptools import setup
 
@@ -64,11 +65,15 @@ INSTALL_REQUIRES = [
     'scipy >= 0.13.2',
     'numpy >= 1.8.0',
     'Pillow >= 2.4.0',
-    'functools32 >= 3.2.3-1',
     'psutil',
     'requests >= 0.8.2',
+    'setproctitle >= 1.1.8',
     #'PyQt4 >= 4.9.1', # cannot include because pyqt4 is not in pip
 ]
+
+if six.PY2:
+    INSTALL_REQUIRES.append('requests >= 0.8.2')
+
 
 if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')

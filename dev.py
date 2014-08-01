@@ -444,6 +444,7 @@ if __name__ == '__main__':
     # Run IBEIS Main, create controller, and possibly gui
     print('++dev')
     main_locals = ibeis.main(gui='--gui' in sys.argv)
+    #utool.set_process_title('IBEIS_dev')
 
     #
     #

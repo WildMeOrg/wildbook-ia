@@ -28,6 +28,7 @@ def main():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
+    #utool.set_process_title('IBEIS_main')
     main_locals, execstr = main()
     # <DEBUG CODE>
     if 'back' in main_locals and '--cmd' in sys.argv:
