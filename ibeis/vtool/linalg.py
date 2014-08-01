@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Science
 import cv2
+import six
+import functools
 import numpy as np
 import numpy.linalg as npl
 from numpy import (array, sin, cos)
@@ -226,7 +228,11 @@ def nearest_point(x, y, pts, mode='random'):
 def and_lists(*args):
     """ Like np.logical_and, but can take more than 2 arguments """
     # TODO: Cython
-    flags =  reduce(np.logical_and, args)
+    # TODO: remove reduce statement (bleh)
+    if six.PY2:
+        flags =  reduce(np.logical_and, args)
+    elif six.PY3:
+        flags =  functools.reduce(np.logical_and, args)
     return flags
 
 
