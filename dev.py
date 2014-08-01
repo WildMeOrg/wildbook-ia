@@ -312,20 +312,21 @@ def up_dbsize_expt(ibs, qaid_list):
                 #qres_list.append(qres)
     end_prog()
 
-    colors = df2.distinct_colors(len(upscores_dict))
-    df2.figure(fnum=1, doclf=True, docla=True)
-    for ix, ((qaid, gt_aid), upscores) in enumerate(upscores_dict.items()):
-        color = colors[ix]
-        xdata = upscores['dbsizes']
-        ydata = upscores['score']
-        df2.plt.plot(xdata, ydata, 'o-', color=color)
-    figtitle = 'Effect of Database Size on Match Scores'
-    figtitle += '\n' + ibs.get_dbname()
-    figtitle += '\n' + ibs.cfg.query_cfg.get_cfgstr()
-    df2.set_figtitle(figtitle, font='large')
-    df2.set_xlabel('# Annotations in database')
-    df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
-    df2.dark_background()
+    if not utool.get_flag('--noshow'):
+        colors = df2.distinct_colors(len(upscores_dict))
+        df2.figure(fnum=1, doclf=True, docla=True)
+        for ix, ((qaid, gt_aid), upscores) in enumerate(upscores_dict.items()):
+            color = colors[ix]
+            xdata = upscores['dbsizes']
+            ydata = upscores['score']
+            df2.plt.plot(xdata, ydata, 'o-', color=color)
+        figtitle = 'Effect of Database Size on Match Scores'
+        figtitle += '\n' + ibs.get_dbname()
+        figtitle += '\n' + ibs.cfg.query_cfg.get_cfgstr()
+        df2.set_figtitle(figtitle, font='large')
+        df2.set_xlabel('# Annotations in database')
+        df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
+        df2.dark_background()
 
     # TODO: Should be separate function. Previous code should be intergrated
     # into the experiment_harness
