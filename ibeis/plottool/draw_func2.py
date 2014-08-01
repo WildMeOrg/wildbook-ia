@@ -166,67 +166,6 @@ def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
                          backgroundcolor=lbl_bgcolor)
 
 
-def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
-    # Attempts to detect knee points by looking for
-    # log derivatives way past the normal standard deviations
-    # The input data is assumed to be sorted and y_data
-    basey = 10
-    nStdDevs_thresh = 10
-    # Take the log of the data
-    logy = np.log(y_data)
-    logy[np.isnan(logy)] = 0
-    logy[np.isinf(logy)] = 0
-    # Find the derivative of data
-    dy = np.diff(logy)
-    dy_sortx = dy.argsort()
-    # Get mean and standard deviation
-    dy_stats = utool.mystats(dy)
-    dy_sorted = dy[dy_sortx]
-    # Find the number of standard deveations past the mean each datapoint is
-    try:
-        nStdDevs = np.abs(dy_sorted - dy_stats['mean']) / dy_stats['std']
-    except Exception as ex:
-        utool.printex(ex, key_list=['dy_stats',
-                                    (len, 'y_data'),
-                                    'y_data',
-                                    ])
-        raise
-    # Mark any above a threshold as knee points
-    knee_indexes = np.where(nStdDevs > nStdDevs_thresh)[0]
-    knee_mag = nStdDevs[knee_indexes]
-    knee_points = dy_sortx[knee_indexes]
-    print('[df2] knee_points = %r' % (knee_points,))
-    # Check to see that we have found a knee
-    if len(knee_points) > 0 and adaptive_knee_scaling:
-        # Use linear scaling up the the knee points and
-        # scale it by the magnitude of the knee
-        kneex = knee_points.argmin()
-        linthreshx = knee_points[kneex] + 1
-        linthreshy = y_data[linthreshx] * basey
-        linscaley = min(2, max(1, (knee_mag[kneex] / (basey * 2))))
-    else:
-        linthreshx = 1E2
-        linthreshy = 1E2
-        linscaley = 1
-    logscale_kwargs = {
-        'basey': basey,
-        'nonposx': 'clip',
-        'nonposy': 'clip',
-        'linthreshy': linthreshy,
-        'linthreshx': linthreshx,
-        'linscalex': 1,
-        'linscaley': linscaley,
-    }
-    #print(logscale_kwargs)
-    return logscale_kwargs
-
-
-def set_logyscale_from_data(y_data):
-    logscale_kwargs = get_good_logyscale_kwargs(y_data)
-    ax = gca()
-    ax.set_yscale('symlog', **logscale_kwargs)
-
-
 def plot(*args, **kwargs):
     yscale = kwargs.pop('yscale', 'linear')
     xscale = kwargs.pop('xscale', 'linear')
