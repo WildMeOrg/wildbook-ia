@@ -35,7 +35,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 
 
 #@utool.indent_func('[dev]')
-@profile
+#@profile
 def run_experiments(ibs, qaid_list):
     """
     This function runs tests passed in with the -t flag
