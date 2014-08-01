@@ -18,7 +18,7 @@ invV = ((iv11, iv12, x),
 """
 from __future__ import absolute_import, division, print_function
 # Python
-from six.moves import zip
+from six.moves import zip, range
 # Science
 import numpy as np
 import numpy.linalg as npl
@@ -367,7 +367,7 @@ def flatten_invV_mats_to_kpts(invV_mats):
 @profile
 def get_V_mats(kpts, **kwargs):
     invV_mats = get_invV_mats(kpts, **kwargs)
-    V_mats = npl.inv(invV_mats)
+    V_mats = invert_invV_mats(invV_mats)
     return V_mats
 
 
@@ -384,7 +384,21 @@ def get_Z_mats(V_mats):
 
 @profile
 def invert_invV_mats(invV_mats):
-    V_mats = npl.inv(invV_mats)
+    try:
+        V_mats = npl.inv(invV_mats)
+    except npl.LinAlgError:
+        # FIXME: !!!
+        # Debug inverse
+        V_mats_list = [None for _ in range(len(invV_mats))]
+        for ix, invV in enumerate(invV_mats):
+            try:
+                V_mats_list[ix] = npl.inv(invV)
+            except npl.LinAlgError:
+                print(utool.hz_str('ERROR: invV_mats[%d] = ' % ix, invV))
+                V_mats_list[ix] = np.nan(invV.shape)
+        if utool.SUPER_STRICT:
+            raise
+        V_mats = np.array(V_mats_list)
     return V_mats
 
 
@@ -494,6 +508,7 @@ def get_kpts_strs(kpts):
 #     module.__dict__['func_cyth'] = func_cyth
 try:
     # TODO Give cyth this functionality
+    #if utool.get_flag('--cyth'):
     if not utool.get_flag('--nocyth'):
         from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
         get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64

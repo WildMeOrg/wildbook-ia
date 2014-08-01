@@ -1,6 +1,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
+import six
 from os.path import exists, join
 from six.moves import zip, map
 # Science
@@ -38,7 +39,11 @@ def dummy_img(w, h):
 
 def imread(img_fpath, delete_if_corrupted=False):
     # opencv always reads in BGR mode (fastest load time)
-    imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
+    if six.PY2:
+        flags = cv2.CV_LOAD_IMAGE_COLOR
+    else:
+        flags = cv2.IMREAD_COLOR
+    imgBGR = cv2.imread(img_fpath, flags=flags)
     if imgBGR is None:
         if not exists(img_fpath):
             raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)

@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 # Science
 import cv2
+import six
+import functools
 import numpy as np
 import numpy.linalg as npl
 from numpy import (array, sin, cos)
@@ -226,7 +228,11 @@ def nearest_point(x, y, pts, mode='random'):
 def and_lists(*args):
     """ Like np.logical_and, but can take more than 2 arguments """
     # TODO: Cython
-    flags =  reduce(np.logical_and, args)
+    # TODO: remove reduce statement (bleh)
+    if six.PY2:
+        flags =  reduce(np.logical_and, args)
+    elif six.PY3:
+        flags =  functools.reduce(np.logical_and, args)
     return flags
 
 
@@ -416,7 +422,8 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
 #cython_funcs = [('det_distance', ['float32', 'float64']), ('L2_sqrd', ['float32', 'float64'])]
 #for
 try:
-    if not utool.get_flag('--nocyth'):
+    #if not utool.get_flag('--nocyth'):
+    if utool.get_flag('--cyth'):
         from .linalg_cython import (  # NOQA
             L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
                                     det_distance_float64, L2_sqrd_cython,
