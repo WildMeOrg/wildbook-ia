@@ -299,6 +299,6 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 
 # Current Experiments:
 
-profiler.sh dev.py -t upsize --allgt --quiet
+./profiler.sh dev.py -t upsize --allgt --quiet --noshow
 
 ```

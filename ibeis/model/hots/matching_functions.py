@@ -661,22 +661,28 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
 def try_load_resdict(qreq):
     """ Try and load the result structures for each query.
     returns a list of failed qaids
+    <CYTH>
+    cdef:
+        object qreq
+        list qaids
+        dict qaid2_qres
+        list failed_qaids
     </CYTH>
     """
     qaids = qreq.qaids
-    cfgstr = qreq.get_cfgstr()
+    #cfgstr = qreq.get_cfgstr()  # NEEDS FIX TAKES 21.9 % time of this function
+    cfgstr = qreq.get_cfgstr2()  # hack of a fix
     qaid2_qres = {}
     failed_qaids = []
     for qaid in qaids:
         try:
             res = hots_query_result.QueryResult(qaid, cfgstr)
-            res.load(qreq)
+            res.load(qreq)  # 77.4 % time
             qaid2_qres[qaid] = res
         except hots_query_result.HotsCacheMissError:
             failed_qaids.append(qaid)
         except hots_query_result.HotsNeedsRecomputeError:
             failed_qaids.append(qaid)
-
     return qaid2_qres, failed_qaids
 
 

@@ -49,6 +49,14 @@ def remove_corrupted_queries(qreq, qres, dryrun=True):
 
 
 def query_result_fpath(qreq, qaid, cfgstr):
+    """
+    <CYTH>
+    cdef:
+        object qreq
+        long qaid
+        str cfgstr, qres_dir, fpath, hash_id, fname
+    </CYTH>
+    """
     qres_dir  = qreq.qresdir
     fname = 'res_%s_qaid=%d.npz' % (cfgstr, qaid)
     if len(fname) > 64:
@@ -145,7 +153,7 @@ class QueryResult(__OBJECT_BASE__):
             #if not isinstance(qres.filt2_meta, dict):
             #    print('[qr] loading old result format')
             #    qres.filt2_meta = {}
-            if not utool.QUIET:
+            if utool.NOT_QUIET:
                 print('... qres cache hit: %r' % (split(fpath)[1],))
         except IOError as ex:
             if not exists(fpath):

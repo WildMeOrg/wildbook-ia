@@ -14,6 +14,7 @@ USE_BIGCACHE = '--nocache-big' not in sys.argv
 
 
 @utool.indent_func
+@profile
 def quickly_ensure_qreq(ibs, qaids=None, daids=None):
     """ </CYTH> """
     # This function is purely for hacking, eventually prep request or something
@@ -35,6 +36,7 @@ def quickly_ensure_qreq(ibs, qaids=None, daids=None):
 
 
 #@utool.indent_func('[prep_qreq]')
+@profile
 def prep_query_request(qreq=None, query_cfg=None,
                        qaids=None, daids=None, **kwargs):
     """  Builds or modifies a query request object
@@ -64,6 +66,7 @@ def prep_query_request(qreq=None, query_cfg=None,
 
 #@utool.indent_func('[pre_exec]')
 #@profile
+@profile
 def pre_exec_checks(ibs, qreq):
     """ Ensures that the NNIndex's data_index is pointing to the correct
     set of feature descriptors
@@ -147,6 +150,7 @@ def process_query_request(ibs, qreq,
 # Query Level 1
 #@utool.indent_func('[Q1]')
 #@profile
+@profile
 def execute_query_and_save_L1(ibs, qreq, failed_qaids=[]):
     """ </CYTH> """
     #print('[q1] execute_query_and_save_L1()')
@@ -163,6 +167,7 @@ def execute_query_and_save_L1(ibs, qreq, failed_qaids=[]):
 # Query Level 0
 #@utool.indent_func('[Q0]')
 #@profile
+@profile
 def execute_query_L0(ibs, qreq):
     """
     Driver logic of query pipeline

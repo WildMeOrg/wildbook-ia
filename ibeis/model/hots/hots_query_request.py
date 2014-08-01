@@ -23,6 +23,7 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.vsone  = False
         qreq.qresdir = qresdir  # Where to cache individual results
         qreq.bigcachedir = bigcachedir  # Where to cache large results
+        qreq._frozen_cfgstr = None  # hack
 
     #def __del__(qreq):
     #    for key in qreq.dftup2_index.keys():
@@ -37,6 +38,7 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.cfg = query_cfg
         qreq.vsmany = query_cfg.agg_cfg.query_type == 'vsmany'
         qreq.vsone  = query_cfg.agg_cfg.query_type == 'vsone'
+        qreq.unfreeze_cfgstr()
 
     def get_daids_hashid(qreq):
         assert len(qreq.daids) > 0, 'QueryRequest not populated. len(daids)=0'
@@ -58,7 +60,24 @@ class QueryRequest(__REQUEST_BASE__):
         return cfgstr_list
 
     def get_cfgstr(qreq, **kwargs):
-        return ''.join(qreq.get_cfgstr_list(**kwargs))
+        cfgstr = ''.join(qreq.get_cfgstr_list(**kwargs))
+        return cfgstr
+
+    def get_cfgstr2(qreq, **kwargs):
+        """ HACK FUNC """
+        if qreq._frozen_cfgstr is not None and len(kwargs) == 0:
+            return qreq._frozen_cfgstr
+        else:
+            return qreq.get_cfgstr()
+
+    def freeze_cfgstr(qreq):
+        """ HACK FUNC """
+        cfgstr = ''.join(qreq.get_cfgstr_list())
+        qreq._frozen_cfgstr = cfgstr
+
+    def unfreeze_cfgstr(qreq):
+        """ HACK FUNC """
+        qreq._frozen_cfgstr = None
 
     def get_internal_daids(qreq):
         """ These are not the users daids in vsone mode """
