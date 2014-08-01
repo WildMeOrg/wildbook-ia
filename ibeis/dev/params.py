@@ -14,7 +14,8 @@ def parse_args():
         # Only parse arguments once
         print('[!params] ALREADY INITIALIZED ARGS')
         return None
-    parser2 = util_arg.make_argparse2('IBEIS - Lite')  # , version='0.0'
+    parser2 = util_arg.make_argparse2('IBEIS - Lite',
+                                      'Image Based Ecological Information System')  # , version='0.0'
 
     def dev_argparse(parser2):
         parser2 = parser2.add_argument_group('Developer')

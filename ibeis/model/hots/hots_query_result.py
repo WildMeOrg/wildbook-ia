@@ -134,7 +134,7 @@ class QueryResult(__OBJECT_BASE__):
 
     @profile
     def load(qres, qreq):
-        'Loads the result from the given database'
+        """ Loads the result from the given database """
         fpath = qres.get_fpath(qreq)
         qaid_good = qres.qaid
         try:
@@ -142,27 +142,23 @@ class QueryResult(__OBJECT_BASE__):
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
                 qres.__dict__.update(loaded_dict)
-            if not isinstance(qres.filt2_meta, dict):
-                print('[qr] loading old result format')
-                qres.filt2_meta = {}
-            print('... qres cache hit: %r' % (split(fpath)[1],))
+            #if not isinstance(qres.filt2_meta, dict):
+            #    print('[qr] loading old result format')
+            #    qres.filt2_meta = {}
+            if not utool.QUIET:
+                print('... qres cache hit: %r' % (split(fpath)[1],))
         except IOError as ex:
             if not exists(fpath):
                 msg = '... qres cache miss: %r' % (split(fpath)[1],)
-                print(msg)
+                if not utool.QUIET:
+                    print(msg)
                 raise HotsCacheMissError(msg)
-            else:
-                msg_list = ['[!qr] QueryResult(qaid=%d) is corrupted' % (qres.qaid),
-                            '%r' % (ex,)]
-                msg = ('\n'.join(msg_list))
-                print(msg)
-                raise Exception(msg)
+            msg = '[!qr] QueryResult(qaid=%d) is corrupt' % (qres.qaid)
+            utool.printex(ex, msg, iswarning=True)
+            raise HotsNeedsRecomputeError(msg)
         except BadZipFile as ex:
-            print('[!qr] Caught other BadZipFile: %r' % ex)
-            msg_list = ['[!qr] QueryResult(qaid=%d) is corrupted' % (qres.qaid),
-                        '%r' % (ex,)]
-            msg = '\n'.join(msg_list)
-            print(''.join(msg))
+            msg = '[!qr] QueryResult(qaid=%d) has bad zipfile' % (qres.qaid)
+            utool.printex(ex, msg, iswarning=True)
             if exists(fpath):
                 print('[qr] Removing corrupted file: %r' % fpath)
                 os.remove(fpath)
@@ -172,7 +168,7 @@ class QueryResult(__OBJECT_BASE__):
         except ValueError as ex:
             if str(ex) == 'unsupported pickle protocol: 3':
                 raise HotsNeedsRecomputeError(str(ex))
-            pass
+            raise
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise
@@ -238,33 +234,52 @@ class QueryResult(__OBJECT_BASE__):
         return top_aids[0:min(num, num_indexed)]
 
     def get_aid_scores(qres, aid_arr):
-        return [qres.aid2_score[aid] for aid in aid_arr]
+        return [qres.aid2_score.get(aid, None) for aid in aid_arr]
 
-    def get_inspect_str(qres):
+    def get_aid_truth(qres, ibs, aid_list):
+        isgt_list = [ibs.get_match_truth(qres.qaid, aid) for aid in aid_list]
+        return isgt_list
+
+    def get_inspect_str(qres, ibs=None):
         assert_qres(qres)
         nFeatMatch_list = get_num_feats_in_matches(qres)
         nFeatMatch_stats = utool.mystats(nFeatMatch_list)
 
-        top_lbl = utool.unindent('''
-                                 top aids
-                                 scores
-                                 ranks''').strip()
+        top_lbls = [' top aids', ' scores', ' ranks']
 
-        top_aids = qres.get_top_aids(num=5)
+        top_aids   = qres.get_top_aids(num=5)
         top_scores = qres.get_aid_scores(top_aids)
-        top_ranks = qres.get_aid_ranks(top_aids)
+        top_ranks  = qres.get_aid_ranks(top_aids)
+        top_list   = [top_aids, top_scores, top_ranks]
 
-        top_stack = np.vstack((top_aids, top_scores, top_ranks))
+        if ibs is not None:
+            top_lbls += [' isgt']
+            istrue = qres.get_aid_truth(ibs, top_aids)
+            top_list.append(istrue)
+
+        top_stack = np.vstack(top_list)
         top_stack = np.array(top_stack, dtype=np.int32)
         top_str = str(top_stack)
 
-        inspect_str = '\n'.join([
-            'QueryResult',
+        top_lbl = '\n'.join(top_lbls)
+        inspect_list = ['QueryResult',
+                        qres.cfgstr,
+                        ]
+        if ibs is not None:
+            gt_ranks  = qres.get_gt_ranks(ibs=ibs)
+            gt_scores = qres.get_gt_scores(ibs=ibs)
+            inspect_list.append('gt_ranks = %r' % gt_ranks)
+            inspect_list.append('gt_scores = %r' % gt_scores)
+
+        inspect_list.extend([
             'qaid=%r ' % qres.qaid,
-            utool.horiz_string(top_lbl, ' ', top_str),
+            utool.hz_str(top_lbl, ' ', top_str),
             'num Feat Matches stats:',
             utool.indent(utool.dict_str(nFeatMatch_stats)),
         ])
+
+        inspect_str = '\n'.join(inspect_list)
+
         inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str
 

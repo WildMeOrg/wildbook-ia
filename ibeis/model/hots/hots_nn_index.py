@@ -31,7 +31,8 @@ def aggregate_descriptors(ibs, aid_list):
                                aid (annotation rowid)
                                fx (feature index w.r.t. aid)
     </CYTH> """
-    print('[agg_desc] stacking descriptors from %d annotations' % len(aid_list))
+    if not utool.QUIET:
+        print('[agg_desc] stacking descriptors from %d annotations' % len(aid_list))
     desc_list = ibs.get_annot_desc(aid_list)
     # Build inverted index of (aid, fx) pairs
     aid_nFeat_iter = zip(aid_list, map(len, desc_list))

@@ -253,7 +253,7 @@ def gvcomp(ibs, qaid_list):
 
 
 @devcmd('upsize')
-def increase_dbsize(ibs, qaid_list):
+def up_dbsize_expt(ibs, qaid_list):
     """
     Input:
         ibs       - IBEISController object
@@ -262,14 +262,30 @@ def increase_dbsize(ibs, qaid_list):
     database.
     """
     seed = 1  # Random seed for determenism
+    clamp_gt = 1  # clamp the number of groundtruth to test
     # List of database sizes to test
-    sample_sizes = [1, 5, 10, 50, 100, 200, 500, 750, 1000]
+    #sample_sizes_ = [1, 5, 10, 50, 100, 200, 500, 750, 1000]
+    sample_sizes_ = [1, 10, 100, 500, 1000]
+    nAnnots = ibs.get_num_annotations()
+    sample_sizes = [size for size in sample_sizes_ if size < nAnnots]
     # Get list of true and false matches for every query annotation
-    qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True)
+    qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True, is_exemplar=True)
     qaid_falses_list = ibs.get_annot_groundfalse(qaid_list)
-    qres_list = []  # output container
+    # output containers
+    #qres_list   = []
+    upscores_dict = utool.ddict(lambda: utool.ddict(list))
     # For each query annotation, and its true and false set
     query_iter = zip(qaid_list, qaid_trues_list, qaid_falses_list)
+    # Get a rough idea of how many queries will be run
+    nGtPerAid = (nGt if (clamp_gt is None or nGt < clamp_gt) else clamp_gt
+                 for nGt in map(len, qaid_trues_list))
+    nTotal = len(sample_sizes) * sum(nGtPerAid)
+    count = 0
+    # Create a progress marking function
+    mark_prog, end_prog = utool.progress_func(nTotal, lbl='[upscale] Progress: ',
+                                              approx=True, override_quiet=True,
+                                              flush_after=10)
+    mark_prog(0)
     for qaid, true_aids, false_aids in query_iter:
         # For each set of false matches (of varying sizes)
         for dbsize in sample_sizes:
@@ -277,19 +293,44 @@ def increase_dbsize(ibs, qaid_list):
                 continue
             false_sample = utool.deterministic_sample(false_aids,
                                                       dbsize, seed=seed)
+            true_sample  = utool.deterministic_sample(false_aids,
+                                                      clamp_gt, seed=seed)
             # For each true match
-            for gt_aid in true_aids:
+            for gt_aid in true_sample:
+                count += 1
+                mark_prog(count)
+                #print('[upscale] %d / ~%d' % (count, nTotal))
                 # Specify the database annotation ids
                 daid_list = false_sample + [gt_aid]
                 # Execute query
                 qres = ibs._query_chips([qaid], daid_list)[qaid]
+                # Elicit information
+                score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
                 # Append result
-                qres_list.append(qres)
+                upscores_dict[(qaid, gt_aid)]['dbsizes'].append(dbsize)
+                upscores_dict[(qaid, gt_aid)]['score'].append(score)
+                #qres_list.append(qres)
+    end_prog()
+
+    colors = df2.distinct_colors(len(upscores_dict))
+    df2.figure(fnum=1, doclf=True, docla=True)
+    for ix, ((qaid, gt_aid), upscores) in enumerate(upscores_dict.items()):
+        color = colors[ix]
+        xdata = upscores['dbsizes']
+        ydata = upscores['score']
+        df2.plt.plot(xdata, ydata, 'o-', color=color)
+    figtitle = 'Effect of Database Size on Match Scores'
+    figtitle += '\n' + ibs.get_dbname()
+    figtitle += '\n' + ibs.cfg.query_cfg.get_cfgstr()
+    df2.set_figtitle(figtitle, font='large')
+    df2.set_xlabel('# Annotations in database')
+    df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
+    df2.dark_background()
 
     # TODO: Should be separate function. Previous code should be intergrated
     # into the experiment_harness
-
-    return {'qres_list': qres_list}  # return in dict format for execstr_dict
+    locals_ = locals()
+    return locals_  # return in dict format for execstr_dict
 
 
 def get_ibslist(ibs):

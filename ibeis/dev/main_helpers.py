@@ -33,8 +33,12 @@ def get_test_qaids(ibs):
     #print(utool.dict_str(vars(params.args)))
 
     if params.args.qaid is not None:
+        if isinstance(params.args.qaid, int):
+            args_qaid = [params.args.qaid]
+        else:
+            args_qaid = utool.flatten(params.args.qaid)
         printDBG('Testing qaid=%r' % params.args.qaid)
-        test_qaids.extend(params.args.qaid)
+        test_qaids.extend(args_qaid)
 
     if params.args.all_cases:
         printDBG('Testing all %d cases' % (len(valid_aids),))

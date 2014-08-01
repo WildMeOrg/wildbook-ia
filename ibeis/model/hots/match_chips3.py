@@ -18,7 +18,8 @@ def quickly_ensure_qreq(ibs, qaids=None, daids=None):
     """ </CYTH> """
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
-    print(' --- quick ensure qreq --- ')
+    if not utool.QUIET:
+        print(' --- quick ensure qreq --- ')
     ibs._init_query_requestor()
     qreq = ibs.qreq
     query_cfg = ibs.cfg.query_cfg
@@ -38,7 +39,8 @@ def prep_query_request(qreq=None, query_cfg=None,
                        qaids=None, daids=None, **kwargs):
     """  Builds or modifies a query request object
     </CYTH> """
-    print(' --- Prep QueryRequest --- ')
+    if not utool.QUIET:
+        print(' --- Prep QueryRequest --- ')
     if qreq is None:
         qreq = hots_query_request.QueryRequest()
     if qaids is not None:
@@ -66,7 +68,8 @@ def pre_exec_checks(ibs, qreq):
     """ Ensures that the NNIndex's data_index is pointing to the correct
     set of feature descriptors
     </CYTH> """
-    print('  --- Pre Exec ---')
+    if not utool.QUIET:
+        print('  --- Pre Exec ---')
     feat_cfgstr = qreq.cfg._feat_cfg.get_cfgstr()
     daids_hashid = qreq.get_daids_hashid()
     # Ensure the index / inverted index exist for this config
@@ -101,8 +104,8 @@ def process_query_request(ibs, qreq,
     If cache miss, tries to load each qres individually.
     On an individual cache miss, it preforms the query.
     </CYTH> """
-
-    print(' --- Process QueryRequest --- ')
+    if not utool.QUIET:
+        print(' --- Process QueryRequest --- ')
     if len(qreq.qaids) <= 1:
         # Do not use bigcache single queries
         use_bigcache = False
