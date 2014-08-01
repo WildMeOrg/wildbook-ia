@@ -27,6 +27,7 @@ def show_aids(ibs, qaid_list):
 
 @devcmd()
 def change_names(ibs, qaid_list):
+    """ Test to changes names """
     #next_name = utool.get_arg('--name', str, default='<name>_the_<species>')
     next_name = utool.get_arg('--name', str, default='glob')
     for aid in qaid_list:
@@ -61,12 +62,12 @@ def sver_aids(ibs, qaid_list):
 
 
 @devcmd('cfg')
-def printcfg(ibs, qaid_list):
+def printcfg(ibs):
     ibs.cfg.printme3()
     print(ibs.cfg.query_cfg.get_cfgstr())
 
 
-@devcmd('list_dbs')
+@devcmd('listdbs', 'list_dbs')
 def list_dbs(*args):
     ibsdb_list = sysres.get_ibsdb_list()
     print('IBEIS Databases:')
@@ -83,6 +84,11 @@ def list_unconverted_hsdbs(*args):
 @devcmd('convert')
 def convert_hsdbs(*args):
     ingest_hsdb.ingest_unconverted_hsdbs_in_workdir()
+
+
+@devcmd('delete_cache')
+def delete_cachedir(ibs, *args):
+    ibs.delete_cachedir()
 
 
 @devcmd

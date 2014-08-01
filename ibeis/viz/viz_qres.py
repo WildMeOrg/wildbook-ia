@@ -162,19 +162,20 @@ def show_qres(ibs, qres, **kwargs):
             _kwshow['fnum'] = fnum
             _kwshow['pnum'] = pnum
             _kwshow['title_aug'] = aug
+            _kwshow['in_image'] = in_image
             # If we already are showing the query dont show it here
             if sidebyside:
                 _kwshow['draw_ell'] = annote_mode == 1
                 _kwshow['draw_lines'] = annote_mode >= 1
-                viz_matches.show_matches(ibs, qres, aid, in_image=in_image, **_kwshow)
+                viz_matches.show_matches(ibs, qres, aid, **_kwshow)
             else:
                 _kwshow['draw_ell'] = annote_mode >= 1
                 if annote_mode == 2:
                     # TODO Find a better name
                     _kwshow['color'] = aid2_color[aid]
                     _kwshow['sel_fx2'] = qres.aid2_fm[aid][:, 1]
-                viz_chip.show_chip(ibs, aid, in_image=in_image, annote=False, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, aid, in_image=in_image, show_query=not show_query)
+                viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
+                viz_matches.annotate_matches(ibs, qres, aid, show_query=not show_query)
 
         printDBG('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:

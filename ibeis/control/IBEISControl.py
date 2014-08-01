@@ -272,13 +272,15 @@ class IBEISController(object):
         if ibs.qreq is not None:
             ibs.qreq.set_cfg(query_cfg)
         ibs.cfg.query_cfg = query_cfg
-        ibs.cfg.feat_cfg  = query_cfg._feat_cfg
-        ibs.cfg.chip_cfg  = query_cfg._feat_cfg._chip_cfg
+        ibs.cfg.feat_cfg  = ibs.cfg.query_cfg._feat_cfg
+        ibs.cfg.chip_cfg  = ibs.cfg.query_cfg._feat_cfg._chip_cfg
 
     @default_decorator
     def update_query_cfg(ibs, **kwargs):
         """ Updates query config only. Configs needs a restructure very badly """
         ibs.cfg.query_cfg.update_query_cfg(**kwargs)
+        ibs.cfg.feat_cfg  = ibs.cfg.query_cfg._feat_cfg
+        ibs.cfg.chip_cfg  = ibs.cfg.query_cfg._feat_cfg._chip_cfg
 
     @default_decorator
     def get_chip_config_rowid(ibs):

@@ -264,24 +264,28 @@ def assert_valid_aids(ibs, aid_list):
 
 @__injectable
 def delete_all_features(ibs):
+    print('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()
     ibs.delete_features(all_fids)
 
 
 @__injectable
 def delete_all_annotations(ibs):
+    print('[ibs] delete_all_annotations')
     all_aids = ibs._get_all_aids()
     ibs.delete_annots(all_aids)
 
 
 @__injectable
 def delete_all_chips(ibs):
+    print('[ibs] delete_all_chips')
     all_cids = ibs._get_all_cids()
     ibs.delete_chips(all_cids)
 
 
 @__injectable
 def delete_all_encounters(ibs):
+    print('[ibs] delete_all_encounters')
     all_eids = ibs._get_all_eids()
     ibs.delete_encounters(all_eids)
 
@@ -1015,3 +1019,13 @@ def prune_exemplars(ibs):
     small_aids_list = [aids[sortx][:-MAX_EXEMPLAR] for aids, sortx in zip(problem_aids, problem_sortx)]
     small_aids = utool.flatten(small_aids_list)
     ibs.set_annot_exemplar_flag(small_aids, [False] * len(small_aids))
+
+
+@__injectable
+def delete_cachedir(ibs):
+    print('[ibs] delete_cachedir')
+    cachedir = ibs.get_cachedir()
+    print('[ibs] cachedir=%r' % cachedir)
+    utool.delete(cachedir)
+    # TODO: features really need to not be in SQL or in a separate SQLDB
+    ibs.delete_all_features()

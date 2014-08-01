@@ -238,13 +238,39 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 ./dev.py --setdb --db YOURDB
 
 # List all available tests
-./dev.py --allgt -t help
+./dev.py -t help
 # Minimal Database Statistics
 ./dev.py --allgt -t info
 # Richer Database statistics
 ./dev.py --allgt -t dbinfo
+# Print algorithm configurations
+./dev.py -t printcfg
+# Print database tables
+./dev.py -t tables
+# Print only the image table
+./dev.py -t imgtbl
+# View data directory in explorer/finder/nautilus
+./dev.py -t vdd
+
+
+# List all IBEIS databases
+./dev.py -t listdbs
+# List unconverted hotspotter databases in your workdir
+./dev.py -t listhsdbs
+# Delete cache
+./dev.py -t delete_cache
+
 # Plot of chip-to-chip scores
 ./dev.py --allgt -t score
 
-./dev.py --allgt -t sver
+
+
+# Show Annotation Chips 1, 3, 5, and 11
+./dev.py -t show --qaid 1 3 5 11 -w
+# Query Annotation Chips 1, 3, 5, and 11
+./dev.py -t query --qaid 1 3 5 11 -w
+# Inspect spatial verification of annotations 1, 3, 5, and 11
+./dev.py -t sver --qaid 1 3 5 11 -w
+# Compare matching toggling the gravity vector
+./dev.py -t gv --qaid 1 11 -w
 ```

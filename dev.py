@@ -95,8 +95,12 @@ def run_experiments(ibs, qaid_list):
             with utool.Indenter('[dev.' + get_funcname(func) + ']'):
                 print('[dev] qid_list=%r' % (qaid_list,))
                 ret = func(ibs, qaid_list)
-                if isinstance(ret, dict):
-                    locals_.update(ret)
+                # Add variables returned by the function to the
+                # "local scope" (the exec scop)
+                if hasattr(ret, 'items'):
+                    for key, val in ret.items():
+                        if utool.is_valid_varname(key):
+                            locals_[key] = val
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
@@ -113,7 +117,7 @@ def run_experiments(ibs, qaid_list):
     if intest('help'):
         print('valid tests are:')
         print('\n'.join(valid_test_helpstr_list))
-        return
+        return locals_
 
     if len(input_test_list) > 0:
         print('valid tests are: \n')
@@ -232,10 +236,15 @@ def gvcomp(ibs, qaid_list):
         allres = get_allres(ibs, qaid_list)
         for qaid in qaid_list:
             qres = allres.get_qres(qaid)
-            interact.ishow_qres(ibs, qres, annote_mode=2)
+            interact.ishow_qres(ibs, qres,
+                                annote_mode=2,
+                                in_image=True,
+                                figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr)
+                                )
         return allres
     ibs_GV = ibs
     ibs_RI = ibs.clone_handle(nogravity_hack=True)
+    #utool.embed()
 
     allres_GV = testcomp(ibs_GV, qaid_list)
     allres_RI = testcomp(ibs_RI, qaid_list)
@@ -323,7 +332,8 @@ def run_dev(main_locals):
             # Run the dev experiments
             expt_locals = run_experiments(ibs, qaid_list)
             # Add experiment locals to local namespace
-            exec(utool.execstr_dict(expt_locals, 'expt_locals'))
+            execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
+            exec(execstr_locals)
             if '--devmode' in sys.argv:
                 # Execute the dev-func and add to local namespace
                 devfunc_locals = devfunc(ibs, qaid_list)

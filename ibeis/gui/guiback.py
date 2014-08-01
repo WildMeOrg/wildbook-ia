@@ -676,7 +676,7 @@ class MainWindowBackend(QtCore.QObject):
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
-        utool.delete(back.ibs.get_cachedir())
+        back.ibs.delete_cachedir()
         pass
 
     @slot_()

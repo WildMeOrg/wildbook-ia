@@ -42,29 +42,30 @@ def gen_feat_openmp(cid_list, cfpath_list, dict_args):
         yield cid, len(kpts), kpts, desc
 
 
-def add_feat_params_gen(ibs, cid_list, nFeat=None, **kwargs):
+def add_feat_params_gen(ibs, cid_list, nInput=None, **kwargs):
     """ Computes features and yields results asynchronously:
         TODO: Remove IBEIS from this equation. Move the firewall towards the
         controller """
-    if nFeat is None:
-        nFeat = len(cid_list)
+    if nInput is None:
+        nInput = len(cid_list)
     # Get config from IBEIS controller
     feat_cfg          = ibs.cfg.feat_cfg
     dict_args         = feat_cfg.get_dict_args()
     feat_config_rowid = ibs.get_feat_config_rowid()
     cfpath_list       = ibs.get_chip_paths(cid_list)
+    print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
     if USE_OPENMP:
         # Use Avi's openmp parallelization
         return gen_feat_openmp(cid_list, cfpath_list, dict_args, feat_config_rowid)
     else:
         # Multiprocessing parallelization
         featgen = generate_feats(cfpath_list, dict_args=dict_args,
-                                 cid_list=cid_list, nFeat=nFeat, **kwargs)
+                                 cid_list=cid_list, nInput=nInput, **kwargs)
         return ((cid, nKpts, kpts, desc, feat_config_rowid)
                 for cid, nKpts, kpts, desc in featgen)
 
 
-def generate_feats(cfpath_list, dict_args={}, cid_list=None, nFeat=None, **kwargs):
+def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwargs):
     # chip-ids are an artifact of the IBEIS Controller. Make dummyones if needbe.
     """ Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
@@ -72,7 +73,7 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nFeat=None, **kwarg
     <CYTH: yeilds=tuple>
     cdef:
         list cfpath_list
-        long nFeat
+        long nInput
         object cid_list
         dict dict_args
         dict kwargs
@@ -80,9 +81,9 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nFeat=None, **kwarg
     """
     if cid_list is None:
         cid_list = list(range(len(cfpath_list)))
-    if nFeat is None:
-        nFeat = len(cfpath_list)
-    dictargs_iter = (dict_args for _ in range(nFeat))
+    if nInput is None:
+        nInput = len(cfpath_list)
+    dictargs_iter = (dict_args for _ in range(nInput))
     arg_iter = zip(cid_list, cfpath_list, dictargs_iter)
     arg_list = list(arg_iter)
     featgen = utool.util_parallel.generate(gen_feat_worker, arg_list, **kwargs)
