@@ -468,7 +468,7 @@ if __name__ == '__main__':
     #
     #
     # Main Loop (IPython interaction, or some exec loop)
-    if '--nopresent' not in sys.argv:
+    if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
         df2.present()
     ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
     main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
