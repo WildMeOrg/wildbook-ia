@@ -672,8 +672,11 @@ def try_load_resdict(qreq):
             res = hots_query_result.QueryResult(qaid, cfgstr)
             res.load(qreq)
             qaid2_qres[qaid] = res
-        except IOError:
+        except hots_query_result.HotsCacheMissError:
             failed_qaids.append(qaid)
+        except hots_query_result.HotsNeedsRecomputeError:
+            failed_qaids.append(qaid)
+
     return qaid2_qres, failed_qaids
 
 

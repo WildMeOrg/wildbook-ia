@@ -63,6 +63,14 @@ def query_result_exists(qreq, qaid, cfgstr):
     return exists(fpath)
 
 
+class HotsCacheMissError(Exception):
+    pass
+
+
+class HotsNeedsRecomputeError(Exception):
+    pass
+
+
 __OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
 
 
@@ -140,8 +148,9 @@ class QueryResult(__OBJECT_BASE__):
             print('... qres cache hit: %r' % (split(fpath)[1],))
         except IOError as ex:
             if not exists(fpath):
-                print('... qres cache miss: %r' % (split(fpath)[1],))
-                raise
+                msg = '... qres cache miss: %r' % (split(fpath)[1],)
+                print(msg)
+                raise HotsCacheMissError(msg)
             else:
                 msg_list = ['[!qr] QueryResult(qaid=%d) is corrupted' % (qres.qaid),
                             '%r' % (ex,)]
@@ -157,11 +166,15 @@ class QueryResult(__OBJECT_BASE__):
             if exists(fpath):
                 print('[qr] Removing corrupted file: %r' % fpath)
                 os.remove(fpath)
-                raise IOError(msg)
+                raise HotsNeedsRecomputeError(msg)
             else:
                 raise Exception(msg)
+        except ValueError as ex:
+            if str(ex) == 'unsupported pickle protocol: 3':
+                raise HotsNeedsRecomputeError(str(ex))
+            pass
         except Exception as ex:
-            print('Caught other Exception: %r' % ex)
+            utool.printex(ex, 'unknown exception while loading query result')
             raise
         qres.qaid = qaid_good
 
@@ -287,6 +300,19 @@ class QueryResult(__OBJECT_BASE__):
             return gt_ranks, gt_aids
         else:
             return gt_ranks
+
+    def get_gt_scores(qres, gt_aids=None, ibs=None, return_gtaids=False):
+        'returns the 0 indexed ranking of each groundtruth chip'
+        # Ensure correct input
+        if gt_aids is None and ibs is None:
+            raise Exception('[qr] must pass in the gt_aids or ibs object')
+        if gt_aids is None:
+            gt_aids = ibs.get_annot_groundtruth(qres.qaid)
+        gt_scores = qres.get_aid_scores(gt_aids)
+        if return_gtaids:
+            return gt_scores, gt_aids
+        else:
+            return gt_scores
 
     def get_best_gt_rank(qres, ibs):
         """ Returns the best rank over all the groundtruth """

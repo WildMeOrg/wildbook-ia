@@ -176,6 +176,27 @@ def desc_dists(ibs, qaid_list):
     return locals()
 
 
+@devcmd('scores', 'score')
+def annotationmatch_scores(ibs, qaid_list):
+    print('[dev] annotationmatch_scores')
+    allres = get_allres(ibs, qaid_list)
+    # Get the descriptor distances of true matches
+    orgtype_list = ['false', 'true']
+    orgtype_list = ['top_false', 'top_true']
+    #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
+    markers_map = defaultdict(lambda: 'o')
+    cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
+    results_analyzer.print_annotationmatch_scores_map(cmatch_scores_map)
+    #true_cmatch_scores  = cmatch_scores_map['true']
+    #false_cmatch_scores = cmatch_scores_map['false']
+    scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
+    scores_lbls = orgtype_list
+    scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
+    plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
+    df2.set_figtitle('Chipmatch Scores ' + ibs.qreq.get_cfgstr())
+    return locals()
+
+
 @devcmd('inspect')
 def inspect_matches(ibs, qaid_list):
     print('<inspect_matches>')
@@ -204,27 +225,6 @@ def inspect_matches(ibs, qaid_list):
     return locals()
 
 
-@devcmd('scores', 'score')
-def annotationmatch_scores(ibs, qaid_list):
-    print('[dev] annotationmatch_scores')
-    allres = get_allres(ibs, qaid_list)
-    # Get the descriptor distances of true matches
-    orgtype_list = ['false', 'true']
-    orgtype_list = ['top_false', 'top_true']
-    #markers_map = {'false': 'o', 'true': 'o-', 'top_true': 'o-', 'top_false': 'o'}
-    markers_map = defaultdict(lambda: 'o')
-    cmatch_scores_map = results_analyzer.get_orgres_annotationmatch_scores(allres, orgtype_list)
-    results_analyzer.print_annotationmatch_scores_map(cmatch_scores_map)
-    #true_cmatch_scores  = cmatch_scores_map['true']
-    #false_cmatch_scores = cmatch_scores_map['false']
-    scores_list = [cmatch_scores_map[orgtype] for orgtype in orgtype_list]
-    scores_lbls = orgtype_list
-    scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
-    plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
-    df2.set_figtitle('Chipmatch Scores ' + ibs.qreq.get_cfgstr())
-    return locals()
-
-
 @devcmd('gv')
 def gvcomp(ibs, qaid_list):
     """
@@ -232,6 +232,7 @@ def gvcomp(ibs, qaid_list):
     RI = With rotation invariance
     """
     print('[dev] gvcomp')
+    assert isinstance(ibs, IBEISControl.IBEISController), 'bad input'  # let jedi know whats up
     def testcomp(ibs, qaid_list):
         allres = get_allres(ibs, qaid_list)
         for qaid in qaid_list:
@@ -249,6 +250,46 @@ def gvcomp(ibs, qaid_list):
     allres_GV = testcomp(ibs_GV, qaid_list)
     allres_RI = testcomp(ibs_RI, qaid_list)
     return locals()
+
+
+@devcmd('upsize')
+def increase_dbsize(ibs, qaid_list):
+    """
+    Input:
+        ibs       - IBEISController object
+        qaid_list - list of annotation-ids to query
+    Plots the scores/ranks of correct matches while varying the size of the
+    database.
+    """
+    seed = 1  # Random seed for determenism
+    # List of database sizes to test
+    sample_sizes = [1, 5, 10, 50, 100, 200, 500, 750, 1000]
+    # Get list of true and false matches for every query annotation
+    qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True)
+    qaid_falses_list = ibs.get_annot_groundfalse(qaid_list)
+    qres_list = []  # output container
+    # For each query annotation, and its true and false set
+    query_iter = zip(qaid_list, qaid_trues_list, qaid_falses_list)
+    for qaid, true_aids, false_aids in query_iter:
+        # For each set of false matches (of varying sizes)
+        for dbsize in sample_sizes:
+            if dbsize > len(false_aids):
+                continue
+            false_sample = utool.deterministic_sample(false_aids,
+                                                      dbsize, seed=seed)
+            # For each true match
+            for gt_aid in true_aids:
+                # Specify the database annotation ids
+                daid_list = false_sample + [gt_aid]
+                # Execute query
+                qres = ibs._query_chips([qaid], daid_list)[qaid]
+                # Append result
+                qres_list.append(qres)
+
+    # TODO: Should be separate function. Previous code should be intergrated
+    # into the experiment_harness
+
+    return {'qres_list': qres_list}  # return in dict format for execstr_dict
 
 
 def get_ibslist(ibs):
@@ -326,9 +367,10 @@ def run_dev(main_locals):
             utool.printex(ex, 'len(qaid_list) = 0', iswarning=True)
             #qaid_list = ibs.get_valid_aids()[0]
 
-        if len(qaid_list) > 0:
+        if len(qaid_list) > 0 or True:
             # Prepare the IBEIS controller for querys
-            ibs.prep_qreq_db(qaid_list)
+            if len(qaid_list) > 0:
+                ibs.prep_qreq_db(qaid_list)
             # Run the dev experiments
             expt_locals = run_experiments(ibs, qaid_list)
             # Add experiment locals to local namespace

@@ -178,6 +178,18 @@ python dev.py --cmd --gui
 python dev.py -t convert_hsdbs --force-delete
 
 
+python dev.py --convert --force-delete --db Frogs
+python dev.py --convert --force-delete --db GIR_Tanya
+python dev.py --convert --force-delete --db GZ_All
+python dev.py --convert --force-delete --db Rhinos_Stewart
+python dev.py --convert --force-delete --db WD_Siva
+python dev.py --convert --force-delete --db WY_Toads
+python dev.py --convert --force-delete --db WS_hard
+python dev.py --convert --force-delete --db Wildebeast
+python dev.py --convert --force-delete --db PZ_FlankHack
+python dev.py --convert --force-delete --db PZ_Mothers
+
+
 #--------------
 # Run Result Inspection
 #--------------
@@ -232,10 +244,14 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 
 
 
-#-----
-# Scores plot
-./dev.py --setdb --db PZ_MOTHERS
+#----------------
+# Test Commands
+#----------------
+# Set a default DB First
+./dev.py --setdb --dbdir /path/to/your/DBDIR
 ./dev.py --setdb --db YOURDB
+./dev.py --setdb --db PZ_MOTHERS
+./dev.py --setdb --db PZ_FlankHack
 
 # List all available tests
 ./dev.py -t help
@@ -261,7 +277,13 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 ./dev.py -t delete_cache
 
 # Plot of chip-to-chip scores
-./dev.py --allgt -t score
+./dev.py --allgt -t scores -w
+
+# Plot of keypoint-to-keypoint distances
+./dev.py --allgt -t dists -w
+
+# See how scores degrade as database size increases
+./dev.py --allgt -t upsize -w
 
 
 

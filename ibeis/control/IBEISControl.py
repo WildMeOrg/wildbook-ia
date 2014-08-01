@@ -415,11 +415,11 @@ class IBEISController(object):
         return eid_list
 
     @ider
-    def get_valid_aids(ibs, eid=None, is_exemplar=False):
+    def get_valid_aids(ibs, eid=None, is_exemplar=None):
         """ returns a list of valid ANNOTATION unique ids """
-        if eid is None and is_exemplar:
+        if eid is None and is_exemplar is not None:
             # Optimization Hack
-            aid_list = ibs.db.get_all_rowids_where(ANNOTATION_TABLE, 'annot_exemplar_flag=?', (True,))
+            aid_list = ibs.db.get_all_rowids_where(ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
             return aid_list
         if eid is None:
             aid_list = ibs._get_all_aids()
@@ -495,8 +495,8 @@ class IBEISController(object):
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
-        #>>> from ibeis.dev.all_imports import *  # NOQA
-        #>>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
+        >>> from ibeis.dev.all_imports import *  # NOQA
+        >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
@@ -1260,25 +1260,32 @@ class IBEISController(object):
         return nFeats_list
 
     @getter_1toM
-    def get_annot_groundtruth(ibs, aid_list, is_exemplar=None):
+    def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
         nid_list = ibs.get_annot_nids(aid_list)
         aids_list = ibs.get_name_aids(nid_list)
         if is_exemplar is None:
-            groundtruth_list = aids_list
+            groundtruth_list_ = aids_list
         else:
+            # Filter out non-exemplars
             exemplar_flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flag, aids_list)
             isvalids_list = [[flag == is_exemplar for flag in flags] for flags in exemplar_flags_list]
-            groundtruth_list = [utool.filter_items(aids, isvalids)
-                                for aids, isvalids in zip(aids_list, isvalids_list)]
+            groundtruth_list_ = [utool.filter_items(aids, isvalids)
+                                 for aids, isvalids in zip(aids_list, isvalids_list)]
+        if noself:
+            # Remove yourself from the set
+            groundtruth_list = [list(set(aids) - {aid})
+                                for aids, aid in zip(groundtruth_list_, aid_list)]
+        else:
+            groundtruth_list = groundtruth_list_
         return groundtruth_list
 
     @getter_1to1
-    def get_annot_num_groundtruth(ibs, aid_list):
+    def get_annot_num_groundtruth(ibs, aid_list, noself=True):
         """ Returns number of other chips with the same name """
-        return list(map(len, ibs.get_annot_groundtruth(aid_list)))
+        return list(map(len, ibs.get_annot_groundtruth(aid_list, noself=noself)))
 
     @getter_1to1
     def get_annot_has_groundtruth(ibs, aid_list):
