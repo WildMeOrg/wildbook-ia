@@ -50,7 +50,8 @@ def get_test_qaids(ibs):
     if params.args.all_gt_cases:
         has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
         hasgt_aids = utool.filter_items(valid_aids, has_gt_list)
-        print('Testing all %d ground-truthed cases' % len(hasgt_aids))
+        print('Testing all %d/%d ground-truthed cases' % (len(hasgt_aids),
+                                                          len(valid_aids)))
         test_qaids.extend(hasgt_aids)
 
     # Sample a large pool of query indexes

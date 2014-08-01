@@ -234,9 +234,17 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 
 #-----
 # Scores plot
-# dev.py --setdb --db yourdb
-dev.py -t score --allgt
+./dev.py --setdb --db PZ_MOTHERS
+./dev.py --setdb --db YOURDB
 
+# List all available tests
+./dev.py --allgt -t help
+# Minimal Database Statistics
+./dev.py --allgt -t info
+# Richer Database statistics
+./dev.py --allgt -t dbinfo
+# Plot of chip-to-chip scores
+./dev.py --allgt -t score
 
-dev.py -t sver --allgt
+./dev.py --allgt -t sver
 ```

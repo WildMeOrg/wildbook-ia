@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 # Science
+import six
 import numpy as np
 from collections import OrderedDict
 from utool import util_latex as util_latex
@@ -11,14 +12,17 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
 
 
 def get_dbinfo(ibs):
-    """ Returns dictionary of digestable database information """
+    """ Returns dictionary of digestable database information
+    Infostr is a string summary of all the stats. Prints infostr in addition to
+    returning locals
+    """
     # Name Info
     #rrr()
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
 
-    num_chips = len(valid_aids)
+    num_annots = len(valid_aids)
     num_images = len(valid_gids)
 
     name_aids_list = ibs.get_name_aids(valid_nids)
@@ -27,20 +31,20 @@ def get_dbinfo(ibs):
     gname_list = ibs.get_image_gnames(valid_gids)
     nx2_nRois = np.asarray(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
-    multiton_nxs  = np.where(nx2_nRois > 1)[0]
-    singleton_nxs = np.where(nx2_nRois == 1)[0]
-    valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
-    num_names_with_gt = len(multiton_nxs)
+    multiton_nids  = np.where(nx2_nRois > 1)[0]
+    singleton_nids = np.where(nx2_nRois == 1)[0]
+    valid_nids      = np.hstack([multiton_nids, singleton_nids])
+    num_names_with_gt = len(multiton_nids)
     # Chip Info
-    multiton_aids_list = nx2_aids[multiton_nxs]
-    print('multiton_nxs = %r' % (multiton_nxs,))
-    print('multiton_aids_list = %r' % (multiton_aids_list,))
+    multiton_aids_list = nx2_aids[multiton_nids]
+    #print('multiton_nids = %r' % (multiton_nids,))
+    #print('multiton_aids_list = %r' % (multiton_aids_list,))
     if len(multiton_aids_list) == 0:
-        multiton_cxs = np.array([], dtype=np.int)
+        multiton_aids = np.array([], dtype=np.int)
     else:
-        multiton_cxs = np.hstack(multiton_aids_list)
-    singleton_cxs = nx2_aids[singleton_nxs]
-    multiton_nx2_nchips = list(map(len, multiton_aids_list))
+        multiton_aids = np.hstack(multiton_aids_list)
+    singleton_aids = nx2_aids[singleton_nids]
+    multiton_nid2_nannots = list(map(len, multiton_aids_list))
     # Image info
     gpath_list = ibs.get_image_paths(valid_gids)
     #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True, recursive=True)
@@ -68,19 +72,19 @@ def get_dbinfo(ibs):
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(annotation_size_list)
-    multiton_stats  = utool.common_stats(multiton_nx2_nchips)
+    multiton_stats  = utool.common_stats(multiton_nid2_nannots)
 
-    num_names = len(valid_nxs)
+    num_names = len(valid_nids)
     # print
     info_str = '\n'.join([
         (' DB Info: ' + ibs.get_dbname()),
         (' * #Img   = %d' % num_images),
-        (' * #Chips = %d' % num_chips),
-        (' * #Names = %d' % len(valid_nxs)),
-        (' * #Singleton Names    = %d' % len(singleton_nxs)),
-        (' * #Multiton Names     = %d' % len(multiton_nxs)),
-        (' * #Multiton Chips     = %d' % len(multiton_cxs)),
-        (' * Chips per Multiton Names = %s' % (multiton_stats,)),
+        (' * #Annots = %d' % num_annots),
+        (' * #Names = %d' % len(valid_nids)),
+        (' * #Names  (without gt) = %d' % len(singleton_nids)),
+        (' * #Names  (with gt)    = %d' % len(multiton_nids)),
+        (' * #Annots (with gt)    = %d' % len(multiton_aids)),
+        (' * Annots per Names (with gt) = %s' % (multiton_stats,)),
         (' * #Img in dir = %d' % len(gpath_list)),
         (' * Image Size Stats = %s' % (img_size_stats,)),
         (' * Chip Size Stats = %s' % (chip_size_stats,)), ])
@@ -123,20 +127,20 @@ def dbstats(ibs):
     dbinfo_locals = get_dbinfo(ibs)
     db_name = ibs.get_dbname()
     #num_images = dbinfo_locals['num_images']
-    num_chips = dbinfo_locals['num_chips']
-    num_names = len(dbinfo_locals['valid_nxs'])
-    num_singlenames = len(dbinfo_locals['singleton_nxs'])
-    num_multinames = len(dbinfo_locals['multiton_nxs'])
-    num_multichips = len(dbinfo_locals['multiton_cxs'])
-    multiton_nx2_nchips = dbinfo_locals['multiton_nx2_nchips']
+    num_annots = dbinfo_locals['num_annots']
+    num_names = len(dbinfo_locals['valid_nids'])
+    num_singlenames = len(dbinfo_locals['singleton_nids'])
+    num_multinames = len(dbinfo_locals['multiton_nids'])
+    num_multiannots = len(dbinfo_locals['multiton_aids'])
+    multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
 
     #tex_nImage = latex_formater.latex_scalar(r'\# images', num_images)
-    tex_nChip = util_latex.latex_scalar(r'\# chips', num_chips)
+    tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
     tex_nName = util_latex.latex_scalar(r'\# names', num_names)
     tex_nSingleName = util_latex.latex_scalar(r'\# singlenames', num_singlenames)
     tex_nMultiName  = util_latex.latex_scalar(r'\# multinames', num_multinames)
-    tex_nMultiChip  = util_latex.latex_scalar(r'\# multichips', num_multichips)
-    tex_multi_stats = util_latex.latex_mystats(r'\# multistats', multiton_nx2_nchips)
+    tex_nMultiChip  = util_latex.latex_scalar(r'\# multiannots', num_multiannots)
+    tex_multi_stats = util_latex.latex_mystats(r'\# multistats', multiton_nid2_nannots)
 
     tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
                                                               (ibs.cfg.feat_cfg.scale_min,
