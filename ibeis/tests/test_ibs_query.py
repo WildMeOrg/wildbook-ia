@@ -25,7 +25,7 @@ def TEST_QUERY(ibs):
 
     for qaid in qaid_list:
         qres  = qres_dict[qaid]
-        top_aids = qres.get_top_aids(ibs)
+        top_aids = qres.get_top_aids()
         top_aids = utool.safe_slice(top_aids, 3)
         aid2 = top_aids[0]
         fnum = df2.next_fnum()

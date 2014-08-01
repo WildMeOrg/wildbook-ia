@@ -38,7 +38,7 @@ def TEST_QUERY_COMP(ibs):
         ('SVER', comp_locals_['qres_SVER']),
     ])
 
-    top_aids = qres_dict['SVER'].get_top_aids(ibs)
+    top_aids = qres_dict['SVER'].get_top_aids()
     top_aids = utool.safe_slice(top_aids, 3)
     aid2 = top_aids[0]
 
