@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 """
 Removes profiled output of code that never ran
 """
