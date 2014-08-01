@@ -322,8 +322,8 @@ def rectify_invV_mats_are_up(invVR_mats):
         np.ndarray[float64_t, ndim=1] _b
         np.ndarray[float64_t, ndim=1] _c
         np.ndarray[float64_t, ndim=1] _d
-        np.ndarray[float64_t, ndim=1] _det
-        np.ndarray[float64_t, ndim=1] _b2a2
+        np.ndarray[float64_t, ndim=1] det_
+        np.ndarray[float64_t, ndim=1] b2a2
         np.ndarray[float64_t, ndim=1] iv11
         np.ndarray[float64_t, ndim=1] iv21
         np.ndarray[float64_t, ndim=1] iv22
