@@ -218,7 +218,8 @@ def set_ylabel(lbl):
     ax.set_ylabel(lbl, fontproperties=FONTS.xlabel)
 
 
-def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True):
+def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
+                 font='figtitle'):
     if figtitle is None:
         figtitle = ''
     fig = gcf()
@@ -226,7 +227,8 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True):
         if subtitle != '':
             subtitle = '\n' + subtitle
         #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
-        fig.suptitle(figtitle + subtitle, fontproperties=FONTS.figtitle)
+        fontprop = getattr(FONTS, font)
+        fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
         #fig_relative_text(.5, .96, subtitle, fontproperties=FONTS.subtitle)
     else:
         fig.suptitle('')

@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function
 # Standard
+import warnings
 from six.moves import zip, range
 from plottool import draw_func2 as df2
 # Matplotlib
+import scipy.stats
 import matplotlib.pyplot as plt
 import vtool.histogram as htool
 import utool
@@ -146,3 +148,62 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
     }
     #print(logscale_kwargs)
     return logscale_kwargs
+
+
+def plot_pdf(data, draw_support=True, scale_to=None, label=None, color=0,
+             nYTicks=3):
+    fig = df2.gcf()
+    ax = df2.gca()
+    data = np.array(data)
+    if len(data) == 0:
+        warnstr = '[df2] ! Warning: len(data) = 0. Cannot visualize pdf'
+        warnings.warn(warnstr)
+        df2.draw_text(warnstr)
+        return
+    if len(data) == 1:
+        warnstr = '[df2] ! Warning: len(data) = 1. Cannot visualize pdf'
+        warnings.warn(warnstr)
+        df2.draw_text(warnstr)
+        return
+    bw_factor = .05
+    if isinstance(color, (int, float)):
+        colorx = color
+        line_color = plt.get_cmap('gist_rainbow')(colorx)
+    else:
+        line_color = color
+
+    # Estimate a pdf
+    data_pdf = estimate_pdf(data, bw_factor)
+    # Get probability of seen data
+    prob_x = data_pdf(data)
+    # Get probability of unseen data data
+    x_data = np.linspace(0, data.max(), 500)
+    y_data = data_pdf(x_data)
+    # Scale if requested
+    if scale_to is not None:
+        scale_factor = scale_to / y_data.max()
+        y_data *= scale_factor
+        prob_x *= scale_factor
+    #Plot the actual datas on near the bottom perterbed in Y
+    if draw_support:
+        pdfrange = prob_x.max() - prob_x.min()
+        perb   = (np.random.randn(len(data))) * pdfrange / 30.
+        preb_y_data = np.abs([pdfrange / 50. for _ in data] + perb)
+        ax.plot(data, preb_y_data, 'o', color=line_color, figure=fig, alpha=.1)
+    # Plot the pdf (unseen data)
+    ax.plot(x_data, y_data, color=line_color, label=label)
+    if nYTicks is not None:
+        yticks = np.linspace(min(y_data), max(y_data), nYTicks)
+        ax.set_yticks(yticks)
+
+
+def estimate_pdf(data, bw_factor):
+    try:
+        data_pdf = scipy.stats.gaussian_kde(data, bw_factor)
+        data_pdf.covariance_factor = bw_factor
+    except Exception as ex:
+        print('[df2] ! Exception while estimating kernel density')
+        print('[df2] data=%r' % (data,))
+        print('[df2] ex=%r' % (ex,))
+        raise
+    return data_pdf
