@@ -1,5 +1,7 @@
 #/usr/bin/env python
-'Removes profiled output of code that never ran'
+"""
+Removes profiled output of code that never ran
+"""
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 import six

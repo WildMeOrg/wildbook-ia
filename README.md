@@ -294,4 +294,11 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 ./dev.py -t sver --qaid 1 3 5 11 -w
 # Compare matching toggling the gravity vector
 ./dev.py -t gv --qaid 1 11 -w
+
+
+
+# Current Experiments:
+
+profiler.sh dev.py -t upsize --allgt --quiet
+
 ```
