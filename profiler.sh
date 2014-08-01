@@ -17,16 +17,6 @@ remove_profiles()
     echo "Finshed removing profiles"
 }
 
-# Input (get only the filename)
-
-export pyscript=$(python -c "import os; print(os.path.split(r'$1')[1])")
-#export pyscript=$(echo $1 | sed -e 's/.*[\/\\]//g')
-
-if [ "$pyscript" = "clean" ]; then
-    remove_profiles
-    exit
-fi 
-
 #echo $pyscript
 #set -e
 #/bin/command-that-fails
@@ -55,7 +45,18 @@ else
     # UBUNTU
     export KERNPROF_PY="kernprof.py"
     export RUNSNAKE_PY="runsnake"
+    export PYEXE=$(python -c "import sys; print(sys.executable)")
 fi
+
+# Input (get only the filename)
+
+export pyscript=$($PYEXE -c "import os; print(os.path.split(r'$1')[1])")
+#export pyscript=$(echo $1 | sed -e 's/.*[\/\\]//g')
+
+if [ "$pyscript" = "clean" ]; then
+    remove_profiles
+    exit
+fi 
 
 echo "pyscript: $pyscript"
 
@@ -63,9 +64,9 @@ echo "pyscript: $pyscript"
 #
 # PLOP PROFILER
 if [ $PROFILE_TYPE = "plop" ]; then
-    python -m plop.collector $@
+    $PYEXE -m plop.collector $@
     echo "http://localhost:8888"
-    python -m plop.viewer --datadir=profiles
+    $PYEXE -m plop.viewer --datadir=profiles
 #
 #
 # LINE PROFILER
@@ -79,9 +80,9 @@ elif [ $PROFILE_TYPE = "lineprof" ]; then
     # Line profile the python code w/ command line args
     $KERNPROF_PY -l $@
     # Dump the line profile output to a text file
-    python -m line_profiler $line_profile_output >> $raw_profile
+    $PYEXE -m line_profiler $line_profile_output >> $raw_profile
     # Clean the line profile output
-    python _scripts/profiler_cleaner.py $raw_profile $clean_profile
+    $PYEXE _scripts/profiler_cleaner.py $raw_profile $clean_profile
     # Print the cleaned output
     cat $clean_profile
 #
@@ -90,7 +91,7 @@ elif [ $PROFILE_TYPE = "lineprof" ]; then
 elif [ $PROFILE_TYPE = "runsnake" ]; then
     # Line profile the python code w/ command line args
     export runsnake_profile=RunSnakeContext.$pyscript.$TIMESTAMP.$RAW_SUFFIX
-    python -m cProfile -o $runsnake_profile $@
+    $PYEXE -m cProfile -o $runsnake_profile $@
     # Dump the line profile output to a text file
     $RUNSNAKE_PY $runsnake_profile
 fi
