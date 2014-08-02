@@ -253,6 +253,7 @@ def gvcomp(ibs, qaid_list):
 
 
 @devcmd('upsize')
+@profile
 def up_dbsize_expt(ibs, qaid_list):
     """
     Input:
@@ -265,8 +266,9 @@ def up_dbsize_expt(ibs, qaid_list):
     clamp_gt = 1  # clamp the number of groundtruth to test
     # List of database sizes to test
     #sample_sizes_ = [1, 5, 10, 50, 100, 200, 500, 750, 1000]
-    sample_sizes_ = [1, 10, 100, 500, 1000]
     nAnnots = ibs.get_num_annotations()
+    start = min(nAnnots // len(qaid_list), 10)
+    sample_sizes_ = map(int, np.round(np.linspace(start, nAnnots, 7)))
     sample_sizes = [size for size in sample_sizes_ if size < nAnnots]
     # Get list of true and false matches for every query annotation
     qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True, is_exemplar=True)
@@ -274,6 +276,8 @@ def up_dbsize_expt(ibs, qaid_list):
     # output containers
     #qres_list   = []
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
+    np.logspace(0, 100)
+
     # For each query annotation, and its true and false set
     query_iter = zip(qaid_list, qaid_trues_list, qaid_falses_list)
     # Get a rough idea of how many queries will be run
@@ -282,10 +286,9 @@ def up_dbsize_expt(ibs, qaid_list):
     nTotal = len(sample_sizes) * sum(nGtPerAid)
     count = 0
     # Create a progress marking function
-    mark_prog, end_prog = utool.progress_func(nTotal, lbl='[upscale] Progress: ',
-                                              approx=True, override_quiet=True,
-                                              flush_after=10)
-    mark_prog(0)
+    mark_prog, end_prog = utool.log_progress('[upscale] Progress: ', nTotal,
+                                             flush_after=10, approx=True,
+                                             override_quiet=True)
     for qaid, true_aids, false_aids in query_iter:
         # For each set of false matches (of varying sizes)
         for dbsize in sample_sizes:
