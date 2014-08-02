@@ -301,7 +301,7 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 
 ./profiler.sh dev.py -t upsize --allgt --quiet --noshow
 dev.py -t upsize --allgt --quiet --noshow
-dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:20
+profiler.sh dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:30
 dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 
 ```

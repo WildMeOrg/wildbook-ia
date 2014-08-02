@@ -262,23 +262,21 @@ def up_dbsize_expt(ibs, qaid_list):
     Plots the scores/ranks of correct matches while varying the size of the
     database.
     """
-    seed = 1  # Random seed for determenism
-    clamp_gt = utool.get_arg('--clamp-gt', int, 1)  # clamp the number of groundtruth to test
-    num_samples = utool.get_arg('--num-samples', int, 7)  # clamp the number of groundtruth to test
+    # determenism
+    seed = 1
+    # clamp the number of groundtruth to test
+    clamp_gt = utool.get_arg('--clamp-gt', int, 1)
     # List of database sizes to test
-    #sample_sizes_ = [1, 5, 10, 50, 100, 200, 500, 750, 1000]
-    nAnnots = ibs.get_num_annotations()
-    start = min(nAnnots // len(qaid_list), 10)
-    sample_sizes_ = map(int, np.round(np.linspace(start, nAnnots, num_samples)))
-    sample_sizes = [size for size in sample_sizes_ if size < nAnnots]
+    num_samp = utool.get_arg('--num-samples', int, 7)
+    samp_max = ibs.get_num_annotations()
+    samp_min = 30  # max(samp_max // len(qaid_list), 10)
+    sample_sizes = utool.sample_domain(samp_min, samp_max, num_samp)
     # Get list of true and false matches for every query annotation
     qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True, is_exemplar=True)
     qaid_falses_list = ibs.get_annot_groundfalse(qaid_list)
     # output containers
-    #qres_list   = []
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
     np.logspace(0, 100)
-
     # For each query annotation, and its true and false set
     query_iter = zip(qaid_list, qaid_trues_list, qaid_falses_list)
     # Get a rough idea of how many queries will be run
@@ -287,9 +285,8 @@ def up_dbsize_expt(ibs, qaid_list):
     nTotal = len(sample_sizes) * sum(nGtPerAid)
     count = 0
     # Create a progress marking function
-    mark_prog, end_prog = utool.log_progress('[upscale] Progress: ', nTotal,
-                                             flush_after=10, approx=True,
-                                             override_quiet=True)
+    progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': True}
+    mark_prog, end_prog = utool.log_progress('[upscale] progress: ',  **progkw)
     for qaid, true_aids, false_aids in query_iter:
         # For each set of false matches (of varying sizes)
         for dbsize in sample_sizes:
@@ -303,7 +300,6 @@ def up_dbsize_expt(ibs, qaid_list):
             for gt_aid in true_sample:
                 count += 1
                 mark_prog(count)
-                #print('[upscale] %d / ~%d' % (count, nTotal))
                 # Specify the database annotation ids
                 daid_list = false_sample + [gt_aid]
                 # Execute query
@@ -313,7 +309,6 @@ def up_dbsize_expt(ibs, qaid_list):
                 # Append result
                 upscores_dict[(qaid, gt_aid)]['dbsizes'].append(dbsize)
                 upscores_dict[(qaid, gt_aid)]['score'].append(score)
-                #qres_list.append(qres)
     end_prog()
 
     if not utool.get_flag('--noshow'):
