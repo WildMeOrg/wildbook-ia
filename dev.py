@@ -263,12 +263,13 @@ def up_dbsize_expt(ibs, qaid_list):
     database.
     """
     seed = 1  # Random seed for determenism
-    clamp_gt = 1  # clamp the number of groundtruth to test
+    clamp_gt = utool.get_arg('--clamp-gt', int, 1)  # clamp the number of groundtruth to test
+    num_samples = utool.get_arg('--num-samples', int, 7)  # clamp the number of groundtruth to test
     # List of database sizes to test
     #sample_sizes_ = [1, 5, 10, 50, 100, 200, 500, 750, 1000]
     nAnnots = ibs.get_num_annotations()
     start = min(nAnnots // len(qaid_list), 10)
-    sample_sizes_ = map(int, np.round(np.linspace(start, nAnnots, 7)))
+    sample_sizes_ = map(int, np.round(np.linspace(start, nAnnots, num_samples)))
     sample_sizes = [size for size in sample_sizes_ if size < nAnnots]
     # Get list of true and false matches for every query annotation
     qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True, is_exemplar=True)
