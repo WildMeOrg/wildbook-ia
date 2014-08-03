@@ -377,7 +377,7 @@ def get_Z_mats(V_mats):
         transform into conic matrix Z
         Z = (V.T).dot(V)
     """
-    Vt_mats = array(map(np.transpose, V_mats))
+    Vt_mats = array(list(map(np.transpose, V_mats)))
     Z_mats = matrix_multiply(Vt_mats, V_mats)
     return Z_mats
 
