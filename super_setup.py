@@ -228,6 +228,11 @@ if upstream_branch is not None:
     utool.gg_command('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
 
 
+upstream_push = utool.get_arg('--upstream-push', type_=str, default=None)
+if upstream_push is not None:
+    utool.gg_command('git push --set-upstream origin {upstream_push}'.format(**locals()))
+
+
 gg_cmd = utool.get_arg('--gg', None)  # global command
 if gg_cmd is not None:
     ans = raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
