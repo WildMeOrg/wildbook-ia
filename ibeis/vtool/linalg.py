@@ -429,9 +429,8 @@ try:
                                     det_distance_float64, L2_sqrd_cython,
                                     det_distance_cython)
     else:
-        # default to python
-        L2_sqrd_cython = L2_sqrd
-        det_distance_cython = det_distance
+        raise ImportError('no cyth')
 except ImportError as ex:
-    raise
-    pass
+    # default to python
+    L2_sqrd_cython = L2_sqrd
+    det_distance_cython = det_distance
