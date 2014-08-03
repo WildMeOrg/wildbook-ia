@@ -58,7 +58,8 @@ class APIThumbDelegate(DELEGATE_BASE):
         if data is None:
             return None
         # The data should be specified as a thumbtup
-        if isinstance(data, QtCore.QVariant):
+        #if isinstance(data, QtCore.QVariant):
+        if hasattr(data, 'toPyObject'):
             data = data.toPyObject()
         if data is None:
             return None

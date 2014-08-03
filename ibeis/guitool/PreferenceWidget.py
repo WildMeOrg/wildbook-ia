@@ -7,9 +7,11 @@ import traceback
 from utool.Preferences import Pref
 # Qt
 from .__PYQT__ import QtCore, QtGui
+from .__PYQT__ import QVariantHack
 from .__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject, pyqtSlot
 from .__PYQT__.QtGui import QWidget
-from .__PYQT__.QtCore import QString, QVariant
+#from .__PYQT__.QtCore import QString
+from .import qtype
 
 
 # Decorator to help catch errors that QT wont report
@@ -81,25 +83,33 @@ class QPreferenceModel(QAbstractItemModel):
         """ Returns the data stored under the given role
         for the item referred to by the index. """
         if not index.isValid():
-            return QVariant()
+            return QVariantHack()
         if role != Qt.DisplayRole and role != Qt.EditRole:
-            return QVariant()
+            return QVariantHack()
         nodePref = self.index2Pref(index)
         data = nodePref.qt_get_data(index.column())
-        var = QVariant(data)
         #print('--- data() ---')
         #print('role = %r' % role)
         #print('data = %r' % data)
         #print('type(data) = %r' % type(data))
+        # <SIP.API_MODE(1)>
+        #var = QVariantHack(data)
+        #if isinstance(data, float):
+        #    var = QVariantHack(QString.number(data, format='g', precision=6))
+        #if isinstance(data, bool):
+        #    var = QVariantHack(data).toString()
+        #if isinstance(data, int):
+        #    var = QVariantHack(data).toString()
+        # </SIP.API_MODE(1)>
+        # <SIP.API_MODE(2)>
         if isinstance(data, float):
-            var = QVariant(QString.number(data, format='g', precision=6))
-        if isinstance(data, bool):
-            var = QVariant(data).toString()
-        if isinstance(data, int):
-            var = QVariant(data).toString()
+            var = qtype.locale_float(data, 6)
+        else:
+            var = data
+        # </SIP.API_MODE(2)>
         #print('var= %r' % var)
         #print('type(var)= %r' % type(var))
-        return var
+        return str(var)
 
     @report_thread_error
     def index(self, row, col, parent=QModelIndex()):
@@ -163,10 +173,10 @@ class QPreferenceModel(QAbstractItemModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if section == 0:
-                return QVariant('Config Key')
+                return QVariantHack('Config Key')
             if section == 1:
-                return QVariant('Config Value')
-        return QVariant()
+                return QVariantHack('Config Value')
+        return QVariantHack()
 
 
 # ---

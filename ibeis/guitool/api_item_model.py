@@ -1,6 +1,6 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
+from .__PYQT__ import QtCore, QtGui, QVariantHack
 from .__PYQT__.QtCore import Qt
 from . import qtype
 from .guitool_decorators import checks_qt_error, signal_
@@ -17,6 +17,7 @@ import utool
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
 VERBOSE = utool.VERBOSE
+
 
 try:
     # TODO Cyth should take care of this stuff
@@ -644,8 +645,7 @@ class APIItemModel(API_MODEL_BASE):
     def data(model, qtindex, role=Qt.DisplayRole):
         """ Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
-        the index.  Note: If you do not have a value to return, return an
-        invalid QVariant instead of returning 0. """
+        the index.  Note: If you do not have a value to return, return None"""
         if not qtindex.isValid():
             return None
         flags = model.flags(qtindex)
@@ -653,13 +653,13 @@ class APIItemModel(API_MODEL_BASE):
         col = qtindex.column()
         node = qtindex.internalPointer()
         if model.col_level_list[col] != node.get_level():
-            return QtCore.QVariant()
+            return QVariantHack()
         type_ = model._get_type(col)
 
         if row >= model.rowCount():
             # Yuck.
             print('[item_model] Yuck. row excedes row count')
-            return QtCore.QVariant()
+            return QVariantHack()
 
         #if role == Qt.SizeHintRole:
         #    #printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
@@ -684,14 +684,14 @@ class APIItemModel(API_MODEL_BASE):
                 return value
             if flags & Qt.ItemIsEditable:
                 # Editable fields are colored
-                return QtCore.QVariant(model.EditableItemColor)
+                return QVariantHack(model.EditableItemColor)
             elif flags & Qt.ItemIsUserCheckable:
                 # Checkable color depends on the truth value
                 data = model._get_data(qtindex)
                 if data:
-                    return QtCore.QVariant(model.TrueItemColor)
+                    return QVariantHack(model.TrueItemColor)
                 else:
-                    return QtCore.QVariant(model.FalseItemColor)
+                    return QVariantHack(model.FalseItemColor)
             else:
                 pass
         #
@@ -733,9 +733,8 @@ class APIItemModel(API_MODEL_BASE):
             #role_name = qtype.ItemDataRoles[role]
             #builtins.print('UNHANDLED ROLE=%r' % role_name)
             pass
-        # else return an empty QVariant
-        value = QtCore.QVariant()
-        return value
+        # else return None
+        return QVariantHack()
 
     @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
@@ -790,7 +789,7 @@ class APIItemModel(API_MODEL_BASE):
         #    row = section
         #    rowid = model._get_row_id(row)
         #    return rowid
-        return QtCore.QVariant()
+        return QVariantHack()
 
     @updater
     def sort(model, column, order):

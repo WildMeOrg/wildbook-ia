@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from .__PYQT__ import QtCore, QtGui
 # Python
+import six
 from six.moves import range
 import utool
 import sys
@@ -93,15 +94,20 @@ def get_view_selection_as_str(view):
 
     def astext(data):
         """ Helper which casts model data to a string """
-        try:
-            if isinstance(data, QtCore.QVariant):
-                text = str(data.toString())
-            elif isinstance(data, QtCore.QString):
-                text = str(data)
-            else:
-                text = str(data)
-        except Exception as ex:
-            text = repr(ex)
+        if not isinstance(data, six.string_types):
+            text = repr(data)
+        else:
+            text = str(data)
+        #try:
+        #    text = str(data)
+        #    #if isinstance(data, QtCore.Q__Variant):
+        #    #    text = str(data.toString())
+        #    #elif isinstance(data, QtCore.Q__String):
+        #    #    text = str(data)
+        #    #else:
+        #    #    text = str(data)
+        #except Exception as ex:
+        #    text = repr(ex)
         return text.replace('\n', '<NEWLINE>').replace(',', '<COMMA>')
 
     #

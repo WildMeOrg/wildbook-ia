@@ -5,28 +5,16 @@ from .__PYQT__.QtCore import QLocale
 import utool
 import uuid
 import numpy as np
-from .__PYQT__ import QtGui, QtCore
+from .__PYQT__ import QtGui
+from .guitool_decorators import checks_qt_error
 if six.PY2:
     from .__PYQT__.QtCore import QString
     from .__PYQT__.QtCore import QVariant
 elif six.PY3:
     QString = str
+
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qtype]', DEBUG=False)
-
-
-if six.PY2:
-    def QVariant6(*args):
-        return QtCore.QVariant(*args)
-        pass
-elif six.PY3:
-    def QVariant6(*args):
-        if len(args) == 0:
-            return None
-        elif len(args) == 1:
-            return args[0]
-        else:
-            return args
 
 
 ItemDataRoles = {
@@ -102,28 +90,57 @@ def numpy_to_qicon(npimg):
     return qicon
 
 
+def locale_float(float_, precision=8):
+    return LOCALE.toString(float(float_), format='g', precision=precision)
+
+
 @profile
 def cast_into_qt(data):
-    """ Casts data to a QVariant """
+    """
+    Casts python data into a representation suitable for QT (usually a string)
+    """
     if utool.is_str(data):
-        return QVariant(str(data)).toString()
-    if utool.is_float(data):
+        return str(data)
+    elif utool.is_float(data):
         #qnumber = QString.number(float(data), format='g', precision=8)
-        return QVariant(LOCALE.toString(float(data), format='g', precision=8))
+        return locale_float(data)
     elif utool.is_bool(data):
-        return QVariant(bool(data)).toString()
+        return bool(data)
     elif  utool.is_int(data):
-        return QVariant(int(data)).toString()
+        return int(data)
     elif isinstance(data, uuid.UUID):
-        return QVariant(str(data)).toString()
+        return str(data)
     elif utool.isiterable(data):
-        return QVariant(', '.join(map(str, data))).toString()
+        return ', '.join(map(str, data))
     elif data is None:
-        return QVariant('None').toString()
+        return 'None'
     else:
         return 'Unknown qtype: %r for data=%r' % (type(data), data)
 
 
+#@profile
+#def __cast_into_qt_py2(data):
+#    """ Casts data to a QVariant """
+#    if utool.is_str(data):
+#        return QVariant(str(data)).toString()
+#    if utool.is_float(data):
+#        #qnumber = QString.number(float(data), format='g', precision=8)
+#        return QVariant(LOCALE.toString(float(data), format='g', precision=8))
+#    elif utool.is_bool(data):
+#        return QVariant(bool(data)).toString()
+#    elif  utool.is_int(data):
+#        return QVariant(int(data)).toString()
+#    elif isinstance(data, uuid.UUID):
+#        return QVariant(str(data)).toString()
+#    elif utool.isiterable(data):
+#        return QVariant(', '.join(map(str, data))).toString()
+#    elif data is None:
+#        return QVariant('None').toString()
+#    else:
+#        return 'Unknown qtype: %r for data=%r' % (type(data), data)
+
+
+@checks_qt_error
 @profile
 def cast_from_qt(var, type_=None):
     """ Casts a QVariant to data """
@@ -149,6 +166,33 @@ def cast_from_qt(var, type_=None):
         raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
                          (type(var), var))
     return data
+
+
+#@profile
+#def cast_from_qt__PY2(var, type_=None):
+#    """ Casts a QVariant to data """
+#    #printDBG('Casting var=%r' % (var,))
+#    if var is None:
+#        return None
+#    if type_ is not None and isinstance(var, QVariant):
+#        # Most cases will be qvariants
+#        reprstr = str(var.toString())
+#        data = utool.smart_cast(reprstr, type_)
+#    elif isinstance(var, QVariant):
+#        if var.typeName() == 'bool':
+#            data = bool(var.toBool())
+#        if var.typeName() in ['QString', 'str']:
+#            data = str(var.toString())
+#    elif isinstance(var, QString):
+#        data = str(var)
+#    #elif isinstance(var, (int, long, str, float)):
+#    elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
+#        # comboboxes return ints
+#        data = var
+#    else:
+#        raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
+#                         (type(var), var))
+#    return data
 
 
 def infer_coltype(column_list):

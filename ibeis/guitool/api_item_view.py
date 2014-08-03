@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from .__PYQT__ import QtCore, QtGui
+from .__PYQT__ import QtGui
 from .__PYQT__.QtCore import Qt
 from six.moves import range
 from guitool import qtype
@@ -141,7 +141,8 @@ def copy_selection_to_clipboard(view):
     if VERBOSE:
         print('[guitool] Copying selection to clipboard')
     copy_str = get_view_selection_as_str(view)
-    copy_qstr = QtCore.QString(copy_str)
+    #copy_qstr = QtCore.Q__String(copy_str)
+    copy_qstr = str(copy_str)
     clipboard = get_qtapp().clipboard()
     if VERBOSE:
         print(copy_str)
