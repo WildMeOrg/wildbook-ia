@@ -1,9 +1,7 @@
 import os
 import re
-import cv2
 import csv
 import pypascalxml
-import shutil
 import numpy as np
 import ExifTags
 from PIL import Image
@@ -35,12 +33,12 @@ def load_data(image_table_filename, chip_table_filename):
             else:
                 img_id = row[1].strip()
                 # remove the square brackets at the front and back of ROI
-                roi = map(int, re.sub("[^0-9]", " ", row[3]).split())
+                roi = list(map(int, re.sub("[^0-9]", " ", row[3]).split()))
                 img_name = image_ids[img_id]
                 # convert from HotSpotter bounding box to PASCAL-VOC: xmax, xmin, ymax, ymin
                 tlx, tly, w, h = roi
                 images[img_name].append(np.array([tlx + w, tlx, tly + h, tly]))
-    
+
     return images
 
 
@@ -49,12 +47,16 @@ def get_all_files(dir, ext='.jpg'):
 
 
 if __name__ == '__main__':
-    classes = ['elephant', 'elephant', 'giraffe', 'rhino', 'wilddog', 'zebra_grevys', 'zebra_plains']
-    directories = ['Elephant_1', 'Elephant_2', 'Giraffe', 'Rhino', 'Wild_Dog', 'Zebra_Grevys', 'Zebra_Plain']
+    classes = ['elephant', 'elephant', 'giraffe', 'rhino', 'wilddog',
+               'zebra_grevys', 'zebra_plains']
+    directories = ['Elephant_1', 'Elephant_2', 'Giraffe', 'Rhino', 'Wild_Dog',
+                   'Zebra_Grevys', 'Zebra_Plain']
     #classname = 'zebra_grevys'
     for classname, directory in zip(classes, directories):
-        images = load_data(directory + '/image_table.csv', directory + '/chip_table.csv')
-        info = {'database_name': 'The IBEIS Database', 'source': 'Mpala, Ol Pejeta, Kenya'}
+        images = load_data(directory + '/image_table.csv',
+                           directory + '/chip_table.csv')
+        info = {'database_name': 'The IBEIS Database',
+                'source': 'Mpala, Ol Pejeta, Kenya'}
         img_dir = directory + '/images'
         output_dir = '../data'
         out_fmt = '2014_%06d'
@@ -73,10 +75,10 @@ if __name__ == '__main__':
                 #shutil.copyfile(src, dst_img)
                 #print w, h, r, (int(np.round(w / r)), int(np.round(h / r)))
                 try:
-                    for orientation in ExifTags.TAGS.keys():
+                    for orientation in list(ExifTags.TAGS.keys()):
                         if ExifTags.TAGS[orientation] == 'Orientation':
                             break
-                    exif = dict(img._getexif().items())
+                    exif = dict(list(img._getexif().items()))
 
                     if exif[orientation] == 3:
                         img = img.rotate(180, expand=True)
@@ -85,15 +87,15 @@ if __name__ == '__main__':
                     elif exif[orientation] == 8:
                         img = img.rotate(90, expand=True)
                 except Exception as e:
-                    print repr(e)
-                    print 'No EXIF data found for %s' % src
+                    print(repr(e))
+                    print('No EXIF data found for %s' % src)
 
                 w, h = img.size
                 if w < 900 and h < 900:
-                    print '%s skipped because of size' % src
+                    print('%s skipped because of size' % src)
                     continue
                 if max(w, h) / float(min(w, h)) > 2:
-                    print '%s skipped because of ratio' % src
+                    print('%s skipped because of ratio' % src)
                     continue
                 r = max(w, h) / 900.
 
@@ -112,11 +114,11 @@ if __name__ == '__main__':
                 with open(dst_ann, 'w') as xml_out:
                     xml_out.write(annotation.xml())
 
-                print '%d of %d, copied %s to %s' % (processed, len(images), src, dst_img)
-                print 'created corresponding annotation file at %s' % dst_ann
+                print('%d of %d, copied %s to %s' % (processed, len(images), src, dst_img))
+                print('created corresponding annotation file at %s' % dst_ann)
             else:
-                print 'Could not find file %s, ignoring.' % src
+                print('Could not find file %s, ignoring.' % src)
 
-        print '***********************'
-        print 'copied %d of %d files' % (copied, processed)
-        print '***********************'
+        print('***********************')
+        print('copied %d of %d files' % (copied, processed))
+        print('***********************')
