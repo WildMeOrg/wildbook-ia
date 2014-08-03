@@ -624,8 +624,8 @@ def scores_to_color(score_list, cmap_='hot', logscale=False):
             score2_01 = lambda score: np.log2(1.1 + .9 * (float(score) - mins) / (rnge))
             score_list = np.array(score_list)
             #rank_multiplier = score_list.argsort() / len(score_list)
-            #normscore = np.array(map(score2_01, score_list)) * rank_multiplier
-            normscore = np.array(map(score2_01, score_list))
+            #normscore = np.array(list(map(score2_01, score_list))) * rank_multiplier
+            normscore = np.array(list(map(score2_01, score_list)))
             colors =  list(map(cmap, normscore))
         else:
             score2_01 = lambda score: .1 + .9 * (float(score) - mins) / (rnge)
