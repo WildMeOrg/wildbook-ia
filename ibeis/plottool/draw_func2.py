@@ -395,7 +395,7 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 #        raise
 #    autorep = False  # default false
 #    count   = 1  # default 1
-#    text = QtCore.QString(text)  # The text is somewhat arbitrary
+#    text = str(text)  # The text is somewhat arbitrary
 #    # Create the QEvent
 #    print('----------------')
 #    print('[df2] Create event')
@@ -419,7 +419,7 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 #    app = qtwin.backend.app
 #    app.sendEvent(qtwin.ui, mevent)
 #    #type_ = QtCore.QEvent.Type(QtCore.QEvent.KeyPress)  # The type should always be KeyPress
-#    #text = QtCore.QString('A')  # The text is somewhat arbitrary
+#    #text = str('A')  # The text is somewhat arbitrary
 #    #modifiers = QtCore.Qt.NoModifier  # initialize to no modifiers
 #    #modifiers = modifiers | QtCore.Qt.ControlModifier
 #    #modifiers = modifiers | QtCore.Qt.AltModifier
