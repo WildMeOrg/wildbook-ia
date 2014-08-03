@@ -6,7 +6,7 @@ from __future__ import print_function
 #import numpy as np
 import os
 #import random
-from detecttools.directory import Directory
+#from detecttools.directory import Directory  # seems to not exist? # accidently deleted?
 #import xml.etree.ElementTree as xml
 
 from . import common as com
