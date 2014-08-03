@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import functools
-from PyQt4 import QtCore, QtGui  # NOQA
-from PyQt4.QtCore import Qt      # NOQA
+from .__PYQT__ import QtCore, QtGui  # NOQA
+from .__PYQT__.QtCore import Qt      # NOQA
 import utool
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,

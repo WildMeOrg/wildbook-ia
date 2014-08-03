@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
-from PyQt4 import QtGui, QtCore  # NOQA
-from PyQt4.QtCore import Qt
+from .__PYQT__ import QtGui, QtCore  # NOQA
+from .__PYQT__.QtCore import Qt
 import utool
 
 #BASE_CLASS = QtGui.QAbstractProxyModel

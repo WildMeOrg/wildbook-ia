@@ -1,6 +1,6 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
-from PyQt4 import QtCore
+from .__PYQT__ import QtCore
 from six.moves import zip, range
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)

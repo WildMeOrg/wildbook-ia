@@ -2,10 +2,8 @@ from __future__ import absolute_import, division, print_function
 # Python
 import atexit
 import sys
-from PyQt4 import QtCore, QtGui
-import sip
-if hasattr(sip, 'setdestroyonexit'):
-    sip.setdestroyonexit(False)  # This prevents a crash on windows
+from .__PYQT__ import QtCore, QtGui
+from .__PYQT__.QtCore import pyqtRemoveInputHook
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[guitool]', DEBUG=False)
@@ -69,8 +67,8 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
     start_event_loop_qt4(QAPP)
 
 
-#if 'PyQt4' in sys.modules:
-    #from PyQt4 import QtCore
+#if '__PYQT__' in sys.modules:
+    #from .__PYQT__ import QtCore
     #from IPython.lib.inputhook import enable_qt4
     #from IPython.lib.guisupport import start_event_loop_qt4
     #qapp = QtCore.QCoreApplication.instance()
@@ -81,7 +79,6 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
 
 
 def remove_pyqt_input_hook():
-    from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
 
 

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from PyQt4 import QtCore, QtGui
+from .__PYQT__ import QtCore, QtGui
 from guitool import api_item_view
 from guitool.guitool_decorators import signal_, slot_
 import utool

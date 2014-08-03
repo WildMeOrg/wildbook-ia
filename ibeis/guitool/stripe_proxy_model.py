@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from .__PYQT__ import QtCore, QtGui
+from .__PYQT__.QtCore import Qt
 import math
 import utool
 

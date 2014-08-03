@@ -1,14 +1,14 @@
 from __future__ import absolute_import, division, print_function
-#from PyQt4.QtCore import Qt
+#from .__PYQT__.QtCore import Qt
 import six
-from PyQt4.QtCore import QLocale
+from .__PYQT__.QtCore import QLocale
 import utool
 import uuid
 import numpy as np
-from PyQt4 import QtGui, QtCore
+from .__PYQT__ import QtGui, QtCore
 if six.PY2:
-    from PyQt4.QtCore import QString
-    from PyQt4.QtCore import QVariant
+    from .__PYQT__.QtCore import QString
+    from .__PYQT__.QtCore import QVariant
 elif six.PY3:
     QString = str
 (print, print_, printDBG, rrr, profile) = utool.inject(

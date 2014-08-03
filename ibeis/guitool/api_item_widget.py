@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
+from .__PYQT__ import QtGui, QtCore
 from guitool.api_item_model import APIItemModel
 from guitool.api_table_view import APITableView
 #from guitool import guitool_components as comp
-from PyQt4 import QtGui, QtCore
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
 

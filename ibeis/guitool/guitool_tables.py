@@ -1,10 +1,10 @@
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
-from six.moves import range, map
-from . import qtype
+from .__PYQT__ import QtCore, QtGui
+from .__PYQT__.QtCore import Qt
 from .guitool_delegates import ComboDelegate, ButtonDelegate
+from . import qtype
+from six.moves import range, map
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[guitbls]', DEBUG=False)

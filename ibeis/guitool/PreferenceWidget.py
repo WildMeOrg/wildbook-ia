@@ -6,9 +6,10 @@ import sys
 import traceback
 from utool.Preferences import Pref
 # Qt
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import (QAbstractItemModel, QModelIndex, QVariant, QWidget,
-                      QString, Qt, QObject, pyqtSlot)
+from .__PYQT__ import QtCore, QtGui
+from .__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject, pyqtSlot
+from .__PYQT__.QtGui import QWidget
+from .__PYQT__.QtCore import QString, QVariant
 
 
 # Decorator to help catch errors that QT wont report

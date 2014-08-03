@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
+from .__PYQT__ import QtCore, QtGui
+from .__PYQT__.QtCore import Qt
 from six.moves import range
 from guitool import qtype
 from guitool.api_thumb_delegate import APIThumbDelegate
 from guitool.api_button_delegate import APIButtonDelegate
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
 #import guitool
 #from guitool.guitool_decorators import signal_, slot_
 from guitool.guitool_main import get_qtapp

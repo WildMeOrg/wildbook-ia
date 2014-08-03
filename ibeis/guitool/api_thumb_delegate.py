@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
+from .__PYQT__ import QtGui, QtCore
 import cv2
 import numpy as np
 import utool
 from six.moves import zip
 from os.path import exists
-from PyQt4 import QtGui, QtCore
 from vtool import image as gtool
 from vtool import linalg, geometry
 #from multiprocessing import Process

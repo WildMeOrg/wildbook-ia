@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+from .__PYQT__ import QtCore, QtGui
 # Python
 from six.moves import range
 import utool
@@ -6,8 +7,6 @@ import sys
 import logging
 from .guitool_decorators import slot_
 from . import guitool_main
-# Qt
-from PyQt4 import QtCore, QtGui
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool_misc]')
 
 

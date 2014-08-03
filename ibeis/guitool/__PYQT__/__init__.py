@@ -1,5 +1,8 @@
 # flake8:noqa
 # Wrapper around PyQt4/5
+import sip
+if hasattr(sip, 'setdestroyonexit'):
+    sip.setdestroyonexit(False)  # This prevents a crash on windows
 from PyQt4 import *
 """
 import __PYQT__

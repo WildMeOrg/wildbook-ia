@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from PyQt4 import QtCore, QtGui  # NOQA
-from PyQt4.QtCore import Qt
+from .__PYQT__ import QtCore, QtGui  # NOQA
+from .__PYQT__.QtCore import Qt
 from os.path import split
 # UTool
 import platform

@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import QSizePolicy
-from PyQt4.QtCore import Qt
+from .__PYQT__ import QtCore, QtGui
+from .__PYQT__.QtGui import QSizePolicy
+from .__PYQT__.QtCore import Qt
 import functools
 import utool
 from . import guitool_dialogs
