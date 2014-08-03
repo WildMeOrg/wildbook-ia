@@ -45,7 +45,7 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
     inliers_list, errors_list, Aff_mats = aff_hypo_tups
 
     # Determine best hypothesis
-    nInliers_list = np.array(map(len, inliers_list))
+    nInliers_list = np.array(list(map(len, inliers_list)))
     best_mxs = nInliers_list.argsort()[::-1]
 
     for fnum, mx in enumerate(best_mxs[0:min(len(best_mxs), nShow)]):
