@@ -46,6 +46,11 @@ if not sys.platform.startswith('win32'):
 if six.PY2:
     import functools32
 import psutil
+# Qt
+import sip
+from guitool import __PYQT__
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtCore import Qt
 # Matplotlib
 import matplotlib
 import matplotlib as mpl
@@ -67,12 +72,6 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
 #except ImportError as ex:
 #    #print('Warning: %r' % ex)
 #    pass
-# Qt
-import sip
-from guitool import __PYQT__
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__.QtCore import Qt
-#from guitool.__PYQT__.QtCore import (QString, QVariant)
 
 # Tools
 import detecttools
