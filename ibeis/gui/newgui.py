@@ -2,9 +2,9 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map
 import functools  # NOQA
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QSizePolicy
+from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__.QtCore import Qt
+from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
 from ibeis.control import IBEISControl
 from ibeis.dev import ibsfuncs

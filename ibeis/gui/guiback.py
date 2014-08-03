@@ -3,10 +3,9 @@ from __future__ import absolute_import, division, print_function
 import sys
 from os.path import exists, join
 import functools
-# Qt
-from PyQt4 import QtCore
 # GUITool
 import guitool
+from guitool.__PYQT__ import QtCore
 from guitool import slot_, signal_, cast_from_qt
 # PlotTool
 from plottool import fig_presenter

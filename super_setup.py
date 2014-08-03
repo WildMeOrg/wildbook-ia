@@ -92,14 +92,25 @@ print('[super_setup] Checking third-party-libraries')
 TPL_MODULES_AND_REPOS = [
     ('cv2',     'https://github.com/Erotemic/opencv.git'),
     ('pyflann', 'https://github.com/Erotemic/flann.git'),
-    ('PyQt4',   None)
+    (('PyQt5', 'PyQt4'),   None)
 ]
 
 TPL_REPO_URLS = []
 # Test to see if opencv and pyflann have been built
 for name, repo_url in TPL_MODULES_AND_REPOS:
     try:
-        module = __import__(name, globals(), locals(), fromlist=[], level=0)
+        if isinstance(name, str):
+            module = __import__(name, globals(), locals(), fromlist=[], level=0)
+        else:
+            # Allow for multiple module aliases
+            module = None
+            for name_ in name:
+                try:
+                    module = __import__(name_, globals(), locals(), fromlist=[], level=0)
+                except ImportError as ex:
+                    pass
+            if module is None:
+                raise ex
         print('found %s=%r' % (name, module,))
     except ImportError:
         if repo_url is None:

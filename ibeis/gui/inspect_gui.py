@@ -1,19 +1,18 @@
 from __future__ import absolute_import, division, print_function
-from six.moves import range
-import utool
-import six
-import functools  # NOQA
 from functools import partial
-from ibeis.viz import interact
-from plottool import interact_helpers as ih
-from ibeis.dev import results_organizer
-from plottool import fig_presenter
 from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
-from PyQt4 import QtCore, QtGui
-import guitool
+from guitool.__PYQT__ import QtGui, QtCore
 from ibeis.dev import ibsfuncs
-import numpy as np
+from ibeis.dev import results_organizer
+from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
+from plottool import fig_presenter
+from plottool import interact_helpers as ih
+from six.moves import range
+import guitool
+import numpy as np
+import six
+import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[inspect_gui]', DEBUG=False)
 
@@ -50,7 +49,7 @@ class QueryResultsWidget(APIItemWidget):
             fig_presenter.register_qt4_win(qres_wgt)
 
     def add_checkboxes(qres_wgt, show_new, show_join, show_split):
-        _CHECK  = functools.partial(guitool.newCheckBox, qres_wgt)
+        _CHECK  = partial(guitool.newCheckBox, qres_wgt)
         qres_wgt.button_list = [
             [
                 _CHECK('Show New Matches',

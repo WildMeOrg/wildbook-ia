@@ -68,11 +68,11 @@ from sklearn.cluster import MeanShift, estimate_bandwidth
 #    #print('Warning: %r' % ex)
 #    pass
 # Qt
-import PyQt4
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
-#from PyQt4.QtCore import (QString, QVariant)
 import sip
+from guitool import __PYQT__
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtCore import Qt
+#from guitool.__PYQT__.QtCore import (QString, QVariant)
 
 # Tools
 import detecttools
