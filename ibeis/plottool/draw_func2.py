@@ -25,11 +25,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 # Python
 import colorsys
 import pylab
-import sys
 import warnings
 # Qt
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+#from __PYQT__ import QtCore, QtGui
+#from __PYQT__.QtCore import Qt
 # Scientific
 import numpy as np
 import cv2
@@ -337,98 +336,98 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
             backgroundcolor=rgb_textBG)
 
 
-def convert_keypress_event_mpl_to_qt4(mevent):
-    global TMP_mevent
-    TMP_mevent = mevent
-    # Grab the key from the mpl.KeyPressEvent
-    key = mevent.key
-    print('[df2] convert event mpl -> qt4')
-    print('[df2] key=%r' % key)
-    # dicts modified from backend_qt4.py
-    mpl2qtkey = {'control': Qt.Key_Control, 'shift': Qt.Key_Shift,
-                 'alt': Qt.Key_Alt, 'super': Qt.Key_Meta,
-                 'enter': Qt.Key_Return, 'left': Qt.Key_Left, 'up': Qt.Key_Up,
-                 'right': Qt.Key_Right, 'down': Qt.Key_Down,
-                 'escape': Qt.Key_Escape, 'f1': Qt.Key_F1, 'f2': Qt.Key_F2,
-                 'f3': Qt.Key_F3, 'f4': Qt.Key_F4, 'f5': Qt.Key_F5,
-                 'f6': Qt.Key_F6, 'f7': Qt.Key_F7, 'f8': Qt.Key_F8,
-                 'f9': Qt.Key_F9, 'f10': Qt.Key_F10, 'f11': Qt.Key_F11,
-                 'f12': Qt.Key_F12, 'home': Qt.Key_Home, 'end': Qt.Key_End,
-                 'pageup': Qt.Key_PageUp, 'pagedown': Qt.Key_PageDown}
-    # Reverse the control and super (aka cmd/apple) keys on OSX
-    if sys.platform == 'darwin':
-        mpl2qtkey.update({'super': Qt.Key_Control, 'control': Qt.Key_Meta, })
+#def convert_keypress_event_mpl_to_qt4(mevent):
+#    global TMP_mevent
+#    TMP_mevent = mevent
+#    # Grab the key from the mpl.KeyPressEvent
+#    key = mevent.key
+#    print('[df2] convert event mpl -> qt4')
+#    print('[df2] key=%r' % key)
+#    # dicts modified from backend_qt4.py
+#    mpl2qtkey = {'control': Qt.Key_Control, 'shift': Qt.Key_Shift,
+#                 'alt': Qt.Key_Alt, 'super': Qt.Key_Meta,
+#                 'enter': Qt.Key_Return, 'left': Qt.Key_Left, 'up': Qt.Key_Up,
+#                 'right': Qt.Key_Right, 'down': Qt.Key_Down,
+#                 'escape': Qt.Key_Escape, 'f1': Qt.Key_F1, 'f2': Qt.Key_F2,
+#                 'f3': Qt.Key_F3, 'f4': Qt.Key_F4, 'f5': Qt.Key_F5,
+#                 'f6': Qt.Key_F6, 'f7': Qt.Key_F7, 'f8': Qt.Key_F8,
+#                 'f9': Qt.Key_F9, 'f10': Qt.Key_F10, 'f11': Qt.Key_F11,
+#                 'f12': Qt.Key_F12, 'home': Qt.Key_Home, 'end': Qt.Key_End,
+#                 'pageup': Qt.Key_PageUp, 'pagedown': Qt.Key_PageDown}
+#    # Reverse the control and super (aka cmd/apple) keys on OSX
+#    if sys.platform == 'darwin':
+#        mpl2qtkey.update({'super': Qt.Key_Control, 'control': Qt.Key_Meta, })
 
-    # Try to reconstruct QtGui.KeyEvent
-    type_ = QtCore.QEvent.Type(QtCore.QEvent.KeyPress)  # The type should always be KeyPress
-    text = ''
-    # Try to extract the original modifiers
-    modifiers = QtCore.Qt.NoModifier  # initialize to no modifiers
-    if key.find(u'ctrl+') >= 0:
-        modifiers = modifiers | QtCore.Qt.ControlModifier
-        key = key.replace(u'ctrl+', u'')
-        print('[df2] has ctrl modifier')
-        text += 'Ctrl+'
-    if key.find(u'alt+') >= 0:
-        modifiers = modifiers | QtCore.Qt.AltModifier
-        key = key.replace(u'alt+', u'')
-        print('[df2] has alt modifier')
-        text += 'Alt+'
-    if key.find(u'super+') >= 0:
-        modifiers = modifiers | QtCore.Qt.MetaModifier
-        key = key.replace(u'super+', u'')
-        print('[df2] has super modifier')
-        text += 'Super+'
-    if key.isupper():
-        modifiers = modifiers | QtCore.Qt.ShiftModifier
-        print('[df2] has shift modifier')
-        text += 'Shift+'
-    # Try to extract the original key
-    try:
-        if key in mpl2qtkey:
-            key_ = mpl2qtkey[key]
-        else:
-            key_ = ord(key.upper())  # Qt works with uppercase keys
-            text += key.upper()
-    except Exception as ex:
-        print('[df2] ERROR key=%r' % key)
-        print('[df2] ERROR %r' % ex)
-        raise
-    autorep = False  # default false
-    count   = 1  # default 1
-    text = QtCore.QString(text)  # The text is somewhat arbitrary
-    # Create the QEvent
-    print('----------------')
-    print('[df2] Create event')
-    print('[df2] type_ = %r' % type_)
-    print('[df2] text = %r' % text)
-    print('[df2] modifiers = %r' % modifiers)
-    print('[df2] autorep = %r' % autorep)
-    print('[df2] count = %r ' % count)
-    print('----------------')
-    qevent = QtGui.QKeyEvent(type_, key_, modifiers, text, autorep, count)
-    return qevent
+#    # Try to reconstruct QtGui.KeyEvent
+#    type_ = QtCore.QEvent.Type(QtCore.QEvent.KeyPress)  # The type should always be KeyPress
+#    text = ''
+#    # Try to extract the original modifiers
+#    modifiers = QtCore.Qt.NoModifier  # initialize to no modifiers
+#    if key.find(u'ctrl+') >= 0:
+#        modifiers = modifiers | QtCore.Qt.ControlModifier
+#        key = key.replace(u'ctrl+', u'')
+#        print('[df2] has ctrl modifier')
+#        text += 'Ctrl+'
+#    if key.find(u'alt+') >= 0:
+#        modifiers = modifiers | QtCore.Qt.AltModifier
+#        key = key.replace(u'alt+', u'')
+#        print('[df2] has alt modifier')
+#        text += 'Alt+'
+#    if key.find(u'super+') >= 0:
+#        modifiers = modifiers | QtCore.Qt.MetaModifier
+#        key = key.replace(u'super+', u'')
+#        print('[df2] has super modifier')
+#        text += 'Super+'
+#    if key.isupper():
+#        modifiers = modifiers | QtCore.Qt.ShiftModifier
+#        print('[df2] has shift modifier')
+#        text += 'Shift+'
+#    # Try to extract the original key
+#    try:
+#        if key in mpl2qtkey:
+#            key_ = mpl2qtkey[key]
+#        else:
+#            key_ = ord(key.upper())  # Qt works with uppercase keys
+#            text += key.upper()
+#    except Exception as ex:
+#        print('[df2] ERROR key=%r' % key)
+#        print('[df2] ERROR %r' % ex)
+#        raise
+#    autorep = False  # default false
+#    count   = 1  # default 1
+#    text = QtCore.QString(text)  # The text is somewhat arbitrary
+#    # Create the QEvent
+#    print('----------------')
+#    print('[df2] Create event')
+#    print('[df2] type_ = %r' % type_)
+#    print('[df2] text = %r' % text)
+#    print('[df2] modifiers = %r' % modifiers)
+#    print('[df2] autorep = %r' % autorep)
+#    print('[df2] count = %r ' % count)
+#    print('----------------')
+#    qevent = QtGui.QKeyEvent(type_, key_, modifiers, text, autorep, count)
+#    return qevent
 
 
-def test_build_qkeyevent():
-    import draw_func2 as df2
-    qtwin = df2.QT4_WINS[0]
-    # This reconstructs an test mplevent
-    canvas = df2.figure(1).canvas
-    mevent = mpl.backend_bases.KeyEvent('key_press_event', canvas, u'ctrl+p', x=672, y=230.0)
-    qevent = df2.convert_keypress_event_mpl_to_qt4(mevent)
-    app = qtwin.backend.app
-    app.sendEvent(qtwin.ui, mevent)
-    #type_ = QtCore.QEvent.Type(QtCore.QEvent.KeyPress)  # The type should always be KeyPress
-    #text = QtCore.QString('A')  # The text is somewhat arbitrary
-    #modifiers = QtCore.Qt.NoModifier  # initialize to no modifiers
-    #modifiers = modifiers | QtCore.Qt.ControlModifier
-    #modifiers = modifiers | QtCore.Qt.AltModifier
-    #key_ = ord('A')  # Qt works with uppercase keys
-    #autorep = False  # default false
-    #count   = 1  # default 1
-    #qevent = QtGui.QKeyEvent(type_, key_, modifiers, text, autorep, count)
-    return qevent
+#def test_build_qkeyevent():
+#    import draw_func2 as df2
+#    qtwin = df2.QT4_WINS[0]
+#    # This reconstructs an test mplevent
+#    canvas = df2.figure(1).canvas
+#    mevent = mpl.backend_bases.KeyEvent('key_press_event', canvas, u'ctrl+p', x=672, y=230.0)
+#    qevent = df2.convert_keypress_event_mpl_to_qt4(mevent)
+#    app = qtwin.backend.app
+#    app.sendEvent(qtwin.ui, mevent)
+#    #type_ = QtCore.QEvent.Type(QtCore.QEvent.KeyPress)  # The type should always be KeyPress
+#    #text = QtCore.QString('A')  # The text is somewhat arbitrary
+#    #modifiers = QtCore.Qt.NoModifier  # initialize to no modifiers
+#    #modifiers = modifiers | QtCore.Qt.ControlModifier
+#    #modifiers = modifiers | QtCore.Qt.AltModifier
+#    #key_ = ord('A')  # Qt works with uppercase keys
+#    #autorep = False  # default false
+#    #count   = 1  # default 1
+#    #qevent = QtGui.QKeyEvent(type_, key_, modifiers, text, autorep, count)
+#    return qevent
 
 
 def show_histogram(data, bins=None, **kwargs):

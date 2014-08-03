@@ -1,8 +1,11 @@
 from __future__ import absolute_import, division, print_function
+import six
 from six.moves import range
 import sys
 import utool
 import numpy as np
+import guitool
+from guitool.__PYQT__ import QtGui
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[screeninfo]', DEBUG=False)
 
@@ -32,12 +35,10 @@ GNOME3_SIZES = {
 
 
 def ensure_app_is_running():
-    import guitool
     app, is_root = guitool.init_qtapp()
 
 
 def get_monitor_geom(monitor_num=0):
-    from PyQt4 import QtGui  # NOQA
     ensure_app_is_running()
     desktop = QtGui.QDesktopWidget()
     rect = desktop.availableGeometry(screen=monitor_num)
@@ -46,7 +47,6 @@ def get_monitor_geom(monitor_num=0):
 
 
 def get_monitor_geometries():
-    from PyQt4 import QtGui  # NOQA
     ensure_app_is_running()
     monitor_geometries = {}
     desktop = QtGui.QDesktopWidget()
@@ -88,7 +88,6 @@ def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
     try:
         (startx, starty, availw, availh) = monitor_geometries[monitor_num]
     except KeyError:
-        import six
         (startx, starty, availw, availh) = six.itervalues(monitor_geometries).next()
     available_geom = (startx,
                       starty,

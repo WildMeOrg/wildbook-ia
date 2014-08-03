@@ -7,12 +7,12 @@ import warnings
 # maptlotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-# PyQt
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
 # Science
 from .custom_figure import get_fig
 from . import screeninfo
+
+from guitool.__PYQT__ import QtGui
+from guitool.__PYQT__.QtCore import Qt
 #from .custom_constants import golden_wh
 
 
@@ -54,18 +54,19 @@ def get_geometry(fnum):
     return (x, y, w, h)
 
 
-def get_screen_info():
-    from PyQt4 import Qt, QtGui  # NOQA
-    desktop = QtGui.QDesktopWidget()
-    mask = desktop.mask()  # NOQA
-    layout_direction = desktop.layoutDirection()  # NOQA
-    screen_number = desktop.screenNumber()  # NOQA
-    normal_geometry = desktop.normalGeometry()  # NOQA
-    num_screens = desktop.screenCount()  # NOQA
-    avail_rect = desktop.availableGeometry()  # NOQA
-    screen_rect = desktop.screenGeometry()  # NOQA
-    QtGui.QDesktopWidget().availableGeometry().center()  # NOQA
-    normal_geometry = desktop.normalGeometry()  # NOQA
+#def get_screen_info():
+#    # TODO Move dependency to guitool
+#    from guitool.__PYQT__ import QtGui
+#    desktop = QtGui.QDesktopWidget()
+#    mask = desktop.mask()  # NOQA
+#    layout_direction = desktop.layoutDirection()  # NOQA
+#    screen_number = desktop.screenNumber()  # NOQA
+#    normal_geometry = desktop.normalGeometry()  # NOQA
+#    num_screens = desktop.screenCount()  # NOQA
+#    avail_rect = desktop.availableGeometry()  # NOQA
+#    screen_rect = desktop.screenGeometry()  # NOQA
+#    QtGui.QDesktopWidget().availableGeometry().center()  # NOQA
+#    normal_geometry = desktop.normalGeometry()  # NOQA
 
 
 #@profile
