@@ -80,6 +80,9 @@ if __name__ == '__main__':
     kwargs = setuptools_setup(
         setup_fpath=__file__,
         name='ibeis',
+        packages=['ibeis', 'ibeis.dev', 'ibeis.gui', 'ibeis.model',
+                  'ibeis.tests', 'ibeis.model.detect', 'ibeis.model.preproc',
+                  'ibeis.model.hots'],
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_patterns=CLUTTER_PATTERNS,

@@ -25,8 +25,8 @@ def TEST_QUERY(ibs):
     qres_dict_ = ibs._query_chips(qaid_list, daid_list)
 
     try:
-        vals1 = qres_dict.values()
-        vals2 = qres_dict_.values()
+        vals1 = list(qres_dict.values())
+        vals2 = list(qres_dict_.values())
         assert len(vals1) == 1, 'expected 1 qres in result'
         assert len(vals2) == 1, 'expected 1 qres in result'
         assert list(qres_dict.keys()) == list(qres_dict_.keys()), 'qres cache doesnt work. key error'

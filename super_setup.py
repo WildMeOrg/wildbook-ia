@@ -182,6 +182,10 @@ if utool.get_flag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
     utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**envcmds))
 
+if utool.get_flag('--install'):
+    utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
+    utool.gg_command('python setup.py install'.format(**envcmds))
+
 if utool.get_flag('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))
