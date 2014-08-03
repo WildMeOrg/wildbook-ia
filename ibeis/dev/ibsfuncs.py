@@ -12,7 +12,7 @@ from ibeis import sysres
 from ibeis.export import export_hsdb
 from detecttools.pypascalxml import PascalVOC_XML_Annotation
 #from ibeis import constants
-from ibeis.control.accessor_decors import getter_1to1, getter_1toM
+from ibeis.control.accessor_decors import getter_1to1
 from vtool import linalg, geometry, image
 import numpy as np
 
@@ -1032,26 +1032,3 @@ def delete_cachedir(ibs):
     utool.delete(cachedir)
     # TODO: features really need to not be in SQL or in a separate SQLDB
     ibs.delete_all_features()
-
-
-@__injectable
-@getter_1toM
-def get_annot_groundfalse(ibs, aid_list, is_exemplar=None,  valid_aids=None,
-                          filter_unknowns=True):
-    """ Returns a list of aids which are known to be different for each input aid """
-    if valid_aids is None:
-        # get all valid aids if not specified
-        valid_aids = ibs.get_valid_aids(is_exemplar=is_exemplar)
-    if filter_unknowns:
-        # Remove aids which do not have a name
-        isunknown_list = is_aid_unknown(ibs, valid_aids)
-        valid_aids_ = utool.filterfalse_items(valid_aids, isunknown_list)
-    else:
-        valid_aids_ = valid_aids
-    # Build the set of groundfalse annotations
-    valid_aids_set = set(valid_aids_)
-    nid_list  = ibs.get_annot_nids(aid_list)
-    aids_list = ibs.get_name_aids(nid_list)
-    aids_setlist  = map(set, aids_list)
-    groundfalse_list = [list(valid_aids_set - aids) for aids in aids_setlist]
-    return groundfalse_list

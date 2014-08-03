@@ -48,7 +48,8 @@ if utool.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')
     else:
-        print('[accessor_decors] API_CACHE IS DISABLED')
+        #print('[accessor_decors] API_CACHE IS DISABLED')
+        pass
 
 
 def init_tablecache():

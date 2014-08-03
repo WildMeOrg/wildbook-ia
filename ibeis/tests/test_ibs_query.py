@@ -20,8 +20,26 @@ def TEST_QUERY(ibs):
     ibs._init_query_requestor()
     qreq = ibs.qreq
     #query_helpers.find_matchable_chips(ibs)
-    aids = ibs.get_recognition_database_aids()
-    qres_dict = ibs.query_all(qaid_list)
+    daid_list = valid_aids
+    qres_dict = ibs._query_chips(qaid_list, daid_list, use_cache=False, use_bigcache=False)
+    qres_dict_ = ibs._query_chips(qaid_list, daid_list)
+
+    try:
+        vals1 = qres_dict.values()
+        vals2 = qres_dict_.values()
+        assert len(vals1) == 1, 'expected 1 qres in result'
+        assert len(vals2) == 1, 'expected 1 qres in result'
+        assert list(qres_dict.keys()) == list(qres_dict_.keys()), 'qres cache doesnt work. key error'
+        qres1 = vals1[0]
+        qres2 = vals2[0]
+        inspect_str1 = qres1.get_inspect_str(ibs)
+        inspect_str2 = qres2.get_inspect_str(ibs)
+        print(inspect_str1)
+        assert inspect_str1 == inspect_str2, 'qres cache inconsistency'
+        assert vals1 == vals2, 'qres cache doesnt work. val error'
+    except AssertionError as ex:
+        utool.printex(ex, key_list=list(locals().keys()))
+        raise
 
     for qaid in qaid_list:
         qres  = qres_dict[qaid]

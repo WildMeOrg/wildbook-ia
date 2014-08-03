@@ -79,6 +79,21 @@ class HotsNeedsRecomputeError(Exception):
     pass
 
 
+def _qres_dicteq(aid2_xx1, aid2_xx2):
+    """ Checks to see if qres dicts are the same """
+    try:
+        for (aid1, xx1), (aid2, xx2) in zip(aid2_xx1.items(),
+                                            aid2_xx2.items()):
+            assert aid1 == aid2, 'key mismatch'
+            if np.iterable(xx1):
+                assert all([np.all(x1 == x2) for (x1, x2) in zip(xx1, xx2)])
+            else:
+                assert xx1 == xx2
+    except AssertionError:
+        return False
+    return True
+
+
 __OBJECT_BASE__ = object  # utool.util_dev.get_object_base()
 
 
@@ -125,6 +140,19 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fk = None  # feat_rank_list
         qres.aid2_score = None  # annotation score
         qres.filt2_meta = None  # messy
+
+    def __eq__(self, other):
+        """ For testing """
+        return all([
+            self.qaid == other.qaid,
+            self.cfgstr == other.cfgstr,
+            self.eid == other.eid,
+            _qres_dicteq(self.aid2_fm, other.aid2_fm),
+            _qres_dicteq(self.aid2_fs, self.aid2_fs),
+            _qres_dicteq(self.aid2_fk, self.aid2_fk),
+            _qres_dicteq(self.aid2_score, other.aid2_score),
+            _qres_dicteq(self.filt2_meta, other.filt2_meta),
+        ])
 
     def has_cache(qres, qreq):
         return query_result_exists(qreq, qres.qaid)
@@ -245,6 +273,7 @@ class QueryResult(__OBJECT_BASE__):
         return [qres.aid2_score.get(aid, None) for aid in aid_arr]
 
     def get_aid_truth(qres, ibs, aid_list):
+        # 0: false, 1: True, 2: unknown
         isgt_list = [ibs.get_match_truth(qres.qaid, aid) for aid in aid_list]
         return isgt_list
 

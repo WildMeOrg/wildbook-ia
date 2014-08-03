@@ -9,13 +9,13 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_HOTS_SPLIT
 
 
 def TEST_HOTS_SPLITTREE(ibs):
-    from ibeis.model.hots.hots_nn_index import NNSplitIndex
+    from ibeis.model.hots.hots_nn_index import HOTSSplitIndex
     num_forests = 8
     daid_list = ibs.get_valid_aids()
     num_neighbors = 3
     qfx2_desc = ibs.get_annot_desc(daid_list[2])
 
-    split_index = NNSplitIndex(ibs, daid_list, num_forests=num_forests)
+    split_index = HOTSSplitIndex(ibs, daid_list, num_forests=num_forests)
 
     #nid_list  = ibs.get_annot_nids(aid_list)
     ##flag_list = ibs.get_annot_exemplar_flag(aid_list)
@@ -31,7 +31,7 @@ def TEST_HOTS_SPLITTREE(ibs):
     #forest_indexes = []
     #for tx, aids in enumerate(forest_aids):
     #    print('[nn] building forest %d/%d' % (tx + 1, num_forests))
-    #    nn_index = NNIndex(ibs, aids)
+    #    nn_index = HOTSIndex(ibs, aids)
     #    forest_indexes.append(nn_index)
 
     return locals()

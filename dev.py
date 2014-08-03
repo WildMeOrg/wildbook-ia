@@ -262,8 +262,6 @@ def up_dbsize_expt(ibs, qaid_list):
     Plots the scores/ranks of correct matches while varying the size of the
     database.
     """
-    # determenism
-    seed = 1
     # clamp the number of groundtruth to test
     clamp_gt = utool.get_arg('--clamp-gt', int, 1)
     # List of database sizes to test
@@ -272,11 +270,11 @@ def up_dbsize_expt(ibs, qaid_list):
     samp_min = 30  # max(samp_max // len(qaid_list), 10)
     sample_sizes = utool.sample_domain(samp_min, samp_max, num_samp)
     # Get list of true and false matches for every query annotation
-    qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True, is_exemplar=True)
+    qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True,
+                                                 is_exemplar=True)
     qaid_falses_list = ibs.get_annot_groundfalse(qaid_list)
     # output containers
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
-    np.logspace(0, 100)
     # For each query annotation, and its true and false set
     query_iter = zip(qaid_list, qaid_trues_list, qaid_falses_list)
     # Get a rough idea of how many queries will be run
@@ -292,10 +290,8 @@ def up_dbsize_expt(ibs, qaid_list):
         for dbsize in sample_sizes:
             if dbsize > len(false_aids):
                 continue
-            false_sample = utool.deterministic_sample(false_aids,
-                                                      dbsize, seed=seed)
-            true_sample  = utool.deterministic_sample(false_aids,
-                                                      clamp_gt, seed=seed)
+            false_sample = utool.deterministic_sample(false_aids, dbsize)
+            true_sample  = utool.deterministic_sample(false_aids, clamp_gt)
             # For each true match
             for gt_aid in true_sample:
                 count += 1

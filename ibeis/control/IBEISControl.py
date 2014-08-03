@@ -1260,6 +1260,28 @@ class IBEISController(object):
         return nFeats_list
 
     @getter_1toM
+    def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
+                              filter_unknowns=True):
+        """ Returns a list of aids which are known to be different for each
+        input aid """
+        if valid_aids is None:
+            # get all valid aids if not specified
+            valid_aids = ibs.get_valid_aids(is_exemplar=is_exemplar)
+        if filter_unknowns:
+            # Remove aids which do not have a name
+            isunknown_list = ibs.is_aid_unknown(valid_aids)
+            valid_aids_ = utool.filterfalse_items(valid_aids, isunknown_list)
+        else:
+            valid_aids_ = valid_aids
+        # Build the set of groundfalse annotations
+        nid_list = ibs.get_annot_nids(aid_list)
+        aids_list = ibs.get_name_aids(nid_list)
+        aids_setlist = map(set, aids_list)
+        valid_aids = set(valid_aids_)
+        groundfalse_list = [list(valid_aids - aids) for aids in aids_setlist]
+        return groundfalse_list
+
+    @getter_1toM
     def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
@@ -1683,12 +1705,21 @@ class IBEISController(object):
     @default_decorator
     def get_recognition_database_aids(ibs):
         """ DEPRECATE: returns persistent recognition database annotations """
+        # TODO: Depricate, use exemplars instead
         daid_list = ibs.get_valid_aids()
         return daid_list
 
     @default_decorator
+    def prep_qreq_db(ibs, qaid_list):
+        """ Puts IBEIS into query database mode """
+        # TODO: Depricate, only used on one place (dev.py)
+        daid_list = ibs.get_recognition_database_aids()
+        ibs._prep_qreq(qaid_list, daid_list)
+
+    @default_decorator
     def query_intra_encounter(ibs, qaid_list, **kwargs):
         """ DEPRECATE: _query_chips wrapper """
+        # TODO: Depricate
         daid_list = qaid_list
         qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
         return qaid2_qres
@@ -1696,12 +1727,14 @@ class IBEISController(object):
     @default_decorator
     def prep_qreq_encounter(ibs, qaid_list):
         """ Puts IBEIS into intra-encounter mode """
+        # TODO: Depricate
         daid_list = qaid_list
         ibs._prep_qreq(qaid_list, daid_list)
 
     @default_decorator  # ('[querydb]')
     def query_all(ibs, qaid_list, **kwargs):
         """ _query_chips wrapper """
+        # TODO: Depricate
         daid_list = ibs.get_valid_aids()
         qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
         return qaid2_qres
@@ -1717,16 +1750,11 @@ class IBEISController(object):
 
     @default_decorator
     def query_exemplars(ibs, qaid_list, **kwargs):
+        """ Queries vs the exemplars """
         daid_list = ibs.get_valid_aids(is_exemplar=True)
         assert len(daid_list) > 0, 'there are no exemplars'
         qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
         return qaid2_qres
-
-    @default_decorator
-    def prep_qreq_db(ibs, qaid_list):
-        """ Puts IBEIS into query database mode """
-        daid_list = ibs.get_recognition_database_aids()
-        ibs._prep_qreq(qaid_list, daid_list)
 
     @default_decorator
     def _init_query_requestor(ibs):
@@ -1746,19 +1774,23 @@ class IBEISController(object):
         return qreq
 
     @default_decorator
-    def _query_chips(ibs, qaid_list, daid_list, **kwargs):
+    def _query_chips(ibs, qaid_list, daid_list, safe=True,
+                     use_cache=mc3.USE_CACHE,
+                     use_bigcache=mc3.USE_BIGCACHE,
+                     **kwargs):
         """
         qaid_list - query chip ids
         daid_list - database chip ids
+        kwargs modify query_cfg
         """
         qreq = ibs._prep_qreq(qaid_list, daid_list, **kwargs)
         # TODO: Except query error
         # NOTE: maybe kwargs should not be passed here, or the previous
         # kwargs should become querycfgkw
         process_qreqkw = {
-            'safe'         : kwargs.get('safe', True),
-            'use_cache'    : kwargs.get('use_cache', mc3.USE_CACHE),
-            'use_bigcache' : kwargs.get('use_bigcache', mc3.USE_BIGCACHE),
+            'safe'         : safe,
+            'use_cache'    : use_cache,
+            'use_bigcache' : use_bigcache,
         }
         qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
         return qaid2_qres

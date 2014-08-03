@@ -19,7 +19,7 @@ def quickly_ensure_qreq(ibs, qaids=None, daids=None):
     """ </CYTH> """
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
-    if not utool.QUIET:
+    if utool.NOT_QUIET:
         print(' --- quick ensure qreq --- ')
     ibs._init_query_requestor()
     qreq = ibs.qreq
@@ -41,7 +41,9 @@ def prep_query_request(qreq=None, query_cfg=None,
                        qaids=None, daids=None, **kwargs):
     """  Builds or modifies a query request object
     </CYTH> """
-    if not utool.QUIET:
+    # Ugg, what does this even do!?
+    # TODO: Cleanup
+    if utool.NOT_QUIET:
         print(' --- Prep QueryRequest --- ')
     if qreq is None:
         qreq = hots_query_request.QueryRequest()
@@ -52,8 +54,10 @@ def prep_query_request(qreq=None, query_cfg=None,
         assert len(daids) > 0, 'cannot search nothing!'
         qreq.daids = daids
     if query_cfg is None:
+        # this seems broken
         query_cfg = qreq.cfg
     if len(kwargs) > 0:
+        # gross
         query_cfg = query_cfg.deepcopy(**kwargs)
     qreq.set_cfg(query_cfg)
     return qreq
@@ -68,10 +72,10 @@ def prep_query_request(qreq=None, query_cfg=None,
 #@profile
 @profile
 def pre_exec_checks(ibs, qreq):
-    """ Ensures that the NNIndex's data_index is pointing to the correct
+    """ Ensures that the HOTSIndex's data_index is pointing to the correct
     set of feature descriptors
     </CYTH> """
-    if not utool.QUIET:
+    if utool.NOT_QUIET:
         print('  --- Pre Exec ---')
     feat_cfgstr = qreq.cfg._feat_cfg.get_cfgstr()
     daids_hashid = qreq.get_daids_hashid()
@@ -81,7 +85,7 @@ def pre_exec_checks(ibs, qreq):
         # Get qreq config information
         daids = qreq.get_internal_daids()
         # Compute the FLANN Index
-        data_index = hots_nn_index.NNIndex(ibs, daids)
+        data_index = hots_nn_index.HOTSIndex(ibs, daids)
         qreq.dftup2_index[dftup_hashid] = data_index
     qreq.data_index = qreq.dftup2_index[dftup_hashid]
     return qreq
@@ -107,7 +111,7 @@ def process_query_request(ibs, qreq,
     If cache miss, tries to load each qres individually.
     On an individual cache miss, it preforms the query.
     </CYTH> """
-    if not utool.QUIET:
+    if utool.NOT_QUIET:
         print(' --- Process QueryRequest --- ')
     if len(qreq.qaids) <= 1:
         # Do not use bigcache single queries
@@ -137,6 +141,7 @@ def process_query_request(ibs, qreq,
     # Execute and save queries
     if len(failed_qaids) > 0:
         if safe:
+            # FIXME: Ugg, this part is dirty
             qreq = pre_exec_checks(ibs, qreq)
         computed_qaid2_qres = execute_query_and_save_L1(ibs, qreq, failed_qaids)
         qaid2_qres.update(computed_qaid2_qres)  # Update cached results
