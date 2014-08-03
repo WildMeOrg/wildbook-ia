@@ -5,7 +5,7 @@ import utool
 from ibeis.control import SQLDatabaseControl
 from os.path import join
 from guitool.api_item_model import APIItemModel
-from PyQt4 import  QtGui
+from guitool.__PYQT__ import QtGui
 import string
 import random
 
