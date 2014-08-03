@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from os.path import exists, normpath, join, split
+from os.path import exists, normpath, join
 import pyflann
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -19,6 +19,15 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     return (qx2_dx, qx2_dist)
 
 
+def get_flann_cfgstr(data, flann_params, cfgstr='', use_data_hash=True):
+    flann_cfgstr = '_FLANN(' + utool.remove_chars(str(flann_params.values()), ', \'[]') + ')'
+    # Generate a unique filename for data and flann parameters
+    if use_data_hash:
+        data_hashstr = utool.hashstr_arr(data, '_dID')  # flann is dependent on the data
+        flann_cfgstr += data_hashstr
+    return flann_cfgstr
+
+
 #@utool.indent_func
 def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params={}):
     #cache_dir = '.' if cache_dir is None else cache_dir
@@ -30,43 +39,31 @@ def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params={}):
     return flann_fpath
 
 
-def get_flann_cfgstr(data, flann_params, cfgstr='', use_data_hash=True):
-    flann_cfgstr = '_FLANN(' + utool.remove_chars(str(flann_params.values()), ', \'[]') + ')'
-    # Generate a unique filename for data and flann parameters
-    if use_data_hash:
-        data_hashstr = utool.hashstr_arr(data, '_dID')  # flann is dependent on the data
-        flann_cfgstr += data_hashstr
-    return flann_cfgstr
-
-
 #@utool.indent_func
 def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
-                force_recompute=False):
+                use_cache=True):
     """ Tries to load a cached flann index before doing anything """
-    if not utool.QUIET:
+    if utool.NOT_QUIET:
         print('...flann_cache cfgstr = %r: ' % cfgstr)
+    if len(data) == 0:
+        raise AssertionError('cannot build flann when len(data) == 0. (prevents a segfault)')
     flann_fpath = get_flann_fpath(data, cache_dir, cfgstr, flann_params)
     flann = pyflann.FLANN()
-    load_success = False
-    if len(data) == 0:
-        raise AssertionError('cannot build flann with 0 datapoints. (there would be a segfault')
     # Load the index if it exists
-    if exists(flann_fpath) and not force_recompute:
+    if use_cache and exists(flann_fpath):
         try:
             flann.load_index(flann_fpath, data)
-            if not utool.QUIET:
+            if utool.NOT_QUIET:
                 print('...flann cache hit')
-            load_success = True
+            return flann
         except Exception as ex:
-            print('...cannot load index')
-            print('...caught ex=\n%r' % (ex,))
+            utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
-    if not load_success:
-        print('...flann cache miss.')
-        print('...building kdtree over %d points (this may take a sec).' % len(data))
-        flann.build_index(data, **flann_params)
-        print('flann.save_index(%r)' % split(flann_fpath)[1])
-        flann.save_index(flann_fpath)
+    print('...flann cache miss.')
+    print('...building kdtree over %d points (this may take a sec).' % len(data))
+    flann.build_index(data, **flann_params)
+    print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
+    flann.save_index(flann_fpath)
     return flann
 
 
