@@ -1012,7 +1012,7 @@ def prune_exemplars(ibs):
 
     problem_annot_areas = list(map(np.array, list(map(bboxes_area, problem_bboxes))))
 
-    #problem_img_areas = list(map(np.array, (map(bboxes_area, problem_sizes))))
+    #problem_img_areas = list(map(np.array, list(map(bboxes_area, problem_sizes))))
 
     #problem_ratios = [(annot_areas / img_areas) for annot_areas, img_areas in
     #                  zip(problem_annot_areas, problem_img_areas)]
