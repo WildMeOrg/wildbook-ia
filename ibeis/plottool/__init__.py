@@ -3,6 +3,9 @@ from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
 
+# Hopefully this was imported sooner. TODO remove dependency
+from guitool import __PYQT__
+
 import matplotlib as mpl
 #mpl.use('Qt4Agg')
 
