@@ -53,6 +53,7 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
 
     # Example with 2D Descriptors
     >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
+    >>> from ibeis.model.hots.hots_nn_index import _build_inverted_descriptor_index
     >>> DESC_TYPE = np.uint8
     >>> aid_list  = [1, 2, 3, 4, 5]
     >>> desc_list = [
@@ -71,6 +72,11 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
     >>> print(repr(dx2_fx))
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
 
+    <CYTH>
+    cdef:
+        list aid_list, desc_list
+        iter aid_nFeat_iter, nFeat_iter, _ax2_aid, _ax2_fx
+        np.ndarray dx2_aid, dx2_fx, dx2_desc
     </CYTH> """
     # Build inverted index of (aid, fx) pairs
     aid_nFeat_iter = zip(aid_list, map(len, desc_list))
@@ -265,6 +271,6 @@ def split_index_daids(split_index):
 
 
 #if __name__ == '__main__':
-#    #python -m doctest -v example.py
+#    #python -m doctest -v ibeis/model/hots/hots_nn_index.py
 #    import doctest
 #    doctest.testmod()

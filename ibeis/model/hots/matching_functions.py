@@ -125,6 +125,8 @@ def nearest_neighbors(ibs, qaids, qreq):
     <CYTH: returns=dict>
         cdef:
             dict qaid2_nns
+            object ibs
+            object qreq
     </CYTH>
     """
     # Neareset neighbor configuration
