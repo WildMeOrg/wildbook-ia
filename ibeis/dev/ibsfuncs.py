@@ -1076,30 +1076,33 @@ def draw_thumb_helper(tup):
     return thumb_path, thumb
 
 
-def preprocess_image_thumbs(ibs, force=False, **kwargs):
+@__injectable
+def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **kwargs):
     """ Computes thumbs of images in parallel based on kwargs """
-    gid_list_ = ibs.get_valid_gids(**kwargs)
-    thumbpath_list_ = ibs.get_image_thumbpath(gid_list_)
-    if force:
-        exists_list = [False] * len(gid_list_)
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(**kwargs)
+    thumbpath_list = ibs.get_image_thumbpath(gid_list)
+    if use_cache:
+        exists_list = list(map(exists, thumbpath_list))
     else:
-        exists_list = list(map(exists, thumbpath_list_))
-    gid_list = utool.filterfalse_items(gid_list_, exists_list)
-    thumbpath_list = utool.filterfalse_items(thumbpath_list_, exists_list)
-    gpath_list = ibs.get_image_paths(gid_list)
+        exists_list = [False] * len(gid_list)
+    gid_list_ = utool.filterfalse_items(gid_list, exists_list)
+    thumbpath_list_ = utool.filterfalse_items(thumbpath_list, exists_list)
+    gpath_list = ibs.get_image_paths(gid_list_)
 
-    aids_list = ibs.get_image_aids(gid_list)
+    aids_list = ibs.get_image_aids(gid_list_)
     bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
     thumb_size = 128
 
     args_list = [(thumb_path, thumb_size, gpath, bbox_list, theta_list)
                  for thumb_path, gpath, bbox_list, theta_list in
-                 zip(thumbpath_list, gpath_list, bboxes_list, thetas_list)]
+                 zip(thumbpath_list_, gpath_list, bboxes_list, thetas_list)]
 
     # Execute all tasks in parallel
-    gen = utool.generate(draw_thumb_helper, args_list)
+    gen = utool.generate(draw_thumb_helper, args_list, chunksize=chunksize)
     for thumb_path, thumb in gen:
+        #with utool.Timer('gentime'):
         gtool.imwrite(thumb_path, thumb)
     #if six.PY2:
     #    while True:
