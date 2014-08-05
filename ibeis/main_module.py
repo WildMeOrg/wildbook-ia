@@ -39,6 +39,10 @@ def _parse_args():
 
 #@profile
 def _init_matplotlib():
+    try:
+        from guitool import __PYQT__  # NOQA
+    except ImportError:
+        pass
     import matplotlib as mpl
     import utool
     backend = mpl.get_backend()
@@ -220,6 +224,17 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, *
     main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}
     return main_locals
+
+
+def start(*args, **kwargs):
+    """ alias for main() """ + main.__doc__
+    return main(*args, **kwargs)
+
+
+def test_main(*args, **kwargs):
+    """ alias for main() """ + main.__doc__
+    kwargs['gui'] = False
+    return main(*args, **kwargs)
 
 
 #@profile

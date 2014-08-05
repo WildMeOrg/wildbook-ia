@@ -1,7 +1,10 @@
+"""
+python -m doctest -v ibeis/model/hots/hots_nn_index.py
+"""
 from __future__ import absolute_import, division, print_function
 # Standard
 from six.moves import zip, map, range
-from itertools import chain
+#from itertools import chain
 import sys
 # Science
 import numpy as np
@@ -18,9 +21,26 @@ NOCACHE_FLANN = '--nocache-flann' in sys.argv
 def get_flann_cfgstr(ibs, aid_list):
     """ </CYTHE> """
     feat_cfgstr   = ibs.cfg.feat_cfg.get_cfgstr()
+    new_cfgstr = feat_cfgstr_depends_indexed_aids(feat_cfgstr, aid_list)
+    return new_cfgstr
+
+
+def feat_cfgstr_depends_indexed_aids(cfgstr, aid_list):
+    """
+    >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
+    >>> from ibeis.model.hots.hots_nn_index import feat_cfgstr_depends_indexed_aids
+    >>> aid_list = [0, 1, 2, 3, 4, 5]
+    >>> feat_cfgstr = '_FEAT(params)'
+    >>> new_cfgstr = feat_cfgstr_depends_indexed_aids(feat_cfgstr, aid_list)
+    >>> print(new_cfgstr)
+    _daids((6)qbm6uaegu7gv!ut!)_FEAT(params)
+
+    <CYTH>
+    </CYTH>
+    """
     sample_cfgstr = utool.hashstr_arr(aid_list, 'daids')
-    cfgstr = '_' + sample_cfgstr + feat_cfgstr
-    return cfgstr
+    new_cfgstr = '_' + sample_cfgstr + cfgstr
+    return new_cfgstr
 
 
 #@utool.indent_func('[agg_desc]')
@@ -51,6 +71,8 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
         dx2_aid  - inverted index into annotations
         dx2_fx   - inverted index into features
 
+    # It would be nice if the input was varied when the doctest was parsed into
+    # cyth.
     # Example with 2D Descriptors
     >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
     >>> from ibeis.model.hots.hots_nn_index import _build_inverted_descriptor_index
@@ -73,21 +95,33 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
 
     <CYTH>
+    Alternative Syntax:? Interpet as: parse cyth until next:
+        begin_markers = '...', '>>>', '['
+        valid_regexes = ['^ *' + marker for marker in begin_markers]
+    is found
+
+    [CYTH]
     cdef:
         list aid_list, desc_list
         iter aid_nFeat_iter, nFeat_iter, _ax2_aid, _ax2_fx
         np.ndarray dx2_aid, dx2_fx, dx2_desc
-    </CYTH> """
+    </CYTH>
+
+    """
     # Build inverted index of (aid, fx) pairs
     aid_nFeat_iter = zip(aid_list, map(len, desc_list))
     nFeat_iter = map(len, desc_list)
     # generate aid inverted index for each feature in each annotation
     _ax2_aid = ([aid] * nFeat for (aid, nFeat) in aid_nFeat_iter)
+    # Avi: please test the timing of the lines neighboring this statement.
+    #_ax2_aid = ([aid] * nFeat for (aid, nFeat) in aid_nFeat_iter)
     # generate featx inverted index for each feature in each annotation
     _ax2_fx  = (range(nFeat) for nFeat in nFeat_iter)
     # Flatten generators into the inverted index
-    dx2_aid = np.array(list(chain.from_iterable(_ax2_aid)))
-    dx2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
+    #dx2_aid = np.array(list(chain.from_iterable(_ax2_aid)))
+    #dx2_fx  = np.array(list(chain.from_iterable(_ax2_fx)))
+    dx2_aid = np.array(utool.flatten(_ax2_aid))
+    dx2_fx  = np.array(utool.flatten(_ax2_fx))
     # Stack descriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
     dx2_desc = np.vstack(desc_list)
@@ -172,19 +206,29 @@ class HOTSIndex(object):
 class HOTSSplitIndex(object):
     """ Nearest Neighbor (FLANN) Index Class </CYTH> """
     def __init__(split_index, ibs, daid_list, num_forests=8):
+        """
+
+        #>>> ibeis.start_ibeis()
+        >>> from guitool import __PYQT__
+        >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
+        >>> import ibeis   # doctest.SKIP
+        >>> ibs = ibeis.test_main(db='testdb1', gui=False)
+        >>> daid_list = [1, 2, 3, 4]
+        >>> num_forests=8
+        """
         print('[nnsindex] make HOTSSplitIndex over %d annots' % (len(daid_list),))
         aid_list = daid_list
         nid_list = ibs.get_annot_nids(aid_list)
         #flag_list = ibs.get_annot_exemplar_flag(aid_list)
         nid2_aids = utool.group_items(aid_list, nid_list)
         key_list = nid2_aids.keys()
-        aids_list = nid2_aids.values()
+        aid_gen = lambda: nid2_aids.values()
         isunknown_list = ibs.is_nid_unknown(key_list)
 
-        known_aids  = utool.filterfalse_items(aids_list, isunknown_list)
-        uknown_aids = utool.flatten(utool.filter_items(aids_list, isunknown_list))
+        known_aids  = utool.filterfalse_items(aid_gen(), isunknown_list)
+        uknown_aids = utool.flatten(utool.filter_items(aid_gen(), isunknown_list))
 
-        num_forests_ = min(max(map(len, aids_list)), num_forests)
+        num_forests_ = min(max(map(len, aid_gen)), num_forests)
 
         # Put one name per forest
         forest_aids, overflow_aids = utool.sample_zip(known_aids, num_forests_,

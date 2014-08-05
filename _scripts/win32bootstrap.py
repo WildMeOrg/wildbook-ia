@@ -89,7 +89,7 @@ bad_list = [
 ]
 
 from six.moves import filterfalse
-filtered_list4 = list(filterfalse(lambda x: any([bad in x for bad in bad_list]), filtered_list3)
+filtered_list4 = list(filterfalse(lambda x: any([bad in x for bad in bad_list]), filtered_list3))
 
 
 """
