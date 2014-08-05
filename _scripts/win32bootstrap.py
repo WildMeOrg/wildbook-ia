@@ -8,6 +8,136 @@ from os.path import join
 # Get packages we are updating
 
 
+### ---
+# HACK MODE
+
+import urllib2
+weburl = 'http://www.lfd.uci.edu/~gohlke/pythonlibs'
+page = urllib2.urlopen(weburl)
+page_str = page.read()
+#from xml.etree import ElementTree
+#root = ElementTree.fromstring(page_str)
+
+encrypted_lines = filter(lambda x: x.find('onclick') > -1, page_str.split('\n'))
+line = encrypted_lines[0]
+
+
+def parse_encrypted(line):
+    #start = line.find('javascript:dl') + len('javascript:dl') + 2
+    #end   = line.find('title') - 4
+    #code = line[start: end]
+    #mid = code.find(']')
+    #left = code[0:mid]
+    #right = code[mid + 4:]
+    #ml = left
+    #mi = right
+    _, ml, mi, _ = parse.parse('{}javascript:dl([{}], "{}"){}', line)
+
+    mi = mi.replace('&lt;', '<')
+    mi = mi.replace('&gt;', '>')
+    mi = mi.replace('&amp;', '&')
+
+    ml_ = eval(ml)
+    href_ = ''.join([chr(ml_[ord(char) - 48]) for char in mi])
+    href  = '/'.join([weburl, href_])
+    return href
+
+# List of all download links, now choose wisely, because we don't want
+# to hack for evil
+href_list = list(map(parse_encrypted, encrypted_lines))
+
+win_pkg_list = [
+    'pip',
+    'setuptools',
+    'Pygments',
+    'Cython'
+    'requests',
+    'colorama',
+    'psutil',
+    'functools32',
+    'six',
+    'dateutils',
+    'pyreadline',
+    'pyparsing',
+    'sip',
+    'pyqt4',
+    'Pillow',
+    'numpy',
+    'scipy',
+    'ipython',
+    'tornado',
+    'matplotlib',
+    'scikit-learn',
+]
+
+
+OS_VERSION = 'win32'
+#PY_VERSION = 'py2.7'
+PY_VERSION = 'py3.4'
+
+candidate_list = []
+for pkgname in win_pkg_list:
+    candidates = filter(lambda x: x.find(pkgname) > -1, href_list)
+    candidate_list.extend(candidates)
+
+filtered_list1 = candidate_list
+filtered_list2 = filter(lambda x: PY_VERSION in x, filtered_list1)
+filtered_list3 = filter(lambda x: OS_VERSION in x, filtered_list2)
+
+bad_list = [
+    'vigranumpy',
+]
+
+from six.moves import filterfalse
+filtered_list4 = list(filterfalse(lambda x: any([bad in x for bad in bad_list]), filtered_list3)
+
+
+"""
+<script type="text/javascript">
+// <![CDATA[
+if (top.location!=location) top.location.href=location.href;
+function dc(ml,mi)
+{
+var ot="";
+for(var j=0;j<mi.length;j++)
+    ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);document.write(ot);
+}
+function dl1(ml,mi){
+var ot="";
+for(var j=0;j<mi.length;j++)
+    ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);
+    location.href=ot;
+}
+
+function dl(ml,mi)
+{
+mi=mi.replace('&lt;','<');
+mi=mi.replace('&gt;','>');
+mi=mi.replace('&amp;','&');
+setTimeout(function(){ dl1(ml,mi) }, 1500);}
+// ]]>
+</script>
+"""
+
+
+def hack_href(element):
+    javascript = element.get_attribute('onclick')
+    # Javascript port dl
+    ml, mi = parse.parse('javascript:dl([{}], "{}")', javascript)
+    ml = '[%s]' % ml
+    mi = '%s' % mi
+    mi = mi.replace('&lt;', '<')
+    mi = mi.replace('&gt;', '>')
+    mi = mi.replace('&amp;', '&')
+    ml = eval(ml)
+
+    # Javascript port dl1
+    href_ = ''.join([chr(ml[ord(char) - 48]) for char in mi])
+    href  = '/'.join([weburl, href_])
+    return href
+
+###----
+
 pkgname_list = [
     'Pygments>=1.6',
     'argparse>=1.2.1',
