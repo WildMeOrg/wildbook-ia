@@ -17,6 +17,9 @@ elif six.PY3:
     __name__, '[qtype]', DEBUG=False)
 
 
+SIMPLE_CASTING = True
+
+
 ItemDataRoles = {
     0  : 'DisplayRole',       # key data to be rendered in the form of text. (QString)
     1  : 'DecorationRole',     # data to be rendered as an icon. (QColor, QIcon or QPixmap)
@@ -99,6 +102,9 @@ def cast_into_qt(data):
     """
     Casts python data into a representation suitable for QT (usually a string)
     """
+    if SIMPLE_CASTING:
+        return data
+
     if utool.is_str(data):
         return str(data)
     elif utool.is_float(data):
@@ -144,6 +150,16 @@ def cast_into_qt(data):
 @profile
 def cast_from_qt(var, type_=None):
     """ Casts a QVariant to data """
+    if SIMPLE_CASTING:
+        if var is None:
+            return None
+        if type_ is not None:
+            reprstr = str(var)
+            return utool.smart_cast(reprstr, type_)
+        return var
+
+    # TODO: sip api v2 should take care of this.
+    #
     #printDBG('Casting var=%r' % (var,))
     if var is None:
         return None
@@ -158,6 +174,8 @@ def cast_from_qt(var, type_=None):
             data = str(var.toString())
     elif isinstance(var, QString):
         data = str(var)
+    elif isinstance(var, list):
+        data = var
     #elif isinstance(var, (int, long, str, float)):
     elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
         # comboboxes return ints

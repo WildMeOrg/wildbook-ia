@@ -55,6 +55,8 @@ def reload_subs():
         guitool_misc.rrr()
     if hasattr(api_item_model, 'rrr'):
         api_item_model.rrr()
+    if hasattr(qtype, 'rrr'):
+        qtype.rrr()
     if hasattr(guitool_components, 'rrr'):
         guitool_components.rrr()
 

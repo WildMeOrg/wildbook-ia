@@ -768,7 +768,7 @@ class APIItemModel(API_MODEL_BASE):
                 model.dataChanged.emit(qtindex, qtindex)
             return True
         except Exception as ex:
-            value = str(value.toString())  # NOQA
+            #value = str(value.toString())  # NOQA
             utool.printex(ex, 'ignoring setData', '[model]',
                           key_list=['value'], iswarning=True)
             return False
