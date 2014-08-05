@@ -197,15 +197,22 @@ def resize(img, dsize):
     return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
 
 
+def resized_thumb_dims(img_size, max_dsize):
+    max_width, max_height = max_dsize
+    height, width = img_size
+    ratio = min(max_width / width, max_height / height)
+    dsize = (int(round(width * ratio)), int(round(height * ratio)))
+    return dsize, ratio
+
+
 def resize_thumb(img, max_dsize=(64, 64)):
     """ Resize an image such that its max width or height is: """
-    max_width, max_height = max_dsize
     height, width = img.shape[0:2]
-    ratio = min(max_width / width, max_height / height)
+    img_size = (height, width)
+    dsize, ratio = resized_thumb_dims(img_size, max_dsize)
     if ratio > 1:
         return cvt_BGR2RGB(img)
     else:
-        dsize = (int(round(width * ratio)), int(round(height * ratio)))
         return resize(img, dsize)
 
 
