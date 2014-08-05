@@ -505,6 +505,15 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
 
     @blocking_slot()
+    def compute_thumbs(back, refresh=True, **kwargs):
+        """ Batch -> Precompute Thumbs"""
+        print('[back] compute_thumbs')
+        eid = back._eidfromkw(kwargs)
+        ibsfuncs.compute_all_thumbs(back.ibs, eid=eid)
+        if refresh:
+            back.front.update_tables()
+
+    @blocking_slot()
     def query(back, aid=None, refresh=True, **kwargs):
         """ Action -> Query"""
         if aid is None:

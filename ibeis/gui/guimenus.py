@@ -176,6 +176,11 @@ def setup_batch_menu(mainwin, back):
         text='Precompute Chips/Features',
         shortcut='Ctrl+Return',
         slot_fn=back.compute_feats)
+    mainwin.menuBatch.newAction(
+        name='actionPrecomputeThumbnails',
+        text='Precompute Thumbnails',
+        shortcut='',
+        slot_fn=back.compute_thumbs)
     mainwin.menuBatch.addSeparator()  # ---------
 
 

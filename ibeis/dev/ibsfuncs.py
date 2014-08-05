@@ -1,8 +1,9 @@
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
 #import uuid
+#import six
 import types
-from six.moves import zip, range
+from six.moves import zip, range, map
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from functools import partial
 from os.path import relpath, split, join, exists, commonprefix
@@ -14,6 +15,7 @@ from detecttools.pypascalxml import PascalVOC_XML_Annotation
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
 from vtool import linalg, geometry, image
+import vtool.image as gtool
 import numpy as np
 
 # Inject utool functions
@@ -1032,3 +1034,81 @@ def delete_cachedir(ibs):
     utool.delete(cachedir)
     # TODO: features really need to not be in SQL or in a separate SQLDB
     ibs.delete_all_features()
+
+
+def compute_thumb_verts(bbox_list, theta_list, sx, sy):
+    new_verts_list = []
+    for bbox, theta in zip(bbox_list, theta_list):
+        # Transformation matrixes
+        R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+        S = linalg.scale_mat3x3(sx, sy)
+        # Get verticies of the annotation polygon
+        verts = geometry.verts_from_bbox(bbox, close=True)
+        # Rotate and transform to thumbnail space
+        xyz_pts = geometry.homogonize(np.array(verts).T)
+        trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        new_verts_list.append(new_verts)
+    return new_verts_list
+
+
+def draw_thumb_helper(tup):
+    thumb_path, thumb_size, gpath, bbox_list, theta_list = tup
+    img = gtool.imread(gpath)  # time consuming
+    (gh, gw) = img.shape[0:2]
+    img_size = (gw, gh)
+    max_dsize = (thumb_size, thumb_size)
+    dsize, ratio = gtool.resized_thumb_dims(img_size, max_dsize)
+    if ratio > 1:
+        dsize = img_size
+    sx = dsize[0] / gw
+    sy = dsize[1] / gh
+    new_verts_list = compute_thumb_verts(bbox_list, theta_list, sx, sy)
+    #thumb = gtool.resize_thumb(img, max_dsize)
+    # -----------------
+    # Actual computation
+    thumb = gtool.resize(img, dsize)
+    orange_bgr = (0, 128, 255)
+    for new_verts in new_verts_list:
+        thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+    #gtool.imwrite(thumb_path, thumb)
+    #return True
+    return thumb_path, thumb
+
+
+def preprocess_image_thumbs(ibs, force=False, **kwargs):
+    """ Computes thumbs of images in parallel based on kwargs """
+    gid_list_ = ibs.get_valid_gids(**kwargs)
+    thumbpath_list_ = ibs.get_image_thumbpath(gid_list_)
+    if force:
+        exists_list = [False] * len(gid_list_)
+    else:
+        exists_list = list(map(exists, thumbpath_list_))
+    gid_list = utool.filterfalse_items(gid_list_, exists_list)
+    thumbpath_list = utool.filterfalse_items(thumbpath_list_, exists_list)
+    gpath_list = ibs.get_image_paths(gid_list)
+
+    aids_list = ibs.get_image_aids(gid_list)
+    bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
+    thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
+    thumb_size = 128
+
+    args_list = [(thumb_path, thumb_size, gpath, bbox_list, theta_list)
+                 for thumb_path, gpath, bbox_list, theta_list in
+                 zip(thumbpath_list, gpath_list, bboxes_list, thetas_list)]
+
+    # Execute all tasks in parallel
+    gen = utool.generate(draw_thumb_helper, args_list)
+    for thumb_path, thumb in gen:
+        gtool.imwrite(thumb_path, thumb)
+    #if six.PY2:
+    #    while True:
+    #        gen.next()
+    #else:
+    #    while True:
+    #        next(gen)
+
+
+@__injectable
+def compute_all_thumbs(ibs, **kwargs):
+    preprocess_image_thumbs(ibs, **kwargs)
