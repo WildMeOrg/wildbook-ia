@@ -1,3 +1,6 @@
+"""
+    python -m doctest -v ibeis/model/hots/hots_nn_index.py
+"""
 from __future__ import absolute_import, division, print_function
 # Standard
 from six.moves import zip, map, range

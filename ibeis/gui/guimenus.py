@@ -58,6 +58,12 @@ def setup_file_menu(mainwin, back):
         text='Import Images (select directory)',
         shortcut='Ctrl+I',
         slot_fn=back.import_images_from_dir)
+    mainwin.menuFile.addSeparator()
+    mainwin.menuFile.newAction(
+        name='actionImport_Img_AsAnnot_file',
+        text='Import Cropped Images As Annotations (select file(s))',
+        shortcut=None,
+        slot_fn=back.import_images_as_annots_from_file)
     mainwin.menuFile.newAction(
         name='actionLocalizeImages',
         text='Localize Images',

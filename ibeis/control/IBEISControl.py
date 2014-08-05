@@ -490,12 +490,12 @@ class IBEISController(object):
     # Standard
 
     @adder
-    def add_images(ibs, gpath_list):
+    def add_images(ibs, gpath_list, as_annots=False):
         """ Adds a list of image paths to the database.  Returns gids
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
-        >>> from ibeis.dev.all_imports import *  # NOQA
+        >>> from ibeis.dev.all_imports import *  # NOQA  # doctest.SKIP
         >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
         print('[ibs] add_images')
@@ -537,7 +537,15 @@ class IBEISController(object):
 
         ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
         if ibs.cfg.other_cfg.auto_localize:
+            # Move to ibeis database local cache
             ibs.localize_images(gid_list)
+
+        if as_annots:
+            # Add succesfull imports as annotations
+            isnone_list = [gid is None for gid in gid_list]
+            gid_list_ = utool.filterfalse_items(gid_list, isnone_list)
+            aid_list = ibs.use_images_as_annotations(gid_list)
+            print('[ibs] added %d annotations' % (len(aid_list),))
         return gid_list
 
     @adder

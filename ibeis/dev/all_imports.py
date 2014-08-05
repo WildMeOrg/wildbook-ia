@@ -198,7 +198,7 @@ def reload_all():
     ibeis.reload_subs()
     utool.reload_subs()
     #vtool.reload_subs()
-    #guitool.reload_subs()
+    guitool.reload_subs()
     plottool.reload_subs()
 
 def class_reload():

@@ -808,14 +808,14 @@ class MainWindowBackend(QtCore.QObject):
         return gid_list
 
     @blocking_slot()
-    def import_images_from_file(back, gpath_list=None, refresh=True):
+    def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False):
         print('[back] import_images_from_file')
         """ File -> Import Images From File"""
         if back.ibs is None:
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
-        gid_list = back.ibs.add_images(gpath_list)
+        gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
         if refresh:
             back.ibs.update_special_encounters()
             back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
@@ -840,6 +840,10 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
         return gid_list
         #print('')
+
+    @blocking_slot()
+    def import_images_as_annots_from_file(back, gpath_list=None, refresh=True):
+        return back.import_images_from_file(gpath_list=None, refresh=True, as_annots=True)
 
     @slot_()
     def localize_images(back):
