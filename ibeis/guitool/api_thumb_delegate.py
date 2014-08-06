@@ -3,7 +3,7 @@ from .__PYQT__ import QtGui, QtCore
 import cv2
 import numpy as np
 import utool
-import time
+#import time
 #from six.moves import zip
 from os.path import exists
 from vtool import image as gtool
