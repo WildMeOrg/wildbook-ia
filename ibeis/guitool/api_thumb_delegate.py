@@ -3,10 +3,11 @@ from .__PYQT__ import QtGui, QtCore
 import cv2
 import numpy as np
 import utool
-from six.moves import zip
+#from six.moves import zip
 from os.path import exists
 from vtool import image as gtool
-from vtool import linalg, geometry
+#from vtool import linalg, geometry
+from vtool import geometry
 #from multiprocessing import Process
 #from guitool import guitool_components as comp
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemWidget]', DEBUG=False)
@@ -50,11 +51,12 @@ class APIThumbDelegate(DELEGATE_BASE):
     def __init__(dgt, parent=None):
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = None
-        dgt.thumb_size = 128
+        dgt.thumbsize = 128
 
     def get_model_data(dgt, qtindex):
         """ The model data for a thumb should be a (thumb_path, img_path, bbox_list) tuple """
-        data = qtindex.model().data(qtindex, QtCore.Qt.DisplayRole)
+        model = qtindex.model()
+        data = model.data(qtindex, QtCore.Qt.DisplayRole, thumbsize=dgt.thumbsize)
         if data is None:
             return None
         # The data should be specified as a thumbtup
@@ -92,13 +94,13 @@ class APIThumbDelegate(DELEGATE_BASE):
             # Start computation of thumb if needed
             #qtindex.model()._update()  # should probably be deleted
             view = dgt.parent()
-            thumb_size = dgt.thumb_size
+            thumbsize = dgt.thumbsize
             # where you are when you request the run
             offset = view.verticalOffset() + option.rect.y()
             thumb_creation_thread = ThumbnailCreationThread(
                 thumb_path,
                 img_path,
-                thumb_size,
+                thumbsize,
                 qtindex,
                 view,
                 offset,
@@ -130,8 +132,8 @@ class APIThumbDelegate(DELEGATE_BASE):
                     col_width = view.columnWidth(qtindex.column())
                     col_height = view.rowHeight(qtindex.row())
                     # Let columns shrink
-                    if dgt.thumb_size != col_width:
-                        view.setColumnWidth(qtindex.column(), dgt.thumb_size)
+                    if dgt.thumbsize != col_width:
+                        view.setColumnWidth(qtindex.column(), dgt.thumbsize)
                     # Let rows grow
                     if height > col_height:
                         view.setRowHeight(qtindex.row(), height)
@@ -167,13 +169,13 @@ class APIThumbDelegate(DELEGATE_BASE):
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """ Helper to compute thumbnails concurrently """
 
-    def __init__(thread, thumb_path, img_path, thumb_size, qtindex, view, offset, bbox_list, theta_list):
+    def __init__(thread, thumb_path, img_path, thumbsize, qtindex, view, offset, bbox_list, theta_list):
         RUNNABLE_BASE.__init__(thread)
         thread.thumb_path = thumb_path
         thread.img_path = img_path
         thread.qtindex = qtindex
         thread.offset = offset
-        thread.thumb_size = thumb_size
+        thread.thumbsize = thumbsize
         thread.view = view
         thread.bbox_list = bbox_list
         thread.theta_list = theta_list
@@ -191,12 +193,16 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         return abs(current_offset - thread.offset) < height
 
     def _run(thread):
+        """ Compute thumbnail in a different thread """
+        # TODO 6-Aug-2014: Vtool has functions very similar to these.
+        # they should be called instead to reduce duplicate code.
+        # Some duplicate code also exists in ibsfuncs
         # print(thread.img_path)
         if not thread.thumb_would_be_visible():
             #unregister_thread(thread.thumb_path)
             return
         image = gtool.imread(thread.img_path)
-        max_dsize = (thread.thumb_size, thread.thumb_size)
+        max_dsize = (thread.thumbsize, thread.thumbsize)
         # Resize image to thumb
         thumb = gtool.resize_thumb(image, max_dsize)
         if not utool.is_listlike(thread.theta_list):
@@ -205,23 +211,31 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
             theta_list = thread.theta_list
         # Get scale factor
         sx, sy = gtool.get_scale_factor(image, thumb)
-        # Draw bboxes on thumb (not image)
-        for bbox, theta in zip(thread.bbox_list, theta_list):
+        orange_bgr = (0, 128, 255)
+        for new_verts in gtool.scale_bbox_to_verts_gen(thread.bbox_list,
+                                                       theta_list, sx, sy):
             if not thread.thumb_would_be_visible():
                 #unregister_thread(thread.thumb_path)
                 return
-            # Transformation matrixes
-            R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
-            S = linalg.scale_mat3x3(sx, sy)
-            # Get verticies of the annotation polygon
-            verts = geometry.verts_from_bbox(bbox, close=True)
-            # Rotate and transform to thumbnail space
-            xyz_pts = geometry.homogonize(np.array(verts).T)
-            trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
-            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
             # -----------------
-            orange_bgr = (0, 128, 255)
             thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+        # Draw bboxes on thumb (not image)
+        #for bbox, theta in zip(thread.bbox_list, theta_list):
+        #    if not thread.thumb_would_be_visible():
+        #        #unregister_thread(thread.thumb_path)
+        #        return
+        #    # Transformation matrixes
+        #    R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+        #    S = linalg.scale_mat3x3(sx, sy)
+        #    # Get verticies of the annotation polygon
+        #    verts = geometry.verts_from_bbox(bbox, close=True)
+        #    # Rotate and transform to thumbnail space
+        #    xyz_pts = geometry.homogonize(np.array(verts).T)
+        #    trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
+        #    new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        #    # -----------------
+        #    orange_bgr = (0, 128, 255)
+        #    thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
         gtool.imwrite(thread.thumb_path, thumb)
         #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)

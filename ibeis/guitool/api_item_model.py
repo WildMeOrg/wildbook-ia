@@ -513,13 +513,13 @@ class APIItemModel(API_MODEL_BASE):
         return val
 
     @default_method_decorator
-    def _get_data(model, qtindex):
+    def _get_data(model, qtindex, **kwargs):
         #row = qtindex.row()
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
         getter = model.col_getter_list[col]  # getter for this column
         # Using this getter may not be thread safe
-        data = getter(row_id)
+        data = getter(row_id, **kwargs)
         # <HACK: MODEL_CACHE>
         #cachekey = (row_id, col)
         #try:
@@ -642,7 +642,7 @@ class APIItemModel(API_MODEL_BASE):
         return len(model.col_name_list)
 
     @default_method_decorator
-    def data(model, qtindex, role=Qt.DisplayRole):
+    def data(model, qtindex, role=Qt.DisplayRole, **kwargs):
         """ Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
         the index.  Note: If you do not have a value to return, return None"""
@@ -687,7 +687,7 @@ class APIItemModel(API_MODEL_BASE):
                 return QVariantHack(model.EditableItemColor)
             elif flags & Qt.ItemIsUserCheckable:
                 # Checkable color depends on the truth value
-                data = model._get_data(qtindex)
+                data = model._get_data(qtindex, **kwargs)
                 if data:
                     return QVariantHack(model.TrueItemColor)
                 else:
@@ -699,20 +699,14 @@ class APIItemModel(API_MODEL_BASE):
         elif role == Qt.ForegroundRole:
             if flags & Qt.ItemIsEditable:
                 return QtGui.QBrush(QtGui.QColor(0, 0, 0))
-        #
-        # Specify Decoration Role
+
+        # Specify Decoration Role (superceded by thumbdelegate)
         # elif role == Qt.DecorationRole and type_ in qtype.QT_IMAGE_TYPES:
-        #     # The type is a pixelmap
-        #     npimg = model._get_data(row, col, node)
-        #     if npimg is not None:
-        #         if type_ in qtype.QT_PIXMAP_TYPES:
-        #             return qtype.numpy_to_qicon(npimg)
-        #         elif type_ in qtype.QT_ICON_TYPES:
-        #             return qtype.numpy_to_qpixmap(npimg)
+
         # Specify CheckState Role:
         if role == Qt.CheckStateRole:
             if flags & Qt.ItemIsUserCheckable:
-                data = model._get_data(qtindex)
+                data = model._get_data(qtindex, **kwargs)
                 return Qt.Checked if data else Qt.Unchecked
         #
         # Return the data to edit or display
@@ -720,12 +714,12 @@ class APIItemModel(API_MODEL_BASE):
             # For types displayed with custom delegates do not cast data into a
             # qvariant. This includes PIXMAP, BUTTON, and COMBO
             if type_ in qtype.QT_DELEGATE_TYPES:
-                data = model._get_data(qtindex)
+                data = model._get_data(qtindex, **kwargs)
                 #print(data)
                 return data
             else:
                 # Display data with default delegate by casting to a qvariant
-                data = model._get_data(qtindex)
+                data = model._get_data(qtindex, **kwargs)
                 value = qtype.cast_into_qt(data)
                 return value
         else:
