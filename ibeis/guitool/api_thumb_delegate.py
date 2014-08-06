@@ -201,14 +201,14 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         if not thread.thumb_would_be_visible():
             #unregister_thread(thread.thumb_path)
             return
-        image = gtool.imread(thread.img_path)
-        max_dsize = (thread.thumbsize, thread.thumbsize)
-        # Resize image to thumb
-        thumb = gtool.resize_thumb(image, max_dsize)
         if not utool.is_listlike(thread.theta_list):
             theta_list = [thread.theta_list]
         else:
             theta_list = thread.theta_list
+        image = gtool.imread(thread.img_path)
+        max_dsize = (thread.thumbsize, thread.thumbsize)
+        # Resize image to thumb
+        thumb = gtool.resize_thumb(image, max_dsize)
         # Get scale factor
         sx, sy = gtool.get_scale_factor(image, thumb)
         orange_bgr = (0, 128, 255)
