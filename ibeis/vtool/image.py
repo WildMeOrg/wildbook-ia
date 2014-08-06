@@ -212,7 +212,7 @@ def resized_thumb_dims(img_size, max_dsize):
 def resize_thumb(img, max_dsize=(64, 64)):
     """ Resize an image such that its max width or height is: """
     height, width = img.shape[0:2]
-    img_size = (height, width)
+    img_size = (width, height)
     dsize, ratio = resized_thumb_dims(img_size, max_dsize)
     if ratio > 1:
         return cvt_BGR2RGB(img)
