@@ -27,9 +27,9 @@ try:
         from . import api_tree_node_cython as _atn
     else:
         raise ImportError('')
-    print('[guitool] cython ON')
+    #print('[guitool] cython ON')
 except ImportError:
-    print('[guitool] cython OFF')
+    #print('[guitool] cython OFF')
     # TODO: Cython should be wrapped in parent module
     from . import api_tree_node as _atn
 
