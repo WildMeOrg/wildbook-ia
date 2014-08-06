@@ -889,23 +889,24 @@ class IBEISController(object):
         return image_list
 
     @getter_1to1
-    def get_image_thumbtup(ibs, gid_list):
+    def get_image_thumbtup(ibs, gid_list, thumbsize=128):
         """ Returns tuple of image paths, thumb paths, bboxes and thetas """
         # print('gid_list = %r' % (gid_list,))
         aids_list = ibs.get_image_aids(gid_list)
         bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
-        thumb_gpaths = ibs.get_image_thumbpath(gid_list)
+        thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=128)
         image_paths = ibs.get_image_paths(gid_list)
         thumbtup_list = list(zip(thumb_gpaths, image_paths, bboxes_list, thetas_list))
         return thumbtup_list
 
     @getter_1to1
-    def get_image_thumbpath(ibs, gid_list):
+    def get_image_thumbpath(ibs, gid_list, thumbsize=128):
         """ Returns the thumbnail path of each gid """
         thumb_dpath = ibs.thumb_dpath
         img_uuid_list = ibs.get_image_uuids(gid_list)
-        thumbpath_list = [join(thumb_dpath, __STR__(uuid) + constants.IMAGE_THUMB_SUFFIX)
+        thumb_suffix = '_' + str(thumbsize) + constants.IMAGE_THUMB_SUFFIX
+        thumbpath_list = [join(thumb_dpath, __STR__(uuid) + thumb_suffix)
                           for uuid in img_uuid_list]
         return thumbpath_list
 
@@ -1205,10 +1206,10 @@ class IBEISController(object):
         return chip_list
 
     @getter_1to1
-    def get_annot_chip_thumbtup(ibs, aid_list):
+    def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=128):
         # HACK TO MAKE CHIPS COMPUTE
         #cid_list = ibs.get_annot_cids(aid_list, ensure=True)  # NOQA
-        thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list)
+        thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=128)
         image_paths = ibs.get_annot_cpaths(aid_list)
         thumbtup_list = [(thumb_path, img_path, [], [])
                          for (thumb_path, img_path) in
@@ -1216,9 +1217,11 @@ class IBEISController(object):
         return thumbtup_list
 
     @getter_1to1
-    def get_annot_chip_thumbpath(ibs, aid_list):
+    def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=128):
+        thumb_dpath = ibs.thumb_dpath
+        thumb_suffix = '_' + str(thumbsize) + constants.CHIP_THUMB_SUFFIX
         annotation_uuid_list = ibs.get_annot_uuids(aid_list)
-        thumbpath_list = [join(ibs.thumb_dpath, __STR__(uuid) + constants.CHIP_THUMB_SUFFIX)
+        thumbpath_list = [join(thumb_dpath, __STR__(uuid) + thumb_suffix)
                           for uuid in annotation_uuid_list]
         return thumbpath_list
 

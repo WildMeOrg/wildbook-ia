@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 import sys
+from six.moves import zip
 from os.path import exists, join
 import functools
 # GUITool
@@ -869,6 +870,15 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
     # Helper functions
     #--------------------------------------------------------------------------
+
+    def popup_annot_info(back, aid_list, **kwargs):
+        if not isinstance(aid_list, list):
+            aid_list = [aid_list]
+        ibs = back.ibs
+        gid_list  = ibs.get_annot_gids(aid_list)
+        eids_list = ibs.get_image_eids(gid_list)
+        for aid, gid, eids in zip(aid_list, gid_list, eids_list):
+            back.user_info(msg='aid=%r, gid=%r, eids=%r' % (aid, gid, eids))
 
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)

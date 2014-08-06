@@ -555,6 +555,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             eid = model.eid
             if len(id_list) > 0:
                 guitool.popup_menu(tblview, pos, [
+                    ('delete annotations', lambda: ibswgt.back.popup_annot_info(id_list)),
+                ])
+                guitool.popup_menu(tblview, pos, [
                     ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
 

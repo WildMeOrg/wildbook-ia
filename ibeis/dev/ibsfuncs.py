@@ -1,7 +1,7 @@
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
 #import uuid
-#import six
+import six
 import types
 from six.moves import zip, range, map
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
@@ -1036,34 +1036,18 @@ def delete_cachedir(ibs):
     ibs.delete_all_features()
 
 
-def compute_thumb_verts(bbox_list, theta_list, sx, sy):
-    new_verts_list = []
-    for bbox, theta in zip(bbox_list, theta_list):
-        # Transformation matrixes
-        R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
-        S = linalg.scale_mat3x3(sx, sy)
-        # Get verticies of the annotation polygon
-        verts = geometry.verts_from_bbox(bbox, close=True)
-        # Rotate and transform to thumbnail space
-        xyz_pts = geometry.homogonize(np.array(verts).T)
-        trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
-        new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
-        new_verts_list.append(new_verts)
-    return new_verts_list
-
-
 def draw_thumb_helper(tup):
-    thumb_path, thumb_size, gpath, bbox_list, theta_list = tup
+    thumb_path, thumbsize, gpath, bbox_list, theta_list = tup
     img = gtool.imread(gpath)  # time consuming
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
-    max_dsize = (thumb_size, thumb_size)
+    max_dsize = (thumbsize, thumbsize)
     dsize, ratio = gtool.resized_thumb_dims(img_size, max_dsize)
     if ratio > 1:
         dsize = img_size
     sx = dsize[0] / gw
     sy = dsize[1] / gh
-    new_verts_list = compute_thumb_verts(bbox_list, theta_list, sx, sy)
+    new_verts_list = list(gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
     #thumb = gtool.resize_thumb(img, max_dsize)
     # -----------------
     # Actual computation
@@ -1072,8 +1056,8 @@ def draw_thumb_helper(tup):
     for new_verts in new_verts_list:
         thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
     gtool.imwrite(thumb_path, thumb)
-    return True, True
-    #return thumb_path, thumb
+    return True
+    #return (thumb_path, thumb)
 
 
 @__injectable
@@ -1081,40 +1065,40 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **k
     """ Computes thumbs of images in parallel based on kwargs """
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
-    thumbpath_list = ibs.get_image_thumbpath(gid_list)
+    thumbsize = 128
+    thumbpath_list = ibs.get_image_thumbpath(gid_list, thumbsize=thumbsize)
     #use_cache = False
     if use_cache:
         exists_list = list(map(exists, thumbpath_list))
+        gid_list_ = utool.filterfalse_items(gid_list, exists_list)
+        thumbpath_list_ = utool.filterfalse_items(thumbpath_list, exists_list)
     else:
-        exists_list = [False] * len(gid_list)
-    gid_list_ = utool.filterfalse_items(gid_list, exists_list)
-    thumbpath_list_ = utool.filterfalse_items(thumbpath_list, exists_list)
+        gid_list_ = gid_list
+        thumbpath_list_ = thumbpath_list
     gpath_list = ibs.get_image_paths(gid_list_)
 
     aids_list = ibs.get_image_aids(gid_list_)
     bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
-    thumb_size = 128
 
-    args_list = [(thumb_path, thumb_size, gpath, bbox_list, theta_list)
+    args_list = [(thumb_path, thumbsize, gpath, bbox_list, theta_list)
                  for thumb_path, gpath, bbox_list, theta_list in
                  zip(thumbpath_list_, gpath_list, bboxes_list, thetas_list)]
 
     # Execute all tasks in parallel
-    genkw = {'ordered': False, 'chunksize': chunksize, }
+    genkw = {
+        'ordered': False,
+        'chunksize': chunksize,
+        #'force_serial': True,
+    }
     #genkw['force_serial'] = True
-    genkw['chunksize'] = max(len(gid_list_) // 16, 1)
+    #genkw['chunksize'] = max(len(gid_list_) // 16, 1)
     gen = utool.generate(draw_thumb_helper, args_list, **genkw)
-    for thumb_path, thumb in gen:
-        pass
-        #with utool.Timer('gentime'):
-        #gtool.imwrite(thumb_path, thumb)
-    #if six.PY2:
-    #    while True:
-    #        gen.next()
-    #else:
-    #    while True:
-    #        next(gen)
+    #for output in gen:
+    #    #with utool.Timer('gentime'):
+    #    gtool.imwrite(output[0], output[1])
+    while True:
+        six.next(gen)
 
 
 @__injectable
