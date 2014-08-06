@@ -1097,8 +1097,11 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **k
     #for output in gen:
     #    #with utool.Timer('gentime'):
     #    gtool.imwrite(output[0], output[1])
-    while True:
-        six.next(gen)
+    try:
+        while True:
+            six.next(gen)
+    except StopIteration:
+        pass
 
 
 @__injectable
