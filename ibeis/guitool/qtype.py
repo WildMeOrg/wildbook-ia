@@ -7,11 +7,11 @@ import uuid
 import numpy as np
 from .__PYQT__ import QtGui
 from .guitool_decorators import checks_qt_error
-if six.PY2:
-    from .__PYQT__.QtCore import QString
-    from .__PYQT__.QtCore import QVariant
-elif six.PY3:
-    QString = str
+#if six.PY2:
+#    from .__PYQT__.QtCore import QString
+#    from .__PYQT__.QtCore import QVariant
+#elif six.PY3:
+QString = str
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[qtype]', DEBUG=False)
