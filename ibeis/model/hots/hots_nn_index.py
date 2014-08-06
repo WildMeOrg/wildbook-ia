@@ -97,12 +97,6 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
 
     <CYTH>
-    Alternative Syntax:? Interpet as: parse cyth until next:
-        begin_markers = '...', '>>>', '['
-        valid_regexes = ['^ *' + marker for marker in begin_markers]
-    is found
-
-    [CYTH]
     cdef:
         list aid_list, desc_list
         iter aid_nFeat_iter, nFeat_iter, _ax2_aid, _ax2_fx
