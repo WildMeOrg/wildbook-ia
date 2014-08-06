@@ -644,7 +644,7 @@ class IBEISController(object):
             del alrid_list
         #print('alrid_list = %r' % (alrid_list,))
         # Invalidate image thumbnails
-        ibs.delete_image_thumbtups(gid_list)
+        ibs.delete_image_thumbs(gid_list)
         return aid_list
 
     #@adder
@@ -897,7 +897,8 @@ class IBEISController(object):
         thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
         thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=128)
         image_paths = ibs.get_image_paths(gid_list)
-        thumbtup_list = list(zip(thumb_gpaths, image_paths, bboxes_list, thetas_list))
+        gsize_list = ibs.get_image_sizes(gid_list)
+        thumbtup_list = list(zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list))
         return thumbtup_list
 
     @getter_1to1
@@ -1210,10 +1211,11 @@ class IBEISController(object):
         # HACK TO MAKE CHIPS COMPUTE
         #cid_list = ibs.get_annot_cids(aid_list, ensure=True)  # NOQA
         thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=128)
-        image_paths = ibs.get_annot_cpaths(aid_list)
-        thumbtup_list = [(thumb_path, img_path, [], [])
-                         for (thumb_path, img_path) in
-                         zip(thumb_gpaths, image_paths,)]
+        chip_paths = ibs.get_annot_cpaths(aid_list)
+        chipsize_list = ibs.get_annot_chipsizes(aid_list)
+        thumbtup_list = [(thumb_path, chip_path, chipsize, [], [])
+                         for (thumb_path, chip_path, chipsize) in
+                         zip(thumb_gpaths, chip_paths, chipsize_list,)]
         return thumbtup_list
 
     @getter_1to1
@@ -1559,11 +1561,11 @@ class IBEISController(object):
         cid_list = utool.filter_Nones(_cid_list)
         ibs.delete_chips(cid_list)
         gid_list = ibs.get_annot_gids(aid_list)
-        ibs.delete_image_thumbtups(gid_list)
+        ibs.delete_image_thumbs(gid_list)
         ibs.delete_annot_chip_thumbs(aid_list)
 
     @deleter
-    def delete_image_thumbtups(ibs, gid_list):
+    def delete_image_thumbs(ibs, gid_list):
         """ Removes image thumbnails from disk """
         # print('gid_list = %r' % (gid_list,))
         thumbpath_list = ibs.get_image_thumbpath(gid_list)

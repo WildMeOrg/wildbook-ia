@@ -1,5 +1,6 @@
 """
-    python -m doctest -v ibeis/model/hots/hots_nn_index.py
+python -m doctest -v ibeis/model/hots/hots_nn_index.py
+python -m doctest ibeis/model/hots/hots_nn_index.py
 """
 from __future__ import absolute_import, division, print_function
 # Standard
@@ -209,10 +210,10 @@ class HOTSSplitIndex(object):
         """
 
         #>>> ibeis.start_ibeis()
-        >>> from guitool import __PYQT__
+        >>> from guitool import __PYQT__  # doctest.SKIP
         >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
-        >>> import ibeis   # doctest.SKIP
-        >>> ibs = ibeis.test_main(db='testdb1', gui=False)
+        >>> import ibeis
+        >>> ibs = ibeis.main(db='testdb1', gui=False)
         >>> daid_list = [1, 2, 3, 4]
         >>> num_forests=8
         """

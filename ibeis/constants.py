@@ -81,8 +81,10 @@ ALL_IMAGE_ENCTEXT = 'All Images'
 UNREVIEWED_IMAGE_ENCTEXT = 'Unreviewed Images'
 REVIEWED_IMAGE_ENCTEXT = 'Reviewed Images'
 
-IMAGE_THUMB_SUFFIX = '_thumb.png'
-CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
+#IMAGE_THUMB_SUFFIX = '_thumb.png'
+#CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
+IMAGE_THUMB_SUFFIX = '_thumb.jpg'
+CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 # FIXME UNKNOWN should not be a valid species
 VALID_SPECIES = ['zebra_plains',

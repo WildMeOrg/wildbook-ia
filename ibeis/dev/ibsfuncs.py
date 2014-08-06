@@ -1042,11 +1042,7 @@ def draw_thumb_helper(tup):
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
     max_dsize = (thumbsize, thumbsize)
-    dsize, ratio = gtool.resized_thumb_dims(img_size, max_dsize)
-    if ratio > 1:
-        dsize = img_size
-    sx = dsize[0] / gw
-    sy = dsize[1] / gh
+    dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
     new_verts_list = list(gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
     #thumb = gtool.resize_thumb(img, max_dsize)
     # -----------------
