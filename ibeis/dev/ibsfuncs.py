@@ -1047,7 +1047,7 @@ def compute_thumb_verts(bbox_list, theta_list, sx, sy):
         # Rotate and transform to thumbnail space
         xyz_pts = geometry.homogonize(np.array(verts).T)
         trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
-        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
         new_verts_list.append(new_verts)
     return new_verts_list
 
@@ -1071,9 +1071,9 @@ def draw_thumb_helper(tup):
     orange_bgr = (0, 128, 255)
     for new_verts in new_verts_list:
         thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
-    #gtool.imwrite(thumb_path, thumb)
-    #return True
-    return thumb_path, thumb
+    gtool.imwrite(thumb_path, thumb)
+    return True, True
+    #return thumb_path, thumb
 
 
 @__injectable
@@ -1082,6 +1082,7 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **k
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
     thumbpath_list = ibs.get_image_thumbpath(gid_list)
+    #use_cache = False
     if use_cache:
         exists_list = list(map(exists, thumbpath_list))
     else:
@@ -1100,10 +1101,14 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **k
                  zip(thumbpath_list_, gpath_list, bboxes_list, thetas_list)]
 
     # Execute all tasks in parallel
-    gen = utool.generate(draw_thumb_helper, args_list, chunksize=chunksize)
+    genkw = {'ordered': False, 'chunksize': chunksize, }
+    #genkw['force_serial'] = True
+    genkw['chunksize'] = max(len(gid_list_) // 16, 1)
+    gen = utool.generate(draw_thumb_helper, args_list, **genkw)
     for thumb_path, thumb in gen:
+        pass
         #with utool.Timer('gentime'):
-        gtool.imwrite(thumb_path, thumb)
+        #gtool.imwrite(thumb_path, thumb)
     #if six.PY2:
     #    while True:
     #        gen.next()
