@@ -128,6 +128,6 @@ def ping_python_interpreter(frequency=420):  # 4200):
 
 @atexit.register
 def exit_application():
-    #if not QUIET:
-    print('[guitool] exiting application')
+    if utool.NOT_QUIET:
+        print('[guitool] exiting application')
     QtGui.qApp.quit()
