@@ -33,14 +33,14 @@ SV_DTYPE = np.float64
 @profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
-    <CYTHE: returns=np.ndarray[float64_t, ndims=2]>
+    <CYTH: returns=np.ndarray[float64_t, ndims=2]>
     cdef:
         np.ndarray[float64_t, ndims=1] (xy1_m, xy2_mn, u2, v2, d, e, f, g, h, i,
                                         j, k, l, p, q, r,)
         np.ndarray[float64_t, ndims=2] Mx9
         long num_pts
         long ix
-    </CYTHE>
+    </CYTH>
     """
     x1_mn, y1_mn = xy1_mn
     x2_mn, y2_mn = xy2_mn
@@ -65,12 +65,12 @@ def compute_homog(xy1_mn, xy2_mn):
     Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1
-    <CYTHE: returns=np.ndarray[float64_t, ndims=2]>
+    <CYTH: returns=np.ndarray[float64_t, ndims=2]>
     cdef:
         np.ndarray[float64_t, ndims=1] xy1_mn
         np.ndarray[float64_t, ndims=1] xy2_mn
         np.ndarray[float64_t, ndims=1] Mx9
-    </CYTHE>
+    </CYTH>
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
@@ -163,7 +163,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         H = inv(Aj).dot(Ai)
         The input invVs = perdoch.invA's
 
-    <CYTHE: returns=tuple>
+    <CYTH: returns=tuple>
     cdef:
         np.ndarray[float64_t, ndims=2] invVR1s_m
         np.ndarray[float64_t, ndims=2] V1s_m
@@ -175,7 +175,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         list inliers_and_errors_list
         list errors_list
         list errors_list
-    </CYTHE>
+    </CYTH>
     """
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
