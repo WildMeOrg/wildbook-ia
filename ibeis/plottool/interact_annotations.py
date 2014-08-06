@@ -1,4 +1,5 @@
 """
+TODO: Rename species list to label list
 
 guiback.py  -- code/ibeis/ibeis/gui
 ./resetdbs.sh
@@ -50,6 +51,7 @@ DEFAULT_SPECIES_TAG = '____'
 ACCEPT_SAVE_HOTKEY   = 'a'
 ADD_RECTANGLE_HOTKEY = 'd'
 DEL_RECTANGLE_HOTKEY = 'r'
+#TOGGLE_LABEL_HOTKEY = 't'
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -95,7 +97,7 @@ def verts_to_bbox(verts):
     new_bbox_list = []
     print(verts)
     for i in range(0, len(verts)):
-        print('verts[i][0][0]: ', verts[i][0][0], " verts[i][0][1]: ", verts[i][0][1])
+        print('[interact_annot] verts[i][0][0]: ' + str(verts[i][0][0]) + ' verts[i][0][1]: ' + str(verts[i][0][1]))
         x = verts[i][0][0]
         y = verts[i][0][1]
         w = verts[i][2][0] - x
@@ -330,7 +332,7 @@ class ANNOTATIONInteraction(object):
         #self.fig.cla()
         #utool.qflag()
         self.fnum = fnum
-        print(self.fnum)
+        #print(self.fnum)
         #ax = plt.subplot(111)
         ax = df2.gca()
         self.fig.ax = ax
@@ -446,7 +448,7 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas.draw()
         self.connect_mpl_callbacks(self.fig.canvas)
         self.update_callbacks(next_callback, prev_callback)
-        print('drawing')
+        print('[interact_annot] drawing')
         self.fig.canvas.draw()
         self.update_UI()
 
@@ -481,7 +483,7 @@ class ANNOTATIONInteraction(object):
 
     def update_colors(self, poly_ind):
         if poly_ind is None or poly_ind < 0:
-            print("WARNING: poly_ind is %r in update_colors" % poly_ind)
+            print('[interact_annot] WARNING: poly_ind is %r in update_colors' % poly_ind)
             return
         for poly in six.itervalues(self.polys):
             line = poly.lines
@@ -543,9 +545,9 @@ class ANNOTATIONInteraction(object):
                     break
 
         if self._currently_selected_poly is None:
-            print('WARNING: Polygon unknown. Using last placed poly.')
+            print('[interact_annot] WARNING: Polygon unknown. Using last placed poly.')
             if len(self.polys) == 0:
-                print('No polygons on screen')
+                print('[interact_annot] No polygons on screen')
                 return
             else:
                 poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
@@ -573,7 +575,7 @@ class ANNOTATIONInteraction(object):
         if self.background is not None:
             self.fig.canvas.restore_region(self.background)
         else:
-            print("error: self.background is none. Trying refresh.")
+            print('[interact_annot] error: self.background is none. Trying refresh.')
             self.fig.canvas.restore_region(self.background)
             self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
         for poly in six.itervalues(self.polys):
@@ -604,9 +606,9 @@ class ANNOTATIONInteraction(object):
         if self._ind is None:
             return
         if self._currently_selected_poly is None:
-            print('WARNING: Polygon unknown. Using default. (2)')
+            print('[interact_annot] WARNING: Polygon unknown. Using default. (2)')
             if len(self.polys) == 0:
-                print('No polygons on screen')
+                print('[interact_annot] No polygons on screen')
                 return
             else:
                 poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
@@ -628,7 +630,11 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas.draw()
 
     def draw_new_poly(self, event=None):
-        coords = default_vertices(self.img, self.polys, self.mouseX, self.mouseY)
+        if self._currently_selected_poly is not None:
+            defaultshape_polys = {self._currently_selected_poly.num: self._currently_selected_poly}
+        else:
+            defaultshape_polys = self.polys
+        coords = default_vertices(self.img, defaultshape_polys, self.mouseX, self.mouseY)
 
         poly = self.new_polygon(coords, 0, self.species_tag)
 
@@ -653,14 +659,14 @@ class ANNOTATIONInteraction(object):
 
     def delete_current_poly(self, event=None):
         if self._currently_selected_poly is None:
-            print('No polygon selected to delete')
+            print('[interact_annot] No polygon selected to delete')
             return
         poly = self._currently_selected_poly
         lineNumber = poly.num
         ###print('poly list: ', len(self.poly_list), 'list size ', len(self.line), 'index of poly ', lineNumber)
 
         #line deletion
-        print("length: ", len(self.polys), "number: ", lineNumber)
+        print('[interact_annot] length: ', len(self.polys), 'number: ', lineNumber)
         #self.theta_list[lineNumber] = None
         #self.line[lineNumber] = None
         #poly deletion
@@ -680,26 +686,29 @@ class ANNOTATIONInteraction(object):
 
     def key_press_callback(self, event):
         """ whenever a key is pressed """
-        #print('key_press_callback')
+        #print('[interact_annot] key_press_callback')
         if not event.inaxes:
             return
 
         def handle_command(keychar):
-            print(ACCEPT_SAVE_HOTKEY)
+            print('[interact_annot] accept_save_hotkey=%r' % (ACCEPT_SAVE_HOTKEY,))
             if keychar == ACCEPT_SAVE_HOTKEY:
                 self.accept_new_annotations(event)
 
-            if keychar == ADD_RECTANGLE_HOTKEY:
+            elif keychar == ADD_RECTANGLE_HOTKEY:
                 self.draw_new_poly()
 
-            if keychar == DEL_RECTANGLE_HOTKEY:
+            elif keychar == DEL_RECTANGLE_HOTKEY:
                 self.delete_current_poly()
 
-            if keychar == 'u':
+            #elif keychar == TOGGLE_LABEL_HOTKEY:
+            #    self.toggle_species_label()
+
+            elif keychar == 'u':
                 self.load_points()
 
-            if keychar == 'p':
-                print(plt.get_fignums())
+            elif keychar == 'p':
+                print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
 
         def handle_label_typing(keychar):
             if self._currently_selected_poly:
@@ -1068,12 +1077,12 @@ class ANNOTATIONInteraction(object):
         marker_face_color = line_color
         line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
         lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True, **line_kwargs)
-        print('make_lines: linetype = %r' % type(lines))
+        #print('[interact_annot] make_lines: linetype = %r' % type(lines))
         return lines
 
     def accept_new_annotations(self, event, do_close=True):
-        print('Pressed Accept Button')
         """write a callback to redraw viz for bbox_list"""
+        print('[interact_annot] Pressed Accept Button')
 
         def get_annottup_list():
             annottup_list = []
@@ -1094,7 +1103,7 @@ class ANNOTATIONInteraction(object):
             #point_list = self.load_points()
             #theta_list = self.theta_list
             #new_bboxes = verts_to_bbox(point_list)
-            print("send_back_annotations")
+            print('[interact_annot] send_back_annotations')
             indicies_list, annottup_list = get_annottup_list()
             # Delete if index is in original_indicies but no in indicies_list
             deleted_indicies   = list(set(self.original_indicies) - set(indicies_list))
@@ -1139,7 +1148,7 @@ class ANNOTATIONInteraction(object):
             ax.figure.show()
             return
 
-        print('Accept Over')
+        print('[interact_annot] Accept Over')
         if do_close:
             df2.close_figure(self.fig)
         #plt.close(self.fnum)
@@ -1149,7 +1158,7 @@ class ANNOTATIONInteraction(object):
         """Return image mask given by mask creator"""
         mask_list = [verts_to_mask(shape, poly.xy) for poly in six.itervalues(self.polys)]
         if len(mask_list) == 0:
-            print('No polygons to make mask out of')
+            print('[interact_annot] No polygons to make mask out of')
             return 0
         mask = mask_list[0]
         for mask_ in mask_list:
@@ -1190,15 +1199,15 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
 # def update_lists(self, img_ind, new_verts_list, new_thetas_list, new_indices_list):
 #         """for each image: know if any bboxes changed, if any have been deleted, know if any new bboxes
 #         pass all of this information to a function callback, so Jon can use the information"""
-#         print("before: ",self.aids_list[img_ind])
+#         print("[interact_annot] before: ",self.aids_list[img_ind])
 #         self.aids_list[img_ind] = new_aids
-#         print("after: ", self.aids_list[img_ind])
+#         print("[interact_annot] after: ", self.aids_list[img_ind])
 
 #         """add function call for redrawing the ANNOTATIONs"""
 
 
 def ANNOTATION_creator(img, verts_list):  # add callback as variable
-    print('*** START DEMO ***')
+    print('[interact_annot] *** START DEMO ***')
 
     if verts_list is None:
         verts_list = [default_vertices(img)]
@@ -1216,7 +1225,7 @@ def ANNOTATION_creator(img, verts_list):  # add callback as variable
             from vtool import image as gtool
             img = gtool.imread(img_fpath)
         except Exception as ex:
-            print('cant read zebra: %r' % ex)
+            print('[interact_annot] cant read zebra: %r' % ex)
             img = np.random.uniform(0, 255, size=(100, 100))
     #test_bbox = verts_to_bbox(verts_list)
     mc = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
