@@ -51,7 +51,7 @@ DEFAULT_SPECIES_TAG = '____'
 ACCEPT_SAVE_HOTKEY   = 'a'
 ADD_RECTANGLE_HOTKEY = 'd'
 DEL_RECTANGLE_HOTKEY = 'r'
-#TOGGLE_LABEL_HOTKEY = 't'
+TOGGLE_LABEL_HOTKEY = 't'
 
 
 def _nxutils_points_inside_poly(points, verts):
@@ -294,6 +294,7 @@ class ANNOTATIONInteraction(object):
             self._polyHeld = False                # if any poly is active
             self._currently_selected_poly = None  # active polygon
             self.background = None  # Something Jon added
+            self.show_species_tags = True
         initialize_variables()
         self.initialize_variables = initialize_variables  # hack involving exploting lexical scoping to save defaults for a restore operation
         self.handle_matplotlib_initialization(fnum=fnum)
@@ -499,7 +500,8 @@ class ANNOTATIONInteraction(object):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
-            self.fig.ax.draw_artist(poly.species_tag)
+            if self.show_species_tags:
+                self.fig.ax.draw_artist(poly.species_tag)
         self.fig.canvas.blit(self.fig.ax.bbox)
 
     def poly_changed(self, poly):
@@ -684,6 +686,10 @@ class ANNOTATIONInteraction(object):
     def load_points(self):
         return [poly.xy for poly in six.itervalues(self.polys)]
 
+    def toggle_species_label(self):
+        self.show_species_tags = not self.show_species_tags
+        self.update_UI()
+
     def key_press_callback(self, event):
         """ whenever a key is pressed """
         #print('[interact_annot] key_press_callback')
@@ -701,8 +707,8 @@ class ANNOTATIONInteraction(object):
             elif keychar == DEL_RECTANGLE_HOTKEY:
                 self.delete_current_poly()
 
-            #elif keychar == TOGGLE_LABEL_HOTKEY:
-            #    self.toggle_species_label()
+            elif keychar == TOGGLE_LABEL_HOTKEY:
+                self.toggle_species_label()
 
             elif keychar == 'u':
                 self.load_points()
