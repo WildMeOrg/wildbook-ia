@@ -139,7 +139,7 @@ from ibeis.model.hots import matching_functions as mf
 from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips3 as nn_filters
 from ibeis.model.hots import hots_nn_index
-from ibeis.model.hots.hots_nn_index import HOTSIndex, HOTSSplitIndex
+from ibeis.model.hots.hots_nn_index import HOTSIndex, HOTSMultiIndex
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hots_query_request
 from ibeis.model.hots import voting_rules2 as vr2
