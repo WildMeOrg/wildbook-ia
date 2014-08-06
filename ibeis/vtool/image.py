@@ -9,6 +9,8 @@ import cv2
 import numpy as np
 from PIL import Image
 import utool
+from . import linalg
+from . import geometry
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[img]', DEBUG=False)
 
@@ -214,6 +216,21 @@ def resize_thumb(img, max_dsize=(64, 64)):
         return cvt_BGR2RGB(img)
     else:
         return resize(img, dsize)
+
+
+def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
+    # TODO: input verts support and better name
+    for bbox, theta in zip(bbox_list, theta_list):
+        # Transformation matrixes
+        R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+        S = linalg.scale_mat3x3(sx, sy)
+        # Get verticies of the annotation polygon
+        verts = geometry.verts_from_bbox(bbox, close=True)
+        # Rotate and transform to thumbnail space
+        xyz_pts = geometry.homogonize(np.array(verts).T)
+        trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
+        yield new_verts
 
 
 def _trimread(gpath):
