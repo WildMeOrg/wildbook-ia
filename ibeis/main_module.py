@@ -5,6 +5,7 @@ import os
 import multiprocessing
 
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
+QUIET = '--quiet' in sys.argv
 
 try:
     profile = getattr(builtins, 'profile')
@@ -180,7 +181,9 @@ def _guitool_loop(main_locals, ipy=False):
 
 
 #@profile
-def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, **kwargs):
+def main(gui=True, dbdir=None, defaultdb='cache',
+         allow_newdir=False, db=None,
+         **kwargs):
     """
     Program entry point
     Inits the system environment, an IBEISControl, and a GUI if requested
@@ -204,7 +207,7 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, *
     # Init the only two main system api handles
     ibs = None
     back = None
-    if '--quiet' not in sys.argv:
+    if not QUIET:
         print('[main] ibeis.main_module.main()')
     _preload()
     # Parse directory to be loaded from command line args
@@ -227,14 +230,16 @@ def main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False, db=None, *
 
 
 def start(*args, **kwargs):
-    """ alias for main() """ + main.__doc__
+    """ alias for main() """  # + main.__doc__
     return main(*args, **kwargs)
 
 
 def test_main(*args, **kwargs):
-    """ alias for main() """ + main.__doc__
+    """ alias for main() """  # + main.__doc__
     kwargs['gui'] = False
-    return main(*args, **kwargs)
+    main_locals = main(*args, **kwargs)
+    ibs = main_locals['ibs']
+    return ibs
 
 
 #@profile

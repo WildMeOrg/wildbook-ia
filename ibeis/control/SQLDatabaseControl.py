@@ -76,36 +76,36 @@ class SQLDatabaseController(object):
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
                  text_factory=__STR__):
         """ Creates db and opens connection """
-        with utool.Timer('New SQLDatabaseController'):
-            #printDBG('[sql.__init__]')
-            # Table info
-            db.table_columns     = utool.odict()
-            db.table_constraints = utool.odict()
-            db.table_docstr      = utool.odict()
-            # TODO:
-            db.stack = []
-            db.cache = {}  # key \in [tblname][colnames][rowid]
-            # Get SQL file path
-            db.dir_  = sqldb_dpath
-            db.fname = sqldb_fname
-            assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
-            fpath    = join(db.dir_, db.fname)
-            if not exists(fpath):
-                print('[sql] Initializing new database')
-            # Open the SQL database connection with support for custom types
-            #lite.enable_callback_tracebacks(True)
-            #fpath = ':memory:'
-            db.connection = lite.connect2(fpath)
+        #with utool.Timer('New SQLDatabaseController'):
+        #printDBG('[sql.__init__]')
+        # Table info
+        db.table_columns     = utool.odict()
+        db.table_constraints = utool.odict()
+        db.table_docstr      = utool.odict()
+        # TODO:
+        db.stack = []
+        db.cache = {}  # key \in [tblname][colnames][rowid]
+        # Get SQL file path
+        db.dir_  = sqldb_dpath
+        db.fname = sqldb_fname
+        assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
+        fpath    = join(db.dir_, db.fname)
+        if not exists(fpath):
+            print('[sql] Initializing new database')
+        # Open the SQL database connection with support for custom types
+        #lite.enable_callback_tracebacks(True)
+        #fpath = ':memory:'
+        db.connection = lite.connect2(fpath)
+        db.connection.text_factory = text_factory
+        #db.connection.isolation_level = None  # turns sqlite3 autocommit off
+        COPY_TO_MEMORY = utool.get_flag('--copy-db-to-memory')
+        if COPY_TO_MEMORY:
+            db._copy_to_memory()
             db.connection.text_factory = text_factory
-            #db.connection.isolation_level = None  # turns sqlite3 autocommit off
-            COPY_TO_MEMORY = utool.get_flag('--copy-db-to-memory')
-            if COPY_TO_MEMORY:
-                db._copy_to_memory()
-                db.connection.text_factory = text_factory
-            # Get a cursor which will preform sql commands / queries / executions
-            db.cur = db.connection.cursor()
-            # Optimize the database (if anything is set)
-            #db.optimize()
+        # Get a cursor which will preform sql commands / queries / executions
+        db.cur = db.connection.cursor()
+        # Optimize the database (if anything is set)
+        #db.optimize()
 
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory

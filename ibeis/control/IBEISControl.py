@@ -253,7 +253,8 @@ class IBEISController(object):
             if utool.get_flag(('--noprefload', '--noprefload')):
                 raise Exception('')
             ibs.cfg.load()
-            print('[ibs] successfully loaded config')
+            if utool.NOT_QUIET:
+                print('[ibs] successfully loaded config')
         except Exception:
             ibs._default_config()
 

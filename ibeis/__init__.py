@@ -4,7 +4,7 @@ from . import constants
 from . import main_module
 from .dev import params
 from .dev import sysres
-from .main_module import main, _preload, main_loop
+from .main_module import main, _preload, main_loop, test_main
 from .control.IBEISControl import IBEISController
 from .dev.sysres import get_workdir, set_workdir
 

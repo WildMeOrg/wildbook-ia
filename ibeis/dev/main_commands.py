@@ -76,7 +76,8 @@ def preload_commands(dbdir, **kwargs):
 
 def postload_commands(ibs, back):
     """ Postload commands deal with a specific ibeis database """
-    print('[main_cmd] postload_commands')
+    if utool.NOT_QUIET:
+        print('[main_cmd] postload_commands')
     if params.args.view_database_directory:
         print('got arg --vdd')
         vdd(ibs)

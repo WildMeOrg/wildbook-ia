@@ -1,4 +1,5 @@
 """
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.hots_nn_index))"
 python -m doctest -v ibeis/model/hots/hots_nn_index.py
 python -m doctest ibeis/model/hots/hots_nn_index.py
 """
@@ -159,7 +160,20 @@ def build_flann_inverted_index(ibs, aid_list, **kwargs):
 
 
 class HOTSIndex(object):
-    """ HotSpotter Nearest Neighbor (FLANN) Index Class </CYTH> """
+    """ HotSpotter Nearest Neighbor (FLANN) Index Class
+    >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
+    >>> import ibeis
+    >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+    <BLANKLINE>
+    ...
+    >>> daid_list = [1, 2, 3, 4]
+    >>> hsindex = HOTSIndex(ibs, daid_list)  #doctest: +ELLIPSIS
+    [nnindex...
+    >>> print(hsindex) #doctest: +ELLIPSIS
+    <ibeis.model.hots.hots_nn_index.HOTSIndex object at ...>
+
+    </CYTH>
+    """
     def __init__(hsindex, ibs, daid_list, **kwargs):
         print('[nnindex] building HOTSIndex object')
         dx2_desc, dx2_aid, dx2_fx, flann = build_flann_inverted_index(
@@ -204,20 +218,27 @@ class HOTSIndex(object):
         return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
 
 
-class HOTSSplitIndex(object):
-    """ Nearest Neighbor (FLANN) Index Class </CYTH> """
-    def __init__(split_index, ibs, daid_list, num_forests=8):
-        """
+class HOTSMultiIndex(object):
+    """
+    Generalization of a HOTSNNIndex
 
-        #>>> ibeis.start_ibeis()
-        >>> from guitool import __PYQT__  # doctest.SKIP
-        >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.main(db='testdb1', gui=False)
-        >>> daid_list = [1, 2, 3, 4]
-        >>> num_forests=8
-        """
-        print('[nnsindex] make HOTSSplitIndex over %d annots' % (len(daid_list),))
+    >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
+    >>> import ibeis
+    >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+    <BLANKLINE>
+    ...
+    >>> daid_list = [1, 2, 3, 4]
+    >>> num_forests = 8
+    >>> split_index = HOTSMultiIndex(ibs, daid_list, num_forests)  #doctest: +ELLIPSIS
+    [nnsindex...
+    >>> print(split_index) #doctest: +ELLIPSIS
+    <ibeis.model.hots.hots_nn_index.HOTSMultiIndex object at ...>
+
+    </CYTH>
+    """
+
+    def __init__(split_index, ibs, daid_list, num_forests=8):
+        print('[nnsindex] make HOTSMultiIndex over %d annots' % (len(daid_list),))
         aid_list = daid_list
         nid_list = ibs.get_annot_nids(aid_list)
         #flag_list = ibs.get_annot_exemplar_flag(aid_list)
@@ -229,7 +250,7 @@ class HOTSSplitIndex(object):
         known_aids  = utool.filterfalse_items(aid_gen(), isunknown_list)
         uknown_aids = utool.flatten(utool.filter_items(aid_gen(), isunknown_list))
 
-        num_forests_ = min(max(map(len, aid_gen)), num_forests)
+        num_forests_ = min(max(map(len, aid_gen())), num_forests)
 
         # Put one name per forest
         forest_aids, overflow_aids = utool.sample_zip(known_aids, num_forests_,
@@ -261,7 +282,7 @@ class HOTSSplitIndex(object):
         #split_index.unknown_index = unknown_index
 
 
-#@utool.classmember(HOTSSplitIndex)
+#@utool.classmember(HOTSMultiIndex)
 def nn_index(split_index, qfx2_desc, num_neighbors):
     """ </CYTH> """
     qfx2_dx_list   = []
@@ -308,7 +329,7 @@ def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx
     return (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,)
 
 
-#@utool.classmember(HOTSSplitIndex)
+#@utool.classmember(HOTSMultiIndex)
 def split_index_daids(split_index):
     """ </CYTH> """
     for hsindex in split_index.forest_indexes:
