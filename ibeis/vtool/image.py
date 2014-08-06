@@ -1,7 +1,6 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
-import six
 from os.path import exists, join
 from six.moves import zip, map
 # Science
@@ -37,18 +36,21 @@ def dummy_img(w, h):
     return img
 
 
+IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
+
+
 def imread(img_fpath, delete_if_corrupted=False):
-    # opencv always reads in BGR mode (fastest load time)
-    if six.PY2:
-        flags = cv2.CV_LOAD_IMAGE_COLOR
-    else:
-        flags = cv2.IMREAD_COLOR
-    imgBGR = cv2.imread(img_fpath, flags=flags)
+    try:
+        # opencv always reads in BGR mode (fastest load time)
+        imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
+    except Exception as ex:
+        utool.printex(ex, iswarning=True)
+        imgBGR = None
     if imgBGR is None:
         if not exists(img_fpath):
-            raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)
+            raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
         else:
-            msg = 'cannot read img_fpath=%r seems corrupted.' % img_fpath
+            msg = 'cannot read img_fpath=%s seems corrupted.' % img_fpath
             print('[gtool] ' + msg)
             if delete_if_corrupted:
                 print('[gtool] deleting corrupted image')
@@ -62,7 +64,7 @@ def imwrite(img_fpath, imgBGR):
         cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:
         print('[gtool] Caught Exception: %r' % ex)
-        print('[gtool] ERROR reading: %r' % (img_fpath,))
+        print('[gtool] ERROR reading: %s' % (img_fpath,))
         raise
 
 
@@ -199,7 +201,7 @@ def resize(img, dsize):
 
 def resized_thumb_dims(img_size, max_dsize):
     max_width, max_height = max_dsize
-    height, width = img_size
+    width, height = img_size
     ratio = min(max_width / width, max_height / height)
     dsize = (int(round(width * ratio)), int(round(height * ratio)))
     return dsize, ratio
