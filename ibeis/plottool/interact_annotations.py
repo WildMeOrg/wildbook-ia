@@ -496,13 +496,20 @@ class ANNOTATIONInteraction(object):
     def update_UI(self):
         self._update_line()
         self.fig.canvas.restore_region(self.background)
+        self.draw_artists()
+        self.fig.canvas.blit(self.fig.ax.bbox)
+
+    def draw_callback(self, event):
+        self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
+        self.draw_artists()
+
+    def draw_artists(self):
         for poly in six.itervalues(self.polys):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
             if self.show_species_tags:
                 self.fig.ax.draw_artist(poly.species_tag)
-        self.fig.canvas.blit(self.fig.ax.bbox)
 
     def poly_changed(self, poly):
         """ this method is called whenever the polygon object is called """
@@ -514,15 +521,6 @@ class ANNOTATIONInteraction(object):
         poly.lines.set_visible(vis)
         poly.handle.set_visible(vis)
         #poly.lines.set_visible(vis)  # don't use the poly visibility state
-
-    def draw_callback(self, event):
-        #print('[mask] draw_callback(event=%r)' % event)
-        self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
-        for poly in six.itervalues(self.polys):
-            self.fig.ax.draw_artist(poly)
-            self.fig.ax.draw_artist(poly.lines)
-            self.fig.ax.draw_artist(poly.handle)
-            self.fig.ax.draw_artist(poly.species_tag)
 
     def get_most_recently_added_poly(self):
         if len(self.polys) == 0:
@@ -687,6 +685,7 @@ class ANNOTATIONInteraction(object):
         return [poly.xy for poly in six.itervalues(self.polys)]
 
     def toggle_species_label(self):
+        print('[interact_annot] toggle_species_label()')
         self.show_species_tags = not self.show_species_tags
         self.update_UI()
 
@@ -697,7 +696,7 @@ class ANNOTATIONInteraction(object):
             return
 
         def handle_command(keychar):
-            print('[interact_annot] accept_save_hotkey=%r' % (ACCEPT_SAVE_HOTKEY,))
+            print('[interact_annot] got hotkey=%r' % (keychar,))
             if keychar == ACCEPT_SAVE_HOTKEY:
                 self.accept_new_annotations(event)
 
