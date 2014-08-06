@@ -145,10 +145,10 @@ python dev.py --dbdir <full-dbpath>
 # Examples:
 # Here are are some example commands
 #--------------------
-# Run the queries for each roi with groundtruth in the PZ_MOTHERS database
+# Run the queries for each roi with groundtruth in the PZ_Mothers database
 # using the best known configuration of parameters
-python dev.py --db PZ_MOTHERS --allgt -t best
-python dev.py --db PZ_MOTHERS --allgt -t score
+python dev.py --db PZ_Mothers --allgt -t best
+python dev.py --db PZ_Mothers --allgt -t score
 
 
 # View work dir
@@ -166,7 +166,7 @@ python dev.py --prequit --dump-argv
 # Convert a hotspotter database to IBEIS
 #------------------
 # Set this as your workdir
-python dev.py --db PZ_MOTHERS --setdb
+python dev.py --db PZ_Mothers --setdb
 # If its in the same location as a hotspotter db, convert it
 python dev.py --convert --force-delete
 python dev.py --convert --force-delete --db Database_MasterGrevy_Elleni
@@ -193,8 +193,8 @@ python dev.py --convert --force-delete --db PZ_Mothers
 #--------------
 # Run Result Inspection
 #--------------
-python dev.py --convert --force-delete --db MOTHERS --setdb
-python dev.py --db MOTHERS --setdb
+python dev.py --convert --force-delete --db Mothers --setdb
+python dev.py --db Mothers --setdb
 python dev.py --cmd --allgt -t inspect
 
 
@@ -220,7 +220,7 @@ python main.py --merge-species JAG_
 #---------------
 # Technical Demo
 #---------------
-python dev.py --db PZ_MOTHERS --setdb
+python dev.py --db PZ_Mothers --setdb
 
 # See a list of tests
 python dev.py -t help
@@ -249,7 +249,7 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 # Set a default DB First
 ./dev.py --setdb --dbdir /path/to/your/DBDIR
 ./dev.py --setdb --db YOURDB
-./dev.py --setdb --db PZ_MOTHERS
+./dev.py --setdb --db PZ_Mothers
 ./dev.py --setdb --db PZ_FlankHack
 
 # List all available tests
@@ -300,8 +300,13 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 # Current Experiments:
 
 ./profiler.sh dev.py -t upsize --allgt --quiet --noshow
+
+python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 -w
+
+
 dev.py -t upsize --allgt --quiet --noshow
 profiler.sh dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:30
-dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
+python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:30
+python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 
 ```

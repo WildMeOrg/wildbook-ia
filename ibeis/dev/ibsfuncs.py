@@ -1,3 +1,8 @@
+"""
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.dev.ibsfuncs))"
+python -m doctest -v ibeis/model/hots/hots_nn_index.py
+python -m doctest ibeis/model/hots/hots_nn_index.py
+"""
 # developer convenience functions for ibs
 from __future__ import absolute_import, division, print_function
 #import uuid
@@ -1103,3 +1108,25 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8, **k
 @__injectable
 def compute_all_thumbs(ibs, **kwargs):
     preprocess_image_thumbs(ibs, **kwargs)
+
+
+def group_annots_by_known_names(ibs, aid_list):
+    """
+    >>> import ibeis
+    >>> from ibeis.dev.ibsfuncs import *
+    >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
+    [main...
+    >>> aid_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
+    >>> print(known_aids_list)
+    [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
+    >>> print(unknown_aids)
+    [11, 9, 4, 1]
+    """
+    nid_list = ibs.get_annot_nids(aid_list)
+    nid2_aids = utool.group_items(aid_list, nid_list)
+    aid_gen = lambda: six.itervalues(nid2_aids)
+    isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
+    known_aids_list = list(utool.ifilterfalse_items(aid_gen(), isunknown_list))
+    unknown_aids = list(utool.iflatten(utool.ifilter_items(aid_gen(), isunknown_list)))
+    return known_aids_list, unknown_aids

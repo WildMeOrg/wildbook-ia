@@ -6,6 +6,7 @@ import multiprocessing
 
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
 QUIET = '--quiet' in sys.argv
+USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 try:
     profile = getattr(builtins, 'profile')
@@ -43,6 +44,7 @@ def _init_matplotlib():
     try:
         from guitool import __PYQT__  # NOQA
     except ImportError:
+        print('[!main] WARNING guitool does not have __PYQT__')
         pass
     import matplotlib as mpl
     import utool
@@ -218,7 +220,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     try:
         # Build IBEIS Control object
         ibs = _init_ibeis(dbdir)
-        if gui and ('--gui' in sys.argv or '--nogui' not in sys.argv):
+        if gui and USE_GUI:
             back = _init_gui()
             back.connect_ibeis_control(ibs)
     except Exception as ex:
@@ -229,16 +231,26 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     return main_locals
 
 
+def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False):
+    """ main without the preload """
+    from ibeis.dev import sysres
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    ibs = _init_ibeis(dbdir)
+    return ibs
+
+
 def start(*args, **kwargs):
     """ alias for main() """  # + main.__doc__
     return main(*args, **kwargs)
 
 
-def test_main(*args, **kwargs):
+def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
+              db=None):
     """ alias for main() """  # + main.__doc__
-    kwargs['gui'] = False
-    main_locals = main(*args, **kwargs)
-    ibs = main_locals['ibs']
+    from ibeis.dev import sysres
+    _preload()
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    ibs = _init_ibeis(dbdir)
     return ibs
 
 
@@ -267,7 +279,7 @@ def _preload(mpl=True, par=True, logging=True):
     utool.util_inject.inject_colored_exceptions()
     # register type aliases for debugging
     #main_helpers.register_utool_aliases()
-    return params.args
+    #return params.args
 
 
 #@profile
@@ -287,7 +299,7 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
         try:
             _guitool_loop(main_locals, ipy=ipy)
         except Exception as ex:
-            print('[main_loop] IBEIS Caught: %s %s' % (type(ex), ex))
+            utool.printex(ex, 'error in main_loop')
             raise
     #if not persist or params.args.cmd:
     #    main_close()
@@ -303,5 +315,5 @@ def main_close(main_locals=None):
     _reset_signals()
 
 
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
+#if __name__ == '__main__':
+#    multiprocessing.freeze_support()

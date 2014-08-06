@@ -13,6 +13,7 @@ import numpy as np
 # UTool
 import utool
 # VTool
+from ibeis.dev import ibsfuncs
 import vtool.nearest_neighbors as nntool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nnindex]', DEBUG=False)
 
@@ -21,7 +22,7 @@ NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 #@utool.indent_func('[get_flann_cfgstr]')
 def get_flann_cfgstr(ibs, aid_list):
-    """ </CYTHE> """
+    """ </CYTH> """
     feat_cfgstr   = ibs.cfg.feat_cfg.get_cfgstr()
     new_cfgstr = feat_cfgstr_depends_indexed_aids(feat_cfgstr, aid_list)
     return new_cfgstr
@@ -218,11 +219,11 @@ class HOTSMultiIndex(object):
 
     >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
     >>> import ibeis
+    >>> daid_list = [1, 2, 3, 4]
+    >>> num_forests = 8
     >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
     <BLANKLINE>
     ...
-    >>> daid_list = [1, 2, 3, 4]
-    >>> num_forests = 8
     >>> split_index = HOTSMultiIndex(ibs, daid_list, num_forests)  #doctest: +ELLIPSIS
     [nnsindex...
     >>> print(split_index) #doctest: +ELLIPSIS
@@ -233,29 +234,21 @@ class HOTSMultiIndex(object):
 
     def __init__(split_index, ibs, daid_list, num_forests=8):
         print('[nnsindex] make HOTSMultiIndex over %d annots' % (len(daid_list),))
+        # Remove unknown names
         aid_list = daid_list
-        nid_list = ibs.get_annot_nids(aid_list)
-        #flag_list = ibs.get_annot_exemplar_flag(aid_list)
-        nid2_aids = utool.group_items(aid_list, nid_list)
-        key_list = nid2_aids.keys()
-        aid_gen = lambda: nid2_aids.values()
-        isunknown_list = ibs.is_nid_unknown(key_list)
+        known_aids_list, unknown_aids = ibsfuncs.group_annots_by_known_names(ibs, aid_list)
 
-        known_aids  = utool.filterfalse_items(aid_gen(), isunknown_list)
-        uknown_aids = utool.flatten(utool.filter_items(aid_gen(), isunknown_list))
-
-        num_forests_ = min(max(map(len, aid_gen())), num_forests)
+        num_bins = min(max(map(len, known_aids_list)), num_forests)
 
         # Put one name per forest
-        forest_aids, overflow_aids = utool.sample_zip(known_aids, num_forests_,
-                                                      allow_overflow=True,
-                                                      per_bin=1)
+        forest_aids, overflow_aids = utool.sample_zip(
+            known_aids_list, num_bins, allow_overflow=True, per_bin=1)
 
         forest_indexes = []
         extra_indexes = []
         for tx, aids in enumerate(forest_aids):
             print('[nnsindex] building forest %d/%d with %d aids' %
-                  (tx + 1, num_forests_, len(aids)))
+                  (tx + 1, num_bins, len(aids)))
             if len(aids) > 0:
                 hsindex = HOTSIndex(ibs, aids)
                 forest_indexes.append(hsindex)
@@ -264,9 +257,9 @@ class HOTSMultiIndex(object):
             print('[nnsindex] building overflow forest')
             overflow_index = HOTSIndex(ibs, overflow_aids)
             extra_indexes.append(overflow_index)
-        if len(uknown_aids) > 0:
+        if len(unknown_aids) > 0:
             print('[nnsindex] building unknown forest')
-            unknown_index = HOTSIndex(ibs, uknown_aids)
+            unknown_index = HOTSIndex(ibs, unknown_aids)
             extra_indexes.append(unknown_index)
         #print('[nnsindex] building normalizer forest')  # TODO
 
