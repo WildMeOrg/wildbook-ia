@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 
 
 def test_annotation_uuid(ibs):

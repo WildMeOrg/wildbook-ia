@@ -17,6 +17,7 @@ def import_subs():
     # I want to make this simpler
     global __LOADED__
     from . import dev
+    from . import ibsfuncs
     from . import viz
     from . import control
     from . import model
@@ -24,7 +25,7 @@ def import_subs():
 
 def ensure_subs():
     if not __LOADED__:
-        import_subs()
+        import_subs
 
 # Utool generated init makeinit.py
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')
@@ -35,6 +36,7 @@ def reload_subs():
         import_subs()
     rrr()
     getattr(constants, 'rrr', lambda: None)()
+    getattr(ibsfuncs, 'rrr', lambda: None)()
     getattr(main_module, 'rrr', lambda: None)()
     #getattr(control, 'reload_subs', lambda: None)()
     getattr(dev, 'reload_subs', lambda: None)()

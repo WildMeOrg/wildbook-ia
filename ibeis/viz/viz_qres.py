@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from plottool import draw_func2 as df2
 import numpy as np
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from . import viz_helpers as vh
 from . import viz_chip
 from . import viz_matches

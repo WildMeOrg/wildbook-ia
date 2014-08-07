@@ -7,7 +7,7 @@ from guitool.__PYQT__.QtCore import Qt
 from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
 from ibeis.control import IBEISControl
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 from ibeis.viz.interact import interact_annotations2

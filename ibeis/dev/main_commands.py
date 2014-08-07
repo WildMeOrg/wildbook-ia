@@ -3,7 +3,7 @@ import utool
 import sys
 from ibeis import constants
 from ibeis.dev import params
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.dev import sysres
 from os.path import join
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[main_cmds]')

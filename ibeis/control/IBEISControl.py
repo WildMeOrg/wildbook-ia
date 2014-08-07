@@ -29,7 +29,7 @@ import utool
 import ibeis.export.export_wb as wb
 # IBEIS DEV
 from ibeis import constants
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model.preproc import preproc_chip
@@ -496,7 +496,7 @@ class IBEISController(object):
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
-        >>> from ibeis.dev.all_imports import *  # NOQA  # doctest.SKIP
+        >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
         >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
         print('[ibs] add_images')
@@ -1814,7 +1814,7 @@ class IBEISController(object):
     #--------------
     # --- MISC ---
     #--------------
-    # See ibeis/dev/ibsfuncs.py
+    # See ibeis/ibsfuncs.py
     # there is some sneaky stuff happening there
 
     # Hacky code for rosemary

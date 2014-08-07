@@ -10,13 +10,13 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_IMA
 def TEST_DELETE_IMAGE_THUMBTUPS(ibs, back):
     gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
     gid_list = ibs.add_images(gpath_list)
-    bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    bbox_list = [(0, 0, 100, 100)] * len(gid_list)
     name_list = ['a', 'b', 'a', 'd']
     aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
-    assert len(aid_list) !=0, "No annotations added"
+    assert len(aid_list) != 0, "No annotations added"
     thumbpath_list = ibs.get_image_thumbpath(gid_list)
     gpath_list = ibs.get_image_paths(gid_list)
-    ibs.delete_image_thumbtups(gid_list)
+    ibs.delete_image_thumbs(gid_list)
     assert utool.is_list(thumbpath_list), "thumbpath_list is not a list"
     assert utool.is_list(gpath_list), "gpath_list is not a list"
     for path in thumbpath_list:

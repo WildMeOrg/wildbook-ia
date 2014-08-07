@@ -6,7 +6,7 @@ from plottool import draw_func2 as df2
 from ibeis import viz
 from ibeis import constants
 from ibeis.viz import viz_helpers as vh
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from functools import partial
 from guitool import guitool_dialogs
 from ibeis.viz import viz_chip

@@ -9,7 +9,7 @@ import numpy as np
 import utool
 import vtool.keypoint as ktool
 from ibeis import sysres
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.viz import interact
 from ibeis.ingest import ingest_hsdb
 

@@ -13,7 +13,7 @@ import numpy as np
 # UTool
 import utool
 # VTool
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 import vtool.nearest_neighbors as nntool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nnindex]', DEBUG=False)
 

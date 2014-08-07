@@ -14,7 +14,7 @@ import ibeis
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     ibeis._preload()
-    from ibeis.dev.all_imports import *  # NOQA
+    from ibeis.all_imports import *  # NOQA
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
 from _devcmds_ibeis import *  # NOQA
@@ -261,18 +261,40 @@ def up_dbsize_expt(ibs, qaid_list):
         qaid_list - list of annotation-ids to query
     Plots the scores/ranks of correct matches while varying the size of the
     database.
+
+    python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 --cmd
+    >>> qaid_list = ibs.get_valid_aids()
     """
+    print('updbsize_expt')
     # clamp the number of groundtruth to test
     clamp_gt = utool.get_arg('--clamp-gt', int, 1)
+    clamp_ft = utool.get_arg('--clamp-gf', int, 1)
+
     # List of database sizes to test
     num_samp = utool.get_arg('--num-samples', int, 7)
     samp_max = ibs.get_num_annotations()
-    samp_min = 30  # max(samp_max // len(qaid_list), 10)
+    #samp_min = 10  # max(samp_max // len(qaid_list), 10)
+    samp_min = 1  # max(samp_max // len(qaid_list), 10)
     sample_sizes = utool.sample_domain(samp_min, samp_max, num_samp)
     # Get list of true and false matches for every query annotation
     qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True,
                                                  is_exemplar=True)
-    qaid_falses_list = ibs.get_annot_groundfalse(qaid_list)
+    qaid_falses_list_ = ibs.get_annot_groundfalse(qaid_list)
+    qaid_falses_list = []
+    for count, false_aids_ in enumerate(qaid_falses_list_):
+        aids_list_ = ibsfuncs.group_annots_by_known_names_nochecks(ibs, false_aids_)
+        aids_list = aids_list_[:]
+        for ix in range(len(aids_list)):
+            arr = np.array(aids_list[ix])
+            seed = long(np.random.rand() * 1000000)  # * max(1, ix) * max(1, count))
+            utool.deterministic_shuffle(arr, seed=seed)
+            aids_list[ix] = arr.tolist()
+        sample_aids, _ = utool.sample_zip(aids_list, 1,
+                                          allow_overflow=True, per_bin=1)
+        sample = sample_aids[0]
+        qaid_falses_list.append(sample)
+    print(list(map(len, qaid_falses_list)))
+    print(list(map(len, qaid_falses_list_)))
     # output containers
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
     # For each query annotation, and its true and false set

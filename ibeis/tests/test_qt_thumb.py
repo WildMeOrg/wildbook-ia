@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool import slot_, StripeProxyModel
 from ibeis.control import IBEISControl
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui.guiheaders import THUMB_TABLE
 from ibeis.gui.models_and_views import IBEISStripeModel, IBEISTableView

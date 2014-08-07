@@ -112,7 +112,7 @@ from plottool import fig_presenter
 from ibeis.dev import main_commands
 from ibeis.dev import params
 from ibeis.dev import sysres
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.dev import results_organizer
 from ibeis.dev import results_analyzer
 from ibeis.dev import results_all
@@ -189,7 +189,7 @@ from ibeis.model import hots
 from ibeis.model import preproc
 
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[all_imports]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[all_imports]')
 
 
 def reload_all():

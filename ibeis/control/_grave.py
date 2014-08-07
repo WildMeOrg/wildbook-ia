@@ -32,7 +32,7 @@
         us process images asychronously.
 
         TEST CODE:
-            from ibeis.dev.all_imports import *
+            from ibeis.all_imports import *
             gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
         print('[ibs] add_images')

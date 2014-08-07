@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
 from os.path import exists
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis import constants
 from ibeis.control import IBEISControl
 import utool

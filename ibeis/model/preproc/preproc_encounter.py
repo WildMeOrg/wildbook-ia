@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from six.moves import zip, map
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from scipy.spatial import distance
 import scipy.cluster.hierarchy as hier
 from sklearn.cluster import MeanShift, estimate_bandwidth
@@ -65,7 +65,7 @@ def ibeis_compute_encounters(ibs, gid_list):
 
 def _compute_encounter_unixtime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
-    from ibeis.dev import ibsfuncs
+    from ibeis import ibsfuncs
     unixtimes = ibsfuncs.unflat_map(ibs.get_image_unixtime, enc_gids)
     time_arrs = list(map(np.array, unixtimes))
     enc_unixtimes = list(map(np.mean, time_arrs))
@@ -73,7 +73,7 @@ def _compute_encounter_unixtime(ibs, enc_gids):
 
 def _compute_encounter_datetime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
-    from ibeis.dev import ibsfuncs
+    from ibeis import ibsfuncs
     enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
     enc_datetimes = list(map(utool.unixtime_to_datetime, enc_unixtimes))
     return enc_datetimes

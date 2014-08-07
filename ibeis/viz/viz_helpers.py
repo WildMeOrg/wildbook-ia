@@ -5,7 +5,7 @@ import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
 import utool
 import vtool.keypoint as ktool
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
 

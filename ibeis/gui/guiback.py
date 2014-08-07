@@ -11,7 +11,7 @@ from guitool import slot_, signal_, cast_from_qt
 # PlotTool
 from plottool import fig_presenter
 # IBEIS
-from ibeis.dev import ibsfuncs, sysres
+from ibeis import ibsfuncs, sysres
 from ibeis.gui import newgui
 from ibeis.gui import guiheaders as gh
 from ibeis import viz
@@ -706,14 +706,14 @@ class MainWindowBackend(QtCore.QObject):
     def dev_reload(back):
         """ Help -> Developer Reload"""
         print('[back] dev_reload')
-        from ibeis.dev.all_imports import reload_all
+        from ibeis.all_imports import reload_all
         reload_all()
 
     @blocking_slot()
     def dev_mode(back):
         """ Help -> Developer Mode"""
         print('[back] dev_mode')
-        from ibeis.dev import all_imports
+        from ibeis import all_imports
         all_imports.embed(back)
 
     @blocking_slot()

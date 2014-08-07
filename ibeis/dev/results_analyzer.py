@@ -3,7 +3,7 @@ import utool
 import numpy as np
 import six
 from six.moves import zip
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 #from ibeis.dev import results_organizer
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG=False)
 

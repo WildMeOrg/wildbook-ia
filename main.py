@@ -9,8 +9,10 @@ import ibeis
 import sys
 import utool
 
+CMD = '--cmd' in sys.argv
+
 # For Pyinstaller
-from ibeis.dev.all_imports import *  # NOQA
+#from ibeis.all_imports import *  # NOQA
 
 
 def dependencies_for_myprogram():
@@ -31,8 +33,8 @@ if __name__ == '__main__':
     #utool.set_process_title('IBEIS_main')
     main_locals, execstr = main()
     # <DEBUG CODE>
-    if 'back' in main_locals and '--cmd' in sys.argv:
-        from ibeis.dev.all_imports import *  # NOQA
+    if 'back' in main_locals and CMD:
+        from ibeis.all_imports import *  # NOQA
         back = main_locals['back']
         front = getattr(back, 'front', None)
         #front = back.front

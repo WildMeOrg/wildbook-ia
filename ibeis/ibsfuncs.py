@@ -1,5 +1,5 @@
 """
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.dev.ibsfuncs))"
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.ibsfuncs))"
 python -m doctest -v ibeis/model/hots/hots_nn_index.py
 python -m doctest ibeis/model/hots/hots_nn_index.py
 """
@@ -68,8 +68,8 @@ def inject_ibeis(ibs):
 
 @__injectable
 def refresh(ibs):
-    from ibeis.dev import ibsfuncs
-    from ibeis.dev import all_imports
+    from ibeis import ibsfuncs
+    from ibeis import all_imports
     ibsfuncs.rrr()
     all_imports.reload_all()
     ibsfuncs.inject_ibeis(ibs)
@@ -1110,13 +1110,20 @@ def compute_all_thumbs(ibs, **kwargs):
     preprocess_image_thumbs(ibs, **kwargs)
 
 
-def group_annots_by_known_names(ibs, aid_list):
+def group_annots_by_known_names_nochecks(ibs, aid_list):
+    nid_list = ibs.get_annot_nids(aid_list)
+    nid2_aids = utool.group_items(aid_list, nid_list)
+    return list(nid2_aids.values())
+
+
+def group_annots_by_known_names(ibs, aid_list, checks=True):
     """
     >>> import ibeis
-    >>> from ibeis.dev.ibsfuncs import *
+    >>> from ibeis import ibsfuncst *  # NOQA
     >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
     [main...
-    >>> aid_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    >>> aid_list = ibs.get_valid_aids()
+    >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
     >>> print(known_aids_list)
     [[2, 3], [5, 6], [7], [8], [10], [12], [13]]

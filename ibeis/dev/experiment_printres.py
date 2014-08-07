@@ -7,7 +7,7 @@ import utool
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 import numpy as np
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
 from ibeis.model.hots import match_chips3 as mc3
 print, print_, printDBG, rrr, profile = utool.inject(

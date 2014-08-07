@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from six.moves import zip
 from ibeis import constants
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[duct_tape]', DEBUG=False)

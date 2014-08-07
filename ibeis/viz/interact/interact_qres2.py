@@ -9,7 +9,7 @@ from collections import OrderedDict as odict
 import plottool.draw_func2 as df2
 # IBEIS
 from ibeis.viz import viz_helpers as vh
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from plottool import interact_helpers as ih
 from ibeis.viz import viz_matches
 from ibeis.viz.interact.interact_matches import ishow_matches

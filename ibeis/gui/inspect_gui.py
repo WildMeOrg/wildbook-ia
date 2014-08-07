@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from functools import partial
 from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
 from guitool.__PYQT__ import QtGui, QtCore
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from ibeis.dev import results_organizer
 from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh

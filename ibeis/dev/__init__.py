@@ -11,7 +11,6 @@ __LOADED__ = False
 
 def import_subs():
     global __LOADED__
-    from . import ibsfuncs
     from . import dbinfo
     from . import params
     from . import main_commands
@@ -26,7 +25,6 @@ def reload_subs():
     if not __LOADED__:
         import_subs()
     import_subs()
-    ibsfuncs.rrr()
     dbinfo.rrr()
     #params.rrr()
     main_commands.rrr()

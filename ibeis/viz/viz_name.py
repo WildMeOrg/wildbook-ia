@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import plottool.draw_func2 as df2
 import numpy as np
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from plottool import plot_helpers as ph
 from .viz_chip import show_chip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)

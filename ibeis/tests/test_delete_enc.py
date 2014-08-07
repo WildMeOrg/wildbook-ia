@@ -7,7 +7,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DELETE_ENC
 
 
 def TEST_DELETE_ENC(ibs, back):
-    from ibeis.dev import ibsfuncs
+    from ibeis import ibsfuncs
     ibsfuncs.update_all_image_encounter(ibs)
     eid_list = ibs.get_valid_eids()
     assert len(eid_list) != 0, "All Image encounter not created"

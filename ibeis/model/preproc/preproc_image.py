@@ -162,7 +162,7 @@ def add_images_params_gen(gpath_list, **kwargs):
     """ generates values for add_images sqlcommands asychronously
 
     TEST CODE:
-        from ibeis.dev.all_imports import *
+        from ibeis.all_imports import *
         gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
         params_list = list(preproc_image.add_images_params_gen(gpath_list))
     <CYTH: yeilds=tup>

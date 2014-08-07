@@ -9,7 +9,7 @@ from os.path import join, exists
 from ibeis.control import IBEISControl
 from ibeis import sysres
 from ibeis import constants
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 from six.moves import zip, map
 import utool
 import re

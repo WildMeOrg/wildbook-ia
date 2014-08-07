@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool
 from ibeis.dev import params
-from ibeis.dev import ibsfuncs
+from ibeis import ibsfuncs
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[main_helpers]', DEBUG=False)
@@ -33,10 +33,13 @@ def get_test_qaids(ibs):
     #print(utool.dict_str(vars(params.args)))
 
     if params.args.qaid is not None:
-        if isinstance(params.args.qaid, int):
-            args_qaid = [params.args.qaid]
-        else:
-            args_qaid = utool.flatten(params.args.qaid)
+        try:
+            if isinstance(params.args.qaid, int):
+                args_qaid = [params.args.qaid]
+            else:
+                args_qaid = utool.flatten(params.args.qaid)
+        except Exception:
+            args_qaid = params.args.qaid
         printDBG('Testing qaid=%r' % params.args.qaid)
         test_qaids.extend(args_qaid)
 
