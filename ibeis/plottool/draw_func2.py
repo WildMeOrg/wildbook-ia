@@ -8,17 +8,18 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range, zip, map
 import six
-import os
-import sys
+#import os
+#import sys
 import utool
 # Matplotlib
 import matplotlib as mpl
-if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
-    # Write to files if we cannot display
-    TARGET_BACKEND = 'PDF'
-else:
-    TARGET_BACKEND = 'Qt4Agg'
-mpl.use(TARGET_BACKEND)
+# Should be taken care of by parent
+#if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
+#    # Write to files if we cannot display
+#    TARGET_BACKEND = 'PDF'
+#else:
+#    TARGET_BACKEND = 'Qt4Agg'
+#mpl.use(TARGET_BACKEND)
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable

@@ -37,15 +37,17 @@ def get_fig(fnum=None):
         try:
             fig = gcf()
         except Exception as ex:
-            printDBG('[df2] get_fig(): ex=%r' % ex)
+            #printDBG('[df2] get_fig(): ex=%r' % ex)
+            utool.printex(ex, '1 in get_fig', iswarning=True)
             fig = plt.figure(**fig_kwargs)
         fnum = fig.number
     else:
         try:
             fig = plt.figure(fnum, **fig_kwargs)
         except Exception as ex:
-            print(repr(ex))
-            warnings.warn(repr(ex))
+            #print(repr(ex))
+            utool.printex(ex, '2 in get_fig', iswarning=True)
+            #warnings.warn(repr(ex))
             fig = gcf()
     return fig
 

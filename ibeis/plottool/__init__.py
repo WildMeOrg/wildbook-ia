@@ -5,6 +5,8 @@ __version__ = '1.0.0.dev1'
 
 # Hopefully this was imported sooner. TODO remove dependency
 from guitool import __PYQT__
+from plottool import __MPL_INIT__
+__MPL_INIT__.init_matplotlib()
 
 import matplotlib as mpl
 #mpl.use('Qt4Agg')
