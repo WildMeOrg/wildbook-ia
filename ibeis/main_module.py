@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import builtins
 import sys
-import os
 import multiprocessing
 
 __PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
@@ -41,44 +40,46 @@ def _parse_args():
 
 #@profile
 def _init_matplotlib():
-    try:
-        from guitool import __PYQT__  # NOQA
-    except ImportError:
-        print('[!main] WARNING guitool does not have __PYQT__')
-        pass
-    import matplotlib as mpl
-    import utool
-    backend = mpl.get_backend()
-    if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
-        # Write to files if we cannot display
-        TARGET_BACKEND = 'PDF'
-    else:
-        TARGET_BACKEND = 'Qt4Agg'
-    if utool.in_main_process():
-        if not utool.QUIET and utool.VERBOSE:
-            print('--- INIT MPL---')
-            print('[main] current backend is: %r' % backend)
-            print('[main] mpl.use(%r)' % TARGET_BACKEND)
-        if backend != TARGET_BACKEND:
-            mpl.use(TARGET_BACKEND, warn=True, force=True)
-            backend = mpl.get_backend()
-            if not utool.QUIET and utool.VERBOSE:
-                print('[main] current backend is: %r' % backend)
-        if utool.get_flag('--notoolbar'):
-            toolbar = 'None'
-        else:
-            toolbar = 'toolbar2'
-        mpl.rcParams['toolbar'] = toolbar
-        mpl.rc('text', usetex=False)
-        mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
-        for key in mpl_keypress_shortcuts:
-            mpl.rcParams[key] = ''
-        #mpl.rcParams['text'].usetex = False
-        #for key in mpl_keypress_shortcuts:
-            #print('%s = %s' % (key, mpl.rcParams[key]))
-        # Disable mpl shortcuts
-            #mpl.rcParams['toolbar'] = 'None'
-            #mpl.rcParams['interactive'] = True
+    from plottool import __MPL_INIT__
+    __MPL_INIT__.init_matplotlib()
+    #try:
+    #    from guitool import __PYQT__  # NOQA
+    #except ImportError:
+    #    print('[!main] WARNING guitool does not have __PYQT__')
+    #    pass
+    #import matplotlib as mpl
+    #import utool
+    #backend = mpl.get_backend()
+    #if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
+    #    # Write to files if we cannot display
+    #    TARGET_BACKEND = 'PDF'
+    #else:
+    #    TARGET_BACKEND = 'Qt4Agg'
+    #if utool.in_main_process():
+    #    if not utool.QUIET and utool.VERBOSE:
+    #        print('--- INIT MPL---')
+    #        print('[main] current backend is: %r' % backend)
+    #        print('[main] mpl.use(%r)' % TARGET_BACKEND)
+    #    if backend != TARGET_BACKEND:
+    #        mpl.use(TARGET_BACKEND, warn=True, force=True)
+    #        backend = mpl.get_backend()
+    #        if not utool.QUIET and utool.VERBOSE:
+    #            print('[main] current backend is: %r' % backend)
+    #    if utool.get_flag('--notoolbar'):
+    #        toolbar = 'None'
+    #    else:
+    #        toolbar = 'toolbar2'
+    #    mpl.rcParams['toolbar'] = toolbar
+    #    mpl.rc('text', usetex=False)
+    #    mpl_keypress_shortcuts = [key for key in mpl.rcParams.keys() if key.find('keymap') == 0]
+    #    for key in mpl_keypress_shortcuts:
+    #        mpl.rcParams[key] = ''
+    #    #mpl.rcParams['text'].usetex = False
+    #    #for key in mpl_keypress_shortcuts:
+    #        #print('%s = %s' % (key, mpl.rcParams[key]))
+    #    # Disable mpl shortcuts
+    #        #mpl.rcParams['toolbar'] = 'None'
+    #        #mpl.rcParams['interactive'] = True
 
 
 #@profile

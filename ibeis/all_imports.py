@@ -52,9 +52,11 @@ from guitool import __PYQT__
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__.QtCore import Qt
 # Matplotlib
+from plottool import __MPL_INIT__
+__MPL_INIT__.init_matplotlib()
+#mpl.use('Qt4Agg')  # pyinstaller hack
 import matplotlib
 import matplotlib as mpl
-mpl.use('Qt4Agg')  # pyinstaller hack
 import matplotlib.pyplot as plt
 # Scientific
 import numpy as np

@@ -9,7 +9,6 @@ from . import __SQLITE3__ as lite
 # =======================
 # Helper Functions
 # =======================
-VERBOSE = utool.VERBOSE
 PRINT_SQL = utool.get_flag('--print-sql')
 AUTODUMP = utool.get_flag('--auto-dump')
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')

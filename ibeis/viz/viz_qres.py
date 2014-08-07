@@ -98,25 +98,24 @@ def show_qres(ibs, qres, **kwargs):
     if isinstance(top_aids, int):
         top_aids = qres.get_top_aids(num=top_aids)
 
-    all_gts = ibs.get_annot_groundtruth(qres.qaid)
+    #all_gts = ibs.get_annot_groundtruth(qres.qaid)
     nTop   = len(top_aids)
-    nSelGt = len(gt_aids)
-    nAllGt = len(all_gts)
+    #nSelGt = len(gt_aids)
+    #nAllGt = len(all_gts)
 
     max_nCols = 5
     if nTop in [6, 7]:
         max_nCols = 3
     if nTop in [8]:
         max_nCols = 4
-
-    printDBG('[show_qres]========================')
-    printDBG('[show_qres]----------------')
-    printDBG('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
-    printDBG('[show_qres] * fnum=%r' % (fnum,))
-    printDBG('[show_qres] * figtitle=%r' % (figtitle,))
-    printDBG('[show_qres] * max_nCols=%r' % (max_nCols,))
-    printDBG('[show_qres] * show_query=%r' % (show_query,))
-    printDBG('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
+    #printDBG('[show_qres]========================')
+    #printDBG('[show_qres]----------------')
+    #printDBG('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
+    #printDBG('[show_qres] * fnum=%r' % (fnum,))
+    #printDBG('[show_qres] * figtitle=%r' % (figtitle,))
+    #printDBG('[show_qres] * max_nCols=%r' % (max_nCols,))
+    #printDBG('[show_qres] * show_query=%r' % (show_query,))
+    #printDBG('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
     printDBG(qres.get_inspect_str())
     ranked_aids = qres.get_top_aids()
     # Build a subplot grid

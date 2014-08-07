@@ -48,8 +48,8 @@ ROSEMARY_ANNOT_METADATA = [
     ('other_speceis' , 'Other Species:', str),
 ]
 
-ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)
-KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})
+#ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)
+#KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})
 
 
 AL_RELATION_TABLE = 'annotation_lblannot_relationship'

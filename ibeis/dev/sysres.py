@@ -191,7 +191,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
                 print('[sysres] dbdir=%r' % dbdir)
                 print('[sysres] db=%r' % db)
         if not exists(dbdir):
-            msg = '[sysres!] ERROR: Database does not exist'
+            msg = '[sysres!] ERROR: Database does not exist and allow_newdir=False'
             print('<!!!>')
             print(msg)
             print('[sysres!] Here is a list of valid dbs: ' +

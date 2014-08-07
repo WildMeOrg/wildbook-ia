@@ -17,6 +17,7 @@ def default_decorator(func):
     #return utool.indent_func('[sql.' + func.__name__ + ']')(func)
 
 VERBOSE = utool.VERBOSE
+VERYVERBOSE = utool.VERYVERBOSE
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
 AUTODUMP = utool.get_flag('--auto-dump')
 
@@ -324,14 +325,14 @@ class SQLDatabaseController(object):
             params = []
         operation = operation_fmt.format(**fmtdict)
         return db.executeone(operation, params, auto_commit=True,
-                             verbose=VERBOSE, **kwargs)
+                             verbose=VERYVERBOSE, **kwargs)
 
     @default_decorator
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
                                    unpack_scalars=True, **kwargs):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
-                              auto_commit=True, verbose=VERBOSE, **kwargs)
+                              auto_commit=True, verbose=VERYVERBOSE, **kwargs)
 
     #=========
     # SQLDB CORE
@@ -364,7 +365,7 @@ class SQLDatabaseController(object):
         db.table_docstr[tablename] = docstr
 
     @default_decorator
-    def executeone(db, operation, params=(), auto_commit=True, verbose=VERBOSE):
+    def executeone(db, operation, params=(), auto_commit=True, verbose=VERYVERBOSE):
         with SQLExecutionContext(db, operation, num_params=1) as context:
             try:
                 result_iter = context.execute_and_generate_results(params)
@@ -377,7 +378,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERBOSE, unpack_scalars=True, num_params=None):
+                    verbose=VERYVERBOSE, unpack_scalars=True, num_params=None):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the num_params is not given
         if num_params is None:
@@ -385,7 +386,7 @@ class SQLDatabaseController(object):
             num_params  = len(params_iter)
         # Do not compute executemany without params
         if num_params == 0:
-            if VERBOSE:
+            if VERYVERBOSE:
                 print('[sql!] WARNING: dont use executemany'
                       'with no params use executeone instead.')
             return []
@@ -403,7 +404,7 @@ class SQLDatabaseController(object):
         return results_list
 
     #@default_decorator
-    #def commit(db,  verbose=VERBOSE):
+    #def commit(db,  verbose=VERYVERBOSE):
     #    try:
     #        db.connection.commit()
     #        if AUTODUMP:
@@ -414,7 +415,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def dump_to_file(db, file_, auto_commit=True):
-        if utool.VERYVERBOSE:
+        if VERYVERBOSE:
             print('[sql.dump]')
         if auto_commit:
             db.connection.commit()

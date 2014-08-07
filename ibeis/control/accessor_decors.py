@@ -125,7 +125,7 @@ def adder(func):
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_adder(*args, **kwargs):
-        if not utool.QUIET and utool.VERBOSE:
+        if not utool.QUIET and utool.VERYVERBOSE:
             print('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
@@ -140,7 +140,7 @@ def deleter(func):
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_deleter(*args, **kwargs):
-        if not utool.QUIET and utool.VERBOSE:
+        if not utool.QUIET and utool.VERYVERBOSE:
             print('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
@@ -160,7 +160,7 @@ def setter(func):
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_setter(*args, **kwargs):
-        if not utool.QUIET and utool.VERBOSE:
+        if not utool.QUIET and utool.VERYVERBOSE:
             print('[SET]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))

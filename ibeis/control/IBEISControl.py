@@ -489,6 +489,25 @@ class IBEISController(object):
     #---------------
 
     # Standard
+    @adder
+    def _internal_add_images(ibs, uuid_list, uri_list, original_name_list,
+                             ext_list, gsize_list, unixtime_list, latlon_list,
+                             notes_list):
+        colnames = ('image_uuid', 'image_uri', 'image_original_name',
+                    'image_ext', 'image_width', 'image_height',
+                    'image_time_posix', 'image_gps_lat',
+                    'image_gps_lon', 'image_note',)
+        params_list = [(uuid, uri, orig_name, ext, size[0], size[1], unixtime,
+                        latlon[0], latlon[1], note)
+                       for uuid, uri, orig_name, ext, size, unixtime, latlon, note in
+                       zip(uuid_list, uri_list, original_name_list, ext_list,
+                           gsize_list, unixtime_list, latlon_list, notes_list)]
+
+        gid_list = ibs.db.add_cleanly(IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
+        if ibs.cfg.other_cfg.auto_localize:
+            # Move to ibeis database local cache
+            ibs.localize_images(gid_list)
+        return gid_list
 
     @adder
     def add_images(ibs, gpath_list, as_annots=False):
@@ -536,7 +555,7 @@ class IBEISController(object):
             print('[postadd] uuid / gid = ' + utool.indentjoin(zip(uuid_list, gid_list)))
             print('[postadd] valid uuid / gid = ' + utool.indentjoin(zip(valid_uuids, valid_gids)))
 
-        ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
+        #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
         if ibs.cfg.other_cfg.auto_localize:
             # Move to ibeis database local cache
             ibs.localize_images(gid_list)

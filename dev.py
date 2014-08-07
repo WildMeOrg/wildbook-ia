@@ -70,36 +70,48 @@ def up_dbsize_expt(ibs, qaid_list):
     qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt)
     qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_ft)
     #
+    # Vary the size of the falses
+    def generate_varied_falses():
+        for false_aids in qaid_falses_list:
+            false_sample_list = []
+            for dbsize in dbsamplesize_list:
+                if dbsize > len(false_aids):
+                    continue
+                false_sample = np.random.choice(false_aids, dbsize, replace=False).tolist()
+                false_sample_list.append(false_sample)
+            yield false_sample_list
+    qaid_false_samples_list = list(generate_varied_falses())
+
+    #
     # Get a rough idea of how many queries will be run
-    nTotal = sum([len(dbsamplesize_list) * len(aids) for aids in qaid_trues_list])
+    nTotal = sum([len(false_aids_samples) * len(true_aids)
+                  for true_aids, false_aids_samples
+                  in zip(qaid_false_samples_list, qaid_trues_list)])
     # Create a progress marking function
-    progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': True}
+    progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': False}
     mark_, end_ = utool.log_progress('[upscale] progress: ',  **progkw)
     count = 0
     # output containers
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
     #
     # Set up and run test iterations
-    input_iter = zip(qaid_list, qaid_trues_list, qaid_falses_list)
-    for dbsize, input_tup in utool.iprod(dbsamplesize_list, input_iter):
-        (qaid, true_aids, false_aids) = input_tup
-        if dbsize > len(false_aids):
-            continue
-        false_sample = np.random.choice(false_aids, dbsize, replace=False).tolist()
+    input_iter = zip(qaid_list, qaid_trues_list, qaid_false_samples_list)
+    for qaid, true_aids, false_aids_samples in input_iter:
         #print('qaid = %r' % (qaid,))
         #print('true_aids=%r' % (true_aids,))
-        #print('false_sample=%r' % (false_sample,))
-        # For each true match
-        for gt_aid in true_aids:
-            count += 1
+        # For each true match and false sample
+        for gt_aid, false_sample in utool.iprod(true_aids, false_aids_samples):
+            #print('  gt_aid=%r' % (gt_aid,))
+            #print('  false_sample=%r' % (false_sample,))
             mark_(count)
+            count += 1
             # Execute query
             daids = false_sample + [gt_aid]
             qres = ibs._query_chips([qaid], daids)[qaid]
             # Elicit information
             score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
             # Append result
-            upscores_dict[(qaid, gt_aid)]['dbsizes'].append(dbsize)
+            upscores_dict[(qaid, gt_aid)]['dbsizes'].append(len(false_sample))
             upscores_dict[(qaid, gt_aid)]['score'].append(score)
     end_()
 
@@ -117,6 +129,51 @@ def up_dbsize_expt(ibs, qaid_list):
         df2.set_xlabel('# Annotations in database')
         df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
         df2.dark_background()
+
+    #---------
+    # Find highest
+    if False:
+        dbsample_index = 1
+        line_index = 0
+
+        highscore = 0
+        highpair = None
+        none_pairs = []
+        pair_list  = []
+        score_list = []
+        for pair, dict_ in six.iteritems(upscores_dict):
+            scores = dict_['score']
+            if any([s is None for s in scores]):
+                none_pairs.append(pair)
+            if dbsample_index >= len(scores):
+                continue
+            score = scores[dbsample_index]
+            if score is None:
+                continue
+            score_list.append(score)
+            pair_list.append(pair)
+
+        sorted_tups = sorted(list(zip(score_list, pair_list)))
+        print(sorted_tups[0])
+        print(sorted_tups[-1])
+
+        qaid, gt_aid = sorted_tups[line_index][1]
+        print('qaid = %r' % qaid)
+        print('gt_aid = %r' % gt_aid)
+        index = qaid_list.index(qaid)
+        print(index)
+        false_aids_samples = qaid_false_samples_list[index]
+        false_sample = false_aids_samples[dbsample_index]
+        print(false_sample)
+        daids = false_sample + [gt_aid]
+        qres = ibs._query_chips([qaid], daids)[qaid]
+        #for score in scores:
+        #    if score is None:
+        #        continue
+        #    if score > highscore:
+        #        highpair = pair
+        #        highscore = score
+        #print(scores)
 
     # TODO: Should be separate function. Previous code should be intergrated
     # into the experiment_harness

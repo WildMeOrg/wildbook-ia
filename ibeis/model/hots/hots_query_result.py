@@ -201,8 +201,13 @@ class QueryResult(__OBJECT_BASE__):
                 raise HotsNeedsRecomputeError(msg)
             else:
                 raise Exception(msg)
-        except ValueError as ex:
-            if str(ex) == 'unsupported pickle protocol: 3':
+        except (ValueError, TypeError) as ex:
+            utool.printex(ex, iswarning=True)
+            exstr = str(ex)
+            print(exstr)
+            if exstr == 'unsupported pickle protocol: 3':
+                raise HotsNeedsRecomputeError(str(ex))
+            elif exstr.startswith('("\'numpy.ndarray\' object is not callable",'):
                 raise HotsNeedsRecomputeError(str(ex))
             raise
         except Exception as ex:
