@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 #from .__PYQT__.QtCore import Qt
-import six
+#import six
 from .__PYQT__.QtCore import QLocale
 import utool
 import uuid
@@ -11,6 +11,7 @@ from .guitool_decorators import checks_qt_error
 #    from .__PYQT__.QtCore import QString
 #    from .__PYQT__.QtCore import QVariant
 #elif six.PY3:
+QVariant = None
 QString = str
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -57,7 +58,10 @@ QT_DELEGATE_TYPES = set(list(QT_IMAGE_TYPES) + list(QT_BUTTON_TYPES) + list(QT_C
 
 def qindexinfo(index):
     variant = index.data()
-    item = str(variant.toString())
+    if SIMPLE_CASTING:
+        item = str(variant)
+    else:
+        item = str(variant.toString())
     row  = index.row()
     col  = index.column()
     return (item, row, col)
@@ -103,8 +107,21 @@ def cast_into_qt(data):
     Casts python data into a representation suitable for QT (usually a string)
     """
     if SIMPLE_CASTING:
-        return data
-
+        if utool.is_str(data):
+            return str(data)
+        elif utool.is_float(data):
+            #qnumber = QString.number(float(data), format='g', precision=8)
+            return locale_float(data)
+        elif utool.is_bool(data):
+            return bool(data)
+        elif  utool.is_int(data):
+            return int(data)
+        elif isinstance(data, uuid.UUID):
+            return str(data)
+        elif utool.isiterable(data):
+            return ', '.join(map(str, data))
+        else:
+            return str(data)
     if utool.is_str(data):
         return str(data)
     elif utool.is_float(data):
@@ -161,29 +178,29 @@ def cast_from_qt(var, type_=None):
     # TODO: sip api v2 should take care of this.
     #
     #printDBG('Casting var=%r' % (var,))
-    if var is None:
-        return None
-    if type_ is not None and isinstance(var, QVariant):
-        # Most cases will be qvariants
-        reprstr = str(var.toString())
-        data = utool.smart_cast(reprstr, type_)
-    elif isinstance(var, QVariant):
-        if var.typeName() == 'bool':
-            data = bool(var.toBool())
-        if var.typeName() in ['QString', 'str']:
-            data = str(var.toString())
-    elif isinstance(var, QString):
-        data = str(var)
-    elif isinstance(var, list):
-        data = var
-    #elif isinstance(var, (int, long, str, float)):
-    elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
-        # comboboxes return ints
-        data = var
-    else:
-        raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
-                         (type(var), var))
-    return data
+    #if var is None:
+    #    return None
+    #if type_ is not None and isinstance(var, QVariant):
+    #    # Most cases will be qvariants
+    #    reprstr = str(var.toString())
+    #    data = utool.smart_cast(reprstr, type_)
+    #elif isinstance(var, QVariant):
+    #    if var.typeName() == 'bool':
+    #        data = bool(var.toBool())
+    #    if var.typeName() in ['QString', 'str']:
+    #        data = str(var.toString())
+    #elif isinstance(var, QString):
+    #    data = str(var)
+    #elif isinstance(var, list):
+    #    data = var
+    ##elif isinstance(var, (int, long, str, float)):
+    #elif isinstance(var, six.string_types) or isinstance(var, six.integer_types):
+    #    # comboboxes return ints
+    #    data = var
+    #else:
+    #    raise ValueError('Unknown QtType: type(var)=%r, var=%r' %
+    #                     (type(var), var))
+    #return data
 
 
 #@profile

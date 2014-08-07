@@ -66,9 +66,9 @@ class FilterProxyModel(BASE_CLASS):
             proxyIndex = QtCore.QModelIndex()
         return proxyIndex
 
-    def data(self, proxyIndex, role=Qt.DisplayRole):
+    def data(self, proxyIndex, role=Qt.DisplayRole, **kwargs):
         sourceIndex = self.mapToSource(proxyIndex)
-        return self.sourceModel().data(sourceIndex, role)
+        return self.sourceModel().data(sourceIndex, role, **kwargs)
 
     def setData(self, proxyIndex, value, role=Qt.EditRole):
         sourceIndex = self.mapToSource(proxyIndex)

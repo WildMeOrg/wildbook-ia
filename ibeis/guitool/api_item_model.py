@@ -519,7 +519,12 @@ class APIItemModel(API_MODEL_BASE):
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
         getter = model.col_getter_list[col]  # getter for this column
         # Using this getter may not be thread safe
-        data = getter(row_id, **kwargs)
+        try:
+            data = getter(row_id, **kwargs)
+        except Exception as ex:
+            utool.printex(ex, 'problem getting in column %r' % (col,))
+            #getting from: %r' % utool.util_str.get_callable_name(getter))
+            raise
         # <HACK: MODEL_CACHE>
         #cachekey = (row_id, col)
         #try:
