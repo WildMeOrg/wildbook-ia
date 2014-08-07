@@ -355,6 +355,7 @@ def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwarg
 
 def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
                                  sqrt_area=800, output_dir=None,
+                                 checkexists=True,
                                  **kwargs):
     """ Resizes images and yeilds results asynchronously  """
     from .chip import get_scaled_sizes_with_area
@@ -376,15 +377,18 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
     assert len(newsize_list) == len(gpath_list), 'unequal len'
     # Evaluate generator
-    #if checkexists:
-    #    exists_list = list(map(exists, new_gpath_list))
-    #    gpath_list_ = utool.filterfalse_items(gpath_list, exists_list)
-    #    new_gpath_list_ = utool.filterfalse_items(new_gpath_list, exists_list)
-    #    newsize_list_ = utool.filterfalse_items(newsize_list, exists_list)
-    #else:
-    gpath_list_ = gpath_list
-    new_gpath_list_ = new_gpath_list
-    newsize_list_ = newsize_list
+    if checkexists:
+        exists_list = list(map(exists, new_gpath_list))
+        gpath_list_ = utool.filterfalse_items(gpath_list, exists_list)
+        new_gpath_list_ = utool.filterfalse_items(new_gpath_list, exists_list)
+        newsize_list_ = utool.filterfalse_items(newsize_list, exists_list)
+    else:
+        gpath_list_ = gpath_list
+        new_gpath_list_ = new_gpath_list
+        newsize_list_ = newsize_list
     generator = resize_imagelist_generator(gpath_list_, new_gpath_list_,
                                            newsize_list_, **kwargs)
-    return [res for res in generator]
+    for res in generator:
+        pass
+    #return [res for res in generator]
+    return new_gpath_list
