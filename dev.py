@@ -274,7 +274,7 @@ def up_dbsize_expt(ibs, qaid_list):
     np.random.seed(seed_)
 
     # List of database sizes to test
-    num_samp = utool.get_arg('--num-samples', int, 7)
+    num_samp = utool.get_arg('--num-samples', int, 5)
     samp_max = ibs.get_num_names()
     #samp_min = 10  # max(samp_max // len(qaid_list), 10)
     samp_min = 2  # max(samp_max // len(qaid_list), 10)
