@@ -311,5 +311,6 @@ python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 
 %run dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
+python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 ```

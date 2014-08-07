@@ -68,6 +68,8 @@ INSTALL_REQUIRES = [
     'psutil',
     'requests >= 0.8.2',
     'setproctitle >= 1.1.8',
+    'objgraph',
+    'gevent',
     #'PyQt 4/5 >= 4.9.1', # cannot include because pyqt4 is not in pip
 ]
 

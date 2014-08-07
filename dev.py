@@ -270,11 +270,14 @@ def up_dbsize_expt(ibs, qaid_list):
     clamp_gt = utool.get_arg('--clamp-gt', int, 1)
     clamp_ft = utool.get_arg('--clamp-gf', int, 1)
 
+    seed_ = 143039
+    np.random.seed(seed_)
+
     # List of database sizes to test
     num_samp = utool.get_arg('--num-samples', int, 7)
-    samp_max = ibs.get_num_annotations()
+    samp_max = ibs.get_num_names()
     #samp_min = 10  # max(samp_max // len(qaid_list), 10)
-    samp_min = 1  # max(samp_max // len(qaid_list), 10)
+    samp_min = 2  # max(samp_max // len(qaid_list), 10)
     sample_sizes = utool.sample_domain(samp_min, samp_max, num_samp)
     # Get list of true and false matches for every query annotation
     qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True,
@@ -283,18 +286,14 @@ def up_dbsize_expt(ibs, qaid_list):
     qaid_falses_list = []
     for count, false_aids_ in enumerate(qaid_falses_list_):
         aids_list_ = ibsfuncs.group_annots_by_known_names_nochecks(ibs, false_aids_)
-        aids_list = aids_list_[:]
-        for ix in range(len(aids_list)):
-            arr = np.array(aids_list[ix])
-            seed = long(np.random.rand() * 1000000)  # * max(1, ix) * max(1, count))
-            utool.deterministic_shuffle(arr, seed=seed)
+        aids_list = [None for x in range(len(aids_list_))]
+        for ix in range(len(aids_list_)):
+            arr = np.array(aids_list_[ix]).copy()
+            np.random.shuffle(arr)
             aids_list[ix] = arr.tolist()
-        sample_aids, _ = utool.sample_zip(aids_list, 1,
-                                          allow_overflow=True, per_bin=1)
+        sample_aids, _ = utool.sample_zip(aids_list, 1, allow_overflow=True, per_bin=1)
         sample = sample_aids[0]
         qaid_falses_list.append(sample)
-    print(list(map(len, qaid_falses_list)))
-    print(list(map(len, qaid_falses_list_)))
     # output containers
     upscores_dict = utool.ddict(lambda: utool.ddict(list))
     # For each query annotation, and its true and false set
@@ -306,37 +305,35 @@ def up_dbsize_expt(ibs, qaid_list):
     count = 0
     # Create a progress marking function
     progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': True}
-    mark_prog, end_prog = utool.log_progress('[upscale] progress: ',  **progkw)
+    mark_, end_ = utool.log_progress('[upscale] progress: ',  **progkw)
     for qaid, true_aids, false_aids in query_iter:
         # For each set of false matches (of varying sizes)
+        true_sample  = utool.random_sample(false_aids, clamp_gt)
         for dbsize in sample_sizes:
             if dbsize > len(false_aids):
                 continue
-            false_sample = utool.deterministic_sample(false_aids, dbsize)
-            true_sample  = utool.deterministic_sample(false_aids, clamp_gt)
+            false_sample = utool.random_sample(false_aids, dbsize)
             # For each true match
             for gt_aid in true_sample:
+                assert len(false_sample) == len(set(ibs.get_annot_nids(false_sample))), 'num false_aids != false_nids'
                 count += 1
-                mark_prog(count)
-                # Specify the database annotation ids
-                daid_list = false_sample + [gt_aid]
+                mark_(count)
                 # Execute query
-                qres = ibs._query_chips([qaid], daid_list)[qaid]
+                qres = ibs._query_chips([qaid], false_sample + [gt_aid])[qaid]
                 # Elicit information
                 score = qres.get_gt_scores(gt_aids=[gt_aid])[0]
                 # Append result
                 upscores_dict[(qaid, gt_aid)]['dbsizes'].append(dbsize)
                 upscores_dict[(qaid, gt_aid)]['score'].append(score)
-    end_prog()
+    end_()
 
     if not utool.get_flag('--noshow'):
         colors = df2.distinct_colors(len(upscores_dict))
         df2.figure(fnum=1, doclf=True, docla=True)
         for ix, ((qaid, gt_aid), upscores) in enumerate(upscores_dict.items()):
-            color = colors[ix]
             xdata = upscores['dbsizes']
             ydata = upscores['score']
-            df2.plt.plot(xdata, ydata, 'o-', color=color)
+            df2.plt.plot(xdata, ydata, 'o-', color=colors[ix])
         figtitle = 'Effect of Database Size on Match Scores'
         figtitle += '\n' + ibs.get_dbname()
         figtitle += '\n' + ibs.cfg.query_cfg.get_cfgstr()
