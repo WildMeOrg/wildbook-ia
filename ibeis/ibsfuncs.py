@@ -274,6 +274,7 @@ def delete_all_features(ibs):
     print('[ibs] delete_all_features')
     all_fids = ibs._get_all_fids()
     ibs.delete_features(all_fids)
+    print('[ibs] finished delete_all_features')
 
 
 @__injectable
@@ -281,6 +282,7 @@ def delete_all_annotations(ibs):
     print('[ibs] delete_all_annotations')
     all_aids = ibs._get_all_aids()
     ibs.delete_annots(all_aids)
+    print('[ibs] finished delete_all_annotations')
 
 
 @__injectable
@@ -288,6 +290,7 @@ def delete_all_chips(ibs):
     print('[ibs] delete_all_chips')
     all_cids = ibs._get_all_cids()
     ibs.delete_chips(all_cids)
+    print('[ibs] finished delete_all_chips')
 
 
 @__injectable
@@ -295,6 +298,7 @@ def delete_all_encounters(ibs):
     print('[ibs] delete_all_encounters')
     all_eids = ibs._get_all_eids()
     ibs.delete_encounters(all_eids)
+    print('[ibs] finished delete_all_encounters')
 
 
 @__injectable
@@ -1037,8 +1041,9 @@ def delete_cachedir(ibs):
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
     utool.delete(cachedir)
+    print('[ibs] finished delete cachedir')
     # TODO: features really need to not be in SQL or in a separate SQLDB
-    ibs.delete_all_features()
+    #ibs.delete_all_features()
 
 
 def draw_thumb_helper(tup):
@@ -1121,7 +1126,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     >>> import ibeis
     >>> from ibeis import ibsfuncst *  # NOQA
     >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
-    [main...
+    [main]...
     >>> aid_list = ibs.get_valid_aids()
     >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
@@ -1137,3 +1142,56 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     known_aids_list = list(utool.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(utool.iflatten(utool.ifilter_items(aid_gen(), isunknown_list)))
     return known_aids_list, unknown_aids
+
+
+@__injectable
+def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
+    """
+    >>> per_name = 1
+    """
+    # Get valid names
+    valid_aids = ibs.get_valid_aids()
+    valid_nids = ibs.get_annot_nids(valid_aids)
+    nid2_aids = utool.group_items(valid_aids, valid_nids)
+    for nid in six.iterkeys(nid2_aids):
+        # Remove unknown
+        if ibs.is_nid_unknown(nid):
+            del nid2_aids[nid]
+        # Cast into numpy arrays
+        aids =  np.array(nid2_aids[nid])
+        nid2_aids[nid] = aids
+        # Shuffle known annotations in each name
+        #np.random.shuffle(aids)
+    # Get not beloning to input names
+    nid_list = ibs.get_annot_nids(aid_list)
+    def _sample(nid_):
+        aids_iter = (aids for nid, aids in six.iteritems(nid2_aids) if nid != nid_)
+        sample_gf_aids = np.hstack([np.random.choice(aids, per_name, replace=False) for aids in aids_iter])
+        return sample_gf_aids.tolist()
+    gf_aids_list = [_sample(nid_) for nid_ in nid_list]
+    return gf_aids_list
+
+
+@__injectable
+def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
+    """
+    >>> from ibeis.all_imports import *
+    >>> ibs = ibeis.test_main(db='testdb1')
+    >>> per_name = 1
+    >>> aid_list = ibs.get_valid_aids()
+    """
+    all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=True)
+    def random_choice(aids):
+        size = min(len(aids), per_name)
+        return np.random.choice(aids, size, replace=False).tolist()
+    sample_trues_list = [random_choice(aids) if len(aids) > 0 else [] for aids in all_trues_list]
+    return sample_trues_list
+
+
+@__injectable
+def get_aids_with_groundtruth(ibs):
+    """ returns aids with valid groundtruth """
+    valid_aids = ibs.get_valid_aids()
+    has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
+    hasgt_aids = utool.filter_items(valid_aids, has_gt_list)
+    return hasgt_aids

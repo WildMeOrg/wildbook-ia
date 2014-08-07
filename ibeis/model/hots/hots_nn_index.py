@@ -140,7 +140,7 @@ def build_flann_inverted_index(ibs, aid_list, **kwargs):
     except Exception as ex:
         intostr = ibs.get_infostr()
         print(intostr)
-        utool.printex(ex, 'cannot build inverted index', list(locals().keys()))
+        utool.printex(ex, 'cannot build inverted index', key_list=list(locals().keys()))
         raise
     # Build/Load the flann index
     flann_cfgstr = get_flann_cfgstr(ibs, aid_list)

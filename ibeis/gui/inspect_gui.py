@@ -307,20 +307,20 @@ class CustomAPI(object):
             return row
         return utool.uinput_1to1(lambda func: func(row), ider_)
 
-    def get(self, column, row):
+    def get(self, column, row, **kwargs):
         """ getters always receive primary rowids, rectify if col_ider is
         specified (row might be a row_pair) """
         index = self._infer_index(column, row)
         column_getter = self.col_getter_list[column]
         # Columns might be getter funcs indexable read/write arrays
         try:
-            return utool.general_get(column_getter, index)
+            return utool.general_get(column_getter, index, **kwargs)
         except Exception:
             # FIXME: There may be an issue on tuple-key getters when row input is
             # vectorized. Hack it away
             if utool.isiterable(row):
                 row_list = row
-                return [self.get(column, row_) for row_ in row_list]
+                return [self.get(column, row_, **kwargs) for row_ in row_list]
             else:
                 raise
 

@@ -122,6 +122,7 @@ def cache_invalidator(tblname, colnames=None):
 def adder(func):
     func = default_decorator(func)
     @utool.accepts_scalar_input
+    @utool.ignores_exc_tb
     @wraps(func)
     def wrp_adder(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
@@ -136,13 +137,14 @@ def adder(func):
 def deleter(func):
     func = default_decorator(func)
     @utool.accepts_scalar_input
+    @utool.ignores_exc_tb
     @wraps(func)
-    def wrp_adder(*args, **kwargs):
+    def wrp_deleter(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
             print('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         return func(*args, **kwargs)
-    return wrp_adder
+    return wrp_deleter
 
 
 # DECORATORS::SETTER
@@ -155,6 +157,7 @@ def setter_general(func):
 def setter(func):
     func = default_decorator(func)
     @utool.accepts_scalar_input2(argx_list=range(0, 2))
+    @utool.ignores_exc_tb
     @wraps(func)
     def wrp_setter(*args, **kwargs):
         if not utool.QUIET and utool.VERBOSE:
@@ -175,6 +178,7 @@ def getter(func):
     func = default_decorator(func)
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
+    @utool.ignores_exc_tb
     @wraps(func)
     def wrp_getter(*args, **kwargs):
         return func(*args, **kwargs)
@@ -188,6 +192,7 @@ def getter_vector_output(func):
     """
     func = default_decorator(func)
     @utool.accepts_scalar_input_vector_output
+    @utool.ignores_exc_tb
     @wraps(func)
     def getter_vector_wrp(*args, **kwargs):
         return func(*args, **kwargs)
