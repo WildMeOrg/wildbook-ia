@@ -278,7 +278,7 @@ def up_dbsize_expt(ibs, qaid_list):
     samp_max = ibs.get_num_names()
     #samp_min = 10  # max(samp_max // len(qaid_list), 10)
     samp_min = 2  # max(samp_max // len(qaid_list), 10)
-    sample_sizes = utool.sample_domain(samp_min, samp_max, num_samp)
+    sample_dbsizes = utool.sample_domain(samp_min, samp_max, num_samp)
     # Get list of true and false matches for every query annotation
     qaid_trues_list  = ibs.get_annot_groundtruth(qaid_list, noself=True,
                                                  is_exemplar=True)
@@ -301,7 +301,7 @@ def up_dbsize_expt(ibs, qaid_list):
     # Get a rough idea of how many queries will be run
     nGtPerAid = (nGt if (clamp_gt is None or nGt < clamp_gt) else clamp_gt
                  for nGt in map(len, qaid_trues_list))
-    nTotal = len(sample_sizes) * sum(nGtPerAid)
+    nTotal = len(sample_dbsizes) * sum(nGtPerAid)
     count = 0
     # Create a progress marking function
     progkw = {'nTotal': nTotal, 'flushfreq': 20, 'approx': True}
@@ -309,13 +309,16 @@ def up_dbsize_expt(ibs, qaid_list):
     for qaid, true_aids, false_aids in query_iter:
         # For each set of false matches (of varying sizes)
         true_sample  = utool.random_sample(false_aids, clamp_gt)
-        for dbsize in sample_sizes:
+        np.random.shuffle(false_aids)
+        for dbsize in sample_dbsizes:
             if dbsize > len(false_aids):
-                continue
-            false_sample = utool.random_sample(false_aids, dbsize)
+
+                break
+            false_sample = false_aids[:dbsize]
             # For each true match
             for gt_aid in true_sample:
-                assert len(false_sample) == len(set(ibs.get_annot_nids(false_sample))), 'num false_aids != false_nids'
+                assert len(false_sample) == len(set(ibs.get_annot_nids(false_sample))), \
+                    'num false_aids != false_nids'
                 count += 1
                 mark_(count)
                 # Execute query
