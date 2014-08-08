@@ -93,7 +93,7 @@ def get_dbinfo(ibs):
 
 
 def get_keypoint_stats(ibs):
-    from utool import util_latex as pytex
+    from utool import util_latex
     #from hsdev import dev_consistency
     #dev_consistency.check_keypoint_consistency(ibs)
     # Keypoint stats
@@ -111,9 +111,9 @@ def get_keypoint_stats(ibs):
     np.set_printoptions(precision=3)
     scales = ktool.get_scales(kpts)
     scales = np.array(sorted(scales))
-    tex_scale_stats = pytex.latex_mystats(r'kpt scale', scales)
-    tex_nKpts       = pytex.latex_scalar(r'\# kpts', len(kpts))
-    tex_kpts_stats  = pytex.latex_mystats(r'\# kpts/chip', cx2_nFeats)
+    tex_scale_stats = util_latex.latex_mystats(r'kpt scale', scales)
+    tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
+    tex_kpts_stats  = util_latex.latex_mystats(r'\# kpts/chip', cx2_nFeats)
     print(tex_nKpts)
     print(tex_kpts_stats)
     print(tex_scale_stats)
@@ -134,7 +134,7 @@ def dbstats(ibs):
     num_multiannots = len(dbinfo_locals['multiton_aids'])
     multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
 
-    #tex_nImage = latex_formater.latex_scalar(r'\# images', num_images)
+    #tex_nImage = util_latex.latex_scalar(r'\# images', num_images)
     tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
     tex_nName = util_latex.latex_scalar(r'\# names', num_names)
     tex_nSingleName = util_latex.latex_scalar(r'\# singlenames', num_singlenames)
@@ -168,7 +168,7 @@ def dbstats(ibs):
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):
-    from util import util_latex as latex_formater
+    from utool import util_latex
     print('[dev stats] cache_memory_stats()')
     #kpts_list = ibs.get_annot_kpts(cid_list)
     #desc_list = ibs.get_annot_desc(cid_list)
@@ -195,16 +195,16 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         key2 = key.replace('bytes', convert_to)
         if isinstance(val, list):
             val2 = [bytes_ / byte_units[convert_to] for bytes_ in val]
-            tex_str = latex_formater.latex_mystats(key2, val2)
+            tex_str = util_latex.latex_mystats(key2, val2)
         else:
             val2 = val / byte_units[convert_to]
-            tex_str = latex_formater.latex_scalar(key2, val2)
+            tex_str = util_latex.latex_scalar(key2, val2)
         tabular_body_list.append(tex_str)
 
-    tabular = latex_formater.tabular_join(tabular_body_list)
+    tabular = util_latex.tabular_join(tabular_body_list)
 
     print(tabular)
-    latex_formater.render(tabular)
+    util_latex.render(tabular)
 
     if fnum is None:
         fnum = 0
