@@ -129,13 +129,13 @@ def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     # Get projection components
     _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
     #_det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-    _det1_mt  = ktool.get_invVR_mats_sqrd_scale_cython(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
+    _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     # Check for projection errors
     #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-    xy_err    = ltool.L2_sqrd_cython(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
+    xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
     #scale_err = ltool.det_distance(_det1_mt, det2_m)
-    scale_err = ltool.det_distance_cython(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
+    scale_err = ltool.det_distance(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
     ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = xy_err    < xy_thresh_sqrd

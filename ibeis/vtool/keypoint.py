@@ -37,18 +37,20 @@ np.tau = 2 * np.pi  # tauday.com
 
 
 """
-// These are cython style comments used to maintaining python compatibility
+// These are cython style comments used for maintaining python compatibility
 <CYTH>
 from vtool.keypoint import get_invVR_mats_shape, get_invVR_mats_sqrd_scale, get_invVR_mats_oris
-
-cimport numpy as np
-cimport cython
 
 import numpy as np
 import cython
 
+cimport numpy as np
+cimport cython
+
 ctypedef np.float32_t float32_t
 ctypedef np.float64_t float64_t
+
+cdef float64_t tau = np.pi * 2
 </CYTH>
 """
 
@@ -258,27 +260,26 @@ def transform_kpts(kpts, M):
 
 @profile
 def get_invVR_mats_sqrd_scale(invVR_mats):
-    """ Returns the squared scale of the invVR keyponts 
+    """ Returns the squared scale of the invVR keyponts
 
     >>> from vtool.keypoint import *
     >>> np.random.seed(0)
-    >>> invVRs = np.random.rand(4, 3, 3).astype(np.float64)
-    >>> get_invVR_mats_sqrd_scale(invVRs)
+    >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+    >>> get_invVR_mats_sqrd_scale(invVR_mats)
     array([-0.15718718, -0.09482292, -0.33617438,  0.5933366 ])
-
- 
 
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def _get_invVR_mats_sqrd_scale_cyth(np.ndarray[float64_t, ndim=3] invVRs):
-        cdef unsigned int nMats = invVRs.shape[0]
+    cpdef _get_invVR_mats_sqrd_scale_cyth(np.ndarray[float64_t, ndim=3] invVR_mats):
+        cdef unsigned int nMats = invVR_mats.shape[0]
         # Prealloc output
         cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
         cdef size_t ix
         for ix in range(nMats):
             # simple determinant: ad - bc
-            out[ix] = (invVRs[ix, 0, 0] * invVRs[ix, 1, 1]) - (invVRs[ix, 0, 1] * invVRs[ix, 1, 0])
+            out[ix] = ((invVR_mats[ix, 0, 0] * invVR_mats[ix, 1, 1]) -
+                       (invVR_mats[ix, 0, 1] * invVR_mats[ix, 1, 0]))
         return out
     </CYTH>
 
@@ -288,7 +289,21 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
 
 @profile
 def get_invVR_mats_shape(invVR_mats):
-    """ Extracts keypoint shape components """
+    """ Extracts keypoint shape components
+
+    >>> from vtool.keypoint import *
+    >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+    >>> get_invVR_mats_shape(invVR_mats)
+
+    <CYTH>
+    cdef:
+        np.ndarray[float64_t, ndim=3] invVR_mats
+        np.ndarray[float64_t, ndim=1] _iv11s
+        np.ndarray[float64_t, ndim=1] _iv12s
+        np.ndarray[float64_t, ndim=1] _iv21s
+        np.ndarray[float64_t, ndim=1] _iv22s
+    </CYTH>
+    """
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     _iv21s = invVR_mats[:, 1, 0]
@@ -305,12 +320,35 @@ def get_invVR_mats_xys(invVR_mats):
 
 @profile
 def get_invVR_mats_oris(invVR_mats):
-    """ extracts orientation from matrix encoding """
+    """ extracts orientation from matrix encoding
+
+    >>> from vtool.keypoint import *
+    >>> np.random.seed(0)
+    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)  #doctest: +ELLIPSIS
+    >>> _oris = get_invVR_mats_oris(invVR_mats)
+
+    <CYTH:REPLACE>
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef np.ndarray[float64_t, ndim=1] _get_invVR_mats_oris_cyth(np.ndarray[float64_t, ndim=3] invVR_mats):
+        cdef:
+            np.ndarray[float64_t, ndim=1] _oris
+            np.ndarray[float64_t, ndim=1] _iv12s
+            np.ndarray[float64_t, ndim=1] _iv11s
+        _iv11s = invVR_mats[:, 0, 0]
+        _iv12s = invVR_mats[:, 0, 1]
+        # Solve for orientations. Adjust gravity vector pointing down
+        _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -tau/2 to tau/2
+        _oris[_oris < 0] = _oris[_oris < 0] + tau  # map to 0 to tau (keep coords)
+        _oris = (-_oris) % tau
+        return _oris
+    </CYTH>
+    """
     # Extract only the needed shape components
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     # Solve for orientations. Adjust gravity vector pointing down
-    _oris = (-trig.atan2(_iv12s, _iv11s)) % np.tau
+    _oris = (-trig.atan2(_iv12s, _iv11s)) % tau
     return _oris
 
 
@@ -319,13 +357,19 @@ def rectify_invV_mats_are_up(invVR_mats):
     """
     Useful if invVR_mats is no longer lower triangular
     rotates affine shape matrixes into downward (lower triangular) position
-    """
-    """
+
+    >>> from vtool.keypoint import *
+    >>> np.random.seed(0)
+    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)  #doctest: +ELLIPSIS
+    >>> invVR_mats_ = rectify_invV_mats_are_up(invVR_mats)
+    [[[ 0.5488135   0.71518937]
+      [ 0.60276338  0.54488318]]...
+
     <CYTH>
     # TODO: Template this for [float64_t, float32_t]
     cdef:
-        np.ndarray[float64_t, ndim=2] invVR_mats
-        np.ndarray[float64_t, ndim=2] invV_mats
+        np.ndarray[float64_t, ndim=3] invVR_mats
+        np.ndarray[float64_t, ndim=3] invV_mats
         np.ndarray[float64_t, ndim=1] _oris
         np.ndarray[float64_t, ndim=1] _a
         np.ndarray[float64_t, ndim=1] _b
@@ -508,10 +552,10 @@ def get_kpts_strs(kpts):
 
 
 # CYTH PROTOTYPE CODE:
-import cyth
-cythonized_funcs = cyth.import_cyth(__name__)
-execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
-exec(execstr)
+#import cyth
+#cythonized_funcs = cyth.import_cyth(__name__)
+#execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
+#exec(execstr)
 #
 # def module_execstr(module_name):
 #     module = sys.modules[module_name]
@@ -529,4 +573,3 @@ exec(execstr)
 ##    # default to python
 ##    get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
 ##    pass
-
