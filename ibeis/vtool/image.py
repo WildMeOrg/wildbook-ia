@@ -1,7 +1,6 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 # Python
-import six
 from os.path import exists, join
 from six.moves import zip, map
 # Science
@@ -9,6 +8,8 @@ import cv2
 import numpy as np
 from PIL import Image
 import utool
+from . import linalg
+from . import geometry
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[img]', DEBUG=False)
 
@@ -37,18 +38,21 @@ def dummy_img(w, h):
     return img
 
 
+IMREAD_COLOR = cv2.IMREAD_COLOR if cv2.__version__[0] == '3' else cv2.CV_LOAD_IMAGE_COLOR
+
+
 def imread(img_fpath, delete_if_corrupted=False):
-    # opencv always reads in BGR mode (fastest load time)
-    if six.PY2:
-        flags = cv2.CV_LOAD_IMAGE_COLOR
-    else:
-        flags = cv2.IMREAD_COLOR
-    imgBGR = cv2.imread(img_fpath, flags=flags)
+    try:
+        # opencv always reads in BGR mode (fastest load time)
+        imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
+    except Exception as ex:
+        utool.printex(ex, iswarning=True)
+        imgBGR = None
     if imgBGR is None:
         if not exists(img_fpath):
-            raise IOError('cannot read img_fpath=%r does not exist' % img_fpath)
+            raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
         else:
-            msg = 'cannot read img_fpath=%r seems corrupted.' % img_fpath
+            msg = 'cannot read img_fpath=%s seems corrupted.' % img_fpath
             print('[gtool] ' + msg)
             if delete_if_corrupted:
                 print('[gtool] deleting corrupted image')
@@ -62,7 +66,7 @@ def imwrite(img_fpath, imgBGR):
         cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:
         print('[gtool] Caught Exception: %r' % ex)
-        print('[gtool] ERROR reading: %r' % (img_fpath,))
+        print('[gtool] ERROR reading: %s' % (img_fpath,))
         raise
 
 
@@ -197,16 +201,46 @@ def resize(img, dsize):
     return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
 
 
+def resized_dims_and_ratio(img_size, max_dsize):
+    max_width, max_height = max_dsize
+    width, height = img_size
+    ratio = min(max_width / width, max_height / height)
+    dsize = (int(round(width * ratio)), int(round(height * ratio)))
+    return dsize, ratio
+
+
+def resized_clamped_thumb_dims(img_size, max_dsize):
+    dsize_, ratio = resized_dims_and_ratio(img_size, max_dsize)
+    dsize = img_size if ratio > 1 else dsize_
+    sx = dsize[0] / img_size[0]
+    sy = dsize[1] / img_size[1]
+    return dsize, sx, sy
+
+
 def resize_thumb(img, max_dsize=(64, 64)):
     """ Resize an image such that its max width or height is: """
-    max_width, max_height = max_dsize
     height, width = img.shape[0:2]
-    ratio = min(max_width / width, max_height / height)
+    img_size = (width, height)
+    dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
     if ratio > 1:
         return cvt_BGR2RGB(img)
     else:
-        dsize = (int(round(width * ratio)), int(round(height * ratio)))
         return resize(img, dsize)
+
+
+def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
+    # TODO: input verts support and better name
+    for bbox, theta in zip(bbox_list, theta_list):
+        # Transformation matrixes
+        R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+        S = linalg.scale_mat3x3(sx, sy)
+        # Get verticies of the annotation polygon
+        verts = geometry.verts_from_bbox(bbox, close=True)
+        # Rotate and transform to thumbnail space
+        xyz_pts = geometry.homogonize(np.array(verts).T)
+        trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
+        yield new_verts
 
 
 def _trimread(gpath):
@@ -321,6 +355,7 @@ def resize_imagelist_generator(gpath_list, new_gpath_list, newsize_list, **kwarg
 
 def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
                                  sqrt_area=800, output_dir=None,
+                                 checkexists=True,
                                  **kwargs):
     """ Resizes images and yeilds results asynchronously  """
     from .chip import get_scaled_sizes_with_area
@@ -342,15 +377,18 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
     assert len(newsize_list) == len(gpath_list), 'unequal len'
     # Evaluate generator
-    #if checkexists:
-    #    exists_list = list(map(exists, new_gpath_list))
-    #    gpath_list_ = utool.filterfalse_items(gpath_list, exists_list)
-    #    new_gpath_list_ = utool.filterfalse_items(new_gpath_list, exists_list)
-    #    newsize_list_ = utool.filterfalse_items(newsize_list, exists_list)
-    #else:
-    gpath_list_ = gpath_list
-    new_gpath_list_ = new_gpath_list
-    newsize_list_ = newsize_list
+    if checkexists:
+        exists_list = list(map(exists, new_gpath_list))
+        gpath_list_ = utool.filterfalse_items(gpath_list, exists_list)
+        new_gpath_list_ = utool.filterfalse_items(new_gpath_list, exists_list)
+        newsize_list_ = utool.filterfalse_items(newsize_list, exists_list)
+    else:
+        gpath_list_ = gpath_list
+        new_gpath_list_ = new_gpath_list
+        newsize_list_ = newsize_list
     generator = resize_imagelist_generator(gpath_list_, new_gpath_list_,
                                            newsize_list_, **kwargs)
-    return [res for res in generator]
+    for res in generator:
+        pass
+    #return [res for res in generator]
+    return new_gpath_list
