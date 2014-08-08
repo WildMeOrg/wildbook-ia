@@ -258,12 +258,20 @@ def transform_kpts(kpts, M):
 
 @profile
 def get_invVR_mats_sqrd_scale(invVR_mats):
-    """ Returns the squared scale of the invVR keyponts """
-    '''
+    """ Returns the squared scale of the invVR keyponts 
+
+    >>> from vtool.keypoint import *
+    >>> np.random.seed(0)
+    >>> invVRs = np.random.rand(4, 3, 3).astype(np.float64)
+    >>> get_invVR_mats_sqrd_scale(invVRs)
+    array([-0.15718718, -0.09482292, -0.33617438,  0.5933366 ])
+
+ 
+
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def get_invVR_mats_sqrd_scale_float64(np.ndarray[float64_t, ndim=3] invVRs):
+    def _get_invVR_mats_sqrd_scale_cyth(np.ndarray[float64_t, ndim=3] invVRs):
         cdef unsigned int nMats = invVRs.shape[0]
         # Prealloc output
         cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
@@ -273,7 +281,8 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
             out[ix] = (invVRs[ix, 0, 0] * invVRs[ix, 1, 1]) - (invVRs[ix, 0, 1] * invVRs[ix, 1, 0])
         return out
     </CYTH>
-    '''
+
+    """
     return npl.det(invVR_mats[:, 0:2, 0:2])
 
 
@@ -499,22 +508,25 @@ def get_kpts_strs(kpts):
 
 
 # CYTH PROTOTYPE CODE:
-#import cyth
-#exec(cyth.module_execstr(__name__))
+import cyth
+cythonized_funcs = cyth.import_cyth(__name__)
+execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
+exec(execstr)
 #
 # def module_execstr(module_name):
 #     module = sys.modules[module_name]
 #     __import__
 #     module.__dict__['func_cyth'] = func_cyth
-try:
-    # TODO Give cyth this functionality
-    #if not utool.get_flag('--nocyth'):
-    if utool.get_flag('--cyth'):
-        from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
-        get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
-    else:
-        raise ImportError('no cyth')
-except ImportError as ex:
-    # default to python
-    get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
-    pass
+##try:
+##    # TODO Give cyth this functionality
+##    #if not utool.get_flag('--nocyth'):
+##    if utool.get_flag('--cyth'):
+##        from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
+##        get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
+##    else:
+##        raise ImportError('no cyth')
+##except ImportError as ex:
+##    # default to python
+##    get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
+##    pass
+

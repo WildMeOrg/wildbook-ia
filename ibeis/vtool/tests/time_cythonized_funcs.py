@@ -36,12 +36,12 @@ def _run_benchmark(setup_, func_list, argstr, number=1000):
 
 
 def test_L2_sqrd():
-    hist1 = np.random.rand(4, 2).astype(np.float32)
-    hist2 = np.random.rand(4, 2).astype(np.float32)
+    hist1 = np.random.rand(4, 2).astype(np.float64)
+    hist2 = np.random.rand(4, 2).astype(np.float64)
 
     target = ((hist1 - hist2) ** 2).sum(-1)
     dist1 = vtool.linalg.L2_sqrd(hist1, hist2)
-    dist2 = vtool.linalg.L2_sqrd_float32(hist1, hist2)
+    dist2 = vtool.linalg.L2_sqrd_cython(hist1, hist2)
 
     print('target = %r' % (target,))
     print('dist1 = %r' % (dist1,))
@@ -56,7 +56,7 @@ def test_invVR_sqrd_scale():
     invVRs = np.random.rand(4, 3, 3).astype(np.float64)
 
     out1 = ktool.get_invVR_mats_sqrd_scale(invVRs)
-    out2 = ktool.get_invVR_mats_sqrd_scale_float64(invVRs)
+    out2 = ktool.get_invVR_mats_sqrd_scale_cython(invVRs)
 
     print('out1 = %r' % (out1,))
     print('out2 = %r' % (out2,))
@@ -70,7 +70,7 @@ def test_det_dist():
     det2 = np.random.rand(100).astype(np.float64)
 
     out1 = linalg.det_distance(det1, det2)
-    out2 = linalg.det_distance_float64(det1, det2)
+    out2 = linalg.det_distance_cython(det1, det2)
 
     print('out1 = %r' % (out1,))
     print('out2 = %r' % (out2,))
@@ -87,7 +87,7 @@ def benchmark_det_dist():
         ''')
     func_list = [
         'vtool.linalg.det_distance',
-        'vtool.linalg.det_distance_float64',
+        'vtool.linalg.det_distance_cython',
     ]
     argstr = '(det1, det2)'
     return _run_benchmark(setup, func_list, argstr)
@@ -103,7 +103,7 @@ def benchmark_invVR_sqrd_scale():
         ''')
     func_list = [
         'vtool.keypoint.get_invVR_mats_sqrd_scale',
-        'vtool.keypoint.get_invVR_mats_sqrd_scale_float64',
+        'vtool.keypoint.get_invVR_mats_sqrd_scale_cython',
     ]
     argstr = '(invVRs)'
     return _run_benchmark(setup, func_list, argstr)
@@ -112,12 +112,12 @@ def benchmark_invVR_sqrd_scale():
 def benchmark_L2_dist():
     setup = utool.unindent(
         '''
-        hist1 = np.random.rand(100, 128).astype(np.float32)
-        hist2 = np.random.rand(100, 128).astype(np.float32)
+        hist1 = np.random.rand(100, 128).astype(np.float64)
+        hist2 = np.random.rand(100, 128).astype(np.float64)
         ''')
     func_list = [
         'vtool.linalg.L2_sqrd',
-        'vtool.linalg.L2_sqrd_float32',
+        'vtool.linalg.L2_sqrd_cython',
     ]
     argstr = '(hist1, hist2)'
     return _run_benchmark(setup, func_list, argstr)
