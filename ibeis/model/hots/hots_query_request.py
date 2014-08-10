@@ -24,6 +24,7 @@ class QueryRequest(__REQUEST_BASE__):
         qreq.qresdir = qresdir  # Where to cache individual results
         qreq.bigcachedir = bigcachedir  # Where to cache large results
         qreq._frozen_cfgstr = None  # hack
+        qreq.cache_limit = 2  # hack
 
     #def __del__(qreq):
     #    for key in qreq.dftup2_index.keys():

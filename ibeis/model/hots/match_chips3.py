@@ -86,6 +86,10 @@ def pre_exec_checks(ibs, qreq):
         daids = qreq.get_internal_daids()
         # Compute the FLANN Index
         data_index = hots_nn_index.HOTSIndex(ibs, daids)
+        # Release all memory if over the limit
+        # This is a hack and not the best way to do this.
+        if len(qreq.dftup2_index) > qreq.cache_limit:
+            qreq.dftup2_index = {}
         qreq.dftup2_index[dftup_hashid] = data_index
     qreq.data_index = qreq.dftup2_index[dftup_hashid]
     return qreq
