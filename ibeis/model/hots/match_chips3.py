@@ -89,6 +89,8 @@ def pre_exec_checks(ibs, qreq):
         # Release all memory if over the limit
         # This is a hack and not the best way to do this.
         if len(qreq.dftup2_index) > qreq.cache_limit:
+            if utool.NOT_QUIET:
+                print('[mc3] Clearing NNIndex Cache')
             qreq.dftup2_index = {}
         qreq.dftup2_index[dftup_hashid] = data_index
     qreq.data_index = qreq.dftup2_index[dftup_hashid]
