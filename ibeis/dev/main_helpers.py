@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
-from ibeis.dev import params
+from ibeis import params
 from ibeis import ibsfuncs
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(

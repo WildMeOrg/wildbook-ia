@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 import sys
 from ibeis import constants
-from ibeis.dev import params
+from ibeis import params
 from ibeis import ibsfuncs
 from ibeis.dev import sysres
 from os.path import join

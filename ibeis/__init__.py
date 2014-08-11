@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from . import constants
 from . import main_module
-from .dev import params
+from . import params
 from .dev import sysres
 from .main_module import main, _preload, main_loop, test_main, opendb
 from .control.IBEISControl import IBEISController
@@ -38,6 +38,7 @@ def reload_subs():
     getattr(constants, 'rrr', lambda: None)()
     getattr(ibsfuncs, 'rrr', lambda: None)()
     getattr(main_module, 'rrr', lambda: None)()
+    #getattr(params, 'rrr', lambda: None)()
     #getattr(control, 'reload_subs', lambda: None)()
     getattr(dev, 'reload_subs', lambda: None)()
     getattr(export, 'reload_subs', lambda: None)()

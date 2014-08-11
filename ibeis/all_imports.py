@@ -112,7 +112,7 @@ from plottool import fig_presenter
 
 # IBEIS DEV
 from ibeis.dev import main_commands
-from ibeis.dev import params
+from ibeis import params
 from ibeis.dev import dbinfo
 from ibeis.dev import sysres
 from ibeis import ibsfuncs

@@ -8,7 +8,7 @@ from os.path import exists, join, realpath
 import utool
 from utool import util_cache, util_list, util_cplat
 from ibeis import constants
-from ibeis.dev import params
+from ibeis import params
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(

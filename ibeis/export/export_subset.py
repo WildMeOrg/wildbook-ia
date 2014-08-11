@@ -16,7 +16,7 @@ def get_annot_transfer_data(ibs, _aid_list):
         'annot_notes_list'         : ibs.get_annot_notes(_aid_list),
         'annot_thetas_list'        : ibs.get_annot_thetas(_aid_list),
         'annot_exemplar_flag_list' : ibs.get_annot_exemplar_flag(_aid_list),
-    }
+    }, _annot_gid_list
 
 
 def get_image_transfer_data(ibs, _gid_list):
@@ -61,12 +61,12 @@ def collect_transfer_data(ibs_src, gid_list1=None, aid_list1=None):
     >>> transfer_data(ibs_src, ibs_dst, gid_list1=gid_list1, aid_list1=aid_list1)
     """
     ibs1 = ibs_src
-    if aid_list1 is None:
-        aid_list1 = ibs1.get_valid_aids()
     if gid_list1 is None:
         gid_list1 = ibs1.get_valid_gids()
 
     #Annotations
+    if aid_list1 is None:
+        aid_list1 = ibs1.get_valid_aids()
 
     _lblannot_rowid_list1 = ibs1._get_all_lblannot_rowids()
     _lblannot_lbltype_rowid_list1 = ibs1.get_lblannot_lbltypes_rowids(_lblannot_rowid_list1)

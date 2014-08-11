@@ -12,7 +12,6 @@ __LOADED__ = False
 def import_subs():
     global __LOADED__
     from . import dbinfo
-    from . import params
     from . import main_commands
     from . import main_helpers
     from . import experiment_configs
@@ -26,7 +25,6 @@ def reload_subs():
         import_subs()
     import_subs()
     dbinfo.rrr()
-    #params.rrr()
     main_commands.rrr()
     main_helpers.rrr()
     experiment_configs.rrr()

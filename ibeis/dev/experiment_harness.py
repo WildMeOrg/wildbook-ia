@@ -9,7 +9,7 @@ import utool
 # IBEIS
 from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import matching_functions as mf
-from ibeis.dev import params
+from ibeis import params
 from ibeis.dev import experiment_helpers as eh
 from ibeis.dev import experiment_printres
 

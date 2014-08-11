@@ -34,7 +34,7 @@ def _reset_signals():
 
 
 def _parse_args():
-    from ibeis.dev import params
+    from ibeis import params
     params.parse_args()
 
 
@@ -129,7 +129,7 @@ def __import_parallel_modules():
 
 def _init_parallel():
     from utool import util_parallel
-    from ibeis.dev import params
+    from ibeis import params
     __import_parallel_modules()
     util_parallel.set_num_procs(params.args.num_procs)
     if PREINIT_MULTIPROCESSING_POOLS:
@@ -171,7 +171,7 @@ def _init_numpy():
 def _guitool_loop(main_locals, ipy=False):
     import guitool
     import utool
-    from ibeis.dev import params
+    from ibeis import params
     print('[main] guitool loop')
     back = main_locals.get('back', None)
     if back is not None:
@@ -260,7 +260,7 @@ def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool
     #from ibeis.dev import main_helpers
-    from ibeis.dev import params
+    from ibeis import params
     if  multiprocessing.current_process().name != 'MainProcess':
         return
     #_parse_args()
@@ -292,7 +292,7 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     If rungui is False the gui will not loop even if back has been created
     """
     print('[main] ibeis.main_module.main_loop()')
-    from ibeis.dev import params
+    from ibeis import params
     import utool
     #print('current process = %r' % (multiprocessing.current_process().name,))
     #== 'MainProcess':
