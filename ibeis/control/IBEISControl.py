@@ -378,8 +378,18 @@ class IBEISController(object):
     def _get_all_known_lblannot_rowids(ibs, _lbltype):
         """ Returns all nids of known animals
             (does not include unknown names) """
-        all_known_nids = ibs.db.get_all_rowids_where(LBLANNOT_TABLE, 'lbltype_rowid=?', (ibs.lbltype_ids[_lbltype],))
-        return all_known_nids
+        all_known_lblannot_rowids = ibs.db.get_all_rowids_where(LBLANNOT_TABLE, 'lbltype_rowid=?', (ibs.lbltype_ids[_lbltype],))
+        return all_known_lblannot_rowids
+
+    @ider
+    def _get_all_lblannot_rowids(ibs):
+        all_lblannot_rowids = ibs.db.get_all_rowids(LBLANNOT_TABLE)
+        return all_lblannot_rowids
+
+    @ider
+    def _get_all_alr_rowids(ibs):
+        all_alr_rowids = ibs.db.get_all_rowids(AL_RELATION_TABLE)
+        return all_alr_rowids
 
     @ider
     def _get_all_known_nids(ibs):
@@ -508,6 +518,44 @@ class IBEISController(object):
             # Move to ibeis database local cache
             ibs.localize_images(gid_list)
         return gid_list
+
+    @adder
+    def _internal_add_annots(ibs, img_uuid_list, annot_uuid_list=None, theta_list=None,
+                             notes_list=None, vert_list=None):
+        """ Adds oriented ANNOTATION bounding boxes to images """
+        if utool.VERBOSE:
+            print('[ibs] adding annotations')
+        # Prepare the SQL input
+        # xor bbox or vert is None
+        gid_list = ibs.get_image_gids_from_uuid(img_uuid_list)
+        bbox_list = geometry.bboxes_from_vert_list(vert_list, castint=True)
+        if len(gid_list) == 0:
+            # nothing is being added
+            print('[ibs] WARNING: 0 annotations are beign added!')
+            print(utool.dict_str(locals()))
+            return []
+
+        nVert_list = [len(verts) for verts in vert_list]
+        vertstr_list = [__STR__(verts) for verts in vert_list]
+        xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
+        assert len(nVert_list) == len(vertstr_list)
+        # Define arguments to insert
+        colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
+                    'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
+                    'annot_verts', 'annot_note',)
+
+        params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
+                                width_list, height_list, theta_list, nVert_list,
+                                vertstr_list, notes_list))
+        #utool.embed()
+
+        # Execute add ANNOTATIONs SQL
+        get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
+        aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
+
+        # Invalidate image thumbnails
+        ibs.delete_image_thumbs(gid_list)
+        return aid_list
 
     @adder
     def add_images(ibs, gpath_list, as_annots=False):
@@ -1909,6 +1957,12 @@ class IBEISController(object):
         lblannot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('lblannot_rowid',), alrid_list)
         return lblannot_rowids_list
 
+    @getter_1to1
+    def get_alr_annot_rowids(ibs, alrid_list):
+        """ get the annot_rowid belonging to each relationship """
+        annot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('annot_rowid',), alrid_list)
+        return annot_rowids_list
+
     # ADDERS::IMAGE->ENCOUNTER
 
     @adder
@@ -2264,6 +2318,16 @@ class IBEISController(object):
         lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')
         return lbltype_rowid
 
+    @getter_1to1
+    def get_lbltype_default(ibs, lbltype_rowid_list):
+        lbltype_default_list = ibs.db.get(LBLTYPE_TABLE, ('lbltype_default',), lbltype_rowid_list)
+        return lbltype_default_list
+
+    @getter_1to1
+    def get_lbltype_text(ibs, lbltype_rowid_list):
+        lbltype_text_list = ibs.db.get(LBLTYPE_TABLE, ('lbltype_text',), lbltype_rowid_list)
+        return lbltype_text_list
+
     #
     # GETTERS::LBLANNOT_TABLE
 
@@ -2296,7 +2360,8 @@ class IBEISController(object):
     @getter_1to1
     def get_lblannot_values(ibs, lblannot_rowid_list, _lbltype=None):
         """ Returns text lblannots """
-        ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])
+        #TODO: Remove keyword argument
+        #ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])
         lblannot_value_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
         return lblannot_value_list
 
