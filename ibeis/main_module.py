@@ -3,7 +3,7 @@ from six.moves import builtins
 import sys
 import multiprocessing
 
-__PREINIT_MULTIPROCESSING_POOLS__ = '--preinit' in sys.argv
+PREINIT_MULTIPROCESSING_POOLS = '--preinit' in sys.argv
 QUIET = '--quiet' in sys.argv
 USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
@@ -132,7 +132,7 @@ def _init_parallel():
     from ibeis.dev import params
     __import_parallel_modules()
     util_parallel.set_num_procs(params.args.num_procs)
-    if __PREINIT_MULTIPROCESSING_POOLS__:
+    if PREINIT_MULTIPROCESSING_POOLS:
         util_parallel.init_pool(params.args.num_procs)
 
 
