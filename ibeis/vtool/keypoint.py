@@ -24,6 +24,8 @@ import numpy as np
 import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
 from numpy import (array, rollaxis, sqrt, zeros, ones, diag)
+# Cyth
+import cyth
 # VTool
 from vtool import linalg as ltool
 from vtool import chip as ctool
@@ -258,6 +260,7 @@ def transform_kpts(kpts, M):
 #---------------------
 
 
+@cyth.register
 @profile
 def get_invVR_mats_sqrd_scale(invVR_mats):
     """ Returns the squared scale of the invVR keyponts
@@ -287,6 +290,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     return npl.det(invVR_mats[:, 0:2, 0:2])
 
 
+@cyth.register
 @profile
 def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components
@@ -318,6 +322,7 @@ def get_invVR_mats_xys(invVR_mats):
     return _xys
 
 
+@cyth.register
 @profile
 def get_invVR_mats_oris(invVR_mats):
     """ extracts orientation from matrix encoding
@@ -352,6 +357,7 @@ def get_invVR_mats_oris(invVR_mats):
     return _oris
 
 
+@cyth.register
 @profile
 def rectify_invV_mats_are_up(invVR_mats):
     """
