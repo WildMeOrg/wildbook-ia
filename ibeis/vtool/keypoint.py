@@ -47,12 +47,30 @@ import cython
 cimport numpy as np
 cimport cython
 
-ctypedef np.float32_t float32_t
-ctypedef np.float64_t float64_t
+#ctypedef fused numpy_floatarray_3dimension:
+#    np.ndarray[np.float32_t, ndim=3]
+#    np.ndarray[np.float64_t, ndim=3]
+#
+#ctypedef fused numpy_floatarray_1dimension:
+#    np.ndarray[np.float32_t, ndim=1]
+#    np.ndarray[np.float64_t, ndim=1]
 
-cdef float64_t tau = np.pi * 2
+#def foo(x):
+#    ctypedef np.ndarray[np.float64_t, ndim=3] numpy_floatarray_3dimension
+#    ctypedef np.ndarray[np.float64_t, ndim=1] numpy_floatarray_1dimension
+#    return x
+
+#ctypedef np.ndarray[np.float64_t, ndim=3] numpy_floatarray_3dimension
+#ctypedef np.ndarray[np.float64_t, ndim=1] numpy_floatarray_1dimension
+
+#ctypedef np.float64_t [:, :, :] numpy_floatarray_3dimension
+#ctypedef np.float64_t [:] numpy_floatarray_1dimension
+
+cdef np.float64_t tau = np.pi * 2
 </CYTH>
 """
+#:%s/numpy_floatarray_\([13]\)dimension/np.ndarray[np.float64_t, ndim=\1]/gc
+#:%s/np.ndarray\[np.float64_t, ndim=\([13]\)\]/numpy_floatarray_\1dimension/gc
 
 tau = np.tau = np.pi * 2  # tauday.com
 GRAVITY_THETA = np.tau / 4
@@ -271,10 +289,10 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _get_invVR_mats_sqrd_scale_cyth(np.ndarray[float64_t, ndim=3] invVR_mats):
+    cpdef _get_invVR_mats_sqrd_scale_cyth(np.ndarray[np.float64_t, ndim=3] invVR_mats):
         cdef unsigned int nMats = invVR_mats.shape[0]
         # Prealloc output
-        cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
+        cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
         cdef size_t ix
         for ix in range(nMats):
             # simple determinant: ad - bc
@@ -295,13 +313,13 @@ def get_invVR_mats_shape(invVR_mats):
     >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
     >>> get_invVR_mats_shape(invVR_mats)
 
-    <CYTH>
+    <CYTH return="tuple">
     cdef:
-        np.ndarray[float64_t, ndim=3] invVR_mats
-        np.ndarray[float64_t, ndim=1] _iv11s
-        np.ndarray[float64_t, ndim=1] _iv12s
-        np.ndarray[float64_t, ndim=1] _iv21s
-        np.ndarray[float64_t, ndim=1] _iv22s
+        np.ndarray[np.float64_t, ndim=3] invVR_mats
+        np.ndarray[np.float64_t, ndim=1] _iv11s
+        np.ndarray[np.float64_t, ndim=1] _iv12s
+        np.ndarray[np.float64_t, ndim=1] _iv21s
+        np.ndarray[np.float64_t, ndim=1] _iv22s
     </CYTH>
     """
     _iv11s = invVR_mats[:, 0, 0]
@@ -313,7 +331,13 @@ def get_invVR_mats_shape(invVR_mats):
 
 @profile
 def get_invVR_mats_xys(invVR_mats):
-    """ extracts xys from matrix encoding """
+    """ extracts xys from matrix encoding 
+    <CYTH>
+        cdef:
+            np.ndarray[np.float64_t, ndim=3] invVR_mats
+            np.ndarray[np.float64_t, ndim=2] _xys
+    </CYTH>
+    """
     _xys = invVR_mats[:, 0:2, 2].T
     return _xys
 
@@ -330,11 +354,11 @@ def get_invVR_mats_oris(invVR_mats):
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef np.ndarray[float64_t, ndim=1] _get_invVR_mats_oris_cyth(np.ndarray[float64_t, ndim=3] invVR_mats):
+    cpdef np.ndarray[np.float64_t, ndim=1] _get_invVR_mats_oris_cyth(np.ndarray[np.float64_t, ndim=3] invVR_mats):
         cdef:
-            np.ndarray[float64_t, ndim=1] _oris
-            np.ndarray[float64_t, ndim=1] _iv12s
-            np.ndarray[float64_t, ndim=1] _iv11s
+            np.ndarray[np.float64_t, ndim=1] _oris
+            np.ndarray[np.float64_t, ndim=1] _iv12s
+            np.ndarray[np.float64_t, ndim=1] _iv11s
         _iv11s = invVR_mats[:, 0, 0]
         _iv12s = invVR_mats[:, 0, 1]
         # Solve for orientations. Adjust gravity vector pointing down
@@ -368,18 +392,18 @@ def rectify_invV_mats_are_up(invVR_mats):
     <CYTH>
     # TODO: Template this for [float64_t, float32_t]
     cdef:
-        np.ndarray[float64_t, ndim=3] invVR_mats
-        np.ndarray[float64_t, ndim=3] invV_mats
-        np.ndarray[float64_t, ndim=1] _oris
-        np.ndarray[float64_t, ndim=1] _a
-        np.ndarray[float64_t, ndim=1] _b
-        np.ndarray[float64_t, ndim=1] _c
-        np.ndarray[float64_t, ndim=1] _d
-        np.ndarray[float64_t, ndim=1] det_
-        np.ndarray[float64_t, ndim=1] b2a2
-        np.ndarray[float64_t, ndim=1] iv11
-        np.ndarray[float64_t, ndim=1] iv21
-        np.ndarray[float64_t, ndim=1] iv22
+        np.ndarray[np.float64_t, ndim=3] invVR_mats
+        np.ndarray[np.float64_t, ndim=3] invV_mats
+        np.ndarray[np.float64_t, ndim=1] _oris
+        np.ndarray[np.float64_t, ndim=1] _a
+        np.ndarray[np.float64_t, ndim=1] _b
+        np.ndarray[np.float64_t, ndim=1] _c
+        np.ndarray[np.float64_t, ndim=1] _d
+        np.ndarray[np.float64_t, ndim=1] det_
+        np.ndarray[np.float64_t, ndim=1] b2a2
+        np.ndarray[np.float64_t, ndim=1] iv11
+        np.ndarray[np.float64_t, ndim=1] iv21
+        np.ndarray[np.float64_t, ndim=1] iv22
     </CYTH>
     """
     # Get orientation encoded in the matrix
@@ -552,10 +576,12 @@ def get_kpts_strs(kpts):
 
 
 # CYTH PROTOTYPE CODE:
-#import cyth
-#cythonized_funcs = cyth.import_cyth(__name__)
-#execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
-#exec(execstr)
+USE_CYTH = True
+if USE_CYTH:
+    import cyth
+    cythonized_funcs = cyth.import_cyth(__name__)
+    execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
+    exec(execstr)
 #
 # def module_execstr(module_name):
 #     module = sys.modules[module_name]

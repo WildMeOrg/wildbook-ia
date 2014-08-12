@@ -163,7 +163,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         H = inv(Aj).dot(Ai)
         The input invVs = perdoch.invA's
 
-    <CYTH: returns=tuple>
+    <CYTH returns=tuple>
     cdef:
         np.ndarray[float64_t, ndims=2] invVR1s_m
         np.ndarray[float64_t, ndims=2] V1s_m
@@ -194,7 +194,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
     # The previous versions of this function were all roughly comparable.
     # The for loop one was the slowest. I'm deciding to go with the one
     # where there is no internal function definition. It was moderately faster,
-    # but it gives us access to profile that function
+    # and it gives us access to profile that function
     inliers_and_errors_list = [_test_hypothosis_inliers(Aff, invVR1s_m, xy2_m,
                                                         det2_m, ori2_m,
                                                         xy_thresh_sqrd,
