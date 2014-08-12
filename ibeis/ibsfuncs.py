@@ -872,6 +872,12 @@ def print_stats(ibs):
 
 
 @__injectable
+def print_dbinfo(ibs):
+    from ibeis.dev import dbinfo
+    dbinfo.get_dbinfo(ibs)
+
+
+@__injectable
 def get_infostr(ibs):
     """ Returns printable database information """
     dbname = ibs.get_dbname()

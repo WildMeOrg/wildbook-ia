@@ -385,7 +385,6 @@ class SQLDatabaseController(object):
         db.table_coltypes[tablename]    = coltype_list
         db.table_constraints[tablename] = table_constraints
 
-
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERYVERBOSE):
         with SQLExecutionContext(db, operation, num_params=1) as context:
