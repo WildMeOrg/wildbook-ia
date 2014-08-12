@@ -1,7 +1,7 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 # Python
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, namedtuple
 from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath, isabs, commonprefix, basename)
 from itertools import chain, cycle

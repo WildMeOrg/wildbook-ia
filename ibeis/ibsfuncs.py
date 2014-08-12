@@ -481,7 +481,7 @@ def _make_unflat_getter_func(flat_getter):
 
 def delete_ibeis_database(dbdir):
     _ibsdb = join(dbdir, constants.PATH_NAMES._ibsdb)
-    print('Deleting _ibsdb=%r' % _ibsdb)
+    print('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
     if exists(_ibsdb):
         utool.delete(_ibsdb)
 
@@ -1195,3 +1195,41 @@ def get_aids_with_groundtruth(ibs):
     has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
     hasgt_aids = utool.filter_items(valid_aids, has_gt_list)
     return hasgt_aids
+
+
+@__injectable
+def export_encounters(ibs, new_dbdir, eid_list):
+    """
+    >>> from ibeis.all_imports import *
+    >>> ibs = ibeis.opendb('testdb1')
+    >>> ibs.compute_encounters()
+    >>> eid_list = ibs.get_valid_eids()[0:1]
+    >>> new_dbdir = 'testdb_dst'
+    >>> ibs.export_encounters(new_dbdir, eid_list)
+    """
+    gid_list = list(set(utool.flatten(ibs.get_encounter_gids(eid_list))))
+    ibs.export_images(ibs, new_dbdir, gid_list)
+
+
+@__injectable
+def export_images(ibs, new_dbdir, gid_list):
+    """
+    >>> from ibeis.all_imports import *
+    >>> ibs = ibeis.opendb('testdb1')
+    >>> ibs.compute_encounters()
+    >>> gid_list = ibs.get_valid_gids()[0:4]
+    >>> new_dbdir = 'testdb_dst'
+    >>> # delete for doctest
+    >>> workdir = sysres.get_workdir()
+    >>> new_dbdir_ = join(workdir, new_dbdir)
+    >>> ibsfuncs.delete_ibeis_database(new_dbdir_)
+    >>> ibs.export_images(new_dbdir, gid_list)
+    """
+    import ibeis
+    from ibeis.dev import sysres
+    from ibeis.export import export_subset
+    workdir = sysres.get_workdir()
+    new_dbdir_ = join(workdir, new_dbdir)
+    ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)
+    status = export_subset.transfer_data(ibs, ibs_dst, gid_list1=gid_list)
+    return status

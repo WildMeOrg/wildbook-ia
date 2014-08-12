@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import six
 import numpy as np
 
 
@@ -100,6 +101,12 @@ SPECIES_NICE = ['Plains Zebras',
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'
 INTRA_ENC_KEY = 'intra_encounter'
+
+
+if six.PY2:
+    __STR__ = unicode  # change to str if needed
+else:
+    __STR__ = str
 
 
 # clean namespace
