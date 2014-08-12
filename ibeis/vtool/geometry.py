@@ -6,9 +6,9 @@ import utool
     __name__, '[geom]', DEBUG=False)
 
 
-def bboxes_from_vert_list(verts_list):
+def bboxes_from_vert_list(verts_list, castint=False):
     """ Fit the bounding polygon inside a rectangle """
-    return [bbox_of_verts(verts) for verts in verts_list]
+    return [bbox_of_verts(verts, castint=castint) for verts in verts_list]
 
 
 def verts_list_from_bboxes_list(bboxes_list):
@@ -28,12 +28,15 @@ def verts_from_bbox(bbox, close=False):
     return verts
 
 
-def bbox_of_verts(verts):
+def bbox_of_verts(verts, castint=False):
     x = min(x[0] for x in verts)
     y = min(y[1] for y in verts)
     w = max(x[0] for x in verts) - x
     h = max(y[1] for y in verts) - y
-    return (x, y, w, h)
+    if castint:
+        return (int(x), int(y), int(w), int(h))
+    else:
+        return (x, y, w, h)
 
 
 def homogonize_list(xy_list):
