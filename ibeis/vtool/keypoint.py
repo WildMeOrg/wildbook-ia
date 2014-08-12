@@ -333,9 +333,10 @@ def get_invVR_mats_shape(invVR_mats):
     return (_iv11s, _iv12s, _iv21s, _iv22s)
 
 
+@cyth.register
 @profile
 def get_invVR_mats_xys(invVR_mats):
-    """ extracts xys from matrix encoding 
+    """ extracts xys from matrix encoding
     <CYTH>
         cdef:
             np.ndarray[np.float64_t, ndim=3] invVR_mats

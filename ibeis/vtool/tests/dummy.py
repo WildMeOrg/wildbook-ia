@@ -110,7 +110,7 @@ def force_kpts_feasibility(kpts, xys_nonneg=False):
     return kpts
 
 
-def pertebed_grid_kpts(*args, **kwargs):
+def perterbed_grid_kpts(*args, **kwargs):
     grid_kpts = ktool.get_grid_kpts(*args, **kwargs)
     perterb_kwargs = dict(xy_std=(5, 5), invV_std=(3, 5, 3), ori_std=.25)
     perterb_kwargs.update(kwargs)
@@ -118,7 +118,7 @@ def pertebed_grid_kpts(*args, **kwargs):
 
 
 def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
-                 seed=None):
+                 seed=None, **kwargs):
     """ Adds normally distributed pertibations to keypoints """
     # TODO: Move to ktool
     # Get standard deviations of pertibations

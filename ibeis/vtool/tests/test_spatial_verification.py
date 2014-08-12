@@ -76,8 +76,8 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
 
 
 def get_dummy_test_vars():
-    kpts1 = dummy.pertebed_grid_kpts(seed=12, damping=1.2)
-    kpts2 = dummy.pertebed_grid_kpts(seed=24, damping=1.6)
+    kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2)
+    kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6)
     assert kpts1.dtype == np.float32
     assert kpts2.dtype == np.float32
     chip1 = dummy.get_kpts_dummy_img(kpts1)

@@ -1,4 +1,6 @@
 """
+python -c "import vtool, doctest; print(doctest.testmod(vtool.spatial_verification))"
+
 Spatial verification of keypoint matches
 
 Notation:
@@ -33,6 +35,8 @@ SV_DTYPE = np.float64
 <CYTH>
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
+
+#from vtool cimport _keypoint_cyth as ktool_cyth  # TODO: do these replacements
 from vtool.spatial_verification import get_best_affine_inliers, compute_homog, get_homography_inliers, determine_best_inliers, _test_hypothesis_inliers, get_affine_inliers
 
 import numpy as np
@@ -49,15 +53,28 @@ SV_DTYPE = np.float64
 </CYTH>
 """
 
+
 @profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
+
+    >>> from vtool.spatial_verification import *  # NOQA
+    >>> import vtool.tests.dummy as dummy
+    >>> import vtool.keypoint as ktool
+    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30))
+    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30))
+    >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
+    >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
+    >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+    >>> print(utool.hashstr(Mx9))
+    cbuegpb+fma6uk9l
+
     <CYTH returns="np.ndarray[np.float64_t, ndim=2]">
     cdef:
         np.ndarray[np.float64_t, ndim=2] xy1_mn
         np.ndarray[np.float64_t, ndim=2] xy2_mn
-        np.ndarray[np.float64_t, ndim=1] u2, v2, d, e, f, g, h, i, j, k, l, p, q, r
         np.ndarray[np.float64_t, ndim=2] Mx9
+        np.float64_t u2, v2, d, e, f, g, h, i, j, k, l, p, q, r
         long num_pts
         long ix
     </CYTH>
@@ -67,7 +84,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     num_pts = len(x1_mn)
     Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     for ix in range(num_pts):  # Loop over inliers
-        # Concatinate all 2x9 matrices into an Mx9 matrix
+        # Concatenate all 2x9 matrices into an Mx9 matrix
         u2        = x2_mn[ix]
         v2        = y2_mn[ix]
         (d, e, f) = (     -x1_mn[ix],      -y1_mn[ix],  -1)
@@ -79,12 +96,28 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     return Mx9
 
 
+_build_lstsqrs_Mx9_cyth = build_lstsqrs_Mx9  # HACK HACK HACK
+
+
 @profile
 def compute_homog(xy1_mn, xy2_mn):
     """
     Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1
+
+    >>> from vtool.spatial_verification import *  # NOQA
+    >>> import vtool.tests.dummy as dummy
+    >>> import vtool.keypoint as ktool
+    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30))
+    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30))
+    >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
+    >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
+    >>> compute_homog(xy1_mn, xy2_mn)
+    array([[  1.83339765e-03,   2.84967769e-03,  -7.11014174e-01],
+           [  2.82477716e-03,   1.80000317e-03,  -7.03139797e-01],
+           [  1.66839210e-05,   1.67525379e-05,  -5.52890916e-03]])
+
     <CYTH returns="np.ndarray[np.float64_t, ndim=2]">
     cdef:
         np.ndarray[np.float64_t, ndim=2] xy1_mn
@@ -102,14 +135,13 @@ def compute_homog(xy1_mn, xy2_mn):
         (U, S, V) = spsl.svds(Mx9Sparse)
     except npl.LinAlgError as ex:
         print('[sver] svd did not converge: %r' % ex)
-        raise  # return np.eye(3)
+        raise
     except Exception as ex:
         print('[sver] svd error: %r' % ex)
-        #print('[sver] Mx9.shape = %r' % (Mx9.shape,))
         raise
     # Rearange the nullspace into a homography
     #h = V[-1]  # v = V.H
-    h = V[8] # Hack for cython.wraparound(False)
+    h = V[8]  # Hack for cython.wraparound(False)
     H = np.vstack((h[0:3], h[3:6], h[6:9]))
     return H
 
@@ -145,13 +177,38 @@ def compute_homog(xy1_mn, xy2_mn):
 @profile
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+    """
+    <CYTH returns="tuple">
+    cdef:
+        np.ndarray[np.float64_t, ndim=2] Aff
+        np.ndarray[np.float64_t, ndim=3] invVR1s_m
+        np.ndarray[np.float64_t, ndim=2] xy2_m
+        np.ndarray[np.float64_t, ndim=1] det2_m
+        np.ndarray[np.float64_t, ndim=1] ori2_m
+        np.float64_t xy_thresh_sqrd
+        np.float64_t scale_thresh_sqrd
+        np.float64_t ori_thresh
+        np.ndarray[np.float64_t, ndim=3] invVR1s_mt
+        np.ndarray[np.float64_t, ndim=2] _xy1_mt
+        np.ndarray[np.float64_t, ndim=1] _det1_mt
+        np.ndarray[np.float64_t, ndim=1] _ori1_mt
+        np.ndarray[np.float64_t, ndim=1] xy_err
+        np.ndarray[np.float64_t, ndim=1] scale_err
+        np.ndarray[np.float64_t, ndim=1] scale_err
+        np.ndarray[np.uint8_t, ndim=1] xy_inliers_flag
+        np.ndarray[np.uint8_t, ndim=1] scale_inliers_flag
+        np.ndarray[np.uint8_t, ndim=1] ori_inliers_flag
+        tuple hypo_errors
+        np.ndarray[np.int_t, ndim=1] hypo_inliers
+    </CYTH>
+    """
     # Map keypoints from image 1 onto image 2
     invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
     # Get projection components
-    _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
+    _xy1_mt   = ktool.get_invVR_mats_xys_cyth(invVR1s_mt)
     #_det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-    _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
-    _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
+    _det1_mt  = ktool.get_invVR_mats_sqrd_scale_cyth(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
+    _ori1_mt  = ktool.get_invVR_mats_oris_cyth(invVR1s_mt)
     # Check for projection errors
     #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
     xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
@@ -179,6 +236,20 @@ def get_affine_inliers(kpts1, kpts2, fm,
     We transform from chip1 -> chip2
     The determinants are squared keypoint scales
 
+    >>> from vtool.spatial_verification import *  # NOQA
+    >>> import vtool.tests.dummy as dummy
+    >>> import vtool.keypoint as ktool
+    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30)).astype(np.float64)
+    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30)).astype(np.float64)
+    >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
+    >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
+    >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
+    >>> ori_thresh = ktool.KPTS_DTYPE(np.tau / 4)
+    >>> output = get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+    >>> print(utool.hashstr(repr(output[0])))
+    edb8bw55zdw!xal@
+
+
     FROM PERDOCH 2009:
         H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
         H = inv(Aj).dot(Ai)
@@ -186,13 +257,19 @@ def get_affine_inliers(kpts1, kpts2, fm,
 
     <CYTH returns="tuple">
     cdef:
-        np.ndarray[np.float64_t, ndim=2] invVR1s_m
-        np.ndarray[np.float64_t, ndim=2] V1s_m
-        np.ndarray[np.float64_t, ndim=2] invVR2s_m
-        np.ndarray[np.float64_t, ndim=2] Aff_mats
-        np.ndarray[np.float32_t, ndim=1] xy2_m
-        np.ndarray[np.float32_t, ndim=1] det2_m
-        np.ndarray[np.float32_t, ndim=1] ori2_m
+        np.ndarray[np.float64_t, ndim=2] kpts1
+        np.ndarray[np.float64_t, ndim=2] kpts2
+        np.ndarray[np.int64_t, ndim=2] fm
+        np.float64_t xy_thresh_sqrd
+        np.float64_t scale_thresh_sqrd
+        np.float64_t ori_thresh
+        np.ndarray[np.float64_t, ndim=3] invVR1s_m
+        np.ndarray[np.float64_t, ndim=3] V1s_m
+        np.ndarray[np.float64_t, ndim=3] invVR2s_m
+        np.ndarray[np.float64_t, ndim=3] Aff_mats
+        np.ndarray[np.float64_t, ndim=2] xy2_m
+        np.ndarray[np.float64_t, ndim=1] det2_m
+        np.ndarray[np.float64_t, ndim=1] ori2_m
         list inliers_and_errors_list
         list errors_list
         list errors_list
@@ -233,9 +310,9 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     """ Tests each hypothesis and returns only the best transformation and inliers
     <CYTH returns="tuple">
     cdef:
+        np.ndarray[np.float64_t, ndim=2] Aff
         list inliers_list
         list aff_inliers
-        object Aff
         list Aff_mats
         list errors_list
     </CYTH>
@@ -340,9 +417,7 @@ def spatial_verification(kpts1, kpts2, fm,
     return homog_inliers, H, aff_inliers, Aff
 
 
-USE_CYTH = True
-if USE_CYTH:
-    import cyth
-    cythonized_funcs = cyth.import_cyth(__name__)
-    execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
-    exec(execstr)
+import cyth
+cythonized_funcs = cyth.import_cyth(__name__)
+execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
+exec(execstr)
