@@ -654,17 +654,18 @@ class APIItemModel(API_MODEL_BASE):
         if not qtindex.isValid():
             return None
         flags = model.flags(qtindex)
-        row = qtindex.row()
+        #row = qtindex.row()
         col = qtindex.column()
         node = qtindex.internalPointer()
         if model.col_level_list[col] != node.get_level():
             return QVariantHack()
         type_ = model._get_type(col)
 
-        if row >= model.rowCount():
-            # Yuck.
-            print('[item_model] Yuck. row excedes row count')
-            return QVariantHack()
+        #if row >= model.rowCount():
+        #    # Yuck.
+        #    print('[item_model] Yuck. row=%r excedes rowCount=%r' %
+        #          (row, model.rowCount()))
+        #    return QVariantHack()
 
         #if role == Qt.SizeHintRole:
         #    #printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
