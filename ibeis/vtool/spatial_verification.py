@@ -418,6 +418,4 @@ def spatial_verification(kpts1, kpts2, fm,
 
 
 import cyth
-cythonized_funcs = cyth.import_cyth(__name__)
-execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
-exec(execstr)
+exec(cyth.import_cyth_execstr(__name__))

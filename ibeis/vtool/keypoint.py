@@ -583,12 +583,8 @@ def get_kpts_strs(kpts):
 
 
 # CYTH PROTOTYPE CODE:
-USE_CYTH = True
-if USE_CYTH:
-    import cyth
-    cythonized_funcs = cyth.import_cyth(__name__)
-    execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
-    exec(execstr)
+import cyth
+exec(cyth.import_cyth_execstr(__name__))
 #
 # def module_execstr(module_name):
 #     module = sys.modules[module_name]
