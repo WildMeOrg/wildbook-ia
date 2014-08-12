@@ -292,7 +292,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef _get_invVR_mats_sqrd_scale_cyth(np.ndarray[np.float64_t, ndim=3] invVR_mats):
+    cpdef np.ndarray[np.float64_t, ndim=1] _get_invVR_mats_sqrd_scale_cyth(np.ndarray[np.float64_t, ndim=3] invVR_mats):
         cdef unsigned int nMats = invVR_mats.shape[0]
         # Prealloc output
         cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
@@ -317,7 +317,7 @@ def get_invVR_mats_shape(invVR_mats):
     >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
     >>> get_invVR_mats_shape(invVR_mats)
 
-    <CYTH return="tuple">
+    <CYTH>
     cdef:
         np.ndarray[np.float64_t, ndim=3] invVR_mats
         np.ndarray[np.float64_t, ndim=1] _iv11s

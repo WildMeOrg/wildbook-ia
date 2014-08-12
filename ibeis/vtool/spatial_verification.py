@@ -29,15 +29,35 @@ np.tau = 2 * np.pi  # tauday.org
 
 SV_DTYPE = np.float64
 
+"""
+<CYTH>
+import vtool.keypoint as ktool
+import vtool.linalg as ltool
+from vtool.spatial_verification import get_best_affine_inliers, compute_homog, get_homography_inliers, determine_best_inliers, _test_hypothesis_inliers, get_affine_inliers
+
+import numpy as np
+import cython
+import numpy.linalg as npl
+import scipy.sparse as sps
+import scipy.sparse.linalg as spsl
+
+cimport numpy as np
+cimport cython
+
+#ctypedef np.float64_t SV_DTYPE
+SV_DTYPE = np.float64
+</CYTH>
+"""
 
 @profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
-    <CYTH: returns=np.ndarray[float64_t, ndims=2]>
+    <CYTH returns="np.ndarray[np.float64_t, ndim=2]">
     cdef:
-        np.ndarray[float64_t, ndims=1] (xy1_m, xy2_mn, u2, v2, d, e, f, g, h, i,
-                                        j, k, l, p, q, r,)
-        np.ndarray[float64_t, ndims=2] Mx9
+        np.ndarray[np.float64_t, ndim=2] xy1_mn
+        np.ndarray[np.float64_t, ndim=2] xy2_mn
+        np.ndarray[np.float64_t, ndim=1] u2, v2, d, e, f, g, h, i, j, k, l, p, q, r
+        np.ndarray[np.float64_t, ndim=2] Mx9
         long num_pts
         long ix
     </CYTH>
@@ -65,15 +85,15 @@ def compute_homog(xy1_mn, xy2_mn):
     Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1
-    <CYTH: returns=np.ndarray[float64_t, ndims=2]>
+    <CYTH returns="np.ndarray[np.float64_t, ndim=2]">
     cdef:
-        np.ndarray[float64_t, ndims=1] xy1_mn
-        np.ndarray[float64_t, ndims=1] xy2_mn
-        np.ndarray[float64_t, ndims=1] Mx9
+        np.ndarray[np.float64_t, ndim=2] xy1_mn
+        np.ndarray[np.float64_t, ndim=2] xy2_mn
+        np.ndarray[np.float64_t, ndim=2] Mx9
     </CYTH>
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
-    Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+    Mx9 = _build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)
     try:
         (U, S, V) = npl.svd(Mx9, full_matrices=False)
     except MemoryError as ex:
@@ -85,10 +105,11 @@ def compute_homog(xy1_mn, xy2_mn):
         raise  # return np.eye(3)
     except Exception as ex:
         print('[sver] svd error: %r' % ex)
-        print('[sver] Mx9.shape = %r' % (Mx9.shape,))
+        #print('[sver] Mx9.shape = %r' % (Mx9.shape,))
         raise
     # Rearange the nullspace into a homography
-    h = V[-1]  # v = V.H
+    #h = V[-1]  # v = V.H
+    h = V[8] # Hack for cython.wraparound(False)
     H = np.vstack((h[0:3], h[3:6], h[6:9]))
     return H
 
@@ -122,7 +143,7 @@ def compute_homog(xy1_mn, xy2_mn):
 
 
 @profile
-def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
+def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     # Map keypoints from image 1 onto image 2
     invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
@@ -163,15 +184,15 @@ def get_affine_inliers(kpts1, kpts2, fm,
         H = inv(Aj).dot(Ai)
         The input invVs = perdoch.invA's
 
-    <CYTH returns=tuple>
+    <CYTH returns="tuple">
     cdef:
-        np.ndarray[float64_t, ndims=2] invVR1s_m
-        np.ndarray[float64_t, ndims=2] V1s_m
-        np.ndarray[float64_t, ndims=2] invVR2s_m
-        np.ndarray[float64_t, ndims=2] Aff_mats
-        np.ndarray[float32_t, ndims=1] xy2_m
-        np.ndarray[float32_t, ndims=1] det2_m
-        np.ndarray[float32_t, ndims=1] ori2_m
+        np.ndarray[np.float64_t, ndim=2] invVR1s_m
+        np.ndarray[np.float64_t, ndim=2] V1s_m
+        np.ndarray[np.float64_t, ndim=2] invVR2s_m
+        np.ndarray[np.float64_t, ndim=2] Aff_mats
+        np.ndarray[np.float32_t, ndim=1] xy2_m
+        np.ndarray[np.float32_t, ndim=1] det2_m
+        np.ndarray[np.float32_t, ndim=1] ori2_m
         list inliers_and_errors_list
         list errors_list
         list errors_list
@@ -195,7 +216,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
     # The for loop one was the slowest. I'm deciding to go with the one
     # where there is no internal function definition. It was moderately faster,
     # and it gives us access to profile that function
-    inliers_and_errors_list = [_test_hypothosis_inliers(Aff, invVR1s_m, xy2_m,
+    inliers_and_errors_list = [_test_hypothesis_inliers(Aff, invVR1s_m, xy2_m,
                                                         det2_m, ori2_m,
                                                         xy_thresh_sqrd,
                                                         scale_thresh_sqrd,
@@ -210,14 +231,14 @@ def get_affine_inliers(kpts1, kpts2, fm,
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
     """ Tests each hypothesis and returns only the best transformation and inliers
-    <CYTH; returns=tuple>
+    <CYTH returns="tuple">
     cdef:
         list inliers_list
         list aff_inliers
-         ??? Aff
+        object Aff
         list Aff_mats
         list errors_list
-    <CYTH>
+    </CYTH>
     """
     # Test each affine hypothesis
     inliers_list, errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
@@ -231,9 +252,9 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
 @profile
 def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     """ Currently this function just uses the number of inliers as a metric
-    <CYTH; returns=tuple>
+    <CYTH returns="tuple">
     cdef:
-    <CYTH>
+    </CYTH>
     """
     # Determine the best hypothesis using the number of inliers
     nInliers_list = np.array([len(inliers) for inliers in inliers_list])
@@ -249,9 +270,9 @@ def determine_best_inliers(inliers_list, errors_list, Aff_mats):
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
-    <CYTH; returns=tuple>
+    <CYTH returns="tuple">
     cdef:
-    <CYTH>
+    </CYTH>
     """
     fm_affine = fm[aff_inliers]
     kpts1_m = kpts1[fm.T[0]]
@@ -294,9 +315,9 @@ def spatial_verification(kpts1, kpts2, fm,
     Driver function
     Spatially validates feature matches
 
-    <CYTH; returns=tuple>
+    <CYTH returns="tuple">
     cdef:
-    <CYTH>
+    </CYTH>
     """
     # Get diagonal length if not provided
     if dlen_sqrd2 is None:
@@ -317,3 +338,11 @@ def spatial_verification(kpts1, kpts2, fm,
         print('[sver] Warning 285 %r' % ex)
         return None
     return homog_inliers, H, aff_inliers, Aff
+
+
+USE_CYTH = True
+if USE_CYTH:
+    import cyth
+    cythonized_funcs = cyth.import_cyth(__name__)
+    execstr = utool.execstr_dict(cythonized_funcs, 'cythonized_funcs')
+    exec(execstr)
