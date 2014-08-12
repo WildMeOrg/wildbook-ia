@@ -269,6 +269,42 @@ def assert_valid_aids(ibs, aid_list):
     assert not any(isinvalid_list), 'invalidly typed aids: %r' % (utool.filter_items(aid_list, isinvalid_list),)
 
 
+def assert_images_exist(ibs, gid_list):
+    gpath_list = ibs.get_image_paths(gid_list)
+    exists_list = list(map(exists, gpath_list))
+    bad_gids = utool.filterfalse_items(gid_list, exists_list)
+    assert len(bad_gids) == 0, 'some images dont exist'
+
+
+@__injectable
+def check_image_consistency(ibs, gid_list):
+    # TODO: more consistency checks
+    assert_images_exist(ibs, gid_list)
+
+
+@__injectable
+def check_annot_consistency(ibs, aid_list):
+    # TODO: more consistency checks
+    gid_list = ibs.get_annot_gids(aid_list)
+    assert_images_exist(ibs, gid_list)
+
+
+def check_name_consistency(ibs, nid_list):
+    lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
+    aids_list = ibs.get_name_aids(nid_list)
+
+@__injectable
+def check_consistency(ibs, embed=False):
+    gid_list = ibs.get_valid_gids()
+    aid_list = ibs.get_valid_aids()
+    nid_list = ibs.get_valid_nids()
+    check_image_consistency(ibs, gid_list)
+    check_annot_consistency(ibs, aid_list)
+    check_name_consistency(ibs, nid_list)
+    if embed:
+        utool.embed()
+
+
 @__injectable
 def delete_all_features(ibs):
     print('[ibs] delete_all_features')
