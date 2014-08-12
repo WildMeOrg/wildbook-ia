@@ -1234,5 +1234,6 @@ def export_images(ibs, gid_list, new_dbdir_):
     gid_list1 = gid_list
     aid_list1 = None
     include_image_annots = True
-    status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1, aid_list1)
+    status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1,
+                                            aid_list1, include_image_annots)
     return status
