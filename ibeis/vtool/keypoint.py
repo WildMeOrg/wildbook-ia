@@ -582,23 +582,30 @@ def get_kpts_strs(kpts):
     return kpts_strs
 
 
-# CYTH PROTOTYPE CODE:
 import cyth
-exec(cyth.import_cyth_execstr(__name__))
-#
-# def module_execstr(module_name):
-#     module = sys.modules[module_name]
-#     __import__
-#     module.__dict__['func_cyth'] = func_cyth
-##try:
-##    # TODO Give cyth this functionality
-##    #if not utool.get_flag('--nocyth'):
-##    if utool.get_flag('--cyth'):
-##        from .keypoint_cython import (get_invVR_mats_sqrd_scale_float64,)  # NOQA
-##        get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale_float64
-##    else:
-##        raise ImportError('no cyth')
-##except ImportError as ex:
-##    # default to python
-##    get_invVR_mats_sqrd_scale_cython = get_invVR_mats_sqrd_scale
-##    pass
+if cyth.dynamic:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    try:
+        if not True:
+            raise ImportError('no cyth')
+        import vtool._keypoint_cyth
+        _get_invVR_mats_oris_cyth       = vtool._keypoint_cyth._get_invVR_mats_oris_cyth
+        _get_invVR_mats_shape_cyth      = vtool._keypoint_cyth._get_invVR_mats_shape_cyth
+        _get_invVR_mats_sqrd_scale_cyth = vtool._keypoint_cyth._get_invVR_mats_sqrd_scale_cyth
+        _get_invVR_mats_xys_cyth        = vtool._keypoint_cyth._get_invVR_mats_xys_cyth
+        _rectify_invV_mats_are_up_cyth  = vtool._keypoint_cyth._rectify_invV_mats_are_up_cyth
+        get_invVR_mats_oris_cyth        = vtool._keypoint_cyth._get_invVR_mats_oris_cyth
+        get_invVR_mats_shape_cyth       = vtool._keypoint_cyth._get_invVR_mats_shape_cyth
+        get_invVR_mats_sqrd_scale_cyth  = vtool._keypoint_cyth._get_invVR_mats_sqrd_scale_cyth
+        get_invVR_mats_xys_cyth         = vtool._keypoint_cyth._get_invVR_mats_xys_cyth
+        rectify_invV_mats_are_up_cyth   = vtool._keypoint_cyth._rectify_invV_mats_are_up_cyth
+    except ImportError:
+        get_invVR_mats_xys_cyth = get_invVR_mats_xys
+        get_invVR_mats_shape_cyth = get_invVR_mats_shape
+        rectify_invV_mats_are_up_cyth = rectify_invV_mats_are_up
+        get_invVR_mats_sqrd_scale_cyth = get_invVR_mats_sqrd_scale
+        get_invVR_mats_oris_cyth = get_invVR_mats_oris
+    # </AUTOGEN_CYTH>
+    pass

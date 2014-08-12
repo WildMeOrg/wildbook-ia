@@ -434,3 +434,19 @@ except ImportError as ex:
     # default to python
     L2_sqrd_cython = L2_sqrd
     det_distance_cython = det_distance
+
+
+import cyth
+if cyth.dynamic:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    try:
+        if not True:
+            raise ImportError('no cyth')
+        raise ImportError("no cyth")
+    except ImportError:
+        L2_sqrd_cyth = L2_sqrd
+        det_distance_cyth = det_distance
+    # </AUTOGEN_CYTH>
+    pass

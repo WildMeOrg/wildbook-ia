@@ -418,4 +418,38 @@ def spatial_verification(kpts1, kpts2, fm,
 
 
 import cyth
-exec(cyth.import_cyth_execstr(__name__))
+if cyth.dynamic:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    try:
+        if not True:
+            raise ImportError('no cyth')
+        import vtool._spatial_verification_cyth
+        __test_hypothesis_inliers_cyth = vtool._spatial_verification_cyth.__test_hypothesis_inliers_cyth
+        _build_lstsqrs_Mx9_cyth        = vtool._spatial_verification_cyth._build_lstsqrs_Mx9_cyth
+        _compute_homog_cyth            = vtool._spatial_verification_cyth._compute_homog_cyth
+        _determine_best_inliers_cyth   = vtool._spatial_verification_cyth._determine_best_inliers_cyth
+        _get_affine_inliers_cyth       = vtool._spatial_verification_cyth._get_affine_inliers_cyth
+        _get_best_affine_inliers_cyth  = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
+        _get_homography_inliers_cyth   = vtool._spatial_verification_cyth._get_homography_inliers_cyth
+        _spatial_verification_cyth     = vtool._spatial_verification_cyth._spatial_verification_cyth
+        _test_hypothesis_inliers_cyth  = vtool._spatial_verification_cyth.__test_hypothesis_inliers_cyth
+        build_lstsqrs_Mx9_cyth         = vtool._spatial_verification_cyth._build_lstsqrs_Mx9_cyth
+        compute_homog_cyth             = vtool._spatial_verification_cyth._compute_homog_cyth
+        determine_best_inliers_cyth    = vtool._spatial_verification_cyth._determine_best_inliers_cyth
+        get_affine_inliers_cyth        = vtool._spatial_verification_cyth._get_affine_inliers_cyth
+        get_best_affine_inliers_cyth   = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
+        get_homography_inliers_cyth    = vtool._spatial_verification_cyth._get_homography_inliers_cyth
+        spatial_verification_cyth      = vtool._spatial_verification_cyth._spatial_verification_cyth
+    except ImportError:
+        get_affine_inliers_cyth = get_affine_inliers
+        determine_best_inliers_cyth = determine_best_inliers
+        compute_homog_cyth = compute_homog
+        get_homography_inliers_cyth = get_homography_inliers
+        _test_hypothesis_inliers_cyth = _test_hypothesis_inliers
+        get_best_affine_inliers_cyth = get_best_affine_inliers
+        spatial_verification_cyth = spatial_verification
+        build_lstsqrs_Mx9_cyth = build_lstsqrs_Mx9
+    # </AUTOGEN_CYTH>
+    pass
