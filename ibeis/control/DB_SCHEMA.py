@@ -4,6 +4,43 @@ Module Licence and docstring
 from __future__ import absolute_import, division, print_function
 from ibeis import constants
 
+COL_DEF = dict([
+    ('image_uuid', (str,      'Image UUID')),
+    ('gid',        (int,      'Image ID')),
+    ('aid',        (int,      'Annotation ID')),
+    ('nid',        (int,      'Name ID')),
+    ('eid',        (int,      'Encounter ID')),
+    ('nAids',      (int,      '#Annots')),
+    ('nExAids',    (int,      '#Exemplars')),
+    ('nGt',        (int,      '#GT')),
+    ('nImgs',      (int,      '#Imgs')),
+    ('nFeats',     (int,      '#Features')),
+    ('rank',       (str,      'Rank')),  # needs to be a string for !Query
+    ('unixtime',   (float,    'unixtime')),
+    ('species',    (str,      'Species')),
+    ('img_gname',  (str,      'Image Name')),
+    ('annot_gname', (str,     'Source Image')),
+    ('gdconf',     (str,      'Detection Confidence')),
+    ('rdconf',     (float,    'Detection Confidence')),
+    ('name',       (str,      'Name')),
+    ('annotnotes', (str,      'Annot Notes')),
+    ('namenotes',  (str,      'Name Notes')),
+    ('imgnotes',   (str,      'Image Notes')),
+    ('match_name', (str,      'Matching Name')),
+    ('bbox',       (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+    ('num_verts',  (int,      'NumVerts')),
+    ('verts',      (str,      'Verts')),
+    ('score',      (str,      'Confidence')),
+    ('theta',      (str,      'Theta')),
+    ('reviewed',   (bool,     'Detection Reviewed')),
+    ('exemplar',   (bool,     'Is Exemplar')),
+    ('enctext',    (str,      'Encounter Text')),
+    ('datetime',   (str,      'Date / Time')),
+    ('ext',        (str,      'EXT')),
+    ('thumb',      ('PIXMAP', 'Thumb')),
+    ('gps',        (str,      'GPS')),
+])
+
 
 def define_IBEIS_schema(ibs):
     ##########################
@@ -24,7 +61,9 @@ def define_IBEIS_schema(ibs):
         ('image_toggle_enabled',         'INTEGER DEFAULT 0'),
         ('image_toggle_reviewed',        'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
-    ), ['CONSTRAINT superkey UNIQUE (image_uuid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (image_uuid)'],
+        superkey_colnames=['image_uuid'],
         docstr='''
         First class table used to store image locations and meta-data''')
 
@@ -33,7 +72,9 @@ def define_IBEIS_schema(ibs):
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
         ('encounter_note',               'TEXT NOT NULL'),
-    ),  ['CONSTRAINT superkey UNIQUE (encounter_text)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (encounter_text)'],
+        superkey_colnames=['encounter_text'],
         docstr='''
         List of all encounters''')
 
@@ -41,7 +82,9 @@ def define_IBEIS_schema(ibs):
         ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
-    ), ['CONSTRAINT superkey UNIQUE (lbltype_text)'],
+    ),
+        superkey_colnames=['lbltype_text'],
+        #['CONSTRAINT superkey UNIQUE (lbltype_text)'],
         docstr='''
         List of keys used to define the categories of annotation lables, text
         is for human-readability. The lbltype_default specifies the
@@ -51,7 +94,9 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema(constants.CONFIG_TABLE, (
         ('config_rowid',                 'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
-    ),  ['CONSTRAINT superkey UNIQUE (config_suffix)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (config_suffix)'],
+        superkey_colnames=['config_suffix'],
         docstr='''
         Used to store the ids of algorithm configurations that generate
         annotation lblannots.  Each user will have a config id for manual
@@ -60,7 +105,9 @@ def define_IBEIS_schema(ibs):
     ibs.db.schema(constants.VERSIONS_TABLE, (
         ('version_rowid',          'INTEGER PRIMARY KEY'),
         ('version_text',           'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (version_text)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (version_text)'],
+        superkey_colnames=['version_text'],
         docstr='''
         holds the schema version info''')
 
@@ -81,7 +128,9 @@ def define_IBEIS_schema(ibs):
         ('annot_detect_confidence',      'REAL DEFAULT -1.0'),
         ('annot_exemplar_flag',          'INTEGER DEFAULT 0'),
         ('annot_note',                   'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (annot_uuid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (annot_uuid)'],
+        superkey_colnames=['annot_uuid'],
         docstr='''
         Mainly used to store the geometry of the annotation within its parent
         image The one-to-many relationship between images and annotations is
@@ -94,7 +143,9 @@ def define_IBEIS_schema(ibs):
         ('lbltype_rowid',              'INTEGER NOT NULL'),  # this is "category" in the proposal
         ('lblimage_value',             'TEXT NOT NULL'),
         ('lblimage_note',              'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (lbltype_rowid, lblimage_value)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (lbltype_rowid, lblimage_value)'],
+        superkey_colnames=['lbltype_rowid', 'lblimage_value'],
         docstr='''
         Used to store the labels (attributes) of images''')
 
@@ -104,7 +155,9 @@ def define_IBEIS_schema(ibs):
         ('lbltype_rowid',                    'INTEGER NOT NULL'),  # this is "category" in the proposal
         ('lblannot_value',                   'TEXT NOT NULL'),
         ('lblannot_note',                    'TEXT'),
-    ), ['CONSTRAINT superkey UNIQUE (lbltype_rowid, lblannot_value)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (lbltype_rowid, lblannot_value)'],
+        superkey_colnames=['lbltype_rowid', 'lblannot_value'],
         docstr='''
         Used to store the labels / attributes of annotations.
         E.G name, species ''')
@@ -120,7 +173,9 @@ def define_IBEIS_schema(ibs):
         ('chip_uri',                     'TEXT'),
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
-    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, config_rowid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (annot_rowid, config_rowid)'],
+        superkey_colnames=['annot_rowid', 'config_rowid'],
         docstr='''
         Used to store *processed* annots as chips''')
 
@@ -131,7 +186,9 @@ def define_IBEIS_schema(ibs):
         ('feature_num_feats',            'INTEGER NOT NULL'),
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
-    ), ['CONSTRAINT superkey UNIQUE (chip_rowid, config_rowid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (chip_rowid, config_rowid)'],
+        superkey_colnames=['chip_rowid, config_rowid'],
         docstr='''
         Used to store individual chip features (ellipses)''')
 
@@ -139,7 +196,9 @@ def define_IBEIS_schema(ibs):
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('encounter_rowid',              'INTEGER'),
-    ),  ['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (image_rowid, encounter_rowid)'],
+        superkey_colnames=['image_rowid, encounter_rowid'],
         docstr='''
         Relationship between encounters and images (many to many mapping) the
         many-to-many relationship between images and encounters is encoded here
@@ -154,7 +213,9 @@ def define_IBEIS_schema(ibs):
         ('lblimage_rowid',               'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('glr_confidence',               'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (image_rowid, lblimage_rowid, config_rowid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (image_rowid, lblimage_rowid, config_rowid)'],
+        superkey_colnames=['image_rowid', 'lblimage_rowid', 'config_rowid'],
         docstr='''
         Used to store one-to-many the relationship between images
         and labels''')
@@ -165,7 +226,9 @@ def define_IBEIS_schema(ibs):
         ('lblannot_rowid',                 'INTEGER NOT NULL'),
         ('config_rowid',                   'INTEGER DEFAULT 0'),
         ('alr_confidence',                 'REAL DEFAULT 0.0'),
-    ), ['CONSTRAINT superkey UNIQUE (annot_rowid, lblannot_rowid, config_rowid)'],
+    ),
+        #['CONSTRAINT superkey UNIQUE (annot_rowid, lblannot_rowid, config_rowid)'],
+        superkey_colnames=['annot_rowid', 'lblannot_rowid', 'config_rowid'],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and labels''')

@@ -83,6 +83,8 @@ class SQLDatabaseController(object):
         db.table_columns     = utool.odict()
         db.table_constraints = utool.odict()
         db.table_docstr      = utool.odict()
+        db.table_colnames    = utool.odict()
+        db.table_coltypes    = utool.odict()
         # TODO:
         db.stack = []
         db.cache = {}  # key \in [tblname][colnames][rowid]
@@ -347,22 +349,42 @@ class SQLDatabaseController(object):
         #db.cur.execute('PRAGMA synchronous = OFF;')
 
     @default_decorator
-    def schema(db, tablename, schema_list, table_constraints=[], docstr=''):
+    def schema(db, tablename, coldef_list, table_constraints=None, docstr='', superkey_colnames=None):
         printDBG('[sql] schema ensuring tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
+        if table_constraints is None:
+            table_constraints = []
+
+        if superkey_colnames is not None and len(superkey_colnames) > 0:
+            c = superkey_colnames
+            _ = (c if isinstance(c, six.string_types) else ','.join(c))
+            unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
+            assert len(table_constraints) == 0
+            table_constraints.append(unique_constraint)
+
         body_list = ['%s %s' % (name, type_)
-                     for (name, type_) in schema_list]
-        op_head = 'CREATE TABLE IF NOT EXISTS %s (' % tablename
-        op_body = ', '.join(body_list + table_constraints)
-        op_foot = ')'
-        operation = op_head + op_body + op_foot
+                     for (name, type_) in coldef_list]
+
+        colname_list = [_1tup[0] for _1tup in coldef_list]
+        coltype_list = [_2tup[1] for _2tup in coldef_list]
+
+        fmtkw = {
+            'table_body': ', '.join(body_list + table_constraints),
+            'tablename': tablename,
+        }
+        op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
+        operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
+
         # Append to internal storage
-        db.table_columns[tablename] = schema_list
+        db.table_docstr[tablename]      = docstr
+        db.table_columns[tablename]     = coldef_list
+        db.table_colnames[tablename]    = colname_list
+        db.table_coltypes[tablename]    = coltype_list
         db.table_constraints[tablename] = table_constraints
-        db.table_docstr[tablename] = docstr
+
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERYVERBOSE):

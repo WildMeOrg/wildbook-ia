@@ -48,7 +48,7 @@ def up_dbsize_expt(ibs, qaid_list):
     database.
 
     python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 --cmd
-    >>> from ibeis.all_imports import *
+    >>> from ibeis.all_imports import *  # NOQA
     >>> ibs = ibeis.opendb('PZ_FlankHack')
     >>> qaid_list = ibs.get_valid_aids()
     """
@@ -342,6 +342,8 @@ def run_experiments(ibs, qaid_list):
         export(ibs)
     if intest('dbinfo'):
         dbinfo.get_dbinfo(ibs)
+    if intest('headers', 'schema'):
+        ibs.db.print_schema()
     if intest('info'):
         print(ibs.get_infostr())
     if intest('printcfg'):
