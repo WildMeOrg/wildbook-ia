@@ -947,6 +947,7 @@ class IBEISController(object):
     @getter_1to1
     def get_image_paths(ibs, gid_list):
         """ Returns a list of image absolute paths to img_dir """
+        utool.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
         uri_list = ibs.get_image_uris(gid_list)
         # Images should never have null uris
         utool.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
@@ -954,7 +955,7 @@ class IBEISController(object):
         return gpath_list
 
     # TODO make this actually return a uri format
-    get_image_abs_uri = get_image_paths
+    get_image_absolute_uri = get_image_paths
 
     @getter_1to1
     def get_image_detectpaths(ibs, gid_list):

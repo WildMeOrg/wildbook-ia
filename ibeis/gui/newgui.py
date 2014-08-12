@@ -525,19 +525,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_list = sorted(list(set([model._get_row_id(_qtindex) for _qtindex in
                                    tblview.selectedIndexes()])))
         if model.name == ENCOUNTER_TABLE:
-            if len(id_list) == 1:
-                eid = id_list[0]
-                guitool.popup_menu(tblview, pos, [
-                    ('delete encounter', lambda: ibswgt.back.delete_encounter(eid)),
-                ])
-            else:
+            options = [
+                ('delete encounter(s)', lambda: ibswgt.back.delete_encounter(id_list)),
+                ('export encounter(s)', lambda: ibswgt.back.export_encounters(id_list)),
+            ]
+            if len(id_list) > 1:
                 merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
-                guitool.popup_menu(tblview, pos, [
+                options += [
                     ('merge encounters', lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
-                    ('delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
-                ])
+                ]
+            guitool.popup_menu(tblview, pos, options)
         elif model.name == IMAGE_TABLE:
-            eid = model.eid
             if len(id_list) == 1:
                 gid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
@@ -552,7 +550,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('delete images', lambda: ibswgt.back.delete_image(id_list)),
                 ])
         elif model.name == ANNOTATION_TABLE:
-            eid = model.eid
             if len(id_list) > 0:
                 guitool.popup_menu(tblview, pos, [
                     ('delete annotations', lambda: ibswgt.back.popup_annot_info(id_list)),

@@ -391,6 +391,18 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot(int)
+    def export_encounters(back, eid_list):
+        print('\n\n[back] export encounter')
+
+        #new_dbname = back.user_input(
+        #    msg='What do you want to name the new database?',
+        #    title='Export to New Database')
+        #if new_dbname is None or len(new_dbname) == 0:
+        #    print('Abort export to new database. new_dbname=%r' % new_dbname)
+        #    return
+        back.ibs.export_encounters(eid_list, new_dbdir=None)
+
+    @blocking_slot(int)
     def merge_encounters(back, eid_list, destination_eid):
         assert len(eid_list) > 1, "Cannot merge fewer than two encounters"
         print('[back] merge_encounters: %r, %r' % (destination_eid, eid_list))

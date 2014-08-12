@@ -233,7 +233,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 
 @__injectable
 def assert_valid_species(ibs, species_list, iswarning=True):
-    if not utool.USE_ASSERT:
+    if utool.NO_ASSERTS:
         return
     try:
         assert all([species in constants.VALID_SPECIES
@@ -246,7 +246,7 @@ def assert_valid_species(ibs, species_list, iswarning=True):
 
 @__injectable
 def assert_singleton_relationship(ibs, alrids_list):
-    if not utool.USE_ASSERT:
+    if utool.NO_ASSERTS:
         return
     try:
         assert all([len(alrids) == 1 for alrids in alrids_list]),\
@@ -259,7 +259,7 @@ def assert_singleton_relationship(ibs, alrids_list):
 
 @__injectable
 def assert_valid_aids(ibs, aid_list):
-    if not utool.USE_ASSERT:
+    if utool.NO_ASSERTS:
         return
     valid_aids = set(ibs.get_valid_aids())
     #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
@@ -489,7 +489,7 @@ def delete_ibeis_database(dbdir):
 def assert_valid_names(name_list):
     """ Asserts that user specified names do not conflict with
     the standard unknown name """
-    if not utool.USE_ASSERT:
+    if utool.NO_ASSERTS:
         return
     def isconflict(name, other):
         return name.startswith(other) and len(name) > len(other)
@@ -499,7 +499,7 @@ def assert_valid_names(name_list):
 
 
 def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
-    if not utool.USE_ASSERT:
+    if utool.NO_ASSERTS:
         return
     lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
     try:
@@ -527,7 +527,7 @@ def ensure_unix_gpaths(gpath_list):
     Asserts that all paths are given with forward slashes.
     If not it fixes them
     """
-    #if not utool.USE_ASSERT:
+    #if utool.NO_ASSERTS:
     #    return
     try:
         msg = ('gpath_list must be in unix format (no backslashes).'
@@ -733,14 +733,16 @@ def merge_species_databases(species_prefix):
 
 
 def merge_databases(ibs_target, ibs_source_list):
-    """ Merges a list of databases into a target """
+    """ Merges a list of databases into a target
+    This is OLD. use export_subset instead
+    """
 
     def merge_images(ibs_target, ibs_source):
         """ merge image helper """
         gid_list1   = ibs_source.get_valid_gids()
         uuid_list1  = ibs_source.get_image_uuids(gid_list1)
         gpath_list1 = ibs_source.get_image_paths(gid_list1)
-        reviewed_list1   = ibs_source.get_image_reviewed(gid_list1)
+        reviewed_list1 = ibs_source.get_image_reviewed(gid_list1)
         # Add images to target
         ibs_target.add_images(gpath_list1)
         # Merge properties
@@ -764,10 +766,10 @@ def merge_databases(ibs_target, ibs_source_list):
         # Assert that the image uuids have not changed
         assert image_uuid_list1 == image_uuid_list2, 'error merging annotation image uuids'
         aid_list2 = ibs_target.add_annots(gid_list2,
-                                               bbox_list1,
-                                               theta_list=theta_list1,
-                                               name_list=name_list1,
-                                               notes_list=notes_list1)
+                                          bbox_list1,
+                                          theta_list=theta_list1,
+                                          name_list=name_list1,
+                                          notes_list=notes_list1)
         uuid_list2 = ibs_target.get_annot_uuids(aid_list2)
         assert uuid_list2 == uuid_list1, 'error merging annotation uuids'
 
@@ -1204,19 +1206,26 @@ def get_aids_with_groundtruth(ibs):
 
 
 @__injectable
-def export_encounters(ibs, new_dbdir, eid_list):
+def export_encounters(ibs, eid_list, new_dbdir=None):
     gid_list = list(set(utool.flatten(ibs.get_encounter_gids(eid_list))))
-    ibs.export_images(ibs, new_dbdir, gid_list)
+    if new_dbdir is None:
+        from ibeis.dev import sysres
+        dbname = ibs.get_dbname()
+        enc_texts = ', '.join(ibs.get_encounter_enctext(eid_list)).replace(' ', '-')
+        new_dbname = dbname + '_' + enc_texts
+        workdir = sysres.get_workdir()
+        new_dbdir_ = join(workdir, new_dbname)
+    else:
+        new_dbdir_ = new_dbdir
+    ibs.export_images(gid_list, new_dbdir=new_dbdir_)
 
 
 @__injectable
-def export_images(ibs, new_dbdir, gid_list):
+def export_images(ibs, gid_list, new_dbdir=None):
     """ See ibeis/tests/test_ibs_export.py """
     import ibeis
-    from ibeis.dev import sysres
     from ibeis.export import export_subset
-    workdir = sysres.get_workdir()
-    new_dbdir_ = join(workdir, new_dbdir)
-    ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)
+    print('[ibsfuncs] exporting to new_dbdir=%r' % new_dbdir)
+    ibs_dst = ibeis.opendb(dbdir=new_dbdir, allow_newdir=True)
     status = export_subset.transfer_data(ibs, ibs_dst, gid_list1=gid_list)
     return status

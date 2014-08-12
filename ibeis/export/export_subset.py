@@ -76,7 +76,7 @@ def get_annot_transfer_data(ibs, _aid_list, _annot_gid_list):
 def get_image_transfer_data(ibs, _gid_list):
     img_td = IMAGE_TransferData(
         ibs.get_image_uuids(_gid_list),
-        ibs.get_image_abs_uri(_gid_list),
+        ibs.get_image_absolute_uri(_gid_list),
         ibs.get_image_gnames(_gid_list),
         ibs.get_image_exts(_gid_list),
         ibs.get_image_sizes(_gid_list),
@@ -174,6 +174,9 @@ def transfer_data(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
 
     _aid_list1 = [] if aid_list1 is None else aid_list1
     _gid_list1 = [] if gid_list1 is None else gid_list1
+
+    assert all([gid is not None for gid in _gid_list1]), 'bad gid input'
+    assert all([aid is not None for aid in _aid_list1]), 'bad aid input'
 
     # Get information from source database
     transfer_data = collect_transfer_data(ibs1, _aid_list1, _gid_list1, include_image_annots)
