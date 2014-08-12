@@ -135,7 +135,7 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
     _gid_list = list(set(gid_list + _annot_gid_list))
     #_alr_rowid_list = ibs._get_all_alr_rowids()
     _alr_rowid_list = utool.flatten(ibs.get_annot_alrids(_aid_list))
-    _lblannot_rowid_list = ibs._get_all_lblannot_rowids()
+    _lblannot_rowid_list = utool.flatten(ibs.get_annot_lblannot_rowids(_aid_list))
 
     # Get transfer data dicts
     img_td      = get_image_transfer_data(ibs, _gid_list)
@@ -194,8 +194,14 @@ def transfer_data(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
 #@adder
 def internal_add_images(ibs, img_td):
     # Unpack transfer data
-    (uuid_list, uri_list, original_name_list, ext_list, gsize_list,
-     unixtime_list, latlon_list, notes_list) = img_td
+    (uuid_list,
+     uri_list,
+     original_name_list,
+     ext_list,
+     gsize_list,
+     unixtime_list,
+     latlon_list,
+     notes_list) = img_td
 
     colnames = ('image_uuid', 'image_uri', 'image_original_name',
                 'image_ext', 'image_width', 'image_height',
@@ -218,8 +224,12 @@ def internal_add_images(ibs, img_td):
 #@adder
 def internal_add_annots(ibs, annot_td):
     # Unpack transfer data
-    (annot_img_uuid_list, annot_uuid_list, vert_list, theta_list,
-     isexemplar_list, notes_list) = annot_td
+    (annot_img_uuid_list,
+     annot_uuid_list,
+     vert_list,
+     theta_list,
+     isexemplar_list,
+     notes_list) = annot_td
 
     gid_list = ibs.get_image_gids_from_uuid(annot_img_uuid_list)
     bbox_list = geometry.bboxes_from_vert_list(vert_list)  # , castint=True)
@@ -237,8 +247,7 @@ def internal_add_annots(ibs, annot_td):
                             vertstr_list, notes_list))
 
     # Execute add ANNOTATIONs SQL
-    get_rowid_from_superkey = ibs.get_annot_aids_from_uuid
-    aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, get_rowid_from_superkey)
+    aid_list = ibs.db.add_cleanly(ANNOTATION_TABLE, colnames, params_iter, ibs.get_annot_aids_from_uuid)
 
     # Invalidate image thumbnails
     ibs.delete_image_thumbs(gid_list)
@@ -246,12 +255,14 @@ def internal_add_annots(ibs, annot_td):
 
 
 def internal_add_lblannot(ibs, lblannot_td):
-    (lblannot_uuid_list, value_list, note_list, lbltype_text_list) = lblannot_td
-
-    lbltype_rowid_list = ibs.get_lbltype_rowid_from_text(lbltype_text_list)
+    (lblannot_uuid_list,
+     value_list,
+     note_list,
+     lbltype_text_list) = lblannot_td
+    lbltype_rowid_list  = ibs.get_lbltype_rowid_from_text(lbltype_text_list)
     # Pack into params iter
-    colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
-    params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
+    colnames = ('lblannot_uuid', 'lblannot_value', 'lblannot_note', 'lbltype_rowid',)
+    params_iter = list(zip(lblannot_uuid_list, value_list, note_list, lbltype_rowid_list,))
     get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
     superkey_paramx = (1, 2)
     lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
@@ -261,11 +272,12 @@ def internal_add_lblannot(ibs, lblannot_td):
 
 def internal_add_alr(ibs, alr_td):
     # Unpack transfer data
-    (annot_uuid_list, lblannot_uuid_list) = alr_td
+    (annot_uuid_list,
+     lblannot_uuid_list) = alr_td
     # Convert to correct data
-    annot_rowid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    annot_rowid_list    = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     lblannot_rowid_list = ibs.get_lblannot_rowid_from_uuid(lblannot_uuid_list)
-    config_rowid_list = [ibs.MANUAL_CONFIGID] * len(annot_rowid_list)  # FIXME
+    config_rowid_list   = [ibs.MANUAL_CONFIGID] * len(annot_rowid_list)  # FIXME
     alr_confidence_list = [0.0] * len(annot_rowid_list)  # FIXME
     # Pack into params iter
     colnames = ('annot_rowid', 'lblannot_rowid', 'config_rowid', 'alr_confidence',)
