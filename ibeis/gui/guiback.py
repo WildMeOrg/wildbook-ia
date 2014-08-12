@@ -373,6 +373,8 @@ class MainWindowBackend(QtCore.QObject):
     def delete_image(back, gid=None):
         """ Action -> Delete Images"""
         print('[back] delete_image')
+        if not back.are_you_sure():
+            return
         gid = cast_from_qt(gid)
         back.ibs.delete_images(gid)
         back.front.update_tables()
@@ -380,6 +382,8 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def delete_all_encounters(back):
         print('\n\n[back] delete all encounters')
+        if not back.are_you_sure():
+            return
         back.ibs.delete_all_encounters()
         back.ibs.update_special_encounters()
         back.front.update_tables()
@@ -387,6 +391,8 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot(int)
     def delete_encounter(back, eid_list):
         print('\n\n[back] delete encounter')
+        if not back.are_you_sure():
+            return
         back.ibs.delete_encounters(eid_list)
         back.front.update_tables()
 
@@ -690,6 +696,8 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def delete_detection_models(back):
         print('[back] delete_detection_models')
+        if not back.are_you_sure():
+            return
         utool.delete(utool.get_app_resource_dir('ibeis', 'detectmodels'))
         pass
 
@@ -697,6 +705,8 @@ class MainWindowBackend(QtCore.QObject):
     def delete_cache(back):
         """ Help -> Delete Directory Slots"""
         print('[back] delete_cache')
+        if not back.are_you_sure():
+            return
         back.ibs.delete_cachedir()
         print('[back] finished delete_cache')
         pass
@@ -704,14 +714,16 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def delete_global_prefs(back):
         print('[back] delete_global_prefs')
-        # TODO: Add are you sure dialog?
+        if not back.are_you_sure():
+            return
         utool.delete(utool.get_app_resource_dir('ibeis', 'global_cache'))
         pass
 
     @slot_()
     def delete_queryresults_dir(back):
         print('[back] delete_queryresults_dir')
-        # TODO: Add are you sure dialog?
+        if not back.are_you_sure():
+            return
         utool.delete(back.ibs.qresdir)
         pass
 
@@ -901,6 +913,11 @@ class MainWindowBackend(QtCore.QObject):
 
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
+
+    def are_you_sure(back):
+        ans = back.user_option(msg='Are you sure?', title='Confirmation',
+                               options=['No', 'Yes'], use_cache=False)
+        return ans == 'Yes'
 
     def get_work_directory(back):
         return sysres.get_workdir()

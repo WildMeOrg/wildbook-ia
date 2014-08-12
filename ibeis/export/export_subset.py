@@ -132,7 +132,7 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
         _aid_list = aid_list
     # always include images from annotations
     _annot_gid_list = ibs.get_annot_gids(_aid_list)
-    _gid_list = list(set(gid_list + _annot_gid_list))
+    _gid_list = sorted(list(set(gid_list + _annot_gid_list)))
     #_alr_rowid_list = ibs._get_all_alr_rowids()
     _alr_rowid_list = utool.flatten(ibs.get_annot_alrids(_aid_list))
     _lblannot_rowid_list = utool.flatten(ibs.get_annot_lblannot_rowids(_aid_list))
@@ -146,8 +146,8 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
     return transfer_data
 
 
-def transfer_data(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
-                  include_image_annots=True):
+def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
+                     include_image_annots=True):
     """
     >>> from ibeis.all_imports import *
     >>> from ibeis.export.export_subset import *
@@ -168,9 +168,8 @@ def transfer_data(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
     num_images = 0
     num_annotations = 0
     num_names = 0
-    >>> transfer_data(ibs_src, ibs_dst, gid_list1=gid_list1, aid_list1=aid_list1)
+    >>> execute_transfer(ibs_src, ibs_dst, gid_list1=gid_list1, aid_list1=aid_list1)
     """
-    ibs1, ibs2 = ibs_src, ibs_dst
 
     _aid_list1 = [] if aid_list1 is None else aid_list1
     _gid_list1 = [] if gid_list1 is None else gid_list1
@@ -179,17 +178,23 @@ def transfer_data(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
     assert all([aid is not None for aid in _aid_list1]), 'bad aid input'
 
     # Get information from source database
-    transfer_data = collect_transfer_data(ibs1, _aid_list1, _gid_list1, include_image_annots)
+    """
+    <TEST>
+    ibs = ibs_src
+    aid_list = _aid_list1
+    gid_list = _gid_list1
+    """
+    transfer_data = collect_transfer_data(ibs_src, _gid_list1, _aid_list1, include_image_annots)
     img_td      = transfer_data.img_td
     annot_td    = transfer_data.annot_td
     lblannot_td = transfer_data.lblannot_td
     alr_td      = transfer_data.alr_td
 
     # Add information to destination database
-    gid_list2            = internal_add_images(ibs2, img_td)
-    aid_list2            = internal_add_annots(ibs2, annot_td)
-    lblannot_rowid_list2 = internal_add_lblannot(ibs2, lblannot_td)
-    alr_rowid_list2      = internal_add_alr(ibs2, alr_td)
+    gid_list2            = internal_add_images(ibs_dst, img_td)
+    aid_list2            = internal_add_annots(ibs_dst, annot_td)
+    lblannot_rowid_list2 = internal_add_lblannot(ibs_dst, lblannot_td)
+    alr_rowid_list2      = internal_add_alr(ibs_dst, alr_td)
 
     return (gid_list2, aid_list2, lblannot_rowid_list2, alr_rowid_list2)
 

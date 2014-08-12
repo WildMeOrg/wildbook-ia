@@ -1212,20 +1212,27 @@ def export_encounters(ibs, eid_list, new_dbdir=None):
         from ibeis.dev import sysres
         dbname = ibs.get_dbname()
         enc_texts = ', '.join(ibs.get_encounter_enctext(eid_list)).replace(' ', '-')
-        new_dbname = dbname + '_' + enc_texts
+        nimg_text = 'nImg=%r' % len(gid_list)
+        new_dbname = dbname + '_' + enc_texts + '_' + nimg_text
         workdir = sysres.get_workdir()
         new_dbdir_ = join(workdir, new_dbname)
     else:
         new_dbdir_ = new_dbdir
-    ibs.export_images(gid_list, new_dbdir=new_dbdir_)
+    ibs.export_images(gid_list, new_dbdir_=new_dbdir_)
 
 
 @__injectable
-def export_images(ibs, gid_list, new_dbdir=None):
+def export_images(ibs, gid_list, new_dbdir_):
     """ See ibeis/tests/test_ibs_export.py """
     import ibeis
     from ibeis.export import export_subset
-    print('[ibsfuncs] exporting to new_dbdir=%r' % new_dbdir)
-    ibs_dst = ibeis.opendb(dbdir=new_dbdir, allow_newdir=True)
-    status = export_subset.transfer_data(ibs, ibs_dst, gid_list1=gid_list)
+    print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
+    print('[ibsfuncs] opening database')
+    ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)
+    print('[ibsfuncs] begining transfer')
+    ibs_src = ibs
+    gid_list1 = gid_list
+    aid_list1 = None
+    include_image_annots = True
+    status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1, aid_list1)
     return status

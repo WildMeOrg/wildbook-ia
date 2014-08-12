@@ -493,7 +493,6 @@ class IBEISController(object):
     # --- ADDERS ---
     #---------------
 
-
     @adder
     def add_images(ibs, gpath_list, as_annots=False):
         """ Adds a list of image paths to the database.  Returns gids
@@ -691,7 +690,7 @@ class IBEISController(object):
         params_iter = ((suffix,) for suffix in cfgsuffix_list)
         get_rowid_from_superkey = partial(ibs.get_config_rowid_from_suffix, ensure=False)
         config_rowid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',),
-                                           params_iter, get_rowid_from_superkey)
+                                               params_iter, get_rowid_from_superkey)
         return config_rowid_list
 
     @adder
