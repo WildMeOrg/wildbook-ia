@@ -25,6 +25,10 @@ class TreeNode(TREE_NODE_BASE):
     """
     #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
+        """
+        <CYTH>
+        </CYTH>
+        """
         self.id_ = id_
         self.parent_node = parent_node
         self.child_nodes = []
@@ -35,32 +39,37 @@ class TreeNode(TREE_NODE_BASE):
             print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
-        """ <CYTH: returns=TreeNode>
+        """
+        <CYTH returns="TreeNode">
         cdef long index
         </CYTH> """
         return self.get_child(index)
 
     def set_children(self, child_nodes):
-        """ </CYTH: returns void> """
+        """ <CYTH returns="void"></CYTH> """
         self.child_nodes = child_nodes
 
     def get_children(self):
-        """ </CYTH: returns list> """
+        """ </CYTH returns="list"></CYTH> """
         return self.child_nodes
 
     def child_index(self, child_node):
-        """ <CYTH: returns=long>
-        cdef TreeNode child_node """
+        """
+        <CYTH returns=long>
+        cdef TreeNode child_node
+        </CYTH>
+        """
         return self.child_nodes.index(child_node)
 
     def get_child(self, index):
-        """ <CYTH: returns=TreeNode>
+        """
+        <CYTH returns="TreeNode">
         cdef long index
         </CYTH> """
         return self.child_nodes[index]
 
     def get_parent(self):
-        """ </CYTH: returns=TreeNode> """
+        """ <CYTH returns="TreeNode"></CYTH> """
         try:
             return self.parent_node
         except AttributeError as ex:
@@ -72,17 +81,19 @@ class TreeNode(TREE_NODE_BASE):
             raise
 
     def get_num_children(self):
-        """ </CYTH: returns=long> """
+        """ <CYTH returns=long>
+            </CYTH>
+            """
         return len(self.child_nodes)
 
     def get_id(self):
         """ Returns python internal id of this class
-        </CYTH: returns=long> """
+        <CYTH returns="long"></CYTH> """
         return self.id_
 
     def get_row(self):
         """ Returns the row_index of this node w.r.t its parent.
-        <CYTH: returns long>
+        <CYTH>
         cdef list sibling_nodes
         cdef long row
         </CYTH>
@@ -92,7 +103,7 @@ class TreeNode(TREE_NODE_BASE):
         return row
 
     def get_level(self):
-        """ </CYTH: returns long> """
+        """ <CYTH returns="long"> </CYTH>"""
         return self.level
 
 
@@ -121,9 +132,9 @@ def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """
     Recursively builds the tree structure
-    <CYTH: returns TreeNode>
     @cython.boundscheck(False)
     @cython.wraparound(False)
+    <CYTH returns="TreeNode">
     cdef:
         size_t ix
         long id_
@@ -150,9 +161,9 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
 @profile
 def _populate_tree_iterative(root_node, num_levels, ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet
-    <CYTH:returns=TreeNode>
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
+    #@cython.boundscheck(False)
+    #@cython.wraparound(False)
+    <CYTH returns="TreeNode">
     cdef:
         TreeNode parent_node
         size_t level
@@ -198,10 +209,10 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
 @profile
 def build_internal_structure(model):
     """
-    <CYTH: returns=TreeNode>
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    <CYTH>
+    #@cython.boundscheck(False)
+    #@cython.wraparound(False)
+    <CYTH returns="TreeNode">
+    </CYTH>
     """
     #from guitool.api_item_model import *
     ider_list = model.iders
