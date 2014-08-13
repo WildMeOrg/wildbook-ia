@@ -62,3 +62,10 @@ failed.txt
 test_times.txt
 
 *.ipynb
+failed.txt
+_*_cyth.pyx
+_*_cyth.c
+
+*_cyth_bench.py
+
+run_cyth_benchmarks.sh
