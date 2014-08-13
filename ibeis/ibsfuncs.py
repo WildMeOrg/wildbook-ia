@@ -290,8 +290,12 @@ def check_annot_consistency(ibs, aid_list):
 
 
 def check_name_consistency(ibs, nid_list):
+    #aids_list = ibs.get_name_aids(nid_list)
     lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
-    aids_list = ibs.get_name_aids(nid_list)
+    individual_lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
+    for lbltype_rowid in lbltype_rowid_list:
+        assert lbltype_rowid == individual_lbltype_rowid, 'non individual lbltype'
+
 
 @__injectable
 def check_consistency(ibs, embed=False):
@@ -840,33 +844,44 @@ def delete_non_exemplars(ibs):
 @profile
 def update_exemplar_encounter(ibs):
     # FIXME SLOW
-    eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
-    ibs.delete_encounters(eid)
+    exemplar_eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
+    #ibs.delete_encounters(exemplar_eid)
+    ibs.unrelate_encounter_from_image(exemplar_eid)
     aid_list = ibs.get_valid_aids(is_exemplar=True)
     gid_list = utool.unique_ordered(ibs.get_annot_gids(aid_list))
-    ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
+    #ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
+    ibs.set_image_eids(gid_list, [exemplar_eid] * len(gid_list))
 
 
 @__injectable
 @utool.time_func
 @profile
-def update_unreviewed_image_encounter(ibs):
+def update_reviewed_unreviewed_image_encounter(ibs):
     # FIXME SLOW
-    eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
-    ibs.delete_encounters(eid)
-    gid_list = ibs.get_valid_gids(reviewed=False)
-    ibs.set_image_enctext(gid_list, [constants.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+    unreviewed_eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
+    reviewed_eid = ibs.get_encounter_eids_from_text(constants.REVIEWED_IMAGE_ENCTEXT)
+    #ibs.delete_encounters(eid)
+    unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
+    reviewed_gids   = _get_unreviewed_gids(ibs)  # hack
+    ibs.unrelate_encounter_from_image(unreviewed_eid)
+    ibs.unrelate_encounter_from_image(reviewed_eid)
+    #gid_list = ibs.get_valid_gids(reviewed=False)
+    #ibs.set_image_enctext(gid_list, [constants.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+    ibs.set_image_eids(unreviewed_gids, [unreviewed_eid] * len(unreviewed_gids))
+    ibs.set_image_eids(reviewed_gids, [reviewed_eid] * len(reviewed_gids))
 
 
-@__injectable
-@utool.time_func
-@profile
-def update_reviewed_image_encounter(ibs):
-    # FIXME SLOW
-    eid = ibs.get_encounter_eids_from_text(constants.REVIEWED_IMAGE_ENCTEXT)
-    ibs.delete_encounters(eid)
-    gid_list = ibs.get_valid_gids(reviewed=True)
-    ibs.set_image_enctext(gid_list, [constants.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+#@__injectable
+#@utool.time_func
+#@profile
+#def update_reviewed_image_encounter(ibs):
+#    # FIXME SLOW
+#    #ibs.delete_encounters(eid)
+#    ibs.unrelate_encounter_from_image(eid)
+#    #gid_list = ibs.get_valid_gids(reviewed=True)
+#    gid_list = _get_reviewed_gids(ibs)  # hack
+#    #ibs.set_image_enctext(gid_list, [constants.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+#    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
 @__injectable
@@ -875,9 +890,10 @@ def update_reviewed_image_encounter(ibs):
 def update_all_image_encounter(ibs):
     # FIXME SLOW
     eid = ibs.get_encounter_eids_from_text(constants.ALL_IMAGE_ENCTEXT)
-    ibs.delete_encounters(eid)
+    #ibs.delete_encounters(eid)
     gid_list = ibs.get_valid_gids()
-    ibs.set_image_enctext(gid_list, [constants.ALL_IMAGE_ENCTEXT] * len(gid_list))
+    #ibs.set_image_enctext(gid_list, [constants.ALL_IMAGE_ENCTEXT] * len(gid_list))
+    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
 @__injectable(False)
@@ -886,9 +902,57 @@ def update_all_image_encounter(ibs):
 def update_special_encounters(ibs):
     # FIXME SLOW
     ibs.update_exemplar_encounter()
-    ibs.update_unreviewed_image_encounter()
-    ibs.update_reviewed_image_encounter()
+    ibs.update_reviewed_unreviewed_image_encounter()
     ibs.update_all_image_encounter()
+
+
+def _get_unreviewed_gids(ibs):
+    # hack
+    gid_list = ibs.db.executeone(
+        '''
+        SELECT image_rowid
+        FROM {IMAGE_TABLE}
+        WHERE
+        image_toggle_reviewed=0
+        '''.format(**constants.__dict__))
+    return gid_list
+
+
+def _get_reviewed_gids(ibs):
+    # hack
+    gid_list = ibs.db.executeone(
+        '''
+        SELECT image_rowid
+        FROM {IMAGE_TABLE}
+        WHERE
+        image_toggle_reviewed=1
+        '''.format(**constants.__dict__))
+    return gid_list
+
+
+def _get_gids_in_eid(ibs, eid):
+    gid_list = ibs.db.executeone(
+        '''
+        SELECT image_rowid
+        FROM {EG_RELATION_TABLE}
+        WHERE
+            encounter_rowid==?
+        '''.format(**constants.__dict__),
+        params=(eid,))
+    return gid_list
+
+
+def _get_dirty_reviewed_gids(ibs, eid):
+    gid_list = ibs.db.executeone(
+        '''
+        SELECT image_rowid
+        FROM {EG_RELATION_TABLE}
+        WHERE
+            encounter_rowid==? AND
+            image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE} WHERE image_toggle_reviewed=1)
+        '''.format(**constants.__dict__),
+        params=(eid,))
+    return gid_list
 
 
 def get_title(ibs):
@@ -1219,7 +1283,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
 @__injectable
 def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
     """
-    >>> from ibeis.all_imports import *
+    >>> from ibeis.all_imports import *  # NOQA
     >>> ibs = ibeis.test_main(db='testdb1')
     >>> per_name = 1
     >>> aid_list = ibs.get_valid_aids()

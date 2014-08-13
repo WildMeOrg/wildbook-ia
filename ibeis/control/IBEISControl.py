@@ -1614,7 +1614,18 @@ class IBEISController(object):
         # Optimization hack, less SQL calls
         #egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
         #ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
+        #ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
+        ibs.unrelate_encounter_from_image(eid_list)
+
+    @deleter
+    def unrelate_encounter_from_image(ibs, eid_list):
+        # Removes images from encounter but doesnt delete encounter
         ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
+
+    @deleter
+    def unrelate_image_from_encounter(ibs, gid_list):
+        # Removes images from encounter but doesnt delete encounter
+        ibs.db.delete(EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
     @deleter
     def delete_image_eids(ibs, gid_list, eid_list):
