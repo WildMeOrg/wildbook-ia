@@ -29,7 +29,7 @@ import numpy as np
 
 ctypedef np.float32_t float32_t
 ctypedef np.float64_t float64_t
-#<FLOAT_TYPES> = [float32_t, float64_t]
+#### <FLOAT_TYPES> = [float32_t, float64_t]
 </CYTH>
 '''
 
@@ -249,15 +249,16 @@ def ori_distance(ori1, ori2):
 @profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
-    <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] det1
-    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] det2
+    <CYTH:REPLACE>
+    cdef:
+        np.ndarray[float64_t, ndim=1] det1
+        np.ndarray[float64_t, ndim=1] det2
     # TODO: Move to ktool_cython
     cdef unsigned int nDets = det1.shape[0]
     # Prealloc output
-    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] out = np.zeros((nDets,), dtype=<float_dtypes>)
+    cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nDets,), dtype=<float_dtypes>)
     cdef size_t ix
     for ix in range(nDets):
         # simple determinant: ad - bc
@@ -290,19 +291,21 @@ def L2_sqrd(hist1, hist2):
     hist1 = np.random.rand(4, 2)
     hist2 = np.random.rand(4, 2)
     out = np.empty(hist1.shape, dtype=hist1.dtype)
+
     <CYTH:REPLACE>
-    cdef np.ndarray[<FLOAT_TYPES>, ndim=2] hist1
-    cdef np.ndarray[<FLOAT_TYPES>, ndim=2] hist2
+    cdef:
+        np.ndarray[float64_t, ndim=2] hist1
+        np.ndarray[float64_t, ndim=2] hist2
     cdef unsigned int rows = hist1.shape[0]
     cdef unsigned int cols = hist1.shape[1]
     # Prealloc output
-    cdef np.ndarray[<FLOAT_TYPES>, ndim=1] out = np.zeros((rows,), dtype=<float_dtypes>)
+    cdef np.ndarray[float64_t, ndim=1] out = np.zeros((rows,), dtype=<float_dtypes>)
     cdef size_t cx
     cdef size_t rx
     for rx in range(rows):
         for cx in range(cols):
             out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
-    <CYTH>
+    </CYTH>
     """
     # TODO: np.ufunc
     # TODO: Cython
