@@ -23,8 +23,6 @@ from numpy.core.umath_tests import matrix_multiply  # NOQA
 '''
 <CYTH>
 cimport numpy as np
-cimport cython
-import cython
 import numpy as np
 
 ctypedef np.float32_t float32_t
@@ -249,23 +247,27 @@ def ori_distance(ori1, ori2):
 @profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
+    >>> from vtool.linalg import *
+    >>> det1 = np.random.rand(100)
+    >>> det2 = np.random.rand(100)
+    >>> det_distance(det1, det2)
+
+    <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    <CYTH:REPLACE>
-    cdef:
-        np.ndarray[float64_t, ndim=1] det1
-        np.ndarray[float64_t, ndim=1] det2
-    # TODO: Move to ktool_cython
-    cdef unsigned int nDets = det1.shape[0]
-    # Prealloc output
-    cdef np.ndarray[float64_t, ndim=1] out = np.zeros((nDets,), dtype=<float_dtypes>)
-    cdef size_t ix
-    for ix in range(nDets):
-        # simple determinant: ad - bc
-        if det1[ix] > det2[ix]:
-            out[ix] = det1[ix] / det2[ix]
-        else:
-            out[ix] = det2[ix] / det1[ix]
+    cpdef np.ndarray[float64_t, ndim=1] _det_distance_cyth(np.ndarray[float64_t, ndim=1] det1, np.ndarray[float64_t, ndim=1] det2):
+        # TODO: Move to ktool_cython
+        cdef unsigned int nDets = det1.shape[0]
+        # Prealloc output
+        out = np.zeros((nDets,), dtype=det1.dtype)
+        cdef size_t ix
+        for ix in range(nDets):
+            # simple determinant: ad - bc
+            if det1[ix] > det2[ix]:
+                out[ix] = det1[ix] / det2[ix]
+            else:
+                out[ix] = det2[ix] / det1[ix]
+        return out
     </CYTH>
     """
     # TODO: Cython
@@ -288,23 +290,25 @@ def L2_sqrd(hist1, hist2):
     """ returns the squared L2 distance
     seealso L2
     Test:
-    hist1 = np.random.rand(4, 2)
-    hist2 = np.random.rand(4, 2)
-    out = np.empty(hist1.shape, dtype=hist1.dtype)
+    >>> from vtool.linalg import *
+    >>> hist1 = np.random.rand(100, 2)
+    >>> hist2 = np.random.rand(100, 2)
+    >>> L2_sqrd(hist1, hist2)
 
     <CYTH:REPLACE>
-    cdef:
-        np.ndarray[float64_t, ndim=2] hist1
-        np.ndarray[float64_t, ndim=2] hist2
-    cdef unsigned int rows = hist1.shape[0]
-    cdef unsigned int cols = hist1.shape[1]
-    # Prealloc output
-    cdef np.ndarray[float64_t, ndim=1] out = np.zeros((rows,), dtype=<float_dtypes>)
-    cdef size_t cx
-    cdef size_t rx
-    for rx in range(rows):
-        for cx in range(cols):
-            out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef np.ndarray[float64_t, ndim=1] _L2_sqrd_cyth(np.ndarray[float64_t, ndim=2] hist1, np.ndarray[float64_t, ndim=2] hist2):
+        cdef unsigned int rows = hist1.shape[0]
+        cdef unsigned int cols = hist1.shape[1]
+        # Prealloc output
+        cdef np.ndarray[float64_t, ndim=1] out = np.zeros((rows,), dtype=hist1.dtype)
+        cdef size_t cx
+        cdef size_t rx
+        for rx in range(rows):
+            for cx in range(cols):
+                out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
+        return out
     </CYTH>
     """
     # TODO: np.ufunc

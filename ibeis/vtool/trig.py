@@ -7,6 +7,11 @@ from utool.util_inject import inject
 
 tau = 2 * np.pi  # tauday.com
 np.tau = tau
+'''
+<CYTH>
+tau = 2 * np.pi  # tauday.com
+</CYTH>
+'''
 
 
 def atan2(y, x):
