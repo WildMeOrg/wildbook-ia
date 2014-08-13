@@ -1,12 +1,10 @@
 # TODO: Rename api_item_model
 from __future__ import absolute_import, division, print_function
 from .__PYQT__ import QtCore
+from types import GeneratorType
 from six.moves import zip, range
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
-
-
-CYTHONIZED = False
 
 
 TREE_NODE_BASE = QtCore.QObject
@@ -51,6 +49,7 @@ class TreeNode(TREE_NODE_BASE):
 
     def get_children(self):
         """ </CYTH returns="list"></CYTH> """
+        self.lazy_checks()
         return self.child_nodes
 
     def child_index(self, child_node):
@@ -59,6 +58,7 @@ class TreeNode(TREE_NODE_BASE):
         cdef TreeNode child_node
         </CYTH>
         """
+        self.lazy_checks()
         return self.child_nodes.index(child_node)
 
     def get_child(self, index):
@@ -66,6 +66,7 @@ class TreeNode(TREE_NODE_BASE):
         <CYTH returns="TreeNode">
         cdef long index
         </CYTH> """
+        self.lazy_checks()
         return self.child_nodes[index]
 
     def get_parent(self):
@@ -84,6 +85,7 @@ class TreeNode(TREE_NODE_BASE):
         """ <CYTH returns=long>
             </CYTH>
             """
+        self.lazy_checks()
         return len(self.child_nodes)
 
     def get_id(self):
@@ -106,6 +108,11 @@ class TreeNode(TREE_NODE_BASE):
         """ <CYTH returns="long"> </CYTH>"""
         return self.level
 
+    def lazy_checks(self):
+        if isinstance(self.child_nodes, GeneratorType):
+            #print('[tree_node] lazy evaluation level=%r' % self.level)
+            self.child_nodes = list(self.child_nodes)
+
 
 def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
     id_ = self.get_id()
@@ -126,36 +133,6 @@ def tree_node_string(self, indent='', charids=True, id_dict={}, last=['A']):
     child_strs = [tree_node_string(child, indent=indent + '    ', charids=charids, id_dict=id_dict, last=last) for child in self.get_children()]
     str_ = '\n'.join([self_str] + child_strs)
     return str_
-
-
-#@profile
-def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
-    """
-    Recursively builds the tree structure
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    <CYTH returns="TreeNode">
-    cdef:
-        size_t ix
-        long id_
-        list child_nodes
-        TreeNode next_node
-        list next_ids
-    </CYTH>
-    """
-    if level == num_levels - 1:
-        child_nodes = [TreeNode(id_, parent_node, level) for id_ in child_ids]
-    else:
-        child_ider = ider_list[level + 1]
-        child_nodes =  [_populate_tree_recursive(
-            TreeNode(id_, parent_node, level),
-            child_ider(id_),
-            num_levels,
-            ider_list,
-            level + 1)
-            for id_ in child_ids]
-    parent_node.set_children(child_nodes)
-    return parent_node
 
 
 @profile
@@ -206,16 +183,68 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         ids_list = new_ids_lists
 
 
+#@profile
+def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
+    """
+    Recursively builds the tree structure
+    <CYTH returns="TreeNode">
+    cdef:
+        size_t ix
+        long id_
+        list child_nodes
+        TreeNode next_node
+        list next_ids
+    </CYTH>
+    """
+    if level == num_levels - 1:
+        child_nodes = (TreeNode(id_, parent_node, level) for id_ in child_ids)
+    else:
+        child_ider = ider_list[level + 1]
+        child_nodes =  [_populate_tree_recursive(
+            TreeNode(id_, parent_node, level),
+            child_ider(id_),
+            num_levels,
+            ider_list,
+            level + 1)
+            for id_ in child_ids]
+    parent_node.set_children(child_nodes)
+    return parent_node
+
+
+def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list, level):
+    """
+    Recursively builds the tree structure
+    <CYTH returns="TreeNode">
+    cdef:
+        size_t ix
+        long id_
+        list child_nodes
+        TreeNode next_node
+        list next_ids
+    </CYTH>
+    """
+    if level == num_levels - 1:
+        child_nodes_iter = (TreeNode(id_, parent_node, level) for id_ in child_ids)
+    else:
+        child_ider = ider_list[level + 1]
+        child_nodes_iter =  (
+            _populate_tree_recursive(
+                TreeNode(id_, parent_node, level), child_ider(id_),
+                num_levels, ider_list, level + 1)
+            for id_ in child_ids)
+    # seting children as an iterator triggers lazy loading
+    parent_node.set_children(child_nodes_iter)
+    return parent_node
+
+
 @profile
 def build_internal_structure(model):
     """
-    #@cython.boundscheck(False)
-    #@cython.wraparound(False)
     <CYTH returns="TreeNode">
     </CYTH>
     """
     #from guitool.api_item_model import *
-    ider_list = model.iders
+    ider_list = model.iders  # an ider for each level
     num_levels = len(ider_list)
     USE_RECURSIVE = True
     if USE_RECURSIVE:
@@ -226,7 +255,8 @@ def build_internal_structure(model):
             root_id_list = ider_list[0]()
         root_node = TreeNode(-1, None, -1)
         level = 0
-        _populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
+        #_populate_tree_recursive(root_node, root_id_list, num_levels, ider_list, level)
+        _populate_tree_recursive_lazy(root_node, root_id_list, num_levels, ider_list, level)
     else:
         # TODO: Vet this code a bit more.
         root_node = TreeNode(-1, None, -1)
@@ -234,3 +264,6 @@ def build_internal_structure(model):
     #print(root_node.full_str())
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
+
+
+CYTHONIZED = False
