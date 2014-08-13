@@ -1615,16 +1615,16 @@ class IBEISController(object):
         #egrid_list = utool.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
         #ibs.db.delete_rowids(EG_RELATION_TABLE, egrid_list)
         #ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
-        ibs.unrelate_encounter_from_image(eid_list)
+        ibs.unrelate_encounter_from_images(eid_list)
 
     @deleter
-    def unrelate_encounter_from_image(ibs, eid_list):
-        # Removes images from encounter but doesnt delete encounter
+    def unrelate_encounter_from_images(ibs, eid_list):
+        """ Removes relationship between input encounters and all images """
         ibs.db.delete(EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
 
     @deleter
     def unrelate_image_from_encounter(ibs, gid_list):
-        # Removes images from encounter but doesnt delete encounter
+        """ Removes relationship between input images and all encounters """
         ibs.db.delete(EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
     @deleter

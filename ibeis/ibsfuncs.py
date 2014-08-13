@@ -846,9 +846,10 @@ def update_exemplar_encounter(ibs):
     # FIXME SLOW
     exemplar_eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
     #ibs.delete_encounters(exemplar_eid)
-    ibs.unrelate_encounter_from_image(exemplar_eid)
-    aid_list = ibs.get_valid_aids(is_exemplar=True)
-    gid_list = utool.unique_ordered(ibs.get_annot_gids(aid_list))
+    ibs.unrelate_encounter_from_images(exemplar_eid)
+    #aid_list = ibs.get_valid_aids(is_exemplar=True)
+    #gid_list = utool.unique_ordered(ibs.get_annot_gids(aid_list))
+    gid_list = list(set(_get_exemplar_gids(ibs)))
     #ibs.set_image_enctext(gid_list, [constants.EXEMPLAR_ENCTEXT] * len(gid_list))
     ibs.set_image_eids(gid_list, [exemplar_eid] * len(gid_list))
 
@@ -861,12 +862,12 @@ def update_reviewed_unreviewed_image_encounter(ibs):
     unreviewed_eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
     reviewed_eid = ibs.get_encounter_eids_from_text(constants.REVIEWED_IMAGE_ENCTEXT)
     #ibs.delete_encounters(eid)
-    unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
-    reviewed_gids   = _get_unreviewed_gids(ibs)  # hack
-    ibs.unrelate_encounter_from_image(unreviewed_eid)
-    ibs.unrelate_encounter_from_image(reviewed_eid)
+    ibs.unrelate_encounter_from_images(unreviewed_eid)
+    ibs.unrelate_encounter_from_images(reviewed_eid)
     #gid_list = ibs.get_valid_gids(reviewed=False)
     #ibs.set_image_enctext(gid_list, [constants.UNREVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+    unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
+    reviewed_gids   = _get_reviewed_gids(ibs)  # hack
     ibs.set_image_eids(unreviewed_gids, [unreviewed_eid] * len(unreviewed_gids))
     ibs.set_image_eids(reviewed_gids, [reviewed_eid] * len(reviewed_gids))
 
@@ -877,7 +878,7 @@ def update_reviewed_unreviewed_image_encounter(ibs):
 #def update_reviewed_image_encounter(ibs):
 #    # FIXME SLOW
 #    #ibs.delete_encounters(eid)
-#    ibs.unrelate_encounter_from_image(eid)
+#    ibs.unrelate_encounter_from_images(eid)
 #    #gid_list = ibs.get_valid_gids(reviewed=True)
 #    gid_list = _get_reviewed_gids(ibs)  # hack
 #    #ibs.set_image_enctext(gid_list, [constants.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
@@ -952,6 +953,16 @@ def _get_dirty_reviewed_gids(ibs, eid):
             image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE} WHERE image_toggle_reviewed=1)
         '''.format(**constants.__dict__),
         params=(eid,))
+    return gid_list
+
+
+def _get_exemplar_gids(ibs):
+    gid_list = ibs.db.executeone(
+        '''
+        SELECT image_rowid
+        FROM {ANNOTATION_TABLE}
+        WHERE annot_exemplar_flag=1
+        '''.format(**constants.__dict__))
     return gid_list
 
 
