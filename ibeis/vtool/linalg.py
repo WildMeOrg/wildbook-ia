@@ -444,12 +444,14 @@ if cyth.DYNAMIC:
     exec(cyth.import_cyth_execstr(__name__))
 else:
     # <AUTOGEN_CYTH>
+    # Regen command: python -c "import vtool.linalg" --cyth-write
     try:
-        if not True:
+        if not cyth.WITH_CYTH:
             raise ImportError('no cyth')
         raise ImportError("no cyth")
+        CYTHONIZED = True
     except ImportError:
-        L2_sqrd_cyth = L2_sqrd
+        L2_sqrd_cyth      = L2_sqrd
         det_distance_cyth = det_distance
+        CYTHONIZED = False
     # </AUTOGEN_CYTH>
-    pass

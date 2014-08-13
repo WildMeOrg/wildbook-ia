@@ -24,5 +24,13 @@ if cyth.DYNAMIC:
     exec(cyth.import_cyth_execstr(__name__))
 else:
     # <AUTOGEN_CYTH>
+    # Regen command: python -c "import vtool.trig" --cyth-write
+    try:
+        if not cyth.WITH_CYTH:
+            raise ImportError('no cyth')
+        raise ImportError("no cyth")
+        CYTHONIZED = True
+    except ImportError:
+        atan2_cyth = atan2
+        CYTHONIZED = False
     # </AUTOGEN_CYTH>
-    pass

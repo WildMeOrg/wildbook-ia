@@ -422,8 +422,9 @@ if cyth.DYNAMIC:
     exec(cyth.import_cyth_execstr(__name__))
 else:
     # <AUTOGEN_CYTH>
+    # Regen command: python -c "import vtool.spatial_verification" --cyth-write
     try:
-        if not True:
+        if not cyth.WITH_CYTH:
             raise ImportError('no cyth')
         import vtool._spatial_verification_cyth
         __test_hypothesis_inliers_cyth = vtool._spatial_verification_cyth.__test_hypothesis_inliers_cyth
@@ -442,14 +443,15 @@ else:
         get_best_affine_inliers_cyth   = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
         get_homography_inliers_cyth    = vtool._spatial_verification_cyth._get_homography_inliers_cyth
         spatial_verification_cyth      = vtool._spatial_verification_cyth._spatial_verification_cyth
+        CYTHONIZED = True
     except ImportError:
-        get_affine_inliers_cyth = get_affine_inliers
-        determine_best_inliers_cyth = determine_best_inliers
-        compute_homog_cyth = compute_homog
-        get_homography_inliers_cyth = get_homography_inliers
         _test_hypothesis_inliers_cyth = _test_hypothesis_inliers
-        get_best_affine_inliers_cyth = get_best_affine_inliers
-        spatial_verification_cyth = spatial_verification
-        build_lstsqrs_Mx9_cyth = build_lstsqrs_Mx9
+        build_lstsqrs_Mx9_cyth        = build_lstsqrs_Mx9
+        compute_homog_cyth            = compute_homog
+        determine_best_inliers_cyth   = determine_best_inliers
+        get_affine_inliers_cyth       = get_affine_inliers
+        get_best_affine_inliers_cyth  = get_best_affine_inliers
+        get_homography_inliers_cyth   = get_homography_inliers
+        spatial_verification_cyth     = spatial_verification
+        CYTHONIZED = False
     # </AUTOGEN_CYTH>
-    pass
