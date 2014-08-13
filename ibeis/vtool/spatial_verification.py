@@ -396,6 +396,8 @@ def spatial_verification(kpts1, kpts2, fm,
     cdef:
     </CYTH>
     """
+    kpts1 = kpts1.astype(np.float64)
+    kpts2 = kpts2.astype(np.float64)
     # Get diagonal length if not provided
     if dlen_sqrd2 is None:
         kpts2_m = kpts2[fm.T[1]]
