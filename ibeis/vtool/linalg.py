@@ -440,7 +440,7 @@ except ImportError as ex:
 
 
 import cyth
-if cyth.dynamic:
+if cyth.DYNAMIC:
     exec(cyth.import_cyth_execstr(__name__))
 else:
     # <AUTOGEN_CYTH>

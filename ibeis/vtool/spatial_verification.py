@@ -418,7 +418,7 @@ def spatial_verification(kpts1, kpts2, fm,
 
 
 import cyth
-if cyth.dynamic:
+if cyth.DYNAMIC:
     exec(cyth.import_cyth_execstr(__name__))
 else:
     # <AUTOGEN_CYTH>

@@ -18,3 +18,11 @@ def atan2(y, x):
     theta[theta < 0] = theta[theta < 0] + tau  # map to 0 to tau (keep coords)
     #theta = theta % np.tau
     return theta
+
+import cyth
+if cyth.DYNAMIC:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    # </AUTOGEN_CYTH>
+    pass
