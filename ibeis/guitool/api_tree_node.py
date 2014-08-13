@@ -15,8 +15,7 @@ class TreeNode(TREE_NODE_BASE):
     """
     <CYTH>
     cdef:
-        long id_
-        long level
+        long id_, level
         list child_nodes
         TreeNode parent_node
     </CYTH>
@@ -110,7 +109,7 @@ class TreeNode(TREE_NODE_BASE):
 
     def lazy_checks(self):
         if isinstance(self.child_nodes, GeneratorType):
-            #print('[tree_node] lazy evaluation level=%r' % self.level)
+            printDBG('[tree_node] lazy evaluation level=%r' % self.level)
             self.child_nodes = list(self.child_nodes)
 
 
@@ -140,6 +139,8 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet
     #@cython.boundscheck(False)
     #@cython.wraparound(False)
+
+    @returns(TreeNode)
     <CYTH returns="TreeNode">
     cdef:
         TreeNode parent_node

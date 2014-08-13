@@ -147,6 +147,8 @@ class APIItemModel(API_MODEL_BASE):
         # Initialize member variables
         #model._about_to_change()
         model.headers = headers  # save the headers
+
+        model.lazy_updater = None
         if headers is not None:
             model._update_headers(**headers)
 
@@ -201,40 +203,52 @@ class APIItemModel(API_MODEL_BASE):
         #print('UPDATE model(%s) rows' % model.name)
         #print('[api_model] UPDATE ROWS: %r' % (model.name,))
         #print(utool.get_caller_name(range(4, 12)))
-        if len(model.col_level_list) > 0:
-            if rebuild_structure:
-                with utool.Timer('%s BUILD: %r' %
-                                 ('cython' if _atn.CYTHONIZED else 'python',
-                                  model.name,), newline=False):
-                    model.root_node = _atn.build_internal_structure(model)
-                #print('-----')
-            model.level_index_list = []
-            sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            children = model.root_node.get_children()
-            id_list = [child.get_id() for child in children]
-            #print('ids_ generated')
-            nodes = []
-            if len(id_list) != 0:
-                # start sort
-                if model.col_sort_index is not None:
-                    getter = model.col_getter_list[sort_index]
-                    values = getter(id_list)
-                    #print('values got')
-                else:
-                    values = id_list
-                reverse = model.col_sort_reverse
-                sorted_pairs = sorted(list(zip(values, id_list, children)), reverse=reverse)
-                nodes = [child for (value, id_, child) in sorted_pairs]
-                level = model.col_level_list[sort_index]
-                #print("row_indices sorted")
-                if level == 0:
-                    model.root_node.set_children(nodes)
-                # end sort
-            if utool.USE_ASSERT:
-                assert nodes is not None, 'no indices'
-            model.level_index_list = nodes
-            model._rows_updated.emit(model.name, len(model.level_index_list))
-            #print("Rows updated")
+        if len(model.col_level_list) == 0:
+            return
+        if rebuild_structure:
+            with utool.Timer('%s BUILD: %r' %
+                             ('cython' if _atn.CYTHONIZED else 'python',
+                              model.name,), newline=False):
+                model.root_node = _atn.build_internal_structure(model)
+            #print('-----')
+        def lazy_update_rows():
+            #with utool.Timer('lazy updater: %r' % (model.name,)):
+                #printDBG('[model] calling lazy updater: %r' % (model.name,))
+                model.level_index_list = []
+                sort_index = 0 if model.col_sort_index is None else model.col_sort_index
+                children = model.root_node.get_children()
+                id_list = [child.get_id() for child in children]
+                #print('ids_ generated')
+                nodes = []
+                if len(id_list) != 0:
+                    # start sort
+                    if model.col_sort_index is not None:
+                        getter = model.col_getter_list[sort_index]
+                        values = getter(id_list)
+                        #print('values got')
+                    else:
+                        values = id_list
+                    reverse = model.col_sort_reverse
+                    sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
+                    nodes = [child for (value, id_, child) in sorted_pairs]
+                    level = model.col_level_list[sort_index]
+                    #print("row_indices sorted")
+                    if level == 0:
+                        model.root_node.set_children(nodes)
+                    # end sort
+                if utool.USE_ASSERT:
+                    assert nodes is not None, 'no indices'
+                model.level_index_list = nodes
+                model._rows_updated.emit(model.name, len(model.level_index_list))
+        model.lazy_updater = lazy_update_rows
+        #print("Rows updated")
+
+    def lazy_checks(model):
+        if model.lazy_updater is not None:
+            print('[model] lazy update %r caller %r: ' %
+                  (model.name, utool.get_caller_name(N=range(4))))
+            model.lazy_updater()
+            model.lazy_updater = None
 
     @updater
     def _set_iders(model, iders=None):
@@ -365,7 +379,7 @@ class APIItemModel(API_MODEL_BASE):
             #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
             #model._abouttochange = False
             model._abouttochange = False
-            printDBG('CHANGE: CACHE INVALIDATED!')
+            #printDBG('CHANGE: CACHE INVALIDATED!')
             model.cache = {}
             model.layoutChanged.emit()
             return True
@@ -577,6 +591,7 @@ class APIItemModel(API_MODEL_BASE):
         calling QModelIndex member functions, such as QModelIndex.parent(),
         since indexes belonging to your model will simply call your
         implementation, leading to infinite recursion.  """
+        model.lazy_checks()
         if qindex.isValid():
             node = qindex.internalPointer()
             #<HACK>
@@ -603,6 +618,7 @@ class APIItemModel(API_MODEL_BASE):
         components can use to refer to items in your model.
         NOTE: Object must be specified to sort delegates.
         """
+        model.lazy_checks()
         if not parent.isValid():
             # This is a top level == 0 index
             #print('[model.index] ROOT: row=%r, col=%r' % (row, column))
@@ -627,6 +643,7 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def rowCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
+        #model.lazy_checks()
         if not parent.isValid():
             # Root row count
             if len(model.level_index_list) == 0:
@@ -644,6 +661,7 @@ class APIItemModel(API_MODEL_BASE):
     def columnCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
         # FOR NOW THE COLUMN COUNT IS CONSTANT
+        model.lazy_checks()
         return len(model.col_name_list)
 
     @default_method_decorator
@@ -780,6 +798,7 @@ class APIItemModel(API_MODEL_BASE):
         specified orientation.  For horizontal headers, the section number
         corresponds to the column number. Similarly, for vertical headers, the
         section number corresponds to the row number. """
+        model.lazy_checks()
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             column = section
             if column >= len(model.col_nice_list):
@@ -794,6 +813,7 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def sort(model, column, order):
         """ Qt Override """
+        model.lazy_checks()
         reverse = (order == QtCore.Qt.DescendingOrder)
         model._set_sort(column, reverse)
 
