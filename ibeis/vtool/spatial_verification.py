@@ -113,7 +113,7 @@ def compute_homog(xy1_mn, xy2_mn):
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     Mx9 = _build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)
     try:
-        (U, S, V) = npl.svd(Mx9, full_matrices=False)
+        (U, S, V) = npl.svd(Mx9, full_matrices=True, compute_uv=True)
     except MemoryError as ex:
         print('[sver] Caught MemErr %r during full SVD. Trying sparse SVD.' % (ex))
         Mx9Sparse = sps.lil_matrix(Mx9)

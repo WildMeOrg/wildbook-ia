@@ -76,10 +76,10 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
 
 
 def get_dummy_test_vars():
-    kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2)
-    kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6)
-    assert kpts1.dtype == np.float32
-    assert kpts2.dtype == np.float32
+    kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, dtype=np.float64)
+    kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, dtype=np.float64)
+    assert kpts1.dtype == np.float64
+    assert kpts2.dtype == np.float64
     chip1 = dummy.get_kpts_dummy_img(kpts1)
     chip2 = dummy.get_kpts_dummy_img(kpts2)
     #kpts2 = ktool.get_grid_kpts()
