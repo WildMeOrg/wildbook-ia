@@ -223,7 +223,8 @@ def nearest_point(x, y, pts, mode='random'):
 
 @profile
 def and_lists(*args):
-    """ Like np.logical_and, but can take more than 2 arguments """
+    """ Like np.logical_and, but can take more than 2 arguments
+    """
     # TODO: Cython
     # TODO: remove reduce statement (bleh)
     if six.PY2:
@@ -233,9 +234,34 @@ def and_lists(*args):
     return flags
 
 
+def and_3lists(arr1, arr2, arr3):
+    """
+    >>> from vtool.linalg import *
+    >>> arr1 = (np.random.rand(1000)).astype(np.bool)
+    >>> arr2 = (np.random.rand(1000)).astype(np.bool)
+    >>> arr3 = (np.random.rand(1000)).astype(np.bool)
+    >>> and_3lists(arr1, arr2, arr3)
+
+    <CYTH>
+    </CYTH>
+    """
+    return np.logical_and(np.logical_and(arr1, arr2), arr3)
+
+
 @profile
 def ori_distance(ori1, ori2):
-    """ Returns how far off determinants are from one another """
+    """ Returns how far off determinants are from one another
+    >>> from vtool.linalg import *
+    >>> ori1 = (np.random.rand(1000) * np.tau) - np.pi
+    >>> ori2 = (np.random.rand(1000) * np.tau) - np.pi
+    >>> ori_distance(ori1, ori2)
+
+    <CYTH>
+    cdef:
+        np.ndarray ori1
+        np.ndarray ori2
+    </CYTH>
+    """
     # TODO: Cython
     ori_dist = np.abs(ori1 - ori2) % np.tau
     ori_dist = np.minimum(ori_dist, np.tau - ori_dist)
@@ -247,8 +273,8 @@ def ori_distance(ori1, ori2):
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
     >>> from vtool.linalg import *
-    >>> det1 = np.random.rand(100)
-    >>> det2 = np.random.rand(100)
+    >>> det1 = np.random.rand(1000)
+    >>> det2 = np.random.rand(1000)
     >>> det_distance(det1, det2)
 
     <CYTH:REPLACE>
@@ -290,8 +316,8 @@ def L2_sqrd(hist1, hist2):
     seealso L2
     Test:
     >>> from vtool.linalg import *
-    >>> hist1 = np.random.rand(100, 2)
-    >>> hist2 = np.random.rand(100, 2)
+    >>> hist1 = np.random.rand(1000, 2)
+    >>> hist2 = np.random.rand(1000, 2)
     >>> L2_sqrd(hist1, hist2)
 
     <CYTH:REPLACE>
@@ -427,19 +453,19 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
 # CYTH PROTOTYPE CODE:
 #cython_funcs = [('det_distance', ['float32', 'float64']), ('L2_sqrd', ['float32', 'float64'])]
 #for
-try:
-    #if not utool.get_flag('--nocyth'):
-    if utool.get_flag('--cyth'):
-        from .linalg_cython import (  # NOQA
-            L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
-                                    det_distance_float64, L2_sqrd_cython,
-                                    det_distance_cython)
-    else:
-        raise ImportError('no cyth')
-except ImportError as ex:
-    # default to python
-    L2_sqrd_cython = L2_sqrd
-    det_distance_cython = det_distance
+#try:
+#    #if not utool.get_flag('--nocyth'):
+#    if utool.get_flag('--cyth'):
+#        from .linalg_cython import (  # NOQA
+#            L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
+#                                    det_distance_float64, L2_sqrd_cython,
+#                                    det_distance_cython)
+#    else:
+#        raise ImportError('no cyth')
+#except ImportError as ex:
+#    # default to python
+#    L2_sqrd_cython = L2_sqrd
+#    det_distance_cython = det_distance
 
 
 import cyth

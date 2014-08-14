@@ -196,16 +196,16 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     _ori1_mt  = ktool.get_invVR_mats_oris_cyth(invVR1s_mt)
     # Check for projection errors
     #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-    xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
+    xy_err    = ltool.L2_sqrd_cyth(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
     #scale_err = ltool.det_distance(_det1_mt, det2_m)
-    scale_err = ltool.det_distance(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
-    ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
+    scale_err = ltool.det_distance_cyth(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
+    ori_err   = ltool.ori_distance_cyth(_ori1_mt, ori2_m)
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = xy_err    < xy_thresh_sqrd
     scale_inliers_flag = scale_err < scale_thresh_sqrd
     ori_inliers_flag   = ori_err   < ori_thresh
     # TODO Add uniqueness of matches constraint
-    hypo_inliers_flag = ltool.and_lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+    hypo_inliers_flag = ltool.and_3lists_cyth(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
     hypo_errors = (xy_err, ori_err, scale_err)
     hypo_inliers = np.where(hypo_inliers_flag)[0]
     return hypo_inliers, hypo_errors
@@ -279,10 +279,10 @@ def get_affine_inliers(kpts1, kpts2, fm,
     # where there is no internal function definition. It was moderately faster,
     # and it gives us access to profile that function
     inliers_and_errors_list = [_test_hypothesis_inliers(Aff, invVR1s_m, xy2_m,
-                                                        det2_m, ori2_m,
-                                                        xy_thresh_sqrd,
-                                                        scale_thresh_sqrd,
-                                                        ori_thresh)
+                                                             det2_m, ori2_m,
+                                                             xy_thresh_sqrd,
+                                                             scale_thresh_sqrd,
+                                                             ori_thresh)
                                for Aff in Aff_mats]
     inliers_list = [tup[0] for tup in inliers_and_errors_list]
     errors_list  = [tup[1] for tup in inliers_and_errors_list]
