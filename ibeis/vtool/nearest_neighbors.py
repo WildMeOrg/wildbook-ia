@@ -88,6 +88,32 @@ def tune_flann(data, **kwargs):
     flann.delete_index()
     return tuned_params
 
+
+def get_tunned_flann_index(**kwargs):
+    import pyflann
+    import numpy as np
+    nIndexed = 10000
+    nQuery = 10000
+    nDims = 11  # 128
+    dtype = np.float64
+    randint = np.random.randint
+    print('Create random qpts and database data')
+    pts   = np.array(randint(0, 255, (nIndexed, nDims)), dtype=dtype)
+    qpts  = np.array(randint(0, 255, (nQuery, nDims)), dtype=dtype)
+    #num_data = len(data)
+    flannkw = dict(
+        algorithm='autotuned',
+        target_precision=.01,
+        build_weight=0.01,
+        memory_weight=0.0,
+        sample_fraction=0.001
+    )
+    flannkw.update(kwargs)
+    flann = pyflann.FLANN()
+    tuned_params = flann.build_index(pts, **flannkw)
+    return tuned_params
+
+
 """
 #def __tune():
     #tune_flann(sample_fraction=.03, target_precision=.9, build_weight=.01)
