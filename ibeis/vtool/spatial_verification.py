@@ -33,21 +33,6 @@ SV_DTYPE = np.float64
 
 """
 <CYTH>
-import vtool.keypoint as ktool
-import vtool.linalg as ltool
-
-#from vtool cimport _keypoint_cyth as ktool_cyth  # TODO: do these replacements
-from vtool.spatial_verification import get_best_affine_inliers, compute_homog, get_homography_inliers, determine_best_inliers, _test_hypothesis_inliers, get_affine_inliers
-
-import numpy as np
-import cython
-import numpy.linalg as npl
-import scipy.sparse as sps
-import scipy.sparse.linalg as spsl
-
-cimport numpy as np
-cimport cython
-
 #ctypedef np.float64_t SV_DTYPE
 SV_DTYPE = np.float64
 </CYTH>
