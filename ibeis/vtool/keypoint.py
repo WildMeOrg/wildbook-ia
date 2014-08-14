@@ -66,7 +66,7 @@ cimport cython
 #ctypedef np.float64_t [:, :, :] numpy_floatarray_3dimension
 #ctypedef np.float64_t [:] numpy_floatarray_1dimension
 
-cdef np.float64_t tau = np.pi * 2
+cdef np.float64_t tau
 </CYTH>
 """
 #:%s/numpy_floatarray_\([13]\)dimension/np.ndarray[np.float64_t, ndim=\1]/gc
