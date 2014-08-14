@@ -12,14 +12,6 @@ profile = utool.profile
 #(print, print_, printDBG, rrr, profile) = utool.inject(
 #    __name__, '[linalg]', DEBUG=False)
 
-np.tau = 2 * np.pi  # tauday.com
-
-TRANSFORM_DTYPE = np.float64
-
-
-# Function which multiplies many matrices at once
-from numpy.core.umath_tests import matrix_multiply  # NOQA
-
 '''
 <CYTH>
 cimport numpy as np
@@ -30,6 +22,13 @@ ctypedef np.float64_t float64_t
 #### <FLOAT_TYPES> = [float32_t, float64_t]
 </CYTH>
 '''
+np.tau = 2 * np.pi  # tauday.com
+
+TRANSFORM_DTYPE = np.float64
+
+
+# Function which multiplies many matrices at once
+from numpy.core.umath_tests import matrix_multiply  # NOQA
 
 
 @profile
