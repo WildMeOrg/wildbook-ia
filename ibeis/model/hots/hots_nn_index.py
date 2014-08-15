@@ -20,36 +20,46 @@ import vtool.nearest_neighbors as nntool
 NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 
-#@utool.indent_func('[get_flann_cfgstr]')
-def get_flann_cfgstr(ibs, aid_list):
-    """ </CYTH> """
-    feat_cfgstr   = ibs.cfg.feat_cfg.get_cfgstr()
-    new_cfgstr = feat_cfgstr_depends_indexed_aids(feat_cfgstr, aid_list)
+def get_indexed_cfgstr(ibs, aid_list):
+    """
+    Creates a config string for the input into the nearest neighbors index
+    It is based off of the features which were computed for it and the indexes
+    of the input annotations.
+
+    TODO: We should probably use the Annotation UUIDS rather than the ROWIDs
+    to compute this configstr
+
+    """
+    feat_cfgstr = ibs.cfg.feat_cfg.get_cfgstr()
+    # returns something like: _daids((6)qbm6uaegu7gv!ut!)_FEAT(params)
+    daid_cfgstr = utool.hashstr_arr(aid_list, 'daids')  # todo change to uuids
+    new_cfgstr = '_' + daid_cfgstr + feat_cfgstr
     return new_cfgstr
 
 
-def feat_cfgstr_depends_indexed_aids(cfgstr, aid_list):
+def build_ibs_inverted_descriptor_index(ibs, aid_list):
     """
-    >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
-    >>> from ibeis.model.hots.hots_nn_index import feat_cfgstr_depends_indexed_aids
-    >>> aid_list = [0, 1, 2, 3, 4, 5]
-    >>> feat_cfgstr = '_FEAT(params)'
-    >>> new_cfgstr = feat_cfgstr_depends_indexed_aids(feat_cfgstr, aid_list)
-    >>> print(new_cfgstr)
-    _daids((6)qbm6uaegu7gv!ut!)_FEAT(params)
-
-    <CYTH>
-    </CYTH>
+    Aggregates descriptors of input annotations and returns inverted information
     """
-    sample_cfgstr = utool.hashstr_arr(aid_list, 'daids')
-    new_cfgstr = '_' + sample_cfgstr + cfgstr
-    return new_cfgstr
+    try:
+        if len(aid_list) == 0:
+            msg = ('len(aid_list) == 0\n'
+                    'Cannot build inverted index without features!')
+            raise AssertionError(msg)
+        desc_list = ibs.get_annot_desc(aid_list)
+        dx2_desc, dx2_aid, dx2_fx = _try_build_inverted_descriptor_index(aid_list, desc_list)
+        return dx2_desc, dx2_aid, dx2_fx
+    except Exception as ex:
+        intostr = ibs.get_infostr()
+        print(intostr)
+        utool.printex(ex, 'cannot build inverted index', key_list=list(locals().keys()))
+        raise
 
 
-#@utool.indent_func('[agg_desc]')
-
-def build_inverted_descriptor_index(aid_list, desc_list):
-    """ Wrapper which performs logging and error checking """
+def _try_build_inverted_descriptor_index(aid_list, desc_list):
+    """
+    Wrapper which performs logging and error checking
+    """
     if utool.NOT_QUIET:
         print('[agg_desc] stacking descriptors from %d annotations' % len(aid_list))
     try:
@@ -74,8 +84,6 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
         dx2_aid  - inverted index into annotations
         dx2_fx   - inverted index into features
 
-    # It would be nice if the input was varied when the doctest was parsed into
-    # cyth.
     # Example with 2D Descriptors
     >>> from ibeis.model.hots.hots_nn_index import *  # NOQA
     >>> from ibeis.model.hots.hots_nn_index import _build_inverted_descriptor_index
@@ -100,6 +108,7 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
     <CYTH>
     cdef:
         list aid_list, desc_list
+        long nFeat, aid
         iter aid_nFeat_iter, nFeat_iter, _ax2_aid, _ax2_fx
         np.ndarray dx2_aid, dx2_fx, dx2_desc
     </CYTH>
@@ -130,26 +139,17 @@ def build_flann_inverted_index(ibs, aid_list, **kwargs):
     """
     Build a inverted index (using FLANN)
     </CYTH> """
-    try:
-        if len(aid_list) == 0:
-            msg = ('len(aid_list) == 0\n'
-                    'Cannot build inverted index without features!')
-            raise AssertionError(msg)
-        desc_list = ibs.get_annot_desc(aid_list)
-        dx2_desc, dx2_aid, dx2_fx = build_inverted_descriptor_index(aid_list, desc_list)
-    except Exception as ex:
-        intostr = ibs.get_infostr()
-        print(intostr)
-        utool.printex(ex, 'cannot build inverted index', key_list=list(locals().keys()))
-        raise
-    # Build/Load the flann index
-    flann_cfgstr = get_flann_cfgstr(ibs, aid_list)
+    # Aggregate descriptors
+    dx2_desc, dx2_aid, dx2_fx = build_ibs_inverted_descriptor_index(ibs, aid_list)
+    # hash which annotations are input
+    indexed_cfgstr = get_indexed_cfgstr(ibs, aid_list)
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
     flann_cachedir = ibs.get_flann_cachedir()
     precomp_kwargs = {'cache_dir': flann_cachedir,
-                      'cfgstr': flann_cfgstr,
+                      'cfgstr': indexed_cfgstr,
                       'flann_params': flann_params,
                       'use_cache': kwargs.get('use_cache', not NOCACHE_FLANN)}
+    # Build/Load the flann index
     flann = nntool.flann_cache(dx2_desc, **precomp_kwargs)
     return dx2_desc, dx2_aid, dx2_fx, flann
 
