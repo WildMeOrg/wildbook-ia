@@ -1,7 +1,7 @@
 """
 Wrapper around flann (with caching)
 
-python -c "import utool, doctest; print(doctest.testmod(utool.util_progress))"
+python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors))"
 """
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
@@ -30,7 +30,9 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
 
 
 def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_data_hash=True):
-    flann_cfgstr = '_FLANN(' + utool.remove_chars(str(flann_params.values()), ', \'[]') + ')'
+    flann_valsig_ = str(list(flann_params.values()))
+    flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
+    flann_cfgstr = '_FLANN(' + flann_valsig  + ')'
     # Generate a unique filename for dpts and flann parameters
     if use_data_hash:
         data_hashstr = utool.hashstr_arr(dpts, '_dID')  # flann is dependent on the dpts
@@ -47,8 +49,7 @@ def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}):
     >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
     >>> cache_dir = '.'
     >>> cfgstr = '_FEAT(alg=heshes)'
-    >>> print(utool.hashstr(repr((qx2_dx, qx2_dist))))
-    >>> flann_params
+    >>> flann_params = get_kdtree_flann_params()
     >>> get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
     8zdwd&q0mu+ez4gp
     """
