@@ -421,7 +421,7 @@ def spatial_verification(kpts1, kpts2, fm,
     Driver function
     Spatially validates feature matches
 
-    <CYTH returns="tuple">
+    <-CYTH returns="tuple">
     cdef:
     </CYTH>
     """
