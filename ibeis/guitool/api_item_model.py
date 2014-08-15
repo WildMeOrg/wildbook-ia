@@ -240,7 +240,10 @@ class APIItemModel(API_MODEL_BASE):
                     assert nodes is not None, 'no indices'
                 model.level_index_list = nodes
                 model._rows_updated.emit(model.name, len(model.level_index_list))
-        model.lazy_updater = lazy_update_rows
+
+        # lazy method didn't work. Eagerly evaluate
+        lazy_update_rows()
+        #model.lazy_updater = lazy_update_rows
         #print("Rows updated")
 
     def lazy_checks(model):
