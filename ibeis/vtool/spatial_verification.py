@@ -22,10 +22,16 @@ import numpy as np
 import numpy.linalg as npl
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsl
+from numpy.core.umath_tests import matrix_multiply
 # VTool
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
+
+# CYTH TODO:
+# ktool and vtool must be recognized as having cython modules
+# need to cimport vtool._keypoint_cyth as _ktool_cyth
+# and replace all ktool.somefunc_cyth with _ktool_cyth.somefunc_cyth
 
 np.tau = 2 * np.pi  # tauday.org
 
@@ -138,7 +144,7 @@ def compute_homog(xy1_mn, xy2_mn):
 # 81                                           def _test_hypothosis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
 # 82                                                                        xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
 # 83                                               # Map keypoints from image 1 onto image 2
-# 84     18581      1380010     74.3      6.6      invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
+# 84     18581      1380010     74.3      6.6      invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
 # 85                                               # Get projection components
 # 86     18581       899671     48.4      4.3      _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
 # 87     18581      7374378    396.9     35.2      _det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
@@ -163,6 +169,35 @@ def compute_homog(xy1_mn, xy2_mn):
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     """
+    >>> from vtool.spatial_verification import *  # NOQA
+    >>> from vtool.spatial_verification import _test_hypothesis_inliers  # NOQA
+    >>> import vtool.tests.dummy as dummy
+    >>> import vtool.keypoint as ktool
+    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30)).astype(np.float64)
+    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30)).astype(np.float64)
+    >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
+    >>> kpts1_m = kpts1[fm.T[0]]
+    >>> kpts2_m = kpts2[fm.T[1]]
+    >>> xy_thresh_sqrd = np.float64(.009) ** 2
+    >>> scale_thresh_sqrd = np.float64(2)
+    >>> ori_thresh = np.float64(np.tau / 4)
+    >>> # Get keypoints to project in matrix form
+    >>> invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
+    >>> V1s_m = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
+    >>> invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
+    >>> # The transform from kp1 to kp2 is given as:
+    >>> Aff_mats = matrix_multiply(invVR2s_m, V1s_m)
+    >>> Aff = Aff_mats[0]
+    >>> Aff = np.array([[ 0.9506202 ,  0.06814792,  1.91077919],
+    ...                 [-0.43488476,  1.2916116 ,  6.41614044],
+    ...                 [ 0.        ,  0.        ,  1.        ]])
+    >>> # Get components to test projects against
+    >>> xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
+    >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
+    >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
+    >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+    >>> print(utool.hashstr(repr(output[0])))
+
     <CYTH returns="tuple">
     cdef:
         np.ndarray[np.float64_t, ndim=2] Aff
@@ -180,15 +215,16 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         np.ndarray[np.float64_t, ndim=1] xy_err
         np.ndarray[np.float64_t, ndim=1] scale_err
         np.ndarray[np.float64_t, ndim=1] scale_err
-        np.ndarray[np.uint8_t, ndim=1] xy_inliers_flag
-        np.ndarray[np.uint8_t, ndim=1] scale_inliers_flag
-        np.ndarray[np.uint8_t, ndim=1] ori_inliers_flag
+        np.ndarray[np.uint8_t, ndim=1, cast=True] xy_inliers_flag
+        np.ndarray[np.uint8_t, ndim=1, cast=True] scale_inliers_flag
+        np.ndarray[np.uint8_t, ndim=1, cast=True] ori_inliers_flag
+        np.ndarray[np.uint8_t, ndim=1, cast=True] hypo_inliers_flag
         tuple hypo_errors
         np.ndarray[np.int_t, ndim=1] hypo_inliers
     </CYTH>
     """
     # Map keypoints from image 1 onto image 2
-    invVR1s_mt = ktool.matrix_multiply(Aff, invVR1s_m)
+    invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
     # Get projection components
     _xy1_mt   = ktool.get_invVR_mats_xys_cyth(invVR1s_mt)
     #_det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
@@ -224,8 +260,8 @@ def get_affine_inliers(kpts1, kpts2, fm,
     >>> from vtool.spatial_verification import *  # NOQA
     >>> import vtool.tests.dummy as dummy
     >>> import vtool.keypoint as ktool
-    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30)).astype(np.float64)
-    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30)).astype(np.float64)
+    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(100, 100)).astype(np.float64)
+    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(100, 100)).astype(np.float64)
     >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
     >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
     >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
@@ -245,6 +281,8 @@ def get_affine_inliers(kpts1, kpts2, fm,
         np.ndarray[np.float64_t, ndim=2] kpts1
         np.ndarray[np.float64_t, ndim=2] kpts2
         np.ndarray[np.int64_t, ndim=2] fm
+        np.ndarray[np.float64_t, ndim=2] kpts1_m
+        np.ndarray[np.float64_t, ndim=2] kpts2_m
         np.float64_t xy_thresh_sqrd
         np.float64_t scale_thresh_sqrd
         np.float64_t ori_thresh
@@ -255,8 +293,9 @@ def get_affine_inliers(kpts1, kpts2, fm,
         np.ndarray[np.float64_t, ndim=2] xy2_m
         np.ndarray[np.float64_t, ndim=1] det2_m
         np.ndarray[np.float64_t, ndim=1] ori2_m
+        np.ndarray[np.float64_t, ndim=2] Aff
+        tuple tup
         list inliers_and_errors_list
-        list errors_list
         list errors_list
     </CYTH>
     """
@@ -268,10 +307,10 @@ def get_affine_inliers(kpts1, kpts2, fm,
     V1s_m = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
     invVR2s_m = ktool.get_invV_mats(kpts2_m, with_trans=True, with_ori=True)
     # The transform from kp1 to kp2 is given as:
-    Aff_mats = ktool.matrix_multiply(invVR2s_m, V1s_m)
+    Aff_mats = matrix_multiply(invVR2s_m, V1s_m)
     # Get components to test projects against
     xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
-    det2_m = ktool.get_sqrd_scales(kpts2_m)  # PYX FLOAT_1D
+    det2_m = ktool.get_sqrd_scales(kpts2_m)
     ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
 
     # The previous versions of this function were all roughly comparable.
@@ -295,7 +334,12 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     """ Tests each hypothesis and returns only the best transformation and inliers
     <CYTH returns="tuple">
     cdef:
-        np.ndarray[np.float64_t, ndim=2] Aff
+        np.ndarray[np.float64_t, ndim=2] kpts1
+        np.ndarray[np.float64_t, ndim=2] kpts2
+        np.ndarray[np.int64_t, ndim=2] fm
+        np.float64_t xy_thresh_sqrd
+        np.float64_t scale_thresh_sqrd
+        np.float64_t ori_thresh
         list inliers_list
         list aff_inliers
         list Aff_mats
