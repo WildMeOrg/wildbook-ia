@@ -1,3 +1,8 @@
+"""
+Wrapper around flann (with caching)
+
+python -c "import utool, doctest; print(doctest.testmod(utool.util_progress))"
+"""
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import pyflann
@@ -9,30 +14,47 @@ import utool
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     Finds the approximate nearest neighbors of qpts in dpts
+    >>> from vtool.nearest_neighbors import *
+    >>> import numpy as np
+    >>> np.random.seed(1)
+    >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+    >>> qpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+    >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
+    >>> print(utool.hashstr(repr((qx2_dx, qx2_dist))))
+    8zdwd&q0mu+ez4gp
     """
-    flann = pyflann.FLANN()
-    flann.build_index(dpts, **flann_params)
-    checks = flann_params.get('checks', 1024)
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    (qx2_dx, qx2_dist) = flann.nn_index(qpts, num_neighbors, checks=checks)
+    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(dpts, qpts, num_neighbors, **flann_params)
     return (qx2_dx, qx2_dist)
 
 
-def get_flann_cfgstr(data, flann_params, cfgstr='', use_data_hash=True):
+def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_data_hash=True):
     flann_cfgstr = '_FLANN(' + utool.remove_chars(str(flann_params.values()), ', \'[]') + ')'
-    # Generate a unique filename for data and flann parameters
+    # Generate a unique filename for dpts and flann parameters
     if use_data_hash:
-        data_hashstr = utool.hashstr_arr(data, '_dID')  # flann is dependent on the data
+        data_hashstr = utool.hashstr_arr(dpts, '_dID')  # flann is dependent on the dpts
         flann_cfgstr += data_hashstr
     return flann_cfgstr
 
 
 #@utool.indent_func
-def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params={}):
+def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}):
+    """
+    >>> from vtool.nearest_neighbors import *
+    >>> import numpy as np
+    >>> np.random.seed(1)
+    >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+    >>> cache_dir = '.'
+    >>> cfgstr = '_FEAT(alg=heshes)'
+    >>> print(utool.hashstr(repr((qx2_dx, qx2_dist))))
+    >>> flann_params
+    >>> get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
+    8zdwd&q0mu+ez4gp
+    """
     #cache_dir = '.' if cache_dir is None else cache_dir
     assert cache_dir is not None, 'no cache dir specified'
-    flann_cfgstr = get_flann_cfgstr(data, flann_params, cfgstr)
+    flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr)
     # Append any user labels
     flann_fname = 'flann_index_' + flann_cfgstr + '.flann'
     flann_fpath = normpath(join(cache_dir, flann_fname))
@@ -40,19 +62,22 @@ def get_flann_fpath(data, cache_dir=None, cfgstr='', flann_params={}):
 
 
 #@utool.indent_func
-def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
+def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
                 use_cache=True):
-    """ Tries to load a cached flann index before doing anything """
+    """
+    Tries to load a cached flann index before doing anything
+    from vtool.nn
+    """
     if utool.NOT_QUIET:
         print('...flann_cache cfgstr = %r: ' % cfgstr)
-    if len(data) == 0:
-        raise AssertionError('cannot build flann when len(data) == 0. (prevents a segfault)')
-    flann_fpath = get_flann_fpath(data, cache_dir, cfgstr, flann_params)
-    flann = pyflann.FLANN()
+    if len(dpts) == 0:
+        raise AssertionError('cannot build flann when len(dpts) == 0. (prevents a segfault)')
+    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
     # Load the index if it exists
+    flann = pyflann.FLANN()
     if use_cache and exists(flann_fpath):
         try:
-            flann.load_index(flann_fpath, data)
+            flann.load_index(flann_fpath, dpts)
             if utool.NOT_QUIET:
                 print('...flann cache hit')
             return flann
@@ -60,16 +85,29 @@ def flann_cache(data, cache_dir=None, cfgstr='', flann_params=None,
             utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
     print('...flann cache miss.')
-    print('...building kdtree over %d points (this may take a sec).' % len(data))
-    flann.build_index(data, **flann_params)
+    print('...building kdtree over %d points (this may take a sec).' % len(dpts))
+    flann.build_index(dpts, **flann_params)
     print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
     flann.save_index(flann_fpath)
     return flann
 
 
-def tune_flann(data, **kwargs):
+def flann_augment(dpts, new_data, cache_dir, cfgstr, flann_params,
+                  use_cache=True):
+    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
+
+
+def get_kdtree_flann_params():
+    flann_params = {
+        'algorithm': 'kdtree',
+        'trees': 4
+    }
+    return flann_params
+
+
+def tune_flann(dpts, **kwargs):
     flann = pyflann.FLANN()
-    #num_data = len(data)
+    #num_data = len(dpts)
     flann_atkwargs = dict(algorithm='autotuned',
                           target_precision=.01,
                           build_weight=0.01,
@@ -81,127 +119,9 @@ def tune_flann(data, **kwargs):
     for badchar in badchar_list:
         suffix = suffix.replace(badchar, '')
     print(flann_atkwargs)
-    tuned_params = flann.build_index(data, **flann_atkwargs)
+    tuned_params = flann.build_index(dpts, **flann_atkwargs)
     utool.myprint(tuned_params)
     out_file = 'flann_tuned' + suffix
     utool.write_to(out_file, repr(tuned_params))
     flann.delete_index()
     return tuned_params
-
-
-def get_tunned_flann_index(**kwargs):
-    import pyflann
-    import numpy as np
-    nIndexed = 10000
-    nQuery = 10000
-    nDims = 11  # 128
-    dtype = np.float64
-    randint = np.random.randint
-    print('Create random qpts and database data')
-    pts   = np.array(randint(0, 255, (nIndexed, nDims)), dtype=dtype)
-    qpts  = np.array(randint(0, 255, (nQuery, nDims)), dtype=dtype)
-    #num_data = len(data)
-    flannkw = dict(
-        algorithm='autotuned',
-        target_precision=.01,
-        build_weight=0.01,
-        memory_weight=0.0,
-        sample_fraction=0.001
-    )
-    flannkw.update(kwargs)
-    flann = pyflann.FLANN()
-    tuned_params = flann.build_index(pts, **flannkw)
-    return tuned_params
-
-
-"""
-#def __tune():
-    #tune_flann(sample_fraction=.03, target_precision=.9, build_weight=.01)
-    #tune_flann(sample_fraction=.03, target_precision=.8, build_weight=.5)
-    #tune_flann(sample_fraction=.03, target_precision=.8, build_weight=.9)
-    #tune_flann(sample_fraction=.03, target_precision=.98, build_weight=.5)
-    #tune_flann(sample_fraction=.03, target_precision=.95, build_weight=.01)
-    #tune_flann(sample_fraction=.03, target_precision=.98, build_weight=.9)
-
-    #tune_flann(sample_fraction=.3, target_precision=.9, build_weight=.01)
-    #tune_flann(sample_fraction=.3, target_precision=.8, build_weight=.5)
-    #tune_flann(sample_fraction=.3, target_precision=.8, build_weight=.9)
-    #tune_flann(sample_fraction=.3, target_precision=.98, build_weight=.5)
-    #tune_flann(sample_fraction=.3, target_precision=.95, build_weight=.01)
-    #tune_flann(sample_fraction=.3, target_precision=.98, build_weight=.9)
-
-    #tune_flann(sample_fraction=1, target_precision=.9, build_weight=.01)
-    #tune_flann(sample_fraction=1, target_precision=.8, build_weight=.5)
-    #tune_flann(sample_fraction=1, target_precision=.8, build_weight=.9)
-    #tune_flann(sample_fraction=1, target_precision=.98, build_weight=.5)
-    #tune_flann(sample_fraction=1, target_precision=.95, build_weight=.01)
-    #tune_flann(sample_fraction=1, target_precision=.98, build_weight=.9)
-
-# Look at /flann/algorithms/dist.h for distance clases
-
-#distance_translation = {"euclidean"        : 1,
-                        #"manhattan"        : 2,
-                        #"minkowski"        : 3,
-                        #"max_dist"         : 4,
-                        #"hik"              : 5,
-                        #"hellinger"        : 6,
-                        #"chi_square"       : 7,
-                        #"cs"               : 7,
-                        #"kullback_leibler" : 8,
-                        #"kl"               : 8,
-                        #"hamming"          : 9,
-                        #"hamming_lut"      : 10,
-                        #"hamming_popcnt"   : 11,
-                        #"l2_simple"        : 12,}
-
-# MAKE SURE YOU EDIT index.py in pyflann
-
-#flann_algos = {
-    #'linear'        : 0,
-    #'kdtree'        : 1,
-    #'kmeans'        : 2,
-    #'composite'     : 3,
-    #'kdtree_single' : 4,
-    #'hierarchical'  : 5,
-    #'lsh'           : 6, # locality sensitive hashing
-    #'kdtree_cuda'   : 7,
-    #'saved'         : 254, # dont use
-    #'autotuned'     : 255,
-#}
-
-#multikey_dists = {
-    ## Huristic distances
-    #('euclidian', 'l2')        :  1,
-    #('manhattan', 'l1')        :  2,
-    #('minkowski', 'lp')        :  3, # I guess p is the order?
-    #('max_dist' , 'linf')      :  4,
-    #('l2_simple')              : 12, # For low dimensional points
-    #('hellinger')              :  6,
-    ## Nonparametric test statistics
-    #('hik','histintersect')    :  5,
-    #('chi_square', 'cs')       :  7,
-    ## Information-thoery divergences
-    #('kullback_leibler', 'kl') :  8,
-    #('hamming')                :  9, # xor and bitwise sum
-    #('hamming_lut')            : 10, # xor (sums with lookup table;if nosse2)
-    #('hamming_popcnt')         : 11, # population count (number of 1 bits)
-#}
-
-
- #Hamming distance functor - counts the bit differences between two strings -
- #useful for the Brief descriptor
- #bit count of A exclusive XOR'ed with B
-
-#flann_distances = {"euclidean"        : 1,
-                   #"manhattan"        : 2,
-                   #"minkowski"        : 3,
-                   #"max_dist"         : 4,
-                   #"hik"              : 5,
-                   #"hellinger"        : 6,
-                   #"chi_square"       : 7,
-                   #"cs"               : 7,
-                   #"kullback_leibler" : 8,
-                   #"kl"               : 8 }
-
-#pyflann.set_distance_type('hellinger', order=0)
-"""
