@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import pyflann
 import utool
+import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[nneighbs]', DEBUG=False)
 
@@ -64,7 +65,7 @@ def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}):
 
 #@utool.indent_func
 def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
-                use_cache=True):
+                use_cache=True, save=True):
     """
     Tries to load a cached flann index before doing anything
     from vtool.nn
@@ -89,13 +90,20 @@ def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
     print('...building kdtree over %d points (this may take a sec).' % len(dpts))
     flann.build_index(dpts, **flann_params)
     print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
-    flann.save_index(flann_fpath)
+    if save:
+        flann.save_index(flann_fpath)
     return flann
 
 
-def flann_augment(dpts, new_data, cache_dir, cfgstr, flann_params,
-                  use_cache=True):
-    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
+def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
+                  use_cache=True, save=True):
+    flann = flann_cache(dpts, cache_dir, cfgstr, flann_params)
+    flann.add_points(new_dpts)
+    if save:
+        aug_dpts = np.vstack((dpts, new_dpts))
+        new_flann_fpath = get_flann_fpath(aug_dpts, cache_dir, new_cfgstr, flann_params)
+        flann.save_index(new_flann_fpath)
+    return flann
 
 
 def get_kdtree_flann_params():
