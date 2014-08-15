@@ -17,8 +17,8 @@ profile = utool.profile
 cimport numpy as np
 import numpy as np
 
-ctypedef np.float32_t float32_t
-ctypedef np.float64_t float64_t
+#ctypedef np.float32_t float32_t
+#ctypedef np.float64_t float64_t
 #### <FLOAT_TYPES> = [float32_t, float64_t]
 </CYTH>
 '''
@@ -280,7 +280,7 @@ def det_distance(det1, det2):
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef np.ndarray[float64_t, ndim=1] _det_distance_cyth(np.ndarray[float64_t, ndim=1] det1, np.ndarray[float64_t, ndim=1] det2):
+    cpdef np.ndarray[np.float64_t, ndim=1] _det_distance_cyth(np.ndarray[np.float64_t, ndim=1] det1, np.ndarray[np.float64_t, ndim=1] det2):
         # TODO: Move to ktool_cython
         cdef unsigned int nDets = det1.shape[0]
         # Prealloc output
@@ -323,11 +323,11 @@ def L2_sqrd(hist1, hist2):
     <CYTH:REPLACE>
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef np.ndarray[float64_t, ndim=1] _L2_sqrd_cyth(np.ndarray[float64_t, ndim=2] hist1, np.ndarray[float64_t, ndim=2] hist2):
+    cpdef np.ndarray[np.float64_t, ndim=1] _L2_sqrd_cyth(np.ndarray[np.float64_t, ndim=2] hist1, np.ndarray[np.float64_t, ndim=2] hist2):
         cdef unsigned int rows = hist1.shape[0]
         cdef unsigned int cols = hist1.shape[1]
         # Prealloc output
-        cdef np.ndarray[float64_t, ndim=1] out = np.zeros((rows,), dtype=hist1.dtype)
+        cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((rows,), dtype=hist1.dtype)
         cdef size_t cx
         cdef size_t rx
         for rx in range(rows):
