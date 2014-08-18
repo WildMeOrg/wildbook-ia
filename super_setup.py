@@ -135,6 +135,7 @@ for name, repo_url in TPL_MODULES_AND_REPOS:
     'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/pyrf.git',
     'https://github.com/Erotemic/ibeis.git',
+    'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',
 ], CODE_DIR, forcessh=False)
 
