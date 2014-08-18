@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from numpy import (array)
+from numpy import array
 from vtool import keypoint as ktool
 from vtool import image as gtool
 import vtool.math as mtool
@@ -9,6 +9,17 @@ import utool
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
+
+
+def get_dummy_dpts(num, dtype=np.uint8):
+    """ Random SIFTish keypoints """
+    from vtool import linalg as ltool
+    dpts_ = np.random.rand(num, 128).astype(np.float32)
+    dpts_norm = ltool.normalize_rows(dpts_)
+    # do SIFT normalization
+    dpts_norm[dpts_norm > .2] = .2
+    dpts = (ltool.normalize_rows(dpts_norm) * 255).astype(np.uint8)
+    return dpts
 
 
 def get_dummy_kpts(num, dtype=DEFAULT_DTYPE):

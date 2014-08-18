@@ -51,7 +51,6 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
 
     >>> from vtool.spatial_verification import *  # NOQA
     >>> import vtool.tests.dummy as dummy
-    >>> import vtool.keypoint as ktool
     >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30))
     >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30))
     >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
@@ -70,20 +69,40 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         long ix
     </CYTH>
     """
-    x1_mn, y1_mn = xy1_mn
-    x2_mn, y2_mn = xy2_mn
+    x1_mn = xy1_mn[0]
+    y1_mn = xy1_mn[1]
+    x2_mn = xy2_mn[0]
+    y2_mn = xy2_mn[1]
     num_pts = len(x1_mn)
     Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     for ix in range(num_pts):  # Loop over inliers
         # Concatenate all 2x9 matrices into an Mx9 matrix
         u2        = x2_mn[ix]
         v2        = y2_mn[ix]
+        '''
+        <#IFCYTH>
+        Mx9[ix * 2, 3]  = -x1_mn[ix]
+        Mx9[ix * 2, 4]  = -y1_mn[ix]
+        Mx9[ix * 2, 5]  = -1
+        Mx9[ix * 2, 6]  = v2 * x1_mn[ix]
+        Mx9[ix * 2, 7]  = v2 * y1_mn[ix]
+        Mx9[ix * 2, 8]  = v2
+
+        Mx9[ix * 2 + 1, 0] = x1_mn[ix]
+        Mx9[ix * 2 + 1, 1] = y1_mn[ix]
+        Mx9[ix * 2 + 1, 2] = 1
+        Mx9[ix * 2 + 1, 6] = -u2 * x1_mn[ix]
+        Mx9[ix * 2 + 1, 7] = -u2 * y1_mn[ix]
+        Mx9[ix * 2 + 1, 8] = -u2
+        <#ELSE>
+        '''
         (d, e, f) = (     -x1_mn[ix],      -y1_mn[ix],  -1)
         (g, h, i) = ( v2 * x1_mn[ix],  v2 * y1_mn[ix],  v2)
         (j, k, l) = (      x1_mn[ix],       y1_mn[ix],   1)
         (p, q, r) = (-u2 * x1_mn[ix], -u2 * y1_mn[ix], -u2)
         Mx9[ix * 2]     = (0, 0, 0, d, e, f, g, h, i)
         Mx9[ix * 2 + 1] = (j, k, l, 0, 0, 0, p, q, r)
+        '''<#ENDIF>'''
     return Mx9
 
 

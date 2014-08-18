@@ -15,8 +15,7 @@ import numpy as np
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     Finds the approximate nearest neighbors of qpts in dpts
-    >>> from vtool.nearest_neighbors import *
-    >>> import numpy as np
+    >>> from vtool.nearest_neighbors import *  # NOQA
     >>> np.random.seed(1)
     >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
     >>> qpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
@@ -44,8 +43,7 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_data_hash=True):
 #@utool.indent_func
 def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}):
     """
-    >>> from vtool.nearest_neighbors import *
-    >>> import numpy as np
+    >>> from vtool.nearest_neighbors import *  # NOQA
     >>> np.random.seed(1)
     >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
     >>> cache_dir = '.'
@@ -97,6 +95,18 @@ def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
 
 def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
                   use_cache=True, save=True):
+    """
+    >>> from vtool.nearest_neighbors import *  # NOQA
+    >>> import vtool.tests.dummy as dummy  # NOQA
+    >>> dpts = dummy.get_dummy_dpts(utool.get_nth_prime(10))
+    >>> new_dpts = dummy.get_dummy_dpts(utool.get_nth_prime(9))
+    >>> cache_dir = utool.get_app_resource_dir('vtool')
+    >>> cfgstr = '_testcfg'
+    >>> new_cfgstr = '_new_testcfg'
+    >>> flann_params = get_kdtree_flann_params()
+    >>> use_cache = False
+    >>> save = False
+    """
     flann = flann_cache(dpts, cache_dir, cfgstr, flann_params)
     flann.add_points(new_dpts)
     if save:
@@ -134,3 +144,114 @@ def tune_flann(dpts, **kwargs):
     utool.write_to(out_file, repr(tuned_params))
     flann.delete_index()
     return tuned_params
+
+
+def map_vecx_to_rowids(vecs_list, rowid_list):
+    """
+    Stacks descriptors into a flat structure and returns inverse mapping from
+    flat database descriptor indexes (dx) to annotation ids (rowid) and feature
+    indexes (fx). Feature indexes are w.r.t. annotation indexes.
+
+    Output:
+        dx2_desc - flat descriptor stack
+        dx2_rowid  - inverted index into annotations
+        dx2_fx   - inverted index into features
+
+    # Example with 2D Descriptors
+    >>> from vtool.nearest_neighbors import *  # NOQA
+    >>> DESC_TYPE = np.uint8
+    >>> rowid_list  = [1, 2, 3, 4, 5]
+    >>> vecs_list = [
+    ...     np.array([[0, 0], [0, 1]], dtype=DESC_TYPE),
+    ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
+    ...     np.empty((0, 2), dtype=DESC_TYPE),
+    ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
+    ...     np.array([[3, 3], [42, 42], [2, 6]], dtype=DESC_TYPE),
+    ...     ]
+    >>> dx2_vecs, dx2_rowid, dx2_fx = _build_inverted_vecsriptor_index(rowid_list, vecs_list)
+    >>> print(repr(dx2_vecs.T))
+    array([[ 0,  0,  5,  2,  1,  5,  2,  1,  3, 42,  2],
+           [ 0,  1,  3, 30,  1,  3, 30,  1,  3, 42,  6]], dtype=uint8)
+    >>> print(repr(dx2_rowid))
+    array([1, 1, 2, 2, 2, 4, 4, 4, 5, 5, 5])
+    >>> print(repr(dx2_fx))
+    array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
+
+    #if cyth:
+        cdef:
+            list rowid_list, vecs_list
+            long nFeat, rowid
+            iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
+            np.ndarray dx2_rowid, dx2_fx, dx2_vecs
+    #endif
+
+    --- vs ---
+
+    <CYTH>
+    cdef:
+        list rowid_list, vecs_list
+        long nFeat, rowid
+        iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
+        np.ndarray dx2_rowid, dx2_fx, dx2_vecs
+    </CYTH>
+
+    --- consider ---
+    SYNTAX:
+
+    {pyth_code} <- python code | pass
+    {cyth_code} <- cython code | pass
+
+    {code_block} = {pyth_code} | {cyth_code}
+
+    {block} := {code_block} | {parse_block}
+    {prev_block} := {block}
+    {next_block} := {block}
+    {cyth_block} := {cyth_code}
+    {pyth_block} := {pyth_code}
+
+    {parse_block} :=
+        {prev_block}
+        #ifdef CYTH
+        {cyth_block}
+        #elif
+        {pyth_block}
+        #endif
+        {next_block}
+    ---
+
+    * Cyth becomes a python preparser. It converts annotated python code into
+        cython code. It also provides a packages to semi-dynamically replace
+        your python code with the generated and compiled cython code.
+
+        "setup.py script not included"  // Check out utool for that
+    """
+
+    # INFER DTYPE? dtype = vecs_list[0].dtype
+    # Build inverted index of (rowid, fx) pairs
+    nFeats = sum(list(map(len, vecs_list)))
+    nFeat_iter = map(len, vecs_list)
+    rowid_nFeat_iter = zip(rowid_list, map(len, vecs_list))
+    # generate featx inverted index for each feature in each annotation
+    _ax2_fx  = (list(range(nFeat)) for nFeat in nFeat_iter)
+    # generate rowid inverted index for each feature in each annotation
+    '''
+    # this is not a real test the code just happened to be here. syntax is good though
+    #ifdef CYTH_TEST_SWAP
+    _ax2_rowid = [[rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter]
+    #else
+    '''
+    _ax2_rowid = ([rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter)
+    '#endif'  # endif is optional. the end of the functionscope counts as an #endif
+    # Flatten generators into the inverted index
+    _flatrowids = utool.iflatten(_ax2_rowid)
+    _flatfeatxs = utool.iflatten(_ax2_fx)
+
+    dtype = np.uint8
+    count = nFeats
+    dx2_rowid = np.fromiter(_flatrowids, dtype, count)
+    dx2_fx  = np.fromiter(_flatfeatxs, dtype, count)
+    # Stack vecsriptors into numpy array corresponding to inverted inexed
+    # This might throw a MemoryError
+    dx2_vecs = np.vstack(vecs_list)
+    '#pragma cyth_returntup'
+    return dx2_vecs, dx2_rowid, dx2_fx

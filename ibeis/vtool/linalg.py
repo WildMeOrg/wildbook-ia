@@ -389,6 +389,12 @@ def homogonize(_xyzs):
     return _xys
 
 
+def normalize_rows(arr1):
+    norm_ = npl.norm(arr1, axis=-1)
+    arr1_normed = rowwise_operation(arr1, norm_, np.divide)
+    return arr1_normed
+
+
 @profile
 def rowwise_operation(arr1, arr2, op):
     """
