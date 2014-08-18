@@ -1,6 +1,6 @@
 """
 #=================
-# matching_functions:
+# pipeline:
 # Module Concepts
 #=================
 
@@ -48,30 +48,12 @@ from ibeis.model.hots import voting_rules2 as vr2
 import utool
 from functools import partial
 #profile = utool.profile
-print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[mf]', DEBUG=False)
+print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hs]', DEBUG=False)
 
 
 np.tau = 2 * np.pi  # tauday.com
 NOT_QUIET = utool.NOT_QUIET and not utool.get_flag('--quiet-query')
 VERBOSE = utool.VERBOSE or utool.get_flag('--verbose-query')
-
-
-#=================
-# Cython Metadata
-#=================
-"""
-<CYTH>
-ctypedef np.float32_t float32_t
-ctypedef np.float64_t float64_t
-ctypedef np.uint8_t uint8_t
-ctypedef np.uint8_t desc_t
-ctypedef ktool.KPTS_T kpts_t
-ctypedef ktool.DESC_T desc_t
-
-cdef int MARK_AFTER
-cdef double tau
-</CYTH>
-"""
 
 #=================
 # Globals
@@ -83,24 +65,6 @@ START_AFTER = 2
 # specialized progress func
 log_prog = partial(utool.log_progress, startafter=START_AFTER)
 
-#=================
-# Helpers
-#=================
-
-
-class QueryException(Exception):
-    """ </CYTH> """
-    def __init__(self, msg):
-        super(QueryException, self).__init__(msg)
-
-
-def NoDescriptorsException(ibs, qaid):
-    """ </CYTH> """
-    msg = ('QUERY ERROR IN %s: qaid=%r has no descriptors!' +
-           'Please delete it.') % (ibs.get_dbname(), qaid)
-    ex = QueryException(msg)
-    return ex
-
 
 #============================
 # 1) Nearest Neighbors
@@ -108,7 +72,7 @@ def NoDescriptorsException(ibs, qaid):
 
 
 @profile
-def nearest_neighbors(ibs, qaids, qreq):
+def nearest_neighbors(qreq):
     """ Plain Nearest Neighbors
     Input:
         ibs   - an IBEIS Controller
@@ -120,44 +84,18 @@ def nearest_neighbors(ibs, qaids, qreq):
                      (nDesc x K) where nDesc is the number of descriptors in the
                      annotation, and K is the number of approximate nearest
                      neighbors.
-    <CYTH: returns=dict>
-        cdef:
-            dict qaid2_nns
-            object ibs
-            object qreq
-    </CYTH>
     """
     # Neareset neighbor configuration
-    nn_cfg = qreq.cfg.nn_cfg
-    K      = nn_cfg.K
-    Knorm  = nn_cfg.Knorm
-    checks = nn_cfg.checks
+    K      = qreq.qparams.K
+    Knorm  = qreq.qparams.Knorm
+    checks = qreq.qparams.checks
     if NOT_QUIET:
-        cfgstr_   = nn_cfg.get_cfgstr()
-        print('[mf] Step 1) Assign nearest neighbors: ' + cfgstr_)
+        print('[hs] Step 1) Assign nearest neighbors: ' + qreq.qparams.nn_cfgstr)
     num_neighbors = K + Knorm  # number of nearest neighbors
-    qdesc_list = ibs.get_annot_desc(qaids)  # Get descriptors
-    nn_func = qreq.data_index.flann.nn_index  # Approx nearest neighbor func
+    qvecs_list = qreq.qvecs_list  # query descriptors
+    nbrx = qreq.nbrx
+    qaids = qreq.qaid_list
     # Call a tighter (hopefully cythonized) nearest neighbor function
-    qaid2_nns = _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks)
-    return qaid2_nns
-
-
-def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
-    """ Helper worker function for nearest_neighbors
-    <CYTH: returns=dict>
-        cdef:
-            list qaids, qdesc_list
-            long num_neighbors, checks
-            dict qaid2_nns
-            long nTotalNN, nTotalDesc
-            np.ndarray[desc_t, ndim=2] qfx2_desc
-            np.ndarray[int32_t, ndim=2] qfx2_dx
-            np.ndarray[float64_t, ndim=2] qfx2_dist
-            np.ndarray[int32_t, ndim=2] qfx2_dx
-            np.ndarray[float64_t, ndim=2] qfx2_dist
-    </CYTH>
-    """
     # Output
     qaid2_nns = {}
     # Internal statistics reporting
@@ -165,24 +103,24 @@ def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
     mark_, end_ = log_prog('Assign NN: ', len(qaids))
     for count, qaid in enumerate(qaids):
         mark_(count)  # progress
-        qfx2_desc = qdesc_list[count]
+        qfx2_vec = qvecs_list[count]
         # Check that we can query this annotation
-        if len(qfx2_desc) == 0:
+        if len(qfx2_vec) == 0:
             # Assign empty nearest neighbors
             qfx2_dx   = np.empty((0, num_neighbors), dtype=np.int32)
             qfx2_dist = np.empty((0, num_neighbors), dtype=np.float64)
             qaid2_nns[qaid] = (qfx2_dx, qfx2_dist)
             continue
         # Find Neareset Neighbors nntup = (indexes, dists)
-        (qfx2_dx, qfx2_dist) = nn_func(qfx2_desc, num_neighbors, checks=checks)
+        (qfx2_dx, qfx2_dist) = nbrx.nn_index(qfx2_vec, num_neighbors, checks)
         # Associate query annotation with its nearest descriptors
         qaid2_nns[qaid] = (qfx2_dx, qfx2_dist)
         # record number of query and result desc
         nTotalNN += qfx2_dx.size
-        nTotalDesc += len(qfx2_desc)
+        nTotalDesc += len(qfx2_vec)
     end_()
     if NOT_QUIET:
-        print('[mf] * assigned %d desc from %d chips to %r nearest neighbors'
+        print('[hs] * assigned %d desc from %d chips to %r nearest neighbors'
               % (nTotalDesc, len(qaids), nTotalNN))
     return qaid2_nns
 
@@ -193,29 +131,17 @@ def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
 
 
 def weight_neighbors(ibs, qaid2_nns, qreq):
-    """
-    <CYTH: returns=dict>
-        cdef:
-    </CYTH>
-    """
     if NOT_QUIET:
-        print('[mf] Step 2) Weight neighbors: ' + qreq.cfg.filt_cfg.get_cfgstr())
-    if qreq.cfg.filt_cfg.filt_on:
-        return _weight_neighbors(ibs, qaid2_nns, qreq)
-    else:
+        print('[hs] Step 2) Weight neighbors: ' + qreq.qparams.filt_cfgstr)
+    if not qreq.qparams.filt_on:
         return  {}
+    else:
+        return _weight_neighbors(ibs, qaid2_nns, qreq)
 
 
 @profile
 def _weight_neighbors(ibs, qaid2_nns, qreq):
-    """
-    <CYTH: returns=(dict, dict)>
-        cdef:
-            dict filt2_weights
-            dict filt2_meta
-    </CYTH>
-    """
-    nnfilter_list = qreq.cfg.filt_cfg.get_active_filters()
+    nnfilter_list = qreq.qparams.active_filter_list
     filt2_weights = {}
     filt2_meta = {}
     for nnfilter in nnfilter_list:
@@ -234,20 +160,13 @@ def _weight_neighbors(ibs, qaid2_nns, qreq):
 
 
 @profile
-def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
-    """
-    <CYTH: returns=(dict, dict)>
-        cdef:
-            dict qfx2_score
-            dict qfx2_valid
-    </CYTH>
-    """
+def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, qreq):
     qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, aid2_weights in six.iteritems(filt2_weights):
         qfx2_weights = aid2_weights[qaid]
-        sign, thresh, weight = filt_cfg.get_stw(filt)  # stw = sign, thresh, weight
+        sign, thresh, weight = qreq.params.filt2_stwt[filt]  # stw = sign, thresh, weight
         if thresh is not None and thresh != 'None':
             thresh = float(thresh)  # corrects for thresh being strings sometimes
             if isinstance(thresh, (int, float)):
@@ -260,21 +179,14 @@ def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
 
 @profile
 def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
-    """
-    <CYTH: returns=dict>
-        cdef:
-            dict qaid2_nnfilt
-    </CYTH>
-    """
     qaid2_nnfilt = {}
     # Configs
-    filt_cfg = qreq.cfg.filt_cfg
-    cant_match_sameimg  = not filt_cfg.can_match_sameimg
-    cant_match_samename = not filt_cfg.can_match_samename
-    K = qreq.cfg.nn_cfg.K
+    cant_match_sameimg  = not qreq.params.can_match_sameimg
+    cant_match_samename = not qreq.params.can_match_samename
+    K = qreq.params.K
     if NOT_QUIET:
-        print('[mf] Step 3) Filter neighbors: ')
-    if filt_cfg.gravity_weighting:
+        print('[hs] Step 3) Filter neighbors: ')
+    if qreq.params.gravity_weighting:
         # We dont have an easy way to access keypoints from nearest neighbors yet
         aid_list = np.unique(qreq.data_index.dx2_aid)  # FIXME: Highly inefficient
         kpts_list = ibs.get_annot_kpts(aid_list)
@@ -288,12 +200,13 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
-        qfx2_score, qfx2_valid = _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg)
+        qfx2_score, qfx2_valid = _apply_filter_scores(qaid, qfx2_nndx,
+                                                      filt2_weights, qreq)
         qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
         if VERBOSE:
-            print('[mf] * %d assignments are invalid by thresh' %
+            print('[hs] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
-        if filt_cfg.gravity_weighting:
+        if qreq.params.gravity_weighting:
             qfx2_nnori = dx2_oris[qfx2_nndx]
             qfx2_kpts  = ibs.get_annot_kpts(qaid)  # FIXME: Highly inefficient
             qfx2_oris  = ktool.get_oris(qfx2_kpts)
@@ -312,8 +225,8 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
             if VERBOSE:
                 nChip_all_invalid = ((True - qfx2_notsamechip)).sum()
                 nChip_new_invalid = (qfx2_valid * (True - qfx2_notsamechip)).sum()
-                print('[mf] * %d assignments are invalid by self' % nChip_all_invalid)
-                print('[mf] * %d are newly invalided by self' % nChip_new_invalid)
+                print('[hs] * %d assignments are invalid by self' % nChip_all_invalid)
+                print('[hs] * %d are newly invalided by self' % nChip_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
         if cant_match_sameimg:
@@ -324,8 +237,8 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
             if VERBOSE:
                 nImg_all_invalid = ((True - qfx2_notsameimg)).sum()
                 nImg_new_invalid = (qfx2_valid * (True - qfx2_notsameimg)).sum()
-                print('[mf] * %d assignments are invalid by gid' % nImg_all_invalid)
-                print('[mf] * %d are newly invalided by gid' % nImg_new_invalid)
+                print('[hs] * %d assignments are invalid by gid' % nImg_all_invalid)
+                print('[hs] * %d are newly invalided by gid' % nImg_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsameimg)
         if cant_match_samename:
@@ -336,11 +249,11 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
             if VERBOSE:
                 nName_all_invalid = ((True - qfx2_notsamename)).sum()
                 nName_new_invalid = (qfx2_valid * (True - qfx2_notsamename)).sum()
-                print('[mf] * %d assignments are invalid by nid' % nName_all_invalid)
-                print('[mf] * %d are newly invalided by nid' % nName_new_invalid)
+                print('[hs] * %d assignments are invalid by nid' % nName_all_invalid)
+                print('[hs] * %d are newly invalided by nid' % nName_new_invalid)
             ####
             qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamename)
-        #printDBG('[mf] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
+        #printDBG('[hs] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
         qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
     end_()
     return qaid2_nnfilt
@@ -348,12 +261,8 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
 
 @profile
 def identity_filter(qaid2_nns, qreq):
-    """ testing function returns unfiltered nearest neighbors
-    this does check that you are not matching yourself
-    </CYTH>
-    """
     qaid2_nnfilt = {}
-    K = qreq.cfg.nn_cfg.K
+    K = qreq.qparams.K
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
@@ -375,7 +284,6 @@ def identity_filter(qaid2_nns, qreq):
 
 @profile
 def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
-    """ </CYTH> """
     minMatches = 2  # TODO: paramaterize
     # Convert to numpy
     fm_dtype = hots_query_result.FM_DTYPE
@@ -399,7 +307,6 @@ def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
 
 
 def new_fmfsfk():
-    """ </CYTH> """
     aid2_fm = defaultdict(list)
     aid2_fs = defaultdict(list)
     aid2_fk = defaultdict(list)
@@ -425,14 +332,14 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
     vsmany/vsone counts here. also this is where the filter
     weights and thershold are applied to the matches. Essientally
     nearest neighbors are converted into weighted assignments
-    </CYTH> """
+    """
 
     # Config
-    K = qreq.cfg.nn_cfg.K
-    query_type = qreq.cfg.agg_cfg.query_type
+    K = qreq.qparams.K
+    query_type = qreq.qparams.query_type
     is_vsone = query_type == 'vsone'
     if NOT_QUIET:
-        print('[mf] Step 4) Building chipmatches %s' % (query_type,))
+        print('[hs] Step 4) Building chipmatches %s' % (query_type,))
     # Return var
     qaid2_chipmatch = {}
     nFeatMatches = 0
@@ -487,7 +394,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
         qaid2_chipmatch[qaid] = chipmatch
     end_()
     if NOT_QUIET:
-        print('[mf] * made %d feat matches' % nFeatMatches)
+        print('[hs] * made %d feat matches' % nFeatMatches)
     return qaid2_chipmatch
 
 
@@ -497,10 +404,8 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
 
 
 def spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
-    """ </CYTH> """
-    sv_cfg = qreq.cfg.sv_cfg
-    if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
-        print('[mf] Step 5) Spatial verification: off')
+    if not qreq.qparams.sv_on or qreq.qparams.xy_thresh is None:
+        print('[hs] Step 5) Spatial verification: off')
         return (qaid2_chipmatch, {}) if dbginfo else qaid2_chipmatch
     else:
         return _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=dbginfo)
@@ -508,16 +413,14 @@ def spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
 
 @profile
 def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
-    """ </CYTH> """
-    sv_cfg = qreq.cfg.sv_cfg
-    print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_cfgstr())
-    prescore_method = sv_cfg.prescore_method
-    nShortlist      = sv_cfg.nShortlist
-    xy_thresh       = sv_cfg.xy_thresh
-    scale_thresh    = sv_cfg.scale_thresh
-    ori_thresh      = sv_cfg.ori_thresh
-    use_chip_extent = sv_cfg.use_chip_extent
-    min_nInliers    = sv_cfg.min_nInliers
+    print('[hs] Step 5) Spatial verification: ' + qreq.qparams.sv_cfgstr)
+    prescore_method = qreq.qparams.prescore_method
+    nShortlist      = qreq.qparams.nShortlist
+    xy_thresh       = qreq.qparams.xy_thresh
+    scale_thresh    = qreq.qparams.scale_thresh
+    ori_thresh      = qreq.qparams.ori_thresh
+    use_chip_extent = qreq.qparams.use_chip_extent
+    min_nInliers    = qreq.qparams.min_nInliers
     qaid2_chipmatchSV = {}
     nFeatSVTotal = 0
     nFeatMatchSV = 0
@@ -583,8 +486,8 @@ def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
         qaid2_chipmatchSV[qaid] = chipmatchSV
     print_('\n')
     if NOT_QUIET:
-        print('[mf] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
-        print('[mf] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
+        print('[hs] * Affine verified %d/%d feat matches' % (nFeatMatchSVAff, nFeatSVTotal))
+        print('[hs] * Homog  verified %d/%d feat matches' % (nFeatMatchSV, nFeatSVTotal))
     if dbginfo:
         return qaid2_chipmatchSV, qaid2_svtups
     else:
@@ -594,8 +497,7 @@ def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
 def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
                                 nRerank, use_chip_extent):
     """ helper for spatial verification, computes the squared diagonal length of
-    matching chips
-    </CYTH> """
+    matching chips """
     if use_chip_extent:
         topx2_chipsize = list(ibs.get_annot_chipsizes(topx2_aid))
         def chip_dlen_sqrd(tx):
@@ -623,11 +525,10 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
 
 @profile
 def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
-    """ </CYTH> """
     if NOT_QUIET:
-        print('[mf] Step 6) Convert chipmatch -> res')
+        print('[hs] Step 6) Convert chipmatch -> res')
     cfgstr = qreq.get_cfgstr()
-    score_method = qreq.cfg.agg_cfg.score_method
+    score_method = qreq.qparams.score_method
     # Create the result structures for each query.
     qaid2_qres = {}
     for qaid in six.iterkeys(qaid2_chipmatch):
@@ -650,15 +551,7 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
 @profile
 def try_load_resdict(qreq):
     """ Try and load the result structures for each query.
-    returns a list of failed qaids
-    <CYTH>
-    cdef:
-        object qreq
-        list qaids
-        dict qaid2_qres
-        list failed_qaids
-    </CYTH>
-    """
+    returns a list of failed qaids """
     qaids = qreq.qaids
     #cfgstr = qreq.get_cfgstr()  # NEEDS FIX TAKES 21.9 % time of this function
     cfgstr = qreq.get_cfgstr2()  # hack of a fix
@@ -681,8 +574,7 @@ def try_load_resdict(qreq):
 #============================
 
 @profile
-def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq=None):
-    """ </CYTH> """
+def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq):
     (aid2_fm, aid2_fs, aid2_fk) = chipmatch
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
     if score_method.find('w') == len(score_method) - 1:
@@ -701,5 +593,5 @@ def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq=None):
         method = int(score_method.replace('coverage', '0'))
         aid2_score = coverage_image.score_chipmatch_coverage(ibs, qaid, chipmatch, qreq, method=method)
     else:
-        raise Exception('[mf] unknown scoring method:' + score_method)
+        raise Exception('[hs] unknown scoring method:' + score_method)
     return aid2_score

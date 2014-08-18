@@ -37,37 +37,35 @@ def qres_get_matching_keypoints(qres, ibs, aid2_list):  # aid2 is a name. 2 != 2
     return matching_kpts_list
 
 
-def remove_corrupted_queries(qreq, qres, dryrun=True):
+def remove_corrupted_queries(qresdir, qres, dryrun=True):
     # This qres must be corrupted!
     cfgstr = qres.cfgstr
     hash_id = utool.hashstr(cfgstr)
-    qres_dir  = qreq.qresdir
-    testres_dir = join(qreq.qresdir, '..', 'experiment_harness_results')
+    qres_dir  = qresdir
+    testres_dir = join(qresdir, '..', 'experiment_harness_results')
     utool.remove_files_in_dir(testres_dir, dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + cfgstr + '*', dryrun=dryrun)
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(qreq, qaid, cfgstr):
+def query_result_fpath(qresdir, qaid, cfgstr):
     """
     <CYTH>
     cdef:
-        object qreq
         long qaid
         str cfgstr, qres_dir, fpath, hash_id, fname
     </CYTH>
     """
-    qres_dir  = qreq.qresdir
     fname = 'res_%s_qaid=%d.npz' % (cfgstr, qaid)
     if len(fname) > 64:
         hash_id = utool.hashstr(cfgstr)
         fname = 'res_%s_qaid=%d.npz' % (hash_id, qaid)
-    fpath = join(qres_dir, fname)
+    fpath = join(qresdir, fname)
     return fpath
 
 
-def query_result_exists(qreq, qaid, cfgstr):
-    fpath = query_result_fpath(qreq, qaid, cfgstr)
+def query_result_exists(qresdir, qaid, cfgstr):
+    fpath = query_result_fpath(qresdir, qaid, cfgstr)
     return exists(fpath)
 
 
@@ -155,14 +153,14 @@ class QueryResult(__OBJECT_BASE__):
         ])
 
     def has_cache(qres, qreq):
-        return query_result_exists(qreq, qres.qaid)
+        return query_result_exists(qreq.qresdir, qres.qaid)
 
     def get_fpath(qres, qreq):
-        return query_result_fpath(qreq, qres.qaid, qres.cfgstr)
+        return query_result_fpath(qreq.qresdir, qres.qaid, qres.cfgstr)
 
     @profile
     def save(qres, qreq):
-        fpath = qres.get_fpath(qreq)
+        fpath = qres.get_fpath(qreq.qresdir)
         if utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
@@ -171,7 +169,7 @@ class QueryResult(__OBJECT_BASE__):
     @profile
     def load(qres, qreq):
         """ Loads the result from the given database """
-        fpath = qres.get_fpath(qreq)
+        fpath = qres.get_fpath(qreq.qresdir)
         qaid_good = qres.qaid
         try:
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
@@ -217,7 +215,7 @@ class QueryResult(__OBJECT_BASE__):
 
     def cache_bytes(qres, qreq):
         """ Size of the cached query result on disk """
-        fpath  = qres.get_fpath(qreq)
+        fpath  = qres.get_fpath(qreq.qresdir)
         nBytes = utool.file_bytes(fpath)
         return nBytes
 
