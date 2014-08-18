@@ -1832,6 +1832,11 @@ class IBEISController(object):
         qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
         return qaid2_qres
 
+    def _query_chips2(ibs, qaid_list, daid_list, use_cache=mc3.USE_CACHE,
+                      use_bigcache=mc3.USE_BIGCACHE):
+        #neigbhor_index = .neighbor_index.get_ibies_neighbor_index(ibs, daid_list)
+        pass
+
     #
     #
     #--------------

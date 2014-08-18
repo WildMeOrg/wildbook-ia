@@ -7,7 +7,8 @@ from six.moves import zip
 # Scientific
 import utool
 
-__REQUEST_BASE__ = utool.DynStruct if utool.get_flag('--debug') else object
+#__REQUEST_BASE__ = utool.DynStruct if utool.get_flag('--debug') else object
+__REQUEST_BASE__ = object
 
 
 class QueryRequest(__REQUEST_BASE__):

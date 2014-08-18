@@ -72,8 +72,8 @@ def prep_query_request(qreq=None, query_cfg=None,
 #@profile
 @profile
 def pre_exec_checks(ibs, qreq):
-    """ Ensures that the HOTSIndex's data_index is pointing to the correct
-    set of feature descriptors
+    """
+    Makes sure that the daids are indexed for nn_search
     </CYTH> """
     if utool.NOT_QUIET:
         print('  --- Pre Exec ---')
