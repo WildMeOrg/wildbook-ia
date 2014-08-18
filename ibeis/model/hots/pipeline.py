@@ -28,7 +28,6 @@ qaid2_nns - maping from query chip index to nns
 * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
          = qaid2_nnfilt[qaid]
 """
-# TODO: Remove ibs control as much as possible or abstract it away
 from __future__ import absolute_import, division, print_function
 # Python
 from six.moves import zip, range
@@ -45,13 +44,14 @@ from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_filters
 from ibeis.model.hots import voting_rules2 as vr2
+from ibeis.model.hots import exceptions as hsexcept
 import utool
 from functools import partial
 #profile = utool.profile
 print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hs]', DEBUG=False)
 
 
-np.tau = 2 * np.pi  # tauday.com
+TAU = 2 * np.pi  # tauday.com
 NOT_QUIET = utool.NOT_QUIET and not utool.get_flag('--quiet-query')
 VERBOSE = utool.VERBOSE or utool.get_flag('--verbose-query')
 
@@ -188,11 +188,11 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         print('[hs] Step 3) Filter neighbors: ')
     if qreq.params.gravity_weighting:
         # We dont have an easy way to access keypoints from nearest neighbors yet
-        aid_list = np.unique(qreq.data_index.dx2_aid)  # FIXME: Highly inefficient
+        aid_list = qreq.indexer.rowid_list
         kpts_list = ibs.get_annot_kpts(aid_list)
         dx2_kpts = np.vstack(kpts_list)
         dx2_oris = ktool.get_oris(dx2_kpts)
-        assert len(dx2_oris) == len(qreq.data_index.dx2_data)
+        assert len(dx2_oris) == len(qreq.indexer.dx2_data)
     # Filter matches based on config and weights
     mark_, end_ = log_prog('Filter NN: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
@@ -202,7 +202,7 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         # Get a numeric score score and valid flag for each feature match
         qfx2_score, qfx2_valid = _apply_filter_scores(qaid, qfx2_nndx,
                                                       filt2_weights, qreq)
-        qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
+        qfx2_aid = qreq.indexer.dx2_aid[qfx2_nndx]
         if VERBOSE:
             print('[hs] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
@@ -213,7 +213,7 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
             # Get the orientation distance
             qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
             # Normalize into a weight (close orientations are 1, far are 0)
-            qfx2_gvweight = (np.tau - qfx2_oridist) / np.tau
+            qfx2_gvweight = (TAU - qfx2_oridist) / TAU
             # Apply gravity vector weight to the score
             qfx2_score *= qfx2_gvweight
         # Remove Impossible Votes:
@@ -256,24 +256,6 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         #printDBG('[hs] * Marking %d assignments as invalid' % ((True - qfx2_valid).sum()))
         qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
     end_()
-    return qaid2_nnfilt
-
-
-@profile
-def identity_filter(qaid2_nns, qreq):
-    qaid2_nnfilt = {}
-    K = qreq.qparams.K
-    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
-        (qfx2_dx, _) = qaid2_nns[qaid]
-        qfx2_nndx = qfx2_dx[:, 0:K]
-        qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
-        qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
-        # Check that you are not matching yourself
-        qfx2_aid = qreq.data_index.dx2_aid[qfx2_nndx]
-        qfx2_notsamechip = qfx2_aid != qaid
-        qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
-        qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
-
     return qaid2_nnfilt
 
 
@@ -356,8 +338,8 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
         nQKpts = len(qfx2_dx)
         # Build feature matches
         qfx2_nndx = qfx2_dx[:, 0:K]
-        qfx2_aid  = qreq.data_index.dx2_aid[qfx2_nndx]
-        qfx2_fx   = qreq.data_index.dx2_fx[qfx2_nndx]
+        qfx2_aid  = qreq.indexer.dx2_aid[qfx2_nndx]
+        qfx2_fx   = qreq.indexer.dx2_fx[qfx2_nndx]
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator
@@ -562,9 +544,9 @@ def try_load_resdict(qreq):
             res = hots_query_result.QueryResult(qaid, cfgstr)
             res.load(qreq)  # 77.4 % time
             qaid2_qres[qaid] = res
-        except hots_query_result.HotsCacheMissError:
+        except hsexcept.HotsCacheMissError:
             failed_qaids.append(qaid)
-        except hots_query_result.HotsNeedsRecomputeError:
+        except hsexcept.HotsNeedsRecomputeError:
             failed_qaids.append(qaid)
     return qaid2_qres, failed_qaids
 

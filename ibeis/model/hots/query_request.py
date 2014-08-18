@@ -46,11 +46,11 @@ class QueryParams(object):
 
 
 def QueryRequest(object):
-    def __init__(qreq, qaid_list, qvecs_list, nbrx, qparams, qresdir, bigcache_dir):
-        qreq.nbrx = nbrx
+    def __init__(qreq, qaid_list, qvecs_list, indexer, qparams, qresdir, bigcache_dir):
+        qreq.indexer = indexer
         qreq.qvecs_list = qvecs_list
         qreq.qaids = qaid_list
-        qreq.daids = nbrx
+        qreq.daids = indexer
         qreq.qparams = qparams
         qreq.qresdir = qresdir
         qreq.bigcache_dir = bigcache_dir

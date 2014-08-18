@@ -9,6 +9,7 @@ from zipfile import error as BadZipFile  # Screwy naming convention.
 import os
 # Scientific
 import numpy as np
+from ibeis.model.hots import exceptions as hsexcept
 
 FM_DTYPE  = np.uint32   # Feature Match datatype
 FS_DTYPE  = np.float32  # Feature Score datatype
@@ -67,14 +68,6 @@ def query_result_fpath(qresdir, qaid, cfgstr):
 def query_result_exists(qresdir, qaid, cfgstr):
     fpath = query_result_fpath(qresdir, qaid, cfgstr)
     return exists(fpath)
-
-
-class HotsCacheMissError(Exception):
-    pass
-
-
-class HotsNeedsRecomputeError(Exception):
-    pass
 
 
 def _qres_dicteq(aid2_xx1, aid2_xx2):
@@ -186,17 +179,17 @@ class QueryResult(__OBJECT_BASE__):
                 msg = '... qres cache miss: %r' % (split(fpath)[1],)
                 if not utool.QUIET:
                     print(msg)
-                raise HotsCacheMissError(msg)
+                raise hsexcept.HotsCacheMissError(msg)
             msg = '[!qr] QueryResult(qaid=%d) is corrupt' % (qres.qaid)
             utool.printex(ex, msg, iswarning=True)
-            raise HotsNeedsRecomputeError(msg)
+            raise hsexcept.HotsNeedsRecomputeError(msg)
         except BadZipFile as ex:
             msg = '[!qr] QueryResult(qaid=%d) has bad zipfile' % (qres.qaid)
             utool.printex(ex, msg, iswarning=True)
             if exists(fpath):
                 print('[qr] Removing corrupted file: %r' % fpath)
                 os.remove(fpath)
-                raise HotsNeedsRecomputeError(msg)
+                raise hsexcept.HotsNeedsRecomputeError(msg)
             else:
                 raise Exception(msg)
         except (ValueError, TypeError) as ex:
@@ -204,9 +197,9 @@ class QueryResult(__OBJECT_BASE__):
             exstr = str(ex)
             print(exstr)
             if exstr == 'unsupported pickle protocol: 3':
-                raise HotsNeedsRecomputeError(str(ex))
+                raise hsexcept.HotsNeedsRecomputeError(str(ex))
             elif exstr.startswith('("\'numpy.ndarray\' object is not callable",'):
-                raise HotsNeedsRecomputeError(str(ex))
+                raise hsexcept.HotsNeedsRecomputeError(str(ex))
             raise
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
