@@ -30,6 +30,16 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
 
 
 def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
+    """
+    >>> from vtool.nearest_neighbors import *  # NOQA
+    >>> np.random.seed(1)
+    >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+    >>> cache_dir = '.'
+    >>> cfgstr = '_FEAT(alg=heshes)'
+    >>> flann_params = get_kdtree_flann_params()
+    >>> print(get_flann_cfgstr(dpts, flann_params, cfgstr))
+    _FEAT(alg=heshes)_FLANN(4kdtree)_DPTS((10,128)b+oqb%cnuo&oxk7h)
+    """
     flann_cfgstr = cfgstr
     if use_params_hash:
         flann_valsig_ = str(list(flann_params.values()))
@@ -44,16 +54,6 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
 
 #@utool.indent_func
 def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}, use_params_hash=True, use_data_hash=True):
-    """
-    >>> from vtool.nearest_neighbors import *  # NOQA
-    >>> np.random.seed(1)
-    >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
-    >>> cache_dir = '.'
-    >>> cfgstr = '_FEAT(alg=heshes)'
-    >>> flann_params = get_kdtree_flann_params()
-    >>> get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
-    8zdwd&q0mu+ez4gp
-    """
     #cache_dir = '.' if cache_dir is None else cache_dir
     assert cache_dir is not None, 'no cache dir specified'
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
@@ -171,8 +171,8 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
     ...     np.array([[3, 3], [42, 42], [2, 6]], dtype=DESC_TYPE),
     ...     ]
-    >>> dx2_vecs, dx2_rowid, dx2_fx = _build_inverted_vecsriptor_index(rowid_list, vecs_list)
-    >>> print(repr(dx2_vecs.T))
+    >>> dx2_vec, dx2_rowid, dx2_fx = map_vecx_to_rowids(vecs_list, rowid_list)
+    >>> print(repr(dx2_vec.T))
     array([[ 0,  0,  5,  2,  1,  5,  2,  1,  3, 42,  2],
            [ 0,  1,  3, 30,  1,  3, 30,  1,  3, 42,  6]], dtype=uint8)
     >>> print(repr(dx2_rowid))
@@ -185,7 +185,7 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
             list rowid_list, vecs_list
             long nFeat, rowid
             iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
-            np.ndarray dx2_rowid, dx2_fx, dx2_vecs
+            np.ndarray dx2_rowid, dx2_fx, dx2_vec
     #endif
 
     --- vs ---
@@ -195,7 +195,7 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
         list rowid_list, vecs_list
         long nFeat, rowid
         iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
-        np.ndarray dx2_rowid, dx2_fx, dx2_vecs
+        np.ndarray dx2_rowid, dx2_fx, dx2_vec
     </CYTH>
 
     --- consider ---
@@ -249,12 +249,10 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     _flatrowids = utool.iflatten(_ax2_rowid)
     _flatfeatxs = utool.iflatten(_ax2_fx)
 
-    dtype = np.int64
-    count = nFeats
-    dx2_rowid = np.fromiter(_flatrowids, dtype, count)
-    dx2_fx_  = np.fromiter(_flatfeatxs, dtype, count)
+    dx2_rowid = np.fromiter(_flatrowids, np.int64, nFeats)
+    dx2_fx    = np.fromiter(_flatfeatxs, np.int64, nFeats)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
-    dx2_vecs = np.vstack(vecs_list)
+    dx2_vec = np.vstack(vecs_list)
     '#pragma cyth_returntup'
-    return dx2_vecs, dx2_rowid, dx2_fx_
+    return dx2_vec, dx2_rowid, dx2_fx

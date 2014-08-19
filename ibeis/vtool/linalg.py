@@ -167,7 +167,7 @@ def scaleedoffset_mat3x3(offset, scale_factor):
 @profile
 def det_ltri(ltri):
     #cdef det_ltri(FLOAT_2D ltri):
-    'Lower triangular determinant'
+    """ Lower triangular determinant """
     #PYX CDEF FLOAT_1D det
     det = ltri[0] * ltri[2]
     return det
@@ -177,7 +177,7 @@ def det_ltri(ltri):
 @profile
 def inv_ltri(ltri, det):
     #cdef inv_ltri(FLOAT_2D ltri, FLOAT_1D det):
-    'Lower triangular inverse'
+    """ Lower triangular inverse """
     # PYX CDEF FLOAT_2D inv_ltri
     inv_ltri = array((ltri[2], -ltri[1], ltri[0]), dtype=ltri.dtype) / det
     return inv_ltri
@@ -186,8 +186,8 @@ def inv_ltri(ltri, det):
 #PYX BEGIN
 @profile
 def dot_ltri(ltri1, ltri2):
+    """ Lower triangular dot product """
     #cdef dot_ltri(FLOAT_2D ltri1, FLOAT_2D ltri2):
-    'Lower triangular dot product'
     # PYX FLOAT_1D m11, m21, m22
     # PYX FLOAT_1D n11, n21, n22
     # PYX FLOAT_1D o11, o21, o22
@@ -237,10 +237,13 @@ def and_lists(*args):
 def and_3lists(arr1, arr2, arr3):
     """
     >>> from vtool.linalg import *
-    >>> arr1 = (np.random.rand(1000)).astype(np.bool)
-    >>> arr2 = (np.random.rand(1000)).astype(np.bool)
-    >>> arr3 = (np.random.rand(1000)).astype(np.bool)
-    >>> and_3lists(arr1, arr2, arr3)
+    >>> np.random.seed(53)
+    >>> arr1 = (np.random.rand(1000) > .5).astype(np.bool)
+    >>> arr2 = (np.random.rand(1000) > .5).astype(np.bool)
+    >>> arr3 = (np.random.rand(1000) > .5).astype(np.bool)
+    >>> output = and_3lists(arr1, arr2, arr3)
+    >>> print(utool.hashstr(output))
+    prxuyy1w%ht57jaf
 
     #if CYTH
     #endif
@@ -252,9 +255,12 @@ def and_3lists(arr1, arr2, arr3):
 def ori_distance(ori1, ori2):
     """ Returns how far off determinants are from one another
     >>> from vtool.linalg import *
+    >>> np.random.seed(53)
     >>> ori1 = (np.random.rand(1000) * np.tau) - np.pi
     >>> ori2 = (np.random.rand(1000) * np.tau) - np.pi
-    >>> ori_distance(ori1, ori2)
+    >>> output = utool.hashstr(utool.hashstr(ori_distance(ori1, ori2)))
+    >>> print(utool.hashstr(output))
+    !755pt!alrfgshiu
 
     #if CYTH
     #CYTH_PARAM_TYPES:
@@ -273,9 +279,12 @@ def ori_distance(ori1, ori2):
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
     >>> from vtool.linalg import *
+    >>> np.random.seed(53)
     >>> det1 = np.random.rand(1000)
     >>> det2 = np.random.rand(1000)
-    >>> det_distance(det1, det2)
+    >>> output = det_distance(det1, det2)
+    >>> print(utool.hashstr(output))
+    pfce!exwvqz8e1n!
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAM_TYPES:
@@ -317,9 +326,12 @@ def L2_sqrd(hist1, hist2):
     seealso L2
     Test:
     >>> from vtool.linalg import *
+    >>> np.random.seed(53)
     >>> hist1 = np.random.rand(1000, 2)
     >>> hist2 = np.random.rand(1000, 2)
-    >>> L2_sqrd(hist1, hist2)
+    >>> output = L2_sqrd(hist1, hist2)
+    >>> print(utool.hashstr(output))
+    v9wc&brmvjy1as!z
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAM_TYPES:

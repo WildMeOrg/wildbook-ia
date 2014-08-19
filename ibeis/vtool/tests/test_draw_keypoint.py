@@ -116,41 +116,42 @@ MAX_Y = 2
 
 kp_list = []
 
+if __name__ == '__main__':
 
-for row, col in iprod(range(nRows), range(nCols)):
-    #print((row, col))
-    alpha = col / (nCols)
-    beta  = row / (nRows)
-    xsca = (MIN_X    * (1 - alpha)) + (MAX_X    * (alpha))
-    ori  = (MIN_ORI  * (1 - alpha)) + (MAX_ORI  * (alpha))
-    skew = (MIN_SWEW * (1 - beta))  + (MAX_SKEW * (beta))
-    ysca = (MIN_Y    * (1 - beta))  + (MAX_Y    * (beta))
+    for row, col in iprod(range(nRows), range(nCols)):
+        #print((row, col))
+        alpha = col / (nCols)
+        beta  = row / (nRows)
+        xsca = (MIN_X    * (1 - alpha)) + (MAX_X    * (alpha))
+        ori  = (MIN_ORI  * (1 - alpha)) + (MAX_ORI  * (alpha))
+        skew = (MIN_SWEW * (1 - beta))  + (MAX_SKEW * (beta))
+        ysca = (MIN_Y    * (1 - beta))  + (MAX_Y    * (beta))
 
-    kpts, sifts = test_shape(pnum=pnum_(),
-                             ori=ori,
-                             skew=skew,
-                             xscale=xsca,
-                             yscale=ysca)
+        kpts, sifts = test_shape(pnum=pnum_(),
+                                 ori=ori,
+                                 skew=skew,
+                                 xscale=xsca,
+                                 yscale=ysca)
     #print('+----')
     #kp_list.append(kpts[0])
     #S_list = ktool.get_xy_axis_extents(kpts)
     #print('xscale=%r yscale=%r, skew=%r' % (xsca, ysca, skew))
     #print(S_list)
 
-#scale_factor = 1
-#offset = (0, 0)
-#(_xs, _ys, _iv11s, _iv12s, _iv21s, _iv22s, _oris) = ktool.scaled_kpts(kpts, scale_factor, offset)
+    #scale_factor = 1
+    #offset = (0, 0)
+    #(_xs, _ys, _iv11s, _iv12s, _iv21s, _iv22s, _oris) = ktool.scaled_kpts(kpts, scale_factor, offset)
 
-#invVR_aff2Ds = mpl_keypoint.get_invV_aff2Ds(_xs, _ys, _iv11s, _iv12s, _iv21s, _iv22s)
-#aff = invVR_aff2Ds[0]
+    #invVR_aff2Ds = mpl_keypoint.get_invV_aff2Ds(_xs, _ys, _iv11s, _iv12s, _iv21s, _iv22s)
+    #aff = invVR_aff2Ds[0]
 
-#ori = _oris[0]
-#aff2 = mpl.transforms.Affine2D().rotate(-ori)
+    #ori = _oris[0]
+    #aff2 = mpl.transforms.Affine2D().rotate(-ori)
 
-#print((aff + aff2).frozen())
-#print((aff2 + aff).frozen())
+    #print((aff + aff2).frozen())
+    #print((aff2 + aff).frozen())
 
-#mpl_sift.draw_sift(ax, sift)
-#df2.update()
+    #mpl_sift.draw_sift(ax, sift)
+    #df2.update()
 
-exec(df2.present())
+    exec(df2.present())

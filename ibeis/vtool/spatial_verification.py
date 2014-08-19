@@ -33,7 +33,7 @@ import vtool.linalg as ltool
 # need to cimport vtool._keypoint_cyth as _ktool_cyth
 # and replace all ktool.somefunc_cyth with _ktool_cyth.somefunc_cyth
 
-np.tau = 2 * np.pi  # tauday.org
+TAU = 2 * np.pi  # tauday.org
 
 SV_DTYPE = np.float64
 
@@ -125,10 +125,9 @@ def compute_homog(xy1_mn, xy2_mn):
     >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30))
     >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
     >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
-    >>> compute_homog(xy1_mn, xy2_mn)
-    array([[  1.83339765e-03,   2.84967769e-03,  -7.11014174e-01],
-           [  2.82477716e-03,   1.80000317e-03,  -7.03139797e-01],
-           [  1.66839210e-05,   1.67525379e-05,  -5.52890916e-03]])
+    >>> output = compute_homog(xy1_mn, xy2_mn)
+    >>> print(utool.hashstr(output))
+    +h%5!tqxb+a19scs
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
     #CYTH_PARAM_TYPES:
@@ -203,7 +202,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     >>> kpts2_m = kpts2[fm.T[1]]
     >>> xy_thresh_sqrd = np.float64(.009) ** 2
     >>> scale_thresh_sqrd = np.float64(2)
-    >>> ori_thresh = np.float64(np.tau / 4)
+    >>> ori_thresh = np.float64(TAU / 4)
     >>> # Get keypoints to project in matrix form
     >>> invVR1s_m = ktool.get_invV_mats(kpts1_m, with_trans=True, with_ori=True)
     >>> V1s_m = ktool.get_V_mats(kpts1_m, with_trans=True, with_ori=True)
@@ -211,15 +210,13 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     >>> # The transform from kp1 to kp2 is given as:
     >>> Aff_mats = matrix_multiply(invVR2s_m, V1s_m)
     >>> Aff = Aff_mats[0]
-    >>> Aff = np.array([[ 0.9506202 ,  0.06814792,  1.91077919],
-    ...                 [-0.43488476,  1.2916116 ,  6.41614044],
-    ...                 [ 0.        ,  0.        ,  1.        ]])
     >>> # Get components to test projects against
     >>> xy2_m  = ktool.get_invVR_mats_xys(invVR2s_m)
     >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
     >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
     >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-    >>> print(utool.hashstr(repr(output[0])))
+    >>> print(utool.hashstr(output))
+    v1!dq3v3cu6fhz%r
 
     #if CYTH
     #CYTH_PARAM_TYPES:
@@ -288,10 +285,10 @@ def get_affine_inliers(kpts1, kpts2, fm,
     >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
     >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
     >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
-    >>> ori_thresh = ktool.KPTS_DTYPE(np.tau / 4)
+    >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
     >>> output = get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-    >>> print(utool.hashstr(repr(output[0])))
-    edb8bw55zdw!xal@
+    >>> print(utool.hashstr(output))
+    kfvy0iej+56akeb6
 
 
     FROM PERDOCH 2009:

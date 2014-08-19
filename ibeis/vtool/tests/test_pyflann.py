@@ -115,8 +115,9 @@ def test_pyflann_hkmeans():
     If dtype is None (the default), the array returned is the same
     type as pts.  Otherwise, the returned array is of type dtype.
 
-    >>> from vtool.tests.test_pyflann import * # NOQA
-    >>> test_pyflann_hkmeans()
+    #>>> from vtool.tests.test_pyflann import * # NOQA
+    #>>> test_pyflann_hkmeans()  #doctest: +ELLIPSIS
+    #HKmeans...
     """
 
     # Test parameters
@@ -146,8 +147,9 @@ def test_pyflann_kmeans():
         default is to run until convergence.
         If dtype is None (the default), the array returned is the same
         type as pts.  Otherwise, the returned array is of type dtype.
-    >>> from vtool.tests.test_pyflann import * # NOQA
-    >>> test_pyflann_kmeans()
+    #>>> from vtool.tests.test_pyflann import * # NOQA
+    #>>> test_pyflann_kmeans()  #doctest: +ELLIPSIS
+    #Kmeans...
     """
     print('Kmeans')
     flann = pyflann.FLANN()
@@ -164,8 +166,8 @@ def test_pyflann_kmeans():
 
 def test_pyflann_add_point():
     """
-    >>> from vtool.tests.test_pyflann import * # NOQA
-    >>> test_pyflann_add_point()
+    #>>> from vtool.tests.test_pyflann import * # NOQA
+    #>>> test_pyflann_add_point()
     """
     # Test parameters
     num_neighbors = 3
@@ -193,8 +195,8 @@ def test_pyflann_add_point():
 
 def test_pyflann_searches():
     """
-    >>> from vtool.tests.test_pyflann import * # NOQA
-    >>> test_pyflann_searches()
+    #>>> from vtool.tests.test_pyflann import * # NOQA
+    #>>> test_pyflann_searches()
     """
     try:
         num_neighbors = 3
@@ -238,8 +240,8 @@ def test_pyflann_searches():
 
 def test_pyflann_tune():
     """
-    >>> from vtool.tests.test_pyflann import * # NOQA
-    >>> test_pyflann_tune()
+    #>>> from vtool.tests.test_pyflann import * # NOQA
+    #>>> test_pyflann_tune()
     """
     print('Create random qpts and database data')
     pts = _make_pts(nPts=1009)
@@ -275,8 +277,8 @@ def test_pyflann_tune():
 def test_pyflann_io():
     # Test parameters
     """
-    >>> from vtool.tests.test_pyflann import * # NOQA
-    >>> test_pyflann_io()
+    #>>> from vtool.tests.test_pyflann import * # NOQA
+    #>>> test_pyflann_io()
     """
     # Create qpts and database data
     print('Create random qpts and database data')

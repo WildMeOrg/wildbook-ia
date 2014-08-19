@@ -1,4 +1,7 @@
 """
+python -c "import vtool, doctest; print(doctest.testmod(vtool.keypoint))"
+
+
 Keypoints are stored in the invA format by default.
 Unfortunately many places in the code reference this as A instead of invA
 because I was confused when I first started writing this.
@@ -283,8 +286,9 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     >>> from vtool.keypoint import *
     >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
-    >>> get_invVR_mats_sqrd_scale(invVR_mats)
-    array([-0.15718718, -0.09482292, -0.33617438,  0.5933366 ])
+    >>> output = get_invVR_mats_sqrd_scale(invVR_mats)
+    >>> print(utool.hashstr(output))
+    1i468l@838vatv@4
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAM_TYPES:
@@ -309,8 +313,11 @@ def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components
 
     >>> from vtool.keypoint import *
+    >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
-    >>> get_invVR_mats_shape(invVR_mats)
+    >>> output = get_invVR_mats_shape(invVR_mats)
+    >>> print(utool.hashstr(output))
+    oq9o@yqhtgloy58!
 
     #if CYTH
     #CYTH_PARAM_TYPES:
@@ -353,8 +360,10 @@ def get_invVR_mats_oris(invVR_mats):
 
     >>> from vtool.keypoint import *
     >>> np.random.seed(0)
-    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)  #doctest: +ELLIPSIS
-    >>> _oris = get_invVR_mats_oris(invVR_mats)
+    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
+    >>> output = get_invVR_mats_oris(invVR_mats)
+    >>> print(utool.hashstr(output))
+    mcoxq8!3ml5bj9rx
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAMS:
@@ -389,10 +398,10 @@ def rectify_invV_mats_are_up(invVR_mats):
 
     >>> from vtool.keypoint import *
     >>> np.random.seed(0)
-    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)  #doctest: +ELLIPSIS
-    >>> invVR_mats_ = rectify_invV_mats_are_up(invVR_mats)
-    [[[ 0.5488135   0.71518937]
-      [ 0.60276338  0.54488318]]...
+    >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
+    >>> output = rectify_invV_mats_are_up(invVR_mats)
+    >>> print(utool.hashstr(output))
+    2wir&6ybcga0bpvz
 
     #if CYTH
     # TODO: Template this for [float64_t, float32_t]
