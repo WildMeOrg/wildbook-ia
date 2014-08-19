@@ -134,7 +134,7 @@ class NeighborIndex(FlannInvertedIndex):
         nnindexer._check_input(rowid_list, vecs_list)
         #print('[nnindexer] building NeighborIndex object')
         flannkw = nnindexer._build_flannkw(rowid_list, indexed_cfgstr,
-                                         flann_cachedir, flann_params, use_cache)
+                                           flann_cachedir, flann_params, use_cache)
         dx2_vec, dx2_rowid, dx2_fx = try_invert_vecx(vecs_list, rowid_list)
         # Build/Load the flann index
         super(NeighborIndex, nnindexer).__init__(rowid_list, dx2_rowid, dx2_vec, dx2_fx, flannkw)

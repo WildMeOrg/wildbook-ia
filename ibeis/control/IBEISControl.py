@@ -39,6 +39,7 @@ from ibeis.model.preproc import preproc_detectimg
 from ibeis.model.preproc import preproc_encounter
 from ibeis.model.detect import randomforest
 from ibeis.model.hots import match_chips3 as mc3
+from ibeis.model.hots import match_chips4 as mc4
 from ibeis.model.hots import hots_query_request
 # IBEIS
 from ibeis.control import DB_SCHEMA
@@ -1811,10 +1812,10 @@ class IBEISController(object):
         return qreq
 
     @default_decorator
-    def _query_chips(ibs, qaid_list, daid_list, safe=True,
-                     use_cache=mc3.USE_CACHE,
-                     use_bigcache=mc3.USE_BIGCACHE,
-                     **kwargs):
+    def _query_chips3(ibs, qaid_list, daid_list, safe=True,
+                      use_cache=mc3.USE_CACHE,
+                      use_bigcache=mc3.USE_BIGCACHE,
+                      **kwargs):
         """
         qaid_list - query chip ids
         daid_list - database chip ids
@@ -1832,10 +1833,16 @@ class IBEISController(object):
         qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
         return qaid2_qres
 
-    def _query_chips2(ibs, qaid_list, daid_list, use_cache=mc3.USE_CACHE,
-                      use_bigcache=mc3.USE_BIGCACHE):
-        #neigbhor_index = .neighbor_index.get_ibies_neighbor_index(ibs, daid_list)
-        pass
+    def _query_chips4(ibs, qaid_list, daid_list, use_cache=mc4.USE_CACHE,
+                      use_bigcache=mc4.USE_BIGCACHE):
+        process_qreqkw = {
+            'use_cache'    : use_cache,
+            'use_bigcache' : use_bigcache,
+        }
+        qaid2_qres = mc4.process_query_request(ibs,  qaid_list, daid_list, **process_qreqkw)
+        return qaid2_qres
+
+    _query_chips = _query_chips3
 
     #
     #

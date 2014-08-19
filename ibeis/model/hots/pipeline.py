@@ -66,6 +66,61 @@ START_AFTER = 2
 log_prog = partial(utool.log_progress, startafter=START_AFTER)
 
 
+# Query Level 0
+#@utool.indent_func('[Q0]')
+#@profile
+@profile
+def request_ibeis_query(ibs, qreq):
+    """
+    Driver logic of query pipeline
+    Input:
+        ibs   - HotSpotter database object to be queried
+        qreq - QueryRequest Object   # use prep_qreq to create one
+    Output:
+        qaid2_qres - mapping from query indexes to QueryResult Objects
+    """
+
+    # Query Chip Indexes
+    # * vsone qaids/daids swapping occurs here
+    qaids = qreq.get_internal_qaids()
+
+    # Nearest neighbors (qaid2_nns)
+    # * query descriptors assigned to database descriptors
+    # * FLANN used here
+    qaid2_nns = nearest_neighbors(
+        ibs, qaids, qreq)
+
+    # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
+    # * feature matches are weighted
+    filt2_weights, filt2_meta = weight_neighbors(
+        ibs, qaid2_nns, qreq)
+
+    # Thresholding and weighting (qaid2_nnfilter)
+    # * feature matches are pruned
+    qaid2_nnfilt = filter_neighbors(
+        ibs, qaid2_nns, filt2_weights, qreq)
+
+    # Nearest neighbors to chip matches (qaid2_chipmatch)
+    # * Inverted index used to create aid2_fmfsfk (TODO: crid2_fmfv)
+    # * Initial scoring occurs
+    # * vsone inverse swapping occurs here
+    qaid2_chipmatch_FILT = build_chipmatches(
+        qaid2_nns, qaid2_nnfilt, qreq)
+
+    # Spatial verification (qaid2_chipmatch) (TODO: cython)
+    # * prunes chip results and feature matches
+    qaid2_chipmatch_SVER = spatial_verification(
+        ibs, qaid2_chipmatch_FILT, qreq, dbginfo=False)
+
+    # Query results format (qaid2_qres) (TODO: SQL / Json Encoding)
+    # * Final Scoring. Prunes chip results.
+    # * packs into a wrapped query result object
+    qaid2_qres = chipmatch_to_resdict(
+        ibs, qaid2_chipmatch_SVER, filt2_meta, qreq)
+
+    return qaid2_qres
+
+
 #============================
 # 1) Nearest Neighbors
 #============================
