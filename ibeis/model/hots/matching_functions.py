@@ -42,6 +42,7 @@ from vtool import linalg as ltool
 from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import hots_query_result
+from ibeis.model.hots import exceptions as hsexcept
 from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_filters
 from ibeis.model.hots import voting_rules2 as vr2
@@ -669,9 +670,9 @@ def try_load_resdict(qreq):
             res = hots_query_result.QueryResult(qaid, cfgstr)
             res.load(qreq)  # 77.4 % time
             qaid2_qres[qaid] = res
-        except hots_query_result.HotsCacheMissError:
+        except hsexcept.HotsCacheMissError:
             failed_qaids.append(qaid)
-        except hots_query_result.HotsNeedsRecomputeError:
+        except hsexcept.HotsNeedsRecomputeError:
             failed_qaids.append(qaid)
     return qaid2_qres, failed_qaids
 

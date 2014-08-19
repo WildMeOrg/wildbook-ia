@@ -139,8 +139,12 @@ from ibeis.model.preproc import preproc_feat
 from ibeis.model.preproc import preproc_detectimg
 # IBEIS MODEL HOTSPOTTER
 from ibeis.model.hots import matching_functions as mf
+from ibeis.model.hots import pipeline
+from ibeis.model.hots import pipeline as hspipe
 from ibeis.model.hots import match_chips3 as mc3
-from ibeis.model.hots import match_chips3 as nn_filters
+from ibeis.model.hots import match_chips4 as mc4
+from ibeis.model.hots import nn_filters
+from ibeis.model.hots import nn_weights
 from ibeis.model.hots import hots_nn_index
 from ibeis.model.hots.hots_nn_index import HOTSIndex, HOTSMultiIndex
 from ibeis.model.hots import hots_query_result

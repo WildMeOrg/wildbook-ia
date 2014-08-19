@@ -26,6 +26,7 @@ def _ibeis_cache_dump():
 
 def _ibeis_cache_write(key, val):
     """ Writes to global IBEIS cache """
+    print('[sysres] set %s=%r' % (key, val))
     util_cache.global_cache_write(key, val, appname=__APPNAME__)
 
 

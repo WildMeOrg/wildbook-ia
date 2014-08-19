@@ -107,14 +107,18 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
     if 'custom' == test_cfg_name_list:
         # Usee the ibeis config as a custom config
         print('   * custom cfg_list')
-        cfg_list = [ibs.prefs.query_cfg]
+        cfg_list = [ibs.cfg.query_cfg]
         cfgx2_lbl = ['custom']
         return cfg_list, cfgx2_lbl
     return _get_cfg_list(test_cfg_name_list)
 
 
 def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
-    cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list)
+    """
+    Returns a list of varied query configurations. Only custom configs depend on
+    IBEIS
+    """
+    cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list, ibs=ibs)
     print(cfgx2_lbl)
     # cfgx2_lbl denotes which parameters are being varied.
     # If there is just one config then nothing is varied

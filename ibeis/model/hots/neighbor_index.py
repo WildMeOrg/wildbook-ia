@@ -20,66 +20,6 @@ import vtool.nearest_neighbors as nntool
 NOCACHE_FLANN = '--nocache-flann' in sys.argv
 
 
-def get_ibies_neighbor_index(ibs, daid_list, NEIGHBOR_CACHE={}):
-    """
-    IBEIS interface into neighbor_index
-
-    >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> import ibeis
-    >>> daid_list = [1, 2, 3, 4]
-    >>> num_forests = 8
-    >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-    >>> nnindexer = get_ibies_neighbor_index(ibs, daid_list)
-    """
-    try:
-        # Grab the keypoints names and image ids before query time
-        #rx2_kpts = ibs.get_annot_kpts(daid_list)
-        #rx2_gid  = ibs.get_annot_gids(daid_list)
-        #rx2_nid  = ibs.get_annot_nids(daid_list)
-        duuid_list     = ibs.get_annot_uuids(daid_list)
-        dauuid_cfgstr  = utool.hashstr_arr(duuid_list, 'duuids')  # todo change to uuids
-        feat_cfgstr    = ibs.cfg.feat_cfg.get_cfgstr()
-        flann_cachedir = ibs.get_flann_cachedir()
-        indexed_cfgstr = dauuid_cfgstr + feat_cfgstr
-        # neighbor cache
-        if indexed_cfgstr in NEIGHBOR_CACHE:
-            nnindexer = NEIGHBOR_CACHE[indexed_cfgstr]
-        else:
-            flann_params = {
-                'algorithm': 'kdtree',
-                'trees': 4
-            }
-            rowid_list = daid_list
-            vecs_list = ibs.get_annot_desc(daid_list)
-            _tup = (rowid_list, vecs_list, flann_params, flann_cachedir, indexed_cfgstr)
-            nnindexer = NeighborIndex(*_tup)
-            NEIGHBOR_CACHE[indexed_cfgstr] = nnindexer
-            return nnindexer
-    except Exception as ex:
-        utool.printex(ex, True, msg_='cannot build inverted index', key_list=['ibs.get_infostr()'])
-        raise
-
-
-def try_invert_vecx(vecs_list, rowid_list):
-    """
-    Aggregates descriptors of input annotations and returns inverted information
-    """
-    if utool.NOT_QUIET:
-        print('[agg_desc] stacking descriptors from %d annotations'
-                % len(rowid_list))
-    try:
-        dx2_vec, dx2_rowid, dx2_fx = nntool.map_vecx_to_rowids(vecs_list, rowid_list)
-        assert dx2_vec.shape[0] == dx2_rowid.shape[0]
-        assert dx2_vec.shape[0] == dx2_fx.shape[0]
-    except MemoryError as ex:
-        utool.printex(ex, 'cannot build inverted index', '[!memerror]')
-        raise
-    if utool.NOT_QUIET:
-        print('stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
-            nVecs=len(dx2_vec), nAnnots=len(dx2_rowid)))
-    return dx2_vec, dx2_rowid, dx2_fx
-
-
 def make_test_index():
     import ibeis
     ibs = ibeis.test_main(db='testdb1')
@@ -89,72 +29,52 @@ def make_test_index():
     return nnindexer, ibs
 
 
-class FlannInvertedIndex(object):
-    """
-    Basic wrapper around flann
-    """
-    def __init__(nnindexer, rowid_list, dx2_rowid, dx2_vec, dx2_fx, flannkw):
-        nnindexer.rowid_list = rowid_list
-        nnindexer.dx2_rowid  = dx2_rowid
-        nnindexer.dx2_vec    = dx2_vec
-        nnindexer.dx2_fx     = dx2_fx
-        # TODO: get cache hit / miss first
-        nnindexer.flann = nntool.flann_cache(dx2_vec, **flannkw)
-
-    def add_points(nnindexer, new_dx2_vec, new_dx2_rowid, new_dx2_fx):
-        # Stack inverted information
-        _dx2_rowid = np.hstack((nnindexer.dx2_rowid, new_dx2_rowid))
-        _dx2_fx = np.hstack((nnindexer.dx2_fx, new_dx2_fx))
-        _dx2_vec = np.vstack((nnindexer.dx2_vec, new_dx2_vec))
-        nnindexer.dx2_rowid  = _dx2_rowid
-        nnindexer.dx2_vec    = _dx2_vec
-        nnindexer.dx2_fx     = _dx2_fx
-        # Add new points to flann structure
-        nnindexer.flann.add_points(new_dx2_vec)
-
-    def knn(nnindexer, qfx2_vec, K, checks=1028):
-        """
-        >>> K = 2
-        >>> checks = 1028
-        """
-        (qfx2_dx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
+def _check_input(rowid_list, vecs_list):
+    assert len(rowid_list) == len(vecs_list), 'invalid input'
+    assert len(rowid_list) > 0, ('len(aid_list) == 0.'
+                                    'Cannot invert index without features!')
 
 
-class NeighborIndex(FlannInvertedIndex):
+class NeighborIndex(object):
     """
     More abstract wrapper around flann
     """
+
+    def rrr(nnindexer):
+        from ibeis.model.hots import neighbor_index as nnindex
+        nnindex.rrr()
+        print('reloading NeighborIndex')
+        utool.reload_class_methods(nnindexer, nnindex.NeighborIndex)
+
     def __init__(nnindexer, rowid_list=[], vecs_list=[], flann_params={},
-                 flann_cachedir='.', indexed_cfgstr='',
-                 use_cache=not NOCACHE_FLANN):
+                 flann_cachedir='.', indexer_cfgstr='', hash_rowids=True,
+                 use_cache=not NOCACHE_FLANN, use_params_hash=True):
         """
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, ibs = make_test_index()  #doctest: +ELLIPSIS
         """
-        nnindexer._check_input(rowid_list, vecs_list)
+        _check_input(rowid_list, vecs_list)
         #print('[nnindexer] building NeighborIndex object')
-        flannkw = nnindexer._build_flannkw(rowid_list, indexed_cfgstr,
-                                           flann_cachedir, flann_params, use_cache)
         dx2_vec, dx2_rowid, dx2_fx = try_invert_vecx(vecs_list, rowid_list)
+        nnindexer.rowid_list = rowid_list
+        nnindexer.dx2_rowid  = dx2_rowid
+        nnindexer.dx2_vec    = dx2_vec
+        nnindexer.dx2_fx     = dx2_fx
+        if hash_rowids:
+            # Fingerprint
+            rowid_cfgstr = utool.hashstr_arr(rowid_list, '_ROWIDS')
+            cfgstr = rowid_cfgstr + indexer_cfgstr
+        else:
+            # Dont hash rowids when given enough info in indexer_cfgstr
+            cfgstr = indexer_cfgstr
+        nnindexer.cfgstr = cfgstr
         # Build/Load the flann index
-        super(NeighborIndex, nnindexer).__init__(rowid_list, dx2_rowid, dx2_vec, dx2_fx, flannkw)
-
-    def _check_input(nnindexer, rowid_list, vecs_list):
-        assert len(rowid_list) == len(vecs_list), 'invalid input'
-        assert len(rowid_list) > 0, ('len(aid_list) == 0.'
-                                     'Cannot invert index without features!')
-
-    def _build_flannkw(nnindexer, rowid_list, indexed_cfgstr, flann_cachedir,
-                       flann_params, use_cache):
-        # Fingerprint
-        rowid_cfgstr = utool.hashstr_arr(rowid_list, 'rowids')
-        indexed_cfgstr_ = rowid_cfgstr + indexed_cfgstr
-        # Agg Data, Build the nn index
-        flannkw = {'cache_dir': flann_cachedir,
-                   'cfgstr': indexed_cfgstr_,
-                   'flann_params': flann_params,
-                   'use_cache': use_cache, }
-        return flannkw
+        nnindexer.flann = nntool.flann_cache(dx2_vec, **{
+            'cache_dir': flann_cachedir,
+            'cfgstr': cfgstr,
+            'flann_params': flann_params,
+            'use_cache': use_cache,
+            'use_params_hash': use_params_hash})
 
     def add_points(nnindexer, new_rowid_list, new_vecs_list):
         """
@@ -172,8 +92,23 @@ class NeighborIndex(FlannInvertedIndex):
         """
         new_dx2_vec, new_dx2_rowid, new_dx2_fx = \
                 try_invert_vecx(new_vecs_list, new_rowid_list)
-        super(NeighborIndex, nnindexer).add_points(
-            new_dx2_vec, new_dx2_rowid, new_dx2_fx)
+        # Stack inverted information
+        _dx2_rowid = np.hstack((nnindexer.dx2_rowid, new_dx2_rowid))
+        _dx2_fx = np.hstack((nnindexer.dx2_fx, new_dx2_fx))
+        _dx2_vec = np.vstack((nnindexer.dx2_vec, new_dx2_vec))
+        nnindexer.dx2_rowid  = _dx2_rowid
+        nnindexer.dx2_vec    = _dx2_vec
+        nnindexer.dx2_fx     = _dx2_fx
+        # Add new points to flann structure
+        nnindexer.flann.add_points(new_dx2_vec)
+
+    def knn(nnindexer, qfx2_vec, K, checks=1028):
+        """
+        >>> K = 2
+        >>> checks = 1028
+        """
+        (qfx2_dx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
+        return (qfx2_dx, qfx2_dist)
 
     def nn_index2(nnindexer, qreq, qfx2_vec):
         """ return nearest neighbors from this data_index's flann object """
@@ -297,6 +232,26 @@ def split_index_daids(mindexer):
     """ </CYTH> """
     for mindexer in mindexer.forest_indexes:
         pass
+
+
+def try_invert_vecx(vecs_list, rowid_list):
+    """
+    Aggregates descriptors of input annotations and returns inverted information
+    """
+    if utool.NOT_QUIET:
+        print('[agg_desc] stacking descriptors from %d annotations'
+                % len(rowid_list))
+    try:
+        dx2_vec, dx2_rowid, dx2_fx = nntool.map_vecx_to_rowids(vecs_list, rowid_list)
+        assert dx2_vec.shape[0] == dx2_rowid.shape[0]
+        assert dx2_vec.shape[0] == dx2_fx.shape[0]
+    except MemoryError as ex:
+        utool.printex(ex, 'cannot build inverted index', '[!memerror]')
+        raise
+    if utool.NOT_QUIET:
+        print('stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
+            nVecs=len(dx2_vec), nAnnots=len(dx2_rowid)))
+    return dx2_vec, dx2_rowid, dx2_fx
 
 
 #if __name__ == '__main__':

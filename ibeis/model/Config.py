@@ -231,6 +231,31 @@ class AggregateConfig(ConfigBase):
         return ''.join(agg_cfg.get_cfgstr_list())
 
 
+class FlannConfig(ConfigBase):
+    def __init__(flann_cfg, **kwargs):
+        super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
+        flann_cfg.algorithm = 'kdtree'
+        flann_cfg.trees = 4
+
+    def get_dict_args(flann_cfg):
+        return {
+            'algorithm' : flann_cfg.algorithm,
+            'trees' : flann_cfg.trees,
+        }
+
+    def get_cfgstr_list(flann_cfg):
+        flann_cfgstrs = ['_FLANN(']
+        if flann_cfg.algorithm == 'kdtree':
+            flann_cfgstrs += ['%d_kdtrees' % flann_cfg.trees]
+        else:
+            flann_cfgstrs += ['%s' % flann_cfg.algorithm]
+        flann_cfgstrs += [')']
+        return flann_cfgstrs
+
+    def get_cfgstr(flann_cfg):
+        return ''.join(flann_cfg.get_cfgstr_list())
+
+
 class QueryConfig(ConfigBase):
     def __init__(query_cfg, feat_cfg=None, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
@@ -238,6 +263,7 @@ class QueryConfig(ConfigBase):
         query_cfg.filt_cfg = FilterConfig(**kwargs)
         query_cfg.sv_cfg   = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg  = AggregateConfig(**kwargs)
+        query_cfg.flann_cfg = FlannConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
         # Depends on feature config
@@ -256,6 +282,7 @@ class QueryConfig(ConfigBase):
         query_cfg.filt_cfg.update(**kwargs)
         query_cfg.sv_cfg.update(**kwargs)
         query_cfg.agg_cfg.update(**kwargs)
+        query_cfg.flann_cfg.update(**kwargs)
         query_cfg.update(**kwargs)
         # Ensure feasibility of the configuration
         make_feasible(query_cfg)
@@ -282,6 +309,8 @@ class QueryConfig(ConfigBase):
             cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
         if kwargs.get('use_agg', True):
             cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
+        if kwargs.get('use_flann', True):
+            cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
         if kwargs.get('use_chip', True):
             cfgstr_list += query_cfg._feat_cfg.get_cfgstr_list()
         return cfgstr_list

@@ -533,7 +533,7 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables()
 
     @blocking_slot()
-    def query(back, aid=None, refresh=True, **kwargs):
+    def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
         """ Action -> Query"""
         if aid is None:
             aid = back.get_selected_aid()
@@ -541,14 +541,17 @@ class MainWindowBackend(QtCore.QObject):
         print('------')
         print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
 
-        if back.query_mode == constants.VS_EXEMPLARS_KEY:
+        if query_mode is None:
+            query_mode = back.query_mode
+
+        if query_mode == constants.VS_EXEMPLARS_KEY:
             print('[back] query_exemplars(aid=%r)' % (aid,))
             qaid2_qres = back.ibs.query_exemplars([aid])
-        elif back.query_mode == constants.INTRA_ENC_KEY:
+        elif query_mode == constants.INTRA_ENC_KEY:
             print('[back] query_encounter(aid=%r, eid=%r)' % (aid, eid))
             qaid2_qres = back.ibs.query_encounter([aid], eid)
         else:
-            print('Unknown query mode: %r' % (back.query_mode))
+            print('Unknown query mode: %r' % (query_mode))
 
         qres = qaid2_qres[aid]
         back._set_selection(sel_qres=[qres])

@@ -34,7 +34,7 @@ if [ "$SYSNAME" = "MINGW32_NT" ]; then
     export PYEXE=$(python -c "import sys; print(sys.executable)")
     export PYSCRIPTS=$MINGW_PYDIR/Scripts
     export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
+elif [ "$OSTYPE" = "darwin"* ]; then
     # MACPORTS
     export PYEXE=$(python -c "import sys; print(sys.executable)")
     export PYSCRIPTS="/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin"

@@ -93,6 +93,9 @@ def postload_commands(ibs, back):
             print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
             raise
         back.select_aid(params.args.select_aid)
+    if params.args.query_aid is not None:
+        from ibeis.constants import VS_EXEMPLARS_KEY
+        back.query(params.args.query_aid, query_mode=VS_EXEMPLARS_KEY)
     if params.args.select_gid is not None:
         back.select_gid(params.args.select_gid)
     if params.args.select_nid is not None:

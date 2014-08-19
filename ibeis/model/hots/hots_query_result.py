@@ -51,11 +51,9 @@ def remove_corrupted_queries(qresdir, qres, dryrun=True):
 
 def query_result_fpath(qresdir, qaid, cfgstr):
     """
-    <CYTH>
     cdef:
         long qaid
         str cfgstr, qres_dir, fpath, hash_id, fname
-    </CYTH>
     """
     fname = 'res_%s_qaid=%d.npz' % (cfgstr, qaid)
     if len(fname) > 64:
@@ -123,6 +121,7 @@ class QueryResult(__OBJECT_BASE__):
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qaid = qaid
+        #qres.qauuid = qauuid
         qres.cfgstr = cfgstr
         qres.eid = None  # encounter id
         # Assigned features matches
@@ -153,7 +152,7 @@ class QueryResult(__OBJECT_BASE__):
 
     @profile
     def save(qres, qreq):
-        fpath = qres.get_fpath(qreq.qresdir)
+        fpath = qres.get_fpath(qreq)
         if utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
@@ -162,7 +161,7 @@ class QueryResult(__OBJECT_BASE__):
     @profile
     def load(qres, qreq):
         """ Loads the result from the given database """
-        fpath = qres.get_fpath(qreq.qresdir)
+        fpath = qres.get_fpath(qreq)
         qaid_good = qres.qaid
         try:
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
@@ -208,7 +207,7 @@ class QueryResult(__OBJECT_BASE__):
 
     def cache_bytes(qres, qreq):
         """ Size of the cached query result on disk """
-        fpath  = qres.get_fpath(qreq.qresdir)
+        fpath  = qres.get_fpath(qreq)
         nBytes = utool.file_bytes(fpath)
         return nBytes
 

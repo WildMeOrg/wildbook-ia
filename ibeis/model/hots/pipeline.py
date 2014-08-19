@@ -42,7 +42,7 @@ from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import coverage_image
-from ibeis.model.hots import nn_filters
+from ibeis.model.hots import nn_weights
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import exceptions as hsexcept
 import utool
@@ -70,56 +70,78 @@ log_prog = partial(utool.log_progress, startafter=START_AFTER)
 #@utool.indent_func('[Q0]')
 #@profile
 @profile
-def request_ibeis_query(ibs, qreq):
+def request_ibeis_query(ibs, qreq_):
     """
+    >>> from ibeis.model.hots.pipeline import *  # NOQA
+    >>> from ibeis.model.hots import match_chips4 as mc4
+    >>> import ibeis
+    >>> qaid_list = [1]
+    >>> daid_list = [1, 2, 3, 4, 5]
+    >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+    >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
+    >>> qaid2_qres = request_ibeis_query(ibs, qreq_)
+    >>> qres = qaid2_qres[1]
+
     Driver logic of query pipeline
     Input:
         ibs   - HotSpotter database object to be queried
-        qreq - QueryRequest Object   # use prep_qreq to create one
+        qreq_ - QueryRequest Object   # use prep_qreq to create one
     Output:
         qaid2_qres - mapping from query indexes to QueryResult Objects
     """
 
-    # Query Chip Indexes
-    # * vsone qaids/daids swapping occurs here
-    qaids = qreq.get_internal_qaids()
+    # Load data for nearest neighbors
+    qreq_.load_indexer(ibs)
+    qreq_.load_query_vectors(ibs)
 
     # Nearest neighbors (qaid2_nns)
     # * query descriptors assigned to database descriptors
     # * FLANN used here
-    qaid2_nns = nearest_neighbors(
-        ibs, qaids, qreq)
+    qaid2_nns_ = nearest_neighbors(qreq_)
 
     # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
     # * feature matches are weighted
-    filt2_weights, filt2_meta = weight_neighbors(
-        ibs, qaid2_nns, qreq)
+    filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
 
     # Thresholding and weighting (qaid2_nnfilter)
     # * feature matches are pruned
-    qaid2_nnfilt = filter_neighbors(
-        ibs, qaid2_nns, filt2_weights, qreq)
+    qaid2_nnfilt_ = filter_neighbors(ibs, qaid2_nns_, filt2_weights_, qreq_)
 
     # Nearest neighbors to chip matches (qaid2_chipmatch)
-    # * Inverted index used to create aid2_fmfsfk (TODO: crid2_fmfv)
+    # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
     # * Initial scoring occurs
     # * vsone inverse swapping occurs here
-    qaid2_chipmatch_FILT = build_chipmatches(
-        qaid2_nns, qaid2_nnfilt, qreq)
+    qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
 
     # Spatial verification (qaid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches
-    qaid2_chipmatch_SVER = spatial_verification(
-        ibs, qaid2_chipmatch_FILT, qreq, dbginfo=False)
+    qaid2_chipmatch_SVER_ = spatial_verification(ibs, qaid2_chipmatch_FILT_, qreq_)
 
-    # Query results format (qaid2_qres) (TODO: SQL / Json Encoding)
+    # Query results format (qaid2_qres)
     # * Final Scoring. Prunes chip results.
     # * packs into a wrapped query result object
-    qaid2_qres = chipmatch_to_resdict(
-        ibs, qaid2_chipmatch_SVER, filt2_meta, qreq)
+    qaid2_qres_ = chipmatch_to_resdict(ibs, qaid2_chipmatch_SVER_, filt2_meta_, qreq_)
 
-    return qaid2_qres
+    return qaid2_qres_
 
+#def compare(qreq, qreq_):
+#    qaid = 1
+#    qvecs_list = qreq_.get_internal_qvecs()
+#    qaids = qreq.get_internal_qaids()
+#    qdesc_list = ibs.get_annot_desc(qaids)  # Get descriptors
+#    assert np.all(qvecs_list[0] == qdesc_list[0])
+#    assert np.all(qreq_.indexer.dx2_vec == qreq.data_index.dx2_data)
+#    assert np.all(qreq_.indexer.dx2_rowid == qreq.data_index.dx2_aid)
+#    assert np.all(qreq_.indexer.dx2_fx == qreq.data_index.dx2_fx)
+#    qfx2_dx_, qfx2_dist_ = qaid2_nns_[qaid]
+#    qfx2_dx, qfx2_dist = qaid2_nns[qaid]
+#    assert id(qaid2_nns) != id(qaid2_nns_)
+#    assert np.all(qfx2_dx_ == qfx2_dx)
+#    assert np.all(qfx2_dist_ == qfx2_dist)
+#    index = np.where(qfx2_dx_ != qfx2_dx)
+#    qfx2_dx.shape == qfx2_dx.shape
+#    qfx2_dx_[index]
+#    qfx2_dx[index]
 
 #============================
 # 1) Nearest Neighbors
@@ -127,12 +149,10 @@ def request_ibeis_query(ibs, qreq):
 
 
 @profile
-def nearest_neighbors(qreq):
+def nearest_neighbors(qreq_):
     """ Plain Nearest Neighbors
     Input:
-        ibs   - an IBEIS Controller
-        qaids - query annotation-ids
-        qreq  - a QueryRequest object
+        qreq_  - a QueryRequest object
     Output:
         qaid2_nnds - a dict mapping query annnotation-ids to a nearest neighbor
                      tuple (indexes, dists). indexes and dist have the shape
@@ -141,24 +161,23 @@ def nearest_neighbors(qreq):
                      neighbors.
     """
     # Neareset neighbor configuration
-    K      = qreq.qparams.K
-    Knorm  = qreq.qparams.Knorm
-    checks = qreq.qparams.checks
+    K      = qreq_.qparams.K
+    Knorm  = qreq_.qparams.Knorm
+    checks = qreq_.qparams.checks
     if NOT_QUIET:
-        print('[hs] Step 1) Assign nearest neighbors: ' + qreq.qparams.nn_cfgstr)
+        print('[hs] Step 1) Assign nearest neighbors: ' + qreq_.qparams.nn_cfgstr)
     num_neighbors = K + Knorm  # number of nearest neighbors
-    qvecs_list = qreq.qvecs_list  # query descriptors
-    nbrx = qreq.nbrx
-    qaids = qreq.qaid_list
+    qvecs_list = qreq_.get_internal_qvecs()  # query descriptors
+    indexer = qreq_.get_indexer()
+    qaids = qreq_.get_internal_qaids()
     # Call a tighter (hopefully cythonized) nearest neighbor function
     # Output
     qaid2_nns = {}
     # Internal statistics reporting
     nTotalNN, nTotalDesc = 0, 0
     mark_, end_ = log_prog('Assign NN: ', len(qaids))
-    for count, qaid in enumerate(qaids):
+    for count, (qaid, qfx2_vec) in enumerate(zip(qaids, qvecs_list)):
         mark_(count)  # progress
-        qfx2_vec = qvecs_list[count]
         # Check that we can query this annotation
         if len(qfx2_vec) == 0:
             # Assign empty nearest neighbors
@@ -167,7 +186,7 @@ def nearest_neighbors(qreq):
             qaid2_nns[qaid] = (qfx2_dx, qfx2_dist)
             continue
         # Find Neareset Neighbors nntup = (indexes, dists)
-        (qfx2_dx, qfx2_dist) = nbrx.nn_index(qfx2_vec, num_neighbors, checks)
+        (qfx2_dx, qfx2_dist) = indexer.knn(qfx2_vec, num_neighbors, checks)
         # Associate query annotation with its nearest descriptors
         qaid2_nns[qaid] = (qfx2_dx, qfx2_dist)
         # record number of query and result desc
@@ -185,25 +204,25 @@ def nearest_neighbors(qreq):
 #============================
 
 
-def weight_neighbors(ibs, qaid2_nns, qreq):
+def weight_neighbors(qaid2_nns, qreq_):
     if NOT_QUIET:
-        print('[hs] Step 2) Weight neighbors: ' + qreq.qparams.filt_cfgstr)
-    if not qreq.qparams.filt_on:
+        print('[hs] Step 2) Weight neighbors: ' + qreq_.qparams.filt_cfgstr)
+    if not qreq_.qparams.filt_on:
         return  {}
     else:
-        return _weight_neighbors(ibs, qaid2_nns, qreq)
+        return _weight_neighbors(qaid2_nns, qreq_)
 
 
 @profile
-def _weight_neighbors(ibs, qaid2_nns, qreq):
-    nnfilter_list = qreq.qparams.active_filter_list
+def _weight_neighbors(qaid2_nns, qreq_):
+    nnweight_list = qreq_.qparams.active_filter_list
     filt2_weights = {}
     filt2_meta = {}
-    for nnfilter in nnfilter_list:
-        nn_filter_fn = nn_filters.NN_FILTER_FUNC_DICT[nnfilter]
+    for nnfilter in nnweight_list:
+        nn_filter_fn = nn_weights.NN_FILTER_FUNC_DICT[nnfilter]
         # Apply [nnfilter] weight to each nearest neighbor
         # TODO FIX THIS!
-        qaid2_norm_weight, qaid2_selnorms = nn_filter_fn(ibs, qaid2_nns, qreq)
+        qaid2_norm_weight, qaid2_selnorms = nn_filter_fn(qaid2_nns, qreq_)
         filt2_weights[nnfilter] = qaid2_norm_weight
         filt2_meta[nnfilter] = qaid2_selnorms
     return filt2_weights, filt2_meta
@@ -215,13 +234,13 @@ def _weight_neighbors(ibs, qaid2_nns, qreq):
 
 
 @profile
-def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, qreq):
+def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, qreq_):
     qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, aid2_weights in six.iteritems(filt2_weights):
         qfx2_weights = aid2_weights[qaid]
-        sign, thresh, weight = qreq.params.filt2_stwt[filt]  # stw = sign, thresh, weight
+        sign, thresh, weight = qreq_.qparams.filt2_stwt[filt]  # stw = sign, thresh, weight
         if thresh is not None and thresh != 'None':
             thresh = float(thresh)  # corrects for thresh being strings sometimes
             if isinstance(thresh, (int, float)):
@@ -233,21 +252,22 @@ def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, qreq):
 
 
 @profile
-def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
+def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq_):
     qaid2_nnfilt = {}
     # Configs
-    cant_match_sameimg  = not qreq.params.can_match_sameimg
-    cant_match_samename = not qreq.params.can_match_samename
-    K = qreq.params.K
+    cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
+    cant_match_samename = not qreq_.qparams.can_match_samename
+    K = qreq_.qparams.K
     if NOT_QUIET:
         print('[hs] Step 3) Filter neighbors: ')
-    if qreq.params.gravity_weighting:
+    if qreq_.qparams.gravity_weighting:
         # We dont have an easy way to access keypoints from nearest neighbors yet
-        aid_list = qreq.indexer.rowid_list
+        #aid_list = qreq_.indexer.rowid_list
+        aid_list = np.unique(qreq_.data_index.dx2_rowid)  # FIXME: Highly inefficient
         kpts_list = ibs.get_annot_kpts(aid_list)
         dx2_kpts = np.vstack(kpts_list)
         dx2_oris = ktool.get_oris(dx2_kpts)
-        assert len(dx2_oris) == len(qreq.indexer.dx2_data)
+        assert len(dx2_oris) == len(qreq_.indexer.dx2_data)
     # Filter matches based on config and weights
     mark_, end_ = log_prog('Filter NN: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
@@ -256,12 +276,12 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
         qfx2_nndx = qfx2_dx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
         qfx2_score, qfx2_valid = _apply_filter_scores(qaid, qfx2_nndx,
-                                                      filt2_weights, qreq)
-        qfx2_aid = qreq.indexer.dx2_aid[qfx2_nndx]
+                                                      filt2_weights, qreq_)
+        qfx2_aid = qreq_.indexer.dx2_rowid[qfx2_nndx]
         if VERBOSE:
             print('[hs] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
-        if qreq.params.gravity_weighting:
+        if qreq_.qparams.gravity_weighting:
             qfx2_nnori = dx2_oris[qfx2_nndx]
             qfx2_kpts  = ibs.get_annot_kpts(qaid)  # FIXME: Highly inefficient
             qfx2_oris  = ktool.get_oris(qfx2_kpts)
@@ -351,14 +371,14 @@ def new_fmfsfk():
 
 
 @profile
-def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
+def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     """
     Input:
         qaid2_nns    - dict of assigned nearest features (only indexes are used here)
         qaid2_nnfilt - dict of (featmatch_scores, featmatch_mask)
                         where the scores and matches correspond to the assigned
                         nearest features
-        qreq         - QueryRequest object
+        qreq_         - QueryRequest object
 
     Output:
         qaid2_chipmatch - dict of (
@@ -372,17 +392,17 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
     """
 
     # Config
-    K = qreq.qparams.K
-    query_type = qreq.qparams.query_type
-    is_vsone = query_type == 'vsone'
+    K = qreq_.qparams.K
+    is_vsone =  qreq_.qparams.vsone
     if NOT_QUIET:
+        query_type = qreq_.qparams.query_type
         print('[hs] Step 4) Building chipmatches %s' % (query_type,))
     # Return var
     qaid2_chipmatch = {}
     nFeatMatches = 0
     #Vsone
     if is_vsone:
-        assert len(qreq.qaids) == 1
+        assert len(qreq_.qaids) == 1
         aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
     # Iterate over chips with nearest neighbors
     mark_, end_ = log_prog('Build Chipmatch: ', len(qaid2_nns))
@@ -393,8 +413,8 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
         nQKpts = len(qfx2_dx)
         # Build feature matches
         qfx2_nndx = qfx2_dx[:, 0:K]
-        qfx2_aid  = qreq.indexer.dx2_aid[qfx2_nndx]
-        qfx2_fx   = qreq.indexer.dx2_fx[qfx2_nndx]
+        qfx2_aid  = qreq_.indexer.dx2_rowid[qfx2_nndx]
+        qfx2_fx   = qreq_.indexer.dx2_fx[qfx2_nndx]
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator
@@ -427,7 +447,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
     #Vsone
     if is_vsone:
         chipmatch = _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk)
-        qaid = qreq.qaids[0]
+        qaid = qreq_.qaids[0]
         qaid2_chipmatch[qaid] = chipmatch
     end_()
     if NOT_QUIET:
@@ -440,24 +460,26 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
 #============================
 
 
-def spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
-    if not qreq.qparams.sv_on or qreq.qparams.xy_thresh is None:
+def spatial_verification(ibs, qaid2_chipmatch, qreq_, dbginfo=False):
+    if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         print('[hs] Step 5) Spatial verification: off')
         return (qaid2_chipmatch, {}) if dbginfo else qaid2_chipmatch
     else:
-        return _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=dbginfo)
+        return _spatial_verification(ibs, qaid2_chipmatch, qreq_, dbginfo=dbginfo)
 
 
 @profile
-def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
-    print('[hs] Step 5) Spatial verification: ' + qreq.qparams.sv_cfgstr)
-    prescore_method = qreq.qparams.prescore_method
-    nShortlist      = qreq.qparams.nShortlist
-    xy_thresh       = qreq.qparams.xy_thresh
-    scale_thresh    = qreq.qparams.scale_thresh
-    ori_thresh      = qreq.qparams.ori_thresh
-    use_chip_extent = qreq.qparams.use_chip_extent
-    min_nInliers    = qreq.qparams.min_nInliers
+def _spatial_verification(ibs, qaid2_chipmatch, qreq_, dbginfo=False):
+    """ """
+    # spatial verification
+    print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
+    prescore_method = qreq_.qparams.prescore_method
+    nShortlist      = qreq_.qparams.nShortlist
+    xy_thresh       = qreq_.qparams.xy_thresh
+    scale_thresh    = qreq_.qparams.scale_thresh
+    ori_thresh      = qreq_.qparams.ori_thresh
+    use_chip_extent = qreq_.qparams.use_chip_extent
+    min_nInliers    = qreq_.qparams.min_nInliers
     qaid2_chipmatchSV = {}
     nFeatSVTotal = 0
     nFeatMatchSV = 0
@@ -473,7 +495,7 @@ def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
     # Find a transform from chip2 to chip1 (the old way was 1 to 2)
     for qaid in six.iterkeys(qaid2_chipmatch):
         chipmatch = qaid2_chipmatch[qaid]
-        aid2_prescore = score_chipmatch(ibs, qaid, chipmatch, prescore_method, qreq)
+        aid2_prescore = score_chipmatch(ibs, qaid, chipmatch, prescore_method, qreq_)
         #print('Prescore: %r' % (aid2_prescore,))
         (aid2_fm, aid2_fs, aid2_fk) = chipmatch
         topx2_aid = utool.util_dict.keys_sorted_by_value(aid2_prescore)[::-1]
@@ -561,18 +583,18 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
 
 
 @profile
-def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
+def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq_):
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> res')
-    cfgstr = qreq.get_cfgstr()
-    score_method = qreq.qparams.score_method
+    cfgstr = qreq_.get_cfgstr(ibs)
+    score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
     qaid2_qres = {}
     for qaid in six.iterkeys(qaid2_chipmatch):
         # For each query's chipmatch
         chipmatch = qaid2_chipmatch[qaid]
         # Perform final scoring
-        aid2_score = score_chipmatch(ibs, qaid, chipmatch, score_method, qreq)
+        aid2_score = score_chipmatch(ibs, qaid, chipmatch, score_method, qreq_)
         # Create a query result structure
         res = hots_query_result.QueryResult(qaid, cfgstr)
         res.aid2_score = aid2_score
@@ -586,18 +608,17 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
 
 
 @profile
-def try_load_resdict(qreq):
+def try_load_resdict(qreq_, ibs):
     """ Try and load the result structures for each query.
     returns a list of failed qaids """
-    qaids = qreq.qaids
-    #cfgstr = qreq.get_cfgstr()  # NEEDS FIX TAKES 21.9 % time of this function
-    cfgstr = qreq.get_cfgstr2()  # hack of a fix
+    qaids = qreq_.qaids
+    cfgstr = qreq_.get_cfgstr(ibs)
     qaid2_qres = {}
     failed_qaids = []
     for qaid in qaids:
         try:
             res = hots_query_result.QueryResult(qaid, cfgstr)
-            res.load(qreq)  # 77.4 % time
+            res.load(qreq_)  # 77.4 % time
             qaid2_qres[qaid] = res
         except hsexcept.HotsCacheMissError:
             failed_qaids.append(qaid)
@@ -611,7 +632,7 @@ def try_load_resdict(qreq):
 #============================
 
 @profile
-def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq):
+def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq_):
     (aid2_fm, aid2_fs, aid2_fk) = chipmatch
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
     if score_method.find('w') == len(score_method) - 1:
@@ -620,15 +641,15 @@ def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq):
     if score_method == 'csum':
         aid2_score = vr2.score_chipmatch_csum(chipmatch)
     elif score_method == 'pl':
-        aid2_score, nid2_score = vr2.score_chipmatch_PL(ibs, qaid, chipmatch, qreq)
+        aid2_score, nid2_score = vr2.score_chipmatch_PL(ibs, qaid, chipmatch, qreq_)
     elif score_method == 'borda':
-        aid2_score, nid2_score = vr2.score_chipmatch_pos(ibs, qaid, chipmatch, qreq, 'borda')
+        aid2_score, nid2_score = vr2.score_chipmatch_pos(ibs, qaid, chipmatch, qreq_, 'borda')
     elif score_method == 'topk':
-        aid2_score, nid2_score = vr2.score_chipmatch_pos(ibs, qaid, chipmatch, qreq, 'topk')
+        aid2_score, nid2_score = vr2.score_chipmatch_pos(ibs, qaid, chipmatch, qreq_, 'topk')
     elif score_method.startswith('coverage'):
         # Method num is at the end of coverage
         method = int(score_method.replace('coverage', '0'))
-        aid2_score = coverage_image.score_chipmatch_coverage(ibs, qaid, chipmatch, qreq, method=method)
+        aid2_score = coverage_image.score_chipmatch_coverage(ibs, qaid, chipmatch, qreq_, method=method)
     else:
         raise Exception('[hs] unknown scoring method:' + score_method)
     return aid2_score

@@ -132,6 +132,8 @@ python dev.py <optional-arguments> [--help]
 #--------------------
 # IBEIS uses the idea of a work directory for databases.
 # Use --set-workdir <path> to set your own, or a gui will popup and ask you about it
+./main.py --set-workdir /raid/work --preload-exit
+./main.py --set-logdir /raid/logs/ibeis --preload-exit
 
 # use --db to specify a database in your WorkDir
 # --setdb makes that directory your default directory
@@ -312,5 +314,9 @@ python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 %run dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
+
+
+./profiler.sh dev.py -t best --allgt --db PZ_Mothers --nocache-big --nocache-query
+
 
 ```

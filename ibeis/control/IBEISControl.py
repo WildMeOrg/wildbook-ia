@@ -236,6 +236,14 @@ class IBEISController(object):
         """ Returns database directory where the FLANN KD-Tree is stored """
         return ibs.flanndir
 
+    def get_qres_cachedir(ibs):
+        """ Returns database directory where query results are stored """
+        return ibs.qresdir
+
+    def get_big_cachedir(ibs):
+        """ Returns database directory where aggregate results are stored """
+        return ibs.bigcachedir
+
     #
     #
     #----------------
@@ -246,7 +254,7 @@ class IBEISController(object):
         """ Loads the database's algorithm configuration """
         ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
         try:
-            if utool.get_flag(('--noprefload', '--noprefload')):
+            if True or utool.get_flag(('--noprefload', '--noprefload')):
                 raise Exception('')
             ibs.cfg.load()
             if utool.NOT_QUIET:
@@ -1835,14 +1843,27 @@ class IBEISController(object):
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=mc4.USE_CACHE,
                       use_bigcache=mc4.USE_BIGCACHE):
-        process_qreqkw = {
-            'use_cache'    : use_cache,
-            'use_bigcache' : use_bigcache,
-        }
-        qaid2_qres = mc4.process_query_request(ibs,  qaid_list, daid_list, **process_qreqkw)
+        """
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> mc3.USE_CACHE = False
+        >>> mc4.USE_CACHE = False
+        >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+        >>> qres1 = ibs._query_chips3(qaid_list, daid_list, use_cache=False)[1]
+        >>> qres2 = ibs._query_chips4(qaid_list, daid_list, use_cache=False)[1]
+        >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
+        >>> qreq_.load_indexer(ibs)
+        >>> qreq_.load_query_vectors(ibs)
+        >>> qreq = ibs.qreq
+
+        """
+        qaid2_qres = mc4.submit_query_request(ibs,  qaid_list, daid_list,
+                                              use_cache, use_bigcache)
         return qaid2_qres
 
-    _query_chips = _query_chips3
+    #_query_chips = _query_chips3
+    _query_chips = _query_chips4
 
     #
     #
