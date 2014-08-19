@@ -322,9 +322,13 @@ def get_invVR_mats_shape(invVR_mats):
         np.ndarray[np.float64_t, ndim=1] _iv22s
     </CYTH>
     """
+    '#pragma cyth numpy_fancy_index_assign'
     _iv11s = invVR_mats[:, 0, 0]
+    '#pragma cyth numpy_fancy_index_assign'
     _iv12s = invVR_mats[:, 0, 1]
+    '#pragma cyth numpy_fancy_index_assign'
     _iv21s = invVR_mats[:, 1, 0]
+    '#pragma cyth numpy_fancy_index_assign'
     _iv22s = invVR_mats[:, 1, 1]
     return (_iv11s, _iv12s, _iv21s, _iv22s)
 
