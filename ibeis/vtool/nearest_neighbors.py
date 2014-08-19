@@ -211,11 +211,11 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
 
     {parse_block} :=
         {prev_block}
-        #ifdef CYTH
+        #-ifdef CYTH
         {cyth_block}
-        #elif
+        #-elif
         {pyth_block}
-        #endif
+        #-endif
         {next_block}
     ---
 
@@ -232,16 +232,16 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     nFeat_iter = map(len, vecs_list)
     rowid_nFeat_iter = zip(rowid_list, map(len, vecs_list))
     # generate featx inverted index for each feature in each annotation
-    _ax2_fx  = (list(range(nFeat)) for nFeat in nFeat_iter)
+    _ax2_fx  = [list(xrange(nFeat)) for nFeat in nFeat_iter]
     # generate rowid inverted index for each feature in each annotation
     '''
     # this is not a real test the code just happened to be here. syntax is good though
-    #ifdef CYTH_TEST_SWAP
+    #-ifdef CYTH_TEST_SWAP
     _ax2_rowid = [[rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter]
-    #else
+    #-else
     '''
-    _ax2_rowid = ([rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter)
-    '#endif'  # endif is optional. the end of the functionscope counts as an #endif
+    _ax2_rowid = [[rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter]
+    '#-endif'  # endif is optional. the end of the functionscope counts as an #endif
     # Flatten generators into the inverted index
     _flatrowids = utool.iflatten(_ax2_rowid)
     _flatfeatxs = utool.iflatten(_ax2_fx)

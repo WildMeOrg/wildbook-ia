@@ -59,15 +59,17 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     >>> print(utool.hashstr(Mx9))
     cbuegpb+fma6uk9l
 
-    <CYTH returns="np.ndarray[np.float64_t, ndim=2]">
-    cdef:
+    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
+    #if CYTH
+    #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] xy1_mn
         np.ndarray[np.float64_t, ndim=2] xy2_mn
+    cdef:
         np.ndarray[np.float64_t, ndim=2] Mx9
         np.float64_t u2, v2, d, e, f, g, h, i, j, k, l, p, q, r
         long num_pts
         long ix
-    </CYTH>
+    #endif
     """
     x1_mn = xy1_mn[0]
     y1_mn = xy1_mn[1]
@@ -128,12 +130,14 @@ def compute_homog(xy1_mn, xy2_mn):
            [  2.82477716e-03,   1.80000317e-03,  -7.03139797e-01],
            [  1.66839210e-05,   1.67525379e-05,  -5.52890916e-03]])
 
-    <CYTH returns="np.ndarray[np.float64_t, ndim=2]">
-    cdef:
+    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
+    #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] xy1_mn
         np.ndarray[np.float64_t, ndim=2] xy2_mn
+    #if CYTH
+    cdef:
         np.ndarray[np.float64_t, ndim=2] Mx9
-    </CYTH>
+    #endif
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     Mx9 = _build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)
@@ -217,8 +221,8 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
     >>> print(utool.hashstr(repr(output[0])))
 
-    <CYTH returns="tuple">
-    cdef:
+    #if CYTH
+    #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] Aff
         np.ndarray[np.float64_t, ndim=3] invVR1s_m
         np.ndarray[np.float64_t, ndim=2] xy2_m
@@ -227,12 +231,12 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         np.float64_t xy_thresh_sqrd
         np.float64_t scale_thresh_sqrd
         np.float64_t ori_thresh
+    cdef:
         np.ndarray[np.float64_t, ndim=3] invVR1s_mt
         np.ndarray[np.float64_t, ndim=2] _xy1_mt
         np.ndarray[np.float64_t, ndim=1] _det1_mt
         np.ndarray[np.float64_t, ndim=1] _ori1_mt
         np.ndarray[np.float64_t, ndim=1] xy_err
-        np.ndarray[np.float64_t, ndim=1] scale_err
         np.ndarray[np.float64_t, ndim=1] scale_err
         np.ndarray[np.uint8_t, ndim=1, cast=True] xy_inliers_flag
         np.ndarray[np.uint8_t, ndim=1, cast=True] scale_inliers_flag
@@ -240,7 +244,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         np.ndarray[np.uint8_t, ndim=1, cast=True] hypo_inliers_flag
         tuple hypo_errors
         np.ndarray[np.int_t, ndim=1] hypo_inliers
-    </CYTH>
+    #endif
     """
     # Map keypoints from image 1 onto image 2
     invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
@@ -295,16 +299,17 @@ def get_affine_inliers(kpts1, kpts2, fm,
         H = inv(Aj).dot(Ai)
         The input invVs = perdoch.invA's
 
-    <CYTH returns="tuple">
-    cdef:
+    #if CYTH
+    #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] kpts1
         np.ndarray[np.float64_t, ndim=2] kpts2
         np.ndarray[np.int64_t, ndim=2] fm
-        np.ndarray[np.float64_t, ndim=2] kpts1_m
-        np.ndarray[np.float64_t, ndim=2] kpts2_m
         np.float64_t xy_thresh_sqrd
         np.float64_t scale_thresh_sqrd
         np.float64_t ori_thresh
+    cdef:
+        np.ndarray[np.float64_t, ndim=2] kpts1_m
+        np.ndarray[np.float64_t, ndim=2] kpts2_m
         np.ndarray[np.float64_t, ndim=3] invVR1s_m
         np.ndarray[np.float64_t, ndim=3] V1s_m
         np.ndarray[np.float64_t, ndim=3] invVR2s_m
@@ -316,7 +321,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
         tuple tup
         list inliers_and_errors_list
         list errors_list
-    </CYTH>
+    #endif
     """
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
@@ -351,19 +356,20 @@ def get_affine_inliers(kpts1, kpts2, fm,
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
     """ Tests each hypothesis and returns only the best transformation and inliers
-    <CYTH returns="tuple">
-    cdef:
+    #if CYTH
+    #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] kpts1
         np.ndarray[np.float64_t, ndim=2] kpts2
         np.ndarray[np.int64_t, ndim=2] fm
         np.float64_t xy_thresh_sqrd
         np.float64_t scale_thresh_sqrd
         np.float64_t ori_thresh
+    cdef:
         list inliers_list
         list aff_inliers
         list Aff_mats
         list errors_list
-    </CYTH>
+    #endif
     """
     # Test each affine hypothesis
     inliers_list, errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
@@ -377,9 +383,8 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
 @profile
 def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     """ Currently this function just uses the number of inliers as a metric
-    <CYTH returns="tuple">
-    cdef:
-    </CYTH>
+    #if CYTH
+    #endif
     """
     # Determine the best hypothesis using the number of inliers
     nInliers_list = np.array([len(inliers) for inliers in inliers_list])
@@ -395,9 +400,8 @@ def determine_best_inliers(inliers_list, errors_list, Aff_mats):
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
-    <CYTH returns="tuple">
-    cdef:
-    </CYTH>
+    #if CYTH
+    #endif
     """
     fm_affine = fm[aff_inliers]
     kpts1_m = kpts1[fm.T[0]]
@@ -440,10 +444,12 @@ def spatial_verification(kpts1, kpts2, fm,
     Driver function
     Spatially validates feature matches
 
-    <-CYTH returns="tuple">
-    cdef:
-    </CYTH>
     """
+    #"""
+    #<-CYTH returns="tuple">
+    #cdef:
+    #</CYTH>
+    #"""
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
     # Get diagonal length if not provided

@@ -10,8 +10,8 @@ np.tau = tau = 2 * np.pi  # tauday.com
 
 def atan2(y, x):
     """ does atan2 but returns from 0 to tau
-    <CYTH>
-    </CYTH>
+    #if CYTH
+    #endif
     """
     theta = np.arctan2(y, x)  # outputs from -tau/2 to tau/2
     theta[theta < 0] = theta[theta < 0] + tau  # map to 0 to tau (keep coords)

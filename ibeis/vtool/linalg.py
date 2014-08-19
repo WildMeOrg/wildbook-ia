@@ -242,8 +242,8 @@ def and_3lists(arr1, arr2, arr3):
     >>> arr3 = (np.random.rand(1000)).astype(np.bool)
     >>> and_3lists(arr1, arr2, arr3)
 
-    <CYTH>
-    </CYTH>
+    #if CYTH
+    #endif
     """
     return np.logical_and(np.logical_and(arr1, arr2), arr3)
 
@@ -256,11 +256,11 @@ def ori_distance(ori1, ori2):
     >>> ori2 = (np.random.rand(1000) * np.tau) - np.pi
     >>> ori_distance(ori1, ori2)
 
-    <CYTH>
-    cdef:
+    #if CYTH
+    #CYTH_PARAM_TYPES:
         np.ndarray ori1
         np.ndarray ori2
-    </CYTH>
+    #endif
     """
     # TODO: Cython
     ori_dist = np.abs(ori1 - ori2) % np.tau
@@ -277,10 +277,11 @@ def det_distance(det1, det2):
     >>> det2 = np.random.rand(1000)
     >>> det_distance(det1, det2)
 
-    <CYTH:REPLACE>
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cpdef np.ndarray[np.float64_t, ndim=1] _det_distance_cyth(np.ndarray[np.float64_t, ndim=1] det1, np.ndarray[np.float64_t, ndim=1] det2):
+    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
+    #CYTH_PARAM_TYPES:
+        np.ndarray[np.float64_t, ndim=1] det1
+        np.ndarray[np.float64_t, ndim=1] det2
+    #if CYTH
         # TODO: Move to ktool_cython
         cdef unsigned int nDets = det1.shape[0]
         # Prealloc output
@@ -293,7 +294,7 @@ def det_distance(det1, det2):
             else:
                 out[ix] = det2[ix] / det1[ix]
         return out
-    </CYTH>
+    #else
     """
     # TODO: Cython
     det_dist = det1 / det2
@@ -320,10 +321,11 @@ def L2_sqrd(hist1, hist2):
     >>> hist2 = np.random.rand(1000, 2)
     >>> L2_sqrd(hist1, hist2)
 
-    <CYTH:REPLACE>
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cpdef np.ndarray[np.float64_t, ndim=1] _L2_sqrd_cyth(np.ndarray[np.float64_t, ndim=2] hist1, np.ndarray[np.float64_t, ndim=2] hist2):
+    #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
+    #CYTH_PARAM_TYPES:
+        np.ndarray[np.float64_t, ndim=2] hist1
+        np.ndarray[np.float64_t, ndim=2] hist2
+    #if CYTH
         cdef unsigned int rows = hist1.shape[0]
         cdef unsigned int cols = hist1.shape[1]
         # Prealloc output
@@ -334,7 +336,7 @@ def L2_sqrd(hist1, hist2):
             for cx in range(cols):
                 out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
         return out
-    </CYTH>
+    #else
     """
     # TODO: np.ufunc
     # TODO: Cython
