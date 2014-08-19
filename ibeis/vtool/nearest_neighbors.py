@@ -29,19 +29,21 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     return (qx2_dx, qx2_dist)
 
 
-def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_data_hash=True):
-    flann_valsig_ = str(list(flann_params.values()))
-    flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
-    flann_cfgstr = '_FLANN(' + flann_valsig  + ')'
+def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
+    flann_cfgstr = cfgstr
+    if use_params_hash:
+        flann_valsig_ = str(list(flann_params.values()))
+        flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
+        flann_cfgstr += '_FLANN(' + flann_valsig  + ')'
     # Generate a unique filename for dpts and flann parameters
     if use_data_hash:
-        data_hashstr = utool.hashstr_arr(dpts, '_dID')  # flann is dependent on the dpts
+        data_hashstr = utool.hashstr_arr(dpts, '_DPTS')  # flann is dependent on the dpts
         flann_cfgstr += data_hashstr
     return flann_cfgstr
 
 
 #@utool.indent_func
-def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}):
+def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}, use_params_hash=True, use_data_hash=True):
     """
     >>> from vtool.nearest_neighbors import *  # NOQA
     >>> np.random.seed(1)
@@ -54,27 +56,28 @@ def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}):
     """
     #cache_dir = '.' if cache_dir is None else cache_dir
     assert cache_dir is not None, 'no cache dir specified'
-    flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr)
+    flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
+    if utool.NOT_QUIET:
+        print('...flann_cache cfgstr = %r: ' % flann_cfgstr)
     # Append any user labels
-    flann_fname = 'flann_index_' + flann_cfgstr + '.flann'
+    flann_fname = 'flann_index' + flann_cfgstr + '.flann'
     flann_fpath = normpath(join(cache_dir, flann_fname))
     return flann_fpath
 
 
 #@utool.indent_func
 def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
-                use_cache=True, save=True):
+                use_cache=True, save=True, use_params_hash=True, use_data_hash=True):
     """
     Tries to load a cached flann index before doing anything
     from vtool.nn
     """
-    if utool.NOT_QUIET:
-        print('...flann_cache cfgstr = %r: ' % cfgstr)
     if len(dpts) == 0:
         raise AssertionError('cannot build flann when len(dpts) == 0. (prevents a segfault)')
-    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params)
+    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
     # Load the index if it exists
     flann = pyflann.FLANN()
+    flann.flann_fpath = flann_fpath
     if use_cache and exists(flann_fpath):
         try:
             flann.load_index(flann_fpath, dpts)
@@ -232,7 +235,7 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     nFeat_iter = map(len, vecs_list)
     rowid_nFeat_iter = zip(rowid_list, map(len, vecs_list))
     # generate featx inverted index for each feature in each annotation
-    _ax2_fx  = [list(xrange(nFeat)) for nFeat in nFeat_iter]
+    _ax2_fx  = [list(range(nFeat)) for nFeat in nFeat_iter]
     # generate rowid inverted index for each feature in each annotation
     '''
     # this is not a real test the code just happened to be here. syntax is good though
@@ -246,12 +249,12 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     _flatrowids = utool.iflatten(_ax2_rowid)
     _flatfeatxs = utool.iflatten(_ax2_fx)
 
-    dtype = np.uint8
+    dtype = np.int64
     count = nFeats
     dx2_rowid = np.fromiter(_flatrowids, dtype, count)
-    dx2_fx  = np.fromiter(_flatfeatxs, dtype, count)
+    dx2_fx_  = np.fromiter(_flatfeatxs, dtype, count)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
     dx2_vecs = np.vstack(vecs_list)
     '#pragma cyth_returntup'
-    return dx2_vecs, dx2_rowid, dx2_fx
+    return dx2_vecs, dx2_rowid, dx2_fx_
