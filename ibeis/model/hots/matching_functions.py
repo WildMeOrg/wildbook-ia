@@ -89,6 +89,26 @@ log_prog = partial(utool.log_progress, startafter=START_AFTER)
 #=================
 
 
+#def compare(qreq, qreq_):
+#    qaid = 1
+#    qvecs_list = qreq_.get_internal_qvecs()
+#    qaids = qreq.get_internal_qaids()
+#    qdesc_list = qreq_.get_annot_desc(qaids)  # Get descriptors
+#    assert np.all(qvecs_list[0] == qdesc_list[0])
+#    assert np.all(qreq_.indexer.dx2_vec == qreq.data_index.dx2_data)
+#    assert np.all(qreq_.indexer.dx2_rowid == qreq.data_index.dx2_aid)
+#    assert np.all(qreq_.indexer.dx2_fx == qreq.data_index.dx2_fx)
+#    qfx2_dx_, qfx2_dist_ = qaid2_nns_[qaid]
+#    qfx2_dx, qfx2_dist = qaid2_nns[qaid]
+#    assert id(qaid2_nns) != id(qaid2_nns_)
+#    assert np.all(qfx2_dx_ == qfx2_dx)
+#    assert np.all(qfx2_dist_ == qfx2_dist)
+#    index = np.where(qfx2_dx_ != qfx2_dx)
+#    qfx2_dx.shape == qfx2_dx.shape
+#    qfx2_dx_[index]
+#    qfx2_dx[index]
+
+
 class QueryException(Exception):
     """ </CYTH> """
     def __init__(self, msg):
@@ -626,7 +646,7 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
 def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
     """ </CYTH> """
     if NOT_QUIET:
-        print('[mf] Step 6) Convert chipmatch -> res')
+        print('[mf] Step 6) Convert chipmatch -> qres')
     cfgstr = qreq.get_cfgstr()
     score_method = qreq.cfg.agg_cfg.score_method
     # Create the result structures for each query.
@@ -637,13 +657,13 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
         # Perform final scoring
         aid2_score = score_chipmatch(ibs, qaid, chipmatch, score_method, qreq)
         # Create a query result structure
-        res = hots_query_result.QueryResult(qaid, cfgstr)
-        res.aid2_score = aid2_score
-        (res.aid2_fm, res.aid2_fs, res.aid2_fk) = chipmatch
-        res.filt2_meta = {}  # dbgstats
+        qres = hots_query_result.QueryResult(qaid, cfgstr)
+        qres.aid2_score = aid2_score
+        (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
+        qres.filt2_meta = {}  # dbgstats
         for filt, qaid2_meta in six.iteritems(filt2_meta):
-            res.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
-        qaid2_qres[qaid] = res
+            qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
+        qaid2_qres[qaid] = qres
     # Retain original score method
     return qaid2_qres
 
@@ -667,9 +687,9 @@ def try_load_resdict(qreq):
     failed_qaids = []
     for qaid in qaids:
         try:
-            res = hots_query_result.QueryResult(qaid, cfgstr)
-            res.load(qreq)  # 77.4 % time
-            qaid2_qres[qaid] = res
+            qres = hots_query_result.QueryResult(qaid, cfgstr)
+            qres.load(qreq.get_qresdir())  # 77.4 % time
+            qaid2_qres[qaid] = qres
         except hsexcept.HotsCacheMissError:
             failed_qaids.append(qaid)
         except hsexcept.HotsNeedsRecomputeError:

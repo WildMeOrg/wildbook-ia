@@ -131,37 +131,10 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_score = None  # annotation score
         qres.filt2_meta = None  # messy
 
-    def __eq__(self, other):
-        """ For testing """
-        return all([
-            self.qaid == other.qaid,
-            self.cfgstr == other.cfgstr,
-            self.eid == other.eid,
-            _qres_dicteq(self.aid2_fm, other.aid2_fm),
-            _qres_dicteq(self.aid2_fs, self.aid2_fs),
-            _qres_dicteq(self.aid2_fk, self.aid2_fk),
-            _qres_dicteq(self.aid2_score, other.aid2_score),
-            _qres_dicteq(self.filt2_meta, other.filt2_meta),
-        ])
-
-    def has_cache(qres, qreq):
-        return query_result_exists(qreq.qresdir, qres.qaid)
-
-    def get_fpath(qres, qreq):
-        return query_result_fpath(qreq.qresdir, qres.qaid, qres.cfgstr)
-
     @profile
-    def save(qres, qreq):
-        fpath = qres.get_fpath(qreq)
-        if utool.VERBOSE:
-            print('[qr] cache save: %r' % (split(fpath)[1],))
-        with open(fpath, 'wb') as file_:
-            cPickle.dump(qres.__dict__, file_)
-
-    @profile
-    def load(qres, qreq):
+    def load(qres, qresdir, verbose=utool.NOT_QUIET):
         """ Loads the result from the given database """
-        fpath = qres.get_fpath(qreq)
+        fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
         try:
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
@@ -171,12 +144,12 @@ class QueryResult(__OBJECT_BASE__):
             #if not isinstance(qres.filt2_meta, dict):
             #    print('[qr] loading old result format')
             #    qres.filt2_meta = {}
-            if utool.NOT_QUIET:
+            if verbose:
                 print('... qres cache hit: %r' % (split(fpath)[1],))
         except IOError as ex:
             if not exists(fpath):
                 msg = '... qres cache miss: %r' % (split(fpath)[1],)
-                if not utool.QUIET:
+                if verbose:
                     print(msg)
                 raise hsexcept.HotsCacheMissError(msg)
             msg = '[!qr] QueryResult(qaid=%d) is corrupt' % (qres.qaid)
@@ -205,9 +178,36 @@ class QueryResult(__OBJECT_BASE__):
             raise
         qres.qaid = qaid_good
 
-    def cache_bytes(qres, qreq):
+    def __eq__(self, other):
+        """ For testing """
+        return all([
+            self.qaid == other.qaid,
+            self.cfgstr == other.cfgstr,
+            self.eid == other.eid,
+            _qres_dicteq(self.aid2_fm, other.aid2_fm),
+            _qres_dicteq(self.aid2_fs, self.aid2_fs),
+            _qres_dicteq(self.aid2_fk, self.aid2_fk),
+            _qres_dicteq(self.aid2_score, other.aid2_score),
+            _qres_dicteq(self.filt2_meta, other.filt2_meta),
+        ])
+
+    def has_cache(qres, qresdir):
+        return query_result_exists(qresdir, qres.qaid)
+
+    def get_fpath(qres, qresdir):
+        return query_result_fpath(qresdir, qres.qaid, qres.cfgstr)
+
+    @profile
+    def save(qres, qresdir):
+        fpath = qres.get_fpath(qresdir)
+        if utool.VERBOSE:
+            print('[qr] cache save: %r' % (split(fpath)[1],))
+        with open(fpath, 'wb') as file_:
+            cPickle.dump(qres.__dict__, file_)
+
+    def cache_bytes(qres, qresdir):
         """ Size of the cached query result on disk """
-        fpath  = qres.get_fpath(qreq)
+        fpath  = qres.get_fpath(qresdir)
         nBytes = utool.file_bytes(fpath)
         return nBytes
 

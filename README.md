@@ -317,8 +317,10 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 
 ./profiler.sh dev.py -t best --allgt --db PZ_Mothers --nocache-big --nocache-query
+./dev.py -t best --qaid 1:10 --db PZ_Mothers --nocache-big --nocache-query
 
-./dev.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
+./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
+./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
 ```
 
 

@@ -3,37 +3,56 @@ python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.query_r
 """
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index as hsnbrx
+import six
 # UTool
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[query_request]', DEBUG=False)
+import numpy as np
+import atexit
+(print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[query_request]', DEBUG=False)
 
 
-def get_ibeis_query_request(ibs, qaid_list, daid_list):
+# cache for heavyweight nn structures.
+# ensures that only one is in memory
+NEIGHBOR_CACHE = {}
+
+
+def rrr():
+    global NEIGHBOR_CACHE
+    NEIGHBOR_CACHE.clear()
+    rrr_()
+
+
+@atexit.register
+def __cleanup():
+    """ prevents flann errors (not for cleaning up individual objects) """
+    global NEIGHBOR_CACHE
+    NEIGHBOR_CACHE.clear()
+    try:
+        del NEIGHBOR_CACHE
+    except NameError:
+        pass
+
+
+def new_ibeis_query_request(ibs, qaid_list, daid_list):
     """
     >>> from ibeis.model.hots.query_request import *  # NOQA
     >>> import ibeis
     >>> qaid_list = [1]
     >>> daid_list = [1, 2, 3, 4, 5]
     >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-    >>> qreq = get_ibeis_query_request(ibs, qaid_list, daid_list)
+    >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list)
     """
     if utool.NOT_QUIET:
-        print(' --- Prep QueryRequest --- ')
-    # Request params
-    cfg = ibs.cfg.query_cfg
-    # Request directories
+        print(' --- New IBEIS QueryRequest --- ')
+    cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
-    # Lazy descriptors
     qparams = QueryParams(cfg)
     # Neighbor Indexer
-    qreq = QueryRequest(qaid_list, daid_list, qparams, qresdir)
-    return qreq
+    qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir)
+    return qreq_
 
 
-NEIGHBOR_CACHE = {}
-
-
-def init_neighbor_indexer(qreq, ibs, flann_cachedir):
+def init_neighbor_indexer(qreq_, ibs, flann_cachedir):
     """
     IBEIS interface into neighbor_index
 
@@ -45,7 +64,7 @@ def init_neighbor_indexer(qreq, ibs, flann_cachedir):
     >>> nnindexer = init_neighbor_indexer(ibs, daid_list)
     """
     global NEIGHBOR_CACHE
-    indexer_cfgstr = qreq.get_indexer_cfgstr(ibs)
+    indexer_cfgstr = qreq_.get_indexer_cfgstr(ibs)
     try:
         # neighbor cache
         if indexer_cfgstr in NEIGHBOR_CACHE:
@@ -56,9 +75,9 @@ def init_neighbor_indexer(qreq, ibs, flann_cachedir):
             #rx2_kpts = ibs.get_annot_kpts(daid_list)
             #rx2_gid  = ibs.get_annot_gids(daid_list)
             #rx2_nid  = ibs.get_annot_nids(daid_list)
-            flann_params = qreq.qparams.flann_params
+            flann_params = qreq_.qparams.flann_params
             # Get annotation descriptors that will be searched
-            rowid_list = qreq.get_internal_daids()
+            rowid_list = qreq_.get_internal_daids()
             vecs_list = ibs.get_annot_desc(rowid_list)
             nnindexer = hsnbrx.NeighborIndex(rowid_list, vecs_list, flann_params,
                                              flann_cachedir, indexer_cfgstr,
@@ -75,98 +94,229 @@ def init_neighbor_indexer(qreq, ibs, flann_cachedir):
 
 
 class QueryRequest(object):
-    def __init__(qreq, qaid_list, daid_list, qparams, qresdir):
-        qreq.qaids = qaid_list
-        qreq.daids = daid_list
-        qreq.qparams = qparams
-        qreq.qresdir = qresdir
-        qreq.indexer = None
-        qreq.internal_qvecs_list = None
-        qreq.internal_qkpts_list = None
-        qreq.aid2_nid = None
 
-    def rrr(qreq):
+    def rrr(qreq_):
         from ibeis.model.hots import query_request as hsqreq
         hsqreq.rrr()
-        print('reloading QueryRequest')
-        utool.reload_class_methods(qreq, hsqreq.QueryRequest)
+        print('reloading QueryRequest_')
+        utool.reload_class_methods(qreq_, hsqreq.QueryRequest)
 
-    def load_query_vectors(qreq, ibs):
-        rowid_list = qreq.get_internal_qaids()
-        vecs_list = ibs.get_annot_desc(rowid_list)
-        qreq.internal_qvecs_list = vecs_list
+    def __init__(qreq_, qaid_list, daid_list, qparams, qresdir):
+        qreq_.qparams = qparams
+        qreq_.qresdir = qresdir
+        qreq_.internal_qaids = None
+        qreq_.internal_daids = None
+        qreq_.internal_qidx = None
+        qreq_.internal_didx = None
+        qreq_.indexer = None
+        qreq_.internal_qvecs_list = None
+        qreq_.internal_qkpts_list = None
+        qreq_.internal_dkpts_list = None
+        qreq_.internal_qgid_list  = None
+        qreq_.internal_qnid_list  = None
+        qreq_.aid2_nid = None
+        qreq_.set_external_daids(daid_list)
+        qreq_.set_external_qaids(qaid_list)
 
-    def load_query_keypoints(qreq, ibs):
-        if qreq.internal_kpts_list is not None:
+    # --- State Modification ---
+
+    def set_external_daids(qreq_, daid_list):
+        if qreq_.qparams.vsmany:
+            qreq_.internal_daids = np.array(daid_list)
+        else:
+            qreq_.internal_qaids = np.array(daid_list)  # flip on vsone
+        # Index the annotation ids for fast internal lookup
+        qreq_.internal_didx = np.arange(len(daid_list))
+
+    def set_external_qaids(qreq_, qaid_list):
+        if qreq_.qparams.vsmany:
+            qreq_.internal_qaids = np.array(qaid_list)
+        else:
+            qreq_.internal_daids = np.array(qaid_list)  # flip on vsone
+        # Index the annotation ids for fast internal lookup
+        qreq_.internal_qidx = np.arange(len(qaid_list))
+
+    # --- Lazy Loading ---
+
+    def load_oris(qreq_, ibs):
+        if qreq_.dx2_oris is not None:
             return
-        rowid_list = qreq.get_internal_qaids()
+        from vtool import keypoint as ktool
+        qreq_.load_kpts(ibs)
+        dx2_oris = ktool.get_oris(qreq_.dx2_kpts)
+        assert len(dx2_oris) == len(qreq_.num_indexed())
+        qreq_.dx2_oris = dx2_oris
+
+    def load_kpts(qreq_, ibs):
+        if qreq_.dx2_kpts is not None:
+            return
+        aid_list = qreq_.dx2_rowid
+        kpts_list = qreq_.ibs.get_annot_kpts(aid_list)
+        dx2_kpts = np.vstack(kpts_list)
+        qreq_.dx2_kpts = dx2_kpts
+
+    def load_query_queryx(qreq_):
+        qaids = qreq_.get_internal_qaids()
+        qaid2_queryx = {aid: queryx for queryx, aid in enumerate(qaids)}
+        qreq_.qaid2_queryx = qaid2_queryx
+
+    def load_data_datax(qreq_):
+        daids = qreq_.get_internal_daids()
+        daid2_datax = {aid: datax for datax, aid in enumerate(daids)}
+        qreq_.daid2_datax = daid2_datax
+
+    def load_query_gids(qreq_, ibs):
+        if qreq_.internal_qgid_list is not None:
+            return False
+        rowid_list = qreq_.get_internal_qaids()
+        gid_list = ibs.get_annot_gids(rowid_list)
+        qreq_.internal_qgid_list = gid_list
+
+    def load_query_nids(qreq_, ibs):
+        if qreq_.internal_qnid_list is not None:
+            return False
+        rowid_list = qreq_.get_internal_qaids()
+        nid_list = ibs.get_annot_nids(rowid_list)
+        qreq_.internal_qnid_list = nid_list
+
+    def load_query_vectors(qreq_, ibs):
+        if qreq_.internal_qvecs_list is not None:
+            return False
+        rowid_list = qreq_.get_internal_qaids()
+        vecs_list = ibs.get_annot_desc(rowid_list)
+        qreq_.internal_qvecs_list = vecs_list
+
+    def load_query_keypoints(qreq_, ibs):
+        if qreq_.internal_qkpts_list is not None:
+            return False
+        rowid_list = qreq_.get_internal_qaids()
         kpts_list = ibs.get_annot_kpts(rowid_list)
-        qreq.internal_qkpts_list = kpts_list
+        qreq_.internal_qkpts_list = kpts_list
 
-    def load_indexer(qreq, ibs):
+    def load_data_keypoints(qreq_, ibs):
+        if qreq_.internal_dkpts_list is not None:
+            return False
+        rowid_list = qreq_.get_internal_daids()
+        kpts_list = ibs.get_annot_kpts(rowid_list)
+        qreq_.internal_dkpts_list = kpts_list
+
+    def load_indexer(qreq_, ibs):
+        if qreq_.indexer is not None:
+            return False
         flann_cachedir = ibs.get_flann_cachedir()
-        indexer = init_neighbor_indexer(qreq, ibs, flann_cachedir)
-        qreq.indexer = indexer
+        indexer = init_neighbor_indexer(qreq_, ibs, flann_cachedir)
+        qreq_.indexer = indexer
 
-    def load_annot_nameids(qreq, ibs):
-        aids = list(set(utool.chain(qreq.qaids, qreq.daids)))
+    def lazy_load(qreq_, ibs):
+        qreq_.load_indexer(ibs)
+        qreq_.load_query_vectors(ibs)
+        qreq_.load_query_keypoints(ibs)
+        qreq_.ibs = ibs  # HACK
+
+    def load_annot_nameids(qreq_, ibs):
+        aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))
         nids = ibs.get_annot_nids(aids)
-        qreq.aid2_nid = dict(zip(aids, nids))
+        qreq_.aid2_nid = dict(zip(aids, nids))
 
-    def get_annot_nids(qreq, aids):
-        return None
+    # --- Indexer Interface ----
 
-    def get_data_hashid(qreq, ibs=None):
-        assert len(qreq.daids) > 0, 'QueryRequest not populated. len(daids)=0'
-        if ibs is None:
-            data_hashid = utool.hashstr_arr(qreq.daids, '_DAIDS')
+    def knn(qreq_, qfx2_vec, K, checks=1028):
+        return qreq_.indexer.knn(qfx2_vec, K, checks)
+
+    def get_nn_kpts(qreq_, qfx2_nndx):
+        return qreq_.dx2_kpts[qfx2_nndx]
+
+    def get_nn_oris(qreq_, qfx2_nndx):
+        return qreq_.dx2_oris[qfx2_nndx]
+
+    def get_indexed_rowids(qreq_):
+        return qreq_.indexer.dx2_rowid
+
+    def get_nn_aids(qreq_, qfx2_nndx):
+        return qreq_.indexer.get_nn_rowids(qfx2_nndx)
+
+    def get_nn_featxs(qreq_, qfx2_nndx):
+        return qreq_.indexer.get_nn_featxs(qfx2_nndx)
+
+    # --- IBEISControl Transition ---
+
+    def get_annot_nids(qreq_, aids):
+        return qreq_.ibs.get_annot_nids(aids)
+
+    def get_annot_gids(qreq_, aids):
+        return qreq_.ibs.get_annot_gids(aids)
+
+    def get_annot_kpts(qreq_, aids):
+        return qreq_.ibs.get_annot_kpts(aids)
+
+    def get_annot_chipsizes(qreq_, aids):
+        return qreq_.ibs.get_annot_chipsizes(qreq_, aids)
+
+    # --- Internal Interface ---
+
+    def get_internal_qvecs(qreq_):
+        return qreq_.internal_qvecs_list
+
+    def get_internal_data_hashid(qreq_, ibs=None):
+        if qreq_.qparams.vsone:
+            return qreq_.get_data_hashid(ibs)
         else:
-            duuid_list    = ibs.get_annot_uuids(qreq.daids)
-            data_hashid  = utool.hashstr_arr(duuid_list, '_DUUIDS')
-        return data_hashid
+            return qreq_.get_query_hashid(ibs)
 
-    def get_query_hashid(qreq, ibs=None):
-        assert len(qreq.qaids) > 0, 'QueryRequest not populated. len(qaids)=0'
-        if ibs is None:
-            query_hashid = utool.hashstr_arr(qreq.qaids, '_QAIDS')
-        else:
-            quuid_list    = ibs.get_annot_uuids(qreq.qaids)
-            query_hashid  = utool.hashstr_arr(quuid_list, '_QUUIDS')
-        return query_hashid
-
-    def get_internal_daids(qreq):
-        """ These are not the users daids in vsone mode """
-        daids = qreq.daids if qreq.qparams.vsmany else qreq.qaids
-        return daids
-
-    def get_internal_qaids(qreq):
-        """ These are not the users qaids in vsone mode """
-        qaids = qreq.qaids if qreq.qparams.vsmany else qreq.daids
-        return qaids
-
-    def get_internal_qvecs(qreq):
-        return qreq.internal_qvecs_list
-
-    def get_indexer(qreq):
-        return qreq.indexer
-
-    def get_internal_data_hashid(qreq, ibs=None):
-        if qreq.qparams.vsone:
-            return qreq.get_data_hashid(ibs)
-        else:
-            return qreq.get_query_hashid(ibs)
-
-    def get_indexer_cfgstr(qreq, ibs=None):
-        daids_hashid = qreq.get_internal_data_hashid(ibs)
-        flann_cfgstr = qreq.qparams.flann_cfgstr
-        feat_cfgstr  = qreq.qparams.feat_cfgstr
+    def get_indexer_cfgstr(qreq_, ibs=None):
+        daids_hashid = qreq_.get_internal_data_hashid(ibs)
+        flann_cfgstr = qreq_.qparams.flann_cfgstr
+        feat_cfgstr  = qreq_.qparams.feat_cfgstr
         indexer_cfgstr = daids_hashid + flann_cfgstr + feat_cfgstr
         return indexer_cfgstr
 
-    def get_cfgstr(qreq, ibs=None):
-        daids_hashid = qreq.get_data_hashid(ibs)
-        cfgstr = daids_hashid + qreq.qparams.query_cfgstr
+    def get_internal_daids(qreq_):
+        """ For within pipeline use """
+        return qreq_.internal_daids
+
+    def get_internal_qaids(qreq_):
+        """ For within pipeline use """
+        return qreq_.internal_qaids
+
+    # --- External Interface ---
+
+    def get_external_daids(qreq_):
+        """ These are the users daids in vsone mode """
+        daids = qreq_.internal_daids if qreq_.qparams.vsmany else qreq_.internal_qaids
+        return daids
+
+    def get_external_qaids(qreq_):
+        """ These are the users qaids in vsone mode """
+        qaids = qreq_.internal_qaids if qreq_.qparams.vsmany else qreq_.internal_daids
+        return qaids
+
+    def get_data_hashid(qreq_, ibs=None):
+        daids = qreq_.get_external_daids()
+        assert len(daids) > 0, 'QueryRequest not populated. len(daids)=0'
+        if ibs is None:
+            data_hashid = utool.hashstr_arr(daids, '_DAIDS')
+        else:
+            duuid_list    = ibs.get_annot_uuids(daids)
+            data_hashid  = utool.hashstr_arr(duuid_list, '_DUUIDS')
+        return data_hashid
+
+    def get_query_hashid(qreq_, ibs=None):
+        qaids = qreq_.get_external_qaids()
+        assert len(qaids) > 0, 'QueryRequest not populated. len(qaids)=0'
+        if ibs is None:
+            query_hashid = utool.hashstr_arr(qaids, '_QAIDS')
+        else:
+            quuid_list    = ibs.get_annot_uuids(qaids)
+            query_hashid  = utool.hashstr_arr(quuid_list, '_QUUIDS')
+        return query_hashid
+
+    def get_cfgstr(qreq_, ibs=None):
+        daids_hashid = qreq_.get_data_hashid(ibs)
+        cfgstr = daids_hashid + qreq_.qparams.query_cfgstr
         return cfgstr
+
+    def get_qresdir(qreq):
+        return qreq.qresdir
 
 
 class QueryParams(object):
@@ -181,7 +331,15 @@ class QueryParams(object):
         filt_on            = cfg.filt_cfg.filt_on
         gravity_weighting  = cfg.filt_cfg.gravity_weighting
         active_filter_list = cfg.filt_cfg.get_active_filters()
-        filt2_stwt         = {filt: cfg.filt_cfg.get_stw(filt) for filt in active_filter_list}
+        #active_filter_list = cfg.filt_cfg._valid_filters
+        filt2_stw          = {filt: cfg.filt_cfg.get_stw(filt) for filt in active_filter_list}
+        # Correct dumb Pref bugs
+        for key, val in six.iteritems(filt2_stw):
+            #print(val)
+            if val[1] == 'None':
+                val[1] = None
+            if val[1] is not None and not isinstance(val[1], (float, int)):
+                val[1] = float(val[1])
         isWeighted         = cfg.agg_cfg.isWeighted
         max_alts           = cfg.agg_cfg.max_alts
         query_type         = cfg.agg_cfg.query_type
@@ -208,5 +366,5 @@ class QueryParams(object):
 
         # Dynamically set members
         for key, val in locals().iteritems():
-            if key not in ['qparams', 'cfg']:
+            if key not in ['qparams', 'cfg', 'filt', 'key', 'val']:
                 setattr(qparams, key, val)

@@ -115,8 +115,7 @@ def process_query_request(ibs, qreq,
         qreq - query request object (should be the same as ibs.qreq)
     Checks a big cache for qaid2_qres.
     If cache miss, tries to load each qres individually.
-    On an individual cache miss, it preforms the query.
-    </CYTH> """
+    On an individual cache miss, it preforms the query. """
     if utool.NOT_QUIET:
         print(' --- Process QueryRequest --- ')
     if len(qreq.qaids) <= 1:
@@ -163,14 +162,13 @@ def process_query_request(ibs, qreq,
 #@profile
 @profile
 def execute_query_and_save_L1(ibs, qreq, failed_qaids=[]):
-    """ </CYTH> """
     #print('[q1] execute_query_and_save_L1()')
     orig_qaids = qreq.qaids
     if len(failed_qaids) > 0:
         qreq.qaids = failed_qaids
     qaid2_qres = execute_query_L0(ibs, qreq)  # Execute Queries
     for qaid, res in six.iteritems(qaid2_qres):  # Cache Save
-        res.save(ibs)
+        res.save(qreq.get_qresdir())
     qreq.qaids = orig_qaids
     return qaid2_qres
 

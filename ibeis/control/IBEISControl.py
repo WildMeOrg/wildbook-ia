@@ -66,7 +66,10 @@ __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global __ALL_CONTROLLERS__
-    del __ALL_CONTROLLERS__
+    try:
+        del __ALL_CONTROLLERS__
+    except NameError:
+        pass
 
 
 #
@@ -1770,60 +1773,15 @@ class IBEISController(object):
         return daid_list
 
     @default_decorator
-    def prep_qreq_db(ibs, qaid_list):
-        """ Puts IBEIS into query database mode """
-        # TODO: Depricate, only used on one place (dev.py)
-        daid_list = ibs.get_recognition_database_aids()
-        ibs._prep_qreq(qaid_list, daid_list)
-
-    @default_decorator
-    def query_intra_encounter(ibs, qaid_list, **kwargs):
-        """ DEPRECATE: _query_chips wrapper """
-        # TODO: Depricate
-        daid_list = qaid_list
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
-        return qaid2_qres
-
-    @default_decorator
-    def prep_qreq_encounter(ibs, qaid_list):
-        """ Puts IBEIS into intra-encounter mode """
-        # TODO: Depricate
-        daid_list = qaid_list
-        ibs._prep_qreq(qaid_list, daid_list)
-
-    @default_decorator  # ('[querydb]')
-    def query_all(ibs, qaid_list, **kwargs):
-        """ _query_chips wrapper """
-        # TODO: Depricate
-        daid_list = ibs.get_valid_aids()
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
-        return qaid2_qres
-
-    @default_decorator
-    def query_encounter(ibs, qaid_list, eid, **kwargs):
-        """ _query_chips wrapper """
-        daid_list = ibs.get_encounter_aids(eid)  # encounter database chips
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
-        for qres in six.itervalues(qaid2_qres):
-            qres.eid = eid
-        return qaid2_qres
-
-    @default_decorator
-    def query_exemplars(ibs, qaid_list, **kwargs):
-        """ Queries vs the exemplars """
-        daid_list = ibs.get_valid_aids(is_exemplar=True)
-        assert len(daid_list) > 0, 'there are no exemplars'
-        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
-        return qaid2_qres
-
-    @default_decorator
     def _init_query_requestor(ibs):
+        # DEPRICATE
         # Create query request object
         ibs.qreq = hots_query_request.QueryRequest(ibs.qresdir, ibs.bigcachedir)
         ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
     @default_decorator
     def _prep_qreq(ibs, qaid_list, daid_list, **kwargs):
+        # DEPRICATE
         if ibs.qreq is None:
             ibs._init_query_requestor()
         qreq = mc3.prep_query_request(qreq=ibs.qreq,
@@ -1838,6 +1796,7 @@ class IBEISController(object):
                       use_cache=mc3.USE_CACHE,
                       use_bigcache=mc3.USE_BIGCACHE,
                       **kwargs):
+        # DEPRICATE
         """
         qaid_list - query chip ids
         daid_list - database chip ids
@@ -1878,6 +1837,23 @@ class IBEISController(object):
 
     #_query_chips = _query_chips3
     _query_chips = _query_chips4
+
+    @default_decorator
+    def query_encounter(ibs, qaid_list, eid, **kwargs):
+        """ _query_chips wrapper """
+        daid_list = ibs.get_encounter_aids(eid)  # encounter database chips
+        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
+        for qres in six.itervalues(qaid2_qres):
+            qres.eid = eid
+        return qaid2_qres
+
+    @default_decorator
+    def query_exemplars(ibs, qaid_list, **kwargs):
+        """ Queries vs the exemplars """
+        daid_list = ibs.get_valid_aids(is_exemplar=True)
+        assert len(daid_list) > 0, 'there are no exemplars'
+        qaid2_qres = ibs._query_chips(qaid_list, daid_list, **kwargs)
+        return qaid2_qres
 
     #
     #

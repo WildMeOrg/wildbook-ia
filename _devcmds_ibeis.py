@@ -44,7 +44,8 @@ def change_names(ibs, qaid_list):
 
 @devcmd('query')
 def query_aids(ibs, qaid_list):
-    qaid2_qres = ibs.query_all(qaid_list)
+    valid_aids = ibs.get_valid_aids()
+    qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         interact.ishow_qres(ibs, qres, fnum=df2.next_fnum(), annote_mode=1)
@@ -53,7 +54,8 @@ def query_aids(ibs, qaid_list):
 
 @devcmd('sver')
 def sver_aids(ibs, qaid_list):
-    qaid2_qres = ibs.query_all(qaid_list)
+    valid_aids = ibs.get_valid_aids()
+    qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
     for qaid in qaid_list:
         qres = qaid2_qres[qaid]
         aid2 = qres.get_top_aids()[0]
@@ -129,7 +131,7 @@ def export(ibs, aid_pairs=None):
     #utool.view_directory(export_path)
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
-        qaid2_qres = ibs.query_intra_encounter(aid_pair)
+        qaid2_qres = ibs._query_chips(aid_pair, aid_pair)
         #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []

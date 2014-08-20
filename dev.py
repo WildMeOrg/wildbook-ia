@@ -408,7 +408,8 @@ def get_allres(ibs, qaid_list):
     try:
         allres = __ALLRES_CACHE__[allres_cfgstr]
     except KeyError:
-        qaid2_qres = ibs.query_all(qaid_list)
+        valid_aids = ibs.get_valid_aids()
+        qaid2_qres = ibs._query_chips(qaid_list, valid_aids)
         allres = results_all.init_allres(ibs, qaid2_qres)
     # Cache save
     __ALLRES_CACHE__[allres_cfgstr] = allres
@@ -474,9 +475,6 @@ def run_dev(main_locals):
             #qaid_list = ibs.get_valid_aids()[0]
 
         if len(qaid_list) > 0 or True:
-            # Prepare the IBEIS controller for querys
-            if len(qaid_list) > 0:
-                ibs.prep_qreq_db(qaid_list)
             # Run the dev experiments
             expt_locals = run_experiments(ibs, qaid_list)
             # Add experiment locals to local namespace

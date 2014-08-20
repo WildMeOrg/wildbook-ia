@@ -24,7 +24,7 @@ def TEST_VIZ(ibs):
     aid = aid_list[-1]
 
     try:
-        qres = ibs.query_all([qaid])[qaid]
+        qres = ibs._query_chips([qaid], valid_aids)[qaid]
         print(qres)
         top_aids = qres.get_top_aids(ibs)
         assert len(top_aids) > 0, 'Results seems to be empty'

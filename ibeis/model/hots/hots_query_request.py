@@ -96,3 +96,6 @@ class QueryRequest(__REQUEST_BASE__):
         dx2_fxs = qreq.data_index.dx2_fx
         aidfx_enum = enumerate(zip(dx2_aids, dx2_fxs))
         return aidfx_enum
+
+    def get_qresdir(qreq):
+        return qreq.qresdir

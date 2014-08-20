@@ -288,8 +288,18 @@ def check_image_consistency(ibs, gid_list):
 def check_annot_consistency(ibs, aid_list):
     # TODO: more consistency checks
     print('check annot consistency. len(aid_list)=%r' % len(aid_list))
-    gid_list = ibs.get_annot_gids(aid_list)
-    assert_images_exist(ibs, gid_list)
+    annot_gid_list = ibs.get_annot_gids(aid_list)
+    assert_images_exist(ibs, annot_gid_list)
+    unique_gids = list(set(annot_gid_list))
+    print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
+    cid_list = ibs.get_annot_cids(aid_list, ensure=False)
+    cfpath_list = ibs.get_chip_paths(cid_list)
+    valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
+    invalid_list = [flag is False for flag in valid_chip_list]
+    invalid_cids = utool.filter_items(cid_list, invalid_list)
+    if len(invalid_cids) > 0:
+        print('found %d inconsistent chips attempting to fix' % len(invalid_cids))
+        ibs.delete_chips(invalid_cids, verbose=True)
 
 
 def check_name_consistency(ibs, nid_list):
@@ -299,6 +309,20 @@ def check_name_consistency(ibs, nid_list):
     individual_lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
     for lbltype_rowid in lbltype_rowid_list:
         assert lbltype_rowid == individual_lbltype_rowid, 'non individual lbltype'
+
+
+@__injectable
+def check_annot_size(ibs):
+    aid_list = ibs.get_valid_aids()
+    uuid_list = ibs.get_annot_uuids(aid_list)
+    desc_list = ibs.get_annot_desc(aid_list)
+    kpts_list = ibs.get_annot_kpts(aid_list)
+    vert_list = ibs.get_annot_verts(aid_list)
+    print('size(aid_list) = ' + utool.byte_str2(utool.get_object_size(aid_list)))
+    print('size(vert_list) = ' + utool.byte_str2(utool.get_object_size(vert_list)))
+    print('size(uuid_list) = ' + utool.byte_str2(utool.get_object_size(uuid_list)))
+    print('size(desc_list) = ' + utool.byte_str2(utool.get_object_size(desc_list)))
+    print('size(kpts_list) = ' + utool.byte_str2(utool.get_object_size(kpts_list)))
 
 
 @__injectable

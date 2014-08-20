@@ -15,7 +15,6 @@ import utool
 # VTool
 from ibeis import ibsfuncs
 import vtool.nearest_neighbors as nntool
-from vtool import keypoint as ktool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = '--nocache-flann' in sys.argv
@@ -39,6 +38,8 @@ def _check_input(rowid_list, vecs_list):
 class NeighborIndex(object):
     """
     More abstract wrapper around flann
+    >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+    >>> nnindexer, ibs = make_test_index()  #doctest: +ELLIPSIS
     """
 
     def rrr(nnindexer):
@@ -50,10 +51,6 @@ class NeighborIndex(object):
     def __init__(nnindexer, rowid_list=[], vecs_list=[], flann_params={},
                  flann_cachedir='.', indexer_cfgstr='', hash_rowids=True,
                  use_cache=not NOCACHE_FLANN, use_params_hash=True):
-        """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, ibs = make_test_index()  #doctest: +ELLIPSIS
-        """
         _check_input(rowid_list, vecs_list)
         #print('[nnindexer] building NeighborIndex object')
         dx2_vec, dx2_rowid, dx2_fx = try_invert_vecx(vecs_list, rowid_list)
@@ -86,9 +83,9 @@ class NeighborIndex(object):
         >>> new_vecs_list = ibs.get_annot_desc(new_rowid_list)
         >>> K = 2
         >>> checks = 1028
-        >>> (_, qfx2_dist1) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
-        >>> nnindexer.add_points(new_vecs_list, new_vecs_list)
-        >>> (_, qfx2_dist2) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
+        >>> (qfx2_dx1, qfx2_dist1) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
+        >>> nnindexer.add_points(new_rowid_list, new_vecs_list)
+        >>> (qfx2_dx2, qfx2_dist2) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
         >>> assert qfx2_dx2.max() > qfx2_dx1.max()
         """
         new_dx2_vec, new_dx2_rowid, new_dx2_fx = \
@@ -100,28 +97,10 @@ class NeighborIndex(object):
         nnindexer.dx2_rowid  = _dx2_rowid
         nnindexer.dx2_vec    = _dx2_vec
         nnindexer.dx2_fx     = _dx2_fx
-        nnindexer.dx2_kpts   = None
+        #nnindexer.dx2_kpts   = None
+        #nnindexer.dx2_oris   = None
         # Add new points to flann structure
         nnindexer.flann.add_points(new_dx2_vec)
-
-    def load_kpts(nnindexer, ibs):
-        if nnindexer.dx2_kpts is not None:
-            return
-        aid_list = nnindexer.dx2_rowid
-        kpts_list = ibs.get_annot_kpts(aid_list)
-        dx2_kpts = np.vstack(kpts_list)
-        nnindexer.dx2_kpts = dx2_kpts
-
-    def load_oris(nnindexer, ibs):
-        if nnindexer.dx2_oris is not None:
-            return
-        nnindexer.load_kpts(ibs)
-        dx2_oris = ktool.get_oris(nnindexer.dx2_kpts)
-        assert len(dx2_oris) == len(nnindexer.num_indexed())
-        nnindexer.dx2_oris = dx2_oris
-
-    def get_nn_oris(nnindexer, qfx2_nndx):
-        return nnindexer.dx2_oris[qfx2_nndx]
 
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
@@ -130,19 +109,6 @@ class NeighborIndex(object):
         """
         (qfx2_dx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
         return (qfx2_dx, qfx2_dist)
-
-    def nn_index2(nnindexer, qreq, qfx2_vec):
-        """ return nearest neighbors from this data_index's flann object """
-        flann   = nnindexer.flann
-        K       = qreq.cfg.nn_cfg.K
-        Knorm   = qreq.cfg.nn_cfg.Knorm
-        checks  = qreq.cfg.nn_cfg.checks
-        # todo store some parameters?
-
-        (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_vec, K + Knorm, checks=checks)
-        qfx2_aid = nnindexer.dx2_aid[qfx2_dx]
-        qfx2_fx  = nnindexer.dx2_fx[qfx2_dx]
-        return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
 
     def num_indexed(nnindexer):
         return len(nnindexer.dx2_data)
@@ -155,9 +121,6 @@ class NeighborIndex(object):
 
     def get_nn_featxs(nnindexer, qfx2_nndx):
         return nnindexer.dx2_fx[qfx2_nndx]
-
-    #def get_neighbor_oris(nnindexer, qfx2_nndx, ibs):
-    #    return nnindexer.dx2_rowid[qfx2_nndx]
 
 
 class MultiNeighborIndex(object):
@@ -175,8 +138,6 @@ class MultiNeighborIndex(object):
     [nnsindex...
     >>> print(mindexer) #doctest: +ELLIPSIS
     <ibeis.model.hots.neighbor_index.HOTSMultiIndex object at ...>
-
-    </CYTH>
     """
 
     def __init__(mindexer, ibs, daid_list, num_forests=8):
@@ -191,14 +152,16 @@ class MultiNeighborIndex(object):
         forest_aids, overflow_aids = utool.sample_zip(
             known_aids_list, num_bins, allow_overflow=True, per_bin=1)
 
+        # Build a neighbor indexer for each
         forest_indexes = []
         extra_indexes = []
-        for tx, aids in enumerate(forest_aids):
+        for tx, aid_list in enumerate(forest_aids):
             print('[nnsindex] building forest %d/%d with %d aids' %
-                  (tx + 1, num_bins, len(aids)))
-            if len(aids) > 0:
-                mindexer = NeighborIndex(ibs, aids)
-                forest_indexes.append(mindexer)
+                  (tx + 1, num_bins, len(aid_list)))
+            if len(aid_list) > 0:
+                vecs_list = ibs.get_annot_desc(aid_list)
+                nnindexer = NeighborIndex(aid_list, vecs_list)
+                forest_indexes.append(nnindexer)
 
         if len(overflow_aids) > 0:
             print('[nnsindex] building overflow forest')
@@ -215,35 +178,31 @@ class MultiNeighborIndex(object):
         #mindexer.overflow_index = overflow_index
         #mindexer.unknown_index = unknown_index
 
-
-#@utool.classmember(HOTSMultiIndex)
-def knn(mindexer, qfx2_desc, num_neighbors):
-    """ </CYTH> """
-    qfx2_dx_list   = []
-    qfx2_dist_list = []
-    qfx2_aid_list  = []
-    qfx2_fx_list   = []
-    qfx2_rankx_list = []  # ranks index
-    qfx2_treex_list = []  # tree index
-    for tx, mindexer in enumerate(mindexer.forest_indexes):
-        flann = mindexer.flann
-        # Returns distances in ascending order for each query descriptor
-        (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, num_neighbors, checks=1024)
-        qfx2_dx_list.append(qfx2_dx)
-        qfx2_dist_list.append(qfx2_dist)
-        qfx2_fx = mindexer.dx2_fx[qfx2_dx]
-        qfx2_aid = mindexer.dx2_aid[qfx2_dx]
-        qfx2_fx_list.append(qfx2_fx)
-        qfx2_aid_list.append(qfx2_aid)
-        qfx2_rankx_list.append(np.array([[rankx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
-        qfx2_treex_list.append(np.array([[tx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
-    # Combine results from each tree
-    (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,) = \
+    def knn(mindexer, qfx2_desc, num_neighbors):
+        qfx2_dx_list   = []
+        qfx2_dist_list = []
+        qfx2_aid_list  = []
+        qfx2_fx_list   = []
+        qfx2_rankx_list = []  # ranks index
+        qfx2_treex_list = []  # tree index
+        for tx, mindexer in enumerate(mindexer.forest_indexes):
+            flann = mindexer.flann
+            # Returns distances in ascending order for each query descriptor
+            (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, num_neighbors, checks=1024)
+            qfx2_dx_list.append(qfx2_dx)
+            qfx2_dist_list.append(qfx2_dist)
+            qfx2_fx = mindexer.dx2_fx[qfx2_dx]
+            qfx2_aid = mindexer.dx2_aid[qfx2_dx]
+            qfx2_fx_list.append(qfx2_fx)
+            qfx2_aid_list.append(qfx2_aid)
+            qfx2_rankx_list.append(np.array([[rankx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
+            qfx2_treex_list.append(np.array([[tx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
+        # Combine results from each tree
+        (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,) = \
             join_split_nn(qfx2_dist_list, qfx2_dist_list, qfx2_rankx_list, qfx2_treex_list)
 
 
 def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx2_rankx_list, qfx2_treex_list):
-    """ </CYTH> """
     qfx2_dx    = np.hstack(qfx2_dx_list)
     qfx2_dist  = np.hstack(qfx2_dist_list)
     qfx2_rankx = np.hstack(qfx2_rankx_list)
@@ -263,9 +222,7 @@ def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx
     return (qfx2_dist_, qfx2_aid_,  qfx2_fx_, qfx2_dx_, qfx2_rankx_, qfx2_treex_,)
 
 
-#@utool.classmember(HOTSMultiIndex)
 def split_index_daids(mindexer):
-    """ </CYTH> """
     for mindexer in mindexer.forest_indexes:
         pass
 
@@ -275,7 +232,7 @@ def try_invert_vecx(vecs_list, rowid_list):
     Aggregates descriptors of input annotations and returns inverted information
     """
     if utool.NOT_QUIET:
-        print('[agg_desc] stacking descriptors from %d annotations'
+        print('[hsnbrx] stacking descriptors from %d annotations'
                 % len(rowid_list))
     try:
         dx2_vec, dx2_rowid, dx2_fx = nntool.map_vecx_to_rowids(vecs_list, rowid_list)
