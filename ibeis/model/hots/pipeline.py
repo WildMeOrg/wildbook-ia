@@ -234,7 +234,7 @@ def _weight_neighbors(qaid2_nns, qreq_):
 
 
 @profile
-def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, qreq_):
+def _threshold_and_scale_weights(qaid, qfx2_nndx, filt2_weights, qreq_):
     qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
@@ -257,17 +257,11 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq_):
     # Configs
     cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
     cant_match_samename = not qreq_.qparams.can_match_samename
+    cant_match_self     = not cant_match_sameimg
     K = qreq_.qparams.K
+    indexer = qreq_.indexer
     if NOT_QUIET:
         print('[hs] Step 3) Filter neighbors: ')
-    if qreq_.qparams.gravity_weighting:
-        # We dont have an easy way to access keypoints from nearest neighbors yet
-        #aid_list = qreq_.indexer.rowid_list
-        aid_list = np.unique(qreq_.data_index.dx2_rowid)  # FIXME: Highly inefficient
-        kpts_list = ibs.get_annot_kpts(aid_list)
-        dx2_kpts = np.vstack(kpts_list)
-        dx2_oris = ktool.get_oris(dx2_kpts)
-        assert len(dx2_oris) == len(qreq_.indexer.dx2_data)
     # Filter matches based on config and weights
     mark_, end_ = log_prog('Filter NN: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
@@ -275,14 +269,14 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq_):
         (qfx2_dx, _) = qaid2_nns[qaid]
         qfx2_nndx = qfx2_dx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
-        qfx2_score, qfx2_valid = _apply_filter_scores(qaid, qfx2_nndx,
-                                                      filt2_weights, qreq_)
-        qfx2_aid = qreq_.indexer.dx2_rowid[qfx2_nndx]
+        qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nndx, filt2_weights, qreq_)
+        qfx2_aid = indexer.get_rowids(qfx2_nndx)
         if VERBOSE:
             print('[hs] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
         if qreq_.qparams.gravity_weighting:
-            qfx2_nnori = dx2_oris[qfx2_nndx]
+            indexer.load_oris(ibs)
+            qfx2_nnori = indexer.get_nn_oris(qfx2_nndx)
             qfx2_kpts  = ibs.get_annot_kpts(qaid)  # FIXME: Highly inefficient
             qfx2_oris  = ktool.get_oris(qfx2_kpts)
             # Get the orientation distance
@@ -293,7 +287,6 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq_):
             qfx2_score *= qfx2_gvweight
         # Remove Impossible Votes:
         # dont vote for yourself or another chip in the same image
-        cant_match_self = not cant_match_sameimg
         if cant_match_self:
             ####DBG
             qfx2_notsamechip = qfx2_aid != qaid
@@ -394,6 +387,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     # Config
     K = qreq_.qparams.K
     is_vsone =  qreq_.qparams.vsone
+    indexer = qreq_.indexer
     if NOT_QUIET:
         query_type = qreq_.qparams.query_type
         print('[hs] Step 4) Building chipmatches %s' % (query_type,))
@@ -413,12 +407,12 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         nQKpts = len(qfx2_dx)
         # Build feature matches
         qfx2_nndx = qfx2_dx[:, 0:K]
-        qfx2_aid  = qreq_.indexer.dx2_rowid[qfx2_nndx]
-        qfx2_fx   = qreq_.indexer.dx2_fx[qfx2_nndx]
+        qfx2_aid  = indexer.get_nn_rowids(qfx2_nndx)
+        qfx2_fx   = indexer.get_nn_featxs(qfx2_nndx)
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator
-        valid_lists = [qfx2[qfx2_valid] for qfx2 in (qfx2_qfx, qfx2_aid, qfx2_fx, qfx2_fs, qfx2_k,)]
+        valid_lists = (qfx2[qfx2_valid] for qfx2 in (qfx2_qfx, qfx2_aid, qfx2_fx, qfx2_fs, qfx2_k,))
         # TODO: Sorting the valid lists by aid might help the speed of this
         # code. Also, consolidating fm, fs, and fk into one vector will reduce
         # the amount of appends.

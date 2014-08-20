@@ -15,6 +15,7 @@ import utool
 # VTool
 from ibeis import ibsfuncs
 import vtool.nearest_neighbors as nntool
+from vtool import keypoint as ktool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = '--nocache-flann' in sys.argv
@@ -99,8 +100,28 @@ class NeighborIndex(object):
         nnindexer.dx2_rowid  = _dx2_rowid
         nnindexer.dx2_vec    = _dx2_vec
         nnindexer.dx2_fx     = _dx2_fx
+        nnindexer.dx2_kpts   = None
         # Add new points to flann structure
         nnindexer.flann.add_points(new_dx2_vec)
+
+    def load_kpts(nnindexer, ibs):
+        if nnindexer.dx2_kpts is not None:
+            return
+        aid_list = nnindexer.dx2_rowid
+        kpts_list = ibs.get_annot_kpts(aid_list)
+        dx2_kpts = np.vstack(kpts_list)
+        nnindexer.dx2_kpts = dx2_kpts
+
+    def load_oris(nnindexer, ibs):
+        if nnindexer.dx2_oris is not None:
+            return
+        nnindexer.load_kpts(ibs)
+        dx2_oris = ktool.get_oris(nnindexer.dx2_kpts)
+        assert len(dx2_oris) == len(nnindexer.num_indexed())
+        nnindexer.dx2_oris = dx2_oris
+
+    def get_nn_oris(nnindexer, qfx2_nndx):
+        return nnindexer.dx2_oris[qfx2_nndx]
 
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
@@ -122,6 +143,21 @@ class NeighborIndex(object):
         qfx2_aid = nnindexer.dx2_aid[qfx2_dx]
         qfx2_fx  = nnindexer.dx2_fx[qfx2_dx]
         return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
+
+    def num_indexed(nnindexer):
+        return len(nnindexer.dx2_data)
+
+    def get_indexed_rowids(nnindexer):
+        return nnindexer.dx2_rowid
+
+    def get_nn_rowids(nnindexer, qfx2_nndx):
+        return nnindexer.dx2_rowid[qfx2_nndx]
+
+    def get_nn_featxs(nnindexer, qfx2_nndx):
+        return nnindexer.dx2_fx[qfx2_nndx]
+
+    #def get_neighbor_oris(nnindexer, qfx2_nndx, ibs):
+    #    return nnindexer.dx2_rowid[qfx2_nndx]
 
 
 class MultiNeighborIndex(object):

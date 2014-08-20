@@ -82,6 +82,7 @@ class QueryRequest(object):
         qreq.qresdir = qresdir
         qreq.indexer = None
         qreq.internal_qvecs_list = None
+        qreq.internal_qkpts_list = None
         qreq.aid2_nid = None
 
     def rrr(qreq):
@@ -94,6 +95,13 @@ class QueryRequest(object):
         rowid_list = qreq.get_internal_qaids()
         vecs_list = ibs.get_annot_desc(rowid_list)
         qreq.internal_qvecs_list = vecs_list
+
+    def load_query_keypoints(qreq, ibs):
+        if qreq.internal_kpts_list is not None:
+            return
+        rowid_list = qreq.get_internal_qaids()
+        kpts_list = ibs.get_annot_kpts(rowid_list)
+        qreq.internal_qkpts_list = kpts_list
 
     def load_indexer(qreq, ibs):
         flann_cachedir = ibs.get_flann_cachedir()
