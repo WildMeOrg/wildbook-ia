@@ -180,18 +180,18 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     >>> print(repr(dx2_fx))
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
 
-    #if cyth:
+    #if CYTH:
         cdef:
             list rowid_list, vecs_list
             long nFeat, rowid
-            iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
+            object rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
             np.ndarray dx2_rowid, dx2_fx, dx2_vec
     #endif
 
     --- vs ---
 
     <CYTH>
-    cdef:
+    c-def:
         list rowid_list, vecs_list
         long nFeat, rowid
         iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
@@ -256,3 +256,11 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     dx2_vec = np.vstack(vecs_list)
     '#pragma cyth_returntup'
     return dx2_vec, dx2_rowid, dx2_fx
+
+import cyth
+if cyth.DYNAMIC:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    # </AUTOGEN_CYTH>
+    pass

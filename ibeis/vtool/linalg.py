@@ -291,18 +291,18 @@ def det_distance(det1, det2):
         np.ndarray[np.float64_t, ndim=1] det1
         np.ndarray[np.float64_t, ndim=1] det2
     #if CYTH
-        # TODO: Move to ktool_cython
-        cdef unsigned int nDets = det1.shape[0]
-        # Prealloc output
-        out = np.zeros((nDets,), dtype=det1.dtype)
-        cdef size_t ix
-        for ix in range(nDets):
-            # simple determinant: ad - bc
-            if det1[ix] > det2[ix]:
-                out[ix] = det1[ix] / det2[ix]
-            else:
-                out[ix] = det2[ix] / det1[ix]
-        return out
+    # TODO: Move to ktool_cython
+    cdef unsigned int nDets = det1.shape[0]
+    # Prealloc output
+    out = np.zeros((nDets,), dtype=det1.dtype)
+    cdef size_t ix
+    for ix in range(nDets):
+        # simple determinant: ad - bc
+        if det1[ix] > det2[ix]:
+            out[ix] = det1[ix] / det2[ix]
+        else:
+            out[ix] = det2[ix] / det1[ix]
+    return out
     #else
     """
     # TODO: Cython
@@ -338,16 +338,16 @@ def L2_sqrd(hist1, hist2):
         np.ndarray[np.float64_t, ndim=2] hist1
         np.ndarray[np.float64_t, ndim=2] hist2
     #if CYTH
-        cdef unsigned int rows = hist1.shape[0]
-        cdef unsigned int cols = hist1.shape[1]
-        # Prealloc output
-        cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((rows,), dtype=hist1.dtype)
-        cdef size_t cx
-        cdef size_t rx
-        for rx in range(rows):
-            for cx in range(cols):
-                out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
-        return out
+    cdef:
+        size_t cx, rx
+    cdef unsigned int rows = hist1.shape[0]
+    cdef unsigned int cols = hist1.shape[1]
+    # Prealloc output
+    cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((rows,), dtype=hist1.dtype)
+    for rx in range(rows):
+        for cx in range(cols):
+            out[rx] += (hist1[rx, cx] - hist2[rx, cx]) ** 2
+    return out
     #else
     """
     # TODO: np.ufunc
@@ -504,3 +504,4 @@ else:
         det_distance_cyth = det_distance
         CYTHONIZED = False
     # </AUTOGEN_CYTH>
+    pass
