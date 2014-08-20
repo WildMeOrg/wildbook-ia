@@ -11,7 +11,7 @@ import types
 from six.moves import zip, range, map
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from functools import partial
-from os.path import relpath, split, join, exists, commonprefix
+from os.path import split, join, exists, commonprefix
 import utool
 from ibeis import constants
 from ibeis import sysres
@@ -274,23 +274,27 @@ def assert_images_exist(ibs, gid_list):
     exists_list = list(map(exists, gpath_list))
     bad_gids = utool.filterfalse_items(gid_list, exists_list)
     assert len(bad_gids) == 0, 'some images dont exist'
+    print('[check] checked %d images exist' % len(gid_list))
 
 
 @__injectable
 def check_image_consistency(ibs, gid_list):
     # TODO: more consistency checks
+    print('check image consistency. len(gid_list)=%r' % len(gid_list))
     assert_images_exist(ibs, gid_list)
 
 
 @__injectable
 def check_annot_consistency(ibs, aid_list):
     # TODO: more consistency checks
+    print('check annot consistency. len(aid_list)=%r' % len(aid_list))
     gid_list = ibs.get_annot_gids(aid_list)
     assert_images_exist(ibs, gid_list)
 
 
 def check_name_consistency(ibs, nid_list):
     #aids_list = ibs.get_name_aids(nid_list)
+    print('check name consistency. len(nid_list)=%r' % len(nid_list))
     lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
     individual_lbltype_rowid = ibs.lbltype_ids[constants.INDIVIDUAL_KEY]
     for lbltype_rowid in lbltype_rowid_list:
@@ -299,6 +303,7 @@ def check_name_consistency(ibs, nid_list):
 
 @__injectable
 def check_consistency(ibs, embed=False):
+    print('[ibsfuncs] Checking consistency')
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
     nid_list = ibs.get_valid_nids()
@@ -307,6 +312,7 @@ def check_consistency(ibs, embed=False):
     check_name_consistency(ibs, nid_list)
     if embed:
         utool.embed()
+    print('[ibsfuncs] Finshed consistency check')
 
 
 @__injectable
@@ -606,112 +612,6 @@ def list_images(img_dir, fullpath=True, recursive=True):
                                    recursive=recursive,
                                    ignore_list=ignore_list)
     return gpath_list
-
-
-def normalize_name(name):
-    """
-    Maps unknonwn names to the standard ____
-    """
-    if name in constants.ACCEPTED_UNKNOWN_NAMES:
-        name = constants.INDIVIDUAL_KEY
-    return name
-
-
-def normalize_names(name_list):
-    """
-    Maps unknonwn names to the standard ____
-    """
-    return list(map(normalize_name, name_list))
-
-
-def get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
-    """
-    Input: gpath_list
-    Output: names based on the parent folder of each image
-    """
-    relgpath_list = [relpath(gpath, img_dir) for gpath in gpath_list]
-    _name_list  = [split(relgpath)[0] for relgpath in relgpath_list]
-    name_list = normalize_names(_name_list)
-    return name_list
-
-
-class FMT_KEYS:
-    name_fmt = '{name:*}[id:d].{ext}'
-    snails_fmt  = '{name:*dd}{id:dd}.{ext}'
-    giraffe1_fmt = '{name:*}_{id:d}.{ext}'
-
-
-def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
-    """
-    Input: gpath_list
-    Output: names based on the parent folder of each image
-    """
-    INGEST_FORMATS = {
-        FMT_KEYS.name_fmt: utool.named_field_regex([
-            ('name', r'[a-zA-Z]+'),  # all alpha characters
-            ('id',   r'\d*'),        # first numbers (if existant)
-            ( None,  r'\.'),
-            ('ext',  r'\w+'),
-        ]),
-
-        FMT_KEYS.snails_fmt: utool.named_field_regex([
-            ('name', r'[a-zA-Z]+\d\d'),  # species and 2 numbers
-            ('id',   r'\d\d'),  # 2 more numbers
-            ( None,  r'\.'),
-            ('ext',  r'\w+'),
-        ]),
-
-        FMT_KEYS.giraffe1_fmt: utool.named_field_regex([
-            ('name',  r'G\d+'),  # species and 2 numbers
-            ('under', r'_'),     # 2 more numbers
-            ('id',    r'\d+'),   # 2 more numbers
-            ( None,   r'\.'),
-            ('ext',   r'\w+'),
-        ]),
-    }
-    regex = INGEST_FORMATS.get(fmtkey, fmtkey)
-    gname_list = utool.fpaths_to_fnames(gpath_list)
-    parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
-
-    anyfailed = False
-    for gpath, parsed in zip(gpath_list, parsed_list):
-        if parsed is None:
-            print('FAILED TO PARSE: %r' % gpath)
-            anyfailed = True
-    if anyfailed:
-        msg = ('FAILED REGEX: %r' % regex)
-        raise Exception(msg)
-
-    _name_list = [parsed['name'] for parsed in parsed_list]
-    name_list = normalize_names(_name_list)
-    return name_list
-
-
-def resolve_name_conflicts(gid_list, name_list):
-    # Build conflict map
-    conflict_gid_to_names = utool.build_conflict_dict(gid_list, name_list)
-
-    # Check to see which gid has more than one name
-    unique_gids = utool.unique_keep_order2(gid_list)
-    unique_names = []
-    unique_notes = []
-
-    for gid in unique_gids:
-        names = utool.unique_keep_order2(conflict_gid_to_names[gid])
-        unique_name = names[0]
-        unique_note = ''
-        if len(names) > 1:
-            if '____' in names:
-                names.remove('____')
-            if len(names) == 1:
-                unique_name = names[0]
-            else:
-                unique_name = names[0]
-                unique_note = 'aliases([' + ', '.join(map(repr, names[1:])) + '])'
-        unique_names.append(unique_name)
-        unique_notes.append(unique_note)
-
-    return unique_gids, unique_names, unique_notes
 
 
 def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):

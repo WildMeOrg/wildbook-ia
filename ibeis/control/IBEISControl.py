@@ -115,6 +115,20 @@ class IBEISController(object):
         ibsfuncs.inject_ibeis(ibs)
         __ALL_CONTROLLERS__.append(ibs)
 
+    def rrr(ibs):
+        global __ALL_CONTROLLERS__
+        try:
+            __ALL_CONTROLLERS__.remove(ibs)
+        except ValueError:
+            pass
+        from ibeis.control import IBEISControl
+        IBEISControl.rrr()
+        ibsfuncs.rrr()
+        print('reloading IBEISControl')
+        ibsfuncs.inject_ibeis(ibs)
+        utool.reload_class_methods(ibs, IBEISControl.IBEISController)
+        __ALL_CONTROLLERS__.append(ibs)
+
     @default_decorator
     def _init_wb(ibs, wbaddr):
         if wbaddr is None:

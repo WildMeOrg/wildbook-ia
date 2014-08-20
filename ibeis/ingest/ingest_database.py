@@ -6,11 +6,118 @@ This module lists known raw databases and how to ingest them.
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
-from os.path import exists
+from os.path import relpath, split, exists
 from ibeis import ibsfuncs
 from ibeis import constants
 from ibeis.control import IBEISControl
 import utool
+
+
+def normalize_name(name):
+    """
+    Maps unknonwn names to the standard ____
+    """
+    if name in constants.ACCEPTED_UNKNOWN_NAMES:
+        name = constants.INDIVIDUAL_KEY
+    return name
+
+
+def normalize_names(name_list):
+    """
+    Maps unknonwn names to the standard ____
+    """
+    return list(map(normalize_name, name_list))
+
+
+def get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey='name'):
+    """
+    Input: gpath_list
+    Output: names based on the parent folder of each image
+    """
+    relgpath_list = [relpath(gpath, img_dir) for gpath in gpath_list]
+    _name_list  = [split(relgpath)[0] for relgpath in relgpath_list]
+    name_list = normalize_names(_name_list)
+    return name_list
+
+
+class FMT_KEYS:
+    name_fmt = '{name:*}[id:d].{ext}'
+    snails_fmt  = '{name:*dd}{id:dd}.{ext}'
+    giraffe1_fmt = '{name:*}_{id:d}.{ext}'
+
+
+def get_name_text_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
+    """
+    Input: gpath_list
+    Output: names based on the parent folder of each image
+    """
+    INGEST_FORMATS = {
+        FMT_KEYS.name_fmt: utool.named_field_regex([
+            ('name', r'[a-zA-Z]+'),  # all alpha characters
+            ('id',   r'\d*'),        # first numbers (if existant)
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
+
+        FMT_KEYS.snails_fmt: utool.named_field_regex([
+            ('name', r'[a-zA-Z]+\d\d'),  # species and 2 numbers
+            ('id',   r'\d\d'),  # 2 more numbers
+            ( None,  r'\.'),
+            ('ext',  r'\w+'),
+        ]),
+
+        FMT_KEYS.giraffe1_fmt: utool.named_field_regex([
+            ('name',  r'G\d+'),  # species and 2 numbers
+            ('under', r'_'),     # 2 more numbers
+            ('id',    r'\d+'),   # 2 more numbers
+            ( None,   r'\.'),
+            ('ext',   r'\w+'),
+        ]),
+    }
+    regex = INGEST_FORMATS.get(fmtkey, fmtkey)
+    gname_list = utool.fpaths_to_fnames(gpath_list)
+    parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
+
+    anyfailed = False
+    for gpath, parsed in zip(gpath_list, parsed_list):
+        if parsed is None:
+            print('FAILED TO PARSE: %r' % gpath)
+            anyfailed = True
+    if anyfailed:
+        msg = ('FAILED REGEX: %r' % regex)
+        raise Exception(msg)
+
+    _name_list = [parsed['name'] for parsed in parsed_list]
+    name_list = normalize_names(_name_list)
+    return name_list
+
+
+def resolve_name_conflicts(gid_list, name_list):
+    # Build conflict map
+    conflict_gid_to_names = utool.build_conflict_dict(gid_list, name_list)
+
+    # Check to see which gid has more than one name
+    unique_gids = utool.unique_keep_order2(gid_list)
+    unique_names = []
+    unique_notes = []
+
+    for gid in unique_gids:
+        names = utool.unique_keep_order2(conflict_gid_to_names[gid])
+        unique_name = names[0]
+        unique_note = ''
+        if len(names) > 1:
+            if '____' in names:
+                names.remove('____')
+            if len(names) == 1:
+                unique_name = names[0]
+            else:
+                unique_name = names[0]
+                unique_note = 'aliases([' + ', '.join(map(repr, names[1:])) + '])'
+        unique_names.append(unique_name)
+        unique_notes.append(unique_note)
+
+    return unique_gids, unique_names, unique_notes
+
 
 #
 #
@@ -82,7 +189,7 @@ def ingest_testdb1(db):
 
         return None
     return Ingestable(db, ingest_type='named_images',
-                      fmtkey=ibsfuncs.FMT_KEYS.name_fmt,
+                      fmtkey=FMT_KEYS.name_fmt,
                       img_dir=grabdata.get_testdata_dir(),
                       adjust_percent=0.00,
                       postingest_func=postingest_tesdb1_func)
@@ -92,7 +199,7 @@ def ingest_testdb1(db):
 def ingest_snails_drop1(db):
     return Ingestable(db,
                       ingest_type='named_images',
-                      fmtkey=ibsfuncs.FMT_KEYS.snails_fmt,
+                      fmtkey=FMT_KEYS.snails_fmt,
                       adjust_percent=.20)
 
 
@@ -107,7 +214,7 @@ def ingest_JAG_Kieryn(db):
 def ingest_Giraffes1(db):
     return Ingestable(db,
                       ingest_type='named_images',
-                      fmtkey=ibsfuncs.FMT_KEYS.giraffe1_fmt,
+                      fmtkey=FMT_KEYS.giraffe1_fmt,
                       adjust_percent=0.00)
 
 
@@ -176,10 +283,10 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gpath_list  = list_ingestable_images(img_dir, recursive=True)
     # Parse structure for image names
     if ingest_type == 'named_folders':
-        name_list = ibsfuncs.get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey)
+        name_list = get_name_text_from_parent_folder(gpath_list, img_dir, fmtkey)
         pass
     if ingest_type == 'named_images':
-        name_list = ibsfuncs.get_name_text_from_gnames(gpath_list, img_dir, fmtkey)
+        name_list = get_name_text_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
         name_list = [constants.INDIVIDUAL_KEY for _ in range(len(gpath_list))]
 
@@ -196,7 +303,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
             print('[ingest] big fat warning')
     # </DEBUG>
     gid_list = utool.filter_Nones(gid_list_)
-    unique_gids, unique_names, unique_notes = ibsfuncs.resolve_name_conflicts(
+    unique_gids, unique_names, unique_notes = resolve_name_conflicts(
         gid_list, name_list)
     # Add ANNOTATIONs with names and notes
     aid_list = ibsfuncs.use_images_as_annotations(ibs, unique_gids,
