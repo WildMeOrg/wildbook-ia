@@ -283,7 +283,7 @@ def transform_kpts(kpts, M):
 def get_invVR_mats_sqrd_scale(invVR_mats):
     """ Returns the squared scale of the invVR keyponts
 
-    >>> from vtool.keypoint import *
+    >>> from vtool.keypoint import *  # NOQA
     >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
     >>> output = get_invVR_mats_sqrd_scale(invVR_mats)
@@ -297,7 +297,8 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     cdef unsigned int nMats = invVR_mats.shape[0]
     # Prealloc output
     cdef np.ndarray[np.float64_t, ndim=1] out = np.zeros((nMats,), dtype=np.float64)
-    cdef size_t ix
+    #cdef size_t ix
+    cdef Py_ssize_t ix
     for ix in range(nMats):
         # simple determinant: ad - bc
         out[ix] = ((invVR_mats[ix, 0, 0] * invVR_mats[ix, 1, 1]) -
@@ -306,13 +307,14 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     #else
     """
     return npl.det(invVR_mats[:, 0:2, 0:2])
+    '#endif'
 
 
 @profile
 def get_invVR_mats_shape(invVR_mats):
     """ Extracts keypoint shape components
 
-    >>> from vtool.keypoint import *
+    >>> from vtool.keypoint import *  # NOQA
     >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
     >>> output = get_invVR_mats_shape(invVR_mats)
@@ -327,14 +329,22 @@ def get_invVR_mats_shape(invVR_mats):
         np.ndarray[np.float64_t, ndim=1] _iv12s
         np.ndarray[np.float64_t, ndim=1] _iv21s
         np.ndarray[np.float64_t, ndim=1] _iv22s
+        #double [:] _iv11s
+        #double [:] _iv12s
+        #double [:] _iv21s
+        #double [:] _iv22s
     #endif
     """
-    '#macro numpy_fancy_index_macro'
+
+    # So, this doesn't work
+    # Try this instead
+    #http://docs.cython.org/src/userguide/memoryviews.html#memoryviews
+    '#m_acro numpy_fancy_index_macro'
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     _iv21s = invVR_mats[:, 1, 0]
     _iv22s = invVR_mats[:, 1, 1]
-    '#endmacro'
+    '#e_ndmacro'
 
     #'#pragma cyth numpy_fancy_index_assign'
     return (_iv11s, _iv12s, _iv21s, _iv22s)
@@ -358,7 +368,7 @@ def get_invVR_mats_xys(invVR_mats):
 def get_invVR_mats_oris(invVR_mats):
     """ extracts orientation from matrix encoding
 
-    >>> from vtool.keypoint import *
+    >>> from vtool.keypoint import *  # NOQA
     >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
     >>> output = get_invVR_mats_oris(invVR_mats)
@@ -396,7 +406,7 @@ def rectify_invV_mats_are_up(invVR_mats):
     Useful if invVR_mats is no longer lower triangular
     rotates affine shape matrixes into downward (lower triangular) position
 
-    >>> from vtool.keypoint import *
+    >>> from vtool.keypoint import *  # NOQA
     >>> np.random.seed(0)
     >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
     >>> output = rectify_invV_mats_are_up(invVR_mats)
