@@ -23,15 +23,15 @@ NOCACHE_FLANN = '--nocache-flann' in sys.argv
 def make_test_index():
     import ibeis
     ibs = ibeis.test_main(db='testdb1')
-    rowid_list = [7, 8, 9, 10, 11]
-    vecs_list = ibs.get_annot_desc(rowid_list)
-    nnindexer = NeighborIndex(rowid_list, vecs_list)
+    aid_list = [7, 8, 9, 10, 11]
+    vecs_list = ibs.get_annot_desc(aid_list)
+    nnindexer = NeighborIndex(aid_list, vecs_list)
     return nnindexer, ibs
 
 
-def _check_input(rowid_list, vecs_list):
-    assert len(rowid_list) == len(vecs_list), 'invalid input'
-    assert len(rowid_list) > 0, ('len(aid_list) == 0.'
+def _check_input(aid_list, vecs_list):
+    assert len(aid_list) == len(vecs_list), 'invalid input'
+    assert len(aid_list) > 0, ('len(aid_list) == 0.'
                                     'Cannot invert index without features!')
 
 
@@ -48,59 +48,66 @@ class NeighborIndex(object):
         print('reloading NeighborIndex')
         utool.reload_class_methods(nnindexer, nnindex.NeighborIndex)
 
-    def __init__(nnindexer, rowid_list=[], vecs_list=[], flann_params={},
+    def __init__(nnindexer, aid_list=[], vecs_list=[], flann_params={},
                  flann_cachedir='.', indexer_cfgstr='', hash_rowids=True,
                  use_cache=not NOCACHE_FLANN, use_params_hash=True):
-        _check_input(rowid_list, vecs_list)
+        _check_input(aid_list, vecs_list)
         #print('[nnindexer] building NeighborIndex object')
-        dx2_vec, dx2_rowid, dx2_fx = try_invert_vecx(vecs_list, rowid_list)
-        nnindexer.rowid_list = rowid_list
-        nnindexer.dx2_rowid  = dx2_rowid
-        nnindexer.dx2_vec    = dx2_vec
-        nnindexer.dx2_fx     = dx2_fx
+        # Create indexes into the input aids
+        ax_list = np.arange(len(aid_list))
+        idx2_vec, idx2_ax, idx2_fx = invert_index(vecs_list, ax_list)
+        nnindexer.ax2_aid   = np.array(aid_list)
+        nnindexer.idx2_vec  = idx2_vec
+        nnindexer.idx2_ax   = idx2_ax  # Index into the aid_list
+        nnindexer.idx2_fx   = idx2_fx  # Index into the annot's features
         if hash_rowids:
             # Fingerprint
-            rowid_cfgstr = utool.hashstr_arr(rowid_list, '_ROWIDS')
-            cfgstr = rowid_cfgstr + indexer_cfgstr
+            aids_hashstr = utool.hashstr_arr(aid_list, '_AIDS')
+            cfgstr = aids_hashstr + indexer_cfgstr
         else:
             # Dont hash rowids when given enough info in indexer_cfgstr
             cfgstr = indexer_cfgstr
         nnindexer.cfgstr = cfgstr
         # Build/Load the flann index
-        nnindexer.flann = nntool.flann_cache(dx2_vec, **{
+        nnindexer.flann = nntool.flann_cache(idx2_vec, **{
             'cache_dir': flann_cachedir,
             'cfgstr': cfgstr,
             'flann_params': flann_params,
             'use_cache': use_cache,
             'use_params_hash': use_params_hash})
 
-    def add_points(nnindexer, new_rowid_list, new_vecs_list):
+    def add_points(nnindexer, new_aid_list, new_vecs_list):
         """
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> nnindexer, ibs = make_test_index()  #doctest: +ELLIPSIS
-        >>> new_rowid_list = [2, 3, 4]
+        >>> new_aid_list = [2, 3, 4]
         >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> new_vecs_list = ibs.get_annot_desc(new_rowid_list)
+        >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
         >>> K = 2
         >>> checks = 1028
         >>> (qfx2_dx1, qfx2_dist1) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
-        >>> nnindexer.add_points(new_rowid_list, new_vecs_list)
+        >>> nnindexer.add_points(new_aid_list, new_vecs_list)
         >>> (qfx2_dx2, qfx2_dist2) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
         >>> assert qfx2_dx2.max() > qfx2_dx1.max()
         """
-        new_dx2_vec, new_dx2_rowid, new_dx2_fx = \
-                try_invert_vecx(new_vecs_list, new_rowid_list)
+        nAnnots = nnindexer.num_indexed_annots()
+        nNew    = len(new_aid_list)
+        new_ax_list = np.arange(nAnnots, nAnnots + nNew)
+        new_idx2_vec, new_idx2_ax, new_idx2_fx = \
+                invert_index(new_vecs_list, new_ax_list)
         # Stack inverted information
-        _dx2_rowid = np.hstack((nnindexer.dx2_rowid, new_dx2_rowid))
-        _dx2_fx = np.hstack((nnindexer.dx2_fx, new_dx2_fx))
-        _dx2_vec = np.vstack((nnindexer.dx2_vec, new_dx2_vec))
-        nnindexer.dx2_rowid  = _dx2_rowid
-        nnindexer.dx2_vec    = _dx2_vec
-        nnindexer.dx2_fx     = _dx2_fx
-        #nnindexer.dx2_kpts   = None
-        #nnindexer.dx2_oris   = None
+        _ax2_aid = np.hstack((nnindexer.ax2_aid, new_aid_list))
+        _idx2_ax = np.hstack((nnindexer.idx2_ax, new_idx2_ax))
+        _idx2_fx = np.hstack((nnindexer.idx2_fx, new_idx2_fx))
+        _idx2_vec = np.vstack((nnindexer.idx2_vec, new_idx2_vec))
+        nnindexer.ax2_aid = _ax2_aid
+        nnindexer.idx2_ax  = _idx2_ax
+        nnindexer.idx2_vec = _idx2_vec
+        nnindexer.idx2_fx  = _idx2_fx
+        #nnindexer.idx2_kpts   = None
+        #nnindexer.idx2_oris   = None
         # Add new points to flann structure
-        nnindexer.flann.add_points(new_dx2_vec)
+        nnindexer.flann.add_points(new_idx2_vec)
 
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
@@ -110,17 +117,25 @@ class NeighborIndex(object):
         (qfx2_dx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
         return (qfx2_dx, qfx2_dist)
 
-    def num_indexed(nnindexer):
-        return len(nnindexer.dx2_data)
+    def num_indexed_vecs(nnindexer):
+        return len(nnindexer.idx2_vec)
 
-    def get_indexed_rowids(nnindexer):
-        return nnindexer.dx2_rowid
+    def num_indexed_annots(nnindexer):
+        return len(nnindexer.ax2_aid)
 
-    def get_nn_rowids(nnindexer, qfx2_nndx):
-        return nnindexer.dx2_rowid[qfx2_nndx]
+    def get_indexed_axs(nnindexer):
+        return nnindexer.idx2_ax
+
+    def get_nn_axs(nnindexer, qfx2_nndx):
+        return nnindexer.idx2_ax[qfx2_nndx]
+
+    def get_nn_aids(nnindexer, qfx2_nndx):
+        qfx2_ax = nnindexer.idx2_ax[qfx2_nndx]
+        qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
+        return qfx2_aid
 
     def get_nn_featxs(nnindexer, qfx2_nndx):
-        return nnindexer.dx2_fx[qfx2_nndx]
+        return nnindexer.idx2_fx[qfx2_nndx]
 
 
 class MultiNeighborIndex(object):
@@ -191,8 +206,8 @@ class MultiNeighborIndex(object):
             (qfx2_dx, qfx2_dist) = flann.nn_index(qfx2_desc, num_neighbors, checks=1024)
             qfx2_dx_list.append(qfx2_dx)
             qfx2_dist_list.append(qfx2_dist)
-            qfx2_fx = mindexer.dx2_fx[qfx2_dx]
-            qfx2_aid = mindexer.dx2_aid[qfx2_dx]
+            qfx2_fx = mindexer.idx2_fx[qfx2_dx]
+            qfx2_aid = mindexer.idx2_aid[qfx2_dx]
             qfx2_fx_list.append(qfx2_fx)
             qfx2_aid_list.append(qfx2_aid)
             qfx2_rankx_list.append(np.array([[rankx for rankx in range(qfx2_dx.shape[1])]] * len(qfx2_dx)))
@@ -227,24 +242,24 @@ def split_index_daids(mindexer):
         pass
 
 
-def try_invert_vecx(vecs_list, rowid_list):
+def invert_index(vecs_list, ax_list):
     """
     Aggregates descriptors of input annotations and returns inverted information
     """
     if utool.NOT_QUIET:
         print('[hsnbrx] stacking descriptors from %d annotations'
-                % len(rowid_list))
+                % len(ax_list))
     try:
-        dx2_vec, dx2_rowid, dx2_fx = nntool.map_vecx_to_rowids(vecs_list, rowid_list)
-        assert dx2_vec.shape[0] == dx2_rowid.shape[0]
-        assert dx2_vec.shape[0] == dx2_fx.shape[0]
+        idx2_vec, idx2_ax, idx2_fx = nntool.invertable_stack(vecs_list, ax_list)
+        assert idx2_vec.shape[0] == idx2_ax.shape[0]
+        assert idx2_vec.shape[0] == idx2_fx.shape[0]
     except MemoryError as ex:
         utool.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
     if utool.NOT_QUIET:
         print('stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
-            nVecs=len(dx2_vec), nAnnots=len(dx2_rowid)))
-    return dx2_vec, dx2_rowid, dx2_fx
+            nVecs=len(idx2_vec), nAnnots=len(ax_list)))
+    return idx2_vec, idx2_ax, idx2_fx
 
 
 #if __name__ == '__main__':

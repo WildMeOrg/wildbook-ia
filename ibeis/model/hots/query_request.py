@@ -59,7 +59,7 @@ def init_neighbor_indexer(qreq_, ibs, flann_cachedir):
     >>> from ibeis.model.hots.query_request import *  # NOQA
     >>> import ibeis
     >>> daid_list = [1, 2, 3, 4]
-    >>> rowid_list = daid_list
+    >>> aid_list = daid_list
     >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
     >>> nnindexer = init_neighbor_indexer(ibs, daid_list)
     """
@@ -77,9 +77,9 @@ def init_neighbor_indexer(qreq_, ibs, flann_cachedir):
             #rx2_nid  = ibs.get_annot_nids(daid_list)
             flann_params = qreq_.qparams.flann_params
             # Get annotation descriptors that will be searched
-            rowid_list = qreq_.get_internal_daids()
-            vecs_list = ibs.get_annot_desc(rowid_list)
-            nnindexer = hsnbrx.NeighborIndex(rowid_list, vecs_list, flann_params,
+            aid_list = qreq_.get_internal_daids()
+            vecs_list = ibs.get_annot_desc(aid_list)
+            nnindexer = hsnbrx.NeighborIndex(aid_list, vecs_list, flann_params,
                                              flann_cachedir, indexer_cfgstr,
                                              hash_rowids=True,
                                              use_params_hash=False)
@@ -139,65 +139,65 @@ class QueryRequest(object):
     # --- Lazy Loading ---
 
     def load_oris(qreq_, ibs):
-        if qreq_.dx2_oris is not None:
+        if qreq_.idx2_oris is not None:
             return
         from vtool import keypoint as ktool
         qreq_.load_kpts(ibs)
-        dx2_oris = ktool.get_oris(qreq_.dx2_kpts)
-        assert len(dx2_oris) == len(qreq_.num_indexed())
-        qreq_.dx2_oris = dx2_oris
+        idx2_oris = ktool.get_oris(qreq_.idx2_kpts)
+        assert len(idx2_oris) == len(qreq_.num_indexed_vecs())
+        qreq_.idx2_oris = idx2_oris
 
-    def load_kpts(qreq_, ibs):
-        if qreq_.dx2_kpts is not None:
-            return
-        aid_list = qreq_.dx2_rowid
-        kpts_list = qreq_.ibs.get_annot_kpts(aid_list)
-        dx2_kpts = np.vstack(kpts_list)
-        qreq_.dx2_kpts = dx2_kpts
+    #def load_kpts(qreq_, ibs):
+    #    if qreq_.idx2_kpts is not None:
+    #        return
+    #    aid_list = qreq_.indexer.aid_list
+    #    kpts_list = qreq_.ibs.get_annot_kpts(aid_list)
+    #    idx2_kpts = np.vstack(kpts_list)
+    #    qreq_.idx2_kpts = idx2_kpts
 
-    def load_query_queryx(qreq_):
-        qaids = qreq_.get_internal_qaids()
-        qaid2_queryx = {aid: queryx for queryx, aid in enumerate(qaids)}
-        qreq_.qaid2_queryx = qaid2_queryx
+    #def load_query_queryx(qreq_):
+    #    qaids = qreq_.get_internal_qaids()
+    #    qaid2_queryx = {aid: queryx for queryx, aid in enumerate(qaids)}
+    #    qreq_.qaid2_queryx = qaid2_queryx
 
-    def load_data_datax(qreq_):
-        daids = qreq_.get_internal_daids()
-        daid2_datax = {aid: datax for datax, aid in enumerate(daids)}
-        qreq_.daid2_datax = daid2_datax
+    #def load_data_datax(qreq_):
+    #    daids = qreq_.get_internal_daids()
+    #    daid2_datax = {aid: datax for datax, aid in enumerate(daids)}
+    #    qreq_.daid2_datax = daid2_datax
 
-    def load_query_gids(qreq_, ibs):
-        if qreq_.internal_qgid_list is not None:
-            return False
-        rowid_list = qreq_.get_internal_qaids()
-        gid_list = ibs.get_annot_gids(rowid_list)
-        qreq_.internal_qgid_list = gid_list
+    #def load_query_gids(qreq_, ibs):
+    #    if qreq_.internal_qgid_list is not None:
+    #        return False
+    #    aid_list = qreq_.get_internal_qaids()
+    #    gid_list = ibs.get_annot_gids(aid_list)
+    #    qreq_.internal_qgid_list = gid_list
 
-    def load_query_nids(qreq_, ibs):
-        if qreq_.internal_qnid_list is not None:
-            return False
-        rowid_list = qreq_.get_internal_qaids()
-        nid_list = ibs.get_annot_nids(rowid_list)
-        qreq_.internal_qnid_list = nid_list
+    #def load_query_nids(qreq_, ibs):
+    #    if qreq_.internal_qnid_list is not None:
+    #        return False
+    #    aid_list = qreq_.get_internal_qaids()
+    #    nid_list = ibs.get_annot_nids(aid_list)
+    #    qreq_.internal_qnid_list = nid_list
 
     def load_query_vectors(qreq_, ibs):
         if qreq_.internal_qvecs_list is not None:
             return False
-        rowid_list = qreq_.get_internal_qaids()
-        vecs_list = ibs.get_annot_desc(rowid_list)
+        aid_list = qreq_.get_internal_qaids()
+        vecs_list = ibs.get_annot_desc(aid_list)
         qreq_.internal_qvecs_list = vecs_list
 
     def load_query_keypoints(qreq_, ibs):
         if qreq_.internal_qkpts_list is not None:
             return False
-        rowid_list = qreq_.get_internal_qaids()
-        kpts_list = ibs.get_annot_kpts(rowid_list)
+        aid_list = qreq_.get_internal_qaids()
+        kpts_list = ibs.get_annot_kpts(aid_list)
         qreq_.internal_qkpts_list = kpts_list
 
     def load_data_keypoints(qreq_, ibs):
         if qreq_.internal_dkpts_list is not None:
             return False
-        rowid_list = qreq_.get_internal_daids()
-        kpts_list = ibs.get_annot_kpts(rowid_list)
+        aid_list = qreq_.get_internal_daids()
+        kpts_list = ibs.get_annot_kpts(aid_list)
         qreq_.internal_dkpts_list = kpts_list
 
     def load_indexer(qreq_, ibs):
@@ -224,16 +224,16 @@ class QueryRequest(object):
         return qreq_.indexer.knn(qfx2_vec, K, checks)
 
     def get_nn_kpts(qreq_, qfx2_nndx):
-        return qreq_.dx2_kpts[qfx2_nndx]
+        return qreq_.idx2_kpts[qfx2_nndx]
 
     def get_nn_oris(qreq_, qfx2_nndx):
-        return qreq_.dx2_oris[qfx2_nndx]
+        return qreq_.idx2_oris[qfx2_nndx]
 
-    def get_indexed_rowids(qreq_):
-        return qreq_.indexer.dx2_rowid
+    #def get_indexed_rowids(qreq_):
+    #    return qreq_.indexer.idx2_rowid
 
     def get_nn_aids(qreq_, qfx2_nndx):
-        return qreq_.indexer.get_nn_rowids(qfx2_nndx)
+        return qreq_.indexer.get_nn_aids(qfx2_nndx)
 
     def get_nn_featxs(qreq_, qfx2_nndx):
         return qreq_.indexer.get_nn_featxs(qfx2_nndx)
