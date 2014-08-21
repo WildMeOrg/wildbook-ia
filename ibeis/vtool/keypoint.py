@@ -36,47 +36,20 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[kpts]', DEBUG=False)
 
 
-np.tau = 2 * np.pi  # tauday.com
-
-
 """
 // These are cython style comments used for maintaining python compatibility
 #if CYTH
 from vtool.keypoint import get_invVR_mats_shape, get_invVR_mats_sqrd_scale, get_invVR_mats_oris
 
-import numpy as np
-import cython
-
-cimport numpy as np
-cimport cython
-
-#ctypedef fused numpy_floatarray_3dimension:
-#    np.ndarray[np.float32_t, ndim=3]
-#    np.ndarray[np.float64_t, ndim=3]
-#
-#ctypedef fused numpy_floatarray_1dimension:
-#    np.ndarray[np.float32_t, ndim=1]
-#    np.ndarray[np.float64_t, ndim=1]
-
-#def foo(x):
-#    ctypedef np.ndarray[np.float64_t, ndim=3] numpy_floatarray_3dimension
-#    ctypedef np.ndarray[np.float64_t, ndim=1] numpy_floatarray_1dimension
-#    return x
-
-#ctypedef np.ndarray[np.float64_t, ndim=3] numpy_floatarray_3dimension
-#ctypedef np.ndarray[np.float64_t, ndim=1] numpy_floatarray_1dimension
-
-#ctypedef np.float64_t [:, :, :] numpy_floatarray_3dimension
-#ctypedef np.float64_t [:] numpy_floatarray_1dimension
-
-cdef np.float64_t tau
+cdef np.float64_t TAU
 #endif
 """
 #:%s/numpy_floatarray_\([13]\)dimension/np.ndarray[np.float64_t, ndim=\1]/gc
 #:%s/np.ndarray\[np.float64_t, ndim=\([13]\)\]/numpy_floatarray_\1dimension/gc
 
-tau = np.tau = np.pi * 2  # tauday.com
-GRAVITY_THETA = np.tau / 4
+
+TAU = 2 * np.pi  # tauday.com
+GRAVITY_THETA = TAU / 4
 KPTS_DTYPE = np.float32
 
 XDIM = 0
@@ -388,9 +361,9 @@ def get_invVR_mats_oris(invVR_mats):
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     # Solve for orientations. Adjust gravity vector pointing down
-    _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -tau/2 to tau/2
-    _oris[_oris < 0] = _oris[_oris < 0] + tau  # map to 0 to tau (keep coords)
-    _oris = (-_oris) % tau
+    _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
+    _oris[_oris < 0] = _oris[_oris < 0] + TAU  # map to 0 to TAU (keep coords)
+    _oris = (-_oris) % TAU
     return _oris
     #else
     """
@@ -398,7 +371,7 @@ def get_invVR_mats_oris(invVR_mats):
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     # Solve for orientations. Adjust gravity vector pointing down
-    _oris = (-trig.atan2(_iv12s, _iv11s)) % tau
+    _oris = (-trig.atan2(_iv12s, _iv11s)) % TAU
     return _oris
 
 

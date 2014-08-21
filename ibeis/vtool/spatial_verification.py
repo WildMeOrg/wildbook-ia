@@ -33,16 +33,16 @@ import vtool.linalg as ltool
 # need to cimport vtool._keypoint_cyth as _ktool_cyth
 # and replace all ktool.somefunc_cyth with _ktool_cyth.somefunc_cyth
 
-TAU = 2 * np.pi  # tauday.org
-
-SV_DTYPE = np.float64
-
 """
-<CYTH>
+#if CYTH
 #ctypedef np.float64_t SV_DTYPE
 SV_DTYPE = np.float64
-</CYTH>
+cdef np.float64_t TAU
+#endif
 """
+
+SV_DTYPE = np.float64
+TAU = 2 * np.pi  # tauday.org
 
 
 @profile

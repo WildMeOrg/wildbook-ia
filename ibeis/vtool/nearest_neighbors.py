@@ -149,21 +149,21 @@ def tune_flann(dpts, **kwargs):
     return tuned_params
 
 
-def map_vecx_to_rowids(vecs_list, rowid_list):
+def invertable_stack(vecs_list, label_list):
     """
     Stacks descriptors into a flat structure and returns inverse mapping from
-    flat database descriptor indexes (dx) to annotation ids (rowid) and feature
+    flat database descriptor indexes (dx) to annotation ids (label) and feature
     indexes (fx). Feature indexes are w.r.t. annotation indexes.
 
     Output:
-        dx2_desc - flat descriptor stack
-        dx2_rowid  - inverted index into annotations
-        dx2_fx   - inverted index into features
+        idx2_desc - flat descriptor stack
+        idx2_label  - inverted index into annotations
+        idx2_fx   - inverted index into features
 
     # Example with 2D Descriptors
     >>> from vtool.nearest_neighbors import *  # NOQA
     >>> DESC_TYPE = np.uint8
-    >>> rowid_list  = [1, 2, 3, 4, 5]
+    >>> label_list  = [1, 2, 3, 4, 5]
     >>> vecs_list = [
     ...     np.array([[0, 0], [0, 1]], dtype=DESC_TYPE),
     ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
@@ -171,31 +171,31 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
     ...     np.array([[3, 3], [42, 42], [2, 6]], dtype=DESC_TYPE),
     ...     ]
-    >>> dx2_vec, dx2_rowid, dx2_fx = map_vecx_to_rowids(vecs_list, rowid_list)
-    >>> print(repr(dx2_vec.T))
+    >>> idx2_vec, idx2_label, idx2_fx = invertable_stack(vecs_list, label_list)
+    >>> print(repr(idx2_vec.T))
     array([[ 0,  0,  5,  2,  1,  5,  2,  1,  3, 42,  2],
            [ 0,  1,  3, 30,  1,  3, 30,  1,  3, 42,  6]], dtype=uint8)
-    >>> print(repr(dx2_rowid))
+    >>> print(repr(idx2_label))
     array([1, 1, 2, 2, 2, 4, 4, 4, 5, 5, 5])
-    >>> print(repr(dx2_fx))
+    >>> print(repr(idx2_fx))
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
 
     #if CYTH:
         cdef:
-            list rowid_list, vecs_list
-            long nFeat, rowid
-            object rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
-            np.ndarray dx2_rowid, dx2_fx, dx2_vec
+            list label_list, vecs_list
+            long nFeat, label
+            object label_nFeat_iter, nFeat_iter, _ax2_label, _ax2_fx
+            np.ndarray idx2_label, idx2_fx, idx2_vec
     #endif
 
     --- vs ---
 
     <CYTH>
     c-def:
-        list rowid_list, vecs_list
-        long nFeat, rowid
-        iter rowid_nFeat_iter, nFeat_iter, _ax2_rowid, _ax2_fx
-        np.ndarray dx2_rowid, dx2_fx, dx2_vec
+        list label_list, vecs_list
+        long nFeat, label
+        iter label_nFeat_iter, nFeat_iter, _ax2_label, _ax2_fx
+        np.ndarray idx2_label, idx2_fx, idx2_vec
     </CYTH>
 
     --- consider ---
@@ -230,32 +230,32 @@ def map_vecx_to_rowids(vecs_list, rowid_list):
     """
 
     # INFER DTYPE? dtype = vecs_list[0].dtype
-    # Build inverted index of (rowid, fx) pairs
+    # Build inverted index of (label, fx) pairs
     nFeats = sum(list(map(len, vecs_list)))
     nFeat_iter = map(len, vecs_list)
-    rowid_nFeat_iter = zip(rowid_list, map(len, vecs_list))
+    label_nFeat_iter = zip(label_list, map(len, vecs_list))
     # generate featx inverted index for each feature in each annotation
     _ax2_fx  = [list(range(nFeat)) for nFeat in nFeat_iter]
-    # generate rowid inverted index for each feature in each annotation
+    # generate label inverted index for each feature in each annotation
     '''
     # this is not a real test the code just happened to be here. syntax is good though
     #-ifdef CYTH_TEST_SWAP
-    _ax2_rowid = [[rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter]
+    _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
     #-else
     '''
-    _ax2_rowid = [[rowid] * nFeat for (rowid, nFeat) in rowid_nFeat_iter]
+    _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
     '#-endif'  # endif is optional. the end of the functionscope counts as an #endif
     # Flatten generators into the inverted index
-    _flatrowids = utool.iflatten(_ax2_rowid)
+    _flatlabels = utool.iflatten(_ax2_label)
     _flatfeatxs = utool.iflatten(_ax2_fx)
 
-    dx2_rowid = np.fromiter(_flatrowids, np.int64, nFeats)
-    dx2_fx    = np.fromiter(_flatfeatxs, np.int64, nFeats)
+    idx2_label = np.fromiter(_flatlabels, np.int64, nFeats)
+    idx2_fx    = np.fromiter(_flatfeatxs, np.int64, nFeats)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
-    dx2_vec = np.vstack(vecs_list)
+    idx2_vec = np.vstack(vecs_list)
     '#pragma cyth_returntup'
-    return dx2_vec, dx2_rowid, dx2_fx
+    return idx2_vec, idx2_label, idx2_fx
 
 import cyth
 if cyth.DYNAMIC:
