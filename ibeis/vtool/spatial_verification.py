@@ -64,21 +64,20 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         np.ndarray[np.float64_t, ndim=2] xy1_mn
         np.ndarray[np.float64_t, ndim=2] xy2_mn
         np.ndarray[np.float64_t, ndim=1] x1_mn, y1_mn,  x2_mn, y2_mn
-        #np.ndarray[np.float64_t, ndim=2] Mx9
+        np.ndarray[np.float64_t, ndim=2] Mx9
     cdef:
-        size_t num_pts
-        size_t ix
+        Py_ssize_t num_pts
+        Py_ssize_t ix
     #endif
     """
     x1_mn = xy1_mn[0]
     y1_mn = xy1_mn[1]
     x2_mn = xy2_mn[0]
     y2_mn = xy2_mn[1]
-    num_pts = len(x1_mn)
+    num_pts = x1_mn.shape[0]
+    Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     """
     #if CYTH
-    cdef np.ndarray[np.float64_t, ndim=2] Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
-    #cdef np.ndarray Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     for ix in range(num_pts):  # Loop over inliers
         # Concatenate all 2x9 matrices into an Mx9 matrix
         Mx9[ix * 2, 3]  = -x1_mn[ix]
@@ -96,7 +95,6 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         Mx9[ix * 2 + 1, 8] = -x2_mn[ix]
     #else
     """
-    Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     for ix in range(num_pts):  # Loop over inliers
         # Concatenate all 2x9 matrices into an Mx9 matrix
         u2        = x2_mn[ix]
