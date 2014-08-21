@@ -280,7 +280,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     #else
     """
     return npl.det(invVR_mats[:, 0:2, 0:2])
-    '#endif'
+    "#endif"
 
 
 @profile

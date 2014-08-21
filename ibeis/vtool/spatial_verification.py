@@ -51,24 +51,23 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
 
     >>> from vtool.spatial_verification import *  # NOQA
     >>> import vtool.tests.dummy as dummy
-    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30))
-    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30))
+    >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair()
     >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
     >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
     >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
     >>> print(utool.hashstr(Mx9))
-    cbuegpb+fma6uk9l
+    f@2l62+2!ppow8yw
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
     #if CYTH
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] xy1_mn
         np.ndarray[np.float64_t, ndim=2] xy2_mn
+        np.ndarray[np.float64_t, ndim=1] x1_mn, y1_mn,  x2_mn, y2_mn
+        #np.ndarray[np.float64_t, ndim=2] Mx9
     cdef:
-        np.ndarray[np.float64_t, ndim=2] Mx9
-        np.float64_t u2, v2, d, e, f, g, h, i, j, k, l, p, q, r
-        long num_pts
-        long ix
+        size_t num_pts
+        size_t ix
     #endif
     """
     x1_mn = xy1_mn[0]
@@ -76,35 +75,39 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     x2_mn = xy2_mn[0]
     y2_mn = xy2_mn[1]
     num_pts = len(x1_mn)
+    """
+    #if CYTH
+    cdef np.ndarray[np.float64_t, ndim=2] Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
+    #cdef np.ndarray Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
+    for ix in range(num_pts):  # Loop over inliers
+        # Concatenate all 2x9 matrices into an Mx9 matrix
+        Mx9[ix * 2, 3]  = -x1_mn[ix]
+        Mx9[ix * 2, 4]  = -y1_mn[ix]
+        Mx9[ix * 2, 5]  = -1.0
+        Mx9[ix * 2, 6]  = y2_mn[ix] * x1_mn[ix]
+        Mx9[ix * 2, 7]  = y2_mn[ix] * y1_mn[ix]
+        Mx9[ix * 2, 8]  = y2_mn[ix]
+
+        Mx9[ix * 2 + 1, 0] = x1_mn[ix]
+        Mx9[ix * 2 + 1, 1] = y1_mn[ix]
+        Mx9[ix * 2 + 1, 2] = -1.0
+        Mx9[ix * 2 + 1, 6] = -x2_mn[ix] * x1_mn[ix]
+        Mx9[ix * 2 + 1, 7] = -x2_mn[ix] * y1_mn[ix]
+        Mx9[ix * 2 + 1, 8] = -x2_mn[ix]
+    #else
+    """
     Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     for ix in range(num_pts):  # Loop over inliers
         # Concatenate all 2x9 matrices into an Mx9 matrix
         u2        = x2_mn[ix]
         v2        = y2_mn[ix]
-        '''
-        <#IFCYTH>
-        Mx9[ix * 2, 3]  = -x1_mn[ix]
-        Mx9[ix * 2, 4]  = -y1_mn[ix]
-        Mx9[ix * 2, 5]  = -1
-        Mx9[ix * 2, 6]  = v2 * x1_mn[ix]
-        Mx9[ix * 2, 7]  = v2 * y1_mn[ix]
-        Mx9[ix * 2, 8]  = v2
-
-        Mx9[ix * 2 + 1, 0] = x1_mn[ix]
-        Mx9[ix * 2 + 1, 1] = y1_mn[ix]
-        Mx9[ix * 2 + 1, 2] = 1
-        Mx9[ix * 2 + 1, 6] = -u2 * x1_mn[ix]
-        Mx9[ix * 2 + 1, 7] = -u2 * y1_mn[ix]
-        Mx9[ix * 2 + 1, 8] = -u2
-        <#ELSE>
-        '''
         (d, e, f) = (     -x1_mn[ix],      -y1_mn[ix],  -1)
         (g, h, i) = ( v2 * x1_mn[ix],  v2 * y1_mn[ix],  v2)
         (j, k, l) = (      x1_mn[ix],       y1_mn[ix],   1)
         (p, q, r) = (-u2 * x1_mn[ix], -u2 * y1_mn[ix], -u2)
         Mx9[ix * 2]     = (0, 0, 0, d, e, f, g, h, i)
         Mx9[ix * 2 + 1] = (j, k, l, 0, 0, 0, p, q, r)
-        '''<#ENDIF>'''
+    "#endif"
     return Mx9
 
 
@@ -121,13 +124,12 @@ def compute_homog(xy1_mn, xy2_mn):
     >>> from vtool.spatial_verification import *  # NOQA
     >>> import vtool.tests.dummy as dummy
     >>> import vtool.keypoint as ktool
-    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30))
-    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30))
-    >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
-    >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
+    >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair()
+    >>> xy1_mn = ktool.get_xys(kpts1)
+    >>> xy2_mn = ktool.get_xys(kpts2)
     >>> output = compute_homog(xy1_mn, xy2_mn)
     >>> print(utool.hashstr(output))
-    +h%5!tqxb+a19scs
+    xosv18ps9u78@o0u
 
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
     #CYTH_PARAM_TYPES:
@@ -195,8 +197,10 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     >>> from vtool.spatial_verification import _test_hypothesis_inliers  # NOQA
     >>> import vtool.tests.dummy as dummy
     >>> import vtool.keypoint as ktool
-    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(30, 30)).astype(np.float64)
-    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(30, 30)).astype(np.float64)
+    >>> _kw1 = dict(seed=12, damping=1.2, wh_stride=(30, 30))
+    >>> _kw2 = dict(seed=24, damping=1.6, wh_stride=(30, 30))
+    >>> kpts1 = dummy.perterbed_grid_kpts(**_kw1).astype(np.float64)
+    >>> kpts2 = dummy.perterbed_grid_kpts(**_kw2).astype(np.float64)
     >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
     >>> kpts1_m = kpts1[fm.T[0]]
     >>> kpts2_m = kpts2[fm.T[1]]
@@ -280,8 +284,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
     >>> from vtool.spatial_verification import *  # NOQA
     >>> import vtool.tests.dummy as dummy
     >>> import vtool.keypoint as ktool
-    >>> kpts1 = dummy.perterbed_grid_kpts(seed=12, damping=1.2, wh_stride=(100, 100)).astype(np.float64)
-    >>> kpts2 = dummy.perterbed_grid_kpts(seed=24, damping=1.6, wh_stride=(100, 100)).astype(np.float64)
+    >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
     >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int64)
     >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
     >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)

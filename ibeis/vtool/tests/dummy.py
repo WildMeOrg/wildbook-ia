@@ -11,6 +11,15 @@ import utool
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
 
 
+def get_dummy_kpts_pair(wh_stride=(30, 30)):
+    _kw0 = dict(wh_stride=wh_stride, dtype=np.float64)
+    _kw1 = dict(seed=12, damping=1.2, **_kw0)
+    _kw2 = dict(seed=24, damping=1.6, **_kw0)
+    kpts1 = perterbed_grid_kpts(**_kw1)
+    kpts2 = perterbed_grid_kpts(**_kw2)
+    return kpts1, kpts2
+
+
 def get_dummy_dpts(num, dtype=np.uint8):
     """ Random SIFTish keypoints """
     from vtool import linalg as ltool
