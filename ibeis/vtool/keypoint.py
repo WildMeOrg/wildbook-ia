@@ -321,6 +321,7 @@ def get_invVR_mats_shape(invVR_mats):
     >>> print(utool.hashstr(output))
     oq9o@yqhtgloy58!
 
+    #CYTH_INLINE
     #if CYTH
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=3] invVR_mats
@@ -375,6 +376,7 @@ def get_invVR_mats_oris(invVR_mats):
     >>> print(utool.hashstr(output))
     mcoxq8!3ml5bj9rx
 
+    #CYTH_INLINE
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAMS:
         np.ndarray[np.float64_t, ndim=3] invVR_mats
@@ -432,10 +434,10 @@ def rectify_invV_mats_are_up(invVR_mats):
     #endif
     """
     # Get orientation encoded in the matrix
-    _oris = get_invVR_mats_oris(invVR_mats)
+    _oris = get_invVR_mats_oris_cyth(invVR_mats)
     # Extract keypoint shape components
     (_a, _b,
-     _c, _d) = get_invVR_mats_shape(invVR_mats)
+     _c, _d) = get_invVR_mats_shape_cyth(invVR_mats)
     #
     # Convert to lower triangular (rectify orientation downwards)
     det_ = np.sqrt(np.abs((_a * _d) - (_b * _c)))
