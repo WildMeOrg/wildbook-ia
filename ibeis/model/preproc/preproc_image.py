@@ -7,50 +7,41 @@ from os.path import splitext, basename
 import numpy as np
 import hashlib
 import uuid
-from utool import util_time
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
-
-
-GPSInfo_TAGID          = exif.EXIF_TAG_TO_TAGID['GPSInfo']
-DateTimeOriginal_TAGID = exif.EXIF_TAG_TO_TAGID['DateTimeOriginal']
 
 
 @profile
 def parse_exif(pil_img):
     """ Image EXIF helper
-    <CYTH: returns=str>
+    #if CYTH
+    #CYTH RETURNS tuple
     cdef:
         Image pil_img
         dict exif_dict
-        tuple latlon
         long lat
         long lon
         long exiftime
-    </CYTH>
     """
     exif_dict = exif.get_exif_dict(pil_img)
-    exiftime  = exif_dict.get(DateTimeOriginal_TAGID, -1)
-    # TODO: Fixme
-    #try:
-    #    latlon = exif_dict.get(GPSInfo_TAGID, (-1, -1))
-    #except EXIFError:
-    #    latlon = (-1, -1)
-    latlon = (-1, -1)
-    lat, lon = latlon
-    time = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+    # TODO: More tags
+    lat, lon = exif.get_lat_lon(exif_dict)
+    time = exif.get_unixtime(exif_dict)
     return time, lat, lon
 
 
 @profile
 def get_image_uuid(pil_img):
-    """<CYTH: returns=uuid.UUID>
+    """
+    #if CYTH
+    #CYTH RETURNS uuid.UUID
     cdef:
         UUID uuid_
-        ??? img_bytes_
-        ??? bytes_sha1
-        ??? hashbytes_16
-        ??? hashbytes_20
-    </CYTH>"""
+        object img_bytes_
+        object bytes_sha1
+        object hashbytes_16
+        object hashbytes_20
+    #endif
+    """
     # DEPRICATE
     # Read PIL image data (every 64th byte)
     img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
@@ -70,13 +61,12 @@ def get_image_uuid(pil_img):
 
 def get_standard_ext(gpath):
     """ Returns standardized image extension
-    <CYTH: returns=str>
+    #if CYTH
     cdef:
         str gpath
         str ext
-    </CYTH>
+    #endif
     """
-
     ext = splitext(gpath)[1].lower()
     return '.jpg' if ext == '.jpeg' else ext
 
@@ -161,15 +151,15 @@ def imgparams_worker2(tup):
 def add_images_params_gen(gpath_list, **kwargs):
     """ generates values for add_images sqlcommands asychronously
 
-    TEST CODE:
-        from ibeis.all_imports import *
-        gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
-        params_list = list(preproc_image.add_images_params_gen(gpath_list))
-    <CYTH: yeilds=tup>
+    >>> from ibeis.all_imports import *
+    >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
+    >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
+
+    #if CYTH
     cdef:
         list gpath_list
         dict kwargs
-    </CYTH>
+    #endif
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))
