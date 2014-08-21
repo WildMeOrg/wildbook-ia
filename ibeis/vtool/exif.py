@@ -2,10 +2,11 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
 import six
-from PIL.ExifTags import TAGS
+from PIL.ExifTags import TAGS, GPSTAGS
 from PIL import Image
 #from utool import util_progress
 import utool
+from utool import util_time
 from . import image as gtool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[exif]', DEBUG=False)
@@ -13,6 +14,15 @@ from . import image as gtool
 
 # Inverse of PIL.ExifTags.TAGS
 EXIF_TAG_TO_TAGID = {val: key for (key, val) in six.iteritems(TAGS)}
+GPS_TAG_TO_GPSID  = {val: key for (key, val) in six.iteritems(GPSTAGS)}
+
+# Relevant EXIF Tags
+#'GPSInfo': 34853
+#'SensitivityType': 34864  # UNSUPPORTED
+
+GPSINFO_CODE = EXIF_TAG_TO_TAGID['GPSInfo']
+DATETIMEORIGINAL_TAGID = EXIF_TAG_TO_TAGID['DateTimeOriginal']
+SENSITIVITYTYPE_CODE = 34864  # UNSUPPORTED BY PIL
 
 
 @profile
@@ -33,11 +43,7 @@ def get_exif_dict(pil_img):
         if exif_dict is None:
             raise AttributeError
         assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
-    except IndexError:
-        exif_dict = {}
-    except AttributeError:
-        exif_dict = {}
-    except OverflowError:
+    except (IndexError, AttributeError, OverflowError):
         exif_dict = {}
     except Exception as ex:
         utool.printex(ex, 'get_exif_dict failed in an unexpected way')
@@ -53,11 +59,16 @@ def get_exif_dict2(pil_img):
         if exif_dict is None:
             raise AttributeError
         assert isinstance(exif_dict, dict), 'type(exif_dict)=%r' % type(exif_dict)
-        exif_dict2 = {TAGS.get(key, key): val for (key, val) in six.iteritems(exif_dict)}
+        exif_dict2 = make_exif_dict_human_readable(exif_dict)
     except AttributeError:
         exif_dict2 = {}
     except OverflowError:
         exif_dict2 = {}
+    return exif_dict2
+
+
+def make_exif_dict_human_readable(exif_dict):
+    exif_dict2 = {TAGS.get(key, key): val for (key, val) in six.iteritems(exif_dict)}
     return exif_dict2
 
 
@@ -151,14 +162,51 @@ def convert_degrees(value):
     return d + (m / 60.0) + (s / 3600.0)
 
 
+GPSLATITUDE_CODE = GPS_TAG_TO_GPSID['GPSLatitude']
+GPSLATITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLatitudeRef']
+GPSLONGITUDE_CODE = GPS_TAG_TO_GPSID['GPSLongitude']
+GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
+
+
 @profile
-def get_lat_lon(exif_data):
-    """Returns the latitude and longitude, if available, from the provided exif_data (obtained through get_exif above)"""
+def get_lat_lon(exif_dict, default=(-1, -1)):
+    """Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)"""
+    if GPSINFO_CODE in exif_dict:
+        gps_info = exif_dict[GPSINFO_CODE]
+
+        if (GPSLATITUDE_CODE in gps_info and
+             GPSLATITUDEREF_CODE in gps_info and
+             GPSLONGITUDE_CODE in gps_info and
+             GPSLONGITUDEREF_CODE in gps_info):
+            gps_latitude      = gps_info[GPSLATITUDE_CODE]
+            gps_latitude_ref  = gps_info[GPSLATITUDEREF_CODE]
+            gps_longitude     = gps_info[GPSLONGITUDE_CODE]
+            gps_longitude_ref = gps_info[GPSLONGITUDEREF_CODE]
+            lat = convert_degrees(gps_latitude)
+            if gps_latitude_ref != 'N':
+                lat = 0 - lat
+
+            lon = convert_degrees(gps_longitude)
+            if gps_longitude_ref != 'E':
+                lon = 0 - lon
+            return lat, lon
+    return default
+
+
+def get_unixtime(exif_dict, default=-1):
+    exiftime  = exif_dict.get(DATETIMEORIGINAL_TAGID, default)
+    unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
+    return unixtime
+
+
+@profile
+def get_lat_lon2(exif_data2):
+    """Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)"""
     lat = -1.0
     lon = -1.0
 
-    if 'GPSInfo' in exif_data:
-        gps_info = exif_data['GPSInfo']
+    if 'GPSInfo' in exif_data2:
+        gps_info = exif_data2['GPSInfo']
 
         gps_latitude      = gps_info.get('GPSLatitude', None)
         gps_latitude_ref  = gps_info.get('GPSLatitudeRef', None)
