@@ -1,0 +1,25 @@
+import numpy as np
+import cython
+
+cimport numpy as np
+cimport cython
+
+#ctypedef fused numpy_floatarray_3dimension:
+#    np.ndarray[np.float32_t, ndim=3]
+#    np.ndarray[np.float64_t, ndim=3]
+#
+#ctypedef fused numpy_floatarray_1dimension:
+#    np.ndarray[np.float32_t, ndim=1]
+#    np.ndarray[np.float64_t, ndim=1]
+
+#def foo(x):
+#    ctypedef np.ndarray[np.float64_t, ndim=3] numpy_floatarray_3dimension
+#    ctypedef np.ndarray[np.float64_t, ndim=1] numpy_floatarray_1dimension
+#    return x
+
+#ctypedef np.ndarray[np.float64_t, ndim=3] numpy_floatarray_3dimension
+#ctypedef np.ndarray[np.float64_t, ndim=1] numpy_floatarray_1dimension
+
+#ctypedef np.float64_t [:, :, :] numpy_floatarray_3dimension
+#ctypedef np.float64_t [:] numpy_floatarray_1dimension
+
