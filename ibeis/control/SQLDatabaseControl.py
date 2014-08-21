@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 # Python
 import six
 from six.moves import map, zip
-from os.path import join, exists
+from os.path import join, exists, dirname, realpath
 import utool
 # Tools
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
@@ -92,13 +92,13 @@ class SQLDatabaseController(object):
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
         assert exists(db.dir_), '[sql] db.dir_=%r does not exist!' % db.dir_
-        fpath    = join(db.dir_, db.fname)
-        if not exists(fpath):
+        db.fpath    = join(db.dir_, db.fname)
+        if not exists(db.fpath):
             print('[sql] Initializing new database')
         # Open the SQL database connection with support for custom types
         #lite.enable_callback_tracebacks(True)
-        #fpath = ':memory:'
-        db.connection = lite.connect2(fpath)
+        #db.fpath = ':memory:'
+        db.connection = lite.connect2(db.fpath)
         db.connection.text_factory = text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
         COPY_TO_MEMORY = utool.get_flag('--copy-db-to-memory')
@@ -435,13 +435,15 @@ class SQLDatabaseController(object):
     #        raise
 
     @default_decorator
-    def dump_to_file(db, file_, auto_commit=True):
+    def dump_to_file(db, file_, auto_commit=True, schema_only=False):
         if VERYVERBOSE:
             print('[sql.dump]')
         if auto_commit:
             db.connection.commit()
             #db.commit(verbose=False)
         for line in db.connection.iterdump():
+            if schema_only and line.startswith('INSERT'):
+                continue
             file_.write('%s\n' % line)
 
     #==============
@@ -449,15 +451,15 @@ class SQLDatabaseController(object):
     #==============
 
     @default_decorator
-    def dump(db, file_=None, auto_commit=True):
+    def dump(db, file_=None, auto_commit=True, schema_only=False):
         if file_ is None or isinstance(file_, six.string_types):
             dump_fpath = file_
             if dump_fpath is None:
                 dump_fpath = join(db.dir_, db.fname + '.dump.txt')
             with open(dump_fpath, 'w') as file_:
-                db.dump_to_file(file_, auto_commit)
+                db.dump_to_file(file_, auto_commit, schema_only)
         else:
-            db.dump_to_file(file_)
+            db.dump_to_file(file_, auto_commit, schema_only)
 
     @default_decorator
     def dump_tables_to_csv(db):
@@ -469,6 +471,26 @@ class SQLDatabaseController(object):
             table_csv = db.get_table_csv(tablename)
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)
+
+
+    @default_decorator
+    def dump_schema(db):
+        """ Convenience: Dumps all csv database files to disk """
+        controller_directory = dirname(realpath(__file__))
+        dump_fpath = join(controller_directory, 'schema.txt')
+        with open(dump_fpath, 'w') as file_:
+            for tablename in sorted(six.iterkeys(db.table_columns)):
+                file_.write(tablename + '\n')
+                db.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
+                columns = db.cur.fetchall()
+                for column in columns:
+                    col_name = str(column[1]).ljust(30)
+                    col_type = str(column[2]).ljust(10)
+                    col_null = str(('ALLOW NULL' if column[3] == 1 else 'NOT NULL')).ljust(12)
+                    col_default = str(column[4]).ljust(10)
+                    col_key = str(('KEY' if column[5] == 1 else ''))
+                    col = (col_name, col_type, col_null, col_default, col_key)
+                    file_.write('\t%s%s%s%s%s\n' %col)
 
     @default_decorator
     def get_column_names(db, tablename):

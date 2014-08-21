@@ -51,6 +51,7 @@ nosetests.xml
 # Test data
 test_data*.shelf
 ibeis/model/detect/rf
+ibeis/control/schema.txt
 tmp.py
 
 *.flann

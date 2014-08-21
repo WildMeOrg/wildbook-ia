@@ -44,10 +44,6 @@ def fix_compname_configs(ibs):
             params=(rowid,))
 
 
-def ensure_correct_version(ibs):
-    ibs.add_version(['schema_v1.0'])
-
-
 def remove_database_slag(ibs,
                          delete_invalid_names=False,
                          delete_invalid_encounters=False,

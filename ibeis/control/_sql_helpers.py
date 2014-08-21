@@ -3,12 +3,15 @@ import utool
 import re
 from . import __SQLITE3__ as lite
 
+from ibeis import constants
+from ibeis.control import DB_SCHEMA
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql-helpers]')
 
 # =======================
 # Helper Functions
 # =======================
+
 PRINT_SQL = utool.get_flag('--print-sql')
 AUTODUMP = utool.get_flag('--auto-dump')
 QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
@@ -44,11 +47,107 @@ def _unpacker(results_):
     assert len(results_) < 2, 'throwing away results! { %r }' % (results_)
     return results
 
+# ========================
+# Schema Updater Functions
+# ========================
+
+def ensure_correct_version(ibs):
+    versionid_list = ibs._get_all_versions()
+    if len(versionid_list) == 0:
+        print('[ensure_correct_version] Adding database version as %r'  
+                %(constants.BASE_DATABASE_VERSION))
+        ibs.add_version([constants.BASE_DATABASE_VERSION])
+        db_version = constants.BASE_DATABASE_VERSION
+    elif len(versionid_list) == 1:
+        versiontext_list = ibs.get_version_text(versionid_list)
+        db_version = versiontext_list[0] 
+        if db_version == 'schema_v1.0':
+            # Fix to remove schema_v1.0 name that we originally pushed
+            versionsid_list = ibs._get_all_versions()
+            ibs.delete_versions(versionsid_list)
+            ibs.add_version(['1.0.0'])
+            db_version = '1.0.0'
+    else:
+        db_version = None
+        raise AssertionError('[!ensure_correct_version] ERROR: The database version is ambiguous!')   
+
+    print('[ensure_correct_version] Database version: %r | Expected version: %r '
+            %(db_version, ibs.db_version_expected))
+
+    if db_version < ibs.db_version_expected:
+        print('[ensure_correct_version] Database version behind, updating...')
+        update_schema_version(ibs, db_version, ibs.db_version_expected)
+        versionsid_list = ibs._get_all_versions()
+        ibs.delete_versions(versionsid_list)
+        ibs.add_version([ibs.db_version_expected])
+        print('[ensure_correct_version] Database version updated to %r' 
+            %(ibs.db_version_expected))
+
+    elif db_version > ibs.db_version_expected:
+        raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
+
+
+def compare_string_versions(a, b):
+    a = map(int, a.strip().split('.'))
+    b = map(int, b.strip().split('.'))
+    while len(a) < 3:
+        a.append(0)
+    while len(b) < 3:
+        b.append(0)
+    if a[0] < b[0]:
+        return -1
+    elif a[0] > b[0]:
+        return 1
+    else:
+        if a[1] < b[1]:
+            return -1
+        elif a[1] > b[1]:
+            return 1
+        else:
+            if a[2] < b[2]:
+                return -1
+            elif a[2] > b[2]:
+                return 1
+    # return 0 - identical 
+    raise AssertionError('[!update_schema_version] Two version numbers are the same along the update path')
+
+
+def update_schema_version(ibs, db_version, db_version_target):
+    db_backup_fpath = ibs.db.fpath + '-backup'
+    utool.copy(ibs.db.fpath, db_backup_fpath)
+    valid_versions = sorted(DB_SCHEMA.VALID_VERSIONS.keys(), compare_string_versions)
+    try:
+        start_index = valid_versions.index(db_version) + 1
+    except Exception:
+        raise AssertionError('[!update_schema_version] The current database version is unknown')
+    try:
+        end_index = valid_versions.index(db_version_target) + 1
+    except Exception:
+        raise AssertionError('[!update_schema_version] The target database version is unknown')
+
+    try:
+        print('Update path: %r ' %(valid_versions[start_index:end_index]))
+        for index in range(start_index, end_index):
+            next_version = valid_versions[index]
+            print('Updating database to version: %r' %(next_version))
+            pre, update, post = DB_SCHEMA.VALID_VERSIONS[next_version]
+            if pre is not None:
+                pre(ibs)
+            if update is not None:
+                update(ibs)
+            if post is not None:
+                post(ibs)
+    except Exception:
+        utool.remove_file(ibs.db.fpath)
+        utool.copy(db_backup_fpath, ibs.db.fpath)
+        utool.remove_file(db_backup_fpath)
+        raise IOError('The database update failed, rolled back to the original version.')
+
+    utool.remove_file(db_backup_fpath)
 
 # =======================
 # SQL Context Class
 # =======================
-
 
 class SQLExecutionContext(object):
     """ A good with context to use around direct sql calls

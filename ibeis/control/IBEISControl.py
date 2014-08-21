@@ -42,7 +42,8 @@ from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips4 as mc4
 from ibeis.model.hots import hots_query_request
 # IBEIS
-from ibeis.control import DB_SCHEMA
+# from ibeis.control import DB_SCHEMA
+from ibeis.control import _sql_helpers
 from ibeis.control import SQLDatabaseControl as sqldbc
 from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
@@ -190,16 +191,27 @@ class IBEISController(object):
 
     @default_decorator
     def _init_sql(ibs):
+        def ensure_versions_table(ibs):
+            ibs.db.schema(constants.VERSIONS_TABLE, (
+                ('version_rowid',          'INTEGER PRIMARY KEY'),
+                ('version_text',           'TEXT'),
+            ),
+                superkey_colnames=['version_text'],
+                docstr='''
+                holds the schema version info''')
+
         """ Load or create sql database """
+        ibs.db_version_expected = '1.0.1'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
-        DB_SCHEMA.define_IBEIS_schema(ibs)
+        ensure_versions_table(ibs)
+        _sql_helpers.ensure_correct_version(ibs)
+        ibs.db.dump_schema()
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-        # from ibeis.dev import duct_tape
+        from ibeis.dev import duct_tape
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
-        # duct_tape.ensure_correct_version(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
         lbltype_defaults = constants.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
@@ -362,6 +374,12 @@ class IBEISController(object):
     # Standard
 
     # Internal
+
+    @ider
+    def _get_all_versions(ibs):
+        """ returns all versions in the versions table """
+        all_version_ids = ibs.db.get_all_rowids(VERSIONS_TABLE)
+        return all_version_ids
 
     @ider
     def _get_all_gids(ibs):
@@ -708,6 +726,12 @@ class IBEISController(object):
         versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',),
                                     versiontext_list, id_colname='version_text')
         return versionid_list
+
+
+    @getter_1to1
+    def get_version_text(ibs, versionid_list):
+        versiontext_list = ibs.db.get(VERSIONS_TABLE, ('version_text',), versionid_list)
+        return versiontext_list
 
     @adder
     def add_config(ibs, cfgsuffix_list):
@@ -1570,6 +1594,10 @@ class IBEISController(object):
         ibs.delete_annot_chips(aid_list)
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
         ibs.delete_annot_relations(aid_list)
+
+    @deleter
+    def delete_versions(ibs, versionsid_list):
+        ibs.db.delete_rowids(VERSIONS_TABLE, versionsid_list)
 
     @deleter
     def delete_images(ibs, gid_list):
