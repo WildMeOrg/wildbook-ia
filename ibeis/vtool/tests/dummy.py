@@ -11,6 +11,17 @@ import utool
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
 
 
+def dummy_seed(seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+
+
+def get_dummy_xy(seed=0):
+    dummy_seed(seed=seed)
+    xy = np.random.rand(2, 100).astype(np.float64)
+    return xy
+
+
 def get_dummy_kpts_pair(wh_stride=(30, 30)):
     _kw0 = dict(wh_stride=wh_stride, dtype=np.float64)
     _kw1 = dict(seed=12, damping=1.2, **_kw0)
@@ -23,7 +34,7 @@ def get_dummy_kpts_pair(wh_stride=(30, 30)):
 def get_dummy_dpts(num, dtype=np.uint8):
     """ Random SIFTish keypoints """
     from vtool import linalg as ltool
-    dpts_ = np.random.rand(num, 128).astype(np.float32)
+    dpts_ = np.random.rand(num, 128).astype(np.float64)
     dpts_norm = ltool.normalize_rows(dpts_)
     # do SIFT normalization
     dpts_norm[dpts_norm > .2] = .2

@@ -13,16 +13,11 @@ profile = utool.profile
 #    __name__, '[linalg]', DEBUG=False)
 
 '''
-<CYTH>
-cimport numpy as np
-import numpy as np
-
-#ctypedef np.float32_t float32_t
-#ctypedef np.float64_t float64_t
-#### <FLOAT_TYPES> = [float32_t, float64_t]
-</CYTH>
+#if CYTH
+cdef np.float64_t TAU
+#endif
 '''
-np.tau = 2 * np.pi  # tauday.com
+TAU = 2 * np.pi  # tauday.com
 
 TRANSFORM_DTYPE = np.float64
 
@@ -52,8 +47,8 @@ def OLD_pdf_norm2d(x_, y_):
         det = np.linalg.det(sigma)
         if det == 0:
             raise NameError('The covariance matrix cant be singular')
-    np.tau = 2 * np.pi
-    norm_const = 1.0 / ( math.pow(np.tau, float(size) / 2) * math.pow(det, 1.0 / 2))
+    TAU = 2 * np.pi
+    norm_const = 1.0 / ( math.pow(TAU, float(size) / 2) * math.pow(det, 1.0 / 2))
     x_mu = np.matrix(x - mu)
     inv = np.linalg.inv(sigma)
     result = math.pow(math.e, -0.5 * (x_mu * inv * x_mu.T))
@@ -77,7 +72,7 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
         det = npl.det(sigma)
         if det == 0:
             raise NameError('The covariance matrix cant be singular')
-    denom1 = np.tau ** (size / 2.0)
+    denom1 = TAU ** (size / 2.0)
     denom2 = np.sqrt(det)
     #norm_const = 1.0 / (denom1 * denom2)
     norm_const = np.reciprocal(denom1 * denom2)
@@ -236,7 +231,7 @@ def and_lists(*args):
 
 def and_3lists(arr1, arr2, arr3):
     """
-    >>> from vtool.linalg import *
+    >>> from vtool.linalg import *  # NOQA
     >>> np.random.seed(53)
     >>> arr1 = (np.random.rand(1000) > .5).astype(np.bool)
     >>> arr2 = (np.random.rand(1000) > .5).astype(np.bool)
@@ -246,6 +241,11 @@ def and_3lists(arr1, arr2, arr3):
     prxuyy1w%ht57jaf
 
     #if CYTH
+    #CYTH_INLINE
+    cdef:
+        np.ndarray arr1
+        np.ndarray arr2
+        np.ndarray arr3
     #endif
     """
     return np.logical_and(np.logical_and(arr1, arr2), arr3)
@@ -254,31 +254,32 @@ def and_3lists(arr1, arr2, arr3):
 @profile
 def ori_distance(ori1, ori2):
     """ Returns how far off determinants are from one another
-    >>> from vtool.linalg import *
+    >>> from vtool.linalg import *  # NOQA
     >>> np.random.seed(53)
-    >>> ori1 = (np.random.rand(1000) * np.tau) - np.pi
-    >>> ori2 = (np.random.rand(1000) * np.tau) - np.pi
+    >>> ori1 = (np.random.rand(1000) * TAU) - np.pi
+    >>> ori2 = (np.random.rand(1000) * TAU) - np.pi
     >>> output = utool.hashstr(utool.hashstr(ori_distance(ori1, ori2)))
     >>> print(utool.hashstr(output))
     !755pt!alrfgshiu
 
     #if CYTH
+    #CYTH_INLINE
     #CYTH_PARAM_TYPES:
         np.ndarray ori1
         np.ndarray ori2
     #endif
     """
     # TODO: Cython
-    ori_dist = np.abs(ori1 - ori2) % np.tau
-    ori_dist = np.minimum(ori_dist, np.tau - ori_dist)
-    #np.minimum(ori_dist, np.tau - ori_dist, ori_dist)
+    ori_dist = np.abs(ori1 - ori2) % TAU
+    ori_dist = np.minimum(ori_dist, TAU - ori_dist)
+    #np.minimum(ori_dist, TAU - ori_dist, ori_dist)
     return ori_dist
 
 
 @profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
-    >>> from vtool.linalg import *
+    >>> from vtool.linalg import *  # NOQA
     >>> np.random.seed(53)
     >>> det1 = np.random.rand(1000)
     >>> det2 = np.random.rand(1000)
@@ -286,6 +287,7 @@ def det_distance(det1, det2):
     >>> print(utool.hashstr(output))
     pfce!exwvqz8e1n!
 
+    #CYTH_INLINE
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=1] det1
@@ -325,7 +327,7 @@ def L2_sqrd(hist1, hist2):
     """ returns the squared L2 distance
     seealso L2
     Test:
-    >>> from vtool.linalg import *
+    >>> from vtool.linalg import *  # NOQA
     >>> np.random.seed(53)
     >>> hist1 = np.random.rand(1000, 2)
     >>> hist2 = np.random.rand(1000, 2)
@@ -333,6 +335,7 @@ def L2_sqrd(hist1, hist2):
     >>> print(utool.hashstr(output))
     v9wc&brmvjy1as!z
 
+    #CYTH_INLINE
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=2] hist1
@@ -383,6 +386,24 @@ def hist_isect(hist1, hist2):
 def whiten_xy_points(xy_m):
     """
     whitens points to mean=0, stddev=1 and returns transformation
+    >>> from vtool.linalg import *  # NOQA
+    >>> from vtool.tests import dummy
+    >>> xy_m = dummy.get_dummy_xy()
+    >>> tup = whiten_xy_points(xy_m)
+    >>> xy_norm, T = tup
+    >>> print(utool.hashstr(tup))
+    wg%mpai0hxvil4p2
+
+    #CYTH_INLINE
+    #if CYTH
+    cdef:
+        np.ndarray[np.float64_t, ndim=2] xy_m
+        np.ndarray[np.float64_t, ndim=1] mu_xy
+        np.ndarray[np.float64_t, ndim=1] std_xy
+        np.ndarray[np.float64_t, ndim=2] T
+        np.float64_t tx, ty, sx, sy
+        np.ndarray[np.float64_t, ndim=2] xy_norm
+    #endif
     """
     mu_xy  = xy_m.mean(1)  # center of mass
     std_xy = xy_m.std(1)
@@ -469,23 +490,6 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
     for row_result in row_result_list[1:]:
         output = logic_op(output, row_result)
     return output
-
-# CYTH PROTOTYPE CODE:
-#cython_funcs = [('det_distance', ['float32', 'float64']), ('L2_sqrd', ['float32', 'float64'])]
-#for
-#try:
-#    #if not utool.get_flag('--nocyth'):
-#    if utool.get_flag('--cyth'):
-#        from .linalg_cython import (  # NOQA
-#            L2_sqrd_float32, L2_sqrd_float64, det_distance_float32,
-#                                    det_distance_float64, L2_sqrd_cython,
-#                                    det_distance_cython)
-#    else:
-#        raise ImportError('no cyth')
-#except ImportError as ex:
-#    # default to python
-#    L2_sqrd_cython = L2_sqrd
-#    det_distance_cython = det_distance
 
 
 import cyth
