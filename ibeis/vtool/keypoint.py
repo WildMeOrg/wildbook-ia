@@ -263,6 +263,7 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
     >>> print(utool.hashstr(output))
     1i468l@838vatv@4
 
+    #CYTH_INLINE
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
     #CYTH_PARAM_TYPES:
         np.ndarray[np.float64_t, ndim=3] invVR_mats
@@ -310,15 +311,30 @@ def get_invVR_mats_shape(invVR_mats):
     #endif
     """
 
+    # TODO
+    # http://stackoverflow.com/questions/14386822/fast-numpy-fancy-indexing
+    #(a.ravel()[(cols + (rows * a.shape[1]).reshape((-1,1))).ravel()]).reshape(rows.size, cols.size)
+
     # So, this doesn't work
     # Try this instead
     #http://docs.cython.org/src/userguide/memoryviews.html#memoryviews
+    '''
+    '#if cyth'
     '#m_acro numpy_fancy_index_macro'
+    '#e_ndmacro'
+    _iv11s = invVR_mats.take(:, axis=1)
+    _iv12s = invVR_mats[:, 0, 1]
+    _iv21s = invVR_mats[:, 1, 0]
+    _iv22s = invVR_mats[:, 1, 1]
+    '#else'
+    #cols, rows, dims = invVR_mats.shape
+    #invVR_mats.ravel()[(cols + (rows * a.shape[1]).reshape((-1, 1))).ravel()])
+    '''
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
     _iv21s = invVR_mats[:, 1, 0]
     _iv22s = invVR_mats[:, 1, 1]
-    '#e_ndmacro'
+    '#endif'
 
     #'#pragma cyth numpy_fancy_index_assign'
     return (_iv11s, _iv12s, _iv21s, _iv22s)
@@ -358,9 +374,9 @@ def get_invVR_mats_oris(invVR_mats):
         np.ndarray[np.float64_t, ndim=1] _oris
         np.ndarray[np.float64_t, ndim=1] _iv12s
         np.ndarray[np.float64_t, ndim=1] _iv11s
+
     _iv11s = invVR_mats[:, 0, 0]
     _iv12s = invVR_mats[:, 0, 1]
-    # Solve for orientations. Adjust gravity vector pointing down
     _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
     _oris[_oris < 0] = _oris[_oris < 0] + TAU  # map to 0 to TAU (keep coords)
     _oris = (-_oris) % TAU
@@ -373,6 +389,7 @@ def get_invVR_mats_oris(invVR_mats):
     # Solve for orientations. Adjust gravity vector pointing down
     _oris = (-trig.atan2(_iv12s, _iv11s)) % TAU
     return _oris
+    "#endif"
 
 
 @profile

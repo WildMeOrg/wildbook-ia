@@ -488,7 +488,6 @@ else:
         _get_affine_inliers_cyth       = vtool._spatial_verification_cyth._get_affine_inliers_cyth
         _get_best_affine_inliers_cyth  = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
         _get_homography_inliers_cyth   = vtool._spatial_verification_cyth._get_homography_inliers_cyth
-        _spatial_verification_cyth     = vtool._spatial_verification_cyth._spatial_verification_cyth
         _test_hypothesis_inliers_cyth  = vtool._spatial_verification_cyth.__test_hypothesis_inliers_cyth
         build_lstsqrs_Mx9_cyth         = vtool._spatial_verification_cyth._build_lstsqrs_Mx9_cyth
         compute_homog_cyth             = vtool._spatial_verification_cyth._compute_homog_cyth
@@ -496,7 +495,6 @@ else:
         get_affine_inliers_cyth        = vtool._spatial_verification_cyth._get_affine_inliers_cyth
         get_best_affine_inliers_cyth   = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
         get_homography_inliers_cyth    = vtool._spatial_verification_cyth._get_homography_inliers_cyth
-        spatial_verification_cyth      = vtool._spatial_verification_cyth._spatial_verification_cyth
         CYTHONIZED = True
     except ImportError:
         _test_hypothesis_inliers_cyth = _test_hypothesis_inliers
@@ -506,6 +504,5 @@ else:
         get_affine_inliers_cyth       = get_affine_inliers
         get_best_affine_inliers_cyth  = get_best_affine_inliers
         get_homography_inliers_cyth   = get_homography_inliers
-        spatial_verification_cyth     = spatial_verification
         CYTHONIZED = False
     # </AUTOGEN_CYTH>

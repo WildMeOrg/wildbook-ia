@@ -262,5 +262,16 @@ if cyth.DYNAMIC:
     exec(cyth.import_cyth_execstr(__name__))
 else:
     # <AUTOGEN_CYTH>
+    # Regen command: python -c "import vtool.nearest_neighbors" --cyth-write
+    try:
+        if not cyth.WITH_CYTH:
+            raise ImportError('no cyth')
+        import vtool._nearest_neighbors_cyth
+        _invertable_stack_cyth = vtool._nearest_neighbors_cyth._invertable_stack_cyth
+        invertable_stack_cyth  = vtool._nearest_neighbors_cyth._invertable_stack_cyth
+        CYTHONIZED = True
+    except ImportError:
+        invertable_stack_cyth = invertable_stack
+        CYTHONIZED = False
     # </AUTOGEN_CYTH>
     pass
