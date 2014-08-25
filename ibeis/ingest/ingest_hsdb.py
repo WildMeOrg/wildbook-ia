@@ -69,7 +69,10 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     # READ NAME TABLE
     names_name_list = ['____']
     name_nid_list   = [0]
-    with open(join(hsdb_dir, '_hsdb', 'name_table.csv'), 'rb') as nametbl_file:
+
+    internal_dir = sysres.get_hsinternal(hsdb_dir)
+
+    with open(join(internal_dir, 'name_table.csv'), 'rb') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
         for ix, row in enumerate(name_reader):
             #if ix >= 3:
@@ -91,7 +94,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     image_gid_list   = []
     image_gname_list = []
     image_reviewed_list   = []
-    with open(join(hsdb_dir, '_hsdb/image_table.csv'), 'rb') as imgtb_file:
+    with open(join(internal_dir, 'image_table.csv'), 'rb') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
         for ix, row in enumerate(image_reader):
             #if ix >= 3:
@@ -128,7 +131,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     chip_nid_list    = []
     chip_gid_list    = []
     chip_note_list   = []
-    with open(join(hsdb_dir, '_hsdb/chip_table.csv'), 'rb') as chiptbl_file:
+    with open(join(internal_dir, 'chip_table.csv'), 'rb') as chiptbl_file:
         chip_reader = csv.reader(chiptbl_file)
         for ix, row in enumerate(chip_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):

@@ -298,6 +298,31 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 ./dev.py -t gv --qaid 1 11 -w
 
 
+# Database Stats for all our important datasets:
+./dev.py --allgt -t dbinfo --db PZ_Mothers | grep dbinfo
+./dev.py --allgt -t dbinfo --db PZ_FlankHack | grep dbinfo
+./dev.py --allgt -t dbinfo --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB | grep dbinfo
+./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-80_nImg=555 | grep dbinfo
+./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-224_nImg=222 | grep dbinfo
+./dev.py --allgt -t dbinfo --db OP_Trip14 | grep dbinfo
+./dev.py --allgt -t dbinfo --db GZ_ALL | grep dbinfo
+./dev.py --allgt -t dbinfo --db GZ_Siva | grep dbinfo
+./dev.py --allgt -t dbinfo --db MISC_Jan12 | grep dbinfo
+./dev.py --allgt -t dbinfo --db GIR_Tanya | grep dbinfo
+./dev.py --allgt -t dbinfo --db LF_Bajo_bonito | grep dbinfo
+./dev.py --allgt -t dbinfo --db LF_WEST_POINT_OPTIMIZADAS | grep dbinfo
+./dev.py --allgt -t dbinfo --db LF_OPTIMIZADAS_NI_V_E | grep dbinfo
+./dev.py --allgt -t dbinfo --db Rhinos_Stewart | grep dbinfo
+./dev.py --allgt -t dbinfo --db Elephants_Stewart | grep dbinfo
+./dev.py --allgt -t dbinfo --db WY_Toads | grep dbinfo
+./dev.py --allgt -t dbinfo --db Frogs | grep dbinfo
+./dev.py --allgt -t dbinfo --db Wildebeast | grep dbinfo
+./dev.py --allgt -t dbinfo --db Seals | grep dbinfo
+./dev.py --allgt -t dbinfo --db JAG_Kelly | grep dbinfo
+./dev.py --allgt -t dbinfo --db JAG_Kieryn | grep dbinfo
+./dev.py --allgt -t dbinfo --db polar_bears | grep dbinfo
+./dev.py --allgt -t dbinfo --db snails_drop1 | grep dbinfo
+
 
 # Current Experiments:
 
@@ -321,6 +346,8 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 ./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
 ./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
+
+./main.py --db /raid/PZ_RoseMary -t best
 ```
 
 

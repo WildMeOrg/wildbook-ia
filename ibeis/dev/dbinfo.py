@@ -22,11 +22,9 @@ def get_dbinfo(ibs):
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
 
-    num_annots = len(valid_aids)
-    num_images = len(valid_gids)
-
     name_aids_list = ibs.get_name_aids(valid_nids)
     nx2_aids = np.array(name_aids_list)
+    unknown_aids = utool.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
 
     gname_list = ibs.get_image_gnames(valid_gids)
     nx2_nRois = np.asarray(list(map(len, nx2_aids)))
@@ -72,23 +70,42 @@ def get_dbinfo(ibs):
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(annotation_size_list)
-    multiton_stats  = utool.common_stats(multiton_nid2_nannots)
+    multiton_stats  = utool.stats_str(multiton_nid2_nannots)
 
-    num_names = len(valid_nids)
+    # Time stats
+    unixtime_list_ = ibs.get_image_unixtime(valid_gids)
+    utvalid_list   = [time != -1 for time in unixtime_list_]
+    unixtime_list  = utool.filter_items(unixtime_list_, utvalid_list)
+    unixtime_statstr = utool.get_timestats_str(unixtime_list)
+
+    # GPS stats
+    gps_list_ = ibs.get_image_gps(valid_gids)
+    gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
+    gps_list  = utool.filter_items(gps_list_, gpsvalid_list)
+
     # print
     info_str = '\n'.join([
+        ('+--------'),
+        ('+ singleton = single sighting'),
+        ('+ multiton = multiple sightings'),
         (' DB Info: ' + ibs.get_dbname()),
-        (' * #Img   = %d' % num_images),
-        (' * #Annots = %d' % num_annots),
+        (' * #Img   = %d' % len(valid_gids)),
+        (' * #Annots = %d' % len(valid_aids)),
         (' * #Names = %d' % len(valid_nids)),
-        (' * #Names  (without gt) = %d' % len(singleton_nids)),
-        (' * #Names  (with gt)    = %d' % len(multiton_nids)),
-        (' * #Annots (with gt)    = %d' % len(multiton_aids)),
-        (' * Annots per Names (with gt) = %s' % (multiton_stats,)),
+        (' * #Names  (singleton)  = %d' % len(singleton_nids)),
+        (' * #Names  (multiton)   = %d' % len(multiton_nids)),
+        (' * #Unknown Annots      = %d' % len(unknown_aids)),
+        (' * #Annots (multiton)   = %d' % len(multiton_aids)),
+        (' * #Annots per Name (multiton) = %s' % (multiton_stats,)),
+        (' * #Img with gps        = %d/%d' % (len(gps_list), len(valid_gids))),
+        (' * #Img with timestamp  = %d/%d' % (len(unixtime_list), len(valid_gids))),
+        (' * #Img time stats      = %s' % (unixtime_statstr,)),
         (' * #Img in dir = %d' % len(gpath_list)),
         (' * Image Size Stats = %s' % (img_size_stats,)),
-        (' * Chip Size Stats = %s' % (chip_size_stats,)), ])
-    print(info_str)
+        #(' * Chip Size Stats = %s' % (chip_size_stats,)),
+        ('L--------'),
+    ])
+    print(utool.indent(info_str, '[dbinfo]'))
     return locals()
 
 
