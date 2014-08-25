@@ -1313,12 +1313,18 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_annot_nids(valid_aids)
     nid2_aids = utool.group_items(valid_aids, valid_nids)
-    for nid in six.iterkeys(nid2_aids):
-        # Remove unknown
+    for nid in list(nid2_aids.keys()):
         if ibs.is_nid_unknown(nid):
+            # Remove unknown
             del nid2_aids[nid]
+            continue
         # Cast into numpy arrays
         aids =  np.array(nid2_aids[nid])
+        if len(aids) == 0:
+            # Remove empties
+            print('[ibsfuncs] name with 0 aids. need to clean database')
+            del nid2_aids[nid]
+            continue
         nid2_aids[nid] = aids
         # Shuffle known annotations in each name
         #np.random.shuffle(aids)

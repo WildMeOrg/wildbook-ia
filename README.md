@@ -346,7 +346,8 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 ./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
 
-./dev.py --db PZ_RoseMary -t best
+./dev.py --db PZ_RoseMary -t best --allgt
+./dev.py --db PZ_RoseMary -t upsize --allgt
 ```
 
 
