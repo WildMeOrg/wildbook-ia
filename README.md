@@ -301,7 +301,7 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 # Database Stats for all our important datasets:
 ./dev.py --allgt -t dbinfo --db PZ_Mothers | grep dbinfo
 ./dev.py --allgt -t dbinfo --db PZ_FlankHack | grep dbinfo
-./dev.py --allgt -t dbinfo --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB | grep dbinfo
+./dev.py --allgt -t dbinfo --db PZ_RoseMary | grep dbinfo
 ./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-80_nImg=555 | grep dbinfo
 ./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-224_nImg=222 | grep dbinfo
 ./dev.py --allgt -t dbinfo --db OP_Trip14 | grep dbinfo
@@ -345,9 +345,8 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 ./dev.py -t best --qaid 1:10 --db PZ_Mothers --nocache-big --nocache-query
 
 ./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
-./main.py --dbdir /raid/PZ_RoseMary_ONLY-Server-Aug-3-2014_1.5_GB_IBSDB --cmd
 
-./main.py --db /raid/PZ_RoseMary -t best
+./dev.py --db PZ_RoseMary -t best
 ```
 
 
