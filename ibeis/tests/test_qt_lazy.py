@@ -27,7 +27,7 @@ def create_databse():
         ('encounter_id',      'INTEGER PRIMARY KEY'),
         ('encounter_name',    'TEXT'),
     ]
-    db.schema('encounters', encounters)
+    db.add_table('encounters', encounters)
 
     rows = 1 * (10 ** 3)
     feats_iter = ( (_randstr(), ) for i in range(rows) )
@@ -53,7 +53,7 @@ def create_databse():
         ('data_text',    'TEXT'),
         ('data_text2',   'TEXT'),
     ]
-    db.schema('data', headers)
+    db.add_table('data', headers)
 
     col_name_list = [ column[0] for column in headers ]
     col_type_list = [ str ] * len(col_name_list)

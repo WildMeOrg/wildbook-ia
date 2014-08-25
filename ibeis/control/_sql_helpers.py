@@ -223,6 +223,8 @@ def get_operation_type(operation):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
     elif operation_type.startswith('INSERT'):
         operation_args = utool.str_between(operation, operation_type, '(').strip()
+    elif operation_type.startswith('DROP'):
+        operation_args = ''
     elif operation_type.startswith('UPDATE'):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()
     elif operation_type.startswith('DELETE'):

@@ -9,7 +9,7 @@ from ibeis import constants
 # =======================
 
 def update_1_0_0(ibs):
-    ibs.db.schema(constants.IMAGE_TABLE, (
+    ibs.db.add_table(constants.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
         ('image_uuid',                   'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
@@ -29,7 +29,7 @@ def update_1_0_0(ibs):
         docstr='''
         First class table used to store image locations and meta-data''')
 
-    ibs.db.schema(constants.ENCOUNTER_TABLE, (
+    ibs.db.add_table(constants.ENCOUNTER_TABLE, (
         ('encounter_rowid',              'INTEGER PRIMARY KEY'),
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
@@ -39,7 +39,7 @@ def update_1_0_0(ibs):
         docstr='''
         List of all encounters''')
 
-    ibs.db.schema(constants.LBLTYPE_TABLE, (
+    ibs.db.add_table(constants.LBLTYPE_TABLE, (
         ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
@@ -51,7 +51,7 @@ def update_1_0_0(ibs):
         lblannot_value of annotations with a relationship of some
         lbltype_rowid''')
 
-    ibs.db.schema(constants.CONFIG_TABLE, (
+    ibs.db.add_table(constants.CONFIG_TABLE, (
         ('config_rowid',                 'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
     ),
@@ -61,7 +61,7 @@ def update_1_0_0(ibs):
         annotation lblannots.  Each user will have a config id for manual
         contributions ''')
 
-    ibs.db.schema(constants.VERSIONS_TABLE, (
+    ibs.db.add_table(constants.VERSIONS_TABLE, (
         ('version_rowid',                'INTEGER PRIMARY KEY'),
         ('version_text',                 'TEXT'),
     ),
@@ -72,7 +72,7 @@ def update_1_0_0(ibs):
     ##########################
     # FIRST ORDER            #
     ##########################
-    ibs.db.schema(constants.ANNOTATION_TABLE, (
+    ibs.db.add_table(constants.ANNOTATION_TABLE, (
         ('annot_rowid',                  'INTEGER PRIMARY KEY'),
         ('annot_uuid',                   'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),
@@ -94,7 +94,7 @@ def update_1_0_0(ibs):
         encoded here Attributes are stored in the Annotation Label Relationship
         Table''')
 
-    ibs.db.schema(constants.LBLIMAGE_TABLE, (
+    ibs.db.add_table(constants.LBLIMAGE_TABLE, (
         ('lblimage_rowid',               'INTEGER PRIMARY KEY'),
         ('lblimage_uuid',                'UUID NOT NULL'),
         ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
@@ -105,7 +105,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store the labels (attributes) of images''')
 
-    ibs.db.schema(constants.LBLANNOT_TABLE, (
+    ibs.db.add_table(constants.LBLANNOT_TABLE, (
         ('lblannot_rowid',               'INTEGER PRIMARY KEY'),
         ('lblannot_uuid',                'UUID NOT NULL'),
         ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
@@ -121,7 +121,7 @@ def update_1_0_0(ibs):
     # SECOND ORDER           #
     ##########################
     # TODO: constraint needs modify
-    ibs.db.schema(constants.CHIP_TABLE, (
+    ibs.db.add_table(constants.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -133,7 +133,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store *processed* annots as chips''')
 
-    ibs.db.schema(constants.FEATURE_TABLE, (
+    ibs.db.add_table(constants.FEATURE_TABLE, (
         ('feature_rowid',                'INTEGER PRIMARY KEY'),
         ('chip_rowid',                   'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -145,7 +145,7 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
-    ibs.db.schema(constants.EG_RELATION_TABLE, (
+    ibs.db.add_table(constants.EG_RELATION_TABLE, (
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('encounter_rowid',              'INTEGER'),
@@ -159,7 +159,7 @@ def update_1_0_0(ibs):
     ##########################
     # THIRD ORDER            #
     ##########################
-    ibs.db.schema(constants.GL_RELATION_TABLE, (
+    ibs.db.add_table(constants.GL_RELATION_TABLE, (
         ('glr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('lblimage_rowid',               'INTEGER NOT NULL'),
@@ -171,7 +171,7 @@ def update_1_0_0(ibs):
         Used to store one-to-many the relationship between images
         and labels''')
 
-    ibs.db.schema(constants.AL_RELATION_TABLE, (
+    ibs.db.add_table(constants.AL_RELATION_TABLE, (
         ('alr_rowid',                    'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('lblannot_rowid',               'INTEGER NOT NULL'),
@@ -191,7 +191,7 @@ def update_1_0_0(ibs):
     #NAME_UID_TYPE  = 'INTEGER'
 
     # List of recognition directed edges (annot_1) --score--> (annot_2)
-    # ibs.db.schema('recognitions', (
+    # ibs.db.add_table('recognitions', (
     #     ('recognition_rowid',          'INTEGER PRIMARY KEY'),
     #     ('annot_rowid1',               'INTEGER NOT NULL'),
     #     ('annot_rowid2',               'INTEGER NOT NULL'),
@@ -202,7 +202,7 @@ def update_1_0_0(ibs):
     # ),  ['CONSTRAINT superkey UNIQUE (annot_rowid1, annot_rowid2)'])
 
     # Used to store *processed* annots as segmentations
-    # ibs.db.schema('masks', (
+    # ibs.db.add_table('masks', (
     #     ('mask_rowid',                 'INTEGER PRIMARY KEY'),
     #     ('config_rowid',               'INTEGER DEFAULT 0'),
     #     ('annot_rowid',                'INTEGER NOT NULL'),
@@ -210,7 +210,7 @@ def update_1_0_0(ibs):
     # ))
 
     # Used to store individual chip identities (Fred, Sue, ...)
-    #ibs.db.schema('names', (
+    #ibs.db.add_table('names', (
     #    ('name_rowid',                  'INTEGER PRIMARY KEY'),
     #    ('name_text',                   'TEXT NOT NULL'),
     #    ('name_note',                   'TEXT',),
@@ -221,7 +221,10 @@ def update_1_0_0(ibs):
 # =======================
 
 def update_1_0_1(ibs):
-    ibs.db.schema(constants.CONTRIBUTOR_TABLE, (
+
+    ibs.db.drop_table(constants.annotations)
+
+    ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
         ('contributor_rowid',            'INTEGER PRIMARY KEY'),
         ('contributor_tag',              'TEXT'),
         ('contributor_name_first',       'TEXT'),
@@ -229,6 +232,22 @@ def update_1_0_1(ibs):
         ('contrubutor_location_city',    'TEXT'),
         ('contrubutor_location_state',   'TEXT'),
         ('contrubutor_location_country', 'TEXT'),
+        ('contrubutor_location_zip',     'INTEGER'),
+    ),
+        superkey_colnames=['contributor_rowid'],
+        docstr='''
+        Used to store the contributors to the project
+        ''')
+
+    # funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
+    ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+    #   (Original Column Name,           New Column Name,                New Column Type, Function to convert data from old to new
+    #    [None to add]                   ['' for same, None to delete]   ['' for same]    [None to use data unmodified]
+        ('contributor_rowid',            '',                             '',              None), # a non-needed, but correct mapping (identity function)
+        (None,                           'contrubutor_location_address', 'TEXT',          None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
+        ('contrubutor_location_city',    None,                           '',              None), # for deleted columns, type and function are ignored
+        ('contributor_location_zip',     'contributor_location_zip',     'TEXT',          contributor_location_zip_map),
+        ('contrubutor_location_country', '',                             'TEXT NOT NULL', None), # type not changing, only NOT NULL provision
     ),
         superkey_colnames=['contributor_rowid'],
         docstr='''

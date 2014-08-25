@@ -192,7 +192,7 @@ class IBEISController(object):
     @default_decorator
     def _init_sql(ibs):
         def ensure_versions_table(ibs):
-            ibs.db.schema(constants.VERSIONS_TABLE, (
+            ibs.db.add_table(constants.VERSIONS_TABLE, (
                 ('version_rowid',          'INTEGER PRIMARY KEY'),
                 ('version_text',           'TEXT'),
             ),

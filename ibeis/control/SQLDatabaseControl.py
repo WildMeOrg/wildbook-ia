@@ -349,7 +349,7 @@ class SQLDatabaseController(object):
         #db.cur.execute('PRAGMA synchronous = OFF;')
 
     @default_decorator
-    def schema(db, tablename, coldef_list, table_constraints=None, docstr='', superkey_colnames=None):
+    def add_table(db, tablename, coldef_list, table_constraints=None, docstr='', superkey_colnames=None):
         printDBG('[sql] schema ensuring tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
@@ -384,6 +384,106 @@ class SQLDatabaseController(object):
         db.table_colnames[tablename]    = colname_list
         db.table_coltypes[tablename]    = coltype_list
         db.table_constraints[tablename] = table_constraints
+
+    @default_decorator
+    def modify_table(db, tablename, colmap_list, table_constraints=None, docstr='', superkey_colnames=None):
+        printDBG('[sql] schema modifying tablename=%r' % tablename)
+        # Technically insecure call, but all entries are statically inputted by
+        # the database's owner, who could delete or alter the entire database
+        # anyway.
+        # if table_constraints is None:
+        #     table_constraints = []
+
+        # if superkey_colnames is not None and len(superkey_colnames) > 0:
+        #     c = superkey_colnames
+        #     _ = (c if isinstance(c, six.string_types) else ','.join(c))
+        #     unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
+        #     assert len(table_constraints) == 0
+        #     table_constraints.append(unique_constraint)
+
+        # body_list = ['%s %s' % (name, type_)
+        #              for (name, type_) in coldef_list]
+
+        # colname_list = [_1tup[0] for _1tup in coldef_list]
+        # coltype_list = [_2tup[1] for _2tup in coldef_list]
+
+        # fmtkw = {
+        #     'table_body': ', '.join(body_list + table_constraints),
+        #     'tablename': tablename,
+        # }
+        # op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
+        # operation = op_fmtstr.format(**fmtkw)
+        # db.executeone(operation, [], verbose=False)
+
+        # # Append to internal storage
+        # db.table_docstr[tablename]      = docstr
+        # db.table_columns[tablename]     = coldef_list
+        # db.table_colnames[tablename]    = colname_list
+        # db.table_coltypes[tablename]    = coltype_list
+        # db.table_constraints[tablename] = table_constraints
+
+    @default_decorator
+    def duplicate_table(db, tablename, table_duplicate):
+        printDBG('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
+
+    @default_decorator
+    def duplicate_column(db, tablename, colname, colname_duplicate):
+        printDBG('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate))
+
+    @default_decorator
+    def drop_table(db, tablename):
+        printDBG('[sql] schema dropping tablename=%r' % tablename)
+        # Technically insecure call, but all entries are statically inputted by
+        # the database's owner, who could delete or alter the entire database
+        # anyway.
+        fmtkw = {
+            'tablename': tablename,
+        }
+        op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
+        operation = op_fmtstr.format(**fmtkw)
+        db.executeone(operation, [], verbose=False)
+
+        # delete records from internal storage
+        try:
+            del db.table_docstr[tablename]  
+            del db.table_columns[tablename] 
+            del db.table_colnames[tablename]
+            del db.table_coltypes[tablename]
+            del db.table_constraints[tablename]
+        except Exception:
+            printDBG('[sql] could not delete table constants for tablename=%r' % tablename)
+
+
+    @default_decorator
+    def rename_table(db, tablename_old, tablename_new):
+        printDBG('[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new))
+        # Technically insecure call, but all entries are statically inputted by
+        # the database's owner, who could delete or alter the entire database
+        # anyway.
+        fmtkw = {
+            'tablename_old': tablename_old,
+            'tablename_new': tablename_new,
+        }
+        op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
+        operation = op_fmtstr.format(**fmtkw)
+        db.executeone(operation, [], verbose=False)
+
+        # delete records from internal storage
+        try:
+            db.table_docstr[tablename_new]      = db.table_docstr[tablename_old]
+            db.table_columns[tablename_new]     = db.table_columns[tablename_old] 
+            db.table_colnames[tablename_new]    = db.table_colnames[tablename_old]
+            db.table_coltypes[tablename_new]    = db.table_coltypes[tablename_old]
+            db.table_constraints[tablename_new] = db.table_constraints[tablename_old]
+
+            del db.table_docstr[tablename_old]
+            del db.table_columns[tablename_old]
+            del db.table_colnames[tablename_old]
+            del db.table_coltypes[tablename_old]
+            del db.table_constraints[tablename_old]
+        except Exception:
+            printDBG('[sql] could not transfer table constants for tablename=%r' % tablename)
+
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERYVERBOSE):
