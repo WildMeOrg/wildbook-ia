@@ -19,28 +19,28 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 def TEST_QUERY_COMP(ibs):
     print('[TEST_QUERY_COMP]')
-    qaid_list = ibs.get_valid_aids()[0:1]
-    print('[TEST_QUERY_COMP] len(qaid_list)=%r' % (qaid_list))
-    ibs._init_query_requestor()
-    qreq = ibs.qreq
-
-    #query_helpers.find_matchable_chips(ibs)
-
-    aids = ibs.get_recognition_database_aids()
+    aids = ibs.get_valid_aids()
     index = 0
     index = utool.get_arg('--index', type_=int, default=index)
     qaid_list = utool.safe_slice(aids, index, index + 1)
+    print('[TEST_QUERY_COMP] len(qaid_list)=%r' % (qaid_list))
+    try:
+        comp_locals_ = query_helpers.get_query_components(ibs, qaid_list)
+        qres_dict = OrderedDict([
+            ('ORIG', comp_locals_['qres_ORIG']),
+            ('FILT', comp_locals_['qres_FILT']),
+            ('SVER', comp_locals_['qres_SVER']),
+        ])
 
-    comp_locals_ = query_helpers.get_query_components(ibs, qaid_list)
-    qres_dict = OrderedDict([
-        ('ORIG', comp_locals_['qres_ORIG']),
-        ('FILT', comp_locals_['qres_FILT']),
-        ('SVER', comp_locals_['qres_SVER']),
-    ])
-
-    top_aids = qres_dict['SVER'].get_top_aids()
-    top_aids = utool.safe_slice(top_aids, 3)
-    aid2 = top_aids[0]
+        top_aids = qres_dict['SVER'].get_top_aids()
+        aid2 = top_aids[0]
+    except Exception as ex:
+        if 'qres_dict' in vars():
+            for name, qres in qres_dict.items():
+                print(name)
+                print(qres.get_inspect_str())
+        utool.printex(ex, keys=['qaid_list'], separate=True)
+        raise
 
     for px, (lbl, qres) in enumerate(six.iteritems(qres_dict)):
         print(lbl)

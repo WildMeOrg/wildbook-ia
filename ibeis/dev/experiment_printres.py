@@ -9,7 +9,6 @@ from plottool import plot_helpers as ph
 import numpy as np
 from ibeis import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
-from ibeis.model.hots import match_chips3 as mc3
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_report]', DEBUG=False)
 
@@ -298,11 +297,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     def load_qres(ibs, qaid, daids, query_cfg):
         # Load / Execute the query w/ correct config
         ibs.set_query_cfg(query_cfg)
-        qreq = mc3.prep_query_request(qreq=ibs.qreq, qaids=[qaid], daids=daids, query_cfg=query_cfg)
-        qaid2_qres = mc3.process_query_request(ibs, qreq, safe=True,
-                                               use_bigcache=True,
-                                               use_cache=True)
-        qres = qaid2_qres[qaid]
+        qres = ibs._query_chips([qaid], daids)[qaid]
         return qres
 
     for count, (r, c) in enumerate(rciter):

@@ -284,6 +284,23 @@ def check_image_consistency(ibs, gid_list):
     assert_images_exist(ibs, gid_list)
 
 
+def check_image_uuid_consistency(ibs, gid_list):
+    """ VERY SLOW """
+    gpath_list = ibs.get_image_paths(gid_list)
+    guuid_list = ibs.get_image_uuids(gid_list)
+    import ibeis.model.preproc.preproc_image as preproc_image
+    mark_, end_ = utool.log_progress('checking uuids', len(gpath_list))
+    for ix in range(len(gpath_list)):
+        mark_(ix)
+        gpath = gpath_list[ix]
+        guuid = guuid_list[ix]
+        # Test params
+        param_tup = preproc_image.parse_imageinfo(gpath)
+        guuid_target = param_tup[0]
+        assert guuid == guuid_target, 'image ix=%d had a bad uuid' % ix
+    end_()
+
+
 @__injectable
 def check_annot_consistency(ibs, aid_list):
     # TODO: more consistency checks
@@ -334,9 +351,91 @@ def check_consistency(ibs, embed=False):
     check_image_consistency(ibs, gid_list)
     check_annot_consistency(ibs, aid_list)
     check_name_consistency(ibs, nid_list)
+    # Very slow check
+    check_image_uuid_consistency(ibs, gid_list)
     if embed:
         utool.embed()
     print('[ibsfuncs] Finshed consistency check')
+
+
+@__injectable
+def fix_exif_data(ibs, gid_list):
+    import vtool.exif as exif
+    from PIL import Image
+    import utool
+    gpath_list = ibs.get_image_paths(gid_list)
+    mark_, end_ = utool.log_progress('checking exif: ', len(gpath_list))
+    exif_dict_list = []
+    for ix in range(len(gpath_list)):
+        mark_(ix)
+        gpath = gpath_list[ix]
+        pil_img = Image.open(gpath, 'r')
+        exif_dict = exif.get_exif_dict(pil_img)
+        exif_dict_list.append(exif_dict)
+        #if len(exif_dict) > 0:
+        #    break
+    end_()
+
+    latlon_list = [exif.get_lat_lon(_dict, None) for _dict in exif_dict_list]
+    haslatlon_list = [latlon is not None for latlon in latlon_list]
+
+    latlon_list_ = utool.filter_items(latlon_list, haslatlon_list)
+    gid_list_    = utool.filter_items(gid_list, haslatlon_list)
+
+    gps_list = ibs.get_image_gps(gid_list_)
+    needsupdate_list = [gps == (-1, -1) for gps in gps_list]
+
+    print('%d / %d need gps update' % (sum(needsupdate_list),
+                                       len(needsupdate_list)))
+
+    if sum(needsupdate_list)  > 0:
+        assert sum(needsupdate_list) == len(needsupdate_list), 'safety. remove and evaluate if hit'
+        #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+        latlon_list__ = utool.filter_items(latlon_list_, needsupdate_list)
+        gid_list__ = utool.filter_items(gid_list_, needsupdate_list)
+        ibs.set_image_gps(gid_list__, latlon_list__)
+
+
+def check_exif_data(ibs, gid_list):
+    import vtool.exif as exif
+    from PIL import Image
+    import utool
+    gpath_list = ibs.get_image_paths(gid_list)
+    mark_, end_ = utool.log_progress('checking exif: ', len(gpath_list))
+    exif_dict_list = []
+    for ix in range(len(gpath_list)):
+        mark_(ix)
+        gpath = gpath_list[ix]
+        pil_img = Image.open(gpath, 'r')
+        exif_dict = exif.get_exif_dict(pil_img)
+        exif_dict_list.append(exif_dict)
+        #if len(exif_dict) > 0:
+        #    break
+
+    has_latlon = []
+    for exif_dict in exif_dict_list:
+        latlon = exif.get_lat_lon(exif_dict, None)
+        if latlon is not None:
+            has_latlon.append(True)
+        else:
+            has_latlon.append(False)
+
+    print('%d / %d have gps info' % (sum(has_latlon), len(has_latlon),))
+
+    key2_freq = utool.ddict(lambda: 0)
+    num_tags_list = []
+    for exif_dict in exif_dict_list:
+        exif_dict2 = exif.make_exif_dict_human_readable(exif_dict)
+        num_tags_list.append(len(exif_dict))
+        for key in exif_dict2.keys():
+            key2_freq[key] += 1
+
+    utool.print_mystats(num_tags_list, 'num tags per image')
+
+    print('tag frequency')
+    print(utool.dict_str(key2_freq))
+
+    end_()
 
 
 @__injectable
@@ -1184,7 +1283,25 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
     known_aids_list = list(utool.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(utool.iflatten(utool.ifilter_items(aid_gen(), isunknown_list)))
+    if __debug__:
+        # http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
+        nidgroup_list = unflat_map(ibs.get_annot_nids, known_aids_list)
+        for nidgroup in nidgroup_list:
+            assert utool.list_allsame(nidgroup), 'bad name grouping'
     return known_aids_list, unknown_aids
+
+
+@__injectable
+def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
+    aids_hashid = utool.hashstr_arr(aid_list, label)
+    return aids_hashid
+
+
+@__injectable
+def get_annot_uuid_hashid(ibs, aid_list, label='_UUIDS'):
+    uuid_list    = ibs.get_annot_uuids(aid_list)
+    uuui_hashid  = utool.hashstr_arr(uuid_list, label)
+    return uuui_hashid
 
 
 @__injectable

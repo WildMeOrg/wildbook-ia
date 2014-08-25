@@ -38,9 +38,7 @@ from ibeis.model.preproc import preproc_feat
 from ibeis.model.preproc import preproc_detectimg
 from ibeis.model.preproc import preproc_encounter
 from ibeis.model.detect import randomforest
-from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips4 as mc4
-from ibeis.model.hots import hots_query_request
 # IBEIS
 # from ibeis.control import DB_SCHEMA
 from ibeis.control import _sql_helpers
@@ -110,7 +108,7 @@ class IBEISController(object):
         if utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.table_cache = init_tablecache()
-        ibs.qreq = None  # query requestor object
+        #ibs.qreq = None  # query requestor object
         ibs.ibschanged_callback = None
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         ibs._init_wb(wbaddr)  # this will do nothing if no wildbook address is specified
@@ -222,8 +220,8 @@ class IBEISController(object):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
             ibs2.update_query_cfg(**kwargs)
-        if ibs.qreq is not None:
-            ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
+        #if ibs.qreq is not None:
+        #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
         return ibs2
 
     #
@@ -303,8 +301,8 @@ class IBEISController(object):
 
     @default_decorator
     def set_query_cfg(ibs, query_cfg):
-        if ibs.qreq is not None:
-            ibs.qreq.set_cfg(query_cfg)
+        #if ibs.qreq is not None:
+        #    ibs.qreq.set_cfg(query_cfg)
         ibs.cfg.query_cfg = query_cfg
         ibs.cfg.feat_cfg  = ibs.cfg.query_cfg._feat_cfg
         ibs.cfg.chip_cfg  = ibs.cfg.query_cfg._feat_cfg._chip_cfg
@@ -337,12 +335,12 @@ class IBEISController(object):
         query_cfg_rowid = ibs.add_config(query_cfg_suffix)
         return query_cfg_rowid
 
-    @default_decorator
-    def get_qreq_rowid(ibs):
-        """ # FIXME: Configs are still handled poorly """
-        assert ibs.qres is not None
-        qreq_rowid = ibs.qreq.get_cfgstr()
-        return qreq_rowid
+    #@default_decorator
+    #def get_qreq_rowid(ibs):
+    #    """ # FIXME: Configs are still handled poorly """
+    #    assert ibs.qres is not None
+    #    qreq_rowid = ibs.qreq.get_cfgstr()
+    #    return qreq_rowid
 
     #
     #
@@ -1800,47 +1798,49 @@ class IBEISController(object):
         daid_list = ibs.get_valid_aids()
         return daid_list
 
-    @default_decorator
-    def _init_query_requestor(ibs):
-        # DEPRICATE
-        # Create query request object
-        ibs.qreq = hots_query_request.QueryRequest(ibs.qresdir, ibs.bigcachedir)
-        ibs.qreq.set_cfg(ibs.cfg.query_cfg)
+    #@default_decorator
+    #def _init_query_requestor(ibs):
+    #from ibeis.model.hots import match_chips3 as mc3
+    #from ibeis.model.hots import hots_query_request
+    #    # DEPRICATE
+    #    # Create query request object
+    #    ibs.qreq = hots_query_request.QueryRequest(ibs.qresdir, ibs.bigcachedir)
+    #    ibs.qreq.set_cfg(ibs.cfg.query_cfg)
 
-    @default_decorator
-    def _prep_qreq(ibs, qaid_list, daid_list, **kwargs):
-        # DEPRICATE
-        if ibs.qreq is None:
-            ibs._init_query_requestor()
-        qreq = mc3.prep_query_request(qreq=ibs.qreq,
-                                      qaids=qaid_list,
-                                      daids=daid_list,
-                                      query_cfg=ibs.cfg.query_cfg,
-                                      **kwargs)
-        return qreq
+    #@default_decorator
+    #def _prep_qreq(ibs, qaid_list, daid_list, **kwargs):
+    #    # DEPRICATE
+    #    if ibs.qreq is None:
+    #        ibs._init_query_requestor()
+    #    qreq = mc3.prep_query_request(qreq=ibs.qreq,
+    #                                  qaids=qaid_list,
+    #                                  daids=daid_list,
+    #                                  query_cfg=ibs.cfg.query_cfg,
+    #                                  **kwargs)
+    #    return qreq
 
-    @default_decorator
-    def _query_chips3(ibs, qaid_list, daid_list, safe=True,
-                      use_cache=mc3.USE_CACHE,
-                      use_bigcache=mc3.USE_BIGCACHE,
-                      **kwargs):
-        # DEPRICATE
-        """
-        qaid_list - query chip ids
-        daid_list - database chip ids
-        kwargs modify query_cfg
-        """
-        qreq = ibs._prep_qreq(qaid_list, daid_list, **kwargs)
-        # TODO: Except query error
-        # NOTE: maybe kwargs should not be passed here, or the previous
-        # kwargs should become querycfgkw
-        process_qreqkw = {
-            'safe'         : safe,
-            'use_cache'    : use_cache,
-            'use_bigcache' : use_bigcache,
-        }
-        qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
-        return qaid2_qres
+    #@default_decorator
+    #def _query_chips3(ibs, qaid_list, daid_list, safe=True,
+    #                  use_cache=mc3.USE_CACHE,
+    #                  use_bigcache=mc3.USE_BIGCACHE,
+    #                  **kwargs):
+    #    # DEPRICATE
+    #    """
+    #    qaid_list - query chip ids
+    #    daid_list - database chip ids
+    #    kwargs modify query_cfg
+    #    """
+    #    qreq = ibs._prep_qreq(qaid_list, daid_list, **kwargs)
+    #    # TODO: Except query error
+    #    # NOTE: maybe kwargs should not be passed here, or the previous
+    #    # kwargs should become querycfgkw
+    #    process_qreqkw = {
+    #        'safe'         : safe,
+    #        'use_cache'    : use_cache,
+    #        'use_bigcache' : use_bigcache,
+    #    }
+    #    qaid2_qres = mc3.process_query_request(ibs, qreq, **process_qreqkw)
+    #    return qaid2_qres
 
     def _query_chips4(ibs, qaid_list, daid_list, use_cache=mc4.USE_CACHE,
                       use_bigcache=mc4.USE_BIGCACHE):

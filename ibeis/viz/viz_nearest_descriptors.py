@@ -8,6 +8,15 @@ from ibeis.model.hots import query_helpers
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_nndesc]', DEBUG=False)
 
 
+def get_annotfeat_nn_index(ibs, qaid, qfx):
+    from . import match_chips3 as mc3
+    ibs._init_query_requestor()
+    qreq = mc3.quickly_ensure_qreq(ibs, [qaid])
+    qfx2_desc = ibs.get_annot_desc(qaid)[qfx:(qfx + 1)]
+    (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = qreq.data_index.nn_index2(qreq, qfx2_desc)
+    return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
+
+
 @utool.indent_func('[show_neardesc]')
 def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                              consecutive_distance_compare=False):

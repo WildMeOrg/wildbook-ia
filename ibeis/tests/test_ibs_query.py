@@ -13,14 +13,10 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_QUERY]')
 
 def TEST_QUERY(ibs):
     print('[TEST_QUERY]')
-    valid_aids = ibs.get_valid_aids()
-    print('[TEST_QUERY] len(valid_aids)=%r' % (len(valid_aids)))
-    qaid_list = valid_aids[0:1]
+    daid_list = ibs.get_valid_aids()
+    print('[TEST_QUERY] len(daid_list)=%r' % (len(daid_list)))
+    qaid_list = daid_list[0:1]
     print('[TEST_QUERY] len(qaid_list)=%r' % (len(qaid_list)))
-    ibs._init_query_requestor()
-    qreq = ibs.qreq
-    #query_helpers.find_matchable_chips(ibs)
-    daid_list = valid_aids
     qres_dict = ibs._query_chips(qaid_list, daid_list, use_cache=False, use_bigcache=False)
     qres_dict_ = ibs._query_chips(qaid_list, daid_list)
 
@@ -44,7 +40,7 @@ def TEST_QUERY(ibs):
     for qaid in qaid_list:
         qres  = qres_dict[qaid]
         top_aids = qres.get_top_aids()
-        top_aids = utool.safe_slice(top_aids, 3)
+        #top_aids = utool.safe_slice(top_aids, 3)
         aid2 = top_aids[0]
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)

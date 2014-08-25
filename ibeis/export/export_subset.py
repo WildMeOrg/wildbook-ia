@@ -111,8 +111,8 @@ def get_alr_transfer_data(ibs, _alr_rowid_list):
 def collect_transfer_data(ibs_src, gid_list, aid_list,
                           include_image_annots=True):
     """
-    >>> from ibeis.all_imports import *
-    >>> from ibeis.export.export_subset import *
+    >>> from ibeis.all_imports import *  # NOQA
+    >>> from ibeis.export.export_subset import *  # NOQA
     >>> import utool
     >>> ibs = ibs_src = ibeis.opendb('testdb1')
     >>> aid_list = ibs.get_valid_aids()[-3:]
@@ -149,8 +149,8 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
 def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
                      include_image_annots=True):
     """
-    >>> from ibeis.all_imports import *
-    >>> from ibeis.export.export_subset import *
+    >>> from ibeis.all_imports import *  # NOQA
+    >>> from ibeis.export.export_subset import *  # NOQA
     >>> ibs1 = ibs_src = ibeis.opendb('testdb1')
     >>> _aid_list1 = gid_list1 = ibs1.get_valid_aids()
     >>> _gid_list1 = aid_list1 = ibs1.get_valid_gids()
