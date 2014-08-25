@@ -249,8 +249,8 @@ def invertable_stack(vecs_list, label_list):
     _flatlabels = utool.iflatten(_ax2_label)
     _flatfeatxs = utool.iflatten(_ax2_fx)
 
-    idx2_label = np.fromiter(_flatlabels, np.int64, nFeats)
-    idx2_fx    = np.fromiter(_flatfeatxs, np.int64, nFeats)
+    idx2_label = np.fromiter(_flatlabels, np.int32, nFeats)
+    idx2_fx    = np.fromiter(_flatfeatxs, np.int32, nFeats)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
     idx2_vec = np.vstack(vecs_list)

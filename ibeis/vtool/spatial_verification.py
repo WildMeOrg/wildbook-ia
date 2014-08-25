@@ -381,8 +381,9 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
 @profile
 def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     """ Currently this function just uses the number of inliers as a metric
-    #if CYTH
-    #endif
+    #_if C_YTH
+    #C_YTH boundscheck
+    #e_ndif
     """
     # Determine the best hypothesis using the number of inliers
     nInliers_list = np.array([len(inliers) for inliers in inliers_list])
