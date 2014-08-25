@@ -7,8 +7,6 @@ import numpy as np
 # Tools
 import utool
 # IBEIS
-#from ibeis.model.hots import match_chips3 as mc3
-#from ibeis.model.hots import matching_functions as mf
 from ibeis import params
 from ibeis.dev import experiment_helpers as eh
 from ibeis.dev import experiment_printres
@@ -38,67 +36,6 @@ def get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl):
     qaid2_qres = ibs._query_chips(qaids, daids)
     qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs)] for qaid in qaids]
     return qx2_bestranks
-
-
-#    # High level cache load
-#    #qx2_bestranks = eh.load_cached_test_results(ibs, qaids, daids, #NOCACHE_TESTRES, #TESTRES_VERBOSITY)
-#    #if qx2_bestranks is not None: #return qx2_bestranks
-#    qreq = mc3.prep_query_request(qreq=ibs.qreq,
-#                                  qaids=qaids,
-#                                  daids=daids,
-#                                  query_cfg=ibs.cfg.query_cfg)
-#    qreq = mc3.pre_exec_checks(ibs, qreq)  # Preform invx checks first so we can be unsafe
-#    if BATCH_MODE:
-#        qx2_bestranks = _get_qx2_besrank_batch(ibs, qreq)
-#    else:
-#        qx2_bestranks = _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl)
-#    qx2_bestranks = np.array(qx2_bestranks)
-#    # High level cache save
-#    #eh.cache_test_results(qx2_bestranks, ibs, qaids, daids)
-#    return qx2_bestranks
-
-
-#def _get_qx2_besrank_batch(ibs, qreq):
-#    print('[harn] querying in batch mode')
-#    # Query Chip / Row Loop
-#    qaid2_qres = mc3.process_query_request(ibs, qreq, safe=False)
-#    qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs)] for qaid in qreq.qaids]
-#    return qx2_bestranks
-
-
-#def _get_qx2_besrank_iterative(ibs, qreq, nTotalQueries, nPrevQueries, cfglbl=''):
-#    # TODO: INCORPORATE MINIBATCH SIZE TO MATCH_CHIPS3 AND DEPRICATE THIS
-#    print('[harn] querying one query at a time')
-#    # Make progress message
-#    msg = textwrap.dedent('''
-#    ---------------------
-#    [harn] TEST %d/%d ''' + cfglbl + '''
-#    ---------------------''')
-#    qx2_bestranks = []
-#    qaids = qreq.qaids  # Query one ANNOTATION at a time
-#    mark_prog = utool.simple_progres_func(TESTRES_VERBOSITY, msg, '.')
-#    # Query Chip / Row Loop
-#    for qx, qaid in enumerate(qaids):
-#        mark_prog(qx + nPrevQueries, nTotalQueries)
-#        try:
-#            qreq.qaids = [qaid]  # hacky
-#            qaid2_qres = mc3.process_query_request(ibs, qreq, safe=False)
-#        except mf.QueryException as ex:
-#            utool.printex(ex, 'Harness caught Query Exception')
-#            qx2_bestranks.append([-1])
-#            if not STRICT:
-#                continue
-#            raise
-#        try:
-#            assert len(qaid2_qres) == 1, ''
-#        except AssertionError as ex:
-#            utool.printex(ex, key_list=['qaid2_qres'])
-#            raise
-#        # record the best rank from this groundtruth
-#        best_rank = qaid2_qres[qaid].get_best_gt_rank(ibs)
-#        qx2_bestranks.append([best_rank])
-#    qreq.qaids = qaids  # fix previous hack
-#    return qx2_bestranks
 
 
 #-----------

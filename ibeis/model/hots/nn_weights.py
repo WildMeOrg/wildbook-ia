@@ -62,7 +62,7 @@ def _nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
     qaid2_selnorms = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
-        (qfx2_dx, qfx2_dist) = qaid2_nns[qaid]
+        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_nndist = qfx2_dist[:, 0:K]
         if rule == 'last':
             # Use the last normalizer
@@ -71,12 +71,12 @@ def _nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
             # Get the top names you do not want your normalizer to be from
             qnid = qreq_.get_annot_nids(qaid)
             nTop = max(1, K)
-            qfx2_topdx = qfx2_dx.T[0:nTop, :].T
-            qfx2_normdx = qfx2_dx.T[-Knorm:].T
+            qfx2_topidx = qfx2_idx.T[0:nTop, :].T
+            qfx2_normidx = qfx2_idx.T[-Knorm:].T
             # Apply temporary uniquish name
-            qfx2_topaid = qreq_.get_nn_aids(qfx2_topdx)
-            qfx2_topnid = qreq_.get_annot_nids(qfx2_topaid)
-            qfx2_normaid = qreq_.get_nn_aids(qfx2_normdx)
+            qfx2_topaid  = qreq_.indexer.get_nn_aids(qfx2_topidx)
+            qfx2_normaid = qreq_.indexer.get_nn_aids(qfx2_normidx)
+            qfx2_topnid  = qreq_.get_annot_nids(qfx2_topaid)
             qfx2_normnid = qreq_.get_annot_nids(qfx2_normaid)
             # Inspect the potential normalizers
             qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
@@ -84,15 +84,16 @@ def _nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
         else:
             raise NotImplementedError('[nn_weights] no rule=%r' % rule)
         qfx2_normdist = [dists[normk] for (dists, normk) in zip(qfx2_dist, qfx2_normk)]
-        qfx2_normdx   = [dxs[normk]   for (dxs, normk)   in zip(qfx2_dx,   qfx2_normk)]
+        qfx2_normidx   = [idxs[normk]   for (idxs, normk)   in zip(qfx2_idx,   qfx2_normk)]
         # build meta
-        qfx2_normmeta = [(qreq_.get_nn_aids(dx), qreq_.get_nn_featxs(dx), normk)
-                                      for (normk, dx)    in zip(qfx2_normk, qfx2_normdx)]
+        qfx2_normmeta = [(qreq_.get_nn_aids(idx), qreq_.get_nn_featxs(idx), normk)
+                                      for (normk, idx)    in zip(qfx2_normk,
+                                                                 qfx2_normidx)]
         qfx2_normdist = array(qfx2_normdist)
-        qfx2_normdx   = array(qfx2_normdx)
+        qfx2_normidx  = array(qfx2_normidx)
         qfx2_normmeta = array(qfx2_normmeta)
         # Ensure shapes are valid
-        qfx2_normdist.shape = (len(qfx2_dx), 1)
+        qfx2_normdist.shape = (len(qfx2_idx), 1)
         qfx2_normweight = normweight_fn(qfx2_nndist, qfx2_normdist)
         # Output
         qaid2_weight[qaid]   = qfx2_normweight

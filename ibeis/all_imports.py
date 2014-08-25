@@ -138,21 +138,14 @@ from ibeis.model.preproc import preproc_chip
 from ibeis.model.preproc import preproc_feat
 from ibeis.model.preproc import preproc_detectimg
 # IBEIS MODEL HOTSPOTTER
-from ibeis.model.hots import matching_functions as mf
 from ibeis.model.hots import pipeline
 from ibeis.model.hots import pipeline as hspipe
-from ibeis.model.hots import match_chips3 as mc3
 from ibeis.model.hots import match_chips4 as mc4
-from ibeis.model.hots import nn_filters
 from ibeis.model.hots import nn_weights
-from ibeis.model.hots import hots_nn_index
-from ibeis.model.hots.hots_nn_index import HOTSIndex, HOTSMultiIndex
+from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import hots_query_result
-from ibeis.model.hots import hots_query_request
 from ibeis.model.hots import voting_rules2 as vr2
-from ibeis.model.hots import coverage_image
 from ibeis.model.hots import query_helpers
-from ibeis.model.hots.hots_query_request import QueryRequest
 from ibeis.model.hots.hots_query_result import QueryResult
 # IBEIS MODEL DETECT
 from ibeis.model.detect import randomforest

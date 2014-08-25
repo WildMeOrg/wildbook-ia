@@ -1283,7 +1283,25 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
     known_aids_list = list(utool.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(utool.iflatten(utool.ifilter_items(aid_gen(), isunknown_list)))
+    if __debug__:
+        # http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
+        nidgroup_list = unflat_map(ibs.get_annot_nids, known_aids_list)
+        for nidgroup in nidgroup_list:
+            assert utool.list_allsame(nidgroup), 'bad name grouping'
     return known_aids_list, unknown_aids
+
+
+@__injectable
+def get_annot_rowid_hashid(ibs, aid_list, label='_AIDS'):
+    aids_hashid = utool.hashstr_arr(aid_list, label)
+    return aids_hashid
+
+
+@__injectable
+def get_annot_uuid_hashid(ibs, aid_list, label='_UUIDS'):
+    uuid_list    = ibs.get_annot_uuids(aid_list)
+    uuui_hashid  = utool.hashstr_arr(uuid_list, label)
+    return uuui_hashid
 
 
 @__injectable

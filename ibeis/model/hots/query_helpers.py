@@ -2,59 +2,47 @@
 # TODO: Restructure
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import six
 import utool
 from six.moves import zip, range, map
-print, print_, printDBG, rrr, profile = utool.inject( __name__, '[query_helpers]')
-
-
-def get_annotfeat_nn_index(ibs, qaid, qfx):
-    from . import match_chips3 as mc3
-    ibs._init_query_requestor()
-    qreq = mc3.quickly_ensure_qreq(ibs, [qaid])
-    qfx2_desc = ibs.get_annot_desc(qaid)[qfx:(qfx + 1)]
-    (qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm) = qreq.data_index.nn_index2(qreq, qfx2_desc)
-    return qfx2_aid, qfx2_fx, qfx2_dist, K, Knorm
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[query_helpers]')
 
 
 def get_query_components(ibs, qaids):
-    from . import matching_functions as mf
-    from . import match_chips3 as mc3
-    ibs._init_query_requestor()
-    qreq = ibs.qreq
-    #print(ibs.get_infostr())
-    daids = ibs.get_recognition_database_aids()
+    from . import pipeline as hspipe
+    from . import query_request
+    daids = ibs.get_valid_aids()
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     qaid = qaids[0]
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'
-    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=daids)
-    mc3.pre_exec_checks(ibs, qreq)
-    qaid2_nns = mf.nearest_neighbors(ibs, qaids, qreq)
+    qreq_.lazy_load(ibs)
     #---
-    filt2_weights, filt2_meta = mf.weight_neighbors(ibs, qaid2_nns, qreq)
+    qaid2_nns = hspipe.nearest_neighbors(qreq_)
     #---
-    qaid2_nnfilt = mf.filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq)
+    filt2_weights, filt2_meta = hspipe.weight_neighbors(qaid2_nns, qreq_)
     #---
-    qaid2_chipmatch_FILT = mf.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
+    qaid2_nnfilt = hspipe.filter_neighbors(qaid2_nns, filt2_weights, qreq_)
     #---
-    _tup = mf.spatial_verification(ibs, qaid2_chipmatch_FILT, qreq, dbginfo=True)
+    qaid2_chipmatch_FILT = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_)
+    #---
+    _tup = hspipe.spatial_verification(qaid2_chipmatch_FILT, qreq_, dbginfo=True)
     qaid2_chipmatch_SVER, qaid2_svtups = _tup
     #---
-    qaid2_qres = mf.chipmatch_to_resdict(ibs, qaid2_chipmatch_SVER, filt2_meta, qreq)
+    qaid2_qres = hspipe.chipmatch_to_resdict(qaid2_chipmatch_SVER, filt2_meta, qreq_)
     #####################
     # Testing components
     #####################
     with utool.Indenter('[components]'):
-        qfx2_dx, qfx2_dist = qaid2_nns[qaid]
-        qfx2_aid = qreq.data_index.dx2_aid[qfx2_dx]
-        qfx2_fx  = qreq.data_index.dx2_fx[qfx2_dx]
-        qfx2_gid = ibs.get_annot_gids(qfx2_aid)
-        qfx2_nid = ibs.get_annot_nids(qfx2_aid)
+        qfx2_idx, qfx2_dist = qaid2_nns[qaid]
+        qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_idx)
+        qfx2_fx  = qreq_.indexer.get_nn_featxs(qfx2_idx)
+        qfx2_gid = ibs.get_annot_gids(qfx2_aid)  # NOQA
+        qfx2_nid = ibs.get_annot_nids(qfx2_aid)  # NOQA
         qfx2_score, qfx2_valid = qaid2_nnfilt[qaid]
-        qaid2_nnfilt_ORIG    = mf.identity_filter(qaid2_nns, qreq)
-        qaid2_chipmatch_ORIG = mf.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq)
-        qaid2_qres_ORIG = mf.chipmatch_to_resdict(ibs, qaid2_chipmatch_ORIG, filt2_meta, qreq)
-        qaid2_qres_FILT = mf.chipmatch_to_resdict(ibs, qaid2_chipmatch_FILT, filt2_meta, qreq)
+        qaid2_nnfilt_ORIG    = hspipe.identity_filter(qaid2_nns, qreq_)
+        qaid2_chipmatch_ORIG = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt_ORIG, qreq_)
+        qaid2_qres_ORIG = hspipe.chipmatch_to_resdict(qaid2_chipmatch_ORIG, filt2_meta, qreq_)
+        qaid2_qres_FILT = hspipe.chipmatch_to_resdict(qaid2_chipmatch_FILT, filt2_meta, qreq_)
         qaid2_qres_SVER = qaid2_qres
     #####################
     # Relevant components
@@ -102,39 +90,40 @@ def data_index_integrity(ibs, qreq):
     print('... seems ok')
 
 
-def find_matchable_chips(ibs):
-    """ quick and dirty test to score by number of assignments """
-    from . import match_chips3 as mc3
-    from . import matching_functions as mf
-    qreq = ibs.qreq
-    qaids = ibs.get_valid_aids()
-    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=qaids)
-    mc3.pre_exec_checks(ibs, qreq)
-    qaid2_nns = mf.nearest_neighbors(ibs, qaids, qreq)
-    mf.rrr()
-    qaid2_nnfilt = mf.identity_filter(qaid2_nns, qreq)
-    qaid2_chipmatch_FILT = mf.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
-    qaid2_ranked_list = {}
-    qaid2_ranked_scores = {}
-    for qaid, chipmatch in six.iteritems(qaid2_chipmatch_FILT):
-        (aid2_fm, aid2_fs, aid2_fk) = chipmatch
-        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}
-        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}
-        nMatches_list = np.array(aid2_nMatches.values())
-        aid_list      = np.array(aid2_nMatches.keys())
-        sortx = nMatches_list.argsort()[::-1]
-        qaid2_ranked_list[qaid] = aid_list[sortx]
-        qaid2_ranked_scores[qaid] = nMatches_list[sortx]
+#def find_matchable_chips(ibs):
+#    """ quick and dirty test to score by number of assignments """
+#    import six
+#    from . import match_chips3 as mc3
+#    from . import matching_functions as hspipe
+#    qreq = ibs.qreq
+#    qaids = ibs.get_valid_aids()
+#    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=qaids)
+#    mc3.pre_exec_checks(ibs, qreq)
+#    qaid2_nns = hspipe.nearest_neighbors(ibs, qaids, qreq)
+#    hspipe.rrr()
+#    qaid2_nnfilt = hspipe.identity_filter(qaid2_nns, qreq)
+#    qaid2_chipmatch_FILT = hspipe.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
+#    qaid2_ranked_list = {}
+#    qaid2_ranked_scores = {}
+#    for qaid, chipmatch in six.iteritems(qaid2_chipmatch_FILT):
+#        (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+#        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}
+#        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}
+#        nMatches_list = np.array(aid2_nMatches.values())
+#        aid_list      = np.array(aid2_nMatches.keys())
+#        sortx = nMatches_list.argsort()[::-1]
+#        qaid2_ranked_list[qaid] = aid_list[sortx]
+#        qaid2_ranked_scores[qaid] = nMatches_list[sortx]
 
-    scores_list = []
-    strings_list = []
-    for qaid in qaids:
-        aid   = qaid2_ranked_list[qaid][0]
-        score = qaid2_ranked_scores[qaid][0]
-        strings_list.append('qaid=%r, aid=%r, score=%r' % (qaid, aid, score))
-        scores_list.append(score)
-    sorted_scorestr = np.array(strings_list)[np.array(scores_list).argsort()]
-    print('\n'.join(sorted_scorestr))
+#    scores_list = []
+#    strings_list = []
+#    for qaid in qaids:
+#        aid   = qaid2_ranked_list[qaid][0]
+#        score = qaid2_ranked_scores[qaid][0]
+#        strings_list.append('qaid=%r, aid=%r, score=%r' % (qaid, aid, score))
+#        scores_list.append(score)
+#    sorted_scorestr = np.array(strings_list)[np.array(scores_list).argsort()]
+#    print('\n'.join(sorted_scorestr))
 
 
 def check_sift_desc(desc):

@@ -199,7 +199,7 @@ def desc_dists(ibs, qaid_list):
     dists_lbls = orgtype_list
     dists_markers = ['x', 'o--']
     plottool.plots.draw_scores_cdf(dists_list, dists_lbls, dists_markers)
-    df2.set_figtitle('Descriptor Distance CDF d(x)' + ibs.qreq.get_cfgstr())
+    #df2.set_figtitle('Descriptor Distance CDF d(x)' + allres.get_cfgstr())
     return locals()
 
 
@@ -220,7 +220,7 @@ def annotationmatch_scores(ibs, qaid_list):
     scores_lbls = orgtype_list
     scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
     plottool.plots.draw_scores_cdf(scores_list, scores_lbls, scores_markers)
-    df2.set_figtitle('Chipmatch Scores ' + ibs.qreq.get_cfgstr())
+    #df2.set_figtitle('Chipmatch Scores ' + allres.get_cfgstr())
     return locals()
 
 
@@ -404,7 +404,7 @@ __ALLRES_CACHE__ = {}
 
 def get_allres(ibs, qaid_list):
     print('[dev] get_allres')
-    allres_cfgstr = ibs.qreq.get_cfgstr()
+    allres_cfgstr = ibs.cfg.query_cfg.get_cfgstr()
     try:
         allres = __ALLRES_CACHE__[allres_cfgstr]
     except KeyError:

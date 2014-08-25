@@ -1,13 +1,8 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
-from . import hots_nn_index
-from . import hots_query_request
 from . import hots_query_result
-from . import match_chips3
 from . import match_chips4
-from . import matching_functions
 from . import neighbor_index
-from . import nn_filters
 from . import nn_weights
 from . import pipeline
 from . import query_helpers
@@ -20,14 +15,9 @@ print, print_, printDBG, rrr, profile = utool.inject(
 def reload_subs():
     """ Reloads hots and submodules """
     rrr()
-    getattr(hots_nn_index, 'rrr', lambda: None)()
-    getattr(hots_query_request, 'rrr', lambda: None)()
     getattr(hots_query_result, 'rrr', lambda: None)()
-    getattr(match_chips3, 'rrr', lambda: None)()
     getattr(match_chips4, 'rrr', lambda: None)()
-    getattr(matching_functions, 'rrr', lambda: None)()
     getattr(neighbor_index, 'rrr', lambda: None)()
-    getattr(nn_filters, 'rrr', lambda: None)()
     getattr(nn_weights, 'rrr', lambda: None)()
     getattr(pipeline, 'rrr', lambda: None)()
     getattr(query_helpers, 'rrr', lambda: None)()

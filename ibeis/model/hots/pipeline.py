@@ -9,11 +9,11 @@ qaid2_XXX - prefix mapping query chip index to
 qfx2_XXX  - prefix mapping query chip feature index to
 
 TUPLES:
- * nns    - a (qfx2_dx, qfx2_dist) tuple
+ * nns    - a (qfx2_idx, qfx2_dist) tuple
  * nnfilt - a (qfx2_fs, qfx2_valid) tuple
 
 SCALARS
- * dx     - the index into the database of features
+ * idx    - the index into the nnindexers descriptors
  * dist   - the distance to a corresponding feature
  * fs     - a score of a corresponding feature
  * valid  - a valid bit for a corresponding feature
@@ -21,7 +21,7 @@ SCALARS
 REALIZATIONS:
 qaid2_nns - maping from query chip index to nns
 {
- * qfx2_dx   - ranked list of query feature indexes to database feature indexes
+ * qfx2_idx   - ranked list of query feature indexes to database feature indexes
  * qfx2_dist - ranked list of query feature indexes to database feature indexes
 }
 
@@ -37,11 +37,10 @@ import sys
 # Scientific
 import numpy as np
 from vtool import keypoint as ktool
-from vtool import linalg as ltool
 from vtool import spatial_verification as sver
 # Hotspotter
 from ibeis.model.hots import hots_query_result
-from ibeis.model.hots import coverage_image
+#from ibeis.model.hots import coverage_image
 from ibeis.model.hots import nn_weights
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import exceptions as hsexcept
@@ -152,7 +151,7 @@ def nearest_neighbors(qreq_):
     # TODO: dtype=np.ndarray is just an object, might be useful to use
     # pointers?
     nQAnnots = len(qvecs_list)
-    nn_dxs_arr   = np.empty(nQAnnots, dtype=np.ndarray)  # database indexes
+    nn_idxs_arr   = np.empty(nQAnnots, dtype=np.ndarray)  # database indexes
     nn_dists_arr = np.empty(nQAnnots, dtype=np.ndarray)  # corresponding distance
     # Internal statistics reporting
     nTotalNN, nTotalDesc = 0, 0
@@ -162,25 +161,25 @@ def nearest_neighbors(qreq_):
         # Check that we can query this annotation
         if len(qfx2_vec) == 0:
             # Assign empty nearest neighbors
-            qfx2_dx   = np.empty((0, num_neighbors), dtype=np.int32)
+            qfx2_idx   = np.empty((0, num_neighbors), dtype=np.int32)
             qfx2_dist = np.empty((0, num_neighbors), dtype=np.float64)
         else:
             # Find Neareset Neighbors nntup = (indexes, dists)
-            (qfx2_dx, qfx2_dist) = qreq_.knn(qfx2_vec, num_neighbors, checks)
-            nTotalNN += qfx2_dx.size
+            (qfx2_idx, qfx2_dist) = qreq_.indexer.knn(qfx2_vec, num_neighbors, checks)
+            nTotalNN += qfx2_idx.size
             nTotalDesc += len(qfx2_vec)
         # record number of query and result desc
-        nn_dxs_arr[count]   = qfx2_dx
+        nn_idxs_arr[count]   = qfx2_idx
         nn_dists_arr[count] = qfx2_dist
     end_()
     if NOT_QUIET:
         print('[hs] * assigned %d desc (from %d annots) to %r nearest neighbors'
               % (nTotalDesc, nQAnnots, nTotalNN))
-    #return nn_dxs_arr, nn_dists_arr
+    #return nn_idxs_arr, nn_dists_arr
     # Return old style dicts for now
     qaids = qreq_.get_internal_qaids()
-    qaid2_nns_ = {aid: (qfx2_dx, qfx2_dist) for (aid, qfx2_dx, qfx2_dist) in
-                  zip(qaids, nn_dxs_arr, nn_dists_arr)}
+    qaid2_nns_ = {aid: (qfx2_idx, qfx2_dist) for (aid, qfx2_idx, qfx2_dist) in
+                  zip(qaids, nn_idxs_arr, nn_dists_arr)}
     return qaid2_nns_
 
 
@@ -219,9 +218,9 @@ def _weight_neighbors(qaid2_nns, qreq_):
 
 
 @profile
-def _threshold_and_scale_weights(qaid, qfx2_nndx, filt2_weights, qreq_):
-    qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
-    qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
+def _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_):
+    qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hots_query_result.FS_DTYPE)
+    qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
     for filt, aid2_weights in six.iteritems(filt2_weights):
         qfx2_weights = aid2_weights[qaid]
@@ -248,25 +247,27 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
     mark_, end_ = log_prog('Filter NN: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_(count)  # progress
-        (qfx2_dx, _) = qaid2_nns[qaid]
-        qfx2_nndx = qfx2_dx[:, 0:K]
+        (qfx2_idx, _) = qaid2_nns[qaid]
+        qfx2_nnidx = qfx2_idx[:, 0:K]
         # Get a numeric score score and valid flag for each feature match
-        qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nndx, filt2_weights, qreq_)
-        qfx2_aid = qreq_.get_nn_aids(qfx2_nndx)
+        qfx2_score, qfx2_valid = _threshold_and_scale_weights(qaid, qfx2_nnidx, filt2_weights, qreq_)
+        qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
         if VERBOSE:
             print('[hs] * %d assignments are invalid by thresh' %
                   ((True - qfx2_valid).sum()))
         if qreq_.qparams.gravity_weighting:
-            qfx2_nnkpts = qreq_.get_nn_kpts(qfx2_nndx)
-            qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
-            qfx2_kpts  = qreq_.get_annot_kpts(qaid)  # FIXME: Highly inefficient
-            qfx2_oris  = ktool.get_oris(qfx2_kpts)
-            # Get the orientation distance
-            qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
-            # Normalize into a weight (close orientations are 1, far are 0)
-            qfx2_gvweight = (TAU - qfx2_oridist) / TAU
-            # Apply gravity vector weight to the score
-            qfx2_score *= qfx2_gvweight
+            raise NotImplementedError('have not finished gv weighting')
+            #from vtool import linalg as ltool
+            #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
+            #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
+            #qfx2_kpts  = qreq_.get_annot_kpts(qaid)  # FIXME: Highly inefficient
+            #qfx2_oris  = ktool.get_oris(qfx2_kpts)
+            ## Get the orientation distance
+            #qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)
+            ## Normalize into a weight (close orientations are 1, far are 0)
+            #qfx2_gvweight = (TAU - qfx2_oridist) / TAU
+            ## Apply gravity vector weight to the score
+            #qfx2_score *= qfx2_gvweight
         # Remove Impossible Votes:
         # dont vote for yourself or another chip in the same image
         if cant_match_self:
@@ -319,6 +320,25 @@ def __sameimg_verbose_check(qfx2_notsameimg, qfx2_valid):
     nImg_new_invalid = (qfx2_valid * (True - qfx2_notsameimg)).sum()
     print('[hs] * %d assignments are invalid by gid' % nImg_all_invalid)
     print('[hs] * %d are newly invalided by gid' % nImg_new_invalid)
+
+
+def identity_filter(qaid2_nns, qreq_):
+    """ testing function returns unfiltered nearest neighbors
+    this does check that you are not matching yourself
+    """
+    qaid2_nnfilt = {}
+    K = qreq_.qparams.K
+    for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
+        (qfx2_idx, _) = qaid2_nns[qaid]
+        qfx2_nnidx = qfx2_idx[:, 0:K]
+        qfx2_score = np.ones(qfx2_nnidx.shape, dtype=hots_query_result.FS_DTYPE)
+        qfx2_valid = np.ones(qfx2_nnidx.shape, dtype=np.bool)
+        # Check that you are not matching yourself
+        qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
+        qfx2_notsamechip = qfx2_aid != qaid
+        qfx2_valid = np.logical_and(qfx2_valid, qfx2_notsamechip)
+        qaid2_nnfilt[qaid] = (qfx2_score, qfx2_valid)
+    return qaid2_nnfilt
 
 
 #============================
@@ -395,13 +415,13 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     mark_, end_ = log_prog('Build Chipmatch: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_(count)  # Mark progress
-        (qfx2_dx, _) = qaid2_nns[qaid]
+        (qfx2_idx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
-        nQKpts = len(qfx2_dx)
+        nQKpts = len(qfx2_idx)
         # Build feature matches
-        qfx2_nndx = qfx2_dx[:, 0:K]
-        qfx2_aid  = qreq_.get_nn_aids(qfx2_nndx)
-        qfx2_fx   = qreq_.get_nn_featxs(qfx2_nndx)
+        qfx2_nnidx = qfx2_idx[:, 0:K]
+        qfx2_aid  = qreq_.indexer.get_nn_aids(qfx2_nnidx)
+        qfx2_fx   = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
         qfx2_qfx = np.tile(np.arange(nQKpts), (K, 1)).T
         qfx2_k   = np.tile(np.arange(K), (nQKpts, 1))
         # Pack valid feature matches into an interator
@@ -626,16 +646,16 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':
         aid2_score = vr2.score_chipmatch_csum(chipmatch)
-    elif score_method == 'pl':
-        aid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
-    elif score_method == 'borda':
-        aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'borda')
-    elif score_method == 'topk':
-        aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'topk')
-    elif score_method.startswith('coverage'):
-        # Method num is at the end of coverage
-        method = int(score_method.replace('coverage', '0'))
-        aid2_score = coverage_image.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
+    #elif score_method == 'pl':
+    #    aid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
+    #elif score_method == 'borda':
+    #    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'borda')
+    #elif score_method == 'topk':
+    #    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'topk')
+    #elif score_method.startswith('coverage'):
+    #    # Method num is at the end of coverage
+    #    method = int(score_method.replace('coverage', '0'))
+    #    aid2_score = coverage_image.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
     else:
         raise Exception('[hs] unknown scoring method:' + score_method)
     return aid2_score
