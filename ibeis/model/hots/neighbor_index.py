@@ -5,6 +5,7 @@ python -m doctest ibeis/model/hots/neighbor_index.py
 """
 from __future__ import absolute_import, division, print_function
 # Standard
+import six
 from six.moves import zip, map, range
 #from itertools import chain
 import sys
@@ -37,8 +38,8 @@ def rrr():
 def __cleanup():
     """ prevents flann errors (not for cleaning up individual objects) """
     global NEIGHBOR_CACHE
-    NEIGHBOR_CACHE.clear()
     try:
+        NEIGHBOR_CACHE.clear()
         del NEIGHBOR_CACHE
     except NameError:
         pass
@@ -117,7 +118,7 @@ def new_ibeis_mindexer(ibs, daid_list,
                        split_method='name'):
     """
     >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> mindexer, qreq_, ibs = test_mindexer()
+    >>> mxer, qreq_, ibs = test_mindexer()
     """
     print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
 
@@ -170,12 +171,12 @@ def new_ibeis_mindexer(ibs, daid_list,
     #    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)
     #    extra_indexes.append(unknown_index)
     ##print('[mindex] building normalizer forest')  # TODO
-    #mindexer.nn_indexer_list = nn_indexer_list
-    #mindexer.extra_indexes = extra_indexes
-    #mindexer.overflow_index = overflow_index
-    #mindexer.unknown_index = unknown_index
-    mindexer = MultiNeighborIndex(nn_indexer_list)
-    return mindexer
+    #mxer.nn_indexer_list = nn_indexer_list
+    #mxer.extra_indexes = extra_indexes
+    #mxer.overflow_index = overflow_index
+    #mxer.unknown_index = unknown_index
+    mxer = MultiNeighborIndex(nn_indexer_list)
+    return mxer
 
 
 def _check_input(aid_list, vecs_list):
@@ -202,11 +203,12 @@ def test_mindexer():
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
     num_indexers = 4
     split_method = 'name'
-    mindexer = new_ibeis_mindexer(ibs, qreq_.get_internal_daids(),
+    mxer = new_ibeis_mindexer(ibs, qreq_.get_internal_daids(),
                                   num_indexers, split_method)
-    return mindexer, qreq_, ibs
+    return mxer, qreq_, ibs
 
 
+@six.add_metaclass(utool.ReloadingMetaclass)
 class NeighborIndex(object):
     """
     More abstract wrapper around flann
@@ -215,17 +217,11 @@ class NeighborIndex(object):
     """
 
     def __init__(nnindexer, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
-        nnindexer.ax2_aid   = ax2_aid
-        nnindexer.idx2_vec  = idx2_vec
-        nnindexer.idx2_ax   = idx2_ax  # Index into the aid_list
-        nnindexer.idx2_fx   = idx2_fx  # Index into the annot's features
-        nnindexer.flann     = flann
-
-    def rrr(nnindexer):
-        from ibeis.model.hots import neighbor_index as nnindex
-        nnindex.rrr()
-        print('reloading NeighborIndex')
-        utool.reload_class_methods(nnindexer, nnindex.NeighborIndex)
+        nnindexer.ax2_aid   = ax2_aid   # Mapping to original
+        nnindexer.idx2_vec  = idx2_vec  # Descriptors to index
+        nnindexer.idx2_ax   = idx2_ax   # Index into the aid_list
+        nnindexer.idx2_fx   = idx2_fx   # Index into the annot's features
+        nnindexer.flann     = flann     # Index over descriptors
 
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
@@ -239,6 +235,11 @@ class NeighborIndex(object):
         >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
         """
         (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
+        return (qfx2_idx, qfx2_dist)
+
+    def empty_neighbors(K):
+        qfx2_idx  = np.empty((0, K), dtype=np.int32)
+        qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)
 
     def add_points(nnindexer, new_aid_list, new_vecs_list):
@@ -283,51 +284,75 @@ class NeighborIndex(object):
     def get_indexed_axs(nnindexer):
         return nnindexer.idx2_ax
 
-    def get_nn_axs(nnindexer, qfx2_nndx):
-        #return nnindexer.idx2_ax[qfx2_nndx]
-        return nnindexer.idx2_ax.take(qfx2_nndx)
+    def get_nn_axs(nnindexer, qfx2_nnidx):
+        #return nnindexer.idx2_ax[qfx2_nnidx]
+        return nnindexer.idx2_ax.take(qfx2_nnidx)
 
-    def get_nn_aids(nnindexer, qfx2_nndx):
-        #qfx2_ax = nnindexer.idx2_ax[qfx2_nndx]
+    def get_nn_aids(nnindexer, qfx2_nnidx):
+        #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
         #qfx2_aid = nnindexer.ax2_aid[qfx2_ax]
-        qfx2_ax = nnindexer.idx2_ax.take(qfx2_nndx)
+        qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
         qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
         return qfx2_aid
 
-    def get_nn_featxs(nnindexer, qfx2_nndx):
-        #return nnindexer.idx2_fx[qfx2_nndx]
-        return nnindexer.idx2_fx.take(qfx2_nndx)
+    def get_nn_featxs(nnindexer, qfx2_nnidx):
+        #return nnindexer.idx2_fx[qfx2_nnidx]
+        return nnindexer.idx2_fx.take(qfx2_nnidx)
 
 
+@six.add_metaclass(utool.ReloadingMetaclass)
 class MultiNeighborIndex(object):
     """
     Generalization of a HOTSNNIndex
     More abstract wrapper around flann
     >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> mindexer, qreq_, ibs = test_mindexer()
+    >>> mxer, qreq_, ibs = test_mindexer()
     """
 
-    def __init__(mindexer, nn_indexer_list):
-        mindexer.nn_indexer_list = nn_indexer_list
+    def __init__(mxer, nn_indexer_list):
+        mxer.nn_indexer_list = nn_indexer_list  # List of single indexes
 
-    def knn(mindexer, qfx2_vec, K):
+    def multi_knn(mxer, qfx2_vec, K, checks):
         """
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mindexer, qreq_, ibs = test_mindexer()
+        >>> mxer, qreq_, ibs = test_mindexer()
         >>> K = 3
         >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> (qfx2_imx_, qfx2_dist_) = mindexer.knn(qfx2_vec, K)
+        >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
         """
-        qfx2_imx_list   = []
+        qfx2_idx_list   = []
         qfx2_dist_list = []
-        offset = 0
-        for tx, nnindexer in enumerate(mindexer.nn_indexer_list):
+        for nnindexer in mxer.nn_indexer_list:
             # Returns distances in ascending order for each query descriptor
-            (_qfx2_idx, _qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=1024)
-            _qfx2_imx = _qfx2_idx + offset
-            qfx2_imx_list.append(_qfx2_imx)
+            (_qfx2_idx, _qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=checks)
+            qfx2_idx_list.append(_qfx2_idx)
             qfx2_dist_list.append(_qfx2_dist)
-            offset += nnindexer.num_indexed_vecs()
+        return qfx2_idx_list, qfx2_dist_list
+
+    def get_nIndexed_list(mxer):
+        nIndexed_list = [nnindexer.num_indexed_vecs() for nnindexer in mxer.nn_indexer_list]
+        return nIndexed_list
+
+    def get_offsets(mxer):
+        nIndexed_list = mxer.get_nIndexed_list()
+        offset_list = np.cumsum(nIndexed_list)
+        return offset_list
+
+    def knn(mxer, qfx2_vec, K, checks):
+        """
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> mxer, qreq_, ibs = test_mindexer()
+        >>> K = 3
+        >>> checks = 1028
+        >>> qfx2_vec = ibs.get_annot_desc(1)
+        >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
+        """
+        (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
+        qfx2_imx_list = []
+        offset_list = mxer.get_offsets()
+        for _qfx2_idx, offset in zip(qfx2_idx_list, offset_list):
+            # Returns distances in ascending order for each query descriptor
+            qfx2_imx_list.append(_qfx2_idx + offset)
         # Combine results from each tree
         qfx2_imx_   = np.hstack(qfx2_imx_list)
         qfx2_dist_  = np.hstack(qfx2_dist_list)
@@ -340,13 +365,80 @@ class MultiNeighborIndex(object):
         qfx2_imx   = sortaxis1(qfx2_imx_)
         return (qfx2_imx, qfx2_dist)
 
-    def knn2(mindexer, qfx2_vec, K):
+    def add_points(mxer, new_aid_list, new_vecs_list):
+        raise NotImplementedError()
+
+    def num_indexed_vecs(mxer):
         """
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mindexer, qreq_, ibs = test_mindexer()
+        >>> mxer, qreq_, ibs = test_mindexer()
+        >>> out = mxer.num_indexed_vecs()
+        >>> print(out)
+        54141
+        """
+        return np.sum([nnindexer.num_indexed_vecs()
+                          for tx, nnindexer in enumerate(mxer.nn_indexer_list)])
+
+    def num_indexed_annots(mxer):
+        """
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> mxer, qreq_, ibs = test_mindexer()
+        >>> out = mxer.num_indexed_annots()
+        >>> print(out)
+        53
+        """
+        return np.sum([nnindexer.num_indexed_annots()
+                          for tx, nnindexer in enumerate(mxer.nn_indexer_list)])
+
+    def get_nn_aids(mxer, qfx2_imx):
+        qfx2_aid = np.empty(qfx2_imx.shape, dtype=np.int32)
+        nn_indexer_list = mxer.nn_indexer_list
+        offset_list = mxer.get_offsets()
+        prev = 0
+        for nnindexer, offset in zip(nn_indexer_list, offset_list):
+            mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
+            idxs = qfx2_imx[mask] - prev
+            aids = nnindexer.get_nn_aids(idxs)
+            qfx2_aid[mask] = aids
+            prev = offset
+        return qfx2_aid
+
+    def get_nn_featxs(mxer, qfx2_imx):
+        qfx2_fx = np.empty(qfx2_imx.shape, dtype=np.int32)
+        nn_indexer_list = mxer.nn_indexer_list
+        offset_list = mxer.get_offsets()
+        prev = 0
+        for nnindexer, offset in zip(nn_indexer_list, offset_list):
+            mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
+            idxs = qfx2_imx[mask] - prev
+            fxs = nnindexer.get_nn_featxs(idxs)
+            qfx2_fx[mask] = fxs
+            prev = offset
+        return qfx2_fx
+
+    def split_imxs_gen(mxer, qfx2_imx):
+        """
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> mxer, qreq_, ibs = test_mindexer()
+        >>> K = 3
+        >>> checks = 1028
+        >>> qfx2_vec = ibs.get_annot_desc(1)
+        >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+        """
+        offset_list = mxer.get_offsets()
+        prev = 0
+        for offset in offset_list:
+            mask = np.logical_and(qfx2_imx >= prev, qfx2_imx < offset)
+            yield mask, prev
+            prev = offset
+
+    def knn2(mxer, qfx2_vec, K):
+        """
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> mxer, qreq_, ibs = test_mindexer()
         >>> K = 3
         >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mindexer.knn2(qfx2_vec, K)
+        >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
         """
         qfx2_idx_list   = []
         qfx2_dist_list = []
@@ -354,7 +446,7 @@ class MultiNeighborIndex(object):
         qfx2_fx_list   = []
         qfx2_rankx_list = []  # ranks index
         qfx2_treex_list = []  # tree index
-        for tx, nnindexer in enumerate(mindexer.nn_indexer_list):
+        for tx, nnindexer in enumerate(mxer.nn_indexer_list):
             # Returns distances in ascending order for each query descriptor
             (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K, checks=1024)
             qfx2_fx = nnindexer.get_nn_featxs(qfx2_idx)
@@ -385,54 +477,6 @@ class MultiNeighborIndex(object):
         qfx2_rankx_ = foreach_row_sort_cols(qfx2_rankx)
         qfx2_treex_ = foreach_row_sort_cols(qfx2_treex)
         return (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,)
-
-    def add_points(mindexer, new_aid_list, new_vecs_list):
-        raise NotImplementedError()
-
-    def num_indexed_vecs(mindexer):
-        """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mindexer, qreq_, ibs = test_mindexer()
-        >>> out = mindexer.num_indexed_vecs()
-        >>> print(out)
-        54141
-        """
-        return np.sum([nnindexer.num_indexed_vecs()
-                          for tx, nnindexer in enumerate(mindexer.nn_indexer_list)])
-
-    def num_indexed_annots(mindexer):
-        return np.sum([nnindexer.num_indexed_annots()
-                          for tx, nnindexer in enumerate(mindexer.nn_indexer_list)])
-
-    def get_indexed_axs(mindexer):
-        """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mindexer, qreq_, ibs = test_mindexer()
-        >>> out = mindexer.get_indexed_axs()
-        >>> print(out)
-        54141
-        """
-        stack = [nnindexer.get_indexed_axs() for tx, nnindexer in enumerate(mindexer.nn_indexer_list)]
-        return np.vstack(stack)
-
-    def get_nn_axs(mindexer, qfx2_nndx):
-        """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mindexer, qreq_, ibs = test_mindexer()
-        """
-        raise NotImplementedError()
-        return np.vstack([nnindexer.get_nn_axs(qfx2_nndx)
-                          for tx, nnindexer in enumerate(mindexer.nn_indexer_list)])
-
-    def get_nn_aids(mindexer, qfx2_nndx):
-        raise NotImplementedError()
-        return np.vstack([nnindexer.get_nn_aids(qfx2_nndx)
-                          for tx, nnindexer in enumerate(mindexer.nn_indexer_list)])
-
-    def get_nn_featxs(mindexer, qfx2_nndx):
-        raise NotImplementedError()
-        return np.vstack([nnindexer.get_nn_featxs(qfx2_nndx)
-                          for tx, nnindexer in enumerate(mindexer.nn_indexer_list)])
 
 
 def invert_index(vecs_list, ax_list):

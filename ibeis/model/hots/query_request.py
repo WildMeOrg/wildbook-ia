@@ -34,6 +34,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list):
     return qreq_
 
 
+@six.add_metaclass(utool.ReloadingMetaclass)
 class QueryRequest(object):
     def __init__(qreq_, qaid_list, daid_list, qparams, qresdir):
         qreq_.qparams = qparams
@@ -51,12 +52,6 @@ class QueryRequest(object):
         qreq_.aid2_nid = None
         qreq_.set_external_daids(daid_list)
         qreq_.set_external_qaids(qaid_list)
-
-    def rrr(qreq_):
-        from ibeis.model.hots import query_request as hsqreq
-        hsqreq.rrr()
-        print('reloading QueryRequest_')
-        utool.reload_class_methods(qreq_, hsqreq.QueryRequest)
 
     # --- State Modification ---
 

@@ -161,8 +161,7 @@ def nearest_neighbors(qreq_):
         # Check that we can query this annotation
         if len(qfx2_vec) == 0:
             # Assign empty nearest neighbors
-            qfx2_idx   = np.empty((0, num_neighbors), dtype=np.int32)
-            qfx2_dist = np.empty((0, num_neighbors), dtype=np.float64)
+            (qfx2_idx, qfx2_dist) = qreq_.indexer.empty_neighbors(num_neighbors)
         else:
             # Find Neareset Neighbors nntup = (indexes, dists)
             (qfx2_idx, qfx2_dist) = qreq_.indexer.knn(qfx2_vec, num_neighbors, checks)
@@ -326,8 +325,8 @@ def identity_filter(qaid2_nns, qreq_):
     """ testing function returns unfiltered nearest neighbors
     this does check that you are not matching yourself
     """
-    qaid2_nnfilt = {}
     K = qreq_.qparams.K
+    qaid2_nnfilt = {}
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         (qfx2_idx, _) = qaid2_nns[qaid]
         qfx2_nnidx = qfx2_idx[:, 0:K]
@@ -417,7 +416,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         mark_(count)  # Mark progress
         (qfx2_idx, _) = qaid2_nns[qaid]
         (qfx2_fs, qfx2_valid) = qaid2_nnfilt[qaid]
-        nQKpts = len(qfx2_idx)
+        nQKpts = qfx2_idx.shape[0]
         # Build feature matches
         qfx2_nnidx = qfx2_idx[:, 0:K]
         qfx2_aid  = qreq_.indexer.get_nn_aids(qfx2_nnidx)
