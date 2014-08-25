@@ -86,7 +86,7 @@ def _nn_normalized_weight(normweight_fn, qaid2_nns, qreq_):
         qfx2_normdist = [dists[normk] for (dists, normk) in zip(qfx2_dist, qfx2_normk)]
         qfx2_normidx   = [idxs[normk]   for (idxs, normk)   in zip(qfx2_idx,   qfx2_normk)]
         # build meta
-        qfx2_normmeta = [(qreq_.get_nn_aids(idx), qreq_.get_nn_featxs(idx), normk)
+        qfx2_normmeta = [(qreq_.indexer.get_nn_aids(idx), qreq_.indexer.get_nn_featxs(idx), normk)
                                       for (normk, idx)    in zip(qfx2_normk,
                                                                  qfx2_normidx)]
         qfx2_normdist = array(qfx2_normdist)
