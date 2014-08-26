@@ -231,6 +231,10 @@ class IBEISController(object):
         """ Returns ibs internal directory """
         return ibs._ibsdb
 
+    def get_imgdir(ibs):
+        """ Returns ibs internal directory """
+        return ibs.imgdir
+
     def get_thumbdir(ibs):
         """ Returns database directory where thumbnails are cached """
         return ibs.thumb_dpath
@@ -416,6 +420,13 @@ class IBEISController(object):
             (does not include unknown names) """
         all_known_nids = ibs._get_all_known_lblannot_rowids(constants.INDIVIDUAL_KEY)
         return all_known_nids
+
+    @ider
+    def _get_all_known_species_rowids(ibs):
+        """ Returns all nids of known animals
+            (does not include unknown names) """
+        all_known_species_rowids = ibs._get_all_known_lblannot_rowids(constants.SPECIES_KEY)
+        return all_known_species_rowids
 
     @ider
     def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):

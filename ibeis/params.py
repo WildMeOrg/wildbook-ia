@@ -78,13 +78,14 @@ def parse_args():
                          help='sets the opening database to be the default')
         parser2.add_flag('--dump-global-cache')
         parser2.add_flag('--dump-argv')
+        #parser2.add_flag('--gvim-notes')
         parser2.add_flag(('--view-database-directory', '--vdd'),
                          help='opens the database directory')
         parser2.add_strs(('--update-query-cfg', '--set-cfg', '--cfg'), default=None,
                          help=('set cfg dict via strings: e.g. '
                                '--cfg xy_thresh=.01 score_method=csum'))
-        parser2.add_flag(('--preload-exit', '--postquit'), help='exit after preload commands')
-        parser2.add_flag(('--postload-exit', '--prequit'), help='exit after postload commands')
+        parser2.add_flag(('--preload-exit', '--prequit'), help='exit after preload commands')
+        parser2.add_flag(('--postload-exit', '--postquit'), help='exit after postload commands')
 
     def postload_gui_commands_argparse(parser2):
         parser2 = parser2.add_argument_group('Postload GUI Commands')
@@ -92,6 +93,8 @@ def parse_args():
         parser2.add_int(('--select-gid', '--gid'), help='view col')
         parser2.add_int(('--select-aid', '--aid'), help='view col')
         parser2.add_int(('--query-aid', '--query'), help='query aid')
+        parser2.add_flag(('--edit-notes'), help='edits notes')
+        parser2.add_flag(('--dump-schema', '--print-schema'), help='dumps schema to stdout')
 
     behavior_argparse(parser2)
     database_argparse(parser2)

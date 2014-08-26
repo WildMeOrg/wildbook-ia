@@ -163,6 +163,8 @@ python dev.py -t list_dbs
 # Dump/Print contents of params.args as a dict
 python dev.py --prequit --dump-argv
 
+# Dump Current SQL Schema to stdout 
+python dev.py --dump-schema --postquit
 
 #------------------
 # Convert a hotspotter database to IBEIS
@@ -322,7 +324,11 @@ profiler.sh dev.py -t best --db PZ_Mothers --all --nocache-query --prof-mod "spa
 ./dev.py --allgt -t dbinfo --db JAG_Kieryn | grep dbinfo
 ./dev.py --allgt -t dbinfo --db polar_bears | grep dbinfo
 ./dev.py --allgt -t dbinfo --db snails_drop1 | grep dbinfo
+./dev.py --allgt -t dbinfo --db WD_Siva | grep dbinfo
 
+./dev.py --db PZ_FlankHack --edit-notes
+./dev.py --db GZ_Siva --edit-notes
+./dev.py --db GIR_Tanya --edit-notes
 
 # Current Experiments:
 

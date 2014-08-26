@@ -88,15 +88,33 @@ IMAGE_THUMB_SUFFIX = '_thumb.jpg'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 # FIXME UNKNOWN should not be a valid species
-VALID_SPECIES = ['zebra_plains',
-                 'zebra_grevys',
-                 'giraffe',
-                 UNKNOWN]
 
-SPECIES_NICE = ['Plains Zebras',
-                'Grevy\'s Zebras',
-                'Giraffes',
-                'Unknown']
+
+class Species(object):
+    ZEB_PLAIN  = 'zebra_plains'
+    ZEB_GREVY  = 'zebra_grevys'
+    GIRAFFE    = 'giraffe'
+    JAG        = 'jaguar'
+    LEOPARD    = 'leopard'
+    LION       = 'lion'
+    WILDDOG    = 'wild_dog'
+    WHALESHARK = 'whale_shark'
+    UNKNOWN    = UNKNOWN
+
+SPECIES_TUPS = [
+    (Species.ZEB_PLAIN,  'Plains Zebras'),
+    (Species.ZEB_GREVY,  'Grevy\'s Zebras'),
+    (Species.GIRAFFE,    'Giraffes'),
+    (Species.JAG,        'Jaguar'),
+    (Species.LEOPARD,    'Leopard'),
+    (Species.LION,       'Lion'),
+    (Species.WILDDOG,    'Wild Dog'),
+    (Species.WHALESHARK, 'Whale Shark'),
+    (Species.UNKNOWN,    'Unknown'),
+]
+
+VALID_SPECIES = [tup[0] for tup in SPECIES_TUPS]
+SPECIES_NICE = [tup[1] for tup in SPECIES_TUPS]
 
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'

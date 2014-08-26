@@ -71,7 +71,7 @@ def printcfg(ibs):
 
 @devcmd('listdbs', 'list_dbs')
 def list_dbs(*args):
-    ibsdb_list = sysres.get_ibsdb_list()
+    ibsdb_list = sorted(sysres.get_ibsdb_list())
     print('IBEIS Databases:')
     print('\n'.join(ibsdb_list))
 

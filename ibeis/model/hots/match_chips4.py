@@ -1,8 +1,9 @@
-'''
+"""
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
 vsplit neighbor_index.py
 vsplit pipeline.py
 split neighbor_index.py
-'''
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 import sys

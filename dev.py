@@ -423,7 +423,7 @@ def get_allres(ibs, qaid_list):
 def dev_snippets(main_locals):
     """ Common variables for convineince when interacting with IPython """
     print('[dev] dev_snippets')
-    species = 'zebra_grevys'
+    species = constants.Species.ZEB_GREVY
     quick = True
     fnum = 1
     # Get reference to IBEIS Controller

@@ -86,6 +86,10 @@ def postload_commands(ibs, back):
     if params.args.update_query_cfg is not None:
         cfgdict = parse_cfgstr_list(params.args.update_query_cfg)
         ibs.update_query_cfg(**cfgdict)
+    if params.args.edit_notes:
+        utool.editfile(ibs.get_dbnotes_fpath(ensure=True))
+    if params.args.dump_schema:
+        ibs.db.print_schema()
     if params.args.select_aid is not None:
         try:
             ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))

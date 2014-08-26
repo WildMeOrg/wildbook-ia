@@ -13,6 +13,7 @@ from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from functools import partial
 from os.path import split, join, exists, commonprefix
 import utool
+import ibeis
 from ibeis import constants
 from ibeis import sysres
 from ibeis.export import export_hsdb
@@ -577,6 +578,30 @@ def get_match_text(ibs, aid1, aid2):
 def set_annot_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
     ibs.set_annot_names(aid_list, [next_name] * len(aid_list))
+
+
+@__injectable
+def set_annot_species_to_plains(ibs, aid_list):
+    species_list = [constants.Species.ZEB_PLAIN] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
+
+
+@__injectable
+def set_annot_species_to_grevys(ibs, aid_list):
+    species_list = [constants.Species.ZEB_GREVY] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
+
+
+@__injectable
+def set_annot_species_to_giraffe(ibs, aid_list):
+    species_list = [constants.Species.GIR] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
+
+
+def set_all_annot_species_to(ibs, species):
+    aid_list = ibs.get_valid_aids()
+    species_list = [species] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
@@ -1382,7 +1407,6 @@ def export_encounters(ibs, eid_list, new_dbdir=None):
 @__injectable
 def export_images(ibs, gid_list, new_dbdir_):
     """ See ibeis/tests/test_ibs_export.py """
-    import ibeis
     from ibeis.export import export_subset
     print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
     print('[ibsfuncs] opening database')
@@ -1395,3 +1419,28 @@ def export_images(ibs, gid_list, new_dbdir_):
     status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1,
                                             aid_list1, include_image_annots)
     return status
+
+
+@__injectable
+def set_dbnotes(ibs, notes):
+    """ sets notes for an entire database """
+    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+    utool.write_to(ibs.get_dbnotes_fpath(), notes)
+
+
+@__injectable
+def get_dbnotes_fpath(ibs, ensure=False):
+    notes_fpath = join(ibs.get_ibsdir(), 'dbnotes.txt')
+    if ensure and not exists(ibs.get_dbnotes_fpath()):
+        ibs.set_dbnotes('None')
+    return notes_fpath
+
+
+@__injectable
+def get_dbnotes(ibs):
+    """ sets notes for an entire database """
+    notes = utool.read_from(ibs.get_dbnotes_fpath(), strict=False)
+    if notes is None:
+        ibs.set_dbnotes('None')
+        notes = utool.read_from(ibs.get_dbnotes_fpath())
+    return notes
