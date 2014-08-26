@@ -57,7 +57,7 @@ def ingest_unconverted_hsdbs_in_workdir():
 
 
 def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
-    assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert'
+    assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert: hsdb_dir=%r' % (hsdb_dir,)
     if force_delete:
         print('FORCE DELETE: %r' % (hsdb_dir,))
         ibsfuncs.delete_ibeis_database(hsdb_dir)
@@ -109,11 +109,11 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
                 image_reviewed_list.append(reviewed)
 
     image_gpath_list = [join(imgdir, gname) for gname in image_gname_list]
-    print(image_gpath_list)
+    #print(image_gpath_list)
     flags = list(map(exists, image_gpath_list))
     for image_gpath, flag in zip(image_gpath_list, flags):
         if not flag:
-            print(image_gpath, flag)
+            print('Image does not exist: %s' % image_gpath)
 
     assert all(flags), 'some images dont exist'
 

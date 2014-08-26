@@ -23,7 +23,7 @@ NOCACHE_FLANN = '--nocache-flann' in sys.argv
 # cache for heavyweight nn structures.
 # ensures that only one is in memory
 NEIGHBOR_CACHE = {}
-MAX_NEIGHBOR_CACHE_SIZE = 32
+MAX_NEIGHBOR_CACHE_SIZE = 8
 
 
 def rrr():
@@ -41,6 +41,16 @@ def __cleanup():
         del NEIGHBOR_CACHE
     except NameError:
         pass
+
+
+def test_nnindexer():
+    from ibeis.model.hots.query_request import new_ibeis_query_request
+    import ibeis
+    daid_list = [7, 8, 9, 10, 11]
+    ibs = ibeis.opendb(db='testdb1')
+    qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
+    nnindexer = new_ibeis_nnindexer(ibs, qreq_.get_internal_daids())
+    return nnindexer, qreq_, ibs
 
 
 def new_neighbor_indexer(aid_list=[], vecs_list=[], flann_params={},
@@ -66,7 +76,8 @@ def new_neighbor_indexer(aid_list=[], vecs_list=[], flann_params={},
         'flann_params': flann_params,
         'use_cache': use_cache,
         'use_params_hash': use_params_hash})
-    nnindexer = NeighborIndex(aid_list, idx2_vec, idx2_ax, idx2_fx, flann)
+    ax2_aid = np.array(aid_list)
+    nnindexer = NeighborIndex(ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann)
     return nnindexer
 
 
@@ -116,16 +127,6 @@ def _check_input(aid_list, vecs_list):
                                     'Cannot invert index without features!')
 
 
-def test_nnindexer():
-    from ibeis.model.hots.query_request import new_ibeis_query_request
-    import ibeis
-    daid_list = [7, 8, 9, 10, 11]
-    ibs = ibeis.opendb(db='testdb1')
-    qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
-    nnindexer = new_ibeis_nnindexer(ibs, qreq_.get_internal_daids())
-    return nnindexer, qreq_, ibs
-
-
 @six.add_metaclass(utool.ReloadingMetaclass)
 class NeighborIndex(object):
     """
@@ -134,8 +135,8 @@ class NeighborIndex(object):
     >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
     """
 
-    def __init__(nnindexer, aid_list, idx2_vec, idx2_ax, idx2_fx, flann):
-        nnindexer.ax2_aid  = np.array(aid_list)  # Mapping to original annot ids
+    def __init__(nnindexer, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
+        nnindexer.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = idx2_vec  # (M x D) Descriptors to index
         nnindexer.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features

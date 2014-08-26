@@ -101,10 +101,10 @@ class IBEISController(object):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
-    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None):
+    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True):
         """ Creates a new IBEIS Controller associated with one database """
         global __ALL_CONTROLLERS__
-        if utool.VERBOSE:
+        if verbose and utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.table_cache = init_tablecache()
         #ibs.qreq = None  # query requestor object

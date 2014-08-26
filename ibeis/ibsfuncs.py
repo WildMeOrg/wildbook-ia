@@ -581,24 +581,27 @@ def set_annot_names_to_next_name(ibs, aid_list):
 
 
 @__injectable
-def set_annot_species_to_plains(ibs, aid_list):
+def _overwrite_annot_species_to_plains(ibs, aid_list):
     species_list = [constants.Species.ZEB_PLAIN] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
-def set_annot_species_to_grevys(ibs, aid_list):
+def _overwrite_annot_species_to_grevys(ibs, aid_list):
     species_list = [constants.Species.ZEB_GREVY] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
-def set_annot_species_to_giraffe(ibs, aid_list):
+def _overwrite_annot_species_to_giraffe(ibs, aid_list):
     species_list = [constants.Species.GIR] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
 
 
-def set_all_annot_species_to(ibs, species):
+@__injectable
+def _overwrite_all_annot_species_to(ibs, species):
+    """ THIS OVERWRITES A LOT OF INFO """
+    assert species in constants.VALID_SPECIES, repr(species) + 'is not in ' + repr(constants.VALID_SPECIES)
     aid_list = ibs.get_valid_aids()
     species_list = [species] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
@@ -1203,14 +1206,15 @@ def prune_exemplars(ibs):
 
 
 @__injectable
-def delete_cachedir(ibs):
+def delete_cachedir(ibs, removefeat=False):
     print('[ibs] delete_cachedir')
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
     utool.delete(cachedir)
     print('[ibs] finished delete cachedir')
     # TODO: features really need to not be in SQL or in a separate SQLDB
-    #ibs.delete_all_features()
+    if removefeat:
+        ibs.delete_all_features()
 
 
 def draw_thumb_helper(tup):

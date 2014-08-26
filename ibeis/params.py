@@ -93,8 +93,11 @@ def parse_args():
         parser2.add_int(('--select-gid', '--gid'), help='view col')
         parser2.add_int(('--select-aid', '--aid'), help='view col')
         parser2.add_int(('--query-aid', '--query'), help='query aid')
-        parser2.add_flag(('--edit-notes'), help='edits notes')
+        parser2.add_flag(('--edit-notes'), help='edits database notes')
+        parser2.add_str(('--set-notes'), help='overwrites database notes')
+        parser2.add_str(('--set-all-species'), help='careful. overwrites all species info.')
         parser2.add_flag(('--dump-schema', '--print-schema'), help='dumps schema to stdout')
+        parser2.add_flag(('--delete-cache'), help='deletes the cache')
 
     behavior_argparse(parser2)
     database_argparse(parser2)

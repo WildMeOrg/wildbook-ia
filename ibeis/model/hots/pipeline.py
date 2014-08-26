@@ -617,14 +617,15 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
 def try_load_resdict(qreq_):
     """ Try and load the result structures for each query.
     returns a list of failed qaids """
-    qaids = qreq_.get_external_qaids()
-    cfgstr = qreq_.qparams.query_cfgstr
+    qaids   = qreq_.get_external_qaids()
+    qauuids = qreq_.get_external_quuids()
+    cfgstr = qreq_.get_cfgstr()
     qresdir = qreq_.get_qresdir()
     qaid2_qres_hit = {}
     cachemiss_qaids = []
-    for qaid in qaids:
+    for qaid, qauuid in zip(qaids, qauuids):
         try:
-            qres = hots_query_result.QueryResult(qaid, cfgstr)
+            qres = hots_query_result.QueryResult(qaid, cfgstr, qauuid)
             qres.load(qresdir)  # 77.4 % time
             qaid2_qres_hit[qaid] = qres  # cache hit
         except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
