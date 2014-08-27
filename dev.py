@@ -129,6 +129,7 @@ def up_dbsize_expt(ibs, qaid_list):
         df2.set_xlabel('# Annotations in database')
         df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
         df2.dark_background()
+        df2.save_figure(usetitle=True)
 
     #---------
     # Find highest
