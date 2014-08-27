@@ -128,12 +128,15 @@ class QueryResult(__OBJECT_BASE__):
         qres.filt2_meta = None  # messy
 
     @profile
-    def load(qres, qresdir, verbose=utool.NOT_QUIET):
+    def load(qres, qresdir, verbose=utool.NOT_QUIET, force_miss=False):
         """ Loads the result from the given database """
         fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
         qauuid_good = qres.qauuid
         try:
+            #if __debug__:
+            if force_miss:
+                raise hsexcept.HotsCacheMissError('force miss')
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
@@ -170,6 +173,10 @@ class QueryResult(__OBJECT_BASE__):
             elif exstr.startswith('("\'numpy.ndarray\' object is not callable",'):
                 raise hsexcept.HotsNeedsRecomputeError(str(ex))
             raise
+        except hsexcept.HotsCacheMissError:
+            msg = '... qres cache miss: %r' % (split(fpath)[1],)
+            if verbose:
+                print(msg)
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise

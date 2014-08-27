@@ -383,6 +383,15 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 # Rosemary Tests
 ./dev.py --db PZ_RoseMary -t upsize --allgt --nocyth
+
+# Cyth timings (screen disables the backspaces in progress)
+./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --screen --cyth --quiet
+./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --screen --nocyth --quiet
+
+./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --cyth --quiet
+./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --nocyth --quiet
+
+./dev.py --db PZ_MTEST -t best --allgt --nocyth
  
 # Cyth issue debug
 python dev.py --db testdb1 --delete-cache

@@ -65,26 +65,28 @@ class QueryRequest(object):
     # --- State Modification ---
 
     def set_external_daids(qreq_, daid_list, duuid_list):
+        assert len(daid_list) == len(duuid_list), 'inconsistent external daids'
         if qreq_.qparams.vsmany:
             qreq_.set_internal_daids(daid_list, duuid_list)
         else:
             qreq_.set_internal_qaids(daid_list, duuid_list)  # flip on vsone
 
     def set_external_qaids(qreq_, qaid_list, quuid_list):
+        assert len(qaid_list) == len(quuid_list), 'inconsistent internal qaids'
         if qreq_.qparams.vsmany:
             qreq_.set_internal_qaids(qaid_list, quuid_list)
         else:
             qreq_.set_internal_daids(qaid_list, quuid_list)  # flip on vsone
 
     def set_internal_daids(qreq_, daid_list, duuid_list):
-        assert len(daid_list) == len(duuid_list)
+        assert len(daid_list) == len(duuid_list), 'inconsistent internal daids'
         qreq_.internal_daids = np.array(daid_list)
         qreq_.internal_duuids = np.array(duuid_list)
         # Index the annotation ids for fast internal lookup
         #qreq_.internal_didx = np.arange(len(daid_list))
 
     def set_internal_qaids(qreq_, qaid_list, quuid_list):
-        assert len(qaid_list) == len(quuid_list)
+        assert len(qaid_list) == len(quuid_list), 'inconsistent internal qaids'
         qreq_.internal_qaids = np.array(qaid_list)
         qreq_.internal_quuids = np.array(quuid_list)
         # Index the annotation ids for fast internal lookup

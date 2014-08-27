@@ -85,6 +85,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
         if len(cachemiss_qaids) == 0:
             return qaid2_qres_hit
     else:
+        print('[mc4] cache-query is off')
+        #if __debug__:
+        hspipe.try_load_resdict(qreq_, force_miss=True)
         qaid2_qres_hit = {}
     # Execute and save cachemiss queries
     qaid2_qres = hspipe.request_ibeis_query_L0(ibs, qreq_)  # execute queries
