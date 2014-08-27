@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function
 from os.path import exists, splitext, join, split
 import utool
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[customfig]')
 import warnings
 from .custom_constants import FIGSIZE, DPI, FONTS
 
@@ -170,7 +171,12 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
 
 
 def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
-                defaultext='.jpg', verbose=2):
+                defaultext=None, verbose=2):
+    if defaultext is None:
+        if mpl.get_backend().lower() == 'pdf':
+            defaultext = '.pdf'
+        else:
+            defaultext = '.jpg'
     fig, fnum = prepare_figure_for_save(fnum)
     fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
     #fname_clean = split(fpath_clean)[1]
