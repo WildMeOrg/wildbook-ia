@@ -38,7 +38,7 @@ profile = utool.profile
 #if CYTH
 #ctypedef np.float64_t SV_DTYPE
 SV_DTYPE = np.float64
-cdef np.float64_t TAU = 2 * np.pi
+cdef np.float64_t TAU
 #endif
 """
 
@@ -110,7 +110,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     return Mx9
 
 
-_build_lstsqrs_Mx9_cyth = build_lstsqrs_Mx9  # HACK HACK HACK
+#_build_lstsqrs_Mx9_cyth = build_lstsqrs_Mx9  # HACK HACK HACK
 
 
 @profile
@@ -140,7 +140,7 @@ def compute_homog(xy1_mn, xy2_mn):
     #endif
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
-    Mx9 = _build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)
+    Mx9 = build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)
     try:
         (U, S, V) = npl.svd(Mx9, full_matrices=True, compute_uv=True)
     except MemoryError as ex:
