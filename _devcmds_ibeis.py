@@ -1,7 +1,7 @@
 # This is supposed to be pristine, it turns out to be mostly clutter
 from __future__ import absolute_import, division, print_function
 import six
-from _devscript import devcmd
+from _devscript import devcmd, devprecmd
 from six.moves import zip
 from os.path import split, join, expanduser
 from plottool import draw_func2 as df2
@@ -101,6 +101,16 @@ def delete_all_feats(ibs, *args):
 @devcmd
 def delete_all_chips(ibs, *args):
     ibsfuncs.delete_all_chips(ibs)
+
+
+@devprecmd('mtest')
+def ensure_mtest():
+    from ibeis import sysres
+    import utool
+    workdir = sysres.get_workdir()
+    mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
+    mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
+    print('have mtest_dir=%r' % (mtest_dir,))
 
 
 MOTHERS_VIEWPOINT_EXPORT_PAIRS = [

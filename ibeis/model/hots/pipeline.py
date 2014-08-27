@@ -592,17 +592,23 @@ def _precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')
-    cfgstr = qreq_.qparams.query_cfgstr
+    qaids   = qreq_.get_external_qaids()
+    qauuids = qreq_.get_external_quuids()
+    cfgstr = qreq_.get_cfgstr()
     score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
     qaid2_qres = {}
-    for qaid in six.iterkeys(qaid2_chipmatch):
+    # Currently not looping over the keys so we have access to uuids
+    # using qreq externals aids should be equivalent
+    #for qaid in six.iterkeys(qaid2_chipmatch):
+    for qaid, qauuid in zip(qaids, qauuids):
         # For each query's chipmatch
         chipmatch = qaid2_chipmatch[qaid]
         # Perform final scoring
         aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
         # Create a query result structure
-        qres = hots_query_result.QueryResult(qaid, cfgstr)
+        qres = hots_query_result.QueryResult(qaid, cfgstr, qauuid)
+        # Populate query result fields
         qres.aid2_score = aid2_score
         (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
         qres.filt2_meta = {}  # dbgstats

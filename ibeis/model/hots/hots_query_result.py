@@ -108,21 +108,18 @@ def get_num_feats_in_matches(qres):
 
 
 class QueryResult(__OBJECT_BASE__):
-    """
-    __slots__ = ['qaid', 'cfgstr', 'nn_time',
-                 'weight_time', 'filt_time', 'build_time', 'verify_time',
-                 'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score']
-    """
+    #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
+    #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
+    #             'filt2_meta']
     def __init__(qres, qaid, cfgstr, qauuid=None):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qaid = qaid
-        qres.qauuid = qauuid
+        qres.qauuid = qauuid  # query annot uuid
         #qres.qauuid = qauuid
         qres.cfgstr = cfgstr
         qres.eid = None  # encounter id
-        qres.qauuid = qauuid  # query annot uuid
         # Assigned features matches
         qres.aid2_fm = None  # feat_match_list
         qres.aid2_fs = None  # feat_score_list
@@ -176,6 +173,7 @@ class QueryResult(__OBJECT_BASE__):
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise
+        assert qauuid_good == qres.qauuid
         qres.qauuid = qauuid_good
         qres.qaid = qaid_good
 
@@ -201,7 +199,7 @@ class QueryResult(__OBJECT_BASE__):
     @profile
     def save(qres, qresdir):
         fpath = qres.get_fpath(qresdir)
-        if utool.VERBOSE:
+        if utool.NOT_QUIET:  # and utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
             cPickle.dump(qres.__dict__, file_)

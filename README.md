@@ -380,6 +380,9 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 ./dev.py --db PZ_RoseMary --setdb 
 ./dev.py -t best --allgt --nocyth
 ./dev.py -t upsize --allgt --nocyth
+
+# Rosemary Tests
+./dev.py --db PZ_RoseMary -t upsize --allgt --nocyth
  
 # Cyth issue debug
 python dev.py --db testdb1 --delete-cache
