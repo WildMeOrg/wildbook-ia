@@ -8,8 +8,7 @@ from os.path import exists, normpath, join
 import pyflann
 import utool
 import numpy as np
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[nneighbs]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
 
 
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):

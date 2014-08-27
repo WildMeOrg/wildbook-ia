@@ -1,15 +1,14 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[trig]')
+#import utool
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[trig]')
 
 """
 #if CYTH
-cdef np.float64_t TAU = 2 * np.pi
+cdef np.float64_t TAU
 #endif
 """
-
 
 TAU = 2 * np.pi  # tauday.com
 
@@ -17,6 +16,7 @@ TAU = 2 * np.pi  # tauday.com
 def atan2(y, x):
     """ does atan2 but returns from 0 to TAU
     >>> from vtool.trig import *  # NOQA
+    >>> import utool
     >>> np.random.seed(0)
     >>> y = np.random.rand(1000).astype(np.float64)
     >>> x = np.random.rand(1000).astype(np.float64)

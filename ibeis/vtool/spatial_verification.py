@@ -26,7 +26,8 @@ from numpy.core.umath_tests import matrix_multiply
 # VTool
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
+profile = utool.profile
+#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sver]', DEBUG=False)
 
 # CYTH TODO:
 # ktool and vtool must be recognized as having cython modules
