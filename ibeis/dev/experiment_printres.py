@@ -9,11 +9,9 @@ from plottool import plot_helpers as ph
 import numpy as np
 from ibeis import ibsfuncs
 from ibeis.dev import experiment_helpers as eh
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[expt_report]', DEBUG=False)
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
-QUIET = utool.QUIET
 SKIP_TO = utool.get_arg('--skip-to', default=None)
 SAVE_FIGURES = utool.get_flag(('--save-figures', '--sf'))
 
@@ -86,7 +84,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     print_collbl()
 
     #------------
-    # Build Colscore
+    # Build Colscore and hard cases
     qx2_min_rank = []
     qx2_argmin_rank = []
     new_hard_qx_list = []
@@ -278,19 +276,23 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     #print('--- /SUMMARY ---')
 
     # Draw results
-    if not QUIET:
+    if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
         sel_rows = list(range(len(qaids)))
-    if utool.get_arg('--view-all'):
+    if utool.get_flag('--view-all'):
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
+    if utool.get_flag('--view-hard'):
+        sel_rows = new_hard_qx_list
+        sel_cols = list(range(len(cfg_list)))
+
     sel_cols = list(sel_cols)
     sel_rows = list(sel_rows)
     total = len(sel_cols) * len(sel_rows)
-    rciter = itertools.product(sel_rows, sel_cols)
+    rciter = list(itertools.product(sel_rows, sel_cols))
 
     skip_list = []
 
@@ -330,5 +332,5 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
                            quality=False,
                            overwrite=True,
                            verbose=1)
-    if not QUIET:
+    if utool.NOT_QUIET:
         print('[harn] EXIT EXPERIMENT HARNESS')

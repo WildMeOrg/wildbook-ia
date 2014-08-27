@@ -387,6 +387,8 @@ python dev.py --db testdb1 --query 1 --nocache-query --cyth --gui
 python dev.py --db testdb1 --query 1 --nocache-query --nocyth --gui
 
 # Rosemary Tests
+python dev.py --db PZ_RoseMary -t best --gt 1:20 --screen --cyth 
+python dev.py --db PZ_RoseMary -t best --allgt --screen --cyth 
 python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 
 # Ensures the mtest dataset is in your workdir (by downloading it from dropbox)
