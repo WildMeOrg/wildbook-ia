@@ -391,6 +391,9 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 ./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --cyth --quiet
 ./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --nocyth --quiet
 
+./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --cyth 
+./dev.py --db PZ_MTEST -t best --qaid 3:60:3 --nocache-query --nocyth
+
 ./dev.py --db PZ_MTEST -t best --allgt --nocyth
  
 # Cyth issue debug
