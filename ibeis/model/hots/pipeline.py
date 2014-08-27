@@ -584,6 +584,34 @@ def _precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 
 
 #============================
+# Scoring Mechanism
+#============================
+
+@profile
+def score_chipmatch(qaid, chipmatch, score_method, qreq_):
+    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+    # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
+    if score_method.find('w') == len(score_method) - 1:
+        score_method = score_method[:-1]
+    # Choose the appropriate scoring mechanism
+    if score_method == 'csum':
+        aid2_score = vr2.score_chipmatch_csum(chipmatch)
+    #elif score_method == 'pl':
+    #    aid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
+    #elif score_method == 'borda':
+    #    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'borda')
+    #elif score_method == 'topk':
+    #    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'topk')
+    #elif score_method.startswith('coverage'):
+    #    # Method num is at the end of coverage
+    #    method = int(score_method.replace('coverage', '0'))
+    #    aid2_score = coverage_image.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
+    else:
+        raise Exception('[hs] unknown scoring method:' + score_method)
+    return aid2_score
+
+
+#============================
 # 6) Query Result Format
 #============================
 
@@ -625,6 +653,7 @@ def try_load_resdict(qreq_, force_miss=False):
     returns a list of failed qaids """
     qaids   = qreq_.get_external_qaids()
     qauuids = qreq_.get_external_quuids()
+
     cfgstr = qreq_.get_cfgstr()
     qresdir = qreq_.get_qresdir()
     qaid2_qres_hit = {}
@@ -643,31 +672,3 @@ def save_resdict(qreq_, qaid2_qres):
     qresdir = qreq_.get_qresdir()
     for qres in six.itervalues(qaid2_qres):
         qres.save(qresdir)
-
-
-#============================
-# Scoring Mechanism
-#============================
-
-@profile
-def score_chipmatch(qaid, chipmatch, score_method, qreq_):
-    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
-    # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
-    if score_method.find('w') == len(score_method) - 1:
-        score_method = score_method[:-1]
-    # Choose the appropriate scoring mechanism
-    if score_method == 'csum':
-        aid2_score = vr2.score_chipmatch_csum(chipmatch)
-    #elif score_method == 'pl':
-    #    aid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
-    #elif score_method == 'borda':
-    #    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'borda')
-    #elif score_method == 'topk':
-    #    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'topk')
-    #elif score_method.startswith('coverage'):
-    #    # Method num is at the end of coverage
-    #    method = int(score_method.replace('coverage', '0'))
-    #    aid2_score = coverage_image.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
-    else:
-        raise Exception('[hs] unknown scoring method:' + score_method)
-    return aid2_score

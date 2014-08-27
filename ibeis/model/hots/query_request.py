@@ -93,6 +93,7 @@ class QueryRequest(object):
         #qreq_.internal_qidx = np.arange(len(qaid_list))
 
     # --- Internal Interface ---
+    # For within pipeline use only
 
     def get_internal_qvecs(qreq_):
         return qreq_.internal_qvecs_list
@@ -104,29 +105,46 @@ class QueryRequest(object):
             return qreq_.get_query_hashid(ibs)
 
     def get_internal_daids(qreq_):
-        """ For within pipeline use """
         return qreq_.internal_daids
 
     def get_internal_qaids(qreq_):
-        """ For within pipeline use """
         return qreq_.internal_qaids
+
+    def get_internal_duuids(qreq_):
+        return qreq_.internal_duuids
+
+    def get_internal_quuids(qreq_):
+        return qreq_.internal_quuids
 
     # --- External Interface ---
 
     def get_external_daids(qreq_):
         """ These are the users daids in vsone mode """
-        daids = qreq_.internal_daids if qreq_.qparams.vsmany else qreq_.internal_qaids
-        return daids
+        if qreq_.qparams.vsmany:
+            return qreq_.get_internal_daids()
+        # Flip on vsone
+        return qreq_.get_internal_qaids()
 
     def get_external_qaids(qreq_):
         """ These are the users qaids in vsone mode """
-        qaids = qreq_.internal_qaids if qreq_.qparams.vsmany else qreq_.internal_daids
-        return qaids
+        if qreq_.qparams.vsmany:
+            return qreq_.get_internal_qaids()
+        # Flip on vsone
+        return qreq_.get_internal_daids()
 
     def get_external_quuids(qreq_):
         """ These are the users qauuids in vsone mode """
-        qauuids = qreq_.internal_duuids if qreq_.qparams.vsmany else qreq_.internal_quuids
-        return qauuids
+        if qreq_.qparams.vsmany:
+            return qreq_.get_internal_quuids()
+        # Flip on vsone
+        return qreq_.get_internal_duuids()
+
+    def get_external_duuids(qreq_):
+        """ These are the users qauuids in vsone mode """
+        if qreq_.qparams.vsmany:
+            return qreq_.get_internal_duuids()
+        # Flip on vsone
+        return qreq_.get_internal_quuids()
 
     def get_data_hashid(qreq_, ibs=None):
         daids = qreq_.get_external_daids()
@@ -248,6 +266,26 @@ class QueryRequest(object):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))
         nids = ibs.get_annot_nids(aids)
         qreq_.aid2_nid = dict(zip(aids, nids))
+
+    def assert_self(qreq_, ibs):
+        qaids = qreq_.get_external_qaids()
+        qauuids = qreq_.get_external_quuids()
+        daids = qreq_.get_external_daids()
+        dauuids = qreq_.get_external_duuids()
+        _qaids = qreq_.get_internal_qaids()
+        _qauuids = qreq_.get_internal_quuids()
+        _daids = qreq_.get_internal_daids()
+        _dauuids = qreq_.get_internal_duuids()
+        def assert_uuids(aids, uuids):
+            if utool.NOT_QUIET:
+                print('[qreq_] asserting %s ids' % len(aids))
+            assert len(aids) == len(uuids)
+            assert all([u1 == u2 for u1, u2 in
+                        zip(ibs.get_annot_uuids(aids), uuids)])
+        assert_uuids(qaids, qauuids)
+        assert_uuids(daids, dauuids)
+        assert_uuids(_qaids, _qauuids)
+        assert_uuids(_daids, _dauuids)
 
 
 class QueryParams(object):

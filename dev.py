@@ -324,6 +324,8 @@ def run_devprecmds():
         if intest(*func_aliases):
             with utool.Indenter('[dev.' + get_funcname(func) + ']'):
                 func()
+                print('Exiting after first precommand')
+            sys.exit(1)
 
 
 #@utool.indent_func('[dev]')
