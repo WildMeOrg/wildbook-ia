@@ -66,23 +66,27 @@ class QueryRequest(object):
 
     def set_external_daids(qreq_, daid_list, duuid_list):
         if qreq_.qparams.vsmany:
-            qreq_.internal_daids = np.array(daid_list)
-            qreq_.internal_duuids = np.array(duuid_list)
+            qreq_.set_internal_daids(daid_list, duuid_list)
         else:
-            # flip on vsone
-            qreq_.internal_qaids = np.array(daid_list)
-            qreq_.internal_quuids = np.array(duuid_list)
-        # Index the annotation ids for fast internal lookup
-        #qreq_.internal_didx = np.arange(len(daid_list))
+            qreq_.set_internal_qaids(daid_list, duuid_list)  # flip on vsone
 
     def set_external_qaids(qreq_, qaid_list, quuid_list):
         if qreq_.qparams.vsmany:
-            qreq_.internal_qaids = np.array(qaid_list)
-            qreq_.internal_quuids = np.array(quuid_list)
+            qreq_.set_internal_qaids(qaid_list, quuid_list)
         else:
-            # flip on vsone
-            qreq_.internal_daids = np.array(qaid_list)
-            qreq_.internal_duuids = np.array(quuid_list)
+            qreq_.set_internal_daids(qaid_list, quuid_list)  # flip on vsone
+
+    def set_internal_daids(qreq_, daid_list, duuid_list):
+        assert len(daid_list) == len(duuid_list)
+        qreq_.internal_daids = np.array(daid_list)
+        qreq_.internal_duuids = np.array(duuid_list)
+        # Index the annotation ids for fast internal lookup
+        #qreq_.internal_didx = np.arange(len(daid_list))
+
+    def set_internal_qaids(qreq_, qaid_list, quuid_list):
+        assert len(qaid_list) == len(quuid_list)
+        qreq_.internal_qaids = np.array(qaid_list)
+        qreq_.internal_quuids = np.array(quuid_list)
         # Index the annotation ids for fast internal lookup
         #qreq_.internal_qidx = np.arange(len(qaid_list))
 

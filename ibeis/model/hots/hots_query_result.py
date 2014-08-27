@@ -111,14 +111,14 @@ class QueryResult(__OBJECT_BASE__):
     #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
     #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
     #             'filt2_meta']
-    def __init__(qres, qaid, cfgstr, qauuid=None):
+    def __init__(qres, qaid, qauuid, cfgstr):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qaid = qaid
         qres.qauuid = qauuid  # query annot uuid
         #qres.qauuid = qauuid
-        qres.cfgstr = cfgstr
+        qres.cfgstr = cfgstr  # should have database info hashed in from qreq
         qres.eid = None  # encounter id
         # Assigned features matches
         qres.aid2_fm = None  # feat_match_list

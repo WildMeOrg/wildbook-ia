@@ -7,7 +7,6 @@ split neighbor_index.py
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
-import six
 from ibeis.model.hots import query_request as hsqreq
 from ibeis.model.hots import pipeline as hspipe
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -90,9 +89,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     # Execute and save cachemiss queries
     qaid2_qres = hspipe.request_ibeis_query_L0(ibs, qreq_)  # execute queries
     # Cache save only misses
-    qresdir = qreq_.get_qresdir()
-    for qaid, res in six.iteritems(qaid2_qres):
-        res.save(qresdir)
+    hspipe.save_resdict(qreq_, qaid2_qres)
     # Merge cache hits with computed misses
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)

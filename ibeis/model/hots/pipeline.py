@@ -607,7 +607,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
         # Perform final scoring
         aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
         # Create a query result structure
-        qres = hots_query_result.QueryResult(qaid, cfgstr, qauuid)
+        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
         # Populate query result fields
         qres.aid2_score = aid2_score
         (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
@@ -631,12 +631,18 @@ def try_load_resdict(qreq_):
     cachemiss_qaids = []
     for qaid, qauuid in zip(qaids, qauuids):
         try:
-            qres = hots_query_result.QueryResult(qaid, cfgstr, qauuid)
+            qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
             qres.load(qresdir)  # 77.4 % time
             qaid2_qres_hit[qaid] = qres  # cache hit
         except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
             cachemiss_qaids.append(qaid)  # cache miss
     return qaid2_qres_hit, cachemiss_qaids
+
+
+def save_resdict(qreq_, qaid2_qres):
+    qresdir = qreq_.get_qresdir()
+    for qres in six.itervalues(qaid2_qres):
+        qres.save(qresdir)
 
 
 #============================
