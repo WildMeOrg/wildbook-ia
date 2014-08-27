@@ -121,6 +121,7 @@ def cache_invalidator(tblname, colnames=None):
 
 def adder(func):
     func = default_decorator(func)
+    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
@@ -136,6 +137,7 @@ def adder(func):
 
 def deleter(func):
     func = default_decorator(func)
+    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
@@ -156,6 +158,7 @@ def setter_general(func):
 
 def setter(func):
     func = default_decorator(func)
+    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input2(argx_list=range(0, 2))
     @utool.ignores_exc_tb
     @wraps(func)
@@ -176,6 +179,7 @@ def getter(func):
     list and returns a heterogeous list of values
     """
     func = default_decorator(func)
+    #@utool.copy_argspec(func)
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
@@ -191,6 +195,7 @@ def getter_vector_output(func):
     list and returns a homogenous list of values
     """
     func = default_decorator(func)
+    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input_vector_output
     @utool.ignores_exc_tb
     @wraps(func)

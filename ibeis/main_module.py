@@ -101,10 +101,10 @@ def _init_gui():
 
 
 #@profile
-def _init_ibeis(dbdir=None):
+def _init_ibeis(dbdir=None, verbose=True):
     import utool
     from ibeis.control import IBEISControl
-    if not utool.QUIET:
+    if verbose and not utool.QUIET:
         print('[main] _init_ibeis()')
     # Use command line dbdir unless user specifies it
     if dbdir is None:
@@ -232,7 +232,8 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     return main_locals
 
 
-def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False, delete_ibsdir=False):
+def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
+           delete_ibsdir=False, verbose=False):
     """ main without the preload (except for option to delete database before
     opening) """
     from ibeis.dev import sysres
@@ -241,7 +242,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False, delete_ib
     if delete_ibsdir is True:
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
         ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = _init_ibeis(dbdir)
+    ibs = _init_ibeis(dbdir, verbose=verbose)
     return ibs
 
 

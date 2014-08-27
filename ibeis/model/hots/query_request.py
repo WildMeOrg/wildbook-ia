@@ -25,22 +25,31 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list):
     >>> qreq_, ibs = get_test_qreq()   #doctest: +ELLIPSIS
     """
     if utool.NOT_QUIET:
-        print(' --- New IBEIS QueryRequest --- ')
+        print(' --- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
     qparams = QueryParams(cfg)
     # Neighbor Indexer
-    qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir)
+    quuid_list = ibs.get_annot_uuids(qaid_list)
+    duuid_list = ibs.get_annot_uuids(daid_list)
+    qreq_ = QueryRequest(qaid_list, quuid_list,
+                         daid_list, duuid_list,
+                         qparams, qresdir)
     return qreq_
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
 class QueryRequest(object):
-    def __init__(qreq_, qaid_list, daid_list, qparams, qresdir):
+    def __init__(qreq_,
+                 qaid_list, quuid_list,
+                 daid_list, duuid_list,
+                 qparams, qresdir):
         qreq_.qparams = qparams
         qreq_.qresdir = qresdir
         qreq_.internal_qaids = None
         qreq_.internal_daids = None
+        qreq_.internal_quuids = None
+        qreq_.internal_duuids = None
         qreq_.internal_qidx = None
         qreq_.internal_didx = None
         qreq_.indexer = None
@@ -50,26 +59,32 @@ class QueryRequest(object):
         qreq_.internal_qgid_list  = None
         qreq_.internal_qnid_list  = None
         qreq_.aid2_nid = None
-        qreq_.set_external_daids(daid_list)
-        qreq_.set_external_qaids(qaid_list)
+        qreq_.set_external_daids(daid_list, duuid_list)
+        qreq_.set_external_qaids(qaid_list, quuid_list)
 
     # --- State Modification ---
 
-    def set_external_daids(qreq_, daid_list):
+    def set_external_daids(qreq_, daid_list, duuid_list):
         if qreq_.qparams.vsmany:
             qreq_.internal_daids = np.array(daid_list)
+            qreq_.internal_duuids = np.array(duuid_list)
         else:
-            qreq_.internal_qaids = np.array(daid_list)  # flip on vsone
+            # flip on vsone
+            qreq_.internal_qaids = np.array(daid_list)
+            qreq_.internal_quuids = np.array(duuid_list)
         # Index the annotation ids for fast internal lookup
-        qreq_.internal_didx = np.arange(len(daid_list))
+        #qreq_.internal_didx = np.arange(len(daid_list))
 
-    def set_external_qaids(qreq_, qaid_list):
+    def set_external_qaids(qreq_, qaid_list, quuid_list):
         if qreq_.qparams.vsmany:
             qreq_.internal_qaids = np.array(qaid_list)
+            qreq_.internal_quuids = np.array(quuid_list)
         else:
-            qreq_.internal_daids = np.array(qaid_list)  # flip on vsone
+            # flip on vsone
+            qreq_.internal_daids = np.array(qaid_list)
+            qreq_.internal_duuids = np.array(quuid_list)
         # Index the annotation ids for fast internal lookup
-        qreq_.internal_qidx = np.arange(len(qaid_list))
+        #qreq_.internal_qidx = np.arange(len(qaid_list))
 
     # --- Internal Interface ---
 
@@ -102,9 +117,14 @@ class QueryRequest(object):
         qaids = qreq_.internal_qaids if qreq_.qparams.vsmany else qreq_.internal_daids
         return qaids
 
+    def get_external_quuids(qreq_):
+        """ These are the users qauuids in vsone mode """
+        qauuids = qreq_.internal_duuids if qreq_.qparams.vsmany else qreq_.internal_quuids
+        return qauuids
+
     def get_data_hashid(qreq_, ibs=None):
         daids = qreq_.get_external_daids()
-        assert len(daids) > 0, 'QueryRequest not populated. len(daids)=0'
+        assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
         if ibs is None:
             data_hashid = utool.hashstr_arr(daids, '_DAIDS')
         else:
@@ -113,17 +133,17 @@ class QueryRequest(object):
 
     def get_query_hashid(qreq_, ibs=None):
         qaids = qreq_.get_external_qaids()
-        assert len(qaids) > 0, 'QueryRequest not populated. len(qaids)=0'
+        assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         if ibs is None:
             query_hashid = utool.hashstr_arr(qaids, '_QAIDS')
         else:
             query_hashid = ibs.get_annot_uuid_hashid(qaids, '_QUUIDS')
         return query_hashid
 
-    #def get_cfgstr(qreq_, ibs=None):
-    #    daids_hashid = qreq_.get_data_hashid(ibs)
-    #    cfgstr = daids_hashid + qreq_.qparams.query_cfgstr
-    #    return cfgstr
+    def get_cfgstr(qreq_, ibs=None):
+        daids_hashid = qreq_.get_data_hashid(ibs)
+        cfgstr = daids_hashid + qreq_.qparams.query_cfgstr
+        return cfgstr
 
     def get_qresdir(qreq_):
         return qreq_.qresdir

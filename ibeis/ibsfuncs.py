@@ -13,6 +13,7 @@ from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from functools import partial
 from os.path import split, join, exists, commonprefix
 import utool
+import ibeis
 from ibeis import constants
 from ibeis import sysres
 from ibeis.export import export_hsdb
@@ -577,6 +578,33 @@ def get_match_text(ibs, aid1, aid2):
 def set_annot_names_to_next_name(ibs, aid_list):
     next_name = ibs.make_next_name()
     ibs.set_annot_names(aid_list, [next_name] * len(aid_list))
+
+
+@__injectable
+def _overwrite_annot_species_to_plains(ibs, aid_list):
+    species_list = [constants.Species.ZEB_PLAIN] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
+
+
+@__injectable
+def _overwrite_annot_species_to_grevys(ibs, aid_list):
+    species_list = [constants.Species.ZEB_GREVY] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
+
+
+@__injectable
+def _overwrite_annot_species_to_giraffe(ibs, aid_list):
+    species_list = [constants.Species.GIR] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
+
+
+@__injectable
+def _overwrite_all_annot_species_to(ibs, species):
+    """ THIS OVERWRITES A LOT OF INFO """
+    assert species in constants.VALID_SPECIES, repr(species) + 'is not in ' + repr(constants.VALID_SPECIES)
+    aid_list = ibs.get_valid_aids()
+    species_list = [species] * len(aid_list)
+    ibs.set_annot_species(aid_list, species_list)
 
 
 @__injectable
@@ -1178,14 +1206,15 @@ def prune_exemplars(ibs):
 
 
 @__injectable
-def delete_cachedir(ibs):
+def delete_cachedir(ibs, removefeat=False):
     print('[ibs] delete_cachedir')
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
     utool.delete(cachedir)
     print('[ibs] finished delete cachedir')
     # TODO: features really need to not be in SQL or in a separate SQLDB
-    #ibs.delete_all_features()
+    if removefeat:
+        ibs.delete_all_features()
 
 
 def draw_thumb_helper(tup):
@@ -1313,12 +1342,18 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_annot_nids(valid_aids)
     nid2_aids = utool.group_items(valid_aids, valid_nids)
-    for nid in six.iterkeys(nid2_aids):
-        # Remove unknown
+    for nid in list(nid2_aids.keys()):
         if ibs.is_nid_unknown(nid):
+            # Remove unknown
             del nid2_aids[nid]
+            continue
         # Cast into numpy arrays
         aids =  np.array(nid2_aids[nid])
+        if len(aids) == 0:
+            # Remove empties
+            print('[ibsfuncs] name with 0 aids. need to clean database')
+            del nid2_aids[nid]
+            continue
         nid2_aids[nid] = aids
         # Shuffle known annotations in each name
         #np.random.shuffle(aids)
@@ -1376,7 +1411,6 @@ def export_encounters(ibs, eid_list, new_dbdir=None):
 @__injectable
 def export_images(ibs, gid_list, new_dbdir_):
     """ See ibeis/tests/test_ibs_export.py """
-    import ibeis
     from ibeis.export import export_subset
     print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
     print('[ibsfuncs] opening database')
@@ -1390,3 +1424,27 @@ def export_images(ibs, gid_list, new_dbdir_):
                                             aid_list1, include_image_annots)
     return status
 
+
+@__injectable
+def set_dbnotes(ibs, notes):
+    """ sets notes for an entire database """
+    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+    utool.write_to(ibs.get_dbnotes_fpath(), notes)
+
+
+@__injectable
+def get_dbnotes_fpath(ibs, ensure=False):
+    notes_fpath = join(ibs.get_ibsdir(), 'dbnotes.txt')
+    if ensure and not exists(ibs.get_dbnotes_fpath()):
+        ibs.set_dbnotes('None')
+    return notes_fpath
+
+
+@__injectable
+def get_dbnotes(ibs):
+    """ sets notes for an entire database """
+    notes = utool.read_from(ibs.get_dbnotes_fpath(), strict=False)
+    if notes is None:
+        ibs.set_dbnotes('None')
+        notes = utool.read_from(ibs.get_dbnotes_fpath())
+    return notes

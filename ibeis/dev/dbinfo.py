@@ -1,3 +1,7 @@
+"""
+python -c "import doctest, ibeis.dev.dbinfo; print(doctest.testmod(ibeis.dev.dbinfo))"
+
+"""
 # This is not the cleanest module
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
@@ -11,44 +15,69 @@ from vtool import keypoint as ktool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dbinfo]')
 
 
-def get_dbinfo(ibs):
+def get_dbinfo(ibs, verbose=True):
     """ Returns dictionary of digestable database information
     Infostr is a string summary of all the stats. Prints infostr in addition to
     returning locals
+
+    >>> from ibeis.dev.dbinfo import *  # NOQA
+    >>> import ibeis
+    >>> verbose = True
+    >>> ibs = ibeis.opendb(db='PZ_Mothers')  #doctest: +ELLIPSIS
+    >>> output = get_dbinfo(ibs, verbose=False)
+    >>> print(utool.dict_str(output))
+    >>> print(output['info_str'])
+    66w+mdzw!n%3+i6h
+
+    #>>> print(utool.hashstr(repr(output)))
+
     """
-    # Name Info
-    #rrr()
+    # TODO Database size in bytes
+
+    # Basic variables
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
 
-    num_annots = len(valid_aids)
-    num_images = len(valid_gids)
+    # Image info
+    gname_list = ibs.get_image_gnames(valid_gids)
+    gx2_aids = ibs.get_image_aids(valid_gids)
+    gx2_nAnnots = np.array(map(len, gx2_aids))
+    image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
+    gx2_nAnnots_stats  = utool.stats_str(gx2_nAnnots)
+    image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
+    # Name stats
     name_aids_list = ibs.get_name_aids(valid_nids)
     nx2_aids = np.array(name_aids_list)
 
-    gname_list = ibs.get_image_gnames(valid_gids)
+    # Annot Stats
+    # TODO: number of images where chips cover entire image
+    # TODO: total image coverage of annotation
+    # TODO: total annotation overlap
+    unknown_aids = utool.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
+    species_list = ibs.get_annot_species(valid_aids)
+    species2_aids = utool.group_items(valid_aids, species_list)
+    species2_nAids = {key: len(val) for key, val in species2_aids.items()}
+
     nx2_nRois = np.asarray(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
     multiton_nids  = np.where(nx2_nRois > 1)[0]
     singleton_nids = np.where(nx2_nRois == 1)[0]
     valid_nids      = np.hstack([multiton_nids, singleton_nids])
     num_names_with_gt = len(multiton_nids)
+
     # Chip Info
     multiton_aids_list = nx2_aids[multiton_nids]
-    #print('multiton_nids = %r' % (multiton_nids,))
-    #print('multiton_aids_list = %r' % (multiton_aids_list,))
     if len(multiton_aids_list) == 0:
         multiton_aids = np.array([], dtype=np.int)
     else:
         multiton_aids = np.hstack(multiton_aids_list)
     singleton_aids = nx2_aids[singleton_nids]
     multiton_nid2_nannots = list(map(len, multiton_aids_list))
-    # Image info
-    gpath_list = ibs.get_image_paths(valid_gids)
-    #gpaths_incache = utool.list_images(ibs.imgdir, fullpath=True, recursive=True)
 
+    # Image size stats
+    gpath_list = ibs.get_image_paths(valid_gids)
     def wh_print_stats(wh_list):
         if len(wh_list) == 0:
             return '{empty}'
@@ -72,23 +101,57 @@ def get_dbinfo(ibs):
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(annotation_size_list)
-    multiton_stats  = utool.common_stats(multiton_nid2_nannots)
+    multiton_stats  = utool.stats_str(multiton_nid2_nannots)
 
-    num_names = len(valid_nids)
+    # Time stats
+    unixtime_list_ = ibs.get_image_unixtime(valid_gids)
+    utvalid_list   = [time != -1 for time in unixtime_list_]
+    unixtime_list  = utool.filter_items(unixtime_list_, utvalid_list)
+    unixtime_statstr = utool.get_timestats_str(unixtime_list)
+
+    # GPS stats
+    gps_list_ = ibs.get_image_gps(valid_gids)
+    gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
+    gps_list  = utool.filter_items(gps_list_, gpsvalid_list)
+
+    ibsdir_space = utool.byte_str2(utool.get_disk_space(ibs.get_ibsdir()))
+    dbdir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_dbdir()))
+    imgdir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_imgdir()))
+    cachedir_space  = utool.byte_str2(utool.get_disk_space(ibs.get_cachedir()))
+
     # print
     info_str = '\n'.join([
+        ('+============================'),
+        ('+ singleton = single sighting'),
+        ('+ multiton = multiple sightings'),
         (' DB Info: ' + ibs.get_dbname()),
-        (' * #Img   = %d' % num_images),
-        (' * #Annots = %d' % num_annots),
+        (' DB Notes: ' + ibs.get_dbnotes()),
+        (' DB Bytes: '),
+        (' +- dbdir nBytes:         ' + dbdir_space),
+        (' |  +- _ibsdb nBytes:     ' + ibsdir_space),
+        (' |  |  +-imgdir nBytes:   ' + imgdir_space),
+        (' |  |  +-cachedir nBytes: ' + cachedir_space),
+        (' * #Img   = %d' % len(valid_gids)),
+        (' * #Annots = %d' % len(valid_aids)),
         (' * #Names = %d' % len(valid_nids)),
-        (' * #Names  (without gt) = %d' % len(singleton_nids)),
-        (' * #Names  (with gt)    = %d' % len(multiton_nids)),
-        (' * #Annots (with gt)    = %d' % len(multiton_aids)),
-        (' * Annots per Names (with gt) = %s' % (multiton_stats,)),
+        (' * #Names  (singleton)  = %d' % len(singleton_nids)),
+        (' * #Names  (multiton)   = %d' % len(multiton_nids)),
+        (' * #Unknown Annots      = %d' % len(unknown_aids)),
+        (' * #Annots (multiton)   = %d' % len(multiton_aids)),
+        (' * #Annots per Name (multiton) = %s' % (multiton_stats,)),
+        (' * #Annots per Image    = %s' % (gx2_nAnnots_stats,)),
+        (' * #Img reviewed        = %d/%d' % (sum(image_reviewed_list), len(valid_gids))),
+        (' * #Img with gps        = %d/%d' % (len(gps_list), len(valid_gids))),
+        (' * #Img with timestamp  = %d/%d' % (len(unixtime_list), len(valid_gids))),
+        (' * #Img time stats      = %s' % (unixtime_statstr,)),
         (' * #Img in dir = %d' % len(gpath_list)),
         (' * Image Size Stats = %s' % (img_size_stats,)),
-        (' * Chip Size Stats = %s' % (chip_size_stats,)), ])
-    print(info_str)
+        (' * # Annots per Species = %s' % (utool.dict_str(species2_nAids),)),
+        #(' * Chip Size Stats = %s' % (chip_size_stats,)),
+        ('L============================'),
+    ])
+    if verbose:
+        print(utool.indent(info_str, '[dbinfo]'))
     return locals()
 
 

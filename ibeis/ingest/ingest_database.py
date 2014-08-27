@@ -200,6 +200,7 @@ def ingest_snails_drop1(db):
     return Ingestable(db,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.snails_fmt,
+                      #img_dir='/raid/raw/snails_drop1_59MB',
                       adjust_percent=.20)
 
 
@@ -335,8 +336,14 @@ if __name__ == '__main__':
 
         Valid dbnames:''') + utool.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
     db = utool.get_arg('--db', str, None)
-    ibs = ingest_standard_database(db)
+    force_delete = utool.get_flag('--force_delete')
+    ibs = ingest_standard_database(db, force_delete)
     #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
     #main_locals = ibeis.main(dbdir=img_dir, gui=False)
     #ibs = main_locals['ibs']
     #ingest_rawdata(ibs, img_dir)
+"""
+python ibeis/ingest/ingest_database.py --db JAG_Kieryn --force-delete
+python ibeis/ingest/ingest_database.py --db polar_bears --force_delete
+python ibeis/ingest/ingest_database.py --db snails_drop1
+"""

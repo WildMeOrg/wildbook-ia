@@ -1,8 +1,9 @@
-'''
+"""
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
 vsplit neighbor_index.py
 vsplit pipeline.py
 split neighbor_index.py
-'''
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
@@ -80,7 +81,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     if use_cache:
         # Try loading as many cached results as possible
         qaid2_qres_hit, cachemiss_qaids = hspipe.try_load_resdict(qreq_)
-        qreq_.set_external_qaids(cachemiss_qaids)  # FIXME: changes qreq_ state
+        cachemiss_quuids = ibs.get_annot_uuids(cachemiss_qaids)
+        qreq_.set_external_qaids(cachemiss_qaids, cachemiss_quuids)  # FIXME: changes qreq_ state
         if len(cachemiss_qaids) == 0:
             return qaid2_qres_hit
     else:

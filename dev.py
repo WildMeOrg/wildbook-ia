@@ -129,6 +129,7 @@ def up_dbsize_expt(ibs, qaid_list):
         df2.set_xlabel('# Annotations in database')
         df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
         df2.dark_background()
+        df2.save_figure(usetitle=True)
 
     #---------
     # Find highest
@@ -423,7 +424,7 @@ def get_allres(ibs, qaid_list):
 def dev_snippets(main_locals):
     """ Common variables for convineince when interacting with IPython """
     print('[dev] dev_snippets')
-    species = 'zebra_grevys'
+    species = constants.Species.ZEB_GREVY
     quick = True
     fnum = 1
     # Get reference to IBEIS Controller

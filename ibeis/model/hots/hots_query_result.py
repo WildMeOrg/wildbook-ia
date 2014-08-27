@@ -49,23 +49,20 @@ def remove_corrupted_queries(qresdir, qres, dryrun=True):
     utool.remove_files_in_dir(qres_dir, '*' + hash_id + '*', dryrun=dryrun)
 
 
-def query_result_fpath(qresdir, qaid, cfgstr):
+def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
     """
     cdef:
         long qaid
+        object qauuid
         str cfgstr, qres_dir, fpath, hash_id, fname
     """
-    fname = 'res_%s_qaid=%d.npz' % (cfgstr, qaid)
+    fname_fmt = 'res_%s_qaid=%d_qauuid=%s.npz'
+    fname = fname_fmt % (cfgstr, qaid, str(qauuid))
     if len(fname) > 64:
         hash_id = utool.hashstr(cfgstr)
-        fname = 'res_%s_qaid=%d.npz' % (hash_id, qaid)
+        fname = fname_fmt % (hash_id, qaid, str(qauuid))
     fpath = join(qresdir, fname)
     return fpath
-
-
-def query_result_exists(qresdir, qaid, cfgstr):
-    fpath = query_result_fpath(qresdir, qaid, cfgstr)
-    return exists(fpath)
 
 
 def _qres_dicteq(aid2_xx1, aid2_xx2):
@@ -116,14 +113,16 @@ class QueryResult(__OBJECT_BASE__):
                  'weight_time', 'filt_time', 'build_time', 'verify_time',
                  'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score']
     """
-    def __init__(qres, qaid, cfgstr):
+    def __init__(qres, qaid, cfgstr, qauuid=None):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qaid = qaid
+        qres.qauuid = qauuid
         #qres.qauuid = qauuid
         qres.cfgstr = cfgstr
         qres.eid = None  # encounter id
+        qres.qauuid = qauuid  # query annot uuid
         # Assigned features matches
         qres.aid2_fm = None  # feat_match_list
         qres.aid2_fs = None  # feat_score_list
@@ -136,6 +135,7 @@ class QueryResult(__OBJECT_BASE__):
         """ Loads the result from the given database """
         fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
+        qauuid_good = qres.qauuid
         try:
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
@@ -176,6 +176,7 @@ class QueryResult(__OBJECT_BASE__):
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise
+        qres.qauuid = qauuid_good
         qres.qaid = qaid_good
 
     def __eq__(self, other):
@@ -192,10 +193,10 @@ class QueryResult(__OBJECT_BASE__):
         ])
 
     def has_cache(qres, qresdir):
-        return query_result_exists(qresdir, qres.qaid)
+        return exists(qres.get_fpath(qresdir))
 
     def get_fpath(qres, qresdir):
-        return query_result_fpath(qresdir, qres.qaid, qres.cfgstr)
+        return query_result_fpath(qresdir, qres.qaid, qres.qauuid, qres.cfgstr)
 
     @profile
     def save(qres, qresdir):

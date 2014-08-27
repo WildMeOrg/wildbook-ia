@@ -68,7 +68,7 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     nQuery   = len(qaids)  # number of queries (rows)
 
     mat_list = []
-    ibs._init_query_requestor()
+    #ibs._init_query_requestor()
 
     dbname = ibs.get_dbname()
     testnameid = dbname + ' ' + str(test_cfg_name_list)

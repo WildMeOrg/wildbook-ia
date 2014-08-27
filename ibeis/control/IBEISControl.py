@@ -102,10 +102,10 @@ class IBEISController(object):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
-    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None):
+    def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True):
         """ Creates a new IBEIS Controller associated with one database """
         global __ALL_CONTROLLERS__
-        if utool.VERBOSE:
+        if verbose and utool.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         ibs.table_cache = init_tablecache()
         #ibs.qreq = None  # query requestor object
@@ -242,6 +242,10 @@ class IBEISController(object):
     def get_ibsdir(ibs):
         """ Returns ibs internal directory """
         return ibs._ibsdb
+
+    def get_imgdir(ibs):
+        """ Returns ibs internal directory """
+        return ibs.imgdir
 
     def get_thumbdir(ibs):
         """ Returns database directory where thumbnails are cached """
@@ -434,6 +438,13 @@ class IBEISController(object):
             (does not include unknown names) """
         all_known_nids = ibs._get_all_known_lblannot_rowids(constants.INDIVIDUAL_KEY)
         return all_known_nids
+
+    @ider
+    def _get_all_known_species_rowids(ibs):
+        """ Returns all nids of known animals
+            (does not include unknown names) """
+        all_known_species_rowids = ibs._get_all_known_lblannot_rowids(constants.SPECIES_KEY)
+        return all_known_species_rowids
 
     @ider
     def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):

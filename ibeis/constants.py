@@ -94,15 +94,48 @@ IMAGE_THUMB_SUFFIX = '_thumb.jpg'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 # FIXME UNKNOWN should not be a valid species
-VALID_SPECIES = ['zebra_plains',
-                 'zebra_grevys',
-                 'giraffe',
-                 UNKNOWN]
 
-SPECIES_NICE = ['Plains Zebras',
-                'Grevy\'s Zebras',
-                'Giraffes',
-                'Unknown']
+
+class Species(object):
+    ZEB_PLAIN    = 'zebra_plains'
+    ZEB_GREVY    = 'zebra_grevys'
+    GIRAFFE      = 'giraffe'
+    ELEPHANT_SAV = 'elephant_savanna'
+    JAG          = 'jaguar'
+    LEOPARD      = 'leopard'
+    LION         = 'lion'
+    WILDDOG      = 'wild_dog'
+    WHALESHARK   = 'whale_shark'
+    SNAILS       = 'snails'
+    SEALS        = 'seals_spotted'
+    POLAR_BEAR   = 'bear_polar'
+    FROGS        = 'frogs'
+    LIONFISH     = 'lionfish'
+    WYTOADS      = 'toads_wyoming'
+    RHINO_BLACK  = 'rhino_black'
+    RHINO_WHITE  = 'rhino_white'
+    WILDEBEEST   = 'wildebeest'
+    WATER_BUFFALO = 'water_buffalo'
+    UNKNOWN      = UNKNOWN
+
+SPECIES_TUPS = [
+    (Species.ZEB_PLAIN,    'Zebra (Plains)'),
+    (Species.ZEB_GREVY,    'Zebra (Grevy\'s)'),
+    (Species.GIRAFFE,      'Giraffes'),
+    (Species.ELEPHANT_SAV, 'Elephant (savanna)'),
+    (Species.JAG,          'Jaguar'),
+    (Species.LEOPARD,      'Leopard'),
+    (Species.LION,         'Lion'),
+    (Species.WILDDOG,      'Wild Dog'),
+    (Species.LIONFISH,     'Lionfish'),
+    (Species.WHALESHARK,   'Whale Shark'),
+    (Species.POLAR_BEAR,   'Polar Bear'),
+    (Species.WILDEBEEST,   'Wildebeest'),
+    (Species.UNKNOWN,      'Unknown'),
+]
+
+VALID_SPECIES = [tup[0] for tup in SPECIES_TUPS]
+SPECIES_NICE = [tup[1] for tup in SPECIES_TUPS]
 
 
 VS_EXEMPLARS_KEY = 'vs_exemplars'
