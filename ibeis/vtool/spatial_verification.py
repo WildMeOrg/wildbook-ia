@@ -37,7 +37,7 @@ import vtool.linalg as ltool
 #if CYTH
 #ctypedef np.float64_t SV_DTYPE
 SV_DTYPE = np.float64
-cdef np.float64_t TAU
+cdef np.float64_t TAU = 2 * np.pi
 #endif
 """
 

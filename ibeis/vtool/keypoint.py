@@ -41,7 +41,7 @@ import utool
 #if CYTH
 from vtool.keypoint import get_invVR_mats_shape, get_invVR_mats_sqrd_scale, get_invVR_mats_oris
 
-cdef np.float64_t TAU
+cdef np.float64_t TAU = 2 * np.pi
 #endif
 """
 #:%s/numpy_floatarray_\([13]\)dimension/np.ndarray[np.float64_t, ndim=\1]/gc

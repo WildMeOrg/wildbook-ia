@@ -14,7 +14,7 @@ profile = utool.profile
 
 '''
 #if CYTH
-cdef np.float64_t TAU
+cdef np.float64_t TAU = 2 * np.pi
 #endif
 '''
 TAU = 2 * np.pi  # tauday.com
