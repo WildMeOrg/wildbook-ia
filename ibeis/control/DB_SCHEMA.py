@@ -221,38 +221,41 @@ def update_1_0_0(ibs):
 # =======================
 
 def update_1_0_1(ibs):
-
-    ibs.db.drop_table(constants.annotations)
+    ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
+        ('contributor_rowid',            'INTEGER PRIMARY KEY'),
+        ('contributor_tag',              'TEXT'),
+        ('contributor_name_first',       'TEXT'),
+        ('contributor_name_last',        'TEXT'),
+        ('contributor_location_city',    'TEXT'),
+        ('contributor_location_state',   'TEXT'),
+        ('contributor_location_country', 'TEXT'),
+        ('contributor_location_zip',     'INTEGER'),
+        ('contributor_note',             'INTEGER'),
+    ),
+        superkey_colnames=['contributor_rowid'],
+        docstr='''
+        Used to store the contributors to the project
+        ''')
 
     ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
         ('contributor_rowid',            'INTEGER PRIMARY KEY'),
         ('contributor_tag',              'TEXT'),
         ('contributor_name_first',       'TEXT'),
-        ('contrubutor_name_last',        'TEXT'),
-        ('contrubutor_location_city',    'TEXT'),
-        ('contrubutor_location_state',   'TEXT'),
-        ('contrubutor_location_country', 'TEXT'),
-        ('contrubutor_location_zip',     'INTEGER'),
+        ('contributor_name_last',        'TEXT'),
+        ('contributor_location_city',    'TEXT'),
+        ('contributor_location_state',   'TEXT'),
+        ('contributor_location_country', 'TEXT'),
+        ('contributor_location_zip',     'INTEGER'),
+        ('contributor_note',             'INTEGER'),
     ),
         superkey_colnames=['contributor_rowid'],
         docstr='''
         Used to store the contributors to the project
         ''')
-
-    # funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
-    ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
-    #   (Original Column Name,           New Column Name,                New Column Type, Function to convert data from old to new
-    #    [None to add]                   ['' for same, None to delete]   ['' for same]    [None to use data unmodified]
-        ('contributor_rowid',            '',                             '',              None), # a non-needed, but correct mapping (identity function)
-        (None,                           'contrubutor_location_address', 'TEXT',          None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
-        ('contrubutor_location_city',    None,                           '',              None), # for deleted columns, type and function are ignored
-        ('contributor_location_zip',     'contributor_location_zip',     'TEXT',          contributor_location_zip_map),
-        ('contrubutor_location_country', '',                             'TEXT NOT NULL', None), # type not changing, only NOT NULL provision
-    ),
-        superkey_colnames=['contributor_rowid'],
-        docstr='''
-        Used to store the contributors to the project
-        ''')
+   
+    ibs.db.modify_table(constants.IMAGE_TABLE, (
+        (None,                     'image_new',         'TEXT', None),
+    ))
 
 # ========================
 # Valid Versions & Mapping

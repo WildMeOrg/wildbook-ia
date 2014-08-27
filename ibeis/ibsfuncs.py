@@ -1389,3 +1389,4 @@ def export_images(ibs, gid_list, new_dbdir_):
     status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1,
                                             aid_list1, include_image_annots)
     return status
+

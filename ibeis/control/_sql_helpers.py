@@ -3,6 +3,8 @@ import utool
 import re
 from . import __SQLITE3__ as lite
 
+import six
+
 from ibeis import constants
 from ibeis.control import DB_SCHEMA
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -47,6 +49,7 @@ def _unpacker(results_):
     assert len(results_) < 2, 'throwing away results! { %r }' % (results_)
     return results
 
+
 # ========================
 # Schema Updater Functions
 # ========================
@@ -80,9 +83,9 @@ def ensure_correct_version(ibs):
         versionsid_list = ibs._get_all_versions()
         ibs.delete_versions(versionsid_list)
         ibs.add_version([ibs.db_version_expected])
+        ibs.db.commit() # Just to be safe
         print('[ensure_correct_version] Database version updated to %r' 
             %(ibs.db_version_expected))
-
     elif db_version > ibs.db_version_expected:
         raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
 
@@ -137,11 +140,11 @@ def update_schema_version(ibs, db_version, db_version_target):
                 update(ibs)
             if post is not None:
                 post(ibs)
-    except Exception:
+    except Exception as e:
         utool.remove_file(ibs.db.fpath)
         utool.copy(db_backup_fpath, ibs.db.fpath)
         utool.remove_file(db_backup_fpath)
-        raise IOError('The database update failed, rolled back to the original version.')
+        raise IOError('The database update failed, rolled back to the original version. [%s]' % (e))
 
     utool.remove_file(db_backup_fpath)
 
@@ -224,6 +227,8 @@ def get_operation_type(operation):
     elif operation_type.startswith('INSERT'):
         operation_args = utool.str_between(operation, operation_type, '(').strip()
     elif operation_type.startswith('DROP'):
+        operation_args = ''
+    elif operation_type.startswith('ALTER'):
         operation_args = ''
     elif operation_type.startswith('UPDATE'):
         operation_args = utool.str_between(operation, operation_type, 'FROM').strip()

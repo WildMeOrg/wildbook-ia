@@ -215,18 +215,28 @@ class SQLDatabaseController(object):
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
-        fmtdict = { 'tblname'     : tblname,
-                    'colnames'    : ', '.join(colnames),
-                    'where_clauses' :  where_clause, }
-        operation_fmt = '''
-        SELECT {colnames}
-        FROM {tblname}
-        WHERE {where_clauses}
-        '''
-        val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
-                                                 params_iter=params_iter,
-                                                 unpack_scalars=unpack_scalars,
-                                                 **kwargs)
+        if where_clause is None:
+            fmtdict = { 'tblname'     : tblname,
+                        'colnames'    : ', '.join(colnames),}
+            operation_fmt = '''
+            SELECT {colnames}
+            FROM {tblname}
+            '''
+            val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
+        else:
+            fmtdict = { 'tblname'     : tblname,
+                        'colnames'    : ', '.join(colnames),
+                        'where_clauses' :  where_clause, }
+            operation_fmt = '''
+            SELECT {colnames}
+            FROM {tblname}
+            WHERE {where_clauses}
+            '''
+
+            val_list = db._executemany_operation_fmt(operation_fmt, fmtdict,
+                                                     params_iter=params_iter,
+                                                     unpack_scalars=unpack_scalars,
+                                                     **kwargs)
         return val_list
 
     #@getter_sql
@@ -241,8 +251,13 @@ class SQLDatabaseController(object):
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
-        where_clause = (id_colname + '=?')
-        params_iter = ((_rowid,) for _rowid in id_iter)
+        if id_iter is None:
+            where_clause = None
+            params_iter = []
+        else:
+            where_clause = (id_colname + '=?')
+            params_iter = ((_rowid,) for _rowid in id_iter)
+
         return db.get_where(tblname, colnames, params_iter, where_clause, **kwargs)
 
     #@setter_sql
@@ -364,8 +379,7 @@ class SQLDatabaseController(object):
             assert len(table_constraints) == 0
             table_constraints.append(unique_constraint)
 
-        body_list = ['%s %s' % (name, type_)
-                     for (name, type_) in coldef_list]
+        body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
 
         colname_list = [_1tup[0] for _1tup in coldef_list]
         coltype_list = [_2tup[1] for _2tup in coldef_list]
@@ -386,73 +400,176 @@ class SQLDatabaseController(object):
         db.table_constraints[tablename] = table_constraints
 
     @default_decorator
-    def modify_table(db, tablename, colmap_list, table_constraints=None, docstr='', superkey_colnames=None):
+    def add_column(db, tablename, colname, coltype):
+        printDBG('[sql] add column=%r of type=%r to tablename=%r' % (colname, coltype, tablename))
+        fmtkw = {
+            'tablename': tablename,
+            'colname': colname,
+            'coltype': coltype,
+        }
+        op_fmtstr = 'ALTER TABLE {tablename} ADD COLUMN {colname} {coltype}'
+        operation = op_fmtstr.format(**fmtkw)
+        db.executeone(operation, [], verbose=False)
+        
+        # Append to internal storage
+        temp = list(db.table_columns[tablename])
+        temp.append((colname, coltype))
+        db.table_columns[tablename] = tuple(temp)
+        db.table_colnames[tablename].append(colname)
+        db.table_coltypes[tablename].append(coltype)
+    
+    @default_decorator
+    def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None):
+        '''
+        funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
+        
+        EXAMPLE:
+        ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+        #   (Original Column Name,            New Column Name,                 New Column Type, Function to convert data from old to new
+        #    [None to add]                    ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
+            ('contributor_rowid',             '',                              '',               None), # a non-needed, but correct mapping (identity function)
+            (None,                            'contributor__location_address', 'TEXT',           None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
+            ('contributor__location_city',    None,                            '',               None), # for deleted columns, type and function are ignored
+            ('contributor__location_city',    'contributor__location_town',    '',               None), # for renamed columns, type and function are ignored
+            ('contributor_location_zip',      'contributor_location_zip',      'TEXT',           contributor_location_zip_map),
+            ('contributor__location_country', '',                              'TEXT NOT NULL',  None), # type not changing, only NOT NULL provision
+        ),
+            superkey_colnames=['contributor_rowid'],
+            docstr='Used to store the contributors to the project'
+        )
+        '''
         printDBG('[sql] schema modifying tablename=%r' % tablename)
-        # Technically insecure call, but all entries are statically inputted by
-        # the database's owner, who could delete or alter the entire database
-        # anyway.
-        # if table_constraints is None:
-        #     table_constraints = []
 
-        # if superkey_colnames is not None and len(superkey_colnames) > 0:
-        #     c = superkey_colnames
-        #     _ = (c if isinstance(c, six.string_types) else ','.join(c))
-        #     unique_constraint = 'CONSTRAINT superkey UNIQUE ({_})'.format(_=_)
-        #     assert len(table_constraints) == 0
-        #     table_constraints.append(unique_constraint)
+        coldef_list = db.table_columns[tablename]
+        colname_list = [_1tup[0] for _1tup in coldef_list]
+        colname_original_list = colname_list[:]
+        coltype_list = [_2tup[1] for _2tup in coldef_list]
+        colname_dict = {}
+        for colname in colname_list:
+            colname_dict[colname] = colname
 
-        # body_list = ['%s %s' % (name, type_)
-        #              for (name, type_) in coldef_list]
+        for (src, dst, type_, map_) in colmap_list:
+            if src is None:
+                # Add column
+                assert dst is not None and len(dst) > 0, "New column's name must be valid"
+                assert type_ is not None and len(type_) > 0, "New column's type must be specified"
+                colname_list.append(dst)
+                coltype_list.append(type_)
+            else:
+                assert src in colname_list, 'Unkown source colname=%s in tablename=%s' % (src, tablename)
+                index = colname_list.index(src)
+                if dst is None:
+                    # Delete column
+                    assert src is not None and len(src) > 0, "Deleted column's name  must be valid"
+                    del colname_list[index]
+                    del coltype_list[index]
+                    del colname_dict[src]
+                elif len(src) > 0 and len(dst) > 0 and src != dst and (len(type_) == 0 or type_ == coltype_list[index]):
+                    # Rename column
+                    if len(type_) == 0:
+                        type_ = coltype_list[index]
+                    colname_list[index] = dst
+                    coltype_list[index] = type_
+                    colname_dict[src] = dst
+                elif len(type_) > 0 and type_ != coltype_list[index]: 
+                    # Change column type
+                    if len(dst) == 0:
+                        dst = src
+                    coltype_list[index] = type_
+                elif map_ is not None:
+                    # Simply map function across table's data
+                    if len(dst) == 0:
+                        dst = src
+                    if len(type_) == 0:
+                        type_ = coltype_list[index]
+                else:
+                    # Identity, this can be ommited as it is automatically done
+                    if len(dst) == 0:
+                        dst = src
+                    if len(type_) == 0:
+                        type_ = coltype_list[index]
+                    
+        coldef_list = [ _ for _ in zip(colname_list, coltype_list) ]
+        tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
+        if docstr is None:
+            docstr = db.table_docstr[tablename]
+        if table_constraints is None:
+            table_constraints = db.table_constraints[tablename]
+        
+        db.add_table(tablename_temp, coldef_list, 
+            table_constraints=table_constraints, 
+            docstr=docstr, 
+            superkey_colnames=superkey_colnames
+        )
+        
+        # Copy data
+        src_list = []
+        dst_list = []
 
-        # colname_list = [_1tup[0] for _1tup in coldef_list]
-        # coltype_list = [_2tup[1] for _2tup in coldef_list]
+        for name in colname_original_list:
+            if name in colname_dict.keys():
+                src_list.append(name)
+                dst_list.append(colname_dict[name])
 
-        # fmtkw = {
-        #     'table_body': ', '.join(body_list + table_constraints),
-        #     'tablename': tablename,
-        # }
-        # op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
-        # operation = op_fmtstr.format(**fmtkw)
-        # db.executeone(operation, [], verbose=False)
+        data_list = db.get(tablename, tuple(src_list))
+        results = db.add_cleanly(tablename_temp, dst_list, data_list, (lambda x: [None] * len(x)))
+        
+        # Drop original table
+        db.drop_table(tablename)
 
-        # # Append to internal storage
-        # db.table_docstr[tablename]      = docstr
-        # db.table_columns[tablename]     = coldef_list
-        # db.table_colnames[tablename]    = colname_list
-        # db.table_coltypes[tablename]    = coltype_list
-        # db.table_constraints[tablename] = table_constraints
+        # Rename temp table to original table name
+        db.rename_table(tablename_temp, tablename)
+
+        # Append to internal storage
+        db.table_docstr[tablename]      = docstr
+        db.table_columns[tablename]     = coldef_list
+        db.table_colnames[tablename]    = colname_list
+        db.table_coltypes[tablename]    = coltype_list
+        db.table_constraints[tablename] = table_constraints
 
     @default_decorator
-    def duplicate_table(db, tablename, table_duplicate):
+    def duplicate_table(db, tablename, tablename_duplicate):
         printDBG('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
+        # Duplicate table
+        fmtkw = {
+            'tablename_duplicate': tablename_duplicate,
+            'tablename':           tablename,
+        }
+        op_fmtstr = 'CREATE TABLE {tablename_duplicate} AS SELECT * FROM {tablename}'
+        operation = op_fmtstr.format(**fmtkw)
+        db.executeone(operation, [], verbose=False)
+
+        # Append to internal storage
+        db.table_docstr[tablename_duplicate]      = db.table_docstr[tablename]     
+        db.table_columns[tablename_duplicate]     = db.table_columns[tablename]    
+        db.table_colnames[tablename_duplicate]    = db.table_colnames[tablename]   
+        db.table_coltypes[tablename_duplicate]    = db.table_coltypes[tablename]   
+        db.table_constraints[tablename_duplicate] = db.table_constraints[tablename]
 
     @default_decorator
     def duplicate_column(db, tablename, colname, colname_duplicate):
         printDBG('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate))
-
-    @default_decorator
-    def drop_table(db, tablename):
-        printDBG('[sql] schema dropping tablename=%r' % tablename)
-        # Technically insecure call, but all entries are statically inputted by
-        # the database's owner, who could delete or alter the entire database
-        # anyway.
+        # Modify table to add a blank column with the appropriate tablename and NO data
+        column_names = db.get_column_names(tablename)
+        column_types = db.get_column_types(tablename)
+        assert len(column_names) == len(column_types)
+        try:
+            index = column_names.index(colname)
+        except Exception:
+            printDBG('[!sql] could not find colname=%r to duplicate' % colname)
+            return
+        # Add column to the table
+        # DATABASE TABLE CACHES ARE UPDATED WITH add_column
+        db.add_column(tablename, colname_duplicate, column_types[index])
+        # Copy the data from the original column to the new duplcate column
         fmtkw = {
-            'tablename': tablename,
+            'tablename':           tablename,
+            'colname_duplicate':   colname_duplicate,
+            'colname':             colname,
         }
-        op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
+        op_fmtstr = 'UPDATE {tablename} SET {colname_duplicate} = {colname}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-
-        # delete records from internal storage
-        try:
-            del db.table_docstr[tablename]  
-            del db.table_columns[tablename] 
-            del db.table_colnames[tablename]
-            del db.table_coltypes[tablename]
-            del db.table_constraints[tablename]
-        except Exception:
-            printDBG('[sql] could not delete table constants for tablename=%r' % tablename)
-
 
     @default_decorator
     def rename_table(db, tablename_old, tablename_new):
@@ -467,7 +584,6 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-
         # delete records from internal storage
         try:
             db.table_docstr[tablename_new]      = db.table_docstr[tablename_old]
@@ -482,8 +598,43 @@ class SQLDatabaseController(object):
             del db.table_coltypes[tablename_old]
             del db.table_constraints[tablename_old]
         except Exception:
-            printDBG('[sql] could not transfer table constants for tablename=%r' % tablename)
+            printDBG('[!sql] could not transfer table constants for tablename=%r' % tablename)
+    
+    @default_decorator
+    def rename_column(db, tablename, colname_old, colname_new):
+        # DATABASE TABLE CACHES ARE UPDATED WITH modify_table
+        db.modify_table(tablename, (
+            (colname_old, colname_new, '', None),
+        ))
 
+    @default_decorator
+    def drop_table(db, tablename):
+        printDBG('[sql] schema dropping tablename=%r' % tablename)
+        # Technically insecure call, but all entries are statically inputted by
+        # the database's owner, who could delete or alter the entire database
+        # anyway.
+        fmtkw = {
+            'tablename': tablename,
+        }
+        op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
+        operation = op_fmtstr.format(**fmtkw)
+        db.executeone(operation, [], verbose=False)
+        # delete records from internal storage
+        try:
+            del db.table_docstr[tablename]  
+            del db.table_columns[tablename] 
+            del db.table_colnames[tablename]
+            del db.table_coltypes[tablename]
+            del db.table_constraints[tablename]
+        except Exception:
+            printDBG('[!sql] could not delete table constants for tablename=%r' % tablename)
+
+    @default_decorator
+    def drop_column(db, tablename, colname):
+        # DATABASE TABLE CACHES ARE UPDATED WITH modify_table
+        db.modify_table(tablename, (
+            (colname, None, '', None),
+        ))
 
     @default_decorator
     def executeone(db, operation, params=(), auto_commit=True, verbose=VERYVERBOSE):
@@ -505,6 +656,7 @@ class SQLDatabaseController(object):
         if num_params is None:
             params_iter = list(params_iter)
             num_params  = len(params_iter)
+
         # Do not compute executemany without params
         if num_params == 0:
             if VERYVERBOSE:
@@ -524,15 +676,9 @@ class SQLDatabaseController(object):
             #    raise
         return results_list
 
-    #@default_decorator
-    #def commit(db,  verbose=VERYVERBOSE):
-    #    try:
-    #        db.connection.commit()
-    #        if AUTODUMP:
-    #            db.dump(auto_commit=False)
-    #    except lite.Error as ex2:
-    #        utool.printex(ex2, '[!sql] Error during commit')
-    #        raise
+    @default_decorator
+    def commit(db):
+        db.connection.commit()
 
     @default_decorator
     def dump_to_file(db, file_, auto_commit=True, schema_only=False):
@@ -597,6 +743,12 @@ class SQLDatabaseController(object):
         """ Conveinience: Returns the sql tablename columns """
         column_names = [name for name, type_ in  db.table_columns[tablename]]
         return column_names
+
+    @default_decorator
+    def get_column_types(db, tablename):
+        """ Conveinience: Returns the sql tablename columns """
+        column_types = [type_ for name, type_ in  db.table_columns[tablename]]
+        return column_types
 
     @default_decorator
     def get_table_names(db):
