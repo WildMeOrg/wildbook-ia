@@ -133,7 +133,12 @@ def prepare_figure_for_save(fnum):
     return fig, fnum
 
 
-def sanatize_img_fname(fname, defaultext='.jpg'):
+def sanatize_img_fname(fname, defaultext=None):
+    if defaultext is None:
+        if mpl.get_backend().lower() == 'pdf':
+            defaultext = '.pdf'
+        else:
+            defaultext = '.jpg'
     fname_clean = fname
     search_replace_list = [(' ', '_'), ('\n', '--'), ('\\', ''), ('/', '')]
     for old, new in search_replace_list:
@@ -141,7 +146,7 @@ def sanatize_img_fname(fname, defaultext='.jpg'):
     fname_noext, ext = splitext(fname_clean)
     fname_clean = fname_noext + ext.lower()
     # Check for correct extensions
-    if not ext.lower() in utool.IMG_EXTENSIONS:
+    if not ext.lower() in utool.IMG_EXTENSIONS and ext.lower() != '.pdf':
         fname_clean += defaultext
     return fname_clean
 
@@ -149,7 +154,7 @@ def sanatize_img_fname(fname, defaultext='.jpg'):
 def sanatize_img_fpath(fpath, defaultext):
     [dpath, fname] = split(fpath)
     fname_clean = sanatize_img_fname(fname, defaultext)
-    fpath_clean = join(dpath, fname_clean)
+    fpath_clean = join(dpath, fname_clean.replace('/', 'slash'))
     fpath_clean = utool.truepath(fpath_clean)
     return fpath_clean
 
@@ -158,7 +163,7 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
     if fpath is None:
         # Find the title
         fpath = sanatize_img_fname(fig.canvas.get_window_title())
-    if usetitle:
+    elif usetitle:
         title = sanatize_img_fname(fig.canvas.get_window_title())
         fpath = join(fpath, title)
     # Add in DPI information
