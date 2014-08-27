@@ -32,13 +32,18 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list):
     # Neighbor Indexer
     quuid_list = ibs.get_annot_uuids(qaid_list)
     duuid_list = ibs.get_annot_uuids(daid_list)
-    qreq_ = QueryRequest(qaid_list, quuid_list, daid_list, duuid_list, qparams, qresdir)
+    qreq_ = QueryRequest(qaid_list, quuid_list,
+                         daid_list, duuid_list,
+                         qparams, qresdir)
     return qreq_
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
 class QueryRequest(object):
-    def __init__(qreq_, qaid_list, quuid_list, daid_list, duuid_list, qparams, qresdir):
+    def __init__(qreq_,
+                 qaid_list, quuid_list,
+                 daid_list, duuid_list,
+                 qparams, qresdir):
         qreq_.qparams = qparams
         qreq_.qresdir = qresdir
         qreq_.internal_qaids = None
@@ -62,11 +67,11 @@ class QueryRequest(object):
     def set_external_daids(qreq_, daid_list, duuid_list):
         if qreq_.qparams.vsmany:
             qreq_.internal_daids = np.array(daid_list)
-            qreq_.internal_duuids = np.array(daid_list)
+            qreq_.internal_duuids = np.array(duuid_list)
         else:
             # flip on vsone
             qreq_.internal_qaids = np.array(daid_list)
-            qreq_.internal_quuids = np.array(daid_list)
+            qreq_.internal_quuids = np.array(duuid_list)
         # Index the annotation ids for fast internal lookup
         #qreq_.internal_didx = np.arange(len(daid_list))
 

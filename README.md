@@ -378,6 +378,13 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 ./dev.py --db PZ_RoseMary -t best --allgt
 ./dev.py --db PZ_RoseMary -t upsize --allgt
+ 
+# Cyth issue debug
+python dev.py --db testdb1 --delete-cache
+python dev.py --db testdb1 --query 1 --nocache-query --cyth --gui
+python dev.py --db testdb1 --query 1 --nocache-query --nocyth --gui
+ 
+python dev.py --db PZ_Mothers -t best --allgt --nocyth --nocache-big
 ```
 
 
