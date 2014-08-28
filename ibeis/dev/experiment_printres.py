@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import itertools
 import six
+from os.path import join
 from itertools import chain
 from six.moves import map, range
 import utool
@@ -13,7 +14,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
 SKIP_TO = utool.get_arg('--skip-to', default=None)
-SAVE_FIGURES = utool.get_flag(('--save-figures', '--sf'))
+#SAVE_FIGURES = utool.get_flag(('--save-figures', '--sf'))
+SAVE_FIGURES = not utool.get_flag(('--nosave-figures', '--nosf'))
 
 
 def get_diffmat_str(rank_mat, qaids, nCfg):
@@ -146,6 +148,8 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     def echo_hardcase():
         print('====')
         print('--- hardcase commandline: %s' % testnameid)
+        print('--index ' + (' '.join(map(str, new_hard_qx_list))))
+        print('--take new_hard_qx_list')
         hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_qaids))
         print(hardaids_str)
         print('--- /Echo Hardcase ---')
@@ -295,12 +299,31 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     rciter = list(itertools.product(sel_rows, sel_cols))
 
     skip_list = []
+    cp_src_list = []
+    cp_dst_list = []
+    def append_copy_task(fpath_clean):
+        import os
+        from os.path import dirname, split
+        fname_clean = os.path.basename(fpath_clean)
+        outdir = dirname(fpath_clean)
+        fdir_clean, cfgdir = split(outdir)
+        #aug = cfgdir[0:min(len(cfgdir), 10)]
+        aug = cfgdir
+        fdst_clean = join(fdir_clean, aug  + '_' + fname_clean)
+        cp_src_list.append(fpath_clean)
+        cp_dst_list.append(fdst_clean)
 
     def load_qres(ibs, qaid, daids, query_cfg):
         # Load / Execute the query w/ correct config
         ibs.set_query_cfg(query_cfg)
         qres = ibs._query_chips([qaid], daids)[qaid]
         return qres
+
+    DELETE = False
+    USE_FIGCACHE = False
+    figdir = ibs.get_figanalysis_dir()
+    if DELETE:
+        utool.delete(figdir)
 
     for count, (r, c) in enumerate(rciter):
         if SKIP_TO is not None:
@@ -324,13 +347,61 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
             'ori': True,
             'ell_alpha': .9,
         }
-        qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
+        qres_cfg = qres.get_fname(ext='')
+        subdir = qres_cfg
+        if USE_FIGCACHE and utool.checkpath(join(figdir, subdir)):
+            continue
+
+        figtitle = query_lbl  # + qres_cfg
+        # Show Figure
+        qres.show(ibs,
+                  'analysis',
+                  figtitle=figtitle,
+                  **show_kwargs)
+
+        # Adjust subplots
         df2.adjust_subplots_safe()
+        dumpkw = dict(subdir=subdir,
+                      quality=False,
+                      overwrite=True,
+                      verbose=0)
+        # Save DEFAULT=True
+        def _show_chip(aid, prefix, in_image=False, seen=set([])):
+            from ibeis import viz
+            if aid in seen:
+                return
+            viz.show_chip(ibs, aid, in_image=in_image)
+            df2.set_figtitle(prefix + ibs.annotstr(aid))
+            ph.dump_figure(figdir, **dumpkw)
+            seen.add(aid)
         if SAVE_FIGURES:
-            ph.dump_figure(ibs.get_ibsdir(),
-                           subdir='figures_analysis',
-                           quality=False,
-                           overwrite=True,
-                           verbose=1)
+            if utool.VERBOSE:
+                print('[expt] dumping fig to %s' % figdir)
+            fpath_clean = ph.dump_figure(figdir, **dumpkw)
+            append_copy_task(fpath_clean)
+        DUMP_QANNOT = True
+        if DUMP_QANNOT:
+            #_show_chip(qres.qaid, 'QUERY_')
+            _show_chip(qres.qaid, 'QUERY_CXT', in_image=True)
+
+        DUMP_QANNOT_DUMP_GT = True
+        if DUMP_QANNOT_DUMP_GT:
+            gtaids = ibs.get_annot_groundtruth(qres.qaid)
+            for aid in gtaids:
+                rank = qres.get_aid_ranks([aid])[0]
+                #if rank > 30 or rank < 0:
+                #    break
+                _show_chip(aid, 'GT_CXT_rank' + str(rank), in_image=True)
+
+        DUMP_TOP_CONTEXT = True
+        if DUMP_TOP_CONTEXT:
+            topids = qres.get_top_aids(num=3)
+            for aid in topids:
+                rank = qres.get_aid_ranks([aid])[0]
+                _show_chip(aid, 'TOP_CXT_rank' + str(rank), in_image=True)
+
+    for src, dst in zip(cp_src_list, cp_dst_list):
+        utool.copy(src, dst)
+
     if utool.NOT_QUIET:
         print('[harn] EXIT EXPERIMENT HARNESS')

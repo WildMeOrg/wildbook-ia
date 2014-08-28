@@ -232,6 +232,10 @@ class IBEISController(object):
         """ Returns ibs internal directory """
         return ibs._ibsdb
 
+    def get_figanalysis_dir(ibs):
+        """ Returns ibs internal directory """
+        return join(ibs._ibsdb, 'figure_analysis')
+
     def get_imgdir(ibs):
         """ Returns ibs internal directory """
         return ibs.imgdir

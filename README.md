@@ -376,10 +376,6 @@ python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 ./main.py --db PZ_RoseMary --cmd
 
-./dev.py --db testdb1 --setdb 
-./dev.py --db PZ_RoseMary --setdb 
-./dev.py -t best --allgt --nocyth
-./dev.py -t upsize --allgt --nocyth
 
 # Cyth issue debug
 python dev.py --db testdb1 --delete-cache
@@ -410,6 +406,22 @@ python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 python dev.py --db PZ_Mothers -t best --qaid 1:20
 python dev.py --db PZ_Mothers -t upsize --allgt --screen --cyth
 python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
+
+# EXPERIMENT DATABASES
+python dev.py --db testdb1 --setdb 
+python dev.py --db PZ_RoseMary --setdb 
+python dev.py --db PZ_Mothers --setdb 
+# EXPERIMENT CLEANUP
+python dev.py --delete-cache --postload-exit
+# EXPERIMENT PARTIAL COMMANDS
+python dev.py -t best --qaids 27:110
+python dev.py -t best --allgt --index 20:100
+python dev.py -t best --allgt --echo-hardcase
+python dev.py -t best --allgt --index 24 39 44 45 --view-hard  --sf
+python dev.py -t best --allgt --view-hard
+# EXPERIMENT FULL COMMANDS
+python dev.py -t best --allgt 
+python dev.py -t upsize --allgt 
 
 ```
 

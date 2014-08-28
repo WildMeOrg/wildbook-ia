@@ -1,3 +1,6 @@
+"""
+TODO: Rename to ibeis/init/commands.py
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 import sys
@@ -6,7 +9,7 @@ from ibeis import params
 from ibeis import ibsfuncs
 from ibeis.dev import sysres
 from os.path import join
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[main_cmds]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[commands]')
 
 
 def vdq(dbdir):
