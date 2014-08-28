@@ -473,7 +473,7 @@ class SQLDatabaseController(object):
                 assert src in colname_list, 'Unkown source colname=%s in tablename=%s' % (src, tablename)
                 index = colname_list.index(src)
                 if dst is None:
-                    # Delete column
+                    # Drop column
                     assert src is not None and len(src) > 0, "Deleted column's name  must be valid"
                     del colname_list[index]
                     del coltype_list[index]
@@ -665,6 +665,20 @@ class SQLDatabaseController(object):
             if schema_only and line.startswith('INSERT'):
                 continue
             file_.write('%s\n' % line)
+
+    @default_decorator
+    def dump_to_string(db, auto_commit=True, schema_only=False):
+        retStr = ''
+        if VERYVERBOSE:
+            print('[sql.dump]')
+        if auto_commit:
+            db.connection.commit()
+            #db.commit(verbose=False)
+        for line in db.connection.iterdump():
+            if schema_only and line.startswith('INSERT'):
+                continue
+            retStr += '%s\n' % line
+        return retStr
 
     #==============
     # CONVINENCE

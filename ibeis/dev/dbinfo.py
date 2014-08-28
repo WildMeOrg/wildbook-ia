@@ -189,16 +189,16 @@ def dbstats(ibs):
     # Chip / Name / Image stats
     dbinfo_locals = get_dbinfo(ibs)
     db_name = ibs.get_dbname()
-    #num_images = dbinfo_locals['num_images']
-    num_annots = dbinfo_locals['num_annots']
+    # num_images = dbinfo_locals['num_images']
+    # num_annots = dbinfo_locals['num_annots']
     num_names = len(dbinfo_locals['valid_nids'])
     num_singlenames = len(dbinfo_locals['singleton_nids'])
     num_multinames = len(dbinfo_locals['multiton_nids'])
     num_multiannots = len(dbinfo_locals['multiton_aids'])
     multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
 
-    #tex_nImage = util_latex.latex_scalar(r'\# images', num_images)
-    tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
+    # tex_nImage = util_latex.latex_scalar(r'\# images', num_images)
+    # tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
     tex_nName = util_latex.latex_scalar(r'\# names', num_names)
     tex_nSingleName = util_latex.latex_scalar(r'\# singlenames', num_singlenames)
     tex_nMultiName  = util_latex.latex_scalar(r'\# multinames', num_multinames)
@@ -213,7 +213,7 @@ def dbstats(ibs):
     tex_title = util_latex.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
     tabular_body_list = [
         tex_title,
-        tex_nChip,
+        # tex_nChip,
         tex_nName,
         tex_nSingleName,
         tex_nMultiName,
