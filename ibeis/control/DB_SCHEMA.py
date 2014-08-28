@@ -4,9 +4,11 @@ Module Licence and docstring
 from __future__ import absolute_import, division, print_function
 from ibeis import constants
 
+
 # =======================
 # Schema Version 1.0.0
 # =======================
+
 
 def update_1_0_0(ibs):
     ibs.db.add_table(constants.IMAGE_TABLE, (
@@ -174,46 +176,17 @@ def update_1_0_0(ibs):
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and labels''')
-    
-    #
-    # UNUSED / DEPRECATED
-    #
-    #IMAGE_UID_TYPE = 'INTEGER'
-    #annot_UID_TYPE = 'INTEGER'
-    #NAME_UID_TYPE  = 'INTEGER'
 
-    # List of recognition directed edges (annot_1) --score--> (annot_2)
-    # ibs.db.add_table('recognitions', (
-    #     ('recognition_rowid',          'INTEGER PRIMARY KEY'),
-    #     ('annot_rowid1',               'INTEGER NOT NULL'),
-    #     ('annot_rowid2',               'INTEGER NOT NULL'),
-    #     ('recognition_score',          'REAL NOT NULL'),
-    #     ('recognition_annotrank',      'INTEGER NOT NULL'),
-    #     ('recognition_namerank',       'INTEGER NOT NULL'),
-    #     ('recognition_note',           'TEXT'),
-    # ),  ['CONSTRAINT superkey UNIQUE (annot_rowid1, annot_rowid2)'])
-
-    # Used to store *processed* annots as segmentations
-    # ibs.db.add_table('masks', (
-    #     ('mask_rowid',                 'INTEGER PRIMARY KEY'),
-    #     ('config_rowid',               'INTEGER DEFAULT 0'),
-    #     ('annot_rowid',                'INTEGER NOT NULL'),
-    #     ('mask_uri',                   'TEXT NOT NULL'),
-    # ))
-
-    # Used to store individual chip identities (Fred, Sue, ...)
-    #ibs.db.add_table('names', (
-    #    ('name_rowid',                  'INTEGER PRIMARY KEY'),
-    #    ('name_text',                   'TEXT NOT NULL'),
-    #    ('name_note',                   'TEXT',),
-    #), ['CONSTRAINT superkey UNIQUE (name_text)'])
 
 def post_1_0_0(ibs):
+    # We are dropping the versions table and rather using the metadata table
     ibs.db.drop_table(constants.VERSIONS_TABLE)
+
 
 # =======================
 # Schema Version 1.0.1
 # =======================
+
 
 def update_1_0_1(ibs):
     ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
@@ -236,9 +209,11 @@ def update_1_0_1(ibs):
         (None,                     'contributor_rowid',         'INTEGER', None),
     ))
 
+
 # ========================
 # Valid Versions & Mapping
 # ========================
+
 
 base = constants.BASE_DATABASE_VERSION
 VALID_VERSIONS = {

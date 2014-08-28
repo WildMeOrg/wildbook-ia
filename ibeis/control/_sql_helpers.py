@@ -107,25 +107,25 @@ def update_schema_version(ibs, version, version_target):
     except Exception:
         raise AssertionError('[!update_schema_version] The target database version is unknown')
 
-    # try:
-    print('Update path: %r ' %(valid_versions[start_index:end_index]))
-    for index in range(start_index, end_index):
-        next_version = valid_versions[index]
-        print('Updating database to version: %r' %(next_version))
-        pre, update, post = DB_SCHEMA.VALID_VERSIONS[next_version]
-        if pre is not None:
-            pre(ibs)
-        if update is not None:
-            update(ibs)
-        if post is not None:
-            post(ibs)
-    # except Exception as e:
-    #     utool.remove_file(ibs.db.fpath)
-    #     utool.copy(db_backup_fpath, ibs.db.fpath)
-    #     utool.remove_file(db_backup_fpath)
-    #     raise IOError('The database update failed, rolled back to the original version. [%s]' % (e))
+    try:
+        print('Update path: %r ' %(valid_versions[start_index:end_index]))
+        for index in range(start_index, end_index):
+            next_version = valid_versions[index]
+            print('Updating database to version: %r' %(next_version))
+            pre, update, post = DB_SCHEMA.VALID_VERSIONS[next_version]
+            if pre is not None:
+                pre(ibs)
+            if update is not None:
+                update(ibs)
+            if post is not None:
+                post(ibs)
+    except Exception as e:
+        utool.remove_file(ibs.db.fpath)
+        utool.copy(db_backup_fpath, ibs.db.fpath)
+        utool.remove_file(db_backup_fpath)
+        raise IOError('The database update failed, rolled back to the original version. [%s]' % (e))
 
-    # utool.remove_file(db_backup_fpath)
+    utool.remove_file(db_backup_fpath)
 
 # =======================
 # SQL Context Class

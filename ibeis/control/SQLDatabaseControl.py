@@ -534,7 +534,9 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def duplicate_table(db, tablename, tablename_duplicate):
-        printDBG('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
+        printDBG('[sql] schema duplicating tablename=%r ' + 
+            'into tablename=%r' % (tablename, tablename_duplicate)
+        )
         # Duplicate table
         fmtkw = {
             'tablename_duplicate': tablename_duplicate,
@@ -546,7 +548,9 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def duplicate_column(db, tablename, colname, colname_duplicate):
-        printDBG('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate))
+        printDBG('[sql] schema duplicating tablename.colname=%r.%r ' + 
+            'into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate)
+        )
         # Modify table to add a blank column with the appropriate tablename and NO data
         column_names = db.get_column_names(tablename)
         column_types = db.get_column_types(tablename)
@@ -641,7 +645,12 @@ class SQLDatabaseController(object):
         contextkw = {'num_params': num_params, 'start_transaction': True}
         with SQLExecutionContext(db, operation, **contextkw) as context:
             #try:
-            results_iter = list(map(list, (context.execute_and_generate_results(params) for params in params_iter)))  # list of iterators
+            results_iter = list(
+                map(
+                    list, 
+                    (context.execute_and_generate_results(params) for params in params_iter)
+                )
+            )  # list of iterators
             if unpack_scalars:
                 results_iter = list(map(_unpacker, results_iter))  # list of iterators
             results_list = list(results_iter)  # Eager evaluation
@@ -734,13 +743,17 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_table_constraints(db, tablename):
         where_clause = 'metadata_key=?'
-        constraint = db.get_where(constants.METADATA_TABLE, ('metadata_value',), [(tablename + '_constraint',)], where_clause)
+        colnames = ('metadata_value',)
+        data = [(tablename + '_constraint',)]
+        constraint = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
         return constraint[0].split(';')
 
     @default_decorator
     def get_table_docstr(db, tablename):
         where_clause = 'metadata_key=?'
-        docstr = db.get_where(constants.METADATA_TABLE, ('metadata_value',), [(tablename + '_docstr',)], where_clause)
+        colnames = ('metadata_value',)
+        data = [(tablename + '_docstr',)]
+        docstr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
         return docstr[0]
 
     @default_decorator
