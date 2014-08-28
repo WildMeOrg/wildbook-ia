@@ -51,7 +51,7 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
 from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
                              AL_RELATION_TABLE, CHIP_TABLE, FEATURE_TABLE,
-                             CONFIG_TABLE, LBLTYPE_TABLE, VERSIONS_TABLE,
+                             CONFIG_TABLE, LBLTYPE_TABLE, METADATA_TABLE,
                              __STR__)
 
 # Inject utool functions
@@ -189,21 +189,12 @@ class IBEISController(object):
 
     @default_decorator
     def _init_sql(ibs):
-        def ensure_versions_table(ibs):
-            ibs.db.add_table(constants.VERSIONS_TABLE, (
-                ('version_rowid',          'INTEGER PRIMARY KEY'),
-                ('version_text',           'TEXT'),
-            ),
-                superkey_colnames=['version_text'],
-                docstr='''
-                holds the schema version info''')
-
         """ Load or create sql database """
         ibs.db_version_expected = '1.0.1'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
-        ensure_versions_table(ibs)
         _sql_helpers.ensure_correct_version(ibs)
-        # ibs.db.dump_schema()
+        ibs.db.dump_schema()
+        ibs.db.dump()
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
@@ -378,12 +369,6 @@ class IBEISController(object):
     # Internal
 
     @ider
-    def _get_all_versions(ibs):
-        """ returns all versions in the versions table """
-        all_version_ids = ibs.db.get_all_rowids(VERSIONS_TABLE)
-        return all_version_ids
-
-    @ider
     def _get_all_gids(ibs):
         """ returns all unfiltered gids (image rowids) """
         all_gids = ibs.db.get_all_rowids(IMAGE_TABLE)
@@ -545,6 +530,18 @@ class IBEISController(object):
     #---------------
     # --- ADDERS ---
     #---------------
+
+    @adder
+    def add_metadata(ibs, metadata_key_list, metadata_value_list):
+        """ Adds a list of names. Returns their nids """
+        if utool.VERBOSE:
+            print('[ibs] adding %d metadata' % len(metadata_key_list))
+        # Add encounter text names to database
+        colnames = ['metadata_key', 'metadata_value']
+        params_iter = zip(metadata_key_list, metadata_value_list)
+        get_rowid_from_superkey = ibs.get_metadata_rowid_from_metadata_key
+        metadata_id_list = ibs.db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        return metadata_id_list
 
     @adder
     def add_images(ibs, gpath_list, as_annots=False):
@@ -730,18 +727,6 @@ class IBEISController(object):
                                             params_iter, get_rowid_from_superkey)
         return versionid_list
 
-    @getter_1to1
-    def get_version_rowid_from_superkey(ibs, versiontext_list):
-        versionid_list = ibs.db.get(VERSIONS_TABLE, ('version_rowid',),
-                                    versiontext_list, id_colname='version_text')
-        return versionid_list
-
-
-    @getter_1to1
-    def get_version_text(ibs, versionid_list):
-        versiontext_list = ibs.db.get(VERSIONS_TABLE, ('version_text',), versionid_list)
-        return versiontext_list
-
     @adder
     def add_config(ibs, cfgsuffix_list):
         """ Adds an algorithm / actor configuration as a string """
@@ -800,6 +785,22 @@ class IBEISController(object):
     #----------------
     # --- SETTERS ---
     #----------------
+
+    # SETTERS::METADATA
+
+    @setter
+    def set_metadata_value(ibs, metadata_key_list, metadata_value_list):
+        """ Sets metadata key, value pairs
+        """
+        metadata_id_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list)
+        id_iter = ((metadata_id,) for metadata_id in metadata_id_list)
+        val_list = ((metadata_value,) for metadata_value in metadata_value_list)
+        ibs.db.set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
+
+    def set_database_version(ibs, version):
+        """ Sets metadata key, value pairs
+        """
+        ibs.set_metadata_value(['database_version'], [version])
 
     # SETTERS::IMAGE
 
@@ -941,6 +942,33 @@ class IBEISController(object):
     #----------------
     # --- GETTERS ---
     #----------------
+
+    @getter_1to1
+    def get_metadata_value(ibs, metadata_key_list):
+        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
+        where_clause = 'metadata_key=?'
+        # list of relationships for each image
+        metadata_value_list = ibs.db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
+        return metadata_value_list
+        
+    @getter_1to1
+    def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list):
+        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
+        where_clause = 'metadata_key=?'
+        # list of relationships for each image
+        metadata_rowid_list = ibs.db.get_where(METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+        return metadata_rowid_list
+
+    @ider
+    def get_database_version(ibs):
+        version_list = ibs.get_metadata_value(['database_version'])
+        version = version_list[0]
+        if version is None:
+            version = constants.BASE_DATABASE_VERSION
+            ibs.add_metadata(['database_version'], [version])
+        else:
+            version = version_list[0]
+        return version
 
     #
     # GETTERS::IMAGE_TABLE
@@ -1603,10 +1631,6 @@ class IBEISController(object):
         ibs.delete_annot_chips(aid_list)
         ibs.db.delete_rowids(ANNOTATION_TABLE, aid_list)
         ibs.delete_annot_relations(aid_list)
-
-    @deleter
-    def delete_versions(ibs, versionsid_list):
-        ibs.db.delete_rowids(VERSIONS_TABLE, versionsid_list)
 
     @deleter
     def delete_images(ibs, gid_list):

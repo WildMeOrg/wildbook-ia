@@ -5,6 +5,7 @@ from six.moves import map, zip
 from os.path import join, exists, dirname, realpath
 import utool
 # Tools
+from ibeis import constants 
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
                                         SQLExecutionContext)
 from ibeis.control import __SQLITE3__ as lite
@@ -79,12 +80,6 @@ class SQLDatabaseController(object):
         """ Creates db and opens connection """
         #with utool.Timer('New SQLDatabaseController'):
         #printDBG('[sql.__init__]')
-        # Table info
-        db.table_columns     = utool.odict()
-        db.table_constraints = utool.odict()
-        db.table_docstr      = utool.odict()
-        db.table_colnames    = utool.odict()
-        db.table_coltypes    = utool.odict()
         # TODO:
         db.stack = []
         db.cache = {}  # key \in [tblname][colnames][rowid]
@@ -109,6 +104,18 @@ class SQLDatabaseController(object):
         db.cur = db.connection.cursor()
         # Optimize the database (if anything is set)
         #db.optimize()
+        db._ensure_metadata_table()
+    
+    def _ensure_metadata_table(db):
+        # We need this to be done every time so that the update code works correctly.
+        db.add_table(constants.METADATA_TABLE, (
+            ('metadata_rowid',               'INTEGER PRIMARY KEY'),
+            ('metadata_key',                 'TEXT'),
+            ('metadata_value',               'TEXT'),
+        ),
+            superkey_colnames=['metadata_key'],
+            docstr='''
+            The table that stores permanently all of the metadata about the database (tables, etc)''')
 
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
@@ -206,6 +213,7 @@ class SQLDatabaseController(object):
         # TODO: We should only have to preform a subset of adds here
         # (at the positions where rowid_list was None in the getter check)
         rowid_list = get_rowid_from_superkey(*superkey_lists)
+        
         # ADD_CLEANLY_4: SANITY CHECK AND RETURN
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
@@ -392,12 +400,25 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
 
-        # Append to internal storage
-        db.table_docstr[tablename]      = docstr
-        db.table_columns[tablename]     = coldef_list
-        db.table_colnames[tablename]    = colname_list
-        db.table_coltypes[tablename]    = coltype_list
-        db.table_constraints[tablename] = table_constraints
+        # Insert or replace docstr in metadata table
+        fmtkw = {
+            'tablename': constants.METADATA_TABLE,
+            'columns': 'metadata_key, metadata_value'
+        }
+        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
+        operation = op_fmtstr.format(**fmtkw)
+        params = [tablename + '_docstr', docstr]
+        db.executeone(operation, params, verbose=False)
+
+        # Insert or replace constraint in metadata table
+        fmtkw = {
+            'tablename': constants.METADATA_TABLE,
+            'columns': 'metadata_key, metadata_value'
+        }
+        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
+        operation = op_fmtstr.format(**fmtkw)
+        params = [tablename + '_constraint', ';'.join(table_constraints)]
+        db.executeone(operation, params, verbose=False)
 
     @default_decorator
     def add_column(db, tablename, colname, coltype):
@@ -410,13 +431,6 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename} ADD COLUMN {colname} {coltype}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-        
-        # Append to internal storage
-        temp = list(db.table_columns[tablename])
-        temp.append((colname, coltype))
-        db.table_columns[tablename] = tuple(temp)
-        db.table_colnames[tablename].append(colname)
-        db.table_coltypes[tablename].append(coltype)
     
     @default_decorator
     def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None):
@@ -440,11 +454,11 @@ class SQLDatabaseController(object):
         '''
         printDBG('[sql] schema modifying tablename=%r' % tablename)
 
-        coldef_list = db.table_columns[tablename]
-        colname_list = [_1tup[0] for _1tup in coldef_list]
+        colname_list = db.get_column_names(tablename)
         colname_original_list = colname_list[:]
-        coltype_list = [_2tup[1] for _2tup in coldef_list]
+        coltype_list = db.get_column_types(tablename)
         colname_dict = {}
+
         for colname in colname_list:
             colname_dict[colname] = colname
 
@@ -492,10 +506,10 @@ class SQLDatabaseController(object):
         coldef_list = [ _ for _ in zip(colname_list, coltype_list) ]
         tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
         if docstr is None:
-            docstr = db.table_docstr[tablename]
+            docstr = db.get_table_docstr(tablename)
         if table_constraints is None:
-            table_constraints = db.table_constraints[tablename]
-        
+            table_constraints = db.get_table_constraints(tablename)
+            
         db.add_table(tablename_temp, coldef_list, 
             table_constraints=table_constraints, 
             docstr=docstr, 
@@ -512,20 +526,11 @@ class SQLDatabaseController(object):
                 dst_list.append(colname_dict[name])
 
         data_list = db.get(tablename, tuple(src_list))
-        results = db.add_cleanly(tablename_temp, dst_list, data_list, (lambda x: [None] * len(x)))
-        
+        db.add_cleanly(tablename_temp, dst_list, data_list, (lambda x: [None] * len(x)))
         # Drop original table
         db.drop_table(tablename)
-
         # Rename temp table to original table name
         db.rename_table(tablename_temp, tablename)
-
-        # Append to internal storage
-        db.table_docstr[tablename]      = docstr
-        db.table_columns[tablename]     = coldef_list
-        db.table_colnames[tablename]    = colname_list
-        db.table_coltypes[tablename]    = coltype_list
-        db.table_constraints[tablename] = table_constraints
 
     @default_decorator
     def duplicate_table(db, tablename, tablename_duplicate):
@@ -538,13 +543,6 @@ class SQLDatabaseController(object):
         op_fmtstr = 'CREATE TABLE {tablename_duplicate} AS SELECT * FROM {tablename}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-
-        # Append to internal storage
-        db.table_docstr[tablename_duplicate]      = db.table_docstr[tablename]     
-        db.table_columns[tablename_duplicate]     = db.table_columns[tablename]    
-        db.table_colnames[tablename_duplicate]    = db.table_colnames[tablename]   
-        db.table_coltypes[tablename_duplicate]    = db.table_coltypes[tablename]   
-        db.table_constraints[tablename_duplicate] = db.table_constraints[tablename]
 
     @default_decorator
     def duplicate_column(db, tablename, colname, colname_duplicate):
@@ -584,21 +582,6 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-        # delete records from internal storage
-        try:
-            db.table_docstr[tablename_new]      = db.table_docstr[tablename_old]
-            db.table_columns[tablename_new]     = db.table_columns[tablename_old] 
-            db.table_colnames[tablename_new]    = db.table_colnames[tablename_old]
-            db.table_coltypes[tablename_new]    = db.table_coltypes[tablename_old]
-            db.table_constraints[tablename_new] = db.table_constraints[tablename_old]
-
-            del db.table_docstr[tablename_old]
-            del db.table_columns[tablename_old]
-            del db.table_colnames[tablename_old]
-            del db.table_coltypes[tablename_old]
-            del db.table_constraints[tablename_old]
-        except Exception:
-            printDBG('[!sql] could not transfer table constants for tablename=%r' % tablename)
     
     @default_decorator
     def rename_column(db, tablename, colname_old, colname_new):
@@ -619,15 +602,6 @@ class SQLDatabaseController(object):
         op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-        # delete records from internal storage
-        try:
-            del db.table_docstr[tablename]  
-            del db.table_columns[tablename] 
-            del db.table_colnames[tablename]
-            del db.table_coltypes[tablename]
-            del db.table_constraints[tablename]
-        except Exception:
-            printDBG('[!sql] could not delete table constants for tablename=%r' % tablename)
 
     @default_decorator
     def drop_column(db, tablename, colname):
@@ -712,12 +686,11 @@ class SQLDatabaseController(object):
         """ Convenience: Dumps all csv database files to disk """
         dump_dir = join(db.dir_, 'CSV_DUMP')
         utool.ensuredir(dump_dir)
-        for tablename in six.iterkeys(db.table_columns):
+        for tablename in db.get_table_names():
             table_fname = tablename + '.csv'
             table_csv = db.get_table_csv(tablename)
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)
-
 
     @default_decorator
     def dump_schema(db):
@@ -725,11 +698,10 @@ class SQLDatabaseController(object):
         controller_directory = dirname(realpath(__file__))
         dump_fpath = join(controller_directory, 'schema.txt')
         with open(dump_fpath, 'w') as file_:
-            for tablename in sorted(six.iterkeys(db.table_columns)):
+            for tablename in sorted(db.get_table_names()):
                 file_.write(tablename + '\n')
-                db.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
-                columns = db.cur.fetchall()
-                for column in columns:
+                column_list = db.get_columns(tablename)
+                for column in column_list:
                     col_name = str(column[1]).ljust(30)
                     col_type = str(column[2]).ljust(10)
                     col_null = str(('ALLOW NULL' if column[3] == 1 else 'NOT NULL')).ljust(12)
@@ -739,21 +711,60 @@ class SQLDatabaseController(object):
                     file_.write('\t%s%s%s%s%s\n' %col)
 
     @default_decorator
+    def get_table_names(db):
+        """ Conveinience: """
+        db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tablename_list = db.cur.fetchall()
+        return [ str(tablename[0]) for tablename in tablename_list ]
+    
+    @default_decorator
+    def get_table_constraints(db, tablename):
+        where_clause = 'metadata_key=?'
+        constraint = db.get_where(constants.METADATA_TABLE, ('metadata_value',), [(tablename + '_constraint',)], where_clause)
+        return constraint[0].split(';')
+
+    @default_decorator
+    def get_table_docstr(db, tablename):
+        where_clause = 'metadata_key=?'
+        docstr = db.get_where(constants.METADATA_TABLE, ('metadata_value',), [(tablename + '_docstr',)], where_clause)
+        return docstr[0]
+
+    @default_decorator
+    def get_columns(db, tablename):
+        db.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
+        return db.cur.fetchall()
+
+    @default_decorator
     def get_column_names(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
-        column_names = [name for name, type_ in  db.table_columns[tablename]]
+        column_list = db.get_columns(tablename)
+        column_names = [ str(column[1]) for column in column_list]
         return column_names
 
     @default_decorator
     def get_column_types(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
-        column_types = [type_ for name, type_ in  db.table_columns[tablename]]
-        return column_types
+        def _format(type_, null, default, key):
+            if key == 1:
+                return type_ + " PRIMARY KEY"
+            elif null == 1:
+                return type_ + " NOT NULL"
+            elif default is not None:
+                return type_ + " DEFAULT " + default
+            else:
+                return type_
 
-    @default_decorator
-    def get_table_names(db):
-        """ Conveinience: """
-        return db.table_columns.keys()
+        column_list = db.get_columns(tablename)
+        column_types   = [ column[2] for column in column_list]
+        column_null    = [ column[3] for column in column_list]
+        column_default = [ column[4] for column in column_list]
+        column_key     = [ column[5] for column in column_list]
+        column_types_  = [ 
+            _format(type_, null, default, key) 
+            for type_, null, default, key 
+            in zip(column_types, column_null, column_default, column_key)
+        ]
+        return column_types_
 
     @default_decorator
     def get_column(db, tablename, name):
@@ -770,8 +781,7 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_table_csv(db, tablename, exclude_columns=[]):
         """ Conveinience: Converts a tablename to csv format """
-        column_nametypes = db.table_columns[tablename]
-        column_names = [name for (name, type_) in column_nametypes]
+        column_names = db.get_column_names(tablename)
         column_list = []
         column_lbls = []
         for name in column_names:
@@ -789,16 +799,16 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_table_csv_header(db, tablename):
-        column_nametypes = db.table_columns[tablename]
-        header_constraints = '# CONSTRAINTS: %r' % db.table_constraints[tablename]
+        column_nametypes = zip(db.get_column_names(tablename), db.get_column_types(tablename))
+        header_constraints = '# CONSTRAINTS: %r' % db.get_table_constraints(tablename)
         header_name  = '# TABLENAME: %r' % tablename
         header_types = utool.indentjoin(column_nametypes, '\n# ')
-        header_doc = utool.indentjoin(utool.unindent(db.table_docstr[tablename]).split('\n'), '\n# ')
+        header_doc = utool.indentjoin(utool.unindent(db.get_table_docstr(tablename)).split('\n'), '\n# ')
         header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
         return header
 
     def print_schema(db):
-        for tablename in six.iterkeys(db.table_columns):
+        for tablename in db.get_table_names():
             print(db.get_table_csv_header(tablename) + '\n')
 
     @default_decorator

@@ -54,7 +54,7 @@ ROSEMARY_ANNOT_METADATA = [
 
 BASE_DATABASE_VERSION = '0.0.0'
 
-# DO NOT PRUNE THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!
+# DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!
 #################################################################
 AL_RELATION_TABLE = 'annotation_lblannot_relationship'
 ANNOTATION_TABLE  = 'annotations'
@@ -68,6 +68,7 @@ IMAGE_TABLE       = 'images'
 LBLANNOT_TABLE    = 'lblannot'
 LBLIMAGE_TABLE    = 'lblimage'
 LBLTYPE_TABLE     = 'keys'
+METADATA_TABLE    = 'metadata'
 VERSIONS_TABLE    = 'versions'
 CONTRIBUTOR_TABLE = 'contributors'
 #################################################################

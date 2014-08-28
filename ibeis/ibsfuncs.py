@@ -504,7 +504,6 @@ def localize_images(ibs, gid_list_=None):
         gid_list_  = ibs.get_valid_gids()
     isnone_list = [gid is None for gid in gid_list_]
     gid_list = utool.filterfalse_items(gid_list_, isnone_list)
-    print(isnone_list)
     gpath_list = ibs.get_image_paths(gid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
     gext_list  = ibs.get_image_exts(gid_list)

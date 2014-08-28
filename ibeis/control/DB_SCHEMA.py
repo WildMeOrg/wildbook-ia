@@ -61,14 +61,6 @@ def update_1_0_0(ibs):
         annotation lblannots.  Each user will have a config id for manual
         contributions ''')
 
-    ibs.db.add_table(constants.VERSIONS_TABLE, (
-        ('version_rowid',                'INTEGER PRIMARY KEY'),
-        ('version_text',                 'TEXT'),
-    ),
-        superkey_colnames=['version_text'],
-        docstr='''
-        holds the schema version info''')
-
     ##########################
     # FIRST ORDER            #
     ##########################
@@ -216,6 +208,9 @@ def update_1_0_0(ibs):
     #    ('name_note',                   'TEXT',),
     #), ['CONSTRAINT superkey UNIQUE (name_text)'])
 
+def post_1_0_0(ibs):
+    ibs.db.drop_table(constants.VERSIONS_TABLE)
+
 # =======================
 # Schema Version 1.0.1
 # =======================
@@ -236,25 +231,9 @@ def update_1_0_1(ibs):
         docstr='''
         Used to store the contributors to the project
         ''')
-
-    ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
-        ('contributor_rowid',            'INTEGER PRIMARY KEY'),
-        ('contributor_tag',              'TEXT'),
-        ('contributor_name_first',       'TEXT'),
-        ('contributor_name_last',        'TEXT'),
-        ('contributor_location_city',    'TEXT'),
-        ('contributor_location_state',   'TEXT'),
-        ('contributor_location_country', 'TEXT'),
-        ('contributor_location_zip',     'INTEGER'),
-        ('contributor_note',             'INTEGER'),
-    ),
-        superkey_colnames=['contributor_rowid'],
-        docstr='''
-        Used to store the contributors to the project
-        ''')
    
     ibs.db.modify_table(constants.IMAGE_TABLE, (
-        (None,                     'image_new',         'TEXT', None),
+        (None,                     'contributor_rowid',         'INTEGER', None),
     ))
 
 # ========================
@@ -265,6 +244,6 @@ base = constants.BASE_DATABASE_VERSION
 VALID_VERSIONS = {
 #   version:    (Pre-Update Function,  Update Function,    Post-Update Function)
     base   :    (None,                 None,               None                ),
-    '1.0.0':    (None,                 update_1_0_0,       None                ),
+    '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
     '1.0.1':    (None,                 update_1_0_1,       None                ),
 }
