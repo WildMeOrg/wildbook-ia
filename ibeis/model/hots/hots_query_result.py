@@ -108,21 +108,18 @@ def get_num_feats_in_matches(qres):
 
 
 class QueryResult(__OBJECT_BASE__):
-    """
-    __slots__ = ['qaid', 'cfgstr', 'nn_time',
-                 'weight_time', 'filt_time', 'build_time', 'verify_time',
-                 'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score']
-    """
-    def __init__(qres, qaid, cfgstr, qauuid=None):
+    #__slots__ = ['qaid', 'qauuid', 'cfgstr', 'eid',
+    #             'aid2_fm', 'aid2_fs', 'aid2_fk', 'aid2_score',
+    #             'filt2_meta']
+    def __init__(qres, qaid, qauuid, cfgstr):
         # THE UID MUST BE SPECIFIED CORRECTLY AT CREATION TIME
         # TODO: Merge FS and FK
         super(QueryResult, qres).__init__()
         qres.qaid = qaid
-        qres.qauuid = qauuid
-        #qres.qauuid = qauuid
-        qres.cfgstr = cfgstr
-        qres.eid = None  # encounter id
         qres.qauuid = qauuid  # query annot uuid
+        #qres.qauuid = qauuid
+        qres.cfgstr = cfgstr  # should have database info hashed in from qreq
+        qres.eid = None  # encounter id
         # Assigned features matches
         qres.aid2_fm = None  # feat_match_list
         qres.aid2_fs = None  # feat_score_list
@@ -131,12 +128,15 @@ class QueryResult(__OBJECT_BASE__):
         qres.filt2_meta = None  # messy
 
     @profile
-    def load(qres, qresdir, verbose=utool.NOT_QUIET):
+    def load(qres, qresdir, verbose=utool.NOT_QUIET, force_miss=False):
         """ Loads the result from the given database """
         fpath = qres.get_fpath(qresdir)
         qaid_good = qres.qaid
         qauuid_good = qres.qauuid
         try:
+            #if __debug__:
+            if force_miss:
+                raise hsexcept.HotsCacheMissError('force miss')
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
@@ -173,9 +173,14 @@ class QueryResult(__OBJECT_BASE__):
             elif exstr.startswith('("\'numpy.ndarray\' object is not callable",'):
                 raise hsexcept.HotsNeedsRecomputeError(str(ex))
             raise
+        except hsexcept.HotsCacheMissError:
+            msg = '... qres cache miss: %r' % (split(fpath)[1],)
+            if verbose:
+                print(msg)
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise
+        assert qauuid_good == qres.qauuid
         qres.qauuid = qauuid_good
         qres.qaid = qaid_good
 
@@ -201,7 +206,7 @@ class QueryResult(__OBJECT_BASE__):
     @profile
     def save(qres, qresdir):
         fpath = qres.get_fpath(qresdir)
-        if utool.VERBOSE:
+        if utool.NOT_QUIET:  # and utool.VERBOSE:
             print('[qr] cache save: %r' % (split(fpath)[1],))
         with open(fpath, 'wb') as file_:
             cPickle.dump(qres.__dict__, file_)

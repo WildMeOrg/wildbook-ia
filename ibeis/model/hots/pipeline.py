@@ -62,7 +62,7 @@ START_AFTER = 2
 
 
 # specialized progress func
-log_prog = partial(utool.log_progress, startafter=START_AFTER)
+log_progress = partial(utool.log_progress, startafter=START_AFTER, disable=utool.QUIET)
 
 
 # Query Level 0
@@ -86,7 +86,7 @@ def request_ibeis_query_L0(ibs, qreq_):
         ibs   - HotSpotter database object to be queried
         qreq_ - QueryRequest Object   # use prep_qreq to create one
     Output:
-        qaid2_qres - mapping from query indexes to QueryResult Objects
+        qaid2_qres - mapping from query indexes to Query Result Objects
     """
 
     # Load data for nearest neighbors
@@ -155,7 +155,7 @@ def nearest_neighbors(qreq_):
     nn_dists_arr = np.empty(nQAnnots, dtype=np.ndarray)  # corresponding distance
     # Internal statistics reporting
     nTotalNN, nTotalDesc = 0, 0
-    mark_, end_ = log_prog('Assign NN: ', len(qvecs_list))
+    mark_, end_ = log_progress('Assign NN: ', len(qvecs_list))
     for count, qfx2_vec in enumerate(qvecs_list):
         mark_(count)  # progress
         # Check that we can query this annotation
@@ -243,7 +243,7 @@ def filter_neighbors(qaid2_nns, filt2_weights, qreq_):
     if NOT_QUIET:
         print('[hs] Step 3) Filter neighbors: ')
     # Filter matches based on config and weights
-    mark_, end_ = log_prog('Filter NN: ', len(qaid2_nns))
+    mark_, end_ = log_progress('Filter NN: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_(count)  # progress
         (qfx2_idx, _) = qaid2_nns[qaid]
@@ -411,7 +411,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
         assert len(qreq_.get_external_qaids()) == 1
         aid2_fm, aid2_fs, aid2_fk = new_fmfsfk()
     # Iterate over chips with nearest neighbors
-    mark_, end_ = log_prog('Build Chipmatch: ', len(qaid2_nns))
+    mark_, end_ = log_progress('Build Chipmatch: ', len(qaid2_nns))
     for count, qaid in enumerate(six.iterkeys(qaid2_nns)):
         mark_(count)  # Mark progress
         (qfx2_idx, _) = qaid2_nns[qaid]
@@ -584,56 +584,6 @@ def _precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
 
 
 #============================
-# 6) QueryResult Format
-#============================
-
-
-@profile
-def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
-    if NOT_QUIET:
-        print('[hs] Step 6) Convert chipmatch -> qres')
-    cfgstr = qreq_.qparams.query_cfgstr
-    score_method = qreq_.qparams.score_method
-    # Create the result structures for each query.
-    qaid2_qres = {}
-    for qaid in six.iterkeys(qaid2_chipmatch):
-        # For each query's chipmatch
-        chipmatch = qaid2_chipmatch[qaid]
-        # Perform final scoring
-        aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
-        # Create a query result structure
-        qres = hots_query_result.QueryResult(qaid, cfgstr)
-        qres.aid2_score = aid2_score
-        (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
-        qres.filt2_meta = {}  # dbgstats
-        for filt, qaid2_meta in six.iteritems(filt2_meta):
-            qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
-        qaid2_qres[qaid] = qres
-    # Retain original score method
-    return qaid2_qres
-
-
-@profile
-def try_load_resdict(qreq_):
-    """ Try and load the result structures for each query.
-    returns a list of failed qaids """
-    qaids   = qreq_.get_external_qaids()
-    qauuids = qreq_.get_external_quuids()
-    cfgstr = qreq_.get_cfgstr()
-    qresdir = qreq_.get_qresdir()
-    qaid2_qres_hit = {}
-    cachemiss_qaids = []
-    for qaid, qauuid in zip(qaids, qauuids):
-        try:
-            qres = hots_query_result.QueryResult(qaid, cfgstr, qauuid)
-            qres.load(qresdir)  # 77.4 % time
-            qaid2_qres_hit[qaid] = qres  # cache hit
-        except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
-            cachemiss_qaids.append(qaid)  # cache miss
-    return qaid2_qres_hit, cachemiss_qaids
-
-
-#============================
 # Scoring Mechanism
 #============================
 
@@ -659,3 +609,66 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
     else:
         raise Exception('[hs] unknown scoring method:' + score_method)
     return aid2_score
+
+
+#============================
+# 6) Query Result Format
+#============================
+
+
+@profile
+def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
+    if NOT_QUIET:
+        print('[hs] Step 6) Convert chipmatch -> qres')
+    qaids   = qreq_.get_external_qaids()
+    qauuids = qreq_.get_external_quuids()
+    cfgstr = qreq_.get_cfgstr()
+    score_method = qreq_.qparams.score_method
+    # Create the result structures for each query.
+    qaid2_qres = {}
+    # Currently not looping over the keys so we have access to uuids
+    # using qreq externals aids should be equivalent
+    #for qaid in six.iterkeys(qaid2_chipmatch):
+    for qaid, qauuid in zip(qaids, qauuids):
+        # For each query's chipmatch
+        chipmatch = qaid2_chipmatch[qaid]
+        # Perform final scoring
+        aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
+        # Create a query result structure
+        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
+        # Populate query result fields
+        qres.aid2_score = aid2_score
+        (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
+        qres.filt2_meta = {}  # dbgstats
+        for filt, qaid2_meta in six.iteritems(filt2_meta):
+            qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
+        qaid2_qres[qaid] = qres
+    # Retain original score method
+    return qaid2_qres
+
+
+@profile
+def try_load_resdict(qreq_, force_miss=False):
+    """ Try and load the result structures for each query.
+    returns a list of failed qaids """
+    qaids   = qreq_.get_external_qaids()
+    qauuids = qreq_.get_external_quuids()
+
+    cfgstr = qreq_.get_cfgstr()
+    qresdir = qreq_.get_qresdir()
+    qaid2_qres_hit = {}
+    cachemiss_qaids = []
+    for qaid, qauuid in zip(qaids, qauuids):
+        try:
+            qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
+            qres.load(qresdir, force_miss=force_miss)  # 77.4 % time
+            qaid2_qres_hit[qaid] = qres  # cache hit
+        except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
+            cachemiss_qaids.append(qaid)  # cache miss
+    return qaid2_qres_hit, cachemiss_qaids
+
+
+def save_resdict(qreq_, qaid2_qres):
+    qresdir = qreq_.get_qresdir()
+    for qres in six.itervalues(qaid2_qres):
+        qres.save(qresdir)

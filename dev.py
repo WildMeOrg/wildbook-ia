@@ -6,7 +6,7 @@ This is a hacky script meant to be run interactively
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
-from _devscript import devcmd,  DEVCMD_FUNCTIONS
+from _devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 from utool.util_six import get_funcname
 from utool.util_six import *  # NOQA
 import utool
@@ -301,14 +301,41 @@ def compgrav_annotationmatch_scores(ibs, qaid_list):
 #--------------------
 
 
+def run_devprecmds():
+    input_precmd_list = params.args.tests[:]
+    valid_precmd_list = []
+    def intest(*args, **kwargs):
+        for precmd_name in args:
+            valid_precmd_list.append(precmd_name)
+            ret = precmd_name in input_precmd_list
+            ret2 = precmd_name in params.unknown  # Let unparsed args count towards tests
+            if ret or ret2:
+                if ret:
+                    input_precmd_list.remove(precmd_name)
+                else:
+                    ret = ret2
+                print('+===================')
+                print('| running precmd = %s' % (args,))
+                return ret
+        return False
+
+    # Implicit (decorated) test functions
+    for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
+        if intest(*func_aliases):
+            with utool.Indenter('[dev.' + get_funcname(func) + ']'):
+                func()
+                print('Exiting after first precommand')
+            sys.exit(1)
+
+
 #@utool.indent_func('[dev]')
 #@profile
-def run_experiments(ibs, qaid_list):
+def run_devcmds(ibs, qaid_list):
     """
     This function runs tests passed in with the -t flag
     """
     print('\n')
-    print('[dev] run_experiments')
+    print('[dev] run_devcmds')
     print('==========================')
     print('RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
@@ -361,15 +388,17 @@ def run_experiments(ibs, qaid_list):
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVCMD_FUNCTIONS:
         if intest(*func_aliases):
-            with utool.Indenter('[dev.' + get_funcname(func) + ']'):
-                print('[dev] qid_list=%r' % (qaid_list,))
-                ret = func(ibs, qaid_list)
-                # Add variables returned by the function to the
-                # "local scope" (the exec scop)
-                if hasattr(ret, 'items'):
-                    for key, val in ret.items():
-                        if utool.is_valid_varname(key):
-                            locals_[key] = val
+            funcname = get_funcname(func)
+            with utool.Indenter('[dev.' + funcname + ']'):
+                with utool.Timer(funcname):
+                    print('[dev] qid_list=%r' % (qaid_list,))
+                    ret = func(ibs, qaid_list)
+                    # Add variables returned by the function to the
+                    # "local scope" (the exec scop)
+                    if hasattr(ret, 'items'):
+                        for key, val in ret.items():
+                            if utool.is_valid_varname(key):
+                                locals_[key] = val
 
     valid_test_helpstr_list.append('    # --- Config Tests ---')
 
@@ -477,7 +506,7 @@ def run_dev(main_locals):
 
         if len(qaid_list) > 0 or True:
             # Run the dev experiments
-            expt_locals = run_experiments(ibs, qaid_list)
+            expt_locals = run_devcmds(ibs, qaid_list)
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
@@ -502,6 +531,9 @@ if __name__ == '__main__':
                 ./dev.py -t query -w
     """
     multiprocessing.freeze_support()  # for win32
+
+    # Run Precommands
+    run_devprecmds()
 
     #
     #
