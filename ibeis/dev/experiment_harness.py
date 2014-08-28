@@ -34,7 +34,9 @@ def get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl):
 
     # NEW STUFF
     qaid2_qres = ibs._query_chips(qaids, daids)
-    qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs)] for qaid in qaids]
+    gtaids_list = ibs.get_annot_groundtruth(qaids)
+    qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs, gtaids)]
+                     for qaid, gtaids in zip(qaids, gtaids_list)]
     return qx2_bestranks
 
 

@@ -326,15 +326,14 @@ class SQLDatabaseController(object):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
-        return db.executeone(operation, params, auto_commit=True,
-                             verbose=VERYVERBOSE, **kwargs)
+        return db.executeone(operation, params, auto_commit=True, **kwargs)
 
     @default_decorator
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
                                    unpack_scalars=True, **kwargs):
         operation = operation_fmt.format(**fmtdict)
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
-                              auto_commit=True, verbose=VERYVERBOSE, **kwargs)
+                              auto_commit=True, **kwargs)
 
     #=========
     # SQLDB CORE
@@ -412,7 +411,11 @@ class SQLDatabaseController(object):
                       'with no params use executeone instead.')
             return []
         # --- SQL EXECUTION ---
-        contextkw = {'num_params': num_params, 'start_transaction': True}
+        contextkw = {
+            'num_params': num_params,
+            'start_transaction': True,
+            'verbose': verbose,
+        }
         with SQLExecutionContext(db, operation, **contextkw) as context:
             #try:
             results_iter = list(map(list, (context.execute_and_generate_results(params) for params in params_iter)))  # list of iterators
