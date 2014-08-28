@@ -31,8 +31,9 @@ def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2)
     if subdir is not None:
         fpath = join(fpath, subdir)
         utool.ensurepath(fpath)
-    df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
+    fpath_clean = df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
     df2.reset()
+    return fpath_clean
 
 
 def get_square_row_cols(nSubplots, max_cols=None):

@@ -190,12 +190,14 @@ def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         if overwrite or not exists(fpath_clean):
             if verbose == 2:
-                print('[df2] save_figure() %r' % (fpath_clean,))
+                print('[df2] save_figure() full=%r' % (fpath_clean,))
             elif verbose == 1:
-                print('[df2] save_figure() %r' % (split(fpath_clean)[1],))
+                fpathndir = utool.util_path.path_ndir_split(fpath_clean, 5)
+                print('[df2] save_figure() ndir=%r' % (fpathndir))
             fig.savefig(fpath_clean, dpi=DPI)
         else:
             print('[df2] not overwriteing')
+    return fpath_clean
 
 
 def set_ticks(xticks, yticks):
