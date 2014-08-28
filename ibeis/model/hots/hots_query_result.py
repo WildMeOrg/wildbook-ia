@@ -332,6 +332,8 @@ class QueryResult(__OBJECT_BASE__):
     @utool.accepts_scalar_input
     def get_aid_ranks(qres, aid_arr):
         """ get ranks of chip indexes in aid_arr """
+        if isinstance(aid_arr, (tuple, list)):
+            aid_arr = np.array(aid_arr)
         top_aids = qres.get_top_aids()
         foundpos = [np.where(top_aids == aid)[0] for aid in aid_arr]
         ranks_   = [ranks if len(ranks) > 0 else [None] for ranks in foundpos]

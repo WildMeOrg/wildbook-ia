@@ -266,7 +266,7 @@ def assert_valid_aids(ibs, aid_list):
     #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
     isinvalid_list = [aid not in valid_aids for aid in aid_list]
     assert not any(isinvalid_list), 'invalid aids: %r' % (utool.filter_items(aid_list, isinvalid_list),)
-    isinvalid_list = [not isinstance(aid, int) for aid in aid_list]
+    isinvalid_list = [not isinstance(aid, utool.VALID_INT_TYPES) for aid in aid_list]
     assert not any(isinvalid_list), 'invalidly typed aids: %r' % (utool.filter_items(aid_list, isinvalid_list),)
 
 

@@ -420,7 +420,7 @@ python dev.py -t best --allgt --echo-hardcase
 python dev.py -t best --allgt --index 24 39 44 45 --view-hard  --sf
 python dev.py -t best --allgt --view-hard
 # EXPERIMENT FULL COMMANDS
-python dev.py -t best --allgt --view-hard  --sf
+python dev.py -t best --allgt --view-hard 
 python dev.py -t upsize --allgt 
 
 ```

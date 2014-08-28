@@ -319,15 +319,30 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         qres = ibs._query_chips([qaid], daids)[qaid]
         return qres
 
-    DELETE = False
-    USE_FIGCACHE = False
-    DUMP_QANNOT = True
+    DELETE              = False
+    USE_FIGCACHE        = False
+    DUMP_QANNOT         = True
     DUMP_QANNOT_DUMP_GT = True
-    DUMP_TOP_CONTEXT = True
+    DUMP_TOP_CONTEXT    = True
 
     figdir = ibs.get_figanalysis_dir()
     if DELETE:
         utool.delete(figdir)
+
+    # Save DEFAULT=True
+    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
+        from ibeis import viz
+        if aid in seen:
+            return
+        viz.show_chip(ibs, aid, in_image=in_image)
+        if rank is not None:
+            prefix += 'rank%d_' % rank
+        df2.set_figtitle(prefix + ibs.annotstr(aid))
+        seen.add(aid)
+        if utool.VERBOSE:
+            print('[expt] dumping fig to %s' % figdir)
+        fpath_clean = ph.dump_figure(figdir, **dumpkw)
+        return fpath_clean
 
     for count, (r, c) in enumerate(rciter):
         if SKIP_TO is not None:
@@ -345,14 +360,15 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         ----------------------------------
         ''')  % (count + 1, total, r, c))
         qres = load_qres(ibs, qaid, daids, query_cfg)
-        # Draw Result
-        show_kwargs = {
-            'N': 3,
-            'ori': True,
-            'ell_alpha': .9,
-        }
         qres_cfg = qres.get_fname(ext='')
         subdir = qres_cfg
+        # Draw Result
+        dumpkw = {
+            'subdir'    : subdir,
+            'quality'   : False,
+            'overwrite' : True,
+            'verbose'   : 0
+        }
 
         if not SAVE_FIGURES:
             continue
@@ -361,47 +377,30 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
             continue
 
         # Show Figure
+        show_kwargs = {'N': 3,
+                       'ori': True,
+                       'ell_alpha': .9, }
         qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
-
         # Adjust subplots
         df2.adjust_subplots_safe()
-        dumpkw = {
-            'subdir'    : subdir,
-            'quality'   : False,
-            'overwrite' : True,
-            'verbose'   : 0
-        }
-
-        # Save DEFAULT=True
-        def _show_chip(aid, prefix, in_image=False, seen=set([])):
-            from ibeis import viz
-            if aid in seen:
-                return
-            viz.show_chip(ibs, aid, in_image=in_image)
-            df2.set_figtitle(prefix + ibs.annotstr(aid))
-            ph.dump_figure(figdir, **dumpkw)
-            seen.add(aid)
-
-            if utool.VERBOSE:
-                print('[expt] dumping fig to %s' % figdir)
-            fpath_clean = ph.dump_figure(figdir, **dumpkw)
-            append_copy_task(fpath_clean)
+        fpath_clean = ph.dump_figure(figdir, **dumpkw)
+        append_copy_task(fpath_clean)
 
         if DUMP_QANNOT:
-            _show_chip(qres.qaid, 'QUERY_')
-            _show_chip(qres.qaid, 'QUERY_CXT', in_image=True)
+            _show_chip(qres.qaid, 'QUERY_', **dumpkw)
+            _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, **dumpkw)
 
         if DUMP_QANNOT_DUMP_GT:
             gtaids = ibs.get_annot_groundtruth(qres.qaid)
             for aid in gtaids:
                 rank = qres.get_aid_ranks(aid)
-                _show_chip(aid, 'GT_CXT_rank' + str(rank), in_image=True)
+                _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, **dumpkw)
 
         if DUMP_TOP_CONTEXT:
             topids = qres.get_top_aids(num=3)
             for aid in topids:
                 rank = qres.get_aid_ranks(aid)
-                _show_chip(aid, 'TOP_CXT_rank' + str(rank), in_image=True)
+                _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
 
     for src, dst in zip(cp_src_list, cp_dst_list):
         utool.copy(src, dst)
