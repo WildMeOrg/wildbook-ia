@@ -1,10 +1,11 @@
+"""
+TODO: Rename to ibeis/init/commands.py
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 from ibeis import params
-from ibeis import ibsfuncs
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[main_helpers]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[main_helpers]')
 
 
 def register_utool_aliases():
@@ -22,58 +23,72 @@ def register_utool_aliases():
     ])
 
 
+def ensure_flatiterable(input_):
+    if isinstance(input_, int) or not utool.isiterable(input_):
+        return [input_]
+    elif isinstance(input_, list):
+        print(input_)
+        if len(input_) > 0 and utool.isiterable(input_[0]):
+            return utool.flatten(input_)
+        return input_
+    else:
+        raise TypeError('cannot ensure %r input_=%r is iterable', (type(input_), input_))
+
+
+def ensure_flatlistlike(input_):
+    iter_ = ensure_flatiterable(input_)
+    return list(iter_)
+
+
 @utool.indent_func
 @profile
 def get_test_qaids(ibs):
-    """ Gets test annotation_rowids based on command line arguments """
-    #print('[main_helpers]')
-    test_qaids = []
-    valid_aids = ibs.get_valid_aids()
-    printDBG('1. valid_aids = %r' % valid_aids[0:5])
-    #print(utool.dict_str(vars(params.args)))
+#def get_allowed_qaids(ibs):
+    """ Gets test annot_rowids based on command line arguments """
+    available_qaids = []
 
+    # Currently the only avaialable query annots are ones specified on the
+    # command line
     if params.args.qaid is not None:
         try:
-            if isinstance(params.args.qaid, int):
-                args_qaid = [params.args.qaid]
-            else:
-                args_qaid = utool.flatten(params.args.qaid)
+            args_qaid = ensure_flatlistlike(params.args.qaid)
         except Exception:
             args_qaid = params.args.qaid
-        printDBG('Testing qaid=%r' % params.args.qaid)
-        test_qaids.extend(args_qaid)
+        if __debug__:
+            printDBG('Testing qaid=%r' % params.args.qaid)
+        available_qaids.extend(args_qaid)
+
+    valid_aids_ = utool.lazyfunc(ibs.get_valid_aids)
+    if valid_aids_() == 0:
+        print('no annotations available')
 
     if params.args.all_cases:
-        printDBG('Testing all %d cases' % (len(valid_aids),))
-        printDBG('1. test_qaids = %r' % test_qaids[0:5])
-        test_qaids.extend(valid_aids)
-        printDBG('2. test_qaids = %r' % test_qaids[0:5])
+        available_qaids.extend(valid_aids_())
     else:
-        is_hard_list = ibsfuncs.get_annot_is_hard(ibs, valid_aids)
-        hard_aids = utool.filter_items(valid_aids, is_hard_list)
-        printDBG('Testing %d known hard cases' % len(hard_aids))
-        test_qaids.extend(hard_aids)
+        is_hard_list = ibs.get_annot_is_hard(valid_aids_())
+        hard_aids = utool.filter_items(valid_aids_(), is_hard_list)
+        available_qaids.extend(hard_aids)
 
     if params.args.all_gt_cases:
-        has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
-        hasgt_aids = utool.filter_items(valid_aids, has_gt_list)
+        has_gt_list = ibs.get_annot_has_groundtruth(valid_aids_())
+        hasgt_aids = utool.filter_items(valid_aids_(), has_gt_list)
         print('Testing all %d/%d ground-truthed cases' % (len(hasgt_aids),
-                                                          len(valid_aids)))
-        test_qaids.extend(hasgt_aids)
+                                                          len(valid_aids_())))
+        available_qaids.extend(hasgt_aids)
 
-    # Sample a large pool of query indexes
+    # Sample a large pool of chosen query indexes
     # Filter only the ones you want from the large pool
     if params.args.index is not None:
-        indexes = utool.ensure_iterable(params.args.index)
-        #printDBG('Chosen indexes=%r' % (indexes,))
-        #printDBG('test_qaids = %r' % test_qaids[0:5])
-        _test_qaids = [test_qaids[xx] for xx in indexes]
-        test_qaids = _test_qaids
-        #printDBG('test_qaids = %r' % test_qaids)
-    elif len(test_qaids) == 0 and len(valid_aids) > 0:
-        #printDBG('no hard or gt aids. Defaulting to the first ANNOTATION')
-        test_qaids = valid_aids[0:1]
+        indexes = ensure_flatlistlike(params.args.index)
+        printDBG('Chosen indexes=%r' % (indexes,))
+        printDBG('available_qaids = %r' % available_qaids[0:5])
+        _test_qaids = [available_qaids[xx] for xx in indexes]
+        available_qaids = _test_qaids
+        printDBG('available_qaids = %r' % available_qaids)
+    elif len(available_qaids) == 0 and len(valid_aids_()) > 0:
+        printDBG('no hard or gt aids. Defaulting to the first ANNOTATION')
+        available_qaids = valid_aids_()[0:1]
 
-    #print('test_qaids = %r' % test_qaids)
-    test_qaids = utool.unique_keep_order2(test_qaids)
-    return test_qaids
+    #print('available_qaids = %r' % available_qaids)
+    available_qaids = utool.unique_keep_order2(available_qaids)
+    return available_qaids

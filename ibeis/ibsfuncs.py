@@ -1294,7 +1294,7 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
 
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     """
-    >>> import ibeis
+    #>>> import ibeis
     >>> from ibeis import ibsfuncst *  # NOQA
     >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
     [main]...
@@ -1448,3 +1448,8 @@ def get_dbnotes(ibs):
         ibs.set_dbnotes('None')
         notes = utool.read_from(ibs.get_dbnotes_fpath())
     return notes
+
+
+@__injectable
+def annotstr(ibs, aid):
+    return 'aid=%d' % aid

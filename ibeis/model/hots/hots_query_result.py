@@ -56,13 +56,18 @@ def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
         object qauuid
         str cfgstr, qres_dir, fpath, hash_id, fname
     """
-    fname_fmt = 'res_%s_qaid=%d_qauuid=%s.npz'
+    fname = query_result_fname(qaid, qauuid, cfgstr)
+    fpath = join(qresdir, fname)
+    return fpath
+
+
+def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
+    fname_fmt = 'res_%s_qaid=%d_qauuid=%s' + ext
     fname = fname_fmt % (cfgstr, qaid, str(qauuid))
     if len(fname) > 64:
         hash_id = utool.hashstr(cfgstr)
         fname = fname_fmt % (hash_id, qaid, str(qauuid))
-    fpath = join(qresdir, fname)
-    return fpath
+    return fname
 
 
 def _qres_dicteq(aid2_xx1, aid2_xx2):
@@ -202,6 +207,9 @@ class QueryResult(__OBJECT_BASE__):
 
     def get_fpath(qres, qresdir):
         return query_result_fpath(qresdir, qres.qaid, qres.qauuid, qres.cfgstr)
+
+    def get_fname(qres, **kwargs):
+        return query_result_fname(qres.qaid, qres.qauuid, qres.cfgstr, **kwargs)
 
     @profile
     def save(qres, qresdir):
