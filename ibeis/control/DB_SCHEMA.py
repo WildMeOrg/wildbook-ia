@@ -114,7 +114,7 @@ def update_1_0_0(ibs):
     ##########################
     # SECOND ORDER           #
     ##########################
-    # TODO: constraint needs modify
+    # TODO: constraint needs modification
     ibs.db.add_table(constants.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
@@ -206,7 +206,18 @@ def update_1_0_1(ibs):
         ''')
    
     ibs.db.modify_table(constants.IMAGE_TABLE, (
-        (None,                     'contributor_rowid',         'INTEGER', None),
+        # add column at index 1
+        (1, 'contributor_rowid', 'INTEGER', None),
+    ))
+
+    ibs.db.modify_table(constants.ANNOTATION_TABLE, (
+        # add column at index 1
+        (1, 'annot_parent_rowid', 'INTEGER', None),
+    ))
+
+    ibs.db.modify_table(constants.FEATURE_TABLE, (
+        # append column because None
+        (None, 'feature_weight', 'REAL DEFAULT 1.0', None),
     ))
 
 

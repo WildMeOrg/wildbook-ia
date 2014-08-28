@@ -433,16 +433,17 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
     
     @default_decorator
-    def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None):
+    def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None, tablename_new=None):
         '''
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
         
         EXAMPLE:
         ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
         #   (Original Column Name,            New Column Name,                 New Column Type, Function to convert data from old to new
-        #    [None to add]                    ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
+        #    [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
             ('contributor_rowid',             '',                              '',               None), # a non-needed, but correct mapping (identity function)
             (None,                            'contributor__location_address', 'TEXT',           None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
+            (4,                               'contributor__location_address', 'TEXT',           None), # adding a new column at index 4 (if index is invalid, None is used)
             ('contributor__location_city',    None,                            '',               None), # for deleted columns, type and function are ignored
             ('contributor__location_city',    'contributor__location_town',    '',               None), # for renamed columns, type and function are ignored
             ('contributor_location_zip',      'contributor_location_zip',      'TEXT',           contributor_location_zip_map),
@@ -458,17 +459,28 @@ class SQLDatabaseController(object):
         colname_original_list = colname_list[:]
         coltype_list = db.get_column_types(tablename)
         colname_dict = {}
+        colmap_dict  = {}
 
         for colname in colname_list:
             colname_dict[colname] = colname
 
+        insert = False
         for (src, dst, type_, map_) in colmap_list:
-            if src is None:
+            if src is None or isinstance(src, int):
                 # Add column
                 assert dst is not None and len(dst) > 0, "New column's name must be valid"
                 assert type_ is not None and len(type_) > 0, "New column's type must be specified"
-                colname_list.append(dst)
-                coltype_list.append(type_)
+                if isinstance(src, int) and (src < 0 or len(colname_list) <= src):
+                    src = None
+                if src is None:
+                    colname_list.append(dst)
+                    coltype_list.append(type_)
+                else:
+                    if insert:
+                        print('[sql] WARNING: multiple index inserted add columns, may cause allignment issues')
+                    colname_list.insert(src, dst)
+                    coltype_list.insert(src, type_)
+                    insert = True
             else:
                 assert src in colname_list, 'Unkown source colname=%s in tablename=%s' % (src, tablename)
                 index = colname_list.index(src)
@@ -502,6 +514,8 @@ class SQLDatabaseController(object):
                         dst = src
                     if len(type_) == 0:
                         type_ = coltype_list[index]
+            if map_ is not None:
+                colmap_dict[src] = map_
                     
         coldef_list = [ _ for _ in zip(colname_list, coltype_list) ]
         tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
@@ -526,7 +540,48 @@ class SQLDatabaseController(object):
                 dst_list.append(colname_dict[name])
 
         data_list = db.get(tablename, tuple(src_list))
+        # Run functions across all data for specified callums
+        data_list = [ 
+            tuple([
+                colmap_dict[src](d) if src in colmap_dict.keys() else d
+                for d, src in zip(data, src_list)
+            ])
+            for data in data_list
+        ]
+        # Add the data to the database
         db.add_cleanly(tablename_temp, dst_list, data_list, (lambda x: [None] * len(x)))
+        if tablename_new is None:
+            # Drop original table
+            db.drop_table(tablename)
+            # Rename temp table to original table name
+            db.rename_table(tablename_temp, tablename)
+        else:
+            # Rename new table to new name
+            db.rename_table(tablename_temp, tablename_new)
+
+    @default_decorator
+    def reorder_columns(db, tablename, order_list):
+        printDBG('[sql] schema column reordering for tablename=%r' % tablename)
+        # Get current tables
+        colname_list = db.get_column_names(tablename)
+        coltype_list = db.get_column_types(tablename)
+        assert len(colname_list) == len(coltype_list) and len(colname_list) == len(order_list)
+        assert all([ i in order_list for i in range(len(colname_list)) ]), 'Order index list invalid'
+        # Reorder column definitions        
+        combined = sorted(list(zip(order_list, colname_list, coltype_list)))
+        coldef_list = [ (name, type_) for i, name, type_ in combined ]
+        tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
+        docstr = db.get_table_docstr(tablename)
+        table_constraints = db.get_table_constraints(tablename)
+            
+        db.add_table(tablename_temp, coldef_list, 
+            table_constraints=table_constraints, 
+            docstr=docstr, 
+        )
+        # Copy data
+        data_list = db.get(tablename, tuple(colname_list))
+        # Add the data to the database
+        db.add_cleanly(tablename_temp, colname_list, data_list, (lambda x: [None] * len(x)))
         # Drop original table
         db.drop_table(tablename)
         # Rename temp table to original table name
@@ -534,23 +589,12 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def duplicate_table(db, tablename, tablename_duplicate):
-        printDBG('[sql] schema duplicating tablename=%r ' + 
-            'into tablename=%r' % (tablename, tablename_duplicate)
-        )
-        # Duplicate table
-        fmtkw = {
-            'tablename_duplicate': tablename_duplicate,
-            'tablename':           tablename,
-        }
-        op_fmtstr = 'CREATE TABLE {tablename_duplicate} AS SELECT * FROM {tablename}'
-        operation = op_fmtstr.format(**fmtkw)
-        db.executeone(operation, [], verbose=False)
+        printDBG('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
+        db.modify_table(tablename, [], tablename_new=tablename_duplicate)
 
     @default_decorator
     def duplicate_column(db, tablename, colname, colname_duplicate):
-        printDBG('[sql] schema duplicating tablename.colname=%r.%r ' + 
-            'into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate)
-        )
+        printDBG('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate))
         # Modify table to add a blank column with the appropriate tablename and NO data
         column_names = db.get_column_names(tablename)
         column_types = db.get_column_types(tablename)
@@ -746,7 +790,11 @@ class SQLDatabaseController(object):
         colnames = ('metadata_value',)
         data = [(tablename + '_constraint',)]
         constraint = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
-        return constraint[0].split(';')
+        constraint = constraint[0]
+        if constraint is None:
+            return None
+        else:
+            return constraint.split(';')
 
     @default_decorator
     def get_table_docstr(db, tablename):
