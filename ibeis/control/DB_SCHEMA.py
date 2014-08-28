@@ -230,6 +230,7 @@ def update_1_0_2(ibs):
     ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
         (1, 'contributor_uuid', 'UUID NOT NULL', None),
     ),
+        table_constraints=[],
         superkey_colnames=['contributor_tag']
     )
 
