@@ -129,7 +129,14 @@ def up_dbsize_expt(ibs, qaid_list):
         df2.set_xlabel('# Annotations in database')
         df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
         df2.dark_background()
-        df2.save_figure(usetitle=True)
+        dumpkw = {
+            'subdir'    : subdir,
+            'quality'   : False,
+            'overwrite' : True,
+            'verbose'   : 0
+        }
+        figdir = ibs.get_figanalysis_dir()
+        ph.dump_figure(figdir, **dumpkw)
 
     #---------
     # Find highest
@@ -472,7 +479,7 @@ def dev_snippets(main_locals):
         #ibs.dump_tables()
         aid_list = ibs.get_valid_aids()
         gid_list = ibs.get_valid_gids()
-        nid_list = ibs.get_valid_nids()
+        #nid_list = ibs.get_valid_nids()
         #valid_nid_list   = ibs.get_annot_nids(aid_list)
         #valid_aid_names  = ibs.get_annot_names(aid_list)
         #valid_aid_gtrues = ibs.get_annot_groundtruth(aid_list)
@@ -531,6 +538,8 @@ if __name__ == '__main__':
                 ./dev.py -t query -w
     """
     multiprocessing.freeze_support()  # for win32
+    CMD   = '--cmd' in sys.argv
+    NOGUI = '--gui' not in sys.argv
 
     # Run Precommands
     run_devprecmds()
@@ -545,7 +554,7 @@ if __name__ == '__main__':
     #
     #
     # Load snippet variables
-    SNIPPITS = True
+    SNIPPITS = True and CMD
     if SNIPPITS:
         snippet_locals = dev_snippets(main_locals)
         snippet_execstr = utool.execstr_dict(snippet_locals, 'snippet_locals')
@@ -566,8 +575,7 @@ if __name__ == '__main__':
     #if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
     if '--show' in sys.argv:
         df2.present()
-    ipy = ('--gui' not in sys.argv) or ('--cmd' in sys.argv)
-    main_execstr = ibeis.main_loop(main_locals, ipy=ipy)
+    main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
     exec(main_execstr)
 
     #

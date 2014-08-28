@@ -329,6 +329,7 @@ class QueryResult(__OBJECT_BASE__):
         inspect_str = utool.indent(inspect_str, '[INSPECT] ')
         return inspect_str
 
+    @utool.accepts_scalar_input
     def get_aid_ranks(qres, aid_arr):
         """ get ranks of chip indexes in aid_arr """
         top_aids = qres.get_top_aids()
@@ -349,19 +350,6 @@ class QueryResult(__OBJECT_BASE__):
         #rank_list = [r[0] for r in ranks_]
         #return rank_list
 
-    def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False):
-        'returns the 0 indexed ranking of each groundtruth chip'
-        # Ensure correct input
-        if gt_aids is None and ibs is None:
-            raise Exception('[qr] must pass in the gt_aids or ibs object')
-        if gt_aids is None:
-            gt_aids = ibs.get_annot_groundtruth(qres.qaid)
-        gt_ranks = qres.get_aid_ranks(gt_aids)
-        if return_gtaids:
-            return gt_ranks, gt_aids
-        else:
-            return gt_ranks
-
     def get_gt_scores(qres, gt_aids=None, ibs=None, return_gtaids=False):
         'returns the 0 indexed ranking of each groundtruth chip'
         # Ensure correct input
@@ -375,9 +363,22 @@ class QueryResult(__OBJECT_BASE__):
         else:
             return gt_scores
 
-    def get_best_gt_rank(qres, ibs):
+    def get_gt_ranks(qres, gt_aids=None, ibs=None, return_gtaids=False):
+        'returns the 0 indexed ranking of each groundtruth chip'
+        # Ensure correct input
+        if gt_aids is None and ibs is None:
+            raise Exception('[qr] must pass in the gt_aids or ibs object')
+        if gt_aids is None:
+            gt_aids = ibs.get_annot_groundtruth(qres.qaid)
+        gt_ranks = qres.get_aid_ranks(gt_aids)
+        if return_gtaids:
+            return gt_ranks, gt_aids
+        else:
+            return gt_ranks
+
+    def get_best_gt_rank(qres, ibs=None, gt_aids=None):
         """ Returns the best rank over all the groundtruth """
-        gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, return_gtaids=True)
+        gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, gt_aids=gt_aids, return_gtaids=True)
         aidrank_tups = list(zip(gt_aids, gt_ranks))
         # Get only the aids that placed in the shortlist
         #valid_gtaids = np.array([ aid for aid, rank in aidrank_tups if rank is not None])

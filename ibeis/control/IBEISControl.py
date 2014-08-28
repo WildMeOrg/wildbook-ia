@@ -1402,6 +1402,7 @@ class IBEISController(object):
         """ Returns a list of aids with the same name foreach aid in aid_list.
         a set of aids belonging to the same name is called a groundtruth. A list
         of these is called a groundtruth_list. """
+        # TODO: Optimize
         nid_list = ibs.get_annot_nids(aid_list)
         aids_list = ibs.get_name_aids(nid_list)
         if is_exemplar is None:
@@ -1423,10 +1424,12 @@ class IBEISController(object):
     @getter_1to1
     def get_annot_num_groundtruth(ibs, aid_list, noself=True):
         """ Returns number of other chips with the same name """
+        # TODO: Optimize
         return list(map(len, ibs.get_annot_groundtruth(aid_list, noself=noself)))
 
     @getter_1to1
     def get_annot_has_groundtruth(ibs, aid_list):
+        # TODO: Optimize
         numgts_list = ibs.get_annot_num_groundtruth(aid_list)
         has_gt_list = [num_gts > 0 for num_gts in numgts_list]
         return has_gt_list
@@ -2421,7 +2424,13 @@ class IBEISController(object):
         lblannot_value_list = ibs.db.get(LBLANNOT_TABLE, ('lblannot_value',), lblannot_rowid_list)
         return lblannot_value_list
 
+    @default_decorator
     def get_lblannot_aids(ibs, lblannot_rowid_list):
+        #verbose = len(lblannot_rowid_list) > 20
+        # TODO: Optimize IF POSSIBLE
+        # FIXME: SLOW
+        #if verbose:
+        #    print(utool.get_caller_name(N=list(range(0, 20))))
         where_clause = 'lblannot_rowid=?'
         params_iter = [(lblannot_rowid,) for lblannot_rowid in lblannot_rowid_list]
         aids_list = ibs.db.get_where(AL_RELATION_TABLE, ('annot_rowid',), params_iter,
@@ -2460,6 +2469,7 @@ class IBEISController(object):
     @getter_1toM
     def get_name_aids(ibs, nid_list):
         """ returns a list of list of cids in each name """
+        # TODO: Optimize
         nid_list_ = [constants.UNKNOWN_LBLANNOT_ROWID if nid <= 0 else nid for nid in nid_list]
         #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list_, ibs.lbltype_ids[constants.INDIVIDUAL_KEY])
         aids_list = ibs.get_lblannot_aids(nid_list_)
@@ -2479,6 +2489,7 @@ class IBEISController(object):
     @getter_1to1
     def get_name_num_annotations(ibs, nid_list):
         """ returns the number of annotations for each name """
+        # TODO: Optimize
         return list(map(len, ibs.get_name_aids(nid_list)))
 
     @getter_1to1
@@ -2495,6 +2506,7 @@ class IBEISController(object):
     @getter_1toM
     def get_name_gids(ibs, nid_list):
         """ Returns the image ids associated with name ids"""
+        # TODO: Optimize
         aids_list = ibs.get_name_aids(nid_list)
         gids_list = ibsfuncs.unflat_map(ibs.get_annot_gids, aids_list)
         return gids_list

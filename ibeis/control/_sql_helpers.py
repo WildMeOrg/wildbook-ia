@@ -13,11 +13,9 @@ from ibeis.control import DB_SCHEMA
 # =======================
 # Helper Functions
 # =======================
-
-PRINT_SQL = utool.get_flag('--print-sql')
+PRINT_SQL = utool.get_flag(('--print-sql', '--verbose-sql'))
 AUTODUMP = utool.get_flag('--auto-dump')
-QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
-PRINT_SQL = utool.get_flag('--print-sql')
+NOT_QUIET = not (utool.QUIET or utool.get_flag('--quiet-sql'))
 
 
 def _results_gen(cur, get_last_id=False):
@@ -135,7 +133,7 @@ class SQLExecutionContext(object):
     """ A good with context to use around direct sql calls
     """
     def __init__(context, db, operation, num_params=None, auto_commit=True,
-                 start_transaction=False):
+                 start_transaction=False, verbose=PRINT_SQL):
         context.auto_commit = auto_commit
         context.db = db  # Reference to sqldb
         context.operation = operation
@@ -143,11 +141,12 @@ class SQLExecutionContext(object):
         context.start_transaction = start_transaction
         #context.__dict__.update(locals())  # Too mystic?
         context.operation_type = get_operation_type(operation)  # Parse the optype
+        context.verbose = verbose
 
     def __enter__(context):
         """ Checks to see if the operating will change the database """
         #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
-        if context.num_params is None:
+        if context.num_params is not None:
             context.operation_lbl = ('[sql] execute num_params=%d optype=%s: '
                                        % (context.num_params, context.operation_type))
         else:
@@ -157,11 +156,14 @@ class SQLExecutionContext(object):
         if context.start_transaction:
             # http://stackoverflow.com/questions/9573768/understanding-python-sqlite-mechanics-in-multi-module-enviroments
             context.cur.execute('BEGIN', ())
-        if PRINT_SQL:
+        if context.verbose or PRINT_SQL:
             print(context.operation_lbl)
+            if context.verbose:
+                print('[sql] operation=\n' + context.operation)
         # Comment out timeing code
-        #if not QUIET:
-        #    context.tt = utool.tic(context.operation_lbl)
+        if __debug__:
+            if NOT_QUIET and (PRINT_SQL or context.verbose):
+                context.tt = utool.tic(context.operation_lbl)
         return context
 
     # --- with SQLExecutionContext: statment code happens here ---
@@ -178,8 +180,9 @@ class SQLExecutionContext(object):
         return _results_gen(context.cur, get_last_id=is_insert)
 
     def __exit__(context, type_, value, trace):
-        #if not QUIET:
-        #    utool.tic(context.tt)
+        if __debug__:
+            if NOT_QUIET and (PRINT_SQL or context.verbose):
+                utool.toc(context.tt)
         if trace is not None:
             # An SQLError is a serious offence.
             print('[sql] FATAL ERROR IN QUERY CONTEXT')
