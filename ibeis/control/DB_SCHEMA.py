@@ -221,6 +221,19 @@ def update_1_0_1(ibs):
     ))
 
 
+# =======================
+# Schema Version 1.0.2
+# =======================
+
+
+def update_1_0_2(ibs):
+    ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+        (1, 'contributor_uuid', 'UUID NOT NULL', None),
+    ),
+        superkey_colnames=['contributor_tag']
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -232,4 +245,5 @@ VALID_VERSIONS = {
     base   :    (None,                 None,               None                ),
     '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
     '1.0.1':    (None,                 update_1_0_1,       None                ),
+    '1.0.2':    (None,                 update_1_0_2,       None                ),
 }
