@@ -52,7 +52,10 @@ ROSEMARY_ANNOT_METADATA = [
 #ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)
 #KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})
 
+BASE_DATABASE_VERSION = '0.0.0'
 
+# DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!
+#################################################################
 AL_RELATION_TABLE = 'annotation_lblannot_relationship'
 ANNOTATION_TABLE  = 'annotations'
 CHIP_TABLE        = 'chips'
@@ -65,7 +68,11 @@ IMAGE_TABLE       = 'images'
 LBLANNOT_TABLE    = 'lblannot'
 LBLIMAGE_TABLE    = 'lblimage'
 LBLTYPE_TABLE     = 'keys'
+METADATA_TABLE    = 'metadata'
 VERSIONS_TABLE    = 'versions'
+CONTRIBUTOR_TABLE = 'contributors'
+#################################################################
+
 
 UNKNOWN_PURPLE_RGBA255 = np.array((102,   0, 153, 255))
 NAME_BLUE_RGBA255      = np.array((20, 20, 235, 255))

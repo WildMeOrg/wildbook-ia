@@ -8,7 +8,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NAMES]
 
 def __define_schema(db):
     NAME_UID_TYPE = 'INTEGER'
-    db.schema('names', (
+    db.add_table('names', (
         ('name_rowid',   '%s PRIMARY KEY' % NAME_UID_TYPE),
         ('name_text',  'TEXT NOT NULL'),),
         ['CONSTRAINT superkey UNIQUE (name_text)']

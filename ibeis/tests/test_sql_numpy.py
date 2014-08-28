@@ -27,7 +27,7 @@ def TEST_SQL_NUMPY():
     db = sqldbc.SQLDatabaseController(sqldb_dpath=sqldb_dpath,
                                       sqldb_fname=sqldb_fname)
 
-    db.schema('temp',    [
+    db.add_table('temp',    [
         ('temp_id',      'INTEGER PRIMARY KEY'),
         ('temp_hash',    'NUMPY'),
     ])

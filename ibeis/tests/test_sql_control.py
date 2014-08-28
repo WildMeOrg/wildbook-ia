@@ -13,7 +13,7 @@ else:
 
 
 def _define_test_schema(db):
-    db.schema('names', (
+    db.add_table('names', (
         ('name_rowid', 'INTEGER PRIMARY KEY'),
         ('name_text',  'TEXT NOT NULL'),),
         ['CONSTRAINT superkey UNIQUE (name_text)']

@@ -5,11 +5,13 @@ from __future__ import absolute_import, division, print_function
 from ibeis import constants
 
 
-def define_IBEIS_schema(ibs):
-    ##########################
-    # ZERO ORDER             #
-    ##########################
-    ibs.db.schema(constants.IMAGE_TABLE, (
+# =======================
+# Schema Version 1.0.0
+# =======================
+
+
+def update_1_0_0(ibs):
+    ibs.db.add_table(constants.IMAGE_TABLE, (
         ('image_rowid',                  'INTEGER PRIMARY KEY'),
         ('image_uuid',                   'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
@@ -29,7 +31,7 @@ def define_IBEIS_schema(ibs):
         docstr='''
         First class table used to store image locations and meta-data''')
 
-    ibs.db.schema(constants.ENCOUNTER_TABLE, (
+    ibs.db.add_table(constants.ENCOUNTER_TABLE, (
         ('encounter_rowid',              'INTEGER PRIMARY KEY'),
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
@@ -39,7 +41,7 @@ def define_IBEIS_schema(ibs):
         docstr='''
         List of all encounters''')
 
-    ibs.db.schema(constants.LBLTYPE_TABLE, (
+    ibs.db.add_table(constants.LBLTYPE_TABLE, (
         ('lbltype_rowid',                'INTEGER PRIMARY KEY'),
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
@@ -51,7 +53,7 @@ def define_IBEIS_schema(ibs):
         lblannot_value of annotations with a relationship of some
         lbltype_rowid''')
 
-    ibs.db.schema(constants.CONFIG_TABLE, (
+    ibs.db.add_table(constants.CONFIG_TABLE, (
         ('config_rowid',                 'INTEGER PRIMARY KEY'),
         ('config_suffix',                'TEXT NOT NULL'),
     ),
@@ -61,18 +63,10 @@ def define_IBEIS_schema(ibs):
         annotation lblannots.  Each user will have a config id for manual
         contributions ''')
 
-    ibs.db.schema(constants.VERSIONS_TABLE, (
-        ('version_rowid',          'INTEGER PRIMARY KEY'),
-        ('version_text',           'TEXT'),
-    ),
-        superkey_colnames=['version_text'],
-        docstr='''
-        holds the schema version info''')
-
     ##########################
     # FIRST ORDER            #
     ##########################
-    ibs.db.schema(constants.ANNOTATION_TABLE, (
+    ibs.db.add_table(constants.ANNOTATION_TABLE, (
         ('annot_rowid',                  'INTEGER PRIMARY KEY'),
         ('annot_uuid',                   'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),
@@ -94,23 +88,23 @@ def define_IBEIS_schema(ibs):
         encoded here Attributes are stored in the Annotation Label Relationship
         Table''')
 
-    ibs.db.schema(constants.LBLIMAGE_TABLE, (
-        ('lblimage_rowid',             'INTEGER PRIMARY KEY'),
-        ('lblimage_uuid',              'UUID NOT NULL'),
-        ('lbltype_rowid',              'INTEGER NOT NULL'),  # this is "category" in the proposal
-        ('lblimage_value',             'TEXT NOT NULL'),
-        ('lblimage_note',              'TEXT'),
+    ibs.db.add_table(constants.LBLIMAGE_TABLE, (
+        ('lblimage_rowid',               'INTEGER PRIMARY KEY'),
+        ('lblimage_uuid',                'UUID NOT NULL'),
+        ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
+        ('lblimage_value',               'TEXT NOT NULL'),
+        ('lblimage_note',                'TEXT'),
     ),
         superkey_colnames=['lbltype_rowid', 'lblimage_value'],
         docstr='''
         Used to store the labels (attributes) of images''')
 
-    ibs.db.schema(constants.LBLANNOT_TABLE, (
-        ('lblannot_rowid',                   'INTEGER PRIMARY KEY'),
-        ('lblannot_uuid',                    'UUID NOT NULL'),
-        ('lbltype_rowid',                    'INTEGER NOT NULL'),  # this is "category" in the proposal
-        ('lblannot_value',                   'TEXT NOT NULL'),
-        ('lblannot_note',                    'TEXT'),
+    ibs.db.add_table(constants.LBLANNOT_TABLE, (
+        ('lblannot_rowid',               'INTEGER PRIMARY KEY'),
+        ('lblannot_uuid',                'UUID NOT NULL'),
+        ('lbltype_rowid',                'INTEGER NOT NULL'),  # this is "category" in the proposal
+        ('lblannot_value',               'TEXT NOT NULL'),
+        ('lblannot_note',                'TEXT'),
     ),
         superkey_colnames=['lbltype_rowid', 'lblannot_value'],
         docstr='''
@@ -120,8 +114,8 @@ def define_IBEIS_schema(ibs):
     ##########################
     # SECOND ORDER           #
     ##########################
-    # TODO: constraint needs modify
-    ibs.db.schema(constants.CHIP_TABLE, (
+    # TODO: constraint needs modification
+    ibs.db.add_table(constants.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -133,7 +127,7 @@ def define_IBEIS_schema(ibs):
         docstr='''
         Used to store *processed* annots as chips''')
 
-    ibs.db.schema(constants.FEATURE_TABLE, (
+    ibs.db.add_table(constants.FEATURE_TABLE, (
         ('feature_rowid',                'INTEGER PRIMARY KEY'),
         ('chip_rowid',                   'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -145,7 +139,7 @@ def define_IBEIS_schema(ibs):
         docstr='''
         Used to store individual chip features (ellipses)''')
 
-    ibs.db.schema(constants.EG_RELATION_TABLE, (
+    ibs.db.add_table(constants.EG_RELATION_TABLE, (
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('encounter_rowid',              'INTEGER'),
@@ -159,7 +153,7 @@ def define_IBEIS_schema(ibs):
     ##########################
     # THIRD ORDER            #
     ##########################
-    ibs.db.schema(constants.GL_RELATION_TABLE, (
+    ibs.db.add_table(constants.GL_RELATION_TABLE, (
         ('glr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('lblimage_rowid',               'INTEGER NOT NULL'),
@@ -171,47 +165,71 @@ def define_IBEIS_schema(ibs):
         Used to store one-to-many the relationship between images
         and labels''')
 
-    ibs.db.schema(constants.AL_RELATION_TABLE, (
-        ('alr_rowid',                      'INTEGER PRIMARY KEY'),
-        ('annot_rowid',                    'INTEGER NOT NULL'),
-        ('lblannot_rowid',                 'INTEGER NOT NULL'),
-        ('config_rowid',                   'INTEGER DEFAULT 0'),
-        ('alr_confidence',                 'REAL DEFAULT 0.0'),
+    ibs.db.add_table(constants.AL_RELATION_TABLE, (
+        ('alr_rowid',                    'INTEGER PRIMARY KEY'),
+        ('annot_rowid',                  'INTEGER NOT NULL'),
+        ('lblannot_rowid',               'INTEGER NOT NULL'),
+        ('config_rowid',                 'INTEGER DEFAULT 0'),
+        ('alr_confidence',               'REAL DEFAULT 0.0'),
     ),
         superkey_colnames=['annot_rowid', 'lblannot_rowid', 'config_rowid'],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and labels''')
 
-    #
-    # UNUSED / DEPRECATED
-    #
-    #IMAGE_UID_TYPE = 'INTEGER'
-    #annot_UID_TYPE = 'INTEGER'
-    #NAME_UID_TYPE  = 'INTEGER'
 
-    # List of recognition directed edges (annot_1) --score--> (annot_2)
-    # ibs.db.schema('recognitions', (
-    #     ('recognition_rowid',           'INTEGER PRIMARY KEY'),
-    #     ('annot_rowid1',                'INTEGER NOT NULL'),
-    #     ('annot_rowid2',                'INTEGER NOT NULL'),
-    #     ('recognition_score',           'REAL NOT NULL'),
-    #     ('recognition_annotrank',       'INTEGER NOT NULL'),
-    #     ('recognition_namerank',        'INTEGER NOT NULL'),
-    #     ('recognition_note',            'TEXT'),
-    # ),  ['CONSTRAINT superkey UNIQUE (annot_rowid1, annot_rowid2)'])
+def post_1_0_0(ibs):
+    # We are dropping the versions table and rather using the metadata table
+    ibs.db.drop_table(constants.VERSIONS_TABLE)
 
-    # Used to store *processed* annots as segmentations
-    # ibs.db.schema('masks', (
-    #     ('mask_rowid',                  'INTEGER PRIMARY KEY'),
-    #     ('config_rowid',                'INTEGER DEFAULT 0'),
-    #     ('annot_rowid',                 'INTEGER NOT NULL'),
-    #     ('mask_uri',                    'TEXT NOT NULL'),
-    # ))
 
-    # Used to store individual chip identities (Fred, Sue, ...)
-    #ibs.db.schema('names', (
-    #    ('name_rowid',                   'INTEGER PRIMARY KEY'),
-    #    ('name_text',                    'TEXT NOT NULL'),
-    #    ('name_note',                    'TEXT',),
-    #), ['CONSTRAINT superkey UNIQUE (name_text)'])
+# =======================
+# Schema Version 1.0.1
+# =======================
+
+
+def update_1_0_1(ibs):
+    ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
+        ('contributor_rowid',            'INTEGER PRIMARY KEY'),
+        ('contributor_tag',              'TEXT'),
+        ('contributor_name_first',       'TEXT'),
+        ('contributor_name_last',        'TEXT'),
+        ('contributor_location_city',    'TEXT'),
+        ('contributor_location_state',   'TEXT'),
+        ('contributor_location_country', 'TEXT'),
+        ('contributor_location_zip',     'INTEGER'),
+        ('contributor_note',             'INTEGER'),
+    ),
+        superkey_colnames=['contributor_rowid'],
+        docstr='''
+        Used to store the contributors to the project
+        ''')
+   
+    ibs.db.modify_table(constants.IMAGE_TABLE, (
+        # add column at index 1
+        (1, 'contributor_rowid', 'INTEGER', None),
+    ))
+
+    ibs.db.modify_table(constants.ANNOTATION_TABLE, (
+        # add column at index 1
+        (1, 'annot_parent_rowid', 'INTEGER', None),
+    ))
+
+    ibs.db.modify_table(constants.FEATURE_TABLE, (
+        # append column because None
+        (None, 'feature_weight', 'REAL DEFAULT 1.0', None),
+    ))
+
+
+# ========================
+# Valid Versions & Mapping
+# ========================
+
+
+base = constants.BASE_DATABASE_VERSION
+VALID_VERSIONS = {
+#   version:    (Pre-Update Function,  Update Function,    Post-Update Function)
+    base   :    (None,                 None,               None                ),
+    '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
+    '1.0.1':    (None,                 update_1_0_1,       None                ),
+}
