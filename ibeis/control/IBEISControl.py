@@ -26,7 +26,7 @@ from vtool import geometry
 # UTool
 import utool
 # IBEIS EXPORT
-import ibeis.export.export_wb as wb
+import ibeis.io.export_wb as wb
 # IBEIS DEV
 from ibeis import constants
 from ibeis import ibsfuncs
@@ -52,7 +52,7 @@ from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
                              AL_RELATION_TABLE, CHIP_TABLE, FEATURE_TABLE,
                              CONFIG_TABLE, LBLTYPE_TABLE, METADATA_TABLE,
-                             __STR__)
+                             VERSIONS_TABLE, __STR__)
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(
@@ -198,7 +198,7 @@ class IBEISController(object):
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-        from ibeis.dev import duct_tape
+        from ibeis.dev import duct_tape  # NOQA
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()

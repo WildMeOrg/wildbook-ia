@@ -15,8 +15,8 @@ from os.path import split, join, exists, commonprefix
 import utool
 import ibeis
 from ibeis import constants
-from ibeis import sysres
-from ibeis.export import export_hsdb
+from ibeis.dev import sysres
+from ibeis.io import export_hsdb
 from detecttools.pypascalxml import PascalVOC_XML_Annotation
 #from ibeis import constants
 from ibeis.control.accessor_decors import getter_1to1
@@ -1410,7 +1410,7 @@ def export_encounters(ibs, eid_list, new_dbdir=None):
 @__injectable
 def export_images(ibs, gid_list, new_dbdir_):
     """ See ibeis/tests/test_ibs_export.py """
-    from ibeis.export import export_subset
+    from ibeis.io import export_subset
     print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
     print('[ibsfuncs] opening database')
     ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)

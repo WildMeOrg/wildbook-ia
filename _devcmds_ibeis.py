@@ -11,7 +11,7 @@ import vtool.keypoint as ktool
 from ibeis import sysres
 from ibeis import ibsfuncs
 from ibeis.viz import interact
-from ibeis.ingest import ingest_hsdb
+from ibeis.io import ingest_hsdb
 
 
 @devcmd
