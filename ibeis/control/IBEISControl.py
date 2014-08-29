@@ -233,9 +233,9 @@ class IBEISController(object):
         """ Returns ibs internal directory """
         return ibs._ibsdb
 
-    def get_figanalysis_dir(ibs):
+    def get_fig_dir(ibs):
         """ Returns ibs internal directory """
-        return join(ibs._ibsdb, 'figure_analysis')
+        return join(ibs._ibsdb, 'figures')
 
     def get_imgdir(ibs):
         """ Returns ibs internal directory """
@@ -953,7 +953,7 @@ class IBEISController(object):
         # list of relationships for each image
         metadata_value_list = ibs.db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
         return metadata_value_list
-        
+
     @getter_1to1
     def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)

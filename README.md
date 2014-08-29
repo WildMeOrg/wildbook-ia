@@ -418,7 +418,7 @@ python dev.py -t best --qaids 27:110
 python dev.py -t best --allgt --index 20:100
 python dev.py -t best --allgt --echo-hardcase
 python dev.py -t best --allgt --index 24 39 44 45 --view-hard  --sf
-python dev.py -t best --allgt --view-hard
+python dev.py -t best --allgt --view-hard --vdd
 # EXPERIMENT FULL COMMANDS
 python dev.py -t best --allgt --view-hard 
 python dev.py -t upsize --allgt 

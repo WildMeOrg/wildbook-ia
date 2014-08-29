@@ -325,7 +325,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     DUMP_QANNOT_DUMP_GT = True
     DUMP_TOP_CONTEXT    = True
 
-    figdir = ibs.get_figanalysis_dir()
+    figdir = join(ibs.get_fig_dir(), 'query_analysis')
     if DELETE:
         utool.delete(figdir)
 
