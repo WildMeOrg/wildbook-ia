@@ -2391,6 +2391,8 @@ class IBEISController(object):
         lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, colnames, params_iter, where_clause)
         return lblannot_rowid_list
 
+    get_lblannot_rowid_from_typevaltup = get_lblannot_rowid_from_superkey
+
     @getter_1to1
     def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):
         """

@@ -14,7 +14,6 @@ from .dev.sysres import get_workdir, set_workdir
 
 __LOADED__ = False
 __version__ = '0.1.0.dev1'
-from . import control
 
 def import_subs():
     # Weird / Fancy loading.
