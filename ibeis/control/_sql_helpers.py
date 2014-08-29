@@ -4,6 +4,7 @@ import re
 from . import __SQLITE3__ as lite
 
 import six
+import logging
 
 from ibeis import constants
 from ibeis.control import DB_SCHEMA
@@ -121,7 +122,8 @@ def update_schema_version(ibs, version, version_target):
         utool.remove_file(ibs.db.fpath)
         utool.copy(db_backup_fpath, ibs.db.fpath)
         utool.remove_file(db_backup_fpath)
-        raise IOError('The database update failed, rolled back to the original version. [%s]' % (e))
+        logging.exception("'The database update failed, rolled back to the original version.")
+        raise
 
     utool.remove_file(db_backup_fpath)
 

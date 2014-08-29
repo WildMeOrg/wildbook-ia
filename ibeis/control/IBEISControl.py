@@ -194,6 +194,7 @@ class IBEISController(object):
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         _sql_helpers.ensure_correct_version(ibs)
         # ibs.db.dump_schema()
+        # ibs.db.dump()
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
