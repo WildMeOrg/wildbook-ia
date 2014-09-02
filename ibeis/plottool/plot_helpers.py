@@ -32,7 +32,12 @@ def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2)
         fpath = join(fpath, subdir)
         utool.ensurepath(fpath)
     fpath_clean = df2.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
-    df2.reset()
+    try:
+        df2.reset()
+    except Exception as ex:
+        if utool.VERBOSE:
+            utool.prinex(ex)
+        pass
     return fpath_clean
 
 
