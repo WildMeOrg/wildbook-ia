@@ -826,6 +826,7 @@ def merge_databases(ibs_target, ibs_source_list):
     """ Merges a list of databases into a target
     This is OLD. use export_subset instead
     """
+    raise AssertionError('Use transfer_subset instead')
 
     def merge_images(ibs_target, ibs_source):
         """ merge image helper """
