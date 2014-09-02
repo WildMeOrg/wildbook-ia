@@ -17,7 +17,7 @@ PROJECT_DIRS = ['.', 'guitool', 'plotool', 'ibeis', 'ibeis/control',
                 'ibeis/viz/interact', ]
 
 CLUTTER_PATTERNS = [
-    'failed.txt',
+    '\'',
     '*.pyc',
     '*.pyo',
     '*.dump.txt',
@@ -25,13 +25,16 @@ CLUTTER_PATTERNS = [
     '*.prof',
     '*.prof.txt',
     '*.lprof',
-    '\'',
     '*.ln.pkg',
     '*.egg-info',
-    'test_times.txt',
+    'failed.txt',
+    '_test_times.txt',
+]
+
+CLUTTER_DIRS = [
     'logs/',
+    'dist/',
     '__pycache__/',
-    'dist/'
 ]
 
 INSTALL_REQUIRES = [
@@ -65,11 +68,12 @@ if __name__ == '__main__':
         name='ibeis',
         packages=util_setup.find_packages(),
         version=util_setup.parse_package_for_version('ibeis'),
-        licence=util_setup.read_license('LICENSE'),
+        license=util_setup.read_license('LICENSE'),
         long_description=util_setup.parse_readme('README.md'),
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_patterns=CLUTTER_PATTERNS,
+        clutter_dirs=CLUTTER_DIRS,
         install_requires=INSTALL_REQUIRES
         #cython_files=CYTHON_FILES,
     )

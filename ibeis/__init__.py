@@ -4,6 +4,9 @@ import utool
 from . import constants
 from . import main_module
 from . import params
+from . import control
+from . import dev
+from . import io
 from .dev import sysres
 from .main_module import main, _preload, main_loop, test_main, opendb
 from .control.IBEISControl import IBEISController
@@ -11,7 +14,6 @@ from .dev.sysres import get_workdir, set_workdir
 
 __LOADED__ = False
 __version__ = '0.1.0.dev1'
-from . import control
 
 def import_subs():
     # Weird / Fancy loading.
@@ -41,7 +43,7 @@ def reload_subs():
     #getattr(params, 'rrr', lambda: None)()
     #getattr(control, 'reload_subs', lambda: None)()
     getattr(dev, 'reload_subs', lambda: None)()
-    getattr(export, 'reload_subs', lambda: None)()
+    getattr(io, 'reload_subs', lambda: None)()
     #getattr(gui, 'reload_subs', lambda: None)()
     #getattr(ingest, 'reload_subs', lambda: None)()
     getattr(model, 'reload_subs', lambda: None)()

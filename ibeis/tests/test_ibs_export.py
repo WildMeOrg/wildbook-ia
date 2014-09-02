@@ -2,7 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import multiprocessing
-from ibeis.export import export_subset
+from ibeis.io import export_subset
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__,
                                                      '[TEST_IBS_EXPORT]')

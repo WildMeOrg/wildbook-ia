@@ -2,7 +2,7 @@
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from ibeis.dev import sysres
-from ibeis.ingest import ingest_database
+from ibeis.io import ingest_database
 from os.path import join
 from vtool.tests import grabdata
 import ibeis

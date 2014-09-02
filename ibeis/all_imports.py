@@ -124,10 +124,10 @@ from ibeis.dev import experiment_harness
 from ibeis.dev import experiment_printres
 from ibeis.dev import experiment_helpers as eh
 # IBEIS EXPORT
-from ibeis.export import export_hsdb
+from ibeis.io import export_hsdb
 # IBEIS INGEST
-from ibeis.ingest import ingest_hsdb
-from ibeis.ingest import ingest_database
+from ibeis.io import ingest_hsdb
+from ibeis.io import ingest_database
 # IBEIS MODEL
 from ibeis.model import Config
 from ibeis.model import preproc
