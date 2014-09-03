@@ -75,6 +75,16 @@ YUM_PKGMAP = {
     'python-dev': 'python-devel',
 }
 
+PACMAN_PKGMAP = {
+    'g++': 'gcc',
+    'gfortran': 'gcc-fortran',
+    'libjpg': 'libjpeg-turbo',
+    'littlecms': 'lcms',
+    'freetype': 'freetype2',
+    'fftw3': 'fftw',
+    'atlas' : '$AUR atlas-lapack' # atlas isn't in the main repositories, $AUR will be interpreted to tell the user to install the package from AUR
+}
+
 
 def _fix_yum_repos():
     # This puts a config file to tell yum about the ffmpeg repos
@@ -201,7 +211,10 @@ EOL'
 
 
 PIP_PYPKG_SET = get_pip_installed()
-
+"""
+elif CENTOS:
+    return __check
+"""
 #print('\n'.join(sorted(list(PIP_PYPKG_SET))))
 
 PIP_PYPKG_MAP = {
@@ -296,6 +309,7 @@ if 'os' in ARG_DICT:
     APPLE    = False
     DEBIAN_FAMILY   = False
     CENTOS   = False
+    ARCH     = False
     WIN32    = False
     LINUX    = False
     if __OS__.lower() in ['apple', 'darwin', 'mac']:
@@ -307,6 +321,9 @@ if 'os' in ARG_DICT:
     elif __OS__.lower() in ['centos']:
         LINUX    = True
         CENTOS   = True
+    elif __OS__.lower() in ['arch']:
+        LINUX    = True
+        ARCH     = True
     elif __OS__.lower() in ['win', 'win32']:
         WIN32    = True
 else:
@@ -319,6 +336,7 @@ else:
 
     DEBIAN_FAMILY = (distro == 'Ubuntu' or distro == 'debian')
     CENTOS = (distro == 'centos')
+    ARCH = (distro == 'arch')
     if CENTOS:
         WIN32 = False
         LINUX = True
@@ -384,6 +402,7 @@ def __check_installed_apt_get(pkg):
     if ret == 0:
         return True
     # Then use dpkg to check if we have it
+    pkg = fix_pkgname_apt_get(pkg)
     out, err, ret = shell('dpkg -s ' + pkg)
     if ret == 0:
         return True
@@ -424,6 +443,7 @@ def __check_installed_yum(pkg):
     if ret == 0:
         return True
     # Then use yum to check if we have it
+    pkg = fix_pkgname_yum(pkg)
     out, err, ret = shell('yum list installed ' + pkg)
     if ret == 0:
         return True
@@ -444,7 +464,31 @@ def __install_command_yum(pkg):
 def __update_yum():
     return 'sudo yum -y update'
 
+# ARCH PACMAN COMMANDS
 
+def __check_installed_pacman(pkg):
+    out, err, ret = shell('which ' + pkg)
+    if ret == 0:
+        return True
+    # Otherwise use pacman to check for it
+    pkg = fix_pkgname_pacman(pkg)
+    out, err, ret = shell('pacman -Qi ' + pkg)
+    if ret == 0:
+        return True
+    else:
+        return False
+
+def fix_pkgname_pacman(pkg):
+    return PACMAN_PKGMAP.get(pkg, pkg)
+
+def __install_command_pacman(pkg):
+    pkg = fix_pkgname_pacman(pkg)
+    if '$AUR' in pkg:
+        return '#Install %s from the AUR' % pkg.replace('$AUR ','')
+    return 'sudo pacman -S --needed %s' % pkg
+
+def __update_pacman():
+    return 'sudo pacman -Sy'
 # PIP COMMANDS
 
 def get_pypkg_aliases(pkg):
@@ -479,6 +523,8 @@ def check_python_installed(pkg, target_version=None):
 def __install_command_pip(pkg, upgrade=None):
     if CENTOS:
         pipcmd = 'pip27'
+    if ARCH:
+        pipcmd = 'pip2' # Otherwise it will default to using Python 3
     else:
         pipcmd = 'pip'
     fmtstr_install_pip = pipcmd + ' install %s'
@@ -549,6 +595,8 @@ def update_and_upgrade():
         return cmd(__update_yum())
     if MACPORTS:
         return cmd(__update_macports())
+    if ARCH:
+        return cmd(__update_pacman())
 
 
 def check_installed(pkg):
@@ -556,6 +604,10 @@ def check_installed(pkg):
         return False
     if DEBIAN_FAMILY:
         return __check_installed_apt_get(pkg)
+    elif CENTOS:
+        return __check_installled_yum(pkg)
+    elif ARCH:
+        return __check_installed_pacman(pkg)
     else:
         raise NotImplemented('fixme')
 
@@ -569,6 +621,8 @@ def ensure_package(pkg):
         command = __install_command_apt_get(pkg)
     elif CENTOS:
         command = __install_command_yum(pkg)
+    elif ARCH:
+        command = __install_command_pacman(pkg)
     elif MACPORTS:
         command = __install_command_macports(pkg)
     elif WIN32:
