@@ -53,6 +53,9 @@ cd ibeis
 # Usually this needs to be run twice. Either way it wont hurt
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
+ 
+# Switch to current development branch
+./super_setup.py --build --checkout pyqt5 
 ```
 
 
