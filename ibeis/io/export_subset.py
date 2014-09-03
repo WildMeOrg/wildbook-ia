@@ -11,6 +11,14 @@ from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              AL_RELATION_TABLE, __STR__)
 from vtool import geometry
 
+# TODO: Write better doctests and ensure they pass
+
+
+# TODO: Ensure that all relevant information from
+# ibeis/ibeis/control/DB_Schema.py is accounted for in Transfer Data Structures
+
+# Transfer data structures could become classes.
+
 TransferData = namedtuple(
     'TransferData', (
         'img_td',
@@ -58,6 +66,9 @@ AL_RELATION_TransferData = namedtuple(
         'alr_lblannot_uuid_list',
     ))
 
+
+# TODO: Make sure the transfer data getters correspond with the namedtuple/class
+# definitions
 
 def get_annot_transfer_data(ibs, _aid_list, _annot_gid_list):
     # avoid sql call if possible
@@ -123,7 +134,7 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
     >>> include_image_annots = True
     >>> transfer_data = collect_transfer_data(ibs_src, gid_list, aid_list, include_image_annots)
     >>> print(utool.hashstr(transfer_data))
-    ad20ozek356das0m
+    rxirvfa08psrle&e
     """
     ibs = ibs_src
     if include_image_annots:
@@ -236,6 +247,9 @@ def check_conflicts(ibs_src, ibs_dst, transfer_data):
 
     Does not check label consistency.
     """
+
+    # TODO: Check label consistency: ie check that labels with the
+    # same (type, value) should also have the same UUID
     img_td      = transfer_data.img_td
     #annot_td    = transfer_data.annot_td
     #lblannot_td = transfer_data.lblannot_td
@@ -253,6 +267,7 @@ def check_conflicts(ibs_src, ibs_dst, transfer_data):
         sameimg_aids_list2 = ibs_dst.get_image_aids(sameimg_gid_list2)
         hasannots = [len(aids) > 0 for aids in sameimg_aids_list2]
         if any(hasannots):
+            # TODO: Merge based on some merge stratagy parameter (like annotation timestamp)
             sameimg_gid_list1 = ibs_src.get_image_gids_from_uuid(sameimg_image_uuids)
             hasannot_gid_list2 = utool.filter_items(sameimg_gid_list2, hasannots)
             hasannot_gid_list1 = utool.filter_items(sameimg_gid_list1, hasannots)
@@ -295,6 +310,9 @@ def assert_same_annot_verts(hasannot_verts_list1, hasannot_verts_list2):
         assert averts1 == averts2, msg.format(
             count=count, averts1=averts1, averts2=averts2,)
 
+
+# TODO: make sure the interal adders take into account all information specified
+# in transferdata objects
 
 #@adder
 def internal_add_images(ibs, img_td):
@@ -376,7 +394,9 @@ def internal_add_lblannot(ibs, lblannot_td):
     superkey_paramx = (3, 1)
     lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
                                              get_rowid_from_superkey, superkey_paramx)
-    # FIXME: LabelAnnot UUIDS might not be copied properly if there is duplicate value, type
+    # FIXME: LabelAnnot UUIDS might not be copied properly if there is duplicate (value, type)
+    # TODO: At least throw an assertion error when copying different label UUIDS
+    # with the same (value, type), this should be done in the consistency checks.
     lblannot_uuid_list_test = ibs.get_lblannot_uuids(lblannot_rowid_list)
     assert all([uuid1 == uuid2 for uuid1, uuid2 in
                 zip(lblannot_uuid_list, lblannot_uuid_list_test)]),\
