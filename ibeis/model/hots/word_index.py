@@ -1,7 +1,7 @@
 """
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.centroid_index))"
-python -m doctest -v ibeis/model/hots/centroid_index.py
-python -m doctest ibeis/model/hots/centroid_index.py
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.word_index))"
+python -m doctest -v ibeis/model/hots/word_index.py
+python -m doctest ibeis/model/hots/word_index.py
 """
 from __future__ import absolute_import, division, print_function
 # Standard
@@ -13,11 +13,11 @@ import numpy as np
 import vtool
 import utool
 # VTool
-import vtool.nearest_centroids as nntool
+import vtool.nearest_words as nntool
 (print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[entroid_index]')
 
 
-NOCACHE_CENTROID = utool.get_flag('--nocache-centroid')
+NOCACHE_WORD = utool.get_flag('--nocache-word')
 
 
 # TODO:
@@ -26,20 +26,20 @@ class NeighborAssignment():
         pass
 
 
-def test_cindex():
+def test_windex():
     from ibeis.model.hots.query_request import new_ibeis_query_request
     import ibeis
     daid_list = [7, 8, 9, 10, 11]
     ibs = ibeis.opendb(db='testdb1')
     qreq_ = new_ibeis_query_request(ibs, daid_list, daid_list)
-    cindex = new_ibeis_cindex(ibs, qreq_.get_internal_daids())
-    return cindex, qreq_, ibs
+    windex = new_ibeis_windex(ibs, qreq_.get_internal_daids())
+    return windex, qreq_, ibs
 
 
-def new_centroid_index(aid_list=[], vecs_list=[], flann_params={},
+def new_word_index(aid_list=[], vecs_list=[], flann_params={},
                        flann_cachedir=None, indexer_cfgstr='', hash_rowids=True,
-                       use_cache=not NOCACHE_CENTROID, use_params_hash=True):
-    print('[cindex] building CentroidIndex object')
+                       use_cache=not NOCACHE_WORD, use_params_hash=True):
+    print('[windex] building WordIndex object')
     _check_input(aid_list, vecs_list)
     # Create indexes into the input aids
     ax_list = np.arange(len(aid_list))
@@ -59,16 +59,16 @@ def new_centroid_index(aid_list=[], vecs_list=[], flann_params={},
         'use_cache': use_cache,
         'use_params_hash': use_params_hash})
     ax2_aid = np.array(aid_list)
-    cindex = CentroidIndex(ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann)
-    return cindex
+    windex = WordIndex(ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann)
+    return windex
 
 
-def new_ibeis_cindex(ibs, daid_list):
+def new_ibeis_windex(ibs, daid_list):
     """
-    IBEIS interface into centroid_index
+    IBEIS interface into word_index
 
-    >>> from ibeis.model.hots.centroid_index import *  # NOQA
-    >>> cindex, qreq_, ibs = test_cindex() # doctest: +ELLIPSIS
+    >>> from ibeis.model.hots.word_index import *  # NOQA
+    >>> windex, qreq_, ibs = test_windex() # doctest: +ELLIPSIS
 
     """
     daids_hashid = ibs.get_annot_uuid_hashid(daid_list, '_DUUIDS')
@@ -81,10 +81,10 @@ def new_ibeis_cindex(ibs, daid_list):
         # Get annotation descriptors that will be searched
         vecs_list = ibs.get_annot_desc(daid_list)
         flann_cachedir = ibs.get_flann_cachedir()
-        cindex = new_centroid_index(
+        windex = new_word_index(
             daid_list, vecs_list, flann_params, flann_cachedir,
             indexer_cfgstr, hash_rowids=False, use_params_hash=False)
-        return cindex
+        return windex
     except Exception as ex:
         utool.printex(ex, True, msg_='cannot build inverted index', key_list=['ibs.get_infostr()'])
         raise
@@ -97,26 +97,26 @@ def _check_input(aid_list, vecs_list):
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
-class CentroidIndex(object):
+class WordIndex(object):
     """
     Abstract wrapper around flann
-    >>> from ibeis.model.hots.centroid_index import *  # NOQA
-    >>> cindex, qreq_, ibs = test_cindex()  #doctest: +ELLIPSIS
+    >>> from ibeis.model.hots.word_index import *  # NOQA
+    >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
     """
 
-    def __init__(cindex, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
-        cindex.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
-        cindex.idx2_vec = idx2_vec  # (M x D) Descriptors to index
-        cindex.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
-        cindex.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
-        cindex.flann    = flann     # Approximate search structure
+    def __init__(windex, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
+        windex.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
+        windex.idx2_vec = idx2_vec  # (M x D) Descriptors to index
+        windex.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
+        windex.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
+        windex.flann    = flann     # Approximate search structure
 
-    def knn(cindex, qfx2_vec, K, checks=1028):
+    def knn(windex, qfx2_vec, K, checks=1028):
         """
         Input:
             qfx2_vec - (N x D): an array of N, D-dimensional query vectors
 
-            K: number of approximate nearest centroids to find
+            K: number of approximate nearest words to find
 
         Output: tuple of (qfx2_idx, qfx2_dist)
             qfx2_idx - (N x K): qfx2_idx[n][k] is the index of the kth
@@ -125,67 +125,67 @@ class CentroidIndex(object):
             qfx2_dist - (N x K): qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
 
-        >>> from ibeis.model.hots.centroid_index import *  # NOQA
-        >>> cindex, qreq_, ibs = test_cindex()  #doctest: +ELLIPSIS
+        >>> from ibeis.model.hots.word_index import *  # NOQA
+        >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
         >>> new_aid_list = [2, 3, 4]
         >>> qfx2_vec = ibs.get_annot_desc(1)
         >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
         >>> K = 2
         >>> checks = 1028
-        >>> (qfx2_idx, qfx2_dist) = cindex.knn(qfx2_vec, K, checks=checks)
+        >>> (qfx2_idx, qfx2_dist) = windex.knn(qfx2_vec, K, checks=checks)
         """
-        (qfx2_idx, qfx2_dist) = cindex.flann.nn_index(qfx2_vec, K, checks=checks)
+        (qfx2_idx, qfx2_dist) = windex.flann.nn_index(qfx2_vec, K, checks=checks)
         return (qfx2_idx, qfx2_dist)
 
-    def empty_centroids(K):
+    def empty_words(K):
         qfx2_idx  = np.empty((0, K), dtype=np.int32)
         qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)
 
-    def add_points(cindex, new_aid_list, new_vecs_list):
+    def add_points(windex, new_aid_list, new_vecs_list):
         """
-        >>> from ibeis.model.hots.centroid_index import *  # NOQA
-        >>> cindex, qreq_, ibs = test_cindex()  #doctest: +ELLIPSIS
+        >>> from ibeis.model.hots.word_index import *  # NOQA
+        >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
         >>> new_aid_list = [2, 3, 4]
         >>> qfx2_vec = ibs.get_annot_desc(1)
         >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
         >>> K = 2
         >>> checks = 1028
-        >>> (qfx2_idx1, qfx2_dist1) = cindex.knn(qfx2_vec, K, checks=checks)
-        >>> cindex.add_points(new_aid_list, new_vecs_list)
-        >>> (qfx2_idx2, qfx2_dist2) = cindex.knn(qfx2_vec, K, checks=checks)
+        >>> (qfx2_idx1, qfx2_dist1) = windex.knn(qfx2_vec, K, checks=checks)
+        >>> windex.add_points(new_aid_list, new_vecs_list)
+        >>> (qfx2_idx2, qfx2_dist2) = windex.knn(qfx2_vec, K, checks=checks)
         >>> assert qfx2_idx2.max() > qfx2_idx1.max()
         """
-        nAnnots = cindex.num_indexed_annots()
+        nAnnots = windex.num_indexed_annots()
         nNew    = len(new_aid_list)
         new_ax_list = np.arange(nAnnots, nAnnots + nNew)
         new_idx2_vec, new_idx2_ax, new_idx2_fx = \
                 invert_index(new_vecs_list, new_ax_list)
         # Stack inverted information
-        _ax2_aid = np.hstack((cindex.ax2_aid, new_aid_list))
-        _idx2_ax = np.hstack((cindex.idx2_ax, new_idx2_ax))
-        _idx2_fx = np.hstack((cindex.idx2_fx, new_idx2_fx))
-        _idx2_vec = np.vstack((cindex.idx2_vec, new_idx2_vec))
-        cindex.ax2_aid  = _ax2_aid
-        cindex.idx2_ax  = _idx2_ax
-        cindex.idx2_vec = _idx2_vec
-        cindex.idx2_fx  = _idx2_fx
-        #cindex.idx2_kpts   = None
-        #cindex.idx2_oris   = None
+        _ax2_aid = np.hstack((windex.ax2_aid, new_aid_list))
+        _idx2_ax = np.hstack((windex.idx2_ax, new_idx2_ax))
+        _idx2_fx = np.hstack((windex.idx2_fx, new_idx2_fx))
+        _idx2_vec = np.vstack((windex.idx2_vec, new_idx2_vec))
+        windex.ax2_aid  = _ax2_aid
+        windex.idx2_ax  = _idx2_ax
+        windex.idx2_vec = _idx2_vec
+        windex.idx2_fx  = _idx2_fx
+        #windex.idx2_kpts   = None
+        #windex.idx2_oris   = None
         # Add new points to flann structure
-        cindex.flann.add_points(new_idx2_vec)
+        windex.flann.add_points(new_idx2_vec)
 
-    def num_indexed_vecs(cindex):
-        return len(cindex.idx2_vec)
+    def num_indexed_vecs(windex):
+        return len(windex.idx2_vec)
 
-    def num_indexed_annots(cindex):
-        return len(cindex.ax2_aid)
+    def num_indexed_annots(windex):
+        return len(windex.ax2_aid)
 
-    def get_nn_axs(cindex, qfx2_nnidx):
-        #return cindex.idx2_ax[qfx2_nnidx]
-        return cindex.idx2_ax.take(qfx2_nnidx)
+    def get_nn_axs(windex, qfx2_nnidx):
+        #return windex.idx2_ax[qfx2_nnidx]
+        return windex.idx2_ax.take(qfx2_nnidx)
 
-    def get_nn_aids(cindex, qfx2_nnidx):
+    def get_nn_aids(windex, qfx2_nnidx):
         """
         Input:
             qfx2_nnidx - (N x K): qfx2_idx[n][k] is the index of the kth
@@ -194,13 +194,13 @@ class CentroidIndex(object):
             qfx2_aid - (N x K): qfx2_fx[n][k] is the annotation id index of the
                                 kth approximate nearest data vector
         """
-        #qfx2_ax = cindex.idx2_ax[qfx2_nnidx]
-        #qfx2_aid = cindex.ax2_aid[qfx2_ax]
-        qfx2_ax = cindex.idx2_ax.take(qfx2_nnidx)
-        qfx2_aid = cindex.ax2_aid.take(qfx2_ax)
+        #qfx2_ax = windex.idx2_ax[qfx2_nnidx]
+        #qfx2_aid = windex.ax2_aid[qfx2_ax]
+        qfx2_ax = windex.idx2_ax.take(qfx2_nnidx)
+        qfx2_aid = windex.ax2_aid.take(qfx2_ax)
         return qfx2_aid
 
-    def get_nn_featxs(cindex, qfx2_nnidx):
+    def get_nn_featxs(windex, qfx2_nnidx):
         """
         Input:
             qfx2_nnidx - (N x K): qfx2_idx[n][k] is the index of the kth
@@ -210,8 +210,8 @@ class CentroidIndex(object):
                                source annotation) of the kth approximate
                                nearest data vector
         """
-        #return cindex.idx2_fx[qfx2_nnidx]
-        return cindex.idx2_fx.take(qfx2_nnidx)
+        #return windex.idx2_fx[qfx2_nnidx]
+        return windex.idx2_fx.take(qfx2_nnidx)
 
 
 def invert_index(vecs_list, ax_list):
@@ -241,8 +241,7 @@ def vlad(qfx2_vec, qfx2_cvec):
     return aggvlad_norm
 
 
-
 #if __name__ == '__main__':
-#    #python -m doctest -v ibeis/model/hots/centroid_index.py
+#    #python -m doctest -v ibeis/model/hots/word_index.py
 #    import doctest
 #    doctest.testmod()
