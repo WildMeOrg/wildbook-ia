@@ -105,12 +105,8 @@ def delete_all_chips(ibs, *args):
 
 @devprecmd('mtest')
 def ensure_mtest():
-    from ibeis import sysres
-    import utool
-    workdir = sysres.get_workdir()
-    mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
-    mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
-    print('have mtest_dir=%r' % (mtest_dir,))
+    import ibeis
+    ibeis.ensure_pz_mtest()
 
 
 MOTHERS_VIEWPOINT_EXPORT_PAIRS = [

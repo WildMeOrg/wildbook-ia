@@ -10,7 +10,7 @@ from . import io
 from .dev import sysres
 from .main_module import main, _preload, main_loop, test_main, opendb
 from .control.IBEISControl import IBEISController
-from .dev.sysres import get_workdir, set_workdir
+from .dev.sysres import get_workdir, set_workdir, ensure_pz_mtest
 
 __LOADED__ = False
 __version__ = '0.1.0.dev1'
