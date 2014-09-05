@@ -62,7 +62,8 @@ __install_prereqs__.sh
 failed.txt
 test_times.txt
 
-*.ipynb
+#*.ipynb
+.ipynb_checkpoints
 failed.txt
 
 # utool output
