@@ -27,7 +27,7 @@ PREREQ_PKG_LIST = [
     'ffmpeg',  # need -dev / -devel versions of all these as well
     'libpng',
     'libjpg',
-    'libtiff',
+    'libtiff',  # 'libtiff4-dev',
     'littlecms',
     'openjpeg',
     'jasper',
