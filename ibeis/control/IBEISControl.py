@@ -549,10 +549,12 @@ class IBEISController(object):
 
     @adder
     def add_images(ibs, gpath_list, as_annots=False):
-        """ Adds a list of image paths to the database.  Returns gids
+        """
+        Adds a list of image paths to the database.  Returns gids
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
+
         >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
         >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
