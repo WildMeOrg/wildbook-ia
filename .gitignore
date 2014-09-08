@@ -54,6 +54,8 @@ ibeis/model/detect/rf
 ibeis/control/schema.txt
 tmp.py
 
+*.cPkl
+*.pkl
 *.flann
 *.npz
 
