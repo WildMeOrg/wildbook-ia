@@ -66,6 +66,8 @@ if __name__ == '__main__':
     kwargs = util_setup.setuptools_setup(
         setup_fpath=__file__,
         name='ibeis',
+        author='Jon Crall',
+        author_email='erotemic@gmail.com',
         packages=util_setup.find_packages(),
         version=util_setup.parse_package_for_version('ibeis'),
         license=util_setup.read_license('LICENSE'),
