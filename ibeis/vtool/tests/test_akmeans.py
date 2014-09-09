@@ -28,10 +28,10 @@ def test_akmeans(full_test=False, plot_test=False, num_pca_dims=2, data_dim=2,
                                                        max_iters=max_iters,
                                                        cache_dir=cache_dir)
     # internal names
-    datax2_clusterx, clusters = dx2_label, centers
+    datax2_clusterx, centroids = dx2_label, centers
 
     if plot_test:
-        clustering.plot_clusters(data, datax2_clusterx, clusters, num_pca_dims=num_pca_dims)
+        clustering.plot_clusters(data, datax2_clusterx, centroids, num_pca_dims=num_pca_dims)
 
     assert centers.shape == (num_clusters, dims), 'sanity check'
     assert dx2_label.shape == (nump,), 'sanity check'

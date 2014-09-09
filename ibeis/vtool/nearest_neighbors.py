@@ -24,9 +24,16 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     # qx2_dx   = query_index -> nearest database index
     # qx2_dist = query_index -> distance
-    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(dpts, qpts, num_neighbors, **flann_params)
+    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(
+        dpts, qpts, num_neighbors, **flann_params)
     return (qx2_dx, qx2_dist)
 
+
+def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
+    """ Helper for akmeans """
+    (qx2_dx, qx2_dist) = pyflann.FLANN().nn(
+        dpts, qpts, num_neighbors, **flann_params)
+    return qx2_dx
 
 def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
     """
@@ -43,19 +50,25 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
     if use_params_hash:
         flann_valsig_ = str(list(flann_params.values()))
         flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
-        flann_cfgstr += '_FLANN(' + flann_valsig  + ')'
+        flann_cfgstr += '_FLANN(' + flann_valsig + ')'
     # Generate a unique filename for dpts and flann parameters
     if use_data_hash:
-        data_hashstr = utool.hashstr_arr(dpts, '_DPTS')  # flann is dependent on the dpts
+        # flann is dependent on the dpts
+        data_hashstr = utool.hashstr_arr(dpts, '_DPTS')
         flann_cfgstr += data_hashstr
     return flann_cfgstr
 
 
 #@utool.indent_func
-def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}, use_params_hash=True, use_data_hash=True):
+def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={},
+                    use_params_hash=True, use_data_hash=True):
+    """ returns filepath for flann index """
     #cache_dir = '.' if cache_dir is None else cache_dir
-    assert cache_dir is not None, 'no cache dir specified'
-    flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
+    if cache_dir is None:
+        print('Warning: no cache dir specified')
+        cache_dir = utool.get_app_resource_dir('vtool')
+    flann_cfgstr = get_flann_cfgstr(
+        dpts, flann_params, cfgstr, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
     if utool.NOT_QUIET:
         print('...flann_cache cfgstr = %r: ' % flann_cfgstr)
     # Append any user labels
@@ -65,15 +78,17 @@ def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={}, use_params
 
 
 #@utool.indent_func
-def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
+def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params={},
                 use_cache=True, save=True, use_params_hash=True, use_data_hash=True):
     """
     Tries to load a cached flann index before doing anything
     from vtool.nn
     """
     if len(dpts) == 0:
-        raise AssertionError('cannot build flann when len(dpts) == 0. (prevents a segfault)')
-    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
+        raise AssertionError(
+            'cannot build flann when len(dpts) == 0. (prevents a segfault)')
+    flann_fpath = get_flann_fpath(
+        dpts, cache_dir, cfgstr, flann_params, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
     # Load the index if it exists
     flann = pyflann.FLANN()
     flann.flann_fpath = flann_fpath
@@ -87,7 +102,8 @@ def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params=None,
             utool.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
     print('...flann cache miss.')
-    print('...building kdtree over %d points (this may take a sec).' % len(dpts))
+    print('...building kdtree over %d points (this may take a sec).' %
+          len(dpts))
     flann.build_index(dpts, **flann_params)
     print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
     if save:
@@ -113,7 +129,8 @@ def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
     flann.add_points(new_dpts)
     if save:
         aug_dpts = np.vstack((dpts, new_dpts))
-        new_flann_fpath = get_flann_fpath(aug_dpts, cache_dir, new_cfgstr, flann_params)
+        new_flann_fpath = get_flann_fpath(
+            aug_dpts, cache_dir, new_cfgstr, flann_params)
         flann.save_index(new_flann_fpath)
     return flann
 
@@ -234,7 +251,7 @@ def invertable_stack(vecs_list, label_list):
     nFeat_iter = map(len, vecs_list)
     label_nFeat_iter = zip(label_list, map(len, vecs_list))
     # generate featx inverted index for each feature in each annotation
-    _ax2_fx  = [list(range(nFeat)) for nFeat in nFeat_iter]
+    _ax2_fx = [list(range(nFeat)) for nFeat in nFeat_iter]
     # generate label inverted index for each feature in each annotation
     '''
     # this is not a real test the code just happened to be here. syntax is good though
@@ -243,13 +260,14 @@ def invertable_stack(vecs_list, label_list):
     #-else
     '''
     _ax2_label = [[label] * nFeat for (label, nFeat) in label_nFeat_iter]
-    '#-endif'  # endif is optional. the end of the functionscope counts as an #endif
+    # endif is optional. the end of the functionscope counts as an #endif
+    '#-endif'
     # Flatten generators into the inverted index
     _flatlabels = utool.iflatten(_ax2_label)
     _flatfeatxs = utool.iflatten(_ax2_fx)
 
     idx2_label = np.fromiter(_flatlabels, np.int32, nFeats)
-    idx2_fx    = np.fromiter(_flatfeatxs, np.int32, nFeats)
+    idx2_fx = np.fromiter(_flatfeatxs, np.int32, nFeats)
     # Stack vecsriptors into numpy array corresponding to inverted inexed
     # This might throw a MemoryError
     idx2_vec = np.vstack(vecs_list)
@@ -267,7 +285,7 @@ else:
             raise ImportError('no cyth')
         import vtool._nearest_neighbors_cyth
         _invertable_stack_cyth = vtool._nearest_neighbors_cyth._invertable_stack_cyth
-        invertable_stack_cyth  = vtool._nearest_neighbors_cyth._invertable_stack_cyth
+        invertable_stack_cyth = vtool._nearest_neighbors_cyth._invertable_stack_cyth
         CYTHONIZED = True
     except ImportError:
         invertable_stack_cyth = invertable_stack

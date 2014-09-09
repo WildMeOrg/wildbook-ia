@@ -15,6 +15,8 @@ from . import trig
 from . import math
 from . import geometry
 from . import clustering
+from . import nearest_neighbors
+from . import clustering2
 
 from . import histogram as htool
 from . import linalg as ltool
