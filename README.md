@@ -49,13 +49,17 @@ cd ibeis
 # Run the prereq install script
 ./_scripts/__install_prereqs__.sh
 
+# Be sure to pull the latest and greatest.
+./super_setup.py --pull
+
+# Switch to current development branch
+./super_setup.py --build --checkout pyqt5 
+
 # Run super_setup to build and install ibeis modules in development mode
 # Usually this needs to be run twice. Either way it wont hurt
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
- 
-# Switch to current development branch
-./super_setup.py --build --checkout pyqt5 
+
 ```
 
 
