@@ -151,7 +151,7 @@ class InvertedIndex(object):
             # normalize residuals
             residuals_n = vtool.linalg.normalize_rows(residuals)
             wx2_rvecs[word_index] = residuals_n
-        return wx2_rvecs
+        return wx2_rvec
 
 
 #def smk_similarity(wx2_qrvecs, wx2_drvecs):
@@ -165,9 +165,35 @@ def query_inverted_index(annots_df, qaid, invindex):
 
     daid = invindex.ax2_aid[0]
 
-    def selectivity_function(rscore_mat, alpha=3, thresh=0):
-        """ sigma from SMK paper rscore = residual score """
-        scores = (np.sign(rscore_mat) * np.abs(rscore_mat)) ** alpha
+    def single_daid_similairty(invindex, daid):
+        """ daid = 4
+        FIXME: Inefficient code
+        """
+        ax = np.where(invindex.ax2_aid == daid)[0]
+        wx2_dfxs = {}
+        wx2_drvecs = {}
+        for wx, idxs in invindex.wx2_idxs.items():
+            valid = (invindex.idx2_ax[idxs] == ax)
+            dfxs = invindex.idx2_fx[idxs][valid]
+            drvecs = invindex.wx2_drvecs[wx][valid]
+            wx2_dfxs[wx] = dfxs
+            wx2_drvecs[wx] = drvecs
+        # Similarity to a single database annotation
+        query_wxs = set(wx2_qrvecs.keys())
+        data_wxs  = set(wx2_drvecs.keys())
+        total_score = 0
+        for wx in data_wxs.intersection(query_wxs):
+            qrvecs = wx2_qrvecs[wx]
+            drvecs = wx2_drvecs[wx]
+            residual_similarity = qrvecs.dot(drvecs.T)
+            scores = selectivity_function(residual_similarity)
+            total_score += scores.sum()
+        return total_score
+
+    def selectivity_function(residual_similarity, alpha=3, thresh=0):
+        """ sigma from SMK paper """
+        u = residual_similarity
+        scores = (np.sign(u) * np.abs(u)) ** alpha
         scores[scores <= thresh] = 0
         return scores
 
@@ -184,24 +210,27 @@ def query_inverted_index(annots_df, qaid, invindex):
     idx2_daid = pd.Series(invindex.ax2_aid[invindex.idx2_ax], name='daid')
     idx2_dfx  = pd.Series(invindex.idx2_fx, name='dfx')
     idx2_wfx  = pd.Series(invindex.idx2_wx, name='dwx')
-    invindex.idx_df = pd.concat((idx2_daid, idx2_dfx, idx2_wfx), axis=1, names=['idx'])
-
-    wx2_idxs = {wx: pd.Series(idxs, name='idx') for wx, idxs in six.iteritems(invindex.wx2_idxs)}
-    wx2_qfxs = {wx: pd.Series(qfx, name='qfx') for wx, qfx in six.iteritems(wx2_qfxs)}
+    idx_df = pd.concat((idx2_daid, idx2_dfx, idx2_wfx), axis=1, names=['idx'])
+    idx_df = pd.concat((idx2_daid, idx2_dfx, idx2_wfx), axis=1, names=['idx'])
+    invindex.idx_df = idx_df
 
     for wx in data_wxs.intersection(query_wxs):
-        # all pairs of scores
-        _idxs = wx2_idxs[wx]
-        qfxs = wx2_qfxs[wx]
-        qfx2_idx = np.tile(_idxs, (len(qfxs), 1))
-        qfx2_aid = np.tile(invindex.idx_df['daid'].take(_idxs), (len(qfxs), 1))
-        qfx2_fx = np.tile(invindex.idx_df['dfx'].take(_idxs), (len(qfxs), 1))
         qrvecs = wx2_qrvecs[wx]
         drvecs = invindex.wx2_drvecs[wx]
-        qfx2_wordscore_ = selectivity_function(qrvecs.dot(drvecs.T))
-        qfx2_wordscore = pd.DataFrame(qfx2_wordscore_, index=qfxs, columns=_idxs)
-        qfx2_datascore = qfx2_wordscore.groupby(invindex.idx_df['daid'], axis=1).sum()
-        daid2_wordscore = qfx2_datascore.sum(axis=0)
+        residual_similarity = qrvecs.dot(drvecs.T)
+        # all pairs of scores
+        _idxs =  pd.Series(invindex.wx2_idxs[wx], name='idx')
+        qfxs = pd.Series(qfxs, wx2_qfxs[wx],  name='qfx')
+        dfxs = invindex.idx2_fx[_idxs.values]
+        score_matrix = selectivity_function(residual_similarity)
+        score_df = pd.DataFrame(score_matrix, index=qfxs, columns=_idxs,)
+
+        dax_score_grp = score_df.groupby(invindex.idx_df['daid'], axis=1)
+        score_qfx_v_daid = dax_score_grp.sum()
+
+        dax_score_grp = score_df.groupby(idx2_daid, axis=1)
+        score_qfx_v_daid = dax_score_grp.sum()
+        daid2_wordscore = score_qfx_v_daid.sum(axis=0)
         for aid in daid2_wordscore.index:
             daid2_score[aid] = daid2_wordscore[aid]
         #score_mi = pd.MultiIndex.from_product((qfxs, _idxs), names=('qfxs', '_idxs'))
