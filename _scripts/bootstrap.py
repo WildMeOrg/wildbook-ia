@@ -35,6 +35,7 @@ PREREQ_PKG_LIST = [
     'freetype',
     'fftw3',
     'atlas',
+    'python-qt4',
     #'zmq',
     #libgeos-dev
 ]
@@ -69,9 +70,8 @@ if DEBIAN_FAMILY:
         #'libjpeg-dev',
         #'zlib1g-dev',
         'python-dev',
-
-        #'libopencv-dev',  # Do we need these?
-        #'python-opencv',  # Do we really need these~these?
+        'libopencv-dev',  # Do we need these?
+        'python-opencv',  # Do we really need these~these?
     ])
 
 if CENTOS:
@@ -99,6 +99,7 @@ PREREQ_PYPKG_LIST = [
     'tornado',
     'matplotlib',
     'scikit-learn',
+    'parse',
     #'pandas',
     #'openpyxl',
     #'pyzmq',
