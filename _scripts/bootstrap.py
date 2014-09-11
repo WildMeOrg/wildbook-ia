@@ -24,11 +24,11 @@ PREREQ_PKG_LIST = [
     'g++',
     'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
     'cmake',
-    'ffmpeg',  # need -dev / -devel versions of all these as well
+    'ffmpeg',  # need -dev / -devel versions of all these as well / libav
     'libpng',
     'libjpg',
-    'libtiff',  # 'libtiff4-dev',
-    'littlecms',
+    'libtiff',  # 'libtiff4-dev', libtiff5-dev
+    'littlecms', # libcms?
     'openjpeg',
     'jasper',
     'zlib',
@@ -69,8 +69,9 @@ if DEBIAN_FAMILY:
         #'libjpeg-dev',
         #'zlib1g-dev',
         'python-dev',
-        'libopencv-dev',
-        'python-opencv',
+
+        #'libopencv-dev',  # Do we need these?
+        #'python-opencv',  # Do we really need these~these?
     ])
 
 if CENTOS:

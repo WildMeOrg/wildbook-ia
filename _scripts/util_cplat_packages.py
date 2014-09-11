@@ -56,10 +56,14 @@ APT_GET_PKGMAP = {
     'libjpg'       : 'libjpeg-dev',
     'libjpeg'      : 'libjpeg-dev',
     'libpng'       : 'libpng12-dev',
+    'libtiff'      : 'libtiff5-dev',
+    'openjpeg'     : 'libopenjpeg-dev',
     'freetype'     : 'libfreetype6-dev',
     'atlas'        : 'libatlas-base-dev',
     'fftw3'        : 'libfftw3-dev',
     'openssl'      : 'libopenssl-devel',
+    'ffmpeg'       : 'libav-tools',
+    #'littlecms'    : 'libcms2-dev',
 }
 
 YUM_PKGMAP = {
