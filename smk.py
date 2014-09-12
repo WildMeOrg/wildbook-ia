@@ -170,6 +170,43 @@ class InvertedIndex(object):
         return wx2_rvecs
 
 
+def pandasify(invindex):
+    assert isinstance(invindex.wx2_weight, dict)
+    wx_series = pd.Series(invindex.wx2_weight.keys(), name='wx')
+    wx2_weight = pd.Series(invindex.wx2_weight.values(), index=wx_series, name='idf')
+    print(wx2_weight)
+    invindex.wx2_weight = wx2_weight
+
+    assert not isinstance(invindex._daids, pd.Series)
+    _daids = pd.Series(invindex._daids, name='daid')
+    print(_daids)
+    invindex._daids = _daids
+
+    idx_series = pd.Series(np.arange(len(invindex.idx2_aid)), name='idx')
+    idx2_daid = pd.Series(invindex.idx2_aid, index=idx_series, name='daid')
+
+    wx_series = pd.Series(invindex.wx2_drvecs.keys(), name='wx')
+    drvec_dflist = []
+    for wx in wx_series:
+        drvecs = invindex.wx2_drvecs[wx]
+        _idxs = pd.Series(invindex.wx2_idxs[wx], name='idx')
+        drvec_df = pd.DataFrame(drvecs, index=_idxs)
+        drvec_dflist.append(drvec_df)
+    wx2_drvecs = pd.Series(drvec_dflist, index=wx_series, name='drvecs')
+    print(wx2_drvecs)
+
+    drvecs = wx2_drvecs[wx]
+    group = drvecs.groupby(idx2_daid)
+    for aid, vecs in group:
+        vecs.dot(vecs.T)
+        # LEFT OFF HERE
+        pass
+
+
+def unpandasify(invindex):
+    invindex.wx2_weight = invindex.wx2_weight.to_dict()
+
+
 def selectivity_function(rscore_mat, alpha=3, thresh=0):
     """ sigma from SMK paper rscore = residual score """
     scores = (np.sign(rscore_mat) * np.abs(rscore_mat)) ** alpha
@@ -177,7 +214,23 @@ def selectivity_function(rscore_mat, alpha=3, thresh=0):
     return scores
 
 
-def query_inverted_index(annots_df, qaid, invindex):
+def compute_gamma(annots_df, invindex):
+    _daids = pd.Series(invindex._daids, name='daid')
+    wx2_drvecs = invindex.wx2_drvecs
+    wx2_weight = invindex.wx2_weight
+    daid2_gamma = pd.Series(np.zeros(len(invindex._daids)), index=_daids, name='gamma')
+    for wx, _idxs in six.iteritems(invindex.wx2_idxs):
+        aids_ = invindex.idx2_aid[_idxs]
+        weight =  invindex.wx2_weight[wx]
+        for aid in aids_:
+            daid2_gamma[aid] += weight
+
+
+def query_inverted_index(annots_df, qaid, invindex, daid_subset=None):
+    return match_kernel(annots_df, invindex, qaid, daid_subset=daid_subset)
+
+
+def match_kernel(annots_df, invindex, qaid, daid_subset=None):
     """
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
@@ -207,16 +260,40 @@ def query_inverted_index(annots_df, qaid, invindex):
     wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
     wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
 
-    idx2_daid_series = pd.Series(invindex.idx2_aid, name='daid')
-    daid_series = pd.Series(invindex._daids, name='daid')
+    _daids = pd.Series(invindex._daids, name='daid')
+    idx2_daid = pd.Series(invindex.idx2_aid, name='daid')
+    wx2_idxs   = invindex.wx2_idxs
+    wx2_drvecs = invindex.wx2_drvecs
+    wx2_weight = invindex.wx2_weight
 
+    query_gamma = 0
+    for wx, qrvecs in six.iteritems(wx2_qrvecs):
+        query_gamma += selectivity_function(qrvecs.dot(qrvecs.T)).sum() * wx2_weight[wx]
+    query_gamma = 1 / np.sqrt(query_gamma)
+
+    #if __debug__:
+    #    for wx in wx2_drvecs.keys():
+    #        assert wx2_drvecs[wx].shape[0] == wx2_idxs[wx].shape[0]
+
+    if daid_subset is not None:
+        idx2_daid = idx2_daid[idx2_daid.isin(daid_subset)]
+        _daids = _daids[_daids.isin(daid_subset)]
+        wx2_idxmask_ = {wx: np.in1d(idxs, idx2_daid.index) for wx, idxs in six.iteritems(wx2_idxs)}
+        wx2_idxs   = {wx: idxs[wx2_idxmask_[wx]]   for wx, idxs in six.iteritems(wx2_idxs)}
+        wx2_drvecs = {wx: drvecs[wx2_idxmask_[wx]] for wx, drvecs in six.iteritems(wx2_drvecs)}
+
+    daid2_totalscore = match_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs,
+                                    wx2_weight, idx2_daid, _daids)
+
+    daid2_totalscore.sort(axis=1, ascending=False)
+    return daid2_totalscore
+
+
+def match_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs, wx2_weight, idx2_daid,
+                 _daids):
     # Accumulate scores over the entire database
-    daid2_totalscore = pd.Series(np.zeros(len(invindex._daids)),
-                                 index=daid_series, name='total_score')
-    utool.ddict(lambda: 0)
-    query_wxs = set(wx2_qrvecs.keys())
-    data_wxs  = set(invindex.wx2_drvecs.keys())
-    common_wxs = data_wxs.intersection(query_wxs)
+    daid2_totalscore = pd.Series(np.zeros(len(_daids)), index=_daids, name='total_score')
+    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
 
     # for each word compute the pairwise scores between matches
     for wx in common_wxs:
@@ -224,18 +301,16 @@ def query_inverted_index(annots_df, qaid, invindex):
         qfxs   = wx2_qfxs[wx]
         qrvecs = wx2_qrvecs[wx]
         # Database information for this word
-        _idxs  = invindex.wx2_idxs[wx]
-        drvecs = invindex.wx2_drvecs[wx]
+        _idxs  = wx2_idxs[wx]
+        drvecs = wx2_drvecs[wx]
         # Word Weight
-        weight = invindex.wx2_weight[wx]
+        weight = wx2_weight[wx]
         # Compute score matrix
         qfx2_wscore_ = selectivity_function(qrvecs.dot(drvecs.T))
         # Group scores by database annotation ids
         qfx2_wscore = pd.DataFrame(qfx2_wscore_, index=qfxs, columns=_idxs)
-        daid2_wscore = qfx2_wscore.sum(axis=0).groupby(idx2_daid_series).sum()
+        daid2_wscore = qfx2_wscore.sum(axis=0).groupby(idx2_daid).sum()
         daid2_totalscore = daid2_totalscore.add(daid2_wscore * weight, fill_value=0)
-
-    daid2_totalscore.sort(axis=1, ascending=False)
     return daid2_totalscore
 
 
