@@ -85,9 +85,9 @@ def akmeans_iterations(data, centroids, max_iters,
     ) % (data.shape, nCentroids, max_iters,
          ave_unchanged_thresh, ave_unchanged_iterwin))
     sys.stdout.flush()
-    # Iterate
-    count = 0
+    _mark, _end = utool.log_progress('Akmeans: ', max_iters)
     for count in range(0, max_iters):
+        _mark(count)
         # 1) Assign each datapoint to the nearest centroid
         (datax2_centroidx, _) = pyflann.FLANN().nn(centroids, data, 1, **flann_params)
         # 2) Compute new centroids based on assignments
@@ -100,18 +100,13 @@ def akmeans_iterations(data, centroids, max_iters,
             break
         else:
             datax2_centroidx_old = datax2_centroidx
-    if count == max_iters:
-        print('[akmeans] * AKMEANS: converged in %d/%d iters' %
-              (count + 1, max_iters))
-    else:
-        print('[akmeans] * AKMEANS: stopped early after %d/%d iters'
-              % (count + 1, max_iters))
+    _end()
     return centroids
 
 
-def precompute_akmeans(data, nCentroids, max_iters=5, flann_params={},
-                       cache_dir=None, force_recomp=False, use_data_hash=True,
-                       cfgstr='', refine=False, akmeans_cfgstr=None):
+def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
+                   cache_dir=None, force_recomp=False, use_data_hash=True,
+                   cfgstr='', refine=False, akmeans_cfgstr=None):
     """ precompute aproximate kmeans with builtin caching """
     print('[akmeans] pre_akmeans()')
     # filename prefix constants
