@@ -35,6 +35,7 @@ def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
         dpts, qpts, num_neighbors, **flann_params)
     return qx2_dx
 
+
 def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_data_hash=True):
     """
     >>> from vtool.nearest_neighbors import *  # NOQA
@@ -195,56 +196,7 @@ def invertable_stack(vecs_list, label_list):
     array([1, 1, 2, 2, 2, 4, 4, 4, 5, 5, 5])
     >>> print(repr(idx2_fx))
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
-
-    #if CYTH:
-        cdef:
-            list label_list, vecs_list
-            long nFeat, label
-            object label_nFeat_iter, nFeat_iter, _ax2_label, _ax2_fx
-            np.ndarray idx2_label, idx2_fx, idx2_vec
-    #endif
-
-    --- vs ---
-
-    <CYTH>
-    c-def:
-        list label_list, vecs_list
-        long nFeat, label
-        iter label_nFeat_iter, nFeat_iter, _ax2_label, _ax2_fx
-        np.ndarray idx2_label, idx2_fx, idx2_vec
-    </CYTH>
-
-    --- consider ---
-    SYNTAX:
-
-    {pyth_code} <- python code | pass
-    {cyth_code} <- cython code | pass
-
-    {code_block} = {pyth_code} | {cyth_code}
-
-    {block} := {code_block} | {parse_block}
-    {prev_block} := {block}
-    {next_block} := {block}
-    {cyth_block} := {cyth_code}
-    {pyth_block} := {pyth_code}
-
-    {parse_block} :=
-        {prev_block}
-        #-ifdef CYTH
-        {cyth_block}
-        #-elif
-        {pyth_block}
-        #-endif
-        {next_block}
-    ---
-
-    * Cyth becomes a python preparser. It converts annotated python code into
-        cython code. It also provides a packages to semi-dynamically replace
-        your python code with the generated and compiled cython code.
-
-        "setup.py script not included"  // Check out utool for that
     """
-
     # INFER DTYPE? dtype = vecs_list[0].dtype
     # Build inverted index of (label, fx) pairs
     nFeats = sum(list(map(len, vecs_list)))

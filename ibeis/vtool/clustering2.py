@@ -116,6 +116,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     # Build a cfgstr if the full one is not specified
     if akmeans_cfgstr is None:
         # compute a hashstr based on the data
+        cfgstr += '_nC=%d' % nCentroids
         akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
                                                  cfgstr, use_data_hash)
     try:
@@ -130,6 +131,8 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                                        flann_params=flann_params,
                                        cache_dir=cache_dir,
                                        akmeans_cfgstr=akmeans_cfgstr)
+        assert centroids.shape[0] == nCentroids, 'bad number of centroids'
+        assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
         return centroids
     except IOError as ex:
         utool.printex(ex, 'cache miss', iswarning=True)
@@ -140,6 +143,8 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     centroids = akmeans(data, nCentroids, max_iters, flann_params)
     print('[akmeans.precompute] save and return')
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
+    assert centroids.shape[0] == nCentroids, 'bad number of centroids'
+    assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
     return centroids
 
 
