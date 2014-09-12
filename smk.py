@@ -179,6 +179,7 @@ def selectivity_function(rscore_mat, alpha=3, thresh=0):
 
 def query_inverted_index(annots_df, qaid, invindex):
     """
+    >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -186,58 +187,56 @@ def query_inverted_index(annots_df, qaid, invindex):
     >>> qaid = qaids[0]
     >>> wx2_qrvecs = query_inverted_index(annots_df, qaid, invindex)
     """
+    #qfx2_axs = []
+    #qfx2_fm = []
+    #qfx2_fs = []
+    #aid_fm = []
+    #aid_fs = []
 
-    qfx2_axs = []
-    qfx2_fm = []
-    qfx2_fs = []
-    aid_fm = []
-    aid_fs = []
+    #idx2_dfx  = invindex.idx2_fx
+    #idx2_wx  = invindex.idx2_wx
+    #wx2_idxs_series = {wx: pd.Series(idxs, name='idx') for wx, idxs in
+    #                   six.iteritems(invindex.wx2_idxs)}
+    #wx2_qfxs_series = {wx: pd.Series(qfx, name='qfx') for wx, qfx in
+    #                   six.iteritems(wx2_qfxs)}
+    #qfx2_idx = np.tile(_idxs, (len(qfxs), 1))
+    #qfx2_aid = np.tile(idx2_daid.take(_idxs), (len(qfxs), 1))
+    #qfx2_fx = np.tile(idx2_dfx.take(_idxs), (len(qfxs), 1))
 
     qfx2_vec = annots_df['vecs'][qaid]
     wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
     wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
 
-    # Entire database
-    daid2_score = utool.ddict(lambda: 0)
+    idx2_daid_series = pd.Series(invindex.idx2_aid, name='daid')
+    daid_series = pd.Series(invindex._daids, name='daid')
+
+    # Accumulate scores over the entire database
+    daid2_totalscore = pd.Series(np.zeros(len(invindex._daids)),
+                                 index=daid_series, name='total_score')
+    utool.ddict(lambda: 0)
     query_wxs = set(wx2_qrvecs.keys())
     data_wxs  = set(invindex.wx2_drvecs.keys())
+    common_wxs = data_wxs.intersection(query_wxs)
 
-    idx2_daid = pd.Series(invindex.idx2_aid, name='daid')
-    idx2_dfx  = pd.Series(invindex.idx2_fx, name='dfx')
-    idx2_wfx  = pd.Series(invindex.idx2_wx, name='dwx')
-    invindex.idx_df = pd.concat((idx2_daid, idx2_dfx, idx2_wfx), axis=1, names=['idx'])
-
-    wx2_idxs = {wx: pd.Series(idxs, name='idx') for wx, idxs in
-                six.iteritems(invindex.wx2_idxs)}
-    wx2_qfxs = {wx: pd.Series(qfx, name='qfx') for wx, qfx in
-                six.iteritems(wx2_qfxs)}
-
-    for wx in data_wxs.intersection(query_wxs):
-        # all pairs of scores
-        _idxs = wx2_idxs[wx]
-        weight = invindex.wx2_weight[wx]
-        qfxs = wx2_qfxs[wx]
-        qfx2_idx = np.tile(_idxs, (len(qfxs), 1))
-        qfx2_aid = np.tile(invindex.idx_df['daid'].take(_idxs), (len(qfxs), 1))
-        qfx2_fx = np.tile(invindex.idx_df['dfx'].take(_idxs), (len(qfxs), 1))
+    # for each word compute the pairwise scores between matches
+    for wx in common_wxs:
+        # Query information for this word
+        qfxs   = wx2_qfxs[wx]
         qrvecs = wx2_qrvecs[wx]
+        # Database information for this word
+        _idxs  = invindex.wx2_idxs[wx]
         drvecs = invindex.wx2_drvecs[wx]
-        qfx2_wordscore_ = selectivity_function(qrvecs.dot(drvecs.T))
-        qfx2_wordscore = pd.DataFrame(qfx2_wordscore_, index=qfxs, columns=_idxs)
-        qfx2_datascore = qfx2_wordscore.groupby(invindex.idx_df['daid'], axis=1).sum()
-        daid2_wordscore = qfx2_datascore.sum(axis=0)
-        for aid in daid2_wordscore.index:
-            daid2_score[aid] = daid2_wordscore[aid] * weight
-    aidkeys = np.array(daid2_score.keys())
-    totalscores = np.array(daid2_score.values())
-    sortx = totalscores.argsort()[::-1]
-    ranked_aids = aidkeys[sortx]
-    ranked_scores = totalscores[sortx]
-    score_df = pd.DataFrame(ranked_scores, index=ranked_aids, columns=['score'])
-    score_df.fillna(0, inplace=True)
-    print(score_df)
-    print(utool.dict_str(daid2_score))
-    return wx2_qrvecs
+        # Word Weight
+        weight = invindex.wx2_weight[wx]
+        # Compute score matrix
+        qfx2_wscore_ = selectivity_function(qrvecs.dot(drvecs.T))
+        # Group scores by database annotation ids
+        qfx2_wscore = pd.DataFrame(qfx2_wscore_, index=qfxs, columns=_idxs)
+        daid2_wscore = qfx2_wscore.sum(axis=0).groupby(idx2_daid_series).sum()
+        daid2_totalscore = daid2_totalscore.add(daid2_wscore * weight, fill_value=0)
+
+    daid2_totalscore.sort(axis=1, ascending=False)
+    return daid2_totalscore
 
 
 def testdata():
@@ -264,7 +263,10 @@ def main():
     invindex = index_data_annots(annots_df, daids, words)
     wx2_drvecs = invindex.wx2_drvecs
     qaid = qaids[0]
-    wx2_qrvecs = query_inverted_index(annots_df, qaid, invindex)
+    daid2_totalscore1 = query_inverted_index(annots_df, qaid, invindex)
+    daid2_totalscore2 = query_inverted_index(annots_df, daids[0], invindex)
+    print(daid2_totalscore1)
+    print(daid2_totalscore2)
     display_info(ibs, invindex, annots_df)
     return locals()
 
