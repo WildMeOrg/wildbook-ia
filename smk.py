@@ -14,38 +14,6 @@ pd.set_option('display.max_columns', 10)
 pd.set_option('isplay.notebook_repr_html', True)
 ibeis.ensure_pz_mtest()
 
-#taids = ibs.get_valid_aids()
-#tvecs_list = ibs.get_annot_desc(taids)
-#tkpts_list = ibs.get_annot_kpts(taids)
-#tvec_list = np.vstack(tvecs_list)
-#print(idx2_vec)
-
-#labels, words = vtool.clustering.cached_akmeans(tvec_list, 1000, 30, cache_dir='.')
-#tvecdf_list = [pd.DataFrame(vecs) for vecs in  tvecs_list]
-#tvecs_df = pd.DataFrame(tvecdf_list, index=taids)
-#kpts_col = pd.DataFrame(tkpts_list, index=taids, columns=['kpts'])
-#vecs_col = pd.DataFrame(tvecs_list, index=taids, columns=['vecs'])
-#tvecs_dflist = [pd.DataFrame(vecs, index=np.arange(len(vecs))) for vecs in tvecs_list]
-#pd.concat(tvecs_dflist)
-## Bui
-
-
-#taids = ibs.get_valid_aids()
-#tvecs_list = ibs.get_annot_desc(taids)
-#tkpts_list = ibs.get_annot_kpts(taids)
-
-#orig_idx2_vec, orig_idx2_ax, orig_idx2_fx = vtool.nearest_neighbors.invertable_stack(tvecs_list, taids)
-#annots_df = pd.concat([vecs_col, kpts_col], axis=1)
-#annots_df
-
-#idx2_vec = np.vstack(annots_df['vecs'].values)
-##idx2_ax =
-#idx2_vec, idx2_ax, idx2_fx = vtool.nearest_neighbors.invertable_stack(tvecs_list, taids)
-
-
-#labels, words = vtool.clustering2.cached_akmeans(tvec_list, 1000, 30)
-#words = centroids
-
 
 def display_info(ibs, invindex, annots_df):
     #################
@@ -73,13 +41,22 @@ def display_info(ibs, invindex, annots_df):
     #makeplot_(5, 'query vecs', qfx2_vec)
     #################
 
+
 def make_annot_df(ibs):
+    """
+    >>> from smk import *  # NOQA
+    >>> ibs = ibeis.opendb('PZ_MTEST')
+    >>> # Pandas Annotation Dataframe
+    """
     aid_list = ibs.get_valid_aids()
-    _kpts_col = pd.DataFrame(ibs.get_annot_kpts(aid_list),
-                             index=aid_list, columns=['kpts'])
-    _vecs_col = pd.DataFrame(ibs.get_annot_desc(aid_list),
-                             index=aid_list, columns=['vecs'])
-    annots_df = pd.concat([_vecs_col, _kpts_col], axis=1)
+    kpts_list = ibs.get_annot_kpts(aid_list)
+    vecs_list = ibs.get_annot_desc(aid_list)
+    aid_series = pd.Series(aid_list, name='aid')
+    kpts_series = pd.Series(kpts_list, index=aid_list, name='kpts')
+    vecs_series = pd.Series(vecs_list, index=aid_list, name='vecs')
+    vecs_df = pd.DataFrame(vecs_list, index=aid_list)
+    dtype=np.uint8,
+    annots_df = pd.concat([kpts_series, vecs_series], axis=1)
     return annots_df
 
 
@@ -93,40 +70,65 @@ def learn_visual_words(annots_df, train_aids, nCentroids):
 
 
 def index_data_annots(annots_df, daids, words):
-    vecs_list = annots_df['vecs'][daids]
+    """
+    >>> from smk import *  # NOQA
+    >>> ibs = ibeis.opendb('PZ_MTEST')
+    >>> # Pandas Annotation Dataframe
+    >>> annots_df = make_annot_df(ibs)
+    >>> # Training set
+    >>> train_aids = annots_df.index[:]
+    >>> # Database set
+    >>> daids  = annots_df.index[1:]
+    >>> # Search set
+    >>> #qaids = valid_aids[0::2]
+    >>> qaids = annots_df.index[0:1]
+    >>> qaid = qaids[0]
+    >>> nCentroids = K = utool.get_arg(('--nCentroids', '--nWords'), int, default=95000)
+    >>> words = learn_visual_words(annots_df, train_aids, nCentroids)
+    """
+    vecs_df = annots_df['vecs'][daids]
     flann_params = {}
     wordflann = vtool.nearest_neighbors.flann_cache(words, flann_params=flann_params)
-    ax2_aid = np.array(daids)
-    idx2_vec, idx2_ax, idx2_fx = nntool.invertable_stack(vecs_list, np.arange(len(ax2_aid)))
-    invindex = InvertedIndex(words, wordflann, idx2_vec, idx2_ax, idx2_fx, ax2_aid)
+    print(vecs_df)
+    print(vecs_df.values)
+    utool.embed()
+    idx2_vec, idx2_aid, idx2_fx = nntool.invertable_stack(vecs_df.values.tolist(), np.arange(daids))
+    invindex = InvertedIndex(words, wordflann, idx2_vec, idx2_aid, idx2_fx, daids)
     invindex.compute_internals()
     return invindex
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
 class InvertedIndex(object):
-    def __init__(invindex, words, wordflann, idx2_vec, idx2_ax, idx2_fx, ax2_aid):
+    def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, ax2_aid):
         invindex.wordflann = wordflann
-        invindex.words     = words     # visual word centroids
-        invindex.ax2_aid   = ax2_aid   # annot index -> annot id
-        invindex.idx2_vec  = idx2_vec  # stacked index -> descriptor vector
-        invindex.idx2_ax   = idx2_ax   # stacked index -> annot index
-        invindex.idx2_fx   = idx2_fx   # stacked index -> feature index
-        invindex.idx2_wx  = None       # stacked index -> word index
+        #print(dir(pd.Series))
+        #help(pd.DataFrame)
+        invindex.words     = pd.Series(words.tolist(), name='wvec')     # visual word centroids
+        # stacked index -> descriptor vector
+        invindex.idx2_vec  = pd.DataFrame(idx2_vec,
+                                          #index='dvec',
+                                          #='dvec',
+                                          dtype=idx2_vec.dtype)
+        print(invindex.idx2_vec)
+        utool.qflag()
+        invindex.idx2_aid  = pd.Series(idx2_aid.tolist(), name='aids')   # stacked index -> annot index
+        invindex.idx2_fx   = pd.Series(idx2_fx.tolist(), name='fx')  # stacked index -> feature index
         invindex.wx2_idxs = None       # word index -> stacked indexes
         invindex.wx2_drvecs = None     # word index -> residual vectors
         #invindex.compute_internals()
 
     def compute_internals(invindex):
-        idx2_vec = invindex.idx2_vec
-        wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec)
-        wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
-        invindex.idx2_wx = idx2_wx
-        invindex.wx2_idxs = wx2_idxs
-        invindex.wx2_drvecs = wx2_drvecs
+        wx2_idxs, idx2_wx = invindex.inverted_assignments(invindex.idx2_vec)
+        wx2_drvecs = invindex.compute_residuals(invindex.idx2_vec.values, wx2_idxs)
+        invindex.idx2_wx = pd.Series(idx2_wx, names=['wx'])      # stacked index -> word index
+        invindex.wx2_idxs = pd.Series.from_dict(wx2_idxs, names=['idxs'])
+        invindex.wx2_drvecs = np.Series.from_dict(wx2_drvecs, names=['drvecs'])
+        #invindex.wx2_idxs = wx2_idxs
+        #invindex.wx2_drvecs = wx2_drvecs
 
     def inverted_assignments(invindex, idx2_vec):
-        idx2_wx, _idx2_wdist = invindex.wordflann.nn_index(idx2_vec, 1)
+        idx2_wx, _idx2_wdist = invindex.wordflann.nn_index(idx2_vec.values, 1)
         if True:
             assign_df = pd.DataFrame(idx2_wx, columns=['wordindex'])
             grouping = assign_df.groupby('wordindex')
@@ -159,11 +161,16 @@ class InvertedIndex(object):
 
 
 def query_inverted_index(annots_df, qaid, invindex):
+    daid = invindex.ax2_aid[0]
+    qfx2_axs = []
+    qfx2_fm = []
+    qfx2_fs = []
+    aid_fm = []
+    aid_fs = []
+
     qfx2_vec = annots_df['vecs'][qaid]
     wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
     wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
-
-    daid = invindex.ax2_aid[0]
 
     def selectivity_function(rscore_mat, alpha=3, thresh=0):
         """ sigma from SMK paper rscore = residual score """
@@ -175,19 +182,16 @@ def query_inverted_index(annots_df, qaid, invindex):
     daid2_score = utool.ddict(lambda: 0)
     query_wxs = set(wx2_qrvecs.keys())
     data_wxs  = set(invindex.wx2_drvecs.keys())
-    qfx2_axs = []
-    qfx2_fm = []
-    qfx2_fs = []
-    aid_fm = []
-    aid_fs = []
 
     idx2_daid = pd.Series(invindex.ax2_aid[invindex.idx2_ax], name='daid')
     idx2_dfx  = pd.Series(invindex.idx2_fx, name='dfx')
     idx2_wfx  = pd.Series(invindex.idx2_wx, name='dwx')
     invindex.idx_df = pd.concat((idx2_daid, idx2_dfx, idx2_wfx), axis=1, names=['idx'])
 
-    wx2_idxs = {wx: pd.Series(idxs, name='idx') for wx, idxs in six.iteritems(invindex.wx2_idxs)}
-    wx2_qfxs = {wx: pd.Series(qfx, name='qfx') for wx, qfx in six.iteritems(wx2_qfxs)}
+    wx2_idxs = {wx: pd.Series(idxs, name='idx') for wx, idxs in
+                six.iteritems(invindex.wx2_idxs)}
+    wx2_qfxs = {wx: pd.Series(qfx, name='qfx') for wx, qfx in
+                six.iteritems(wx2_qfxs)}
 
     for wx in data_wxs.intersection(query_wxs):
         # all pairs of scores
@@ -219,14 +223,15 @@ def query_inverted_index(annots_df, qaid, invindex):
         #result_df = pd.concat((scores, daids), axis=1)  # concat columns
         #daid_group = result_df.groupby(['daid'])
         #daid2_wordscore = daid_group['score'].sum()
-    print(utool.dict_str(daid2_score))
     aidkeys = np.array(daid2_score.keys())
     totalscores = np.array(daid2_score.values())
     sortx = totalscores.argsort()[::-1]
     ranked_aids = aidkeys[sortx]
     ranked_scores = totalscores[sortx]
     score_df = pd.DataFrame(ranked_scores, index=ranked_aids, columns=['score'])
+    score_df.fillna(0, inplace=True)
     print(score_df)
+    print(utool.dict_str(daid2_score))
     return wx2_qrvecs
 
 
@@ -236,14 +241,16 @@ def main():
     annots_df = make_annot_df(ibs)
     valid_aids = annots_df.index
     # Training set
-    train_aids = valid_aids[0:20:2]
+    train_aids = valid_aids[:]
     # Database set
-    daids  = valid_aids[3:30:2]
+    daids  = valid_aids[1:]
     # Search set
     #qaids = valid_aids[0::2]
     qaids = valid_aids[0:1]
     qaid = qaids[0]
-    nCentroids = K = 10
+    nCentroids = K = utool.get_arg(('--nCentroids', '--nWords'), int,
+                                   default=5)
+                                   #default=95000)
     words = learn_visual_words(annots_df, train_aids, nCentroids)
     invindex = index_data_annots(annots_df, daids, words)
     wx2_drvecs = invindex.wx2_drvecs
