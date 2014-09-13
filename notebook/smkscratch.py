@@ -112,3 +112,24 @@ annots_df = pd.concat([kpts_df, vecs_df], axis=1)
     #qfx2_aid = np.tile(idx2_daid.take(_idxs), (len(qfxs), 1))
     #qfx2_fx = np.tile(idx2_dfx.take(_idxs), (len(qfxs), 1))
 
+
+    #if __debug__:
+    #    for wx in wx2_drvecs.keys():
+    #        assert wx2_drvecs[wx].shape[0] == wx2_idxs[wx].shape[0]
+
+
+    #qfx2_axs = []
+    #qfx2_fm = []
+    #qfx2_fs = []
+    #aid_fm = []
+    #aid_fs = []
+
+    #idx2_dfx  = invindex.idx2_dfx
+    #idx2_wx  = invindex.idx2_wx
+    #wx2_idxs_series = {wx: pd.Series(idxs, name='idx') for wx, idxs in
+    #                   six.iteritems(invindex.wx2_idxs)}
+    #wx2_qfxs_series = {wx: pd.Series(qfx, name='qfx') for wx, qfx in
+    #                   six.iteritems(wx2_qfxs)}
+    #qfx2_idx = np.tile(_idxs, (len(qfxs), 1))
+    #qfx2_aid = np.tile(idx2_daid.take(_idxs), (len(qfxs), 1))
+    #qfx2_fx = np.tile(idx2_dfx.take(_idxs), (len(qfxs), 1))

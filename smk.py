@@ -9,6 +9,10 @@ import pandas as pd
 from vtool import clustering2 as clustertool
 from vtool import nearest_neighbors as nntool
 from plottool import draw_func2 as df2
+np.set_printoptions(precision=2)
+pd.set_option('display.max_rows', 5)
+pd.set_option('display.max_columns', 5)
+pd.set_option('isplay.notebook_repr_html', True)
 
 
 def make_annot_df(ibs):
@@ -54,8 +58,8 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
     flann_params = {}
     wordflann = vtool.nearest_neighbors.flann_cache(words, flann_params=flann_params)
     _daids = daids.values if isinstance(daids, pd.Index) else daids
-    idx2_vec, idx2_aid, idx2_fx = nntool.invertable_stack(vecs_df.values, _daids)
-    invindex = InvertedIndex(words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids)
+    idx2_dvec, idx2_daid, idx2_dfx = nntool.invertable_stack(vecs_df.values, _daids)
+    invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx, _daids)
     if with_internals:
         invindex.compute_internals()
     return invindex
@@ -63,14 +67,13 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
 
 def inverted_assignments_(wordflann, idx2_vec):
     """ Assigns vectors to nearest word
-
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = False
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
     >>> wordflann = invindex.wordflann
-    >>> idx2_vec = invindex.idx2_vec
+    >>> idx2_vec = invindex.idx2_dvec
     >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, idx2_vec)
     """
     idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, 1)
@@ -87,7 +90,7 @@ def compute_word_weights_(wx2_idxs, idx2_aid, _daids):
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
     >>> wx2_idxs = invindex.wx2_idxs
-    >>> idx2_aid = invindex.idx2_aid
+    >>> idx2_aid = invindex.idx2_daid
     >>> _daids   = invindex._daids
     >>> wx2_idf = compute_word_weights_(wx2_idxs, idx2_aid, _daids)
     """
@@ -112,6 +115,7 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
         _words = np.tile(word, (vecs.shape[0], 1))
         residuals = _words - vecs
         # normalize residuals
+        # TODO Check for 0 division
         residuals_n = vtool.linalg.normalize_rows(residuals)
         wx2_rvecs[wx] = residuals_n
     return wx2_rvecs
@@ -126,8 +130,7 @@ def compute_internals_(invindex):
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
     >>> compute_internals_(invindex)
     """
-
-    idx2_vec = invindex.idx2_vec
+    idx2_vec = invindex.idx2_dvec
     wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec)
     wx2_weight = invindex.compute_word_weights(wx2_idxs)
     wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
@@ -135,26 +138,164 @@ def compute_internals_(invindex):
     invindex.wx2_idxs   = wx2_idxs
     invindex.wx2_weight = wx2_weight
     invindex.wx2_drvecs = wx2_drvecs
+    assert not isinstance(invindex._daids, pd.Series)
+    pandasify(invindex)
+    invindex.daid2_gamma = invindex.compute_data_gamma()
+
+
+def pandasify(invindex):
+    """
+    >>> from smk import *  # NOQA
+    >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
+    >>> words = learn_visual_words(annots_df, taids, nWords)
+    >>> with_internals = False
+    >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
+    >>> idx2_vec = invindex.idx2_dvec
+    >>> wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec)
+    >>> wx2_weight = invindex.compute_word_weights(wx2_idxs)
+    >>> wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
+    >>> invindex.idx2_wx    = idx2_wx    # stacked index -> word index
+    >>> invindex.wx2_idxs   = wx2_idxs
+    >>> invindex.wx2_weight = wx2_weight
+    >>> invindex.wx2_drvecs = wx2_drvecs
+    """
+    #assert isinstance(invindex.wx2_weight, dict)
+    assert not isinstance(invindex._daids, pd.Series)
+    def noprint(arg):
+        pass
+    def super_print(arg):
+        from six.moves import builtins
+        _plocals = utool.get_parent_locals()
+        try:
+            for count, val in enumerate(_plocals.values()):
+                if val is arg:
+                    index_ = count
+            #index_ = _plocals.values().index(arg)
+            name = str(_plocals.keys()[index_])
+        except NameError:
+            name = 'not-in-locals?'
+            pass
+        builtins.print('\n\n+==========')
+        builtins.print(repr(type(arg)) + ' ' + name + ' = ')
+        builtins.print(arg)
+        builtins.print('L==========')
+    print = noprint
+
+    vec_columns = pd.Int64Index(range(128), name='vec')
+
+    # aid - annotation ids
+    _daids = pd.Series(invindex._daids, name='aid')
+    print(_daids)
+
+    # wx - word index
+    wx_series = pd.Series(invindex.wx2_weight.keys(), name='wx')
+    wx2_weight = pd.Series(invindex.wx2_weight.values(), index=wx_series, name='idf')
+    print(wx2_weight)
+    wx2_idxs = pd.Series(
+        {
+            wx: pd.Series(
+                invindex.wx2_idxs[wx],
+                name='idx',
+            )
+            for wx in wx_series
+        }, index=wx_series, name='wx2_idxs')
+    wx2_drvecs = pd.Series(
+        {
+            wx: pd.DataFrame(
+                invindex.wx2_drvecs[wx],
+                index=wx2_idxs[wx],
+                columns=vec_columns,
+            )
+            for wx in wx_series
+        }, index=wx_series, name='drvecs')
+
+    print(wx2_idxs)
+    print(wx2_drvecs)
+
+    # idx - stacked indicies
+    idx_series = pd.Series(np.arange(len(invindex.idx2_daid)), name='idx')
+    idx2_daid = pd.Series(invindex.idx2_daid, index=idx_series, name='daid')
+    idx2_daid = pd.Series(invindex.idx2_daid, index=idx_series, name='aid')
+    idx2_dvec = pd.DataFrame(invindex.idx2_dvec, index=idx_series, columns=vec_columns)
+    idx2_dfx  = pd.Series(invindex.idx2_dfx, index=idx_series, name='fx')
+    print(idx2_dvec)
+    print(idx2_dfx)
+
+    invindex._daids = _daids
+    invindex.idx2_daid = idx2_daid
+    invindex.idx2_dvec = idx2_dvec
+    invindex.idx2_dfx  = idx2_dfx
+    invindex.wx2_idxs   = wx2_idxs
+    invindex.wx2_drvecs = wx2_drvecs
+    invindex.wx2_weight = wx2_weight
+    #invindex.daid2_gamma = compute_data_gamma_()
+
+
+def compute_data_gamma_(invindex, use_cache=True):
+    """
+    >>> from smk import *  # NOQA
+    >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
+    >>> words = learn_visual_words(annots_df, taids, nWords)
+    >>> with_internals = True
+    >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
+    >>> daid2_gamma = compute_data_gamma_(invindex, use_cache=True)
+    """
+    if use_cache:
+        try:
+            daid2_gamma = utool.global_cache_read('gamma_dbg', appname='smk')
+            #print('gamma_dbg cache hit')
+            return daid2_gamma
+        except Exception:
+            pass
+
+    # Gropuing by aid and words
+
+    mark, end_ = utool.log_progress('gamma grouping ',
+                                    invindex.wx2_drvecs.shape[0],
+                                    flushfreq=100)
+    daid2_wx2_drvecs = utool.ddict(dict)
+    for wx in invindex.wx2_drvecs.index:
+        mark(wx)
+        group  = invindex.wx2_drvecs[wx].groupby(invindex.idx2_daid)
+        for daid, vecs in group:
+            daid2_wx2_drvecs[daid][wx] = vecs.values
+    end_()
+
+    # Summation over words for each aid
+
+    mark, end_ = utool.log_progress('gamma summation ', len(daid2_wx2_drvecs),
+                                    flushfreq=100)
+    daid2_gamma = pd.Series(
+        np.zeros(invindex._daids.shape[0]),
+        index=invindex._daids,
+        name='gamma')
+    for count, (daid, wx2_drvecs) in enumerate(six.iteritems(daid2_wx2_drvecs)):
+        mark(count)
+        daid2_gamma[daid] = gamma_summation(wx2_drvecs, invindex.wx2_weight)
+    utool.global_cache_write('gamma_dbg', daid2_gamma, appname='smk')
+    return daid2_gamma
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
 class InvertedIndex(object):
     def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids):
-        invindex._daids     = _daids
         invindex.wordflann  = wordflann
         invindex.words      = words     # visual word centroids
-        invindex.idx2_vec   = idx2_vec  # stacked index -> descriptor vector
-        invindex.idx2_aid   = idx2_aid  # stacked index -> annot id
-        invindex.idx2_fx    = idx2_fx   # stacked index -> feature index
+        invindex._daids     = _daids    # indexed annotation ids
+        invindex.idx2_dvec  = idx2_vec  # stacked index -> descriptor vector
+        invindex.idx2_daid  = idx2_aid  # stacked index -> annot id
+        invindex.idx2_dfx    = idx2_fx   # stacked index -> feature index
         invindex.wx2_idxs   = None      # word index -> stacked indexes
         invindex.wx2_drvecs = None      # word index -> residual vectors
+        invindex.wx2_weight = None      # word index -> idf
+        invindex.daid2_gamma = None
         #invindex.compute_internals()
 
     def compute_internals(invindex):
         compute_internals_(invindex)
 
     def compute_word_weights(invindex, wx2_idxs):
-        idx2_aid = invindex.idx2_aid
+        idx2_aid = invindex.idx2_daid
         _daids   = invindex._daids
         wx2_weight = compute_word_weights_(wx2_idxs, idx2_aid, _daids)
         return wx2_weight
@@ -169,42 +310,24 @@ class InvertedIndex(object):
         wx2_rvecs = compute_residuals_(words, idx2_vec, wx2_idxs)
         return wx2_rvecs
 
-
-def pandasify(invindex):
-    assert isinstance(invindex.wx2_weight, dict)
-    wx_series = pd.Series(invindex.wx2_weight.keys(), name='wx')
-    wx2_weight = pd.Series(invindex.wx2_weight.values(), index=wx_series, name='idf')
-    print(wx2_weight)
-    invindex.wx2_weight = wx2_weight
-
-    assert not isinstance(invindex._daids, pd.Series)
-    _daids = pd.Series(invindex._daids, name='daid')
-    print(_daids)
-    invindex._daids = _daids
-
-    idx_series = pd.Series(np.arange(len(invindex.idx2_aid)), name='idx')
-    idx2_daid = pd.Series(invindex.idx2_aid, index=idx_series, name='daid')
-
-    wx_series = pd.Series(invindex.wx2_drvecs.keys(), name='wx')
-    drvec_dflist = []
-    for wx in wx_series:
-        drvecs = invindex.wx2_drvecs[wx]
-        _idxs = pd.Series(invindex.wx2_idxs[wx], name='idx')
-        drvec_df = pd.DataFrame(drvecs, index=_idxs)
-        drvec_dflist.append(drvec_df)
-    wx2_drvecs = pd.Series(drvec_dflist, index=wx_series, name='drvecs')
-    print(wx2_drvecs)
-
-    drvecs = wx2_drvecs[wx]
-    group = drvecs.groupby(idx2_daid)
-    for aid, vecs in group:
-        vecs.dot(vecs.T)
-        # LEFT OFF HERE
-        pass
+    def compute_data_gamma(invindex):
+        use_cache = True
+        daid2_gamma = compute_data_gamma_(invindex, use_cache=use_cache)
+        return daid2_gamma
 
 
-def unpandasify(invindex):
-    invindex.wx2_weight = invindex.wx2_weight.to_dict()
+def gamma_summation(wx2_rvecs, wx2_weight):
+    r"""
+    \begin{equation}
+    \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
+    \end{equation}
+    """
+    return np.reciprocal(np.sqrt(sum(
+        (
+            wx2_weight[wx] * Match_N(vecs, vecs)
+            for wx, vecs in six.iteritems(wx2_rvecs)
+        )
+    )))
 
 
 def selectivity_function(rscore_mat, alpha=3, thresh=0):
@@ -214,23 +337,24 @@ def selectivity_function(rscore_mat, alpha=3, thresh=0):
     return scores
 
 
-def compute_gamma(annots_df, invindex):
-    _daids = pd.Series(invindex._daids, name='daid')
-    wx2_drvecs = invindex.wx2_drvecs
-    wx2_weight = invindex.wx2_weight
-    daid2_gamma = pd.Series(np.zeros(len(invindex._daids)), index=_daids, name='gamma')
-    for wx, _idxs in six.iteritems(invindex.wx2_idxs):
-        aids_ = invindex.idx2_aid[_idxs]
-        weight =  invindex.wx2_weight[wx]
-        for aid in aids_:
-            daid2_gamma[aid] += weight
+def Match_N(vecs1, vecs2):
+    return selectivity_function(vecs1.dot(vecs2.T)).sum()
 
 
-def query_inverted_index(annots_df, qaid, invindex, daid_subset=None):
-    return match_kernel(annots_df, invindex, qaid, daid_subset=daid_subset)
+def query_inverted_index(annots_df, qaid, invindex):
+    #if daid_subset is not None:
+    #    idx2_daid = idx2_daid[idx2_daid.isin(daid_subset)]
+    #    _daids = _daids[_daids.isin(daid_subset)]
+    #    wx2_idxmask_ = {wx: np.in1d(idxs, idx2_daid.index) for wx, idxs in six.iteritems(wx2_idxs)}
+    #    wx2_idxs   = {wx: idxs[wx2_idxmask_[wx]]   for wx, idxs in six.iteritems(wx2_idxs)}
+    #    wx2_drvecs = {wx: drvecs[wx2_idxmask_[wx]] for wx, drvecs in six.iteritems(wx2_drvecs)}
+    qfx2_vec = annots_df['vecs'][qaid]
+    wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
+    wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
+    return match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid)
 
 
-def match_kernel(annots_df, invindex, qaid, daid_subset=None):
+def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid):
     """
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
@@ -240,57 +364,26 @@ def match_kernel(annots_df, invindex, qaid, daid_subset=None):
     >>> qaid = qaids[0]
     >>> wx2_qrvecs = query_inverted_index(annots_df, qaid, invindex)
     """
-    #qfx2_axs = []
-    #qfx2_fm = []
-    #qfx2_fs = []
-    #aid_fm = []
-    #aid_fs = []
-
-    #idx2_dfx  = invindex.idx2_fx
-    #idx2_wx  = invindex.idx2_wx
-    #wx2_idxs_series = {wx: pd.Series(idxs, name='idx') for wx, idxs in
-    #                   six.iteritems(invindex.wx2_idxs)}
-    #wx2_qfxs_series = {wx: pd.Series(qfx, name='qfx') for wx, qfx in
-    #                   six.iteritems(wx2_qfxs)}
-    #qfx2_idx = np.tile(_idxs, (len(qfxs), 1))
-    #qfx2_aid = np.tile(idx2_daid.take(_idxs), (len(qfxs), 1))
-    #qfx2_fx = np.tile(idx2_dfx.take(_idxs), (len(qfxs), 1))
-
-    qfx2_vec = annots_df['vecs'][qaid]
-    wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
-    wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
-
-    _daids = pd.Series(invindex._daids, name='daid')
-    idx2_daid = pd.Series(invindex.idx2_aid, name='daid')
+    _daids = invindex._daids
+    idx2_daid = invindex.idx2_daid
     wx2_idxs   = invindex.wx2_idxs
     wx2_drvecs = invindex.wx2_drvecs
     wx2_weight = invindex.wx2_weight
+    daid2_gamma = invindex.daid2_gamma
 
-    query_gamma = 0
-    for wx, qrvecs in six.iteritems(wx2_qrvecs):
-        query_gamma += selectivity_function(qrvecs.dot(qrvecs.T)).sum() * wx2_weight[wx]
-    query_gamma = 1 / np.sqrt(query_gamma)
+    query_gamma = gamma_summation(wx2_qrvecs, invindex.wx2_weight)
 
-    #if __debug__:
-    #    for wx in wx2_drvecs.keys():
-    #        assert wx2_drvecs[wx].shape[0] == wx2_idxs[wx].shape[0]
-
-    if daid_subset is not None:
-        idx2_daid = idx2_daid[idx2_daid.isin(daid_subset)]
-        _daids = _daids[_daids.isin(daid_subset)]
-        wx2_idxmask_ = {wx: np.in1d(idxs, idx2_daid.index) for wx, idxs in six.iteritems(wx2_idxs)}
-        wx2_idxs   = {wx: idxs[wx2_idxmask_[wx]]   for wx, idxs in six.iteritems(wx2_idxs)}
-        wx2_drvecs = {wx: drvecs[wx2_idxmask_[wx]] for wx, drvecs in six.iteritems(wx2_drvecs)}
-
-    daid2_totalscore = match_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs,
-                                    wx2_weight, idx2_daid, _daids)
-
+    daid2_totalscore = kernel_smk_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs,
+                                         wx2_idxs, wx2_weight, idx2_daid,
+                                         daid2_gamma, _daids, query_gamma)
+    for daid in daid2_totalscore.index:
+        daid2_totalscore[daid] = daid2_totalscore[daid]
     daid2_totalscore.sort(axis=1, ascending=False)
     return daid2_totalscore
 
 
-def match_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs, wx2_weight, idx2_daid,
-                 _daids):
+def kernel_smk_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs, wx2_weight,
+                      idx2_daid, daid2_gamma, _daids, query_gamma):
     # Accumulate scores over the entire database
     daid2_totalscore = pd.Series(np.zeros(len(_daids)), index=_daids, name='total_score')
     common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
@@ -309,8 +402,9 @@ def match_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs, wx2_weight, idx2_da
         qfx2_wscore_ = selectivity_function(qrvecs.dot(drvecs.T))
         # Group scores by database annotation ids
         qfx2_wscore = pd.DataFrame(qfx2_wscore_, index=qfxs, columns=_idxs)
-        daid2_wscore = qfx2_wscore.sum(axis=0).groupby(idx2_daid).sum()
-        daid2_totalscore = daid2_totalscore.add(daid2_wscore * weight, fill_value=0)
+        daid2_wscore = weight * qfx2_wscore.sum(axis=0).groupby(idx2_daid).sum()
+        daid2_totalscore = daid2_totalscore.add(daid2_wscore, fill_value=0)
+    daid2_totalscore = daid2_totalscore * daid2_gamma * query_gamma
     return daid2_totalscore
 
 
@@ -327,8 +421,9 @@ def testdata():
     # Search set
     #qaids = valid_aids[0::2]
     qaids = valid_aids[0:1]
-    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=1000)
-                           #default=5)  # default=95000)
+    default = 1000
+    #default=5)  # default=95000)
+    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
     return ibs, annots_df, taids, daids, qaids, nWords
 
 
@@ -343,14 +438,11 @@ def main():
     print(daid2_totalscore1)
     print(daid2_totalscore2)
     display_info(ibs, invindex, annots_df)
+    print('finished main')
     return locals()
 
 
 def display_info(ibs, invindex, annots_df):
-    np.set_printoptions(precision=2)
-    pd.set_option('display.max_rows', 10)
-    pd.set_option('display.max_columns', 10)
-    pd.set_option('isplay.notebook_repr_html', True)
     #################
     #from ibeis.dev import dbinfo
     #print(ibs.get_infostr())
@@ -370,9 +462,9 @@ def display_info(ibs, invindex, annots_df):
         return clustertool.plot_centroids(data, centroids, labels=labels,
                                           fnum=fnum, prefix=prefix + '\n', **kwd)
     #makeplot_(1, 'centroid vecs', centroids)
-    #makeplot_(2, 'database vecs', invindex.idx2_vec)
+    #makeplot_(2, 'database vecs', invindex.idx2_dvec)
     #makeplot_(3, 'query vecs', qfx2_vec)
-    #makeplot_(4, 'database vecs', invindex.idx2_vec)
+    #makeplot_(4, 'database vecs', invindex.idx2_dvec)
     #makeplot_(5, 'query vecs', qfx2_vec)
     #################
 
