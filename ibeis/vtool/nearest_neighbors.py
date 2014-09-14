@@ -68,8 +68,9 @@ def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={},
     if cache_dir is None:
         print('Warning: no cache dir specified')
         cache_dir = utool.get_app_resource_dir('vtool')
-    flann_cfgstr = get_flann_cfgstr(
-        dpts, flann_params, cfgstr, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
+    flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
+                                    use_params_hash=use_params_hash,
+                                    use_data_hash=use_data_hash)
     if utool.NOT_QUIET:
         print('...flann_cache cfgstr = %r: ' % flann_cfgstr)
     # Append any user labels
@@ -88,8 +89,9 @@ def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params={},
     if len(dpts) == 0:
         raise AssertionError(
             'cannot build flann when len(dpts) == 0. (prevents a segfault)')
-    flann_fpath = get_flann_fpath(
-        dpts, cache_dir, cfgstr, flann_params, use_params_hash=use_params_hash, use_data_hash=use_data_hash)
+    flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params,
+                                  use_params_hash=use_params_hash,
+                                  use_data_hash=use_data_hash)
     # Load the index if it exists
     flann = pyflann.FLANN()
     flann.flann_fpath = flann_fpath

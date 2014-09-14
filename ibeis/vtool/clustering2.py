@@ -106,7 +106,7 @@ def akmeans_iterations(data, centroids, max_iters,
 
 def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                    cache_dir=None, force_recomp=False, use_data_hash=True,
-                   cfgstr='', refine=False, akmeans_cfgstr=None):
+                   cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True):
     """ precompute aproximate kmeans with builtin caching """
     print('[akmeans] pre_akmeans()')
     # filename prefix constants
@@ -121,7 +121,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                                                  cfgstr, use_data_hash)
     try:
         # Try and load a previous centroiding
-        if force_recomp:
+        if not use_cache or force_recomp:
             raise UserWarning('forceing recommpute')
         centroids        = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
         print('[akmeans.precompute] load successful')
