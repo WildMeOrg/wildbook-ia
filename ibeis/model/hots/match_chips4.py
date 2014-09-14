@@ -9,12 +9,11 @@ import utool
 import sys
 from ibeis.model.hots import query_request as hsqreq
 from ibeis.model.hots import pipeline as hspipe
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[mc3]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[mc4]')
 
 
-USE_CACHE = '--nocache-query' not in sys.argv
-USE_BIGCACHE = '--nocache-big' not in sys.argv and '--no-bigcache-query' not in sys.argv
+USE_CACHE = not utool.get_flag('--nocache-query')
+USE_BIGCACHE = not utool.get_flag(('--nocache-big', '--no-bigcache-query'))
 MIN_BIGCACHE_BUNDLE = 20
 
 
