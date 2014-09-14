@@ -133,3 +133,6 @@ annots_df = pd.concat([kpts_df, vecs_df], axis=1)
     #qfx2_idx = np.tile(_idxs, (len(qfxs), 1))
     #qfx2_aid = np.tile(idx2_daid.take(_idxs), (len(qfxs), 1))
     #qfx2_fx = np.tile(idx2_dfx.take(_idxs), (len(qfxs), 1))
+
+    #qfxs   = wx2_qfxs[wx]
+    #_idxs  = wx2_idxs[wx]

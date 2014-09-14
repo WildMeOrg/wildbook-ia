@@ -15,8 +15,12 @@ pd.set_option('display.max_columns', 5)
 pd.set_option('isplay.notebook_repr_html', True)
 
 
+VEC_COLUMNS = pd.Int64Index(range(128), name='vec')
+
+
 def make_annot_df(ibs):
     """
+    Creates a panda dataframe using an ibeis controller
     >>> from smk import *  # NOQA
     >>> ibs = ibeis.opendb('PZ_MTEST')
     >>> annots_df = make_annot_df(ibs)
@@ -25,6 +29,7 @@ def make_annot_df(ibs):
     kpts_list = ibs.get_annot_kpts(aid_list)
     vecs_list = ibs.get_annot_desc(aid_list)
     aid_series = pd.Series(aid_list, name='aid')
+    # TODO: this could be more pandas
     kpts_df = pd.DataFrame(kpts_list, index=aid_series, columns=['kpts'])
     vecs_df = pd.DataFrame(vecs_list, index=aid_series, columns=['vecs'])
     # Pandas Annotation Dataframe
@@ -32,8 +37,9 @@ def make_annot_df(ibs):
     return annots_df
 
 
-def learn_visual_words(annots_df, taids, nWords):
+def learn_visual_words(annots_df, taids, nWords, use_cache=True):
     """
+    Computes visual words
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
@@ -42,12 +48,14 @@ def learn_visual_words(annots_df, taids, nWords):
     train_vecs = np.vstack(vecs_list)
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
-    words = clustertool.cached_akmeans(train_vecs, nWords, max_iters=100)
+    words = clustertool.cached_akmeans(train_vecs, nWords, max_iters=100,
+                                       use_cache=use_cache)
     return words
 
 
 def index_data_annots(annots_df, daids, words, with_internals=True):
     """
+    Create inverted index
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
@@ -76,6 +84,7 @@ def inverted_assignments_(wordflann, idx2_vec):
     >>> idx2_vec = invindex.idx2_dvec
     >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, idx2_vec)
     """
+    #TODO: multiple assignment
     idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, 1)
     assign_df = pd.DataFrame(idx2_wx, columns=['wordindex'])
     word_group = assign_df.groupby('wordindex')
@@ -83,8 +92,8 @@ def inverted_assignments_(wordflann, idx2_vec):
     return wx2_idxs, idx2_wx
 
 
-def compute_word_weights_(wx2_idxs, idx2_aid, _daids):
-    """
+def compute_word_idf_(wx2_idxs, idx2_aid, _daids):
+    """ Returns the inverse-document-frequency weighting for each word
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
@@ -92,7 +101,7 @@ def compute_word_weights_(wx2_idxs, idx2_aid, _daids):
     >>> wx2_idxs = invindex.wx2_idxs
     >>> idx2_aid = invindex.idx2_daid
     >>> _daids   = invindex._daids
-    >>> wx2_idf = compute_word_weights_(wx2_idxs, idx2_aid, _daids)
+    >>> wx2_idf = compute_word_idf_(wx2_idxs, idx2_aid, _daids)
     """
     nTotalDocs = _daids.shape[0]
     wx2_idf = {wx: np.log(nTotalDocs / len(pd.unique(idx2_aid[idxs])))
@@ -145,6 +154,7 @@ def compute_internals_(invindex):
 
 def pandasify(invindex):
     """
+    Transitions from numpy to pandas
     >>> from smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
@@ -159,11 +169,14 @@ def pandasify(invindex):
     >>> invindex.wx2_weight = wx2_weight
     >>> invindex.wx2_drvecs = wx2_drvecs
     """
+    #TODO: Integrate better!!
     #assert isinstance(invindex.wx2_weight, dict)
     assert not isinstance(invindex._daids, pd.Series)
     def noprint(arg):
         pass
     def super_print(arg):
+        # TODO incorporate into utool
+        # combine with printex functionality
         from six.moves import builtins
         _plocals = utool.get_parent_locals()
         try:
@@ -180,8 +193,6 @@ def pandasify(invindex):
         builtins.print(arg)
         builtins.print('L==========')
     print = noprint
-
-    vec_columns = pd.Int64Index(range(128), name='vec')
 
     # aid - annotation ids
     _daids = pd.Series(invindex._daids, name='aid')
@@ -204,10 +215,10 @@ def pandasify(invindex):
             wx: pd.DataFrame(
                 invindex.wx2_drvecs[wx],
                 index=wx2_idxs[wx],
-                columns=vec_columns,
+                columns=VEC_COLUMNS,
             )
             for wx in wx_series
-        }, index=wx_series, name='drvecs')
+        }, index=wx_series, name='wx2_drvecs')
 
     print(wx2_idxs)
     print(wx2_drvecs)
@@ -216,7 +227,7 @@ def pandasify(invindex):
     idx_series = pd.Series(np.arange(len(invindex.idx2_daid)), name='idx')
     idx2_daid = pd.Series(invindex.idx2_daid, index=idx_series, name='daid')
     idx2_daid = pd.Series(invindex.idx2_daid, index=idx_series, name='aid')
-    idx2_dvec = pd.DataFrame(invindex.idx2_dvec, index=idx_series, columns=vec_columns)
+    idx2_dvec = pd.DataFrame(invindex.idx2_dvec, index=idx_series, columns=VEC_COLUMNS)
     idx2_dfx  = pd.Series(invindex.idx2_dfx, index=idx_series, name='fx')
     print(idx2_dvec)
     print(idx2_dfx)
@@ -240,9 +251,10 @@ def compute_data_gamma_(invindex, use_cache=True):
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
     >>> daid2_gamma = compute_data_gamma_(invindex, use_cache=True)
     """
+    cache_key = utool.hashstr(invindex.get_cfgstr())
     if use_cache:
         try:
-            daid2_gamma = utool.global_cache_read('gamma_dbg', appname='smk')
+            daid2_gamma = utool.global_cache_read(cache_key, appname='smk')
             #print('gamma_dbg cache hit')
             return daid2_gamma
         except Exception:
@@ -272,7 +284,7 @@ def compute_data_gamma_(invindex, use_cache=True):
     for count, (daid, wx2_drvecs) in enumerate(six.iteritems(daid2_wx2_drvecs)):
         mark(count)
         daid2_gamma[daid] = gamma_summation(wx2_drvecs, invindex.wx2_weight)
-    utool.global_cache_write('gamma_dbg', daid2_gamma, appname='smk')
+    utool.global_cache_write(cache_key, daid2_gamma, appname='smk')
     return daid2_gamma
 
 
@@ -291,13 +303,16 @@ class InvertedIndex(object):
         invindex.daid2_gamma = None
         #invindex.compute_internals()
 
+    def get_cfgstr(invindex):
+        return utool.hashstr_arr(invindex.wx2_drvecs.values, lbl='InvIndex')
+
     def compute_internals(invindex):
         compute_internals_(invindex)
 
     def compute_word_weights(invindex, wx2_idxs):
         idx2_aid = invindex.idx2_daid
         _daids   = invindex._daids
-        wx2_weight = compute_word_weights_(wx2_idxs, idx2_aid, _daids)
+        wx2_weight = compute_word_idf_(wx2_idxs, idx2_aid, _daids)
         return wx2_weight
 
     def inverted_assignments(invindex, idx2_vec):
@@ -341,6 +356,31 @@ def Match_N(vecs1, vecs2):
     return selectivity_function(vecs1.dot(vecs2.T)).sum()
 
 
+def compute_query_repr(annots_df, qaid, invindex):
+    qfx2_vec = annots_df['vecs'][qaid]
+    wx2_qfxs_, qfx2_wx_ = invindex.inverted_assignments(qfx2_vec)
+    wx2_qrvecs_ = invindex.compute_residuals(qfx2_vec, wx2_qfxs_)
+    wx_series = pd.Series(wx2_qfxs_.keys(), name='wx')
+    wx2_qfxs = pd.Series(
+        {
+            wx: pd.Series(
+                wx2_qfxs_[wx],
+                name='fx',
+            )
+            for wx in wx_series
+        }, index=wx_series, name='wx2_qfxs')
+    wx2_qrvecs = pd.Series(
+        {
+            wx: pd.DataFrame(
+                wx2_qrvecs_[wx],
+                index=wx2_qfxs[wx],
+                columns=VEC_COLUMNS,
+            )
+            for wx in wx_series
+        }, index=wx_series, name='wx2_qrvecs')
+    return wx2_qfxs, wx2_qrvecs
+
+
 def query_inverted_index(annots_df, qaid, invindex):
     #if daid_subset is not None:
     #    idx2_daid = idx2_daid[idx2_daid.isin(daid_subset)]
@@ -348,9 +388,7 @@ def query_inverted_index(annots_df, qaid, invindex):
     #    wx2_idxmask_ = {wx: np.in1d(idxs, idx2_daid.index) for wx, idxs in six.iteritems(wx2_idxs)}
     #    wx2_idxs   = {wx: idxs[wx2_idxmask_[wx]]   for wx, idxs in six.iteritems(wx2_idxs)}
     #    wx2_drvecs = {wx: drvecs[wx2_idxmask_[wx]] for wx, drvecs in six.iteritems(wx2_drvecs)}
-    qfx2_vec = annots_df['vecs'][qaid]
-    wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
-    wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
+    wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
     return match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid)
 
 
@@ -360,52 +398,78 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid):
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
-    >>> wx2_drvecs = invindex.wx2_drvecs
     >>> qaid = qaids[0]
-    >>> wx2_qrvecs = query_inverted_index(annots_df, qaid, invindex)
+    >>> wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
+    >>> daid2_totalscore = match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid)
     """
     _daids = invindex._daids
     idx2_daid = invindex.idx2_daid
-    wx2_idxs   = invindex.wx2_idxs
     wx2_drvecs = invindex.wx2_drvecs
     wx2_weight = invindex.wx2_weight
     daid2_gamma = invindex.daid2_gamma
 
     query_gamma = gamma_summation(wx2_qrvecs, invindex.wx2_weight)
 
-    daid2_totalscore = kernel_smk_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs,
-                                         wx2_idxs, wx2_weight, idx2_daid,
-                                         daid2_gamma, _daids, query_gamma)
-    for daid in daid2_totalscore.index:
-        daid2_totalscore[daid] = daid2_totalscore[daid]
-    daid2_totalscore.sort(axis=1, ascending=False)
-    return daid2_totalscore
-
-
-def kernel_smk_nonagg(wx2_qrvecs, wx2_qfxs, wx2_drvecs, wx2_idxs, wx2_weight,
-                      idx2_daid, daid2_gamma, _daids, query_gamma):
     # Accumulate scores over the entire database
-    daid2_totalscore = pd.Series(np.zeros(len(_daids)), index=_daids, name='total_score')
+    daid2_aggscore = pd.Series(np.zeros(len(_daids)), index=_daids, name='total_score')
     common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
 
+    daid2_wx2_scoremat = utool.ddict(lambda: utool.ddict(list))
+
     # for each word compute the pairwise scores between matches
-    for wx in common_wxs:
-        # Query information for this word
-        qfxs   = wx2_qfxs[wx]
+    mark, end = utool.log_progress('query word: ', len(common_wxs), flushfreq=100)
+    for count, wx in enumerate(common_wxs):
+        if count % 100 == 0:
+            mark(count)
+        # Query and database vectors for wx-th word
         qrvecs = wx2_qrvecs[wx]
-        # Database information for this word
-        _idxs  = wx2_idxs[wx]
         drvecs = wx2_drvecs[wx]
         # Word Weight
         weight = wx2_weight[wx]
         # Compute score matrix
-        qfx2_wscore_ = selectivity_function(qrvecs.dot(drvecs.T))
+        qfx2_wscore = selectivity_function(qrvecs.dot(drvecs.T))
+        qfx2_wscore.groupby(idx2_daid)
         # Group scores by database annotation ids
-        qfx2_wscore = pd.DataFrame(qfx2_wscore_, index=qfxs, columns=_idxs)
+        group = qfx2_wscore.groupby(idx2_daid, axis=1)
+        for daid, scoremat in group:
+            daid2_wx2_scoremat[daid][wx] = scoremat
+        #qfx2_wscore = pd.DataFrame(qfx2_wscore_, index=qfxs, columns=_idxs)
         daid2_wscore = weight * qfx2_wscore.sum(axis=0).groupby(idx2_daid).sum()
-        daid2_totalscore = daid2_totalscore.add(daid2_wscore, fill_value=0)
-    daid2_totalscore = daid2_totalscore * daid2_gamma * query_gamma
-    return daid2_totalscore
+        daid2_aggscore = daid2_aggscore.add(daid2_wscore, fill_value=0)
+    daid2_totalscore = daid2_aggscore * daid2_gamma  # * query_gamma
+    end()
+
+    daid_fm = {}
+    daid_fs = {}
+    daid_fk = {}
+    mark, end = utool.log_progress('accumulating match info: ', len(daid2_wx2_scoremat), flushfreq=100)
+    for count, item in enumerate(daid2_wx2_scoremat.items()):
+        daid, wx2_scoremat = item
+        if count % 25 == 0:
+            mark(count)
+        fm_accum = []
+        fs_accum = []
+        fk_accum = []
+        for wx, scoremat in wx2_scoremat.iteritems():
+            qfxs = scoremat.index
+            dfxs = invindex.idx2_dfx[scoremat.columns]
+            fm_ = np.vstack(np.dstack(np.meshgrid(qfxs, dfxs, indexing='ij')))
+            fs_ = scoremat.values.flatten()
+            lower_thresh = 0.01
+            valid = [fs_ > lower_thresh]
+            fm = fm_[valid]
+            fs = fs_[valid]
+            fk = np.ones(len(fm), dtype=np.int32)
+            fm_accum.append(fm)
+            fs_accum.append(fs)
+            fk_accum.append(fk)
+        daid_fm[daid] = np.vstack(fm_accum)
+        daid_fs[daid] = np.hstack(fs_accum).T
+        daid_fk[daid] = np.hstack(fk_accum).T
+    chipmatch = (daid_fm, daid_fs, daid_fk,)
+
+    daid2_totalscore.sort(axis=1, ascending=False)
+    return daid2_totalscore, chipmatch
 
 
 def testdata():
@@ -421,36 +485,51 @@ def testdata():
     # Search set
     #qaids = valid_aids[0::2]
     qaids = valid_aids[0:1]
-    default = 1000
+    #default = 1000
+    default = 1E5
     #default=5)  # default=95000)
     nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
     return ibs, annots_df, taids, daids, qaids, nWords
 
 
 def main():
+    """
+    >>> from smk import *  # NOQA
+    """
+    from ibeis.model.hots import pipeline
+    from ibeis.model.hots import query_request as hsqreq
     ibs, annots_df, taids, daids, qaids, nWords = testdata()
     words = learn_visual_words(annots_df, taids, nWords)
     invindex = index_data_annots(annots_df, daids, words)
     wx2_drvecs = invindex.wx2_drvecs
     qaid = qaids[0]
-    daid2_totalscore1 = query_inverted_index(annots_df, qaid, invindex)
-    daid2_totalscore2 = query_inverted_index(annots_df, daids[0], invindex)
+
+    qreq_ = hsqreq.new_ibeis_query_request(ibs, [qaid], daids)
+
+    daid2_totalscore1, chipmatch = query_inverted_index(annots_df, qaid, invindex)
+    qaid2_chipmatch = {}
+    qaid2_chipmatch[qaid] = chipmatch
+    qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
+    qres = six.next(six.itervalues(qaid2_qres_))
+    qres.show_top(ibs)
     print(daid2_totalscore1)
-    print(daid2_totalscore2)
-    display_info(ibs, invindex, annots_df)
+
+    #daid2_totalscore2, chipmatch = query_inverted_index(annots_df, daids[0], invindex)
+    #print(daid2_totalscore2)
+    #display_info(ibs, invindex, annots_df)
     print('finished main')
     return locals()
 
 
 def display_info(ibs, invindex, annots_df):
-    #################
-    #from ibeis.dev import dbinfo
-    #print(ibs.get_infostr())
-    #dbinfo.get_dbinfo(ibs, verbose=True)
-    #################
-    #print('Inverted Index Stats: vectors per word')
-    #print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
-    #################
+    ################
+    from ibeis.dev import dbinfo
+    print(ibs.get_infostr())
+    dbinfo.get_dbinfo(ibs, verbose=True)
+    ################
+    print('Inverted Index Stats: vectors per word')
+    print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
+    ################
     #qfx2_vec     = annots_df['vecs'][1]
     centroids    = invindex.words
     num_pca_dims = 3  # 3
@@ -461,7 +540,7 @@ def display_info(ibs, invindex, annots_df):
     def makeplot_(fnum, prefix, data, labels='centroids', centroids=centroids):
         return clustertool.plot_centroids(data, centroids, labels=labels,
                                           fnum=fnum, prefix=prefix + '\n', **kwd)
-    #makeplot_(1, 'centroid vecs', centroids)
+    makeplot_(1, 'centroid vecs', centroids)
     #makeplot_(2, 'database vecs', invindex.idx2_dvec)
     #makeplot_(3, 'query vecs', qfx2_vec)
     #makeplot_(4, 'database vecs', invindex.idx2_dvec)
