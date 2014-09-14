@@ -262,7 +262,7 @@ def compute_data_gamma_(invindex, use_cache=True):
 
     # Gropuing by aid and words
 
-    mark, end_ = utool.log_progress('gamma grouping ',
+    mark, end_ = utool.log_progress(('gamma grouping %s ' % (cache_key,)),
                                     invindex.wx2_drvecs.shape[0],
                                     flushfreq=100)
     daid2_wx2_drvecs = utool.ddict(dict)
@@ -408,7 +408,7 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid):
     wx2_weight = invindex.wx2_weight
     daid2_gamma = invindex.daid2_gamma
 
-    query_gamma = gamma_summation(wx2_qrvecs, invindex.wx2_weight)
+    #query_gamma = gamma_summation(wx2_qrvecs, invindex.wx2_weight)
 
     # Accumulate scores over the entire database
     daid2_aggscore = pd.Series(np.zeros(len(_daids)), index=_daids, name='total_score')
@@ -486,7 +486,7 @@ def testdata():
     #qaids = valid_aids[0::2]
     qaids = valid_aids[0:1]
     #default = 1000
-    default = 1E5
+    default = 10000
     #default=5)  # default=95000)
     nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
     return ibs, annots_df, taids, daids, qaids, nWords
