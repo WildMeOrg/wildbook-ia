@@ -61,13 +61,12 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
 
 
 #@utool.indent_func
-def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={},
-                    use_params_hash=True, use_data_hash=True):
+def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
+                    use_params_hash=True, use_data_hash=True, appname='vtool'):
     """ returns filepath for flann index """
-    #cache_dir = '.' if cache_dir is None else cache_dir
-    if cache_dir is None:
-        print('Warning: no cache dir specified')
-        cache_dir = utool.get_app_resource_dir('vtool')
+    if cache_dir == 'default':
+        print('[flann] using default cache dir')
+        cache_dir = utool.get_app_resource_dir(appname)
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
                                     use_params_hash=use_params_hash,
                                     use_data_hash=use_data_hash)
@@ -80,8 +79,9 @@ def get_flann_fpath(dpts, cache_dir=None, cfgstr='', flann_params={},
 
 
 #@utool.indent_func
-def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params={},
-                use_cache=True, save=True, use_params_hash=True, use_data_hash=True):
+def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
+                use_cache=True, save=True, use_params_hash=True,
+                use_data_hash=True, appname='vtool'):
     """
     Tries to load a cached flann index before doing anything
     from vtool.nn
@@ -91,7 +91,7 @@ def flann_cache(dpts, cache_dir=None, cfgstr='', flann_params={},
             'cannot build flann when len(dpts) == 0. (prevents a segfault)')
     flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params,
                                   use_params_hash=use_params_hash,
-                                  use_data_hash=use_data_hash)
+                                  use_data_hash=use_data_hash, appname=appname)
     # Load the index if it exists
     flann = pyflann.FLANN()
     flann.flann_fpath = flann_fpath

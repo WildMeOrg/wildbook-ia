@@ -15,6 +15,51 @@ CLUSTERS_FNAME = 'akmeans_centroids'
 DATAX2CL_FNAME = 'akmeans_datax2cl'
 
 
+def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
+                   cache_dir='default', force_recomp=False, use_data_hash=True,
+                   cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
+                   appname='vtool'):
+    """ precompute aproximate kmeans with builtin caching """
+    print('[akmeans] pre_akmeans()')
+    # filename prefix constants
+    if cache_dir == 'default':
+        print('[akmeans] using default cache dir')
+        cache_dir = utool.get_app_resource_dir(appname)
+    # Build a cfgstr if the full one is not specified
+    if akmeans_cfgstr is None:
+        # compute a hashstr based on the data
+        cfgstr += '_nC=%d' % nCentroids
+        akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
+                                                 cfgstr, use_data_hash)
+    try:
+        # Try and load a previous centroiding
+        if not use_cache or force_recomp:
+            raise UserWarning('forceing recommpute')
+        centroids        = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
+        print('[akmeans.precompute] load successful')
+        if refine:
+            # Refines the centroid centers if specified
+            centroids = refine_akmeans(data, centroids, max_iters=max_iters,
+                                       flann_params=flann_params,
+                                       cache_dir=cache_dir,
+                                       akmeans_cfgstr=akmeans_cfgstr)
+        assert centroids.shape[0] == nCentroids, 'bad number of centroids'
+        assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+        return centroids
+    except IOError as ex:
+        utool.printex(ex, 'cache miss', iswarning=True)
+    except UserWarning:
+        pass
+    # First time computation
+    print('[akmeans.precompute] pre_akmeans(): calling akmeans')
+    centroids = akmeans(data, nCentroids, max_iters, flann_params)
+    print('[akmeans.precompute] save and return')
+    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
+    assert centroids.shape[0] == nCentroids, 'bad number of centroids'
+    assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+    return centroids
+
+
 def akmeans(data, nCentroids, max_iters=5, flann_params={},
             ave_unchanged_thresh=0,
             ave_unchanged_iterwin=10):
@@ -43,10 +88,12 @@ def initialize_centroids(nCentroids, data):
 
 
 def refine_akmeans(data, centroids, max_iters=5,
-                   flann_params={}, cache_dir=None, cfgstr='',
+                   flann_params={}, cache_dir='default', cfgstr='',
                    use_data_hash=True, akmeans_cfgstr=None):
     """ Refines the approximates centroids """
     print('[akmeans.precompute] refining:')
+    if cache_dir == 'default':
+        cache_dir = utool.get_app_resource_dir('vtool')
     if akmeans_cfgstr is None:
         akmeans_cfgstr = nntool.get_flann_cfgstr(
             data, flann_params, cfgstr, use_data_hash)
@@ -101,50 +148,6 @@ def akmeans_iterations(data, centroids, max_iters,
         else:
             datax2_centroidx_old = datax2_centroidx
     _end()
-    return centroids
-
-
-def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
-                   cache_dir=None, force_recomp=False, use_data_hash=True,
-                   cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True):
-    """ precompute aproximate kmeans with builtin caching """
-    print('[akmeans] pre_akmeans()')
-    # filename prefix constants
-    if cache_dir is None:
-        print('Warning: no cache dir specified')
-        cache_dir = utool.get_app_resource_dir('vtool')
-    # Build a cfgstr if the full one is not specified
-    if akmeans_cfgstr is None:
-        # compute a hashstr based on the data
-        cfgstr += '_nC=%d' % nCentroids
-        akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
-                                                 cfgstr, use_data_hash)
-    try:
-        # Try and load a previous centroiding
-        if not use_cache or force_recomp:
-            raise UserWarning('forceing recommpute')
-        centroids        = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
-        print('[akmeans.precompute] load successful')
-        if refine:
-            # Refines the centroid centers if specified
-            centroids = refine_akmeans(data, centroids, max_iters=max_iters,
-                                       flann_params=flann_params,
-                                       cache_dir=cache_dir,
-                                       akmeans_cfgstr=akmeans_cfgstr)
-        assert centroids.shape[0] == nCentroids, 'bad number of centroids'
-        assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
-        return centroids
-    except IOError as ex:
-        utool.printex(ex, 'cache miss', iswarning=True)
-    except UserWarning:
-        pass
-    # First time computation
-    print('[akmeans.precompute] pre_akmeans(): calling akmeans')
-    centroids = akmeans(data, nCentroids, max_iters, flann_params)
-    print('[akmeans.precompute] save and return')
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
-    assert centroids.shape[0] == nCentroids, 'bad number of centroids'
-    assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
     return centroids
 
 
