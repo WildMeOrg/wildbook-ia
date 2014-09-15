@@ -20,6 +20,58 @@ USE_CACHE_WORDS = not utool.get_flag('--nocache-words')
 USE_CACHE_GAMMA = not utool.get_flag('--nocache-gamma')
 
 
+@six.add_metaclass(utool.ReloadingMetaclass)
+class InvertedIndex(object):
+    def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids):
+        invindex.wordflann  = wordflann
+        invindex.words      = words     # visual word centroids
+        invindex.daids     = _daids    # indexed annotation ids
+        invindex.idx2_dvec  = idx2_vec  # stacked index -> descriptor vector (currently sift)
+        invindex.idx2_daid  = idx2_aid  # stacked index -> annot id
+        invindex.idx2_dfx   = idx2_fx   # stacked index -> feature index (wrt daid)
+        invindex.wx2_idxs   = None      # word index -> stacked indexes
+        invindex.wx2_drvecs = None      # word index -> residual vectors
+        invindex.wx2_weight = None      # word index -> idf (wx normalize)
+        invindex.daid2_gamma = None     # word index -> gamma (daid normalizer)
+        #invindex.compute_internals()
+
+    def get_cfgstr(invindex):
+        lbl = 'InvIndex'
+        hashstr = utool.hashstr(repr(invindex.wx2_drvecs))
+        return '_{lbl}({hashstr})'.format(lbl=lbl, hashstr=hashstr)
+
+    def compute_internals(invindex):
+        compute_internals_(invindex)
+
+    def compute_word_weights(invindex, wx2_idxs):
+        idx2_aid = invindex.idx2_daid
+        _daids   = invindex.daids
+        wx_series = invindex.words.index
+        wx2_weight = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, _daids)
+        return wx2_weight
+
+    def inverted_assignments(invindex, idx2_vec, idx_name='idx', dense=True):
+        wordflann = invindex.wordflann
+        words     = invindex.words
+        wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec, idx_name, dense)
+        return wx2_idxs, idx2_wx
+
+    def compute_residuals(invindex, idx2_vec, wx2_idxs):
+        words = invindex.words
+        wx2_rvecs = compute_residuals_(words, idx2_vec, wx2_idxs)
+        return wx2_rvecs
+
+    def compute_data_gamma(invindex):
+        use_cache = USE_CACHE_GAMMA
+        idx2_daid  = invindex.idx2_daid
+        wx2_drvecs = invindex.wx2_drvecs
+        wx2_weight = invindex.wx2_weight
+        daids      = invindex.daids
+        daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight,
+                                          daids, use_cache=use_cache)
+        return daid2_gamma
+
+
 def ensure_numpy(data):
     return data.values if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)) else data
 
@@ -168,7 +220,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     >>> with_internals = False
     >>> invindex  = index_data_annots(annots_df, daids, words, with_internals)
     >>> idx2_aid  = invindex.idx2_daid
-    >>> daids     = invindex._daids
+    >>> daids     = invindex.daids
     >>> wordflann = invindex.wordflann
     >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec)
     >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
@@ -195,7 +247,7 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
     >>> with_internals = False
     >>> invindex  = index_data_annots(annots_df, daids, words, with_internals)
     >>> idx2_vec  = invindex.idx2_dvec
-    >>> daids     = invindex._daids
+    >>> daids     = invindex.daids
     >>> wordflann = invindex.wordflann
     >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec)
     >>> wx2_rvecs = compute_residuals_(words, idx2_vec, wx2_idxs)
@@ -234,7 +286,7 @@ def compute_internals_(invindex):
     """
     idx2_vec  = invindex.idx2_dvec
     idx2_daid = invindex.idx2_daid
-    daids     = invindex._daids
+    daids     = invindex.daids
     wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec, idx_name='idx')
     wx2_weight = invindex.compute_word_weights(wx2_idxs)
     wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
@@ -256,7 +308,7 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=USE_
     >>> idx2_daid  = invindex.idx2_daid
     >>> wx2_drvecs = invindex.wx2_drvecs
     >>> wx2_weight = invindex.wx2_weight
-    >>> daids      = invindex._daids
+    >>> daids      = invindex.daids
     >>> use_cache  = USE_CACHE_GAMMA
     >>> daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=use_cache)
     """
@@ -296,66 +348,37 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=USE_
     return daid2_gamma
 
 
-@six.add_metaclass(utool.ReloadingMetaclass)
-class InvertedIndex(object):
-    def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids):
-        invindex.wordflann  = wordflann
-        invindex.words      = words     # visual word centroids
-        invindex._daids     = _daids    # indexed annotation ids
-        invindex.idx2_dvec  = idx2_vec  # stacked index -> descriptor vector
-        invindex.idx2_daid  = idx2_aid  # stacked index -> annot id
-        invindex.idx2_dfx   = idx2_fx   # stacked index -> feature index
-        invindex.wx2_idxs   = None      # word index -> stacked indexes
-        invindex.wx2_drvecs = None      # word index -> residual vectors
-        invindex.wx2_weight = None      # word index -> idf
-        invindex.daid2_gamma = None
-        #invindex.compute_internals()
-
-    def get_cfgstr(invindex):
-        lbl = 'InvIndex'
-        hashstr = utool.hashstr(repr(invindex.wx2_drvecs))
-        return '_{lbl}({hashstr})'.format(lbl=lbl, hashstr=hashstr)
-
-    def compute_internals(invindex):
-        compute_internals_(invindex)
-
-    def compute_word_weights(invindex, wx2_idxs):
-        idx2_aid = invindex.idx2_daid
-        _daids   = invindex._daids
-        wx_series = invindex.words.index
-        wx2_weight = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, _daids)
-        return wx2_weight
-
-    def inverted_assignments(invindex, idx2_vec, idx_name='idx', dense=True):
-        wordflann = invindex.wordflann
-        words     = invindex.words
-        wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec, idx_name, dense)
-        return wx2_idxs, idx2_wx
-
-    def compute_residuals(invindex, idx2_vec, wx2_idxs):
-        words = invindex.words
-        wx2_rvecs = compute_residuals_(words, idx2_vec, wx2_idxs)
-        return wx2_rvecs
-
-    def compute_data_gamma(invindex):
-        use_cache = USE_CACHE_GAMMA
-        idx2_daid  = invindex.idx2_daid
-        wx2_drvecs = invindex.wx2_drvecs
-        wx2_weight = invindex.wx2_weight
-        daids      = invindex._daids
-        daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight,
-                                          daids, use_cache=use_cache)
-        return daid2_gamma
-
-
 def compute_query_repr(annots_df, qaid, invindex):
+    """
+    Gets query read for computations
+
+    >>> from smk_index import *  # NOQA
+    >>> import smk
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
+    >>> words = learn_visual_words(annots_df, taids, nWords)
+    >>> invindex = index_data_annots(annots_df, daids, words)
+    >>> qaid = qaids[0]
+    >>> compute_query_repr(annots_df, qaid, invindex)
+    """
     qfx2_vec = annots_df['vecs'][qaid]
     wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec, idx_name='fx', dense=False)
     wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
     return wx2_qfxs, wx2_qrvecs
 
 
-def query_inverted_index(annots_df, qaid, invindex):
+def query_inverted_index(annots_df, qaid, invindex, withinfo=True):
+    """
+    >>> from smk_index import *  # NOQA
+    >>> import smk
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdana()
+    >>> words = learn_visual_words(annots_df, taids, nWords)
+    >>> invindex = index_data_annots(annots_df, daids, words)
+    >>> qaid = qaids[0]
+    >>> wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
+    >>> query_inverted_index(annots_df, qaid, invindex)
+    >>> withinfo = False
+    >>> daid2_totalscore = query_inverted_index(annots_df, qaid, invindex, withinfo=withinfo)
+    """
     #if daid_subset is not None:
     #    idx2_daid = idx2_daid[idx2_daid.isin(daid_subset)]
     #    _daids = _daids[_daids.isin(daid_subset)]
@@ -363,10 +386,15 @@ def query_inverted_index(annots_df, qaid, invindex):
     #    wx2_idxs   = {wx: idxs[wx2_idxmask_[wx]]   for wx, idxs in six.iteritems(wx2_idxs)}
     #    wx2_drvecs = {wx: drvecs[wx2_idxmask_[wx]] for wx, drvecs in six.iteritems(wx2_drvecs)}
     wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
-    daid2_totalscore, daid2_wx2_scoremat = smk_core.match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid)
-    daid2_totalscore.sort(axis=1, ascending=False)
-    chipmatch = build_chipmatch(daid2_wx2_scoremat, invindex.idx2_dfx)
-    return daid2_totalscore, chipmatch
+    if withinfo:
+        daid2_totalscore, daid2_wx2_scoremat = smk_core.match_kernel(
+            wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo)
+        chipmatch = build_chipmatch(daid2_wx2_scoremat, invindex.idx2_dfx)
+        return daid2_totalscore, chipmatch
+    else:
+        daid2_totalscore  = smk_core.match_kernel(
+            wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo)
+        return daid2_totalscore
 
 
 def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):

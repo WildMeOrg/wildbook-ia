@@ -137,7 +137,7 @@ def compute_word_idf_(wx2_idxs, idx2_aid, _daids):
     >>> invindex = index_data_annots(annots_df, daids, words)
     >>> wx2_idxs = invindex.wx2_idxs
     >>> idx2_aid = invindex.idx2_daid
-    >>> _daids   = invindex._daids
+    >>> _daids   = invindex.daids
     >>> wx2_idf = compute_word_idf_(wx2_idxs, idx2_aid, _daids)
     """
     nTotalDocs = _daids.shape[0]
@@ -185,7 +185,7 @@ def compute_internals_(invindex):
     invindex.wx2_idxs   = wx2_idxs
     invindex.wx2_weight = wx2_weight
     invindex.wx2_drvecs = wx2_drvecs
-    assert not isinstance(invindex._daids, pd.Series)
+    assert not isinstance(invindex.daids, pd.Series)
     pandasify(invindex)
     invindex.daid2_gamma = invindex.compute_data_gamma()
 
@@ -209,14 +209,14 @@ def pandasify(invindex):
     """
     #TODO: Integrate better!!
     #assert isinstance(invindex.wx2_weight, dict)
-    assert not isinstance(invindex._daids, pd.Series)
+    assert not isinstance(invindex.daids, pd.Series)
     def noprint(arg):
         pass
     print = utool.super_print
     #print = noprint
 
     # aid - annotation ids
-    _daids = pd.Series(invindex._daids, name='aid')
+    _daids = pd.Series(invindex.daids, name='aid')
     print(_daids)
 
     # wx - word index
@@ -237,7 +237,7 @@ def pandasify(invindex):
     print(idx2_dvec)
     print(idx2_dfx)
 
-    invindex._daids = _daids
+    invindex.daids = _daids
     invindex.idx2_daid = idx2_daid
     invindex.idx2_dvec = idx2_dvec
     invindex.idx2_dfx  = idx2_dfx
@@ -283,8 +283,8 @@ def compute_data_gamma_(invindex, use_cache=True):
     mark, end_ = utool.log_progress('gamma summation ', len(daid2_wx2_drvecs),
                                     flushfreq=100)
     daid2_gamma = pd.Series(
-        np.zeros(invindex._daids.shape[0]),
-        index=invindex._daids,
+        np.zeros(invindex.daids.shape[0]),
+        index=invindex.daids,
         name='gamma')
     wx2_weight = invindex.wx2_weight
     for count, (daid, wx2_drvecs) in enumerate(six.iteritems(daid2_wx2_drvecs)):
@@ -301,7 +301,7 @@ class InvertedIndex(object):
     def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids):
         invindex.wordflann  = wordflann
         invindex.words      = words     # visual word centroids
-        invindex._daids     = _daids    # indexed annotation ids
+        invindex.daids     = _daids    # indexed annotation ids
         invindex.idx2_dvec  = idx2_vec  # stacked index -> descriptor vector
         invindex.idx2_daid  = idx2_aid  # stacked index -> annot id
         invindex.idx2_dfx   = idx2_fx   # stacked index -> feature index
@@ -321,7 +321,7 @@ class InvertedIndex(object):
 
     def compute_word_weights(invindex, wx2_idxs):
         idx2_aid = invindex.idx2_daid
-        _daids   = invindex._daids
+        _daids   = invindex.daids
         wx2_weight = compute_word_idf_(wx2_idxs, idx2_aid, _daids)
         return wx2_weight
 
@@ -400,7 +400,7 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid):
     >>> wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
     >>> daid2_totalscore = match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid)
     """
-    _daids = invindex._daids
+    _daids = invindex.daids
     idx2_daid = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
     wx2_weight = invindex.wx2_weight

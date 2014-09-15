@@ -65,14 +65,15 @@ def main():
     qaid = qaids[0]
     qreq_ = hsqreq.new_ibeis_query_request(ibs, [qaid], daids)
     # Smk Mach
-    daid2_totalscore1, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
+    daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
+    daid2_totalscore.sort(axis=1, ascending=False)
+    print(daid2_totalscore)
     # Pack into QueryResult
     qaid2_chipmatch = {qaid: chipmatch}
     qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
     qres = qaid2_qres_[qaid]
     # Show match
     qres.show_top(ibs)
-    print(daid2_totalscore1)
 
     #daid2_totalscore2, chipmatch = query_inverted_index(annots_df, daids[0], invindex)
     #print(daid2_totalscore2)
