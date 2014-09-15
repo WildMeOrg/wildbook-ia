@@ -25,8 +25,8 @@ def check_wx2_rvecs(wx2_rvecs, verbose=True):
 
 def check_invindex(invindex, verbose=True):
     """
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -49,8 +49,8 @@ def check_daid2_gamma(daid2_gamma, verbose=True):
 
 def wx2_rvecs_stats(wx2_rvecs):
     """
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> invindex = index_data_annots(annots_df, daids, words)
     >>> qaid = qaids[0]
@@ -62,9 +62,9 @@ def wx2_rvecs_stats(wx2_rvecs):
 
 
 def test_gamma_cache():
-    import smk_debug
-    import smk_index
-    import smk
+    from ibeis.model.hots import smk_debug
+    from ibeis.model.hots import smk_index
+    from ibeis.model.hots import smk
     ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
     with_internals = True

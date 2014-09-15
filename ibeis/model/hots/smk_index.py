@@ -10,7 +10,7 @@ import numpy.linalg as npl  # NOQA
 import pandas as pd
 from vtool import clustering2 as clustertool
 from vtool import nearest_neighbors as nntool
-import smk_core
+from ibeis.model.hots import smk_core
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
 
@@ -62,13 +62,11 @@ class InvertedIndex(object):
         return wx2_rvecs
 
     def compute_data_gamma(invindex):
-        use_cache  = USE_CACHE_GAMMA
         idx2_daid  = invindex.idx2_daid
         wx2_drvecs = invindex.wx2_drvecs
         wx2_weight = invindex.wx2_weight
         daids      = invindex.daids
-        daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight,
-                                          daids, use_cache=use_cache)
+        daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids)
         return daid2_gamma
 
 
@@ -113,7 +111,7 @@ def pandasify_list2d(list_, keys, columns, val_name, series_name):
 def make_annot_df(ibs):
     """
     Creates a panda dataframe using an ibeis controller
-    >>> from smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> import ibeis
     >>> ibs = ibeis.opendb('PZ_MTEST')
     >>> annots_df = make_annot_df(ibs)
@@ -132,8 +130,8 @@ def make_annot_df(ibs):
 def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     """
     Computes visual words
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> use_cache = USE_CACHE_WORDS
     >>> words = learn_visual_words(annots_df, taids, nWords)
@@ -152,8 +150,8 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
 def index_data_annots(annots_df, daids, words, with_internals=True):
     """
     Create inverted index for database annotations
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = True
@@ -182,8 +180,8 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
 
 def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True):
     """ Assigns vectors to nearest word
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words, False)
@@ -222,7 +220,7 @@ def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True
 @utool.cached_func('idf', appname='smk', key_argx=[1, 2, 3])
 def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     """ Returns the inverse-document-frequency weighting for each word
-    >>> from smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> wx_series = words.index
@@ -246,11 +244,11 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     return wx2_idf
 
 
-@utool.cached_func('residuals', appname='smk')
+#@utool.cached_func('residuals', appname='smk')
 def compute_residuals_(words, idx2_vec, wx2_idxs):
     """ Computes residual vectors based on word assignments
     returns mapping from word index to a set of residual vectors
-    >>> from smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> wx_series = words.index
@@ -285,8 +283,8 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
 @utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
 def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids):
     """
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = True
@@ -329,7 +327,7 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids):
 
 def compute_data_internals_(invindex):
     """
-    >>> from smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = False
@@ -354,8 +352,8 @@ def compute_query_repr(annots_df, qaid, invindex):
     """
     Gets query read for computations
 
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -377,9 +375,9 @@ def compute_query_repr(annots_df, qaid, invindex):
 
 def query_inverted_index(annots_df, qaid, invindex, withinfo=True):
     """
-    >>> from smk_index import *  # NOQA
-    >>> import smk_debug
-    >>> import smk
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk_debug
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -390,15 +388,17 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True):
     >>> withinfo = False
     >>> daid2_totalscore = query_inverted_index(annots_df, qaid, invindex, withinfo=withinfo)
     """
+    # Get query words / residuals
     wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
+    # Compute match kernel for all database aids
+    daid2_totalscore, daid2_wx2_scoremat = smk_core.match_kernel(
+        wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo)
+    # Build chipmatches if daid2_wx2_scoremat is not None
     if withinfo:
-        daid2_totalscore, daid2_wx2_scoremat = smk_core.match_kernel(
-            wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo)
+        assert daid2_wx2_scoremat is not None
         chipmatch = build_chipmatch(daid2_wx2_scoremat, invindex.idx2_dfx)
         return daid2_totalscore, chipmatch
     else:
-        daid2_totalscore  = smk_core.match_kernel(
-            wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo)
         return daid2_totalscore
 
 
@@ -406,9 +406,9 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
     daid_fm = {}
     daid_fs = {}
     daid_fk = {}
-    mark, end = utool.log_progress('accumulating match info: ',
-                                   len(daid2_wx2_scoremat), flushfreq=100,
-                                   writefreq=25)
+    mark, end_ = utool.log_progress('accumulating match info: ',
+                                    len(daid2_wx2_scoremat), flushfreq=100,
+                                    writefreq=25)
     for count, item in enumerate(daid2_wx2_scoremat.items()):
         daid, wx2_scoremat = item
         mark(count)
@@ -426,7 +426,8 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
             #    utool.printex(ex)
             #    utool.embed()
             fs_ = scoremat.values.flatten()
-            lower_thresh = 0.01
+            lower_thresh = 0
+            lower_thresh = 0.001
             valid = [fs_ > lower_thresh]
             fm = fm_[valid]
             fs = fs_[valid]
@@ -437,5 +438,22 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
         daid_fm[daid] = np.vstack(fm_accum)
         daid_fs[daid] = np.hstack(fs_accum).T
         daid_fk[daid] = np.hstack(fk_accum).T
+    end_()
     chipmatch = (daid_fm, daid_fs, daid_fk,)
     return chipmatch
+
+
+def query_smk(ibs, annots_df, invindex, qreq_):
+    from ibeis.model.hots import pipeline
+    qaids = qreq_.get_external_qaids()
+    qaid2_chipmatch = {}
+    qaid2_scores = {}
+    for qaid in qaids:
+        daid2_score, chipmatch = query_inverted_index(annots_df, qaid, invindex,
+                                                      withinfo=True)
+        qaid2_scores[qaid] = daid2_score
+        qaid2_chipmatch[qaid] = chipmatch
+    qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
+    #,
+                                                #qaid2_scores=qaid2_scores)
+    return qaid2_qres_

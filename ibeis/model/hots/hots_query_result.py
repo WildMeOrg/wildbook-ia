@@ -293,18 +293,19 @@ class QueryResult(__OBJECT_BASE__):
 
         top_lbls = [' top aids', ' scores', ' ranks']
 
-        top_aids   = qres.get_top_aids(num=5)
-        top_scores = qres.get_aid_scores(top_aids)
-        top_ranks  = qres.get_aid_ranks(top_aids)
+        top_aids   = np.array(qres.get_top_aids(num=5), dtype=np.int32)
+        top_scores = np.array(qres.get_aid_scores(top_aids), dtype=np.float64)
+        top_ranks  = np.array(qres.get_aid_ranks(top_aids), dtype=np.int32)
         top_list   = [top_aids, top_scores, top_ranks]
 
         if ibs is not None:
             top_lbls += [' isgt']
             istrue = qres.get_aid_truth(ibs, top_aids)
-            top_list.append(istrue)
+            top_list.append(np.array(istrue, dtype=np.int32))
 
         top_stack = np.vstack(top_list)
-        top_stack = np.array(top_stack, dtype=np.int32)
+        top_stack = np.array(top_stack, dtype=object)
+        #np.int32)
         top_str = str(top_stack)
 
         top_lbl = '\n'.join(top_lbls)

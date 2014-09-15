@@ -15,9 +15,9 @@ def gamma_summation(wx2_rvecs, wx2_weight):
     \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
     \end{equation}
 
-    >>> from smk_index import *  # NOQA
-    >>> import smk
-    >>> import smk_debug
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
+    >>> from ibeis.model.hots import smk_debug
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -56,16 +56,16 @@ def Match_N(vecs1, vecs2):
 
 def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
     """
-    >>> from smk_core import *  # NOQA
-    >>> from smk_index import *  # NOQA
-    >>> import smk
+    >>> from ibeis.model.hots.smk_core import *  # NOQA
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> from ibeis.model.hots import smk
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
     >>> qaid = qaids[0]
     >>> wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
-    >>> daid2_totalscore = match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid)
-    >>> withinfo = False
+    >>> withinfo = True  # takes an 11s vs 2s
+    >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=withinfo)
     """
     _daids = invindex.daids
     idx2_daid = invindex.idx2_daid
@@ -75,16 +75,20 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
 
     wx2_rvecs = wx2_qrvecs
     query_gamma = gamma_summation(wx2_rvecs, wx2_weight)
+    assert query_gamma > 0, 'query gamma is not positive!'
 
     # Accumulate scores over the entire database
     daid2_aggscore = pd.Series(np.zeros(len(_daids)), index=_daids, name='total_score')
     common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
 
-    daid2_wx2_scoremat = (utool.ddict(lambda: utool.ddict(list))
-                          if withinfo else None)
+    if withinfo:
+        daid2_wx2_scoremat = utool.ddict(dict)
 
     # for each word compute the pairwise scores between matches
-    mark, end = utool.log_progress('query word: ', len(common_wxs), flushfreq=100, writefreq=25)
+    print('+==============')
+    mark, end_ = utool.log_progress('query word: ', len(common_wxs),
+                                    flushfreq=100, writefreq=25,
+                                    with_totaltime=False)
     for count, wx in enumerate(common_wxs):
         mark(count)
         qrvecs = wx2_qrvecs[wx]  # Query vectors for wx-th word
@@ -100,9 +104,17 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
         daid2_wscore = weight * qfx2_wscore.sum(axis=0).groupby(idx2_daid).sum()
         daid2_aggscore = daid2_aggscore.add(daid2_wscore, fill_value=0)
     daid2_totalscore = daid2_aggscore * daid2_gamma * query_gamma
-    end()
+    end_()
+    print('L==============')
 
     if withinfo:
-        return daid2_totalscore, daid2_wx2_scoremat
-    else:
-        return daid2_totalscore
+        print('applying weights')
+        # Correctly weight individual matches
+        for daid, wx2_scoremat in six.iteritems(daid2_wx2_scoremat):
+            # Adjust recoreded scores to account for normalizations
+            gamma_weight = (daid2_gamma[daid] * query_gamma)
+            for wx, scoremat in six.iteritems(wx2_scoremat):
+                num = scoremat.values.size
+                daid2_wx2_scoremat[daid][wx] = num * scoremat * wx2_weight[wx] * gamma_weight
+
+    return daid2_totalscore, daid2_wx2_scoremat

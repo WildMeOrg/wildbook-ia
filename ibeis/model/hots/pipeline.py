@@ -617,7 +617,8 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 
 
 @profile
-def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
+def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
+                         qaid2_scores=None):
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')
     qaids   = qreq_.get_external_qaids()
@@ -630,19 +631,33 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
     # using qreq externals aids should be equivalent
     #for qaid in six.iterkeys(qaid2_chipmatch):
     for qaid, qauuid in zip(qaids, qauuids):
-        # For each query's chipmatch
-        chipmatch = qaid2_chipmatch[qaid]
-        # Perform final scoring
-        aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
         # Create a query result structure
         qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
+        qaid2_qres[qaid] = qres
+
+    for qaid, qres in six.iteritems(qaid2_qres):
+        # For each query's chipmatch
+        chipmatch = qaid2_chipmatch[qaid]
+        if chipmatch is not None:
+            aid2_fm, aid2_fs, aid2_fk = chipmatch
+            qres.aid2_fm = aid2_fm
+            qres.aid2_fs = aid2_fs
+            qres.aid2_fk = aid2_fk
+
+        # Perform final scoring
+        if qaid2_scores is None:
+            aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
+        else:
+            aid2_score = qaid2_scores[qaid]
+            if not isinstance(aid2_score, dict):
+                # Pandas hack
+                aid2_score = aid2_score.to_dict()
         # Populate query result fields
         qres.aid2_score = aid2_score
-        (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
+
         qres.filt2_meta = {}  # dbgstats
         for filt, qaid2_meta in six.iteritems(filt2_meta):
             qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
-        qaid2_qres[qaid] = qres
     # Retain original score method
     return qaid2_qres
 

@@ -11,22 +11,15 @@ Issues:
 
 """
 from __future__ import absolute_import, division, print_function
+import six
 import ibeis
 import utool
 import numpy as np
-import numpy.linalg as npl  # NOQA
 import pandas as pd
 from vtool import clustering2 as clustertool
-from plottool import draw_func2 as df2
-from ibeis.model.hots import pipeline
-from ibeis.model.hots import query_request as hsqreq
-import smk_index
+from ibeis.model.hots import query_request
+from ibeis.model.hots import smk_index
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk]')
-
-np.set_printoptions(precision=2)
-pd.set_option('display.max_rows', 7)
-pd.set_option('display.max_columns', 7)
-pd.set_option('isplay.notebook_repr_html', True)
 
 
 def testdata():
@@ -42,10 +35,10 @@ def testdata():
     # Training set
     taids = valid_aids[:]
     # Database set
-    daids = valid_aids[1:]
+    daids = valid_aids[1:10]
     # Search set
     #qaids = valid_aids[0::2]
-    qaids = valid_aids[0:1]
+    qaids = [valid_aids[0], valid_aids[4]]
     default = 1E3
     #default = 2E4
     #default=5)  # default=95000)
@@ -55,7 +48,7 @@ def testdata():
 
 def main():
     """
-    >>> from smk import *  # NOQA
+    >>> from ibeis.model.hots.smk import *  # NOQA
     """
     ibs, annots_df, taids, daids, qaids, nWords = testdata()
     # Learn vocabulary
@@ -63,18 +56,24 @@ def main():
     # Index a database of annotations
     invindex = smk_index.index_data_annots(annots_df, daids, words)
     # Query using SMK
-    qaid = qaids[0]
-    qreq_ = hsqreq.new_ibeis_query_request(ibs, [qaid], daids)
+    #qaid = qaids[0]
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     # Smk Mach
-    daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
-    daid2_totalscore.sort(axis=1, ascending=False)
-    print(daid2_totalscore)
-    # Pack into QueryResult
-    qaid2_chipmatch = {qaid: chipmatch}
-    qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
-    qres = qaid2_qres_[qaid]
-    # Show match
-    qres.show_top(ibs)
+    qaid2_qres_ = smk_index.query_smk(ibs, annots_df, invindex, qreq_)
+    for count, (qaid, qres) in enumerate(six.iteritems(qaid2_qres_)):
+        print('+================')
+        #qres = qaid2_qres_[qaid]
+        qres.show_top(ibs, fnum=count)
+        print(qres.get_inspect_str(ibs))
+        print('L================')
+    #print(qres.aid2_fs)
+    #daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
+    ## Pack into QueryResult
+    #qaid2_chipmatch = {qaid: chipmatch}
+    #qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
+    ## Show match
+    #daid2_totalscore.sort(axis=1, ascending=False)
+    #print(daid2_totalscore)
 
     #daid2_totalscore2, chipmatch = query_inverted_index(annots_df, daids[0], invindex)
     #print(daid2_totalscore2)
@@ -111,6 +110,13 @@ def display_info(ibs, invindex, annots_df):
 
 
 if __name__ == '__main__':
+    import multiprocessing
+    from plottool import draw_func2 as df2
+    np.set_printoptions(precision=2)
+    pd.set_option('display.max_rows', 7)
+    pd.set_option('display.max_columns', 7)
+    pd.set_option('isplay.notebook_repr_html', True)
+    multiprocessing.freeze_support()  # for win32
     main_locals = main()
     main_execstr = utool.execstr_dict(main_locals, 'main_locals')
     exec(main_execstr)
