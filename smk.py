@@ -21,6 +21,7 @@ from plottool import draw_func2 as df2
 from ibeis.model.hots import pipeline
 from ibeis.model.hots import query_request as hsqreq
 import smk_index
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk]')
 
 np.set_printoptions(precision=2)
 pd.set_option('display.max_rows', 7)
@@ -41,7 +42,7 @@ def testdata():
     # Training set
     taids = valid_aids[:]
     # Database set
-    daids  = valid_aids[1:]
+    daids = valid_aids[1:]
     # Search set
     #qaids = valid_aids[0::2]
     qaids = valid_aids[0:1]
@@ -93,7 +94,7 @@ def display_info(ibs, invindex, annots_df):
     ################
     #qfx2_vec     = annots_df['vecs'][1]
     centroids    = invindex.words
-    num_pca_dims = 3  # 3
+    num_pca_dims = 2  # 3
     whiten       = False
     kwd = dict(num_pca_dims=num_pca_dims,
                whiten=whiten,)

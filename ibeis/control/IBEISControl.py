@@ -55,8 +55,7 @@ from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              VERSIONS_TABLE, __STR__)
 
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[ibs]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]')
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 

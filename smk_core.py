@@ -6,6 +6,7 @@ import six
 import numpy as np
 import pandas as pd
 import utool
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
 def gamma_summation(wx2_rvecs, wx2_weight):
@@ -14,21 +15,26 @@ def gamma_summation(wx2_rvecs, wx2_weight):
     \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
     \end{equation}
 
-    >>> from smk_core import *  # NOQA
     >>> from smk_index import *  # NOQA
     >>> import smk
+    >>> import smk_debug
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
-    >>> qaid = qaids[0]
-    >>> wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
-    >>> wx2_rvecs = wx2_qrvecs
     >>> wx2_weight = invindex.wx2_weight
+    >>> qaid = qaids[0]
+    >>> wx2_qfxs, wx2_rvecs = compute_query_repr(annots_df, qaid, invindex)
+    >>> assert smk_debug.check_wx2_rvecs(wx2_rvecs)
+    >>> #print(utool.dict_str(smk_debug.wx2_rvecs_stats(wx2_rvecs)))
+    >>> scoremat = smk_core.gamma_summation(wx2_rvecs, wx2_weight)
+    >>> print(scoremat)
+    0.0384477314197
     """
-    gamma_iter = [wx2_weight.get(wx, 0) * Match_N(vecs, vecs).sum()
+
+    gamma_iter = [wx2_weight.get(wx, 0) * Match_N(vecs.values, vecs.values).sum()
                   for wx, vecs in six.iteritems(wx2_rvecs)]
     summation = sum(gamma_iter)
-    scoremat = np.reciprocal(np.sqrt())
+    scoremat = np.reciprocal(np.sqrt(summation))
     return scoremat
 
 
@@ -78,7 +84,7 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
                           if withinfo else None)
 
     # for each word compute the pairwise scores between matches
-    mark, end = utool.log_progress('query word: ', len(common_wxs), flushfreq=100)
+    mark, end = utool.log_progress('query word: ', len(common_wxs), flushfreq=100, writefreq=25)
     for count, wx in enumerate(common_wxs):
         mark(count)
         qrvecs = wx2_qrvecs[wx]  # Query vectors for wx-th word
