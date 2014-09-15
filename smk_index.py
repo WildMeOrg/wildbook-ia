@@ -18,7 +18,6 @@ VEC_DIM = 128
 VEC_COLUMNS  = pd.Int64Index(range(VEC_DIM), name='vec')
 KPT_COLUMNS = pd.Index(['xpos', 'ypos', 'a', 'c', 'd', 'theta'], name='kpt')
 USE_CACHE_WORDS = not utool.get_flag('--nocache-words')
-USE_CACHE_GAMMA = not utool.get_flag('--nocache-gamma')
 
 
 @six.add_metaclass(utool.ReloadingMetaclass)
@@ -63,7 +62,7 @@ class InvertedIndex(object):
         return wx2_rvecs
 
     def compute_data_gamma(invindex):
-        use_cache = USE_CACHE_GAMMA
+        use_cache  = USE_CACHE_GAMMA
         idx2_daid  = invindex.idx2_daid
         wx2_drvecs = invindex.wx2_drvecs
         wx2_weight = invindex.wx2_weight
@@ -220,6 +219,7 @@ def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True
     return wx2_idxs, idx2_wx
 
 
+@utool.cached_func('idf', appname='smk', key_argx=[1, 2, 3])
 def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     """ Returns the inverse-document-frequency weighting for each word
     >>> from smk_index import *  # NOQA
@@ -246,6 +246,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     return wx2_idf
 
 
+@utool.cached_func('residuals', appname='smk')
 def compute_residuals_(words, idx2_vec, wx2_idxs):
     """ Computes residual vectors based on word assignments
     returns mapping from word index to a set of residual vectors
@@ -281,7 +282,8 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
     return wx2_rvecs
 
 
-def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=USE_CACHE_GAMMA):
+@utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
+def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids):
     """
     >>> from smk_index import *  # NOQA
     >>> import smk
@@ -296,15 +298,11 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=USE_
     >>> use_cache  = USE_CACHE_GAMMA and False
     >>> daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=use_cache)
     """
-    hashstr = utool.hashstr(repr(wx2_drvecs) + repr(wx2_weight))
-    cache_key = hashstr
-    if use_cache:
-        try:
-            daid2_gamma = utool.global_cache_read(cache_key, appname='smk')
-            print('data gamma cache hit: ' + cache_key)
-            return daid2_gamma
-        except Exception:
-            pass
+    #cfgstr = utool.hashstr(repr(wx2_drvecs) + repr(wx2_weight))
+    #cacher  = utool.Cacher('gamma', cfgstr=cfgstr, appname='smk')
+    #data    = cacher.tryload()
+    #if data is not None:
+    #    return data
     # Gropuing by aid and words
     mark1, end1_ = utool.log_progress(
         'data gamma grouping: ', len(wx2_drvecs), flushfreq=100, writefreq=50)
@@ -325,7 +323,7 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids, use_cache=USE_
         daid2_gamma[daid] = smk_core.gamma_summation(wx2_rvecs, wx2_weight)
     end2_()
     # Cache save
-    utool.global_cache_write(cache_key, daid2_gamma, appname='smk')
+    #cacher.save(daid2_gamma)
     return daid2_gamma
 
 
