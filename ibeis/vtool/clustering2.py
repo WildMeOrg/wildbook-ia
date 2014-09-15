@@ -25,6 +25,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     if cache_dir == 'default':
         print('[akmeans] using default cache dir')
         cache_dir = utool.get_app_resource_dir(appname)
+        utool.ensuredir(cache_dir)
     # Build a cfgstr if the full one is not specified
     if akmeans_cfgstr is None:
         # compute a hashstr based on the data
@@ -94,6 +95,7 @@ def refine_akmeans(data, centroids, max_iters=5,
     print('[akmeans.precompute] refining:')
     if cache_dir == 'default':
         cache_dir = utool.get_app_resource_dir('vtool')
+        utool.ensuredir(cache_dir)
     if akmeans_cfgstr is None:
         akmeans_cfgstr = nntool.get_flann_cfgstr(
             data, flann_params, cfgstr, use_data_hash)

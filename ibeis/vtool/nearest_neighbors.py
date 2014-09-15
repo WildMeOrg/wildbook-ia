@@ -67,6 +67,7 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     if cache_dir == 'default':
         print('[flann] using default cache dir')
         cache_dir = utool.get_app_resource_dir(appname)
+        utool.ensuredir(cache_dir)
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
                                     use_params_hash=use_params_hash,
                                     use_data_hash=use_data_hash)
