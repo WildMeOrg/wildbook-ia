@@ -40,7 +40,7 @@ def build_pyinstaller():
             src = join(srcdir, srcname)
             dst = join(dstdir, dstname)
             utool.copy(src, dst)
-        print("RUN: ./_installers/mac_dmg_builder.sh")
+        print("RUN: sudo ./_installers/mac_dmg_builder.sh")
         # utool.cmd('./_scripts/mac_dmg_builder.sh')
 
 
