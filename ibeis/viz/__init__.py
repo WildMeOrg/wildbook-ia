@@ -22,7 +22,7 @@ from .viz_matches import show_matches, annotate_matches
 from .viz_qres import show_qres, show_qres_top, show_qres_analysis
 from .viz_sver import show_sver, _compute_svvars
 from .viz_nearest_descriptors import show_nearest_descriptors
-from .viz_hough import show_hough
+from .viz_hough import show_hough_image, show_hough_chip
 
 __LOADED__ = False
 

@@ -17,7 +17,7 @@ import pyrf
 #=================
 
 
-def generate_detections(ibs, gid_list, species, **detectkw):
+def generate_detection_images(ibs, gid_list, species, **detectkw):
     """ detectkw can be: save_detection_images, save_scales, draw_supressed,
         detection_width, detection_height, percentage_left, percentage_top,
         nms_margin_percentage
@@ -27,6 +27,7 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     #
     # Resize to a standard image size prior to detection
     src_gpath_list = list(map(str, ibs.get_image_detectpaths(gid_list)))
+    dst_gpath_list = [splitext(gpath)[0] + '_result' for gpath in src_gpath_list]
     utool.close_pool()
 
     # Get sizes of the original and resized images for final scale correction
@@ -38,7 +39,7 @@ def generate_detections(ibs, gid_list, species, **detectkw):
     ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
     use_chunks = ibs.cfg.other_cfg.detect_use_chunks
 
-    generator = detect_species_bboxes(src_gpath_list, species,
+    generator = detect_species_bboxes(src_gpath_list, dst_gpath_list, species,
                                       use_chunks=use_chunks, **detectkw)
 
     for gid, scale, (bboxes, confidences, img_conf) in zip(gid_list, scale_list, generator):
@@ -50,30 +51,43 @@ def generate_detections(ibs, gid_list, species, **detectkw):
             yield gid, bbox, confidence, img_conf
 
 
-def get_image_hough_gpaths(ibs, gid_list, species, quick=True):
+def compute_hough_images(ibs, src_gpath_list, dst_gpath_list, species, quick=True):
+    # Define detect dict
     detectkw = {
         'quick': quick,
         'save_detection_images': True,
-        'save_scales': True,
+        'save_scales': False,
     }
-    #
-    # Resize to a standard image size prior to detection
-    src_gpath_list = list(map(str, ibs.get_image_detectpaths(gid_list)))
-    dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
-    hough_gpath_list = [gpath + '_hough.png' for gpath in dst_gpath_list]
-    isvalid_list = [exists(gpath) for gpath in hough_gpath_list]
+    _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw)
 
-    # Need to recompute hough images for these gids
-    dirty_gids = utool.get_dirty_items(gid_list, isvalid_list)
-    num_dirty = len(dirty_gids)
+
+def compute_hough_chips(ibs, src_gpath_list, dst_gpath_list, species):
+    # Define detect dict
+    detectkw = {
+        'quick': True,
+        'save_detection_images': True,
+        'save_scales': False,
+    }
+    _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw)
+    
+
+def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
+    assert len(src_gpath_list) == len(dst_gpath_list)
+    isvalid_list = [exists(gpath) for gpath in dst_gpath_list]
+    dirty_src_gpaths = utool.get_dirty_items(src_gpath_list, isvalid_list)
+    dirty_dst_gpaths = utool.get_dirty_items(dst_gpath_list, isvalid_list)
+    num_dirty = len(dirty_src_gpaths)
     if num_dirty > 0:
         print('[detect.rf] making hough images for %d images' % num_dirty)
-        detect_gen = generate_detections(ibs, dirty_gids, species, **detectkw)
-        # Execute generator
-        for tup in detect_gen:
-            pass
+        # Detect on scaled images
+        ibs.cfg.other_cfg.ensure_attr('detect_use_chunks', True)
+        use_chunks = ibs.cfg.other_cfg.detect_use_chunks
 
-    return hough_gpath_list
+        generator = detect_species_bboxes(dirty_src_gpaths, dirty_dst_gpaths, species,
+                                          use_chunks=use_chunks, **detectkw)
+        # Execute generator
+        for tup in generator:
+            pass
 
 
 #=================
@@ -89,16 +103,21 @@ def _scale_bbox(bbox, s):
     return bbox2
 
 
-def _get_detector(species, quick=True):
+def _get_detector(species, quick=True, single=False):
     # Ensure all models downloaded and accounted for
     grabmodels.ensure_models()
     # Create detector
-    if quick:
-        config = {}
-    else:
+    if single:
         config = {
-            'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20'
+            'scales': '1 0.5'
         }
+    else:
+        if quick:
+            config = {}
+        else:
+            config = {
+                'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20'
+            }
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
     trees_path = grabmodels.get_species_trees_paths(species)
     # Load forest, so we don't have to reload every time
@@ -119,7 +138,7 @@ def _get_detect_config(**detectkw):
 #=================
 
 
-def detect_species_bboxes(src_gpath_list, species, quick=True, use_chunks=False, **detectkw):
+def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True, single=False, use_chunks=False, **detectkw):
     """
     Generates bounding boxes for each source image
     For each image yeilds a list of bounding boxes
@@ -130,17 +149,14 @@ def detect_species_bboxes(src_gpath_list, species, quick=True, use_chunks=False,
     mark_prog, end_prog = utool.progress_func(nImgs, detect_lbl, flush_after=1)
 
     detect_config = _get_detect_config(**detectkw)
-    detector, forest = _get_detector(species, quick=quick)
+    detector, forest = _get_detector(species, quick=quick, single=single)
     detector.set_detect_params(**detect_config)
-
-    dst_gpath_list = [splitext(gpath)[0] for gpath in src_gpath_list]
-    # FIXME: Doing this in a generator may cause unnecessary page-faults
-    # Maybe there is a better way of doing this, or generating results
-    # in batch. It could be a utool batch serial process
-
+    
     chunksize = 8
     use_chunks_ = use_chunks and nImgs >= chunksize
 
+    print(src_gpath_list)
+    print(dst_gpath_list)
     if use_chunks_:
         print('[rf] detect in chunks')
         pathtup_iter = list(zip(src_gpath_list, dst_gpath_list))

@@ -1446,6 +1446,12 @@ class IBEISController(object):
         return chip_list
 
     @getter_1to1
+    def get_chip_detectpaths(ibs, cid_list):
+        """ Returns a list of image paths resized to a constant area for detection """
+        new_gfpath_list = preproc_detectimg.compute_and_write_detectchip_lazy(ibs, cid_list)
+        return new_gfpath_list
+
+    @getter_1to1
     def get_chip_aids(ibs, cid_list):
         aid_list = ibs.db.get(CHIP_TABLE, ('annot_rowid',), cid_list)
         return aid_list
@@ -1787,7 +1793,7 @@ class IBEISController(object):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
-        detect_gen = randomforest.generate_detections(ibs, gid_list, species, **kwargs)
+        detect_gen = randomforest.generate_detection_images(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
         ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
