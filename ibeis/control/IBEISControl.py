@@ -277,20 +277,26 @@ class IBEISController(object):
 
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
-        ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
+        # Always a fresh object
+        ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
         try:
-            if True or utool.get_flag(('--noprefload', '--noprefload')):
+            # Use pref cache
+            if True or utool.get_flag(('--nocache-pref',)):
                 raise Exception('')
             ibs.cfg.load()
             if utool.NOT_QUIET:
                 print('[ibs] successfully loaded config')
         except Exception:
+            # Totally new completely default preferences
             ibs._default_config()
 
-    def _default_config(ibs):
+    def _default_config(ibs, new=False):
         """ Resets the databases's algorithm configuration """
         print('[ibs] building default config')
-        query_cfg    = Config.default_query_cfg()
+        if new:
+            # Sometimes a fresh object
+            ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
+        query_cfg = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
         ibs.cfg.enc_cfg     = Config.EncounterConfig()
         ibs.cfg.preproc_cfg = Config.PreprocConfig()

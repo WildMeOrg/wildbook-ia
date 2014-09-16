@@ -2,38 +2,79 @@ from __future__ import absolute_import, division, print_function
 import utool
 import six
 import copy
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[Config]', DEBUG=False)
+from utool._internal.meta_util_six import get_funcname
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[cfg]')
 
-ConfigBase = utool.Pref
 #ConfigBase = utool.DynStruct
 #ConfigBase = object
+ConfigBase = utool.Pref
 
 
-def make_feasible(query_cfg):
+class ConfigMetaclass(type):
+    #ConfigBase.__class__):
     """
-    removes invalid parameter settings over all cfgs (move to QueryConfig)
+    Defines extra methods for Configs
     """
-    filt_cfg = query_cfg.filt_cfg
-    nn_cfg   = query_cfg.nn_cfg
-    feat_cfg = query_cfg._feat_cfg
 
-    # Ensure the list of on filters is valid given the weight and thresh
-    if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
-        filt_cfg.ratio_thresh = None
-    if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
-        filt_cfg.bboxdist_thresh = None
-    if filt_cfg.bursty_thresh  is None or filt_cfg.bursty_thresh <= 1:
-        filt_cfg.bursty_thresh = None
+    # cls - meta
+    # name - classname
+    # supers - bases
+    # dct - class dictionary
 
-    if feat_cfg.nogravity_hack is False:
-        filt_cfg.gravity_weighting = False
+    def __new__(cls, name, bases, dct):
+        method_list = utool.get_comparison_methods()
 
-    # normalizer rule depends on Knorm
-    if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
-        nn_cfg.normalizer_rule = 'last'
+        def _register(func):
+            #if get_funcname(func) not in dct:
+            method_list.append(func)
+            return func
+
+        #print(dct)
+        #assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list'
+        if 'get_cfgstr_list' not in dct:
+            @_register
+            def get_cfgstr_list(cfg):
+                return ['cfg']
+
+        # Needed for comparison operators
+        @_register
+        def __hash__(cfg):
+            return hash(cfg.get_cfgstr())
+
+        if 'get_cfgstr' not in dct:
+            @_register
+            def get_cfgstr(cfg):
+                return ''.join(cfg.get_cfgstr_list())
+
+        for func in method_list:
+            funcname = get_funcname(func)
+            dct[funcname] = func
+            #utool.inject_func_as_method(metaself, func)
+
+        return type(name, bases, dct)
+
+    #def __init__(metaself, name, bases, dct):
+    #    super(ConfigMetaclass, metaself).__init__(name, bases, dct)
+
+    #    # Give the new class the registered methods
+    #    #funcname = get_funcname(func)
+    #    #setattr(metaself, funcname, func)
+
+    #    #metaself.__cfgmetaclass__ = True
 
 
+@six.add_metaclass(ConfigMetaclass)
+class GenericConfig(ConfigBase):
+    def __init__(cfg, *args, **kwargs):
+        super(GenericConfig, cfg).__init__(*args, **kwargs)
+
+    #def get_cfgstr_list(nn_cfg):
+
+    #@abstract():
+    #def get_cfgstr_list(cfg):
+
+
+@six.add_metaclass(ConfigMetaclass)
 class NNConfig(ConfigBase):
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
@@ -52,12 +93,13 @@ class NNConfig(ConfigBase):
                       ')']
         return nn_cfgstr
 
-    def get_cfgstr(nn_cfg):
-        return ''.join(nn_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class FilterConfig(ConfigBase):
-    # Rename to scoring mechanism
+    """
+    Rename to scoring mechanism
+    """
+
     def __init__(filt_cfg, **kwargs):
         super(FilterConfig, filt_cfg).__init__(name='filt_cfg')
         filt_cfg = filt_cfg
@@ -149,11 +191,12 @@ class FilterConfig(ConfigBase):
         filt_cfgstr += [')']
         return filt_cfgstr
 
-    def get_cfgstr(filt_cfg):
-        return ''.join(filt_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class SpatialVerifyConfig(ConfigBase):
+    """
+    Spatial verification
+    """
     def __init__(sv_cfg, **kwargs):
         super(SpatialVerifyConfig, sv_cfg).__init__(name='sv_cfg')
         tau = 6.28  # 318530
@@ -180,11 +223,12 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfgstr += [')']
         return sv_cfgstr
 
-    def get_cfgstr(sv_cfg):
-        return ''.join(sv_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class AggregateConfig(ConfigBase):
+    """
+    Old Agg Cfg
+    """
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
         agg_cfg.query_type   = 'vsmany'
@@ -227,11 +271,10 @@ class AggregateConfig(ConfigBase):
         agg_cfgstr += [')']
         return agg_cfgstr
 
-    def get_cfgstr(agg_cfg):
-        return ''.join(agg_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class FlannConfig(ConfigBase):
+    """ FlannConfig """
     def __init__(flann_cfg, **kwargs):
         super(FlannConfig, flann_cfg).__init__(name='flann_cfg')
         flann_cfg.algorithm = 'kdtree'
@@ -252,11 +295,26 @@ class FlannConfig(ConfigBase):
         flann_cfgstrs += [')']
         return flann_cfgstrs
 
-    def get_cfgstr(flann_cfg):
-        return ''.join(flann_cfg.get_cfgstr_list())
+
+@six.add_metaclass(ConfigMetaclass)
+class SMKConfig(ConfigBase):
+    """ SMKConfig """
+    def __init__(smkcfg, **kwargs):
+        super(SMKConfig, smkcfg).__init__(name='smkcfg')
+        smkcfg.nAssign = 1  # MultiAssignment
+        smkcfg.indexer_key = 'default'  # Vocab
+        smkcfg.aggregate = False  #
+        smkcfg.nWords = 1000  #
+
+    def get_cfgstr_list(smkcfg):
+        smk_cfgstr = ['_SMK(szVocab=', str(smkcfg.nWords), ',nAssign=', str(smkcfg.nAssign), ',asmk=',
+                      str(smkcfg.aggregate), ')', ]
+        return smk_cfgstr
 
 
+@six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
+    """ query configuration parameters """
     def __init__(query_cfg, feat_cfg=None, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg   = NNConfig(**kwargs)
@@ -264,14 +322,18 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg   = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg  = AggregateConfig(**kwargs)
         query_cfg.flann_cfg = FlannConfig(**kwargs)
+        query_cfg.smk_cfg   = SMKConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
+        query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         if feat_cfg is None:
             query_cfg._feat_cfg = FeatureConfig(**kwargs)
         else:
             query_cfg._feat_cfg = feat_cfg
         query_cfg.update_query_cfg(**kwargs)
+        if utool.VERYVERBOSE:
+            print('[config] NEW QueryConfig')
 
     def update_query_cfg(query_cfg, **kwargs):
         # Each config paramater should be unique
@@ -283,6 +345,7 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg.update(**kwargs)
         query_cfg.agg_cfg.update(**kwargs)
         query_cfg.flann_cfg.update(**kwargs)
+        query_cfg.smk_cfg.update(**kwargs)
         query_cfg.update(**kwargs)
         # Ensure feasibility of the configuration
         make_feasible(query_cfg)
@@ -301,49 +364,58 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = []
-        if kwargs.get('use_nn', True):
-            cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
-        if kwargs.get('use_filt', True):
-            cfgstr_list += query_cfg.filt_cfg.get_cfgstr_list(**kwargs)
-        if kwargs.get('use_sv', True):
-            cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        if kwargs.get('use_agg', True):
-            cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
-        if kwargs.get('use_flann', True):
-            cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
-        if kwargs.get('use_chip', True):
+        if query_cfg.pipeline_root == 'smk':
+            if kwargs.get('use_smk', True):
+                cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_sv', True):
+                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+        elif query_cfg.pipeline_root in ['vsmany', 'vsone']:
+            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+            if kwargs.get('use_nn', True):
+                cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_filt', True):
+                cfgstr_list += query_cfg.filt_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_sv', True):
+                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_agg', True):
+                cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_flann', True):
+                cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
+        else:
+            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+
+        if kwargs.get('use_feat', True):
             cfgstr_list += query_cfg._feat_cfg.get_cfgstr_list()
         return cfgstr_list
 
-    def get_cfgstr(query_cfg, **kwargs):
-        cfgstr_list = query_cfg.get_cfgstr_list(**kwargs)
-        cfgstr = ''.join(cfgstr_list)
-        return cfgstr
 
-    # Comparison operators for sorting and uniqueness
-    def __lt__(self, other):
-        return self.__hash__() < (other.__hash__())
+def make_feasible(query_cfg):
+    """
+    removes invalid parameter settings over all cfgs (move to QueryConfig)
+    """
+    filt_cfg = query_cfg.filt_cfg
+    nn_cfg   = query_cfg.nn_cfg
+    feat_cfg = query_cfg._feat_cfg
 
-    def __le__(self, other):
-        return self.__hash__() <= (other.__hash__())
+    # Ensure the list of on filters is valid given the weight and thresh
+    if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
+        filt_cfg.ratio_thresh = None
+    if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
+        filt_cfg.bboxdist_thresh = None
+    if filt_cfg.bursty_thresh  is None or filt_cfg.bursty_thresh <= 1:
+        filt_cfg.bursty_thresh = None
 
-    def __eq__(self, other):
-        return self.__hash__() == (other.__hash__())
+    if feat_cfg.nogravity_hack is False:
+        filt_cfg.gravity_weighting = False
 
-    def __ne__(self, other):
-        return self.__hash__() != (other.__hash__())
-
-    def __gt__(self, other):
-        return self.__hash__() > (other.__hash__())
-
-    def __ge__(self, other):
-        return self.__hash__() >= (other.__hash__())
-
-    def __hash__(self):
-        return hash(self.get_cfgstr())
+    # normalizer rule depends on Knorm
+    if isinstance(nn_cfg.Knorm, int) and nn_cfg.Knorm == 1:
+        nn_cfg.normalizer_rule = 'last'
 
 
+@six.add_metaclass(ConfigMetaclass)
 class FeatureConfig(ConfigBase):
+    """ FeatureConfig """
     def __init__(feat_cfg, chip_cfg=None, **kwargs):
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg.feat_type = 'hesaff+sift'
@@ -384,11 +456,10 @@ class FeatureConfig(ConfigBase):
         feat_cfgstrs += feat_cfg._chip_cfg.get_cfgstr_list()
         return feat_cfgstrs
 
-    def get_cfgstr(feat_cfg):
-        return ''.join(feat_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class ChipConfig(ConfigBase):
+    """ ChipConfig """
     def __init__(cc_cfg, **kwargs):
         super(ChipConfig, cc_cfg).__init__(name='chip_cfg')
         cc_cfg.chip_sqrt_area = 450
@@ -417,11 +488,10 @@ class ChipConfig(ConfigBase):
         chip_cfgstr += ['szorig'] if isOrig else ['sz%r' % cc_cfg.chip_sqrt_area]
         return ['_CHIP(', (','.join(chip_cfgstr)), ')']
 
-    def get_cfgstr(cc_cfg):
-        return ''.join(cc_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class DisplayConfig(ConfigBase):
+    """ DisplayConfig """
     def __init__(display_cfg, **kwargs):
         super(DisplayConfig, display_cfg).__init__(name='display_cfg')
         display_cfg.N = 6
@@ -432,8 +502,11 @@ class DisplayConfig(ConfigBase):
         display_cfg.show_results_in_image = False  # None
 
 
+@six.add_metaclass(ConfigMetaclass)
 class EncounterConfig(ConfigBase):
+    """ EncounterConfig """
     valid_cluster_algos = ['meanshift', 'agglomerative']
+
     def __init__(enc_cfg, **kwargs):
         super(EncounterConfig, enc_cfg).__init__(name='enc_cfg')
         enc_cfg.min_imgs_per_encounter = 1
@@ -457,10 +530,8 @@ class EncounterConfig(ConfigBase):
         enc_cfgstrs.append(str(enc_cfg.min_imgs_per_encounter))
         return ['_ENC(', ','.join(enc_cfgstrs), ')']
 
-    def get_cfgstr(enc_cfg):
-        return ''.join(enc_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class PreprocConfig(ConfigBase):
     def __init__(preproc_cfg, **kwargs):
         super(PreprocConfig, preproc_cfg).__init__(name='preproc_cfg')
@@ -471,10 +542,8 @@ class PreprocConfig(ConfigBase):
         cfgstrs = []
         return ['_PREPROC(', ','.join(cfgstrs), ')']
 
-    def get_cfgstr(preproc_cfg):
-        return ''.join(preproc_cfg.get_cfgstr_list())
 
-
+@six.add_metaclass(ConfigMetaclass)
 class DetectionConfig(ConfigBase):
     def __init__(guicfg, **kwargs):
         super(DetectionConfig, guicfg).__init__(name='detectcfg')
@@ -482,6 +551,7 @@ class DetectionConfig(ConfigBase):
         guicfg.detector    = 'rf'
 
 
+@six.add_metaclass(ConfigMetaclass)
 class OtherConfig(ConfigBase):
     def __init__(othercfg, **kwargs):
         super(OtherConfig, othercfg).__init__(name='othercfg')
@@ -502,6 +572,8 @@ def __dict_default_func(dict_):
 
 
 def default_query_cfg(**kwargs):
+    if utool.VERYVERBOSE:
+        print('[config] default_query_cfg()')
     kwargs['query_type'] = 'vsmany'
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
@@ -519,3 +591,12 @@ def default_vsone_cfg(ibs, **kwargs):
     })
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
+
+
+if __name__ == '__main__':
+    print('[Config] main()')
+    utool.VERYVERBOSE = True
+    query_cfg = default_query_cfg()
+    query_cfg.printme3()
+    print(query_cfg.get_cfgstr())
+    print('[Config] end()')

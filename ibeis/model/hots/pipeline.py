@@ -92,24 +92,37 @@ def request_ibeis_query_L0(ibs, qreq_):
     # Load data for nearest neighbors
     qreq_.lazy_load(ibs)
 
-    # Nearest neighbors (qaid2_nns)
-    # * query descriptors assigned to database descriptors
-    # * FLANN used here
-    qaid2_nns_ = nearest_neighbors(qreq_)
+    #
+    if qreq_.qparams.pipeline_root == 'smk':
+        from ibeis.model.hots import smk_index
+        daids = qreq_.get_external_daids()
+        annots_df = smk_index.make_annot_df(ibs)
+        taids = ibs.get_valid_aids()  # exemplar
+        # Learn vocabulary
+        nWords = qreq_.qparams.nWords
+        words = smk_index.learn_visual_words(annots_df, taids, nWords)
+        # Index a database of annotations
+        invindex = smk_index.index_data_annots(annots_df, daids, words)
+        return smk_index.query_smk(ibs, annots_df, invindex, qreq_)
+    else:
+        # Nearest neighbors (qaid2_nns)
+        # * query descriptors assigned to database descriptors
+        # * FLANN used here
+        qaid2_nns_ = nearest_neighbors(qreq_)
 
-    # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
-    # * feature matches are weighted
-    filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
+        # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
+        # * feature matches are weighted
+        filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
 
-    # Thresholding and weighting (qaid2_nnfilter)
-    # * feature matches are pruned
-    qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
+        # Thresholding and weighting (qaid2_nnfilter)
+        # * feature matches are pruned
+        qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
 
-    # Nearest neighbors to chip matches (qaid2_chipmatch)
-    # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
-    # * Initial scoring occurs
-    # * vsone inverse swapping occurs here
-    qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
+        # Nearest neighbors to chip matches (qaid2_chipmatch)
+        # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
+        # * Initial scoring occurs
+        # * vsone inverse swapping occurs here
+        qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
 
     # Spatial verification (qaid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches

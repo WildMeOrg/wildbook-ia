@@ -290,6 +290,12 @@ class QueryRequest(object):
 
 class QueryParams(object):
     def __init__(qparams, cfg):
+        pipeline_root      = cfg.pipeline_root
+        if pipeline_root == 'smk':
+            nAssign = cfg.smk_cfg.nAssign
+            aggregate = cfg.smk_cfg.aggregate
+            indexer_key = cfg.smk_cfg.indexer_key
+            nWords = cfg.smk_cfg.nWords
         K                  = cfg.nn_cfg.K
         Knorm              = cfg.nn_cfg.Knorm
         checks             = cfg.nn_cfg.checks
