@@ -9,7 +9,6 @@ import ibeis
 from os.path import relpath, split, exists
 from ibeis import ibsfuncs
 from ibeis import constants
-from ibeis.control import IBEISControl
 import utool
 
 
@@ -227,6 +226,7 @@ def get_standard_ingestable(db):
 
 
 def ingest_standard_database(db, force_delete=False):
+    from ibeis.control import IBEISControl
     print('[ingest] Ingest Standard Database: db=%r' % (db,))
     ingestable = get_standard_ingestable(db)
     dbdir = ibeis.sysres.db_to_dbdir(ingestable.db, allow_newdir=True, use_sync=False)

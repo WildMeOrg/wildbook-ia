@@ -130,12 +130,12 @@ def up_dbsize_expt(ibs, qaid_list):
         df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
         df2.dark_background()
         dumpkw = {
-            'subdir'    : subdir,
+            'subdir'    : 'upsize',
             'quality'   : False,
             'overwrite' : True,
             'verbose'   : 0
         }
-        figdir = ibs.get_figanalysis_dir()
+        figdir = ibs.get_fig_dir()
         ph.dump_figure(figdir, **dumpkw)
 
     #---------

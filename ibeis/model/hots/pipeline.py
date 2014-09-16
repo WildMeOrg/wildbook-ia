@@ -92,24 +92,37 @@ def request_ibeis_query_L0(ibs, qreq_):
     # Load data for nearest neighbors
     qreq_.lazy_load(ibs)
 
-    # Nearest neighbors (qaid2_nns)
-    # * query descriptors assigned to database descriptors
-    # * FLANN used here
-    qaid2_nns_ = nearest_neighbors(qreq_)
+    #
+    if qreq_.qparams.pipeline_root == 'smk':
+        from ibeis.model.hots import smk_index
+        daids = qreq_.get_external_daids()
+        annots_df = smk_index.make_annot_df(ibs)
+        taids = ibs.get_valid_aids()  # exemplar
+        # Learn vocabulary
+        nWords = qreq_.qparams.nWords
+        words = smk_index.learn_visual_words(annots_df, taids, nWords)
+        # Index a database of annotations
+        invindex = smk_index.index_data_annots(annots_df, daids, words)
+        return smk_index.query_smk(ibs, annots_df, invindex, qreq_)
+    else:
+        # Nearest neighbors (qaid2_nns)
+        # * query descriptors assigned to database descriptors
+        # * FLANN used here
+        qaid2_nns_ = nearest_neighbors(qreq_)
 
-    # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
-    # * feature matches are weighted
-    filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
+        # Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)
+        # * feature matches are weighted
+        filt2_weights_, filt2_meta_ = weight_neighbors(qaid2_nns_, qreq_)
 
-    # Thresholding and weighting (qaid2_nnfilter)
-    # * feature matches are pruned
-    qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
+        # Thresholding and weighting (qaid2_nnfilter)
+        # * feature matches are pruned
+        qaid2_nnfilt_ = filter_neighbors(qaid2_nns_, filt2_weights_, qreq_)
 
-    # Nearest neighbors to chip matches (qaid2_chipmatch)
-    # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
-    # * Initial scoring occurs
-    # * vsone inverse swapping occurs here
-    qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
+        # Nearest neighbors to chip matches (qaid2_chipmatch)
+        # * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)
+        # * Initial scoring occurs
+        # * vsone inverse swapping occurs here
+        qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
 
     # Spatial verification (qaid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches
@@ -617,7 +630,8 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 
 
 @profile
-def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
+def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
+                         qaid2_scores=None):
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')
     qaids   = qreq_.get_external_qaids()
@@ -630,19 +644,33 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_):
     # using qreq externals aids should be equivalent
     #for qaid in six.iterkeys(qaid2_chipmatch):
     for qaid, qauuid in zip(qaids, qauuids):
-        # For each query's chipmatch
-        chipmatch = qaid2_chipmatch[qaid]
-        # Perform final scoring
-        aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
         # Create a query result structure
         qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr)
+        qaid2_qres[qaid] = qres
+
+    for qaid, qres in six.iteritems(qaid2_qres):
+        # For each query's chipmatch
+        chipmatch = qaid2_chipmatch[qaid]
+        if chipmatch is not None:
+            aid2_fm, aid2_fs, aid2_fk = chipmatch
+            qres.aid2_fm = aid2_fm
+            qres.aid2_fs = aid2_fs
+            qres.aid2_fk = aid2_fk
+
+        # Perform final scoring
+        if qaid2_scores is None:
+            aid2_score = score_chipmatch(qaid, chipmatch, score_method, qreq_)
+        else:
+            aid2_score = qaid2_scores[qaid]
+            if not isinstance(aid2_score, dict):
+                # Pandas hack
+                aid2_score = aid2_score.to_dict()
         # Populate query result fields
         qres.aid2_score = aid2_score
-        (qres.aid2_fm, qres.aid2_fs, qres.aid2_fk) = chipmatch
+
         qres.filt2_meta = {}  # dbgstats
         for filt, qaid2_meta in six.iteritems(filt2_meta):
             qres.filt2_meta[filt] = qaid2_meta[qaid]  # things like k+1th
-        qaid2_qres[qaid] = qres
     # Retain original score method
     return qaid2_qres
 

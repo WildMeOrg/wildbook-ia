@@ -26,7 +26,7 @@ from vtool import geometry
 # UTool
 import utool
 # IBEIS EXPORT
-import ibeis.export.export_wb as wb
+import ibeis.io.export_wb as wb
 # IBEIS DEV
 from ibeis import constants
 from ibeis import ibsfuncs
@@ -52,11 +52,10 @@ from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
                              AL_RELATION_TABLE, CHIP_TABLE, FEATURE_TABLE,
                              CONFIG_TABLE, LBLTYPE_TABLE, METADATA_TABLE,
-                             __STR__)
+                             VERSIONS_TABLE, __STR__)
 
 # Inject utool functions
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[ibs]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]')
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 
@@ -198,7 +197,7 @@ class IBEISController(object):
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
         ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
-        from ibeis.dev import duct_tape
+        from ibeis.dev import duct_tape  # NOQA
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
         lbltype_names    = constants.KEY_DEFAULTS.keys()
@@ -234,9 +233,9 @@ class IBEISController(object):
         """ Returns ibs internal directory """
         return ibs._ibsdb
 
-    def get_figanalysis_dir(ibs):
+    def get_fig_dir(ibs):
         """ Returns ibs internal directory """
-        return join(ibs._ibsdb, 'figure_analysis')
+        return join(ibs._ibsdb, 'figures')
 
     def get_imgdir(ibs):
         """ Returns ibs internal directory """
@@ -278,20 +277,26 @@ class IBEISController(object):
 
     def _init_config(ibs):
         """ Loads the database's algorithm configuration """
-        ibs.cfg = Config.ConfigBase('cfg', fpath=join(ibs.dbdir, 'cfg'))
+        # Always a fresh object
+        ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
         try:
-            if True or utool.get_flag(('--noprefload', '--noprefload')):
+            # Use pref cache
+            if True or utool.get_flag(('--nocache-pref',)):
                 raise Exception('')
             ibs.cfg.load()
             if utool.NOT_QUIET:
                 print('[ibs] successfully loaded config')
         except Exception:
+            # Totally new completely default preferences
             ibs._default_config()
 
-    def _default_config(ibs):
+    def _default_config(ibs, new=False):
         """ Resets the databases's algorithm configuration """
         print('[ibs] building default config')
-        query_cfg    = Config.default_query_cfg()
+        if new:
+            # Sometimes a fresh object
+            ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
+        query_cfg = Config.default_query_cfg()
         ibs.set_query_cfg(query_cfg)
         ibs.cfg.enc_cfg     = Config.EncounterConfig()
         ibs.cfg.preproc_cfg = Config.PreprocConfig()
@@ -549,10 +554,12 @@ class IBEISController(object):
 
     @adder
     def add_images(ibs, gpath_list, as_annots=False):
-        """ Adds a list of image paths to the database.  Returns gids
+        """
+        Adds a list of image paths to the database.  Returns gids
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
+
         >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
         >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
         """
@@ -954,7 +961,7 @@ class IBEISController(object):
         # list of relationships for each image
         metadata_value_list = ibs.db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
         return metadata_value_list
-        
+
     @getter_1to1
     def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
@@ -2396,6 +2403,8 @@ class IBEISController(object):
         where_clause = 'lbltype_rowid=? AND lblannot_value=?'
         lblannot_rowid_list = ibs.db.get_where(LBLANNOT_TABLE, colnames, params_iter, where_clause)
         return lblannot_rowid_list
+
+    get_lblannot_rowid_from_typevaltup = get_lblannot_rowid_from_superkey
 
     @getter_1to1
     def get_lblannot_rowid_from_uuid(ibs, lblannot_uuid_list):

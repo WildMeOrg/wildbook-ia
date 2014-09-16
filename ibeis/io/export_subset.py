@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 """
 Exports subset of an IBEIS database to a new IBEIS database
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.export.export_subset))"
+python -c "import doctest, ibeis; print(doctest.testmod(ibeis.io.export_subset))"
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
@@ -10,6 +10,14 @@ import utool
 from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              AL_RELATION_TABLE, __STR__)
 from vtool import geometry
+
+# TODO: Write better doctests and ensure they pass
+
+
+# TODO: Ensure that all relevant information from
+# ibeis/ibeis/control/DB_Schema.py is accounted for in Transfer Data Structures
+
+# Transfer data structures could become classes.
 
 TransferData = namedtuple(
     'TransferData', (
@@ -58,6 +66,9 @@ AL_RELATION_TransferData = namedtuple(
         'alr_lblannot_uuid_list',
     ))
 
+
+# TODO: Make sure the transfer data getters correspond with the namedtuple/class
+# definitions
 
 def get_annot_transfer_data(ibs, _aid_list, _annot_gid_list):
     # avoid sql call if possible
@@ -111,8 +122,11 @@ def get_alr_transfer_data(ibs, _alr_rowid_list):
 def collect_transfer_data(ibs_src, gid_list, aid_list,
                           include_image_annots=True):
     """
+    Packs all the data you are going to transfer from ibs_src
+    info the transfer_data named tuple.
+
     >>> from ibeis.all_imports import *  # NOQA
-    >>> from ibeis.export.export_subset import *  # NOQA
+    >>> from ibeis.io.export_subset import *  # NOQA
     >>> import utool
     >>> ibs = ibs_src = ibeis.opendb('testdb1')
     >>> aid_list = ibs.get_valid_aids()[-3:]
@@ -120,7 +134,7 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
     >>> include_image_annots = True
     >>> transfer_data = collect_transfer_data(ibs_src, gid_list, aid_list, include_image_annots)
     >>> print(utool.hashstr(transfer_data))
-    ad20ozek356das0m
+    rxirvfa08psrle&e
     """
     ibs = ibs_src
     if include_image_annots:
@@ -130,7 +144,7 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
     else:
         # do not include all annotations from input images
         _aid_list = aid_list
-    # always include images from annotations
+    # ALWAYS include images from annotations
     _annot_gid_list = ibs.get_annot_gids(_aid_list)
     _gid_list = sorted(list(set(gid_list + _annot_gid_list)))
     #_alr_rowid_list = ibs._get_all_alr_rowids()
@@ -146,14 +160,16 @@ def collect_transfer_data(ibs_src, gid_list, aid_list,
     return transfer_data
 
 
-def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
-                     include_image_annots=True):
+def test_conflicts():
     """
+    just a function which has a
+    standalone doctest
+
     >>> from ibeis.all_imports import *  # NOQA
-    >>> from ibeis.export.export_subset import *  # NOQA
+    >>> from ibeis.io.export_subset import *  # NOQA
     >>> ibs1 = ibs_src = ibeis.opendb('testdb1')
-    >>> _aid_list1 = gid_list1 = ibs1.get_valid_aids()
-    >>> _gid_list1 = aid_list1 = ibs1.get_valid_gids()
+    >>> _gid_list1 = gid_list1 = ibs1.get_valid_gids()[1:10:2]
+    >>> _aid_list1 = aid_list1 = []
     >>> include_image_annots = True
     >>> ibs2 = ibs_dst = ibeis.opendb('testdb_dst', allow_newdir=True, delete_ibsdir=True)
     >>> print(ibs_src.get_infostr())  # doctest: +ELLIPSIS
@@ -168,7 +184,27 @@ def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
     num_images = 0
     num_annotations = 0
     num_names = 0
+    """
+    pass
+
+
+def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
+                     include_image_annots=True):
+    """
+    Collects data specified for transfer from ibs_src and moves it into ibs_dst.
+    UUIDS are checked for conflicts
+
+    >>> from ibeis.all_imports import *  # NOQA
+    >>> from ibeis.io.export_subset import *  # NOQA
+    >>> ibs1 = ibs_src = ibeis.opendb('testdb1')
+    >>> _gid_list1 = gid_list1 = ibs1.get_valid_gids()[1:10:2]
+    >>> _aid_list1 = aid_list1 = []
+    >>> include_image_annots = True
+    >>> ibs2 = ibs_dst = ibeis.opendb('testdb_dst', allow_newdir=True, delete_ibsdir=True)
     >>> execute_transfer(ibs_src, ibs_dst, gid_list1=gid_list1, aid_list1=aid_list1)
+    >>> _gid_list1 = gid_list1 = ibs1.get_valid_gids()[1:9]
+    >>> execute_transfer(ibs_src, ibs_dst, gid_list1=gid_list1, aid_list1=aid_list1)
+    >>> print(ibs_dst.get_infostr())
     """
 
     _aid_list1 = [] if aid_list1 is None else aid_list1
@@ -190,6 +226,9 @@ def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
     lblannot_td = transfer_data.lblannot_td
     alr_td      = transfer_data.alr_td
 
+    # Ensure no merge conflicts
+    check_conflicts(ibs_src, ibs_dst, transfer_data)
+
     # Add information to destination database
     gid_list2            = internal_add_images(ibs_dst, img_td)
     aid_list2            = internal_add_annots(ibs_dst, annot_td)
@@ -198,6 +237,82 @@ def execute_transfer(ibs_src, ibs_dst, gid_list1=None, aid_list1=None,
 
     return (gid_list2, aid_list2, lblannot_rowid_list2, alr_rowid_list2)
 
+
+def check_conflicts(ibs_src, ibs_dst, transfer_data):
+    """
+    Check to make sure the destination database does not have any conflicts
+    with the incoming transfer.
+
+    Currently only checks that images do not have conflicting annotations.
+
+    Does not check label consistency.
+    """
+
+    # TODO: Check label consistency: ie check that labels with the
+    # same (type, value) should also have the same UUID
+    img_td      = transfer_data.img_td
+    #annot_td    = transfer_data.annot_td
+    #lblannot_td = transfer_data.lblannot_td
+    #alr_td      = transfer_data.alr_td
+
+    image_uuid_list1 = img_td.img_uuid_list
+    sameimg_gid_list2_ = ibs_dst.get_image_gids_from_uuid(image_uuid_list1)
+    issameimg = [gid is not None for gid in sameimg_gid_list2_]
+    # Check if databases contain the same images
+    if any(issameimg):
+        sameimg_gid_list2 = utool.filter_items(sameimg_gid_list2_, issameimg)
+        sameimg_image_uuids = utool.filter_items(image_uuid_list1, issameimg)
+        print('! %d/%d images are duplicates' % (len(sameimg_gid_list2), len(image_uuid_list1)))
+        # Check if sameimg images in dst has any annotations.
+        sameimg_aids_list2 = ibs_dst.get_image_aids(sameimg_gid_list2)
+        hasannots = [len(aids) > 0 for aids in sameimg_aids_list2]
+        if any(hasannots):
+            # TODO: Merge based on some merge stratagy parameter (like annotation timestamp)
+            sameimg_gid_list1 = ibs_src.get_image_gids_from_uuid(sameimg_image_uuids)
+            hasannot_gid_list2 = utool.filter_items(sameimg_gid_list2, hasannots)
+            hasannot_gid_list1 = utool.filter_items(sameimg_gid_list1, hasannots)
+            print('  !! %d/%d of those have annotations' % (len(hasannot_gid_list2), len(sameimg_gid_list2)))
+            # They had better be the same annotations!
+            assert_images_have_same_annnots(ibs_src, ibs_dst, hasannot_gid_list1, hasannot_gid_list2)
+            print('  ...phew, all of the annotations were the same.')
+        #raise AssertionError('dst dataset contains some of this data')
+
+
+def assert_images_have_same_annnots(ibs_src, ibs_dst, hasannot_gid_list1, hasannot_gid_list2):
+    """ Given a list of gids from each ibs, this function asserts that every
+        annontation in gid1 is the same as every annontation in gid2
+    """
+    from ibeis.ibsfuncs import unflat_map
+    hasannot_aids_list1 = ibs_src.get_image_aids(hasannot_gid_list1)
+    hasannot_aids_list2 = ibs_dst.get_image_aids(hasannot_gid_list2)
+    hasannot_auuids_list1 = unflat_map(ibs_src.get_annot_uuids, hasannot_aids_list1)
+    hasannot_auuids_list2 = unflat_map(ibs_dst.get_annot_uuids, hasannot_aids_list2)
+    hasannot_verts_list1 = unflat_map(ibs_src.get_annot_verts, hasannot_aids_list1)
+    hasannot_verts_list2 = unflat_map(ibs_dst.get_annot_verts, hasannot_aids_list2)
+    assert_same_annot_uuids(hasannot_auuids_list1, hasannot_auuids_list2)
+    assert_same_annot_verts(hasannot_verts_list1, hasannot_verts_list2)  # hack, check verts as well
+
+
+def assert_same_annot_uuids(hasannot_auuids_list1, hasannot_auuids_list2):
+    uuids_pair_iter = zip(hasannot_auuids_list1, hasannot_auuids_list2)
+    msg = ('The {count}-th image has inconsistent annotation:. '
+           'auuids1={auuids1} auuids2={auuids2}')
+    for count, (auuids1, auuids2) in enumerate(uuids_pair_iter):
+        assert auuids1 == auuids2, msg.format(
+            count=count, auuids1=auuids1, auuids2=auuids2,)
+
+
+def assert_same_annot_verts(hasannot_verts_list1, hasannot_verts_list2):
+    verts_pair_iter = zip(hasannot_verts_list1, hasannot_verts_list2)
+    msg = ('The {count}-th image has inconsistent annotation:. '
+           'averts1={averts1} averts2={averts2}')
+    for count, (averts1, averts2) in enumerate(verts_pair_iter):
+        assert averts1 == averts2, msg.format(
+            count=count, averts1=averts1, averts2=averts2,)
+
+
+# TODO: make sure the interal adders take into account all information specified
+# in transferdata objects
 
 #@adder
 def internal_add_images(ibs, img_td):
@@ -263,6 +378,10 @@ def internal_add_annots(ibs, annot_td):
 
 
 def internal_add_lblannot(ibs, lblannot_td):
+    """
+    Transfers annotation labels (like name, species, ...) by UUID (text)
+    TODO: Check if values conflict
+    """
     (lblannot_uuid_list,
      value_list,
      note_list,
@@ -271,14 +390,27 @@ def internal_add_lblannot(ibs, lblannot_td):
     # Pack into params iter
     colnames = ('lblannot_uuid', 'lblannot_value', 'lblannot_note', 'lbltype_rowid',)
     params_iter = list(zip(lblannot_uuid_list, value_list, note_list, lbltype_rowid_list,))
-    get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
-    superkey_paramx = (1, 2)
+    get_rowid_from_superkey = ibs.get_lblannot_rowid_from_typevaltup
+    superkey_paramx = (3, 1)
     lblannot_rowid_list = ibs.db.add_cleanly(LBLANNOT_TABLE, colnames, params_iter,
-                                               get_rowid_from_superkey, superkey_paramx)
+                                             get_rowid_from_superkey, superkey_paramx)
+    # FIXME: LabelAnnot UUIDS might not be copied properly if there is duplicate (value, type)
+    # TODO: At least throw an assertion error when copying different label UUIDS
+    # with the same (value, type), this should be done in the consistency checks.
+    lblannot_uuid_list_test = ibs.get_lblannot_uuids(lblannot_rowid_list)
+    assert all([uuid1 == uuid2 for uuid1, uuid2 in
+                zip(lblannot_uuid_list, lblannot_uuid_list_test)]),\
+            'issue occurred. alrtable will fail if FIXME not done. Same name with different uuid'
     return lblannot_rowid_list
 
 
 def internal_add_alr(ibs, alr_td):
+    """
+    Transfers relationships between annotations and labels both by uuid.
+    TODO: config-ids / confidences are not yet transfered
+
+
+    """
     # Unpack transfer data
     (annot_uuid_list,
      lblannot_uuid_list) = alr_td

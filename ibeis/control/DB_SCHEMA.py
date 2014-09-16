@@ -204,7 +204,7 @@ def update_1_0_1(ibs):
         docstr='''
         Used to store the contributors to the project
         ''')
-   
+
     ibs.db.modify_table(constants.IMAGE_TABLE, (
         # add column at index 1
         (1, 'contributor_rowid', 'INTEGER', None),
@@ -242,7 +242,7 @@ def update_1_0_2(ibs):
 
 base = constants.BASE_DATABASE_VERSION
 VALID_VERSIONS = {
-#   version:    (Pre-Update Function,  Update Function,    Post-Update Function)
+    #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
     base   :    (None,                 None,               None                ),
     '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
     '1.0.1':    (None,                 update_1_0_1,       None                ),

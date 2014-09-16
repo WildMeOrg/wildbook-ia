@@ -6,15 +6,13 @@ split neighbor_index.py
 """
 from __future__ import absolute_import, division, print_function
 import utool
-import sys
-from ibeis.model.hots import query_request as hsqreq
+from ibeis.model.hots import query_request
 from ibeis.model.hots import pipeline as hspipe
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[mc3]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[mc4]')
 
 
-USE_CACHE = '--nocache-query' not in sys.argv
-USE_BIGCACHE = '--nocache-big' not in sys.argv and '--no-bigcache-query' not in sys.argv
+USE_CACHE = not utool.get_flag('--nocache-query')
+USE_BIGCACHE = not utool.get_flag(('--nocache-big', '--no-bigcache-query'))
 MIN_BIGCACHE_BUNDLE = 20
 
 
@@ -65,7 +63,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
             print('... qaid2_qres bigcache miss')
     # ------------
     # Build query request
-    qreq_ = hsqreq.new_ibeis_query_request(ibs, qaid_list, daid_list)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
     # Execute query request
     qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache)
     # ------------

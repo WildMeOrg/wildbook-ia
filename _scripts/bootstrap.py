@@ -24,17 +24,18 @@ PREREQ_PKG_LIST = [
     'g++',
     'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
     'cmake',
-    'ffmpeg',  # need -dev / -devel versions of all these as well
+    'ffmpeg',  # need -dev / -devel versions of all these as well / libav
     'libpng',
     'libjpg',
-    'libtiff',
-    'littlecms',
+    'libtiff',  # 'libtiff4-dev', libtiff5-dev
+    'littlecms', # libcms?
     'openjpeg',
     'jasper',
     'zlib',
     'freetype',
     'fftw3',
     'atlas',
+    'python-qt4',
     #'zmq',
     #libgeos-dev
 ]
@@ -69,8 +70,8 @@ if DEBIAN_FAMILY:
         #'libjpeg-dev',
         #'zlib1g-dev',
         'python-dev',
-        'libopencv-dev',
-        'python-opencv',
+        'libopencv-dev',  # Do we need these?
+        'python-opencv',  # Do we really need these~these?
     ])
 
 if CENTOS:
@@ -80,7 +81,7 @@ PREREQ_PYPKG_LIST = [
     'pip',
     'setuptools',
     'Pygments',
-    'Cython'
+    'Cython',
     'requests',
     'colorama',
     'psutil',
@@ -89,8 +90,8 @@ PREREQ_PYPKG_LIST = [
     'dateutils',
     'pyreadline',
     'pyparsing',
-    'sip',
-    'pyqt4',
+    #'sip',
+    #'PyQt4',
     'Pillow',
     'numpy',
     'scipy',
@@ -98,6 +99,7 @@ PREREQ_PYPKG_LIST = [
     'tornado',
     'matplotlib',
     'scikit-learn',
+    'parse',
     #'pandas',
     #'openpyxl',
     #'pyzmq',

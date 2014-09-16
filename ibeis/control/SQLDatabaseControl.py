@@ -5,7 +5,7 @@ from six.moves import map, zip
 from os.path import join, exists, dirname, realpath
 import utool
 # Tools
-from ibeis import constants 
+from ibeis import constants
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
                                         SQLExecutionContext)
 from ibeis.control import __SQLITE3__ as lite
@@ -105,7 +105,7 @@ class SQLDatabaseController(object):
         # Optimize the database (if anything is set)
         #db.optimize()
         db._ensure_metadata_table()
-    
+
     def _ensure_metadata_table(db):
         # We need this to be done every time so that the update code works correctly.
         db.add_table(constants.METADATA_TABLE, (
@@ -208,12 +208,16 @@ class SQLDatabaseController(object):
         try:
             db._add(tblname, colnames, dirty_params)
         except Exception as ex:
-            utool.printex(ex, key_list=['isdirty_list', 'superkey_lists', 'rowid_list_'])
+            utool.printex(ex, key_list=[
+                'dirty_params',
+                'isdirty_list',
+                'superkey_lists',
+                'rowid_list_'])
             raise
         # TODO: We should only have to preform a subset of adds here
         # (at the positions where rowid_list was None in the getter check)
         rowid_list = get_rowid_from_superkey(*superkey_lists)
-        
+
         # ADD_CLEANLY_4: SANITY CHECK AND RETURN
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
@@ -224,8 +228,8 @@ class SQLDatabaseController(object):
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         if where_clause is None:
-            fmtdict = { 'tblname'     : tblname,
-                        'colnames'    : ', '.join(colnames),}
+            fmtdict = {'tblname'     : tblname,
+                       'colnames'    : ', '.join(colnames), }
             operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
@@ -388,9 +392,6 @@ class SQLDatabaseController(object):
 
         body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
 
-        colname_list = [_1tup[0] for _1tup in coldef_list]
-        coltype_list = [_2tup[1] for _2tup in coldef_list]
-
         fmtkw = {
             'table_body': ', '.join(body_list + table_constraints),
             'tablename': tablename,
@@ -443,12 +444,12 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename} ADD COLUMN {colname} {coltype}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-    
+
     @default_decorator
     def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None, tablename_new=None):
         '''
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
-        
+
         EXAMPLE:
         ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
         #   (Original Column Name,            New Column Name,                 New Column Type, Function to convert data from old to new
@@ -502,14 +503,15 @@ class SQLDatabaseController(object):
                     del colname_list[index]
                     del coltype_list[index]
                     del colname_dict[src]
-                elif len(src) > 0 and len(dst) > 0 and src != dst and (len(type_) == 0 or type_ == coltype_list[index]):
+                elif (len(src) > 0 and len(dst) > 0 and src != dst and
+                      (len(type_) == 0 or type_ == coltype_list[index])):
                     # Rename column
                     if len(type_) == 0:
                         type_ = coltype_list[index]
                     colname_list[index] = dst
                     coltype_list[index] = type_
                     colname_dict[src] = dst
-                elif len(type_) > 0 and type_ != coltype_list[index]: 
+                elif len(type_) > 0 and type_ != coltype_list[index]:
                     # Change column type
                     if len(dst) == 0:
                         dst = src
@@ -528,20 +530,19 @@ class SQLDatabaseController(object):
                         type_ = coltype_list[index]
             if map_ is not None:
                 colmap_dict[src] = map_
-                    
+
         coldef_list = [ _ for _ in zip(colname_list, coltype_list) ]
         tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
         if docstr is None:
             docstr = db.get_table_docstr(tablename)
         if table_constraints is None:
             table_constraints = db.get_table_constraints(tablename)
-            
-        db.add_table(tablename_temp, coldef_list, 
-            table_constraints=table_constraints, 
-            docstr=docstr, 
-            superkey_colnames=superkey_colnames
-        )
-        
+
+        db.add_table(tablename_temp, coldef_list,
+                     table_constraints=table_constraints,
+                     docstr=docstr,
+                     superkey_colnames=superkey_colnames)
+
         # Copy data
         src_list = []
         dst_list = []
@@ -553,10 +554,10 @@ class SQLDatabaseController(object):
 
         data_list = db.get(tablename, tuple(src_list))
         # Run functions across all data for specified callums
-        data_list = [ 
+        data_list = [
             tuple([
-                colmap_dict[src](d) if src in colmap_dict.keys() else d
-                for d, src in zip(data, src_list)
+                colmap_dict[src_](d) if src_ in colmap_dict.keys() else d
+                for d, src_ in zip(data, src_list)
             ])
             for data in data_list
         ]
@@ -579,17 +580,16 @@ class SQLDatabaseController(object):
         coltype_list = db.get_column_types(tablename)
         assert len(colname_list) == len(coltype_list) and len(colname_list) == len(order_list)
         assert all([ i in order_list for i in range(len(colname_list)) ]), 'Order index list invalid'
-        # Reorder column definitions        
+        # Reorder column definitions
         combined = sorted(list(zip(order_list, colname_list, coltype_list)))
         coldef_list = [ (name, type_) for i, name, type_ in combined ]
         tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
         docstr = db.get_table_docstr(tablename)
         table_constraints = db.get_table_constraints(tablename)
-            
-        db.add_table(tablename_temp, coldef_list, 
-            table_constraints=table_constraints, 
-            docstr=docstr, 
-        )
+
+        db.add_table(tablename_temp, coldef_list,
+                     table_constraints=table_constraints,
+                     docstr=docstr,)
         # Copy data
         data_list = db.get(tablename, tuple(colname_list))
         # Add the data to the database
@@ -642,7 +642,7 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-    
+
     @default_decorator
     def rename_column(db, tablename, colname_old, colname_new):
         # DATABASE TABLE CACHES ARE UPDATED WITH modify_table
@@ -707,7 +707,7 @@ class SQLDatabaseController(object):
             #try:
             results_iter = list(
                 map(
-                    list, 
+                    list,
                     (context.execute_and_generate_results(params) for params in params_iter)
                 )
             )  # list of iterators
@@ -791,7 +791,7 @@ class SQLDatabaseController(object):
                     col_default = str(column[4]).ljust(10)
                     col_key = str(('KEY' if column[5] == 1 else ''))
                     col = (col_name, col_type, col_null, col_default, col_key)
-                    file_.write('\t%s%s%s%s%s\n' %col)
+                    file_.write('\t%s%s%s%s%s\n' % col)
 
     @default_decorator
     def get_table_names(db):
@@ -799,7 +799,7 @@ class SQLDatabaseController(object):
         db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tablename_list = db.cur.fetchall()
         return [ str(tablename[0]) for tablename in tablename_list ]
-    
+
     @default_decorator
     def get_table_constraints(db, tablename):
         where_clause = 'metadata_key=?'
@@ -862,9 +862,9 @@ class SQLDatabaseController(object):
         column_null    = [ column[3] for column in column_list]
         column_default = [ column[4] for column in column_list]
         column_key     = [ column[5] for column in column_list]
-        column_types_  = [ 
-            _format(type_, null, default, key) 
-            for type_, null, default, key 
+        column_types_  = [
+            _format(type_, null, default, key)
+            for type_, null, default, key
             in zip(column_types, column_null, column_default, column_key)
         ]
         return column_types_

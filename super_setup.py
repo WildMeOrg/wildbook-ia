@@ -1,7 +1,9 @@
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 from os.path import dirname, realpath
+import platform
 import sys
+import os
 """
 PREREQ:
 git config --global push.default current
@@ -20,30 +22,22 @@ print('[super_setup] __IBEIS_SUPER_SETUP__')
 CODE_DIR = dirname(dirname(realpath(__file__)))   # '~/code'
 print('[super_setup] code_dir: %r' % CODE_DIR)
 
-import platform
 (DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
 python_version = platform.python_version()
-assert python_version.startswith('2.7'), 'IBEIS is currently limited to python 2.7,  Attempted to run with python %r' % python_version
+assert python_version.startswith('2.7'), \
+    'IBEIS currently needs python 2.7,  Instead got python=%r' % python_version
 
 
 #pythoncmd = 'python'
 #if DISTRO == 'centos':
-if sys.platform.startswith('win32'):
-    pythoncmd = 'python'
-else:
-    pythoncmd = 'python2.7'
-
-envcmds = {
-    'pythoncmd': pythoncmd
-}
+pythoncmd = 'python' if sys.platform.startswith('win32') else 'python2.7'
 
 
 def userid_prompt():
     # TODO: Make this prompt for the userid
     if False:
         return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
-    else:
-        return {}
+    return {}
 
 #################
 ## ENSURING UTOOL
@@ -54,15 +48,13 @@ def syscmd(cmdstr):
     print('RUN> ' + cmdstr)
     os.system(cmdstr)
 
-# HACK IN A WAY TO ENSURE UTOOL
 try:
+    # HACK IN A WAY TO ENSURE UTOOL
     print('Checking utool')
     import utool
-    utool.set_userid(**userid_prompt())
+    utool.set_userid(**userid_prompt())  # FIXME
 except Exception:
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
-    import os
-    import sys
     os.chdir(os.path.expanduser(CODE_DIR))
     print('cloning utool')
     if not os.path.exists('utool'):
@@ -71,17 +63,13 @@ except Exception:
     print('pulling utool')
     syscmd('git pull')
     print('installing utool for development')
-    syscmd('sudo {pythoncmd} setup.py develop'.format(**envcmds))
-    sys.path.append(os.path.realpath(os.getcwd()))
+    syscmd('sudo {pythoncmd} setup.py develop'.format(**locals()))
+    cwdpath = os.path.realpath(os.getcwd())
+    sys.path.append(cwdpath)
     print('Please rerun super_setup.py')
     sys.exit(1)
 
 utool.init_catch_ctrl_c()
-
-#-----------
-# Set userid
-#-----------
-
 
 #-----------
 # Third-Party-Libraries
@@ -92,30 +80,29 @@ print('[super_setup] Checking third-party-libraries')
 TPL_MODULES_AND_REPOS = [
     ('cv2',     'https://github.com/Erotemic/opencv.git'),
     ('pyflann', 'https://github.com/Erotemic/flann.git'),
+    #('yael',    'https://github.com/Erotemic/yael.git'),
     (('PyQt5', 'PyQt4'),   None)
 ]
 
 TPL_REPO_URLS = []
 # Test to see if opencv and pyflann have been built
-for name, repo_url in TPL_MODULES_AND_REPOS:
+for nametup, repo_url in TPL_MODULES_AND_REPOS:
     try:
-        if isinstance(name, str):
-            module = __import__(name, globals(), locals(), fromlist=[], level=0)
-        else:
-            # Allow for multiple module aliases
-            module = None
-            for name_ in name:
-                try:
-                    module = __import__(name_, globals(), locals(), fromlist=[], level=0)
-                except ImportError as ex:
-                    pass
-            if module is None:
-                raise ex
-        print('found %s=%r' % (name, module,))
+        # Allow for multiple module aliases
+        if isinstance(nametup, str):
+            nametup = [nametup]
+        module = None
+        for name_ in nametup:
+            try:
+                module = __import__(name_, globals(), locals(), fromlist=[], level=0)
+            except ImportError as ex:
+                pass
+        if module is None:
+            raise ex
+        print('found %s=%r' % (nametup, module,))
     except ImportError:
-        if repo_url is None:
-            raise AssertionError('FATAL ERROR: Need to manually install %s' % name)
-        print('need to build %s=%r' % (name, repo_url,))
+        assert repo_url is not None, ('FATAL ERROR: Need to manually install %s' % nametup)
+        print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
         TPL_REPO_URLS.append(repo_url)
 
 
@@ -143,8 +130,11 @@ for name, repo_url in TPL_MODULES_AND_REPOS:
 PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
 PROJECT_REPO_DIRS = IBEIS_REPO_DIRS + TPL_REPO_DIRS
 
+# Set utool global git repos
 utool.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
+
+# Commands on global git repos
 if utool.get_flag('--status'):
     utool.gg_command('git status')
     utool.sys.exit(0)
@@ -169,7 +159,7 @@ if tag_name is not None:
     utool.gg_command('git push --tags')
 
 if utool.get_flag('--bext'):
-    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**envcmds))
+    utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
 
 if utool.get_flag('--build'):
     # Build tpl repos
@@ -177,15 +167,15 @@ if utool.get_flag('--build'):
         utool.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
     # Build only IBEIS repos with setup.py
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py build'.format(**envcmds))
+    utool.gg_command('sudo {pythoncmd} setup.py build'.format(**locals()))
 
 if utool.get_flag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**envcmds))
+    utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**locals()))
 
 if utool.get_flag('--install'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    utool.gg_command('python setup.py install'.format(**envcmds))
+    utool.gg_command('python setup.py install'.format(**locals()))
 
 if utool.get_flag('--test'):
     import ibeis
@@ -200,7 +190,7 @@ if commit_msg is not None:
     utool.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
 
 if utool.get_flag('--clean'):
-    utool.gg_command('{pythoncmd} setup.py clean'.format(**envcmds))
+    utool.gg_command('{pythoncmd} setup.py clean'.format(**locals()))
 
 # Change Branch
 branch_name = utool.get_arg('--checkout', type_=str, default=None)

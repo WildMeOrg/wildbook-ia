@@ -292,3 +292,13 @@ def get_ibsdb_list(workdir=None):
     is_ibs_list = np.array(list(map(is_ibeisdb, dbpath_list)))
     ibsdb_list  = dbpath_list[is_ibs_list].tolist()
     return ibsdb_list
+
+
+def ensure_pz_mtest():
+    """ Ensures that you have the PZ_MTEST dataset """
+    from ibeis import sysres
+    import utool
+    workdir = sysres.get_workdir()
+    mtest_zipped_url = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
+    mtest_dir = utool.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
+    print('have mtest_dir=%r' % (mtest_dir,))

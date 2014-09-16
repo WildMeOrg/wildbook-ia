@@ -6,16 +6,14 @@ Converts a hotspostter database to IBEIS
 from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 #import ibeis
-from ibeis.control import IBEISControl
-from ibeis import sysres
 from ibeis import constants
 from ibeis import ibsfuncs
+from ibeis.dev import sysres
 from six.moves import zip, map
 import utool
 import re
 import csv
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[ingest_hsbd]')
+print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ingest_hsbd]')
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
@@ -57,6 +55,7 @@ def ingest_unconverted_hsdbs_in_workdir():
 
 
 def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
+    from ibeis.control import IBEISControl
     assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert: hsdb_dir=%r' % (hsdb_dir,)
     if force_delete:
         print('FORCE DELETE: %r' % (hsdb_dir,))

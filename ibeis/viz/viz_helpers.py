@@ -108,7 +108,7 @@ def get_bbox_centers(bbox_list):
 
 
 def is_unknown(ibs, nid_list):
-    return [ not isinstance(nid, int) and len(nid) == 0 for nid in nid_list]
+    return [ not isinstance(nid, utool.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
 
 
 def get_truth_text(ibs, truth):
@@ -153,7 +153,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
     try:
         ibsfuncs.assert_valid_aids(ibs, aid_list)
         assert utool.isiterable(aid_list), 'input must be iterable'
-        assert all([isinstance(aid, int) for aid in aid_list]), 'invalid input'
+        assert all([isinstance(aid, utool.VALID_INT_TYPES) for aid in aid_list]), 'invalid input'
     except AssertionError as ex:
         utool.printex(ex, 'invalid input', 'viz', key_list=['aid_list'])
         raise

@@ -54,6 +54,8 @@ ibeis/model/detect/rf
 ibeis/control/schema.txt
 tmp.py
 
+*.cPkl
+*.pkl
 *.flann
 *.npz
 
@@ -62,7 +64,8 @@ __install_prereqs__.sh
 failed.txt
 test_times.txt
 
-*.ipynb
+#*.ipynb
+.ipynb_checkpoints
 failed.txt
 
 # utool output
@@ -78,3 +81,6 @@ failed.txt
 *_cyth.html
 *_cyth_bench.py
 run_cyth_benchmarks.sh
+
+*.orig
+*.h5

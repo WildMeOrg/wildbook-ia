@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import six
 from six.moves import zip, map
 import re
 from ibeis.dev import experiment_configs
@@ -18,6 +19,10 @@ def get_vary_dicts(test_cfg_name_list):
     if len(vary_dicts) == 0:
         valid_cfg_names = experiment_configs.TEST_NAMES
         raise Exception('Choose a valid testcfg:\n' + valid_cfg_names)
+    for dict_ in vary_dicts:
+        for key, val in six.iteritems(dict_):
+            assert not isinstance(val, str), 'val should be list not string: not %r' % (type(val),)
+            #assert not isinstance(val, (list, tuple)), 'val should be list or tuple: not %r' % (type(val),)
     return vary_dicts
 
 
