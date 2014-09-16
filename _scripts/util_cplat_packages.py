@@ -22,7 +22,15 @@ def get_pip_installed():
         return []
 
 
+def _std_pkgwrap(pkg):
+    if DEBIAN_FAMILY:
+        return 'lib' + pkg + '-dev'
+    if CENTOS:
+        return pkg + '-devel'
+
 # Special cases
+# Different package managers name different packages different things. This is
+# an attempt to locally stanadardize them
 
 APPLE_PYPKG_MAP = {
     'dateutils'    : 'dateutil',
@@ -32,7 +40,6 @@ APPLE_PYPKG_MAP = {
 
 # Need to use pip for these
 APPLE_NONPORTS_PYPKGS = [
-
 ]
 
 
@@ -43,12 +50,6 @@ MACPORTS_PKGMAP = {
     'libjpeg'      : 'libjpg',
 }
 
-
-def _std_pkgwrap(pkg):
-    if DEBIAN_FAMILY:
-        return 'lib' + pkg + '-dev'
-    if CENTOS:
-        return pkg + '-devel'
 
 APT_GET_PKGMAP = {
     'python-pyqt4' : 'python-qt4',
@@ -63,30 +64,30 @@ APT_GET_PKGMAP = {
     'fftw3'        : 'libfftw3-dev',
     'openssl'      : 'libopenssl-devel',
     'ffmpeg'       : 'libav-tools',
-    #'littlecms'    : 'libcms2-dev',
+    'littlecms'    : 'liblcms1-dev',
 }
 
 YUM_PKGMAP = {
-    'g++': 'gcc-c++',
-    'gfortran': 'gcc-gfortran',
-    'ffmpeg': 'ffmpeg-devel',
-    'libpng': 'libpng-devel',
-    'zlib':   'zlib-devel',
-    'libjpg': 'libjpeg-devel',
-    'freetype': 'freetype-devel',
-    'fftw3'   : 'fftw3-devel',
-    'atlas'   : 'atlas-devel',
-    'python-dev': 'python-devel',
+    'g++'        : 'gcc-c++',
+    'gfortran'   : 'gcc-gfortran',
+    'ffmpeg'     : 'ffmpeg-devel',
+    'libpng'     : 'libpng-devel',
+    'zlib'       : 'zlib-devel',
+    'libjpg'     : 'libjpeg-devel',
+    'freetype'   : 'freetype-devel',
+    'fftw3'      : 'fftw3-devel',
+    'atlas'      : 'atlas-devel',
+    'python-dev' : 'python-devel',
 }
 
 PACMAN_PKGMAP = {
-    'g++': 'gcc',
-    'gfortran': 'gcc-fortran',
-    'libjpg': 'libjpeg-turbo',
-    'littlecms': 'lcms',
-    'freetype': 'freetype2',
-    'fftw3': 'fftw',
-    'atlas' : '$AUR atlas-lapack' # atlas isn't in the main repositories, $AUR will be interpreted to tell the user to install the package from AUR
+    'g++'       : 'gcc',
+    'gfortran'  : 'gcc-fortran',
+    'libjpg'    : 'libjpeg-turbo',
+    'littlecms' : 'lcms',
+    'freetype'  : 'freetype2',
+    'fftw3'     : 'fftw',
+    'atlas'     : '$AUR atlas-lapack' # atlas isn't in the main repositories, $AUR will be interpreted to tell the user to install the package from AUR
 }
 
 
