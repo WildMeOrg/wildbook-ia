@@ -115,6 +115,10 @@ vsmany_best = {
 }
 best = vsmany_best
 
+smk = {
+    'pipeline_root': ['smk', ],
+}
+
 
 gv_test = vsmany_best.copy()
 gv_test.update({

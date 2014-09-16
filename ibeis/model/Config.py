@@ -10,48 +10,49 @@ from utool._internal.meta_util_six import get_funcname
 ConfigBase = utool.Pref
 
 
-class ConfigMetaclass(type):
-    #ConfigBase.__class__):
-    """
-    Defines extra methods for Configs
-    """
+def make_config_metaclass():
+    methods_list = utool.get_comparison_methods()
 
-    # cls - meta
-    # name - classname
-    # supers - bases
-    # dct - class dictionary
+    def _register(func):
+        methods_list.append(func)
+        return func
 
-    def __new__(cls, name, bases, dct):
-        method_list = utool.get_comparison_methods()
+    @_register
+    def get_cfgstr_list(cfg):
+        return ['cfg']
 
-        def _register(func):
-            #if get_funcname(func) not in dct:
-            method_list.append(func)
-            return func
+    # Needed for comparison operators
+    @_register
+    def __hash__(cfg):
+        return hash(cfg.get_cfgstr())
+
+    @_register
+    def get_cfgstr(cfg):
+        return ''.join(cfg.get_cfgstr_list())
+
+    class ConfigMetaclass(type):
+        #ConfigBase.__class__):
+        """
+        Defines extra methods for Configs
+        """
+
+        # cls - meta
+        # name - classname
+        # supers - bases
+        # dct - class dictionary
 
         #print(dct)
         #assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list'
-        if 'get_cfgstr_list' not in dct:
-            @_register
-            def get_cfgstr_list(cfg):
-                return ['cfg']
 
-        # Needed for comparison operators
-        @_register
-        def __hash__(cfg):
-            return hash(cfg.get_cfgstr())
+        def __new__(cls, name, bases, dct):
+            for func in methods_list:
+                if get_funcname(func) not in dct:
+                    funcname = get_funcname(func)
+                    dct[funcname] = func
+                #utool.inject_func_as_method(metaself, func)
 
-        if 'get_cfgstr' not in dct:
-            @_register
-            def get_cfgstr(cfg):
-                return ''.join(cfg.get_cfgstr_list())
-
-        for func in method_list:
-            funcname = get_funcname(func)
-            dct[funcname] = func
-            #utool.inject_func_as_method(metaself, func)
-
-        return type(name, bases, dct)
+            #return type(name, bases, dct)
+            return type.__new__(cls, name, bases, dct)
 
     #def __init__(metaself, name, bases, dct):
     #    super(ConfigMetaclass, metaself).__init__(name, bases, dct)
@@ -61,6 +62,9 @@ class ConfigMetaclass(type):
     #    #setattr(metaself, funcname, func)
 
     #    #metaself.__cfgmetaclass__ = True
+    return ConfigMetaclass
+
+ConfigMetaclass = make_config_metaclass()
 
 
 @six.add_metaclass(ConfigMetaclass)

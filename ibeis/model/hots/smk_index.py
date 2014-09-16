@@ -448,11 +448,16 @@ def query_smk(ibs, annots_df, invindex, qreq_):
     qaids = qreq_.get_external_qaids()
     qaid2_chipmatch = {}
     qaid2_scores = {}
-    for qaid in qaids:
+    mark, end_ = utool.log_progress('query: ', len(qaids), flushfreq=1,
+                                    writefreq=1, with_totaltime=True,
+                                    backspace=False)
+    for count, qaid in enumerate(qaids):
+        mark(count)
         daid2_score, chipmatch = query_inverted_index(
             annots_df, qaid, invindex, withinfo=True)
         qaid2_scores[qaid] = daid2_score
         qaid2_chipmatch[qaid] = chipmatch
+    end_()
     qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
     #,
     #qaid2_scores=qaid2_scores)
