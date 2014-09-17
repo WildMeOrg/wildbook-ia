@@ -54,11 +54,11 @@ def train_paris_vocab(ibs):
     vecs = np.vstack(vecs_list)
     nWords = 8000
     from vtool import clustering2 as clustertool
+    print('vecs are: %r' % utool.get_object_size_str(vecs))
 
     _words = clustertool.cached_akmeans(vecs, nWords, max_iters=500,
                                         use_cache=True, appname='smk')
 
-    print('vecs are: %r' % utool.get_object_size_str(vecs))
     vec_mean = vecs.mean(axis=0).astype(np.float32)
     vec_mean.shape = (1, vec_mean.shape[0])
     vecs_centered = vecs - vec_mean
