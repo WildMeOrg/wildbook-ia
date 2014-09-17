@@ -279,9 +279,10 @@ class IBEISController(object):
         """ Loads the database's algorithm configuration """
         # Always a fresh object
         ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
+        # TODO: update cfgs between versions
         try:
             # Use pref cache
-            if True or utool.get_flag(('--nocache-pref',)):
+            if utool.is_developer() or utool.get_flag(('--nocache-pref',)):
                 raise Exception('')
             ibs.cfg.load()
             if utool.NOT_QUIET:

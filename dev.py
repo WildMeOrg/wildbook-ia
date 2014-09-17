@@ -37,6 +37,25 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]', DEBUG=Fa
 # and then go in _devcmds_ibeis.py
 
 
+def train_paris_vocab(ibs):
+    """
+    python dev.py --db Paris --cmd
+    """
+    aid_list = []
+    # use only one annotion per image
+    for aids in ibs.get_image_aids(ibs.get_valid_gids()):
+        if len(aids) == 1:
+            aid_list.append(aids[0])
+        else:
+            # use annote with largest area
+            aid_list.append(aids[np.argmax(ibs.get_annot_bbox_area(aids))])
+    pass
+
+
+def center_descriptors():
+    pass
+
+
 @devcmd('upsize', 'upscale')
 @profile
 def up_dbsize_expt(ibs, qaid_list):

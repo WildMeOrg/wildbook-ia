@@ -1,11 +1,32 @@
 """
 smk
 Todo:
+    * SIFT: Root_SIFT -> L2 normalized -> Centering.
+    # http://hal.archives-ouvertes.fr/docs/00/84/07/21/PDF/RR-8325.pdf
+
+    * Quantization of residual vectors
+
+    * Burstiness normalization for N-SMK
+
+    * Implemented A-SMK
+
+    * Incorporate Spatial Verification
+
     * Implement correct cfgstrs based on algorithm input
     for cached computations.
 
     * Go pandas all the way
+
+    * Color by word
+
+    * Profile on hyrule
+
+    * Train vocab on paris
+
+    * Remove self matches.
+
 Issues:
+    * 10GB are in use when performing query on Oxford 5K
     * errors when there is a word without any database vectors.
     currently a weight of zero is hacked in
 

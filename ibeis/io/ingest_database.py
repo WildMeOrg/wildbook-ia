@@ -332,6 +332,7 @@ def ingest_oxford_style_db(dbdir):
     >>> from ibeis.io.ingest_database import *  # NOQA
     >>> import ibeis
     >>> dbdir = '/raid/work/Oxford'
+    >>> dbdir = '/raid/work/Paris'
     >>>
     #>>> ibeis.io.convert_db.ingest_oxford_style_db(dbdir)
     """
@@ -388,9 +389,15 @@ def ingest_oxford_style_db(dbdir):
     if utool.checkpath(corrupted_file_fpath):
         ignore_list = utool.read_from(corrupted_file_fpath).splitlines()
 
+    #utool.rrrr()
+    #utool.list_images = utool.util_path.list_images
+
     gname_list = utool.list_images(img_dpath, ignore_list=ignore_list,
                                    recursive=True, full=False)
 
+    # just in case utool broke
+    for ignore in ignore_list:
+        assert ignore not in gname_list
 
     # Read the Oxford Style Groundtruth files
     print('Loading Oxford Style Names and Annots')
@@ -445,9 +452,10 @@ def ingest_oxford_style_db(dbdir):
     print(' * images without groundtruth = %d ' % len(gname_without_groundtruth_list))
     print(' * images with multi-groundtruth = %d ' % len(multinamed_gname_list))
     #make sure all queries have ground truth and there are no duplicate queries
+    #
     assert len(query_gname_list) == len(query_gname_set.intersection(gname_with_groundtruth_list))
     assert len(query_gname_list) == len(set(query_gname_list))
-    #
+    #=======================================================
     # Build IBEIS database
     ibs = ibeis.opendb(dbdir, allow_newdir=True)
     ibs.cfg.other_cfg.auto_localize = False
@@ -456,15 +464,17 @@ def ingest_oxford_style_db(dbdir):
     gpath_list = [join(img_dpath, gname) for gname in gname_list]
     gid_list = ibs.add_images(gpath_list)
 
-    # Add Query Annotations
+    # 1) Add Query Annotations
     qgname_list, qbbox_list, qname_list, qid_list = zip(*query_annots)
-    # Get image ids of queries
+    # get image ids of queries
     qgid_list = [gid_list[gname_list.index(gname)] for gname in qgname_list]
-    # Add nonquery database annots
+    qnote_list = ['query'] * len(qgid_list)
+    # 2) Add nonquery database annots
     dgname_list = list(gname2_annots.keys())
     dgid_list = []
     dname_list = []
     dbbox_list = []
+    dnote_list = []
     for gname in gname2_annots.keys():
         gid = gid_list[gname_list.index(gname)]
         annots = gname2_annots[gname]
@@ -472,15 +482,17 @@ def ingest_oxford_style_db(dbdir):
             dgid_list.append(gid)
             dbbox_list.append(bbox)
             dname_list.append(name)
-    # Add distractors: TODO: 100k
+            dnote_list.append(quality)
+    # 3) Add distractors: TODO: 100k
     ugid_list = [gid_list[gname_list.index(gname)]
                  for gname in gname_without_groundtruth_list]
     ubbox_list = [[0, 0, w, h] for (w, h) in ibs.get_image_sizes(ugid_list)]
+    unote_list = ['distractor'] * len(ugid_list)
 
     # TODO Annotation consistency in terms of duplicate bounding boxes
-    qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list, name_list=qname_list)
-    daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list, name_list=dname_list)
-    uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list)
+    qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list, name_list=qname_list, notes_list=qnote_list)
+    daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list, name_list=dname_list, notes_list=dnote_list)
+    uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
     print('Added %d query annototations' % len(qaid_list))
     print('Added %d database annototations' % len(daid_list))
     print('Added %d distractor annototations' % len(uaid_list))

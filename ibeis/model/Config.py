@@ -308,7 +308,7 @@ class SMKConfig(ConfigBase):
         smkcfg.nAssign = 1  # MultiAssignment
         smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.aggregate = False  #
-        smkcfg.nWords = 1000  #
+        smkcfg.nWords = 8E3  #
 
     def get_cfgstr_list(smkcfg):
         smk_cfgstr = ['_SMK(szVocab=', str(smkcfg.nWords), ',nAssign=', str(smkcfg.nAssign), ',asmk=',
@@ -329,7 +329,9 @@ class QueryConfig(ConfigBase):
         query_cfg.smk_cfg   = SMKConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
-        query_cfg.pipeline_root = 'smk'
+        query_cfg.pipeline_root = 'vsmany'
+        if utool.is_developer():
+            query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         if feat_cfg is None:
             query_cfg._feat_cfg = FeatureConfig(**kwargs)

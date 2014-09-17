@@ -495,6 +495,13 @@ def get_annot_is_hard(ibs, aid_list):
 
 
 @__injectable
+def get_annot_bbox_area(ibs, aid_list):
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    area_list = [bbox[2] * bbox[3] for bbox in bbox_list]
+    return area_list
+
+
+@__injectable
 def localize_images(ibs, gid_list_=None):
     """
     Moves the images into the ibeis image cache.
