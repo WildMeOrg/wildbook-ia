@@ -4,6 +4,12 @@ Todo:
     * SIFT: Root_SIFT -> L2 normalized -> Centering.
     # http://hal.archives-ouvertes.fr/docs/00/84/07/21/PDF/RR-8325.pdf
 
+    The devil is in the deatails
+    http://www.robots.ox.ac.uk/~vilem/bmvc2011.pdf
+
+    This says dont clip, do rootsift instead
+    # http://hal.archives-ouvertes.fr/docs/00/68/81/69/PDF/hal_v1.pdf
+
     * Quantization of residual vectors
 
     * Burstiness normalization for N-SMK
@@ -24,6 +30,8 @@ Todo:
     * Train vocab on paris
 
     * Remove self matches.
+
+    * New SIFT parameters for pyhesaff (root, powerlaw, meanwhatever, output_dtype)
 
 Issues:
     * 10GB are in use when performing query on Oxford 5K
