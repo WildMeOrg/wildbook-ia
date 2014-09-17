@@ -424,15 +424,46 @@ def homogonize(_xyzs):
     return _xys
 
 
-def normalize_rows(arr1):
-    norm_ = npl.norm(arr1, axis=-1)
-    arr1_normed = rowwise_operation(arr1, norm_, np.divide)
+def normalize_rows(arr1):  #, out=None):
+    """
+    from vtool.linalg import *
+    """
+    #norm_ = npl.norm(arr1, axis=-1)
+    # actually this is a colwise op
+    #arr1_normed = rowwise_operation(arr1, norm_, np.divide)
+    assert len(arr1.shape) == 2
+    norm_ = npl.norm(arr1, axis=1)
+    norm_.shape = (norm_.size, 1)
+    arr1_normed = np.divide(arr1, norm_)  # , out=out)
     return arr1_normed
+
+
+@profile
+def axiswise_operation2(arr1, arr2, op, axis=0):
+    """
+    Apply opperation to each row
+
+    >>> arr1 = (255 * np.random.rand(5, 128)).astype(np.uint8)
+    >>> arr2 = vecs.mean(axis=0)
+    >>> op = np.subtract
+    >>> axis = 0
+
+    performs an operation between an
+    (N x A x B ... x Z) array with an
+    (N x 1) array
+
+    %timeit op(arr1, arr2[np.newaxis, :])
+    %timeit op(arr1, arr2[None, :])
+    %timeit op(arr1, arr2.reshape(1, arr2.shape[0]))
+    arr2.shape = (1, arr2.shape[0])
+    %timeit op(arr1, arr2)
+    """
 
 
 @profile
 def rowwise_operation(arr1, arr2, op):
     """
+    DEPRICATE, numpy has better ways of doing this.
     Is the rowwise name correct? Should it be colwise?
 
     performs an operation between an
