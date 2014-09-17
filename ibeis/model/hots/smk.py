@@ -23,6 +23,7 @@ from ibeis.model.hots import smk_index
 
 
 def testdata():
+    qaid = 37  # new test case for PZ_MTEST
     np.set_printoptions(precision=2)
     pd.set_option('display.max_rows', 7)
     pd.set_option('display.max_columns', 7)
