@@ -105,13 +105,11 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
     >>> print(repr(dx2_fx))
     array([0, 1, 0, 1, 2, 0, 1, 2, 0, 1, 2])
 
-    <CYTH>
     cdef:
         list aid_list, desc_list
         long nFeat, aid
         iter aid_nFeat_iter, nFeat_iter, _ax2_aid, _ax2_fx
         np.ndarray dx2_aid, dx2_fx, dx2_desc
-    </CYTH>
 
     """
     # Build inverted index of (aid, fx) pairs
@@ -138,7 +136,7 @@ def _build_inverted_descriptor_index(aid_list, desc_list):
 def build_flann_inverted_index(ibs, aid_list, **kwargs):
     """
     Build a inverted index (using FLANN)
-    </CYTH> """
+    """
     # Aggregate descriptors
     dx2_desc, dx2_aid, dx2_fx = build_ibs_inverted_descriptor_index(ibs, aid_list)
     # hash which annotations are input
@@ -167,7 +165,6 @@ class HOTSIndex(object):
     >>> print(hsindex) #doctest: +ELLIPSIS
     <ibeis.model.hots.hots_nn_index.HOTSIndex object at ...>
 
-    </CYTH>
     """
     def __init__(hsindex, ibs, daid_list, **kwargs):
         print('[nnindex] building HOTSIndex object')
@@ -229,7 +226,6 @@ class HOTSMultiIndex(object):
     >>> print(split_index) #doctest: +ELLIPSIS
     <ibeis.model.hots.hots_nn_index.HOTSMultiIndex object at ...>
 
-    </CYTH>
     """
 
     def __init__(split_index, ibs, daid_list, num_forests=8):
@@ -271,7 +267,6 @@ class HOTSMultiIndex(object):
 
 #@utool.classmember(HOTSMultiIndex)
 def nn_index(split_index, qfx2_desc, num_neighbors):
-    """ </CYTH> """
     qfx2_dx_list   = []
     qfx2_dist_list = []
     qfx2_aid_list  = []
@@ -296,7 +291,6 @@ def nn_index(split_index, qfx2_desc, num_neighbors):
 
 
 def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx2_rankx_list, qfx2_treex_list):
-    """ </CYTH> """
     qfx2_dx    = np.hstack(qfx2_dx_list)
     qfx2_dist  = np.hstack(qfx2_dist_list)
     qfx2_rankx = np.hstack(qfx2_rankx_list)
@@ -318,7 +312,6 @@ def join_split_nn(qfx2_dx_list, qfx2_dist_list, qfx2_aid_list, qfx2_fx_list, qfx
 
 #@utool.classmember(HOTSMultiIndex)
 def split_index_daids(split_index):
-    """ </CYTH> """
     for hsindex in split_index.forest_indexes:
         pass
 

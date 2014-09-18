@@ -16,7 +16,6 @@ USE_BIGCACHE = '--nocache-big' not in sys.argv
 @utool.indent_func
 @profile
 def quickly_ensure_qreq(ibs, qaids=None, daids=None):
-    """ </CYTH> """
     # This function is purely for hacking, eventually prep request or something
     # new should be good enough to where this doesnt matter
     if utool.NOT_QUIET:
@@ -40,7 +39,7 @@ def quickly_ensure_qreq(ibs, qaids=None, daids=None):
 def prep_query_request(qreq=None, query_cfg=None,
                        qaids=None, daids=None, **kwargs):
     """  Builds or modifies a query request object
-    </CYTH> """
+     """
     # Ugg, what does this even do!?
     # TODO: Cleanup
     if utool.NOT_QUIET:
@@ -74,7 +73,7 @@ def prep_query_request(qreq=None, query_cfg=None,
 def pre_exec_checks(ibs, qreq):
     """
     Makes sure that the daids are indexed for nn_search
-    </CYTH> """
+     """
     if utool.NOT_QUIET:
         print('  --- Pre Exec ---')
     feat_cfgstr = qreq.cfg._feat_cfg.get_cfgstr()
@@ -185,7 +184,7 @@ def execute_query_L0(ibs, qreq):
         qreq - QueryRequest Object   # use prep_qreq to create one
     Output:
         qaid2_qres - mapping from query indexes to QueryResult Objects
-    </CYTH> """
+    """
 
     # Query Chip Indexes
     # * vsone qaids/daids swapping occurs here

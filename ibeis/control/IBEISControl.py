@@ -87,7 +87,7 @@ class IBEISController(object):
     annotation   - region of interest for a chip
     theta - angle of rotation for a chip
     """
-    # USE THIS IN CONTROLLER CYTHON
+    # use this in controller cython
     # Available in Python-space:
     #property period:
     #    def __get__(self):

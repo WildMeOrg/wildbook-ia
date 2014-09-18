@@ -29,6 +29,16 @@ CLUTTER_PATTERNS = [
     '*.egg-info',
     'failed.txt',
     '_test_times.txt',
+    '_*_cyth.o',
+    '_*_cyth_bench.py',
+    'run_cyth_benchmarks.sh',
+    '_*_cyth.c',
+    '_*_cyth.pyd',
+    '_*_cyth.pxd',
+    '_*_cyth.html',
+    '_*_cyth.pyx',
+    '_*_cyth.so',
+    '_*_cyth.dylib'
 ]
 
 CLUTTER_DIRS = [

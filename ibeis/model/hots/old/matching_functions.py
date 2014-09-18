@@ -61,7 +61,6 @@ VERBOSE = utool.VERBOSE or utool.get_flag('--verbose-query')
 # Cython Metadata
 #=================
 """
-<CYTH>
 ctypedef np.float32_t float32_t
 ctypedef np.float64_t float64_t
 ctypedef np.uint8_t uint8_t
@@ -71,7 +70,6 @@ ctypedef ktool.DESC_T desc_t
 
 cdef int MARK_AFTER
 cdef double tau
-</CYTH>
 """
 
 #=================
@@ -110,13 +108,11 @@ log_prog = partial(utool.log_progress, startafter=START_AFTER)
 
 
 class QueryException(Exception):
-    """ </CYTH> """
     def __init__(self, msg):
         super(QueryException, self).__init__(msg)
 
 
 def NoDescriptorsException(ibs, qaid):
-    """ </CYTH> """
     msg = ('QUERY ERROR IN %s: qaid=%r has no descriptors!' +
            'Please delete it.') % (ibs.get_dbname(), qaid)
     ex = QueryException(msg)
@@ -141,12 +137,10 @@ def nearest_neighbors(ibs, qaids, qreq):
                      (nDesc x K) where nDesc is the number of descriptors in the
                      annotation, and K is the number of approximate nearest
                      neighbors.
-    <CYTH: returns=dict>
         cdef:
             dict qaid2_nns
             object ibs
             object qreq
-    </CYTH>
     """
     # Neareset neighbor configuration
     nn_cfg = qreq.cfg.nn_cfg
@@ -166,7 +160,6 @@ def nearest_neighbors(ibs, qaids, qreq):
 
 def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
     """ Helper worker function for nearest_neighbors
-    <CYTH: returns=dict>
         cdef:
             list qaids, qdesc_list
             long num_neighbors, checks
@@ -177,7 +170,6 @@ def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
             np.ndarray[float64_t, ndim=2] qfx2_dist
             np.ndarray[int32_t, ndim=2] qfx2_dx
             np.ndarray[float64_t, ndim=2] qfx2_dist
-    </CYTH>
     """
     # Output
     qaid2_nns = {}
@@ -214,11 +206,6 @@ def _nearest_neighbors(nn_func, qaids, qdesc_list, num_neighbors, checks):
 
 
 def weight_neighbors(ibs, qaid2_nns, qreq):
-    """
-    <CYTH: returns=dict>
-        cdef:
-    </CYTH>
-    """
     if NOT_QUIET:
         print('[mf] Step 2) Weight neighbors: ' + qreq.cfg.filt_cfg.get_cfgstr())
     if qreq.cfg.filt_cfg.filt_on:
@@ -229,13 +216,6 @@ def weight_neighbors(ibs, qaid2_nns, qreq):
 
 @profile
 def _weight_neighbors(ibs, qaid2_nns, qreq):
-    """
-    <CYTH: returns=(dict, dict)>
-        cdef:
-            dict filt2_weights
-            dict filt2_meta
-    </CYTH>
-    """
     nnfilter_list = qreq.cfg.filt_cfg.get_active_filters()
     filt2_weights = {}
     filt2_meta = {}
@@ -256,13 +236,6 @@ def _weight_neighbors(ibs, qaid2_nns, qreq):
 
 @profile
 def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
-    """
-    <CYTH: returns=(dict, dict)>
-        cdef:
-            dict qfx2_score
-            dict qfx2_valid
-    </CYTH>
-    """
     qfx2_score = np.ones(qfx2_nndx.shape, dtype=hots_query_result.FS_DTYPE)
     qfx2_valid = np.ones(qfx2_nndx.shape, dtype=np.bool)
     # Apply the filter weightings to determine feature validity and scores
@@ -281,12 +254,6 @@ def _apply_filter_scores(qaid, qfx2_nndx, filt2_weights, filt_cfg):
 
 @profile
 def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
-    """
-    <CYTH: returns=dict>
-        cdef:
-            dict qaid2_nnfilt
-    </CYTH>
-    """
     qaid2_nnfilt = {}
     # Configs
     filt_cfg = qreq.cfg.filt_cfg
@@ -371,7 +338,6 @@ def filter_neighbors(ibs, qaid2_nns, filt2_weights, qreq):
 def identity_filter(qaid2_nns, qreq):
     """ testing function returns unfiltered nearest neighbors
     this does check that you are not matching yourself
-    </CYTH>
     """
     qaid2_nnfilt = {}
     K = qreq.cfg.nn_cfg.K
@@ -396,7 +362,6 @@ def identity_filter(qaid2_nns, qreq):
 
 @profile
 def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
-    """ </CYTH> """
     minMatches = 2  # TODO: paramaterize
     # Convert to numpy
     fm_dtype = hots_query_result.FM_DTYPE
@@ -420,7 +385,6 @@ def _fix_fmfsfk(aid2_fm, aid2_fs, aid2_fk):
 
 
 def new_fmfsfk():
-    """ </CYTH> """
     aid2_fm = defaultdict(list)
     aid2_fs = defaultdict(list)
     aid2_fk = defaultdict(list)
@@ -446,7 +410,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
     vsmany/vsone counts here. also this is where the filter
     weights and thershold are applied to the matches. Essientally
     nearest neighbors are converted into weighted assignments
-    </CYTH> """
+    """
 
     # Config
     K = qreq.cfg.nn_cfg.K
@@ -518,7 +482,6 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq):
 
 
 def spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
-    """ </CYTH> """
     sv_cfg = qreq.cfg.sv_cfg
     if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
         print('[mf] Step 5) Spatial verification: off')
@@ -529,7 +492,6 @@ def spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
 
 @profile
 def _spatial_verification(ibs, qaid2_chipmatch, qreq, dbginfo=False):
-    """ </CYTH> """
     sv_cfg = qreq.cfg.sv_cfg
     print('[mf] Step 5) Spatial verification: ' + sv_cfg.get_cfgstr())
     prescore_method = sv_cfg.prescore_method
@@ -616,7 +578,7 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
                                 nRerank, use_chip_extent):
     """ helper for spatial verification, computes the squared diagonal length of
     matching chips
-    </CYTH> """
+    """
     if use_chip_extent:
         topx2_chipsize = list(ibs.get_annot_chipsizes(topx2_aid))
         def chip_dlen_sqrd(tx):
@@ -644,7 +606,6 @@ def _precompute_topx2_dlen_sqrd(ibs, aid2_fm, topx2_aid, topx2_kpts,
 
 @profile
 def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
-    """ </CYTH> """
     if NOT_QUIET:
         print('[mf] Step 6) Convert chipmatch -> qres')
     cfgstr = qreq.get_cfgstr()
@@ -672,13 +633,11 @@ def chipmatch_to_resdict(ibs, qaid2_chipmatch, filt2_meta, qreq):
 def try_load_resdict(qreq):
     """ Try and load the result structures for each query.
     returns a list of failed qaids
-    <CYTH>
     cdef:
         object qreq
         list qaids
         dict qaid2_qres
         list failed_qaids
-    </CYTH>
     """
     qaids = qreq.qaids
     #cfgstr = qreq.get_cfgstr()  # NEEDS FIX TAKES 21.9 % time of this function
@@ -703,7 +662,6 @@ def try_load_resdict(qreq):
 
 @profile
 def score_chipmatch(ibs, qaid, chipmatch, score_method, qreq=None):
-    """ </CYTH> """
     (aid2_fm, aid2_fs, aid2_fk) = chipmatch
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
     if score_method.find('w') == len(score_method) - 1:
