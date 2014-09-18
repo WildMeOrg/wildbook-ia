@@ -75,7 +75,7 @@ def fill_holes(mask):
 # grabcut_mode = cv2.GC_EVAL
 # grabcut_mode = cv2.GC_INIT_WITH_RECT
 # cv2.GC_BGD, cv2.GC_PR_BGD, cv2.GC_PR_FGD, cv2.GC_FGD
-@profile
+#@profile
 def grabcut(rgb_chip):
     (h, w) = rgb_chip.shape[0:2]
     _mask = np.zeros((h, w), dtype=np.uint8)  # Initialize: mask

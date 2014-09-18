@@ -46,7 +46,7 @@ SV_DTYPE = np.float64
 TAU = 2 * np.pi  # tauday.org
 
 
-@profile
+#@profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
@@ -113,7 +113,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
 #_build_lstsqrs_Mx9_cyth = build_lstsqrs_Mx9  # HACK HACK HACK
 
 
-@profile
+#@profile
 def compute_homog(xy1_mn, xy2_mn):
     """
     Generate 6 degrees of freedom homography transformation
@@ -188,7 +188,7 @@ def compute_homog(xy1_mn, xy2_mn):
 #102     18581        58484      3.1      0.3      return hypo_inliers, hypo_errors
 
 
-@profile
+#@profile
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     """
@@ -270,7 +270,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     return hypo_inliers, hypo_errors
 
 
-@profile
+#@profile
 def get_affine_inliers(kpts1, kpts2, fm,
                         xy_thresh_sqrd,
                         scale_thresh_sqrd,
@@ -351,7 +351,7 @@ def get_affine_inliers(kpts1, kpts2, fm,
     return inliers_list, errors_list, Aff_mats
 
 
-@profile
+#@profile
 def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
                             ori_thresh):
     """ Tests each hypothesis and returns only the best transformation and inliers
@@ -379,7 +379,7 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     return aff_inliers, Aff
 
 
-@profile
+#@profile
 def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     """ Currently this function just uses the number of inliers as a metric
     #_if C_YTH
@@ -396,7 +396,7 @@ def determine_best_inliers(inliers_list, errors_list, Aff_mats):
     return aff_inliers, Aff
 
 
-@profile
+#@profile
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
@@ -433,7 +433,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     return homog_inliers, H
 
 
-@profile
+#@profile
 def spatial_verification(kpts1, kpts2, fm,
                          xy_thresh,
                          scale_thresh,
@@ -448,7 +448,7 @@ def spatial_verification(kpts1, kpts2, fm,
     #"""
     #<-CYTH returns="tuple">
     #cdef:
-    #</CYTH>
+    #
     #"""
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
