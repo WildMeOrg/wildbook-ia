@@ -72,7 +72,6 @@ __STR__ = str if six.PY3 else unicode
 
 class SQLDatabaseController(object):
     """ SQLDatabaseController an efficientish interface into SQL
-    </CYTH>
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',

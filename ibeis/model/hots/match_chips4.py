@@ -20,7 +20,7 @@ MIN_BIGCACHE_BUNDLE = 20
 # Main Query Logic
 #----------------------
 
-@profile
+#@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
                          use_bigcache=USE_BIGCACHE):
     """
@@ -72,7 +72,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
     return qaid2_qres
 
 
-@profile
+#@profile
 def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:

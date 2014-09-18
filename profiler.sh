@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Globals
 echo "==========="
 echo "PROFILER.sh"
@@ -43,7 +43,8 @@ elif [ "$OSTYPE" = "darwin"* ]; then
     export KERNPROF_PY="$PYEXE $PYSCRIPTS/kernprof.py"
 else
     # UBUNTU
-    export KERNPROF_PY="kernprof.py"
+    #export KERNPROF_PY="kernprof.py"
+    export KERNPROF_PY="kernprof"
     export RUNSNAKE_PY="runsnake"
     export PYEXE=$(python -c "import sys; print(sys.executable)")
 fi

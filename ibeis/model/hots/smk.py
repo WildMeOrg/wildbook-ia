@@ -97,7 +97,8 @@ def testdata():
     # Search set
     #qaids = valid_aids[0::2]
     qaids = [valid_aids[0], valid_aids[4]]
-    default = 1E3
+    #default = 1E3
+    default = 8E3
     #default = 2E4
     #default=5)  # default=95000)
     nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)

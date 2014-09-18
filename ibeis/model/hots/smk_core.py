@@ -9,6 +9,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
+@profile
 def gamma_summation(wx2_rvecs, wx2_weight):
     r"""
     \begin{equation}
@@ -38,6 +39,7 @@ def gamma_summation(wx2_rvecs, wx2_weight):
     return scoremat
 
 
+@profile
 def selectivity_function(rscore_mat, alpha=3, thresh=0):
     """ sigma from SMK paper rscore = residual score """
     scores = (np.sign(rscore_mat) * np.abs(rscore_mat)) ** alpha
@@ -45,6 +47,7 @@ def selectivity_function(rscore_mat, alpha=3, thresh=0):
     return scores
 
 
+@profile
 def Match_N(vecs1, vecs2):
     simmat = vecs1.dot(vecs2.T)
     # Nanvectors were equal to the cluster center.
@@ -54,6 +57,7 @@ def Match_N(vecs1, vecs2):
     return selectivity_function(simmat)
 
 
+@profile
 def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
     """
     >>> from ibeis.model.hots.smk_core import *  # NOQA
