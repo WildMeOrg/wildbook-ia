@@ -394,21 +394,20 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
     #if CYTH
     cdef:
         Py_ssize_t count
-        np.ndarray[np.int32_t, ndim=2] dfxs
-        np.ndarray[np.int64_t, ndim=2] dfxs
-
+        #np.ndarray[np.int32_t, ndim=1] dfxs
+        #np.ndarray[np.int64_t, ndim=1] dfxs
     #endif
     """
     daid_fm = {}
     daid_fs = {}
     daid_fk = {}
-    mark, end_ = utool.log_progress('accumulating match info: ',
-                                    len(daid2_wx2_scoremat), flushfreq=100,
-                                    writefreq=25)
+    #mark, end_ = utool.log_progress('accumulating match info: ',
+    #                                len(daid2_wx2_scoremat), flushfreq=100,
+    #                                writefreq=25)
     idx2_dfx_values = idx2_dfx.values
     for count, item in enumerate(daid2_wx2_scoremat.items()):
         daid, wx2_scoremat = item
-        mark(count)
+        #mark(count)
         fm_accum = []
         fs_accum = []
         fk_accum = []
@@ -438,7 +437,7 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
         daid_fm[daid] = np.vstack(fm_accum)
         daid_fs[daid] = np.hstack(fs_accum).T
         daid_fk[daid] = np.hstack(fk_accum).T
-    end_()
+    #end_()
     chipmatch = (daid_fm, daid_fs, daid_fk,)
     return chipmatch
 
