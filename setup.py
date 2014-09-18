@@ -84,6 +84,7 @@ if __name__ == '__main__':
         license=util_setup.read_license('LICENSE'),
         long_description=util_setup.parse_readme('README.md'),
         ext_modules=util_setup.find_ext_modules(),
+        cmdclass=util_setup.get_cmdclass(),
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_patterns=CLUTTER_PATTERNS,
