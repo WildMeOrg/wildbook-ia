@@ -13,18 +13,18 @@ TREE_NODE_BASE = QtCore.QObject
 
 class TreeNode(TREE_NODE_BASE):
     """
-    <CYTH>
+    
     cdef:
         long id_, level
         list child_nodes
         TreeNode parent_node
-    </CYTH>
+    
     """
     #__slots__ = ('id_', 'parent_node', 'child_nodes', 'level',)
     def __init__(self, id_, parent_node, level):
         """
-        <CYTH>
-        </CYTH>
+        
+        
         """
         self.id_ = id_
         self.parent_node = parent_node
@@ -39,15 +39,15 @@ class TreeNode(TREE_NODE_BASE):
         """
         <CYTH returns="TreeNode">
         cdef long index
-        </CYTH> """
+         """
         return self.get_child(index)
 
     def set_children(self, child_nodes):
-        """ <CYTH returns="void"></CYTH> """
+        """ <CYTH returns="void"> """
         self.child_nodes = child_nodes
 
     def get_children(self):
-        """ </CYTH returns="list"></CYTH> """
+        """ </CYTH returns="list"> """
         self.lazy_checks()
         return self.child_nodes
 
@@ -55,7 +55,7 @@ class TreeNode(TREE_NODE_BASE):
         """
         <CYTH returns=long>
         cdef TreeNode child_node
-        </CYTH>
+        
         """
         self.lazy_checks()
         return self.child_nodes.index(child_node)
@@ -64,12 +64,12 @@ class TreeNode(TREE_NODE_BASE):
         """
         <CYTH returns="TreeNode">
         cdef long index
-        </CYTH> """
+         """
         self.lazy_checks()
         return self.child_nodes[index]
 
     def get_parent(self):
-        """ <CYTH returns="TreeNode"></CYTH> """
+        """ <CYTH returns="TreeNode"> """
         try:
             return self.parent_node
         except AttributeError as ex:
@@ -82,29 +82,29 @@ class TreeNode(TREE_NODE_BASE):
 
     def get_num_children(self):
         """ <CYTH returns=long>
-            </CYTH>
+            
             """
         self.lazy_checks()
         return len(self.child_nodes)
 
     def get_id(self):
         """ Returns python internal id of this class
-        <CYTH returns="long"></CYTH> """
+        <CYTH returns="long"> """
         return self.id_
 
     def get_row(self):
         """ Returns the row_index of this node w.r.t its parent.
-        <CYTH>
+        
         cdef list sibling_nodes
         cdef long row
-        </CYTH>
+        
         """
         sibling_nodes = self.parent_node.child_nodes
         row = sibling_nodes.index(self)
         return row
 
     def get_level(self):
-        """ <CYTH returns="long"> </CYTH>"""
+        """ <CYTH returns="long"> """
         return self.level
 
     def lazy_checks(self):
@@ -156,7 +156,7 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         list node_list
         list new_node_lists
         list new_ids_lists
-    </CYTH>
+    
     """
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
@@ -195,7 +195,7 @@ def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, leve
         list child_nodes
         TreeNode next_node
         list next_ids
-    </CYTH>
+    
     """
     if level == num_levels - 1:
         child_nodes = (TreeNode(id_, parent_node, level) for id_ in child_ids)
@@ -222,7 +222,7 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
         list child_nodes
         TreeNode next_node
         list next_ids
-    </CYTH>
+    
     """
     if level == num_levels - 1:
         child_nodes_iter = (TreeNode(id_, parent_node, level) for id_ in child_ids)
@@ -242,7 +242,7 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
 def build_internal_structure(model):
     """
     <CYTH returns="TreeNode">
-    </CYTH>
+    
     """
     #from guitool.api_item_model import *
     ider_list = model.iders  # an ider for each level
