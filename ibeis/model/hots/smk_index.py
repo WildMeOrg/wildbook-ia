@@ -375,7 +375,6 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True):
     else:
         return daid2_totalscore
 
-
 @profile
 def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
     """
@@ -393,9 +392,20 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
 
     #if CYTH
     cdef:
+        dict daid_fm, daid_fs, daid_fk
+        tuple item, chipmatch
+        object scoremat
+        list fm_accum, fs_accum, fk_accum
         Py_ssize_t count
-        #np.ndarray[np.int32_t, ndim=1] dfxs
-        #np.ndarray[np.int64_t, ndim=1] dfxs
+        np.ndarray[np.int64_t, ndim=2] fm, fm_
+        np.ndarray[np.float64_t, ndim=1] fs_, fs
+        np.ndarray[np.int32_t, ndim=1] fk
+        np.ndarray[np.int64_t, ndim=1] qfxs
+        np.ndarray[int, ndim=1] dfxs
+        np.ndarray[np.int64_t, ndim=1] scoremat_column_values
+        np.ndarray[np.float64_t, ndim=2] scoremat_values
+        np.ndarray[np.uint8_t, cast=True] valid
+        np.float64_t lower_thresh
     #endif
     """
     daid_fm = {}
@@ -405,29 +415,27 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
     #                                len(daid2_wx2_scoremat), flushfreq=100,
     #                                writefreq=25)
     idx2_dfx_values = idx2_dfx.values
-    for count, item in enumerate(daid2_wx2_scoremat.items()):
+    for count, item in enumerate(six.iteritems(daid2_wx2_scoremat)):
         daid, wx2_scoremat = item
         #mark(count)
         fm_accum = []
         fs_accum = []
         fk_accum = []
         for wx, scoremat in wx2_scoremat.iteritems():
+            scoremat_column_values = scoremat.columns.values
             qfxs = scoremat.index.values
-            """
-            %timeit dfxs = idx2_dfx[scoremat.columns]
-            %timeit dfxs = idx2_dfx_values.take(scoremat.columns.values)
-            """
-            dfxs = idx2_dfx_values.take(scoremat.columns.values)
+            dfxs = idx2_dfx_values.take(scoremat_column_values)
             if len(qfxs) == 0 or len(dfxs) == 0:
                 continue
-            fm_ = np.dstack(np.meshgrid(qfxs, dfxs, indexing='ij'))
-            fm_.shape = (qfxs.size * dfxs.size, 2)
-            fs_ = scoremat.values.flatten()
-            if scoremat.values.shape[0] > 1 and scoremat.values.shape[1] > 1:
+            fm_ = np.dstack(np.meshgrid(qfxs, dfxs, indexing='ij')).reshape((qfxs.size * dfxs.size, 2))
+            #fm_.shape =
+            scoremat_values = scoremat.values
+            fs_ = scoremat_values.flatten()
+            if scoremat_values.shape[0] > 1 and scoremat_values.shape[1] > 1:
                 break
-            lower_thresh = 0
+            lower_thresh = 0.0
             lower_thresh = 0.001
-            valid = [fs_ > lower_thresh]
+            valid = fs_ > lower_thresh
             fm = fm_[valid]
             fs = fs_[valid]
             fk = np.ones(len(fm), dtype=np.int32)
