@@ -11,6 +11,7 @@ import pandas as pd
 from vtool import clustering2 as clustertool
 from vtool import nearest_neighbors as nntool
 from ibeis.model.hots import smk_core
+from ibeis.model.hots import pdh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
 
@@ -70,44 +71,6 @@ class InvertedIndex(object):
         return daid2_gamma
 
 
-def ensure_numpy(data):
-    return data.values if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)) else data
-
-
-def pandasify_dict1d(dict_, keys, val_name, series_name, dense=True):
-    """ Turns dict into heirarchy of series """
-    if dense:
-        key2_series = pd.Series(
-            {key: pd.Series(dict_.get(key, []), name=val_name,)
-             for key in keys},
-            index=keys, name=series_name)
-    else:
-        key2_series = pd.Series(
-            {key: pd.Series(dict_.get(key), name=val_name,)
-             for key in keys},
-            index=pd.Int64Index(dict_.keys(), name=keys.name), name=series_name)
-    return key2_series
-
-
-def pandasify_dict2d(dict_, keys, key2_index, columns, series_name):
-    """ Turns dict into heirarchy of dataframes """
-    key2_df = pd.Series(
-        {key: pd.DataFrame(dict_[key], index=key2_index[key], columns=columns,)
-         for key in keys},
-        index=keys, name=series_name)
-    return key2_df
-
-
-def pandasify_list2d(list_, keys, columns, val_name, series_name):
-    """ Turns dict into heirarchy of dataframes """
-    key2_df = pd.Series(
-        [pd.DataFrame(item,
-                      index=pd.Int64Index(np.arange(len(item)), name=val_name),
-                      columns=columns,) for item in list_],
-        index=keys, name=series_name)
-    return key2_df
-
-
 def make_annot_df(ibs):
     """
     Creates a panda dataframe using an ibeis controller
@@ -120,8 +83,8 @@ def make_annot_df(ibs):
     kpts_list = ibs.get_annot_kpts(aid_list)
     vecs_list = ibs.get_annot_desc(aid_list)
     aid_series = pd.Series(aid_list, name='aid')
-    kpts_df = pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')
-    vecs_df = pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')
+    kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')
+    vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')
     # Pandas Annotation Dataframe
     annots_df = pd.concat([kpts_df, vecs_df], axis=1)
     return annots_df
@@ -162,8 +125,8 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
     _words = words.values
     wordflann = nntool.flann_cache(_words, flann_params=flann_params,
                                    appname='smk')
-    _daids = ensure_numpy(daids)
-    _vecs_list = ensure_numpy(vecs_list)
+    _daids = pdh.ensure_numpy(daids)
+    _vecs_list = pdh.ensure_numpy(vecs_list)
     _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
 
     # Pandasify
@@ -195,7 +158,7 @@ def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True
     #TODO: multiple assignment
     wx_series  = words.index
     idx_series = idx2_vec.index
-    _idx2_vec = ensure_numpy(idx2_vec)
+    _idx2_vec = pdh.ensure_numpy(idx2_vec)
     _idx2_wx, _idx2_wdist = wordflann.nn_index(_idx2_vec, 1)
     # TODO: maybe we can use multiindex here?
     #idx_wx_mindex = pd.MultiIndex.from_arrays(((idx_series.values, _idx2_wx)),
@@ -213,7 +176,7 @@ def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True
     keys = wx_series
     val_name = idx_name
     """
-    wx2_idxs = pandasify_dict1d(_wx2_idxs, wx_series, idx_name, series_name, dense=dense)
+    wx2_idxs = pdh.pandasify_dict1d(_wx2_idxs, wx_series, idx_name, series_name, dense=dense)
     return wx2_idxs, idx2_wx
 
 
@@ -269,12 +232,15 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
         idxs = wx2_idxs[wx]
         # For each word get vecs assigned to it
         vecs = idx2_vec.take(idxs).values.astype(dtype=np.float64)
-        word = _words[wx].astype(dtype=np.float64)
+        word = _words[wx].astype(dtype=np.float61)
         # Compute residuals of assigned vectors
-        tiled_words = np.tile(word, (vecs.shape[0], 1))
-        rvecs_raw = tiled_words - vecs
+        word.shape = (1, words.size)
+        rvecs_raw = word - vecs
         # Normalize residuals
-        rvecs_n = vtool.linalg.normalize_rows(rvecs_raw)
+        rvecs_n = rvecs_raw.copy()
+        norm_ = npl.norm(rvecs_raw, axis=1)
+        norm_.shape = (norm_.size, 1)
+        np.divide(rvecs_raw, norm_, out=rvecs_n)
         wx2_rvecs[wx] = pd.DataFrame(rvecs_n, index=idxs, columns=VEC_COLUMNS)
     end_()
     return wx2_rvecs
@@ -444,6 +410,9 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
 
 
 def query_smk(ibs, annots_df, invindex, qreq_):
+    """
+    ibeis interface
+    """
     from ibeis.model.hots import pipeline
     qaids = qreq_.get_external_qaids()
     qaid2_chipmatch = {}

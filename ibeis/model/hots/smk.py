@@ -38,6 +38,34 @@ Issues:
     * errors when there is a word without any database vectors.
     currently a weight of zero is hacked in
 
+
+Paper Style Guidelines:
+   * use real code examples instead of pseudocode
+    (show off power of python)
+   * short and consice
+   * never cryptic
+
+Paper outline:
+
+abstract:
+    contributions:
+
+algorithms:
+    lnbnn
+    a/smk
+    modification (name scoring? next level categorization)
+
+parameters:
+    database size
+    sift threshold
+    vocabulary?
+
+Databases:
+    pzall
+    gzall
+    oxford
+    paris
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -52,7 +80,7 @@ from ibeis.model.hots import smk_index
 
 
 def testdata():
-    qaid = 37  # new test case for PZ_MTEST
+    qaid = 37  # NOQA new test case for PZ_MTEST
     np.set_printoptions(precision=2)
     pd.set_option('display.max_rows', 7)
     pd.set_option('display.max_columns', 7)

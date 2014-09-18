@@ -97,7 +97,6 @@ def postprocess_sift(vecs, vec_mean=None):
     return final_vecs
 
 
-
 def center_descriptors():
     pass
 
