@@ -3,7 +3,6 @@ smk index
 """
 from __future__ import absolute_import, division, print_function
 import six
-import vtool
 import utool
 import numpy as np
 import numpy.linalg as npl  # NOQA
@@ -14,9 +13,10 @@ from ibeis.model.hots import smk_core
 from ibeis.model.hots import pandas_helpers as pdh
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
-
+FLOAT_TYPE = np.float32
+INTEGER_TYPE = np.int32
 VEC_DIM = 128
-VEC_COLUMNS  = pd.Int64Index(range(VEC_DIM), name='vec')
+VEC_COLUMNS  = pdh.IntIndex(range(VEC_DIM), name='vec')
 KPT_COLUMNS = pd.Index(['xpos', 'ypos', 'a', 'c', 'd', 'theta'], name='kpt')
 USE_CACHE_WORDS = not utool.get_flag('--nocache-words')
 
@@ -83,7 +83,7 @@ def make_annot_df(ibs):
     aid_list = ibs.get_valid_aids()
     kpts_list = ibs.get_annot_kpts(aid_list)
     vecs_list = ibs.get_annot_desc(aid_list)
-    aid_series = pd.Series(aid_list, name='aid')
+    aid_series = pdh.IntSeries(aid_list, name='aid')
     kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')
     vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')
     # Pandas Annotation Dataframe
@@ -107,7 +107,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
           (nWords, len(taids), len(train_vecs)))
     _words = clustertool.cached_akmeans(train_vecs, nWords, max_iters=100,
                                         use_cache=use_cache, appname='smk')
-    wx_series = pd.Int64Index(np.arange(len(_words)), name='wx')
+    wx_series = pdh.IntIndex(np.arange(len(_words)), name='wx')
     words = pd.DataFrame(_words, index=wx_series, columns=VEC_COLUMNS)
     return words
 
@@ -133,9 +133,9 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
     _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
 
     # Pandasify
-    idx_series = pd.Int64Index(np.arange(len(_idx2_daid)), name='idx')
-    idx2_dfx   = pd.Series(_idx2_dfx, index=idx_series, name='fx')
-    idx2_daid  = pd.Series(_idx2_daid, index=idx_series, name='aid')
+    idx_series = pdh.IntIndex(np.arange(len(_idx2_daid)), name='idx')
+    idx2_dfx   = pdh.IntSeries(_idx2_dfx, index=idx_series, name='fx')
+    idx2_daid  = pdh.IntSeries(_idx2_daid, index=idx_series, name='aid')
     idx2_dvec  = pd.DataFrame(_idx2_dvec, index=idx_series, columns=VEC_COLUMNS)
 
     invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx, daids)
@@ -167,8 +167,8 @@ def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True
     # TODO: maybe we can use multiindex here?
     #idx_wx_mindex = pd.MultiIndex.from_arrays(((idx_series.values, _idx2_wx)),
     #                                          names=(idx_name, 'wx'))
-    #idx2_wx = pd.Series(_idx2_wx, index=idx_wx_mindex, name='wx')
-    idx2_wx = pd.Series(_idx2_wx, index=idx_series, name='wx')
+    #idx2_wx = pdh.IntSeries(_idx2_wx, index=idx_wx_mindex, name='wx')
+    idx2_wx = pdh.IntSeries(_idx2_wx, index=idx_series, name='wx')
     word_assignments = pd.DataFrame(_idx2_wx, index=idx2_vec.index, columns=['wx'])
     word_group = word_assignments.groupby('wx')
     # TODO Ensure every wx is here.
@@ -200,7 +200,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     """
     nTotalDocs = daids.shape[0]
-    wx2_idf = pd.Series(np.empty(len(wx_series)), index=wx_series, name='idf')
+    wx2_idf = pdh.IntSeries(np.empty(len(wx_series)), index=wx_series, name='idf')
     mark, end_ = utool.log_progress('computing word idfs: ', len(wx_series), flushfreq=500, writefreq=50)
     for count, wx in enumerate(wx_series):
         mark(count)
@@ -230,14 +230,14 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
     """
     wx_keys = wx2_idxs.index
     _words = words.values
-    wx2_rvecs = pd.Series(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='rvec')
+    wx2_rvecs = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='rvec')
     mark, end_ = utool.log_progress('compute residual: ', len(wx_keys), flushfreq=500, writefreq=50)
     for count, wx in enumerate(wx_keys):
         mark(count)
         idxs = wx2_idxs[wx]
         # For each word get vecs assigned to it
-        vecs = idx2_vec.take(idxs).values.astype(dtype=np.float64)
-        word = _words[wx].astype(dtype=np.float64)
+        vecs = idx2_vec.take(idxs).values.astype(dtype=FLOAT_TYPE)
+        word = _words[wx].astype(dtype=FLOAT_TYPE)
         # Compute residuals of assigned vectors
         word.shape = (1, word.size)
         rvecs_raw = word - vecs
@@ -285,7 +285,7 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids):
     # Summation over words for each aid
     mark2, end2_ = utool.log_progress(
         'computing data gamma: ', len(daid2_wx2_drvecs), flushfreq=100, writefreq=25)
-    daid2_gamma = pd.Series(np.empty(daids.shape[0]), index=daids, name='gamma')
+    daid2_gamma = pdh.IntSeries(np.empty(daids.shape[0]), index=daids, name='gamma')
     for count, (daid, wx2_drvecs) in enumerate(six.iteritems(daid2_wx2_drvecs)):
         mark2(count)
         wx2_rvecs = wx2_drvecs
@@ -365,7 +365,8 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True):
     # Get query words / residuals
     wx2_qfxs, wx2_qrvecs = compute_query_repr(annots_df, qaid, invindex)
     # Compute match kernel for all database aids
-    daid2_totalscore, daid2_wx2_scoremat = smk_core.match_kernel(
+    match_kernel = utool.cached_func('match_kernel', appname='smk', key_argx=list(range(5)))(smk_core.match_kernel)
+    daid2_totalscore, daid2_wx2_scoremat = match_kernel(
         wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo)
     # Build chipmatches if daid2_wx2_scoremat is not None
     if withinfo:
@@ -375,8 +376,29 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True):
     else:
         return daid2_totalscore
 
+
+#@profile
+#def convert_scoremat_to_fmfsfk(scoremat):
+#    scoremat_column_values = scoremat.columns.values
+#    qfxs = scoremat.index.values
+#    dfxs = idx2_dfx_values.take(scoremat_column_values)
+#    if len(qfxs) == 0 or len(dfxs) == 0:
+#        continue
+#    fm_ = np.dstack(np.meshgrid(qfxs, dfxs, indexing='ij')).reshape((qfxs.size * dfxs.size, 2))
+#    #fm_.shape =
+#    scoremat_values = scoremat.values
+#    fs_ = scoremat_values.flatten()
+#    if scoremat_values.shape[0] > 1 and scoremat_values.shape[1] > 1:
+#        break
+#    thresh = 0.001
+#    valid = fs_ > thresh
+#    fm = fm_[valid]
+#    fs = fs_[valid]
+#    fk = np.ones(len(fm), dtype=np.int32)
+
+
 @profile
-def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
+def build_chipmatch(daid2_wx2_scoremat, idx2_dfx, thresh=0):
     """
     >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> from ibeis.model.hots import smk
@@ -405,15 +427,16 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
         np.ndarray[np.int64_t, ndim=1] scoremat_column_values
         np.ndarray[np.float64_t, ndim=2] scoremat_values
         np.ndarray[np.uint8_t, cast=True] valid
-        np.float64_t lower_thresh
+        np.float64_t thresh
     #endif
     """
     daid_fm = {}
     daid_fs = {}
     daid_fk = {}
-    #mark, end_ = utool.log_progress('accumulating match info: ',
-    #                                len(daid2_wx2_scoremat), flushfreq=100,
-    #                                writefreq=25)
+    "#CYTH: exclude benchmark"
+    mark, end_ = utool.log_progress('accumulating match info: ',
+                                    len(daid2_wx2_scoremat), flushfreq=100,
+                                    writefreq=25)
     idx2_dfx_values = idx2_dfx.values
     for count, item in enumerate(six.iteritems(daid2_wx2_scoremat)):
         daid, wx2_scoremat = item
@@ -422,30 +445,26 @@ def build_chipmatch(daid2_wx2_scoremat, idx2_dfx):
         fs_accum = []
         fk_accum = []
         for wx, scoremat in wx2_scoremat.iteritems():
+            if scoremat.shape[0] > 1 and scoremat.shape[1] > 1:
+                break
             scoremat_column_values = scoremat.columns.values
             qfxs = scoremat.index.values
             dfxs = idx2_dfx_values.take(scoremat_column_values)
-            if len(qfxs) == 0 or len(dfxs) == 0:
-                continue
             fm_ = np.dstack(np.meshgrid(qfxs, dfxs, indexing='ij')).reshape((qfxs.size * dfxs.size, 2))
-            #fm_.shape =
             scoremat_values = scoremat.values
             fs_ = scoremat_values.flatten()
-            if scoremat_values.shape[0] > 1 and scoremat_values.shape[1] > 1:
-                break
-            lower_thresh = 0.0
-            lower_thresh = 0.001
-            valid = fs_ > lower_thresh
+            thresh = 0.001
+            valid = fs_ > thresh
             fm = fm_[valid]
             fs = fs_[valid]
-            fk = np.ones(len(fm), dtype=np.int32)
+            fk = np.ones(len(fm), dtype=INTEGER_TYPE)
             fm_accum.append(fm)
             fs_accum.append(fs)
             fk_accum.append(fk)
         daid_fm[daid] = np.vstack(fm_accum)
         daid_fs[daid] = np.hstack(fs_accum).T
         daid_fk[daid] = np.hstack(fk_accum).T
-    #end_()
+    end_()
     chipmatch = (daid_fm, daid_fs, daid_fk,)
     return chipmatch
 

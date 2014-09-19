@@ -58,7 +58,8 @@ def Match_N(vecs1, vecs2):
 
 
 @profile
-def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
+def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True, alpha=3,
+                 thresh=0):
     """
     >>> from ibeis.model.hots.smk_core import *  # NOQA
     >>> from ibeis.model.hots.smk_index import *  # NOQA
@@ -99,7 +100,14 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
         drvecs = wx2_drvecs[wx]  # Database vectors for wx-th word
         weight = wx2_weight[wx]  # Word Weight
         qfx2_wscore = Match_N(qrvecs, drvecs)  # Compute score matrix
-        qfx2_wscore.groupby(idx2_daid)
+        simmat = qrvecs.dot(qrvecs.T)
+        # Nanvectors were equal to the cluster center.
+        # This means that point was the only one in its cluster
+        # Therefore it is distinctive and should have a high score
+        simmat[np.isnan(simmat)] = 1.0
+        #""" sigma from SMK paper rscore = residual score """
+        scores = (np.sign(simmat) * np.abs(simmat)) ** alpha
+        scores[scores <= thresh] = 0
         # Group scores by database annotation ids
         if withinfo:
             group = qfx2_wscore.groupby(idx2_daid, axis=1)
@@ -122,3 +130,12 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
                 daid2_wx2_scoremat[daid][wx] = num * scoremat * wx2_weight[wx] * gamma_weight
 
     return daid2_totalscore, daid2_wx2_scoremat
+
+
+import cyth
+if cyth.DYNAMIC:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    pass
+    # <AUTOGEN_CYTH>
+    # </AUTOGEN_CYTH>

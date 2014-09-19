@@ -306,13 +306,19 @@ class SMKConfig(ConfigBase):
     def __init__(smkcfg, **kwargs):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
         smkcfg.nAssign = 1  # MultiAssignment
+        smkcfg.thresh = 0  # tau in the paper
+        smkcfg.alpha = 3
         smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.aggregate = False  #
         smkcfg.nWords = 8E3  #
 
     def get_cfgstr_list(smkcfg):
-        smk_cfgstr = ['_SMK(szVocab=', str(smkcfg.nWords), ',nAssign=', str(smkcfg.nAssign), ',asmk=',
-                      str(smkcfg.aggregate), ')', ]
+        smk_cfgstr = [
+            '_SMK(szVocab=', str(smkcfg.nWords),
+            ',nAssign=', str(smkcfg.nAssign),
+            ',t=', str(smkcfg.thresh),
+            ',alpha=', str(smkcfg.alpha),
+            ',asmk=', str(smkcfg.aggregate), ')', ]
         return smk_cfgstr
 
 
