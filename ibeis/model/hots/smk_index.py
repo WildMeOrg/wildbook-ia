@@ -15,8 +15,9 @@ from ibeis.model.hots import pandas_helpers as pdh
 
 FLOAT_TYPE = np.float32
 INTEGER_TYPE = np.int32
+VEC_TYPE = np.uint8
 VEC_DIM = 128
-VEC_COLUMNS  = pdh.IntIndex(range(VEC_DIM), name='vec')
+VEC_COLUMNS  = pdh.IntIndex(np.arange(VEC_DIM, dtype=INTEGER_TYPE), name='vec')
 KPT_COLUMNS = pd.Index(['xpos', 'ypos', 'a', 'c', 'd', 'theta'], name='kpt')
 USE_CACHE_WORDS = not utool.get_flag('--nocache-words')
 
@@ -79,11 +80,15 @@ def make_annot_df(ibs):
     >>> import ibeis
     >>> ibs = ibeis.opendb('PZ_MTEST')
     >>> annots_df = make_annot_df(ibs)
+
+    #>>> from ibeis.model.hots import smk_debug
+    #>>> smk_debug.rrr()
+    #>>> smk_debug.check_dtype(annots_df)
     """
     aid_list = ibs.get_valid_aids()
     kpts_list = ibs.get_annot_kpts(aid_list)
     vecs_list = ibs.get_annot_desc(aid_list)
-    aid_series = pdh.IntSeries(aid_list, name='aid')
+    aid_series = pdh.IntSeries(np.array(aid_list, dtype=INTEGER_TYPE), name='aid')
     kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')
     vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')
     # Pandas Annotation Dataframe
@@ -188,7 +193,8 @@ def inverted_assignments_(wordflann, words, idx2_vec, idx_name='idx', dense=True
 def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     """ Returns the inverse-document-frequency weighting for each word
     >>> from ibeis.model.hots.smk_index import *  # NOQA
-    >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
+    >>> from ibeis.model.hots import smk
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> wx_series = words.index
     >>> with_internals = False
@@ -211,42 +217,80 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     return wx2_idf
 
 
+def normalize_vecs_inplace(vecs):
+    # Normalize residuals
+    norm_ = npl.norm(vecs, axis=1)
+    norm_.shape = (norm_.size, 1)
+    np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
+
+
+def aggregate_rvecs(rvecs):
+    """
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> rvecs = (255 * np.random.rand(4, 128)).astype(FLOAT_TYPE)
+    """
+    rvecs_agg = np.empty((1, rvecs.shape[1]), dtype=rvecs.dtype)
+    rvecs.sum(axis=0, out=rvecs_agg[0])
+    normalize_vecs_inplace(rvecs_agg)
+    return rvecs_agg
+
+
+def get_norm_rvecs(vecs, word, aggregate=False):
+    """
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> vecs = (255 * np.random.rand(4, 128)).astype(VEC_TYPE)
+    >>> word = (255 * np.random.rand(1, 128)).astype(VEC_TYPE)
+    """
+    # Compute residuals of assigned vectors
+    rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
+    normalize_vecs_inplace(rvecs_n)
+    return rvecs_n
+
+
 #@profile
 @utool.cached_func('residuals', appname='smk')
-def compute_residuals_(words, idx2_vec, wx2_idxs):
-    """ Computes residual vectors based on word assignments
+def compute_residuals_(words, idx2_vec, wx2_idxs, aggregate=False):
+    """
+    Computes residual vectors based on word assignments
     returns mapping from word index to a set of residual vectors
+
     >>> from ibeis.model.hots.smk_index import *  # NOQA
-    >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
+    >>> from ibeis.model.hots import smk
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> wx_series = words.index
     >>> with_internals = False
     >>> invindex  = index_data_annots(annots_df, daids, words, with_internals)
     >>> idx2_vec  = invindex.idx2_dvec
     >>> daids     = invindex.daids
+    >>> aggregate = False
     >>> wordflann = invindex.wordflann
-    >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec)
+    >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec, dense=False)
     >>> wx2_rvecs = compute_residuals_(words, idx2_vec, wx2_idxs)
     """
     wx_keys = wx2_idxs.index
-    _words = words.values
+    words_values = words.values
+    # Prealloc output
     wx2_rvecs = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='rvec')
     mark, end_ = utool.log_progress('compute residual: ', len(wx_keys), flushfreq=500, writefreq=50)
-    for count, wx in enumerate(wx_keys):
-        mark(count)
-        idxs = wx2_idxs[wx]
-        # For each word get vecs assigned to it
-        vecs = idx2_vec.take(idxs).values.astype(dtype=FLOAT_TYPE)
-        word = _words[wx].astype(dtype=FLOAT_TYPE)
-        # Compute residuals of assigned vectors
-        word.shape = (1, word.size)
-        rvecs_raw = word - vecs
-        # Normalize residuals
-        rvecs_n = rvecs_raw.copy()
-        norm_ = npl.norm(rvecs_raw, axis=1)
-        norm_.shape = (norm_.size, 1)
-        np.divide(rvecs_raw, norm_, out=rvecs_n)
-        wx2_rvecs[wx] = pd.DataFrame(rvecs_n, index=idxs, columns=VEC_COLUMNS)
+    # For each word get vecs assigned to it
+    if aggregate:
+        for count, wx in enumerate(wx_keys):
+            mark(count)
+            idxs = wx2_idxs[wx].values
+            vecs = idx2_vec.take(idxs).values
+            word = words_values[wx:wx + 1]
+            rvecs_n = get_norm_rvecs(vecs, word, aggregate)
+            rvecs_agg = aggregate_rvecs(rvecs_n)
+            wx2_rvecs[wx] = pd.DataFrame(rvecs_n, columns=VEC_COLUMNS)
+    else:
+        for count, wx in enumerate(wx_keys):
+            mark(count)
+            idxs = wx2_idxs[wx].values
+            vecs = idx2_vec_values[idxs]
+            word = words_values[wx:wx + 1]
+            rvecs_n = get_norm_rvecs(vecs, word, aggregate)
+            wx2_rvecs[wx] = pd.DataFrame(rvecs_n, index=idxs, columns=VEC_COLUMNS)
     end_()
     return wx2_rvecs
 
@@ -300,7 +344,8 @@ def compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_weight, daids):
 def compute_data_internals_(invindex):
     """
     >>> from ibeis.model.hots.smk_index import *  # NOQA
-    >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
+    >>> from ibeis.model.hots import smk
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = False
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
