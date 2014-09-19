@@ -76,6 +76,7 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True, alpha=3,
     idx2_daid = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
     wx2_weight = invindex.wx2_weight
+    wx2_idxs   = invindex.wx2_idxs
     daid2_gamma = invindex.daid2_gamma
 
     wx2_rvecs = wx2_qrvecs
@@ -96,6 +97,10 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True, alpha=3,
                                     with_totaltime=False)
     for count, wx in enumerate(common_wxs):
         mark(count)
+        if withinfo:
+            # Get matching info
+            qfxs   = wx2_qfxs[wx]
+            didxs  = wx2_idxs[wx]
         qrvecs = wx2_qrvecs[wx]  # Query vectors for wx-th word
         drvecs = wx2_drvecs[wx]  # Database vectors for wx-th word
         weight = wx2_weight[wx]  # Word Weight

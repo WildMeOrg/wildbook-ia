@@ -59,3 +59,56 @@ def pandasify_list2d(list_, keys, columns, val_name, series_name):
 
 def ensure_numpy(data):
     return data.values if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)) else data
+
+
+def group_indicies(groupids):
+    """
+    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+
+    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
+    """
+    # Sort items and groupids by groupid
+    sortx = groupids.argsort()
+    groupids_sorted = groupids[sortx]
+    num_items = groupids.size
+    # Find the boundaries between groups
+    diff = np.ones(num_items + 1, groupids.dtype)
+    diff[1:(num_items)] = np.diff(groupids_sorted)
+    idxs = np.where(diff > 0)[0]
+    num_groups = idxs.size - 1
+    # Groups are between bounding indexes
+    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
+    group_idxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
+    # Unique group keys
+    keys = groupids_sorted[idxs[0:num_groups]]
+    #items_sorted = items[sortx]
+    #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
+    return keys, group_idxs
+
+
+def groupby(items, groupids):
+    """
+    >>> items    = np.array(np.arange(100))
+    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+    >>> items = groupids
+    """
+    keys, group_idxs = group_indicies(groupids)
+    vals = [items[idxs] for idxs in group_idxs]
+    return keys, vals
+
+
+def groupby_gen(items, groupids):
+    """
+    >>> items    = np.array(np.arange(100))
+    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+    """
+    for key, val in zip(*groupby(items, groupids)):
+        yield (key, val)
+
+
+def groupby_dict(items, groupids):
+    # Build a dict
+    grouped = {key: val for key, val in groupby_gen(items, groupids)}
+    return grouped
+
+

@@ -376,13 +376,13 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = []
-        if query_cfg.pipeline_root == 'smk':
+        if str(query_cfg.pipeline_root) == 'smk':
             if kwargs.get('use_smk', True):
                 cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_sv', True):
                 cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        elif query_cfg.pipeline_root in ['vsmany', 'vsone']:
-            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+        elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
+            #raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_filt', True):

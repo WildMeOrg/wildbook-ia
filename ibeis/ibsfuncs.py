@@ -1213,7 +1213,7 @@ def prune_exemplars(ibs):
 
 
 @__injectable
-def delete_cachedir(ibs, removefeat=False):
+def delete_cachedir(ibs, removefeat=True):
     print('[ibs] delete_cachedir')
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)

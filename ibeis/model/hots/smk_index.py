@@ -35,6 +35,9 @@ class InvertedIndex(object):
         invindex.wx2_drvecs = None      # word index -> residual vectors
         invindex.wx2_weight = None      # word index -> idf (wx normalize)
         invindex.daid2_gamma = None     # word index -> gamma (daid normalizer)
+        #
+        invindex.wx2_aggvecs = None     # word index -> aggregate vectors
+        invindex.wx2_aggaids = None     # word index -> aggregate aids
         #invindex.compute_data_internals()
 
     def get_cfgstr(invindex):
@@ -229,13 +232,15 @@ def aggregate_rvecs(rvecs):
     >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> rvecs = (255 * np.random.rand(4, 128)).astype(FLOAT_TYPE)
     """
+    if rvecs.shape[0] == 1:
+        return rvecs
     rvecs_agg = np.empty((1, rvecs.shape[1]), dtype=rvecs.dtype)
     rvecs.sum(axis=0, out=rvecs_agg[0])
     normalize_vecs_inplace(rvecs_agg)
     return rvecs_agg
 
 
-def get_norm_rvecs(vecs, word, aggregate=False):
+def get_norm_rvecs(vecs, word):
     """
     >>> from ibeis.model.hots.smk_index import *  # NOQA
     >>> vecs = (255 * np.random.rand(4, 128)).astype(VEC_TYPE)
@@ -263,35 +268,63 @@ def compute_residuals_(words, idx2_vec, wx2_idxs, aggregate=False):
     >>> invindex  = index_data_annots(annots_df, daids, words, with_internals)
     >>> idx2_vec  = invindex.idx2_dvec
     >>> daids     = invindex.daids
+    >>> idx2_aid = invindex.idx2_daid
     >>> aggregate = False
     >>> wordflann = invindex.wordflann
     >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, words, idx2_vec, dense=False)
     >>> wx2_rvecs = compute_residuals_(words, idx2_vec, wx2_idxs)
     """
+    idx2_aid = None
     wx_keys = wx2_idxs.index
     words_values = words.values
     # Prealloc output
-    wx2_rvecs = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='rvec')
     mark, end_ = utool.log_progress('compute residual: ', len(wx_keys), flushfreq=500, writefreq=50)
     # For each word get vecs assigned to it
-    if aggregate:
-        for count, wx in enumerate(wx_keys):
-            mark(count)
-            idxs = wx2_idxs[wx].values
-            vecs = idx2_vec.take(idxs).values
-            word = words_values[wx:wx + 1]
-            rvecs_n = get_norm_rvecs(vecs, word, aggregate)
-            rvecs_agg = aggregate_rvecs(rvecs_n)
-            wx2_rvecs[wx] = pd.DataFrame(rvecs_n, columns=VEC_COLUMNS)
-    else:
-        for count, wx in enumerate(wx_keys):
-            mark(count)
-            idxs = wx2_idxs[wx].values
-            vecs = idx2_vec_values[idxs]
-            word = words_values[wx:wx + 1]
-            rvecs_n = get_norm_rvecs(vecs, word, aggregate)
-            wx2_rvecs[wx] = pd.DataFrame(rvecs_n, index=idxs, columns=VEC_COLUMNS)
+    wx2_rvecs = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='rvec')
+    for count, wx in enumerate(wx_keys):
+        mark(count)
+        idxs = wx2_idxs[wx].values
+        vecs = idx2_vec.take(idxs).values
+        word = words_values[wx:wx + 1]
+        rvecs_n = get_norm_rvecs(vecs, word)
+        wx2_rvecs[wx] = pd.DataFrame(rvecs_n, index=idxs, columns=VEC_COLUMNS)
     end_()
+    #else:
+    #    wx2_aggvecs = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='aggvecs')
+    #    wx2_aggaids = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.Series), index=wx_keys, name='aggaids')
+    #    for count, wx in enumerate(wx_keys):
+    #        mark(count)
+    #        idxs = wx2_idxs[wx].values
+    #        vecs = idx2_vec.take(idxs).values
+    #        word = words_values[wx:wx + 1]
+    #        rvecs_n = get_norm_rvecs(vecs, word)
+    #        if idx2_aid is not None:
+    #            # Need to compute aggregate residual for each aid for each word
+    #            aids = pdh.IntSeries(idx2_aid.values[idxs])
+    #            group_aids, groupxs = pdh.group_indicies(aids)
+    #            group_aggvecs = np.vstack([aggregate_rvecs(rvecs_n[xs]) for xs in groupxs])
+    #            wx2_aggvecs[wx] = pd.DataFrame(group_aggvecs, index=group_aids, columns=VEC_COLUMNS)
+    #            wx2_aggaids[wx] = group_aids
+    #    x = 0
+    #    max_ = 0
+    #    for count, wx in enumerate(wx_keys):
+    #        if len(wx2_aggaids[wx]) != len(wx2_idxs[wx]):
+    #            print(wx)
+    #            max__ = len(wx2_idxs[wx])
+    #            if max__ > max_:
+    #                max_ = max__
+    #                x = wx
+    if aggregate:
+        wx2_aggvecs = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.DataFrame), index=wx_keys, name='aggvecs')
+        wx2_aggaids = pdh.IntSeries(np.empty(len(wx_keys), dtype=pd.Series), index=wx_keys, name='aggaids')
+        for wx in wx_keys:
+            rvecs_n = wx2_rvecs[wx].values
+            idxs = wx2_idxs[wx].values
+            aids = pdh.IntSeries(idx2_aid.values[idxs], name='aids')
+            group_aids, groupxs = pdh.group_indicies(aids)
+            group_aggvecs = np.vstack([aggregate_rvecs(rvecs_n[xs]) for xs in groupxs])
+            wx2_aggvecs[wx] = pd.DataFrame(group_aggvecs, index=group_aids, columns=VEC_COLUMNS)
+            wx2_aggaids[wx] = group_aids
     return wx2_rvecs
 
 
