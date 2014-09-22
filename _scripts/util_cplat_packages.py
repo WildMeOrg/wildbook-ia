@@ -39,8 +39,9 @@ APPLE_NONPORTS_PYPKGS = [
 MACPORTS_PKGMAP = {
     #'gfortran':
     #'g++':
-    #'libjpg'    : 'parsing',
-    'libjpeg'      : 'libjpg',
+    #'libjpg'       : 'parsing',
+    'gcc': 'gcc48'
+    'libjpeg'       : 'libjpg',
 }
 
 
