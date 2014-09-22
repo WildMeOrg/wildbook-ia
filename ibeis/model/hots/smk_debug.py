@@ -89,3 +89,31 @@ def test_gamma_cache():
         raise AssertionError('caching error in gamma')
     if not np.all(daid2_gamma1 == daid2_gamma2):
         raise AssertionError('cache outdated in gamma')
+
+
+
+def check_dtype(annots_df):
+    """
+    >>> from ibeis.model.hots.smk_index import *  # NOQA
+    >>> import ibeis
+    >>> ibs = ibeis.opendb('PZ_MTEST')
+    >>> annots_df = make_annot_df(ibs)
+    """
+
+    #utool.printex(Exception('check'), keys=[
+    #    'annots_df.index'
+    #]
+    #)
+    vecs = annots_df['vecs']
+    kpts = annots_df['kpts']
+    locals_ = locals()
+    key_list = [
+        'annots_df.index.dtype',
+        'annots_df.columns.dtype',
+        'annots_df.columns',
+        'vecs.index.dtype',
+        'kpts.index.dtype',
+        #'vecs',
+        #'kpts',
+    ]
+    utool.print_keys(key_list)

@@ -68,6 +68,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
+import pandas as pd
 #import networkx as netx
 #try:
 #    import graph_tool

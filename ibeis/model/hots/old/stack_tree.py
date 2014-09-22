@@ -11,4 +11,4 @@ import utool
 
 class StackTree(object):
     def __init__(self):
-        self.children = []  # CYTH: StackTrees
+        self.children = []  # StackTrees

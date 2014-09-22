@@ -87,7 +87,7 @@ class IBEISController(object):
     annotation   - region of interest for a chip
     theta - angle of rotation for a chip
     """
-    # USE THIS IN CONTROLLER CYTHON
+    # use this in controller cython
     # Available in Python-space:
     #property period:
     #    def __get__(self):
@@ -165,6 +165,7 @@ class IBEISController(object):
         ibs.dbdir    = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
         ibs._ibsdb      = join(ibs.dbdir, PATH_NAMES._ibsdb)
+        ibs.trashdir    = join(ibs.dbdir, PATH_NAMES.trashdir)
         ibs.cachedir    = join(ibs._ibsdb, PATH_NAMES.cache)
         ibs.chipdir     = join(ibs._ibsdb, PATH_NAMES.chips)
         ibs.imgdir      = join(ibs._ibsdb, PATH_NAMES.images)
@@ -229,6 +230,9 @@ class IBEISController(object):
         #return join(ibs.workdir, ibs.dbname)
         return ibs.dbdir
 
+    def get_trashdir(ibs):
+        return ibs.trashdir
+
     def get_ibsdir(ibs):
         """ Returns ibs internal directory """
         return ibs._ibsdb
@@ -279,9 +283,10 @@ class IBEISController(object):
         """ Loads the database's algorithm configuration """
         # Always a fresh object
         ibs.cfg = Config.GenericConfig('cfg', fpath=join(ibs.dbdir, 'cfg'))
+        # TODO: update cfgs between versions
         try:
             # Use pref cache
-            if True or utool.get_flag(('--nocache-pref',)):
+            if utool.is_developer() or utool.get_flag(('--nocache-pref',)):
                 raise Exception('')
             ibs.cfg.load()
             if utool.NOT_QUIET:
@@ -1657,7 +1662,19 @@ class IBEISController(object):
         """ deletes images from the database that belong to gids"""
         if utool.VERBOSE:
             print('[ibs] deleting %d images' % len(gid_list))
-        # TODO: Move localized images to a trash folder
+        # Move images to trash before deleting them. #
+        # TODO: only move localized images
+        # TODO: ensure there are no name conflicts when using the original names
+        gpath_list = ibs.get_image_paths(gid_list)
+        gname_list = ibs.get_image_gnames(gid_list)
+        ext_list   = ibs.get_image_exts(gid_list)
+        trash_dir  = ibs.get_trashdir()
+        utool.ensuredir(trash_dir)
+        gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
+                       zip(gname_list, ext_list)]
+        utool.copy_list(gpath_list, gpath_list2)
+        #utool.view_directory(trash_dir)
+
         # Delete annotations first
         aid_list = utool.flatten(ibs.get_image_aids(gid_list))
         ibs.delete_annots(aid_list)

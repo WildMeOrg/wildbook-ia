@@ -306,13 +306,19 @@ class SMKConfig(ConfigBase):
     def __init__(smkcfg, **kwargs):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
         smkcfg.nAssign = 1  # MultiAssignment
+        smkcfg.thresh = 0  # tau in the paper
+        smkcfg.alpha = 3
         smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.aggregate = False  #
-        smkcfg.nWords = 1000  #
+        smkcfg.nWords = 8E3  #
 
     def get_cfgstr_list(smkcfg):
-        smk_cfgstr = ['_SMK(szVocab=', str(smkcfg.nWords), ',nAssign=', str(smkcfg.nAssign), ',asmk=',
-                      str(smkcfg.aggregate), ')', ]
+        smk_cfgstr = [
+            '_SMK(szVocab=', str(smkcfg.nWords),
+            ',nAssign=', str(smkcfg.nAssign),
+            ',t=', str(smkcfg.thresh),
+            ',alpha=', str(smkcfg.alpha),
+            ',asmk=', str(smkcfg.aggregate), ')', ]
         return smk_cfgstr
 
 
@@ -329,7 +335,9 @@ class QueryConfig(ConfigBase):
         query_cfg.smk_cfg   = SMKConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
-        query_cfg.pipeline_root = 'smk'
+        query_cfg.pipeline_root = 'vsmany'
+        if utool.is_developer():
+            query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         if feat_cfg is None:
             query_cfg._feat_cfg = FeatureConfig(**kwargs)
@@ -368,13 +376,13 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = []
-        if query_cfg.pipeline_root == 'smk':
+        if str(query_cfg.pipeline_root) == 'smk':
             if kwargs.get('use_smk', True):
                 cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_sv', True):
                 cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        elif query_cfg.pipeline_root in ['vsmany', 'vsone']:
-            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+        elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
+            #raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_filt', True):

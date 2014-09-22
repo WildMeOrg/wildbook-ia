@@ -16,6 +16,7 @@ class PATH_NAMES(object):
     bigcache  = 'bigcache'
     detectimg = 'detectimg'
     thumbs    = 'thumbs'
+    trashdir  = 'trashed_images'
 
 UNKNOWN_LBLANNOT_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME

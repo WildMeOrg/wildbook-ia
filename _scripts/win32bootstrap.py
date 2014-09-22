@@ -1,5 +1,7 @@
 """
+Please be nice to this guys server.
 This file is a big freaking hack
+Use it responsibly. Dont be a dick.
 """
 from __future__ import division, print_function
 import parse
@@ -9,16 +11,32 @@ import urllib2
 
 unofficial_weburl = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 OS_VERSION = 'win32'
-#PY_VERSION = 'py2.7'
-PY_VERSION = 'py3.4'
+PY_VERSION = 'py2.7'
+#PY_VERSION = 'py3.4'
 
 
 def main():
-    get_win_python3_packages()
+    get_win_python_packages()
+
+
+def get_win_python_packages():
+    py_version = PY_VERSION
+    #python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
+    #python34_win32_x86_exe = utool.grab_file_url(python34_win32_x64_url)
+    href_list = _get_win_packages_href(py_version)
+    pkg_exe_list = []
+    href = href_list[0]
+    pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+    pkg_exe_list += [pkg_exe]
+
+    for href in href_list:
+        pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3, spoof=True)
+        pkg_exe_list += [pkg_exe]
+    print('\n'.join(href_list))
 
 
 def _get_win_packages_href(py_version):
-    all_href_list = get_unofficial_package_hrefs(unofficial_weburl)
+    all_href_list, page_str = get_unofficial_package_hrefs(unofficial_weburl)
     win_pkg_list = [
         'pip',
         'python-dateutil',
@@ -44,40 +62,26 @@ def _get_win_packages_href(py_version):
         'matplotlib',
         'scikit-learn',
     ]
-    href_list1, missing = filter_href_list(all_href_list, win_pkg_list, OS_VERSION, py_version)
-    href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, 'py3.3')
-    href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', 'Py3.4')
+    href_list1, missing  = filter_href_list(all_href_list, win_pkg_list, OS_VERSION, py_version)
+    href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
+    href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
 
     href_list = href_list1 + href_list2 + href_list3
     return href_list
 
 
-def get_win_python3_packages():
-    py_version = 'py3.4'
-    python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
-    python34_win32_x86_exe = utool.grab_file_url(python34_win32_x64_url)
-    href_list = _get_win_packages_href(py_version)
-    pkg_exe_list = []
-    href = href_list[0]
-    pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3)
-    pkg_exe_list += [pkg_exe]
-
-    for href in href_list:
-        pkg_exe = utool.util_grabdata.grab_file_url(href, delay=3)
-        pkg_exe_list += [pkg_exe]
-    print('\n'.join(href_list))
-
-
 def get_unofficial_package_hrefs(unofficial_weburl):
     # Read page html
-    page = urllib2.urlopen(unofficial_weburl)
+    headers = { 'User-Agent' : 'Mozilla/5.0' }
+    req = urllib2.Request(unofficial_weburl, None, headers)
+    page = urllib2.urlopen(req)
     page_str = page.read()
     encrypted_lines = filter(lambda x: x.find('onclick') > -1, page_str.split('\n'))
     # List of all download links, now choose wisely, because we don't want
     # to hack for evil
-    line = encrypted_lines[0]
+    #line = encrypted_lines[0]
     all_href_list = list(map(parse_encrypted, encrypted_lines))
-    return all_href_list
+    return all_href_list, page_str
 
 
 def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):

@@ -9,6 +9,7 @@ import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
+@profile
 def gamma_summation(wx2_rvecs, wx2_weight):
     r"""
     \begin{equation}
@@ -38,6 +39,7 @@ def gamma_summation(wx2_rvecs, wx2_weight):
     return scoremat
 
 
+@profile
 def selectivity_function(rscore_mat, alpha=3, thresh=0):
     """ sigma from SMK paper rscore = residual score """
     scores = (np.sign(rscore_mat) * np.abs(rscore_mat)) ** alpha
@@ -45,6 +47,7 @@ def selectivity_function(rscore_mat, alpha=3, thresh=0):
     return scores
 
 
+@profile
 def Match_N(vecs1, vecs2):
     simmat = vecs1.dot(vecs2.T)
     # Nanvectors were equal to the cluster center.
@@ -54,7 +57,9 @@ def Match_N(vecs1, vecs2):
     return selectivity_function(simmat)
 
 
-def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
+@profile
+def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True, alpha=3,
+                 thresh=0):
     """
     >>> from ibeis.model.hots.smk_core import *  # NOQA
     >>> from ibeis.model.hots.smk_index import *  # NOQA
@@ -71,6 +76,7 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
     idx2_daid = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
     wx2_weight = invindex.wx2_weight
+    wx2_idxs   = invindex.wx2_idxs
     daid2_gamma = invindex.daid2_gamma
 
     wx2_rvecs = wx2_qrvecs
@@ -91,11 +97,22 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
                                     with_totaltime=False)
     for count, wx in enumerate(common_wxs):
         mark(count)
+        if withinfo:
+            # Get matching info
+            qfxs   = wx2_qfxs[wx]
+            didxs  = wx2_idxs[wx]
         qrvecs = wx2_qrvecs[wx]  # Query vectors for wx-th word
         drvecs = wx2_drvecs[wx]  # Database vectors for wx-th word
         weight = wx2_weight[wx]  # Word Weight
         qfx2_wscore = Match_N(qrvecs, drvecs)  # Compute score matrix
-        qfx2_wscore.groupby(idx2_daid)
+        simmat = qrvecs.dot(qrvecs.T)
+        # Nanvectors were equal to the cluster center.
+        # This means that point was the only one in its cluster
+        # Therefore it is distinctive and should have a high score
+        simmat[np.isnan(simmat)] = 1.0
+        #""" sigma from SMK paper rscore = residual score """
+        scores = (np.sign(simmat) * np.abs(simmat)) ** alpha
+        scores[scores <= thresh] = 0
         # Group scores by database annotation ids
         if withinfo:
             group = qfx2_wscore.groupby(idx2_daid, axis=1)
@@ -118,3 +135,12 @@ def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid, withinfo=True):
                 daid2_wx2_scoremat[daid][wx] = num * scoremat * wx2_weight[wx] * gamma_weight
 
     return daid2_totalscore, daid2_wx2_scoremat
+
+
+import cyth
+if cyth.DYNAMIC:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    pass
+    # <AUTOGEN_CYTH>
+    # </AUTOGEN_CYTH>

@@ -18,14 +18,12 @@ USE_OPENMP = False  # do not use openmp until we have the gravity vector
 
 def gen_feat_worker(tup):
     """
-    <CYTH: returns=tuple>
     cdef:
         long cid
         str cpath
         dict dict_args
         np.ndarray[kpts_t, ndims=2] kpts
         np.ndarray[desc_t, ndims=2] desc
-    </CYTH>
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
     """
@@ -70,14 +68,12 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwar
     """ Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
-    <CYTH: yeilds=tuple>
     cdef:
         list cfpath_list
         long nInput
         object cid_list
         dict dict_args
         dict kwargs
-    </CYTH>
     """
     if cid_list is None:
         cid_list = list(range(len(cfpath_list)))

@@ -29,6 +29,16 @@ CLUTTER_PATTERNS = [
     '*.egg-info',
     'failed.txt',
     '_test_times.txt',
+    '_*_cyth.o',
+    '_*_cyth_bench.py',
+    'run_cyth_benchmarks.sh',
+    '_*_cyth.c',
+    '_*_cyth.pyd',
+    '_*_cyth.pxd',
+    '_*_cyth.html',
+    '_*_cyth.pyx',
+    '_*_cyth.so',
+    '_*_cyth.dylib'
 ]
 
 CLUTTER_DIRS = [
@@ -73,6 +83,8 @@ if __name__ == '__main__':
         version=util_setup.parse_package_for_version('ibeis'),
         license=util_setup.read_license('LICENSE'),
         long_description=util_setup.parse_readme('README.md'),
+        ext_modules=util_setup.find_ext_modules(),
+        cmdclass=util_setup.get_cmdclass(),
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_patterns=CLUTTER_PATTERNS,

@@ -13,8 +13,6 @@ import uuid
 @profile
 def parse_exif(pil_img):
     """ Image EXIF helper
-    #if CYTH
-    #CYTH RETURNS tuple
     cdef:
         Image pil_img
         dict exif_dict
@@ -32,15 +30,12 @@ def parse_exif(pil_img):
 @profile
 def get_image_uuid(pil_img):
     """
-    #if CYTH
-    #CYTH RETURNS uuid.UUID
     cdef:
         UUID uuid_
         object img_bytes_
         object bytes_sha1
         object hashbytes_16
         object hashbytes_20
-    #endif
     """
     # DEPRICATE
     # Read PIL image data (every 64th byte)
@@ -61,11 +56,9 @@ def get_image_uuid(pil_img):
 
 def get_standard_ext(gpath):
     """ Returns standardized image extension
-    #if CYTH
     cdef:
         str gpath
         str ext
-    #endif
     """
     ext = splitext(gpath)[1].lower()
     return '.jpg' if ext == '.jpeg' else ext
@@ -79,7 +72,6 @@ def parse_imageinfo(tup):
     Output:
         if successful: returns a tuple of image parameters which are values for SQL columns on
         else: returns None
-    <CYTH>
     cdef:
         str gpath
         Image pil_img
@@ -91,7 +83,6 @@ def parse_imageinfo(tup):
         long lat
         long lon
         str notes
-    </CYTH>
     """
     # Parse arguments from tuple
     gpath = tup
@@ -155,7 +146,6 @@ def add_images_params_gen(gpath_list, **kwargs):
     >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
     >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
 
-    #if CYTH
     cdef:
         list gpath_list
         dict kwargs

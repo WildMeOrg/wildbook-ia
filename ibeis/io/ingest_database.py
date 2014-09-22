@@ -6,10 +6,11 @@ This module lists known raw databases and how to ingest them.
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
 import ibeis
-from os.path import relpath, split, exists
+from os.path import relpath, split, exists, join
 from ibeis import ibsfuncs
 from ibeis import constants
 import utool
+import parse
 
 
 def normalize_name(name):
@@ -323,6 +324,178 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #ibs.print_lblannot_table()
     #ibs.print_image_table()
     return aid_list
+
+
+def ingest_oxford_style_db(dbdir):
+    """
+
+    >>> from ibeis.io.ingest_database import *  # NOQA
+    >>> import ibeis
+    >>> dbdir = '/raid/work/Oxford'
+    >>> dbdir = '/raid/work/Paris'
+    >>>
+    #>>> ibeis.io.convert_db.ingest_oxford_style_db(dbdir)
+    """
+    from PIL import Image
+    import os
+    print('Loading Oxford Style Images from: ' + dbdir)
+
+    def _parse_oxsty_gtfname(gt_fname):
+        """ parse gtfname for: (gt_name, quality_lbl, num) """
+        # num is an id, not a number of annots
+        gt_format = '{}_{:d}_{:D}.txt'
+        name, num, quality = parse.parse(gt_format, gt_fname)
+        return (name, num, quality)
+
+    def _read_oxsty_gtfile(gt_fpath, name, quality, img_dpath, ignore_list):
+        oxsty_annot_info_list = []
+        # read the individual ground truth file
+        with open(gt_fpath, 'r') as file:
+            line_list = file.read().splitlines()
+            for line in line_list:
+                if line == '':
+                    continue
+                fields = line.split(' ')
+                gname = fields[0].replace('oxc1_', '') + '.jpg'
+                # >:( Because PARIS just cant keep paths consistent
+                if gname.find('paris_') >= 0:
+                    paris_hack = gname[6:gname.rfind('_')]
+                    gname = join(paris_hack, gname)
+                if gname in ignore_list:
+                    continue
+                if len(fields) > 1:  # if has bbox
+                    bbox =  [int(round(float(x))) for x in fields[1:]]
+                else:
+                    # Get annotation width / height
+                    gpath = join(img_dpath, gname)
+                    (w, h) = Image.open(gpath).size
+                    bbox = [0, 0, w, h]
+                oxsty_annot_info = (gname, bbox)
+                oxsty_annot_info_list.append(oxsty_annot_info)
+        return oxsty_annot_info_list
+
+    gt_dpath = utool.existing_subpath(dbdir,
+                                      ['oxford_style_gt',
+                                       'gt_files_170407',
+                                       'oxford_groundtruth'])
+
+    img_dpath = utool.existing_subpath(dbdir,
+                                       ['oxbuild_images',
+                                        'images'])
+
+    corrupted_file_fpath = join(gt_dpath, 'corrupted_files.txt')
+    ignore_list = []
+    # Check for corrupted files (Looking at your Paris Buildings Dataset)
+    if utool.checkpath(corrupted_file_fpath):
+        ignore_list = utool.read_from(corrupted_file_fpath).splitlines()
+
+    #utool.rrrr()
+    #utool.list_images = utool.util_path.list_images
+
+    gname_list = utool.list_images(img_dpath, ignore_list=ignore_list,
+                                   recursive=True, full=False)
+
+    # just in case utool broke
+    for ignore in ignore_list:
+        assert ignore not in gname_list
+
+    # Read the Oxford Style Groundtruth files
+    print('Loading Oxford Style Names and Annots')
+    gt_fname_list = os.listdir(gt_dpath)
+    num_gt_files = len(gt_fname_list)
+    query_annots  = []
+    gname2_annots_raw = utool.ddict(list)
+    name_set = set([])
+    print(' * num_gt_files = %d ' % num_gt_files)
+    #
+    # Iterate over each groundtruth file
+    mark_, end_ = utool.log_progress('parsed oxsty gtfile: ', num_gt_files)
+    for gtx, gt_fname in enumerate(gt_fname_list):
+        mark_(gtx)
+        if gt_fname == 'corrupted_files.txt':
+            continue
+        #Get name, quality, and num from fname
+        (name, num, quality) = _parse_oxsty_gtfname(gt_fname)
+        gt_fpath = join(gt_dpath, gt_fname)
+        name_set.add(name)
+        oxsty_annot_info_sublist = _read_oxsty_gtfile(
+            gt_fpath, name, quality, img_dpath, ignore_list)
+        if quality == 'query':
+            for (gname, bbox) in oxsty_annot_info_sublist:
+                query_annots.append((gname, bbox, name, num))
+        else:
+            for (gname, bbox) in oxsty_annot_info_sublist:
+                gname2_annots_raw[gname].append((name, bbox, quality))
+    end_()
+    print(' * num_query images = %d ' % len(query_annots))
+    #
+    # Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -> (*.txt)
+    gname2_annots     = utool.ddict(list)
+    multinamed_gname_list = []
+    for gname, val in gname2_annots_raw.iteritems():
+        val_repr = list(map(repr, val))
+        unique_reprs = set(val_repr)
+        unique_indexes = [val_repr.index(urep) for urep in unique_reprs]
+        for ux in unique_indexes:
+            gname2_annots[gname].append(val[ux])
+        if len(gname2_annots[gname]) > 1:
+            multinamed_gname_list.append(gname)
+    # print some statistics
+    query_gname_list = [tup[0] for tup in query_annots]
+    gname_with_groundtruth_list = gname2_annots.keys()
+    gname_with_groundtruth_set = set(gname_with_groundtruth_list)
+    gname_set = set(gname_list)
+    query_gname_set = set(query_gname_list)
+    gname_without_groundtruth_list = list(gname_set - gname_with_groundtruth_set)
+    print(' * num_images = %d ' % len(gname_list))
+    print(' * images with groundtruth    = %d ' % len(gname_with_groundtruth_list))
+    print(' * images without groundtruth = %d ' % len(gname_without_groundtruth_list))
+    print(' * images with multi-groundtruth = %d ' % len(multinamed_gname_list))
+    #make sure all queries have ground truth and there are no duplicate queries
+    #
+    assert len(query_gname_list) == len(query_gname_set.intersection(gname_with_groundtruth_list))
+    assert len(query_gname_list) == len(set(query_gname_list))
+    #=======================================================
+    # Build IBEIS database
+    ibs = ibeis.opendb(dbdir, allow_newdir=True)
+    ibs.cfg.other_cfg.auto_localize = False
+    print('adding to table: ')
+    # Add images to ibeis
+    gpath_list = [join(img_dpath, gname) for gname in gname_list]
+    gid_list = ibs.add_images(gpath_list)
+
+    # 1) Add Query Annotations
+    qgname_list, qbbox_list, qname_list, qid_list = zip(*query_annots)
+    # get image ids of queries
+    qgid_list = [gid_list[gname_list.index(gname)] for gname in qgname_list]
+    qnote_list = ['query'] * len(qgid_list)
+    # 2) Add nonquery database annots
+    dgname_list = list(gname2_annots.keys())
+    dgid_list = []
+    dname_list = []
+    dbbox_list = []
+    dnote_list = []
+    for gname in gname2_annots.keys():
+        gid = gid_list[gname_list.index(gname)]
+        annots = gname2_annots[gname]
+        for name, bbox, quality in annots:
+            dgid_list.append(gid)
+            dbbox_list.append(bbox)
+            dname_list.append(name)
+            dnote_list.append(quality)
+    # 3) Add distractors: TODO: 100k
+    ugid_list = [gid_list[gname_list.index(gname)]
+                 for gname in gname_without_groundtruth_list]
+    ubbox_list = [[0, 0, w, h] for (w, h) in ibs.get_image_sizes(ugid_list)]
+    unote_list = ['distractor'] * len(ugid_list)
+
+    # TODO Annotation consistency in terms of duplicate bounding boxes
+    qaid_list = ibs.add_annots(qgid_list, bbox_list=qbbox_list, name_list=qname_list, notes_list=qnote_list)
+    daid_list = ibs.add_annots(dgid_list, bbox_list=dbbox_list, name_list=dname_list, notes_list=dnote_list)
+    uaid_list = ibs.add_annots(ugid_list, bbox_list=ubbox_list, notes_list=unote_list)
+    print('Added %d query annototations' % len(qaid_list))
+    print('Added %d database annototations' % len(daid_list))
+    print('Added %d distractor annototations' % len(uaid_list))
 
 
 if __name__ == '__main__':
