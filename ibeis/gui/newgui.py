@@ -539,7 +539,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if len(id_list) == 1:
                 gid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
-                    ('view hough image', lambda: ibswgt.back.show_hough(gid)),
+                    ('view hough image', lambda: ibswgt.back.show_hough_image(gid)),
                     ('delete image', lambda: ibswgt.back.delete_image(gid)),
                 ])
             else:
@@ -550,10 +550,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('delete images', lambda: ibswgt.back.delete_image(id_list)),
                 ])
         elif model.name == ANNOTATION_TABLE:
-            if len(id_list) > 0:
+            if len(id_list) == 1:
+                cid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
-                    ('delete annotations', lambda: ibswgt.back.popup_annot_info(id_list)),
+                    ('view probability chip', lambda: ibswgt.back.show_probability_chip(cid)),
+                    ('delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
+            else:
                 guitool.popup_menu(tblview, pos, [
                     ('delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
                 ])

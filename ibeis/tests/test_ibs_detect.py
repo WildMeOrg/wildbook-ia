@@ -18,13 +18,13 @@ def TEST_DETECT(ibs):
     if SPECIAL:
         gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)
     #gid_list.extend(ibs.add_images([utool.unixpath('~/Dropbox/Chuck/detect_testimg/testgrevy.jpg')]))
-    species = 'zebra_grevys'
+    species = 'zebra_plains'
     detectkw = {
         'quick': True,
         'save_detection_images': SPECIAL,
         'save_scales': SPECIAL,
     }
-    detect_gen = randomforest.generate_detections(ibs, gid_list, species, **detectkw)
+    detect_gen = randomforest.generate_detection_images(ibs, gid_list, species, **detectkw)
     gid_list2 = []
     bbox_list2 = []
     for gid, bboxes, confidences, img_conf in detect_gen:
@@ -33,15 +33,16 @@ def TEST_DETECT(ibs):
             bbox_list2.append(bbox)
             # not using confidence nor img_conf here
 
-    if SPECIAL:
-        from plottool import viz_image2, fig_presenter
-        #from plottool import draw_func2 as df2
-        for gid in gid_list:
-            isthisgid = [gid == gid2 for gid2 in gid_list2]
-            bbox_list = utool.filter_items(bbox_list2, isthisgid)
-            img = ibs.get_images(gid)
-            fig = viz_image2.show_image(img, bbox_list=bbox_list)
-        fig_presenter.present()
+    # if SPECIAL:
+    #     from plottool import viz_image2, fig_presenter
+    #     #from plottool import draw_func2 as df2
+    #     for gid in gid_list:
+    #         isthisgid = [gid == gid2 for gid2 in gid_list2]
+    #         bbox_list = utool.filter_items(bbox_list2, isthisgid)
+    #         img = ibs.get_images(gid)
+    #         print(bbox_list)
+    #         fig = viz_image2.show_image(img, bbox_list=bbox_list)
+    #     fig_presenter.present()
     #fig_presenter.all_figures_bring_to_front()
     #ibs.detect_random_forest(gid_list, 'zebra_grevys')
     return locals()

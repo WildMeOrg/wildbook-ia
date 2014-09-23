@@ -399,25 +399,38 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
 
-        # Insert or replace docstr in metadata table
-        fmtkw = {
-            'tablename': constants.METADATA_TABLE,
-            'columns': 'metadata_key, metadata_value'
-        }
-        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-        operation = op_fmtstr.format(**fmtkw)
-        params = [tablename + '_docstr', docstr]
-        db.executeone(operation, params, verbose=False)
+        if docstr is not None:
+            # Insert or replace docstr in metadata table
+            fmtkw = {
+                'tablename': constants.METADATA_TABLE,
+                'columns': 'metadata_key, metadata_value'
+            }
+            op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
+            operation = op_fmtstr.format(**fmtkw)
+            params = [tablename + '_docstr', docstr]
+            db.executeone(operation, params, verbose=False)
 
-        # Insert or replace constraint in metadata table
-        fmtkw = {
-            'tablename': constants.METADATA_TABLE,
-            'columns': 'metadata_key, metadata_value'
-        }
-        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-        operation = op_fmtstr.format(**fmtkw)
-        params = [tablename + '_constraint', ';'.join(table_constraints)]
-        db.executeone(operation, params, verbose=False)
+        if len(table_constraints) > 0:
+            # Insert or replace constraint in metadata table
+            fmtkw = {
+                'tablename': constants.METADATA_TABLE,
+                'columns': 'metadata_key, metadata_value'
+            }
+            op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
+            operation = op_fmtstr.format(**fmtkw)
+            params = [tablename + '_constraint', ';'.join(table_constraints)]
+            db.executeone(operation, params, verbose=False)
+
+        if superkey_colnames is not None:
+            # Insert or replace superkeys in metadata table
+            fmtkw = {
+                'tablename': constants.METADATA_TABLE,
+                'columns': 'metadata_key, metadata_value'
+            }
+            op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
+            operation = op_fmtstr.format(**fmtkw)
+            params = [tablename + '_superkeys', ';'.join(superkey_colnames)]
+            db.executeone(operation, params, verbose=False)
 
     @default_decorator
     def add_column(db, tablename, colname, coltype):
@@ -797,6 +810,18 @@ class SQLDatabaseController(object):
             return None
         else:
             return constraint.split(';')
+
+    @default_decorator
+    def get_table_superkeys(db, tablename):
+        where_clause = 'metadata_key=?'
+        colnames = ('metadata_value',)
+        data = [(tablename + '_superkeys',)]
+        superkeys = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
+        superkeys = superkeys[0]
+        if superkeys is None:
+            return None
+        else:
+            return superkeys.split(';')
 
     @default_decorator
     def get_table_docstr(db, tablename):
