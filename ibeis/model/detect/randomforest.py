@@ -61,10 +61,11 @@ def compute_hough_images(ibs, src_gpath_list, dst_gpath_list, species, quick=Tru
     _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw)
 
 
-def compute_hough_chips(ibs, src_gpath_list, dst_gpath_list, species):
+def compute_probability_images(ibs, src_gpath_list, dst_gpath_list, species, quick=False):
     # Define detect dict
     detectkw = {
-        'quick': True,
+        'single': True,
+        'quick': quick,
         'save_detection_images': True,
         'save_scales': False,
     }
@@ -73,7 +74,7 @@ def compute_hough_chips(ibs, src_gpath_list, dst_gpath_list, species):
 
 def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
     assert len(src_gpath_list) == len(dst_gpath_list)
-    isvalid_list = [exists(gpath) for gpath in dst_gpath_list]
+    isvalid_list = [exists(gpath + '.png') for gpath in dst_gpath_list]
     dirty_src_gpaths = utool.get_dirty_items(src_gpath_list, isvalid_list)
     dirty_dst_gpaths = utool.get_dirty_items(dst_gpath_list, isvalid_list)
     num_dirty = len(dirty_src_gpaths)
@@ -108,15 +109,22 @@ def _get_detector(species, quick=True, single=False):
     grabmodels.ensure_models()
     # Create detector
     if single:
-        config = {
-            'scales': '1 0.5'
-        }
+        if quick:   
+            print("[detect.rf] Running quick (single scale) probability image")
+            config = {
+                'scales': '1 1.0',
+                'pos_like': 1,
+            }
+        else:
+            config = {
+                'pos_like': 1,
+            }
     else:
         if quick:
             config = {}
         else:
             config = {
-                'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20'
+                'scales': '11 2.0 1.75 1.5 1.33 1.15 1.0 0.75 0.55 0.40 0.30 0.20',
             }
     detector = pyrf.Random_Forest_Detector(rebuild=False, **config)
     trees_path = grabmodels.get_species_trees_paths(species)

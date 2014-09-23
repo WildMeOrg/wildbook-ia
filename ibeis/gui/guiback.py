@@ -157,8 +157,8 @@ class MainWindowBackend(QtCore.QObject):
         viz.show_hough_image(back.ibs, gid, back.ibs.cfg.detect_cfg.species, **kwargs)
         viz.draw()
 
-    def show_hough_chip(back, cid, **kwargs):
-        viz.show_hough_chip(back.ibs, cid, back.ibs.cfg.detect_cfg.species, **kwargs)
+    def show_probability_chip(back, cid, **kwargs):
+        viz.show_probability_chip(back.ibs, cid, back.ibs.cfg.detect_cfg.species, **kwargs)
         viz.draw()
 
     #----------------------

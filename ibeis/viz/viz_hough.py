@@ -28,7 +28,7 @@ def show_hough_image(ibs, gid, species, fnum=None, **kwargs):
 
 
 @utool.indent_func
-def show_hough_chip(ibs, cid, species, fnum=None, **kwargs):
+def show_probability_chip(ibs, cid, species, fnum=None, **kwargs):
     if fnum is None:
         fnum = df2.next_fnum()
     title = 'Hough Chip: ' + ', '.join(vh.get_annot_text(ibs, [cid], True))
@@ -37,8 +37,7 @@ def show_hough_chip(ibs, cid, species, fnum=None, **kwargs):
     src_cpath_list = list(map(str, ibs.get_chip_paths([cid])))
     dst_cpath_list = [splitext(gpath)[0] for gpath in src_cpath_list]
     hough_cpath_list = [gpath + '_hough' for gpath in dst_cpath_list]
-    randomforest.compute_hough_chips(ibs, src_cpath_list, hough_cpath_list, species)
-    print(hough_cpath_list)
+    randomforest.compute_probability_images(ibs, src_cpath_list, hough_cpath_list, species)
     hough_cpath = hough_cpath_list[0] + '.png'
     img = gtool.imread(hough_cpath)
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)

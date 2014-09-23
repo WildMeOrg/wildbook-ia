@@ -553,7 +553,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if len(id_list) == 1:
                 cid = id_list[0]
                 guitool.popup_menu(tblview, pos, [
-                    ('view hough chip', lambda: ibswgt.back.show_hough_chip(cid)),
+                    ('view hough chip', lambda: ibswgt.back.show_probability_chip(cid)),
                     ('delete annotation', lambda: ibswgt.back.delete_annot(id_list)),
                 ])
             else:
