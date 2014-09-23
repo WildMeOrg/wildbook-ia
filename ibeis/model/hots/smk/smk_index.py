@@ -131,6 +131,7 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
 @profile
 def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     """
+    13 seconds
     Builds each of the inverted index internals.
 
     >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -155,16 +156,16 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wx_series = invindex.words.index
     # Compute word assignments
     wx2_idxs, idx2_wx = assign_to_words_(
-        wordflann, words, idx2_vec, idx_name='idx', dense=True)
+        wordflann, words, idx2_vec, idx_name='idx', dense=True)  # 7.1 %
     # Compute word weights
     wx2_weight = compute_word_idf_(
-        wx_series, wx2_idxs, idx2_daid, daids)
+        wx_series, wx2_idxs, idx2_daid, daids)  # 2.4 %
     # Compute residual vectors and inverse mappings
     wx2_drvecs, wx2_aids, wx2_fxs = compute_residuals_(
-        words, wx2_idxs, idx2_vec, idx2_daid, idx2_dfx, aggregate)
+        words, wx2_idxs, idx2_vec, idx2_daid, idx2_dfx, aggregate)  # 42.9%
     # Compute annotation normalization factor
     daid2_gamma = compute_data_gamma_(idx2_daid, wx2_drvecs, wx2_aids,
-                                      wx2_weight, daids, alpha, thresh)
+                                      wx2_weight, daids, alpha, thresh)  # 47.5%
     # Store information
     invindex.idx2_wx    = idx2_wx    # stacked index -> word index
     invindex.wx2_idxs   = wx2_idxs
@@ -179,6 +180,8 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
 def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
                      nAssign=1):
     """
+    Time: 19 seconds
+
     Assigns descriptor-vectors to nearest word. Returns forward and inverted index.
 
     >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -211,7 +214,8 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
         wx_list, groupxs = smk_speed.group_indicies(_idx2_wx)  # 5.52 ms
         idxs_list = [idx_series_values.take(xs) for xs in groupxs]  # 2.9 ms
         _wx2_idxs = dict(zip(wx_list, idxs_list))  # 753 us
-    wx2_idxs = pdh.pandasify_dict1d(_wx2_idxs, wx_series, idx_name, ('wx2_' + idx_name + 's'), dense=dense)
+
+    wx2_idxs = pdh.pandasify_dict1d(_wx2_idxs, wx_series, idx_name, ('wx2_' + idx_name + 's'), dense=dense)  # 97.4 %
     idx2_wx = pdh.IntSeries(_idx2_wx, index=idx_series, name='wx')
     return wx2_idxs, idx2_wx
 
@@ -241,14 +245,14 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     wx2_idxs_values = wx2_idxs.values
     #with utool.Timer('method 1'):  # 0.16s
     INDEX_TYPE = np.int32
-    idxs_list = [idxs.values.astype(INDEX_TYPE) for idxs in wx2_idxs_values]
+    idxs_list = [idxs.values.astype(INDEX_TYPE) for idxs in wx2_idxs_values]  # 11%
     aids_list = [idx2_aid_values.take(idxs) if len(idxs) > 0 else [] for idxs in idxs_list]
     nTotalDocs = daids.shape[0]
-    nDocsWithWord_list = [len(pd.unique(aids)) for aids in aids_list]
+    nDocsWithWord_list = [len(pd.unique(aids)) for aids in aids_list]  # 68%
     # compute idf half of tf-idf weighting
     idf_list = [np.log(nTotalDocs / nDocsWithWord).astype(FLOAT_TYPE)
                 if nDocsWithWord > 0 else 0.0
-                for nDocsWithWord in nDocsWithWord_list]  # 17.8 ms
+                for nDocsWithWord in nDocsWithWord_list]  # 17.8 ms   # 13%
     #with utool.Timer('method 2'):  # 5.04s
     #    wx2_idf = {}
     #    for count, wx in enumerate(wx_series):
@@ -264,6 +268,8 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
 @profile
 def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
     """
+    11.8874 seconds
+
     Computes residual vectors based on word assignments
     returns mapping from word index to a set of residual vectors
 
@@ -290,20 +296,20 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
               (len(wx2_idxs), aggregate,))
     # Nonaggregated residuals
     _args1 = (words_values, wx_sublist, idxs_list, idx2_vec_values)
-    rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms
+    rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms  11%
     if aggregate:
         # Aggregate over words of the same aid
         #agg_list = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid)
         #aggaids_list = [tup[0] for tup in agg_list]
         #aggvecs_list = [tup[1] for tup in agg_list]
         #aggidxs_list = [tup[1] for tup in agg_list]
-        tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid)
+        tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid)  # 38%
         (aggvecs_list, aggaids_list, aggidxs_list) = tup
         aggfxs_list = [[idx2_fx_values.take(idxs) for idxs in aggidxs]
                        for aggidxs in aggidxs_list]
         _args2 = (wx_sublist, aggvecs_list, aggaids_list, aggfxs_list)
         # Make aggregate dataframes
-        wx2_aggvecs, wx2_aggaids, wx2_aggfxs = pdh.pandasify_agg_list(*_args2)  # 617 ms
+        wx2_aggvecs, wx2_aggaids, wx2_aggfxs = pdh.pandasify_agg_list(*_args2)  # 617 ms  47%
         return wx2_aggvecs, wx2_aggaids, wx2_aggfxs
     else:
         # Make residuals dataframes
@@ -320,6 +326,7 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
 def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
                         alpha=3, thresh=0):
     """
+    5.5 seconds
     Internals step4
 
     Computes gamma normalization scalar for the database annotations
@@ -351,7 +358,8 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
             daid2_wx2_drvecs[aid][wx].append(rvec)
         # Stack all rvecs from this word
         for aid in set(aids):
-            daid2_wx2_drvecs[aid][wx] = np.vstack(daid2_wx2_drvecs[aid][wx])
+            daid2_wx2_drvecs[aid][wx] = np.vstack(daid2_wx2_drvecs[aid][wx])  # 19%
+
     if utool.VERBOSE:
         end1_()
 
@@ -368,7 +376,7 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
         wx2_weight_values[wx_list]
         rvecs_list = list(wxvecs_list.values())
         assert len(weight_list) == len(rvecs_list), 'one list for each word'
-        gamma = smk_core.gamma_summation2(rvecs_list, weight_list, alpha, thresh)
+        gamma = smk_core.gamma_summation2(rvecs_list, weight_list, alpha, thresh)  # 66.8 %
         #weight_list = np.ones(weight_list.size)
         gamma_list.append(gamma)
 
@@ -381,6 +389,7 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
 @profile
 def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thresh=0):
     """
+    26.2054 s
     Gets query read for computations
 
     >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -407,13 +416,13 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     wordflann = invindex.wordflann
     qfx2_vec = annots_df['vecs'][qaid]
     # Assign query to words
-    wx2_qfxs1, qfx2_wx = assign_to_words_(wordflann, words, qfx2_vec, idx_name='fx', dense=False)
+    wx2_qfxs1, qfx2_wx = assign_to_words_(wordflann, words, qfx2_vec, idx_name='fx', dense=False)  # 71.9 %
     # Hack to make implementing asmk easier, very redundant
     qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), index=qfx2_wx.index, name='qfx2_aid')
     qfx2_qfx = qfx2_wx.index
     # Compute query residuals
     wx2_qrvecs, wx2_qaids, wx2_qfxs = compute_residuals_(
-        words, wx2_qfxs1, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
+        words, wx2_qfxs1, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)  # 24.8
     # Compute query gamma
     if utool.VERBOSE:
         print('[smk_index] Query Gamma alpha=%r, thresh=%r' % (alpha, thresh))

@@ -114,6 +114,8 @@ def Match_N(vecs1, vecs2, alpha=3, thresh=0):
 def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
                  withinfo=True, alpha=3, thresh=0):
     """
+    Total time: 30.7103 s
+
     >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_debug
     >>> tup  = smk_debug.testdata_match_kernel()
@@ -160,7 +162,7 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
                    for scores, weight in zip(scores_list, weight_list)]
     # Accumulate daid scores
     for wscore, daids in zip(wscore_list, daids_list):
-        daid2_aggscore[daids] += wscore
+        daid2_aggscore[daids] += wscore  # 30.2 %
         #assert len(wscore) == len(daids)
     daid2_totalscore = daid2_aggscore * daid2_gamma * query_gamma
     #end_()
@@ -169,7 +171,7 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
         daid2_chipmatch = build_daid2_chipmatch(invindex, common_wxs, wx2_qaids,
                                                 wx2_qfxs, scores_list,
                                                 weight_list, daids_list,
-                                                query_gamma, daid2_gamma)
+                                                query_gamma, daid2_gamma)  # 65.7%
     else:
         daid2_chipmatch = None
 
@@ -178,12 +180,16 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
 
 @profile
 def concat_chipmatch(cmtup):
+    """
+    Total time: 1.63271 s
+    """
+
     fm_list = [_[0] for _ in cmtup]
     fs_list = [_[1] for _ in cmtup]
     fk_list = [_[2] for _ in cmtup]
     assert len(fm_list) == len(fs_list)
     assert len(fk_list) == len(fs_list)
-    chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))
+    chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))  # 88.9%
     assert len(chipmatch[0]) == len(chipmatch[1])
     assert len(chipmatch[2]) == len(chipmatch[1])
     return chipmatch
@@ -194,9 +200,11 @@ def build_daid2_chipmatch(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                           scores_list, weight_list, daids_list, query_gamma,
                           daid2_gamma):
     """
+    Total time: 14.6415 s
     this builds the structure that the rest of the pipeline plays nice with
     """
-    print('[smk_core] build chipmatch')
+    if utool.VERBOSE:
+        print('[smk_core] build chipmatch')
     #start_keys = set() set(locals().keys())
     wx2_dfxs   = invindex.wx2_fxs
     qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
@@ -204,43 +212,44 @@ def build_daid2_chipmatch(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     qaids_list = [pdh.ensure_numpy(qaids) for qaids in wx2_qaids[common_wxs]]
     daid2_chipmatch_ = utool.ddict(list)
     _iter = list(zip(scores_list, qaids_list, daids_list, qfxs_list, dfxs_list,
-                weight_list))
+                     weight_list))
 
     #def accumulate_chipmatch(
     # Accumulate all matching indicies with scores etc...
     for scores, qaids, daids, qfxs, dfxs, weight in _iter:
-        _is, _js = np.meshgrid(np.arange(scores.shape[0]), np.arange(scores.shape[1]), indexing='ij')
-        for i, j in zip(_is.flat, _js.flat):
+        _is, _js = np.meshgrid(np.arange(scores.shape[0]),
+                               np.arange(scores.shape[1]), indexing='ij')  # 4.7%
+        for i, j in zip(_is.flat, _js.flat):   # 4.7%
             try:
-                score = scores.take(i, axis=0).take(j, axis=0)
-                if score == 0:
+                score = scores.take(i, axis=0).take(j, axis=0)  # 9.3
+                if score == 0:  # 4%
                     continue
-                qaid  = qaids[i]
+                #qaid  = qaids[i]
                 qfxs_ = qfxs[i]
                 daid  = daids[j]
                 dfxs_ = dfxs[j]
                 # Cartesian product to list all matches that gave this score
-                stackable = list(product(qfxs_, dfxs_))
+                stackable = list(product(qfxs_, dfxs_))  # 4.9%
                 # Distribute score over all words that contributed to it.
                 # apply other normalizers as well so a sum will reconstruct the
                 # total score
-                norm  = weight * (query_gamma * daid2_gamma[daid]) / len(stackable)
-                _fm   = np.vstack(stackable)
+                norm  = weight * (query_gamma * daid2_gamma[daid]) / len(stackable)  # 15.0%
+                _fm   = np.vstack(stackable)  # 16.6%
                 _fs   = np.array([score] * _fm.shape[0]) * norm
                 _fk   = np.ones(_fs.shape)
-                assert len(_fm) == len(_fs)
-                assert len(_fk) == len(_fs)
+                #assert len(_fm) == len(_fs)
+                #assert len(_fk) == len(_fs)
                 chipmatch_ = (_fm, _fs, _fk)
                 daid2_chipmatch_[daid].append(chipmatch_)
             except Exception as ex:
                 local_keys = ['score', 'qfxs_', 'dfxs_', 'qaids', 'daids',
-                             '_fm', '_fs', '_fm.shape', '_fs.shape', '_fk.shape']
+                              '_fm', '_fs', '_fm.shape', '_fs.shape', '_fk.shape']
                 utool.printex(ex, keys=local_keys, separate=True)
                 raise
 
     # Concatenate into full fmfsfk reprs
     daid2_cattup = {daid: concat_chipmatch(cmtup) for daid, cmtup in
-                    six.iteritems(daid2_chipmatch_)}
+                    six.iteritems(daid2_chipmatch_)}  # 12%
     #smk_debug.check_daid2_chipmatch(daid2_cattup)
     # Qreq needs unzipped chipmatch
     daid2_fm = {daid: cattup[0] for daid, cattup in
@@ -253,10 +262,10 @@ def build_daid2_chipmatch(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     return daid2_chipmatch
 
 
-import cyth
-if cyth.DYNAMIC:
-    exec(cyth.import_cyth_execstr(__name__))
-else:
-    pass
-    # <AUTOGEN_CYTH>
-    # </AUTOGEN_CYTH>
+#import cyth
+#if cyth.DYNAMIC:
+#    exec(cyth.import_cyth_execstr(__name__))
+#else:
+#    pass
+#    # <AUTOGEN_CYTH>
+#    # </AUTOGEN_CYTH>

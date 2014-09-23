@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 #import six
 import utool
 import numpy as np
-from ibeis.model.hots import pipeline
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_core
 #from six.moves import zip
@@ -10,53 +9,12 @@ from ibeis.model.hots.smk import smk_core
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_match]')
 
 
-def query_smk_test(annots_df, invindex, qreq_):
-    """
-    ibeis interface
-    >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_match
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> from ibeis.model.hots import query_request
-    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
-    >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
-
-    qres = qaid2_qres_[qaids[0]]
-    fig = qres.show_top(ibs)
-
-    """
-    qaids = qreq_.get_external_qaids()
-    qaid2_chipmatch = {}
-    qaid2_scores    = {}
-    aggregate = qreq_.qparams.aggregate
-    alpha     = qreq_.qparams.alpha
-    thresh    = qreq_.qparams.thresh
-    lbl = 'asmk query: ' if aggregate else 'smk query: '
-    mark, end_ = utool.log_progress(lbl, len(qaids), flushfreq=1,
-                                    writefreq=1, with_totaltime=True,
-                                    backspace=False)
-    withinfo = True
-    for count, qaid in enumerate(qaids):
-        mark(count)
-        daid2_score, daid2_chipmatch = query_inverted_index(
-            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
-        qaid2_scores[qaid]    = daid2_score
-        qaid2_chipmatch[qaid] = daid2_chipmatch
-    end_()
-    try:
-        filt2_meta = {}
-        qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
-    except Exception as ex:
-        utool.printex(ex)
-        utool.qflag()
-        raise
-    return qaid2_qres_
-
-
 @profile
 def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                          aggregate=False, alpha=3, thresh=0):
     """
+    Total time: 57.2445 s
+
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_index
     >>> from ibeis.model.hots.smk import smk_debug
@@ -71,7 +29,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
     query_repr = smk_index.compute_query_repr(annots_df, qaid, invindex,
-                                              aggregate, alpha, thresh)
+                                              aggregate, alpha, thresh)  # 45 %
     (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma) = query_repr
     if False and __debug__:
         from ibeis.model.hots.smk import smk_debug
@@ -82,7 +40,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     # Compute match kernel for all database aids
     kernel_args = (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
                    withinfo, alpha, thresh)
-    daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)
+    daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
     # Prevent self matches
     can_match_self = False
     if (not can_match_self) and qaid in daid2_totalscore:
@@ -100,6 +58,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
 @profile
 def selective_match_kernel(qreq_):
     """
+    Total time: 70.6046 s
     ibeis query interface
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_match
@@ -122,12 +81,12 @@ def selective_match_kernel(qreq_):
     alpha     = qreq_.qparams.alpha
     thresh    = qreq_.qparams.thresh
     # Build Pandas dataframe (or maybe not)
-    annots_df = smk_index.make_annot_df(ibs)
+    annots_df = smk_index.make_annot_df(ibs)  # .3%
     # Load vocabulary
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
     # Index database annotations
     invindex = smk_index.index_data_annots(annots_df, daids, words,
-                                           aggregate=aggregate)
+                                           aggregate=aggregate)  # 18.5%
     withinfo = True
     # Progress
     lbl = 'asmk query: ' if aggregate else 'smk query: '
@@ -140,7 +99,7 @@ def selective_match_kernel(qreq_):
     for count, qaid in enumerate(qaids):
         mark(count)
         daid2_score, daid2_chipmatch = query_inverted_index(
-            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)  # 81.2%
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
     return qaid2_scores, qaid2_chipmatch
@@ -151,9 +110,12 @@ if __name__ == '__main__':
         from ibeis.model.hots.smk import smk_debug
         from ibeis.model.hots.smk import smk_match
         from ibeis.model.hots import query_request
+        from ibeis.model.hots import pipeline
         ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
         qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-        qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
+        qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(annots_df, invindex, qreq_)
+        filt2_meta = {}
+        qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
         qres = qaid2_qres_[qaids[0]]
         fig = qres.show_top(ibs)
         fig.show()

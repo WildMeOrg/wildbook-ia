@@ -93,7 +93,7 @@ def testdata_raw_internals1():
     idx2_vec  = invindex.idx2_dvec
     dense = True
     nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    idx_name, series_name = 'idx', 'wx2_idxs'
+    idx_name = 'idx'
     _dbargs = (wordflann, words, idx2_vec, idx_name, dense, nAssign)
     wx2_idxs, idx2_wx = smk_index.assign_to_words_(*_dbargs)
     #print(smk_debug.wx_len_stats(wx2_idxs))
@@ -374,6 +374,7 @@ def check_rvecs_list_eq(rvecs_list, rvecs_list2):
             utool.print_keys([rvecs, rvecs2])
             raise
 
+
 def display_info(ibs, invindex, annots_df):
     from vtool import clustering2 as clustertool
     ################
@@ -500,6 +501,49 @@ def invindex_dbgstr(invindex):
     print(dbgstr)
 
 
+def query_smk_test(annots_df, invindex, qreq_):
+    """
+    ibeis interface
+    >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_match
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> from ibeis.model.hots import query_request
+    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+    >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
+
+    qres = qaid2_qres_[qaids[0]]
+    fig = qres.show_top(ibs)
+
+    """
+    from ibeis.model.hots import pipeline
+    from ibeis.model.hots.smk import smk_match
+    qaids = qreq_.get_external_qaids()
+    qaid2_chipmatch = {}
+    qaid2_scores    = {}
+    aggregate = qreq_.qparams.aggregate
+    alpha     = qreq_.qparams.alpha
+    thresh    = qreq_.qparams.thresh
+    lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
+    mark, end_ = utool.log_progress(lbl, len(qaids), flushfreq=1,
+                                    writefreq=1, with_totaltime=True,
+                                    backspace=False)
+    withinfo = True
+    for count, qaid in enumerate(qaids):
+        mark(count)
+        daid2_score, daid2_chipmatch = smk_match.query_inverted_index(
+            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+        qaid2_scores[qaid]    = daid2_score
+        qaid2_chipmatch[qaid] = daid2_chipmatch
+    end_()
+    try:
+        filt2_meta = {}
+        qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
+    except Exception as ex:
+        utool.printex(ex)
+        utool.qflag()
+        raise
+    return qaid2_qres_
 
 
 def main():

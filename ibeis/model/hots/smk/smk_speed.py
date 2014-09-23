@@ -37,6 +37,7 @@ from six.moves import zip
 @profile
 def compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid):
     """
+    Total time: 4.24612 s
     >>> from ibeis.model.hots.smk.smk_speed import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_debug
     >>> words_values, wx_sublist, idxs_list, idx2_vec_values = smk_debug.testdata_nonagg_rvec()
@@ -46,7 +47,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid):
     idx2_aid_values = idx2_aid.values
     assert len(idxs_list) == len(rvecs_list)
     aids_list = [idx2_aid_values.take(idxs) for idxs in idxs_list]  # 2.84 ms
-    grouptup_list = [group_indicies(aids) for aids in aids_list]
+    grouptup_list = [group_indicies(aids) for aids in aids_list]  # 44%
     # Agg aids
     aggaids_list = [tup[0] for tup in grouptup_list]
     groupxs_list = [tup[1] for tup in grouptup_list]
@@ -56,10 +57,10 @@ def compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid):
                    for xs in groupxs])
         if len(groupxs) > 0 else
         np.empty((0, 128), dtype=FLOAT_TYPE)
-        for rvecs, groupxs in zip(rvecs_list, groupxs_list)]
+        for rvecs, groupxs in zip(rvecs_list, groupxs_list)]  # 49.8%
     # Agg idxs
     aggidxs_list = [[idxs.take(xs) for xs in groupxs]
-                    for idxs, groupxs in zip(idxs_list, groupxs_list)]
+                    for idxs, groupxs in zip(idxs_list, groupxs_list)]  # 4.2%
     return aggvecs_list, aggaids_list, aggidxs_list
 
 
@@ -67,6 +68,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid):
 def compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list,
                                       idx2_vec_values):
     """
+     Total time: 1.29423 s
     >>> from ibeis.model.hots.smk import smk_debug
     >>> words_values, wx_sublist, idxs_list, idx2_vec_values = smk_debug.testdata_nonagg_rvec()
     PREFERED METHOD - 110ms
@@ -78,7 +80,7 @@ def compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list,
     #vecs_list  = [idx2_vec_values[idxs] for idxs in idxs_list]  # 23 ms
     vecs_list  = [idx2_vec_values.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
     rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
-                  for vecs, word in zip(vecs_list, words_list)]  # 103 ms
+                  for vecs, word in zip(vecs_list, words_list)]  # 103 ms  # 90%
     return rvecs_list
 
 
@@ -166,24 +168,25 @@ def group_indicies2(groupids):
 @profile
 def group_indicies(groupids):
     """
+    Total time: 1.29423 s
     >>> groupids = np.array(np.random.randint(0, 4, size=100))
 
     #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
     """
     # Sort items and groupids by groupid
-    sortx = groupids.argsort()
-    groupids_sorted = groupids[sortx]
+    sortx = groupids.argsort()  # 2.9%
+    groupids_sorted = groupids[sortx]  # 3.1%
     num_items = groupids.size
     # Find the boundaries between groups
-    diff = np.ones(num_items + 1, groupids.dtype)
-    diff[1:(num_items)] = np.diff(groupids_sorted)
-    idxs = np.where(diff > 0)[0]
-    num_groups = idxs.size - 1
+    diff = np.ones(num_items + 1, groupids.dtype)  # 8.6%
+    diff[1:(num_items)] = np.diff(groupids_sorted)  # 22.5%
+    idxs = np.where(diff > 0)[0]  # 8.8%
+    num_groups = idxs.size - 1  # 1.3%
     # Groups are between bounding indexes
-    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
-    group_idxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
+    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T  # 28.8%
+    group_idxs = [sortx[lx:rx] for lx, rx in lrx_pairs]  # 17.5%
     # Unique group keys
-    keys = groupids_sorted[idxs[0:num_groups]]
+    keys = groupids_sorted[idxs[0:num_groups]]  # 4.7%
     #items_sorted = items[sortx]
     #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
     return keys, group_idxs
