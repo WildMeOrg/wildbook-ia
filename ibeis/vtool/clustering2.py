@@ -29,7 +29,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     # Build a cfgstr if the full one is not specified
     if akmeans_cfgstr is None:
         # compute a hashstr based on the data
-        cfgstr += '_nC=%d' % nCentroids
+        cfgstr += '_nC=%d,nIter=%d' % (nCentroids, max_iters)
         akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
                                                  cfgstr, use_data_hash)
     try:
