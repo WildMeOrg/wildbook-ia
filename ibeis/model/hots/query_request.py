@@ -319,9 +319,8 @@ class QueryParams(object):
                 val[1] = float(val[1])
         isWeighted         = cfg.agg_cfg.isWeighted
         max_alts           = cfg.agg_cfg.max_alts
-        query_type         = cfg.agg_cfg.query_type
-        vsmany             = query_type == 'vsmany'
-        vsone              = query_type == 'vsone'
+        vsmany             = pipeline_root == 'vsmany'
+        vsone              = pipeline_root == 'vsone'
         score_method       = cfg.agg_cfg.score_method
         min_nInliers       = cfg.sv_cfg.min_nInliers
         nShortlist         = cfg.sv_cfg.nShortlist

@@ -885,7 +885,7 @@ def merge_databases(ibs_target, ibs_source_list):
 
 @__injectable
 @utool.time_func
-@profile
+#@profile
 def delete_non_exemplars(ibs):
     gid_list = ibs.get_valid_gids
     aids_list = ibs.get_image_aids(gid_list)
@@ -899,7 +899,7 @@ def delete_non_exemplars(ibs):
 
 @__injectable
 @utool.time_func
-@profile
+#@profile
 def update_exemplar_encounter(ibs):
     # FIXME SLOW
     exemplar_eid = ibs.get_encounter_eids_from_text(constants.EXEMPLAR_ENCTEXT)
@@ -914,7 +914,7 @@ def update_exemplar_encounter(ibs):
 
 @__injectable
 @utool.time_func
-@profile
+#@profile
 def update_reviewed_unreviewed_image_encounter(ibs):
     # FIXME SLOW
     unreviewed_eid = ibs.get_encounter_eids_from_text(constants.UNREVIEWED_IMAGE_ENCTEXT)
@@ -945,7 +945,7 @@ def update_reviewed_unreviewed_image_encounter(ibs):
 
 @__injectable
 @utool.time_func
-@profile
+#@profile
 def update_all_image_encounter(ibs):
     # FIXME SLOW
     eid = ibs.get_encounter_eids_from_text(constants.ALL_IMAGE_ENCTEXT)
@@ -957,7 +957,7 @@ def update_all_image_encounter(ibs):
 
 @__injectable(False)
 @utool.time_func
-@profile
+#@profile
 def update_special_encounters(ibs):
     # FIXME SLOW
     ibs.update_exemplar_encounter()

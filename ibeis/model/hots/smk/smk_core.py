@@ -14,6 +14,7 @@ from itertools import product
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
+@profile
 def normalize_vecs_inplace(vecs):
     # Normalize residuals
     norm_ = npl.norm(vecs, axis=1)
@@ -21,6 +22,7 @@ def normalize_vecs_inplace(vecs):
     np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
 
 
+@profile
 def aggregate_rvecs(rvecs):
     """
     >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -34,6 +36,7 @@ def aggregate_rvecs(rvecs):
     return rvecs_agg
 
 
+@profile
 def get_norm_rvecs(vecs, word):
     """
     >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -75,6 +78,7 @@ def gamma_summation(wx2_rvecs, wx2_weight):
     return scoremat
 
 
+@profile
 def gamma_summation2(rvecs_list, weight_list, alpha=3, thresh=0):
     r"""
     \begin{equation}
@@ -129,11 +133,11 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     daid2_gamma = invindex.daid2_gamma
 
     # for each word compute the pairwise scores between matches
-    print('+==============')
     common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
-    mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
-                                    flushfreq=100, writefreq=25,
-                                    with_totaltime=False)
+    #print('+==============')
+    #mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
+    #                                flushfreq=100, writefreq=25,
+    #                                with_totaltime=False)
     # Accumulate scores over the entire database
     daid2_aggscore   = pd.Series(np.zeros(len(invindex.daids)), index=invindex.daids, name='agg_score')
     daid2_totalscore = pd.Series(np.zeros(len(invindex.daids)), index=invindex.daids, name='total_score')
@@ -159,8 +163,8 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
         daid2_aggscore[daids] += wscore
         #assert len(wscore) == len(daids)
     daid2_totalscore = daid2_aggscore * daid2_gamma * query_gamma
-    end_()
-    print('L==============')
+    #end_()
+    #print('L==============')
     if withinfo:
         daid2_chipmatch = build_daid2_chipmatch(invindex, common_wxs, wx2_qaids,
                                                 wx2_qfxs, scores_list,
@@ -172,6 +176,20 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     return daid2_totalscore, daid2_chipmatch
 
 
+@profile
+def concat_chipmatch(cmtup):
+    fm_list = [_[0] for _ in cmtup]
+    fs_list = [_[1] for _ in cmtup]
+    fk_list = [_[2] for _ in cmtup]
+    assert len(fm_list) == len(fs_list)
+    assert len(fk_list) == len(fs_list)
+    chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))
+    assert len(chipmatch[0]) == len(chipmatch[1])
+    assert len(chipmatch[2]) == len(chipmatch[1])
+    return chipmatch
+
+
+@profile
 def build_daid2_chipmatch(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                           scores_list, weight_list, daids_list, query_gamma,
                           daid2_gamma):
@@ -221,16 +239,6 @@ def build_daid2_chipmatch(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                 raise
 
     # Concatenate into full fmfsfk reprs
-    def concat_chipmatch(cmtup):
-        fm_list = [_[0] for _ in cmtup]
-        fs_list = [_[1] for _ in cmtup]
-        fk_list = [_[2] for _ in cmtup]
-        assert len(fm_list) == len(fs_list)
-        assert len(fk_list) == len(fs_list)
-        chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))
-        assert len(chipmatch[0]) == len(chipmatch[1])
-        assert len(chipmatch[2]) == len(chipmatch[1])
-        return chipmatch
     daid2_cattup = {daid: concat_chipmatch(cmtup) for daid, cmtup in
                     six.iteritems(daid2_chipmatch_)}
     #smk_debug.check_daid2_chipmatch(daid2_cattup)

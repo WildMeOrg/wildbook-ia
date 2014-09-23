@@ -62,7 +62,7 @@ def ensure_correct_version(ibs):
         print('[ensure_correct_version] Database version behind, updating...')
         update_schema_version(ibs, version, version_expected)
         ibs.set_database_version(version_expected)
-        print('[ensure_correct_version] Database version updated to %r' 
+        print('[ensure_correct_version] Database version updated to %r'
             %(version_expected))
     elif version > version_expected:
         raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
@@ -89,7 +89,7 @@ def compare_string_versions(a, b):
                 return -1
             elif a[2] > b[2]:
                 return 1
-    # return 0 - identical 
+    # return 0 - identical
     raise AssertionError('[!update_schema_version] Two version numbers are the same along the update path')
 
 
@@ -199,7 +199,6 @@ class SQLExecutionContext(object):
                 #context.db.commit(verbose=False)
 
 
-@profile
 def get_operation_type(operation):
     """
     Parses the operation_type from an SQL operation
@@ -226,7 +225,6 @@ def get_operation_type(operation):
     return operation_type.upper()
 
 
-@profile
 def sanatize_sql(db, tablename, columns=None):
     """ Sanatizes an sql tablename and column. Use sparingly """
     tablename = re.sub('[^a-z_0-9]', '', tablename)

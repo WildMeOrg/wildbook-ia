@@ -6,18 +6,18 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
 exclude_vars = vars().keys()   # this line is before tests
 
 vsmany_2 = {
-    'query_type':      ['vsmany'],
+    'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],
     'K':               [5],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'bboxdist_weight':  [0],  # 1,]
+    'bboxdist_weight': [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0, 1],  # 1,]
     'lnbnn_weight':    [0, 1],  # 1,]
     'lnrat_weight':    [0, 1],  # 1,]
-    'bboxdist_thresh':  [None],  # .5,]
+    'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
@@ -30,18 +30,18 @@ vsmany_2 = {
 }
 
 vsone_1 = {
-    'query_type':      ['vsone'],
+    'pipeline_root':   ['vsone'],
     'checks':          [256],  # , 8192],
     'K':               [1],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'bboxdist_weight':  [0],  # 1,]
+    'bboxdist_weight': [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [1],  # 1,]
     'lnbnn_weight':    [0],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'bboxdist_thresh':  [None],  # .5,]
+    'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [1.5],  # 1.2, 1.6
@@ -54,7 +54,7 @@ vsone_1 = {
 }
 
 vsone_std = {
-    'query_type':    'vsone',
+    'pipeline_root':  'vsone',
     'checks':        256,
     'K':             1,
     'Knorm':         1,
@@ -65,18 +65,18 @@ vsone_std = {
 }
 
 vsmany_scoremethod = {
-    'query_type':      ['vsmany'],
+    'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],
     'K':               [5],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'bboxdist_weight':  [0],  # 1,]
+    'bboxdist_weight': [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'bboxdist_thresh':  [None],  # .5,]
+    'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
@@ -89,18 +89,18 @@ vsmany_scoremethod = {
 }
 
 vsmany_best = {
-    'query_type':      ['vsmany'],
+    'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],
     'K':               [4],  # 5, 10],
     'Knorm':           [1],  # 2, 3],
     'Krecip':          [0],  # , 5, 10],
-    'bboxdist_weight':  [0],  # 1,]
+    'bboxdist_weight': [0],  # 1,]
     'recip_weight':    [0],  # 1,]
     'bursty_weight':   [0],  # 1,]
     'ratio_weight':    [0],  # 1,]
     'lnbnn_weight':    [1],  # 1,]
     'lnrat_weight':    [0],  # 1,]
-    'bboxdist_thresh':  [None],  # .5,]
+    'bboxdist_thresh': [None],  # .5,]
     'recip_thresh':    [0],  # 0
     'bursty_thresh':   [None],  #
     'ratio_thresh':    [None],  # 1.2, 1.6
@@ -115,8 +115,18 @@ vsmany_best = {
 }
 best = vsmany_best
 
+asmk = {
+    'pipeline_root': ['asmk'],
+    'sv_on':         [False],  # True, False],
+}
+
 smk = {
-    'pipeline_root': ['smk', ],
+    'pipeline_root': ['smk'],
+    'sv_on':         [False],  # True, False],
+}
+
+smk2 = {
+    'pipeline_root': ['smk', 'asmk', 'vsmany'],
 }
 
 
@@ -250,7 +260,7 @@ vsmany_big_social.update({
 
 
 vsmany_1 = {
-    'query_type':      ['vsmany'],
+    'pipeline_root':      ['vsmany'],
     'checks':          [1024],  # , 8192],
     'K':               [5],  # 5, 10],
     'Knorm':           [1],  # 2, 3],

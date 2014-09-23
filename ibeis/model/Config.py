@@ -235,7 +235,6 @@ class AggregateConfig(ConfigBase):
     """
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
-        agg_cfg.query_type   = 'vsmany'
         # chipsum, namesum, placketluce
         agg_cfg.isWeighted = False  # nsum, pl
         agg_cfg.score_method = 'csum'  # nsum, pl
@@ -266,8 +265,7 @@ class AggregateConfig(ConfigBase):
     def get_cfgstr_list(agg_cfg):
         agg_cfgstr = []
         agg_cfgstr += ['_AGG(']
-        agg_cfgstr += [agg_cfg.query_type]
-        agg_cfgstr += [',', agg_cfg.score_method]
+        agg_cfgstr += [agg_cfg.score_method]
         if agg_cfg.isWeighted:
             agg_cfgstr += ['w']
         if agg_cfg.score_method  == 'pl':
@@ -314,11 +312,13 @@ class SMKConfig(ConfigBase):
 
     def get_cfgstr_list(smkcfg):
         smk_cfgstr = [
-            '_SMK(szVocab=', str(smkcfg.nWords),
+            '_SMK(',
+            'szVocab=', str(smkcfg.nWords),
             ',nAssign=', str(smkcfg.nAssign),
             ',t=', str(smkcfg.thresh),
             ',alpha=', str(smkcfg.alpha),
-            ',asmk=', str(smkcfg.aggregate), ')', ]
+            ',agg=', str(smkcfg.aggregate),
+            ')', ]
         return smk_cfgstr
 
 
@@ -335,6 +335,8 @@ class QueryConfig(ConfigBase):
         query_cfg.smk_cfg   = SMKConfig(**kwargs)
         query_cfg.use_cache = False
         query_cfg.num_results = 6
+        # Start of pipeline
+        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
         if utool.is_developer():
             query_cfg.pipeline_root = 'smk'
@@ -375,14 +377,15 @@ class QueryConfig(ConfigBase):
         make_feasible(query_cfg)
 
         # Build cfgstr
-        cfgstr_list = []
+        cfgstr_list = ['_' + query_cfg.pipeline_root ]
         if str(query_cfg.pipeline_root) == 'smk':
+            # SMK Parameters
             if kwargs.get('use_smk', True):
                 cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_sv', True):
                 cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
         elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
-            #raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+            # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_filt', True):
@@ -408,6 +411,15 @@ def make_feasible(query_cfg):
     filt_cfg = query_cfg.filt_cfg
     nn_cfg   = query_cfg.nn_cfg
     feat_cfg = query_cfg._feat_cfg
+
+    if query_cfg.pipeline_root == 'asmk':
+        query_cfg.pipeline_root = 'smk'
+        query_cfg.smk_cfg.aggregate = True
+
+    hasvalid_root = any([
+        query_cfg.pipeline_root == root
+        for root in query_cfg._valid_pipeline_roots])
+    assert hasvalid_root, 'invalid pipeline root %r' % query_cfg.pipeline_root
 
     # Ensure the list of on filters is valid given the weight and thresh
     if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh <= 1:
@@ -586,13 +598,13 @@ def __dict_default_func(dict_):
 def default_query_cfg(**kwargs):
     if utool.VERYVERBOSE:
         print('[config] default_query_cfg()')
-    kwargs['query_type'] = 'vsmany'
+    kwargs['pipeline_root'] = 'vsmany'
     query_cfg = QueryConfig(**kwargs)
     return query_cfg
 
 
 def default_vsone_cfg(ibs, **kwargs):
-    kwargs['query_type'] = 'vsone'
+    kwargs['pipeline_root'] = 'vsone'
     utool.dict_update_newkeys(kwargs, {
         'lnbnn_weight': 0.0,
         'checks': 256,

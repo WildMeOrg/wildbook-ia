@@ -12,6 +12,7 @@ from ibeis.model.hots import pipeline as hspipe
 
 
 USE_CACHE = not utool.get_flag('--nocache-query')
+SAVE_CACHE = not utool.get_flag('--nocache-save')
 USE_BIGCACHE = not utool.get_flag(('--nocache-big', '--no-bigcache-query'))
 MIN_BIGCACHE_BUNDLE = 20
 
@@ -97,7 +98,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     # Cache save only misses
     if __debug__:
         qreq_.assert_self(ibs)  # SANITY CHECK
-    hspipe.save_resdict(qreq_, qaid2_qres)
+    if SAVE_CACHE:
+        hspipe.save_resdict(qreq_, qaid2_qres)
     # Merge cache hits with computed misses
     if len(qaid2_qres_hit) > 0:
         qaid2_qres.update(qaid2_qres_hit)

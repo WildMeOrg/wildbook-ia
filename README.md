@@ -430,6 +430,10 @@ python dev.py -t best --allgt --view-hard --vdd
 python dev.py -t best --allgt --view-hard 
 python dev.py -t upsize --allgt 
 
+
+./profiler.sh dev.py -t asmk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save --prof-mod smk_,pandas,types
+
+
 ```
 
 

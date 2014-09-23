@@ -96,9 +96,11 @@ def request_ibeis_query_L0(ibs, qreq_):
     #
     if qreq_.qparams.pipeline_root == 'smk':
         from ibeis.model.hots.smk import smk_match
-        filt2_meta_ = {}
+        # Alternative to naive bayes matching:
+        # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.selective_match_kernel(qreq_)
-    else:
+        filt2_meta_ = {}
+    elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         # Nearest neighbors (qaid2_nns)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
@@ -117,6 +119,8 @@ def request_ibeis_query_L0(ibs, qreq_):
         # * Initial scoring occurs
         # * vsone inverse swapping occurs here
         qaid2_chipmatch_FILT_ = build_chipmatches(qaid2_nns_, qaid2_nnfilt_, qreq_)
+    else:
+        print('invalid pipeline root %r' % (qreq_.qparams.pipeline_root))
 
     # Spatial verification (qaid2_chipmatch) (TODO: cython)
     # * prunes chip results and feature matches
@@ -408,8 +412,8 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     K = qreq_.qparams.K
     is_vsone =  qreq_.qparams.vsone
     if NOT_QUIET:
-        query_type = qreq_.qparams.query_type
-        print('[hs] Step 4) Building chipmatches %s' % (query_type,))
+        pipeline_root = qreq_.qparams.pipeline_root
+        print('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
     # Return var
     qaid2_chipmatch = {}
     nFeatMatches = 0

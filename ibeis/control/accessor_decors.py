@@ -21,7 +21,8 @@ def default_decorator(input_):
         return func_
     else:
         def closure_default(func):
-            return utool.indent_func(input_)(profile(func))
+            #return utool.indent_func(input_)(profile(func))
+            return utool.indent_func(input_)(func)
         return closure_default
 
 

@@ -217,6 +217,7 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
 
 
 #@utool.cached_func('idf_', appname='smk', key_argx=[1, 2, 3])
+@profile
 def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     """
     Returns the inverse-document-frequency weighting for each word
@@ -259,8 +260,8 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     return wx2_idf
 
 
-#@profile
 #@utool.cached_func('residuals', appname='smk')
+@profile
 def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
     """
     Computes residual vectors based on word assignments
@@ -284,8 +285,9 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
     wx_sublist      = wx2_idxs.index
     idxs_list  = [idxsdf.values.astype(np.int32) for idxsdf in wx2_idxs_values]   # 13 ms
     # Prealloc output
-    print('[smk_index] Residual Vectors for %d words. aggregate=%r' %
-          (len(wx2_idxs), aggregate,))
+    if utool.VERBOSE:
+        print('[smk_index] Residual Vectors for %d words. aggregate=%r' %
+              (len(wx2_idxs), aggregate,))
     # Nonaggregated residuals
     _args1 = (words_values, wx_sublist, idxs_list, idx2_vec_values)
     rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms
@@ -314,6 +316,7 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
 
 
 #@utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
+@profile
 def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
                         alpha=3, thresh=0):
     """
@@ -332,10 +335,12 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
     >>> daid2_gamma = compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids, use_cache=use_cache)
     """
     # Gropuing by aid and words
-    print('[smk_index] Compute Gamma alpha=%r, thresh=%r: ' % (alpha, thresh))
+    if utool.VERBOSE:
+        print('[smk_index] Compute Gamma alpha=%r, thresh=%r: ' % (alpha, thresh))
     wx_series = wx2_rvecs.index
-    mark1, end1_ = utool.log_progress(
-        '[smk_index] Gamma Group: ', len(wx_series), flushfreq=100, writefreq=50)
+    if utool.VERBOSE:
+        mark1, end1_ = utool.log_progress(
+            '[smk_index] Gamma Group: ', len(wx_series), flushfreq=100, writefreq=50)
     wx_series = wx2_rvecs.index
     rvecs_values_list = [rvecs.values for rvecs in wx2_rvecs.values]
     aids_list  = pdh.ensure_numpy(wx2_aids)
@@ -347,12 +352,14 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
         # Stack all rvecs from this word
         for aid in set(aids):
             daid2_wx2_drvecs[aid][wx] = np.vstack(daid2_wx2_drvecs[aid][wx])
-    end1_()
+    if utool.VERBOSE:
+        end1_()
 
     # For every daid, compute its gamma using pregrouped rvecs
     # Summation over words for each aid
-    mark2, end2_ = utool.log_progress(
-        '[smk_index] Gamma Sum: ', len(daid2_wx2_drvecs), flushfreq=100, writefreq=25)
+    if utool.VERBOSE:
+        mark2, end2_ = utool.log_progress(
+            '[smk_index] Gamma Sum: ', len(daid2_wx2_drvecs), flushfreq=100, writefreq=25)
     wx2_weight_values = wx2_weight.values
     gamma_list = []
     for aid, wxvecs_list in six.iteritems(daid2_wx2_drvecs):
@@ -366,7 +373,8 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
         gamma_list.append(gamma)
 
     daid2_gamma = pdh.IntSeries(gamma_list, index=daids, name='gamma')
-    end2_()
+    if utool.VERBOSE:
+        end2_()
     return daid2_gamma
 
 
@@ -392,7 +400,8 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     idx2_fx = qfx2_qfx
     wx2_idxs = wx2_qfxs1
     """
-    print('[smk_index] Query Repr qaid=%r' % (qaid,))
+    if utool.VERBOSE:
+        print('[smk_index] Query Repr qaid=%r' % (qaid,))
     wx2_weight = invindex.wx2_weight
     words = invindex.words
     wordflann = invindex.wordflann
@@ -406,7 +415,8 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     wx2_qrvecs, wx2_qaids, wx2_qfxs = compute_residuals_(
         words, wx2_qfxs1, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # Compute query gamma
-    print('[smk_index] Query Gamma alpha=%r, thresh=%r' % (alpha, thresh))
+    if utool.VERBOSE:
+        print('[smk_index] Query Gamma alpha=%r, thresh=%r' % (alpha, thresh))
     weight_list = wx2_weight.values[wx2_qrvecs.index.values.astype(np.int32)]
     rvecs_list  = [rvecs.values for rvecs in wx2_qrvecs.values]
     query_gamma = smk_core.gamma_summation2(rvecs_list, weight_list, alpha, thresh)

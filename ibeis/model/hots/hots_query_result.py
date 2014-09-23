@@ -132,7 +132,6 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_score = None  # annotation score
         qres.filt2_meta = None  # messy
 
-    @profile
     def load(qres, qresdir, verbose=utool.NOT_QUIET, force_miss=False):
         """ Loads the result from the given database """
         fpath = qres.get_fpath(qresdir)
@@ -211,7 +210,6 @@ class QueryResult(__OBJECT_BASE__):
     def get_fname(qres, **kwargs):
         return query_result_fname(qres.qaid, qres.qauuid, qres.cfgstr, **kwargs)
 
-    @profile
     def save(qres, qresdir):
         fpath = qres.get_fpath(qresdir)
         if utool.NOT_QUIET:  # and utool.VERBOSE:
