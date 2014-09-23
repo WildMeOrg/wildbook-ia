@@ -72,12 +72,13 @@ log_progress = partial(utool.log_progress, startafter=START_AFTER, disable=utool
 def request_ibeis_query_L0(ibs, qreq_):
     """
     >>> from ibeis.model.hots.pipeline import *  # NOQA
-    >>> from ibeis.model.hots import match_chips4 as mc4
+    #>>> from ibeis.model.hots import match_chips4 as mc4
+    >>> from ibeis.model.hots import query_request
     >>> import ibeis
     >>> qaid_list = [1]
     >>> daid_list = [1, 2, 3, 4, 5]
     >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-    >>> qreq_ = mc4.get_ibeis_query_request(ibs, qaid_list, daid_list)
+    >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
     >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_)
     >>> qres = qaid2_qres[1]
 
@@ -94,15 +95,17 @@ def request_ibeis_query_L0(ibs, qreq_):
 
     #
     if qreq_.qparams.pipeline_root == 'smk':
-        from ibeis.model.hots import smk_index
+        from ibeis.model.hots.smk import smk_index
         daids = qreq_.get_external_daids()
         annots_df = smk_index.make_annot_df(ibs)
         taids = ibs.get_valid_aids()  # exemplar
         # Learn vocabulary
         nWords = qreq_.qparams.nWords
+        aggregate = qreq_.qparams.aggregate
         words = smk_index.learn_visual_words(annots_df, taids, nWords)
         # Index a database of annotations
-        invindex = smk_index.index_data_annots(annots_df, daids, words)
+        invindex = smk_index.index_data_annots(annots_df, daids, words,
+                                               aggregate=aggregate)
         return smk_index.query_smk(ibs, annots_df, invindex, qreq_)
     else:
         # Nearest neighbors (qaid2_nns)

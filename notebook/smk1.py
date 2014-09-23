@@ -51,7 +51,7 @@ def pandasify_dict2d(dict_, keys, key2_index, columns, series_name):
 def make_annot_df(ibs):
     """
     Creates a panda dataframe using an ibeis controller
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs = ibeis.opendb('PZ_MTEST')
     >>> annots_df = make_annot_df(ibs)
     """
@@ -70,7 +70,7 @@ def make_annot_df(ibs):
 def learn_visual_words(annots_df, taids, nWords, use_cache=True):
     """
     Computes visual words
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     """
@@ -87,7 +87,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=True):
 def index_data_annots(annots_df, daids, words, with_internals=True):
     """
     Create inverted index for database annotations
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = True
@@ -109,16 +109,16 @@ def ensure_numpy(data):
     return data.values if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)) else data
 
 
-def inverted_assignments_(wordflann, idx2_vec):
+def assign_to_words_(wordflann, idx2_vec):
     """ Assigns vectors to nearest word
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = False
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
     >>> wordflann = invindex.wordflann
     >>> idx2_vec = invindex.idx2_dvec
-    >>> wx2_idxs, idx2_wx = inverted_assignments_(wordflann, idx2_vec)
+    >>> wx2_idxs, idx2_wx = assign_to_words_(wordflann, idx2_vec)
     """
     #TODO: multiple assignment
     idx2_vec_ = ensure_numpy(idx2_vec)
@@ -131,7 +131,7 @@ def inverted_assignments_(wordflann, idx2_vec):
 
 def compute_word_idf_(wx2_idxs, idx2_aid, _daids):
     """ Returns the inverse-document-frequency weighting for each word
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -170,7 +170,7 @@ def compute_residuals_(words, idx2_vec, wx2_idxs):
 
 def compute_internals_(invindex):
     """
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = False
@@ -178,7 +178,7 @@ def compute_internals_(invindex):
     >>> compute_internals_(invindex)
     """
     idx2_vec = invindex.idx2_dvec
-    wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec)
+    wx2_idxs, idx2_wx = invindex.assign_to_words(idx2_vec)
     wx2_weight = invindex.compute_word_weights(wx2_idxs)
     wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
     invindex.idx2_wx    = idx2_wx    # stacked index -> word index
@@ -193,13 +193,13 @@ def compute_internals_(invindex):
 def pandasify(invindex):
     """
     Transitions from numpy to pandas
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = False
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
     >>> idx2_vec = invindex.idx2_dvec
-    >>> wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec)
+    >>> wx2_idxs, idx2_wx = invindex.assign_to_words(idx2_vec)
     >>> wx2_weight = invindex.compute_word_weights(wx2_idxs)
     >>> wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
     >>> invindex.idx2_wx    = idx2_wx    # stacked index -> word index
@@ -249,7 +249,7 @@ def pandasify(invindex):
 
 def compute_data_gamma_(invindex, use_cache=True):
     """
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> with_internals = True
@@ -325,9 +325,9 @@ class InvertedIndex(object):
         wx2_weight = compute_word_idf_(wx2_idxs, idx2_aid, _daids)
         return wx2_weight
 
-    def inverted_assignments(invindex, idx2_vec):
+    def assign_to_words(invindex, idx2_vec):
         wordflann = invindex.wordflann
-        wx2_idxs, idx2_wx = inverted_assignments_(wordflann, idx2_vec)
+        wx2_idxs, idx2_wx = assign_to_words_(wordflann, idx2_vec)
         return wx2_idxs, idx2_wx
 
     def compute_residuals(invindex, idx2_vec, wx2_idxs):
@@ -370,7 +370,7 @@ def Match_N(vecs1, vecs2):
 
 def compute_query_repr(annots_df, qaid, invindex):
     qfx2_vec = annots_df['vecs'][qaid]
-    wx2_qfxs_, qfx2_wx_ = invindex.inverted_assignments(qfx2_vec)
+    wx2_qfxs_, qfx2_wx_ = invindex.assign_to_words(qfx2_vec)
     wx2_qrvecs_ = invindex.compute_residuals(qfx2_vec, wx2_qfxs_)
     wx_series = pd.Series(wx2_qfxs_.keys(), name='wx')
 
@@ -392,7 +392,7 @@ def query_inverted_index(annots_df, qaid, invindex):
 
 def match_kernel(wx2_qrvecs, wx2_qfxs, invindex, qaid):
     """
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     >>> ibs, annots_df, taids, daids, qaids, nWords = testdata()
     >>> words = learn_visual_words(annots_df, taids, nWords)
     >>> invindex = index_data_annots(annots_df, daids, words)
@@ -493,7 +493,7 @@ def testdata():
 
 def main():
     """
-    >>> from ibeis.model.hots.smk import *  # NOQA
+    >>> from ibeis.model.hots.smk.smk import *  # NOQA
     """
     from ibeis.model.hots import pipeline
     from ibeis.model.hots import query_request as hsqreq
