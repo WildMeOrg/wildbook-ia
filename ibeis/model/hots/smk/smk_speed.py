@@ -34,7 +34,7 @@ from six.moves import zip
 #    #                for rvecs, aids in zip(rvecs_list, aids_list)]  # 233 ms
 
 
-@profile
+#@profile
 def compute_agg_rvecs(rvecs_list, idxs_list, aids_list):
     """
     Total time: 4.24612 s
@@ -62,7 +62,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list):
     return aggvecs_list, aggaids_list, aggidxs_list
 
 
-@profile
+#@profile
 def compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list,
                                       idx2_vec_values):
     """
@@ -82,7 +82,6 @@ def compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list,
     return rvecs_list
 
 
-@profile
 def compute_nonagg_residuals_forloop(words_values, wx_sublist, idxs_list, idx2_vec_values):
     """
     OK, but slower than listcomp method - 140ms
@@ -106,7 +105,6 @@ def compute_nonagg_residuals_forloop(words_values, wx_sublist, idxs_list, idx2_v
     return rvecs_list
 
 
-@profile
 def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
     """
     VERY SLOW. DEBUG USE ONLY
@@ -141,7 +139,6 @@ def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
     return rvecs_arr
 
 
-@profile
 def group_indicies2(groupids):
     """
     >>> groupids = np.array(np.random.randint(0, 4, size=100))
@@ -163,7 +160,7 @@ def group_indicies2(groupids):
     return group_idxs
 
 
-@profile
+#@profile
 def group_indicies(groupids):
     """
     Total time: 1.29423 s
@@ -190,7 +187,6 @@ def group_indicies(groupids):
     return keys, group_idxs
 
 
-@profile
 def groupby(items, groupids):
     """
     >>> items    = np.array(np.arange(100))
@@ -202,7 +198,6 @@ def groupby(items, groupids):
     return keys, vals
 
 
-@profile
 def groupby_gen(items, groupids):
     """
     >>> items    = np.array(np.arange(100))
@@ -212,7 +207,6 @@ def groupby_gen(items, groupids):
         yield (key, val)
 
 
-@profile
 def groupby_dict(items, groupids):
     # Build a dict
     grouped = {key: val for key, val in groupby_gen(items, groupids)}

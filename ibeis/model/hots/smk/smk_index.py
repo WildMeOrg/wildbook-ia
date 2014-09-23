@@ -42,7 +42,7 @@ class InvertedIndex(object):
     #    return '_{lbl}({hashstr})'.format(lbl=lbl, hashstr=hashstr)
 
 
-@profile
+#@profile
 def make_annot_df(ibs):
     """
     Creates a panda dataframe using an ibeis controller
@@ -68,7 +68,7 @@ def make_annot_df(ibs):
     return annots_df
 
 
-@profile
+#@profile
 def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     """
     Computes visual words
@@ -84,14 +84,14 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     train_vecs = np.vstack(train_vecs_df.values)
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
-    _words = clustertool.cached_akmeans(train_vecs, nWords, max_iters=100,
+    _words = clustertool.cached_akmeans(train_vecs, nWords, max_iters=1000,
                                         use_cache=use_cache, appname='smk')
     wx_series = pdh.IntIndex(np.arange(len(_words)), name='wx')
     words = pd.DataFrame(_words, index=wx_series, columns=VEC_COLUMNS)
     return words
 
 
-@profile
+#@profile
 def index_data_annots(annots_df, daids, words, with_internals=True,
                       aggregate=False, alpha=3, thresh=0):
     """
@@ -128,7 +128,7 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     return invindex
 
 
-@profile
+#@profile
 def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     """
     13 seconds
@@ -176,7 +176,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     invindex.daid2_gamma = daid2_gamma
 
 
-@profile
+#@profile
 def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
                      nAssign=1, with_pandas=True):
     """
@@ -228,7 +228,7 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
 
 
 #@utool.cached_func('idf_', appname='smk', key_argx=[1, 2, 3])
-@profile
+#@profile
 def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     """
     Returns the inverse-document-frequency weighting for each word
@@ -272,7 +272,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
 
 
 #@utool.cached_func('residuals', appname='smk')
-@profile
+#@profile
 def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
     """
     11.8874 seconds
@@ -329,7 +329,7 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
 
 
 #@utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
-@profile
+#@profile
 def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids,
                         alpha=3, thresh=0):
     """
