@@ -45,13 +45,11 @@ def testdata_ibeis(**kwargs):
     return ibs
 
 
-def testdata_dataframe(**kwargs):
+def testdata_ibeis2(**kwargs):
     from ibeis.model.hots.smk import smk_debug
+    print('[smk_debug] testdata_ibeis2')
     ibs = smk_debug.testdata_ibeis(**kwargs)
-    print('[smk_debug] testdata_dataframe')
-    # Pandas Annotation Dataframe
-    annots_df = smk_index.make_annot_df(ibs)
-    valid_aids = annots_df.index.values
+    valid_aids = ibs.get_valid_aids()
     # Training/Database/Search set
     taids = valid_aids[:]
     daids  = valid_aids
@@ -60,9 +58,16 @@ def testdata_dataframe(**kwargs):
     #qaids = valid_aids[0:2]
     #qaids = [valid_aids[0], valid_aids[4]]
     qaids = [37]  # NOQA new test case for PZ_MTEST
-    #default = 1E3
-    default = 8E3
-    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
+    return ibs, taids, daids, qaids
+
+
+def testdata_dataframe(**kwargs):
+    from ibeis.model.hots.smk import smk_debug
+    ibs, taids, daids, qaids = smk_debug.testdata_ibeis2(**kwargs)
+    print('[smk_debug] testdata_dataframe')
+    # Pandas Annotation Dataframe
+    annots_df = smk_index.make_annot_df(ibs)
+    nWords = ibs.cfg.query_cfg.smk_cfg.nWords
     return ibs, annots_df, taids, daids, qaids, nWords
 
 

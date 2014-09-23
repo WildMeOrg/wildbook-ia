@@ -102,6 +102,7 @@ def selective_match_kernel(qreq_):
             annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)  # 81.2%
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
+    end_()
     return qaid2_scores, qaid2_chipmatch
 
 
@@ -111,9 +112,10 @@ if __name__ == '__main__':
         from ibeis.model.hots.smk import smk_match
         from ibeis.model.hots import query_request
         from ibeis.model.hots import pipeline
-        ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        ibs, taids, daids, qaids = smk_debug.testdata_ibeis2()
         qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-        qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(annots_df, invindex, qreq_)
+        qreq_.ibs = ibs
+        qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(qreq_)
         filt2_meta = {}
         qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
         qres = qaid2_qres_[qaids[0]]

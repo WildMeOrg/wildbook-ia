@@ -67,8 +67,24 @@ def pandasify_list2d(list_, keys, columns, val_name, series_name):
     return key2_df
 
 
-def ensure_numpy(data):
-    return data.values if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)) else data
+def ensure_numpy_values(data):
+    if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
+        return data.values
+    elif isinstance(data, dict):
+        return np.array(list(data.values()))
+    else:
+        return data
+
+ensure_numpy = ensure_numpy_values
+
+
+def ensure_numpy_index(data):
+    if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
+        return data.index
+    elif isinstance(data, dict):
+        return np.array(list(data.keys()))
+    else:
+        raise AssertionError(type(data))
 
 
 def pandasify_rvecs_list(wx_sublist, wx2_idxs_values, rvecs_list, aids_list,

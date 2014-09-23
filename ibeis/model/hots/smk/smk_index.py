@@ -178,7 +178,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
 
 @profile
 def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
-                     nAssign=1):
+                     nAssign=1, with_pandas=True):
     """
     Time: 19 seconds
 
@@ -215,8 +215,15 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
         idxs_list = [idx_series_values.take(xs) for xs in groupxs]  # 2.9 ms
         _wx2_idxs = dict(zip(wx_list, idxs_list))  # 753 us
 
-    wx2_idxs = pdh.pandasify_dict1d(_wx2_idxs, wx_series, idx_name, ('wx2_' + idx_name + 's'), dense=dense)  # 97.4 %
-    idx2_wx = pdh.IntSeries(_idx2_wx, index=idx_series, name='wx')
+    if with_pandas:
+        wx2_idxs = pdh.pandasify_dict1d(_wx2_idxs, wx_series, idx_name, ('wx2_' + idx_name + 's'), dense=dense)  # 274 ms 97.4 %
+        idx2_wx = pdh.IntSeries(_idx2_wx, index=idx_series, name='wx')
+    else:
+        #pdh.pandasify_dict1d(_wx2_idxs, wx_series, idx_name, ('wx2_' + idx_name + 's'), dense=dense)  # 97.4 %
+        #pdh.IntSeries(_idx2_wx, index=idx_series, name='wx')
+        #wx2_idxs = _wx2_idxs
+        wx2_idxs = _wx2_idxs
+        idx2_wx = _idx2_wx
     return wx2_idxs, idx2_wx
 
 
@@ -247,7 +254,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
     INDEX_TYPE = np.int32
     idxs_list = [idxs.values.astype(INDEX_TYPE) for idxs in wx2_idxs_values]  # 11%
     aids_list = [idx2_aid_values.take(idxs) if len(idxs) > 0 else [] for idxs in idxs_list]
-    nTotalDocs = daids.shape[0]
+    nTotalDocs = len(daids)
     nDocsWithWord_list = [len(pd.unique(aids)) for aids in aids_list]  # 68%
     # compute idf half of tf-idf weighting
     idf_list = [np.log(nTotalDocs / nDocsWithWord).astype(FLOAT_TYPE)
@@ -287,9 +294,10 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
     idx2_aid_values = idx2_aid.values
     idx2_vec_values = idx2_vec.values
     idx2_fx_values  = idx2_fx.values
-    wx2_idxs_values = wx2_idxs.values
-    wx_sublist      = wx2_idxs.index
-    idxs_list  = [idxsdf.values.astype(np.int32) for idxsdf in wx2_idxs_values]   # 13 ms
+    wx_sublist      = pdh.ensure_numpy_index(wx2_idxs)
+    wx2_idxs_values = pdh.ensure_numpy_values(wx2_idxs)
+    idxs_list  = [pdh.ensure_numpy_values(idxsdf).astype(np.int32) for idxsdf in wx2_idxs_values]   # 13 ms
+    aids_list = [idx2_aid_values.take(idxs) for idxs in idxs_list]
     # Prealloc output
     if utool.VERBOSE:
         print('[smk_index] Residual Vectors for %d words. aggregate=%r' %
@@ -299,11 +307,11 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
     rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms  11%
     if aggregate:
         # Aggregate over words of the same aid
-        #agg_list = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid)
+        #agg_list = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list)
         #aggaids_list = [tup[0] for tup in agg_list]
         #aggvecs_list = [tup[1] for tup in agg_list]
         #aggidxs_list = [tup[1] for tup in agg_list]
-        tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid)  # 38%
+        tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list)  # 38%
         (aggvecs_list, aggaids_list, aggidxs_list) = tup
         aggfxs_list = [[idx2_fx_values.take(idxs) for idxs in aggidxs]
                        for aggidxs in aggidxs_list]
@@ -313,7 +321,6 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
         return wx2_aggvecs, wx2_aggaids, wx2_aggfxs
     else:
         # Make residuals dataframes
-        aids_list = [idx2_aid_values.take(idxs) for idxs in idxs_list]
         # compatibility hack
         fxs_list  = [[idx2_fx_values[idx:idx + 1] for idx in idxs]  for idxs in idxs_list]
         _args3 = (wx_sublist, wx2_idxs_values, rvecs_list, aids_list, fxs_list)
@@ -416,10 +423,13 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     wordflann = invindex.wordflann
     qfx2_vec = annots_df['vecs'][qaid]
     # Assign query to words
-    wx2_qfxs1, qfx2_wx = assign_to_words_(wordflann, words, qfx2_vec, idx_name='fx', dense=False)  # 71.9 %
+    wx2_qfxs1, qfx2_wx = assign_to_words_(wordflann, words, qfx2_vec,
+                                          idx_name='fx', dense=False,
+                                          with_pandas=False)  # 71.9 %
     # Hack to make implementing asmk easier, very redundant
-    qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), index=qfx2_wx.index, name='qfx2_aid')
-    qfx2_qfx = qfx2_wx.index
+    #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), index=qfx2_wx.index, name='qfx2_aid')
+    qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), name='qfx2_aid')
+    qfx2_qfx = qfx2_vec.index
     # Compute query residuals
     wx2_qrvecs, wx2_qaids, wx2_qfxs = compute_residuals_(
         words, wx2_qfxs1, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)  # 24.8

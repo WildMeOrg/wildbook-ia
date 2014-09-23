@@ -35,7 +35,7 @@ from six.moves import zip
 
 
 @profile
-def compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid):
+def compute_agg_rvecs(rvecs_list, idxs_list, aids_list):
     """
     Total time: 4.24612 s
     >>> from ibeis.model.hots.smk.smk_speed import *  # NOQA
@@ -44,9 +44,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, idx2_aid):
     >>> rvecs_list = compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list, idx2_vec_values)
 
     """
-    idx2_aid_values = idx2_aid.values
-    assert len(idxs_list) == len(rvecs_list)
-    aids_list = [idx2_aid_values.take(idxs) for idxs in idxs_list]  # 2.84 ms
+    #assert len(idxs_list) == len(rvecs_list)
     grouptup_list = [group_indicies(aids) for aids in aids_list]  # 44%
     # Agg aids
     aggaids_list = [tup[0] for tup in grouptup_list]
