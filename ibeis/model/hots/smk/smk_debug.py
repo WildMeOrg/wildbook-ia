@@ -9,20 +9,6 @@ from  ibeis.model.hots import query_request
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_debug]')
 
 
-def wx_len_stats(wx2_xxx):
-    """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-    >>> invindex = index_data_annots(annots_df, daids, words)
-    >>> qaid = qaids[0]
-    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = compute_query_repr(annots_df, qaid, invindex)
-    >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
-    """
-    stats_ = 'None' if wx2_xxx is None else utool.mystats(map(len, wx2_xxx))
-    return stats_
-
-
 def testdata_printops(**kwargs):
     """ test print options. doesnt take up too much screen
     """
@@ -34,15 +20,19 @@ def testdata_printops(**kwargs):
 
 
 def testdata_ibeis(**kwargs):
-    """ builds ibs for testing """
+    """ builds ibs for testing
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    >>> kwargs = {}
+    """
     print(' === Test Data IBEIS ===')
     from ibeis.model.hots.smk import smk_debug
     smk_debug.testdata_printops(**kwargs)
     print('[smk_debug] testdata_ibeis')
     ibeis.ensure_pz_mtest()
     ibs = ibeis.opendb('PZ_MTEST')
+    ibs._default_config()
     #aggregate = False
-    aggregate = kwargs.get('aggregate', True)
+    aggregate = kwargs.get('aggregate', utool.get_flag(('--agg', '--aggregate')))
     default = 8E3
     nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
     # Configs
@@ -52,61 +42,7 @@ def testdata_ibeis(**kwargs):
     ibs.cfg.query_cfg.smk_cfg.alpha = 3
     ibs.cfg.query_cfg.smk_cfg.thresh = 0
     ibs.cfg.query_cfg.smk_cfg.nAssign = 1
-
-    #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    #alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-    #thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
-    #print('+------------')
-    #print('[smk_debug] testdata_ibeis')
-    #print('[smk_debug] aggregate = %r' % (aggregate,))
-    #print('[smk_debug] aggregate = %r' % (alpha,))
-    #print('[smk_debug] aggregate = %r' % (thresh,))
-    #print('L------------')
-    #ibs.cfg.query_cfg.smk_cfg.printme3()
     return ibs
-
-
-def invindex_dbgstr(invindex):
-    """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
-    >>> ibs, annots_df, daids, qaids, invindex = testdata_raw_internals0()
-    >>> invindex_dbgstr(invindex)
-    """
-    locals_ = {'invindex': invindex}
-    key_list = [
-        'invindex.words.shape',
-        'invindex.daids.shape',
-        'invindex.idx2_dvec.shape',
-        'invindex.idx2_daid.shape',
-        'invindex.idx2_dfx.shape',
-        'invindex.wx2_idxs.shape',
-        'invindex.wx2_drvecs.shape',
-        'invindex.wx2_weight.shape',
-        'invindex.daid2_gamma.shape',
-        'invindex.wx2_aids.shape',
-        'invindex.wx2_fxs.shape',
-    ]
-    keystr_list = utool.parse_locals_keylist(locals_, key_list)
-    append = keystr_list.append
-    stats_ = lambda x: str(wx_len_stats(x))
-    append('stats(invindex.wx2_idxs) = ' + stats_(invindex.wx2_idxs))
-    #append('stats(invindex.wx2_weight) = ' + stats_(invindex.wx2_weight))
-    append('stats(invindex.wx2_drvecs) = ' + stats_(invindex.wx2_drvecs))
-    append('stats(invindex.wx2_aids) = ' + stats_(invindex.wx2_aids))
-
-    if invindex.wx2_aids is not None:
-        append('sum(map(len, invindex.wx2_aids)) = ' + str(sum(map(len, invindex.wx2_aids))))
-        def isunique(aids):
-            return len(set(aids)) == len(aids)
-        probably_asmk = all(map(isunique, invindex.wx2_aids))
-        if probably_asmk:
-            append('All wx2_aids are unique. aggregate probably is True')
-        else:
-            append('Some wx2_aids are duplicates. aggregate probably is False')
-        maxx = np.array(map(len, invindex.wx2_aids)).argmax()
-        print('wx2_aids[maxx=%r] = \n' % (maxx,) + str(invindex.wx2_aids[maxx]))
-    dbgstr = '\n'.join(keystr_list)
-    print(dbgstr)
 
 
 def testdata_dataframe(**kwargs):
@@ -118,11 +54,12 @@ def testdata_dataframe(**kwargs):
     valid_aids = annots_df.index.values
     # Training/Database/Search set
     taids = valid_aids[:]
-    daids = valid_aids[1:10]
+    daids  = valid_aids
+    #daids = valid_aids[1:10]
     #qaids = valid_aids[0::2]
-    qaids = valid_aids[0:2]
+    #qaids = valid_aids[0:2]
     #qaids = [valid_aids[0], valid_aids[4]]
-    #qaids = [37]  # NOQA new test case for PZ_MTEST
+    qaids = [37]  # NOQA new test case for PZ_MTEST
     #default = 1E3
     default = 8E3
     nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
@@ -280,14 +217,66 @@ def check_wx2_rvecs(wx2_rvecs, verbose=True):
             print('word[wx={wx}] has no rvecs'.format(wx=wx))
             flag = False
         if np.any(np.isnan(rvecs)):
-            rvecs[:] = 1 / np.sqrt(128)
+            #rvecs[:] = 1 / np.sqrt(128)
             print('word[wx={wx}] has nans'.format(wx=wx))
-            #flag = False
+            flag = False
     if verbose:
         if flag:
             print('check_wx2_rvecs passed')
         else:
             print('check_wx2_rvecs failed')
+    return flag
+
+
+def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, verbose=True):
+    words = invindex.words
+    if wx2_rvecs is None:
+        if verbose:
+            print('[smk_debug] check_wx2_rvecs2 inverted index')
+        wx2_rvecs = invindex.wx2_drvecs
+        wx2_idxs = invindex.wx2_idxs
+        idx2_vec = invindex.idx2_dvec
+    else:
+        if verbose:
+            print('[smk_debug] check_wx2_rvecs2 queryrepr index')
+    from ibeis.model.hots.smk import pandas_helpers as pdh
+    flag = True
+    nan_wxs = []
+    no_wxs = []
+    for wx, rvecs in six.iteritems(wx2_rvecs):
+        shape = rvecs.shape
+        if shape[0] == 0:
+            #print('word[wx={wx}] has no rvecs'.format(wx=wx))
+            no_wxs.append(wx)
+        for sx in range(shape[0]):
+            if np.any(np.isnan(pdh.ensure_numpy(rvecs)[sx])):
+                #rvecs[:] = 1 / np.sqrt(128)
+                #print('word[wx={wx}][sx={sx}] has nans'.format(wx=wx))
+                nan_wxs.append((wx, sx))
+    if verbose:
+        print('[smk_debug] %d words had no residuals' % len(no_wxs))
+        print('[smk_debug] %d words have nans' % len(nan_wxs))
+    failed_wx = []
+    for count, (wx, sx) in enumerate(nan_wxs):
+        rvec = pdh.ensure_numpy(wx2_rvecs[wx])[sx]
+        idxs = wx2_idxs[wx][sx]
+        dvec = idx2_vec.values[idxs]
+        word = words.values[wx]
+        truth = (word == dvec)
+        if not np.all(truth):
+            failed_wx.append(wx)
+            if verbose:
+                print('+=====================')
+                print('Bad RVEC #%d' % count)
+                print('[smk_debug] wx=%r, sx=%r was nan and not equal to its word' % (wx, sx))
+                print('[smk_debug] rvec=%r ' % (rvec,))
+                print('[smk_debug] dvec=%r ' % (dvec,))
+                print('[smk_debug] word=%r ' % (word,))
+                print('[smk_debug] truth=%r ' % (truth,))
+            flag = False
+    if len(failed_wx) == 0:
+        if verbose:
+            print('[smk_debug] all nan rvecs were equal to their words')
     return flag
 
 
@@ -385,6 +374,133 @@ def check_rvecs_list_eq(rvecs_list, rvecs_list2):
             utool.print_keys([rvecs, rvecs2])
             raise
 
+def display_info(ibs, invindex, annots_df):
+    from vtool import clustering2 as clustertool
+    ################
+    from ibeis.dev import dbinfo
+    print(ibs.get_infostr())
+    dbinfo.get_dbinfo(ibs, verbose=True)
+    ################
+    print('Inverted Index Stats: vectors per word')
+    print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
+    ################
+    #qfx2_vec     = annots_df['vecs'][1]
+    centroids    = invindex.words
+    num_pca_dims = 2  # 3
+    whiten       = False
+    kwd = dict(num_pca_dims=num_pca_dims,
+               whiten=whiten,)
+    #clustertool.rrr()
+    def makeplot_(fnum, prefix, data, labels='centroids', centroids=centroids):
+        return clustertool.plot_centroids(data, centroids, labels=labels,
+                                          fnum=fnum, prefix=prefix + '\n', **kwd)
+    makeplot_(1, 'centroid vecs', centroids)
+    #makeplot_(2, 'database vecs', invindex.idx2_dvec)
+    #makeplot_(3, 'query vecs', qfx2_vec)
+    #makeplot_(4, 'database vecs', invindex.idx2_dvec)
+    #makeplot_(5, 'query vecs', qfx2_vec)
+    #################
+
+
+def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
+    ## Concatenate into full fmfsfk reprs
+    #def concat_chipmatch(cmtup):
+    #    fm_list = [_[0] for _ in cmtup]
+    #    fs_list = [_[1] for _ in cmtup]
+    #    fk_list = [_[2] for _ in cmtup]
+    #    assert len(fm_list) == len(fs_list)
+    #    assert len(fk_list) == len(fs_list)
+    #    chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))
+    #    assert len(chipmatch[0]) == len(chipmatch[1])
+    #    assert len(chipmatch[2]) == len(chipmatch[1])
+    #    return chipmatch
+    ##daid2_chipmatch = {}
+    ##for daid, cmtup in six.iteritems(daid2_chipmatch_):
+    ##    daid2_chipmatch[daid] = concat_chipmatch(cmtup)
+    print('[smk_debug] checking %d chipmatches' % len(daid2_chipmatch))
+    featmatches = 0
+    for daid, chipmatch in six.iteritems(daid2_chipmatch):
+        try:
+            assert len(chipmatch) == 3, (
+                'chipmatch = %r' % (chipmatch.shape,))
+            (fm, fs, fk) = chipmatch
+            featmatches += len(fm)
+            assert len(fm) == len(fs), (
+                'fm.shape = %r, fs.shape=%r' % (fm.shape, fs.shape))
+            assert len(fk) == len(fs), (
+                'fk.shape = %r, fs.shape=%r' % (fk.shape, fs.shape))
+            assert fm.shape[1] == 2
+        except AssertionError as ex:
+            utool.printex(ex, keys=[
+                'daid',
+                'chipmatch',
+            ])
+            raise
+    print('[smk_debug] checked %d featmatches in %d chipmatches' % (featmatches, len(daid2_chipmatch)))
+
+
+def wx_len_stats(wx2_xxx):
+    """
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+    >>> invindex = index_data_annots(annots_df, daids, words)
+    >>> qaid = qaids[0]
+    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = compute_query_repr(annots_df, qaid, invindex)
+    >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
+    """
+    stats_ = 'None' if wx2_xxx is None else utool.mystats(map(len, wx2_xxx))
+    return stats_
+
+
+def invindex_dbgstr(invindex):
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    >>> ibs, annots_df, daids, qaids, invindex = testdata_raw_internals0()
+    >>> invindex_dbgstr(invindex)
+    """
+    locals_ = {'invindex': invindex}
+    key_list = [
+        'invindex.words.shape',
+        'invindex.words.dtype',
+        'invindex.daids.dtype',
+        'invindex.idx2_dvec.shape',
+        'invindex.idx2_dvec.dtype',
+        'invindex.idx2_daid.shape',
+        'invindex.idx2_daid.dtype',
+        'invindex.idx2_dfx.shape',
+        'invindex.wx2_idxs.shape',
+        'invindex.wx2_drvecs.shape',
+        'invindex.wx2_drvecs.dtype',
+        'invindex.wx2_weight.shape',
+        'invindex.daid2_gamma.shape',
+        'invindex.wx2_aids.shape',
+        'invindex.wx2_fxs.shape',
+    ]
+    keystr_list = utool.parse_locals_keylist(locals_, key_list)
+    append = keystr_list.append
+    stats_ = lambda x: str(wx_len_stats(x))
+    append('stats(invindex.wx2_idxs) = ' + stats_(invindex.wx2_idxs))
+    #append('stats(invindex.wx2_weight) = ' + stats_(invindex.wx2_weight))
+    append('stats(invindex.wx2_drvecs) = ' + stats_(invindex.wx2_drvecs))
+    append('stats(invindex.wx2_aids) = ' + stats_(invindex.wx2_aids))
+
+    if invindex.wx2_aids is not None:
+        append('sum(map(len, invindex.wx2_aids)) = ' + str(sum(map(len, invindex.wx2_aids))))
+        def isunique(aids):
+            return len(set(aids)) == len(aids)
+        probably_asmk = all(map(isunique, invindex.wx2_aids))
+        if probably_asmk:
+            append('All wx2_aids are unique. aggregate probably is True')
+        else:
+            append('Some wx2_aids are duplicates. aggregate probably is False')
+        maxx = np.array(map(len, invindex.wx2_aids)).argmax()
+        print('wx2_aids[maxx=%r] = \n' % (maxx,) + str(invindex.wx2_aids[maxx]))
+    dbgstr = '\n'.join(keystr_list)
+    print(dbgstr)
+
+
+
 
 def main():
     """
@@ -420,34 +536,6 @@ def main():
     #display_info(ibs, invindex, annots_df)
     print('finished main')
     return locals()
-
-
-def display_info(ibs, invindex, annots_df):
-    from vtool import clustering2 as clustertool
-    ################
-    from ibeis.dev import dbinfo
-    print(ibs.get_infostr())
-    dbinfo.get_dbinfo(ibs, verbose=True)
-    ################
-    print('Inverted Index Stats: vectors per word')
-    print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
-    ################
-    #qfx2_vec     = annots_df['vecs'][1]
-    centroids    = invindex.words
-    num_pca_dims = 2  # 3
-    whiten       = False
-    kwd = dict(num_pca_dims=num_pca_dims,
-               whiten=whiten,)
-    #clustertool.rrr()
-    def makeplot_(fnum, prefix, data, labels='centroids', centroids=centroids):
-        return clustertool.plot_centroids(data, centroids, labels=labels,
-                                          fnum=fnum, prefix=prefix + '\n', **kwd)
-    makeplot_(1, 'centroid vecs', centroids)
-    #makeplot_(2, 'database vecs', invindex.idx2_dvec)
-    #makeplot_(3, 'query vecs', qfx2_vec)
-    #makeplot_(4, 'database vecs', invindex.idx2_dvec)
-    #makeplot_(5, 'query vecs', qfx2_vec)
-    #################
 
 
 if __name__ == '__main__':

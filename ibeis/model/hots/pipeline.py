@@ -635,6 +635,9 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 @profile
 def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
                          qaid2_scores=None):
+    """
+    >>> from ibeis.model.hots.pipeline import *  # NOQA
+    """
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')
     qaids   = qreq_.get_external_qaids()
@@ -652,6 +655,7 @@ def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
         qaid2_qres[qaid] = qres
 
     for qaid, qres in six.iteritems(qaid2_qres):
+        pass
         # For each query's chipmatch
         chipmatch = qaid2_chipmatch[qaid]
         if chipmatch is not None:

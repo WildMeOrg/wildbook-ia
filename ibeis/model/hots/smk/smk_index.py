@@ -23,12 +23,12 @@ class InvertedIndex(object):
     class which holds inverted index state information
     """
     def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids):
-        invindex.wordflann  = wordflann
-        invindex.words      = words     # visual word centroids
-        invindex.daids     = _daids    # indexed annotation ids
-        invindex.idx2_dvec  = idx2_vec  # stacked index -> descriptor vector (currently sift)
-        invindex.idx2_daid  = idx2_aid  # stacked index -> annot id
-        invindex.idx2_dfx   = idx2_fx   # stacked index -> feature index (wrt daid)
+        invindex.wordflann   = wordflann
+        invindex.words       = words     # visual word centroids
+        invindex.daids       = _daids    # indexed annotation ids
+        invindex.idx2_dvec   = idx2_vec  # stacked index -> descriptor vector (currently sift)
+        invindex.idx2_daid   = idx2_aid  # stacked index -> annot id
+        invindex.idx2_dfx    = idx2_fx   # stacked index -> feature index (wrt daid)
         invindex.wx2_idxs    = None     # word index -> stacked indexes
         invindex.wx2_aids    = None     # word index -> aggregate aids
         invindex.wx2_fxs     = None     # word index -> aggregate aids
@@ -379,9 +379,13 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     >>> from ibeis.model.hots.smk import smk_debug
     >>> ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()
     >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> tup = compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
+    >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+    >>> query_repr = compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    >>> (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma) = query_repr
+    >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
+    >>> invindex_dbgstr.invindex_dbgstr(invindex)
+
 
     idx2_vec = qfx2_vec
     idx2_aid = qfx2_aid
