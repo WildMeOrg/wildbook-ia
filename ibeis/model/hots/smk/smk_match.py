@@ -56,7 +56,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
 
 
 @profile
-def query_smk(annots_df, invindex, qreq_):
+def query_smk_test(annots_df, invindex, qreq_):
     """
     ibeis interface
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
@@ -96,9 +96,42 @@ def query_smk(annots_df, invindex, qreq_):
         utool.printex(ex)
         utool.qflag()
         raise
-    #,
-    #qaid2_scores=qaid2_scores)
     return qaid2_qres_
+
+
+def selective_match_kernel(qreq_):
+    daids = qreq_.get_external_daids()
+    qaids = qreq_.get_external_qaids()
+    ibs   = qreq_.ibs
+    taids = ibs.get_valid_aids()  # exemplar
+    # Params
+    nWords    = qreq_.qparams.nWords
+    aggregate = qreq_.qparams.aggregate
+    alpha     = qreq_.qparams.alpha
+    thresh    = qreq_.qparams.thresh
+    # Build Pandas dataframe (or maybe not)
+    annots_df = smk_index.make_annot_df(ibs)
+    # Load vocabulary
+    words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    # Index database annotations
+    invindex = smk_index.index_data_annots(annots_df, daids, words,
+                                           aggregate=aggregate)
+    withinfo = True
+    # Progress
+    lbl = 'asmk query: ' if aggregate else 'smk query: '
+    logkw = dict(flushfreq=1, writefreq=1, with_totaltime=True, backspace=False)
+    mark, end_ = utool.log_progress(lbl, len(qaids), **logkw)
+    # Output
+    qaid2_chipmatch = {}
+    qaid2_scores    = {}
+    # Foreach query annotation
+    for count, qaid in enumerate(qaids):
+        mark(count)
+        daid2_score, daid2_chipmatch = query_inverted_index(
+            annots_df, qaid, invindex, withinfo, aggregate)
+        qaid2_scores[qaid]    = daid2_score
+        qaid2_chipmatch[qaid] = daid2_chipmatch
+    return qaid2_scores, qaid2_chipmatch
 
 
 if __name__ == '__main__':

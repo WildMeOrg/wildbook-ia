@@ -95,18 +95,9 @@ def request_ibeis_query_L0(ibs, qreq_):
 
     #
     if qreq_.qparams.pipeline_root == 'smk':
-        from ibeis.model.hots.smk import smk_index
-        daids = qreq_.get_external_daids()
-        annots_df = smk_index.make_annot_df(ibs)
-        taids = ibs.get_valid_aids()  # exemplar
-        # Learn vocabulary
-        nWords = qreq_.qparams.nWords
-        aggregate = qreq_.qparams.aggregate
-        words = smk_index.learn_visual_words(annots_df, taids, nWords)
-        # Index a database of annotations
-        invindex = smk_index.index_data_annots(annots_df, daids, words,
-                                               aggregate=aggregate)
-        return smk_index.query_smk(ibs, annots_df, invindex, qreq_)
+        from ibeis.model.hots.smk import smk_match
+        filt2_meta_ = {}
+        qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.selective_match_kernel(qreq_)
     else:
         # Nearest neighbors (qaid2_nns)
         # * query descriptors assigned to database descriptors
