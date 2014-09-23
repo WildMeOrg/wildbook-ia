@@ -119,13 +119,13 @@ class InvertedIndex(object):
 
     def compute_internals(invindex):
         idx2_vec = invindex.idx2_vec
-        wx2_idxs, idx2_wx = invindex.inverted_assignments(idx2_vec)
+        wx2_idxs, idx2_wx = invindex.assign_to_words(idx2_vec)
         wx2_drvecs = invindex.compute_residuals(idx2_vec, wx2_idxs)
         invindex.idx2_wx = idx2_wx
         invindex.wx2_idxs = wx2_idxs
         invindex.wx2_drvecs = wx2_drvecs
 
-    def inverted_assignments(invindex, idx2_vec):
+    def assign_to_words(invindex, idx2_vec):
         idx2_wx, _idx2_wdist = invindex.wordflann.nn_index(idx2_vec, 1)
         if True:
             assign_df = pd.DataFrame(idx2_wx, columns=['wordindex'])
@@ -160,7 +160,7 @@ class InvertedIndex(object):
 
 def query_inverted_index(annots_df, qaid, invindex):
     qfx2_vec = annots_df['vecs'][qaid]
-    wx2_qfxs, qfx2_wx = invindex.inverted_assignments(qfx2_vec)
+    wx2_qfxs, qfx2_wx = invindex.assign_to_words(qfx2_vec)
     wx2_qrvecs = invindex.compute_residuals(qfx2_vec, wx2_qfxs)
 
     daid = invindex.ax2_aid[0]

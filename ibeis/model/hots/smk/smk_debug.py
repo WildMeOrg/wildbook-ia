@@ -1,0 +1,464 @@
+from __future__ import absolute_import, division, print_function
+import utool
+import numpy as np
+import six
+import ibeis
+import pandas as pd
+from ibeis.model.hots.smk import smk_index
+from  ibeis.model.hots import query_request
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_debug]')
+
+
+def wx_len_stats(wx2_xxx):
+    """
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+    >>> invindex = index_data_annots(annots_df, daids, words)
+    >>> qaid = qaids[0]
+    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = compute_query_repr(annots_df, qaid, invindex)
+    >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
+    """
+    stats_ = 'None' if wx2_xxx is None else utool.mystats(map(len, wx2_xxx))
+    return stats_
+
+
+def testdata_printops(**kwargs):
+    """ test print options. doesnt take up too much screen
+    """
+    print('[smk_debug] testdata_printops')
+    np.set_printoptions(precision=4)
+    pd.set_option('display.max_rows', 7)
+    pd.set_option('display.max_columns', 7)
+    pd.set_option('isplay.notebook_repr_html', True)
+
+
+def testdata_ibeis(**kwargs):
+    """ builds ibs for testing """
+    print(' === Test Data IBEIS ===')
+    from ibeis.model.hots.smk import smk_debug
+    smk_debug.testdata_printops(**kwargs)
+    print('[smk_debug] testdata_ibeis')
+    ibeis.ensure_pz_mtest()
+    ibs = ibeis.opendb('PZ_MTEST')
+    #aggregate = False
+    aggregate = kwargs.get('aggregate', True)
+    default = 8E3
+    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
+    # Configs
+    ibs.cfg.query_cfg.pipeline_root = 'smk'
+    ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
+    ibs.cfg.query_cfg.smk_cfg.nWords = nWords
+    ibs.cfg.query_cfg.smk_cfg.alpha = 3
+    ibs.cfg.query_cfg.smk_cfg.thresh = 0
+    ibs.cfg.query_cfg.smk_cfg.nAssign = 1
+
+    #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+    #alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
+    #thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+    #print('+------------')
+    #print('[smk_debug] testdata_ibeis')
+    #print('[smk_debug] aggregate = %r' % (aggregate,))
+    #print('[smk_debug] aggregate = %r' % (alpha,))
+    #print('[smk_debug] aggregate = %r' % (thresh,))
+    #print('L------------')
+    #ibs.cfg.query_cfg.smk_cfg.printme3()
+    return ibs
+
+
+def invindex_dbgstr(invindex):
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    >>> ibs, annots_df, daids, qaids, invindex = testdata_raw_internals0()
+    >>> invindex_dbgstr(invindex)
+    """
+    locals_ = {'invindex': invindex}
+    key_list = [
+        'invindex.words.shape',
+        'invindex.daids.shape',
+        'invindex.idx2_dvec.shape',
+        'invindex.idx2_daid.shape',
+        'invindex.idx2_dfx.shape',
+        'invindex.wx2_idxs.shape',
+        'invindex.wx2_drvecs.shape',
+        'invindex.wx2_weight.shape',
+        'invindex.daid2_gamma.shape',
+        'invindex.wx2_aids.shape',
+        'invindex.wx2_fxs.shape',
+    ]
+    keystr_list = utool.parse_locals_keylist(locals_, key_list)
+    append = keystr_list.append
+    stats_ = lambda x: str(wx_len_stats(x))
+    append('stats(invindex.wx2_idxs) = ' + stats_(invindex.wx2_idxs))
+    #append('stats(invindex.wx2_weight) = ' + stats_(invindex.wx2_weight))
+    append('stats(invindex.wx2_drvecs) = ' + stats_(invindex.wx2_drvecs))
+    append('stats(invindex.wx2_aids) = ' + stats_(invindex.wx2_aids))
+
+    if invindex.wx2_aids is not None:
+        append('sum(map(len, invindex.wx2_aids)) = ' + str(sum(map(len, invindex.wx2_aids))))
+        def isunique(aids):
+            return len(set(aids)) == len(aids)
+        probably_asmk = all(map(isunique, invindex.wx2_aids))
+        if probably_asmk:
+            append('All wx2_aids are unique. aggregate probably is True')
+        else:
+            append('Some wx2_aids are duplicates. aggregate probably is False')
+        maxx = np.array(map(len, invindex.wx2_aids)).argmax()
+        print('wx2_aids[maxx=%r] = \n' % (maxx,) + str(invindex.wx2_aids[maxx]))
+    dbgstr = '\n'.join(keystr_list)
+    print(dbgstr)
+
+
+def testdata_dataframe(**kwargs):
+    from ibeis.model.hots.smk import smk_debug
+    ibs = smk_debug.testdata_ibeis(**kwargs)
+    print('[smk_debug] testdata_dataframe')
+    # Pandas Annotation Dataframe
+    annots_df = smk_index.make_annot_df(ibs)
+    valid_aids = annots_df.index.values
+    # Training/Database/Search set
+    taids = valid_aids[:]
+    daids = valid_aids[1:10]
+    #qaids = valid_aids[0::2]
+    qaids = valid_aids[0:2]
+    #qaids = [valid_aids[0], valid_aids[4]]
+    #qaids = [37]  # NOQA new test case for PZ_MTEST
+    #default = 1E3
+    default = 8E3
+    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
+    return ibs, annots_df, taids, daids, qaids, nWords
+
+
+def testdata_words(**kwargs):
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe(**kwargs)
+    print('[smk_debug] testdata_words')
+    words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    return ibs, annots_df, daids, qaids, words
+
+
+def testdata_raw_internals0():
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, daids, qaids, words = smk_debug.testdata_words()
+    print('[smk_debug] testdata_raw_internals0')
+    with_internals = False
+    invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
+    return ibs, annots_df, daids, qaids, invindex
+
+
+def testdata_raw_internals1():
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
+    print('[smk_debug] testdata_raw_internals1')
+    #ibs.cfg.query_cfg.smk_cfg.printme3()
+    words  = invindex.words
+    wordflann = invindex.wordflann
+    idx2_vec  = invindex.idx2_dvec
+    dense = True
+    nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
+    idx_name, series_name = 'idx', 'wx2_idxs'
+    _dbargs = (wordflann, words, idx2_vec, idx_name, dense, nAssign)
+    wx2_idxs, idx2_wx = smk_index.assign_to_words_(*_dbargs)
+    #print(smk_debug.wx_len_stats(wx2_idxs))
+    return ibs, annots_df, daids, qaids, invindex, wx2_idxs
+
+
+def testdata_raw_internals2():
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    """
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+    print('[smk_debug] testdata_raw_internals2')
+    #ibs.cfg.query_cfg.smk_cfg.printme3()
+    words     = invindex.words
+    wx_series = words.index
+    idx2_aid  = invindex.idx2_daid
+    idx2_vec  = invindex.idx2_dvec
+    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+    wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+    wx2_rvecs, wx2_aids = smk_index.compute_residuals_(words, idx2_vec, wx2_idxs, idx2_aid, aggregate)
+
+    #if False:
+    #    wx2_aggrvecs, wx2_aggaids = smk_index.compute_residuals_(
+    #        words, idx2_vec, wx2_idxs, idx2_aid, True)
+    #    wx2_rvecs, wx2_aids = smk_index.compute_residuals_(
+    #        words, idx2_vec, wx2_idxs, idx2_aid, False)
+    #    print('stats(wx2_idxs)     = ' + str(smk_debug.wx_len_stats(wx2_idxs)))
+    #    print('stats(wx2_rvecs)    = ' + str(smk_debug.wx_len_stats(wx2_rvecs)))
+    #    print('stats(wx2_aids)     = ' + str(smk_debug.wx_len_stats(wx2_aids)))
+    #    print('stats(wx2_aggrvecs) = ' + str(smk_debug.wx_len_stats(wx2_aggrvecs)))
+    #    print('stats(wx2_aggaids)  = ' + str(smk_debug.wx_len_stats(wx2_aggaids)))
+    return ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids
+
+
+def testdata_query_repr():
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    """
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+    print('[smk_debug] testdata_query_repr')
+    words     = invindex.words
+    wx_series = words.index
+    idx2_aid  = invindex.idx2_daid
+    wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+    qaid = qaids[0]
+    #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    invindex.wx2_weight = wx2_idf
+    return ibs, annots_df, qaid, invindex
+
+
+def testdata_internals(**kwargs):
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    """
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots.smk import smk_index
+    ibs, annots_df, daids, qaids, words = smk_debug.testdata_words(**kwargs)
+    print('[smk_debug] testdata_internals')
+    with_internals = True
+    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+    alpha = ibs.cfg.query_cfg.smk_cfg.alpha
+    thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    #if True:
+    #    _args1 = (annots_df, daids, words, with_internals, True, alpha, thresh)
+    #    _args2 = (annots_df, daids, words, with_internals, False, alpha, thresh)
+    #    invindex1 = smk_index.index_data_annots(*_args1)
+    #    invindex2 = smk_index.index_data_annots(*_args2)
+    #    #utool.flatten(invindex1.wx2_aids.values.tolist())
+    #    invindex = invindex1
+    #    smk_debug.invindex_dbgstr(invindex)
+    #    invindex = invindex2
+    #    smk_debug.invindex_dbgstr(invindex)
+    #else:
+    _args = (annots_df, daids, words, with_internals, aggregate, alpha, thresh)
+    invindex = smk_index.index_data_annots(*_args)
+    return ibs, annots_df, daids, qaids, invindex
+
+
+def testdata_match_kernel(**kwargs):
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    """
+    from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots.smk import smk_index
+    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals(**kwargs)
+    print('[smk_debug] testdata_match_kernel')
+    qaid = qaids[0]
+    aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+    alpha = ibs.cfg.query_cfg.smk_cfg.alpha
+    thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    print('+------------')
+    print('[smk_debug] aggregate = %r' % (aggregate,))
+    print('[smk_debug] aggregate = %r' % (alpha,))
+    print('[smk_debug] aggregate = %r' % (thresh,))
+    print('L------------')
+    wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = smk_index.compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    return ibs, invindex, wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma
+
+
+def testdata_nonagg_rvec():
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+    words     = invindex.words
+    idx2_vec  = invindex.idx2_dvec
+    words_values    = words.values
+    idx2_vec_values = idx2_vec.values
+    wx2_idxs_values = wx2_idxs.values
+    wx_sublist      = wx2_idxs.index
+    idxs_list  = [idxsdf.values.astype(np.int32) for idxsdf in wx2_idxs_values]
+    return words_values, wx_sublist, idxs_list, idx2_vec_values
+
+
+def check_wx2_rvecs(wx2_rvecs, verbose=True):
+    flag = True
+    for wx, rvecs in six.iteritems(wx2_rvecs):
+        shape = rvecs.shape
+        if shape[0] == 0:
+            print('word[wx={wx}] has no rvecs'.format(wx=wx))
+            flag = False
+        if np.any(np.isnan(rvecs)):
+            rvecs[:] = 1 / np.sqrt(128)
+            print('word[wx={wx}] has nans'.format(wx=wx))
+            #flag = False
+    if verbose:
+        if flag:
+            print('check_wx2_rvecs passed')
+        else:
+            print('check_wx2_rvecs failed')
+    return flag
+
+
+def check_invindex(invindex, verbose=True):
+    """
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+    >>> words = learn_visual_words(annots_df, taids, nWords)
+    >>> invindex = index_data_annots(annots_df, daids, words)
+    """
+    daids = invindex.daids
+    daid2_gamma = invindex.daid2_gamma
+    check_daid2_gamma(daid2_gamma, verbose=verbose)
+    assert daid2_gamma.shape[0] == daids.shape[0]
+    if verbose:
+        print('each aid has a gamma')
+
+
+def check_daid2_gamma(daid2_gamma, verbose=True):
+    assert not np.any(np.isnan(daid2_gamma)), 'gammas are nan'
+    if verbose:
+        print('database gammas are not nan')
+        print('database gamma stats:')
+        print(utool.common_stats(daid2_gamma, newlines=True))
+
+
+def test_gamma_cache():
+    ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
+    words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    with_internals = True
+    invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
+    idx2_daid  = invindex.idx2_daid
+    wx2_drvecs = invindex.wx2_drvecs
+    wx2_weight = invindex.wx2_weight
+    daids      = invindex.daids
+    daid2_gamma1 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
+                                                 wx2_weight, daids,
+                                                 use_cache=True)
+    daid2_gamma2 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
+                                                 wx2_weight, daids,
+                                                 use_cache=False)
+    daid2_gamma3 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
+                                                 wx2_weight, daids,
+                                                 use_cache=True)
+    check_daid2_gamma(daid2_gamma1)
+    check_daid2_gamma(daid2_gamma2)
+    check_daid2_gamma(daid2_gamma3)
+    if not np.all(daid2_gamma2 == daid2_gamma3):
+        raise AssertionError('caching error in gamma')
+    if not np.all(daid2_gamma1 == daid2_gamma2):
+        raise AssertionError('cache outdated in gamma')
+
+
+def check_dtype(annots_df):
+    """
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> import ibeis
+    >>> ibs = ibeis.opendb('PZ_MTEST')
+    >>> annots_df = make_annot_df(ibs)
+    """
+
+    #utool.printex(Exception('check'), keys=[
+    #    'annots_df.index'
+    #]
+    #)
+    vecs = annots_df['vecs']
+    kpts = annots_df['kpts']
+    locals_ = locals()
+    key_list = [
+        'annots_df.index.dtype',
+        'annots_df.columns.dtype',
+        'annots_df.columns',
+        'vecs.index.dtype',
+        'kpts.index.dtype',
+        #'vecs',
+        #'kpts',
+    ]
+    utool.print_keys(key_list)
+
+
+def check_rvecs_list_eq(rvecs_list, rvecs_list2):
+    """
+    rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms
+    rvecs_list2 = smk_speed.compute_nonagg_residuals_forloop(*_args1)
+    """
+    assert len(rvecs_list) == len(rvecs_list2)
+    for rvecs, rvecs2 in zip(rvecs_list, rvecs_list2):
+        try:
+            assert len(rvecs) == len(rvecs2)
+            assert rvecs.shape == rvecs2.shape
+            #assert np.all(rvecs == rvecs2)
+            np.testing.assert_equal(rvecs, rvecs2, verbose=True)
+        except AssertionError:
+            utool.print_keys([rvecs, rvecs2])
+            raise
+
+
+def main():
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    """
+    ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
+    # Learn vocabulary
+    words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    # Index a database of annotations
+    invindex = smk_index.index_data_annots(annots_df, daids, words)
+    # Query using SMK
+    #qaid = qaids[0]
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    # Smk Mach
+    qaid2_qres_ = smk_index.query_smk(ibs, annots_df, invindex, qreq_)
+    for count, (qaid, qres) in enumerate(six.iteritems(qaid2_qres_)):
+        print('+================')
+        #qres = qaid2_qres_[qaid]
+        qres.show_top(ibs, fnum=count)
+        print(qres.get_inspect_str(ibs))
+        print('L================')
+    #print(qres.aid2_fs)
+    #daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
+    ## Pack into QueryResult
+    #qaid2_chipmatch = {qaid: chipmatch}
+    #qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
+    ## Show match
+    #daid2_totalscore.sort(axis=1, ascending=False)
+    #print(daid2_totalscore)
+
+    #daid2_totalscore2, chipmatch = query_inverted_index(annots_df, daids[0], invindex)
+    #print(daid2_totalscore2)
+    #display_info(ibs, invindex, annots_df)
+    print('finished main')
+    return locals()
+
+
+def display_info(ibs, invindex, annots_df):
+    from vtool import clustering2 as clustertool
+    ################
+    from ibeis.dev import dbinfo
+    print(ibs.get_infostr())
+    dbinfo.get_dbinfo(ibs, verbose=True)
+    ################
+    print('Inverted Index Stats: vectors per word')
+    print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
+    ################
+    #qfx2_vec     = annots_df['vecs'][1]
+    centroids    = invindex.words
+    num_pca_dims = 2  # 3
+    whiten       = False
+    kwd = dict(num_pca_dims=num_pca_dims,
+               whiten=whiten,)
+    #clustertool.rrr()
+    def makeplot_(fnum, prefix, data, labels='centroids', centroids=centroids):
+        return clustertool.plot_centroids(data, centroids, labels=labels,
+                                          fnum=fnum, prefix=prefix + '\n', **kwd)
+    makeplot_(1, 'centroid vecs', centroids)
+    #makeplot_(2, 'database vecs', invindex.idx2_dvec)
+    #makeplot_(3, 'query vecs', qfx2_vec)
+    #makeplot_(4, 'database vecs', invindex.idx2_dvec)
+    #makeplot_(5, 'query vecs', qfx2_vec)
+    #################
+
+
+if __name__ == '__main__':
+    import multiprocessing
+    from plottool import draw_func2 as df2
+    np.set_printoptions(precision=2)
+    pd.set_option('display.max_rows', 7)
+    pd.set_option('display.max_columns', 7)
+    pd.set_option('isplay.notebook_repr_html', True)
+    multiprocessing.freeze_support()  # for win32
+    main_locals = main()
+    main_execstr = utool.execstr_dict(main_locals, 'main_locals')
+    exec(main_execstr)
+    exec(df2.present())
