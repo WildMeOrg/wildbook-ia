@@ -13,7 +13,7 @@ from ibeis.model.hots.smk import smk_core
 def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                          aggregate=False, alpha=3, thresh=0):
     """
-    Total time: 57.2445 s
+    Total time: 10.5774 s
 
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_index
@@ -58,7 +58,8 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
 @profile
 def selective_match_kernel(qreq_):
     """
-    Total time: 70.6046 s
+    Total time: 21.3564 s
+
     ibeis query interface
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_match

@@ -6,6 +6,7 @@ import numpy as np
 from ibeis.model.hots.smk.hstypes import VEC_DIM, INTEGER_TYPE
 
 
+@profile
 def Int32Index(data, dtype=np.int32, copy=True, name=None):
     return pd.Index(data, dtype=dtype, copy=copy, name=name)
 
@@ -15,6 +16,7 @@ else:
     IntIndex = pd.Int64Index
 
 
+@profile
 def RangeIndex(size, name=None):
     arr = np.arange(size, dtype=INTEGER_TYPE)
     index = IntIndex(arr, copy=False, name=name)
@@ -25,6 +27,7 @@ VEC_COLUMNS  = RangeIndex(VEC_DIM, name='vec')
 KPT_COLUMNS = pd.Index(['xpos', 'ypos', 'a', 'c', 'd', 'theta'], name='kpt')
 
 
+@profile
 def IntSeries(data, *args, **kwargs):
     if 'index' not in kwargs:
         index = IntIndex(np.arange(len(data), dtype=INTEGER_TYPE))
@@ -33,6 +36,7 @@ def IntSeries(data, *args, **kwargs):
         return pd.Series(data, *args, **kwargs)
 
 
+@profile
 def pandasify_dict1d(dict_, keys, val_name, series_name, dense=True):
     """ Turns dict into heirarchy of series """
     if dense:
@@ -48,25 +52,30 @@ def pandasify_dict1d(dict_, keys, val_name, series_name, dense=True):
     return key2_series
 
 
+@profile
 def pandasify_dict2d(dict_, keys, key2_index, columns, series_name):
     """ Turns dict into heirarchy of dataframes """
+    item_list  = [dict_[key] for key in keys]
+    index_list = [key2_index[key] for key in keys]
     _data = {
-        key: pd.DataFrame(dict_[key], index=key2_index[key], columns=columns,)
-        for key in keys
+        key: pd.DataFrame(item, index=index, columns=columns,)
+        for key, item, index in zip(keys, item_list, index_list)
     }
     key2_df = pd.Series(_data, index=keys, name=series_name)
     return key2_df
 
 
-def pandasify_list2d(list_, keys, columns, val_name, series_name):
+@profile
+def pandasify_list2d(item_list, keys, columns, val_name, series_name):
     """ Turns dict into heirarchy of dataframes """
-    _data = [
-        pd.DataFrame(item, index=IntIndex(np.arange(len(item)), name=val_name), columns=columns,)
-        for item in list_]
+    index_list = [RangeIndex(len(item), name=val_name) for item in item_list]
+    _data = [pd.DataFrame(item, index=index, columns=columns,)
+             for item, index in zip(item_list, index_list)]
     key2_df = pd.Series(_data, index=keys, name=series_name)
     return key2_df
 
 
+@profile
 def ensure_numpy_values(data):
     if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
         return data.values
@@ -76,8 +85,23 @@ def ensure_numpy_values(data):
         return data
 
 ensure_numpy = ensure_numpy_values
+ensure_values = ensure_numpy_values
+
+PANDAS_TYPES = (pd.Series, pd.DataFrame, pd.Index)
 
 
+def ensure_2d_values(data):
+    data_ = ensure_numpy_values(data)
+    if len(data_) == 0:
+        return data_
+    else:
+        if isinstance(data_[0], PANDAS_TYPES):
+            return [item.values for item in data]
+        else:
+            raise AssertionError(type(data))
+
+
+@profile
 def ensure_numpy_index(data):
     if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
         return data.index
@@ -87,6 +111,16 @@ def ensure_numpy_index(data):
         raise AssertionError(type(data))
 
 
+def ensure_numpy_subset(data, keys):
+    if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
+        return [ensure_numpy_values(item) for item in data[keys].values]
+    elif isinstance(data, dict):
+        return [data[key] for key in keys]
+    else:
+        raise AssertionError(type(data))
+
+
+@profile
 def pandasify_rvecs_list(wx_sublist, wx2_idxs_values, rvecs_list, aids_list,
                          fxs_list):
     assert len(rvecs_list) == len(wx2_idxs_values)
@@ -101,6 +135,7 @@ def pandasify_rvecs_list(wx_sublist, wx2_idxs_values, rvecs_list, aids_list,
     return wx2_rvecs, wx2_aids, wx2_fxs
 
 
+@profile
 def pandasify_agg_list(wx_sublist, aggvecs_list, aggaids_list, aggfxs_list):
     """
     from ibeis.model.hots.smk.pandas_helpers import *

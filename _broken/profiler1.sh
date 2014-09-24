@@ -45,6 +45,7 @@ else
     # UBUNTU
     #export KERNPROF_PY="kernprof.py"
     export KERNPROF_PY="kernprof"
+
     export RUNSNAKE_PY="runsnake"
     export PYEXE=$(python -c "import sys; print(sys.executable)")
 fi

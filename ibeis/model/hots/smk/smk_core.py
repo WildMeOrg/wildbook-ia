@@ -85,11 +85,18 @@ def gamma_summation2(rvecs_list, weight_list, alpha=3, thresh=0):
     \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
     \end{equation}
     """
-    gamma_list = [weight * Match_N(rvecs, rvecs, alpha, thresh).sum()
-                  for rvecs, weight in zip(rvecs_list, weight_list)]
-    summation = sum(gamma_list)
-    scoremat = np.reciprocal(np.sqrt(summation))
-    return scoremat
+    simmat_list = [rvecs.dot(rvecs.T) for rvecs in rvecs_list]  # 0.4 %
+    for simmat in simmat_list:
+        simmat[np.isnan(simmat)] = 1  # .2%
+    # Selectivity function
+    scores_iter = (np.sign(simmat) * np.power(np.abs(simmat), alpha)
+                   for simmat in simmat_list)
+    scores_list = [scores * (scores > thresh) for scores in scores_iter]  # 1.3%
+    # Summation over query features
+    score_list = [scores.sum() for scores in scores_list]
+    invgamma = np.multiply(weight_list, score_list).sum()
+    gamma = np.reciprocal(np.sqrt(invgamma))
+    return gamma
 
 
 #@profile
@@ -142,10 +149,14 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     #                                with_totaltime=False)
     #pd.Series(np.zeros(len(invindex.daids)), index=invindex.daids, name='agg_score')
     # Build lists over common word indexes
-    qrvec_list = [qrvecs.values for qrvecs in wx2_qrvecs[common_wxs].values]  # 1.2%
-    drvec_list = [drvecs.values for drvecs in wx2_drvecs[common_wxs].values]  # 1.1%
-    daids_list  = [_daids.values for _daids in wx2_daid[common_wxs].values]   # .3%
-    weight_list = wx2_weight[common_wxs].values  # .1%
+    qrvec_list  = pdh.ensure_numpy_subset(wx2_qrvecs, common_wxs)
+    drvec_list  = pdh.ensure_numpy_subset(wx2_drvecs, common_wxs)
+    daids_list  = pdh.ensure_numpy_subset(wx2_daid,   common_wxs)
+    weight_list = pdh.ensure_numpy_subset(wx2_weight, common_wxs)
+    #qrvec_list = [qrvecs.values for qrvecs in wx2_qrvecs[common_wxs].values]  # 1.2%
+    #drvec_list = [drvecs.values for drvecs in wx2_drvecs[common_wxs].values]  # 1.1%
+    #daids_list  = [_daids.values for _daids in wx2_daid[common_wxs].values]   # .3%
+    #weight_list = wx2_weight[common_wxs].values  # .1%
     # Phi dot product
     simmat_list = [qrvecs.dot(drvecs.T)
                    for qrvecs, drvecs in zip(qrvec_list, drvec_list)]  # 0.4 %
@@ -261,8 +272,10 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         print('[smk_core] build chipmatch')
     #start_keys = set() set(locals().keys())
     wx2_dfxs   = invindex.wx2_fxs
-    qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
-    dfxs_list  = [pdh.ensure_numpy_values(dfxs) for dfxs in wx2_dfxs[common_wxs]]
+    qfxs_list = pdh.ensure_numpy_subset(wx2_qfxs, common_wxs)
+    dfxs_list = pdh.ensure_numpy_subset(wx2_dfxs, common_wxs)
+    #qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
+    #dfxs_list  = [pdh.ensure_numpy_values(dfxs) for dfxs in wx2_dfxs[common_wxs]]
     daid2_gamma_dict = daid2_gamma.to_dict()
     #qaids_list = [pdh.ensure_numpy_values(qaids) for qaids in wx2_qaids[common_wxs]]
 
@@ -292,73 +305,6 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     daid2_fm = {daid: cattup[0] for daid, cattup in six.iteritems(daid2_cattup)}
     daid2_fs = {daid: cattup[1] for daid, cattup in six.iteritems(daid2_cattup)}
     daid2_fk = {daid: cattup[2] for daid, cattup in six.iteritems(daid2_cattup)}
-    daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
-    return daid2_chipmatch
-
-
-#@profile
-def build_daid2_chipmatch(invindex, common_wxs, wx2_qaids, wx2_qfxs,
-                          scores_list, weight_list, daids_list, query_gamma,
-                          daid2_gamma):
-    """
-    Total time: 13.2826 s
-    this builds the structure that the rest of the pipeline plays nice with
-    """
-    if utool.VERBOSE:
-        print('[smk_core] build chipmatch')
-    #start_keys = set() set(locals().keys())
-    wx2_dfxs   = invindex.wx2_fxs
-    qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
-    dfxs_list  = [pdh.ensure_numpy_values(dfxs) for dfxs in wx2_dfxs[common_wxs].values]
-    qaids_list = [pdh.ensure_numpy_values(qaids) for qaids in wx2_qaids[common_wxs].values]
-    daid2_chipmatch_ = utool.ddict(list)
-    _iter = list(zip(scores_list, qaids_list, daids_list, qfxs_list, dfxs_list,
-                     weight_list))
-
-    #def accumulate_chipmatch(
-    # Accumulate all matching indicies with scores etc...
-    for scores, qaids, daids, qfxs, dfxs, weight in _iter:
-        _is, _js = np.meshgrid(np.arange(scores.shape[0]),
-                               np.arange(scores.shape[1]), indexing='ij')  # 4.7%
-        for i, j in zip(_is.flat, _js.flat):   # 4.7%
-            try:
-                score = scores.take(i, axis=0).take(j, axis=0)  # 9.3
-                if score == 0:  # 4%
-                    continue
-                #qaid  = qaids[i]
-                qfxs_ = qfxs[i]
-                daid  = daids[j]
-                dfxs_ = dfxs[j]
-                # Cartesian product to list all matches that gave this score
-                stackable = list(product(qfxs_, dfxs_))  # 4.9%
-                # Distribute score over all words that contributed to it.
-                # apply other normalizers as well so a sum will reconstruct the
-                # total score
-                norm  = weight * (query_gamma * daid2_gamma[daid]) / len(stackable)  # 15.0%
-                _fm   = np.vstack(stackable)  # 16.6%
-                _fs   = np.array([score] * _fm.shape[0]) * norm
-                _fk   = np.ones(_fs.shape)
-                #assert len(_fm) == len(_fs)
-                #assert len(_fk) == len(_fs)
-                chipmatch_ = (_fm, _fs, _fk)
-                daid2_chipmatch_[daid].append(chipmatch_)
-            except Exception as ex:
-                local_keys = ['score', 'qfxs_', 'dfxs_', 'qaids', 'daids',
-                              '_fm', '_fs', '_fm.shape', '_fs.shape', '_fk.shape']
-                utool.printex(ex, keys=local_keys, separate=True)
-                raise
-
-    # Concatenate into full fmfsfk reprs
-    daid2_cattup = {daid: concat_chipmatch(cmtup) for daid, cmtup in
-                    six.iteritems(daid2_chipmatch_)}  # 12%
-    #smk_debug.check_daid2_chipmatch(daid2_cattup)
-    # Qreq needs unzipped chipmatch
-    daid2_fm = {daid: cattup[0] for daid, cattup in
-                six.iteritems(daid2_cattup)}
-    daid2_fs = {daid: cattup[1] for daid, cattup in
-                six.iteritems(daid2_cattup)}
-    daid2_fk = {daid: cattup[2] for daid, cattup in
-                six.iteritems(daid2_cattup)}
     daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
     return daid2_chipmatch
 

@@ -156,8 +156,8 @@ def group_indicies2(groupids):
     num_groups = idxs.size - 1
     # Groups are between bounding indexes
     lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
-    group_idxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
-    return group_idxs
+    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
+    return groupxs
 
 
 #@profile
@@ -179,12 +179,17 @@ def group_indicies(groupids):
     num_groups = idxs.size - 1  # 1.3%
     # Groups are between bounding indexes
     lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T  # 28.8%
-    group_idxs = [sortx[lx:rx] for lx, rx in lrx_pairs]  # 17.5%
+    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]  # 17.5%
     # Unique group keys
     keys = groupids_sorted[idxs[0:num_groups]]  # 4.7%
     #items_sorted = items[sortx]
     #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
-    return keys, group_idxs
+    return keys, groupxs
+
+
+def apply_grouping(items, groupxs):
+    return [items.take(idxs, axis=0) for idxs in groupxs]
+    #return [items[idxs] for idxs in groupxs]
 
 
 def groupby(items, groupids):
@@ -193,8 +198,8 @@ def groupby(items, groupids):
     >>> groupids = np.array(np.random.randint(0, 4, size=100))
     >>> items = groupids
     """
-    keys, group_idxs = group_indicies(groupids)
-    vals = [items[idxs] for idxs in group_idxs]
+    keys, groupxs = group_indicies(groupids)
+    vals = [items[idxs] for idxs in groupxs]
     return keys, vals
 
 

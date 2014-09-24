@@ -363,7 +363,7 @@ python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-
 
 # Current Experiments:
 
-./profiler.sh dev.py -t upsize --allgt --quiet --noshow
+profiler.sh dev.py -t upsize --allgt --quiet --noshow
 
 python dev.py -t upsize --db PZ_Mothers --qaid 1:30:3 -w
 
@@ -378,7 +378,7 @@ python dev.py -t upsize --quiet --db PZ_Mothers --allgt -w
 python dev.py -t upsize --quiet --db PZ_Mothers --qaid 1:10:3 -w
 
 
-./profiler.sh dev.py -t best --allgt --db PZ_Mothers --nocache-big --nocache-query
+profiler.sh dev.py -t best --allgt --db PZ_Mothers --nocache-big --nocache-query
 ./dev.py -t best --qaid 1:10 --db PZ_Mothers --nocache-big --nocache-query
 
 ./main.py --db PZ_RoseMary --cmd
@@ -431,8 +431,6 @@ python dev.py -t best --allgt --view-hard
 python dev.py -t upsize --allgt 
 
 
-./profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
+profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
 ./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query
 ```
-
-

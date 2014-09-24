@@ -114,7 +114,7 @@ def testdata_raw_internals2():
     print('[smk_debug] testdata_raw_internals2')
     #ibs.cfg.query_cfg.smk_cfg.printme3()
     words     = invindex.words
-    wx_series = words.index
+    wx_series = np.arange(len(words))  # .index
     idx2_aid  = invindex.idx2_daid
     idx2_vec  = invindex.idx2_dvec
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
@@ -142,7 +142,7 @@ def testdata_query_repr():
     ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
     print('[smk_debug] testdata_query_repr')
     words     = invindex.words
-    wx_series = words.index
+    wx_series = np.arange(len(words))  # .index
     idx2_aid  = invindex.idx2_daid
     wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     qaid = qaids[0]
