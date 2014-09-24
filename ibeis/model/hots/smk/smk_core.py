@@ -294,9 +294,12 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         ]
         for nMatch_list, daids in zip(nested_nmatch_list, out_daids)
     )
-    all_daids = np.hstack(utool.flatten(utool.iflatten(nested_daid_iter)))
-    all_scores = np.hstack(utool.flatten(utool.iflatten(nested_score_iter)))
-    all_fms = np.vstack(utool.flatten(utool.iflatten(nested_fm_iter)))
+    #all_daids = np.hstack(utool.flatten(utool.iflatten(nested_daid_iter)))
+    #all_scores = np.hstack(utool.flatten(utool.iflatten(nested_score_iter)))
+    #all_fms = np.vstack(utool.flatten(utool.iflatten(nested_fm_iter)))
+    all_daids = np.array(utool.flatten(utool.iflatten(nested_daid_iter)))
+    all_scores = np.array(utool.flatten(utool.iflatten(nested_score_iter)))
+    all_fms = np.array(utool.flatten(utool.iflatten(nested_fm_iter)))
     assert len(all_daids) == len(all_scores)
     assert len(all_fms) == len(all_scores)
 
