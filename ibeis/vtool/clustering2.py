@@ -12,7 +12,16 @@ import vtool.nearest_neighbors as nntool
 
 
 CLUSTERS_FNAME = 'akmeans_centroids'
-DATAX2CL_FNAME = 'akmeans_datax2cl'
+
+
+def get_akmeans_cfgstr(data, nCentroids, max_iters=5, flann_params={},
+                       use_data_hash=True, cfgstr='', akmeans_cfgstr=None):
+    if akmeans_cfgstr is None:
+        # compute a hashstr based on the data
+        cfgstr += '_nC=%d,nIter=%d' % (nCentroids, max_iters)
+        akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
+                                                 cfgstr, use_data_hash)
+    return akmeans_cfgstr
 
 
 def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
@@ -27,16 +36,13 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         cache_dir = utool.get_app_resource_dir(appname)
         utool.ensuredir(cache_dir)
     # Build a cfgstr if the full one is not specified
-    if akmeans_cfgstr is None:
-        # compute a hashstr based on the data
-        cfgstr += '_nC=%d,nIter=%d' % (nCentroids, max_iters)
-        akmeans_cfgstr = nntool.get_flann_cfgstr(data, flann_params,
-                                                 cfgstr, use_data_hash)
+    akmeans_cfgstr = get_akmeans_cfgstr(data, nCentroids, max_iters, flann_params,
+                                        use_data_hash, cfgstr, akmeans_cfgstr)
     try:
         # Try and load a previous centroiding
         if not use_cache or force_recomp:
             raise UserWarning('forceing recommpute')
-        centroids        = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
+        centroids = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
         print('[akmeans.precompute] load successful')
         if refine:
             # Refines the centroid centers if specified
