@@ -84,7 +84,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS,
     """
     max_iters = 200
     flann_params = {}
-    train_vecs_list = [pdh.ensure_numpy_values(vecs) for vecs in annots_df['vecs'][taids].values]
+    train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
     train_vecs = np.vstack(train_vecs_list)
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
@@ -272,11 +272,11 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, with_pandas=True):
     if utool.VERBOSE:
         mark, end_ = utool.log_progress('[smk_index] Word IDFs: ', len(wx_series), flushfreq=500, writefreq=50)
         mark(0)
-    wx_series_values = pdh.ensure_numpy_values(wx_series)
-    idx2_aid_values = pdh.ensure_numpy_values(idx2_aid)
-    wx2_idxs_values = pdh.ensure_numpy_subset(wx2_idxs, wx_series_values)
+    wx_series_values = pdh.ensure_values(wx_series)
+    idx2_aid_values = pdh.ensure_values(idx2_aid)
+    wx2_idxs_values = pdh.ensure_values_subset(wx2_idxs, wx_series_values)
     #with utool.Timer('method 1'):  # 0.16s
-    idxs_list = [pdh.ensure_numpy_values(idxs).astype(INDEX_TYPE) for idxs in wx2_idxs_values]  # 11%
+    idxs_list = [pdh.ensure_values(idxs).astype(INDEX_TYPE) for idxs in wx2_idxs_values]  # 11%
     aids_list = [idx2_aid_values.take(idxs) if len(idxs) > 0 else [] for idxs in idxs_list]
     nTotalDocs = len(daids)
     nDocsWithWord_list = [len(set(aids)) for aids in aids_list]  # 68%
@@ -313,13 +313,13 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate,
     >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     >>> wx2_rvecs, wx2_aids = compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate)
     """
-    words_values    = pdh.ensure_numpy_values(words)
-    idx2_aid_values = pdh.ensure_numpy_values(idx2_aid)
-    idx2_vec_values = pdh.ensure_numpy_values(idx2_vec)
-    idx2_fx_values  = pdh.ensure_numpy_values(idx2_fx)
-    wx_sublist      = pdh.ensure_numpy_index(wx2_idxs)
-    wx2_idxs_values = pdh.ensure_numpy_subset(wx2_idxs, wx_sublist)
-    idxs_list  = [pdh.ensure_numpy_values(idxsdf) for idxsdf in wx2_idxs_values]   # 13 ms
+    words_values    = pdh.ensure_values(words)
+    idx2_aid_values = pdh.ensure_values(idx2_aid)
+    idx2_vec_values = pdh.ensure_values(idx2_vec)
+    idx2_fx_values  = pdh.ensure_values(idx2_fx)
+    wx_sublist      = pdh.ensure_index(wx2_idxs)
+    wx2_idxs_values = pdh.ensure_values_subset(wx2_idxs, wx_sublist)
+    idxs_list  = [pdh.ensure_values(idxsdf) for idxsdf in wx2_idxs_values]   # 13 ms
     aids_list = [idx2_aid_values.take(idxs.astype(INDEX_TYPE)) for idxs in idxs_list]
     # Prealloc output
     if utool.VERBOSE:
@@ -383,13 +383,13 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight,
     >>> daid2_gamma = compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_weight, daids, use_cache=use_cache)
     """
     # Gropuing by aid and words
-    wx_sublist = pdh.ensure_numpy_values(pdh.ensure_numpy_index(wx2_rvecs))
+    wx_sublist = pdh.ensure_values(pdh.ensure_index(wx2_rvecs))
     if utool.VERBOSE:
         print('[smk_index] Compute Gamma alpha=%r, thresh=%r: ' % (alpha, thresh))
         mark1, end1_ = utool.log_progress(
             '[smk_index] Gamma Group: ', len(wx_sublist), flushfreq=100, writefreq=50)
-    rvecs_list1 = pdh.ensure_numpy_subset(wx2_rvecs, wx_sublist)
-    aids_list  = pdh.ensure_numpy_subset(wx2_aids, wx_sublist)
+    rvecs_list1 = pdh.ensure_values_subset(wx2_rvecs, wx_sublist)
+    aids_list  = pdh.ensure_values_subset(wx2_aids, wx_sublist)
     daid2_wx2_drvecs = utool.ddict(lambda: utool.ddict(list))
     # Group by daids first and then by word index
     for wx, aids, rvecs in zip(wx_sublist, aids_list, rvecs_list1):
@@ -472,9 +472,9 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     # Compute query gamma
     if utool.VERBOSE:
         print('[smk_index] Query Gamma alpha=%r, thresh=%r' % (alpha, thresh))
-    wx_sublist = pdh.ensure_numpy_index(wx2_qrvecs).astype(np.int32)
-    weight_list = pdh.ensure_numpy_subset(wx2_weight, wx_sublist)
-    rvecs_list  = pdh.ensure_numpy_subset(wx2_qrvecs, wx_sublist)
+    wx_sublist = pdh.ensure_index(wx2_qrvecs).astype(np.int32)
+    weight_list = pdh.ensure_values_subset(wx2_weight, wx_sublist)
+    rvecs_list  = pdh.ensure_values_subset(wx2_qrvecs, wx_sublist)
     query_gamma = smk_core.gamma_summation2(rvecs_list, weight_list, alpha, thresh)
     assert query_gamma > 0, 'query gamma is not positive!'
     return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma

@@ -432,5 +432,9 @@ python dev.py -t upsize --allgt
 
 
 profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
-./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query
+profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --index 0:20 --db PZ_Mothers --nocache-big --nocache-query --nocache-save
+./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
+./dev.py -t asmk --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
+
+./dev.py -t smk2 --allgt --db PZ_Mothers --nocache-big --nocache-query
 ```

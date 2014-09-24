@@ -58,7 +58,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
 @profile
 def selective_match_kernel(qreq_):
     """
-    Total time: 21.3564 s
+    Total time: 5.3564 s
 
     ibeis query interface
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
@@ -83,11 +83,16 @@ def selective_match_kernel(qreq_):
     thresh    = qreq_.qparams.thresh
     # Build Pandas dataframe (or maybe not)
     annots_df = smk_index.make_annot_df(ibs)  # .3%
-    # Load vocabulary
-    words = smk_index.learn_visual_words(annots_df, taids, nWords)
-    # Index database annotations
-    invindex = smk_index.index_data_annots(annots_df, daids, words,
-                                           aggregate=aggregate)  # 18.5%
+    if hasattr(qreq_, 'words'):
+        # Hack
+        words = qreq_.words
+        invindex = qreq_.invindex
+    else:
+        # Load vocabulary
+        words = smk_index.learn_visual_words(annots_df, taids, nWords)
+        # Index database annotations
+        invindex = smk_index.index_data_annots(annots_df, daids, words,
+                                               aggregate=aggregate)  # 18.5%
     withinfo = True
     # Progress
     lbl = 'asmk query: ' if aggregate else 'smk query: '

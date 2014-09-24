@@ -93,11 +93,11 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
     >>> with_internals = True
     >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
     """
-    vecs_list = ensure_numpy(annots_df['vecs'][daids])
+    vecs_list = ensure_values(annots_df['vecs'][daids])
     flann_params = {}
     cache_dir = utool.get_app_resource_dir('smk')
     wordflann = nntool.flann_cache(words, flann_params=flann_params, cache_dir=cache_dir)
-    _daids = ensure_numpy(daids)
+    _daids = ensure_values(daids)
     idx2_dvec, idx2_daid, idx2_dfx = nntool.invertable_stack(vecs_list, _daids)
     invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx, _daids)
     if with_internals:
@@ -105,7 +105,7 @@ def index_data_annots(annots_df, daids, words, with_internals=True):
     return invindex
 
 
-def ensure_numpy(data):
+def ensure_values(data):
     return data.values if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)) else data
 
 
@@ -121,7 +121,7 @@ def assign_to_words_(wordflann, idx2_vec):
     >>> wx2_idxs, idx2_wx = assign_to_words_(wordflann, idx2_vec)
     """
     #TODO: multiple assignment
-    idx2_vec_ = ensure_numpy(idx2_vec)
+    idx2_vec_ = ensure_values(idx2_vec)
     idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec_, 1)
     assign_df = pd.DataFrame(idx2_wx, columns=['wx'])
     word_group = assign_df.groupby('wx')

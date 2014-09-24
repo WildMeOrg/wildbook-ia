@@ -149,10 +149,10 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     #                                with_totaltime=False)
     #pd.Series(np.zeros(len(invindex.daids)), index=invindex.daids, name='agg_score')
     # Build lists over common word indexes
-    qrvec_list  = pdh.ensure_numpy_subset(wx2_qrvecs, common_wxs)
-    drvec_list  = pdh.ensure_numpy_subset(wx2_drvecs, common_wxs)
-    daids_list  = pdh.ensure_numpy_subset(wx2_daid,   common_wxs)
-    weight_list = pdh.ensure_numpy_subset(wx2_weight, common_wxs)
+    qrvec_list  = pdh.ensure_values_subset(wx2_qrvecs, common_wxs)
+    drvec_list  = pdh.ensure_values_subset(wx2_drvecs, common_wxs)
+    daids_list  = pdh.ensure_values_subset(wx2_daid,   common_wxs)
+    weight_list = pdh.ensure_values_subset(wx2_weight, common_wxs)
     #qrvec_list = [qrvecs.values for qrvecs in wx2_qrvecs[common_wxs].values]  # 1.2%
     #drvec_list = [drvecs.values for drvecs in wx2_drvecs[common_wxs].values]  # 1.1%
     #daids_list  = [_daids.values for _daids in wx2_daid[common_wxs].values]   # .3%
@@ -272,12 +272,12 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         print('[smk_core] build chipmatch')
     #start_keys = set() set(locals().keys())
     wx2_dfxs   = invindex.wx2_fxs
-    qfxs_list = pdh.ensure_numpy_subset(wx2_qfxs, common_wxs)
-    dfxs_list = pdh.ensure_numpy_subset(wx2_dfxs, common_wxs)
+    qfxs_list = pdh.ensure_values_subset(wx2_qfxs, common_wxs)
+    dfxs_list = pdh.ensure_values_subset(wx2_dfxs, common_wxs)
     #qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
-    #dfxs_list  = [pdh.ensure_numpy_values(dfxs) for dfxs in wx2_dfxs[common_wxs]]
+    #dfxs_list  = [pdh.ensure_values(dfxs) for dfxs in wx2_dfxs[common_wxs]]
     daid2_gamma_dict = daid2_gamma.to_dict()
-    #qaids_list = [pdh.ensure_numpy_values(qaids) for qaids in wx2_qaids[common_wxs]]
+    #qaids_list = [pdh.ensure_values(qaids) for qaids in wx2_qaids[common_wxs]]
 
     #def accumulate_chipmatch(
     # Accumulate all matching indicies with scores etc...

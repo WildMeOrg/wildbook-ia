@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
@@ -5,6 +6,7 @@ import six
 import ibeis
 import pandas as pd
 from ibeis.model.hots.smk import smk_index
+from ibeis.model.hots.smk import smk_match
 from  ibeis.model.hots import query_request
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_debug]')
 
@@ -56,8 +58,8 @@ def testdata_ibeis2(**kwargs):
     #daids = valid_aids[1:10]
     #qaids = valid_aids[0::2]
     #qaids = valid_aids[0:2]
-    #qaids = [valid_aids[0], valid_aids[4]]
-    qaids = [37]  # NOQA new test case for PZ_MTEST
+    #qaids = [37]  # NOQA new test case for PZ_MTEST
+    qaids = [valid_aids[0], valid_aids[4]]
     return ibs, taids, daids, qaids
 
 
@@ -254,7 +256,7 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
             #print('word[wx={wx}] has no rvecs'.format(wx=wx))
             no_wxs.append(wx)
         for sx in range(shape[0]):
-            if np.any(np.isnan(pdh.ensure_numpy(rvecs)[sx])):
+            if np.any(np.isnan(pdh.ensure_values(rvecs)[sx])):
                 #rvecs[:] = 1 / np.sqrt(128)
                 #print('word[wx={wx}][sx={sx}] has nans'.format(wx=wx))
                 nan_wxs.append((wx, sx))
@@ -263,7 +265,7 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
         print('[smk_debug] %d words have nans' % len(nan_wxs))
     failed_wx = []
     for count, (wx, sx) in enumerate(nan_wxs):
-        rvec = pdh.ensure_numpy(wx2_rvecs[wx])[sx]
+        rvec = pdh.ensure_values(wx2_rvecs[wx])[sx]
         idxs = wx2_idxs[wx][sx]
         dvec = idx2_vec.values[idxs]
         word = words.values[wx]
@@ -555,16 +557,24 @@ def main():
     """
     >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
+    from ibeis.model.hots import pipeline
     ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
-    # Learn vocabulary
-    words = smk_index.learn_visual_words(annots_df, taids, nWords)
-    # Index a database of annotations
-    invindex = smk_index.index_data_annots(annots_df, daids, words)
     # Query using SMK
     #qaid = qaids[0]
     qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+    nWords    = qreq_.qparams.nWords
+    aggregate = qreq_.qparams.aggregate
+    alpha     = qreq_.qparams.alpha
+    thresh    = qreq_.qparams.thresh
+    # Learn vocabulary
+    words = qreq_.words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    # Index a database of annotations
+    qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words)
+    qreq_.ibs = ibs
     # Smk Mach
-    qaid2_qres_ = smk_index.query_smk(ibs, annots_df, invindex, qreq_)
+    qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(qreq_)
+    filt2_meta = {}
+    qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
     for count, (qaid, qres) in enumerate(six.iteritems(qaid2_qres_)):
         print('+================')
         #qres = qaid2_qres_[qaid]

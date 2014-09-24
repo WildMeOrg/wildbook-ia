@@ -25,6 +25,7 @@ def RangeIndex(size, name=None):
 
 VEC_COLUMNS  = RangeIndex(VEC_DIM, name='vec')
 KPT_COLUMNS = pd.Index(['xpos', 'ypos', 'a', 'c', 'd', 'theta'], name='kpt')
+PANDAS_TYPES = (pd.Series, pd.DataFrame, pd.Index)
 
 
 @profile
@@ -76,22 +77,17 @@ def pandasify_list2d(item_list, keys, columns, val_name, series_name):
 
 
 @profile
-def ensure_numpy_values(data):
-    if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
+def ensure_values(data):
+    if isinstance(data, PANDAS_TYPES):
         return data.values
     elif isinstance(data, dict):
         return np.array(list(data.values()))
     else:
         return data
 
-ensure_numpy = ensure_numpy_values
-ensure_values = ensure_numpy_values
-
-PANDAS_TYPES = (pd.Series, pd.DataFrame, pd.Index)
-
 
 def ensure_2d_values(data):
-    data_ = ensure_numpy_values(data)
+    data_ = ensure_values(data)
     if len(data_) == 0:
         return data_
     else:
@@ -102,8 +98,8 @@ def ensure_2d_values(data):
 
 
 @profile
-def ensure_numpy_index(data):
-    if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
+def ensure_index(data):
+    if isinstance(data, PANDAS_TYPES):
         return data.index
     elif isinstance(data, dict):
         return np.array(list(data.keys()))
@@ -111,9 +107,9 @@ def ensure_numpy_index(data):
         raise AssertionError(type(data))
 
 
-def ensure_numpy_subset(data, keys):
-    if isinstance(data, (pd.Series, pd.DataFrame, pd.Index)):
-        return [ensure_numpy_values(item) for item in data[keys].values]
+def ensure_values_subset(data, keys):
+    if isinstance(data, PANDAS_TYPES):
+        return [ensure_values(item) for item in data[keys].values]
     elif isinstance(data, dict):
         return [data[key] for key in keys]
     else:
