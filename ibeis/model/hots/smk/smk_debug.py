@@ -56,10 +56,12 @@ def testdata_ibeis2(**kwargs):
     taids = valid_aids[:]
     daids  = valid_aids
     #daids = valid_aids[1:10]
+    daids = valid_aids[0:5]
     #qaids = valid_aids[0::2]
     #qaids = valid_aids[0:2]
     #qaids = [37]  # NOQA new test case for PZ_MTEST
-    qaids = [valid_aids[0], valid_aids[4]]
+    #qaids = [valid_aids[0], valid_aids[4]]
+    qaids = [valid_aids[0]]
     return ibs, taids, daids, qaids
 
 
@@ -216,6 +218,30 @@ def testdata_nonagg_rvec():
     return words_values, wx_sublist, idxs_list, idx2_vec_values
 
 
+def check_invindex_wx2(invindex):
+    words = invindex.words
+    #wx2_weight = invindex.wx2_weight
+    wx2_rvecs = invindex.wx2_drvecs
+    #wx2_idxs   = invindex.wx2_idxs
+    wx2_aids   = invindex.wx2_aids  # needed for asmk
+    wx2_fxs    = invindex.wx2_fxs   # needed for asmk
+    check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
+
+
+def check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs):
+    print('checking wx2 for %d words' % (len(words)))
+    for wx in range(len(words)):
+        if wx not in wx2_fxs:
+            assert wx not in wx2_aids, 'in one but not others'
+            assert wx not in wx2_rvecs, 'in one but not others'
+        else:
+            fxs    = wx2_fxs[wx]
+            aids   = wx2_aids[wx]
+            rvecs  = wx2_rvecs[wx]
+            assert len(rvecs) == len(aids)
+            assert len(rvecs) == len(fxs)
+
+
 def check_wx2_rvecs(wx2_rvecs, verbose=True):
     flag = True
     for wx, rvecs in six.iteritems(wx2_rvecs):
@@ -267,8 +293,8 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
     for count, (wx, sx) in enumerate(nan_wxs):
         rvec = pdh.ensure_values(wx2_rvecs[wx])[sx]
         idxs = wx2_idxs[wx][sx]
-        dvec = idx2_vec.values[idxs]
-        word = words.values[wx]
+        dvec = pdh.ensure_values(idx2_vec)[idxs]
+        word = pdh.ensure_values(words)[wx]
         truth = (word == dvec)
         if not np.all(truth):
             failed_wx.append(wx)
@@ -572,15 +598,30 @@ def main():
     qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words)
     qreq_.ibs = ibs
     # Smk Mach
-    qaid2_scores, qaid2_chipmatch = smk_match.selective_match_kernel(qreq_)
+    qaid2_scores, qaid2_chipmatch_SMK = smk_match.selective_match_kernel(qreq_)
+    SVER = utool.get_flag('--sver')
+    if SVER:
+        qaid2_chipmatch_SVER_ = pipeline.spatial_verification(qaid2_chipmatch_SMK, qreq_)
+        qaid2_chipmatch = qaid2_chipmatch_SVER_
+    else:
+        qaid2_chipmatch = qaid2_chipmatch_SMK
     filt2_meta = {}
     qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
     for count, (qaid, qres) in enumerate(six.iteritems(qaid2_qres_)):
         print('+================')
         #qres = qaid2_qres_[qaid]
         qres.show_top(ibs, fnum=count)
+        for aid in qres.aid2_score.keys():
+            smkscore = qaid2_scores[qaid][aid]
+            sumscore = qres.aid2_score[aid]
+            if not utool.almost_eq(smkscore, sumscore):
+                print('scorediff aid=%r, smkscore=%r, sumscore=%r' % (aid, smkscore, sumscore))
+
+        scores = qaid2_scores[qaid]
+        print(scores)
         print(qres.get_inspect_str(ibs))
         print('L================')
+        #utool.embed()
     #print(qres.aid2_fs)
     #daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
     ## Pack into QueryResult

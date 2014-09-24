@@ -78,12 +78,43 @@ def pandasify_list2d(item_list, keys, columns, val_name, series_name):
 
 @profile
 def ensure_values(data):
-    if isinstance(data, PANDAS_TYPES):
+    if isinstance(data, (np.ndarray, list)):
+        return data
+    elif isinstance(data, PANDAS_TYPES):
         return data.values
     elif isinstance(data, dict):
         return np.array(list(data.values()))
     else:
-        return data
+        raise AssertionError(type(data))
+
+
+@profile
+def ensure_index(data):
+    if isinstance(data, PANDAS_TYPES):
+        return data.index
+    elif isinstance(data, dict):
+        return np.array(list(data.keys()))
+    else:
+        return np.arange(len(data))
+        #raise AssertionError(type(data))
+
+
+def ensure_values_subset(data, keys):
+    if isinstance(data, dict):
+        return [data[key] for key in keys]
+    elif isinstance(data, PANDAS_TYPES):
+        return [ensure_values(item) for item in data[keys].values]
+    else:
+        raise AssertionError(type(data))
+
+
+def ensure_values_scalar_subset(data, keys):
+    if isinstance(data, dict):
+        return [data[key] for key in keys]
+    elif isinstance(data, PANDAS_TYPES):
+        return [item for item in data[keys].values]
+    else:
+        raise AssertionError(type(data))
 
 
 def ensure_2d_values(data):
@@ -95,25 +126,6 @@ def ensure_2d_values(data):
             return [item.values for item in data]
         else:
             raise AssertionError(type(data))
-
-
-@profile
-def ensure_index(data):
-    if isinstance(data, PANDAS_TYPES):
-        return data.index
-    elif isinstance(data, dict):
-        return np.array(list(data.keys()))
-    else:
-        raise AssertionError(type(data))
-
-
-def ensure_values_subset(data, keys):
-    if isinstance(data, PANDAS_TYPES):
-        return [ensure_values(item) for item in data[keys].values]
-    elif isinstance(data, dict):
-        return [data[key] for key in keys]
-    else:
-        raise AssertionError(type(data))
 
 
 @profile

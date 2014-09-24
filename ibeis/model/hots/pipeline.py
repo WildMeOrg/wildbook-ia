@@ -532,6 +532,9 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
         for topx in range(nRerank):
             aid = topx2_aid[topx]
             fm = aid2_fm[aid]
+            if len(fm) == 0:
+                print_('o')  # sv failure
+                continue
             dlen_sqrd = topx2_dlen_sqrd[topx]
             kpts2 = topx2_kpts[topx]
             fs    = aid2_fs[aid]
@@ -587,6 +590,9 @@ def _precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
             kpts2 = topx2_kpts[tx]
             aid = topx2_aid[tx]
             fm  = aid2_fm[aid]
+            # This dosent make sense when len(fm) == 0
+            if len(fm) == 0:
+                return -1
             x_m, y_m = ktool.get_xys(kpts2[fm[:, 1]])
             dlensqrd = (x_m.max() - x_m.min()) ** 2 + (y_m.max() - y_m.min()) ** 2
             return dlensqrd

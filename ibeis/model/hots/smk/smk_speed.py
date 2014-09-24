@@ -74,8 +74,8 @@ def compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list,
     %timeit words_list = [words_values[wx:wx + 1] for wx in wx_sublist]  # 1.6 ms
     """
     #with utool.Timer('compute_nonagg_rvec_listcomp'):
-    words_list = [words_values[wx:wx + 1] for wx in wx_sublist]  # 1 ms
     #vecs_list  = [idx2_vec_values[idxs] for idxs in idxs_list]  # 23 ms
+    words_list = [words_values[wx:wx + 1] for wx in wx_sublist]  # 1 ms
     vecs_list  = [idx2_vec_values.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
     rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
                   for vecs, word in zip(vecs_list, words_list)]  # 103 ms  # 90%
@@ -158,6 +158,17 @@ def group_indicies2(groupids):
     lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
     groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
     return groupxs
+
+
+#def group_indicies_pandas(groupids):
+#    # Pandas is actually unreasonably fast here
+#    word_assignments = pd.DataFrame(_idx2_wx, columns=['wx'])  # 141 us
+#    # Compute inverted index
+#    word_group = word_assignments.groupby('wx')  # 34.5 us
+#    _wx2_idxs = word_group['wx'].indices  # 8.6 us
+#    # Consistency check
+#    #for wx in _wx2_idxs.keys():
+#    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
 
 
 #@profile
