@@ -35,6 +35,7 @@ def testdata_ibeis(**kwargs):
     ibs._default_config()
     #aggregate = False
     aggregate = kwargs.get('aggregate', utool.get_flag(('--agg', '--aggregate')))
+    #aggregate = not kwargs.get('aggregate', utool.get_flag(('--noagg', '--noaggregate')))
     default = 8E3
     nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
     # Configs
@@ -197,8 +198,8 @@ def testdata_match_kernel(**kwargs):
     thresh = ibs.cfg.query_cfg.smk_cfg.thresh
     print('+------------')
     print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] aggregate = %r' % (alpha,))
-    print('[smk_debug] aggregate = %r' % (thresh,))
+    print('[smk_debug] alpha = %r' % (alpha,))
+    print('[smk_debug] thresh = %r' % (thresh,))
     print('L------------')
     wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = smk_index.compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
@@ -592,10 +593,18 @@ def main():
     aggregate = qreq_.qparams.aggregate
     alpha     = qreq_.qparams.alpha
     thresh    = qreq_.qparams.thresh
+    #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+    #alpha = ibs.cfg.query_cfg.smk_cfg.alpha
+    #thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    print('+------------')
+    print('[smk_debug] aggregate = %r' % (aggregate,))
+    print('[smk_debug] alpha = %r' % (alpha,))
+    print('[smk_debug] thresh = %r' % (thresh,))
+    print('L------------')
     # Learn vocabulary
-    words = qreq_.words = smk_index.learn_visual_words(annots_df, taids, nWords)
+    #words = qreq_.words = smk_index.learn_visual_words(annots_df, taids, nWords)
     # Index a database of annotations
-    qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words)
+    #qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate, alpha, thresh)
     qreq_.ibs = ibs
     # Smk Mach
     qaid2_scores, qaid2_chipmatch_SMK = smk_match.selective_match_kernel(qreq_)
@@ -639,6 +648,7 @@ def main():
 
 
 if __name__ == '__main__':
+    print('\n\n\n\n\n\n')
     import multiprocessing
     from plottool import draw_func2 as df2
     np.set_printoptions(precision=2)

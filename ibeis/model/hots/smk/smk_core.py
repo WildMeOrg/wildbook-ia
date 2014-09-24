@@ -10,7 +10,7 @@ import utool
 import numpy.linalg as npl
 from ibeis.model.hots.smk.hstypes import FLOAT_TYPE
 from ibeis.model.hots.smk import pandas_helpers as pdh
-#from itertools import product
+from itertools import product
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
@@ -204,23 +204,6 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     return daid2_totalscore, daid2_chipmatch
 
 
-#@profile
-def concat_chipmatch(cmtup):
-    """
-    Total time: 1.63271 s
-    """
-
-    fm_list = [_[0] for _ in cmtup]
-    fs_list = [_[1] for _ in cmtup]
-    fk_list = [_[2] for _ in cmtup]
-    assert len(fm_list) == len(fs_list)
-    assert len(fk_list) == len(fs_list)
-    chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))  # 88.9%
-    assert len(chipmatch[0]) == len(chipmatch[1])
-    assert len(chipmatch[2]) == len(chipmatch[1])
-    return chipmatch
-
-
 def mem_arange(num, cache={}):
     if num not in cache:
         cache[num] = np.arange(num)
@@ -235,60 +218,6 @@ def mem_meshgrid(wrange, hrange, cache={}):
 
 
 @profile
-def featmatch_gen(scores_list, daids_list, qfxs_list, dfxs_list, weight_list,
-                  query_gamma):
-    """
-    Total time: 2.25327 s
-    """
-    #shape_ranges = [(np.arange(w), np.arange(h)) for (w, h) in shapes_list]  # 960us
-    #ijs_iter = [np.meshgrid(wrange, hrange, indexing='ij') for wrange, hrange in shape_ranges] # 13.6ms
-    # Use caching to quickly create meshes
-    shapes_list  = [scores.shape for scores in scores_list]  # 51us
-    shape_ranges = [(mem_arange(w), mem_arange(h)) for (w, h) in shapes_list]  # 230us
-    ijs_list = [mem_meshgrid(wrange, hrange) for wrange, hrange in shape_ranges]  # 278us
-    _is_list = [ijs[0] for ijs in ijs_list]
-    _js_list = [ijs[1] for ijs in ijs_list]
-    shapenorm_list = [w * h for (w, h) in shapes_list]
-    norm_list = np.multiply(np.divide(weight_list, shapenorm_list), query_gamma)
-
-    ##with utool.Timer('fsd'):
-    #gentype = lambda x: x
-    #gentype = list
-    #out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]
-    #out_scores = gentype(([scores[ij] for ij in ijs]
-    #                      for (scores, ijs) in zip(scores_list, out_ijs)))
-    #out_qfxs   = gentype(([qfxs[i] for (i, j) in ijs]
-    #                      for (qfxs, ijs) in zip(qfxs_list, out_ijs)))
-    #out_dfxs   = gentype(([dfxs[j] for (i, j) in ijs]
-    #                      for (dfxs, ijs) in zip(dfxs_list, out_ijs)))
-    #out_daids  = gentype(([daids[j] for (i, j) in ijs]
-    #                      for (daids, ijs) in zip(daids_list, out_ijs)))
-
-    #all_qfxs = np.vstack(out_qfxs)
-    #all_dfxs = np.vstack(out_dfxs)
-    #all_scores = np.hstack(out_scores)
-    #all_daids = np.hstack(out_daids)
-    #from ibeis.model.hots.smk import smk_speed
-    #daid_keys, groupxs = smk_speed.group_indicies(all_daids)
-    #fs_list = smk_speed.apply_grouping(all_scores, groupxs)
-    #fm1_list = smk_speed.apply_grouping(all_qfxs, groupxs)
-    #fm2_list = smk_speed.apply_grouping(all_dfxs, groupxs)
-    #fm_list = [np.hstack((fm1, fm2)) for fm1, fm2 in zip(fm1_list, fm2_list)]
-
-    #aid_list = smk_speed.apply_grouping(all_daids, groupxs)
-
-    #with utool.Timer('fds'):
-    _iter = zip(scores_list, daids_list, qfxs_list, dfxs_list,
-                norm_list, _is_list, _js_list)
-    for scores, daids, qfxs, dfxs, norm, _is, _js in _iter:
-        for i, j in zip(_is.flat, _js.flat):  # 4.7%
-            score = scores.take(i, axis=0).take(j, axis=0)  # 9.3
-            if score == 0:  # 4%
-                continue
-        yield score, norm, daids[j], qfxs[i], dfxs[j]
-
-
-@profile
 def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                            scores_list, weight_list, daids_list, query_gamma,
                            daid2_gamma):
@@ -296,13 +225,14 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     Total time: 14.6415 s
     this builds the structure that the rest of the pipeline plays nice with
     """
+    # FIXME: move groupby to vtool
     from ibeis.model.hots.smk import smk_speed
     if utool.VERBOSE:
         print('[smk_core] build chipmatch')
-    #start_keys = set() set(locals().keys())
     #qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
     #dfxs_list  = [pdh.ensure_values(dfxs) for dfxs in wx2_dfxs[common_wxs]]
     #qaids_list = [pdh.ensure_values(qaids) for qaids in wx2_qaids[common_wxs]]
+    #qaids_list = pdh.ensure_values_subset(wx2_qaids, common_wxs)
     wx2_dfxs  = invindex.wx2_fxs
     qfxs_list = pdh.ensure_values_subset(wx2_qfxs, common_wxs)
     dfxs_list = pdh.ensure_values_subset(wx2_dfxs, common_wxs)
@@ -324,25 +254,62 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     gentype = lambda x: x
     gentype = list
     out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]
-    out_scores = gentype(([nscores[ij] for ij in ijs]
+    out_scores = gentype(([nscores[ijx] for ijx in ijs]
                           for (nscores, ijs) in zip(nscores_list, out_ijs)))
-    out_qfxs   = gentype(([qfxs[i] for (i, j) in ijs]
+    out_qfxs   = gentype(([qfxs[ix] for (ix, jx) in ijs]
                           for (qfxs, ijs) in zip(qfxs_list, out_ijs)))
-    out_dfxs   = gentype(([dfxs[j] for (i, j) in ijs]
+    out_dfxs   = gentype(([dfxs[jx] for (ix, jx) in ijs]
                           for (dfxs, ijs) in zip(dfxs_list, out_ijs)))
-    out_daids  = gentype(([daids[j] for (i, j) in ijs]
+    out_daids  = gentype(([daids[jx] for (ix, jx) in ijs]
                           for (daids, ijs) in zip(daids_list, out_ijs)))
 
-    all_qfxs = np.vstack(out_qfxs)
-    all_dfxs = np.vstack(out_dfxs)
-    all_scores = np.hstack(out_scores)
-    all_daids = np.hstack(out_daids)
+    # This code is incomprehensable. I feel ashamed.
+
+    # Number of times to duplicate scores
+    nested_nmatch_list = [
+        [
+            qfxs_.size * dfxs_.size
+            for qfxs_, dfxs_ in zip(dfxs, qfxs)
+        ]
+        for dfxs, qfxs in zip(out_dfxs, out_qfxs)
+    ]
+    nested_score_iter = (
+        [
+            [score / nMatch] * nMatch
+            for nMatch, score in zip(nMatch_list, scores)
+        ]
+        for nMatch_list, scores in zip(nested_nmatch_list, out_scores)
+    )
+    nested_fm_iter = (
+        [
+            tuple(product(qfxs_, dfxs_))
+            for qfxs_, dfxs_ in zip(qfxs, dfxs)
+        ]
+        for qfxs, dfxs in zip(out_qfxs, out_dfxs)
+    )
+    nested_daid_iter = (
+        [
+            [daid] * nMatch
+            for nMatch, daid in zip(nMatch_list, daids)
+        ]
+        for nMatch_list, daids in zip(nested_nmatch_list, out_daids)
+    )
+    all_daids = np.hstack(utool.flatten(utool.iflatten(nested_daid_iter)))
+    all_scores = np.hstack(utool.flatten(utool.iflatten(nested_score_iter)))
+    all_fms = np.vstack(utool.flatten(utool.iflatten(nested_fm_iter)))
+    assert len(all_daids) == len(all_scores)
+    assert len(all_fms) == len(all_scores)
+
+    #all_qfxs = np.vstack(out_qfxs)
+    #all_dfxs = np.vstack(out_dfxs)
+    #all_scores = np.hstack(out_scores)
+    #all_daids = np.hstack(out_daids)
     daid_keys, groupxs = smk_speed.group_indicies(all_daids)
     fs_list = smk_speed.apply_grouping(all_scores, groupxs)
-    fm1_list = smk_speed.apply_grouping(all_qfxs, groupxs)
-    fm2_list = smk_speed.apply_grouping(all_dfxs, groupxs)
-    fm_list = [np.hstack((fm1, fm2)) for fm1, fm2 in zip(fm1_list, fm2_list)]
-
+    fm_list = smk_speed.apply_grouping(all_fms, groupxs)
+    #fm1_list = smk_speed.apply_grouping(all_qfxs, groupxs)
+    #fm2_list = smk_speed.apply_grouping(all_dfxs, groupxs)
+    #fm_list = [np.hstack((fm1, fm2)) for fm1, fm2 in zip(fm1_list, fm2_list)]
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
     daid2_fs = {daid: fs * daid2_gamma_[daid] for daid, fs in zip(daid_keys, fs_list)}
     daid2_fk = {daid: np.ones(fs.size) for daid, fs in zip(daid_keys, fs_list)}
