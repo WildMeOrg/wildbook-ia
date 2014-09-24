@@ -244,24 +244,20 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     shapes_list  = [scores.shape for scores in scores_list]  # 51us
     shape_ranges = [(mem_arange(w), mem_arange(h)) for (w, h) in shapes_list]  # 230us
     ijs_list = [mem_meshgrid(wrange, hrange) for (wrange, hrange) in shape_ranges]  # 278us
-    #shapenorm_list = [w * h for (w, h) in shapes_list]
-    #norm_list = np.multiply(np.divide(weight_list, shapenorm_list), query_gamma)
     norm_list = np.multiply(weight_list, query_gamma)
     # Normalize scores for words, nMatches, and query gamma (still need daid gamma)
     nscores_list = [scores * norm for (scores, norm) in zip(scores_list, norm_list)]
 
     #with utool.Timer('fsd'):
-    gentype = lambda x: x
-    gentype = list
     out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]
-    out_scores = gentype(([nscores[ijx] for ijx in ijs]
-                          for (nscores, ijs) in zip(nscores_list, out_ijs)))
-    out_qfxs   = gentype(([qfxs[ix] for (ix, jx) in ijs]
-                          for (qfxs, ijs) in zip(qfxs_list, out_ijs)))
-    out_dfxs   = gentype(([dfxs[jx] for (ix, jx) in ijs]
-                          for (dfxs, ijs) in zip(dfxs_list, out_ijs)))
-    out_daids  = gentype(([daids[jx] for (ix, jx) in ijs]
-                          for (daids, ijs) in zip(daids_list, out_ijs)))
+    out_scores = [[nscores[ijx] for ijx in ijs]
+                          for (nscores, ijs) in zip(nscores_list, out_ijs)]
+    out_qfxs   = [[qfxs[ix] for (ix, jx) in ijs]
+                          for (qfxs, ijs) in zip(qfxs_list, out_ijs)]
+    out_dfxs   = [[dfxs[jx] for (ix, jx) in ijs]
+                          for (dfxs, ijs) in zip(dfxs_list, out_ijs)]
+    out_daids  = [[daids[jx] for (ix, jx) in ijs]
+                          for (daids, ijs) in zip(daids_list, out_ijs)]
 
     # This code is incomprehensable. I feel ashamed.
 
@@ -294,56 +290,20 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         ]
         for nMatch_list, daids in zip(nested_nmatch_list, out_daids)
     )
-    #all_daids = np.hstack(utool.flatten(utool.iflatten(nested_daid_iter)))
-    #all_scores = np.hstack(utool.flatten(utool.iflatten(nested_score_iter)))
-    #all_fms = np.vstack(utool.flatten(utool.iflatten(nested_fm_iter)))
     all_daids = np.array(utool.flatten(utool.iflatten(nested_daid_iter)))
     all_scores = np.array(utool.flatten(utool.iflatten(nested_score_iter)))
     all_fms = np.array(utool.flatten(utool.iflatten(nested_fm_iter)))
     assert len(all_daids) == len(all_scores)
     assert len(all_fms) == len(all_scores)
 
-    #all_qfxs = np.vstack(out_qfxs)
-    #all_dfxs = np.vstack(out_dfxs)
-    #all_scores = np.hstack(out_scores)
-    #all_daids = np.hstack(out_daids)
     daid_keys, groupxs = smk_speed.group_indicies(all_daids)
     fs_list = smk_speed.apply_grouping(all_scores, groupxs)
     fm_list = smk_speed.apply_grouping(all_fms, groupxs)
-    #fm1_list = smk_speed.apply_grouping(all_qfxs, groupxs)
-    #fm2_list = smk_speed.apply_grouping(all_dfxs, groupxs)
-    #fm_list = [np.hstack((fm1, fm2)) for fm1, fm2 in zip(fm1_list, fm2_list)]
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
     daid2_fs = {daid: fs * daid2_gamma_[daid] for daid, fs in zip(daid_keys, fs_list)}
     daid2_fk = {daid: np.ones(fs.size) for daid, fs in zip(daid_keys, fs_list)}
     daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
 
-    # Accumulate all matching indicies with scores etc...
-
-    #daid2_chipmatch_ = utool.ddict(list)
-    #_iter = featmatch_gen(scores_list, daids_list, qfxs_list, dfxs_list,
-    #                      weight_list, query_gamma)
-    #for score, norm, daid_, qfxs_, dfxs_ in _iter:
-    #    # Cartesian product to list all matches that gave this score
-    #    # Distribute score over all words that contributed to it.
-    #    # apply other normalizers as well so a sum will reconstruct the
-    #    # total score
-    #    normscore = score * norm * daid2_gamma_dict[daid_]  # 15.0%
-    #    _fm   = np.vstack(tuple(product(qfxs_, dfxs_)))  # 16.6%
-    #    _fs   = np.array([normscore] * _fm.shape[0])
-    #    _fk   = np.ones(_fs.size)
-    #    chipmatch_ = (_fm, _fs, _fk)
-    #    daid2_chipmatch_[daid_].append(chipmatch_)
-
-    ## Concatenate into full fmfsfk reprs
-    #daid2_cattup = {daid: concat_chipmatch(cmtup) for daid, cmtup in
-    #                six.iteritems(daid2_chipmatch_)}  # 12%
-    ##smk_debug.check_daid2_chipmatch(daid2_cattup)
-    ## Qreq needs unzipped chipmatch
-    #daid2_fm = {daid: cattup[0] for daid, cattup in six.iteritems(daid2_cattup)}
-    #daid2_fs = {daid: cattup[1] for daid, cattup in six.iteritems(daid2_cattup)}
-    #daid2_fk = {daid: cattup[2] for daid, cattup in six.iteritems(daid2_cattup)}
-    #daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
     return daid2_chipmatch
 
 
