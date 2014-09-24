@@ -8,7 +8,7 @@ import numpy as np
 #import pandas as pd
 import utool
 import numpy.linalg as npl
-from ibeis.model.hots.smk.hstypes import FLOAT_TYPE
+from ibeis.model.hots.smk.hstypes import FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk import pandas_helpers as pdh
 from itertools import product
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
@@ -222,7 +222,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                            scores_list, weight_list, daids_list, query_gamma,
                            daid2_gamma):
     """
-    Total time: 14.6415 s
+    Total time: 4.43759 s
     this builds the structure that the rest of the pipeline plays nice with
     """
     # FIXME: move groupby to vtool
@@ -246,43 +246,41 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     ijs_list = [mem_meshgrid(wrange, hrange) for (wrange, hrange) in shape_ranges]  # 278us
     norm_list = np.multiply(weight_list, query_gamma)
     # Normalize scores for words, nMatches, and query gamma (still need daid gamma)
-    nscores_list = [scores * norm for (scores, norm) in zip(scores_list, norm_list)]
+    nscores_iter = (scores * norm for (scores, norm) in zip(scores_list, norm_list))
 
     #with utool.Timer('fsd'):
+    # FIXME: Preflatten all of these lists
     out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]
-    out_scores = [[nscores[ijx] for ijx in ijs]
-                          for (nscores, ijs) in zip(nscores_list, out_ijs)]
     out_qfxs   = [[qfxs[ix] for (ix, jx) in ijs]
                           for (qfxs, ijs) in zip(qfxs_list, out_ijs)]
     out_dfxs   = [[dfxs[jx] for (ix, jx) in ijs]
                           for (dfxs, ijs) in zip(dfxs_list, out_ijs)]
-    out_daids  = [[daids[jx] for (ix, jx) in ijs]
-                          for (daids, ijs) in zip(daids_list, out_ijs)]
+    out_daids  = ([daids[jx] for (ix, jx) in ijs]
+                          for (daids, ijs) in zip(daids_list, out_ijs))
+    out_scores = ([nscores[ijx] for ijx in ijs]
+                          for (nscores, ijs) in zip(nscores_iter, out_ijs))
 
     # This code is incomprehensable. I feel ashamed.
 
     # Number of times to duplicate scores
-    nested_nmatch_list = [
-        [
-            qfxs_.size * dfxs_.size
-            for qfxs_, dfxs_ in zip(dfxs, qfxs)
-        ]
-        for dfxs, qfxs in zip(out_dfxs, out_qfxs)
-    ]
-    nested_score_iter = (
-        [
-            [score / nMatch] * nMatch
-            for nMatch, score in zip(nMatch_list, scores)
-        ]
-        for nMatch_list, scores in zip(nested_nmatch_list, out_scores)
-    )
-    nested_fm_iter = (
+    #nested_nmatch_list = [
+    #    [
+    #        qfxs_.size * dfxs_.size
+    #        for qfxs_, dfxs_ in zip(dfxs, qfxs)
+    #    ]
+    #    for dfxs, qfxs in zip(out_dfxs, out_qfxs)
+    #]
+    #test = [[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)]
+    #flatqfxs = utool.flatten([[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)])
+    nested_fm_iter = [
         [
             tuple(product(qfxs_, dfxs_))
             for qfxs_, dfxs_ in zip(qfxs, dfxs)
         ]
         for qfxs, dfxs in zip(out_qfxs, out_dfxs)
-    )
+    ]
+    all_fms = np.array(list(utool.iflatten(utool.iflatten(nested_fm_iter))), dtype=INDEX_TYPE)
+    nested_nmatch_list = [[len(fm) for fm in fms] for fms in nested_fm_iter]
     nested_daid_iter = (
         [
             [daid] * nMatch
@@ -290,11 +288,17 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         ]
         for nMatch_list, daids in zip(nested_nmatch_list, out_daids)
     )
-    all_daids = np.array(utool.flatten(utool.iflatten(nested_daid_iter)))
-    all_scores = np.array(utool.flatten(utool.iflatten(nested_score_iter)))
-    all_fms = np.array(utool.flatten(utool.iflatten(nested_fm_iter)))
-    assert len(all_daids) == len(all_scores)
-    assert len(all_fms) == len(all_scores)
+    nested_score_iter = (
+        [
+            [score / nMatch] * nMatch
+            for nMatch, score in zip(nMatch_list, scores)
+        ]
+        for nMatch_list, scores in zip(nested_nmatch_list, out_scores)
+    )
+    all_daids = np.array(list(utool.iflatten(utool.iflatten(nested_daid_iter))), dtype=INDEX_TYPE)
+    all_scores = np.array(list(utool.iflatten(utool.iflatten(nested_score_iter))), dtype=FLOAT_TYPE)
+    #assert len(all_daids) == len(all_scores)
+    #assert len(all_fms) == len(all_scores)
 
     daid_keys, groupxs = smk_speed.group_indicies(all_daids)
     fs_list = smk_speed.apply_grouping(all_scores, groupxs)
