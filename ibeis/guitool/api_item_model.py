@@ -22,8 +22,8 @@ VERBOSE = utool.VERBOSE
 try:
     # TODO Cyth should take care of this stuff
     # also, it should be a function level import not module?
-    #if not utool.get_flag('--nocyth'):
-    if utool.get_flag('--cyth'):
+    #if not utool.get_argflag('--nocyth'):
+    if utool.get_argflag('--cyth'):
         from . import api_tree_node_cython as _atn
     else:
         raise ImportError('')

@@ -43,7 +43,7 @@ class GUILoggingHandler(logging.StreamHandler):
 class QLoggedOutput(QtGui.QTextEdit):
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
-        if utool.get_flag('--guilog'):
+        if utool.get_argflag('--guilog'):
             self.logging_handler = GUILoggingHandler(self.gui_write)
             utool.add_logging_handler(self.logging_handler)
 
