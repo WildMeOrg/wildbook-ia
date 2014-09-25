@@ -53,8 +53,8 @@ def test_akmeans(full_test=False, plot_test=False, num_pca_dims=2, data_dim=2,
 
 if __name__ == '__main__':
     testkw = {
-        'plot_test': utool.get_flag('--plot-test'),
-        'full_test': utool.get_flag('--full-test'),
+        'plot_test': utool.get_argflag('--plot-test'),
+        'full_test': utool.get_argflag('--full-test'),
         'num_pca_dims': utool.get_argval('--num-pca-dims', type_=int, default=2),
         'data_dim': utool.get_argval('--data-dim', type_=int, default=2),
         'nump': utool.get_argval('--nump', type_=int, default=2000),

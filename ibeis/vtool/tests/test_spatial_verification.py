@@ -51,7 +51,7 @@ def test_sver(chip1, chip2, kpts1, kpts2, fm, nShow=6):
     for fnum, mx in enumerate(best_mxs[0:min(len(best_mxs), nShow)]):
         Aff = Aff_mats[mx]
         aff_inliers = inliers_list[mx]
-        if utool.get_flag('--print-error'):
+        if utool.get_argflag('--print-error'):
             errors = pack_errors(*errors_list[mx])  # NOQA
             print(utool.dict_str(errors, strvals=True))
 
