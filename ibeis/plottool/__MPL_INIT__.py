@@ -32,7 +32,7 @@ def init_matplotlib():
             print('[pt] current backend is: %r' % backend)
             print('[pt] mpl.use(%r)' % TARGET_BACKEND)
         if backend != TARGET_BACKEND:
-            if utool.get_flag('--leave-mpl-backend-alone'):
+            if utool.get_argflag('--leave-mpl-backend-alone'):
                 print('[pt] LEAVE THE BACKEND ALONE !!! was specified')
                 print('[pt] not changing mpl backend')
             else:
@@ -40,7 +40,7 @@ def init_matplotlib():
                 backend = mpl.get_backend()
             if not utool.QUIET and utool.VERBOSE:
                 print('[pt] current backend is: %r' % backend)
-        if utool.get_flag('--notoolbar'):
+        if utool.get_argflag('--notoolbar'):
             toolbar = 'None'
         else:
             toolbar = 'toolbar2'
