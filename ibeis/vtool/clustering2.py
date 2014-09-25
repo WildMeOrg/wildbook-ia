@@ -160,7 +160,10 @@ def akmeans_iterations(data, centroids, max_iters,
 
 
 def compute_centroids(data, centroids, datax2_centroidx):
-    """ Computes centroids given datax assignments
+    """
+    Computes centroids given datax assignments
+    TODO: maybe use the grouping code instad of the LR algorithm
+
     >>> from vtool.clustering2 import *  # NOQA
     >>> import numpy as np
     >>> np.random.seed(42)
@@ -193,6 +196,96 @@ def compute_centroids(data, centroids, datax2_centroidx):
         centroids[centroidx] = np.mean(data[datax_sortx[_L:_R]], axis=0)
         #centroids[centroidx] = np.array(np.round(centroids[centroidx]), dtype=np.uint8)
     return centroids
+
+
+#def group_indicies2(groupids):
+#    """
+#    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+
+#    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
+#    """
+#    # Sort items and groupids by groupid
+#    sortx = groupids.argsort()
+#    groupids_sorted = groupids[sortx]
+#    num_items = groupids.size
+#    # Find the boundaries between groups
+#    diff = np.ones(num_items + 1, groupids.dtype)
+#    diff[1:(num_items)] = np.diff(groupids_sorted)
+#    idxs = np.where(diff > 0)[0]
+#    num_groups = idxs.size - 1
+#    # Groups are between bounding indexes
+#    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
+#    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
+#    return groupxs
+
+
+#def group_indicies_pandas(groupids):
+#    # Pandas is actually unreasonably fast here
+#    word_assignments = pd.DataFrame(_idx2_wx, columns=['wx'])  # 141 us
+#    # Compute inverted index
+#    word_group = word_assignments.groupby('wx')  # 34.5 us
+#    _wx2_idxs = word_group['wx'].indices  # 8.6 us
+#    # Consistency check
+#    #for wx in _wx2_idxs.keys():
+#    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
+
+
+#@profile
+def group_indicies(groupids):
+    """
+    Total time: 1.29423 s
+    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+
+    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
+    """
+    # Sort items and groupids by groupid
+    sortx = groupids.argsort()  # 2.9%
+    groupids_sorted = groupids[sortx]  # 3.1%
+    num_items = groupids.size
+    # Find the boundaries between groups
+    diff = np.ones(num_items + 1, groupids.dtype)  # 8.6%
+    diff[1:(num_items)] = np.diff(groupids_sorted)  # 22.5%
+    idxs = np.where(diff > 0)[0]  # 8.8%
+    num_groups = idxs.size - 1  # 1.3%
+    # Groups are between bounding indexes
+    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T  # 28.8%
+    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]  # 17.5%
+    # Unique group keys
+    keys = groupids_sorted[idxs[0:num_groups]]  # 4.7%
+    #items_sorted = items[sortx]
+    #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
+    return keys, groupxs
+
+
+def apply_grouping(items, groupxs):
+    return [items.take(idxs, axis=0) for idxs in groupxs]
+    #return [items[idxs] for idxs in groupxs]
+
+
+def groupby(items, groupids):
+    """
+    >>> items    = np.array(np.arange(100))
+    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+    >>> items = groupids
+    """
+    keys, groupxs = group_indicies(groupids)
+    vals = [items[idxs] for idxs in groupxs]
+    return keys, vals
+
+
+def groupby_gen(items, groupids):
+    """
+    >>> items    = np.array(np.arange(100))
+    >>> groupids = np.array(np.random.randint(0, 4, size=100))
+    """
+    for key, val in zip(*groupby(items, groupids)):
+        yield (key, val)
+
+
+def groupby_dict(items, groupids):
+    # Build a dict
+    grouped = {key: val for key, val in groupby_gen(items, groupids)}
+    return grouped
 
 
 def sparse_normalize_rows(csr_mat):
