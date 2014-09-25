@@ -14,9 +14,9 @@ from ibeis.control import DB_SCHEMA
 # =======================
 # Helper Functions
 # =======================
-PRINT_SQL = utool.get_flag(('--print-sql', '--verbose-sql'))
-AUTODUMP = utool.get_flag('--auto-dump')
-NOT_QUIET = not (utool.QUIET or utool.get_flag('--quiet-sql'))
+PRINT_SQL = utool.get_argflag(('--print-sql', '--verbose-sql'))
+AUTODUMP = utool.get_argflag('--auto-dump')
+NOT_QUIET = not (utool.QUIET or utool.get_argflag('--quiet-sql'))
 
 
 def _results_gen(cur, get_last_id=False):

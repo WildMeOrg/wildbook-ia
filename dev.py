@@ -178,7 +178,7 @@ def up_dbsize_expt(ibs, qaid_list):
             upscores_dict[(qaid, gt_aid)]['score'].append(score)
     end_()
 
-    if not utool.get_flag('--noshow'):
+    if not utool.get_argflag('--noshow'):
         colors = df2.distinct_colors(len(upscores_dict))
         df2.figure(fnum=1, doclf=True, docla=True)
         for ix, ((qaid, gt_aid), upscores) in enumerate(upscores_dict.items()):

@@ -65,7 +65,7 @@ def _init_matplotlib():
     #        backend = mpl.get_backend()
     #        if not utool.QUIET and utool.VERBOSE:
     #            print('[main] current backend is: %r' % backend)
-    #    if utool.get_flag('--notoolbar'):
+    #    if utool.get_argflag('--notoolbar'):
     #        toolbar = 'None'
     #    else:
     #        toolbar = 'toolbar2'

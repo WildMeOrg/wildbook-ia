@@ -51,8 +51,8 @@ print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hs]', DEBUG=Fa
 
 
 TAU = 2 * np.pi  # tauday.com
-NOT_QUIET = utool.NOT_QUIET and not utool.get_flag('--quiet-query')
-VERBOSE = utool.VERBOSE or utool.get_flag('--verbose-query')
+NOT_QUIET = utool.NOT_QUIET and not utool.get_argflag('--quiet-query')
+VERBOSE = utool.VERBOSE or utool.get_argflag('--verbose-query')
 
 #=================
 # Globals

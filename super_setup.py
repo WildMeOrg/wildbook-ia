@@ -135,21 +135,21 @@ utool.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
 
 # Commands on global git repos
-if utool.get_flag('--status'):
+if utool.get_argflag('--status'):
     utool.gg_command('git status')
     utool.sys.exit(0)
 
-if utool.get_flag('--branch'):
+if utool.get_argflag('--branch'):
     utool.gg_command('git branch')
     utool.sys.exit(0)
 
 utool.gg_command('ensure')
 
-if utool.get_flag('--pull'):
+if utool.get_argflag('--pull'):
     utool.gg_command('git pull')
 
 
-if utool.get_flag('--tag-status'):
+if utool.get_argflag('--tag-status'):
     utool.gg_command('git tag')
 
 # Tag everything
@@ -158,10 +158,10 @@ if tag_name is not None:
     utool.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
     utool.gg_command('git push --tags')
 
-if utool.get_flag('--bext'):
+if utool.get_argflag('--bext'):
     utool.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
 
-if utool.get_flag('--build'):
+if utool.get_argflag('--build'):
     # Build tpl repos
     for repo in TPL_REPO_DIRS:
         utool.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
@@ -169,19 +169,19 @@ if utool.get_flag('--build'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
     utool.gg_command('sudo {pythoncmd} setup.py build'.format(**locals()))
 
-if utool.get_flag('--develop'):
+if utool.get_argflag('--develop'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
     utool.gg_command('sudo {pythoncmd} setup.py develop'.format(**locals()))
 
-if utool.get_flag('--install'):
+if utool.get_argflag('--install'):
     utool.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
     utool.gg_command('python setup.py install'.format(**locals()))
 
-if utool.get_flag('--test'):
+if utool.get_argflag('--test'):
     import ibeis
     print('found ibeis=%r' % (ibeis,))
 
-if utool.get_flag('--push'):
+if utool.get_argflag('--push'):
     utool.gg_command('git push')
 
 
@@ -189,7 +189,7 @@ commit_msg = utool.get_argval('--commit', type_=str, default=None)
 if commit_msg is not None:
     utool.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
 
-if utool.get_flag('--clean'):
+if utool.get_argflag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**locals()))
 
 # Change Branch
@@ -214,7 +214,7 @@ if newbranch_name2 is not None:
     utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
     utool.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
 
-if utool.get_flag('--serverchmod'):
+if utool.get_argflag('--serverchmod'):
     utool.gg_command('chmod -R 755 *')
 
 upstream_branch = utool.get_argval('--set-upstream', type_=str, default=None)

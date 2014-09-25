@@ -286,7 +286,7 @@ class IBEISController(object):
         # TODO: update cfgs between versions
         try:
             # Use pref cache
-            if utool.is_developer() or utool.get_flag(('--nocache-pref',)):
+            if utool.is_developer() or utool.get_argflag(('--nocache-pref',)):
                 raise Exception('')
             ibs.cfg.load()
             if utool.NOT_QUIET:

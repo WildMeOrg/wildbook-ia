@@ -17,7 +17,7 @@ print, print_, printDBG, rrr, profile = utool.inject(
 BATCH_MODE = '--nobatch' not in sys.argv
 NOMEMORY   = '--nomemory' in sys.argv
 TESTRES_VERBOSITY = 2 - (2 * utool.QUIET)
-NOCACHE_TESTRES =  utool.get_flag('--nocache-testres', False)
+NOCACHE_TESTRES =  utool.get_argflag('--nocache-testres', False)
 TEST_INFO = True
 STRICT = utool.STRICT
 

@@ -14,8 +14,8 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
 SKIP_TO = utool.get_argval('--skip-to', default=None)
-#SAVE_FIGURES = utool.get_flag(('--save-figures', '--sf'))
-SAVE_FIGURES = not utool.get_flag(('--nosave-figures', '--nosf'))
+#SAVE_FIGURES = utool.get_argflag(('--save-figures', '--sf'))
+SAVE_FIGURES = not utool.get_argflag(('--nosave-figures', '--nosf'))
 
 
 def get_diffmat_str(rank_mat, qaids, nCfg):
@@ -286,10 +286,10 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
         sel_rows = list(range(len(qaids)))
-    if utool.get_flag('--view-all'):
+    if utool.get_argflag('--view-all'):
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
-    if utool.get_flag('--view-hard'):
+    if utool.get_argflag('--view-hard'):
         sel_rows = new_hard_qx_list
         sel_cols = list(range(len(cfg_list)))
 
@@ -329,7 +329,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
 
     utool.view_directory(figdir, verbose=True)
 
-    VIEW_FIG_DIR = utool.get_flag(('--view-figures', '--vf'))
+    VIEW_FIG_DIR = utool.get_argflag(('--view-figures', '--vf'))
     if VIEW_FIG_DIR:
         utool.view_directory(figdir, verbose=True)
 

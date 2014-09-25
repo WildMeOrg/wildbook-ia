@@ -44,7 +44,7 @@ def default_decorator(input_):
 #        del self._cache[index]
 
 
-API_CACHE = utool.get_flag('--api-cache')
+API_CACHE = utool.get_argflag('--api-cache')
 if utool.in_main_process():
     if API_CACHE:
         print('[accessor_decors] API_CACHE IS ENABLED')

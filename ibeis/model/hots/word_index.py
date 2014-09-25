@@ -17,7 +17,7 @@ import vtool.nearest_words as nntool
 (print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[entroid_index]')
 
 
-NOCACHE_WORD = utool.get_flag('--nocache-word')
+NOCACHE_WORD = utool.get_argflag('--nocache-word')
 
 
 # TODO:

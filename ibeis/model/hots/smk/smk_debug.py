@@ -35,8 +35,8 @@ def testdata_ibeis(**kwargs):
     ibs = ibeis.opendb('PZ_MTEST')
     ibs._default_config()
     #aggregate = False
-    aggregate = kwargs.get('aggregate', utool.get_flag(('--agg', '--aggregate')))
-    #aggregate = not kwargs.get('aggregate', utool.get_flag(('--noagg', '--noaggregate')))
+    aggregate = kwargs.get('aggregate', utool.get_argflag(('--agg', '--aggregate')))
+    #aggregate = not kwargs.get('aggregate', utool.get_argflag(('--noagg', '--noaggregate')))
     default = 8E3
     nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=default)
     # Configs
@@ -637,7 +637,7 @@ def main():
     qreq_.ibs = ibs
     # Smk Mach
     qaid2_scores, qaid2_chipmatch_SMK = smk_match.selective_match_kernel(qreq_)
-    SVER = utool.get_flag('--sver')
+    SVER = utool.get_argflag('--sver')
     if SVER:
         qaid2_chipmatch_SVER_ = pipeline.spatial_verification(qaid2_chipmatch_SMK, qreq_)
         qaid2_chipmatch = qaid2_chipmatch_SVER_

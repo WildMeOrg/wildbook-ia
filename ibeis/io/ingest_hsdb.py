@@ -18,7 +18,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ingest_hsbd]')
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
 
-FORCE_DELETE = utool.get_flag('--force-delete')
+FORCE_DELETE = utool.get_argflag('--force-delete')
 
 
 def is_succesful_convert(dbdir):

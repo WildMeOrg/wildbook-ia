@@ -19,8 +19,8 @@ def default_decorator(func):
 
 VERBOSE = utool.VERBOSE
 VERYVERBOSE = utool.VERYVERBOSE
-QUIET = utool.QUIET or utool.get_flag('--quiet-sql')
-AUTODUMP = utool.get_flag('--auto-dump')
+QUIET = utool.QUIET or utool.get_argflag('--quiet-sql')
+AUTODUMP = utool.get_argflag('--auto-dump')
 
 """ If would be really great if we could get a certain set of setters, getters,
 and deleters to be indexed into only with rowids. If we could do this than for
@@ -95,7 +95,7 @@ class SQLDatabaseController(object):
         db.connection = lite.connect2(db.fpath)
         db.connection.text_factory = text_factory
         #db.connection.isolation_level = None  # turns sqlite3 autocommit off
-        COPY_TO_MEMORY = utool.get_flag('--copy-db-to-memory')
+        COPY_TO_MEMORY = utool.get_argflag('--copy-db-to-memory')
         if COPY_TO_MEMORY:
             db._copy_to_memory()
             db.connection.text_factory = text_factory

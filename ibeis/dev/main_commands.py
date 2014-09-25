@@ -61,9 +61,9 @@ def preload_commands(dbdir, **kwargs):
         sysres.set_workdir(params.args.workdir)
     if params.args.logdir is not None:
         sysres.set_logdir(params.args.logdir)
-    if utool.get_flag('--vwd'):
+    if utool.get_argflag('--vwd'):
         vwd()
-    if utool.get_flag('--vdq'):
+    if utool.get_argflag('--vdq'):
         print('got arg --vdq')
         vdq(dbdir)
     if kwargs.get('delete_ibsdir', False):

@@ -33,7 +33,7 @@ def TIME_GEN_PREPROC_IMG(ibs):
 
     # STABILITY
 
-    if not utool.get_flag('--nostable'):
+    if not utool.get_argflag('--nostable'):
         # TEST 1
         with utool.Timer('parallel chunksize=1'):
             output1 = list(add_images_params_gen(gpath_list, chunksize=1))
@@ -95,7 +95,7 @@ def TIME_GEN_PREPROC_FEAT(ibs):
 
     # STABILITY
 
-    if not utool.get_flag('--nostable'):
+    if not utool.get_argflag('--nostable'):
         # TEST 1
         with utool.Timer('parallel chunksize=1'):
             output1 = list(generate_feats(cfpath_list, chunksize=1))

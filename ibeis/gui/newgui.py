@@ -242,7 +242,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
-                                                  visible=utool.get_flag('--guilog'), verticalStretch=6)
+                                                  visible=utool.get_argflag('--guilog'), verticalStretch=6)
         ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         # New widget has black magic (for implicit layouts) in it
         ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,

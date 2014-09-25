@@ -8,7 +8,7 @@ from ibeis.model.detect import randomforest
 # IBEIS
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_DETECT]')
 
-SPECIAL = utool.get_flag('--special') or utool.inIPython()
+SPECIAL = utool.get_argflag('--special') or utool.inIPython()
 
 
 def TEST_DETECT(ibs):

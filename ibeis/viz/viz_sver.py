@@ -4,7 +4,7 @@ import plottool.draw_sv as draw_sv
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_misc]', DEBUG=False)
 
 
-WRITE_SV_DEBUG = utool.get_flag('--write-sv-debug')
+WRITE_SV_DEBUG = utool.get_argflag('--write-sv-debug')
 
 
 def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup):

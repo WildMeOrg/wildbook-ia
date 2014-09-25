@@ -18,7 +18,7 @@ from ibeis.model.hots.smk.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
-USE_CACHE_WORDS = not utool.get_flag('--nocache-words')
+USE_CACHE_WORDS = not utool.get_argflag('--nocache-words')
 #WITH_PANDAS = True
 WITH_PANDAS = False
 
