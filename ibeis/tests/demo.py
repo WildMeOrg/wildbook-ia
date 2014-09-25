@@ -16,7 +16,7 @@ if __name__ == '__main__':
     workdir = ibeis.get_workdir()
     demodir = join(workdir, 'demo')
 
-    if utool.get_arg('--reset'):
+    if utool.get_argval('--reset'):
         # Remove the previous demo if it exists
         utool.delete(demodir)
 

@@ -28,8 +28,8 @@ def show_aids(ibs, qaid_list):
 @devcmd()
 def change_names(ibs, qaid_list):
     """ Test to changes names """
-    #next_name = utool.get_arg('--name', str, default='<name>_the_<species>')
-    next_name = utool.get_arg('--name', str, default='glob')
+    #next_name = utool.get_argval('--name', str, default='<name>_the_<species>')
+    next_name = utool.get_argval('--name', str, default='glob')
     for aid in qaid_list:
         ibs.print_name_table()
         #(nid,) = ibs.add_names((next_name,))

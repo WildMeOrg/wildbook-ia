@@ -508,7 +508,7 @@ if __name__ == '__main__':
         ./ibeis/ingest/ingest_database.py --db [dbname]
 
         Valid dbnames:''') + utool.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
-    db = utool.get_arg('--db', str, None)
+    db = utool.get_argval('--db', str, None)
     force_delete = utool.get_flag('--force_delete')
     ibs = ingest_standard_database(db, force_delete)
     #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')

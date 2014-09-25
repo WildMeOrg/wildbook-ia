@@ -180,6 +180,6 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
 if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # win32
-    db = utool.get_arg('--db', str, None)
+    db = utool.get_argval('--db', str, None)
     dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
     convert_hsdb_to_ibeis(dbdir)

@@ -17,8 +17,8 @@ def TEST_INTERACT(ibs):
     * len(valid_gids) = %r
     ''' % (len(valid_aids), len(valid_gids)))
     assert len(valid_gids) > 0, 'database images cannot be empty for test'
-    gindex = int(utool.get_arg('--gx', default=0))
-    cindex = int(utool.get_arg('--rx', default=0))
+    gindex = int(utool.get_argval('--gx', default=0))
+    cindex = int(utool.get_argval('--rx', default=0))
     gid = valid_gids[gindex]
     aid_list = ibs.get_image_aids(gid)
     aid = aid_list[cindex]

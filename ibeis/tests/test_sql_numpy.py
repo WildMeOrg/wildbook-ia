@@ -11,7 +11,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_SQL_NUMPY]
 
 # list of 10,000 chips with 3,000 features apeice.
 def grab_numpy_testdata(shape=(3e3, 128), dtype=np.uint8):
-    ndata = utool.get_arg('--ndata', type_=int, default=2)
+    ndata = utool.get_argval('--ndata', type_=int, default=2)
     print('[TEST] build ndata=%d numpy arrays with shape=%r' % (ndata, shape))
     print(' * expected_memory(table_list) = %s' % utool.byte_str2(ndata * np.product(shape)))
     table_list = [np.empty(shape, dtype=dtype) for i in range(ndata)]

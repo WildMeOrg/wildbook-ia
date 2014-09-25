@@ -487,7 +487,7 @@ def testdata():
     #default = 1000
     default = 2E4
     #default=5)  # default=95000)
-    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
+    nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=default)
     return ibs, annots_df, taids, daids, qaids, nWords
 
 

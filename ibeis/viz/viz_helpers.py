@@ -10,14 +10,14 @@ from ibeis.control.accessor_decors import getter, getter_vector_output
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
 
 
-NO_LBL_OVERRIDE = utool.get_arg('--no-lbl-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = utool.get_argval('--no-lbl-override', type_=bool, default=None)
 
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
-IN_IMAGE_OVERRIDE = utool.get_arg('--in-image-override', type_=bool, default=None)
-SHOW_QUERY_OVERRIDE = utool.get_arg('--show-query-override', type_=bool, default=None)
-NO_LBL_OVERRIDE = utool.get_arg('--no-lbl-override', type_=bool, default=None)
+IN_IMAGE_OVERRIDE = utool.get_argval('--in-image-override', type_=bool, default=None)
+SHOW_QUERY_OVERRIDE = utool.get_argval('--show-query-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = utool.get_argval('--no-lbl-override', type_=bool, default=None)
 
 SIFT_OR_VECFIELD  = ph.SIFT_OR_VECFIELD
 

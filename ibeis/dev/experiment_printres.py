@@ -13,7 +13,7 @@ from ibeis.dev import experiment_helpers as eh
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
-SKIP_TO = utool.get_arg('--skip-to', default=None)
+SKIP_TO = utool.get_argval('--skip-to', default=None)
 #SAVE_FIGURES = utool.get_flag(('--save-figures', '--sf'))
 SAVE_FIGURES = not utool.get_flag(('--nosave-figures', '--nosf'))
 

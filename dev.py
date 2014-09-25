@@ -117,9 +117,9 @@ def up_dbsize_expt(ibs, qaid_list):
     """
     print('updbsize_expt')
     # clamp the number of groundtruth to test
-    clamp_gt = utool.get_arg('--clamp-gt', int, 1)
-    clamp_ft = utool.get_arg('--clamp-gf', int, 1)
-    num_samp = utool.get_arg('--num-samples', int, 5)
+    clamp_gt = utool.get_argval('--clamp-gt', int, 1)
+    clamp_ft = utool.get_argval('--clamp-gf', int, 1)
+    num_samp = utool.get_argval('--num-samples', int, 5)
     #
     # Determanism
     seed_ = 143039

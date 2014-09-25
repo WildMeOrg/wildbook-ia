@@ -38,7 +38,7 @@ def testdata_ibeis(**kwargs):
     aggregate = kwargs.get('aggregate', utool.get_flag(('--agg', '--aggregate')))
     #aggregate = not kwargs.get('aggregate', utool.get_flag(('--noagg', '--noaggregate')))
     default = 8E3
-    nWords = utool.get_arg(('--nWords', '--nCentroids'), int, default=default)
+    nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=default)
     # Configs
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate

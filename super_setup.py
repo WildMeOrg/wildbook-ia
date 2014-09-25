@@ -153,7 +153,7 @@ if utool.get_flag('--tag-status'):
     utool.gg_command('git tag')
 
 # Tag everything
-tag_name = utool.get_arg('--newtag', type_=str, default=None)
+tag_name = utool.get_argval('--newtag', type_=str, default=None)
 if tag_name is not None:
     utool.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
     utool.gg_command('git push --tags')
@@ -185,7 +185,7 @@ if utool.get_flag('--push'):
     utool.gg_command('git push')
 
 
-commit_msg = utool.get_arg('--commit', type_=str, default=None)
+commit_msg = utool.get_argval('--commit', type_=str, default=None)
 if commit_msg is not None:
     utool.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
 
@@ -193,23 +193,23 @@ if utool.get_flag('--clean'):
     utool.gg_command('{pythoncmd} setup.py clean'.format(**locals()))
 
 # Change Branch
-branch_name = utool.get_arg('--checkout', type_=str, default=None)
+branch_name = utool.get_argval('--checkout', type_=str, default=None)
 if branch_name is not None:
     utool.gg_command('git checkout "{branch_name}"'.format(**locals()))
 
 # Creates new branches
-newbranch_name = utool.get_arg('--newbranch', type_=str, default=None)
+newbranch_name = utool.get_argval('--newbranch', type_=str, default=None)
 if newbranch_name is not None:
     utool.gg_command('git stash"'.format(**locals()))
     utool.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
     utool.gg_command('git stash pop"'.format(**locals()))
 
 # Creates new branches
-mergebranch_name = utool.get_arg('--merge', type_=str, default=None)
+mergebranch_name = utool.get_argval('--merge', type_=str, default=None)
 if mergebranch_name is not None:
     utool.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
 
-newbranch_name2 = utool.get_arg('--newbranch2', type_=str, default=None)
+newbranch_name2 = utool.get_argval('--newbranch2', type_=str, default=None)
 if newbranch_name2 is not None:
     utool.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
     utool.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
@@ -217,18 +217,18 @@ if newbranch_name2 is not None:
 if utool.get_flag('--serverchmod'):
     utool.gg_command('chmod -R 755 *')
 
-upstream_branch = utool.get_arg('--set-upstream', type_=str, default=None)
+upstream_branch = utool.get_argval('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
     # git 2.0
     utool.gg_command('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
 
 
-upstream_push = utool.get_arg('--upstream-push', type_=str, default=None)
+upstream_push = utool.get_argval('--upstream-push', type_=str, default=None)
 if upstream_push is not None:
     utool.gg_command('git push --set-upstream origin {upstream_push}'.format(**locals()))
 
 
-gg_cmd = utool.get_arg('--gg', None)  # global command
+gg_cmd = utool.get_argval('--gg', None)  # global command
 if gg_cmd is not None:
     ans = raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
     if ans == 'yes':

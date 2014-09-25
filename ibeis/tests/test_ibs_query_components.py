@@ -21,7 +21,7 @@ def TEST_QUERY_COMP(ibs):
     print('[TEST_QUERY_COMP]')
     aids = ibs.get_valid_aids()
     index = 0
-    index = utool.get_arg('--index', type_=int, default=index)
+    index = utool.get_argval('--index', type_=int, default=index)
     qaid_list = utool.safe_slice(aids, index, index + 1)
     print('[TEST_QUERY_COMP] len(qaid_list)=%r' % (qaid_list))
     try:
