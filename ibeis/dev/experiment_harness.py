@@ -16,8 +16,7 @@ print, print_, printDBG, rrr, profile = utool.inject(
 
 BATCH_MODE = '--nobatch' not in sys.argv
 NOMEMORY   = '--nomemory' in sys.argv
-QUIET      = '--quiet' in sys.argv
-TESTRES_VERBOSITY = 2 - (2 * QUIET)
+TESTRES_VERBOSITY = 2 - (2 * utool.QUIET)
 NOCACHE_TESTRES =  utool.get_flag('--nocache-testres', False)
 TEST_INFO = True
 STRICT = utool.STRICT
@@ -45,7 +44,7 @@ def get_qx2_bestrank(ibs, qaids, nTotalQueries, nPrevQueries, cfglbl):
 @profile
 def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     # Test Each configuration
-    if not QUIET:
+    if not utool.QUIET:
         print(textwrap.dedent("""
         [harn]================
         [harn] experiment_harness.test_configurations()""").strip())
@@ -56,9 +55,9 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     #cfg_list = eh.get_cfg_list(test_cfg_name_list, ibs=ibs)
     cfg_list, cfgx2_lbl = eh.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
     cfgx2_lbl = np.array(cfgx2_lbl)
-    if not QUIET:
+    if not utool.QUIET:
         print('[harn] Testing %d different parameters' % len(cfg_list))
-        print('[harn]         %d different chips' % len(qaids))
+        print('[harn]         %d query annotations' % len(qaids))
 
     # Preallocate test result aggregation structures
     sel_cols = params.args.sel_cols  # FIXME
@@ -85,7 +84,7 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
     nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     with utool.Timer('experiment_harness'):
         for cfgx, query_cfg in enumerate(cfg_list):
-            if not QUIET:
+            if not utool.QUIET:
                 mark_prog(cfgx + 1, nCfg)
                 print(query_cfg.get_cfgstr())
             cfglbl = cfgx2_lbl[cfgx]
@@ -98,7 +97,7 @@ def test_configurations(ibs, qaid_list, test_cfg_name_list, fnum=1):
             if not NOMEMORY:
                 mat_list.append(qx2_bestranks)
             # Store the results
-    if not QUIET:
+    if not utool.QUIET:
         print('[harn] Finished testing parameters')
     if NOMEMORY:
         print('ran tests in memory savings mode. exiting')

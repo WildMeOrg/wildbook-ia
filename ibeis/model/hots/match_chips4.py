@@ -77,13 +77,13 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
 def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
-        if __debug__:
+        if utool.DEBUG2:
             qreq_.assert_self(ibs)  # SANITY CHECK
         # Try loading as many cached results as possible
         qaid2_qres_hit, cachemiss_qaids = hspipe.try_load_resdict(qreq_)
         cachemiss_quuids = ibs.get_annot_uuids(cachemiss_qaids)
         qreq_.set_external_qaids(cachemiss_qaids, cachemiss_quuids)  # FIXME: changes qreq_ state
-        #if __debug__:
+        #if utool.DEBUG2:
         #    qreq_.assert_self(ibs)  # SANITY CHECK
         if len(cachemiss_qaids) == 0:
             return qaid2_qres_hit
@@ -96,7 +96,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache=USE_CACHE):
     # Execute and save cachemiss queries
     qaid2_qres = hspipe.request_ibeis_query_L0(ibs, qreq_)  # execute queries
     # Cache save only misses
-    if __debug__:
+    if utool.DEBUG2:
         qreq_.assert_self(ibs)  # SANITY CHECK
     if SAVE_CACHE:
         hspipe.save_resdict(qreq_, qaid2_qres)

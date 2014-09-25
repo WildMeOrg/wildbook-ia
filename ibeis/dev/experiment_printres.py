@@ -319,15 +319,22 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         qres = ibs._query_chips([qaid], daids)[qaid]
         return qres
 
-    DELETE              = False
+    #DELETE              = False
     USE_FIGCACHE        = False
     DUMP_QANNOT         = True
     DUMP_QANNOT_DUMP_GT = True
     DUMP_TOP_CONTEXT    = True
 
     figdir = join(ibs.get_fig_dir(), 'query_analysis')
-    if DELETE:
-        utool.delete(figdir)
+
+    utool.view_directory(figdir, verbose=True)
+
+    VIEW_FIG_DIR = utool.get_flag(('--view-figures', '--vf'))
+    if VIEW_FIG_DIR:
+        utool.view_directory(figdir, verbose=True)
+
+    #if DELETE:
+    #    utool.delete(figdir)
 
     # Save DEFAULT=True
     def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):

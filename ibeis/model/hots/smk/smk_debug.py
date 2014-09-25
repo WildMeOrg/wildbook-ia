@@ -7,7 +7,8 @@ import ibeis
 import pandas as pd
 from ibeis.model.hots.smk import smk_index
 from ibeis.model.hots.smk import smk_match
-from  ibeis.model.hots import query_request
+from ibeis.model.hots.smk import pandas_helpers as pdh
+from ibeis.model.hots import query_request
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_debug]')
 
 
@@ -229,18 +230,60 @@ def check_invindex_wx2(invindex):
     check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
 
 
-def check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs):
-    print('checking wx2 for %d words' % (len(words)))
-    for wx in range(len(words)):
-        if wx not in wx2_fxs:
-            assert wx not in wx2_aids, 'in one but not others'
-            assert wx not in wx2_rvecs, 'in one but not others'
-        else:
-            fxs    = wx2_fxs[wx]
-            aids   = wx2_aids[wx]
-            rvecs  = wx2_rvecs[wx]
-            assert len(rvecs) == len(aids)
-            assert len(rvecs) == len(fxs)
+def wx_len_stats(wx2_xxx):
+    """
+    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+    >>> invindex = index_data_annots(annots_df, daids, words)
+    >>> qaid = qaids[0]
+    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = compute_query_repr(annots_df, qaid, invindex)
+    >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
+    """
+    import utool
+    if isinstance(wx2_xxx, dict):
+        return utool.mystats(map(len, wx2_xxx.values()))
+    stats_ = 'None' if wx2_xxx is None else utool.mystats(map(len, wx2_xxx))
+    return stats_
+
+
+def check_wx2(words=None, wx2_rvecs=None, wx2_aids=None, wx2_fxs=None):
+    """ provides debug info for mappings from word indexes to values
+    """
+    if words is None:
+        nWords = max(wx2_rvecs.keys()) + 1
+    else:
+        nWords = len(words)
+
+    print('[smk_debug] checking wx2 for %d words' % (nWords))
+    def missing_word(wx2_xxx, wx=None):
+        return (wx2_xxx is not None) and (wx not in wx2_xxx)
+
+    def missing_word_or_None(wx2_xxx, wx=None):
+        return (wx2_xxx is None) or (wx not in wx2_xxx)
+
+    def same_size_or_None(wx2_xxx1, wx2_xxx2, wx=None):
+        if (wx2_xxx1 is None or wx2_xxx2 is None):
+            return True
+        if missing_word(wx2_xxx1, wx) and missing_word(wx2_xxx2, wx):
+            return True
+        return len(wx2_xxx1[wx]) == len(wx2_xxx2[wx])
+
+    nMissing = 0
+    for wx in range(nWords):
+        if (missing_word(wx2_fxs, wx) or missing_word(wx2_aids, wx) or missing_word(wx2_rvecs, wx)):
+            assert missing_word_or_None(wx2_aids, wx), 'in one but not others'
+            assert missing_word_or_None(wx2_rvecs, wx), 'in one but not others'
+            assert missing_word_or_None(wx2_fxs, wx), 'in one but not others'
+            nMissing += 1
+        assert same_size_or_None(wx2_aids, wx2_rvecs, wx=None)
+        assert same_size_or_None(wx2_aids, wx2_fxs, wx=None)
+        assert same_size_or_None(wx2_rvecs, wx2_fxs, wx=None)
+
+    print('[smk_debug] %d words had 0 members' % nMissing)
+    print(' lenstats(wx2_rvecs) = ' + str(wx_len_stats(wx2_rvecs)))
+    print(' lenstats(wx2_aids)  = ' + str(wx_len_stats(wx2_aids)))
+    print(' lenstats(wx2_fxs)   = ' + str(wx_len_stats(wx2_fxs)))
 
 
 def check_wx2_rvecs(wx2_rvecs, verbose=True):
@@ -273,7 +316,6 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
     else:
         if verbose:
             print('[smk_debug] check_wx2_rvecs2 queryrepr index')
-    from ibeis.model.hots.smk import pandas_helpers as pdh
     flag = True
     nan_wxs = []
     no_wxs = []
@@ -331,11 +373,12 @@ def check_invindex(invindex, verbose=True):
 
 
 def check_daid2_gamma(daid2_gamma, verbose=True):
-    assert not np.any(np.isnan(daid2_gamma)), 'gammas are nan'
+    daid2_gamma_values = pdh.ensure_values(daid2_gamma)
+    assert not np.any(np.isnan(daid2_gamma_values)), 'gammas are nan'
     if verbose:
         print('database gammas are not nan')
         print('database gamma stats:')
-        print(utool.common_stats(daid2_gamma, newlines=True))
+        print(utool.common_stats(daid2_gamma_values, newlines=True))
 
 
 def test_gamma_cache():
@@ -474,20 +517,6 @@ def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
     print('[smk_debug] checked %d featmatches in %d chipmatches' % (featmatches, len(daid2_chipmatch)))
 
 
-def wx_len_stats(wx2_xxx):
-    """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-    >>> invindex = index_data_annots(annots_df, daids, words)
-    >>> qaid = qaids[0]
-    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = compute_query_repr(annots_df, qaid, invindex)
-    >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
-    """
-    stats_ = 'None' if wx2_xxx is None else utool.mystats(map(len, wx2_xxx))
-    return stats_
-
-
 def invindex_dbgstr(invindex):
     """
     >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
@@ -515,10 +544,10 @@ def invindex_dbgstr(invindex):
     keystr_list = utool.parse_locals_keylist(locals_, key_list)
     append = keystr_list.append
     stats_ = lambda x: str(wx_len_stats(x))
-    append('stats(invindex.wx2_idxs) = ' + stats_(invindex.wx2_idxs))
-    #append('stats(invindex.wx2_weight) = ' + stats_(invindex.wx2_weight))
-    append('stats(invindex.wx2_drvecs) = ' + stats_(invindex.wx2_drvecs))
-    append('stats(invindex.wx2_aids) = ' + stats_(invindex.wx2_aids))
+    append('lenstats(invindex.wx2_idxs) = ' + stats_(invindex.wx2_idxs))
+    #append('lenstats(invindex.wx2_weight) = ' + stats_(invindex.wx2_weight))
+    append('lenstats(invindex.wx2_drvecs) = ' + stats_(invindex.wx2_drvecs))
+    append('lenstats(invindex.wx2_aids) = ' + stats_(invindex.wx2_aids))
 
     if invindex.wx2_aids is not None:
         append('sum(map(len, invindex.wx2_aids)) = ' + str(sum(map(len, invindex.wx2_aids))))

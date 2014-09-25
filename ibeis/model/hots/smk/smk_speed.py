@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
 from ibeis.model.hots.smk import smk_core
-from ibeis.model.hots.smk.hstypes import FLOAT_TYPE
+from ibeis.model.hots.smk.hstypes import FLOAT_TYPE, VEC_DIM
+from vtool import clustering2 as clustertool
 from six.moves import zip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_speed]')
 
@@ -45,7 +46,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list):
 
     """
     #assert len(idxs_list) == len(rvecs_list)
-    grouptup_list = [group_indicies(aids) for aids in aids_list]  # 44%
+    grouptup_list = [clustertool.group_indicies(aids) for aids in aids_list]  # 44%
     # Agg aids
     aggaids_list = [tup[0] for tup in grouptup_list]
     groupxs_list = [tup[1] for tup in grouptup_list]
@@ -54,7 +55,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list):
         np.vstack([smk_core.aggregate_rvecs(rvecs.take(xs, axis=0))
                    for xs in groupxs])
         if len(groupxs) > 0 else
-        np.empty((0, 128), dtype=FLOAT_TYPE)
+        np.empty((0, VEC_DIM), dtype=FLOAT_TYPE)
         for rvecs, groupxs in zip(rvecs_list, groupxs_list)]  # 49.8%
     # Agg idxs
     aggidxs_list = [[idxs.take(xs) for xs in groupxs]
@@ -137,93 +138,3 @@ def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
         rvecs_n = smk_core.get_norm_rvecs(vecs, word)
         rvecs_arr[count] = rvecs_n
     return rvecs_arr
-
-
-def group_indicies2(groupids):
-    """
-    >>> groupids = np.array(np.random.randint(0, 4, size=100))
-
-    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
-    """
-    # Sort items and groupids by groupid
-    sortx = groupids.argsort()
-    groupids_sorted = groupids[sortx]
-    num_items = groupids.size
-    # Find the boundaries between groups
-    diff = np.ones(num_items + 1, groupids.dtype)
-    diff[1:(num_items)] = np.diff(groupids_sorted)
-    idxs = np.where(diff > 0)[0]
-    num_groups = idxs.size - 1
-    # Groups are between bounding indexes
-    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
-    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
-    return groupxs
-
-
-#def group_indicies_pandas(groupids):
-#    # Pandas is actually unreasonably fast here
-#    word_assignments = pd.DataFrame(_idx2_wx, columns=['wx'])  # 141 us
-#    # Compute inverted index
-#    word_group = word_assignments.groupby('wx')  # 34.5 us
-#    _wx2_idxs = word_group['wx'].indices  # 8.6 us
-#    # Consistency check
-#    #for wx in _wx2_idxs.keys():
-#    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
-
-
-#@profile
-def group_indicies(groupids):
-    """
-    Total time: 1.29423 s
-    >>> groupids = np.array(np.random.randint(0, 4, size=100))
-
-    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
-    """
-    # Sort items and groupids by groupid
-    sortx = groupids.argsort()  # 2.9%
-    groupids_sorted = groupids[sortx]  # 3.1%
-    num_items = groupids.size
-    # Find the boundaries between groups
-    diff = np.ones(num_items + 1, groupids.dtype)  # 8.6%
-    diff[1:(num_items)] = np.diff(groupids_sorted)  # 22.5%
-    idxs = np.where(diff > 0)[0]  # 8.8%
-    num_groups = idxs.size - 1  # 1.3%
-    # Groups are between bounding indexes
-    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T  # 28.8%
-    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]  # 17.5%
-    # Unique group keys
-    keys = groupids_sorted[idxs[0:num_groups]]  # 4.7%
-    #items_sorted = items[sortx]
-    #vals = [items_sorted[lx:rx] for lx, rx in lrx_pairs]
-    return keys, groupxs
-
-
-def apply_grouping(items, groupxs):
-    return [items.take(idxs, axis=0) for idxs in groupxs]
-    #return [items[idxs] for idxs in groupxs]
-
-
-def groupby(items, groupids):
-    """
-    >>> items    = np.array(np.arange(100))
-    >>> groupids = np.array(np.random.randint(0, 4, size=100))
-    >>> items = groupids
-    """
-    keys, groupxs = group_indicies(groupids)
-    vals = [items[idxs] for idxs in groupxs]
-    return keys, vals
-
-
-def groupby_gen(items, groupids):
-    """
-    >>> items    = np.array(np.arange(100))
-    >>> groupids = np.array(np.random.randint(0, 4, size=100))
-    """
-    for key, val in zip(*groupby(items, groupids)):
-        yield (key, val)
-
-
-def groupby_dict(items, groupids):
-    # Build a dict
-    grouped = {key: val for key, val in groupby_gen(items, groupids)}
-    return grouped

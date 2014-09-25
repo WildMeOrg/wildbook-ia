@@ -257,10 +257,12 @@ class QueryRequest(object):
         qreq_.indexer = indexer
 
     def lazy_load(qreq_, ibs):
-        qreq_.load_indexer(ibs)
-        qreq_.load_query_vectors(ibs)
-        qreq_.load_query_keypoints(ibs)
+        print('[qreq] lazy loading')
         qreq_.ibs = ibs  # HACK
+        if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+            qreq_.load_indexer(ibs)
+            qreq_.load_query_vectors(ibs)
+            qreq_.load_query_keypoints(ibs)
 
     def load_annot_nameids(qreq_, ibs):
         aids = list(set(utool.chain(qreq_.qaids, qreq_.daids)))
@@ -268,13 +270,14 @@ class QueryRequest(object):
         qreq_.aid2_nid = dict(zip(aids, nids))
 
     def assert_self(qreq_, ibs):
-        qaids = qreq_.get_external_qaids()
-        qauuids = qreq_.get_external_quuids()
-        daids = qreq_.get_external_daids()
-        dauuids = qreq_.get_external_duuids()
-        _qaids = qreq_.get_internal_qaids()
+        print('[qreq] ASSERT SELF')
+        qaids    = qreq_.get_external_qaids()
+        qauuids  = qreq_.get_external_quuids()
+        daids    = qreq_.get_external_daids()
+        dauuids  = qreq_.get_external_duuids()
+        _qaids   = qreq_.get_internal_qaids()
         _qauuids = qreq_.get_internal_quuids()
-        _daids = qreq_.get_internal_daids()
+        _daids   = qreq_.get_internal_daids()
         _dauuids = qreq_.get_internal_duuids()
         def assert_uuids(aids, uuids):
             if utool.NOT_QUIET:

@@ -2,7 +2,7 @@
 smk core
 """
 from __future__ import absolute_import, division, print_function
-import six
+#import six
 from six.moves import zip
 import numpy as np
 #import pandas as pd
@@ -11,6 +11,7 @@ import numpy.linalg as npl
 from ibeis.model.hots.smk.hstypes import FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk import pandas_helpers as pdh
 from itertools import product
+from vtool import clustering2 as clustertool
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
 
 
@@ -50,83 +51,71 @@ def get_norm_rvecs(vecs, word):
 
 
 #@profile
-def selectivity_function(rscore_mat, alpha=3, thresh=0):
-    """ sigma from SMK paper rscore = residual score """
-    scores = (np.sign(rscore_mat) * np.abs(rscore_mat)) ** alpha
-    scores[scores <= thresh] = 0
-    return scores
-
-
-#@profile
-def Match_N(vecs1, vecs2, alpha=3, thresh=0):
-    simmat = vecs1.dot(vecs2.T)
-    # Nanvectors were equal to the cluster center.
-    # This means that point was the only one in its cluster
-    # Therefore it is distinctive and should have a high score
-    simmat[np.isnan(simmat)] = 1.0
-    return selectivity_function(simmat, alpha=alpha, thresh=thresh)
-
-
-#@profile
-def gamma_summation(wx2_rvecs, wx2_weight):
+def gamma_summation2(rvecs_list, weight_list, alpha, thresh):
     r"""
     \begin{equation}
     \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
     \end{equation}
 
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots import smk
+    >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, taids, daids, qaids, nWords = smk.testdata()
-    >>> words = learn_visual_words(annots_df, taids, nWords)
-    >>> invindex = index_data_annots(annots_df, daids, words)
-    >>> wx2_weight = invindex.wx2_weight
-    >>> qaid = qaids[0]
+    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata()
     >>> wx2_qfxs, wx2_rvecs = compute_query_repr(annots_df, qaid, invindex)
     >>> assert smk_debug.check_wx2_rvecs(wx2_rvecs)
     >>> #print(utool.dict_str(smk_debug.wx2_rvecs_stats(wx2_rvecs)))
     >>> scoremat = smk_core.gamma_summation(wx2_rvecs, wx2_weight)
     >>> print(scoremat)
     0.0384477314197
-    """
-    gamma_iter = [wx2_weight.get(wx, 0) * Match_N(vecs.values, vecs.values).sum()
-                  for wx, vecs in six.iteritems(wx2_rvecs)]
-    summation = sum(gamma_iter)
-    scoremat = np.reciprocal(np.sqrt(summation))
-    return scoremat
 
-
-#@profile
-def gamma_summation2(rvecs_list, weight_list, alpha=3, thresh=0):
-    r"""
-    \begin{equation}
-    \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
-    \end{equation}
+    qrvecs_list = drvecs_list = rvecs_list
     """
-    simmat_list = [rvecs.dot(rvecs.T) for rvecs in rvecs_list]  # 0.4 %
-    for simmat in simmat_list:
-        simmat[np.isnan(simmat)] = 1  # .2%
-    # Selectivity function
-    scores_iter = (np.sign(simmat) * np.power(np.abs(simmat), alpha)
-                   for simmat in simmat_list)
-    scores_list = [scores * (scores > thresh) for scores in scores_iter]  # 1.3%
+    scores_list = score_matches(rvecs_list, rvecs_list, alpha, thresh)
     # Summation over query features
     score_list = [scores.sum() for scores in scores_list]
+    if utool.DEBUG2:
+        assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
+        assert len(weight_list) == len(score_list), 'bad weight and score'
     invgamma = np.multiply(weight_list, score_list).sum()
     gamma = np.reciprocal(np.sqrt(invgamma))
     return gamma
 
 
-def score_matches(qrvec_list, drvec_list, alpha, thresh):
-    # Phi dot product
-    simmat_list = [qrvecs.dot(drvecs.T)
-                   for qrvecs, drvecs in zip(qrvec_list, drvec_list)]  # 0.4 %
+def score_matches(qrvecs_list, drvecs_list, alpha, thresh):
+    """ Similarity + Selectivity: M(X_c, Y_c) """
+    simmat_list = similarity_function(qrvecs_list, drvecs_list)
+    scores_list = selectivity_function(simmat_list, alpha, thresh)
+    return scores_list
+
+
+def similarity_function(qrvecs_list, drvecs_list):
+    """ Phi dot product. Accounts for NaN residual vectors
+    qrvecs_list list of rvecs for each word
+    """
+    simmat_list = [
+        qrvecs.dot(drvecs.T)
+        for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)
+    ]
+    if utool.DEBUG2:
+        assert len(simmat_list) == len(qrvecs_list), 'bad simmat and qrvec'
+        assert len(simmat_list) == len(drvecs_list), 'bad simmat and drvec'
+    # Rvec is NaN implies it is a cluster center. perfect similarity
     for simmat in simmat_list:
-        simmat[np.isnan(simmat)] = 1  # .2%
-    # Selectivity function
-    scores_iter = (np.sign(simmat) * np.power(np.abs(simmat), alpha)
-                   for simmat in simmat_list)
-    scores_list = [scores * (scores > thresh) for scores in scores_iter]  # 1.3%
+        simmat[np.isnan(simmat)] = 1.0
+    return simmat_list
+
+
+#@profile
+def selectivity_function(simmat_list, alpha, thresh):
+    """ Selectivity function - sigma from SMK paper rscore = residual score """
+    alpha = 3
+    thresh = 0
+    scores_iter = [
+        np.multiply(np.sign(simmat), np.power(np.abs(simmat), alpha))
+        for simmat in simmat_list
+    ]
+    scores_list = [np.multiply(scores, np.greater(scores, thresh)) for scores in scores_iter]
+    if utool.DEBUG2:
+        assert len(scores_list) == len(simmat_list)
     return scores_list
 
 
@@ -155,33 +144,33 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     daid2_gamma = invindex.daid2_gamma
 
     # for each word compute the pairwise scores between matches
-    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))  # .2
+    common_wxs = set(wx2_qrvecs.keys()).intersection(set(wx2_drvecs.keys()))
     #print('+==============')
     if utool.VERBOSE:
         mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
                                         flushfreq=100, writefreq=25,
-                                        with_totaltime=False)
+                                        with_totaltime=True)
     #pd.Series(np.zeros(len(invindex.daids)), index=invindex.daids, name='agg_score')
     # Build lists over common word indexes
-    qrvec_list  = pdh.ensure_values_subset(wx2_qrvecs, common_wxs)
-    drvec_list  = pdh.ensure_values_subset(wx2_drvecs, common_wxs)
+    qrvecs_list  = pdh.ensure_values_subset(wx2_qrvecs, common_wxs)
+    drvecs_list  = pdh.ensure_values_subset(wx2_drvecs, common_wxs)
     daids_list  = pdh.ensure_values_subset(wx2_daid,   common_wxs)
     weight_list = pdh.ensure_values_subset(wx2_weight, common_wxs)
     if utool.DEBUG2:
-        assert len(qrvec_list) == len(drvec_list)
-        assert len(daids_list) == len(drvec_list)
-        assert len(weight_list) == len(drvec_list)
+        assert len(qrvecs_list) == len(drvecs_list)
+        assert len(daids_list)  == len(drvecs_list)
+        assert len(weight_list) == len(drvecs_list)
         assert len(weight_list) == len(common_wxs)
     # Summation over query features
-    scores_list = score_matches(qrvec_list, drvec_list, alpha, thresh)
+    scores_list = score_matches(qrvecs_list, drvecs_list, alpha, thresh)
     wscores_list = [weight * scores.sum(axis=0)
                     for scores, weight in zip(scores_list, weight_list)]
     # Accumulate daid scores
     daid2_aggscore   = utool.ddict(lambda: 0)
     # Weirdly iflatten was slower here
     for wscores, daids in zip(wscores_list, daids_list):
-        for daid, wscore in zip(daids, wscores):  # 1.7%
-            daid2_aggscore[daid] += wscore  # 1.8%
+        for daid, wscore in zip(daids, wscores):
+            daid2_aggscore[daid] += wscore
     daid_agg_keys   = np.array(list(daid2_aggscore.keys()))
     daid_agg_scores = np.array(list(daid2_aggscore.values()))
     daid_gamma_list = pdh.ensure_values_scalar_subset(daid2_gamma, daid_agg_keys)
@@ -194,7 +183,7 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
         daid2_chipmatch = build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids,
                                                  wx2_qfxs, scores_list,
                                                  weight_list, daids_list,
-                                                 query_gamma, daid2_gamma)  # 90.5%
+                                                 query_gamma, daid2_gamma)
     else:
         daid2_chipmatch = None
 
@@ -222,17 +211,11 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
                            scores_list, weight_list, daids_list, query_gamma,
                            daid2_gamma):
     """
-    Total time: 4.43759 s
     this builds the structure that the rest of the pipeline plays nice with
     """
     # FIXME: move groupby to vtool
-    from ibeis.model.hots.smk import smk_speed
     if utool.VERBOSE:
         print('[smk_core] build chipmatch')
-    #qfxs_list  = [qfxs for qfxs in wx2_qfxs[common_wxs]]
-    #dfxs_list  = [pdh.ensure_values(dfxs) for dfxs in wx2_dfxs[common_wxs]]
-    #qaids_list = [pdh.ensure_values(qaids) for qaids in wx2_qaids[common_wxs]]
-    #qaids_list = pdh.ensure_values_subset(wx2_qaids, common_wxs)
     wx2_dfxs  = invindex.wx2_fxs
     qfxs_list = pdh.ensure_values_subset(wx2_qfxs, common_wxs)
     dfxs_list = pdh.ensure_values_subset(wx2_dfxs, common_wxs)
@@ -300,21 +283,12 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     #assert len(all_daids) == len(all_scores)
     #assert len(all_fms) == len(all_scores)
 
-    daid_keys, groupxs = smk_speed.group_indicies(all_daids)
-    fs_list = smk_speed.apply_grouping(all_scores, groupxs)
-    fm_list = smk_speed.apply_grouping(all_fms, groupxs)
+    daid_keys, groupxs = clustertool.group_indicies(all_daids)
+    fs_list = clustertool.apply_grouping(all_scores, groupxs)
+    fm_list = clustertool.apply_grouping(all_fms, groupxs)
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
     daid2_fs = {daid: fs * daid2_gamma_[daid] for daid, fs in zip(daid_keys, fs_list)}
     daid2_fk = {daid: np.ones(fs.size) for daid, fs in zip(daid_keys, fs_list)}
     daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
 
     return daid2_chipmatch
-
-
-#import cyth
-#if cyth.DYNAMIC:
-#    exec(cyth.import_cyth_execstr(__name__))
-#else:
-#    pass
-#    # <AUTOGEN_CYTH>
-#    # </AUTOGEN_CYTH>

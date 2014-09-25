@@ -56,8 +56,7 @@ def train_paris_vocab(ibs):
     from vtool import clustering2 as clustertool
     print('vecs are: %r' % utool.get_object_size_str(vecs))
 
-    _words = clustertool.cached_akmeans(vecs, nWords, max_iters=500,
-                                        use_cache=True, appname='smk')
+    _words = clustertool.cached_akmeans(vecs, nWords, max_iters=500, use_cache=True, appname='smk')  # NOQA
 
     vec_mean = vecs.mean(axis=0).astype(np.float32)
     vec_mean.shape = (1, vec_mean.shape[0])
@@ -66,7 +65,7 @@ def train_paris_vocab(ibs):
     norm_.shape = (norm_.size, 1)
     vecs_norm = np.divide(arr1, norm_)  # , out=out)
     print('vecs_centered are: %r' % utool.get_object_size_str(vecs_centered))
-    vecs_post = np.round(128 * np.sqrt(np.abs(vecs_norm)) * np.sign(vecs_norm)).astype(np.int8)
+    vecs_post = np.round(128 * np.sqrt(np.abs(vecs_norm)) * np.sign(vecs_norm)).astype(np.int8)  # NOQA
 
 
 def postprocess_sift(vecs, vec_mean=None):
