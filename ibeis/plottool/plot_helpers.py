@@ -8,7 +8,7 @@ from os.path import join
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[plot_helpers]', DEBUG=False)
 
 
-SIFT_OR_VECFIELD = utool.get_arg('--vecfield', type_=bool)
+SIFT_OR_VECFIELD = utool.get_argval('--vecfield', type_=bool)
 
 
 def draw():
