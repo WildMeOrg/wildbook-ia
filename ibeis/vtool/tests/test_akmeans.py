@@ -55,9 +55,9 @@ if __name__ == '__main__':
     testkw = {
         'plot_test': utool.get_flag('--plot-test'),
         'full_test': utool.get_flag('--full-test'),
-        'num_pca_dims': utool.get_arg('--num-pca-dims', type_=int, default=2),
-        'data_dim': utool.get_arg('--data-dim', type_=int, default=2),
-        'nump': utool.get_arg('--nump', type_=int, default=2000),
+        'num_pca_dims': utool.get_argval('--num-pca-dims', type_=int, default=2),
+        'data_dim': utool.get_argval('--data-dim', type_=int, default=2),
+        'nump': utool.get_argval('--nump', type_=int, default=2000),
     }
     test_locals = utool.run_test(test_akmeans, **testkw)
     exec(utool.execstr_dict(test_locals, 'test_locals'))

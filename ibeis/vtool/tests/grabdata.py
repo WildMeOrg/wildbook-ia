@@ -21,7 +21,7 @@ def get_testdata_dir(ensure=True, key='testdb1'):
 
 def get_test_gpaths(ndata=None, names=None, **kwargs):
     # Read ndata from args or command line
-    ndata_arg = utool.get_arg('--ndata', type_=int, default=None, help_='use --ndata to specify bigger data')
+    ndata_arg = utool.get_argval('--ndata', type_=int, default=None, help_='use --ndata to specify bigger data')
     if ndata_arg is not None:
         ndata = ndata_arg
     imgdir = get_testdata_dir(**kwargs)
