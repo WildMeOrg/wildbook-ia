@@ -351,7 +351,7 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate,
     idx2_fx_values  = pdh.ensure_values(idx2_fx)
     wx_sublist      = pdh.ensure_index(wx2_idxs)
     # Build lists w.r.t. words
-    idxs_list = pdh.ensure_values_subset(wx2_idxs, wx_sublist)
+    idxs_list = [idxs.astype(INDEX_TYPE) for idxs in pdh.ensure_values_subset(wx2_idxs, wx_sublist)]
     aids_list = [idx2_aid_values.take(idxs) for idxs in idxs_list]
     #wx2_idxs_values = pdh.ensure_values_subset(wx2_idxs, wx_sublist)
     #idxs_list  = [pdh.ensure_values(idxsdf).astype(INDEX_TYPE) for idxsdf in wx2_idxs_values]   # 13 ms
