@@ -344,6 +344,8 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] delete_annot')
         if aid_list is None:
             aid_list = back.get_selected_aid()
+        if not back.are_you_sure():
+            return
         # get the image-id of the annotation we are deleting
         gid_list = back.ibs.get_annot_gids(aid_list)
         # delete the annotation
