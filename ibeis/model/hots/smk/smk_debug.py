@@ -106,7 +106,7 @@ def testdata_raw_internals1():
     nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
     idx_name = 'idx'
     _dbargs = (wordflann, words, idx2_vec, idx_name, dense, nAssign)
-    wx2_idxs, idx2_wx = smk_index.assign_to_words_(*_dbargs)
+    wx2_idxs, wx2_maws, idx2_wxs = smk_index.assign_to_words_(*_dbargs)
     #print(smk_debug.wx_len_stats(wx2_idxs))
     return ibs, annots_df, daids, qaids, invindex, wx2_idxs
 

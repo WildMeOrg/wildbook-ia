@@ -300,7 +300,8 @@ class QueryParams(object):
             thresh      = cfg.smk_cfg.thresh
             alpha       = cfg.smk_cfg.alpha
             indexer_key = cfg.smk_cfg.indexer_key
-            nWords      = cfg.smk_cfg.nWords
+            assign_alpha  = cfg.smk_cfg.assign_alpha
+            assign_sigma  = cfg.smk_cfg.assign_sigma
         K                  = cfg.nn_cfg.K
         Knorm              = cfg.nn_cfg.Knorm
         checks             = cfg.nn_cfg.checks

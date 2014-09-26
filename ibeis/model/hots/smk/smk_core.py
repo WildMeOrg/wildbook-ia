@@ -235,13 +235,13 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     # FIXME: Preflatten all of these lists
     out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]
     out_qfxs   = [[qfxs[ix] for (ix, jx) in ijs]
-                          for (qfxs, ijs) in zip(qfxs_list, out_ijs)]
+                  for (qfxs, ijs) in zip(qfxs_list, out_ijs)]
     out_dfxs   = [[dfxs[jx] for (ix, jx) in ijs]
-                          for (dfxs, ijs) in zip(dfxs_list, out_ijs)]
+                  for (dfxs, ijs) in zip(dfxs_list, out_ijs)]
     out_daids  = ([daids[jx] for (ix, jx) in ijs]
-                          for (daids, ijs) in zip(daids_list, out_ijs))
+                  for (daids, ijs) in zip(daids_list, out_ijs))
     out_scores = ([nscores[ijx] for ijx in ijs]
-                          for (nscores, ijs) in zip(nscores_iter, out_ijs))
+                  for (nscores, ijs) in zip(nscores_iter, out_ijs))
 
     # This code is incomprehensable. I feel ashamed.
 

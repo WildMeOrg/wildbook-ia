@@ -217,6 +217,11 @@ if newbranch_name2 is not None:
 if utool.get_argflag('--serverchmod'):
     utool.gg_command('chmod -R 755 *')
 
+if utool.get_argflag('--chown'):
+    username = os.environ['USERNAME']
+    usergroup = username
+    utool.gg_command('sudo chown -R {username}:{usergroup} *'.format(**locals()))
+
 upstream_branch = utool.get_argval('--set-upstream', type_=str, default=None)
 if upstream_branch is not None:
     # git 2.0

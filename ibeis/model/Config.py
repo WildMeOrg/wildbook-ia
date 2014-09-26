@@ -306,19 +306,27 @@ class SMKConfig(ConfigBase):
         smkcfg.nAssign = 1  # MultiAssignment
         smkcfg.thresh = 0  # tau in the paper
         smkcfg.alpha = 3
-        smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.aggregate = False  #
+        # TODO Separate into vocab config
+        smkcfg.indexer_key = 'default'  # Vocab
         smkcfg.nWords = 8E3  #
+        # Multiassign parameters
+        smkcfg.assign_alpha = 1.2
+        smkcfg.assign_sigma = 80
 
     def get_cfgstr_list(smkcfg):
         smk_cfgstr = [
             '_SMK(',
-            'szVocab=', str(smkcfg.nWords),
-            ',nAssign=', str(smkcfg.nAssign),
-            ',t=', str(smkcfg.thresh),
-            ',alpha=', str(smkcfg.alpha),
             ',agg=', str(smkcfg.aggregate),
-            ')', ]
+            ',t=', str(smkcfg.thresh),
+            ',a=', str(smkcfg.alpha),
+            ')_Vocab(',
+            'sz=', str(smkcfg.nWords),
+            ',K=', str(smkcfg.nAssign),
+            ',a=', str(smkcfg.assign_alpha),
+            ',s=', str(smkcfg.assign_sigma),
+            ')',
+        ]
         return smk_cfgstr
 
 
