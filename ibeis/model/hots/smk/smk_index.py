@@ -232,6 +232,7 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
     idx2_vec_values = pdh.ensure_values(idx2_vec)
     # Assign each vector to the nearest visual words
     _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec_values, nAssign)
+    _idx2_wx.shape = (idx2_vec_values.shape[0], nAssign)
     if nAssign > 1:
         # MultiAssignment Filtering from Improving Bag of Features
         # http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
@@ -410,8 +411,7 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
 
 #@utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
 @profile
-def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf,
-                        alpha=3, thresh=0):
+def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, alpha=3, thresh=0):
     """
     Computes gamma normalization scalar for the database annotations
     Internals step4
