@@ -44,6 +44,8 @@ CLUTTER_PATTERNS = [
 CLUTTER_DIRS = [
     'logs/',
     'dist/',
+    'ibeis/export',
+    'ibeis/ingest',
     '__pycache__/',
 ]
 
