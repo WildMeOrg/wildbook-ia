@@ -16,6 +16,7 @@ from ibeis.model.hots.smk import smk_speed
 from ibeis.model.hots.smk import pandas_helpers as pdh
 from ibeis.model.hots.smk.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
+from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
 USE_CACHE_WORDS = not utool.get_argflag('--nocache-words')
@@ -38,6 +39,7 @@ class InvertedIndex(object):
         invindex.wx2_idxs    = None     # word index -> stacked indexes
         invindex.wx2_aids    = None     # word index -> aggregate aids
         invindex.wx2_fxs     = None     # word index -> aggregate aids
+        invindex.wx2_maws    = None     # word index -> multi-assign weights
         invindex.wx2_drvecs  = None     # word index -> residual vectors
         invindex.wx2_idf     = None     # word index -> idf (wx normalizer)
         invindex.daid2_gamma = None     # word index -> gamma (daid normalizer)
@@ -47,6 +49,22 @@ class InvertedIndex(object):
     #    lbl = 'InvIndex'
     #    hashstr = utool.hashstr(repr(invindex.wx2_drvecs))
     #    return '_{lbl}({hashstr})'.format(lbl=lbl, hashstr=hashstr)
+
+#class QueryIndex(object):
+#    def __init__(qindex, wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma):
+#        qindex.wx2_qrvecs  = wx2_qrvecs
+#        qindex.wx2_qaids   = wx2_qaids
+#        qindex.wx2_qfxs    = wx2_qfxs
+#        qindex.query_gamma = query_gamma
+
+QueryIndex = namedtuple(
+    'QueryIndex', (
+        'wx2_qrvecs',
+        'wx2_maws',
+        'wx2_qaids',
+        'wx2_qfxs',
+        'query_gamma',
+    ))
 
 
 #@profile
@@ -183,9 +201,21 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(wordflann, words, idx2_vec,
                                                     nAssign=1, idx_name='idx',
                                                     dense=True)
+    if utool.DEBUG2:
+        assert len(idx2_wxs) == len(idx2_vec)
+        assert len(wx2_idxs.keys()) == len(wx2_maws.keys())
+        assert len(wx2_idxs.keys()) <= len(words)
+        try:
+            assert len(wx2_idxs.keys()) == len(words)
+        except AssertionError as ex:
+            utool.printex(ex, iswarning=True)
+
+        pass
     # Compute word weights
     wx2_idf = compute_word_idf_(
         wx_series, wx2_idxs, idx2_daid, daids)
+    if utool.DEBUG2:
+        assert len(wx2_idf) == len(wx2_idf.keys())
     # Compute residual vectors and inverse mappings
     wx2_drvecs, wx2_aids, wx2_fxs = compute_residuals_(
         words, wx2_idxs, idx2_vec, idx2_daid, idx2_dfx, aggregate)
@@ -200,6 +230,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     invindex.wx2_drvecs  = wx2_drvecs
     invindex.wx2_aids    = wx2_aids  # needed for asmk
     invindex.wx2_fxs     = wx2_fxs   # needed for asmk
+    invindex.wx2_maws    = wx2_maws  # needed for asmk
     invindex.daid2_gamma = daid2_gamma
 
     if utool.DEBUG2:
@@ -232,7 +263,8 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
     idx2_vec_values = pdh.ensure_values(idx2_vec)
     # Assign each vector to the nearest visual words
     _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec_values, nAssign)
-    _idx2_wx.shape = (idx2_vec_values.shape[0], nAssign)
+    _idx2_wx.shape    = (idx2_vec_values.shape[0], nAssign)
+    _idx2_wdist.shape = (idx2_vec_values.shape[0], nAssign)
     if nAssign > 1:
         # MultiAssignment Filtering from Improving Bag of Features
         # http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
@@ -254,7 +286,7 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
         idx2_maws = list(map(utool.filter_Nones, masked_maw.tolist()))
     else:
         idx2_wxs = _idx2_wx.tolist()
-        idx2_maws = [1.0] * len(idx2_wxs)
+        idx2_maws = [[1.0]] * len(idx2_wxs)
 
     # Invert mapping -- Group by word indexes
     jagged_idxs = ([idx] * len(wxs) for idx, wxs in enumerate(idx2_wxs))
@@ -407,6 +439,7 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
             from ibeis.model.hots.smk import smk_debug
             smk_debug.check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
         return wx2_rvecs, wx2_aids, wx2_fxs
+    return wx2_rvecs, wx2_aids, wx2_fxs
 
 
 #@utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
@@ -489,7 +522,8 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, alpha=3, thresh
 
 
 @profile
-def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thresh=0):
+def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
+                       thresh=0, nAssign=1):
     """
     Gets query read for computations
 
@@ -499,8 +533,10 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
     >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> query_repr = compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
-    >>> (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma) = query_repr
+    >>> nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
+    >>> _args = (annots_df, qaid, invindex, aggregate, alpha, thresh, nAssign)
+    >>> qindex = new_qindex(*_args)
+    >>> (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
     >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
     >>> invindex_dbgstr.invindex_dbgstr(invindex)
 
@@ -508,37 +544,46 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     idx2_vec = qfx2_vec
     idx2_aid = qfx2_aid
     idx2_fx = qfx2_qfx
-    wx2_idxs = wx2_qfxs1
+    wx2_idxs = _wx2_qfxs
     """
     if utool.VERBOSE:
         print('[smk_index] Query Repr qaid=%r' % (qaid,))
-    wx2_idf = invindex.wx2_idf
-    words = invindex.words
+    wx2_idf   = invindex.wx2_idf
+    words     = invindex.words
     wordflann = invindex.wordflann
     if WITH_PANDAS:
         qfx2_vec = annots_df['vecs'][qaid]
     else:
         qfx2_vec = pdh.ensure_values(annots_df['vecs'][qaid])
-    # Assign query to words
-    wx2_qfxs1, wx2_weights, qfx2_wxs = assign_to_words_(
-        wordflann, words, qfx2_vec, idx_name='fx', dense=False)  # 71.9 %
+    # Assign query to (multiple) words
+    _wx2_qfxs, wx2_maws, qfx2_wxs = assign_to_words_(
+        wordflann, words, qfx2_vec, nAssign=nAssign, idx_name='fx',
+        dense=False)
     # Hack to make implementing asmk easier, very redundant
-    #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), index=qfx2_wx.index, name='qfx2_aid')
-    #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), name='qfx2_aid')
     qfx2_aid = np.array([qaid] * len(qfx2_wxs), dtype=INTEGER_TYPE)
     if WITH_PANDAS:
+        #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), index=qfx2_wx.index, name='qfx2_aid')
+        #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), name='qfx2_aid')
         qfx2_qfx = qfx2_vec.index
     else:
         qfx2_qfx = np.arange(len(qfx2_vec))
     # Compute query residuals
     wx2_qrvecs, wx2_qaids, wx2_qfxs = compute_residuals_(
-        words, wx2_qfxs1, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)  # 24.8
+        words, _wx2_qfxs, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # Compute query gamma
     if utool.VERBOSE:
         print('[smk_index] Query Gamma alpha=%r, thresh=%r' % (alpha, thresh))
-    wx_sublist = pdh.ensure_index(wx2_qrvecs).astype(np.int32)
-    idf_list = pdh.ensure_values_subset(wx2_idf, wx_sublist)
-    rvecs_list  = pdh.ensure_values_subset(wx2_qrvecs, wx_sublist)
-    query_gamma = smk_core.gamma_summation2(rvecs_list, idf_list, alpha, thresh)
+    wx_sublist  = pdh.ensure_index(wx2_qrvecs).astype(np.int32)
+    if WITH_PANDAS:
+        idf_list    = pdh.ensure_values_subset(wx2_idf, wx_sublist)
+        rvecs_list  = pdh.ensure_values_subset(wx2_qrvecs, wx_sublist)
+    else:
+        idf_list    = [wx2_idf[wx] for wx in wx_sublist]
+        rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
+    query_gamma = smk_core.gamma_summation2(
+        rvecs_list, idf_list, alpha, thresh)
     assert query_gamma > 0, 'query gamma is not positive!'
-    return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma
+    qindex = QueryIndex(
+        wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma)
+    return qindex
+    #return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma

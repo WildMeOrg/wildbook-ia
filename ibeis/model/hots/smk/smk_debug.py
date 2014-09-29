@@ -37,15 +37,14 @@ def testdata_ibeis(**kwargs):
     #aggregate = False
     aggregate = kwargs.get('aggregate', utool.get_argflag(('--agg', '--aggregate')))
     #aggregate = not kwargs.get('aggregate', utool.get_argflag(('--noagg', '--noaggregate')))
-    default = 8E3
-    nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=default)
+    nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=8E3)
     # Configs
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
     ibs.cfg.query_cfg.smk_cfg.nWords = nWords
     ibs.cfg.query_cfg.smk_cfg.alpha = 3
     ibs.cfg.query_cfg.smk_cfg.thresh = 0
-    ibs.cfg.query_cfg.smk_cfg.nAssign = 1
+    ibs.cfg.query_cfg.smk_cfg.nAssign = 4
     return ibs
 
 
@@ -106,7 +105,10 @@ def testdata_raw_internals1():
     nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
     idx_name = 'idx'
     _dbargs = (wordflann, words, idx2_vec, idx_name, dense, nAssign)
-    wx2_idxs, wx2_maws, idx2_wxs = smk_index.assign_to_words_(*_dbargs)
+    (wx2_idxs, wx2_maws, idx2_wxs) = smk_index.assign_to_words_(*_dbargs)
+    invindex.wx2_idxs = wx2_idxs
+    invindex.wx2_maws = wx2_maws
+    invindex.idx2_wxs = idx2_wxs
     #print(smk_debug.wx_len_stats(wx2_idxs))
     return ibs, annots_df, daids, qaids, invindex, wx2_idxs
 
@@ -123,9 +125,12 @@ def testdata_raw_internals2():
     wx_series = np.arange(len(words))  # .index
     idx2_aid  = invindex.idx2_daid
     idx2_vec  = invindex.idx2_dvec
+    idx2_fx  = invindex.idx2_dfx
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
-    wx2_rvecs, wx2_aids = smk_index.compute_residuals_(words, idx2_vec, wx2_idxs, idx2_aid, aggregate)
+    wx2_idf = smk_index.compute_word_idf_(
+        wx_series, wx2_idxs, idx2_aid, daids)
+    wx2_rvecs, wx2_aids, wx2_fxs = smk_index.compute_residuals_(
+        words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate)
 
     #if False:
     #    wx2_aggrvecs, wx2_aggaids = smk_index.compute_residuals_(
@@ -145,6 +150,7 @@ def testdata_query_repr():
     >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
+    from ibeis.model.hots.smk import smk_index
     ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
     print('[smk_debug] testdata_query_repr')
     words     = invindex.words
@@ -153,7 +159,7 @@ def testdata_query_repr():
     wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     qaid = qaids[0]
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    invindex.wx2_weight = wx2_idf
+    invindex.wx2_idf = wx2_idf
     return ibs, annots_df, qaid, invindex
 
 
@@ -202,9 +208,9 @@ def testdata_match_kernel(**kwargs):
     print('[smk_debug] alpha = %r' % (alpha,))
     print('[smk_debug] thresh = %r' % (thresh,))
     print('L------------')
-    wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = smk_index.compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha, thresh)
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    return ibs, invindex, wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma
+    return ibs, invindex, qindex
 
 
 def testdata_nonagg_rvec():
@@ -222,7 +228,7 @@ def testdata_nonagg_rvec():
 
 def check_invindex_wx2(invindex):
     words = invindex.words
-    #wx2_weight = invindex.wx2_weight
+    #wx2_idf = invindex.wx2_idf
     wx2_rvecs = invindex.wx2_drvecs
     #wx2_idxs   = invindex.wx2_idxs
     wx2_aids   = invindex.wx2_aids  # needed for asmk
@@ -237,7 +243,7 @@ def wx_len_stats(wx2_xxx):
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
     >>> invindex = index_data_annots(annots_df, daids, words)
     >>> qaid = qaids[0]
-    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = compute_query_repr(annots_df, qaid, invindex)
+    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = new_qindex(annots_df, qaid, invindex)
     >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
     """
     import utool
@@ -388,16 +394,16 @@ def test_gamma_cache():
     invindex = smk_index.index_data_annots(annots_df, daids, words, with_internals)
     idx2_daid  = invindex.idx2_daid
     wx2_drvecs = invindex.wx2_drvecs
-    wx2_weight = invindex.wx2_weight
+    wx2_idf = invindex.wx2_idf
     daids      = invindex.daids
     daid2_gamma1 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
-                                                 wx2_weight, daids,
+                                                 wx2_idf, daids,
                                                  use_cache=True)
     daid2_gamma2 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
-                                                 wx2_weight, daids,
+                                                 wx2_idf, daids,
                                                  use_cache=False)
     daid2_gamma3 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
-                                                 wx2_weight, daids,
+                                                 wx2_idf, daids,
                                                  use_cache=True)
     check_daid2_gamma(daid2_gamma1)
     check_daid2_gamma(daid2_gamma2)
@@ -536,7 +542,7 @@ def invindex_dbgstr(invindex):
         'invindex.wx2_idxs.shape',
         'invindex.wx2_drvecs.shape',
         'invindex.wx2_drvecs.dtype',
-        'invindex.wx2_weight.shape',
+        'invindex.wx2_idf.shape',
         'invindex.daid2_gamma.shape',
         'invindex.wx2_aids.shape',
         'invindex.wx2_fxs.shape',
@@ -545,7 +551,7 @@ def invindex_dbgstr(invindex):
     append = keystr_list.append
     stats_ = lambda x: str(wx_len_stats(x))
     append('lenstats(invindex.wx2_idxs) = ' + stats_(invindex.wx2_idxs))
-    #append('lenstats(invindex.wx2_weight) = ' + stats_(invindex.wx2_weight))
+    #append('lenstats(invindex.wx2_idf) = ' + stats_(invindex.wx2_idf))
     append('lenstats(invindex.wx2_drvecs) = ' + stats_(invindex.wx2_drvecs))
     append('lenstats(invindex.wx2_aids) = ' + stats_(invindex.wx2_aids))
 
@@ -568,9 +574,9 @@ def query_smk_test(annots_df, invindex, qreq_):
     """
     ibeis interface
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_match
+    >>> from ibeis.model.hots import query_request  # NOQA
+    >>> from ibeis.model.hots.smk import smk_match  # NOQA
     >>> from ibeis.model.hots.smk import smk_debug
-    >>> from ibeis.model.hots import query_request
     >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
     >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
@@ -580,7 +586,7 @@ def query_smk_test(annots_df, invindex, qreq_):
 
     """
     from ibeis.model.hots import pipeline
-    from ibeis.model.hots.smk import smk_match
+    from ibeis.model.hots.smk import smk_match  # NOQA
     qaids = qreq_.get_external_qaids()
     qaid2_chipmatch = {}
     qaid2_scores    = {}
