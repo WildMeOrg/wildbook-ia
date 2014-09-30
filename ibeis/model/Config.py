@@ -317,7 +317,7 @@ class SMKConfig(ConfigBase):
     def get_cfgstr_list(smkcfg):
         smk_cfgstr = [
             '_SMK(',
-            ',agg=', str(smkcfg.aggregate),
+            'agg=', str(smkcfg.aggregate),
             ',t=', str(smkcfg.thresh),
             ',a=', str(smkcfg.alpha),
             ')_Vocab(',

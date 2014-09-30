@@ -168,7 +168,7 @@ class NeighborIndex(object):
         (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(qfx2_vec, K, checks=checks)
         return (qfx2_idx, qfx2_dist)
 
-    def empty_neighbors(K):
+    def empty_neighbors(nnindexer, K):
         qfx2_idx  = np.empty((0, K), dtype=np.int32)
         qfx2_dist = np.empty((0, K), dtype=np.float64)
         return (qfx2_idx, qfx2_dist)

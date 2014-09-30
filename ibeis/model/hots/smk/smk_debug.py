@@ -38,13 +38,14 @@ def testdata_ibeis(**kwargs):
     aggregate = kwargs.get('aggregate', utool.get_argflag(('--agg', '--aggregate')))
     #aggregate = not kwargs.get('aggregate', utool.get_argflag(('--noagg', '--noaggregate')))
     nWords = utool.get_argval(('--nWords', '--nCentroids'), int, default=8E3)
+    nAssign = utool.get_argval(('--nAssign', '--K'), int, default=4)
     # Configs
     ibs.cfg.query_cfg.pipeline_root = 'smk'
     ibs.cfg.query_cfg.smk_cfg.aggregate = aggregate
     ibs.cfg.query_cfg.smk_cfg.nWords = nWords
     ibs.cfg.query_cfg.smk_cfg.alpha = 3
     ibs.cfg.query_cfg.smk_cfg.thresh = 0
-    ibs.cfg.query_cfg.smk_cfg.nAssign = 4
+    ibs.cfg.query_cfg.smk_cfg.nAssign = nAssign
     return ibs
 
 
@@ -101,10 +102,8 @@ def testdata_raw_internals1():
     words  = invindex.words
     wordflann = invindex.wordflann
     idx2_vec  = invindex.idx2_dvec
-    dense = True
     nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    idx_name = 'idx'
-    _dbargs = (wordflann, words, idx2_vec, idx_name, dense, nAssign)
+    _dbargs = (wordflann, words, idx2_vec, nAssign)
     (wx2_idxs, wx2_maws, idx2_wxs) = smk_index.assign_to_words_(*_dbargs)
     invindex.wx2_idxs = wx2_idxs
     invindex.wx2_maws = wx2_maws
@@ -203,12 +202,14 @@ def testdata_match_kernel(**kwargs):
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     alpha = ibs.cfg.query_cfg.smk_cfg.alpha
     thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+    nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
     print('+------------')
     print('[smk_debug] aggregate = %r' % (aggregate,))
     print('[smk_debug] alpha = %r' % (alpha,))
     print('[smk_debug] thresh = %r' % (thresh,))
     print('L------------')
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha,
+                                  thresh, nAssign)
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
     return ibs, invindex, qindex
 
@@ -243,7 +244,7 @@ def wx_len_stats(wx2_xxx):
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
     >>> invindex = index_data_annots(annots_df, daids, words)
     >>> qaid = qaids[0]
-    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = new_qindex(annots_df, qaid, invindex)
+    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_tf = new_qindex(annots_df, qaid, invindex)
     >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
     """
     import utool
@@ -371,23 +372,23 @@ def check_invindex(invindex, verbose=True):
     >>> invindex = index_data_annots(annots_df, daids, words)
     """
     daids = invindex.daids
-    daid2_gamma = invindex.daid2_gamma
-    check_daid2_gamma(daid2_gamma, verbose=verbose)
-    assert daid2_gamma.shape[0] == daids.shape[0]
+    daid2_tf = invindex.daid2_tf
+    check_daid2_tf(daid2_tf, verbose=verbose)
+    assert daid2_tf.shape[0] == daids.shape[0]
     if verbose:
-        print('each aid has a gamma')
+        print('each aid has a tf')
 
 
-def check_daid2_gamma(daid2_gamma, verbose=True):
-    daid2_gamma_values = pdh.ensure_values(daid2_gamma)
-    assert not np.any(np.isnan(daid2_gamma_values)), 'gammas are nan'
+def check_daid2_tf(daid2_tf, verbose=True):
+    daid2_tf_values = pdh.ensure_values(daid2_tf)
+    assert not np.any(np.isnan(daid2_tf_values)), 'tfs are nan'
     if verbose:
-        print('database gammas are not nan')
-        print('database gamma stats:')
-        print(utool.common_stats(daid2_gamma_values, newlines=True))
+        print('database tfs are not nan')
+        print('database tf stats:')
+        print(utool.common_stats(daid2_tf_values, newlines=True))
 
 
-def test_gamma_cache():
+def test_tf_cache():
     ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
     words = smk_index.learn_visual_words(annots_df, taids, nWords)
     with_internals = True
@@ -396,22 +397,22 @@ def test_gamma_cache():
     wx2_drvecs = invindex.wx2_drvecs
     wx2_idf = invindex.wx2_idf
     daids      = invindex.daids
-    daid2_gamma1 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
+    daid2_tf1 = smk_index.compute_data_tf_(idx2_daid, wx2_drvecs,
                                                  wx2_idf, daids,
                                                  use_cache=True)
-    daid2_gamma2 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
+    daid2_tf2 = smk_index.compute_data_tf_(idx2_daid, wx2_drvecs,
                                                  wx2_idf, daids,
                                                  use_cache=False)
-    daid2_gamma3 = smk_index.compute_data_gamma_(idx2_daid, wx2_drvecs,
+    daid2_tf3 = smk_index.compute_data_tf_(idx2_daid, wx2_drvecs,
                                                  wx2_idf, daids,
                                                  use_cache=True)
-    check_daid2_gamma(daid2_gamma1)
-    check_daid2_gamma(daid2_gamma2)
-    check_daid2_gamma(daid2_gamma3)
-    if not np.all(daid2_gamma2 == daid2_gamma3):
-        raise AssertionError('caching error in gamma')
-    if not np.all(daid2_gamma1 == daid2_gamma2):
-        raise AssertionError('cache outdated in gamma')
+    check_daid2_tf(daid2_tf1)
+    check_daid2_tf(daid2_tf2)
+    check_daid2_tf(daid2_tf3)
+    if not np.all(daid2_tf2 == daid2_tf3):
+        raise AssertionError('caching error in tf')
+    if not np.all(daid2_tf1 == daid2_tf2):
+        raise AssertionError('cache outdated in tf')
 
 
 def check_dtype(annots_df):
@@ -543,7 +544,7 @@ def invindex_dbgstr(invindex):
         'invindex.wx2_drvecs.shape',
         'invindex.wx2_drvecs.dtype',
         'invindex.wx2_idf.shape',
-        'invindex.daid2_gamma.shape',
+        'invindex.daid2_tf.shape',
         'invindex.wx2_aids.shape',
         'invindex.wx2_fxs.shape',
     ]
@@ -619,6 +620,9 @@ def main():
     """
     >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
+    print('+------------')
+    print('SMK_DEBUG MAIN')
+    print('+------------')
     from ibeis.model.hots import pipeline
     ibs, annots_df, taids, daids, qaids, nWords = testdata_dataframe()
     # Query using SMK
@@ -628,13 +632,17 @@ def main():
     aggregate = qreq_.qparams.aggregate
     alpha     = qreq_.qparams.alpha
     thresh    = qreq_.qparams.thresh
+    nAssign   = qreq_.qparams.nAssign
     #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     #alpha = ibs.cfg.query_cfg.smk_cfg.alpha
     #thresh = ibs.cfg.query_cfg.smk_cfg.thresh
     print('+------------')
+    print('SMK_DEBUG PARAMS')
     print('[smk_debug] aggregate = %r' % (aggregate,))
-    print('[smk_debug] alpha = %r' % (alpha,))
-    print('[smk_debug] thresh = %r' % (thresh,))
+    print('[smk_debug] alpha   = %r' % (alpha,))
+    print('[smk_debug] thresh  = %r' % (thresh,))
+    print('[smk_debug] nWords  = %r' % (nWords,))
+    print('[smk_debug] nAssign = %r' % (nAssign,))
     print('L------------')
     # Learn vocabulary
     #words = qreq_.words = smk_index.learn_visual_words(annots_df, taids, nWords)
@@ -642,13 +650,25 @@ def main():
     #qreq_.invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate, alpha, thresh)
     qreq_.ibs = ibs
     # Smk Mach
+    print('+------------')
+    print('SMK_DEBUG MATCH KERNEL')
+    print('+------------')
     qaid2_scores, qaid2_chipmatch_SMK = smk_match.selective_match_kernel(qreq_)
     SVER = utool.get_argflag('--sver')
     if SVER:
+        print('+------------')
+        print('SMK_DEBUG SVER? YES!')
+        print('+------------')
         qaid2_chipmatch_SVER_ = pipeline.spatial_verification(qaid2_chipmatch_SMK, qreq_)
         qaid2_chipmatch = qaid2_chipmatch_SVER_
     else:
+        print('+------------')
+        print('SMK_DEBUG SVER? NO')
+        print('+------------')
         qaid2_chipmatch = qaid2_chipmatch_SMK
+    print('+------------')
+    print('SMK_DEBUG DISPLAY RESULT')
+    print('+------------')
     filt2_meta = {}
     qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
     for count, (qaid, qres) in enumerate(six.iteritems(qaid2_qres_)):
@@ -662,7 +682,7 @@ def main():
                 print('scorediff aid=%r, smkscore=%r, sumscore=%r' % (aid, smkscore, sumscore))
 
         scores = qaid2_scores[qaid]
-        print(scores)
+        #print(scores)
         print(qres.get_inspect_str(ibs))
         print('L================')
         #utool.embed()
