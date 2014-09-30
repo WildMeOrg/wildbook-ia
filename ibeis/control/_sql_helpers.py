@@ -7,7 +7,6 @@ import six
 import logging
 
 from ibeis import constants
-from ibeis.control import DB_SCHEMA
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql-helpers]')
 
@@ -49,25 +48,6 @@ def _unpacker(results_):
     return results
 
 
-# ========================
-# Schema Updater Functions
-# ========================
-
-def ensure_correct_version(ibs):
-    version = ibs.get_database_version()
-    version_expected = ibs.db_version_expected
-    print('[ensure_correct_version] Database version: %r | Expected version: %r '
-            %(version, version_expected))
-    if version < version_expected:
-        print('[ensure_correct_version] Database version behind, updating...')
-        update_schema_version(ibs, version, version_expected)
-        ibs.set_database_version(version_expected)
-        print('[ensure_correct_version] Database version updated to %r'
-            %(version_expected))
-    elif version > version_expected:
-        raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
-
-
 def compare_string_versions(a, b):
     a = map(int, a.strip().split('.'))
     b = map(int, b.strip().split('.'))
@@ -93,10 +73,29 @@ def compare_string_versions(a, b):
     raise AssertionError('[!update_schema_version] Two version numbers are the same along the update path')
 
 
-def update_schema_version(ibs, version, version_target):
-    db_backup_fpath = ibs.db.fpath + '-backup'
-    utool.copy(ibs.db.fpath, db_backup_fpath)
-    valid_versions = sorted(DB_SCHEMA.VALID_VERSIONS.keys(), compare_string_versions)
+# ========================
+# Schema Updater Functions
+# ========================
+
+
+def ensure_correct_version(ibs, db, version_expected, db_versions):
+    version = ibs.get_database_version(db)
+    print('[ensure_correct_version] Database version: %r | Expected version: %r '
+            %(version, version_expected))
+    if version < version_expected:
+        print('[ensure_correct_version] Database version behind, updating...')
+        update_schema_version(ibs, db.fpath, db_versions, version, version_expected)
+        ibs.set_database_version(db, version_expected)
+        print('[ensure_correct_version] Database version updated to %r'
+            %(version_expected))
+    elif version > version_expected:
+        raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
+
+
+def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
+    db_backup_fpath = db_fpath + '-backup'
+    utool.copy(db_fpath, db_backup_fpath)
+    valid_versions = sorted(db_versions.keys(), compare_string_versions)
     try:
         start_index = valid_versions.index(version) + 1
     except Exception:
@@ -111,7 +110,7 @@ def update_schema_version(ibs, version, version_target):
         for index in range(start_index, end_index):
             next_version = valid_versions[index]
             print('Updating database to version: %r' %(next_version))
-            pre, update, post = DB_SCHEMA.VALID_VERSIONS[next_version]
+            pre, update, post = db_versions[next_version]
             if pre is not None:
                 pre(ibs)
             if update is not None:
@@ -119,17 +118,19 @@ def update_schema_version(ibs, version, version_target):
             if post is not None:
                 post(ibs)
     except Exception as e:
-        utool.remove_file(ibs.db.fpath)
-        utool.copy(db_backup_fpath, ibs.db.fpath)
+        utool.remove_file(db_fpath)
+        utool.copy(db_backup_fpath, db_fpath)
         utool.remove_file(db_backup_fpath)
         logging.exception("'The database update failed, rolled back to the original version.")
         raise
 
     utool.remove_file(db_backup_fpath)
 
+
 # =======================
 # SQL Context Class
 # =======================
+
 
 class SQLExecutionContext(object):
     """ A good with context to use around direct sql calls

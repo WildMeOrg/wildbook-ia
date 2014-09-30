@@ -189,6 +189,7 @@ def post_1_0_0(ibs):
 
 
 def update_1_0_1(ibs):
+    # Add a contributor's table
     ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
         ('contributor_rowid',            'INTEGER PRIMARY KEY'),
         ('contributor_tag',              'TEXT'),
@@ -206,17 +207,17 @@ def update_1_0_1(ibs):
         ''')
 
     ibs.db.modify_table(constants.IMAGE_TABLE, (
-        # add column at index 1
+        # add column to v1.0.0 at index 1
         (1, 'contributor_rowid', 'INTEGER', None),
     ))
 
     ibs.db.modify_table(constants.ANNOTATION_TABLE, (
-        # add column at index 1
+        # add column to v1.0.0 at index 1
         (1, 'annot_parent_rowid', 'INTEGER', None),
     ))
 
     ibs.db.modify_table(constants.FEATURE_TABLE, (
-        # append column because None
+        # append column to v1.0.0 because None
         (None, 'feature_weight', 'REAL DEFAULT 1.0', None),
     ))
 
@@ -227,12 +228,51 @@ def update_1_0_1(ibs):
 
 
 def update_1_0_2(ibs):
+    # Fix the contibutor table's constraint
     ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+        # add column to v1.0.1 at index 1
         (1, 'contributor_uuid', 'UUID NOT NULL', None),
     ),
         table_constraints=[],
         superkey_colnames=['contributor_tag']
     )
+
+# =======================
+# Schema Version 1.0.3
+# =======================
+
+
+def update_1_1_0(ibs):
+    # Moving chips and features to their own cache database
+    ibs.db.drop_table(constants.CHIP_TABLE)
+    ibs.db.drop_table(constants.FEATURE_TABLE)
+
+    # Add viewpoint (radians) to annotations
+    ibs.db.modify_table(constants.ANNOTATION_TABLE, (
+        # add column to v1.0.2 at index 11
+        (11, 'annot_viewpoint', 'REAL DEFAULT 0.0', None),
+    ))
+
+    # Add contributor to configs
+    ibs.db.modify_table(constants.CONFIG_TABLE, (
+        # add column to v1.0.2 at index 1
+        (1, 'contributor_uuid', 'UUID', None),
+    ),
+        table_constraints=[],
+        superkey_colnames=['contributor_uuid', 'config_suffix']
+    )
+
+    # Add config to encounters
+    ibs.db.modify_table(constants.ENCOUNTER_TABLE, (
+        # add column to v1.0.2 at index 2
+        (2, 'config_rowid', 'INTEGER', None),
+    ),
+        table_constraints=[],
+        superkey_colnames=['encounter_uuid', 'encounter_text']
+    )
+
+    # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
+    ibs.db.drop_table(constants.VERSIONS_TABLE)
 
 
 # ========================
@@ -247,4 +287,5 @@ VALID_VERSIONS = {
     '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
     '1.0.1':    (None,                 update_1_0_1,       None                ),
     '1.0.2':    (None,                 update_1_0_2,       None                ),
+    '1.1.0':    (None,                 update_1_1_0,       None                ),
 }

@@ -6,17 +6,18 @@ import numpy as np
 
 class PATH_NAMES(object):
     """ Path names for internal IBEIS database """
-    sqldb     = '_ibeis_database.sqlite3'
-    _ibsdb    = '_ibsdb'
-    cache     = '_ibeis_cache'
-    chips     = 'chips'
-    flann     = 'flann'
-    images    = 'images'
-    qres      = 'qres'
-    bigcache  = 'bigcache'
-    detectimg = 'detectimg'
-    thumbs    = 'thumbs'
-    trashdir  = 'trashed_images'
+    sqldb      = '_ibeis_database.sqlite3'
+    sqldbcache = '_ibeis_database_cache.sqlite3'
+    _ibsdb     = '_ibsdb'
+    cache      = '_ibeis_cache'
+    chips      = 'chips'
+    flann      = 'flann'
+    images     = 'images'
+    qres       = 'qres'
+    bigcache   = 'bigcache'
+    detectimg  = 'detectimg'
+    thumbs     = 'thumbs'
+    trashdir   = 'trashed_images'
 
 UNKNOWN_LBLANNOT_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME

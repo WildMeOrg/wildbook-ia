@@ -43,6 +43,7 @@ from ibeis.model.hots import match_chips4 as mc4
 # from ibeis.control import DB_SCHEMA
 from ibeis.control import _sql_helpers
 from ibeis.control import SQLDatabaseControl as sqldbc
+from ibeis.control import DB_SCHEMA, DBCACHE_SCHEMA
 from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
                                            getter_1to1, ider, deleter,
                                            default_decorator, cache_getter,
@@ -156,6 +157,7 @@ class IBEISController(object):
         ibs.dbname = dbname
         PATH_NAMES = constants.PATH_NAMES
         ibs.sqldb_fname = PATH_NAMES.sqldb
+        ibs.sqldbcache_fname = PATH_NAMES.sqldbcache
 
         # Make sure you are not nesting databases
         assert PATH_NAMES._ibsdb != utool.dirsplit(ibs.workdir), \
@@ -190,9 +192,24 @@ class IBEISController(object):
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
-        ibs.db_version_expected = '1.0.1'
+        # IBEIS SQL State Database
+        ibs.db_version_expected = '1.1.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
-        _sql_helpers.ensure_correct_version(ibs)
+        _sql_helpers.ensure_correct_version(ibs, 
+            ibs.db, 
+            ibs.db_version_expected, 
+            DB_SCHEMA.VALID_VERSIONS
+        )
+
+        # IBEIS SQL Features & Chips database
+        ibs.dbcache_version_expected = '1.0.0'
+        ibs.dbcache = sqldbc.SQLDatabaseController(ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=__STR__)
+        _sql_helpers.ensure_correct_version(ibs, 
+            ibs.dbcache, 
+            ibs.dbcache_version_expected, 
+            DBCACHE_SCHEMA.VALID_VERSIONS
+        )
+        
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs.UNKNOWN_LBLANNOT_ROWID = 0  # ADD TO CONSTANTS
@@ -404,14 +421,14 @@ class IBEISController(object):
     def _get_all_cids(ibs):
         """ Returns unfiltered cids (computed chip rowids) for every
         configuration (YOU PROBABLY SHOULD NOT USE THIS) """
-        all_cids = ibs.db.get_all_rowids(CHIP_TABLE)
+        all_cids = ibs.dbcache.get_all_rowids(CHIP_TABLE)
         return all_cids
 
     @ider
     def _get_all_fids(ibs):
         """ Returns unfiltered fids (computed feature rowids) for every
         configuration (YOU PROBABLY SHOULD NOT USE THIS)"""
-        all_fids = ibs.db.get_all_rowids(FEATURE_TABLE)
+        all_fids = ibs.dbcache.get_all_rowids(FEATURE_TABLE)
         return all_fids
 
     @ider
@@ -523,7 +540,7 @@ class IBEISController(object):
         """ Valid chip rowids of the current configuration """
         # FIXME: configids need reworking
         chip_config_rowid = ibs.get_chip_config_rowid()
-        cid_list = ibs.db.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
+        cid_list = ibs.dbcache.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
         return cid_list
 
     @ider
@@ -531,7 +548,7 @@ class IBEISController(object):
         """ Valid feature rowids of the current configuration """
         # FIXME: configids need reworking
         feat_config_rowid = ibs.get_feat_config_rowid()
-        fid_list = ibs.db.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
+        fid_list = ibs.dbcache.get_all_rowids_where(FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
         return fid_list
 
     @ider
@@ -546,15 +563,15 @@ class IBEISController(object):
     #---------------
 
     @adder
-    def add_metadata(ibs, metadata_key_list, metadata_value_list):
+    def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
         """ Adds a list of names. Returns their nids """
         if utool.VERBOSE:
             print('[ibs] adding %d metadata' % len(metadata_key_list))
         # Add encounter text names to database
         colnames = ['metadata_key', 'metadata_value']
         params_iter = zip(metadata_key_list, metadata_value_list)
-        get_rowid_from_superkey = ibs.get_metadata_rowid_from_metadata_key
-        metadata_id_list = ibs.db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        get_rowid_from_superkey = partial(ibs.get_metadata_rowid_from_metadata_key, db=(db,))
+        metadata_id_list = db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return metadata_id_list
 
     @adder
@@ -776,7 +793,7 @@ class IBEISController(object):
             colnames = ('annot_rowid', 'chip_uri', 'chip_width', 'chip_height',
                         'config_rowid',)
             get_rowid_from_superkey = partial(ibs.get_annot_cids, ensure=False)
-            cid_list = ibs.db.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
+            cid_list = ibs.dbcache.add_cleanly(CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         return cid_list
 
@@ -792,7 +809,7 @@ class IBEISController(object):
             colnames = ('chip_rowid', 'feature_num_feats', 'feature_keypoints',
                         'feature_sifts', 'config_rowid',)
             get_rowid_from_superkey = partial(ibs.get_chip_fids, ensure=False)
-            fid_list = ibs.db.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
+            fid_list = ibs.dbcache.add_cleanly(FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
         return fid_list
 
@@ -805,18 +822,18 @@ class IBEISController(object):
     # SETTERS::METADATA
 
     @setter
-    def set_metadata_value(ibs, metadata_key_list, metadata_value_list):
+    def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
         """ Sets metadata key, value pairs
         """
-        metadata_id_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list)
+        metadata_id_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list, db)
         id_iter = ((metadata_id,) for metadata_id in metadata_id_list)
         val_list = ((metadata_value,) for metadata_value in metadata_value_list)
-        ibs.db.set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
+        db[0].set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
 
-    def set_database_version(ibs, version):
+    def set_database_version(ibs, db, version):
         """ Sets metadata key, value pairs
         """
-        ibs.set_metadata_value(['database_version'], [version])
+        ibs.set_metadata_value(['database_version'], [version], (db,))
 
     # SETTERS::IMAGE
 
@@ -960,28 +977,28 @@ class IBEISController(object):
     #----------------
 
     @getter_1to1
-    def get_metadata_value(ibs, metadata_key_list):
+    def get_metadata_value(ibs, metadata_key_list, db):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
-        metadata_value_list = ibs.db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
+        metadata_value_list = db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
         return metadata_value_list
 
     @getter_1to1
-    def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list):
+    def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
-        metadata_rowid_list = ibs.db.get_where(METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+        metadata_rowid_list = db[0].get_where(METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
         return metadata_rowid_list
 
     @ider
-    def get_database_version(ibs):
-        version_list = ibs.get_metadata_value(['database_version'])
+    def get_database_version(ibs, db):
+        version_list = ibs.get_metadata_value(['database_version'], db)
         version = version_list[0]
         if version is None:
             version = constants.BASE_DATABASE_VERSION
-            ibs.add_metadata(['database_version'], [version])
+            ibs.add_metadata(['database_version'], [version], db)
         else:
             version = version_list[0]
         return version
@@ -1291,13 +1308,13 @@ class IBEISController(object):
                 raise
         if all_configs:
             # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-            cid_list = ibs.db.get(CHIP_TABLE, ('chip_rowid',), aid_list, id_colname='annot_rowid')
+            cid_list = ibs.dbcache.get(CHIP_TABLE, ('chip_rowid',), aid_list, id_colname='annot_rowid')
         else:
             chip_config_rowid = ibs.get_chip_config_rowid()
             #print(chip_config_rowid)
             where_clause = 'annot_rowid=? AND config_rowid=?'
             params_iter = ((aid, chip_config_rowid) for aid in aid_list)
-            cid_list = ibs.db.get_where(CHIP_TABLE,  ('chip_rowid',), params_iter, where_clause)
+            cid_list = ibs.dbcache.get_where(CHIP_TABLE,  ('chip_rowid',), params_iter, where_clause)
         if ensure:
             try:
                 utool.assert_all_not_None(cid_list, 'cid_list')
@@ -1465,19 +1482,19 @@ class IBEISController(object):
 
     @getter_1to1
     def get_chip_aids(ibs, cid_list):
-        aid_list = ibs.db.get(CHIP_TABLE, ('annot_rowid',), cid_list)
+        aid_list = ibs.dbcache.get(CHIP_TABLE, ('annot_rowid',), cid_list)
         return aid_list
 
     @getter_1to1
     def get_chip_paths(ibs, cid_list):
         """ Returns a list of chip paths by their aid """
-        chip_fpath_list = ibs.db.get(CHIP_TABLE, ('chip_uri',), cid_list)
+        chip_fpath_list = ibs.dbcache.get(CHIP_TABLE, ('chip_uri',), cid_list)
         return chip_fpath_list
 
     @getter_1to1
     #@cache_getter('CHIP_TABLE', 'chip_size')
     def get_chip_sizes(ibs, cid_list):
-        chipsz_list  = ibs.db.get(CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
+        chipsz_list  = ibs.dbcache.get(CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
         return chipsz_list
 
     @getter_1to1
@@ -1488,13 +1505,13 @@ class IBEISController(object):
         colnames = ('feature_rowid',)
         where_clause = 'chip_rowid=? AND config_rowid=?'
         params_iter = ((cid, feat_config_rowid) for cid in cid_list)
-        fid_list = ibs.db.get_where(FEATURE_TABLE, colnames, params_iter,
+        fid_list = ibs.dbcache.get_where(FEATURE_TABLE, colnames, params_iter,
                                     where_clause)
         return fid_list
 
     @getter_1to1
     def get_chip_configids(ibs, cid_list):
-        config_rowid_list = ibs.db.get(CHIP_TABLE, ('config_rowid',), cid_list)
+        config_rowid_list = ibs.dbcache.get(CHIP_TABLE, ('config_rowid',), cid_list)
         return config_rowid_list
 
     #
@@ -1504,21 +1521,21 @@ class IBEISController(object):
     #@cache_getter(FEATURE_TABLE, 'feature_keypoints')
     def get_feat_kpts(ibs, fid_list):
         """ Returns chip keypoints in [x, y, iv11, iv21, iv22, ori] format """
-        kpts_list = ibs.db.get(FEATURE_TABLE, ('feature_keypoints',), fid_list)
+        kpts_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_keypoints',), fid_list)
         return kpts_list
 
     @getter_1toM
     #@cache_getter(FEATURE_TABLE, 'feature_sifts')
     def get_feat_desc(ibs, fid_list):
         """ Returns chip SIFT descriptors """
-        desc_list = ibs.db.get(FEATURE_TABLE, ('feature_sifts',), fid_list)
+        desc_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_sifts',), fid_list)
         return desc_list
 
     @getter_1to1
     #@cache_getter(FEATURE_TABLE, 'feature_num_feats')
     def get_num_feats(ibs, fid_list):
         """ Returns the number of keypoint / descriptor pairs """
-        nFeats_list = ibs.db.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
+        nFeats_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
         nFeats_list = [(-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
         return nFeats_list
 
@@ -1689,7 +1706,7 @@ class IBEISController(object):
         """ deletes images from the database that belong to fids"""
         if utool.VERBOSE:
             print('[ibs] deleting %d features' % len(fid_list))
-        ibs.db.delete_rowids(FEATURE_TABLE, fid_list)
+        ibs.dbcache.delete_rowids(FEATURE_TABLE, fid_list)
 
     @deleter
     def delete_annot_chips(ibs, aid_list):
@@ -1727,7 +1744,7 @@ class IBEISController(object):
         fid_list = utool.filter_Nones(_fid_list)
         ibs.delete_features(fid_list)
         # Delete chips from sql
-        ibs.db.delete_rowids(CHIP_TABLE, cid_list)
+        ibs.dbcache.delete_rowids(CHIP_TABLE, cid_list)
 
     @deleter
     def delete_encounters(ibs, eid_list):

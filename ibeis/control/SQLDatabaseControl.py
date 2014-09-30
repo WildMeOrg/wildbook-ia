@@ -279,6 +279,7 @@ class SQLDatabaseController(object):
         #    colnames = (colnames,)
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
+        
         if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
@@ -302,7 +303,7 @@ class SQLDatabaseController(object):
             SET {assign_str}
             WHERE {where_clause}
             '''
-
+        
         # TODO: The flattenize can be removed if we pass in val_lists instead
         params_iter = utool.flattenize(list(zip(val_list, id_list)))
         #params_iter = list(zip(val_list, id_list))
@@ -641,6 +642,23 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
+        
+        # Rename table's metadata
+        key_old_list = [
+            tablename_old + '_constraint',
+            tablename_old + '_docstr',
+            tablename_old + '_superkeys',
+        ]
+        key_new_list = [
+            tablename_new + '_constraint',
+            tablename_new + '_docstr',
+            tablename_new + '_superkeys',
+        ]
+        id_iter = ((key,) for key in key_old_list)
+        val_iter = ((key,) for key in key_new_list)
+        colnames = ('metadata_key',)
+        db.set(constants.METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
+
 
     @default_decorator
     def rename_column(db, tablename, colname_old, colname_new):
@@ -661,6 +679,14 @@ class SQLDatabaseController(object):
         op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
+        
+        # Delete table's metadata
+        key_list = [
+            tablename + '_constraint',
+            tablename + '_docstr',
+            tablename + '_superkeys',
+        ]
+        db.delete(constants.METADATA_TABLE, key_list, id_colname='metadata_key')
 
     @default_decorator
     def drop_column(db, tablename, colname):
@@ -689,7 +715,7 @@ class SQLDatabaseController(object):
         if num_params is None:
             params_iter = list(params_iter)
             num_params  = len(params_iter)
-
+        
         # Do not compute executemany without params
         if num_params == 0:
             if VERYVERBOSE:
