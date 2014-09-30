@@ -151,17 +151,11 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_gamma, invind
                                         flushfreq=100, writefreq=25,
                                         with_totaltime=True)
     # Build lists over common word indexes
-    if WITH_PANDAS:
-        qrvecs_list = pdh.ensure_values_subset(wx2_qrvecs, common_wxs)
-        drvecs_list = pdh.ensure_values_subset(wx2_drvecs, common_wxs)
-        daids_list  = pdh.ensure_values_subset(wx2_daid,   common_wxs)
-        idf_list    = pdh.ensure_values_subset(wx2_idf, common_wxs)
-    else:
-        qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
-        drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
-        daids_list  = [wx2_daid[wx] for wx in common_wxs]
-        idf_list    = [wx2_idf[wx] for wx in common_wxs]
-        maws_list   = [wx2_qmaws[wx] for wx in common_wxs]
+    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
+    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
+    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
+    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
+    maws_list   = [ wx2_qmaws[wx] for wx in common_wxs]
     if utool.DEBUG2:
         assert len(qrvecs_list) == len(drvecs_list)
         assert len(daids_list)  == len(drvecs_list)

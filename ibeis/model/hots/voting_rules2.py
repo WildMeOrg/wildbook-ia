@@ -1,14 +1,10 @@
 from __future__ import absolute_import, division, print_function
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
-# Python
 import six
 from six.moves import zip, range, map
-# Scientific
 import numpy as np
 from numpy.linalg import svd
-#from numba import autojit
-# HotSpotter
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[vr2]', DEBUG=False)
 
 
 def score_chipmatch_csum(chipmatch):
@@ -33,9 +29,10 @@ def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
         (_, aid2_fs, _) = chipmatch
         aid2_chipscore = np.array([np.sum(fs) for fs in aid2_fs])
     # FIXME
-    nid2_cxs = ibs.get_nx2_cxs()
+    nid_list  = ibs.get_name_aids()
+    nid2_aids = {nid: aids for nid, aids in zip(ibs.get_name_aids(nid_list))}
     aid2_score = np.array(aid2_score)
-    for nid, aids in enumerate(nid2_cxs):
+    for nid, aids in enumerate(nid2_aids):
         if len(aids) < 2 or nid <= 1:
             continue
         #print(aids)
@@ -46,23 +43,10 @@ def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
     return aid2_score
 
 
-def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
-    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
-    K = qreq.cfg.nn_cfg.K
-    isWeighted = qreq.cfg.agg_cfg.isWeighted
-    # Create voting vectors of top K utilities
-    qfx2_utilities = _chipmatch2_utilities(ibs, qcx, chipmatch, K)
-    # Run Positional Scoring Rule
-    altx2_score, altx2_tnx = positional_scoring_rule(qfx2_utilities, rule, isWeighted)
-    # Map alternatives back to chips/names
-    aid2_score, nid2_score = get_scores_from_altx2_score(ibs, qcx, altx2_score, altx2_tnx)
-    # HACK HACK HACK!!!
-    #aid2_score = enforce_one_name_per_cscore(ibs, aid2_score, chipmatch)
-    return aid2_score, nid2_score
-
-
-# chipmatch = qcx2_chipmatch[qcx]
 def score_chipmatch_PL(ibs, qcx, chipmatch, qreq):
+    """
+    chipmatch = qcx2_chipmatch[qcx]
+    """
     K = qreq.cfg.nn_cfg.K
     max_alts = qreq.cfg.agg_cfg.max_alts
     isWeighted = qreq.cfg.agg_cfg.isWeighted
@@ -131,7 +115,11 @@ def get_scores_from_altx2_score(ibs, qcx, altx2_prob, altx2_tnx):
 
 def _chipmatch2_utilities(ibs, qcx, chipmatch, K):
     """
-    returns qfx2_utilities
+    Output: qfx2_utilities - map where qfx is the key and utilities are values
+
+    utilities are lists of tuples
+    utilities ~ [(aid, temp_name_index, feature_score, feature_rank), ...]
+
     fx1 : [(aid_0, tnx_0, fs_0, fk_0), ..., (aid_m, tnx_m, fs_m, fk_m)]
     fx2 : [(aid_0, tnx_0, fs_0, fk_0), ..., (aid_m, tnx_m, fs_m, fk_m)]
                     ...
@@ -340,3 +328,21 @@ def _positional_score(altxs, score_vec, qfx2_porder, qfx2_worder):
             #if altx == -1: continue
             altx2_score[altx] += weights[ix] * score_vec[ix]
     return altx2_score
+
+
+def score_chipmatch_pos(ibs, qcx, chipmatch, qreq, rule='borda'):
+    """
+    Positional Scoring Rule
+    """
+    (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+    K = qreq.cfg.nn_cfg.K
+    isWeighted = qreq.cfg.agg_cfg.isWeighted
+    # Create voting vectors of top K utilities
+    qfx2_utilities = _chipmatch2_utilities(ibs, qcx, chipmatch, K)
+    # Run Positional Scoring Rule
+    altx2_score, altx2_tnx = positional_scoring_rule(qfx2_utilities, rule, isWeighted)
+    # Map alternatives back to chips/names
+    aid2_score, nid2_score = get_scores_from_altx2_score(ibs, qcx, altx2_score, altx2_tnx)
+    # HACK HACK HACK!!!
+    #aid2_score = enforce_one_name_per_cscore(ibs, aid2_score, chipmatch)
+    return aid2_score, nid2_score
