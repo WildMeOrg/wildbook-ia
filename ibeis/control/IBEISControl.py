@@ -563,15 +563,15 @@ class IBEISController(object):
     #---------------
 
     @adder
-    def add_metadata(ibs, metadata_key_list, metadata_value_list):
+    def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
         """ Adds a list of names. Returns their nids """
         if utool.VERBOSE:
             print('[ibs] adding %d metadata' % len(metadata_key_list))
         # Add encounter text names to database
         colnames = ['metadata_key', 'metadata_value']
         params_iter = zip(metadata_key_list, metadata_value_list)
-        get_rowid_from_superkey = ibs.get_metadata_rowid_from_metadata_key
-        metadata_id_list = ibs.db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        get_rowid_from_superkey = partial(ibs.get_metadata_rowid_from_metadata_key, db=(db,))
+        metadata_id_list = db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return metadata_id_list
 
     @adder
@@ -822,26 +822,18 @@ class IBEISController(object):
     # SETTERS::METADATA
 
     @setter
-    def set_metadata_value(ibs, metadata_key_list, metadata_value_list):
+    def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
         """ Sets metadata key, value pairs
         """
-        metadata_id_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list)
+        metadata_id_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list, db)
         id_iter = ((metadata_id,) for metadata_id in metadata_id_list)
         val_list = ((metadata_value,) for metadata_value in metadata_value_list)
-        ibs.db.set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
+        db[0].set(METADATA_TABLE, ('metadata_value',), val_list, id_iter)
 
     def set_database_version(ibs, db, version):
         """ Sets metadata key, value pairs
         """
-        if db == ibs.db:
-            key = 'database_version'
-        elif db == ibs.dbcache:
-            key = 'database_cache_version'
-        else:
-            print("[set_database_version] Unkown database %r" %(db))
-            raise
-
-        ibs.set_metadata_value([key], [version])
+        ibs.set_metadata_value(['database_version'], [version], (db,))
 
     # SETTERS::IMAGE
 
@@ -985,35 +977,28 @@ class IBEISController(object):
     #----------------
 
     @getter_1to1
-    def get_metadata_value(ibs, metadata_key_list):
+    def get_metadata_value(ibs, metadata_key_list, db):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
-        metadata_value_list = ibs.db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
+        metadata_value_list = db.get_where(METADATA_TABLE, ('metadata_value',), params_iter, where_clause, unpack_scalars=True)
         return metadata_value_list
 
     @getter_1to1
-    def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list):
+    def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
-        metadata_rowid_list = ibs.db.get_where(METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+        metadata_rowid_list = db[0].get_where(METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
         return metadata_rowid_list
 
     @ider
     def get_database_version(ibs, db):
-        if db == ibs.db:
-            key = 'database_version'
-        elif db == ibs.dbcache:
-            key = 'database_cache_version'
-        else:
-            print("[set_database_version] Unkown database %r" %(db))
-            get_recognition_database_aids
-        version_list = ibs.get_metadata_value([key])
+        version_list = ibs.get_metadata_value(['database_version'], db)
         version = version_list[0]
         if version is None:
             version = constants.BASE_DATABASE_VERSION
-            ibs.add_metadata([key], [version])
+            ibs.add_metadata(['database_version'], [version], db)
         else:
             version = version_list[0]
         return version

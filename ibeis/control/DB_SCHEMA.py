@@ -243,6 +243,9 @@ def update_1_0_3(ibs):
     ibs.db.drop_table(constants.CONFIG_TABLE)
     ibs.db.drop_table(constants.CHIP_TABLE)
     ibs.db.drop_table(constants.FEATURE_TABLE)
+    
+    # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
+    ibs.db.drop_table(constants.VERSIONS_TABLE)
 
 
 # ========================

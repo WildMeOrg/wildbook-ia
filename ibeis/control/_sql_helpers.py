@@ -119,7 +119,7 @@ def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
                 post(ibs)
     except Exception as e:
         utool.remove_file(db_fpath)
-        utool.copy(db_backup_fpath, idb_fpath)
+        utool.copy(db_backup_fpath, db_fpath)
         utool.remove_file(db_backup_fpath)
         logging.exception("'The database update failed, rolled back to the original version.")
         raise
