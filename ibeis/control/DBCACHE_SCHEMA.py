@@ -11,16 +11,6 @@ from ibeis import constants
 
 
 def update_1_0_0(ibs):
-    ibs.dbcache.add_table(constants.CONFIG_TABLE, (
-        ('config_rowid',                 'INTEGER PRIMARY KEY'),
-        ('config_suffix',                'TEXT NOT NULL'),
-    ),
-        superkey_colnames=['config_suffix'],
-        docstr='''
-        Used to store the ids of algorithm configurations that generate
-        annotation lblannots.  Each user will have a config id for manual
-        contributions ''')
-
     ##########################
     # SECOND ORDER           #
     ##########################

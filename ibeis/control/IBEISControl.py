@@ -193,7 +193,7 @@ class IBEISController(object):
     def _init_sql(ibs):
         """ Load or create sql database """
         # IBEIS SQL State Database
-        ibs.db_version_expected = '1.0.3'
+        ibs.db_version_expected = '1.1.0'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         _sql_helpers.ensure_correct_version(ibs, 
             ibs.db, 
@@ -553,7 +553,7 @@ class IBEISController(object):
 
     @ider
     def get_valid_configids(ibs):
-        config_rowid_list = ibs.dbcache.get_all_rowids(constants.CONFIG_TABLE)
+        config_rowid_list = ibs.db.get_all_rowids(constants.CONFIG_TABLE)
         return config_rowid_list
 
     #
@@ -766,7 +766,7 @@ class IBEISController(object):
         # FIXME: Configs are still handled poorly
         params_iter = ((suffix,) for suffix in cfgsuffix_list)
         get_rowid_from_superkey = partial(ibs.get_config_rowid_from_suffix, ensure=False)
-        config_rowid_list = ibs.dbcache.add_cleanly(CONFIG_TABLE, ('config_suffix',),
+        config_rowid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',),
                                                params_iter, get_rowid_from_superkey)
         return config_rowid_list
 
@@ -1550,7 +1550,7 @@ class IBEISController(object):
         if ensure:
             return ibs.add_config(cfgsuffix_list)
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        config_rowid_list = ibs.dbcache.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
+        config_rowid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
         # executeone always returns a list
         #if config_rowid_list is not None and len(config_rowid_list) == 1:
@@ -1560,7 +1560,7 @@ class IBEISController(object):
     @getter_1to1
     def get_config_suffixes(ibs, config_rowid_list):
         """ Gets suffixes for algorithm configs """
-        cfgsuffix_list = ibs.dbcache.get(CONFIG_TABLE, ('config_suffix',), config_rowid_list)
+        cfgsuffix_list = ibs.db.get(CONFIG_TABLE, ('config_suffix',), config_rowid_list)
         return cfgsuffix_list
 
     #
