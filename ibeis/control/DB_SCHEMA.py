@@ -189,6 +189,7 @@ def post_1_0_0(ibs):
 
 
 def update_1_0_1(ibs):
+    # Add a contributor's table
     ibs.db.add_table(constants.CONTRIBUTOR_TABLE, (
         ('contributor_rowid',            'INTEGER PRIMARY KEY'),
         ('contributor_tag',              'TEXT'),
@@ -206,17 +207,17 @@ def update_1_0_1(ibs):
         ''')
 
     ibs.db.modify_table(constants.IMAGE_TABLE, (
-        # add column at index 1
+        # add column to v1.0.1 at index 1
         (1, 'contributor_rowid', 'INTEGER', None),
     ))
 
     ibs.db.modify_table(constants.ANNOTATION_TABLE, (
-        # add column at index 1
+        # add column to v1.0.1 at index 1
         (1, 'annot_parent_rowid', 'INTEGER', None),
     ))
 
     ibs.db.modify_table(constants.FEATURE_TABLE, (
-        # append column because None
+        # append column to v1.0.1 because None
         (None, 'feature_weight', 'REAL DEFAULT 1.0', None),
     ))
 
@@ -227,6 +228,7 @@ def update_1_0_1(ibs):
 
 
 def update_1_0_2(ibs):
+    # Fix the contibutor table's constraint
     ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
         (1, 'contributor_uuid', 'UUID NOT NULL', None),
     ),
@@ -240,9 +242,16 @@ def update_1_0_2(ibs):
 
 
 def update_1_0_3(ibs):
+    # Moving chips, features, and configs to their own cache database
     ibs.db.drop_table(constants.CONFIG_TABLE)
     ibs.db.drop_table(constants.CHIP_TABLE)
     ibs.db.drop_table(constants.FEATURE_TABLE)
+
+    # Add viewpoint (radians) to annotations
+    ibs.db.modify_table(constants.ANNOTATION_TABLE, (
+        # add column to v1.0.2 at index 11
+        (11, 'annot_viewpoint', 'REAL DEFAULT 0.0', None),
+    ))
     
     # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
     ibs.db.drop_table(constants.VERSIONS_TABLE)
