@@ -16,11 +16,10 @@ from ibeis.model.hots.smk import smk_speed
 from ibeis.model.hots.smk import pandas_helpers as pdh
 from ibeis.model.hots.smk.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
+from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
 USE_CACHE_WORDS = not utool.get_argflag('--nocache-words')
-#WITH_PANDAS = True
-WITH_PANDAS = False
 
 
 #@six.add_metaclass(utool.ReloadingMetaclass)
@@ -38,6 +37,7 @@ class InvertedIndex(object):
         invindex.wx2_idxs    = None     # word index -> stacked indexes
         invindex.wx2_aids    = None     # word index -> aggregate aids
         invindex.wx2_fxs     = None     # word index -> aggregate aids
+        invindex.wx2_maws    = None     # word index -> multi-assign weights
         invindex.wx2_drvecs  = None     # word index -> residual vectors
         invindex.wx2_idf     = None     # word index -> idf (wx normalizer)
         invindex.daid2_gamma = None     # word index -> gamma (daid normalizer)
@@ -47,6 +47,22 @@ class InvertedIndex(object):
     #    lbl = 'InvIndex'
     #    hashstr = utool.hashstr(repr(invindex.wx2_drvecs))
     #    return '_{lbl}({hashstr})'.format(lbl=lbl, hashstr=hashstr)
+
+#class QueryIndex(object):
+#    def __init__(qindex, wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma):
+#        qindex.wx2_qrvecs  = wx2_qrvecs
+#        qindex.wx2_qaids   = wx2_qaids
+#        qindex.wx2_qfxs    = wx2_qfxs
+#        qindex.query_gamma = query_gamma
+
+QueryIndex = namedtuple(
+    'QueryIndex', (
+        'wx2_qrvecs',
+        'wx2_maws',
+        'wx2_qaids',
+        'wx2_qfxs',
+        'query_gamma',
+    ))
 
 
 #@profile
@@ -96,13 +112,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     kwds = dict(max_iters=max_iters, use_cache=use_cache, appname='smk',
                 flann_params=flann_params)
     _words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
-    if WITH_PANDAS:
-        # Pandasify
-        wx_series = pdh.RangeIndex(len(_words), name='wx')
-        #words = pd.DataFrame(_words, index=wx_series, columns=VEC_COLUMNS)
-        words = pd.DataFrame(_words, index=wx_series)
-    else:
-        words = _words
+    words = _words
     return words
 
 
@@ -130,17 +140,9 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     _vecs_list = pdh.ensure_2d_values(annots_df['vecs'][_daids])
     _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
 
-    # Pandasify
-    if WITH_PANDAS:
-        idx_series = pdh.IntIndex(np.arange(len(_idx2_daid)), name='idx')
-        idx2_dfx   = pdh.IntSeries(_idx2_dfx, index=idx_series, name='fx')
-        idx2_daid  = pdh.IntSeries(_idx2_daid, index=idx_series, name='aid')
-        idx2_dvec  = pd.DataFrame(_idx2_dvec, index=idx_series, columns=VEC_COLUMNS)
-    else:
-        idx2_dfx = _idx2_dfx
-        idx2_daid = _idx2_daid
-        idx2_dvec = _idx2_dvec
-        pass
+    idx2_dfx = _idx2_dfx
+    idx2_daid = _idx2_daid
+    idx2_dvec = _idx2_dvec
 
     invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx, daids)
     if with_internals:
@@ -175,17 +177,26 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     daids     = invindex.daids
     wordflann = invindex.wordflann
     words     = invindex.words
-    if WITH_PANDAS:
-        wx_series = invindex.words.index
-    else:
-        wx_series = np.arange(len(words))
+    wx_series = np.arange(len(words))
     # Compute word assignments (perform single assignment on database side)
     wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(wordflann, words, idx2_vec,
                                                     nAssign=1, idx_name='idx',
                                                     dense=True)
+    if utool.DEBUG2:
+        assert len(idx2_wxs) == len(idx2_vec)
+        assert len(wx2_idxs.keys()) == len(wx2_maws.keys())
+        assert len(wx2_idxs.keys()) <= len(words)
+        try:
+            assert len(wx2_idxs.keys()) == len(words)
+        except AssertionError as ex:
+            utool.printex(ex, iswarning=True)
+
+        pass
     # Compute word weights
     wx2_idf = compute_word_idf_(
         wx_series, wx2_idxs, idx2_daid, daids)
+    if utool.DEBUG2:
+        assert len(wx2_idf) == len(wx2_idf.keys())
     # Compute residual vectors and inverse mappings
     wx2_drvecs, wx2_aids, wx2_fxs = compute_residuals_(
         words, wx2_idxs, idx2_vec, idx2_daid, idx2_dfx, aggregate)
@@ -200,6 +211,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     invindex.wx2_drvecs  = wx2_drvecs
     invindex.wx2_aids    = wx2_aids  # needed for asmk
     invindex.wx2_fxs     = wx2_fxs   # needed for asmk
+    invindex.wx2_maws    = wx2_maws  # needed for awx2_mawssmk
     invindex.daid2_gamma = daid2_gamma
 
     if utool.DEBUG2:
@@ -232,6 +244,8 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
     idx2_vec_values = pdh.ensure_values(idx2_vec)
     # Assign each vector to the nearest visual words
     _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec_values, nAssign)
+    _idx2_wx.shape    = (idx2_vec_values.shape[0], nAssign)
+    _idx2_wdist.shape = (idx2_vec_values.shape[0], nAssign)
     if nAssign > 1:
         # MultiAssignment Filtering from Improving Bag of Features
         # http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
@@ -253,7 +267,7 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
         idx2_maws = list(map(utool.filter_Nones, masked_maw.tolist()))
     else:
         idx2_wxs = _idx2_wx.tolist()
-        idx2_maws = [1.0] * len(idx2_wxs)
+        idx2_maws = [[1.0]] * len(idx2_wxs)
 
     # Invert mapping -- Group by word indexes
     jagged_idxs = ([idx] * len(wxs) for idx, wxs in enumerate(idx2_wxs))
@@ -262,13 +276,6 @@ def assign_to_words_(wordflann, words, idx2_vec, idx_name='idx', dense=True,
     maws_list = clustertool.apply_jagged_grouping(idx2_maws, groupxs)
     wx2_idxs = dict(zip(wx_keys, idxs_list))
     wx2_maws = dict(zip(wx_keys, maws_list))
-
-    if WITH_PANDAS:
-        idx_series = pdh.ensure_index(idx2_vec)
-        wx_series  = pdh.ensure_index(words)
-        wx2_idxs = pdh.pandasify_dict1d(
-            wx2_idxs, wx_series, idx_name, ('wx2_' + idx_name + 's'), dense=dense)
-        idx2_wxs = pdh.IntSeries(idx2_wxs, index=idx_series, name='wx')
 
     return wx2_idxs, wx2_maws, idx2_wxs
 
@@ -311,10 +318,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
                 for nDocsWithWord in nDocsWithWord_list]  # 17.8 ms   # 13%
     if utool.VERBOSE:
         end_()
-    if WITH_PANDAS:
-        wx2_idf = pdh.IntSeries(idf_list, index=wx_series, name='idf')
-    else:
-        wx2_idf = dict(zip(wx_series_values, idf_list))
+    wx2_idf = dict(zip(wx_series_values, idf_list))
     return wx2_idf
 
 
@@ -378,40 +382,31 @@ def compute_residuals_(words, wx2_idxs, idx2_vec, idx2_aid, idx2_fx, aggregate):
         (aggvecs_list, aggaids_list, aggidxs_list) = tup
         aggfxs_list = [[idx2_fx_values.take(idxs) for idxs in aggidxs]
                        for aggidxs in aggidxs_list]
-        if WITH_PANDAS:
-            _args2 = (wx_sublist, aggvecs_list, aggaids_list, aggfxs_list)
-            # Make aggregate dataframes
-            wx2_aggvecs, wx2_aggaids, wx2_aggfxs = pdh.pandasify_agg_list(*_args2)  # 617 ms  47%
-        else:
-            wx2_aggvecs = {wx: aggvecs for wx, aggvecs in zip(wx_sublist, aggvecs_list)}
-            wx2_aggaids = {wx: aggaids for wx, aggaids in zip(wx_sublist, aggaids_list)}
-            wx2_aggfxs  = {wx: aggfxs  for wx, aggfxs  in zip(wx_sublist, aggfxs_list)}
-            if utool.DEBUG2:
-                from ibeis.model.hots.smk import smk_debug
-                smk_debug.check_wx2(words, wx2_aggvecs, wx2_aggaids, wx2_aggfxs)
+        wx2_aggvecs = {wx: aggvecs for wx, aggvecs in zip(wx_sublist, aggvecs_list)}
+        wx2_aggaids = {wx: aggaids for wx, aggaids in zip(wx_sublist, aggaids_list)}
+        wx2_aggfxs  = {wx: aggfxs  for wx, aggfxs  in zip(wx_sublist, aggfxs_list)}
+        if utool.DEBUG2:
+            from ibeis.model.hots.smk import smk_debug
+            smk_debug.check_wx2(words, wx2_aggvecs, wx2_aggaids, wx2_aggfxs)
 
         return wx2_aggvecs, wx2_aggaids, wx2_aggfxs
     else:
         # Make residuals dataframes
         # compatibility hack
         fxs_list  = [[idx2_fx_values[idx:idx + 1] for idx in idxs]  for idxs in idxs_list]
-        if WITH_PANDAS:
-            _args3 = (wx_sublist, idxs_list, rvecs_list, aids_list, fxs_list)
-            wx2_rvecs, wx2_aids, wx2_fxs = pdh.pandasify_rvecs_list(*_args3)  # 405 ms
-        else:
-            wx2_rvecs = {wx: rvecs for wx, rvecs in zip(wx_sublist, rvecs_list)}
-            wx2_aids  = {wx: aids  for wx, aids  in zip(wx_sublist, aids_list)}
-            wx2_fxs   = {wx: fxs   for wx, fxs   in zip(wx_sublist, fxs_list)}
+        wx2_rvecs = {wx: rvecs for wx, rvecs in zip(wx_sublist, rvecs_list)}
+        wx2_aids  = {wx: aids  for wx, aids  in zip(wx_sublist, aids_list)}
+        wx2_fxs   = {wx: fxs   for wx, fxs   in zip(wx_sublist, fxs_list)}
         if utool.DEBUG2:
             from ibeis.model.hots.smk import smk_debug
             smk_debug.check_wx2(words, wx2_rvecs, wx2_aids, wx2_fxs)
         return wx2_rvecs, wx2_aids, wx2_fxs
+    return wx2_rvecs, wx2_aids, wx2_fxs
 
 
 #@utool.cached_func('gamma', appname='smk', key_argx=[1, 2])
 @profile
-def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf,
-                        alpha=3, thresh=0):
+def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, alpha=3, thresh=0):
     """
     Computes gamma normalization scalar for the database annotations
     Internals step4
@@ -478,10 +473,7 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf,
     gamma_list = [smk_core.gamma_summation2(rvecs_list, idf_list, alpha, thresh)
                   for idf_list, rvecs_list in zip(aididf_list, aidrvecs_list)]
 
-    if WITH_PANDAS:
-        daid2_gamma = pdh.IntSeries(gamma_list, index=aid_list, name='gamma')
-    else:
-        daid2_gamma = dict(zip(aid_list, gamma_list))
+    daid2_gamma = dict(zip(aid_list, gamma_list))
     if utool.VERBOSE:
         end2_()
 
@@ -489,7 +481,8 @@ def compute_data_gamma_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf,
 
 
 @profile
-def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thresh=0):
+def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
+                       thresh=0, nAssign=1):
     """
     Gets query read for computations
 
@@ -499,8 +492,10 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
     >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> query_repr = compute_query_repr(annots_df, qaid, invindex, aggregate, alpha, thresh)
-    >>> (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma) = query_repr
+    >>> nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
+    >>> _args = (annots_df, qaid, invindex, aggregate, alpha, thresh, nAssign)
+    >>> qindex = new_qindex(*_args)
+    >>> (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
     >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
     >>> invindex_dbgstr.invindex_dbgstr(invindex)
 
@@ -508,37 +503,34 @@ def compute_query_repr(annots_df, qaid, invindex, aggregate=False, alpha=3, thre
     idx2_vec = qfx2_vec
     idx2_aid = qfx2_aid
     idx2_fx = qfx2_qfx
-    wx2_idxs = wx2_qfxs1
+    wx2_idxs = _wx2_qfxs
     """
     if utool.VERBOSE:
         print('[smk_index] Query Repr qaid=%r' % (qaid,))
-    wx2_idf = invindex.wx2_idf
-    words = invindex.words
+    wx2_idf   = invindex.wx2_idf
+    words     = invindex.words
     wordflann = invindex.wordflann
-    if WITH_PANDAS:
-        qfx2_vec = annots_df['vecs'][qaid]
-    else:
-        qfx2_vec = pdh.ensure_values(annots_df['vecs'][qaid])
-    # Assign query to words
-    wx2_qfxs1, wx2_weights, qfx2_wxs = assign_to_words_(
-        wordflann, words, qfx2_vec, idx_name='fx', dense=False)  # 71.9 %
+    qfx2_vec = pdh.ensure_values(annots_df['vecs'][qaid])
+    # Assign query to (multiple) words
+    _wx2_qfxs, wx2_maws, qfx2_wxs = assign_to_words_(
+        wordflann, words, qfx2_vec, nAssign=nAssign, idx_name='fx',
+        dense=False)
     # Hack to make implementing asmk easier, very redundant
-    #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), index=qfx2_wx.index, name='qfx2_aid')
-    #qfx2_aid = pdh.IntSeries([qaid] * len(qfx2_wx), name='qfx2_aid')
     qfx2_aid = np.array([qaid] * len(qfx2_wxs), dtype=INTEGER_TYPE)
-    if WITH_PANDAS:
-        qfx2_qfx = qfx2_vec.index
-    else:
-        qfx2_qfx = np.arange(len(qfx2_vec))
+    qfx2_qfx = np.arange(len(qfx2_vec))
     # Compute query residuals
     wx2_qrvecs, wx2_qaids, wx2_qfxs = compute_residuals_(
-        words, wx2_qfxs1, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)  # 24.8
+        words, _wx2_qfxs, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # Compute query gamma
     if utool.VERBOSE:
         print('[smk_index] Query Gamma alpha=%r, thresh=%r' % (alpha, thresh))
-    wx_sublist = pdh.ensure_index(wx2_qrvecs).astype(np.int32)
-    idf_list = pdh.ensure_values_subset(wx2_idf, wx_sublist)
-    rvecs_list  = pdh.ensure_values_subset(wx2_qrvecs, wx_sublist)
-    query_gamma = smk_core.gamma_summation2(rvecs_list, idf_list, alpha, thresh)
+    wx_sublist  = pdh.ensure_index(wx2_qrvecs).astype(np.int32)
+    idf_list    = [wx2_idf[wx] for wx in wx_sublist]
+    rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
+    query_gamma = smk_core.gamma_summation2(
+        rvecs_list, idf_list, alpha, thresh)
     assert query_gamma > 0, 'query gamma is not positive!'
-    return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma
+    qindex = QueryIndex(
+        wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma)
+    return qindex
+    #return wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma

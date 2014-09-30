@@ -11,12 +11,11 @@ from ibeis.model.hots.smk import smk_core
 
 @profile
 def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
-                         aggregate=False, alpha=3, thresh=0):
+                         aggregate=False, alpha=3, thresh=0,
+                         can_match_self=False):
     """
-    Total time: 10.5774 s
-
+    #>>> from ibeis.model.hots.smk import smk_index
     >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_index
     >>> from ibeis.model.hots.smk import smk_debug
     >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
     >>> qaid = qaids[0]
@@ -28,30 +27,31 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
-    query_repr = smk_index.compute_query_repr(annots_df, qaid, invindex,
-                                              aggregate, alpha, thresh)  # 45 %
-    (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma) = query_repr
-    if False and __debug__:
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
+    if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
         qfx2_vec = annots_df['vecs'][qaid]
-        #smk_debug.invindex_dbgstr(invindex)
-        assert smk_debug.check_wx2_rvecs2(invindex, wx2_qrvecs, wx2_qfxs, qfx2_vec), 'bad query_repr in query_inverted_index'
-        assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex in query_inverted_index'
+        smk_debug.invindex_dbgstr(invindex)
+        assert smk_debug.check_wx2_rvecs2(
+            invindex, wx2_qrvecs, wx2_qfxs, qfx2_vec), 'bad qindex'
+        assert smk_debug.check_wx2_rvecs2(invindex), 'bad invindex'
     # Compute match kernel for all database aids
-    kernel_args = (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
-                   withinfo, alpha, thresh)
+    kernel_args = (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma,
+                   invindex, withinfo, alpha, thresh)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
     # Prevent self matches
     can_match_self = False
-    if (not can_match_self) and qaid in daid2_totalscore:
+    cant_match_self_ = (not can_match_self) and qaid in daid2_totalscore
+    if cant_match_self_:
         daid2_totalscore[qaid] = 0
         daid2_chipmatch[0][qaid] = np.empty((0, 2), dtype=np.int32)
         daid2_chipmatch[1][qaid] = np.empty((0), dtype=np.float32)
         daid2_chipmatch[2][qaid] = np.empty((0), dtype=np.int32)
     # Build chipmatches if daid2_wx2_scoremat is not None
-    #if __debug__:
-    #    from ibeis.model.hots.smk import smk_debug
-    #    smk_debug.check_daid2_chipmatch(daid2_chipmatch)
+    if utool.DEBUG2:
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.check_daid2_chipmatch(daid2_chipmatch)
     return daid2_totalscore, daid2_chipmatch
 
 

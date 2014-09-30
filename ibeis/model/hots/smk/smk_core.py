@@ -51,7 +51,7 @@ def get_norm_rvecs(vecs, word):
 
 
 #@profile
-def gamma_summation2(rvecs_list, weight_list, alpha, thresh):
+def gamma_summation2(rvecs_list, idf_list, alpha, thresh):
     r"""
     \begin{equation}
     \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
@@ -60,10 +60,10 @@ def gamma_summation2(rvecs_list, weight_list, alpha, thresh):
     >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_debug
     >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata()
-    >>> wx2_qfxs, wx2_rvecs = compute_query_repr(annots_df, qaid, invindex)
+    >>> wx2_qfxs, wx2_qmaws, wx2_rvecs = new_qindex(annots_df, qaid, invindex)
     >>> assert smk_debug.check_wx2_rvecs(wx2_rvecs)
     >>> #print(utool.dict_str(smk_debug.wx2_rvecs_stats(wx2_rvecs)))
-    >>> scoremat = smk_core.gamma_summation(wx2_rvecs, wx2_weight)
+    >>> scoremat = smk_core.gamma_summation(wx2_rvecs, wx2_idf)
     >>> print(scoremat)
     0.0384477314197
 
@@ -74,8 +74,8 @@ def gamma_summation2(rvecs_list, weight_list, alpha, thresh):
     score_list = [scores.sum() for scores in scores_list]
     if utool.DEBUG2:
         assert len(scores_list) == len(rvecs_list), 'bad rvec and score'
-        assert len(weight_list) == len(score_list), 'bad weight and score'
-    invgamma = np.multiply(weight_list, score_list).sum()
+        assert len(idf_list) == len(score_list), 'bad weight and score'
+    invgamma = np.multiply(idf_list, score_list).sum()
     gamma = np.reciprocal(np.sqrt(invgamma))
     return gamma
 
@@ -120,26 +120,26 @@ def selectivity_function(simmat_list, alpha, thresh):
 
 
 @profile
-def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
+def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_gamma, invindex,
                  withinfo=True, alpha=3, thresh=0):
     """
-    Total time: 3.05432 s
 
     >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
     >>> from ibeis.model.hots.smk import smk_debug
-    >>> tup  = smk_debug.testdata_match_kernel()
-    >>> ibs, invindex, wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma = tup
+    >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
+    >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_gamma = qindex
     >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
     >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
     >>> withinfo = True  # takes an 11s vs 2s
-    >>> _args = (wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex, withinfo, alpha, thresh)
+    >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_gamma, invindex, withinfo, alpha, thresh)
     >>> smk_debug.invindex_dbgstr(invindex)
     >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
     """
     #idx2_daid = invindex.idx2_daid
     #wx2_idxs   = invindex.wx2_idxs
+    #wx2_maws   = invindex.wx2_maws
     wx2_drvecs = invindex.wx2_drvecs
-    wx2_weight = invindex.wx2_weight
+    wx2_idf = invindex.wx2_idf
     wx2_daid   = invindex.wx2_aids
     daid2_gamma = invindex.daid2_gamma
 
@@ -150,21 +150,21 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
         mark, end_ = utool.log_progress('[smk_core] query word: ', len(common_wxs),
                                         flushfreq=100, writefreq=25,
                                         with_totaltime=True)
-    #pd.Series(np.zeros(len(invindex.daids)), index=invindex.daids, name='agg_score')
     # Build lists over common word indexes
-    qrvecs_list  = pdh.ensure_values_subset(wx2_qrvecs, common_wxs)
-    drvecs_list  = pdh.ensure_values_subset(wx2_drvecs, common_wxs)
-    daids_list  = pdh.ensure_values_subset(wx2_daid,   common_wxs)
-    weight_list = pdh.ensure_values_subset(wx2_weight, common_wxs)
+    qrvecs_list = [wx2_qrvecs[wx] for wx in common_wxs]
+    drvecs_list = [wx2_drvecs[wx] for wx in common_wxs]
+    daids_list  = [  wx2_daid[wx] for wx in common_wxs]
+    idf_list    = [   wx2_idf[wx] for wx in common_wxs]
+    maws_list   = [ wx2_qmaws[wx] for wx in common_wxs]
     if utool.DEBUG2:
         assert len(qrvecs_list) == len(drvecs_list)
         assert len(daids_list)  == len(drvecs_list)
-        assert len(weight_list) == len(drvecs_list)
-        assert len(weight_list) == len(common_wxs)
+        assert len(idf_list) == len(drvecs_list)
+        assert len(idf_list) == len(common_wxs)
     # Summation over query features
     scores_list = score_matches(qrvecs_list, drvecs_list, alpha, thresh)
     wscores_list = [weight * scores.sum(axis=0)
-                    for scores, weight in zip(scores_list, weight_list)]
+                    for scores, weight in zip(scores_list, idf_list)]
     # Accumulate daid scores
     daid2_aggscore   = utool.ddict(lambda: 0)
     # Weirdly iflatten was slower here
@@ -182,7 +182,7 @@ def match_kernel(wx2_qrvecs, wx2_qaids, wx2_qfxs, query_gamma, invindex,
     if withinfo:
         daid2_chipmatch = build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids,
                                                  wx2_qfxs, scores_list,
-                                                 weight_list, daids_list,
+                                                 idf_list, daids_list,
                                                  query_gamma, daid2_gamma)
     else:
         daid2_chipmatch = None
@@ -208,7 +208,7 @@ def mem_meshgrid(wrange, hrange, cache={}):
 
 @profile
 def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
-                           scores_list, weight_list, daids_list, query_gamma,
+                           scores_list, idf_list, daids_list, query_gamma,
                            daid2_gamma):
     """
     this builds the structure that the rest of the pipeline plays nice with
@@ -227,7 +227,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     shapes_list  = [scores.shape for scores in scores_list]  # 51us
     shape_ranges = [(mem_arange(w), mem_arange(h)) for (w, h) in shapes_list]  # 230us
     ijs_list = [mem_meshgrid(wrange, hrange) for (wrange, hrange) in shape_ranges]  # 278us
-    norm_list = np.multiply(weight_list, query_gamma)
+    norm_list = np.multiply(idf_list, query_gamma)
     # Normalize scores for words, nMatches, and query gamma (still need daid gamma)
     nscores_iter = (scores * norm for (scores, norm) in zip(scores_list, norm_list))
 
