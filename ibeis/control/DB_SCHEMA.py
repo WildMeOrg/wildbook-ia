@@ -234,6 +234,16 @@ def update_1_0_2(ibs):
         superkey_colnames=['contributor_tag']
     )
 
+# =======================
+# Schema Version 1.0.3
+# =======================
+
+
+def update_1_0_3(ibs):
+    ibs.db.drop_table(constants.CONFIG_TABLE)
+    ibs.db.drop_table(constants.CHIP_TABLE)
+    ibs.db.drop_table(constants.FEATURE_TABLE)
+
 
 # ========================
 # Valid Versions & Mapping
@@ -247,4 +257,5 @@ VALID_VERSIONS = {
     '1.0.0':    (None,                 update_1_0_0,       post_1_0_0          ),
     '1.0.1':    (None,                 update_1_0_1,       None                ),
     '1.0.2':    (None,                 update_1_0_2,       None                ),
+    '1.0.3':    (None,                 update_1_0_3,       None                ),
 }
