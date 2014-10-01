@@ -8,7 +8,7 @@ from os.path import exists, normpath, join
 import pyflann
 import utool
 import numpy as np
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
+(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
 
 
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
@@ -87,6 +87,8 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     Tries to load a cached flann index before doing anything
     from vtool.nn
     """
+    if utool.NOT_QUIET:
+        print('+--- START CACHED FLANN INDEX ')
     if len(dpts) == 0:
         raise AssertionError(
             'cannot build flann when len(dpts) == 0. (prevents a segfault)')
@@ -101,6 +103,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
             flann.load_index(flann_fpath, dpts)
             if utool.NOT_QUIET:
                 print('...flann cache hit')
+                print('L___ END FLANN INDEX ')
             return flann
         except Exception as ex:
             utool.printex(ex, '... cannot load index', iswarning=True)
@@ -112,6 +115,8 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
     if save:
         flann.save_index(flann_fpath)
+    if utool.NOT_QUIET:
+        print('L___ END CACHED FLANN INDEX ')
     return flann
 
 

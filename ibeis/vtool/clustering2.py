@@ -29,7 +29,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                    cfgstr='', refine=False, akmeans_cfgstr=None, use_cache=True,
                    appname='vtool'):
     """ precompute aproximate kmeans with builtin caching """
-    print('[akmeans] pre_akmeans()')
+    print('+--- START CACHED AKMEANS')
     # filename prefix constants
     if cache_dir == 'default':
         print('[akmeans] using default cache dir')
@@ -52,6 +52,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
                                        akmeans_cfgstr=akmeans_cfgstr)
         assert centroids.shape[0] == nCentroids, 'bad number of centroids'
         assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+        print('L___ END CACHED AKMEANS')
         return centroids
     except IOError as ex:
         utool.printex(ex, 'cache miss', iswarning=True)
@@ -64,6 +65,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
     assert centroids.shape[0] == nCentroids, 'bad number of centroids'
     assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
+    print('L___ END CACHED AKMEANS')
     return centroids
 
 
