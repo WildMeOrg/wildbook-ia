@@ -18,27 +18,14 @@ PROJECT_DIRS = ['.', 'guitool', 'plotool', 'ibeis', 'ibeis/control',
 
 CLUTTER_PATTERNS = [
     '\'',
-    '*.pyc',
-    '*.pyo',
     '*.dump.txt',
     '*.sqlite3',
     '*.prof',
     '*.prof.txt',
     '*.lprof',
     '*.ln.pkg',
-    '*.egg-info',
     'failed.txt',
     '_test_times.txt',
-    '_*_cyth.o',
-    '_*_cyth_bench.py',
-    'run_cyth_benchmarks.sh',
-    '_*_cyth.c',
-    '_*_cyth.pyd',
-    '_*_cyth.pxd',
-    '_*_cyth.html',
-    '_*_cyth.pyx',
-    '_*_cyth.so',
-    '_*_cyth.dylib'
 ]
 
 CLUTTER_DIRS = [
