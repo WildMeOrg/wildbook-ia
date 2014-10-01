@@ -1,10 +1,6 @@
 #!/usr/bin/env python2.7
-from __future__ import absolute_import, division, print_function
-from os.path import dirname, realpath
-import platform
-import sys
-import os
 """
+Super Setup
 PREREQ:
 git config --global push.default current
 export CODE_DIR=~/code
@@ -17,27 +13,42 @@ cd ibeis
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 """
+# FUTURE
+from __future__ import absolute_import, division, print_function
+#-----------------
+# SYSTEM ENTRY POINT
+# NO UTOOL
+# PURE PYTHON
+#-----------------
+from os.path import dirname, realpath
+import platform
+import sys
+import os
+
+#-----------------
+#  UTOOL PYTHON
+#-----------------
 
 print('[super_setup] __IBEIS_SUPER_SETUP__')
-CODE_DIR = dirname(dirname(realpath(__file__)))   # '~/code'
+CODE_DIR = dirname(dirname(realpath(__file__)))   # Home is where the .. is.  # '~/code'
 print('[super_setup] code_dir: %r' % CODE_DIR)
-
 (DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
 python_version = platform.python_version()
-assert python_version.startswith('2.7'), \
+
+# We only support python 2.7
+assert '--py3' in sys.argv or python_version.startswith('2.7'), \
     'IBEIS currently needs python 2.7,  Instead got python=%r' % python_version
 
-
-#pythoncmd = 'python'
-#if DISTRO == 'centos':
+# Default to python 2.7. Windows is werid
 pythoncmd = 'python' if sys.platform.startswith('win32') else 'python2.7'
 
 
+# TODO: Make this prompt for the userid
 def userid_prompt():
-    # TODO: Make this prompt for the userid
     if False:
         return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools']}
     return {}
+
 
 #################
 ## ENSURING UTOOL
@@ -54,11 +65,14 @@ try:
     import utool
     utool.set_userid(**userid_prompt())  # FIXME
 except Exception:
+    #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
+    UTOOL_BRANCH = ' -b pyqt5'
+    UTOOL_REPO = 'git clone https://github.com/Erotemic/utool.git'
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
     os.chdir(os.path.expanduser(CODE_DIR))
     print('cloning utool')
     if not os.path.exists('utool'):
-        syscmd('git clone https://github.com/Erotemic/utool.git')
+        syscmd('git clone ' + UTOOL_REPO + '-b' + UTOOL_BRANCH)
     os.chdir('utool')
     print('pulling utool')
     syscmd('git pull')
@@ -67,7 +81,12 @@ except Exception:
     cwdpath = os.path.realpath(os.getcwd())
     sys.path.append(cwdpath)
     print('Please rerun super_setup.py')
+    print(' '.join(sys.argv))
     sys.exit(1)
+
+#-----------------
+#  UTOOL PYTHON
+#-----------------
 
 utool.init_catch_ctrl_c()
 
@@ -235,6 +254,6 @@ if upstream_push is not None:
 
 gg_cmd = utool.get_argval('--gg', None)  # global command
 if gg_cmd is not None:
-    ans = raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
+    ans = 'yes' if utool.get_argflag('-y') else raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
     if ans == 'yes':
         utool.gg_command(gg_cmd)
