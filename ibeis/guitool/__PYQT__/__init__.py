@@ -1,4 +1,7 @@
+from __future__ import absolute_import, division, print_function
+# FIXME: from guitool import __PYQT__
 # flake8:noqa
+#print('__pyqt5__1')
 # Wrapper around PyQt4/5
 try:
     import sip
@@ -12,7 +15,8 @@ try:
     sip.setapi('QDateTime', 2)
     if hasattr(sip, 'setdestroyonexit'):
         sip.setdestroyonexit(False)  # This prevents a crash on windows
-except ValueError:
+except ValueError as ex:
+    print('Warning: Value Error: %s' % str(ex))
     pass
 
 
@@ -34,3 +38,4 @@ def QVariantHack(*args):
         return args[0]
     else:
         raise NotImplementedError(str(args))
+#print('__pyqt5__2')

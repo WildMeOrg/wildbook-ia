@@ -2,8 +2,10 @@
 from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
+print('__guitool__1')
 
 from . import __PYQT__
+#print('__guitool__2')
 
 from . import api_item_model
 from . import api_table_view
@@ -61,3 +63,4 @@ def reload_subs():
         guitool_components.rrr()
 
 rrrr = reload_subs
+#print('__guitool__3')
