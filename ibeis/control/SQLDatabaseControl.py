@@ -728,6 +728,7 @@ class SQLDatabaseController(object):
             'start_transaction': True,
             'verbose': verbose,
         }
+
         with SQLExecutionContext(db, operation, **contextkw) as context:
             #try:
             results_iter = list(

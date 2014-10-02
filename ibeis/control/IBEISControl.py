@@ -51,9 +51,10 @@ from ibeis.control.accessor_decors import (adder, setter, getter_1toM,
 # CONSTANTS
 from ibeis.constants import (IMAGE_TABLE, ANNOTATION_TABLE, LBLANNOT_TABLE,
                              ENCOUNTER_TABLE, EG_RELATION_TABLE,
-                             AL_RELATION_TABLE, CHIP_TABLE, FEATURE_TABLE,
-                             CONFIG_TABLE, LBLTYPE_TABLE, METADATA_TABLE,
-                             VERSIONS_TABLE, __STR__)
+                             AL_RELATION_TABLE, GL_RELATION_TABLE, 
+                             CHIP_TABLE, FEATURE_TABLE, LBLIMAGE_TABLE,
+                             CONFIG_TABLE, CONTRIBUTOR_TABLE, LBLTYPE_TABLE, 
+                             METADATA_TABLE, VERSIONS_TABLE, __STR__)
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[ibs]')
@@ -193,7 +194,7 @@ class IBEISController(object):
     def _init_sql(ibs):
         """ Load or create sql database """
         # IBEIS SQL State Database
-        ibs.db_version_expected = '1.1.0'
+        ibs.db_version_expected = '1.1.1'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname, text_factory=__STR__)
         _sql_helpers.ensure_correct_version(ibs, 
             ibs.db, 
@@ -400,6 +401,12 @@ class IBEISController(object):
     # Internal
 
     @ider
+    def _get_all_contrib_rowids(ibs):
+        """ returns all unfiltered contrib_rowid (contributor rowid) """
+        all_contrib_rowids = ibs.db.get_all_rowids(CONTRIBUTOR_TABLE)
+        return all_contrib_rowids
+
+    @ider
     def _get_all_gids(ibs):
         """ returns all unfiltered gids (image rowids) """
         all_gids = ibs.db.get_all_rowids(IMAGE_TABLE)
@@ -461,6 +468,12 @@ class IBEISController(object):
             (does not include unknown names) """
         all_known_species_rowids = ibs._get_all_known_lblannot_rowids(constants.SPECIES_KEY)
         return all_known_species_rowids
+
+    @ider
+    def get_valid_contrib_rowids(ibs):
+        """ returns list of all contributor ids """
+        contrib_rowids_list = ibs._get_all_contrib_rowids()
+        return contrib_rowids_list
 
     @ider
     def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
@@ -575,7 +588,55 @@ class IBEISController(object):
         return metadata_id_list
 
     @adder
-    def add_images(ibs, gpath_list, as_annots=False):
+    def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_last_list=None, 
+                              loc_city_list=None, loc_state_list=None,
+                              loc_country_list=None, loc_zip_list=None,
+                              notes_list=None):
+        """ Adds a list of names. Returns their nids """
+        import datetime
+        def _valid_zip(_zip, default='00000'):
+            _zip = str(_zip)
+            if len(_zip) == 5 and _zip.isdigit():
+                return _zip
+            return default
+
+        if utool.VERBOSE:
+            print('[ibs] adding %d encounters' % len(tag_list))
+        # Add contributors to database
+        if name_first_list is None:
+            name_first_list = [''] * len(tag_list)
+        if name_last_list is None:
+            name_last_list = [''] * len(tag_list)
+        if loc_city_list is None:
+            loc_city_list = [''] * len(tag_list)
+        if loc_state_list is None:
+            loc_state_list = [''] * len(tag_list)
+        if loc_country_list is None:
+            loc_country_list = [''] * len(tag_list)
+        if loc_zip_list is None:
+            loc_zip_list = [''] * len(tag_list)
+        if notes_list is None:
+            notes_list = [ "Created %s" %(datetime.datetime.now(),) for _ in range(len(tag_list))]
+
+        loc_zip_list = [ _valid_zip(_zip) for _zip in loc_zip_list]
+
+        if uuid_list is None:
+            uuid_list = [uuid.uuid4() for _ in range(len(tag_list))]
+
+        colnames = ['contributor_uuid', 'contributor_tag', 'contributor_name_first', 
+                    'contributor_name_last', 'contributor_location_city', 
+                    'contributor_location_state', 'contributor_location_country',
+                    'contributor_location_zip', 'contributor_note']
+        params_iter = zip(uuid_list, tag_list, name_first_list, 
+                          name_last_list, loc_city_list, loc_state_list, 
+                          loc_country_list, loc_zip_list, notes_list)
+
+        get_rowid_from_superkey = ibs.get_contributor_rowid_from_uuid
+        contrib_id_list = ibs.db.add_cleanly(CONTRIBUTOR_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        return contrib_id_list
+
+    @adder
+    def add_images(ibs, gpath_list, params_list=None, as_annots=False):
         """
         Adds a list of image paths to the database.  Returns gids
         Initially we set the image_uri to exactely the given gpath.
@@ -590,8 +651,9 @@ class IBEISController(object):
         #print('[ibs] gpath_list = %r' % (gpath_list,))
         # Processing an image might fail, yeilding a None instead of a tup
         gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
-        # Create param_iter
-        params_list  = list(preproc_image.add_images_params_gen(gpath_list))
+        if params_list is None:
+            # Create param_iter
+            params_list  = list(preproc_image.add_images_params_gen(gpath_list))            
         # Error reporting
         print('\n'.join(
             [' ! Failed reading gpath=%r' % (gpath,) for (gpath, params)
@@ -636,17 +698,21 @@ class IBEISController(object):
         return gid_list
 
     @adder
-    def add_encounters(ibs, enctext_list):
+    def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_list=None,
+                       notes_list=None):
         """ Adds a list of names. Returns their nids """
         if utool.VERBOSE:
             print('[ibs] adding %d encounters' % len(enctext_list))
         # Add encounter text names to database
-        notes_list = [''] * len(enctext_list)
-        encounter_uuid_list = [uuid.uuid4() for _ in range(len(enctext_list))]
-        colnames = ['encounter_text', 'encounter_uuid', 'encounter_note']
-        params_iter = zip(enctext_list, encounter_uuid_list, notes_list)
+        if notes_list is None:
+            notes_list = [''] * len(enctext_list)
+        if encounter_uuid_list is None: 
+            encounter_uuid_list = [uuid.uuid4() for _ in range(len(enctext_list))]
+        if config_rowid_list is None: 
+            config_rowid_list = [ibs.MANUAL_CONFIGID] * len(enctext_list)
+        colnames = ['encounter_text', 'encounter_uuid', 'config_rowid', 'encounter_note']
+        params_iter = zip(enctext_list, encounter_uuid_list, config_rowid_list, notes_list)
         get_rowid_from_superkey = partial(ibs.get_encounter_eids_from_text, ensure=False)
-
         eid_list = ibs.db.add_cleanly(ENCOUNTER_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return eid_list
 
@@ -761,13 +827,15 @@ class IBEISController(object):
         return versionid_list
 
     @adder
-    def add_config(ibs, cfgsuffix_list):
+    def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
         """ Adds an algorithm / actor configuration as a string """
         # FIXME: Configs are still handled poorly
         params_iter = ((suffix,) for suffix in cfgsuffix_list)
         get_rowid_from_superkey = partial(ibs.get_config_rowid_from_suffix, ensure=False)
         config_rowid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',),
                                                params_iter, get_rowid_from_superkey)
+        if contrib_rowid_list is not None:
+            ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
         return config_rowid_list
 
     @adder
@@ -835,6 +903,50 @@ class IBEISController(object):
         """
         ibs.set_metadata_value(['database_version'], [version], (db,))
 
+
+    # SETTERS::CONTRIBUTORS
+
+    def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
+        """ Sets the config's contributor rowid """
+        id_iter = ((config_rowid,) for config_rowid in config_rowid_list)
+        val_list = ((contrib_rowid,) for contrib_rowid in contrib_rowid_list)
+        ibs.db.set(CONFIG_TABLE, ('contributor_rowid',), val_list, id_iter)
+
+    def set_config_contributor_unassigned(ibs, contrib_rowid):
+        config_rowid_list = ibs.get_valid_configids()        
+        contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)    
+        unassigned_config_rowid_list = [ 
+            config_rowid
+            for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)  
+            if _contrib_rowid is None
+        ]  
+        contrib_rowid_list = list([contrib_rowid]) * len(unassigned_config_rowid_list)
+        ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
+        
+    def set_image_contributor_unassigned(ibs, contrib_rowid):
+        gid_list = ibs.get_valid_gids()        
+        contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)    
+        unassigned_gid_list = [ 
+            gid
+            for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)  
+            if _contrib_rowid is None
+        ]  
+        contrib_rowid_list = list([contrib_rowid]) * len(unassigned_gid_list)
+        ibs.set_image_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
+
+    def set_encounter_config_unassigned(ibs):
+        eid_list = ibs.get_valid_eids()
+        config_rowid_list = ibs.get_encounter_config(eid_list)
+        unassigned_eid_list = [ 
+            eid
+            for eid, config_rowid in zip(eid_list, config_rowid_list)  
+            if config_rowid is None
+        ]  
+        id_iter = ((eid,) for eid in unassigned_eid_list)
+        config_rowid_list = list([ibs.MANUAL_CONFIGID]) * len(unassigned_eid_list)
+        val_list = ((config_rowid,) for config_rowid in config_rowid_list)
+        ibs.db.set(ENCOUNTER_TABLE, ('config_rowid',), val_list, id_iter)
+
     # SETTERS::IMAGE
 
     @setter
@@ -849,11 +961,25 @@ class IBEISController(object):
         ibs.db.set(IMAGE_TABLE, ('image_uri',), val_list, id_iter)
 
     @setter
+    def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list):
+        """ Sets the image contributor rowid """
+        id_iter = ((gid,) for gid in gid_list)
+        val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
+        ibs.db.set(IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter)
+
+    @setter
     def set_image_reviewed(ibs, gid_list, reviewed_list):
         """ Sets the image all instances found bit """
         id_iter = ((gid,) for gid in gid_list)
         val_list = ((reviewed,) for reviewed in reviewed_list)
         ibs.db.set(IMAGE_TABLE, ('image_toggle_reviewed',), val_list, id_iter)
+
+    @setter
+    def set_image_enabled(ibs, gid_list, enabled_list):
+        """ Sets the image all instances found bit """
+        id_iter = ((gid,) for gid in gid_list)
+        val_list = ((enabled,) for enabled in enabled_list)
+        ibs.db.set(IMAGE_TABLE, ('image_toggle_enabled',), val_list, id_iter)
 
     @setter
     def set_image_notes(ibs, gid_list, notes_list):
@@ -1043,6 +1169,12 @@ class IBEISController(object):
         return image_uuid_list
 
     @getter_1to1
+    def get_image_contributor_rowid(ibs, gid_list):
+        """ Returns a list of image' contributor rowids by gid """
+        contrib_rowid_list = ibs.db.get(IMAGE_TABLE, ('contributor_rowid',), gid_list)
+        return contrib_rowid_list
+
+    @getter_1to1
     def get_image_exts(ibs, gid_list):
         """ Returns a list of image uuids by gid """
         image_uuid_list = ibs.db.get(IMAGE_TABLE, ('image_ext',), gid_list)
@@ -1119,6 +1251,12 @@ class IBEISController(object):
     def get_image_lon(ibs, gid_list):
         lon_list = ibs.db.get(IMAGE_TABLE, ('image_gps_lon',), gid_list)
         return lon_list
+
+    @getter_1to1
+    def get_image_enabled(ibs, gid_list):
+        """ Returns "Image Enabled" flag, true if the image is enabled """
+        enabled_list = ibs.db.get(IMAGE_TABLE, ('image_toggle_enabled',), gid_list)
+        return enabled_list
 
     @getter_1to1
     def get_image_reviewed(ibs, gid_list):
@@ -1205,6 +1343,12 @@ class IBEISController(object):
         return annotation_uuid_list
 
     @getter_1to1
+    def get_annot_parent_aid(ibs, aid_list):
+        """ Returns a list of image uuids by gid """
+        annotation_parent_rowid_list = ibs.db.get(ANNOTATION_TABLE, ('annot_parent_rowid',), aid_list)
+        return annotation_parent_rowid_list
+
+    @getter_1to1
     def get_annot_aids_from_uuid(ibs, uuid_list):
         """ Returns a list of original image names """
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
@@ -1253,6 +1397,12 @@ class IBEISController(object):
         #print('vertstr_list = %r' % (vertstr_list,))
         vert_list = [eval(vertstr) for vertstr in vertstr_list]
         return vert_list
+
+    @getter_1to1
+    def get_annot_viewpoints(ibs, aid_list):
+        """ Returns the viewpoint (in radians) for the annotation """
+        viewpoint_list = ibs.db.get(ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
+        return viewpoint_list
 
     @utool.accepts_numpy
     @getter_1to1
@@ -1538,6 +1688,123 @@ class IBEISController(object):
         nFeats_list = ibs.dbcache.get(FEATURE_TABLE, ('feature_num_feats',), fid_list)
         nFeats_list = [(-1 if nFeats is None else nFeats) for nFeats in nFeats_list]
         return nFeats_list
+    
+    #
+    # GETTERS::CONTRIBUTOR_TABLE
+    @getter_1to1
+    def get_contributor_rowid_from_uuid(ibs, tag_list):
+        """ Gets a contributor """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        contrib_rowid_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_rowid',), tag_list, id_colname='contributor_uuid')
+        return contrib_rowid_list
+    
+    @getter_1to1
+    def get_contributor_uuid(ibs, contrib_rowid_list):
+        """ Gets a contributor's uuid """
+        contrib_uuid_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_uuid',), contrib_rowid_list)
+        return contrib_uuid_list
+    
+    @getter_1to1
+    def get_contributor_tag(ibs, contrib_rowid_list):
+        """ Gets a contributor's tag """
+        contrib_tag_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_tag',), contrib_rowid_list)
+        return contrib_tag_list
+    
+    @getter_1to1
+    def get_contributor_first_name(ibs, contrib_rowid_list):
+        """ Gets a contributor's first name """
+        contrib_name_first_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_name_first',), contrib_rowid_list)
+        return contrib_name_first_list
+    
+    @getter_1to1
+    def get_contributor_last_name(ibs, contrib_rowid_list):
+        """ Gets a contributor's last name """
+        contrib_name_last_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_name_last',), contrib_rowid_list)
+        return contrib_name_last_list
+    
+    @getter_1to1
+    def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
+        """ Gets a contributor's full name """
+        first_list = ibs.get_contributor_first_name(contrib_rowid_list)
+        last_list = ibs.get_contributor_last_name(contrib_rowid_list)
+        if include_tag:
+            tag_list = ibs.get_contributor_tag(contrib_rowid_list)
+            name_list = zip(first_list, last_list, tag_list)
+            contrib_name_list = [ 
+                "%s %s (%s)" %(first, last, tag) 
+                for first, last, tag in name_list
+            ]
+        else:
+            name_list = zip(first_list, last_list)
+            contrib_name_list = [ 
+                "%s %s" %(first, last) 
+                for first, last in name_list
+            ]
+
+        return contrib_name_list
+
+    @getter_1to1
+    def get_contributor_city(ibs, contrib_rowid_list):
+        """ Gets a contributor's location - city """
+        contrib_city_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_city',), contrib_rowid_list)
+        return contrib_city_list
+    
+    @getter_1to1
+    def get_contributor_state(ibs, contrib_rowid_list):
+        """ Gets a contributor's location - state """
+        contrib_state_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_state',), contrib_rowid_list)
+        return contrib_state_list
+    
+    @getter_1to1
+    def get_contributor_country(ibs, contrib_rowid_list):
+        """ Gets a contributor's location - country """
+        contrib_country_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_country',), contrib_rowid_list)
+        return contrib_country_list
+    
+    @getter_1to1
+    def get_contributor_zip(ibs, contrib_rowid_list):
+        """ Gets a contributor's location - zip """
+        contrib_zip_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_location_zip',), contrib_rowid_list)
+        return contrib_zip_list
+    
+    @getter_1to1
+    def get_contributor_location_string(ibs, contrib_rowid_list):
+        """ Gets a contributor's location """
+        city_list = ibs.get_contributor_city(contrib_rowid_list)
+        state_list = ibs.get_contributor_state(contrib_rowid_list)
+        zip_list = ibs.get_contributor_zip(contrib_rowid_list)
+        country_list = ibs.get_contributor_country(contrib_rowid_list)
+        location_list = zip(city_list, state_list, zip_list, country_list)
+        contrib_list = [ 
+            "%s, %s\n%s %s" %(city, state, _zip, country) 
+            for city, state, _zip, country in location_list
+        ]
+        return contrib_list
+    
+    @getter_1to1
+    def get_contributor_note(ibs, contrib_rowid_list):
+        """ Gets a contributor's note """
+        contrib_note_list = ibs.db.get(CONTRIBUTOR_TABLE, ('contributor_note',), contrib_rowid_list)
+        return contrib_note_list
+
+
+    @getter_1to1
+    def get_contributor_config_rowids(ibs, contrib_rowid_list):
+        """ Gets config rowids for a contributor """
+        config_rowid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
+        return config_rowid_list
+
+    @getter_1to1
+    def get_contributor_eids(ibs, config_rowid_list):
+        """ Gets eids for a contributor """
+        eid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_rowid',), config_rowid_list, id_colname='config_rowid', unpack_scalars=False)
+        return eid_list
+
+    @getter_1to1
+    def get_contributor_gids(ibs, contrib_rowid_list):
+        """ Gets eids for a contributor """
+        gid_list = ibs.db.get(IMAGE_TABLE, ('image_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
+        return gid_list
 
     #
     # GETTERS::CONFIG_TABLE
@@ -1556,6 +1823,12 @@ class IBEISController(object):
         #if config_rowid_list is not None and len(config_rowid_list) == 1:
         #    config_rowid_list = config_rowid_list[0]
         return config_rowid_list
+
+    @getter_1to1
+    def get_config_contributor_rowid(ibs, config_rowid_list):
+        """ Gets contributor's rowid for algorithm configs """
+        cfgsuffix_list = ibs.db.get(CONFIG_TABLE, ('contributor_rowid',), config_rowid_list)
+        return cfgsuffix_list
 
     @getter_1to1
     def get_config_suffixes(ibs, config_rowid_list):
@@ -1636,6 +1909,22 @@ class IBEISController(object):
         #print('nids_list_ = %r' % (nids_list_,))
         #print('nids_list = %r' % (nids_list,))
         return nids_list
+    
+    @getter_1to1
+    def get_encounter_uuid(ibs, eid_list):
+        """ Returns encounter_uuid of each eid in eid_list """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        encuuid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_uuid',), eid_list, id_colname='encounter_rowid')
+        #enctext_list = list(map(__STR__, enctext_list))
+        return encuuid_list
+    
+    @getter_1to1
+    def get_encounter_config(ibs, eid_list):
+        """ Returns config_rowid of each eid in eid_list """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        config_rowid_list = ibs.db.get(ENCOUNTER_TABLE, ('config_rowid',), eid_list, id_colname='encounter_rowid')
+        #enctext_list = list(map(__STR__, enctext_list))
+        return config_rowid_list
 
     @getter_1to1
     def get_encounter_enctext(ibs, eid_list):
@@ -1656,6 +1945,14 @@ class IBEISController(object):
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         eid_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_rowid',), enctext_list, id_colname='encounter_text')
         return eid_list
+
+    @getter_1to1
+    def get_encounter_note(ibs, eid_list):
+        """ Returns encounter_note of each eid in eid_list """
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        encnote_list = ibs.db.get(ENCOUNTER_TABLE, ('encounter_note',), eid_list, id_colname='encounter_rowid')
+        #enctext_list = list(map(__STR__, enctext_list))
+        return encnote_list
 
     #
     #
@@ -2007,6 +2304,37 @@ class IBEISController(object):
         colnames = ('alr_confidence',)
         ibs.db.set(AL_RELATION_TABLE, colnames, val_iter, id_iter)
 
+    # ADDERS::GLR
+
+    @adder
+    def add_image_relationship(ibs, gid_list, lblimage_rowid_list, config_rowid_list=None,
+                                    glr_confidence_list=None):
+        """ Adds a relationship between images and lblimages
+            (imageations and labels of imageations) """
+        if config_rowid_list is None:
+            config_rowid_list = [ibs.MANUAL_CONFIGID] * len(gid_list)
+        if glr_confidence_list is None:
+            glr_confidence_list = [0.0] * len(gid_list)
+        colnames = ('image_rowid', 'lblimage_rowid', 'config_rowid', 'glr_confidence',)
+        params_iter = list(zip(gid_list, lblimage_rowid_list, config_rowid_list, glr_confidence_list))
+        get_rowid_from_superkey = ibs.get_glrid_from_superkey
+        superkey_paramx = (0, 1, 2)  # TODO HAVE SQL GIVE YOU THESE NUMBERS
+        glrid_list = ibs.db.add_cleanly(GL_RELATION_TABLE, colnames, params_iter,
+                                        get_rowid_from_superkey, superkey_paramx)
+        return glrid_list
+    
+    @getter_1to1
+    def get_glrid_from_superkey(ibs, gid_list, lblimage_rowid_list, config_rowid_list):
+        """
+        Input: lblimageid_list (label id) + config_rowid_list
+        Output: image-label relationship id list
+        """
+        colnames = ('image_rowid',)
+        params_iter = zip(gid_list, lblimage_rowid_list, config_rowid_list)
+        where_clause = 'image_rowid=? AND lblimage_rowid=? AND config_rowid=?'
+        glrid_list = ibs.db.get_where(GL_RELATION_TABLE, colnames, params_iter, where_clause)
+        return glrid_list
+
     # ADDERS::ALR
 
     @adder
@@ -2058,6 +2386,39 @@ class IBEISController(object):
         """ get the annot_rowid belonging to each relationship """
         annot_rowids_list = ibs.db.get(AL_RELATION_TABLE, ('annot_rowid',), alrid_list)
         return annot_rowids_list
+
+    @getter_1to1
+    def get_alr_config_rowid(ibs, alrid_list):
+        """ returns config_rowid in an annotation relationship """
+        config_rowid_list = ibs.db.get(AL_RELATION_TABLE, ('config_rowid',), alrid_list)
+        return config_rowid_list
+
+    #
+    # GETTERS::GLR
+
+    @getter_1to1
+    def get_glr_confidence(ibs, glrid_list):
+        """ returns confidence in an image relationship """
+        glr_confidence_list = ibs.db.get(GL_RELATION_TABLE, ('glr_confidence',), glrid_list)
+        return glr_confidence_list
+
+    @getter_1to1
+    def get_glr_lblimage_rowids(ibs, glrid_list):
+        """ get the lblimage_rowid belonging to each relationship """
+        lblimage_rowids_list = ibs.db.get(GL_RELATION_TABLE, ('lblimage_rowid',), glrid_list)
+        return lblimage_rowids_list
+
+    @getter_1to1
+    def get_glr_image_rowids(ibs, glrid_list):
+        """ get the image_rowid belonging to each relationship """
+        image_rowids_list = ibs.db.get(GL_RELATION_TABLE, ('image_rowid',), glrid_list)
+        return image_rowids_list
+
+    @getter_1to1
+    def get_glr_config_rowid(ibs, glrid_list):
+        """ returns config_rowid in an image relationship """
+        config_rowid_list = ibs.db.get(GL_RELATION_TABLE, ('config_rowid',), glrid_list)
+        return config_rowid_list
 
     # ADDERS::IMAGE->ENCOUNTER
 
@@ -2189,10 +2550,31 @@ class IBEISController(object):
         # Set the old relationships
         ibs.set_alr_lblannot_rowids(alrid_list_to_set, lblannot_rowid_list_to_set)
 
+    # ADDERS::LBLIMAGE
+
+    @adder
+    def add_lblimages(ibs, lbltype_rowid_list, value_list, note_list=None, lblimage_uuid_list=None):
+        """ Adds new lblimages (labels of imageations)
+        creates a new uuid for any new pair(type, value)
+        #TODO: reverse order of rowid_list value_list in input
+        """
+        if note_list is None:
+            note_list = [''] * len(value_list)
+        # Get random uuids
+        if lblimage_uuid_list is None:
+            lblimage_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
+        colnames = ['lblimage_uuid', 'lbltype_rowid', 'lblimage_value', 'lblimage_note']
+        params_iter = list(zip(lblimage_uuid_list, lbltype_rowid_list, value_list, note_list))
+        get_rowid_from_superkey = ibs.get_lblimage_rowid_from_superkey
+        superkey_paramx = (1, 2)
+        lblimage_rowid_list = ibs.db.add_cleanly(LBLIMAGE_TABLE, colnames, params_iter,
+                                                 get_rowid_from_superkey, superkey_paramx)
+        return lblimage_rowid_list
+
     # ADDERS::LBLANNOT
 
     @adder
-    def add_lblannots(ibs, lbltype_rowid_list, value_list, note_list=None):
+    def add_lblannots(ibs, lbltype_rowid_list, value_list, note_list=None, lblannot_uuid_list=None):
         """ Adds new lblannots (labels of annotations)
         creates a new uuid for any new pair(type, value)
         #TODO: reverse order of rowid_list value_list in input
@@ -2200,7 +2582,8 @@ class IBEISController(object):
         if note_list is None:
             note_list = [''] * len(value_list)
         # Get random uuids
-        lblannot_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
+        if lblannot_uuid_list is None:
+            lblannot_uuid_list = [uuid.uuid4() for _ in range(len(value_list))]
         colnames = ['lblannot_uuid', 'lbltype_rowid', 'lblannot_value', 'lblannot_note']
         params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
         get_rowid_from_superkey = ibs.get_lblannot_rowid_from_superkey
@@ -2246,6 +2629,22 @@ class IBEISController(object):
         return lbltype_rowid_list
 
     # INVEST::getters
+
+    @getter_1toM
+    def get_image_glrids(ibs, gid_list, configid=None):
+        """ FIXME: __name__
+        Get all the relationship ids belonging to the input images
+        if lblimage lbltype is specified the relationship ids are filtered to
+        be only of a specific lbltype/category/type
+        """
+        if configid is None:
+            configid = ibs.MANUAL_CONFIGID
+        params_iter = ((gid, configid) for gid in gid_list)
+        where_clause = 'image_rowid=? AND config_rowid=?'
+        glrids_list = ibs.db.get_where(GL_RELATION_TABLE, ('glr_rowid',), params_iter,
+                                       where_clause=where_clause, unpack_scalars=False)
+        # assert all([x > 0 for x in map(len, alrids_list)]), 'annotations must have at least one relationship'
+        return glrids_list
 
     @getter_1toM
     def get_annot_alrids(ibs, aid_list, configid=None):
@@ -2423,6 +2822,69 @@ class IBEISController(object):
     def get_lbltype_text(ibs, lbltype_rowid_list):
         lbltype_text_list = ibs.db.get(LBLTYPE_TABLE, ('lbltype_text',), lbltype_rowid_list)
         return lbltype_text_list
+
+    #
+    # GETTERS::LBLIMAGE_TABLE
+
+    @getter_1to1
+    def get_lblimage_rowid_from_superkey(ibs, lbltype_rowid_list, value_list):
+        """
+        Gets lblimage_rowid_list from the superkey (lbltype, value)
+        """
+        colnames = ('lblimage_rowid',)
+        params_iter = zip(lbltype_rowid_list, value_list)
+        where_clause = 'lbltype_rowid=? AND lblimage_value=?'
+        lblimage_rowid_list = ibs.db.get_where(LBLIMAGE_TABLE, colnames, params_iter, where_clause)
+        return lblimage_rowid_list
+
+    get_lblimage_rowid_from_typevaltup = get_lblimage_rowid_from_superkey
+
+    @getter_1to1
+    def get_lblimage_rowid_from_uuid(ibs, lblimage_uuid_list):
+        """
+        Gets lblimage_rowid_list from the superkey (lbltype, value)
+        """
+        colnames = ('lblimage_rowid',)
+        params_iter = lblimage_uuid_list
+        id_colname = 'lblimage_uuid'
+        lblimage_rowid_list = ibs.db.get(LBLIMAGE_TABLE, colnames, params_iter, id_colname=id_colname)
+        return lblimage_rowid_list
+
+    @getter_1to1
+    def get_lblimage_uuids(ibs, lblimage_rowid_list):
+        lblimageuuid_list = ibs.db.get(LBLIMAGE_TABLE, ('lblimage_uuid',), lblimage_rowid_list)
+        return lblimageuuid_list
+
+    @getter_1to1
+    def get_lblimage_lbltypes_rowids(ibs, lblimage_rowid_list):
+        lbltype_rowid_list = ibs.db.get(LBLIMAGE_TABLE, ('lbltype_rowid',), lblimage_rowid_list)
+        return lbltype_rowid_list
+
+    @getter_1to1
+    def get_lblimage_notes(ibs, lblimage_rowid_list):
+        lblimagenotes_list = ibs.db.get(LBLIMAGE_TABLE, ('lblimage_note',), lblimage_rowid_list)
+        return lblimagenotes_list
+
+    @getter_1to1
+    def get_lblimage_values(ibs, lblimage_rowid_list, _lbltype=None):
+        """ Returns text lblimages """
+        #TODO: Remove keyword argument
+        #ibsfuncs.assert_lblimage_rowids_are_type(ibs, lblimage_rowid_list,  ibs.lbltype_ids[_lbltype])
+        lblimage_value_list = ibs.db.get(LBLIMAGE_TABLE, ('lblimage_value',), lblimage_rowid_list)
+        return lblimage_value_list
+
+    @default_decorator
+    def get_lblimage_gids(ibs, lblimage_rowid_list):
+        #verbose = len(lblimage_rowid_list) > 20
+        # TODO: Optimize IF POSSIBLE
+        # FIXME: SLOW
+        #if verbose:
+        #    print(utool.get_caller_name(N=list(range(0, 20))))
+        where_clause = 'lblimage_rowid=?'
+        params_iter = [(lblimage_rowid,) for lblimage_rowid in lblimage_rowid_list]
+        gids_list = ibs.db.get_where(GL_RELATION_TABLE, ('image_rowid',), params_iter,
+                                     where_clause, unpack_scalars=False)
+        return gids_list
 
     #
     # GETTERS::LBLANNOT_TABLE

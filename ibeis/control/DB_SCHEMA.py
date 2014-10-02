@@ -238,7 +238,7 @@ def update_1_0_2(ibs):
     )
 
 # =======================
-# Schema Version 1.0.3
+# Schema Version 1.1.0
 # =======================
 
 
@@ -275,6 +275,35 @@ def update_1_1_0(ibs):
     ibs.db.drop_table(constants.VERSIONS_TABLE)
 
 
+# =======================
+# Schema Version 1.1.1
+# =======================
+
+
+def update_1_1_1(ibs):
+    # Change name of column
+    ibs.db.modify_table(constants.CONFIG_TABLE, (
+        # rename column and change it's type
+        ('contributor_uuid', 'contributor_rowid', '', None),
+    ),
+        table_constraints=[],
+        superkey_colnames=['contributor_rowid', 'config_suffix']
+    )
+
+    # Change type of column
+    ibs.db.modify_table(constants.CONFIG_TABLE, (
+        # rename column and change it's type
+        ('contributor_rowid', '', 'INTEGER', None),
+    ))
+
+    # Change type of columns
+    ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+        # Update column's types
+        ('contributor_location_zip', '', 'TEXT', None),
+        ('contributor_note', '', 'TEXT', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -288,4 +317,5 @@ VALID_VERSIONS = {
     '1.0.1':    (None,                 update_1_0_1,       None                ),
     '1.0.2':    (None,                 update_1_0_2,       None                ),
     '1.1.0':    (None,                 update_1_1_0,       None                ),
+    '1.1.1':    (None,                 update_1_1_1,       None                ),
 }

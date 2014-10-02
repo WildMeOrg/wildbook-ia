@@ -62,6 +62,7 @@ AL_RELATION_TABLE = 'annotation_lblannot_relationship'
 ANNOTATION_TABLE  = 'annotations'
 CHIP_TABLE        = 'chips'
 CONFIG_TABLE      = 'configs'
+CONTRIBUTOR_TABLE = 'contributors'
 EG_RELATION_TABLE = 'encounter_image_relationship'
 ENCOUNTER_TABLE   = 'encounters'
 FEATURE_TABLE     = 'features'
@@ -72,7 +73,6 @@ LBLIMAGE_TABLE    = 'lblimage'
 LBLTYPE_TABLE     = 'keys'
 METADATA_TABLE    = 'metadata'
 VERSIONS_TABLE    = 'versions'
-CONTRIBUTOR_TABLE = 'contributors'
 #################################################################
 
 

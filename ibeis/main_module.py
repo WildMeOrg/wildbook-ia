@@ -238,7 +238,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
     opening) """
     from ibeis.dev import sysres
     from ibeis import ibsfuncs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     if delete_ibsdir is True:
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
         ibsfuncs.delete_ibeis_database(dbdir)
