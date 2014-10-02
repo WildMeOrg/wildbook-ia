@@ -18,6 +18,7 @@ python -c "import utool; utool.copy('super_setup.py', '_ibeis_setup.py')"
 
 # Status
 python _ibeis_setup.py -y --gg "git status"
+python _ibeis_setup.py -y --gg "git branch"
 
 # Setup Next
 #python _ibeis_setup.py -y --gg "git pull"
@@ -35,19 +36,21 @@ python _ibeis_setup.py -y --gg "git status"
 #python _ibeis_setup.py -y --gg "git checkout pyqt5"
 
 
-# Merge Pyqt5
+# -- MERGE topic -> next
 ##python _ibeis_setup.py -y --gg "git checkout pyqt5"
 ##python _ibeis_setup.py -y --gg "git checkout next"
 ##python _ibeis_setup.py -y --gg "git merge pyqt5"
 
 
+# -- MERGE next -> master
 python _ibeis_setup.py -y --gg "git checkout next"
 python _ibeis_setup.py -y --gg "git merge next"
 
-python _ibeis_setup.py -y --gg "git checkout pyqt5"
-python _ibeis_setup.py -y --gg "git branch"
+# Push
+python _ibeis_setup.py -y --gg "git push"
 
-
+#python _ibeis_setup.py -y --gg "git checkout master"
+#python _ibeis_setup.py -y --gg "git checkout pyqt5"
 """
 # FUTURE
 from __future__ import absolute_import, division, print_function
