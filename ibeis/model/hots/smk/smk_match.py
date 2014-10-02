@@ -42,7 +42,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                    invindex, withinfo, alpha, thresh)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
     # Prevent self matches
-    can_match_self = False
+    can_match_self = not utool.get_argflag('--noself')
     cant_match_self_ = (not can_match_self) and qaid in daid2_totalscore
     if cant_match_self_:
         daid2_totalscore[qaid] = 0

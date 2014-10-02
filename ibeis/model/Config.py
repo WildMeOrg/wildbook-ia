@@ -303,7 +303,7 @@ class SMKConfig(ConfigBase):
     """ SMKConfig """
     def __init__(smkcfg, **kwargs):
         super(SMKConfig, smkcfg).__init__(name='smkcfg')
-        smkcfg.nAssign = 4  # MultiAssignment
+        smkcfg.nAssign = 10  # MultiAssignment
         smkcfg.thresh = 0  # tau in the paper
         smkcfg.alpha = 3
         smkcfg.aggregate = False  #
