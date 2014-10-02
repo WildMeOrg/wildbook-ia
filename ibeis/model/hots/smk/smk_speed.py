@@ -25,6 +25,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
     aggaids_list = [tup[0] for tup in grouptup_list]
     groupxs_list = [tup[1] for tup in grouptup_list]
     # Aggregate vecs that belong to the same aid, for each word
+    # (weighted aggregation with multi-assign-weights)
     aggvecs_list = [
         np.vstack([smk_core.aggregate_rvecs(rvecs.take(xs, axis=0), maws.take(xs)) for xs in groupxs])
         if len(groupxs) > 0 else

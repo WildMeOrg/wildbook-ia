@@ -79,14 +79,19 @@ def apply_maws(simmat_list, qmaws_list, dmaws_list):
     if dmaws_list is None and qmaws_list is None:
         mawsim_list = simmat_list
     elif dmaws_list is not None and qmaws_list is not None:
+        #mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat * dmaws.reshape((1, dmaws.size))
         mawsim_list = [qmaws[:, np.newaxis] * simmat * dmaws[np.newaxis, :]
                        for simmat, qmaws, dmaws in
                        zip(simmat_list, qmaws_list, dmaws_list)]
     elif qmaws_list is not None and dmaws_list is None:
+        #mawsim_list = [qmaws.reshape((qmaws.size, 1)) * simmat
         mawsim_list = [qmaws[:, np.newaxis] * simmat
                        for simmat, qmaws in
                        zip(simmat_list, qmaws_list)]
     else:
+        #mawsim_list = [simmat * dmaws[np.newaxis, :]
+        #               for simmat, dmaws in
+        #               zip(simmat_list, dmaws_list)]
         raise NotImplementedError('cannot just do dmaws')
     return mawsim_list
 
@@ -152,6 +157,7 @@ def sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh):
 
     qrvecs_list = drvecs_list = rvecs_list
     """
+    # Indexing with asymetric multi-assignment might get you a non 1 self score?
     scores_list = score_matches(rvecs_list, rvecs_list,
                                 maws_list, maws_list,
                                 alpha, thresh)

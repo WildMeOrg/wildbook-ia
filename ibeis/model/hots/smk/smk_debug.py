@@ -58,7 +58,7 @@ def testdata_ibeis2(**kwargs):
     taids = valid_aids[:]
     daids  = valid_aids
     #daids = valid_aids[1:10]
-    daids = valid_aids[0:3]
+    #daids = valid_aids[0:3]
     #qaids = valid_aids[0::2]
     #qaids = valid_aids[0:2]
     #qaids = [37]  # NOQA new test case for PZ_MTEST
