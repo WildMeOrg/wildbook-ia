@@ -111,12 +111,18 @@ class IBEISController(object):
         ibs.table_cache = init_tablecache()
         #ibs.qreq = None  # query requestor object
         ibs.ibschanged_callback = None
+        ibs.observers = [] # keep track of the guibacks connected to this controller
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         ibs._init_wb(wbaddr)  # this will do nothing if no wildbook address is specified
         ibs._init_sql()
         ibs._init_config()
         ibsfuncs.inject_ibeis(ibs)
         __ALL_CONTROLLERS__.append(ibs)
+
+    def __del__(ibs):
+        print('[ibs.__del__] Observers (if any) notified [controller killed]')
+        for observer in ibs.observers:
+            observer.notify_controller_killed()
 
     def rrr(ibs):
         global __ALL_CONTROLLERS__
@@ -131,6 +137,22 @@ class IBEISController(object):
         ibsfuncs.inject_ibeis(ibs)
         utool.reload_class_methods(ibs, IBEISControl.IBEISController)
         __ALL_CONTROLLERS__.append(ibs)
+
+    @default_decorator
+    def register_observer(ibs, observer):
+        print('[register_observer] Observer registered: %r' % observer)
+        ibs.observers.append(observer)
+
+    @default_decorator
+    def remove_observer(ibs, observer):
+        print('[remove_observer] Observer removed: %r' % observer)
+        ibs.observers.remove(observer)
+    
+    @default_decorator
+    def notify_observers(ibs):
+        print('[notify_observers] Observers (if any) notified')
+        for observer in ibs.observers:
+            observer.notify()
 
     @default_decorator
     def _init_wb(ibs, wbaddr):
@@ -616,7 +638,7 @@ class IBEISController(object):
         if loc_zip_list is None:
             loc_zip_list = [''] * len(tag_list)
         if notes_list is None:
-            notes_list = [ "Created %s" %(datetime.datetime.now(),) for _ in range(len(tag_list))]
+            notes_list = [ "Created %s" % (datetime.datetime.now(),) for _ in range(len(tag_list))]
 
         loc_zip_list = [ _valid_zip(_zip) for _zip in loc_zip_list]
 
@@ -720,14 +742,17 @@ class IBEISController(object):
     def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                         species_list=None, nid_list=None, name_list=None,
                         detect_confidence_list=None, notes_list=None,
-                        vert_list=None):
+                        vert_list=None, annotation_uuid_list=None, viewpoint_list=None,
+                        import_override=False, silent_delete_thumbs=False):
         """ Adds oriented ANNOTATION bounding boxes to images """
         if utool.VERBOSE:
             print('[ibs] adding annotations')
         # Prepare the SQL input
         assert name_list is None or nid_list is None, 'cannot specify both names and nids'
-        # xor bbox or vert is None
-        assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
+        # For import only, we can specify both by setting import_override to True
+        if not import_override:
+            # xor bbox or vert is None
+            assert bool(bbox_list is None) != bool(vert_list is None), 'must specify exactly one of bbox_list or vert_list'
 
         if theta_list is None:
             theta_list = [0.0 for _ in range(len(gid_list))]
@@ -767,7 +792,10 @@ class IBEISController(object):
         image_uuid_list = ibs.get_image_uuids(gid_list)
         #annotation_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
         #                                                      theta_list, deterministic=False)
-        annotation_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
+        if annotation_uuid_list is None:
+            annotation_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
+        if viewpoint_list is None:
+            viewpoint_list = [0.0] * len(image_uuid_list)
         nVert_list = [len(verts) for verts in vert_list]
         vertstr_list = [__STR__(verts) for verts in vert_list]
         xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
@@ -775,12 +803,12 @@ class IBEISController(object):
         # Define arguments to insert
         colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
                     'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                    'annot_verts', 'annot_detect_confidence',
+                    'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
                     'annot_note',)
 
         params_iter = list(zip(annotation_uuid_list, gid_list, xtl_list, ytl_list,
                                 width_list, height_list, theta_list, nVert_list,
-                                vertstr_list, detect_confidence_list,
+                                vertstr_list, viewpoint_list, detect_confidence_list,
                                 notes_list))
         #utool.embed()
 
@@ -797,8 +825,8 @@ class IBEISController(object):
             alrid_list = ibs.add_annot_relationship(aid_list, nid_list)
             del alrid_list
         #print('alrid_list = %r' % (alrid_list,))
-        # Invalidate image thumbnails
-        ibs.delete_image_thumbs(gid_list)
+        # Invalidate image thumbnails, silent_delete_thumbs causes no output on deletion from utool
+        ibs.delete_image_thumbs(gid_list, silent=silent_delete_thumbs)
         return aid_list
 
     #@adder
@@ -1034,6 +1062,13 @@ class IBEISController(object):
         id_iter = ((aid,) for aid in aid_list)
         val_iter = ((flag,) for flag in flag_list)
         ibs.db.set(ANNOTATION_TABLE, ('annot_exemplar_flag',), val_iter, id_iter)
+    
+    @setter
+    def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
+        """ Sets the annotation's parent aid """
+        id_iter = ((aid,) for aid in aid_list)
+        val_iter = ((parent_aid,) for parent_aid in parent_aid_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_parent_rowid',), val_iter, id_iter)
 
     @setter
     def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
@@ -1079,6 +1114,13 @@ class IBEISController(object):
         ibs.db.set(ANNOTATION_TABLE, colnames, val_iter2, id_iter2, num_params=num_params)
         if delete_thumbs:
             ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
+
+    @setter
+    def set_annot_detect_confidence(ibs, aid_list, confidence_list):
+        """ Sets annotation notes """
+        id_iter = ((aid,) for aid in aid_list)
+        val_iter = ((confidence,) for confidence in confidence_list)
+        ibs.db.set(ANNOTATION_TABLE, ('annot_detect_confidence',), val_iter, id_iter)
 
     @setter
     def set_annot_notes(ibs, aid_list, notes_list):
@@ -1731,13 +1773,13 @@ class IBEISController(object):
             tag_list = ibs.get_contributor_tag(contrib_rowid_list)
             name_list = zip(first_list, last_list, tag_list)
             contrib_name_list = [ 
-                "%s %s (%s)" %(first, last, tag) 
+                "%s %s (%s)" % (first, last, tag) 
                 for first, last, tag in name_list
             ]
         else:
             name_list = zip(first_list, last_list)
             contrib_name_list = [ 
-                "%s %s" %(first, last) 
+                "%s %s" % (first, last) 
                 for first, last in name_list
             ]
 
@@ -1776,7 +1818,7 @@ class IBEISController(object):
         country_list = ibs.get_contributor_country(contrib_rowid_list)
         location_list = zip(city_list, state_list, zip_list, country_list)
         contrib_list = [ 
-            "%s, %s\n%s %s" %(city, state, _zip, country) 
+            "%s, %s\n%s %s" % (city, state, _zip, country) 
             for city, state, _zip, country in location_list
         ]
         return contrib_list
@@ -2005,6 +2047,34 @@ class IBEISController(object):
             print('[ibs] deleting %d features' % len(fid_list))
         ibs.dbcache.delete_rowids(FEATURE_TABLE, fid_list)
 
+
+    @deleter
+    def delete_configs(ibs, config_rowid_list):
+        """ deletes images from the database that belong to fids"""
+        if utool.VERBOSE:
+            print('[ibs] deleting %d configs' % len(config_rowid_list))
+        ibs.db.delete_rowids(CONFIG_TABLE, config_rowid_list)
+
+    @deleter
+    def delete_contributors(ibs, contrib_rowid_list):
+        """ deletes contributors from the database and all information associated"""
+        if utool.VERBOSE:
+            print('[ibs] deleting %d contributors' % len(contrib_rowid_list))
+        config_rowid_list = utool.flatten(ibs.get_contributor_config_rowids(contrib_rowid_list))
+        # Delete configs
+        ibs.delete_configs(config_rowid_list)
+        # Delete encounters
+        eid_list = ibs.get_valid_eids()
+        eid_config_list = ibs.get_encounter_config(eid_list)
+        valid_list = [ config in config_rowid_list for config in eid_config_list ]
+        eid_list = utool.filter_items(eid_list, valid_list)
+        ibs.delete_encounters(eid_list)
+        # Delete images
+        gid_list = utool.flatten(ibs.get_contributor_gids(contrib_rowid_list))
+        ibs.delete_images(gid_list)
+        # Delete contributors
+        ibs.db.delete_rowids(CONTRIBUTOR_TABLE, contrib_rowid_list)
+
     @deleter
     def delete_annot_chips(ibs, aid_list):
         """ Clears annotation data but does not remove the annotation """
@@ -2016,17 +2086,17 @@ class IBEISController(object):
         ibs.delete_annot_chip_thumbs(aid_list)
 
     @deleter
-    def delete_image_thumbs(ibs, gid_list):
+    def delete_image_thumbs(ibs, gid_list, silent=False):
         """ Removes image thumbnails from disk """
         # print('gid_list = %r' % (gid_list,))
         thumbpath_list = ibs.get_image_thumbpath(gid_list)
-        utool.remove_file_list(thumbpath_list)
+        utool.remove_file_list(thumbpath_list, silent=silent)
 
     @deleter
-    def delete_annot_chip_thumbs(ibs, aid_list):
+    def delete_annot_chip_thumbs(ibs, aid_list, silent=False):
         """ Removes chip thumbnails from disk """
         thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-        utool.remove_file_list(thumbpath_list)
+        utool.remove_file_list(thumbpath_list, silent=silent)
 
     @deleter
     @cache_invalidator(CHIP_TABLE)
@@ -2131,6 +2201,7 @@ class IBEISController(object):
         """ Runs animal detection in each image """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
+        tt = utool.tic()
         detect_gen = randomforest.generate_detection_images(ibs, gid_list, species, **kwargs)
         detected_gid_list, detected_bbox_list, detected_confidence_list, detected_img_confs = [], [], [], []
         ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
@@ -2169,7 +2240,12 @@ class IBEISController(object):
                             detected_bbox_list,
                             detected_confidence_list,
                             detected_img_confs)
-        print('[ibs] finshed detecting')
+        tt_total = float(utool.toc(tt))
+        if len(gid_list) > 0:
+            print('[ibs] finshed detecting, took %.2f seconds (avg. %.2f seconds per image)' % (tt_total, tt_total/len(gid_list)))
+        else:
+            print('[ibs] finshed detecting')
+
 
     #
     #

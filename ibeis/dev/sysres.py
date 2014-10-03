@@ -210,7 +210,7 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
                    cache_priority=True):
     """ Machinery for finding a database directory """
     '''
-    LEGACY DB ARG PARSING:
+        # LEGACY DB ARG PARSING:
         if dbdir is None and db is not None:
             printDBG('[sysres] use command line dbdir')
             dbdir = params.args.dbdir
