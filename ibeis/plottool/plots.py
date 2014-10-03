@@ -109,7 +109,7 @@ def get_good_logyscale_kwargs(y_data, adaptive_knee_scaling=False):
     dy = np.diff(logy)
     dy_sortx = dy.argsort()
     # Get mean and standard deviation
-    dy_stats = utool.mystats(dy)
+    dy_stats = utool.get_stats(dy)
     dy_sorted = dy[dy_sortx]
     # Find the number of standard deveations past the mean each datapoint is
     try:

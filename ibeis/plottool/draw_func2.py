@@ -832,7 +832,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     #printDBG('[df2] ----- IMSHOW ------ ')
     #printDBG('[***df2.imshow] fnum=%r pnum=%r title=%r *** ' % (fnum, pnum, title))
     #printDBG('[***df2.imshow] img.shape = %r ' % (img.shape,))
-    #printDBG('[***df2.imshow] img.stats = %r ' % (utool.common_stats(img),))
+    #printDBG('[***df2.imshow] img.stats = %r ' % (utool.get_stats_str(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
     if darken is not None:
