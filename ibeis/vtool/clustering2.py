@@ -396,10 +396,10 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     if __debug__ and False:
         utool.printex(Exception('INFO'), keys=[
             'colors',
-            (utool.mystats, 'colors'),
+            (utool.get_stats, 'colors'),
             'colors.shape',
             'datax2_label',
-            (utool.mystats, 'datax2_label'),
+            (utool.get_stats, 'datax2_label'),
             'datax2_label.shape',
         ])
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
