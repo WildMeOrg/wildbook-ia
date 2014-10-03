@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import os
 from os.path import exists, join, realpath
 import utool
-from utool import util_cache, util_list, util_cplat
+from utool import util_cache, util_list
 from ibeis import constants
 from ibeis import params
 
@@ -110,8 +110,7 @@ def guiselect_workdir():
 
 def get_dbalias_dict():
     dbalias_dict = {}
-    computer_name = util_cplat.get_computer_name()
-    if computer_name in ['Hyrule', 'Ooo', 'BakerStreet']:
+    if utool.is_developer():
         # For jon's convinience
         dbalias_dict.update({
             'NAUTS':            'NAUT_Dan',
@@ -148,6 +147,9 @@ def get_dbalias_dict():
 
 def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     """ Implicitly gets dbdir. Searches for db inside of workdir """
+    if utool.VERBOSE:
+        print('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
+
     work_dir = get_workdir()
     dbalias_dict = get_dbalias_dict()
 

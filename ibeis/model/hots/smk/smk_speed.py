@@ -8,6 +8,37 @@ from six.moves import zip
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_speed]')
 
 
+def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
+    """
+    Sums and normalizes all rvecs that belong to the same word and the same
+    annotation id
+    >>> from ibeis.model.hots.smk.smk_speed import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
+    >>> rvecs_list = compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec)
+
+    """
+    #assert len(idxs_list) == len(rvecs_list)
+    # group members of each word by aid, we will collapse these groups
+    grouptup_list = [clustertool.group_indicies(aids) for aids in aids_list]
+    # Agg aids
+    aggaids_list = [tup[0] for tup in grouptup_list]
+    groupxs_list = [tup[1] for tup in grouptup_list]
+    # Aggregate vecs that belong to the same aid, for each word
+    # (weighted aggregation with multi-assign-weights)
+    aggvecs_list = [
+        np.vstack([smk_core.aggregate_rvecs(rvecs.take(xs, axis=0), maws.take(xs)) for xs in groupxs])
+        if len(groupxs) > 0 else
+        np.empty((0, VEC_DIM), dtype=FLOAT_TYPE)
+        for rvecs, maws, groupxs in zip(rvecs_list, maws_list, groupxs_list)]
+    # Agg idxs
+    aggidxs_list = [[idxs.take(xs) for xs in groupxs]
+                    for idxs, groupxs in zip(idxs_list, groupxs_list)]
+    aggmaws_list = [np.array([maws.take(xs).prod() for xs in groupxs])
+                    for maws, groupxs in zip(maws_list, groupxs_list)]
+    return aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list
+
+
 #def group_and_aggregate(rvecs, aids):
 #    """
 #    assumes rvecs are all from the same word
@@ -36,71 +67,42 @@ from six.moves import zip
 
 
 #@profile
-def compute_agg_rvecs(rvecs_list, idxs_list, aids_list):
-    """
-    Total time: 4.24612 s
-    >>> from ibeis.model.hots.smk.smk_speed import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> words_values, wx_sublist, idxs_list, idx2_vec_values = smk_debug.testdata_nonagg_rvec()
-    >>> rvecs_list = compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list, idx2_vec_values)
-
-    """
-    #assert len(idxs_list) == len(rvecs_list)
-    grouptup_list = [clustertool.group_indicies(aids) for aids in aids_list]  # 44%
-    # Agg aids
-    aggaids_list = [tup[0] for tup in grouptup_list]
-    groupxs_list = [tup[1] for tup in grouptup_list]
-    # Agg vecs
-    aggvecs_list = [
-        np.vstack([smk_core.aggregate_rvecs(rvecs.take(xs, axis=0))
-                   for xs in groupxs])
-        if len(groupxs) > 0 else
-        np.empty((0, VEC_DIM), dtype=FLOAT_TYPE)
-        for rvecs, groupxs in zip(rvecs_list, groupxs_list)]  # 49.8%
-    # Agg idxs
-    aggidxs_list = [[idxs.take(xs) for xs in groupxs]
-                    for idxs, groupxs in zip(idxs_list, groupxs_list)]  # 4.2%
-    return aggvecs_list, aggaids_list, aggidxs_list
-
-
-#@profile
-def compute_nonagg_rvec_listcomp(words_values, wx_sublist, idxs_list,
-                                      idx2_vec_values):
+def compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec):
     """
      Total time: 1.29423 s
     >>> from ibeis.model.hots.smk import smk_debug
-    >>> words_values, wx_sublist, idxs_list, idx2_vec_values = smk_debug.testdata_nonagg_rvec()
+    >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
     PREFERED METHOD - 110ms
-    %timeit words_list = [words_values[np.newaxis, wx] for wx in wx_sublist]  # 5 ms
-    %timeit words_list = [words_values[wx:wx + 1] for wx in wx_sublist]  # 1.6 ms
+    %timeit words_list = [words[np.newaxis, wx] for wx in wx_sublist]  # 5 ms
+    %timeit words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1.6 ms
     """
     #with utool.Timer('compute_nonagg_rvec_listcomp'):
-    #vecs_list  = [idx2_vec_values[idxs] for idxs in idxs_list]  # 23 ms
-    words_list = [words_values[wx:wx + 1] for wx in wx_sublist]  # 1 ms
-    vecs_list  = [idx2_vec_values.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
+    #vecs_list  = [idx2_vec[idxs] for idxs in idxs_list]  # 23 ms
+    words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1 ms
+    vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
     rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
                   for vecs, word in zip(vecs_list, words_list)]  # 103 ms  # 90%
     return rvecs_list
 
 
-def compute_nonagg_residuals_forloop(words_values, wx_sublist, idxs_list, idx2_vec_values):
+def compute_nonagg_residuals_forloop(words, wx_sublist, idxs_list, idx2_vec):
     """
     OK, but slower than listcomp method - 140ms
 
     idxs = idxs.astype(np.int32)
-    %timeit idx2_vec_values.take(idxs, axis=0)  # 1.27
-    %timeit idx2_vec_values.take(idxs.astype(np.int32), axis=0)  # 1.94
-    %timeit idx2_vec_values[idxs]  # 7.8
+    %timeit idx2_vec.take(idxs, axis=0)  # 1.27
+    %timeit idx2_vec.take(idxs.astype(np.int32), axis=0)  # 1.94
+    %timeit idx2_vec[idxs]  # 7.8
 
-    idx2_vec_values
+    idx2_vec
     """
     #with utool.Timer('compute_nonagg_residuals_forloop'):
     num = wx_sublist.size
     rvecs_list = np.empty(num, dtype=np.ndarray)
     for count, wx in enumerate(wx_sublist):
         idxs = idxs_list[count]
-        vecs = idx2_vec_values[idxs]
-        word = words_values[wx:wx + 1]
+        vecs = idx2_vec[idxs]
+        word = words[wx:wx + 1]
         rvecs_n = smk_core.get_norm_rvecs(vecs, word)
         rvecs_list[count] = rvecs_n
     return rvecs_list
@@ -114,13 +116,13 @@ def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
     nano  = ns = 1E-9
     micro = us = 1E-6
     mili  = ns = 1E-3
-    words_values = words.values
+    words = words.values
     wxlist = [wx]
     ### index test
-    %timeit words_values[wx:wx + 1]      # 0.334 us
-    %timeit words_values[wx, np.newaxis] # 1.05 us
-    %timeit words_values[np.newaxis, wx] # 1.05 us
-    %timeit words_values.take(wxlist, axis=0) # 1.6 us
+    %timeit words[wx:wx + 1]      # 0.334 us
+    %timeit words[wx, np.newaxis] # 1.05 us
+    %timeit words[np.newaxis, wx] # 1.05 us
+    %timeit words.take(wxlist, axis=0) # 1.6 us
     ### pandas test
     %timeit words.values[wx:wx + 1]      # 7.6 us
     %timeit words[wx:wx + 1].values      # 84.9 us

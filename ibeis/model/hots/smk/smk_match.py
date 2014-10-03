@@ -11,7 +11,7 @@ from ibeis.model.hots.smk import smk_core
 
 @profile
 def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
-                         aggregate=False, alpha=3, thresh=0,
+                         aggregate=False, alpha=3, thresh=0, nAssign=1,
                          can_match_self=False):
     """
     #>>> from ibeis.model.hots.smk import smk_index
@@ -27,7 +27,8 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
-    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha, thresh)
+    qindex = smk_index.new_qindex(annots_df, qaid, invindex, aggregate, alpha,
+                                  thresh, nAssign)
     (wx2_qrvecs, wx2_maws, wx2_qaids, wx2_qfxs, query_gamma) = qindex
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
@@ -41,7 +42,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                    invindex, withinfo, alpha, thresh)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
     # Prevent self matches
-    can_match_self = False
+    can_match_self = not utool.get_argflag('--noself')
     cant_match_self_ = (not can_match_self) and qaid in daid2_totalscore
     if cant_match_self_:
         daid2_totalscore[qaid] = 0
@@ -55,7 +56,7 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
     return daid2_totalscore, daid2_chipmatch
 
 
-@profile
+@utool.indent_func('[smk_query]')
 def selective_match_kernel(qreq_):
     """
     Total time: 5.3564 s
@@ -75,12 +76,12 @@ def selective_match_kernel(qreq_):
     daids = qreq_.get_external_daids()
     qaids = qreq_.get_external_qaids()
     ibs   = qreq_.ibs
-    taids = ibs.get_valid_aids()  # exemplar
     # Params
     nWords    = qreq_.qparams.nWords
     aggregate = qreq_.qparams.aggregate
     alpha     = qreq_.qparams.alpha
     thresh    = qreq_.qparams.thresh
+    nAssign   = qreq_.qparams.nAssign
     # Build Pandas dataframe (or maybe not)
     annots_df = smk_index.make_annot_df(ibs)  # .3%
     if hasattr(qreq_, 'words'):
@@ -88,11 +89,14 @@ def selective_match_kernel(qreq_):
         words = qreq_.words
         invindex = qreq_.invindex
     else:
+        print('\n\n+--- QREQ NEEDS TO LOAD VOCAB --- ')
         # Load vocabulary
+        taids = ibs.get_valid_aids()  # exemplar
         words = smk_index.learn_visual_words(annots_df, taids, nWords)
         # Index database annotations
         invindex = smk_index.index_data_annots(annots_df, daids, words,
                                                aggregate=aggregate)  # 18.5%
+        print('L___ FINISHED LOADING VOCAB ___\n')
     withinfo = True
     # Progress
     lbl = 'asmk query: ' if aggregate else 'smk query: '
@@ -104,8 +108,10 @@ def selective_match_kernel(qreq_):
     # Foreach query annotation
     for count, qaid in enumerate(qaids):
         mark(count)
-        daid2_score, daid2_chipmatch = query_inverted_index(
-            annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)  # 81.2%
+        daid2_score, daid2_chipmatch = query_inverted_index(annots_df, qaid,
+                                                            invindex, withinfo,
+                                                            aggregate, alpha,
+                                                            thresh, nAssign)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
     end_()
