@@ -280,7 +280,7 @@ def wx_len_stats(wx2_xxx):
         val_list = wx2_xxx
     try:
         len_list = [len(xxx) for xxx in val_list]
-        statdict = utool.mystats(len_list)
+        statdict = utool.get_stats(len_list)
         return utool.dict_str(statdict, strvals=True, newlines=False)
     except Exception as ex:
         utool.printex(ex)
@@ -425,7 +425,7 @@ def check_daid2_sccw(daid2_sccw, verbose=True):
     if verbose:
         print('database sccws are not nan')
         print('database sccw stats:')
-        print(utool.common_stats(daid2_sccw_values, newlines=True))
+        print(utool.get_stats_str(daid2_sccw_values, newlines=True))
 
 
 def test_sccw_cache():
@@ -507,7 +507,7 @@ def display_info(ibs, invindex, annots_df):
     dbinfo.get_dbinfo(ibs, verbose=True)
     ################
     print('Inverted Index Stats: vectors per word')
-    print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
+    print(utool.get_stats_str(map(len, invindex.wx2_idxs.values())))
     ################
     #qfx2_vec     = annots_df['vecs'][1]
     centroids    = invindex.words
@@ -581,7 +581,7 @@ def dictinfo(dict_):
 
     if len(val_types) == 1:
         if val_types[0] == np.ndarray:
-            val_shape_stats = utool.mystats(set(map(np.shape, vals)), axis=0)
+            val_shape_stats = utool.get_stats(set(map(np.shape, vals)), axis=0)
             val_shape_stats_str = utool.dict_str(val_shape_stats, strvals=True, newlines=False)
             val_dtypes = set([val.dtype for val in vals])
             fmtstr_ += utool.unindent('''
@@ -589,7 +589,7 @@ def dictinfo(dict_):
             * val_dtypes = {val_dtypes}
             '''.strip('\n'))
         elif val_types[0] == list:
-            val_len_stats =  utool.mystats(set(map(len, vals)))
+            val_len_stats =  utool.get_stats(set(map(len, vals)))
             val_len_stats_str = utool.dict_str(val_len_stats, strvals=True, newlines=False)
             depth = utool.list_depth(vals)
             val_types = set(utool.list_deep_types(vals))

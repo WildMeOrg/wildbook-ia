@@ -13,7 +13,7 @@ import numpy as np
 import vtool
 import utool
 # VTool
-import vtool.nearest_words as nntool
+import vtool.nearest_neighbors as nntool
 (print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[entroid_index]')
 
 

@@ -219,10 +219,10 @@ def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invinde
         assert len(idf_list) == len(common_wxs)
         # Slow recursive check
         #assert utool.depth_profile(utool.depth_profile(qrvecs_list)) == utool.depth_profile(maws_list)
-        #print(utool.mystats(utool.depth_profile(utool.depth_profile(qrvecs_list))))
-        #print(utool.mystats(utool.depth_profile(utool.depth_profile(drvecs_list))))
-        #print(utool.mystats(utool.depth_profile(maws_list)))
-        #print(utool.mystats(utool.depth_profile(utool.depth_profile(scores_list))))
+        #print(utool.get_stats(utool.depth_profile(utool.depth_profile(qrvecs_list))))
+        #print(utool.get_stats(utool.depth_profile(utool.depth_profile(drvecs_list))))
+        #print(utool.get_stats(utool.depth_profile(maws_list)))
+        #print(utool.get_stats(utool.depth_profile(utool.depth_profile(scores_list))))
 
     # Summation over query features
     scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, None, alpha, thresh)

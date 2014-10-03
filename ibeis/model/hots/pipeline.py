@@ -453,7 +453,7 @@ def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
             #if not QUIET:
             #    nFeats_in_matches = [len(fm) for fm in six.itervalues(aid2_fm)]
             #    print('nFeats_in_matches_stats = ' +
-            #          utool.dict_str(utool.mystats(nFeats_in_matches)))
+            #          utool.dict_str(utool.get_stats(nFeats_in_matches)))
         # Vsone - Append database feature matches to query aids
         else:
             for qfx, aid, fx, fs, fk in match_iter:

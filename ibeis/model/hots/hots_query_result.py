@@ -287,7 +287,7 @@ class QueryResult(__OBJECT_BASE__):
     def get_inspect_str(qres, ibs=None):
         assert_qres(qres)
         nFeatMatch_list = get_num_feats_in_matches(qres)
-        nFeatMatch_stats = utool.mystats(nFeatMatch_list)
+        nFeatMatch_stats = utool.get_stats(nFeatMatch_list)
 
         top_lbls = [' top aids', ' scores', ' ranks']
 

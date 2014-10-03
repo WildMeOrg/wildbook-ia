@@ -24,7 +24,7 @@ def print_desc_distances_map(orgres2_distmap):
     for orgtype, distmap in six.iteritems(orgres2_distmap):
         print('| orgtype(%r)' % (orgtype,))
         for disttype, dists in six.iteritems(distmap):
-            print('|     disttype(%12r): %s' % (disttype, utool.common_stats(dists)))
+            print('|     disttype(%12r): %s' % (disttype, utool.get_stats_str(dists)))
     print('L-----------------------------')
 
 
@@ -33,7 +33,7 @@ def print_annotationmatch_scores_map(orgres2_scores):
     print('| CHIPMATCH SCORES:')
     for orgtype, scores in six.iteritems(orgres2_scores):
         print('| orgtype(%r)' % (orgtype,))
-        print('|     scores: %s' % (utool.common_stats(scores)))
+        print('|     scores: %s' % (utool.get_stats_str(scores)))
     print('L-----------------------------')
 
 

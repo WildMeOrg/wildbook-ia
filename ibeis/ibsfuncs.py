@@ -431,7 +431,7 @@ def check_exif_data(ibs, gid_list):
         for key in exif_dict2.keys():
             key2_freq[key] += 1
 
-    utool.print_mystats(num_tags_list, 'num tags per image')
+    utool.print_stats(num_tags_list, 'num tags per image')
 
     print('tag frequency')
     print(utool.dict_str(key2_freq))
