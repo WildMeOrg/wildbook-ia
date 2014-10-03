@@ -215,7 +215,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     _preload()
     # Parse directory to be loaded from command line args
     # and explicit kwargs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     # Execute preload commands
     main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
     try:
@@ -238,7 +238,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
     opening) """
     from ibeis.dev import sysres
     from ibeis import ibsfuncs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     if delete_ibsdir is True:
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
         ibsfuncs.delete_ibeis_database(dbdir)
@@ -256,7 +256,7 @@ def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
     """ alias for main() """  # + main.__doc__
     from ibeis.dev import sysres
     _preload()
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir)
+    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     ibs = _init_ibeis(dbdir)
     return ibs
 

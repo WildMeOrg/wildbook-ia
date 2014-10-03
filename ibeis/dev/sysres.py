@@ -208,45 +208,81 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     return dbdir
 
 
-def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
+def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, 
+                   cache_priority=True):
     """ Machinery for finding a database directory """
-    #if not utool.QUIET and utool.VERBOSE:
-    printDBG('[sysres] get_args_dbdir: parsing commandline for dbdir')
-    printDBG('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
-    printDBG('[sysres] db=%r, dbdir=%r' % (db, dbdir))
-    if dbdir is None:
-        printDBG('[sysres] use command line dbdir')
-        dbdir = params.args.dbdir
-    if db is None:
-        printDBG('[sysres] use command line db')
-        db = params.args.db
-    if dbdir == 'None' or db == 'None':
-        print('Forcing no dbdir')
-        # If specified as the string none, the user forces no db
+    '''
+        # LEGACY DB ARG PARSING:
+        if dbdir is None and db is not None:
+            printDBG('[sysres] use command line dbdir')
+            dbdir = params.args.dbdir
+        if db is None and dbdir is not None:
+            printDBG('[sysres] use command line db')
+            db = params.args.db
+        if dbdir == 'None' or db == 'None':
+            print('Forcing no dbdir')
+            # If specified as the string none, the user forces no db
+            return None
+        # Force absolute path
+        if dbdir is not None:
+            dbdir = realpath(dbdir)
+            printDBG('[sysres] realpath dbdir: %r' % dbdir)
+        # Invalidate bad values
+        if dbdir is None or dbdir in ['', ' ', '.']:  # or not exists(dbdir):
+            dbdir = None
+            printDBG('[sysres] Invalidate dbdir: %r' % dbdir)
+        # Fallback onto args.db
+        if dbdir is None:
+            printDBG('[sysres] Trying cache')
+            # Try a cached / commandline / default db
+            if db is None and defaultdb == 'cache' and not params.args.nocache_db:
+                dbdir = get_default_dbdir()
+                #if not utool.QUIET and utool.VERBOSE:
+                printDBG('[sysres] Loading dbdir from cache.')
+                printDBG('[sysres] dbdir=%r' % (dbdir,))
+            elif db is not None:
+                dbdir = db_to_dbdir(db, allow_newdir=allow_newdir)
+            elif defaultdb is not None:
+                dbdir = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
+        printDBG('[sysres] return get_args_dbdir: dbdir=%r' % (dbdir,))
+        return dbdir
+    '''
+    if not utool.QUIET and utool.VERBOSE:
+        print('[sysres] get_args_dbdir: parsing commandline for dbdir')
+        print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))
+        print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
+
+    def _db_arg_priorty(dbdir_, db_):
+        invalid = ['', ' ', '.', 'None']
+        # Invalidate bad db's
+        if dbdir_ in invalid:
+            dbdir_ = None
+        if db_ in invalid:
+            db_ = None
+        # Return values with a priority
+        if dbdir_ is not None:
+            return realpath(dbdir_)
+        if db_ is not None:
+            return db_to_dbdir(db_, allow_newdir=allow_newdir)
         return None
-    # Force absolute path
-    if dbdir is not None:
-        dbdir = realpath(dbdir)
-        printDBG('[sysres] realpath dbdir: %r' % dbdir)
-    # Invalidate bad values
-    if dbdir is None or dbdir in ['', ' ', '.']:  # or not exists(dbdir):
-        dbdir = None
-        printDBG('[sysres] Invalidate dbdir: %r' % dbdir)
-    # Fallback onto args.db
-    if dbdir is None:
-        printDBG('[sysres] Trying cache')
-        # Try a cached / commandline / default db
-        if db is None and defaultdb == 'cache' and not params.args.nocache_db:
-            dbdir = get_default_dbdir()
-            #if not utool.QUIET and utool.VERBOSE:
-            printDBG('[sysres] Loading dbdir from cache.')
-            printDBG('[sysres] dbdir=%r' % (dbdir,))
-        elif db is not None:
-            dbdir = db_to_dbdir(db, allow_newdir=allow_newdir)
-        elif defaultdb is not None:
-            dbdir = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
-    printDBG('[sysres] return get_args_dbdir: dbdir=%r' % (dbdir,))
-    return dbdir
+
+    if not cache_priority:
+        # Check function's passed args
+        dbdir = _db_arg_priorty(dbdir, db)
+        if dbdir is not None:
+            return dbdir
+        # Get command line args
+        dbdir = params.args.dbdir
+        db = params.args.db
+        # Check command line passed args
+        dbdir = _db_arg_priorty(dbdir, db)
+        if dbdir is not None:
+            return dbdir
+    # Return cached database directory
+    if defaultdb == 'cache':
+        return get_default_dbdir()
+    else:
+        return db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
 
 
 def is_ibeisdb(path):
