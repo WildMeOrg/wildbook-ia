@@ -1,32 +1,31 @@
 """
-#=================
-# pipeline:
-# Module Concepts
-#=================
+Hotspotter pipeline module
 
-PREFIXES:
-qaid2_XXX - prefix mapping query chip index to
-qfx2_XXX  - prefix mapping query chip feature index to
+Module Concepts:
 
-TUPLES:
- * nns    - a (qfx2_idx, qfx2_dist) tuple
- * nnfilt - a (qfx2_fs, qfx2_valid) tuple
+    PREFIXES:
+    qaid2_XXX - prefix mapping query chip index to
+    qfx2_XXX  - prefix mapping query chip feature index to
 
-SCALARS
- * idx    - the index into the nnindexers descriptors
- * dist   - the distance to a corresponding feature
- * fs     - a score of a corresponding feature
- * valid  - a valid bit for a corresponding feature
+    TUPLES:
+     * nns    - a (qfx2_idx, qfx2_dist) tuple
+     * nnfilt - a (qfx2_fs, qfx2_valid) tuple
 
-REALIZATIONS:
-qaid2_nns - maping from query chip index to nns
-{
- * qfx2_idx   - ranked list of query feature indexes to database feature indexes
- * qfx2_dist - ranked list of query feature indexes to database feature indexes
-}
+    SCALARS
+     * idx    - the index into the nnindexers descriptors
+     * dist   - the distance to a corresponding feature
+     * fs     - a score of a corresponding feature
+     * valid  - a valid bit for a corresponding feature
 
-* qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
-         = qaid2_nnfilt[qaid]
+    REALIZATIONS:
+    qaid2_nns - maping from query chip index to nns
+    {
+     * qfx2_idx   - ranked list of query feature indexes to database feature indexes
+     * qfx2_dist - ranked list of query feature indexes to database feature indexes
+    }
+
+    * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)
+             = qaid2_nnfilt[qaid]
 """
 from __future__ import absolute_import, division, print_function
 # Python
@@ -71,23 +70,26 @@ log_progress = partial(utool.log_progress, startafter=START_AFTER, disable=utool
 @profile
 def request_ibeis_query_L0(ibs, qreq_):
     """
-    >>> from ibeis.model.hots.pipeline import *  # NOQA
-    #>>> from ibeis.model.hots import match_chips4 as mc4
-    >>> from ibeis.model.hots import query_request
-    >>> import ibeis
-    >>> qaid_list = [1]
-    >>> daid_list = [1, 2, 3, 4, 5]
-    >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
-    >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
-    >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_)
-    >>> qres = qaid2_qres[1]
-
     Driver logic of query pipeline
-    Input:
-        ibs   - HotSpotter database object to be queried
-        qreq_ - QueryRequest Object   # use prep_qreq to create one
-    Output:
-        qaid2_qres - mapping from query indexes to Query Result Objects
+
+    Args:
+        ibs   : HotSpotter database object to be queried
+        qreq_ : QueryRequest Object   # use prep_qreq to create one
+    Returns:
+        qaid2_qres : mapping from query indexes to Query Result Objects
+
+    Examples:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        #>>> from ibeis.model.hots import match_chips4 as mc4
+        >>> from ibeis.model.hots import query_request
+        >>> import ibeis
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> ibs = ibeis.test_main(db='testdb1')  #doctest: +ELLIPSIS
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)
+        >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_)
+        >>> qres = qaid2_qres[1]
+
     """
 
     # Load data for nearest neighbors
@@ -141,10 +143,10 @@ def request_ibeis_query_L0(ibs, qreq_):
 @profile
 def nearest_neighbors(qreq_):
     """ Plain Nearest Neighbors
-    Input:
-        qreq_  - a QueryRequest object
-    Output:
-        qaid2_nnds - a dict mapping query annnotation-ids to a nearest neighbor
+    Args:
+        qreq_  : a QueryRequest object
+    Returns:
+        qaid2_nnds : a dict mapping query annnotation-ids to a nearest neighbor
                      tuple (indexes, dists). indexes and dist have the shape
                      (nDesc x K) where nDesc is the number of descriptors in the
                      annotation, and K is the number of approximate nearest
@@ -390,22 +392,22 @@ def new_fmfsfk():
 @profile
 def build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq_):
     """
-    Input:
-        qaid2_nns    - dict of assigned nearest features (only indexes are used here)
-        qaid2_nnfilt - dict of (featmatch_scores, featmatch_mask)
+    Args:
+        qaid2_nns    : dict of assigned nearest features (only indexes are used here)
+        qaid2_nnfilt : dict of (featmatch_scores, featmatch_mask)
                         where the scores and matches correspond to the assigned
                         nearest features
-        qreq_         - QueryRequest object
+        qreq_         : QueryRequest object
 
-    Output:
-        qaid2_chipmatch - dict of (
+    Returns:
+        qaid2_chipmatch
 
     Notes:
         The prefix qaid2_ denotes a mapping where keys are query-annotation-id
 
-    vsmany/vsone counts here. also this is where the filter
-    weights and thershold are applied to the matches. Essientally
-    nearest neighbors are converted into weighted assignments
+        vsmany/vsone counts here. also this is where the filter
+        weights and thershold are applied to the matches. Essientally
+        nearest neighbors are converted into weighted assignments
     """
 
     # Config
@@ -487,7 +489,9 @@ def spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
 
 @profile
 def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
-    """ """
+    """
+    make only spatially valid features survive
+    """
     # spatial verification
     print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
     prescore_method = qreq_.qparams.prescore_method
@@ -637,7 +641,8 @@ def score_chipmatch(qaid, chipmatch, score_method, qreq_):
 def chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_,
                          qaid2_scores=None):
     """
-    >>> from ibeis.model.hots.pipeline import *  # NOQA
+    Examples:
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
     """
     if NOT_QUIET:
         print('[hs] Step 6) Convert chipmatch -> qres')
