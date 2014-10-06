@@ -22,8 +22,9 @@ def new_ibeis_mindexer(ibs, daid_list,
                        num_indexers=8,
                        split_method='name'):
     """
-    >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> mxer, qreq_, ibs = test_mindexer()
+    Examples:
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> mxer, qreq_, ibs = test_mindexer()
     """
     print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
 
@@ -102,8 +103,10 @@ class MultiNeighborIndex(object):
     """
     Generalization of a NeighborIndex
     More abstract wrapper around flann
-    >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> mxer, qreq_, ibs = test_mindexer()
+
+    Example:
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> mxer, qreq_, ibs = test_mindexer()
     """
 
     def __init__(mxer, nn_indexer_list):
@@ -111,11 +114,12 @@ class MultiNeighborIndex(object):
 
     def multi_knn(mxer, qfx2_vec, K, checks):
         """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
-        >>> K = 3
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K = 3
+            >>> qfx2_vec = ibs.get_annot_desc(1)
+            >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
         """
         qfx2_idx_list   = []
         qfx2_dist_list = []
@@ -139,12 +143,13 @@ class MultiNeighborIndex(object):
         """
         Polymorphic interface to knn, but uses the multindex backend
 
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
-        >>> K = 3
-        >>> checks = 1028
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K = 3
+            >>> checks = 1028
+            >>> qfx2_vec = ibs.get_annot_desc(1)
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
         """
         (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K, checks)
         qfx2_imx_list = []
@@ -170,22 +175,24 @@ class MultiNeighborIndex(object):
 
     def num_indexed_vecs(mxer):
         """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
-        >>> out = mxer.num_indexed_vecs()
-        >>> print(out)
-        54141
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> out = mxer.num_indexed_vecs()
+            >>> print(out)
+            54141
         """
         return np.sum([nnindexer.num_indexed_vecs()
                        for nnindexer in mxer.nn_indexer_list])
 
     def num_indexed_annots(mxer):
         """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
-        >>> out = mxer.num_indexed_annots()
-        >>> print(out)
-        53
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> out = mxer.num_indexed_annots()
+            >>> print(out)
+            53
         """
         return np.sum([nnindexer.num_indexed_annots()
                        for nnindexer in mxer.nn_indexer_list])
@@ -218,12 +225,13 @@ class MultiNeighborIndex(object):
 
     def split_imxs_gen(mxer, qfx2_imx):
         """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
-        >>> K = 3
-        >>> checks = 1028
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K = 3
+            >>> checks = 1028
+            >>> qfx2_vec = ibs.get_annot_desc(1)
+            >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K, checks)
         """
         offset_list = mxer.get_offsets()
         prev = 0
@@ -234,11 +242,12 @@ class MultiNeighborIndex(object):
 
     def knn2(mxer, qfx2_vec, K):
         """
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-        >>> mxer, qreq_, ibs = test_mindexer()
-        >>> K = 3
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
+        Example:
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> mxer, qreq_, ibs = test_mindexer()
+            >>> K = 3
+            >>> qfx2_vec = ibs.get_annot_desc(1)
+            >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
         """
         qfx2_idx_list   = []
         qfx2_dist_list = []

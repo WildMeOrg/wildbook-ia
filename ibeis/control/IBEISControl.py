@@ -655,7 +655,8 @@ class IBEISController(object):
         Adds metadata
 
         Returns:
-            metadata_id_list (list): their rowids """
+            metadata_id_list (list): metadata rowids
+        """
         if utool.VERBOSE:
             print('[ibs] adding %d metadata' % len(metadata_key_list))
         # Add encounter text names to database
@@ -791,8 +792,9 @@ class IBEISController(object):
                        notes_list=None):
         """
         Adds a list of encounters.
+
         Returns:
-            eid_list (list): their nids
+            eid_list (list): added encounter rowids
         """
         if utool.VERBOSE:
             print('[ibs] adding %d encounters' % len(enctext_list))
@@ -815,7 +817,18 @@ class IBEISController(object):
                         detect_confidence_list=None, notes_list=None,
                         vert_list=None, annotation_uuid_list=None, viewpoint_list=None,
                         import_override=False, silent_delete_thumbs=False):
-        """ Adds oriented ANNOTATION bounding boxes to images """
+        """
+        Adds an annotation to images
+
+        Args:
+            gid_list (list of rowids): image rowids to add annotation to
+            bbox_list (list of [x, y, w, h]): bounding boxes for each image (optional). Supply Verts instead
+            theta_list (list of float): orientations of annotations
+            vert_list (list of lists):  alternative to bounding box
+
+        Returns:
+            aid_list (list of rowids): returns list of annotation rowids
+        """
         if utool.VERBOSE:
             print('[ibs] adding annotations')
         # Prepare the SQL input
@@ -1142,9 +1155,15 @@ class IBEISController(object):
 
     @setter
     def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
-        """ Sets bboxes of a list of annotations by aid, where bbox_list is a list of
-            (x, y, w, h) tuples
-        NOTICE: set_annot_bboxes is a proxy for set_annot_verts
+        """
+        Sets bboxes of a list of annotations by aid,
+
+        Args:
+            aid_list (list of rowids): list of annotation rowids
+            bbox_list (list of (x, y, w, h)): new bounding boxes for each aid
+
+        Note:
+            set_annot_bboxes is a proxy for set_annot_verts
         """
         # changing the bboxes also changes the bounding polygon
         vert_list = geometry.verts_list_from_bboxes_list(bbox_list)
@@ -1756,6 +1775,8 @@ class IBEISController(object):
     def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
                               filter_unknowns=True):
         """
+        gets all annotations with different names
+
         Returns:
             groundfalse_list (list): a list of aids which are known to be different for each
         input aid """
@@ -1779,10 +1800,16 @@ class IBEISController(object):
     @getter_1toM
     def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True):
         """
+        gets all annotations with the same names
+
+        Args:
+            aid_list (list): list of annotation rowids to get groundtruth of
+
         Returns:
-            groundtruth_list (list): a list of aids with the same name foreach aid in aid_list.
-                a set of aids belonging to the same name is called a
-                groundtruth. A list of these is called a groundtruth_list. """
+            groundtruth_list (list): a list of aids with the same name foreach
+            aid in aid_list.  a set of aids belonging to the same name is called
+            a groundtruth.  A list of these is called a groundtruth_list.
+        """
         # TODO: Optimize
         nid_list = ibs.get_annot_nids(aid_list)
         aids_list = ibs.get_name_aids(nid_list)
@@ -2482,9 +2509,11 @@ class IBEISController(object):
 
     @default_decorator
     def get_recognition_database_aids(ibs):
-        """ DEPRECATE:
+        """
+        DEPRECATE
+
         Returns:
-            list_ (list):  persistent recognition database annotations """
+            daid_list (list):  persistent recognition database annotations """
         # TODO: Depricate, use exemplars instead
         daid_list = ibs.get_valid_aids()
         return daid_list
@@ -2929,9 +2958,11 @@ class IBEISController(object):
 
     @adder
     def add_names(ibs, name_list, note_list=None):
-        """ Adds a list of names.
+        """
+        Adds a list of names.
+
         Returns:
-            list_ (list): their nids
+            nid_list (list): their nids
         """
         # nid_list_ = [namenid_dict[name] for name in name_list_]
         # ibsfuncs.assert_valid_names(name_list)
@@ -2945,8 +2976,9 @@ class IBEISController(object):
     def add_species(ibs, species_list, note_list=None):
         """
         Adds a list of species.
+
         Returns:
-            list_ (list): their nids
+            speciesid_list (list): species rowids
         """
         species_list = [species.lower() for species in species_list]
         lbltype_rowid = ibs.lbltype_ids[constants.SPECIES_KEY]

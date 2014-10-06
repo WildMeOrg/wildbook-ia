@@ -24,8 +24,10 @@ def testdata_printops(**kwargs):
 
 def testdata_ibeis(**kwargs):
     """ builds ibs for testing
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
-    >>> kwargs = {}
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> kwargs = {}
     """
     print(' === Test Data IBEIS ===')
     from ibeis.model.hots.smk import smk_debug
@@ -113,7 +115,8 @@ def testdata_raw_internals1():
 
 def testdata_raw_internals2():
     """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
@@ -136,7 +139,8 @@ def testdata_raw_internals2():
 
 def testdata_query_repr():
     """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
@@ -186,7 +190,8 @@ def testsdata_sccw_sum():
 
 def testdata_internals(**kwargs):
     """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
@@ -214,7 +219,8 @@ def testdata_internals(**kwargs):
 
 def testdata_match_kernel(**kwargs):
     """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
@@ -262,13 +268,14 @@ def check_invindex_wx2(invindex):
 
 def wx_len_stats(wx2_xxx):
     """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-    >>> invindex = index_data_annots(annots_df, daids, words)
-    >>> qaid = qaids[0]
-    >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = new_qindex(annots_df, qaid, invindex)
-    >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+        >>> invindex = index_data_annots(annots_df, daids, words)
+        >>> qaid = qaids[0]
+        >>> wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw = new_qindex(annots_df, qaid, invindex)
+        >>> print(utool.dict_str(wx2_rvecs_stats(wx2_qrvecs)))
     """
     import utool
     if wx2_xxx is None:
@@ -405,11 +412,12 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
 
 def check_invindex(invindex, verbose=True):
     """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-    >>> words = learn_visual_words(annots_df, taids, nWords)
-    >>> invindex = index_data_annots(annots_df, daids, words)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+        >>> words = learn_visual_words(annots_df, taids, nWords)
+        >>> invindex = index_data_annots(annots_df, daids, words)
     """
     daids = invindex.daids
     daid2_sccw = invindex.daid2_sccw
@@ -457,10 +465,11 @@ def test_sccw_cache():
 
 def check_dtype(annots_df):
     """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> import ibeis
-    >>> ibs = ibeis.opendb('PZ_MTEST')
-    >>> annots_df = make_annot_df(ibs)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> annots_df = make_annot_df(ibs)
     """
 
     #utool.printex(Exception('check'), keys=[
@@ -484,8 +493,9 @@ def check_dtype(annots_df):
 
 def check_rvecs_list_eq(rvecs_list, rvecs_list2):
     """
-    rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms
-    rvecs_list2 = smk_speed.compute_nonagg_residuals_forloop(*_args1)
+    Example:
+        >>> rvecs_list = smk_speed.compute_nonagg_rvec_listcomp(*_args1)  # 125 ms
+        >>> rvecs_list2 = smk_speed.compute_nonagg_residuals_forloop(*_args1)
     """
     assert len(rvecs_list) == len(rvecs_list2)
     for rvecs, rvecs2 in zip(rvecs_list, rvecs_list2):
@@ -667,16 +677,18 @@ def invindex_dbgstr(invindex):
 def query_smk_test(annots_df, invindex, qreq_):
     """
     ibeis interface
-    >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-    >>> from ibeis.model.hots import query_request  # NOQA
-    >>> from ibeis.model.hots.smk import smk_match  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
-    >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
+        >>> from ibeis.model.hots import query_request  # NOQA
+        >>> from ibeis.model.hots.smk import smk_match  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
 
-    qres = qaid2_qres_[qaids[0]]
-    fig = qres.show_top(ibs)
+    Dev::
+        qres = qaid2_qres_[qaids[0]]
+        fig = qres.show_top(ibs)
 
     """
     from ibeis.model.hots import pipeline
@@ -711,7 +723,8 @@ def query_smk_test(annots_df, invindex, qreq_):
 
 def main():
     """
-    >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     print('+------------')
     print('SMK_DEBUG MAIN')

@@ -470,7 +470,7 @@ def ingest_oxford_style_db(dbdir):
     qgid_list = [gid_list[gname_list.index(gname)] for gname in qgname_list]
     qnote_list = ['query'] * len(qgid_list)
     # 2) Add nonquery database annots
-    dgname_list = list(gname2_annots.keys())
+    dgname_list = list(gname2_annots.keys())  # NOQA
     dgid_list = []
     dname_list = []
     dbbox_list = []

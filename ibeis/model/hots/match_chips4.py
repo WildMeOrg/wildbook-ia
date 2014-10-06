@@ -1,8 +1,6 @@
 """
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
-vsplit neighbor_index.py
-vsplit pipeline.py
-split neighbor_index.py
+DoctestCMD:
+    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
 """
 from __future__ import absolute_import, division, print_function
 import utool
@@ -27,25 +25,25 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
     """
     The standard query interface.
 
-    Checks a big cache for qaid2_qres.
-    If cache miss, tries to load each qres individually.
-    On an individual cache miss, it preforms the query.
+    Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres
+    individually.  On an individual cache miss, it preforms the query.
 
     Args:
         ibs  : ibeis control object
-        qreq_ : query request object (should be the same as ibs.qreq_)
+        qreq_ : query request object
+
     Returns:
-        qaid2_qres
+        qaid2_qres (dict): dict of QueryResult objects
 
-
-    >>> from ibeis.model.hots.match_chips4 import *  # NOQA
-    >>> import ibeis
-    >>> qaid_list = [1]
-    >>> daid_list = [1, 2, 3, 4, 5]
-    >>> use_bigcache = True
-    >>> use_cache = True
-    >>> ibs = ibeis.opendb(db='testdb1')  #doctest: +ELLIPSIS
-    >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
+    Examples:
+        >>> from ibeis.model.hots.match_chips4 import *  # NOQA
+        >>> import ibeis
+        >>> qaid_list = [1]
+        >>> daid_list = [1, 2, 3, 4, 5]
+        >>> use_bigcache = True
+        >>> use_cache = True
+        >>> ibs = ibeis.opendb(db='testdb1')  #doctest: +ELLIPSIS
+        >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
     """
     # Create new query request object to store temporary state
     if utool.NOT_QUIET:

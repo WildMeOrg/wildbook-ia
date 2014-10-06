@@ -100,8 +100,10 @@ def _check_input(aid_list, vecs_list):
 class WordIndex(object):
     """
     Abstract wrapper around flann
-    >>> from ibeis.model.hots.word_index import *  # NOQA
-    >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
+
+    Example:
+        >>> from ibeis.model.hots.word_index import *  # NOQA
+        >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
     """
 
     def __init__(windex, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
@@ -113,26 +115,29 @@ class WordIndex(object):
 
     def knn(windex, qfx2_vec, K, checks=1028):
         """
-        Input:
-            qfx2_vec - (N x D): an array of N, D-dimensional query vectors
+        Args:
+            qfx2_vec (ndarray): (N x D) array of N, D-dimensional query vectors
 
-            K: number of approximate nearest words to find
+            K (int): number of approximate nearest words to find
 
-        Output: tuple of (qfx2_idx, qfx2_dist)
-            qfx2_idx - (N x K): qfx2_idx[n][k] is the index of the kth
+        Returns:
+            tuple of (qfx2_idx, qfx2_dist)
+
+            qfx2_idx (ndarray):  (N x K) qfx2_idx[n][k] is the index of the kth
                         approximate nearest data vector w.r.t qfx2_vec[n]
 
-            qfx2_dist - (N x K): qfx2_dist[n][k] is the distance to the kth
+            qfx2_dist (ndarray): (N x K) qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
 
-        >>> from ibeis.model.hots.word_index import *  # NOQA
-        >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
-        >>> new_aid_list = [2, 3, 4]
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
-        >>> K = 2
-        >>> checks = 1028
-        >>> (qfx2_idx, qfx2_dist) = windex.knn(qfx2_vec, K, checks=checks)
+        Example:
+            >>> from ibeis.model.hots.word_index import *  # NOQA
+            >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
+            >>> new_aid_list = [2, 3, 4]
+            >>> qfx2_vec = ibs.get_annot_desc(1)
+            >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
+            >>> K = 2
+            >>> checks = 1028
+            >>> (qfx2_idx, qfx2_dist) = windex.knn(qfx2_vec, K, checks=checks)
         """
         (qfx2_idx, qfx2_dist) = windex.flann.nn_index(qfx2_vec, K, checks=checks)
         return (qfx2_idx, qfx2_dist)
@@ -144,17 +149,18 @@ class WordIndex(object):
 
     def add_points(windex, new_aid_list, new_vecs_list):
         """
-        >>> from ibeis.model.hots.word_index import *  # NOQA
-        >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
-        >>> new_aid_list = [2, 3, 4]
-        >>> qfx2_vec = ibs.get_annot_desc(1)
-        >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
-        >>> K = 2
-        >>> checks = 1028
-        >>> (qfx2_idx1, qfx2_dist1) = windex.knn(qfx2_vec, K, checks=checks)
-        >>> windex.add_points(new_aid_list, new_vecs_list)
-        >>> (qfx2_idx2, qfx2_dist2) = windex.knn(qfx2_vec, K, checks=checks)
-        >>> assert qfx2_idx2.max() > qfx2_idx1.max()
+        Example:
+            >>> from ibeis.model.hots.word_index import *  # NOQA
+            >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
+            >>> new_aid_list = [2, 3, 4]
+            >>> qfx2_vec = ibs.get_annot_desc(1)
+            >>> new_vecs_list = ibs.get_annot_desc(new_aid_list)
+            >>> K = 2
+            >>> checks = 1028
+            >>> (qfx2_idx1, qfx2_dist1) = windex.knn(qfx2_vec, K, checks=checks)
+            >>> windex.add_points(new_aid_list, new_vecs_list)
+            >>> (qfx2_idx2, qfx2_dist2) = windex.knn(qfx2_vec, K, checks=checks)
+            >>> assert qfx2_idx2.max() > qfx2_idx1.max()
         """
         nAnnots = windex.num_indexed_annots()
         nNew    = len(new_aid_list)
@@ -187,12 +193,13 @@ class WordIndex(object):
 
     def get_nn_aids(windex, qfx2_nnidx):
         """
-        Input:
-            qfx2_nnidx - (N x K): qfx2_idx[n][k] is the index of the kth
-                                  approximate nearest data vector
-        Output:
-            qfx2_aid - (N x K): qfx2_fx[n][k] is the annotation id index of the
-                                kth approximate nearest data vector
+        Args:
+            qfx2_nnidx (ndarray): (N x K) qfx2_idx[n][k] is the index of the kth
+                approximate nearest data vector
+
+        Returns:
+            ndarray: qfx2_aid - (N x K) qfx2_fx[n][k] is the annotation id index
+                of the kth approximate nearest data vector
         """
         #qfx2_ax = windex.idx2_ax[qfx2_nnidx]
         #qfx2_aid = windex.ax2_aid[qfx2_ax]
@@ -202,13 +209,13 @@ class WordIndex(object):
 
     def get_nn_featxs(windex, qfx2_nnidx):
         """
-        Input:
-            qfx2_nnidx - (N x K): qfx2_idx[n][k] is the index of the kth
-                                  approximate nearest data vector
-        Output:
-            qfx2_fx - (N x K): qfx2_fx[n][k] is the feature index (w.r.t the
-                               source annotation) of the kth approximate
-                               nearest data vector
+        Args:
+            qfx2_nnidx (ndarray): (N x K) qfx2_idx[n][k] is the index of the kth
+                approximate nearest data vector
+
+        Returns:
+            ndarray: qfx2_fx - (N x K) qfx2_fx[n][k] is the feature index (w.r.t
+                the source annotation) of the kth approximate nearest data vector
         """
         #return windex.idx2_fx[qfx2_nnidx]
         return windex.idx2_fx.take(qfx2_nnidx)

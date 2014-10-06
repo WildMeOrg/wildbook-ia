@@ -807,19 +807,30 @@ def merge_databases(ibs_src, ibs_dst, back=None, user_prompt=False, bulk_conflic
     relationships all inherit the resolution from their associated image.
 
     Args:
-        ibs_src = ibeis.opendb(dbdir='[dbdir]')
-        merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution='ignore')
+        ibs_src (IBEISController): source controller
 
-    Valid conflict_resolutions:
-        'replace' - delete original in ibs_dst and import new value
-        'ignore' - ignore imported value and keep original in ibs_dst
-        'merge' - (default) keep both values in both databases
-                  WARNING - this may cause near-duplicate information due to duplicate
-                            detections, duplicate manual annotations from different
-                            contributors.  Images and lblimages will not be duplicated.
-                  WARNING - this will only keep the meta data for an image, annotation
-                            from the source database (image_height, annotation_bbox, etc.)
-                  WARNING - this may cause an exception to be raised
+        ibs_dst (IBEISController): destination controller
+
+        back (GUIBackend): optional gui to update
+
+        user_prompt (bool): prompt user for information
+
+        bulk_conflict_resolution (str): valid conflict_resolutions are::
+            +---
+            * 'replace' - delete original in ibs_dst and import new value
+            * 'ignore' - ignore imported value and keep original in ibs_dst
+            * 'merge' - (default) keep both values in both databases
+            +---
+            WARNING - this may cause near-duplicate information due to duplicate
+            detections, duplicate manual annotations from different
+            contributors.  Images and lblimages will not be duplicated.
+            WARNING - this will only keep the meta data for an image, annotation
+            from the source database (image_height, annotation_bbox, etc.)
+            WARNING - this may cause an exception to be raised
+            +---
+    Example:
+        >>> ibs_src = ibeis.opendb(dbdir='[dbdir]')
+        >>> merge_databases(ibs_src, ibs_dst, bulk_conflict_resolution='ignore')
     """
     # Export source database
     td = export_transfer_data(ibs_src, user_prompt=user_prompt)

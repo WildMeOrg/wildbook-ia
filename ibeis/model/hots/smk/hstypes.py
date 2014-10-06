@@ -24,33 +24,6 @@ Issues:
 * 10GB are in use when performing query on Oxford 5K
 * errors when there is a word without any database vectors.
 currently a weight of zero is hacked in
-
-Paper Style Guidelines:
-* use real code examples instead of pseudocode
-(show off power of python)
-* short and consice
-* never cryptic
-
-Paper outline:
-
-abstract:
-contributions:
-
-algorithms:
-lnbnn
-a/smk
-modification (name scoring? next level categorization)
-
-parameters:
-database size
-sift threshold
-vocabulary?
-
-Databases:
-pzall
-gzall
-oxford
-paris
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np

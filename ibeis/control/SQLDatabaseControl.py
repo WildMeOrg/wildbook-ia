@@ -71,7 +71,8 @@ __STR__ = str if six.PY3 else unicode
 
 
 class SQLDatabaseController(object):
-    """ SQLDatabaseController an efficientish interface into SQL
+    """
+    SQLDatabaseController an efficientish interface into SQL
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
@@ -279,7 +280,7 @@ class SQLDatabaseController(object):
         #    colnames = (colnames,)
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
-        
+
         if not QUIET and VERBOSE:
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
@@ -303,7 +304,7 @@ class SQLDatabaseController(object):
             SET {assign_str}
             WHERE {where_clause}
             '''
-        
+
         # TODO: The flattenize can be removed if we pass in val_lists instead
         params_iter = utool.flattenize(list(zip(val_list, id_list)))
         #params_iter = list(zip(val_list, id_list))
@@ -447,25 +448,25 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def modify_table(db, tablename, colmap_list, table_constraints=None, docstr=None, superkey_colnames=None, tablename_new=None):
-        '''
+        """
         funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
-        EXAMPLE:
-        ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
-        #   (Original Column Name,            New Column Name,                 New Column Type, Function to convert data from old to new
-        #    [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
-            ('contributor_rowid',             '',                              '',               None), # a non-needed, but correct mapping (identity function)
-            (None,                            'contributor__location_address', 'TEXT',           None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
-            (4,                               'contributor__location_address', 'TEXT',           None), # adding a new column at index 4 (if index is invalid, None is used)
-            ('contributor__location_city',    None,                            '',               None), # for deleted columns, type and function are ignored
-            ('contributor__location_city',    'contributor__location_town',    '',               None), # for renamed columns, type and function are ignored
-            ('contributor_location_zip',      'contributor_location_zip',      'TEXT',           contributor_location_zip_map),
-            ('contributor__location_country', '',                              'TEXT NOT NULL',  None), # type not changing, only NOT NULL provision
-        ),
-            superkey_colnames=['contributor_rowid'],
-            docstr='Used to store the contributors to the project'
-        )
-        '''
+        Example:
+            >>> ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+            ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new
+            ... #   [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
+            ...    ('contributor_rowid',             '',                              '',               None), # a non-needed, but correct mapping (identity function)
+            ...    (None,                            'contributor__location_address', 'TEXT',           None), # for new columns, function is ignored (TYPE CANNOT BE EMPTY IF ADDING)
+            ...    (4,                               'contributor__location_address', 'TEXT',           None), # adding a new column at index 4 (if index is invalid, None is used)
+            ...    ('contributor__location_city',    None,                            '',               None), # for deleted columns, type and function are ignored
+            ...    ('contributor__location_city',    'contributor__location_town',    '',               None), # for renamed columns, type and function are ignored
+            ...    ('contributor_location_zip',      'contributor_location_zip',      'TEXT',           contributor_location_zip_map),
+            ...    ('contributor__location_country', '',                              'TEXT NOT NULL',  None), # type not changing, only NOT NULL provision
+            ...    ),
+            ...    superkey_colnames=['contributor_rowid'],
+            ...    docstr='Used to store the contributors to the project'
+            ... )
+        """
         printDBG('[sql] schema modifying tablename=%r' % tablename)
 
         colname_list = db.get_column_names(tablename)
@@ -642,7 +643,7 @@ class SQLDatabaseController(object):
         op_fmtstr = 'ALTER TABLE {tablename_old} RENAME TO {tablename_new}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-        
+
         # Rename table's metadata
         key_old_list = [
             tablename_old + '_constraint',
@@ -679,7 +680,7 @@ class SQLDatabaseController(object):
         op_fmtstr = 'DROP TABLE IF EXISTS {tablename}'
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
-        
+
         # Delete table's metadata
         key_list = [
             tablename + '_constraint',
@@ -715,7 +716,7 @@ class SQLDatabaseController(object):
         if num_params is None:
             params_iter = list(params_iter)
             num_params  = len(params_iter)
-        
+
         # Do not compute executemany without params
         if num_params == 0:
             if VERYVERBOSE:
