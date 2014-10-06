@@ -649,7 +649,8 @@ class IBEISController(object):
 
     @adder
     def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
-        """ Adds metadata
+        """
+        Adds metadata
         Returns:
             metadata_id_list (list): their rowids """
         if utool.VERBOSE:
@@ -666,9 +667,11 @@ class IBEISController(object):
                               loc_city_list=None, loc_state_list=None,
                               loc_country_list=None, loc_zip_list=None,
                               notes_list=None):
-        """ Adds a list of contributor.
+        """
+        Adds a list of contributor.
         Returns:
-            list_ (list): their nids """
+            list_ (list): their nids
+        """
         import datetime
         def _valid_zip(_zip, default='00000'):
             _zip = str(_zip)
@@ -715,14 +718,18 @@ class IBEISController(object):
     def add_images(ibs, gpath_list, params_list=None, as_annots=False):
         """
         Adds a list of image paths to the database.
-        Returns:
-            list_ (list): gids
+
         Initially we set the image_uri to exactely the given gpath.
         Later we change the uri, but keeping it the same here lets
         us process images asychronously.
 
-        >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
+        Returns:
+            gid_list (list of rowids): gids are image rowids
+
+        Examples:
+            >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
+            >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
+            >>> ibs.add_images(gpath_list)
         """
         print('[ibs] add_images')
         print('[ibs] len(gpath_list) = %d' % len(gpath_list))
@@ -778,9 +785,11 @@ class IBEISController(object):
     @adder
     def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_list=None,
                        notes_list=None):
-        """ Adds a list of names.
+        """
+        Adds a list of encounters.
         Returns:
-            list_ (list): their nids """
+            eid_list (list): their nids
+        """
         if utool.VERBOSE:
             print('[ibs] adding %d encounters' % len(enctext_list))
         # Add encounter text names to database
