@@ -44,7 +44,7 @@ def get_dbinfo(ibs, verbose=True):
     gx2_aids = ibs.get_image_aids(valid_gids)
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
-    gx2_nAnnots_stats  = utool.stats_str(gx2_nAnnots)
+    gx2_nAnnots_stats  = utool.get_stats_str(gx2_nAnnots)
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
@@ -101,7 +101,7 @@ def get_dbinfo(ibs, verbose=True):
     img_size_list  = ibs.get_image_sizes(valid_gids)
     img_size_stats  = wh_print_stats(img_size_list)
     chip_size_stats = wh_print_stats(annotation_size_list)
-    multiton_stats  = utool.stats_str(multiton_nid2_nannots)
+    multiton_stats  = utool.get_stats_str(multiton_nid2_nannots)
 
     # Time stats
     unixtime_list_ = ibs.get_image_unixtime(valid_gids)
@@ -174,9 +174,9 @@ def get_keypoint_stats(ibs):
     np.set_printoptions(precision=3)
     scales = ktool.get_scales(kpts)
     scales = np.array(sorted(scales))
-    tex_scale_stats = util_latex.latex_mystats(r'kpt scale', scales)
+    tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
     tex_nKpts       = util_latex.latex_scalar(r'\# kpts', len(kpts))
-    tex_kpts_stats  = util_latex.latex_mystats(r'\# kpts/chip', cx2_nFeats)
+    tex_kpts_stats  = util_latex.latex_get_stats(r'\# kpts/chip', cx2_nFeats)
     print(tex_nKpts)
     print(tex_kpts_stats)
     print(tex_scale_stats)
@@ -203,7 +203,7 @@ def dbstats(ibs):
     tex_nSingleName = util_latex.latex_scalar(r'\# singlenames', num_singlenames)
     tex_nMultiName  = util_latex.latex_scalar(r'\# multinames', num_multinames)
     tex_nMultiChip  = util_latex.latex_scalar(r'\# multiannots', num_multiannots)
-    tex_multi_stats = util_latex.latex_mystats(r'\# multistats', multiton_nid2_nannots)
+    tex_multi_stats = util_latex.latex_get_stats(r'\# multistats', multiton_nid2_nannots)
 
     tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
                                                               (ibs.cfg.feat_cfg.scale_min,
@@ -258,7 +258,7 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
         key2 = key.replace('bytes', convert_to)
         if isinstance(val, list):
             val2 = [bytes_ / byte_units[convert_to] for bytes_ in val]
-            tex_str = util_latex.latex_mystats(key2, val2)
+            tex_str = util_latex.latex_get_stats(key2, val2)
         else:
             val2 = val / byte_units[convert_to]
             tex_str = util_latex.latex_scalar(key2, val2)

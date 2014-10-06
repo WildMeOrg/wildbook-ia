@@ -54,7 +54,7 @@ def display_info(ibs, invindex, annots_df):
     #dbinfo.get_dbinfo(ibs, verbose=True)
     #################
     #print('Inverted Index Stats: vectors per word')
-    #print(utool.stats_str(map(len, invindex.wx2_idxs.values())))
+    #print(utool.get_stats_str(map(len, invindex.wx2_idxs.values())))
     #################
     qfx2_vec     = annots_df['vecs'][1]
     centroids    = invindex.words

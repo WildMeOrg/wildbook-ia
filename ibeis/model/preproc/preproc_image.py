@@ -13,12 +13,14 @@ import uuid
 @profile
 def parse_exif(pil_img):
     """ Image EXIF helper
-    cdef:
-        Image pil_img
-        dict exif_dict
-        long lat
-        long lon
-        long exiftime
+
+    Cyth:
+        cdef:
+            Image pil_img
+            dict exif_dict
+            long lat
+            long lon
+            long exiftime
     """
     exif_dict = exif.get_exif_dict(pil_img)
     # TODO: More tags
@@ -30,12 +32,13 @@ def parse_exif(pil_img):
 @profile
 def get_image_uuid(pil_img):
     """
-    cdef:
-        UUID uuid_
-        object img_bytes_
-        object bytes_sha1
-        object hashbytes_16
-        object hashbytes_20
+    Cyth:
+        cdef:
+            UUID uuid_
+            object img_bytes_
+            object bytes_sha1
+            object hashbytes_16
+            object hashbytes_20
     """
     # DEPRICATE
     # Read PIL image data (every 64th byte)
@@ -67,22 +70,26 @@ def get_standard_ext(gpath):
 @profile
 def parse_imageinfo(tup):
     """ Worker function: gpath must be in UNIX-PATH format!
+
     Input:
         a tuple of arguments (so the function can be parallelized easily)
-    Output:
+
+    Returns:
         if successful: returns a tuple of image parameters which are values for SQL columns on
         else: returns None
-    cdef:
-        str gpath
-        Image pil_img
-        str orig_gname
-        str ext
-        long width
-        long height
-        long time
-        long lat
-        long lon
-        str notes
+
+    Cyth:
+        cdef:
+            str gpath
+            Image pil_img
+            str orig_gname
+            str ext
+            long width
+            long height
+            long time
+            long lat
+            long lon
+            str notes
     """
     # Parse arguments from tuple
     gpath = tup
@@ -142,14 +149,16 @@ def imgparams_worker2(tup):
 def add_images_params_gen(gpath_list, **kwargs):
     """ generates values for add_images sqlcommands asychronously
 
-    >>> from ibeis.all_imports import *
-    >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
-    >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
+    Cyth:
+        cdef:
+            list gpath_list
+            dict kwargs
 
-    cdef:
-        list gpath_list
-        dict kwargs
-    #endif
+    Examples:
+        >>> from ibeis.all_imports import *
+        >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
+        >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
+
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))

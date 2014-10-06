@@ -26,12 +26,17 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=USE_CACHE,
                          use_bigcache=USE_BIGCACHE):
     """
     The standard query interface.
-    INPUT:
-        ibs  - ibeis control object
-        qreq_ - query request object (should be the same as ibs.qreq_)
+
     Checks a big cache for qaid2_qres.
     If cache miss, tries to load each qres individually.
     On an individual cache miss, it preforms the query.
+
+    Args:
+        ibs  : ibeis control object
+        qreq_ : query request object (should be the same as ibs.qreq_)
+    Returns:
+        qaid2_qres
+
 
     >>> from ibeis.model.hots.match_chips4 import *  # NOQA
     >>> import ibeis
