@@ -191,6 +191,14 @@ def compute_and_write_chips(ibs, aid_list):
     theta_list  = ibs.get_annot_thetas(aid_list)
     # Get how big to resize each chip
     target_area = sqrt_area ** 2
+    bad_aids = []
+    for aid, (x, y, w, h) in zip(aid_list, bbox_list):
+        if w == 0 or h == 0:
+            bad_aids.append(aid)
+    if len(bad_aids) > 0:
+        print("REMOVE INVALID (BAD WIDTH AND/OR HEIGHT) AIDS TO COMPUTE AND WRITE CHIPS")
+        print("INVALID AIDS: %r" % (bad_aids, ))
+        raise
     bbox_size_iter = ((w, h) for (x, y, w, h) in bbox_list)
     newsize_list = ctool.get_scaled_sizes_with_area(target_area, bbox_size_iter)
     # Define "Asynchronous" generator
