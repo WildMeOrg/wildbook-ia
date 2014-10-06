@@ -1,3 +1,6 @@
+"""
+Interface to pyrf random forest object detection.
+"""
 from __future__ import absolute_import, division, print_function
 # Python
 #from os.path import exists, join, split  # UNUSED
@@ -18,11 +21,13 @@ import pyrf
 
 
 def generate_detection_images(ibs, gid_list, species, **detectkw):
-    """ detectkw can be: save_detection_images, save_scales, draw_supressed,
-        detection_width, detection_height, percentage_left, percentage_top,
-        nms_margin_percentage
+    """
+    detectkw can be: save_detection_images, save_scales, draw_supressed,
+    detection_width, detection_height, percentage_left, percentage_top,
+    nms_margin_percentage
 
-        Yeilds tuples of image ids and bounding boxes
+    Yeilds:
+        tuple: tuples of image ids and bounding boxes
     """
     #
     # Resize to a standard image size prior to detection
@@ -42,7 +47,8 @@ def generate_detection_images(ibs, gid_list, species, **detectkw):
     generator = detect_species_bboxes(src_gpath_list, dst_gpath_list, species,
                                       use_chunks=use_chunks, **detectkw)
 
-    for gid, scale, (bboxes, confidences, img_conf) in zip(gid_list, scale_list, generator):
+    for gid, scale, detect_tup in zip(gid_list, scale_list, generator):
+        (bboxes, confidences, img_conf) = detect_tup
         # Unscale results
         unscaled_bboxes = [_scale_bbox(bbox_, scale) for bbox_ in bboxes]
         for index in range(len(unscaled_bboxes)):
@@ -64,13 +70,13 @@ def compute_hough_images(ibs, src_gpath_list, dst_gpath_list, species, quick=Tru
 def compute_probability_images(ibs, src_gpath_list, dst_gpath_list, species, quick=False):
     # Define detect dict
     detectkw = {
-        'single': True,
+        'single': True,  # single is True = probability, False is hough
         'quick': quick,
         'save_detection_images': True,
         'save_scales': False,
     }
     _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw)
-    
+
 
 def _compute_hough(ibs, src_gpath_list, dst_gpath_list, species, **detectkw):
     assert len(src_gpath_list) == len(dst_gpath_list)
@@ -109,7 +115,7 @@ def _get_detector(species, quick=True, single=False):
     grabmodels.ensure_models()
     # Create detector
     if single:
-        if quick:   
+        if quick:
             print("[detect.rf] Running quick (single scale) probability image")
             config = {
                 'scales': '1 1.0',
@@ -146,7 +152,8 @@ def _get_detect_config(**detectkw):
 #=================
 
 
-def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True, single=False, use_chunks=False, **detectkw):
+def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True,
+                          single=False, use_chunks=False, **detectkw):
     """
     Generates bounding boxes for each source image
     For each image yeilds a list of bounding boxes
@@ -159,7 +166,7 @@ def detect_species_bboxes(src_gpath_list, dst_gpath_list, species, quick=True, s
     detect_config = _get_detect_config(**detectkw)
     detector, forest = _get_detector(species, quick=quick, single=single)
     detector.set_detect_params(**detect_config)
-    
+
     chunksize = 8
     use_chunks_ = use_chunks and nImgs >= chunksize
 

@@ -2,11 +2,9 @@ from __future__ import absolute_import, division, print_function
 import utool
 import re
 from . import __SQLITE3__ as lite
-
-import six
+#import six
 import logging
-
-from ibeis import constants
+#from ibeis import constants
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql-helpers]')
 
@@ -79,20 +77,24 @@ def compare_string_versions(a, b):
 
 
 def ensure_correct_version(ibs, db, version_expected, db_versions):
+    """
+    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
+    """
     version = ibs.get_database_version(db)
-    print('[ensure_correct_version] Database version: %r | Expected version: %r '
-            %(version, version_expected))
+    print('[ensure_correct_version] Database version: %r | Expected version: %r ' % (version, version_expected))
     if version < version_expected:
         print('[ensure_correct_version] Database version behind, updating...')
         update_schema_version(ibs, db.fpath, db_versions, version, version_expected)
         ibs.set_database_version(db, version_expected)
-        print('[ensure_correct_version] Database version updated to %r'
-            %(version_expected))
+        print('[ensure_correct_version] Database version updated to %r' % (version_expected))
     elif version > version_expected:
         raise AssertionError('[ensure_correct_version] ERROR: Expected database version behind')
 
 
 def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
+    """
+    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
+    """
     db_backup_fpath = db_fpath + '-backup'
     utool.copy(db_fpath, db_backup_fpath)
     valid_versions = sorted(db_versions.keys(), compare_string_versions)
@@ -106,10 +108,10 @@ def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
         raise AssertionError('[!update_schema_version] The target database version is unknown')
 
     try:
-        print('Update path: %r ' %(valid_versions[start_index:end_index]))
+        print('Update path: %r ' % (valid_versions[start_index:end_index]))
         for index in range(start_index, end_index):
             next_version = valid_versions[index]
-            print('Updating database to version: %r' %(next_version))
+            print('Updating database to version: %r' % (next_version))
             pre, update, post = db_versions[next_version]
             if pre is not None:
                 pre(ibs)
@@ -117,10 +119,12 @@ def update_schema_version(ibs, db_fpath, db_versions, version, version_target):
                 update(ibs)
             if post is not None:
                 post(ibs)
-    except Exception as e:
+    except Exception as ex:
+        utool.printex(ex)
         utool.remove_file(db_fpath)
         utool.copy(db_backup_fpath, db_fpath)
         utool.remove_file(db_backup_fpath)
+        # Why are we using the logging module when utool does it for us?
         logging.exception("'The database update failed, rolled back to the original version.")
         raise
 

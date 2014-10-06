@@ -15,10 +15,9 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                          can_match_self=False):
     """
     Example:
-        #>>> from ibeis.model.hots.smk import smk_index
         >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
         >>> qaid = qaids[0]
         >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
         >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
@@ -67,7 +66,7 @@ def selective_match_kernel(qreq_):
         >>> from ibeis.model.hots.smk import smk_match
         >>> from ibeis.model.hots.smk import smk_debug
         >>> from ibeis.model.hots import query_request
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
         >>> qaid2_qres_ = smk_match.selective_match_kernel(qreq_)
 

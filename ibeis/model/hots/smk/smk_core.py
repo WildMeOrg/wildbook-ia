@@ -27,9 +27,10 @@ def normalize_vecs_inplace(vecs):
 #@profile
 def aggregate_rvecs(rvecs, maws):
     """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> rvecs = (255 * np.random.rand(4, 128)).astype(FLOAT_TYPE)
-    >>> rvecs = (255 * np.random.rand(4, 4)).astype(FLOAT_TYPE)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> rvecs = (255 * np.random.rand(4, 128)).astype(FLOAT_TYPE)
+        >>> rvecs = (255 * np.random.rand(4, 4)).astype(FLOAT_TYPE)
     """
     if rvecs.shape[0] == 1:
         return rvecs
@@ -45,9 +46,10 @@ def aggregate_rvecs(rvecs, maws):
 #@profile
 def get_norm_rvecs(vecs, word):
     """
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> vecs = (255 * np.random.rand(4, 128)).astype(VEC_TYPE)
-    >>> word = (255 * np.random.rand(1, 128)).astype(VEC_TYPE)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> vecs = (255 * np.random.rand(4, 128)).astype(VEC_TYPE)
+        >>> word = (255 * np.random.rand(1, 128)).astype(VEC_TYPE)
     """
     # Compute residuals of assigned vectors
     rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
@@ -116,11 +118,16 @@ def similarity_function(qrvecs_list, drvecs_list):
 def score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, alpha, thresh):
     """ Similarity + Selectivity: M(X_c, Y_c)
 
-    qrvecs_list = query vectors for each word
-    drvecs_list = database vectors for each word
+    Args:
+        qrvecs_list : query vectors for each word
+        drvecs_list : database vectors for each word
+        qmaws_list  : multi assigned weights for each query word
+        dmaws_list  : multi assigned weights for each database word
+        alpha       : selectivity power
+        thresh      : selectivity thresh
 
-    computes score matrix.
-
+    Returns:
+        score matrix
     """
     # Cosine similarity between normalized residuals
     simmat_list = similarity_function(qrvecs_list, drvecs_list)
@@ -139,23 +146,25 @@ def sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh):
     Computes gamma from "To Aggregate or not to aggregate"
 
     scc = self consistency criterion
-
     It is a scalar which ensure K(X, X) = 1
 
-    \begin{equation}
-    \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
-    \end{equation}
+    Math:
+        \begin{equation}
+        \gamma(X) = (\sum_{c \in \C} w_c M(X_c, X_c))^{-.5}
+        \end{equation}
 
-    >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> idf_list, rvecs_list, maws_list, alpha, thresh = smk_debug.testsdata_sccw_sum()
-    >>> qmaws_list = dmaws_list = maws_list
-    >>> drvecs_list = qrvecs_list = rvecs_list
-    >>> scoremat = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh )
-    >>> print(scoremat)
-    0.0384477314197
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> idf_list, rvecs_list, maws_list, alpha, thresh = smk_debug.testsdata_sccw_sum()
+        >>> qmaws_list = dmaws_list = maws_list
+        >>> drvecs_list = qrvecs_list = rvecs_list
+        >>> scoremat = smk_core.sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh )
+        >>> print(scoremat)
+        0.0384477314197
 
-    qrvecs_list = drvecs_list = rvecs_list
+    Ignore:
+        qrvecs_list = drvecs_list = rvecs_list
     """
     # Indexing with asymetric multi-assignment might get you a non 1 self score?
     scores_list = score_matches(rvecs_list, rvecs_list,
@@ -177,18 +186,18 @@ def sccw_summation(rvecs_list, idf_list, maws_list, alpha, thresh):
 def match_kernel(wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex,
                  withinfo=True, alpha=3, thresh=0):
     """
-
-    >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
-    >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
-    >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> withinfo = True  # takes an 11s vs 2s
-    >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, alpha, thresh)
-    >>> smk_debug.rrr()
-    >>> smk_debug.invindex_dbgstr(invindex)
-    >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, invindex, qindex = smk_debug.testdata_match_kernel()
+        >>> wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw = qindex
+        >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
+        >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> withinfo = True  # takes an 11s vs 2s
+        >>> _args = (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw, invindex, withinfo, alpha, thresh)
+        >>> smk_debug.rrr()
+        >>> smk_debug.invindex_dbgstr(invindex)
+        >>> daid2_totalscore, daid2_wx2_scoremat = match_kernel(*_args)
     """
     #utool.embed()
     #idx2_daid = invindex.idx2_daid

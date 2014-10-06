@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import decorator  # NOQA
 import utool
 from six.moves import builtins
 from functools import wraps
@@ -20,6 +21,7 @@ def default_decorator(input_):
         #return profile(func_)
         return func_
     else:
+        #@decorator.decorator
         def closure_default(func):
             #return utool.indent_func(input_)(profile(func))
             return utool.indent_func(input_)(func)
@@ -66,10 +68,12 @@ def _delete_items(dict_, key_list):
 
 def cache_getter(tblname, colname):
     """ Creates a getter cacher """
+    #@decorator.decorator
     def closure_getter_cacher(getter_func):
         getter_func = profile(getter_func)  # Autoprofilehack
         if not API_CACHE:
             return getter_func
+        @wraps(getter_func)
         def wrp_getter_cacher(self, rowid_list, *args, **kwargs):
             # the class must have a table_cache property
             cache_ = self.table_cache[tblname][colname]
@@ -103,9 +107,11 @@ def cache_getter(tblname, colname):
 
 def cache_invalidator(tblname, colnames=None):
     """ cacher setter decorator """
+    #@decorator.decorator
     def closure_cache_invalidator(setter_func):
         if not API_CACHE:
             return setter_func
+        @wraps(setter_func)
         def wrp_cache_invalidator(self, rowid_list, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
@@ -120,9 +126,9 @@ def cache_invalidator(tblname, colnames=None):
     return closure_cache_invalidator
 
 
+#@decorator.decorator
 def adder(func):
     func = default_decorator(func)
-    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
@@ -136,9 +142,9 @@ def adder(func):
 
 # DECORATORS::DELETER
 
+#@decorator.decorator
 def deleter(func):
     func = default_decorator(func)
-    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
@@ -152,14 +158,15 @@ def deleter(func):
 
 # DECORATORS::SETTER
 
+#@decorator.decorator
 def setter_general(func):
     func = default_decorator(func)
     return func
 
 
+#@decorator.decorator
 def setter(func):
     func = default_decorator(func)
-    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input2(argx_list=range(0, 2))
     @utool.ignores_exc_tb
     @wraps(func)
@@ -179,8 +186,9 @@ def getter(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a heterogeous list of values
     """
-    func = default_decorator(func)
-    #@utool.copy_argspec(func)
+    #func = default_decorator(func)
+    #@preserve_sig(func)
+    #@decorator.decorator
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
@@ -190,13 +198,44 @@ def getter(func):
     return wrp_getter
 
 
+def preserve_sig(real_func):
+    """
+    Decorates a wrapper function.
+
+    It seems impossible to presever signatures in python 2 without eval
+
+    Args:
+        real_func: the original function to take the signature from
+
+    References:
+        http://emptysqua.re/blog/copying-a-python-functions-signature/
+    """
+    import inspect
+    argspec = inspect.getargspec(real_func)
+    sig = inspect.formatargspec(*argspec)
+    sig2 = sig[1:-1]
+    #src = utool.unindent('''
+    #def sigpreserve{sig}:
+    #    return fake_func({sig})
+    #''').format(sig=sig)
+    src = 'lambda %s: fake_func%s' % (sig2, sig)
+    print(sig)
+    def wrp_closure(fake_func):
+        _globals =  {'fake_func': fake_func}
+        #print(evalstr)
+        #new_func = eval('lambda %s: fake_func%s' % (sig2, sig1), _globals)
+        new_func = eval(src, _globals, {})
+        return new_func
+    return wrp_closure
+
+
+#@decorator.decorator
 def getter_vector_output(func):
     """
     Getter decorator for functions which takes as the first input a unique id
     list and returns a homogenous list of values
     """
     func = default_decorator(func)
-    #@utool.copy_argspec(func)
     @utool.accepts_scalar_input_vector_output
     @utool.ignores_exc_tb
     @wraps(func)
@@ -209,6 +248,7 @@ getter_1to1 = getter
 getter_1to1 = getter
 
 
+#@decorator.decorator
 def getter_numpy(func):
     """
     Getter decorator for functions which takes as the first input a unique id
@@ -222,6 +262,7 @@ def getter_numpy(func):
     return getter_numpy_wrp
 
 
+#@decorator.decorator
 def getter_numpy_vector_output(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a heterogeous list of values """

@@ -112,7 +112,7 @@ class MainWindowBackend(QtCore.QObject):
 
     def __del__(back):
         if back.ibs is not None:
-            back.ibs.remove_observer(back)            
+            back.ibs.remove_observer(back)
 
     #------------------------
     # Draw Functions

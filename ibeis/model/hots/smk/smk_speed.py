@@ -116,7 +116,7 @@ def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
     """
     VERY SLOW. DEBUG USE ONLY
 
-    Dev:
+    Ignore:
         pico  = ps = 1E-12
         nano  = ns = 1E-9
         micro = us = 1E-6

@@ -3,7 +3,7 @@ import utool
 from ibeis.viz import viz_helpers as vh
 from vtool import image as gtool
 from ibeis.model.detect import randomforest
-from os.path import splitext, exists
+from os.path import splitext
 from plottool import viz_image2
 from plottool import draw_func2 as df2
 (print, print_, printDBG, rrr, profile) = utool.inject(

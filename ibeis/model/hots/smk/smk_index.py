@@ -1,6 +1,12 @@
 """
 smk_index
 This module contains functions for the SelectiveMatchKernels's inverted index.
+
+TODO::
+    * Test suit 1000k images
+    * Extend for SMK with labels
+    * Test get numbers and refine
+    * Extrnal keypoint specific weighting
 """
 from __future__ import absolute_import, division, print_function
 #import six
@@ -28,34 +34,43 @@ class InvertedIndex(object):
     """
     Stores inverted index state information
     (mapping from words to database aids and fxs_list)
+
+    Attributes:
+        idx2_dvec    (ndarray): stacked index -> descriptor vector (currently sift)
+        idx2_daid    (ndarray): stacked index -> annot id
+        idx2_dfx     (ndarray): stacked index -> feature index (wrt daid)
+        idx2_fweight (ndarray): stacked index -> feature weight
+        words        (ndarray): visual word centroids
+        wordflann    (FLANN): FLANN search structure
+        wx2_idxs     (ndarray): word index -> stacked indexes
+        wx2_aids     (ndarray): word index -> aggregate aids
+        wx2_fxs      (ndarray): word index -> aggregate feature indexes
+        wx2_maws     (ndarray): word index -> multi-assign weights
+        wx2_drvecs   (ndarray): word index -> residual vectors
+        wx2_idf      (ndarray): word index -> idf (wx normalizer)
+        daids        (ndarray): indexed annotation ids
+        daid2_sccw   (ndarray): daid -> sccw (daid self-consistency weight)
+        daid2_label  (ndarray): daid -> label (name, view)
+
     """
-    def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx, _daids):
-        invindex.wordflann   = wordflann
-        invindex.words       = words     # visual word centroids
-        invindex.daids       = _daids    # indexed annotation ids
-        invindex.idx2_dvec   = idx2_vec  # stacked index -> descriptor vector (currently sift)
-        invindex.idx2_daid   = idx2_aid  # stacked index -> annot id
-        invindex.idx2_dfx    = idx2_fx   # stacked index -> feature index (wrt daid)
-        invindex.wx2_idxs    = None     # word index -> stacked indexes
-        invindex.wx2_aids    = None     # word index -> aggregate aids
-        invindex.wx2_fxs     = None     # word index -> aggregate aids
-        invindex.wx2_maws    = None     # word index -> multi-assign weights
-        invindex.wx2_drvecs  = None     # word index -> residual vectors
-        invindex.wx2_idf     = None     # word index -> idf (wx normalizer)
-        invindex.daid2_sccw = None     # word index -> sccw (daid normalizer)
-        invindex.idx2_fweight = None    # stacked index -> feature weight
+    def __init__(invindex, words, wordflann, idx2_vec, idx2_aid, idx2_fx,
+                 daids, daid2_label):
+        invindex.words        = words
+        invindex.wordflann    = wordflann
+        invindex.idx2_dvec    = idx2_vec
+        invindex.idx2_daid    = idx2_aid
+        invindex.idx2_dfx     = idx2_fx
+        invindex.daids        = daids
+        invindex.daid2_label  = daid2_label
+        invindex.wx2_idxs     = None
+        invindex.wx2_aids     = None
+        invindex.wx2_fxs      = None
+        invindex.wx2_maws     = None
+        invindex.wx2_drvecs   = None
+        invindex.wx2_idf      = None
+        invindex.daid2_sccw   = None
+        invindex.idx2_fweight = None
 
-    #def get_cfgstr(invindex):
-    #    lbl = 'InvIndex'
-    #    hashstr = utool.hashstr(repr(invindex.wx2_drvecs))
-    #    return '_{lbl}({hashstr})'.format(lbl=lbl, hashstr=hashstr)
-
-#class QueryIndex(object):
-#    def __init__(qindex, wx2_qrvecs, wx2_qaids, wx2_qfxs, query_sccw):
-#        qindex.wx2_qrvecs  = wx2_qrvecs
-#        qindex.wx2_qaids   = wx2_qaids
-#        qindex.wx2_qfxs    = wx2_qfxs
-#        qindex.query_sccw = query_sccw
 
 QueryIndex = namedtuple(
     'QueryIndex', (
@@ -85,13 +100,19 @@ def make_annot_df(ibs):
     #>>> smk_debug.check_dtype(annots_df)
     """
     aid_list = ibs.get_valid_aids()  # 80us
+    name_list = ibs.get_annot_nids(aid_list)
+    view_list = [0 for _ in name_list]
+    label_list = list(zip(name_list, view_list))
     kpts_list = ibs.get_annot_kpts(aid_list)  # 40ms
     vecs_list = ibs.get_annot_desc(aid_list)  # 50ms
+    assert len(kpts_list) == len(vecs_list)
+    assert len(label_list) == len(vecs_list)
     aid_series = pdh.IntSeries(np.array(aid_list, dtype=INTEGER_TYPE), name='aid')
+    label_series = pd.Series(label_list, index=aid_list, name='labels')
     kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')  # 6.7ms
     vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')  # 7.1ms
     # Pandas Annotation Dataframe
-    annots_df = pd.concat([kpts_df, vecs_df], axis=1)  # 845 us
+    annots_df = pd.concat([kpts_df, vecs_df, label_series], axis=1)  # 845 us
     return annots_df
 
 
@@ -104,7 +125,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-        >>> use_cache = USE_CACHE_WORDS
+        >>> use_cache = True
         >>> words = learn_visual_words(annots_df, taids, nWords)
         >>> print(words.shape)
         (8000, 128)
@@ -117,8 +138,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
           (nWords, len(taids), len(train_vecs)))
     kwds = dict(max_iters=max_iters, use_cache=use_cache, appname='smk',
                 flann_params=flann_params)
-    _words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
-    words = _words
+    words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
     return words
 
 
@@ -135,8 +155,9 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
         >>> with_internals = False
         >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
 
-    #>>> print(utool.hashstr(repr(list(invindex.__dict__.values()))))
-    #v8+i5i8+55j0swio
+    Ignore:
+        #>>> print(utool.hashstr(repr(list(invindex.__dict__.values()))))
+        #v8+i5i8+55j0swio
     """
     if utool.VERBOSE:
         print('[smk_index] index_data_annots')
@@ -146,13 +167,16 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
                                    appname='smk')
     _daids = pdh.ensure_values(daids)
     _vecs_list = pdh.ensure_2d_values(annots_df['vecs'][_daids])
+    _label_list = pdh.ensure_values(annots_df['labels'][_daids])
     _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
 
-    idx2_dfx = _idx2_dfx
-    idx2_daid = _idx2_daid
-    idx2_dvec = _idx2_dvec
+    idx2_dfx   = _idx2_dfx
+    idx2_daid  = _idx2_daid
+    idx2_dvec  = _idx2_dvec
+    daid2_label = dict(zip(_daids, _label_list))
 
-    invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx, daids)
+    invindex = InvertedIndex(words, wordflann, idx2_dvec, idx2_daid, idx2_dfx,
+                             daids, daid2_label)
     if with_internals:
         compute_data_internals_(invindex, aggregate, alpha, thresh)  # 99%
     return invindex
@@ -172,8 +196,9 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
         >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
         >>> compute_data_internals_(invindex, aggregate, alpha, thresh)
 
-    idx2_vec = idx2_dvec
-    wx2_maws = _wx2_maws  # NOQA
+    Ignore:
+        idx2_vec = idx2_dvec
+        wx2_maws = _wx2_maws  # NOQA
     """
     if utool.VERBOSE:
         print('[smk_index] compute_data_internals_')
@@ -220,7 +245,7 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     invindex.wx2_aids    = wx2_aids  # needed for asmk
     invindex.wx2_fxs     = wx2_fxs   # needed for asmk
     invindex.wx2_maws    = wx2_maws  # needed for awx2_mawssmk
-    invindex.daid2_sccw = daid2_sccw
+    invindex.daid2_sccw  = daid2_sccw
 
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
@@ -256,43 +281,14 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
         print('[smk_index] * nAssign=%r' % nAssign)
         print('[smk_index] * sigma=%r' % massign_sigma)
         print('[smk_index] * alpha=%r' % massign_alpha)
-    idx2_vec_values = pdh.ensure_values(idx2_vec)
     # Assign each vector to the nearest visual words
     assert nAssign > 0, 'cannot assign to 0 neighbors'
-    _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec_values, nAssign)
-    _idx2_wx.shape    = (idx2_vec_values.shape[0], nAssign)
-    _idx2_wdist.shape = (idx2_vec_values.shape[0], nAssign)
+    _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, nAssign)
+    _idx2_wx.shape    = (idx2_vec.shape[0], nAssign)
+    _idx2_wdist.shape = (idx2_vec.shape[0], nAssign)
     if nAssign > 1:
-        # MultiAssignment Filtering from Improving Bag of Features
-        # http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
-        thresh  = np.multiply(massign_alpha, (_idx2_wdist.T[0:1].T + .001 ))
-        invalid = np.greater_equal(_idx2_wdist, thresh)
-        # Weighting as in Lost in Quantization
-        gauss_numer = -_idx2_wdist.astype(np.float64)
-        gauss_denom = 2 * (massign_sigma ** 2)
-        gauss_exp   = np.divide(gauss_numer, gauss_denom)
-        unnorm_maw = np.exp(gauss_exp)
-        # Mask invalid multiassignment weights
-        masked_unorm_maw = np.ma.masked_array(unnorm_maw, mask=invalid)
-        # Normalize multiassignment weights from 0 to 1
-        masked_norm = masked_unorm_maw.sum(axis=1)[:, np.newaxis]
-        masked_maw = np.divide(masked_unorm_maw, masked_norm)
-        masked_wxs = np.ma.masked_array(_idx2_wx, mask=invalid)
-        # Remove masked weights and word indexes
-        idx2_wxs  = list(map(utool.filter_Nones, masked_wxs.tolist()))
-        idx2_maws = list(map(utool.filter_Nones, masked_maw.tolist()))
-        #with utool.EmbedOnException():
-        if utool.DEBUG2:
-            checksum = [sum(maws) for maws in idx2_maws]
-            for x in np.where([not utool.almost_eq(val, 1) for val in checksum])[0]:
-                print(checksum[x])
-                print(_idx2_wx[x])
-                print(masked_wxs[x])
-                print(masked_maw[x])
-                print(thresh[x])
-                print(_idx2_wdist[x])
-            #all([utool.almost_eq(x, 1) for x in checksum])
-            assert all([utool.almost_eq(val, 1) for val in checksum]), 'weights did not break evenly'
+        idx2_wxs, idx2_maws = _compute_multiassign_weights(
+            _idx2_wx, _idx2_wdist, massign_alpha, massign_sigma)
     else:
         idx2_wxs = _idx2_wx.tolist()
         idx2_maws = [[1.0]] * len(idx2_wxs)
@@ -310,13 +306,49 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, m
     return wx2_idxs, wx2_maws, idx2_wxs
 
 
+def _compute_multiassign_weights(_idx2_wx, _idx2_wdist, massign_alpha=1.2, massign_sigma=80):
+    """
+    Multi Assignment Filtering from Improving Bag of Features
+
+    References:
+        http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
+    """
+    thresh  = np.multiply(massign_alpha, (_idx2_wdist.T[0:1].T + .001 ))
+    invalid = np.greater_equal(_idx2_wdist, thresh)
+    # Weighting as in Lost in Quantization
+    gauss_numer = -_idx2_wdist.astype(np.float64)
+    gauss_denom = 2 * (massign_sigma ** 2)
+    gauss_exp   = np.divide(gauss_numer, gauss_denom)
+    unnorm_maw = np.exp(gauss_exp)
+    # Mask invalid multiassignment weights
+    masked_unorm_maw = np.ma.masked_array(unnorm_maw, mask=invalid)
+    # Normalize multiassignment weights from 0 to 1
+    masked_norm = masked_unorm_maw.sum(axis=1)[:, np.newaxis]
+    masked_maw = np.divide(masked_unorm_maw, masked_norm)
+    masked_wxs = np.ma.masked_array(_idx2_wx, mask=invalid)
+    # Remove masked weights and word indexes
+    idx2_wxs  = list(map(utool.filter_Nones, masked_wxs.tolist()))
+    idx2_maws = list(map(utool.filter_Nones, masked_maw.tolist()))
+    #with utool.EmbedOnException():
+    if utool.DEBUG2:
+        checksum = [sum(maws) for maws in idx2_maws]
+        for x in np.where([not utool.almost_eq(val, 1) for val in checksum])[0]:
+            print(checksum[x])
+            print(_idx2_wx[x])
+            print(masked_wxs[x])
+            print(masked_maw[x])
+            print(thresh[x])
+            print(_idx2_wdist[x])
+        #all([utool.almost_eq(x, 1) for x in checksum])
+        assert all([utool.almost_eq(val, 1) for val in checksum]), 'weights did not break evenly'
+    return idx2_wxs, idx2_maws
+
+
 #@utool.cached_func('idf_', appname='smk', key_argx=[1, 2, 3])
 @profile
-def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
+def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
     """
-    Returns the inverse-document-frequency weighting for each word
-
-    internals step 2
+    Computes the inverse-document-frequency weighting for each word
 
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -324,31 +356,70 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
         >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
         >>> wx_series = np.arange(len(invindex.words))
         >>> idx2_aid = invindex.idx2_daid
+        >>> daid2_label = invindex.daid2_label
         >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
         >>> print(wx2_idf.shape)
         (8000,)
 
-    #>>> wx2_idxs = invindex.wx2_idxs
+    Ignore:
+        #>>> wx2_idxs = invindex.wx2_idxs
     """
     if utool.VERBOSE:
         print('[smk_index] +--- Start Compute IDF')
         mark, end_ = utool.log_progress('[smk_index] Word IDFs: ',
                                         len(wx_series), flushfreq=500,
                                         writefreq=50, with_totaltime=WITH_TOTALTIME)
+    # idxs for each word
     idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
                  if wx in wx2_idxs
                  else np.empty(0, dtype=INDEX_TYPE)
                  for wx in wx_series]
+    # aids for each word
     aids_list = [idx2_aid.take(idxs)
                  if len(idxs) > 0
                  else np.empty(0, dtype=INDEX_TYPE)
                  for idxs in idxs_list]
-    nTotalDocs = len(daids)
-    # idf denominator
-    nDocsWithWord_list = np.array([len(set(aids)) for aids in aids_list])
-    # Typically for IDF, 1 is added to the denominator to prevent divide by 0
-    # compute idf half of sccw-idf weighting
-    idf_list = np.log(np.divide(nTotalDocs, np.add(nDocsWithWord_list, 1), dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+    if daid2_label is not None:
+        # Computes our novel label idf weight
+        def tuples_to_unique_scalars(tup_list):
+            seen = {}
+            def addval(tup):
+                val = len(seen)
+                seen[tup] = val
+                return val
+            scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
+            return scalar_list
+
+        lblindex_list = np.array(tuples_to_unique_scalars(daid2_label.values()))
+        #daid2_lblindex = dict(zip(daid_list, lblindex_list))
+        unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
+        daid_list = np.array(daid2_label.keys())
+        daids_list = [daid_list.take(xs) for xs in groupxs]
+        daid2_wxs = utool.ddict(list)
+        for wx, daids in enumerate(aids_list):
+            for daid in daids:
+                daid2_wxs[daid].append(wx)
+        lblindex2_daids = list(zip(unique_lblindexes, daids_list))
+        nLabels = len(unique_lblindexes)
+        pcntLblsWithWord = np.zeros(len(wx_series), np.float64)
+        # Get num times word appears for eachlabel
+        for lblindex, daids in lblindex2_daids:
+            nWordsWithLabel = np.zeros(len(wx_series))
+            for daid in daids:
+                wxs = daid2_wxs[daid]
+                nWordsWithLabel[wxs] += 1
+            pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
+        # Labels for each word
+        idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1),
+                                    dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+    else:
+        nTotalDocs = len(daids)
+        # idf denominator
+        nDocsWithWord_list = np.array([len(set(aids)) for aids in aids_list])
+        # Typically for IDF, 1 is added to the denominator to prevent divide by 0
+        # compute idf half of sccw-idf weighting
+        idf_list = np.log(np.divide(nTotalDocs, np.add(nDocsWithWord_list, 1),
+                                    dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
     if utool.VERBOSE:
         end_()
         print('[smk_index] L___ End Compute IDF')
@@ -416,7 +487,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, a
         wx2_aggvecs = dict(zip(wx_sublist, aggvecs_list))
         wx2_aggaids = dict(zip(wx_sublist, aggaids_list))
         wx2_aggfxs  = dict(zip(wx_sublist, aggfxs_list))
-        wx2_aggmaws  = dict(zip(wx_sublist, aggmaws_list))
+        wx2_aggmaws = dict(zip(wx_sublist, aggmaws_list))
         # Alisas
         (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = (wx2_aggvecs, wx2_aggaids, wx2_aggfxs, wx2_aggmaws)
     else:
@@ -442,9 +513,7 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
     Computes sccw normalization scalar for the database annotations.
     This is gamma from the SMK paper.
     sccw is a self consistency critiron weight --- a scalar which ensures
-    the score of K(X,X) = 1
-
-    Internals step4
+    the score of K(X, X) = 1
 
     Example:
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
@@ -547,7 +616,7 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
         >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
         >>> invindex_dbgstr.invindex_dbgstr(invindex)
 
-    Dev::
+    Ignore::
         idx2_vec = qfx2_vec
         idx2_aid = qfx2_aid
         idx2_fx  = qfx2_qfx

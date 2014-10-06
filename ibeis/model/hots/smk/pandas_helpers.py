@@ -146,7 +146,8 @@ def pandasify_rvecs_list(wx_sublist, wx2_idxs_values, rvecs_list, aids_list,
 @profile
 def pandasify_agg_list(wx_sublist, aggvecs_list, aggaids_list, aggfxs_list):
     """
-    from ibeis.model.hots.smk.pandas_helpers import *
+    Example:
+        >>> from ibeis.model.hots.smk.pandas_helpers import *
     """
     _aids_list    = [IntSeries(aids, name='aids') for aids in aggaids_list]
     _aggvecs_list = [pd.DataFrame(vecs, index=aids, columns=VEC_COLUMNS)

@@ -660,7 +660,6 @@ class SQLDatabaseController(object):
         colnames = ('metadata_key',)
         db.set(constants.METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
 
-
     @default_decorator
     def rename_column(db, tablename, colname_old, colname_new):
         # DATABASE TABLE CACHES ARE UPDATED WITH modify_table

@@ -51,6 +51,7 @@ INSTALL_REQUIRES = [
     'requests >= 0.8.2',
     'setproctitle >= 1.1.8',
     'scikit-learn >= 0.15.2',
+    'decorator',
     #'objgraph',
     #'pycallgraph',
     #'gevent',

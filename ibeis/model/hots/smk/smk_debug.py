@@ -113,24 +113,38 @@ def testdata_raw_internals1():
     return ibs, annots_df, daids, qaids, invindex, wx2_idxs
 
 
-def testdata_raw_internals2():
+def testdata_raw_internals1_5():
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
     ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
-    print('[smk_debug] testdata_raw_internals2')
+    print('[smk_debug] testdata_raw_internals1_5')
     #ibs.cfg.query_cfg.smk_cfg.printme3()
     words     = invindex.words
-    wx_series = np.arange(len(words))  # .index
+    wx_series = np.arange(len(words))
     idx2_aid  = invindex.idx2_daid
-    idx2_vec  = invindex.idx2_dvec
-    idx2_fx  = invindex.idx2_dfx
-    wx2_maws  = invindex.wx2_maws
+    wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+    invindex.wx2_idf = wx2_idf
+    return ibs, annots_df, daids, qaids, invindex, wx2_idxs
+
+
+def testdata_raw_internals2():
+    """
+    Example:
+        >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+    """
+    from ibeis.model.hots.smk import smk_debug
+    ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1_5()
+    print('[smk_debug] testdata_raw_internals2')
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    wx2_idf = smk_index.compute_word_idf_(
-        wx_series, wx2_idxs, idx2_aid, daids)
+    idx2_vec  = invindex.idx2_dvec
+    idx2_fx   = invindex.idx2_dfx
+    wx2_maws  = invindex.wx2_maws
+    idx2_aid  = invindex.idx2_daid
+    words     = invindex.words
+    wx2_idf   = invindex.wx2_idf
     wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = smk_index.compute_residuals_(
         words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
     invindex.wx2_maws  = wx2_maws
@@ -143,16 +157,10 @@ def testdata_query_repr():
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
     """
     from ibeis.model.hots.smk import smk_debug
-    from ibeis.model.hots.smk import smk_index
-    ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+    ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1_5()
     print('[smk_debug] testdata_query_repr')
-    words     = invindex.words
-    wx_series = np.arange(len(words))  # .index
-    idx2_aid  = invindex.idx2_daid
-    wx2_idf = smk_index.compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     qaid = qaids[0]
     #qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    invindex.wx2_idf = wx2_idf
     return ibs, annots_df, qaid, invindex
 
 
@@ -188,7 +196,7 @@ def testsdata_sccw_sum():
     return idf_list, rvecs_list, maws_list, alpha, thresh
 
 
-def testdata_internals(**kwargs):
+def testdata_internals_full(**kwargs):
     """
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
@@ -196,7 +204,7 @@ def testdata_internals(**kwargs):
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
     ibs, annots_df, daids, qaids, words = smk_debug.testdata_words(**kwargs)
-    print('[smk_debug] testdata_internals')
+    print('[smk_debug] testdata_internals_full')
     with_internals = True
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     alpha = ibs.cfg.query_cfg.smk_cfg.alpha
@@ -224,7 +232,7 @@ def testdata_match_kernel(**kwargs):
     """
     from ibeis.model.hots.smk import smk_debug
     from ibeis.model.hots.smk import smk_index
-    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals(**kwargs)
+    ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full(**kwargs)
     print('[smk_debug] testdata_match_kernel')
     qaid = qaids[0]
     aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
@@ -682,7 +690,7 @@ def query_smk_test(annots_df, invindex, qreq_):
         >>> from ibeis.model.hots import query_request  # NOQA
         >>> from ibeis.model.hots.smk import smk_match  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()
         >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
         >>> qaid2_qres_ = smk_match.query_smk(annots_df, invindex, qreq_)
 
