@@ -18,14 +18,16 @@ USE_OPENMP = False  # do not use openmp until we have the gravity vector
 
 def gen_feat_worker(tup):
     """
-    cdef:
-        long cid
-        str cpath
-        dict dict_args
-        np.ndarray[kpts_t, ndims=2] kpts
-        np.ndarray[desc_t, ndims=2] desc
     Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
+
+    Cyth::
+        cdef:
+            long cid
+            str cpath
+            dict dict_args
+            np.ndarray[kpts_t, ndims=2] kpts
+            np.ndarray[desc_t, ndims=2] desc
     """
     cid, cpath, dict_args = tup
     kpts, desc = pyhesaff.detect_kpts(cpath, **dict_args)
@@ -41,9 +43,10 @@ def gen_feat_openmp(cid_list, cfpath_list, dict_args):
 
 
 def add_feat_params_gen(ibs, cid_list, nInput=None, **kwargs):
-    """ Computes features and yields results asynchronously:
-        TODO: Remove IBEIS from this equation. Move the firewall towards the
-        controller """
+    """
+    Computes features and yields results asynchronously: TODO: Remove IBEIS from
+    this equation. Move the firewall towards the controller
+    """
     if nInput is None:
         nInput = len(cid_list)
     # Get config from IBEIS controller
@@ -68,12 +71,13 @@ def generate_feats(cfpath_list, dict_args={}, cid_list=None, nInput=None, **kwar
     """ Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async
 
-    cdef:
-        list cfpath_list
-        long nInput
-        object cid_list
-        dict dict_args
-        dict kwargs
+    Cyth:
+        cdef:
+            list cfpath_list
+            long nInput
+            object cid_list
+            dict dict_args
+            dict kwargs
     """
     if cid_list is None:
         cid_list = list(range(len(cfpath_list)))
@@ -103,10 +107,11 @@ def test_hdf5():
 
 def pytable_test(cid_list, kpts_list, desc_list, weights_list):
     """
-    >>> cid_list = [1, 2]
-    >>> kpts_list = [1, 2]
-    >>> desc_list = [1, 2]
-    >>> weights_list = [1, 2]
+    Example:
+        >>> cid_list = [1, 2]
+        >>> kpts_list = [1, 2]
+        >>> desc_list = [1, 2]
+        >>> weights_list = [1, 2]
     """
     import tables
 

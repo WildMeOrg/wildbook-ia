@@ -12,10 +12,12 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
     """
     Sums and normalizes all rvecs that belong to the same word and the same
     annotation id
-    >>> from ibeis.model.hots.smk.smk_speed import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
-    >>> rvecs_list = compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec)
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_speed import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
+        >>> rvecs_list = compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec)
 
     """
     #assert len(idxs_list) == len(rvecs_list)
@@ -69,12 +71,15 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
 #@profile
 def compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec):
     """
-     Total time: 1.29423 s
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
     PREFERED METHOD - 110ms
-    %timeit words_list = [words[np.newaxis, wx] for wx in wx_sublist]  # 5 ms
-    %timeit words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1.6 ms
+
+    Example:
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
+
+    Timeit:
+        %timeit words_list = [words[np.newaxis, wx] for wx in wx_sublist]  # 5 ms
+        %timeit words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1.6 ms
     """
     #with utool.Timer('compute_nonagg_rvec_listcomp'):
     #vecs_list  = [idx2_vec[idxs] for idxs in idxs_list]  # 23 ms
@@ -89,12 +94,11 @@ def compute_nonagg_residuals_forloop(words, wx_sublist, idxs_list, idx2_vec):
     """
     OK, but slower than listcomp method - 140ms
 
-    idxs = idxs.astype(np.int32)
-    %timeit idx2_vec.take(idxs, axis=0)  # 1.27
-    %timeit idx2_vec.take(idxs.astype(np.int32), axis=0)  # 1.94
-    %timeit idx2_vec[idxs]  # 7.8
-
-    idx2_vec
+    Timeit:
+        idxs = idxs.astype(np.int32)
+        %timeit idx2_vec.take(idxs, axis=0)  # 1.27
+        %timeit idx2_vec.take(idxs.astype(np.int32), axis=0)  # 1.94
+        %timeit idx2_vec[idxs]  # 7.8
     """
     #with utool.Timer('compute_nonagg_residuals_forloop'):
     num = wx_sublist.size
@@ -112,20 +116,21 @@ def compute_nonagg_residuals_pandas(words, wx_sublist, wx2_idxs, idx2_vec):
     """
     VERY SLOW. DEBUG USE ONLY
 
-    pico  = ps = 1E-12
-    nano  = ns = 1E-9
-    micro = us = 1E-6
-    mili  = ns = 1E-3
-    words = words.values
-    wxlist = [wx]
-    ### index test
-    %timeit words[wx:wx + 1]      # 0.334 us
-    %timeit words[wx, np.newaxis] # 1.05 us
-    %timeit words[np.newaxis, wx] # 1.05 us
-    %timeit words.take(wxlist, axis=0) # 1.6 us
-    ### pandas test
-    %timeit words.values[wx:wx + 1]      # 7.6 us
-    %timeit words[wx:wx + 1].values      # 84.9 us
+    Dev:
+        pico  = ps = 1E-12
+        nano  = ns = 1E-9
+        micro = us = 1E-6
+        mili  = ns = 1E-3
+        words = words.values
+        wxlist = [wx]
+        ### index test
+        %timeit words[wx:wx + 1]      # 0.334 us
+        %timeit words[wx, np.newaxis] # 1.05 us
+        %timeit words[np.newaxis, wx] # 1.05 us
+        %timeit words.take(wxlist, axis=0) # 1.6 us
+        ### pandas test
+        %timeit words.values[wx:wx + 1]      # 7.6 us
+        %timeit words[wx:wx + 1].values      # 84.9 us
     """
     #with utool.Timer('compute_nonagg_residuals_pandas'):
     #mark, end_ = utool.log_progress('compute residual: ', len(wx_sublist), flushfreq=500, writefreq=50)

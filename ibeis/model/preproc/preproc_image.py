@@ -14,7 +14,7 @@ import uuid
 def parse_exif(pil_img):
     """ Image EXIF helper
 
-    Cyth:
+    Cyth::
         cdef:
             Image pil_img
             dict exif_dict
@@ -31,14 +31,17 @@ def parse_exif(pil_img):
 
 @profile
 def get_image_uuid(pil_img):
-    """
-    Cyth:
+    """ DEPRICATE
+
+    Cyth::
+
         cdef:
             UUID uuid_
             object img_bytes_
             object bytes_sha1
             object hashbytes_16
             object hashbytes_20
+
     """
     # DEPRICATE
     # Read PIL image data (every 64th byte)
@@ -59,9 +62,12 @@ def get_image_uuid(pil_img):
 
 def get_standard_ext(gpath):
     """ Returns standardized image extension
-    cdef:
-        str gpath
-        str ext
+
+    Cyth::
+        cdef:
+            str gpath
+            str ext
+
     """
     ext = splitext(gpath)[1].lower()
     return '.jpg' if ext == '.jpeg' else ext
@@ -75,10 +81,11 @@ def parse_imageinfo(tup):
         a tuple of arguments (so the function can be parallelized easily)
 
     Returns:
-        if successful: returns a tuple of image parameters which are values for SQL columns on
-        else: returns None
+        if successful returns a tuple of image parameters which are values for
+        SQL columns on else returns None
 
-    Cyth:
+    Cyth::
+
         cdef:
             str gpath
             Image pil_img
@@ -90,6 +97,7 @@ def parse_imageinfo(tup):
             long lat
             long lon
             str notes
+
     """
     # Parse arguments from tuple
     gpath = tup
@@ -147,17 +155,18 @@ def imgparams_worker2(tup):
 
 @profile
 def add_images_params_gen(gpath_list, **kwargs):
-    """ generates values for add_images sqlcommands asychronously
-
-    Cyth:
-        cdef:
-            list gpath_list
-            dict kwargs
+    """
+    generates values for add_images sqlcommands asychronously
 
     Examples:
         >>> from ibeis.all_imports import *
         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
         >>> params_list = list(preproc_image.add_images_params_gen(gpath_list))
+
+    Cyth::
+        cdef:
+            list gpath_list
+            dict kwargs
 
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]

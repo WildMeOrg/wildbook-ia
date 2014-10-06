@@ -21,8 +21,9 @@ def get_test_qreq():
 
 def new_ibeis_query_request(ibs, qaid_list, daid_list):
     """
-    >>> from ibeis.model.hots.query_request import *  # NOQA
-    >>> qreq_, ibs = get_test_qreq()   #doctest: +ELLIPSIS
+    Example:
+        >>> from ibeis.model.hots.query_request import *  # NOQA
+        >>> qreq_, ibs = get_test_qreq()   #doctest: +ELLIPSIS
     """
     if utool.NOT_QUIET:
         print(' --- New IBEIS QRequest --- ')

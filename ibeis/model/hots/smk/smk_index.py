@@ -71,12 +71,14 @@ QueryIndex = namedtuple(
 def make_annot_df(ibs):
     """
     Creates a panda dataframe using an ibeis controller
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs = smk_debug.testdata_ibeis()
-    >>> annots_df = make_annot_df(ibs)
-    >>> print(utool.hashstr(repr(annots_df.values)))
-    j12n+x93m4c!4un3
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs = smk_debug.testdata_ibeis()
+        >>> annots_df = make_annot_df(ibs)
+        >>> print(utool.hashstr(repr(annots_df.values)))
+        j12n+x93m4c!4un3
 
     #>>> from ibeis.model.hots.smk import smk_debug
     #>>> smk_debug.rrr()
@@ -97,13 +99,15 @@ def make_annot_df(ibs):
 def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     """
     Computes and caches visual words
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
-    >>> use_cache = USE_CACHE_WORDS
-    >>> words = learn_visual_words(annots_df, taids, nWords)
-    >>> print(words.shape)
-    (8000, 128)
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, taids, daids, qaids, nWords = smk_debug.testdata_dataframe()
+        >>> use_cache = USE_CACHE_WORDS
+        >>> words = learn_visual_words(annots_df, taids, nWords)
+        >>> print(words.shape)
+        (8000, 128)
     """
     max_iters = 200
     flann_params = {}
@@ -123,11 +127,13 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     """
     Builds the initial inverted index from a dataframe, daids, and words.
     Optionally builds the internals of the inverted structure
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, words = smk_debug.testdata_words()
-    >>> with_internals = False
-    >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, words = smk_debug.testdata_words()
+        >>> with_internals = False
+        >>> invindex = index_data_annots(annots_df, daids, words, with_internals)
 
     #>>> print(utool.hashstr(repr(list(invindex.__dict__.values()))))
     #v8+i5i8+55j0swio
@@ -157,13 +163,14 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     """
     Builds each of the inverted index internals.
 
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
-    >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> compute_data_internals_(invindex, aggregate, alpha, thresh)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
+        >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+        >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
+        >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> compute_data_internals_(invindex, aggregate, alpha, thresh)
 
     idx2_vec = idx2_dvec
     wx2_maws = _wx2_maws  # NOQA
@@ -224,21 +231,25 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
 def assign_to_words_(wordflann, words, idx2_vec, nAssign=1, massign_alpha=1.2, massign_sigma=80):
     """
     Assigns descriptor-vectors to nearest word.
-    Returns inverted index, multi-assigned weights, and forward index
 
-    wx2_idxs - word index   -> vector indexes
-    wx2_maws - word index   -> multi-assignment weights
-    idf2_wxs - vector index -> assigned word indexes
+    Returns:
+        tuple: inverted index, multi-assigned weights, and forward index
+        formated as::
 
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
-    >>> words  = invindex.words
-    >>> wordflann = invindex.wordflann
-    >>> idx2_vec  = invindex.idx2_dvec
-    >>> nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
-    >>> _dbargs = (wordflann, words, idx2_vec,  nAssign)
-    >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
+            * wx2_idxs - word index   -> vector indexes
+            * wx2_maws - word index   -> multi-assignment weights
+            * idf2_wxs - vector index -> assigned word indexes
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_raw_internals0()
+        >>> words  = invindex.words
+        >>> wordflann = invindex.wordflann
+        >>> idx2_vec  = invindex.idx2_dvec
+        >>> nAssign = ibs.cfg.query_cfg.smk_cfg.nAssign
+        >>> _dbargs = (wordflann, words, idx2_vec,  nAssign)
+        >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
     """
     if utool.VERBOSE:
         print('[smk_index] +--- Start Assign vecs to words.')
@@ -307,14 +318,15 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
 
     internals step 2
 
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
-    >>> wx_series = np.arange(len(invindex.words))
-    >>> idx2_aid = invindex.idx2_daid
-    >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
-    >>> print(wx2_idf.shape)
-    (8000,)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+        >>> wx_series = np.arange(len(invindex.words))
+        >>> idx2_aid = invindex.idx2_daid
+        >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+        >>> print(wx2_idf.shape)
+        (8000,)
 
     #>>> wx2_idxs = invindex.wx2_idxs
     """
@@ -348,29 +360,32 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids):
 @profile
 def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate):
     """
-    Computes residual vectors based on word assignments
+    Computes residual vectors based on worwx2_fxs d assignments
     returns mapping from word index to a set of residual vectors
 
-    Output:
-        wx2_rvecs - [ ... [ rvec_i1, ...,  rvec_Mi ]_i ... ]
-        wx2_aids  - [ ... [  aid_i1, ...,   aid_Mi ]_i ... ]
-        wx2_fxs   - [ ... [[fxs]_i1, ..., [fxs]_Mi ]_i ... ]
+    Returns:
+        tuple : (wx2_rvecs, wx2_aids, wx2_fxs) formatted as::
+            * wx2_rvecs - [ ... [ rvec_i1, ...,  rvec_Mi ]_i ... ]
+            * wx2_aids  - [ ... [  aid_i1, ...,   aid_Mi ]_i ... ]
+            * wx2_fxs   - [ ... [[fxs]_i1, ..., [fxs]_Mi ]_i ... ]
 
-    For every word:
-        * list of aggvecs
-        For every aggvec:
-            * one parent aid, if aggregate is False: assert isunique(aids)
-            * list of parent fxs, if aggregate is True: assert len(fxs) == 1
+        For every word::
 
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
-    >>> words     = invindex.words
-    >>> idx2_aid  = invindex.idx2_daid
-    >>> idx2_fx   = invindex.idx2_dfx
-    >>> idx2_vec  = invindex.idx2_dvec
-    >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    >>> wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
+            * list of aggvecs
+            * For every aggvec:
+                * one parent aid, if aggregate is False: assert isunique(aids)
+                * list of parent fxs, if aggregate is True: assert len(fxs) == 1
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+        >>> words     = invindex.words
+        >>> idx2_aid  = invindex.idx2_daid
+        >>> idx2_fx   = invindex.idx2_dfx
+        >>> idx2_vec  = invindex.idx2_dvec
+        >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+        >>> wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate)
     """
     wx_sublist = np.array(wx2_idxs.keys())  # pdh.ensure_index(wx2_idxs)
     # Build lists w.r.t. words
@@ -430,15 +445,17 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
     the score of K(X,X) = 1
 
     Internals step4
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids = smk_debug.testdata_raw_internals2()
-    >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
-    >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> idx2_daid  = invindex.idx2_daid
-    >>> wx2_idf = wx2_idf
-    >>> daids      = invindex.daids
-    >>> daid2_sccw = compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, daids)
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_rvecs, wx2_aids = smk_debug.testdata_raw_internals2()
+        >>> alpha = ibs.cfg.query_cfg.smk_cfg.alpha
+        >>> thresh = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> idx2_daid  = invindex.idx2_daid
+        >>> wx2_idf = wx2_idf
+        >>> daids      = invindex.daids
+        >>> daid2_sccw = compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, daids)
     """
     if utool.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
@@ -516,25 +533,26 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
     """
     Gets query read for computations
 
-    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()
-    >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-    >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
-    >>> _args = (annots_df, qaid, invindex, aggregate, alpha, thresh, nAssign)
-    >>> qindex = new_qindex(*_args)
-    >>> (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw) = qindex
-    >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
-    >>> invindex_dbgstr.invindex_dbgstr(invindex)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr()
+        >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+        >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
+        >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> nAssign   = ibs.cfg.query_cfg.smk_cfg.nAssign
+        >>> _args = (annots_df, qaid, invindex, aggregate, alpha, thresh, nAssign)
+        >>> qindex = new_qindex(*_args)
+        >>> (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw) = qindex
+        >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
+        >>> invindex_dbgstr.invindex_dbgstr(invindex)
 
-
-    idx2_vec = qfx2_vec
-    idx2_aid = qfx2_aid
-    idx2_fx  = qfx2_qfx
-    wx2_idxs = _wx2_qfxs
-    wx2_maws = _wx2_maws
+    Dev::
+        idx2_vec = qfx2_vec
+        idx2_aid = qfx2_aid
+        idx2_fx  = qfx2_qfx
+        wx2_idxs = _wx2_qfxs
+        wx2_maws = _wx2_maws
     """
     if utool.VERBOSE:
         print('[smk_index] Query Repr qaid=%r' % (qaid,))

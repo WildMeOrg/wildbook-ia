@@ -85,9 +85,9 @@ def new_ibeis_nnindexer(ibs, daid_list):
     """
     IBEIS interface into neighbor_index
 
-    >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> nnindexer, qreq_, ibs = test_nnindexer() # doctest: +ELLIPSIS
-
+    Example:
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> nnindexer, qreq_, ibs = test_nnindexer() # doctest: +ELLIPSIS
     """
     global NEIGHBOR_CACHE
     daids_hashid = ibs.get_annot_uuid_hashid(daid_list, '_DUUIDS')
@@ -131,8 +131,10 @@ def _check_input(aid_list, vecs_list):
 class NeighborIndex(object):
     """
     Abstract wrapper around flann
-    >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-    >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
+
+    Example:
+        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> nnindexer, qreq_, ibs = test_nnindexer()  #doctest: +ELLIPSIS
     """
 
     def __init__(nnindexer, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
@@ -144,16 +146,16 @@ class NeighborIndex(object):
 
     def knn(nnindexer, qfx2_vec, K, checks=1028):
         """
-        Input:
-            qfx2_vec - (N x D): an array of N, D-dimensional query vectors
+        Args:
+            qfx2_vec : (N x D) an array of N, D-dimensional query vectors
 
             K: number of approximate nearest neighbors to find
 
-        Output: tuple of (qfx2_idx, qfx2_dist)
-            qfx2_idx - (N x K): qfx2_idx[n][k] is the index of the kth
+        Returns: tuple of (qfx2_idx, qfx2_dist)
+            qfx2_idx : (N x K) qfx2_idx[n][k] is the index of the kth
                         approximate nearest data vector w.r.t qfx2_vec[n]
 
-            qfx2_dist - (N x K): qfx2_dist[n][k] is the distance to the kth
+            qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
 
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
@@ -218,11 +220,11 @@ class NeighborIndex(object):
 
     def get_nn_aids(nnindexer, qfx2_nnidx):
         """
-        Input:
-            qfx2_nnidx - (N x K): qfx2_idx[n][k] is the index of the kth
+        Args:
+            qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
                                   approximate nearest data vector
-        Output:
-            qfx2_aid - (N x K): qfx2_fx[n][k] is the annotation id index of the
+        Returns:
+            qfx2_aid : (N x K) qfx2_fx[n][k] is the annotation id index of the
                                 kth approximate nearest data vector
         """
         #qfx2_ax = nnindexer.idx2_ax[qfx2_nnidx]
@@ -233,11 +235,11 @@ class NeighborIndex(object):
 
     def get_nn_featxs(nnindexer, qfx2_nnidx):
         """
-        Input:
-            qfx2_nnidx - (N x K): qfx2_idx[n][k] is the index of the kth
+        Args:
+            qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
                                   approximate nearest data vector
-        Output:
-            qfx2_fx - (N x K): qfx2_fx[n][k] is the feature index (w.r.t the
+        Returns:
+            qfx2_fx : (N x K) qfx2_fx[n][k] is the feature index (w.r.t the
                                source annotation) of the kth approximate
                                nearest data vector
         """

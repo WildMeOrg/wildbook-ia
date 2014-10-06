@@ -14,16 +14,17 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                          aggregate=False, alpha=3, thresh=0, nAssign=1,
                          can_match_self=False):
     """
-    #>>> from ibeis.model.hots.smk import smk_index
-    >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
-    >>> qaid = qaids[0]
-    >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
-    >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
-    >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
-    >>> withinfo = True
-    >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
+    Example:
+        #>>> from ibeis.model.hots.smk import smk_index
+        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        >>> qaid = qaids[0]
+        >>> aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
+        >>> alpha     = ibs.cfg.query_cfg.smk_cfg.alpha
+        >>> thresh    = ibs.cfg.query_cfg.smk_cfg.thresh
+        >>> withinfo = True
+        >>> daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)
     """
     #from ibeis.model.hots.smk import smk_index
     # Get query words / residuals
@@ -59,19 +60,20 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
 @utool.indent_func('[smk_query]')
 def selective_match_kernel(qreq_):
     """
-    Total time: 5.3564 s
-
     ibeis query interface
-    >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
-    >>> from ibeis.model.hots.smk import smk_match
-    >>> from ibeis.model.hots.smk import smk_debug
-    >>> from ibeis.model.hots import query_request
-    >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
-    >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
-    >>> qaid2_qres_ = smk_match.selective_match_kernel(qreq_)
 
-    qres = qaid2_qres_[qaids[0]]
-    fig = qres.show_top(ibs)
+    Example:
+        >>> from ibeis.model.hots.smk.smk_match import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_match
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> from ibeis.model.hots import query_request
+        >>> ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals()
+        >>> qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)
+        >>> qaid2_qres_ = smk_match.selective_match_kernel(qreq_)
+
+    Dev::
+        qres = qaid2_qres_[qaids[0]]
+        fig = qres.show_top(ibs)
     """
     daids = qreq_.get_external_daids()
     qaids = qreq_.get_external_qaids()

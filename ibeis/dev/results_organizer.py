@@ -16,12 +16,13 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG
 
 class OrganizedResult(DynStruct):
     """
-    Maintains an organized list of:
+    What chips are populated depends on the type of organization
+
+    Maintains an organized list of::
         * query annotation indexes
         * their top matching result
         * their score
         * their rank
-    What chips are populated depends on the type of organization
     """
     def __init__(self, orgtype=''):
         super(DynStruct, self).__init__()
@@ -104,10 +105,8 @@ def _score_sorted_ranks_lt(orgres, num):
 
 def qres2_true_and_false(ibs, qres):
     """
-    Organizes results into:
-        true positive set
-        and
-        false positive set
+    Organizes results into true positive set and false positive set
+
     a set is a query, its best match, and a score
     """
     # Get top chip indexes and scores
