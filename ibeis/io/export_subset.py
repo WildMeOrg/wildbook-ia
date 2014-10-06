@@ -1,7 +1,9 @@
 #!/usr/bin/env python2.7
 """
 Exports subset of an IBEIS database to a new IBEIS database
-python -c "import doctest, ibeis; print(doctest.testmod(ibeis.io.export_subset))"
+
+Example:
+    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.io.export_subset))"
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function

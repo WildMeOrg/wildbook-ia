@@ -75,7 +75,9 @@ def __cleanup():
 #-----------------
 
 class IBEISController(object):
-    """IBEISController docstring
+    """
+    IBEISController docstring
+
     chip  - cropped region of interest in an image, maps to one animal
     cid   - chip unique id
     gid   - image unique id (could just be the relative file path)
@@ -651,6 +653,7 @@ class IBEISController(object):
     def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
         """
         Adds metadata
+
         Returns:
             metadata_id_list (list): their rowids """
         if utool.VERBOSE:
@@ -664,13 +667,14 @@ class IBEISController(object):
 
     @adder
     def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_last_list=None,
-                              loc_city_list=None, loc_state_list=None,
-                              loc_country_list=None, loc_zip_list=None,
-                              notes_list=None):
+                         loc_city_list=None, loc_state_list=None,
+                         loc_country_list=None, loc_zip_list=None,
+                         notes_list=None):
         """
-        Adds a list of contributor.
+        Adds a list of contributors.
+
         Returns:
-            list_ (list): their nids
+            contrib_id_list (list): contributor rowids
         """
         import datetime
         def _valid_zip(_zip, default='00000'):
