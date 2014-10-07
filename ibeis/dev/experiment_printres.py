@@ -286,7 +286,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
         sel_rows = list(range(len(qaids)))
-    if utool.get_argflag('--view-all'):
+    if utool.get_argflag(('--view-all', '--va')):
         sel_rows = list(range(len(qaids)))
         sel_cols = list(range(len(cfg_list)))
     if utool.get_argflag('--view-hard'):
@@ -326,8 +326,10 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     DUMP_TOP_CONTEXT    = True
 
     figdir = join(ibs.get_fig_dir(), 'query_analysis')
+    utool.ensuredir(ibs.get_fig_dir())
+    utool.ensuredir(figdir)
 
-    utool.view_directory(figdir, verbose=True)
+    #utool.view_directory(figdir, verbose=True)
 
     VIEW_FIG_DIR = utool.get_argflag(('--view-figures', '--vf'))
     if VIEW_FIG_DIR:

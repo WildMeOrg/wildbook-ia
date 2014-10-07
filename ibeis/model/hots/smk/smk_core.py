@@ -335,7 +335,8 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
         print(qfxs_list[0:3])
         print(qaids_list[0:3])
         print(qmaws_list[0:3])
-    dbstr_qindex()
+    if utool.DEBUG2:
+        dbstr_qindex()
     with utool.EmbedOnException():
         try:
             out_ijs    = [list(zip(_is.flat, _js.flat)) for (_is, _js) in ijs_list]

@@ -367,6 +367,14 @@ def check_wx2_rvecs(wx2_rvecs, verbose=True):
     return flag
 
 
+def check_wx2_idxs(wx2_idxs, nWords):
+    wx_list = list(wx2_idxs.keys())
+    missing_vals, missing_indicies, duplicate_items = utool.debug_consec_list(wx_list)
+    empty_wxs = [wx for wx, idxs in six.iteritems(wx2_idxs) if len(idxs) == 0]
+    print('[smk_debug] num indexes with no support: %r' % len(missing_vals))
+    print('[smk_debug] num indexes with empty idxs: %r' % len(empty_wxs))
+
+
 def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, verbose=True):
     words = invindex.words
     if wx2_rvecs is None:
@@ -416,6 +424,26 @@ def check_wx2_rvecs2(invindex, wx2_rvecs=None, wx2_idxs=None, idx2_vec=None, ver
         if verbose:
             print('[smk_debug] all nan rvecs were equal to their words')
     return flag
+
+
+def assert_single_assigned_maws(maws_list):
+    try:
+        assert all([np.all(np.array(maws) == 1) for maws in maws_list]), 'cannot multiassign database'
+    except AssertionError:
+        print(maws_list)
+        raise
+
+
+def check_data_smksumm(aididf_list, aidrvecs_list):
+    #sccw_list = []
+    try:
+        for count, (idf_list, rvecs_list) in enumerate(zip(aididf_list, aidrvecs_list)):
+            assert len(idf_list) == len(rvecs_list), 'one list for each word'
+            #sccw = smk_core.sccw_summation(rvecs_list, idf_list, None, alpha, thresh)
+    except Exception as ex:
+        utool.printex(ex)
+        #utool.embed()
+        raise
 
 
 def check_invindex(invindex, verbose=True):
@@ -628,6 +656,7 @@ def invindex_dbgstr(invindex):
     >>> invindex_dbgstr(invindex)
     """
     print('+--- INVINDEX DBGSTR ---')
+    print('called by %r' % (utool.get_caller_name(),))
     locals_ = {'invindex': invindex}
     #print(dictinfo(invindex.wx2_fxs))
 

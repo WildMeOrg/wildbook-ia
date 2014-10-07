@@ -200,11 +200,6 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
         idx2_vec = idx2_dvec
         wx2_maws = _wx2_maws  # NOQA
     """
-    if utool.VERBOSE:
-        print('[smk_index] compute_data_internals_')
-        print('[smk_index] aggregate = %r' % (aggregate,))
-        print('[smk_index] alpha = %r' % (alpha,))
-        print('[smk_index] thresh = %r' % (thresh,))
     # Get information
     idx2_vec  = invindex.idx2_dvec
     idx2_dfx  = invindex.idx2_dfx
@@ -213,6 +208,14 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wordflann = invindex.wordflann
     words     = invindex.words
     wx_series = np.arange(len(words))
+    if utool.VERBOSE:
+        print('[smk_index] compute_data_internals_')
+        print('[smk_index] * len(daids) = %r' % (len(daids),))
+        print('[smk_index] * len(words) = %r' % (len(words),))
+        print('[smk_index] * len(idx2_vec) = %r' % (len(idx2_vec),))
+        print('[smk_index] * aggregate = %r' % (aggregate,))
+        print('[smk_index] * alpha = %r' % (alpha,))
+        print('[smk_index] * thresh = %r' % (thresh,))
     # Database word assignments (perform single assignment on database side)
     wx2_idxs, _wx2_maws, idx2_wxs = assign_to_words_(wordflann, words, idx2_vec, nAssign=1)
     if utool.DEBUG2:
@@ -223,17 +226,15 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
             assert len(wx2_idxs.keys()) == len(words)
         except AssertionError as ex:
             utool.printex(ex, iswarning=True)
-
-        pass
     # Database word inverse-document-frequency (idf weights)
     wx2_idf = compute_word_idf_(
         wx_series, wx2_idxs, idx2_daid, daids)
     if utool.DEBUG2:
         assert len(wx2_idf) == len(wx2_idf.keys())
     # Compute (normalized) residual vectors and inverse mappings
-    # FIXME: wx2_maws is overriden
     wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(
-        words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate)
+        words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate,
+        is_database=True)
     # Compute annotation normalization factor
     wx2_rvecs = wx2_drvecs  # NOQA
     daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_maws, alpha, thresh)
@@ -380,46 +381,9 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
                  else np.empty(0, dtype=INDEX_TYPE)
                  for idxs in idxs_list]
     if daid2_label is not None:
-        # Computes our novel label idf weight
-        def tuples_to_unique_scalars(tup_list):
-            seen = {}
-            def addval(tup):
-                val = len(seen)
-                seen[tup] = val
-                return val
-            scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
-            return scalar_list
-
-        lblindex_list = np.array(tuples_to_unique_scalars(daid2_label.values()))
-        #daid2_lblindex = dict(zip(daid_list, lblindex_list))
-        unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
-        daid_list = np.array(daid2_label.keys())
-        daids_list = [daid_list.take(xs) for xs in groupxs]
-        daid2_wxs = utool.ddict(list)
-        for wx, daids in enumerate(aids_list):
-            for daid in daids:
-                daid2_wxs[daid].append(wx)
-        lblindex2_daids = list(zip(unique_lblindexes, daids_list))
-        nLabels = len(unique_lblindexes)
-        pcntLblsWithWord = np.zeros(len(wx_series), np.float64)
-        # Get num times word appears for eachlabel
-        for lblindex, daids in lblindex2_daids:
-            nWordsWithLabel = np.zeros(len(wx_series))
-            for daid in daids:
-                wxs = daid2_wxs[daid]
-                nWordsWithLabel[wxs] += 1
-            pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
-        # Labels for each word
-        idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1),
-                                    dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+        idf_list = compute_idf_label1(aids_list, daid2_label)
     else:
-        nTotalDocs = len(daids)
-        # idf denominator
-        nDocsWithWord_list = np.array([len(set(aids)) for aids in aids_list])
-        # Typically for IDF, 1 is added to the denominator to prevent divide by 0
-        # compute idf half of sccw-idf weighting
-        idf_list = np.log(np.divide(nTotalDocs, np.add(nDocsWithWord_list, 1),
-                                    dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+        idf_list = compute_idf_orig(aids_list, daids)
     if utool.VERBOSE:
         end_()
         print('[smk_index] L___ End Compute IDF')
@@ -427,9 +391,80 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None):
     return wx2_idf
 
 
+def compute_idf_orig(aids_list, daids):
+    """
+    The standard idf measure
+    """
+    nTotalDocs = len(daids)
+    # idf denominator
+    nDocsWithWord_list = np.array([len(set(aids)) for aids in aids_list])
+    # Typically for IDF, 1 is added to the denominator to prevent divide by 0
+    # compute idf half of sccw-idf weighting
+    idf_list = np.log(np.divide(nTotalDocs, np.add(nDocsWithWord_list, 1),
+                                dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+    return idf_list
+
+
+def compute_idf_label1(aids_list, daid2_label):
+    """
+    One of our idf extensions
+    """
+    nWords = len(aids_list)
+    # Computes our novel label idf weight
+    def tuples_to_unique_scalars(tup_list):
+        seen = {}
+        def addval(tup):
+            val = len(seen)
+            seen[tup] = val
+            return val
+        scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
+        return scalar_list
+
+    lblindex_list = np.array(tuples_to_unique_scalars(daid2_label.values()))
+    #daid2_lblindex = dict(zip(daid_list, lblindex_list))
+    unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
+    daid_list = np.array(daid2_label.keys())
+    daids_list = [daid_list.take(xs) for xs in groupxs]
+    daid2_wxs = utool.ddict(list)
+    for wx, daids in enumerate(aids_list):
+        for daid in daids:
+            daid2_wxs[daid].append(wx)
+    lblindex2_daids = list(zip(unique_lblindexes, daids_list))
+    nLabels = len(unique_lblindexes)
+    pcntLblsWithWord = np.zeros(len(nWords), np.float64)
+    # Get num times word appears for eachlabel
+    for lblindex, daids in lblindex2_daids:
+        nWordsWithLabel = np.zeros(len(nWords))
+        for daid in daids:
+            wxs = daid2_wxs[daid]
+            nWordsWithLabel[wxs] += 1
+        pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
+    # Labels for each word
+    idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1),
+                                dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+    return idf_list
+
+
+def compute_idf_label2(aids_list, daid2_label):
+    r"""
+    Chucks modification to idf extension
+
+    Math::
+        p(n_i | c) = \sum_{\ell \in L : \ell=(n_i, v)} p(\ell | c)
+
+        p(\ell | c) = \frac{p(c | \ell) p(\ell)}{p(c)}
+
+        p(c) = \sum_{\ell' \in L} p(c | \ell') p(\ell')
+
+        p(c | \ell) = \frac{\sum_{\X \in \DB_\ell} b(c, \X)}{\card{\DB_\ell}}
+    """
+    pass
+
+
 #@utool.cached_func('residuals', appname='smk')
 @profile
-def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, aggregate):
+def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
+                       aggregate, is_database=False):
     """
     Computes residual vectors based on worwx2_fxs d assignments
     returns mapping from word index to a set of residual vectors
@@ -469,31 +504,25 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, a
         assert idx2_vec.shape[0] == idx2_aid.shape[0]
     # Prealloc output
     if utool.VERBOSE:
+        from ibeis.model.hots.smk import smk_debug
         print('[smk_index] +--- Start Compute Residuals')
         print('[smk_index] Residual Vectors for %d words. aggregate=%r' %
               (len(wx2_idxs), aggregate,))
+        #if is_database:
+        # There is usually a problem if the database doesn't index into any words
+        smk_debug.check_wx2_idxs(wx2_idxs, len(words))
     # Nonaggregated residuals
     words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1 ms
     vecs_list  = [idx2_vec.take(idxs, axis=0) for idxs in idxs_list]  # 5.3 ms
     rvecs_list = [smk_core.get_norm_rvecs(vecs, word)
                   for vecs, word in zip(vecs_list, words_list)]  # 103 ms
     if aggregate:
-        # Aggregate over words of the same aid
-        maws_list = [wx2_maws[wx] for wx in wx_sublist]
-        tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
-        (aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list) = tup
-        aggfxs_list = [[idx2_fx.take(idxs) for idxs in aggidxs]
-                       for aggidxs in aggidxs_list]
-        wx2_aggvecs = dict(zip(wx_sublist, aggvecs_list))
-        wx2_aggaids = dict(zip(wx_sublist, aggaids_list))
-        wx2_aggfxs  = dict(zip(wx_sublist, aggfxs_list))
-        wx2_aggmaws = dict(zip(wx_sublist, aggmaws_list))
-        # Alisas
-        (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = (wx2_aggvecs, wx2_aggaids, wx2_aggfxs, wx2_aggmaws)
+        (wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws) = _aggregate_residuals(
+            rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws)
     else:
-        # Make residuals dataframes
-        # compatibility hack. Each rvec gets a list of fxs that contributed to
-        # it. For SMK this is a list of size 1
+        # Hack non-aggregate residuals to have the same structure as aggregate
+        # residuals for compatability: i.e. each rvec gets a list of fxs that
+        # contributed to it, and for SMK this is a list of size 1
         fxs_list  = [[idx2_fx[idx:idx + 1] for idx in idxs]  for idxs in idxs_list]
         wx2_rvecs = dict(zip(wx_sublist, rvecs_list))
         wx2_aids  = dict(zip(wx_sublist, aids_list))
@@ -504,6 +533,21 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx, a
     if utool.VERBOSE:
         print('[smk_index] L___ End Compute Residuals')
     return wx2_rvecs, wx2_aids, wx2_fxs, wx2_maws
+
+
+def _aggregate_residuals(rvecs_list, idxs_list, aids_list, idx2_fx, wx_sublist, wx2_maws):
+    """ Aggregate over words of the same aid """
+    maws_list = [wx2_maws[wx] for wx in wx_sublist]
+    tup = smk_speed.compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
+    (aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list) = tup
+    aggfxs_list = [[idx2_fx.take(idxs) for idxs in aggidxs]
+                   for aggidxs in aggidxs_list]
+    wx2_aggvecs = dict(zip(wx_sublist, aggvecs_list))
+    wx2_aggaids = dict(zip(wx_sublist, aggaids_list))
+    wx2_aggfxs  = dict(zip(wx_sublist, aggfxs_list))
+    wx2_aggmaws = dict(zip(wx_sublist, aggmaws_list))
+    # Alisas
+    return (wx2_aggvecs, wx2_aggaids, wx2_aggfxs, wx2_aggmaws)
 
 
 #@utool.cached_func('sccw', appname='smk', key_argx=[1, 2])
@@ -533,28 +577,20 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
 
     wx_sublist = np.array(wx2_rvecs.keys())
     if utool.VERBOSE:
-        print('\n[smk_index] +--- Start Compute Data Term Frequency')
-        print('[smk_index] Compute TF alpha=%r, thresh=%r: ' % (alpha, thresh))
+        print('\n[smk_index] +--- Start Compute Data Self Consistency Weight')
+        print('[smk_index] Compute SCCW alpha=%r, thresh=%r: ' % (alpha, thresh))
         mark1, end1_ = utool.log_progress(
-            '[smk_index] TF group (by word): ', len(wx_sublist),
+            '[smk_index] SCCW group (by present words): ', len(wx_sublist),
             flushfreq=100, writefreq=50, with_totaltime=WITH_TOTALTIME)
     # Get list of aids and rvecs w.r.t. words
     aids_list   = [wx2_aids[wx] for wx in wx_sublist]
     rvecs_list1 = [wx2_rvecs[wx] for wx in wx_sublist]
     maws_list   = [wx2_maws[wx] for wx in wx_sublist]
     if utool.DEBUG2:
-        try:
-            assert all([np.all(np.array(maws) == 1) for maws in maws_list]), 'cannot multiassign database'
-        except AssertionError:
-            print(maws_list)
-            raise
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.assert_single_assigned_maws(maws_list)
     # Group by daids first and then by word index
-    daid2_wx2_drvecs = utool.ddict(lambda: utool.ddict(list))
-    for wx, aids, rvecs in zip(wx_sublist, aids_list, rvecs_list1):
-        group_aids, groupxs = clustertool.group_indicies(aids)
-        rvecs_group = clustertool.apply_grouping(rvecs, groupxs)  # 2.9 ms
-        for aid, rvecs_ in zip(group_aids, rvecs_group):
-            daid2_wx2_drvecs[aid][wx] = rvecs_
+    daid2_wx2_drvecs = clustertool.double_group(wx_sublist, aids_list, rvecs_list1)
 
     if utool.VERBOSE:
         end1_()
@@ -563,27 +599,20 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
     # Summation over words for each aid
     if utool.VERBOSE:
         mark2, end2_ = utool.log_progress(
-            '[smk_index] TF Sum (over daid): ', len(daid2_wx2_drvecs),
+            '[smk_index] SCCW Sum (over daid): ', len(daid2_wx2_drvecs),
             flushfreq=100, writefreq=25, with_totaltime=WITH_TOTALTIME)
     # Get lists w.r.t daids
     aid_list          = list(daid2_wx2_drvecs.keys())
     # list of mappings from words to rvecs foreach daid
     # [wx2_aidrvecs_1, ..., wx2_aidrvecs_nDaids,]
     _wx2_aidrvecs_list = list(daid2_wx2_drvecs.values())
-    _aidwxs_iter    = (list(wx2_aidrvecs.keys()) for wx2_aidrvecs in _wx2_aidrvecs_list)
+    _aidwxs_iter   = (list(wx2_aidrvecs.keys()) for wx2_aidrvecs in _wx2_aidrvecs_list)
     aidrvecs_list  = [list(wx2_aidrvecs.values()) for wx2_aidrvecs in _wx2_aidrvecs_list]
     aididf_list = [[wx2_idf[wx] for wx in aidwxs] for aidwxs in _aidwxs_iter]
 
-    #sccw_list = []
     if utool.DEBUG2:
-        try:
-            for count, (idf_list, rvecs_list) in enumerate(zip(aididf_list, aidrvecs_list)):
-                assert len(idf_list) == len(rvecs_list), 'one list for each word'
-                #sccw = smk_core.sccw_summation(rvecs_list, idf_list, None, alpha, thresh)
-        except Exception as ex:
-            utool.printex(ex)
-            #utool.embed()
-            raise
+        from ibeis.model.hots.smk import smk_debug
+        smk_debug.check_data_smksumm(aididf_list, aidrvecs_list)
     # TODO: implement database side soft-assign
     sccw_list = [smk_core.sccw_summation(rvecs_list, idf_list, None, alpha, thresh)
                      for idf_list, rvecs_list in zip(aididf_list, aidrvecs_list)]
@@ -591,7 +620,7 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
     daid2_sccw = dict(zip(aid_list, sccw_list))
     if utool.VERBOSE:
         end2_()
-        print('[smk_index] L___ End Compute Data TF\n')
+        print('[smk_index] L___ End Compute Data SCCW\n')
 
     return daid2_sccw
 
@@ -641,7 +670,7 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
     # each value in wx2_ dicts is a list with len equal to the number of rvecs
     # Compute query sccw
     if utool.VERBOSE:
-        print('[smk_index] Query TF alpha=%r, thresh=%r' % (alpha, thresh))
+        print('[smk_index] Query SCCW alpha=%r, thresh=%r' % (alpha, thresh))
     wx_sublist  = np.array(wx2_qrvecs.keys(), dtype=INDEX_TYPE)
     idf_list    = [wx2_idf[wx]    for wx in wx_sublist]
     rvecs_list  = [wx2_qrvecs[wx] for wx in wx_sublist]
