@@ -323,6 +323,52 @@ def groupby_dict(items, idx2_groupid):
     return grouped
 
 
+def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False):
+    """
+    Takes corresponding lists as input and builds a double mapping.
+
+    Args:
+        inner_key_list (list): each value_i is a scalar key.
+        outer_keys_list (list): each value_i list of scalar keys
+        items_list (list): value_i is a list that corresponds to outer_keys_i
+
+    Returns:
+        utool.ddict of dicts: outerkey2_innerkey2_items
+
+    Example:
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> inner_key_list = [100, 200, 300, 400]
+        >>> outer_keys_list = [[10, 20, 20], [30], [30, 10], [20]]
+        >>> items_list = [[1, 2, 3], [4], [5, 6], [7]]
+        >>> ensure_numpy = True
+        >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
+        >>> print(utool.dict_str(outerkey2_innerkey2_items))
+        {
+            10: {300: array([6]), 100: array([1])},
+            20: {400: array([7]), 100: array([2, 3])},
+            30: {200: array([4]), 300: array([5])},
+        }
+    """
+    if ensure_numpy:
+        inner_key_list = np.array(inner_key_list)
+        outer_keys_list = np.array(map(np.array, outer_keys_list))
+        items_list = np.array(map(np.array, items_list))
+    outerkey2_innerkey2_items = utool.ddict(dict)
+    _iter =  zip(inner_key_list, outer_keys_list, items_list)
+    for inner_key, outer_keys, items in _iter:
+        group_outerkeys, groupxs = group_indicies(outer_keys)
+        items_group = apply_grouping(items, groupxs)
+        for outer_key, subitems in zip(group_outerkeys, items_group):
+            outerkey2_innerkey2_items[outer_key][inner_key] = subitems
+    return outerkey2_innerkey2_items
+    #daid2_wx2_drvecs = utool.ddict(lambda: utool.ddict(list))
+    #for wx, aids, rvecs in zip(wx_sublist, aids_list, rvecs_list1):
+    #    group_aids, groupxs = clustertool.group_indicies(aids)
+    #    rvecs_group = clustertool.apply_grouping(rvecs, groupxs)
+    #    for aid, subrvecs in zip(group_aids, rvecs_group):
+    #        daid2_wx2_drvecs[aid][wx] = subrvecs
+
+
 def sparse_normalize_rows(csr_mat):
     pass
     #return sklearn.preprocessing.normalize(csr_mat, norm='l2', axis=1, copy=False)
