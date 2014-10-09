@@ -8,17 +8,22 @@ Documentation: http://erotemic.github.io/ibeis
 Erotemic's IBEIS module dependencies 
 
 * https://github.com/Erotemic/utool
-  Documentation: http://erotemic.github.io/utool
+  docs: http://erotemic.github.io/utool
 * https://github.com/Erotemic/plottool
+  docs: http://erotemic.github.io/plottool
 * https://github.com/Erotemic/vtool
+  docs: http://erotemic.github.io/vtool
 * https://github.com/Erotemic/hesaff
+  docs: http://erotemic.github.io/hesaff
 * https://github.com/Erotemic/guitool
+  docs: http://erotemic.github.io/guitool
 
 
 bluemellophone's IBEIS modules
 
 * https://github.com/bluemellophone/detecttools
 * https://github.com/bluemellophone/pyrf
+  docs: http://bluemellophone.github.io/pyrf
 
 
 hjweide's IBEIS modules
