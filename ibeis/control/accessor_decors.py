@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-import decorator  # NOQA
+# import decorator  # NOQA
 import utool
 from six.moves import builtins
 from functools import wraps
