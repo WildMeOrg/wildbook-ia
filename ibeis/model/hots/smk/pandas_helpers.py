@@ -118,6 +118,8 @@ def ensure_values_scalar_subset(data, keys):
 
 
 def ensure_2d_values(data):
+    #if not isinstance(data, PANDAS_TYPES):
+    #    return data
     data_ = ensure_values(data)
     if len(data_) == 0:
         return data_

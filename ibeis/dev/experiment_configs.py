@@ -115,6 +115,11 @@ vsmany_best = {
 }
 best = vsmany_best
 
+smk_test = {
+    'pipeline_root': ['smk', 'asmk'],
+    'sv_on':         [True],  # True, False],
+}
+
 asmk = {
     'pipeline_root': ['asmk'],
     'sv_on':         [False],  # True, False],

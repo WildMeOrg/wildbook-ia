@@ -436,8 +436,15 @@ profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --index
 ./dev.py -t smk --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
 ./dev.py -t asmk --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
 
+dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
+
+
 ./dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query
 
 
 ./dev.py -t smk2 --allgt --index 0:55 --db Oxford
+
+# SMK TESTS
+dev.py -t smk_test --allgt --db PZ_Mothers --nocache-big --nocache-query --index 0:20
+dev.py -t smk_test --allgt --db GZ_ALL --nocache-big --nocache-query --index 0:20
 ```

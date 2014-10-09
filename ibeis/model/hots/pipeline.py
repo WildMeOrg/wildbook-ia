@@ -544,9 +544,18 @@ def _spatial_verification(qaid2_chipmatch, qreq_, dbginfo=False):
             kpts2 = topx2_kpts[topx]
             fs    = aid2_fs[aid]
             fk    = aid2_fk[aid]
-            sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
-                                               xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
-                                               min_nInliers)
+            try:
+                sv_tup = sver.spatial_verification(kpts1, kpts2, fm,
+                                                   xy_thresh, scale_thresh, ori_thresh, dlen_sqrd,
+                                                   min_nInliers)
+            except Exception as ex:
+                utool.printex(ex, 'Unknown error in spatial verification.',
+                              keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
+                                    'scale_thresh', 'dlen_sqrd', 'min_nInliers'])
+                sv_tup = None
+                #if utool.STRICT:
+                #    print('Strict is on. Reraising')
+                #    raise
             nFeatSVTotal += len(fm)
             if sv_tup is None:
                     print_('o')  # sv failure

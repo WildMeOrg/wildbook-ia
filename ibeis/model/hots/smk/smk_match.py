@@ -42,9 +42,10 @@ def query_inverted_index(annots_df, qaid, invindex, withinfo=True,
                    invindex, withinfo, alpha, thresh)
     daid2_totalscore, daid2_chipmatch = smk_core.match_kernel(*kernel_args)  # 54 %
     # Prevent self matches
-    can_match_self = not utool.get_argflag('--noself')
-    cant_match_self_ = (not can_match_self) and qaid in daid2_totalscore
-    if cant_match_self_:
+    #can_match_self = not utool.get_argflag('--noself')
+    can_match_self = utool.get_argflag('--self-match')
+    if (not can_match_self) and qaid in daid2_totalscore:
+        # If we cannot do self-matches
         daid2_totalscore[qaid] = 0
         daid2_chipmatch[0][qaid] = np.empty((0, 2), dtype=np.int32)
         daid2_chipmatch[1][qaid] = np.empty((0), dtype=np.float32)
@@ -95,8 +96,7 @@ def selective_match_kernel(qreq_):
         taids = ibs.get_valid_aids()  # exemplar
         words = smk_index.learn_visual_words(annots_df, taids, nWords)
         # Index database annotations
-        invindex = smk_index.index_data_annots(annots_df, daids, words,
-                                               aggregate=aggregate)  # 18.5%
+        invindex = smk_index.index_data_annots(annots_df, daids, words, aggregate=aggregate)
         print('L___ FINISHED LOADING VOCAB ___\n')
     withinfo = True
     # Progress

@@ -12,16 +12,16 @@ from __future__ import absolute_import, division, print_function
 #import six
 import utool
 import numpy as np
-import pandas as pd
+#import pandas as pd
 from six.moves import zip, map  # NOQA
 from vtool import clustering2 as clustertool
 from vtool import nearest_neighbors as nntool
 from ibeis.model.hots.smk import smk_core
 from ibeis.model.hots.smk import smk_speed
 #from ibeis.model.hots.smk import smk_match
-from ibeis.model.hots.smk import pandas_helpers as pdh
+#from ibeis.model.hots.smk import pandas_helpers as pdh
 from ibeis.model.hots.smk.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
-from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
+#from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
 from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_index]')
 
@@ -82,6 +82,33 @@ QueryIndex = namedtuple(
     ))
 
 
+def lazy_getter(getter_func):
+    def lazy_closure(*args):
+        return getter_func(*args)
+    return lazy_closure
+
+
+def get_annot_label(ibs, aid_list):
+    name_list = ibs.get_annot_nids(aid_list)
+    view_list = [0 for _ in name_list]
+    label_list = list(zip(name_list, view_list))
+    return label_list
+
+
+class DataFrameProxy(object):
+    def __init__(self, ibs):
+        self.ibs = ibs
+
+    def __getitem__(self, key):
+        if key == 'kpts':
+            return lazy_getter(self.ibs.get_annot_kpts)
+        elif key == 'vecs':
+            return lazy_getter(self.ibs.get_annot_desc)
+        elif key == 'labels':
+            import functools
+            return lazy_getter(functools.partial(get_annot_label, self.ibs))
+
+
 #@profile
 def make_annot_df(ibs):
     """
@@ -99,20 +126,18 @@ def make_annot_df(ibs):
     #>>> smk_debug.rrr()
     #>>> smk_debug.check_dtype(annots_df)
     """
-    aid_list = ibs.get_valid_aids()  # 80us
-    name_list = ibs.get_annot_nids(aid_list)
-    view_list = [0 for _ in name_list]
-    label_list = list(zip(name_list, view_list))
-    kpts_list = ibs.get_annot_kpts(aid_list)  # 40ms
-    vecs_list = ibs.get_annot_desc(aid_list)  # 50ms
-    assert len(kpts_list) == len(vecs_list)
-    assert len(label_list) == len(vecs_list)
-    aid_series = pdh.IntSeries(np.array(aid_list, dtype=INTEGER_TYPE), name='aid')
-    label_series = pd.Series(label_list, index=aid_list, name='labels')
-    kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')  # 6.7ms
-    vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')  # 7.1ms
-    # Pandas Annotation Dataframe
-    annots_df = pd.concat([kpts_df, vecs_df, label_series], axis=1)  # 845 us
+    #aid_list = ibs.get_valid_aids()  # 80us
+    annots_df = DataFrameProxy(ibs)
+    #kpts_list = ibs.get_annot_kpts(aid_list)  # 40ms
+    #vecs_list = ibs.get_annot_desc(aid_list)  # 50ms
+    #assert len(kpts_list) == len(vecs_list)
+    #assert len(label_list) == len(vecs_list)
+    #aid_series = pdh.IntSeries(np.array(aid_list, dtype=INTEGER_TYPE), name='aid')
+    #label_series = pd.Series(label_list, index=aid_list, name='labels')
+    #kpts_df = pdh.pandasify_list2d(kpts_list, aid_series, KPT_COLUMNS, 'fx', 'kpts')  # 6.7ms
+    #vecs_df = pdh.pandasify_list2d(vecs_list, aid_series, VEC_COLUMNS, 'fx', 'vecs')  # 7.1ms
+    ## Pandas Annotation Dataframe
+    #annots_df = pd.concat([kpts_df, vecs_df, label_series], axis=1)  # 845 us
     return annots_df
 
 
@@ -132,7 +157,8 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     """
     max_iters = 200
     flann_params = {}
-    train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
+    #train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
+    train_vecs_list = annots_df['vecs'](taids)
     train_vecs = np.vstack(train_vecs_list)
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
@@ -162,12 +188,16 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     if utool.VERBOSE:
         print('[smk_index] index_data_annots')
     flann_params = {}
-    _words = pdh.ensure_values(words)
+    _words = words
+    #_words = pdh.ensure_values(words)
+    #_daids = pdh.ensure_values(daids)
+    #_vecs_list = pdh.ensure_2d_values(annots_df['vecs'][_daids])
+    #_label_list = pdh.ensure_values(annots_df['labels'][_daids])
     wordflann = nntool.flann_cache(_words, flann_params=flann_params,
                                    appname='smk')
-    _daids = pdh.ensure_values(daids)
-    _vecs_list = pdh.ensure_2d_values(annots_df['vecs'][_daids])
-    _label_list = pdh.ensure_values(annots_df['labels'][_daids])
+    _daids = daids
+    _vecs_list = annots_df['vecs'](_daids)
+    _label_list = annots_df['labels'](_daids)
     _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
 
     idx2_dfx   = _idx2_dfx
@@ -235,6 +265,9 @@ def compute_data_internals_(invindex, aggregate=False, alpha=3, thresh=0):
     wx2_drvecs, wx2_aids, wx2_fxs, wx2_maws = compute_residuals_(
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx, aggregate,
         is_database=True)
+    # Try to save some memory
+    invindex.idx2_dvec = None
+    del idx2_vec
     # Compute annotation normalization factor
     wx2_rvecs = wx2_drvecs  # NOQA
     daid2_sccw = compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_aids, wx2_idf, wx2_maws, alpha, thresh)
@@ -408,19 +441,26 @@ def compute_idf_orig(aids_list, daids):
 def compute_idf_label1(aids_list, daid2_label):
     """
     One of our idf extensions
+    >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
+    >>> from ibeis.model.hots.smk import smk_debug
+    >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs = smk_debug.testdata_raw_internals1()
+    >>> wx_series = np.arange(len(invindex.words))
+    >>> idx2_aid = invindex.idx2_daid
+    >>> daid2_label = invindex.daid2_label
+    >>> idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE)
+    >>>              if wx in wx2_idxs
+    >>>              else np.empty(0, dtype=INDEX_TYPE)
+    >>>              for wx in wx_series]
+    >>> # aids for each word
+    >>> aids_list = [idx2_aid.take(idxs)
+    >>>              if len(idxs) > 0
+    >>>              else np.empty(0, dtype=INDEX_TYPE)
+    >>>              for idxs in idxs_list]
+    >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
     """
     nWords = len(aids_list)
     # Computes our novel label idf weight
-    def tuples_to_unique_scalars(tup_list):
-        seen = {}
-        def addval(tup):
-            val = len(seen)
-            seen[tup] = val
-            return val
-        scalar_list = [seen[tup] if tup in seen else addval(tup) for tup in tup_list]
-        return scalar_list
-
-    lblindex_list = np.array(tuples_to_unique_scalars(daid2_label.values()))
+    lblindex_list = np.array(utool.tuples_to_unique_scalars(daid2_label.values()))
     #daid2_lblindex = dict(zip(daid_list, lblindex_list))
     unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
     daid_list = np.array(daid2_label.keys())
@@ -431,14 +471,15 @@ def compute_idf_label1(aids_list, daid2_label):
             daid2_wxs[daid].append(wx)
     lblindex2_daids = list(zip(unique_lblindexes, daids_list))
     nLabels = len(unique_lblindexes)
-    pcntLblsWithWord = np.zeros(len(nWords), np.float64)
+    pcntLblsWithWord = np.zeros(nWords, np.float64)
     # Get num times word appears for eachlabel
     for lblindex, daids in lblindex2_daids:
-        nWordsWithLabel = np.zeros(len(nWords))
+        nWordsWithLabel = np.zeros(nWords)
         for daid in daids:
             wxs = daid2_wxs[daid]
             nWordsWithLabel[wxs] += 1
         pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
+
     # Labels for each word
     idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1),
                                 dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
@@ -447,7 +488,7 @@ def compute_idf_label1(aids_list, daid2_label):
 
 def compute_idf_label2(aids_list, daid2_label):
     r"""
-    Chucks modification to idf extension
+    Chuck's formulation of label-idf
 
     Math::
         p(n_i | c) = \sum_{\ell \in L : \ell=(n_i, v)} p(\ell | c)
@@ -458,7 +499,33 @@ def compute_idf_label2(aids_list, daid2_label):
 
         p(c | \ell) = \frac{\sum_{\X \in \DB_\ell} b(c, \X)}{\card{\DB_\ell}}
     """
-    pass
+    nWords = len(aids_list)
+    # Computes our novel label idf weight
+    # Translate tuples into scalars for efficiency
+    lblindex_list = np.array(utool.tuples_to_unique_scalars(daid2_label.values()))
+
+    #daid2_lblindex = dict(zip(daid_list, lblindex_list))
+    unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
+    daid_list = np.array(daid2_label.keys())
+    daids_list = [daid_list.take(xs) for xs in groupxs]
+    daid2_wxs = utool.ddict(list)
+    for wx, daids in enumerate(aids_list):
+        for daid in daids:
+            daid2_wxs[daid].append(wx)
+    lblindex2_daids = list(zip(unique_lblindexes, daids_list))
+    nLabels = len(unique_lblindexes)
+    pcntLblsWithWord = np.zeros(nWords, np.float64)
+    # Get num times word appears for eachlabel
+    for lblindex, daids in lblindex2_daids:
+        nWordsWithLabel = np.zeros(nWords)
+        for daid in daids:
+            wxs = daid2_wxs[daid]
+            nWordsWithLabel[wxs] += 1
+        pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
+
+    # Labels for each word
+    idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1), dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
+    return idf_list
 
 
 #@utool.cached_func('residuals', appname='smk')
@@ -495,7 +562,8 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid, idx2_fx,
     """
     wx_sublist = np.array(wx2_idxs.keys())  # pdh.ensure_index(wx2_idxs)
     # Build lists w.r.t. words
-    idxs_list = [idxs.astype(INDEX_TYPE) for idxs in pdh.ensure_values_subset(wx2_idxs, wx_sublist)]
+
+    idxs_list = [wx2_idxs[wx].astype(INDEX_TYPE) for wx in wx_sublist]
     aids_list = [idx2_aid.take(idxs) for idxs in idxs_list]
     if utool.DEBUG2:
         #assert np.all(np.diff(wx_sublist) == 1), 'not dense'
@@ -602,7 +670,7 @@ def compute_data_sccw_(idx2_daid, wx2_rvecs, wx2_aids, wx2_idf, wx2_maws, alpha,
             '[smk_index] SCCW Sum (over daid): ', len(daid2_wx2_drvecs),
             flushfreq=100, writefreq=25, with_totaltime=WITH_TOTALTIME)
     # Get lists w.r.t daids
-    aid_list          = list(daid2_wx2_drvecs.keys())
+    aid_list = list(daid2_wx2_drvecs.keys())
     # list of mappings from words to rvecs foreach daid
     # [wx2_aidrvecs_1, ..., wx2_aidrvecs_nDaids,]
     _wx2_aidrvecs_list = list(daid2_wx2_drvecs.values())
@@ -657,7 +725,8 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
     wordflann = invindex.wordflann
-    qfx2_vec  = annots_df['vecs'][qaid].values
+    #qfx2_vec  = annots_df['vecs'][qaid].values
+    qfx2_vec  = annots_df['vecs'](qaid)
     # Assign query to (multiple) words
     _wx2_qfxs, _wx2_maws, qfx2_wxs = assign_to_words_(
         wordflann, words, qfx2_vec, nAssign=nAssign)
