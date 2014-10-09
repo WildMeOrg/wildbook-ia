@@ -48,6 +48,7 @@ def backblock(func):
         finally:
             back.front.blockSignals(_wasBlocked_)  # unblock regardless
         return result
+    bacblock_wrapper = utool.preserve_sig(bacblock_wrapper, func)
     return bacblock_wrapper
 
 
@@ -68,6 +69,7 @@ def blocking_slot(*types_):
             sys.stdout.flush()
             return result
         #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.__name__, types_))
+        wrapped_bslot = utool.preserve_sig(wrapped_bslot, func)
         return wrapped_bslot
     return wrap_bslot
 

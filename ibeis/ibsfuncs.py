@@ -172,6 +172,9 @@ def get_image_annotation_thetas(ibs, gid_list):
 
 @__injectable
 def compute_all_chips(ibs):
+    """
+    Executes lazy evaluation of all chips
+    """
     print('[ibs] compute_all_chips')
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.add_chips(aid_list)
@@ -180,6 +183,9 @@ def compute_all_chips(ibs):
 
 @__injectable
 def compute_all_features(ibs, **kwargs):
+    """
+    Executes lazy evaluation of all chips and features
+    """
     print('[ibs] compute_all_features')
     aid_list = ibs.get_valid_aids(**kwargs)
     cid_list = ibs.get_annot_cids(aid_list, ensure=True)
@@ -1214,6 +1220,11 @@ def prune_exemplars(ibs):
 
 @__injectable
 def delete_cachedir(ibs, removefeat=True):
+    """
+    Deletes the cache directory in the database directory.
+
+    Also removes features from the sql controller if removefeat is True
+    """
     print('[ibs] delete_cachedir')
     cachedir = ibs.get_cachedir()
     print('[ibs] cachedir=%r' % cachedir)
@@ -1302,16 +1313,18 @@ def group_annots_by_known_names_nochecks(ibs, aid_list):
 def group_annots_by_known_names(ibs, aid_list, checks=True):
     """
     #>>> import ibeis
-    >>> from ibeis import ibsfuncst *  # NOQA
-    >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
-    [main]...
-    >>> aid_list = ibs.get_valid_aids()
-    >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-    >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
-    >>> print(known_aids_list)
-    [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
-    >>> print(unknown_aids)
-    [11, 9, 4, 1]
+
+    Example:
+        >>> from ibeis import ibsfuncst *  # NOQA
+        >>> ibs = ibeis.opendb(db='testdb1') #doctest: +ELLIPSIS
+        [main]...
+        >>> aid_list = ibs.get_valid_aids()
+        >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
+        >>> print(known_aids_list)
+        [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
+        >>> print(unknown_aids)
+        [11, 9, 4, 1]
     """
     nid_list = ibs.get_annot_nids(aid_list)
     nid2_aids = utool.group_items(aid_list, nid_list)
@@ -1377,10 +1390,11 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1):
 @__injectable
 def get_annot_groundtruth_sample(ibs, aid_list, per_name=1):
     """
-    >>> from ibeis.all_imports import *  # NOQA
-    >>> ibs = ibeis.test_main(db='testdb1')
-    >>> per_name = 1
-    >>> aid_list = ibs.get_valid_aids()
+    Example:
+        >>> from ibeis.all_imports import *  # NOQA
+        >>> ibs = ibeis.test_main(db='testdb1')
+        >>> per_name = 1
+        >>> aid_list = ibs.get_valid_aids()
     """
     all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=True)
     def random_choice(aids):

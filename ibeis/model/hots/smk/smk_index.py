@@ -19,7 +19,7 @@ from vtool import nearest_neighbors as nntool
 from ibeis.model.hots.smk import smk_core
 from ibeis.model.hots.smk import smk_speed
 #from ibeis.model.hots.smk import smk_match
-#from ibeis.model.hots.smk import pandas_helpers as pdh
+from ibeis.model.hots.smk import pandas_helpers as pdh
 from ibeis.model.hots.smk.hstypes import INTEGER_TYPE, FLOAT_TYPE, INDEX_TYPE
 #from ibeis.model.hots.smk.pandas_helpers import VEC_COLUMNS, KPT_COLUMNS
 from collections import namedtuple
@@ -82,33 +82,6 @@ QueryIndex = namedtuple(
     ))
 
 
-def lazy_getter(getter_func):
-    def lazy_closure(*args):
-        return getter_func(*args)
-    return lazy_closure
-
-
-def get_annot_label(ibs, aid_list):
-    name_list = ibs.get_annot_nids(aid_list)
-    view_list = [0 for _ in name_list]
-    label_list = list(zip(name_list, view_list))
-    return label_list
-
-
-class DataFrameProxy(object):
-    def __init__(self, ibs):
-        self.ibs = ibs
-
-    def __getitem__(self, key):
-        if key == 'kpts':
-            return lazy_getter(self.ibs.get_annot_kpts)
-        elif key == 'vecs':
-            return lazy_getter(self.ibs.get_annot_desc)
-        elif key == 'labels':
-            import functools
-            return lazy_getter(functools.partial(get_annot_label, self.ibs))
-
-
 #@profile
 def make_annot_df(ibs):
     """
@@ -127,7 +100,7 @@ def make_annot_df(ibs):
     #>>> smk_debug.check_dtype(annots_df)
     """
     #aid_list = ibs.get_valid_aids()  # 80us
-    annots_df = DataFrameProxy(ibs)
+    annots_df = pdh.DataFrameProxy(ibs)
     #kpts_list = ibs.get_annot_kpts(aid_list)  # 40ms
     #vecs_list = ibs.get_annot_desc(aid_list)  # 50ms
     #assert len(kpts_list) == len(vecs_list)
@@ -158,7 +131,7 @@ def learn_visual_words(annots_df, taids, nWords, use_cache=USE_CACHE_WORDS):
     max_iters = 200
     flann_params = {}
     #train_vecs_list = [pdh.ensure_values(vecs) for vecs in annots_df['vecs'][taids].values]
-    train_vecs_list = annots_df['vecs'](taids)
+    train_vecs_list = annots_df['vecs'][taids]
     train_vecs = np.vstack(train_vecs_list)
     print('Training %d word vocabulary with %d annots and %d descriptors' %
           (nWords, len(taids), len(train_vecs)))
@@ -196,8 +169,8 @@ def index_data_annots(annots_df, daids, words, with_internals=True,
     wordflann = nntool.flann_cache(_words, flann_params=flann_params,
                                    appname='smk')
     _daids = daids
-    _vecs_list = annots_df['vecs'](_daids)
-    _label_list = annots_df['labels'](_daids)
+    _vecs_list = annots_df['vecs'][_daids]
+    _label_list = annots_df['labels'][_daids]
     _idx2_dvec, _idx2_daid, _idx2_dfx = nntool.invertable_stack(_vecs_list, _daids)
 
     idx2_dfx   = _idx2_dfx
@@ -726,7 +699,7 @@ def new_qindex(annots_df, qaid, invindex, aggregate=False, alpha=3,
     words     = invindex.words
     wordflann = invindex.wordflann
     #qfx2_vec  = annots_df['vecs'][qaid].values
-    qfx2_vec  = annots_df['vecs'](qaid)
+    qfx2_vec  = annots_df['vecs'][qaid]
     # Assign query to (multiple) words
     _wx2_qfxs, _wx2_maws, qfx2_wxs = assign_to_words_(
         wordflann, words, qfx2_vec, nAssign=nAssign)

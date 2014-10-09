@@ -100,7 +100,7 @@ def cache_getter(tblname, colname):
                     vals_list[index] = miss_val  # Output write
                     cache_[rowid] = miss_val  # Cache write
             return vals_list
-
+        wrp_getter_cacher = utool.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher
     return closure_getter_cacher
 
@@ -122,13 +122,15 @@ def cache_invalidator(tblname, colnames=None):
                 _delete_items(cache_, rowid_list)
             # Preform set action
             setter_func(self, rowid_list, *args, **kwargs)
+        wrp_cache_invalidator = utool.preserve_sig(wrp_cache_invalidator, setter_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator
 
 
 #@decorator.decorator
 def adder(func):
-    func = default_decorator(func)
+    func_ = default_decorator(func)
+    @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
@@ -136,7 +138,8 @@ def adder(func):
         if not utool.QUIET and utool.VERYVERBOSE:
             print('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
-        return func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    wrp_adder = utool.preserve_sig(wrp_adder, func)
     return wrp_adder
 
 
@@ -144,7 +147,7 @@ def adder(func):
 
 #@decorator.decorator
 def deleter(func):
-    func = default_decorator(func)
+    func_ = default_decorator(func)
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
@@ -152,7 +155,8 @@ def deleter(func):
         if not utool.QUIET and utool.VERYVERBOSE:
             print('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
-        return func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    wrp_deleter = utool.preserve_sig(wrp_deleter, func)
     return wrp_deleter
 
 
@@ -166,7 +170,7 @@ def setter_general(func):
 
 #@decorator.decorator
 def setter(func):
-    func = default_decorator(func)
+    func_ = default_decorator(func)
     @utool.accepts_scalar_input2(argx_list=range(0, 2))
     @utool.ignores_exc_tb
     @wraps(func)
@@ -175,7 +179,8 @@ def setter(func):
             print('[SET]: ' + get_funcname(func))
             builtins.print('\n' + utool.func_str(func, args, kwargs) + '\n')
         #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
-        return func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    wrp_setter = utool.preserve_sig(wrp_setter, func)
     return wrp_setter
 
 
@@ -186,47 +191,16 @@ def getter(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a heterogeous list of values
     """
-    #func = default_decorator(func)
-    #@preserve_sig(func)
-    #@decorator.decorator
+    #func_ = func
+    func_ = default_decorator(func)
     @utool.on_exception_report_input
     @utool.accepts_scalar_input
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_getter(*args, **kwargs):
-        return func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    wrp_getter = utool.preserve_sig(wrp_getter, func)
     return wrp_getter
-
-
-def preserve_sig(real_func):
-    """
-    Decorates a wrapper function.
-
-    It seems impossible to presever signatures in python 2 without eval
-
-    Args:
-        real_func: the original function to take the signature from
-
-    References:
-        http://emptysqua.re/blog/copying-a-python-functions-signature/
-    """
-    import inspect
-    argspec = inspect.getargspec(real_func)
-    sig = inspect.formatargspec(*argspec)
-    sig2 = sig[1:-1]
-    #src = utool.unindent('''
-    #def sigpreserve{sig}:
-    #    return fake_func({sig})
-    #''').format(sig=sig)
-    src = 'lambda %s: fake_func%s' % (sig2, sig)
-    print(sig)
-    def wrp_closure(fake_func):
-        _globals =  {'fake_func': fake_func}
-        #print(evalstr)
-        #new_func = eval('lambda %s: fake_func%s' % (sig2, sig1), _globals)
-        new_func = eval(src, _globals, {})
-        return new_func
-    return wrp_closure
 
 
 #@decorator.decorator
@@ -235,12 +209,13 @@ def getter_vector_output(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a homogenous list of values
     """
-    func = default_decorator(func)
+    func_ = default_decorator(func)
     @utool.accepts_scalar_input_vector_output
     @utool.ignores_exc_tb
     @wraps(func)
     def getter_vector_wrp(*args, **kwargs):
-        return func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    getter_vector_wrp = utool.preserve_sig(getter_vector_wrp, func)
     return getter_vector_wrp
 
 getter_1toM = getter_vector_output
@@ -254,11 +229,16 @@ def getter_numpy(func):
     Getter decorator for functions which takes as the first input a unique id
     list and returns a heterogeous list of values
     """
-    getter_func = getter(func)
+    #getter_func = getter(func)
+    func_ = default_decorator(func)
     @utool.accepts_numpy
+    @utool.on_exception_report_input
+    @utool.accepts_scalar_input
+    @utool.ignores_exc_tb
     @wraps(func)
     def getter_numpy_wrp(*args, **kwargs):
-        return getter_func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    getter_numpy_wrp = utool.preserve_sig(getter_numpy_wrp, func)
     return getter_numpy_wrp
 
 
@@ -266,14 +246,20 @@ def getter_numpy(func):
 def getter_numpy_vector_output(func):
     """ Getter decorator for functions which takes as the first input a unique
     id list and returns a heterogeous list of values """
-    getter_func = getter_vector_output(func)
+    #getter_func = getter_vector_output(func)
+    func_ = default_decorator(func)
     @utool.accepts_numpy
+    @utool.accepts_scalar_input_vector_output
+    @utool.ignores_exc_tb
     @wraps(func)
     def getter_numpy_vector_wrp(*args, **kwargs):
-        return getter_func(*args, **kwargs)
+        return func_(*args, **kwargs)
+    getter_numpy_vector_wrp = utool.preserve_sig(getter_numpy_vector_wrp, func)
     return getter_numpy_vector_wrp
 
 
 def ider(func):
     """ This function takes returns ids subject to conditions """
-    return default_decorator(func)
+    ider_func = default_decorator(func)
+    ider_func = utool.preserve_sig(ider_func, func)
+    return ider_func

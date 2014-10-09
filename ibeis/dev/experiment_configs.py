@@ -132,6 +132,7 @@ smk = {
 
 smk2 = {
     'pipeline_root': ['smk', 'asmk', 'vsmany'],
+    'sv_on':         [True],  # True, False],
 }
 
 

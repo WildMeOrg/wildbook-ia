@@ -167,7 +167,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
             nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
             nLessX_dict[int(X)][cfgx] = nLessX_
 
-    @utool.argv_flag_dec
+    @utool.argv_flag_dec_true
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
@@ -269,6 +269,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     print_diffmat()
 
     #------------
+    # Print summary
     sumstrs = []
     sumstrs.append('')
     sumstrs.append('||===========================')
@@ -277,9 +278,12 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
     sumstrs.append(utool.joins('\n|| ', best_rankscore_summary))
     sumstrs.append('||===========================')
     print('\n' + '\n'.join(sumstrs) + '\n')
-    #print('--- /SUMMARY ---')
 
-    # Draw results
+    # Draw result figures
+    draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list)
+
+
+def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list):
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
@@ -411,6 +415,7 @@ def print_results(ibs, qaids, daids, cfg_list, mat_list, testnameid,
                 rank = qres.get_aid_ranks(aid)
                 _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
 
+    # Copy summary images to query_analysis folder
     for src, dst in zip(cp_src_list, cp_dst_list):
         utool.copy(src, dst)
 

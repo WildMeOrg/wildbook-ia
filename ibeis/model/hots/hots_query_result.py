@@ -16,6 +16,9 @@ FS_DTYPE  = np.float32  # Feature Score datatype
 FK_DTYPE  = np.int16    # Feature Position datatype
 
 
+#FORCE_LONGNAME = utool.get_argflag('--longname') or (not utool.WIN32 and not utool.get_argflag('--nolongname'))
+MAX_FNAME_LEN = 64 if utool.WIN32 else 200
+
 #=========================
 # Query Result Class
 #=========================
@@ -62,11 +65,25 @@ def query_result_fpath(qresdir, qaid, qauuid, cfgstr):
 
 
 def query_result_fname(qaid, qauuid, cfgstr, ext='.npz'):
-    fname_fmt = 'res_%s_qaid=%d_qauuid=%s' + ext
-    fname = fname_fmt % (cfgstr, qaid, str(qauuid))
-    if len(fname) > 64:
+    """
+    Builds a filename for a queryresult
+
+    Args:
+        qaid (int): query annotation rowid
+        qauuid (uuid.UUID): query annotation unique universal id
+        cfgstr (str): query parameter configuration string
+        ext (str): filetype extension
+    """
+    #fname_fmt = 'res_{cfgstr}_qaid={qaid}_qauuid={quuid}{ext}'
+    fname_fmt = 'qaid={qaid}_res_{cfgstr}_qauuid={quuid}{ext}'
+    fname = fname_fmt.format(
+        cfgstr=cfgstr, qaid=qaid, quuid=str(qauuid), ext=ext)
+    # condence the filename if it is too long (grumble grumble windows)
+    #if (not FORCE_LONGNAME) and len(fname) > 64:
+    if len(fname) > MAX_FNAME_LEN:
         hash_id = utool.hashstr(cfgstr)
-        fname = fname_fmt % (hash_id, qaid, str(qauuid))
+        fname = fname_fmt.format(
+            cfgstr=hash_id, qaid=qaid, quuid=str(qauuid), ext=ext)
     return fname
 
 

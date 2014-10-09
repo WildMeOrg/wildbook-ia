@@ -6,6 +6,42 @@ import numpy as np
 from ibeis.model.hots.smk.hstypes import VEC_DIM, INTEGER_TYPE
 
 
+class LazyGetter(object):
+
+    def __init__(self, getter_func):
+        self.getter_func = getter_func
+
+    def __getitem__(self, index):
+        return self.getter_func(index)
+
+    def __call__(self, index):
+        return self.getter_func(index)
+
+
+#def lazy_getter(getter_func):
+#    def lazy_closure(*args):
+#        return getter_func(*args)
+#    return lazy_closure
+
+
+class DataFrameProxy(object):
+    """
+    pandas is actually really slow. This class emulates it so
+    I don't have to change my function calls, but without all the slowness.
+    """
+
+    def __init__(self, ibs):
+        self.ibs = ibs
+
+    def __getitem__(self, key):
+        if key == 'kpts':
+            return LazyGetter(self.ibs.get_annot_kpts)
+        elif key == 'vecs':
+            return LazyGetter(self.ibs.get_annot_desc)
+        elif key == 'labels':
+            return LazyGetter(self.ibs.get_annot_class_labels)
+
+
 @profile
 def Int32Index(data, dtype=np.int32, copy=True, name=None):
     return pd.Index(data, dtype=dtype, copy=copy, name=name)

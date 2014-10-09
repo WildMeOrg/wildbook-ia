@@ -943,7 +943,7 @@ class IBEISController(object):
         """ Adds an algorithm / actor configuration as a string """
         # FIXME: Configs are still handled poorly
         params_iter = ((suffix,) for suffix in cfgsuffix_list)
-        get_rowid_from_superkey = partial(ibs.get_config_rowid_from_suffix, ensure=False)
+        get_rowid_from_superkey = ibs.get_config_rowid_from_suffix
         config_rowid_list = ibs.db.add_cleanly(CONFIG_TABLE, ('config_suffix',),
                                                params_iter, get_rowid_from_superkey)
         if contrib_rowid_list is not None:
@@ -2081,13 +2081,10 @@ class IBEISController(object):
     #
     # GETTERS::CONFIG_TABLE
     @getter_1to1
-    def get_config_rowid_from_suffix(ibs, cfgsuffix_list, ensure=True):
+    def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
         """
-        Adds an algorithm configuration as a string
+        Gets an algorithm configuration as a string
         """
-        # FIXME: cfgsuffix should be renamed cfgstr? cfgtext?
-        if ensure:
-            return ibs.add_config(cfgsuffix_list)
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         config_rowid_list = ibs.db.get(CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
@@ -2095,6 +2092,13 @@ class IBEISController(object):
         #if config_rowid_list is not None and len(config_rowid_list) == 1:
         #    config_rowid_list = config_rowid_list[0]
         return config_rowid_list
+
+    def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
+        """
+        Alias for adder
+        """
+        # FIXME: cfgsuffix should be renamed cfgstr? cfgtext?
+        return ibs.add_config(cfgsuffix_list)
 
     @getter_1to1
     def get_config_contributor_rowid(ibs, config_rowid_list):
@@ -3147,7 +3151,7 @@ class IBEISController(object):
     def get_annot_lblannot_value_of_lbltype(ibs, aid_list, _lbltype, lblannot_value_getter):
         """
         Returns:
-            list_ (list): a list of strings ['fred', 'sue', ...] for each chip
+            lblannot_value_list (list): a list of strings ['fred', 'sue', ...] for each chip
             identifying the animal
         """
         lbltype_dict_list = ibs.get_annot_lblannot_rowids_oftype(aid_list, _lbltype)
@@ -3158,21 +3162,39 @@ class IBEISController(object):
                                for lblannot_rowids in lbltype_dict_list]
         return lblannot_value_list
 
+    def get_annot_class_labels(ibs, aid_list):
+        """
+        Returns:
+            list of tuples: identifying animal name and viewpoint
+        """
+        name_list = ibs.get_annot_nids(aid_list)
+        view_list = [0 for _ in name_list]
+        classlabel_list = list(zip(name_list, view_list))
+        return classlabel_list
+
     @getter_1to1
     def get_annot_names(ibs, aid_list):
         """
         Returns:
-            list_ (list): a list of strings ['fred', 'sue', ...] for each chip
-            identifying the individual """
-        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, constants.INDIVIDUAL_KEY, ibs.get_name_text)
+            name_list (list):
+                a list of strings ['fred', 'sue', ...] for each annotation
+                identifying the individual
+            """
+        name_list = ibs.get_annot_lblannot_value_of_lbltype(
+            aid_list, constants.INDIVIDUAL_KEY, ibs.get_name_text)
+        return name_list
 
     @getter_1to1
     def get_annot_species(ibs, aid_list):
         """
         Returns:
-            list_ (list): a list of strings ['fred', 'sue', ...] for each chip
-            identifying the species """
-        return ibs.get_annot_lblannot_value_of_lbltype(aid_list, constants.SPECIES_KEY, ibs.get_species)
+            species_list (list): a list of strings ['plains_zebra',
+            'grevys_zebra', ...] for each annotation
+            identifying the species
+        """
+        species_list = ibs.get_annot_lblannot_value_of_lbltype(
+            aid_list, constants.SPECIES_KEY, ibs.get_species)
+        return species_list
 
     #
     # GETTERS::EG_RELATION_TABLE
@@ -3181,7 +3203,7 @@ class IBEISController(object):
     def get_egr_rowid_from_superkey(ibs, gid_list, eid_list):
         """
         Returns:
-            list_ (list):  eg-relate-ids from info constrained to be unique (eid, gid) """
+            egrid_list (list):  eg-relate-ids from info constrained to be unique (eid, gid) """
         colnames = ('image_rowid',)
         params_iter = zip(gid_list, eid_list)
         where_clause = 'image_rowid=? AND encounter_rowid=?'
@@ -3195,7 +3217,8 @@ class IBEISController(object):
     def get_lbltype_rowid_from_text(ibs, text_list):
         """
         Returns:
-            list_ (list): lbltype_rowid where the lbltype_text is given """
+            lbltype_rowid (list): lbltype_rowid where the lbltype_text is given
+        """
         # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
         # FIXME: Use unique SUPERKEYS instead of specifying id_colname
         lbltype_rowid = ibs.db.get(LBLTYPE_TABLE, ('lbltype_rowid',), text_list, id_colname='lbltype_text')

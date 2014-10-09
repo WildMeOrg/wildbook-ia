@@ -12,10 +12,10 @@ import utool
 import datetime
 # import ibeis
 import inspect
-from ibeis import ibsfuncs # NOQA
-# from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE, 
-#                              CONTRIBUTOR_TABLE, EG_RELATION_TABLE, ENCOUNTER_TABLE, 
-#                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE, 
+from ibeis import ibsfuncs  # NOQA
+# from ibeis.constants import (AL_RELATION_TABLE, ANNOTATION_TABLE, CONFIG_TABLE,
+#                              CONTRIBUTOR_TABLE, EG_RELATION_TABLE, ENCOUNTER_TABLE,
+#                              GL_RELATION_TABLE, IMAGE_TABLE, LBLANNOT_TABLE,
 #                              LBLIMAGE_TABLE, __STR__)
 # from vtool import geometry
 
@@ -488,7 +488,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_reso
         print("[import_transfer_data]   ...imported %i configs" % (len(config_rowid_list),))
     else:
         config_rowid_list = []
-        print("[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)")  
+        print("[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)")
     # Import encounters
     if contributor_td.encounter_td is not None:
         if utool.VERBOSE:
@@ -504,7 +504,7 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, bulk_conflict_reso
         print("[import_transfer_data]   ...imported %i encounters" % (len(eid_list),))
     else:
         eid_list = []
-        print("[import_transfer_data]   NO ENCOUNTERS TO IMPORT")     
+        print("[import_transfer_data]   NO ENCOUNTERS TO IMPORT")
     # Import images
     if contributor_td.image_td is not None:
         if utool.VERBOSE:
@@ -770,14 +770,14 @@ def import_lblimage_transfer_data(ibs_dst, lblimage_td, gid, config_rowid_list):
         lblimage_uuid_list=lblimage_td.lblimage_uuid_list
     )
     # Add image-label relationships
-    valid_list = [ 
-        0 <= config_INDEX and config_INDEX < len(config_rowid_list) 
+    valid_list = [
+        0 <= config_INDEX and config_INDEX < len(config_rowid_list)
         for config_INDEX in lblimage_td.config_INDEX_list
     ]
     lblimage_rowid_list = utool.filter_items(lblimage_rowid_list, valid_list)
     gid_list = [gid] * len(lblimage_rowid_list)
-    config_rowid_list = [ 
-        config_rowid_list[config_INDEX] 
+    config_rowid_list = [
+        config_rowid_list[config_INDEX]
         for config_INDEX, valid in zip(lblimage_td.config_INDEX_list, valid_list)
         if valid
     ]
@@ -800,14 +800,14 @@ def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
         lblannot_uuid_list=lblannot_td.lblannot_uuid_list
     )
     # Add annot-label relationships
-    valid_list = [ 
-        0 <= config_INDEX and config_INDEX < len(config_rowid_list) 
+    valid_list = [
+        0 <= config_INDEX and config_INDEX < len(config_rowid_list)
         for config_INDEX in lblannot_td.config_INDEX_list
     ]
     lblannot_rowid_list = utool.filter_items(lblannot_rowid_list, valid_list)
     aid_list = [aid] * len(lblannot_rowid_list)
-    config_rowid_list = [ 
-        config_rowid_list[config_INDEX] 
+    config_rowid_list = [
+        config_rowid_list[config_INDEX]
         for config_INDEX, valid in zip(lblannot_td.config_INDEX_list, valid_list)
         if valid
     ]
