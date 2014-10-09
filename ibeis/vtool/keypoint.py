@@ -415,10 +415,11 @@ def rectify_invV_mats_are_up(invVR_mats):
     #endif
     """
     # Get orientation encoded in the matrix
-    _oris = get_invVR_mats_oris_cyth(invVR_mats)
+    #_oris = get_invVR_mats_oris_cyth(invVR_mats)
+    _oris = get_invVR_mats_oris(invVR_mats)
     # Extract keypoint shape components
-    (_a, _b,
-     _c, _d) = get_invVR_mats_shape_cyth(invVR_mats)
+    #(_a, _b, _c, _d) = get_invVR_mats_shape_cyth(invVR_mats)
+    (_a, _b, _c, _d) = get_invVR_mats_shape(invVR_mats)
     #
     # Convert to lower triangular (rectify orientation downwards)
     det_ = np.sqrt(np.abs((_a * _d) - (_b * _c)))
@@ -583,32 +584,32 @@ def get_kpts_strs(kpts):
     return kpts_strs
 
 
-import cyth
-if cyth.DYNAMIC:
-    exec(cyth.import_cyth_execstr(__name__))
-else:
-    # <AUTOGEN_CYTH>
-    # Regen command: python -c "import vtool.keypoint" --cyth-write
-    try:
-        if not cyth.WITH_CYTH:
-            raise ImportError('no cyth')
-        import vtool._keypoint_cyth
-        _get_invVR_mats_oris_cyth       = vtool._keypoint_cyth._get_invVR_mats_oris_cyth
-        _get_invVR_mats_shape_cyth      = vtool._keypoint_cyth._get_invVR_mats_shape_cyth
-        _get_invVR_mats_sqrd_scale_cyth = vtool._keypoint_cyth._get_invVR_mats_sqrd_scale_cyth
-        _get_invVR_mats_xys_cyth        = vtool._keypoint_cyth._get_invVR_mats_xys_cyth
-        _rectify_invV_mats_are_up_cyth  = vtool._keypoint_cyth._rectify_invV_mats_are_up_cyth
-        get_invVR_mats_oris_cyth        = vtool._keypoint_cyth._get_invVR_mats_oris_cyth
-        get_invVR_mats_shape_cyth       = vtool._keypoint_cyth._get_invVR_mats_shape_cyth
-        get_invVR_mats_sqrd_scale_cyth  = vtool._keypoint_cyth._get_invVR_mats_sqrd_scale_cyth
-        get_invVR_mats_xys_cyth         = vtool._keypoint_cyth._get_invVR_mats_xys_cyth
-        rectify_invV_mats_are_up_cyth   = vtool._keypoint_cyth._rectify_invV_mats_are_up_cyth
-        CYTHONIZED = True
-    except ImportError:
-        get_invVR_mats_oris_cyth       = get_invVR_mats_oris
-        get_invVR_mats_shape_cyth      = get_invVR_mats_shape
-        get_invVR_mats_sqrd_scale_cyth = get_invVR_mats_sqrd_scale
-        get_invVR_mats_xys_cyth        = get_invVR_mats_xys
-        rectify_invV_mats_are_up_cyth  = rectify_invV_mats_are_up
-        CYTHONIZED = False
-    # </AUTOGEN_CYTH>
+#import cyth
+#if cyth.DYNAMIC:
+#    exec(cyth.import_cyth_execstr(__name__))
+#else:
+#    # <AUTOGEN_CYTH>
+#    # Regen command: python -c "import vtool.keypoint" --cyth-write
+#    try:
+#        if not cyth.WITH_CYTH:
+#            raise ImportError('no cyth')
+#        import vtool._keypoint_cyth
+#        _get_invVR_mats_oris_cyth       = vtool._keypoint_cyth._get_invVR_mats_oris_cyth
+#        _get_invVR_mats_shape_cyth      = vtool._keypoint_cyth._get_invVR_mats_shape_cyth
+#        _get_invVR_mats_sqrd_scale_cyth = vtool._keypoint_cyth._get_invVR_mats_sqrd_scale_cyth
+#        _get_invVR_mats_xys_cyth        = vtool._keypoint_cyth._get_invVR_mats_xys_cyth
+#        _rectify_invV_mats_are_up_cyth  = vtool._keypoint_cyth._rectify_invV_mats_are_up_cyth
+#        get_invVR_mats_oris_cyth        = vtool._keypoint_cyth._get_invVR_mats_oris_cyth
+#        get_invVR_mats_shape_cyth       = vtool._keypoint_cyth._get_invVR_mats_shape_cyth
+#        get_invVR_mats_sqrd_scale_cyth  = vtool._keypoint_cyth._get_invVR_mats_sqrd_scale_cyth
+#        get_invVR_mats_xys_cyth         = vtool._keypoint_cyth._get_invVR_mats_xys_cyth
+#        rectify_invV_mats_are_up_cyth   = vtool._keypoint_cyth._rectify_invV_mats_are_up_cyth
+#        CYTHONIZED = True
+#    except ImportError:
+#        get_invVR_mats_oris_cyth       = get_invVR_mats_oris
+#        get_invVR_mats_shape_cyth      = get_invVR_mats_shape
+#        get_invVR_mats_sqrd_scale_cyth = get_invVR_mats_sqrd_scale
+#        get_invVR_mats_xys_cyth        = get_invVR_mats_xys
+#        rectify_invV_mats_are_up_cyth  = rectify_invV_mats_are_up
+#        CYTHONIZED = False
+#    # </AUTOGEN_CYTH>
