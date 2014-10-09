@@ -75,6 +75,7 @@ ib
 mkdir _page
 cp -r _doc/_build/html/* _page
 git add _page
+touch _page/.nojekyll
 git commit -am "Added docs"
 git push
 git subtree push --prefix _page origin gh-pages
