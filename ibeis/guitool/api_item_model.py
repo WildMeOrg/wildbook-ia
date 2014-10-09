@@ -84,7 +84,23 @@ def updater(func):
 
 
 class APIItemModel(API_MODEL_BASE):
-    """ Item model for displaying a list of columns """
+    """
+    Item model for displaying a list of columns
+
+    Attributes:
+        iders         : list of functions that return ids for setters and getters
+        col_name_list : list of keys or SQL-like name for column to reference
+                        abstracted data storage using getters and setters
+        col_type_list : list of column value (Python) types
+        col_nice_list : list of well-formatted names of the columns
+        col_edit_list : list of booleans for if column should be editable
+
+        col_setter_list : list of setter functions
+        col_getter_list : list of getter functions
+
+        col_sort_index : index into col_name_list for sorting
+        col_sort_reverse : boolean of if to reverse the sort ordering
+    """
     _rows_updated = signal_(str, int)
     EditableItemColor = QtGui.QColor(220, 220, 255)
     TrueItemColor     = QtGui.QColor(230, 250, 230)
@@ -104,21 +120,6 @@ class APIItemModel(API_MODEL_BASE):
     #
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
-        """
-        iders          : list of functions that return ids for setters and getters
-        col_name_list : list of keys or SQL-like name for column to reference
-                        abstracted data storage using getters and setters
-        col_type_list : list of column value (Python) types
-        col_nice_list : list of well-formatted names of the columns
-        col_edit_list : list of booleans for if column should be editable
-        ----
-        col_setter_list : list of setter functions
-        col_getter_list : list of getter functions
-        ----
-        col_sort_index : index into col_name_list for sorting
-        col_sort_reverse : boolean of if to reverse the sort ordering
-        ----
-        """
         model.view = parent
         API_MODEL_BASE.__init__(model, parent=parent)
         # Internal Flags
@@ -191,12 +192,12 @@ class APIItemModel(API_MODEL_BASE):
     @profile
     @updater
     def _update_rows(model, rebuild_structure=True):
-        # this is not slow
-        #with utool.Timer('update_rows'):
         """
         Uses the current ider and col_sort_index to create
         row_indicies
         """
+        # this is not slow
+        #with utool.Timer('update_rows'):
         #printDBG('UPDATE ROWS!')
         #print('UPDATE ROWS!')
         #print('num_rows=%r' % len(model.col_level_list))
@@ -582,9 +583,6 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def parent(model, qindex):
         """
-        Returns the parent of the model item with the given index. If the item
-        has no parent, an invalid QModelIndex is returned.
-
         A common convention used in models that expose tree data structures is
         that only items in the first column have children. For that case, when
         reimplementing this function in a subclass the column of the returned
@@ -593,7 +591,13 @@ class APIItemModel(API_MODEL_BASE):
         When reimplementing this function in a subclass, be careful to avoid
         calling QModelIndex member functions, such as QModelIndex.parent(),
         since indexes belonging to your model will simply call your
-        implementation, leading to infinite recursion.  """
+        implementation, leading to infinite recursion.
+
+        Returns:
+            the parent of the model item with the given index. If the item has
+            no parent, an invalid QModelIndex is returned.
+        """
+
         model.lazy_checks()
         if qindex.isValid():
             node = qindex.internalPointer()
@@ -614,12 +618,17 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def index(model, row, column, parent=QtCore.QModelIndex()):
-        """ Qt Override
-        Returns the index of the item in the model specified by the given row,
-        column and parent index.  When reimplementing this function in a
-        subclass, call createIndex() to generate model indexes that other
-        components can use to refer to items in your model.
-        NOTE: Object must be specified to sort delegates.
+        """
+        Qt Override
+
+        Returns:
+            the index of the item in the model specified by the given row,
+            column and parent index.  When reimplementing this function in a
+            subclass, call createIndex() to generate model indexes that other
+            components can use to refer to items in your model.
+
+        NOTE:
+            Object must be specified to sort delegates.
         """
         model.lazy_checks()
         if not parent.isValid():
@@ -669,9 +678,14 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole, **kwargs):
-        """ Depending on the role, returns either data or how to display data
+        """
+        Depending on the role, returns either data or how to display data
         Returns the data stored under the given role for the item referred to by
-        the index.  Note: If you do not have a value to return, return None"""
+        the index.
+
+        Note:
+            If you do not have a value to return, return None
+        """
         if not qtindex.isValid():
             return None
         flags = model.flags(qtindex)
@@ -759,11 +773,13 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def setData(model, qtindex, value, role=Qt.EditRole):
-        """ Sets the role data for the item at qtindex to value.  value is a
+        """
+        Sets the role data for the item at qtindex to value.  value is a
         QVariant (called data in documentation) Returns a map with values for
         all predefined roles in the model for the item at the given index.
         Reimplement this function if you want to extend the default behavior of
-        this function to include custom roles in the map. """
+        this function to include custom roles in the map.
+        """
         try:
             if not qtindex.isValid():
                 return None
@@ -796,11 +812,15 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def headerData(model, section, orientation, role=Qt.DisplayRole):
-        """ Qt Override
-        Returns the data for the given role and section in the header with the
-        specified orientation.  For horizontal headers, the section number
-        corresponds to the column number. Similarly, for vertical headers, the
-        section number corresponds to the row number. """
+        """
+        Qt Override
+
+        Returns:
+            the data for the given role and section in the header with the
+            specified orientation.  For horizontal headers, the section number
+            corresponds to the column number. Similarly, for vertical headers,
+            the section number corresponds to the row number.
+        """
         model.lazy_checks()
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             column = section
@@ -822,16 +842,20 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def flags(model, qtindex):
-        """ Qt Override
-        returns Qt::ItemFlag
-             0: 'NoItemFlags'          # It does not have any properties set.
-             1: 'ItemIsSelectable'     # It can be selected.
-             2: 'ItemIsEditable'       # It can be edited.
-             4: 'ItemIsDragEnabled'    # It can be dragged.
-             8: 'ItemIsDropEnabled'    # It can be used as a drop target.
-            16: 'ItemIsUserCheckable'  # It can be checked or unchecked by the user.
-            32: 'ItemIsEnabled'        # The user can interact with the item.
-            64: 'ItemIsTristate'       # The item is checkable with three separate states. """
+        """
+        Qt Override
+
+        Returns:
+            Qt::ItemFlag::
+                 0: 'NoItemFlags'          # It does not have any properties set.
+                 1: 'ItemIsSelectable'     # It can be selected.
+                 2: 'ItemIsEditable'       # It can be edited.
+                 4: 'ItemIsDragEnabled'    # It can be dragged.
+                 8: 'ItemIsDropEnabled'    # It can be used as a drop target.
+                16: 'ItemIsUserCheckable'  # It can be checked or unchecked by the user.
+                32: 'ItemIsEnabled'        # The user can interact with the item.
+                64: 'ItemIsTristate'       # The item is checkable with three separate states.
+        """
         # Return flags based on column properties (like type, and editable)
         col      = qtindex.column()
         type_    = model._get_type(col)

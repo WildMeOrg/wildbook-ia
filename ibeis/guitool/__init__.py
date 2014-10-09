@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function
 
 __version__ = '1.0.0.dev1'
-print('__guitool__1')
 
+#print('__guitool__1')
 from . import __PYQT__
 #print('__guitool__2')
 
