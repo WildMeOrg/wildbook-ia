@@ -1,0 +1,450 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.query_request &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.query_request</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.query_request))&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span> <span class="k">as</span> <span class="n">hsnbrx</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="c"># UTool</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[query_request]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_test_qreq"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.get_test_qreq">[docs]</a><span class="k">def</span> <span class="nf">get_test_qreq</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
+
+</div>
+<div class="viewcode-block" id="new_ibeis_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.new_ibeis_query_request">[docs]</a><span class="k">def</span> <span class="nf">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.query_request import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, ibs = get_test_qreq()   #doctest: +ELLIPSIS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- New IBEIS QRequest --- &#39;</span><span class="p">)</span>
+    <span class="n">cfg</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>
+    <span class="n">qresdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_qres_cachedir</span><span class="p">()</span>
+    <span class="n">qparams</span> <span class="o">=</span> <span class="n">QueryParams</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="c"># Neighbor Indexer</span>
+    <span class="n">quuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">duuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">QueryRequest</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">,</span>
+                         <span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">,</span>
+                         <span class="n">qparams</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span>
+
+</div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="QueryRequest"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest">[docs]</a><span class="k">class</span> <span class="nc">QueryRequest</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span>
+                 <span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">,</span>
+                 <span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">,</span>
+                 <span class="n">qparams</span><span class="p">,</span> <span class="n">qresdir</span><span class="p">):</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="n">qparams</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qresdir</span> <span class="o">=</span> <span class="n">qresdir</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_quuids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_duuids</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qidx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_didx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qvecs_list</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qkpts_list</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_dkpts_list</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qgid_list</span>  <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qnid_list</span>  <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">aid2_nid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_daids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">)</span>
+
+    <span class="c"># --- State Modification ---</span>
+
+<div class="viewcode-block" id="QueryRequest.set_external_daids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.set_external_daids">[docs]</a>    <span class="k">def</span> <span class="nf">set_external_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">duuid_list</span><span class="p">),</span> <span class="s">&#39;inconsistent external daids&#39;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">set_internal_daids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">set_internal_qaids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">)</span>  <span class="c"># flip on vsone</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.set_external_qaids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.set_external_qaids">[docs]</a>    <span class="k">def</span> <span class="nf">set_external_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">quuid_list</span><span class="p">),</span> <span class="s">&#39;inconsistent internal qaids&#39;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">set_internal_qaids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">set_internal_daids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">)</span>  <span class="c"># flip on vsone</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.set_internal_daids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.set_internal_daids">[docs]</a>    <span class="k">def</span> <span class="nf">set_internal_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">duuid_list</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">duuid_list</span><span class="p">),</span> <span class="s">&#39;inconsistent internal daids&#39;</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_duuids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">duuid_list</span><span class="p">)</span>
+        <span class="c"># Index the annotation ids for fast internal lookup</span>
+        <span class="c">#qreq_.internal_didx = np.arange(len(daid_list))</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.set_internal_qaids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.set_internal_qaids">[docs]</a>    <span class="k">def</span> <span class="nf">set_internal_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">quuid_list</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">quuid_list</span><span class="p">),</span> <span class="s">&#39;inconsistent internal qaids&#39;</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_quuids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">quuid_list</span><span class="p">)</span>
+        <span class="c"># Index the annotation ids for fast internal lookup</span>
+        <span class="c">#qreq_.internal_qidx = np.arange(len(qaid_list))</span>
+
+    <span class="c"># --- Internal Interface ---</span>
+    <span class="c"># For within pipeline use only</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_internal_qvecs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_internal_qvecs">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_qvecs</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qvecs_list</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_internal_data_hashid"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_internal_data_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_data_hashid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_internal_daids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_internal_daids">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_internal_qaids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_internal_qaids">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qaids</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_internal_duuids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_internal_duuids">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_duuids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_duuids</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_internal_quuids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_internal_quuids">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_quuids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_quuids</span>
+
+    <span class="c"># --- External Interface ---</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_external_daids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_external_daids">[docs]</a>    <span class="k">def</span> <span class="nf">get_external_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; These are the users daids in vsone mode &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+        <span class="c"># Flip on vsone</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_external_qaids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_external_qaids">[docs]</a>    <span class="k">def</span> <span class="nf">get_external_qaids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; These are the users qaids in vsone mode &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+        <span class="c"># Flip on vsone</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_external_quuids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_external_quuids">[docs]</a>    <span class="k">def</span> <span class="nf">get_external_quuids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; These are the users qauuids in vsone mode &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_quuids</span><span class="p">()</span>
+        <span class="c"># Flip on vsone</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_duuids</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_external_duuids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_external_duuids">[docs]</a>    <span class="k">def</span> <span class="nf">get_external_duuids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; These are the users qauuids in vsone mode &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_duuids</span><span class="p">()</span>
+        <span class="c"># Flip on vsone</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_quuids</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_data_hashid"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_data_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_data_hashid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;QRequest not populated. len(daids)=0&#39;</span>
+        <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s">&#39;_DAIDS&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s">&#39;_DUUIDS&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data_hashid</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_query_hashid"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_query_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_query_hashid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;QRequest not populated. len(qaids)=0&#39;</span>
+        <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="s">&#39;_QAIDS&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="s">&#39;_QUUIDS&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">query_hashid</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_cfgstr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">daids_hashid</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span>
+        <span class="k">return</span> <span class="n">cfgstr</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_qresdir"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_qresdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_qresdir</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qresdir</span>
+
+    <span class="c"># --- IBEISControl Transition ---</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_annot_nids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_annot_nids">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_annot_gids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_annot_gids">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_gids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_annot_kpts"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_annot_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_kpts</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_annot_chipsizes"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_annot_chipsizes">[docs]</a>    <span class="k">def</span> <span class="nf">get_annot_chipsizes</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+
+    <span class="c"># --- Lazy Loading ---</span>
+
+    <span class="c">#def load_oris(qreq_, ibs):</span>
+    <span class="c">#    if qreq_.idx2_oris is not None:</span>
+    <span class="c">#        return</span>
+    <span class="c">#    from vtool import keypoint as ktool</span>
+    <span class="c">#    qreq_.load_kpts(ibs)</span>
+    <span class="c">#    idx2_oris = ktool.get_oris(qreq_.idx2_kpts)</span>
+    <span class="c">#    assert len(idx2_oris) == len(qreq_.num_indexed_vecs())</span>
+    <span class="c">#    qreq_.idx2_oris = idx2_oris</span>
+
+    <span class="c">#def load_kpts(qreq_, ibs):</span>
+    <span class="c">#    if qreq_.idx2_kpts is not None:</span>
+    <span class="c">#        return</span>
+    <span class="c">#    aid_list = qreq_.indexer.aid_list</span>
+    <span class="c">#    kpts_list = qreq_.ibs.get_annot_kpts(aid_list)</span>
+    <span class="c">#    idx2_kpts = np.vstack(kpts_list)</span>
+    <span class="c">#    qreq_.idx2_kpts = idx2_kpts</span>
+
+    <span class="c">#def load_query_queryx(qreq_):</span>
+    <span class="c">#    qaids = qreq_.get_internal_qaids()</span>
+    <span class="c">#    qaid2_queryx = {aid: queryx for queryx, aid in enumerate(qaids)}</span>
+    <span class="c">#    qreq_.qaid2_queryx = qaid2_queryx</span>
+
+    <span class="c">#def load_data_datax(qreq_):</span>
+    <span class="c">#    daids = qreq_.get_internal_daids()</span>
+    <span class="c">#    daid2_datax = {aid: datax for datax, aid in enumerate(daids)}</span>
+    <span class="c">#    qreq_.daid2_datax = daid2_datax</span>
+
+    <span class="c">#def load_query_gids(qreq_, ibs):</span>
+    <span class="c">#    if qreq_.internal_qgid_list is not None:</span>
+    <span class="c">#        return False</span>
+    <span class="c">#    aid_list = qreq_.get_internal_qaids()</span>
+    <span class="c">#    gid_list = ibs.get_annot_gids(aid_list)</span>
+    <span class="c">#    qreq_.internal_qgid_list = gid_list</span>
+
+    <span class="c">#def load_query_nids(qreq_, ibs):</span>
+    <span class="c">#    if qreq_.internal_qnid_list is not None:</span>
+    <span class="c">#        return False</span>
+    <span class="c">#    aid_list = qreq_.get_internal_qaids()</span>
+    <span class="c">#    nid_list = ibs.get_annot_nids(aid_list)</span>
+    <span class="c">#    qreq_.internal_qnid_list = nid_list</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.load_query_vectors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_query_vectors">[docs]</a>    <span class="k">def</span> <span class="nf">load_query_vectors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qvecs_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+        <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_desc</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qvecs_list</span> <span class="o">=</span> <span class="n">vecs_list</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.load_query_keypoints"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_query_keypoints">[docs]</a>    <span class="k">def</span> <span class="nf">load_query_keypoints</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qkpts_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_qkpts_list</span> <span class="o">=</span> <span class="n">kpts_list</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.load_data_keypoints"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_data_keypoints">[docs]</a>    <span class="k">def</span> <span class="nf">load_data_keypoints</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_dkpts_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+        <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_dkpts_list</span> <span class="o">=</span> <span class="n">kpts_list</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.load_indexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_indexer">[docs]</a>    <span class="k">def</span> <span class="nf">load_indexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">indexer</span> <span class="o">=</span> <span class="n">hsnbrx</span><span class="o">.</span><span class="n">new_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">())</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="n">indexer</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.lazy_load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.lazy_load">[docs]</a>    <span class="k">def</span> <span class="nf">lazy_load</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qreq] lazy loading&#39;</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>  <span class="c"># HACK</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">load_query_vectors</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">load_query_keypoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.load_annot_nameids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_annot_nameids">[docs]</a>    <span class="k">def</span> <span class="nf">load_annot_nameids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)))</span>
+        <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">aid2_nid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.assert_self"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.assert_self">[docs]</a>    <span class="k">def</span> <span class="nf">assert_self</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qreq] ASSERT SELF&#39;</span><span class="p">)</span>
+        <span class="n">qaids</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+        <span class="n">qauuids</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_quuids</span><span class="p">()</span>
+        <span class="n">daids</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+        <span class="n">dauuids</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_duuids</span><span class="p">()</span>
+        <span class="n">_qaids</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+        <span class="n">_qauuids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_quuids</span><span class="p">()</span>
+        <span class="n">_daids</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+        <span class="n">_dauuids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_duuids</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">assert_uuids</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">uuids</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qreq_] asserting </span><span class="si">%s</span><span class="s"> ids&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuids</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">u1</span> <span class="o">==</span> <span class="n">u2</span> <span class="k">for</span> <span class="n">u1</span><span class="p">,</span> <span class="n">u2</span> <span class="ow">in</span>
+                        <span class="nb">zip</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="n">uuids</span><span class="p">)])</span>
+        <span class="n">assert_uuids</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qauuids</span><span class="p">)</span>
+        <span class="n">assert_uuids</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">dauuids</span><span class="p">)</span>
+        <span class="n">assert_uuids</span><span class="p">(</span><span class="n">_qaids</span><span class="p">,</span> <span class="n">_qauuids</span><span class="p">)</span>
+        <span class="n">assert_uuids</span><span class="p">(</span><span class="n">_daids</span><span class="p">,</span> <span class="n">_dauuids</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="QueryParams"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryParams">[docs]</a><span class="k">class</span> <span class="nc">QueryParams</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
+        <span class="n">pipeline_root</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
+        <span class="k">if</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
+            <span class="n">nAssign</span>     <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nAssign</span>
+            <span class="n">aggregate</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">aggregate</span>
+            <span class="n">thresh</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">thresh</span>
+            <span class="n">alpha</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">alpha</span>
+            <span class="n">indexer_key</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">indexer_key</span>
+            <span class="n">nWords</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">nWords</span>
+            <span class="n">assign_alpha</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">assign_alpha</span>
+            <span class="n">assign_sigma</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">assign_sigma</span>
+        <span class="n">K</span>                  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">K</span>
+        <span class="n">Knorm</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span>
+        <span class="n">checks</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span>
+        <span class="n">normalizer_rule</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">normalizer_rule</span>
+        <span class="n">Krecip</span>             <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">Krecip</span>
+        <span class="n">can_match_sameimg</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_sameimg</span>
+        <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">can_match_samename</span>
+        <span class="n">filt_on</span>            <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">filt_on</span>
+        <span class="n">gravity_weighting</span>  <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">gravity_weighting</span>
+        <span class="n">active_filter_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_active_filters</span><span class="p">()</span>
+        <span class="c">#active_filter_list = cfg.filt_cfg._valid_filters</span>
+        <span class="n">filt2_stw</span>          <span class="o">=</span> <span class="p">{</span><span class="n">filt</span><span class="p">:</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_stw</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span> <span class="k">for</span> <span class="n">filt</span> <span class="ow">in</span> <span class="n">active_filter_list</span><span class="p">}</span>
+        <span class="c"># Correct dumb Pref bugs</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">filt2_stw</span><span class="p">):</span>
+            <span class="c">#print(val)</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+                <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">isWeighted</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">isWeighted</span>
+        <span class="n">max_alts</span>           <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">max_alts</span>
+        <span class="n">vsmany</span>             <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span>
+        <span class="n">vsone</span>              <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span>
+        <span class="n">score_method</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span>
+        <span class="n">min_nInliers</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span>
+        <span class="n">nShortlist</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">nShortlist</span>
+        <span class="n">ori_thresh</span>         <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span>
+        <span class="n">prescore_method</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span>
+        <span class="n">scale_thresh</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span>
+        <span class="n">use_chip_extent</span>    <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span>
+        <span class="n">xy_thresh</span>          <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span>
+        <span class="n">sv_on</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span>
+        <span class="n">flann_params</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_dict_args</span><span class="p">()</span>
+
+        <span class="c"># cfgstrs</span>
+        <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">nn_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">filt_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">sv_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+
+        <span class="c"># Dynamically set members</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;qparams&#39;</span><span class="p">,</span> <span class="s">&#39;cfg&#39;</span><span class="p">,</span> <span class="s">&#39;filt&#39;</span><span class="p">,</span> <span class="s">&#39;key&#39;</span><span class="p">,</span> <span class="s">&#39;val&#39;</span><span class="p">]:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

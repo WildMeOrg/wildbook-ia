@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.viz.viz_sver &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.viz" href="../viz.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../viz.html" accesskey="U">ibeis.viz</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.viz.viz_sver</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">plottool.draw_sv</span> <span class="kn">as</span> <span class="nn">draw_sv</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_misc]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="n">WRITE_SV_DEBUG</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--write-sv-debug&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Compiles IBEIS information into info suitable for plottool &quot;&quot;&quot;</span>
+    <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">chipmatch_FILT</span>
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">aid2_fm</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">aid2_svtup</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
+    <span class="n">homog_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span>
+    <span class="n">aff_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span>
+    <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span>
+    <span class="k">return</span> <span class="n">sv_vartup</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; If spatial-verfication dbginfo is not in we need to compute it &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_helpers</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="n">qcomp</span> <span class="o">=</span> <span class="n">query_helpers</span><span class="o">.</span><span class="n">get_query_components</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">qcomp</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_svtups</span>         <span class="o">=</span> <span class="n">qcomp</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
+    <span class="n">chipmatch_FILT</span> <span class="o">=</span> <span class="n">qaid2_chipmatch_FILT</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="n">aid2_svtup</span>     <span class="o">=</span> <span class="n">qaid2_svtups</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span>
+
+
+<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="show_sver"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_sver.show_sver">[docs]</a><span class="k">def</span> <span class="nf">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Compiles IBEIS information and sends it to plottool &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[show_sver] ====================== [show_sver]&#39;</span><span class="p">)</span>
+    <span class="c">#print(utool.func_str(show_sv, kwargs=locals()))</span>
+    <span class="k">if</span> <span class="n">chipmatch_FILT</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aid2_svtup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span> <span class="o">=</span> <span class="n">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">)</span>
+    <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_vartup</span>
+    <span class="k">if</span> <span class="n">WRITE_SV_DEBUG</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;chip1&#39;</span><span class="p">,</span> <span class="s">&#39;chip2&#39;</span><span class="p">,</span> <span class="s">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s">&#39;kpts2&#39;</span><span class="p">,</span> <span class="s">&#39;fm&#39;</span><span class="p">,</span> <span class="s">&#39;homog_tup&#39;</span><span class="p">,</span> <span class="s">&#39;aff_tup&#39;</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">save_testdata</span><span class="p">(</span><span class="o">*</span><span class="n">keys</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[vizsv] write test info&#39;</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">qflag</span><span class="p">()</span>
+    <span class="n">draw_sv</span><span class="o">.</span><span class="n">show_sv</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="o">=</span><span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="o">=</span><span class="n">aff_tup</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../viz.html" >ibeis.viz</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

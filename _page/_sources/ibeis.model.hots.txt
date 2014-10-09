@@ -1,0 +1,109 @@
+ibeis.model.hots package
+========================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ibeis.model.hots.smk
+
+Submodules
+----------
+
+ibeis.model.hots.exceptions module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.hots_query_result module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots.hots_query_result
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.match_chips4 module
+------------------------------------
+
+.. automodule:: ibeis.model.hots.match_chips4
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.multi_index module
+-----------------------------------
+
+.. automodule:: ibeis.model.hots.multi_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.neighbor_index module
+--------------------------------------
+
+.. automodule:: ibeis.model.hots.neighbor_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.nn_weights module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.nn_weights
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.pipeline module
+--------------------------------
+
+.. automodule:: ibeis.model.hots.pipeline
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.query_helpers module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.query_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.query_request module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.query_request
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.voting_rules2 module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.voting_rules2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.word_index module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.word_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.model.hots
+    :members:
+    :undoc-members:
+    :show-inheritance:

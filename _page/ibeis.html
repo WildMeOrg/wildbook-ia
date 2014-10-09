@@ -1,0 +1,1162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis package &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="index.html" />
+    <link rel="next" title="ibeis.control package" href="ibeis.control.html" />
+    <link rel="prev" title="Welcome to ibeis’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.control.html" title="ibeis.control package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to ibeis’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ibeis-package">
+<h1>ibeis package<a class="headerlink" href="#ibeis-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#module-ibeis.control.DBCACHE_SCHEMA">ibeis.control.DBCACHE_SCHEMA module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#module-ibeis.control.DB_SCHEMA">ibeis.control.DB_SCHEMA module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#module-ibeis.control.IBEISControl">ibeis.control.IBEISControl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#module-ibeis.control.SQLDatabaseControl">ibeis.control.SQLDatabaseControl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#module-ibeis.control.accessor_decors">ibeis.control.accessor_decors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.control.html#module-ibeis.control">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.dev.html">ibeis.dev package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.dbinfo">ibeis.dev.dbinfo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.duct_tape">ibeis.dev.duct_tape module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.experiment_configs">ibeis.dev.experiment_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.experiment_harness">ibeis.dev.experiment_harness module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.experiment_helpers">ibeis.dev.experiment_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.experiment_printres">ibeis.dev.experiment_printres module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.main_commands">ibeis.dev.main_commands module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.main_helpers">ibeis.dev.main_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.results_all">ibeis.dev.results_all module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.results_analyzer">ibeis.dev.results_analyzer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.results_organizer">ibeis.dev.results_organizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev.sysres">ibeis.dev.sysres module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.dev.html#module-ibeis.dev">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.guiback">ibeis.gui.guiback module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.guiheaders">ibeis.gui.guiheaders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.guimenus">ibeis.gui.guimenus module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.inspect_gui">ibeis.gui.inspect_gui module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.models_and_views">ibeis.gui.models_and_views module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.newgui">ibeis.gui.newgui module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.io.html">ibeis.io package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io.export_hsdb">ibeis.io.export_hsdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io.export_subset">ibeis.io.export_subset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io.export_wb">ibeis.io.export_wb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io.ingest_database">ibeis.io.ingest_database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io.ingest_hsdb">ibeis.io.ingest_hsdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io.ingest_mdb">ibeis.io.ingest_mdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.io.html#module-ibeis.io">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.model.html">ibeis.model package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.detect.html">ibeis.model.detect package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.detect.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.detect.html#module-ibeis.model.detect.grabmodels">ibeis.model.detect.grabmodels module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.detect.html#module-ibeis.model.detect.randomforest">ibeis.model.detect.randomforest module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.detect.html#module-ibeis.model.detect">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.hots.html">ibeis.model.hots package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="ibeis.model.hots.smk.html">ibeis.model.hots.smk package</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#submodules">Submodules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.hstypes">ibeis.model.hots.smk.hstypes module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.pandas_helpers">ibeis.model.hots.smk.pandas_helpers module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_core">ibeis.model.hots.smk.smk_core module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_debug">ibeis.model.hots.smk.smk_debug module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_index">ibeis.model.hots.smk.smk_index module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_match">ibeis.model.hots.smk.smk_match module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_speed">ibeis.model.hots.smk.smk_speed module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.match_chips4">ibeis.model.hots.match_chips4 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.multi_index">ibeis.model.hots.multi_index module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.neighbor_index">ibeis.model.hots.neighbor_index module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.nn_weights">ibeis.model.hots.nn_weights module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.pipeline">ibeis.model.hots.pipeline module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_helpers">ibeis.model.hots.query_helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.query_request">ibeis.model.hots.query_request module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.model.preproc.html">ibeis.model.preproc package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_chip">ibeis.model.preproc.preproc_chip module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_detectchip">ibeis.model.preproc.preproc_detectchip module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_detectimg">ibeis.model.preproc.preproc_detectimg module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_encounter">ibeis.model.preproc.preproc_encounter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_feat">ibeis.model.preproc.preproc_feat module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc.preproc_image">ibeis.model.preproc.preproc_image module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.preproc.html#module-ibeis.model.preproc">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.html#module-ibeis.model.Config">ibeis.model.Config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.html#module-ibeis.model">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.assert_modules">ibeis.tests.assert_modules module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.demo">ibeis.tests.demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.make_big_database">ibeis.tests.make_big_database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.reset_testdbs">ibeis.tests.reset_testdbs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.sample_data">ibeis.tests.sample_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_annotation">ibeis.tests.test_delete_annotation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_annotation_all">ibeis.tests.test_delete_annotation_all module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_annotation_chips">ibeis.tests.test_delete_annotation_chips module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_chips">ibeis.tests.test_delete_chips module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_enc">ibeis.tests.test_delete_enc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_features">ibeis.tests.test_delete_features module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_image">ibeis.tests.test_delete_image module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_image_thumbtups">ibeis.tests.test_delete_image_thumbtups module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_delete_names">ibeis.tests.test_delete_names module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_gui_add_annotation">ibeis.tests.test_gui_add_annotation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_gui_all">ibeis.tests.test_gui_all module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_gui_import_images">ibeis.tests.test_gui_import_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_gui_open_database">ibeis.tests.test_gui_open_database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_gui_selection">ibeis.tests.test_gui_selection module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_hots_split_trees">ibeis.tests.test_hots_split_trees module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs">ibeis.tests.test_ibs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_add_images">ibeis.tests.test_ibs_add_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_add_name">ibeis.tests.test_ibs_add_name module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_annotation_uuid">ibeis.tests.test_ibs_annotation_uuid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_chip_compute">ibeis.tests.test_ibs_chip_compute module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_control">ibeis.tests.test_ibs_control module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_convert_bbox_poly">ibeis.tests.test_ibs_convert_bbox_poly module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_detect">ibeis.tests.test_ibs_detect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_detectimg_compute">ibeis.tests.test_ibs_detectimg_compute module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_encounters">ibeis.tests.test_ibs_encounters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_export">ibeis.tests.test_ibs_export module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_feat_compute">ibeis.tests.test_ibs_feat_compute module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_getters">ibeis.tests.test_ibs_getters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_info">ibeis.tests.test_ibs_info module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_localize_images">ibeis.tests.test_ibs_localize_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_query">ibeis.tests.test_ibs_query module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_query_components">ibeis.tests.test_ibs_query_components module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_ibs_uuid">ibeis.tests.test_ibs_uuid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_new_schema">ibeis.tests.test_new_schema module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_pil_hash">ibeis.tests.test_pil_hash module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_qt_lazy">ibeis.tests.test_qt_lazy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_qt_thumb">ibeis.tests.test_qt_thumb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_qt_tree">ibeis.tests.test_qt_tree module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_sql_control">ibeis.tests.test_sql_control module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_sql_ids">ibeis.tests.test_sql_ids module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_sql_modify">ibeis.tests.test_sql_modify module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_sql_names">ibeis.tests.test_sql_names module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_sql_numpy">ibeis.tests.test_sql_numpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_sql_revert">ibeis.tests.test_sql_revert module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_utool_parallel">ibeis.tests.test_utool_parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_uuid_consistency">ibeis.tests.test_uuid_consistency module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_view_interact">ibeis.tests.test_view_interact module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests.test_view_viz">ibeis.tests.test_view_viz module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.tests.html#module-ibeis.tests">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.interact.html">ibeis.viz.interact package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_annotations2">ibeis.viz.interact.interact_annotations2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_bbox">ibeis.viz.interact.interact_bbox module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_chip">ibeis.viz.interact.interact_chip module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_image">ibeis.viz.interact.interact_image module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_matches">ibeis.viz.interact.interact_matches module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_name">ibeis.viz.interact.interact_name module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_qres">ibeis.viz.interact.interact_qres module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_qres2">ibeis.viz.interact.interact_qres2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_sver">ibeis.viz.interact.interact_sver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_chip">ibeis.viz.viz_chip module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_helpers">ibeis.viz.viz_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_hough">ibeis.viz.viz_hough module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_image">ibeis.viz.viz_image module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_matches">ibeis.viz.viz_matches module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_name">ibeis.viz.viz_name module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_nearest_descriptors">ibeis.viz.viz_nearest_descriptors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_qres">ibeis.viz.viz_qres module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz.viz_sver">ibeis.viz.viz_sver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.html#module-ibeis.viz">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.all_imports">
+<span id="ibeis-all-imports-module"></span><h2>ibeis.all_imports module<a class="headerlink" href="#module-ibeis.all_imports" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.all_imports.class_reload">
+<tt class="descclassname">ibeis.all_imports.</tt><tt class="descname">class_reload</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/all_imports.html#class_reload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.all_imports.class_reload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.all_imports.embed">
+<tt class="descclassname">ibeis.all_imports.</tt><tt class="descname">embed</tt><big>(</big><em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/all_imports.html#embed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.all_imports.embed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows for embedding in an environment with all imports</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.all_imports.reload_all">
+<tt class="descclassname">ibeis.all_imports.</tt><tt class="descname">reload_all</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/all_imports.html#reload_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.all_imports.reload_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.constants">
+<span id="ibeis-constants-module"></span><h2>ibeis.constants module<a class="headerlink" href="#module-ibeis.constants" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.constants.PATH_NAMES">
+<em class="property">class </em><tt class="descclassname">ibeis.constants.</tt><tt class="descname">PATH_NAMES</tt><a class="reference internal" href="_modules/ibeis/constants.html#PATH_NAMES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.constants.PATH_NAMES" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Path names for internal IBEIS database</p>
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.bigcache">
+<tt class="descname">bigcache</tt><em class="property"> = 'bigcache'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.bigcache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.cache">
+<tt class="descname">cache</tt><em class="property"> = '_ibeis_cache'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.chips">
+<tt class="descname">chips</tt><em class="property"> = 'chips'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.chips" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.detectimg">
+<tt class="descname">detectimg</tt><em class="property"> = 'detectimg'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.detectimg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.flann">
+<tt class="descname">flann</tt><em class="property"> = 'flann'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.flann" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.images">
+<tt class="descname">images</tt><em class="property"> = 'images'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.qres">
+<tt class="descname">qres</tt><em class="property"> = 'qres'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.qres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.sqldb">
+<tt class="descname">sqldb</tt><em class="property"> = '_ibeis_database.sqlite3'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.sqldb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.sqldbcache">
+<tt class="descname">sqldbcache</tt><em class="property"> = '_ibeis_database_cache.sqlite3'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.sqldbcache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.thumbs">
+<tt class="descname">thumbs</tt><em class="property"> = 'thumbs'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.thumbs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.trashdir">
+<tt class="descname">trashdir</tt><em class="property"> = 'trashed_images'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.trashdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.constants.Species">
+<em class="property">class </em><tt class="descclassname">ibeis.constants.</tt><tt class="descname">Species</tt><a class="reference internal" href="_modules/ibeis/constants.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.constants.Species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="ibeis.constants.Species.ELEPHANT_SAV">
+<tt class="descname">ELEPHANT_SAV</tt><em class="property"> = 'elephant_savanna'</em><a class="headerlink" href="#ibeis.constants.Species.ELEPHANT_SAV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.FROGS">
+<tt class="descname">FROGS</tt><em class="property"> = 'frogs'</em><a class="headerlink" href="#ibeis.constants.Species.FROGS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.GIRAFFE">
+<tt class="descname">GIRAFFE</tt><em class="property"> = 'giraffe'</em><a class="headerlink" href="#ibeis.constants.Species.GIRAFFE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.JAG">
+<tt class="descname">JAG</tt><em class="property"> = 'jaguar'</em><a class="headerlink" href="#ibeis.constants.Species.JAG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.LEOPARD">
+<tt class="descname">LEOPARD</tt><em class="property"> = 'leopard'</em><a class="headerlink" href="#ibeis.constants.Species.LEOPARD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.LION">
+<tt class="descname">LION</tt><em class="property"> = 'lion'</em><a class="headerlink" href="#ibeis.constants.Species.LION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.LIONFISH">
+<tt class="descname">LIONFISH</tt><em class="property"> = 'lionfish'</em><a class="headerlink" href="#ibeis.constants.Species.LIONFISH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.POLAR_BEAR">
+<tt class="descname">POLAR_BEAR</tt><em class="property"> = 'bear_polar'</em><a class="headerlink" href="#ibeis.constants.Species.POLAR_BEAR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.RHINO_BLACK">
+<tt class="descname">RHINO_BLACK</tt><em class="property"> = 'rhino_black'</em><a class="headerlink" href="#ibeis.constants.Species.RHINO_BLACK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.RHINO_WHITE">
+<tt class="descname">RHINO_WHITE</tt><em class="property"> = 'rhino_white'</em><a class="headerlink" href="#ibeis.constants.Species.RHINO_WHITE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.SEALS">
+<tt class="descname">SEALS</tt><em class="property"> = 'seals_spotted'</em><a class="headerlink" href="#ibeis.constants.Species.SEALS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.SNAILS">
+<tt class="descname">SNAILS</tt><em class="property"> = 'snails'</em><a class="headerlink" href="#ibeis.constants.Species.SNAILS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.UNKNOWN">
+<tt class="descname">UNKNOWN</tt><em class="property"> = '____'</em><a class="headerlink" href="#ibeis.constants.Species.UNKNOWN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.WATER_BUFFALO">
+<tt class="descname">WATER_BUFFALO</tt><em class="property"> = 'water_buffalo'</em><a class="headerlink" href="#ibeis.constants.Species.WATER_BUFFALO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.WHALESHARK">
+<tt class="descname">WHALESHARK</tt><em class="property"> = 'whale_shark'</em><a class="headerlink" href="#ibeis.constants.Species.WHALESHARK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.WILDDOG">
+<tt class="descname">WILDDOG</tt><em class="property"> = 'wild_dog'</em><a class="headerlink" href="#ibeis.constants.Species.WILDDOG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.WILDEBEEST">
+<tt class="descname">WILDEBEEST</tt><em class="property"> = 'wildebeest'</em><a class="headerlink" href="#ibeis.constants.Species.WILDEBEEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.WYTOADS">
+<tt class="descname">WYTOADS</tt><em class="property"> = 'toads_wyoming'</em><a class="headerlink" href="#ibeis.constants.Species.WYTOADS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.ZEB_GREVY">
+<tt class="descname">ZEB_GREVY</tt><em class="property"> = 'zebra_grevys'</em><a class="headerlink" href="#ibeis.constants.Species.ZEB_GREVY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.ZEB_PLAIN">
+<tt class="descname">ZEB_PLAIN</tt><em class="property"> = 'zebra_plains'</em><a class="headerlink" href="#ibeis.constants.Species.ZEB_PLAIN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.ibsfuncs">
+<span id="ibeis-ibsfuncs-module"></span><h2>ibeis.ibsfuncs module<a class="headerlink" href="#module-ibeis.ibsfuncs" title="Permalink to this headline">¶</a></h2>
+<p>python -c &#8220;import doctest, ibeis; print(doctest.testmod(ibeis.ibsfuncs))&#8221;
+python -m doctest -v ibeis/model/hots/hots_nn_index.py
+python -m doctest ibeis/model/hots/hots_nn_index.py</p>
+<dl class="function">
+<dt id="ibeis.ibsfuncs.aidstr">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">aidstr</tt><big>(</big><em>aid</em>, <em>ibs=None</em>, <em>notes=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#aidstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.aidstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper to make a string from an RID</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.annotstr">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">annotstr</tt><big>(</big><em>ibs</em>, <em>aid</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#annotstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.annotstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.assert_images_exist">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_images_exist</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_images_exist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_images_exist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.assert_lblannot_rowids_are_type">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_lblannot_rowids_are_type</tt><big>(</big><em>ibs</em>, <em>lblannot_rowid_list</em>, <em>valid_lbltype_rowid</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_lblannot_rowids_are_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_lblannot_rowids_are_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.assert_singleton_relationship">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_singleton_relationship</tt><big>(</big><em>ibs</em>, <em>alrids_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_singleton_relationship"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_singleton_relationship" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.assert_valid_aids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_valid_aids</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_valid_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_valid_aids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.assert_valid_names">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_valid_names</tt><big>(</big><em>name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_valid_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_valid_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asserts that user specified names do not conflict with
+the standard unknown name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.assert_valid_species">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">assert_valid_species</tt><big>(</big><em>ibs</em>, <em>species_list</em>, <em>iswarning=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#assert_valid_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.assert_valid_species" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_annot_consistency">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_annot_consistency</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_annot_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_annot_consistency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_annot_size">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_annot_size</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_annot_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_annot_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_consistency">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_consistency</tt><big>(</big><em>ibs</em>, <em>embed=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_consistency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_exif_data">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_exif_data</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_exif_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_exif_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_image_consistency">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_image_consistency</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_image_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_image_consistency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_image_uuid_consistency">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_image_uuid_consistency</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_image_uuid_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_image_uuid_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><p>VERY SLOW</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.check_name_consistency">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">check_name_consistency</tt><big>(</big><em>ibs</em>, <em>nid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#check_name_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.check_name_consistency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.compute_all_chips">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">compute_all_chips</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#compute_all_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.compute_all_chips" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes lazy evaluation of all chips</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.compute_all_features">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">compute_all_features</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#compute_all_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.compute_all_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes lazy evaluation of all chips and features</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.compute_all_thumbs">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">compute_all_thumbs</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#compute_all_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.compute_all_thumbs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.convert_empty_images_to_annotations">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">convert_empty_images_to_annotations</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#convert_empty_images_to_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.convert_empty_images_to_annotations" title="Permalink to this definition">¶</a></dt>
+<dd><p>images without chips are given an ANNOTATION over the entire image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_all_annotations">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_all_annotations</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_all_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_all_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_all_chips">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_all_chips</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_all_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_all_chips" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_all_encounters">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_all_encounters</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_all_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_all_encounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_all_features">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_all_features</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_all_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_all_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_cachedir">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_cachedir</tt><big>(</big><em>ibs</em>, <em>removefeat=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_cachedir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_cachedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the cache directory in the database directory.</p>
+<p>Also removes features from the sql controller if removefeat is True</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_ibeis_database">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_ibeis_database</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_ibeis_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_ibeis_database" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_invalid_eids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_invalid_eids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_invalid_eids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_invalid_eids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes encounters without images</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_invalid_nids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_invalid_nids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_invalid_nids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_invalid_nids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes names that have no Rois from the database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.delete_non_exemplars">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">delete_non_exemplars</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#delete_non_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.delete_non_exemplars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.draw_thumb_helper">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">draw_thumb_helper</tt><big>(</big><em>tup</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#draw_thumb_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.draw_thumb_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.ensure_annotation_data">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">ensure_annotation_data</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>chips=True</em>, <em>feats=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#ensure_annotation_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.ensure_annotation_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.ensure_unix_gpaths">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">ensure_unix_gpaths</tt><big>(</big><em>gpath_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#ensure_unix_gpaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.ensure_unix_gpaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asserts that all paths are given with forward slashes.
+If not it fixes them</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.export_encounters">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">export_encounters</tt><big>(</big><em>ibs</em>, <em>eid_list</em>, <em>new_dbdir=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#export_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.export_encounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.export_images">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">export_images</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>new_dbdir_</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#export_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.export_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>See ibeis/tests/test_ibs_export.py</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.export_to_hotspotter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">export_to_hotspotter</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#export_to_hotspotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.export_to_hotspotter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.export_to_xml">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">export_to_xml</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#export_to_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.export_to_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.fix_exif_data">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">fix_exif_data</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#fix_exif_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.fix_exif_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_aids_with_groundtruth">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_aids_with_groundtruth</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_aids_with_groundtruth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_aids_with_groundtruth" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns aids with valid groundtruth</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_bbox_area">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_bbox_area</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_bbox_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_bbox_area" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_desc_cache">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_desc_cache</tt><big>(</big><em>ibs</em>, <em>aids</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_desc_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_desc_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>When you have a list with duplicates and you dont want to copy data
+creates a reference to each data object idnexed by a dict</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_groundfalse_sample">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_groundfalse_sample</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>per_name=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_groundfalse_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_groundfalse_sample" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">per_name</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_groundtruth_sample">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_groundtruth_sample</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>per_name=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_groundtruth_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_groundtruth_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.all_imports</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">test_main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">per_name</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_is_hard">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_is_hard</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_is_hard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_is_hard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_rowid_hashid">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_rowid_hashid</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>label='_AIDS'</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_rowid_hashid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_rowid_hashid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_annot_uuid_hashid">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_uuid_hashid</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>label='_UUIDS'</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_uuid_hashid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_uuid_hashid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_dbnotes">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_dbnotes</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_dbnotes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_dbnotes" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets notes for an entire database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_dbnotes_fpath">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_dbnotes_fpath</tt><big>(</big><em>ibs</em>, <em>ensure=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_dbnotes_fpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_dbnotes_fpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_empty_gids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_empty_gids</tt><big>(</big><em>ibs</em>, <em>eid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_empty_gids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_empty_gids" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns gid list without any chips</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_image_annotation_bboxes">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_image_annotation_bboxes</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_image_annotation_bboxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_image_annotation_bboxes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_image_annotation_thetas">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_image_annotation_thetas</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_image_annotation_thetas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_image_annotation_thetas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_infostr">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_infostr</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_infostr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_infostr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns printable database information</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_match_text">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_match_text</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_match_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_match_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_match_truth">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_match_truth</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_match_truth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_match_truth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_species_dbs">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_species_dbs</tt><big>(</big><em>species_prefix</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_species_dbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_species_dbs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.get_title">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_title</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.group_annots_by_known_names">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">group_annots_by_known_names</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>checks=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#group_annots_by_known_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.group_annots_by_known_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>#&gt;&gt;&gt; import ibeis</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncst</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span> 
+<span class="go">[main]...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">known_aids_list</span><span class="p">,</span> <span class="n">unknown_aids</span> <span class="o">=</span> <span class="n">group_annots_by_known_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">known_aids_list</span><span class="p">)</span>
+<span class="go">[[2, 3], [5, 6], [7], [8], [10], [12], [13]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">)</span>
+<span class="go">[11, 9, 4, 1]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.group_annots_by_known_names_nochecks">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">group_annots_by_known_names_nochecks</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#group_annots_by_known_names_nochecks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.group_annots_by_known_names_nochecks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.inject_ibeis">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">inject_ibeis</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#inject_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.inject_ibeis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Injects custom functions into an IBEISController</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.is_aid_unknown">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">is_aid_unknown</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#is_aid_unknown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.is_aid_unknown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.is_nid_unknown">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">is_nid_unknown</tt><big>(</big><em>ibs</em>, <em>nid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#is_nid_unknown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.is_nid_unknown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.list_images">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">list_images</tt><big>(</big><em>img_dir</em>, <em>fullpath=True</em>, <em>recursive=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#list_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.list_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>lists images that are not in an internal cache</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.localize_images">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">localize_images</tt><big>(</big><em>ibs</em>, <em>gid_list_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#localize_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.localize_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the images into the ibeis image cache.
+Images are renamed to img_uuid.ext</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.make_annotation_uuids">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">make_annotation_uuids</tt><big>(</big><em>image_uuid_list</em>, <em>bbox_list</em>, <em>theta_list</em>, <em>deterministic=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#make_annotation_uuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.make_annotation_uuids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.make_enctext_list">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">make_enctext_list</tt><big>(</big><em>eid_list</em>, <em>enc_cfgstr</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#make_enctext_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.make_enctext_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.make_next_name">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">make_next_name</tt><big>(</big><em>ibs</em>, <em>num=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#make_next_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.make_next_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a number of names which are not in the database, but does not
+add them</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.merge_databases">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">merge_databases</tt><big>(</big><em>ibs_target</em>, <em>ibs_source_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#merge_databases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.merge_databases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merges a list of databases into a target
+This is OLD. use export_subset instead</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.merge_species_databases">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">merge_species_databases</tt><big>(</big><em>species_prefix</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#merge_species_databases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.merge_species_databases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a merged database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.preprocess_image_thumbs">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">preprocess_image_thumbs</tt><big>(</big><em>ibs</em>, <em>gid_list=None</em>, <em>use_cache=True</em>, <em>chunksize=8</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#preprocess_image_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.preprocess_image_thumbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes thumbs of images in parallel based on kwargs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_alr_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_alr_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_alr_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_alr_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_annotation_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_annotation_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_annotation_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_annotation_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps annotation table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_chip_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_chip_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_chip_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_chip_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_config_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_config_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_config_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_config_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_dbinfo">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_dbinfo</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_dbinfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_egpairs_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_egpairs_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_egpairs_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_egpairs_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_encounter_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_encounter_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_encounter_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_encounter_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_feat_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_feat_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_feat_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_feat_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_image_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_image_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_image_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_image_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_lblannot_table">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_lblannot_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_lblannot_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_lblannot_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps chip table to stdout</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_stats">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_stats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.print_tables">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_tables</tt><big>(</big><em>ibs</em>, <em>exclude_columns=None</em>, <em>exclude_tables=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_tables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.prune_exemplars">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">prune_exemplars</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#prune_exemplars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.prune_exemplars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.rebase_images">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">rebase_images</tt><big>(</big><em>ibs</em>, <em>new_path</em>, <em>gid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#rebase_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.rebase_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the images into the ibeis image cache.
+Images are renamed to img_uuid.ext</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.refresh">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">refresh</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.refresh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.set_annot_names_to_next_name">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">set_annot_names_to_next_name</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#set_annot_names_to_next_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.set_annot_names_to_next_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.set_dbnotes">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">set_dbnotes</tt><big>(</big><em>ibs</em>, <em>notes</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#set_dbnotes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.set_dbnotes" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets notes for an entire database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.unflat_lookup">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">unflat_lookup</tt><big>(</big><em>method</em>, <em>unflat_rowids</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#ibeis.ibsfuncs.unflat_lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses an ibeis lookup function with a non-flat rowid list.
+In essence this is equivilent to map(method, unflat_rowids).
+The utility of this function is that it only calls method once.
+This is more efficient for calls that can take a list of inputs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.unflat_map">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">unflat_map</tt><big>(</big><em>method</em>, <em>unflat_rowids</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#unflat_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.unflat_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses an ibeis lookup function with a non-flat rowid list.
+In essence this is equivilent to map(method, unflat_rowids).
+The utility of this function is that it only calls method once.
+This is more efficient for calls that can take a list of inputs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.unflat_multimap">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">unflat_multimap</tt><big>(</big><em>method_list</em>, <em>unflat_rowids</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#unflat_multimap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.unflat_multimap" title="Permalink to this definition">¶</a></dt>
+<dd><p>unflat_map, but allows multiple methods</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.update_all_image_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_all_image_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_all_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_all_image_encounter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.update_exemplar_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_exemplar_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_exemplar_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_exemplar_encounter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_reviewed_unreviewed_image_encounter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_reviewed_unreviewed_image_encounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_reviewed_unreviewed_image_encounter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.update_special_encounters">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">update_special_encounters</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#update_special_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.update_special_encounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.use_images_as_annotations">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">use_images_as_annotations</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>name_list=None</em>, <em>nid_list=None</em>, <em>notes_list=None</em>, <em>adjust_percent=0.0</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#use_images_as_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.use_images_as_annotations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an annotation the size of the entire image to each image.
+adjust_percent - shrinks the ANNOTATION by percentage on each side</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.vd">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">vd</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#vd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.vd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.vsstr">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">vsstr</tt><big>(</big><em>qaid</em>, <em>aid</em>, <em>lite=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#vsstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.vsstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.main_module">
+<span id="ibeis-main-module-module"></span><h2>ibeis.main_module module<a class="headerlink" href="#module-ibeis.main_module" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.main_module.main">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">main</tt><big>(</big><em>gui=True</em>, <em>dbdir=None</em>, <em>defaultdb='cache'</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Program entry point
+Inits the system environment, an IBEISControl, and a GUI if requested</p>
+<p>If gui is False a gui instance will not be created</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.main_module.main_close">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">main_close</tt><big>(</big><em>main_locals=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#main_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.main_close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.main_module.main_loop">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">main_loop</tt><big>(</big><em>main_locals</em>, <em>rungui=True</em>, <em>ipy=False</em>, <em>persist=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#main_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.main_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the qt loop if the GUI was initialized and returns an executable string
+for embedding an IPython terminal if requested.</p>
+<p>If rungui is False the gui will not loop even if back has been created</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.main_module.opendb">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">opendb</tt><big>(</big><em>db=None</em>, <em>dbdir=None</em>, <em>defaultdb='cache'</em>, <em>allow_newdir=False</em>, <em>delete_ibsdir=False</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#opendb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.opendb" title="Permalink to this definition">¶</a></dt>
+<dd><p>main without the preload (except for option to delete database before
+opening)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.main_module.profile">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">profile</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.profile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.main_module.start">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">start</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias for main()</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.main_module.test_main">
+<tt class="descclassname">ibeis.main_module.</tt><tt class="descname">test_main</tt><big>(</big><em>gui=True</em>, <em>dbdir=None</em>, <em>defaultdb='cache'</em>, <em>allow_newdir=False</em>, <em>db=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/main_module.html#test_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.main_module.test_main" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias for main()</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.params">
+<span id="ibeis-params-module"></span><h2>ibeis.params module<a class="headerlink" href="#module-ibeis.params" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.params.parse_args">
+<tt class="descclassname">ibeis.params.</tt><tt class="descname">parse_args</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/params.html#parse_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.params.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis" title="Permalink to this headline">¶</a></h2>
+<p>IBEIS: main package init</p>
+<dl class="function">
+<dt id="ibeis.ensure_subs">
+<tt class="descclassname">ibeis.</tt><tt class="descname">ensure_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis.html#ensure_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ensure_subs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.import_subs">
+<tt class="descclassname">ibeis.</tt><tt class="descname">import_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis.html#import_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.import_subs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.reload_subs">
+<tt class="descclassname">ibeis.</tt><tt class="descname">reload_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.rrrr">
+<tt class="descclassname">ibeis.</tt><tt class="descname">rrrr</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ibeis package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li><a class="reference internal" href="#module-ibeis.constants">ibeis.constants module</a></li>
+<li><a class="reference internal" href="#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li><a class="reference internal" href="#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li><a class="reference internal" href="#module-ibeis.params">ibeis.params module</a></li>
+<li><a class="reference internal" href="#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to ibeis&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ibeis.control.html"
+                        title="next chapter">ibeis.control package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ibeis.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.control.html" title="ibeis.control package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to ibeis’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

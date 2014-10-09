@@ -1,0 +1,62 @@
+ibeis.model.preproc package
+===========================
+
+Submodules
+----------
+
+ibeis.model.preproc.preproc_chip module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_chip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_detectchip module
+---------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_detectchip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_detectimg module
+--------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_detectimg
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_encounter module
+--------------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_encounter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_feat module
+---------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_feat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.preproc.preproc_image module
+----------------------------------------
+
+.. automodule:: ibeis.model.preproc.preproc_image
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.model.preproc
+    :members:
+    :undoc-members:
+    :show-inheritance:

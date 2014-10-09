@@ -1,0 +1,823 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.pipeline &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.pipeline</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Hotspotter pipeline module</span>
+
+<span class="sd">Module Concepts::</span>
+
+<span class="sd">    PREFIXES:</span>
+<span class="sd">    qaid2_XXX - prefix mapping query chip index to</span>
+<span class="sd">    qfx2_XXX  - prefix mapping query chip feature index to</span>
+
+<span class="sd">    TUPLES::</span>
+<span class="sd">     * nns    - a (qfx2_idx, qfx2_dist) tuple</span>
+<span class="sd">     * nnfilt - a (qfx2_fs, qfx2_valid) tuple</span>
+
+<span class="sd">    SCALARS::</span>
+<span class="sd">     * idx    - the index into the nnindexers descriptors</span>
+<span class="sd">     * dist   - the distance to a corresponding feature</span>
+<span class="sd">     * fs     - a score of a corresponding feature</span>
+<span class="sd">     * valid  - a valid bit for a corresponding feature</span>
+
+<span class="sd">    REALIZATIONS::</span>
+<span class="sd">    qaid2_nns - maping from query chip index to nns</span>
+<span class="sd">    {</span>
+<span class="sd">     * qfx2_idx   - ranked list of query feature indexes to database feature indexes</span>
+<span class="sd">     * qfx2_dist - ranked list of query feature indexes to database feature indexes</span>
+<span class="sd">    }</span>
+
+<span class="sd">    * qaid2_norm_weight - mapping from qaid to (qfx2_normweight, qfx2_selnorm)</span>
+<span class="sd">             = qaid2_nnfilt[qaid]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c"># Python</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c"># Scientific</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">keypoint</span> <span class="k">as</span> <span class="n">ktool</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">spatial_verification</span> <span class="k">as</span> <span class="n">sver</span>
+<span class="c"># Hotspotter</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hots_query_result</span>
+<span class="c">#from ibeis.model.hots import coverage_image</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">voting_rules2</span> <span class="k">as</span> <span class="n">vr2</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">exceptions</span> <span class="k">as</span> <span class="n">hsexcept</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="c">#profile = utool.profile</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span>  <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[hs]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c"># tauday.com</span>
+<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-query&#39;</span><span class="p">)</span>
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verbose-query&#39;</span><span class="p">)</span>
+
+<span class="c">#=================</span>
+<span class="c"># Globals</span>
+<span class="c">#=================</span>
+
+<span class="n">START_AFTER</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<span class="c"># specialized progress func</span>
+<span class="n">log_progress</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">,</span> <span class="n">startafter</span><span class="o">=</span><span class="n">START_AFTER</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">)</span>
+
+
+<span class="c"># Query Level 0</span>
+<span class="c">#@utool.indent_func(&#39;[Q0]&#39;)</span>
+<span class="c">#@profile</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="request_ibeis_query_L0"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.request_ibeis_query_L0">[docs]</a><span class="k">def</span> <span class="nf">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Driver logic of query pipeline</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs   (IBEISController): HotSpotter database object to be queried</span>
+<span class="sd">        qreq_ (QueryRequest): use ``prep_qreq`` to create one</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (dict of QueryResult): qaid2_qres mapping from query indexes to Query Result Objects</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import query_request</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.test_main(db=&#39;testdb1&#39;)  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = request_ibeis_query_L0(ibs, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[1]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Load data for nearest neighbors</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+
+    <span class="c">#</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
+        <span class="c"># Alternative to naive bayes matching:</span>
+        <span class="c"># Selective match kernel</span>
+        <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch_FILT_</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">selective_match_kernel</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">filt2_meta_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">elif</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
+        <span class="c"># Nearest neighbors (qaid2_nns)</span>
+        <span class="c"># * query descriptors assigned to database descriptors</span>
+        <span class="c"># * FLANN used here</span>
+        <span class="n">qaid2_nns_</span> <span class="o">=</span> <span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="c"># Nearest neighbors weighting and scoring (filt2_weights, filt2_meta)</span>
+        <span class="c"># * feature matches are weighted</span>
+        <span class="n">filt2_weights_</span><span class="p">,</span> <span class="n">filt2_meta_</span> <span class="o">=</span> <span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="c"># Thresholding and weighting (qaid2_nnfilter)</span>
+        <span class="c"># * feature matches are pruned</span>
+        <span class="n">qaid2_nnfilt_</span> <span class="o">=</span> <span class="n">filter_neighbors</span><span class="p">(</span><span class="n">qaid2_nns_</span><span class="p">,</span> <span class="n">filt2_weights_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="c"># Nearest neighbors to chip matches (qaid2_chipmatch)</span>
+        <span class="c"># * Inverted index used to create aid2_fmfsfk (TODO: aid2_fmfv)</span>
+        <span class="c"># * Initial scoring occurs</span>
+        <span class="c"># * vsone inverse swapping occurs here</span>
+        <span class="n">qaid2_chipmatch_FILT_</span> <span class="o">=</span> <span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qaid2_nns_</span><span class="p">,</span> <span class="n">qaid2_nnfilt_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
+
+    <span class="c"># Spatial verification (qaid2_chipmatch) (TODO: cython)</span>
+    <span class="c"># * prunes chip results and feature matches</span>
+    <span class="n">qaid2_chipmatch_SVER_</span> <span class="o">=</span> <span class="n">spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch_FILT_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="c"># Query results format (qaid2_qres)</span>
+    <span class="c"># * Final Scoring. Prunes chip results.</span>
+    <span class="c"># * packs into a wrapped query result object</span>
+    <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_SVER_</span><span class="p">,</span> <span class="n">filt2_meta_</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">qaid2_qres_</span>
+
+<span class="c">#============================</span>
+<span class="c"># 1) Nearest Neighbors</span>
+<span class="c">#============================</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="nearest_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.nearest_neighbors">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plain Nearest Neighbors</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_  (QueryRequest): query request object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: qaid2_nnds - a dict mapping query annnotation-ids to a nearest</span>
+<span class="sd">            neighbor tuple (indexes, dists). indexes and dist have the shape</span>
+<span class="sd">            (nDesc x K) where nDesc is the number of descriptors in the</span>
+<span class="sd">            annotation, and K is the number of approximate nearest neighbors.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Neareset neighbor configuration</span>
+    <span class="n">K</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">Knorm</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="n">checks</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">checks</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 1) Assign nearest neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">)</span>
+    <span class="n">num_neighbors</span> <span class="o">=</span> <span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span>  <span class="c"># number of nearest neighbors</span>
+    <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qvecs</span><span class="p">()</span>  <span class="c"># query descriptors</span>
+    <span class="c"># Allocate numpy array for each query annotation</span>
+    <span class="c"># TODO: dtype=np.ndarray is just an object, might be useful to use</span>
+    <span class="c"># pointers?</span>
+    <span class="n">nQAnnots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">)</span>
+    <span class="n">nn_idxs_arr</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">nQAnnots</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>  <span class="c"># database indexes</span>
+    <span class="n">nn_dists_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">nQAnnots</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>  <span class="c"># corresponding distance</span>
+    <span class="c"># Internal statistics reporting</span>
+    <span class="n">nTotalNN</span><span class="p">,</span> <span class="n">nTotalDesc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="n">mark_</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;Assign NN: &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qfx2_vec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">):</span>
+        <span class="n">mark_</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>  <span class="c"># progress</span>
+        <span class="c"># Check that we can query this annotation</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Assign empty nearest neighbors</span>
+            <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">empty_neighbors</span><span class="p">(</span><span class="n">num_neighbors</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Find Neareset Neighbors nntup = (indexes, dists)</span>
+            <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">,</span> <span class="n">checks</span><span class="p">)</span>
+            <span class="n">nTotalNN</span> <span class="o">+=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">nTotalDesc</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">)</span>
+        <span class="c"># record number of query and result desc</span>
+        <span class="n">nn_idxs_arr</span><span class="p">[</span><span class="n">count</span><span class="p">]</span>   <span class="o">=</span> <span class="n">qfx2_idx</span>
+        <span class="n">nn_dists_arr</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">qfx2_dist</span>
+    <span class="n">end_</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * assigned </span><span class="si">%d</span><span class="s"> desc (from </span><span class="si">%d</span><span class="s"> annots) to </span><span class="si">%r</span><span class="s"> nearest neighbors&#39;</span>
+              <span class="o">%</span> <span class="p">(</span><span class="n">nTotalDesc</span><span class="p">,</span> <span class="n">nQAnnots</span><span class="p">,</span> <span class="n">nTotalNN</span><span class="p">))</span>
+    <span class="c">#return nn_idxs_arr, nn_dists_arr</span>
+    <span class="c"># Return old style dicts for now</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="n">qaid2_nns_</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="ow">in</span>
+                  <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">nn_idxs_arr</span><span class="p">,</span> <span class="n">nn_dists_arr</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">qaid2_nns_</span>
+
+
+<span class="c">#============================</span>
+<span class="c"># 2) Nearest Neighbor weights</span>
+<span class="c">#============================</span>
+
+</div>
+<div class="viewcode-block" id="weight_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.weight_neighbors">[docs]</a><span class="k">def</span> <span class="nf">weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 2) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt_cfgstr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt_on</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="p">{}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+
+</div>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">_weight_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="n">nnweight_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">active_filter_list</span>
+    <span class="n">filt2_weights</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">nnfilter</span> <span class="ow">in</span> <span class="n">nnweight_list</span><span class="p">:</span>
+        <span class="n">nn_filter_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nnfilter</span><span class="p">]</span>
+        <span class="c"># Apply [nnfilter] weight to each nearest neighbor</span>
+        <span class="c"># TODO FIX THIS!</span>
+        <span class="n">qaid2_norm_weight</span><span class="p">,</span> <span class="n">qaid2_selnorms</span> <span class="o">=</span> <span class="n">nn_filter_fn</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">filt2_weights</span><span class="p">[</span><span class="n">nnfilter</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_norm_weight</span>
+        <span class="n">filt2_meta</span><span class="p">[</span><span class="n">nnfilter</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_selnorms</span>
+    <span class="k">return</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">filt2_meta</span>
+
+
+<span class="c">#==========================</span>
+<span class="c"># 3) Neighbor scoring (Voting Profiles)</span>
+<span class="c">#==========================</span>
+
+
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">_threshold_and_scale_weights</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="n">qfx2_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hots_query_result</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
+    <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="c"># Apply the filter weightings to determine feature validity and scores</span>
+    <span class="k">for</span> <span class="n">filt</span><span class="p">,</span> <span class="n">aid2_weights</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">filt2_weights</span><span class="p">):</span>
+        <span class="n">qfx2_weights</span> <span class="o">=</span> <span class="n">aid2_weights</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">sign</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">filt2_stw</span><span class="p">[</span><span class="n">filt</span><span class="p">]</span>  <span class="c"># stw = sign, thresh, weight</span>
+        <span class="k">if</span> <span class="n">thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">qfx2_passed</span> <span class="o">=</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">qfx2_weights</span> <span class="o">&lt;=</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">thresh</span>
+            <span class="n">qfx2_valid</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_valid</span><span class="p">,</span> <span class="n">qfx2_passed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">qfx2_score</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">qfx2_weights</span>
+    <span class="k">return</span> <span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span>
+
+
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="filter_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.filter_neighbors">[docs]</a><span class="k">def</span> <span class="nf">filter_neighbors</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="n">qaid2_nnfilt</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Configs</span>
+    <span class="n">cant_match_sameimg</span>  <span class="o">=</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_sameimg</span>
+    <span class="n">cant_match_samename</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_samename</span>
+    <span class="n">cant_match_self</span>     <span class="o">=</span> <span class="ow">not</span> <span class="n">cant_match_sameimg</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 3) Filter neighbors: &#39;</span><span class="p">)</span>
+    <span class="c"># Filter matches based on config and weights</span>
+    <span class="n">mark_</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;Filter NN: &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">)):</span>
+        <span class="n">mark_</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>  <span class="c"># progress</span>
+        <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">qfx2_nnidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span>
+        <span class="c"># Get a numeric score score and valid flag for each feature match</span>
+        <span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">_threshold_and_scale_weights</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">,</span> <span class="n">filt2_weights</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qfx2_aid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> assignments are invalid by thresh&#39;</span> <span class="o">%</span>
+                  <span class="p">((</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_valid</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">gravity_weighting</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;have not finished gv weighting&#39;</span><span class="p">)</span>
+            <span class="c">#from vtool import linalg as ltool</span>
+            <span class="c">#qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)</span>
+            <span class="c">#qfx2_nnori = ktool.get_oris(qfx2_nnkpts)</span>
+            <span class="c">#qfx2_kpts  = qreq_.get_annot_kpts(qaid)  # FIXME: Highly inefficient</span>
+            <span class="c">#qfx2_oris  = ktool.get_oris(qfx2_kpts)</span>
+            <span class="c">## Get the orientation distance</span>
+            <span class="c">#qfx2_oridist = ltool.rowwise_oridist(qfx2_nnori, qfx2_oris)</span>
+            <span class="c">## Normalize into a weight (close orientations are 1, far are 0)</span>
+            <span class="c">#qfx2_gvweight = (TAU - qfx2_oridist) / TAU</span>
+            <span class="c">## Apply gravity vector weight to the score</span>
+            <span class="c">#qfx2_score *= qfx2_gvweight</span>
+        <span class="c"># Remove Impossible Votes:</span>
+        <span class="c"># dont vote for yourself or another chip in the same image</span>
+        <span class="k">if</span> <span class="n">cant_match_self</span><span class="p">:</span>
+            <span class="n">qfx2_notsamechip</span> <span class="o">=</span> <span class="n">qfx2_aid</span> <span class="o">!=</span> <span class="n">qaid</span>
+            <span class="c">####DBG</span>
+            <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="n">__self_verbose_check</span><span class="p">(</span><span class="n">qfx2_notsamechip</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
+            <span class="c">####</span>
+            <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_valid</span><span class="p">,</span> <span class="n">qfx2_notsamechip</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cant_match_sameimg</span><span class="p">:</span>
+            <span class="n">qfx2_gid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>
+            <span class="n">qgid</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+            <span class="n">qfx2_notsameimg</span> <span class="o">=</span> <span class="n">qfx2_gid</span> <span class="o">!=</span> <span class="n">qgid</span>
+            <span class="c">####DBG</span>
+            <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="n">__samename_verbose_check</span><span class="p">(</span><span class="n">qfx2_notsameimg</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
+            <span class="c">####</span>
+            <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_valid</span><span class="p">,</span> <span class="n">qfx2_notsameimg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cant_match_samename</span><span class="p">:</span>
+            <span class="n">qfx2_nid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>
+            <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+            <span class="n">qfx2_notsamename</span> <span class="o">=</span> <span class="n">qfx2_nid</span> <span class="o">!=</span> <span class="n">qnid</span>
+            <span class="c">####DBG</span>
+            <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="n">__samename_verbose_check</span><span class="p">(</span><span class="n">qfx2_notsamename</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
+            <span class="c">####</span>
+            <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_valid</span><span class="p">,</span> <span class="n">qfx2_notsamename</span><span class="p">)</span>
+        <span class="c">#printDBG(&#39;[hs] * Marking %d assignments as invalid&#39; % ((True - qfx2_valid).sum()))</span>
+        <span class="n">qaid2_nnfilt</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
+    <span class="n">end_</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">qaid2_nnfilt</span>
+
+</div>
+<span class="k">def</span> <span class="nf">__self_verbose_check</span><span class="p">(</span><span class="n">qfx2_notsamechip</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">):</span>
+    <span class="n">nChip_all_invalid</span> <span class="o">=</span> <span class="p">((</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_notsamechip</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">nChip_new_invalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_valid</span> <span class="o">*</span> <span class="p">(</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_notsamechip</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> assignments are invalid by self&#39;</span> <span class="o">%</span> <span class="n">nChip_all_invalid</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> are newly invalided by self&#39;</span> <span class="o">%</span> <span class="n">nChip_new_invalid</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__samename_verbose_check</span><span class="p">(</span><span class="n">qfx2_notsamename</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">):</span>
+    <span class="n">nName_all_invalid</span> <span class="o">=</span> <span class="p">((</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_notsamename</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">nName_new_invalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_valid</span> <span class="o">*</span> <span class="p">(</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_notsamename</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> assignments are invalid by nid&#39;</span> <span class="o">%</span> <span class="n">nName_all_invalid</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> are newly invalided by nid&#39;</span> <span class="o">%</span> <span class="n">nName_new_invalid</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__sameimg_verbose_check</span><span class="p">(</span><span class="n">qfx2_notsameimg</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">):</span>
+    <span class="n">nImg_all_invalid</span> <span class="o">=</span> <span class="p">((</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_notsameimg</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">nImg_new_invalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_valid</span> <span class="o">*</span> <span class="p">(</span><span class="bp">True</span> <span class="o">-</span> <span class="n">qfx2_notsameimg</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> assignments are invalid by gid&#39;</span> <span class="o">%</span> <span class="n">nImg_all_invalid</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * </span><span class="si">%d</span><span class="s"> are newly invalided by gid&#39;</span> <span class="o">%</span> <span class="n">nImg_new_invalid</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="identity_filter"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.identity_filter">[docs]</a><span class="k">def</span> <span class="nf">identity_filter</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; testing function returns unfiltered nearest neighbors</span>
+<span class="sd">    this does check that you are not matching yourself</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">qaid2_nnfilt</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">)):</span>
+        <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">qfx2_nnidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">qfx2_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hots_query_result</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
+        <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="c"># Check that you are not matching yourself</span>
+        <span class="n">qfx2_aid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
+        <span class="n">qfx2_notsamechip</span> <span class="o">=</span> <span class="n">qfx2_aid</span> <span class="o">!=</span> <span class="n">qaid</span>
+        <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_valid</span><span class="p">,</span> <span class="n">qfx2_notsamechip</span><span class="p">)</span>
+        <span class="n">qaid2_nnfilt</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_score</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_nnfilt</span>
+
+
+<span class="c">#============================</span>
+<span class="c"># 4) Conversion from featurematches to chipmatches qfx2 -&gt; aid2</span>
+<span class="c">#============================</span>
+
+</div>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">_fix_fmfsfk</span><span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">):</span>
+    <span class="n">minMatches</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># TODO: paramaterize</span>
+    <span class="c"># Convert to numpy</span>
+    <span class="n">fm_dtype</span> <span class="o">=</span> <span class="n">hots_query_result</span><span class="o">.</span><span class="n">FM_DTYPE</span>
+    <span class="n">fs_dtype</span> <span class="o">=</span> <span class="n">hots_query_result</span><span class="o">.</span><span class="n">FS_DTYPE</span>
+    <span class="n">fk_dtype</span> <span class="o">=</span> <span class="n">hots_query_result</span><span class="o">.</span><span class="n">FK_DTYPE</span>
+    <span class="c"># FIXME: This is slow</span>
+    <span class="n">aid2_fm_</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fm</span><span class="p">,</span> <span class="n">fm_dtype</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">aid2_fm</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">minMatches</span><span class="p">}</span>
+    <span class="n">aid2_fs_</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">fs_dtype</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">minMatches</span><span class="p">}</span>
+    <span class="n">aid2_fk_</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fk</span><span class="p">,</span> <span class="n">fk_dtype</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fk</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">aid2_fk</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fk</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">minMatches</span><span class="p">}</span>
+    <span class="c"># Ensure shape</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">aid2_fm_</span><span class="p">):</span>
+        <span class="n">fm</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">chipmatch</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid2_fm_</span><span class="p">,</span> <span class="n">aid2_fs_</span><span class="p">,</span> <span class="n">aid2_fk_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chipmatch</span>
+
+
+<div class="viewcode-block" id="new_fmfsfk"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.new_fmfsfk">[docs]</a><span class="k">def</span> <span class="nf">new_fmfsfk</span><span class="p">():</span>
+    <span class="n">aid2_fm</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">aid2_fs</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="build_chipmatches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.build_chipmatches">[docs]</a><span class="k">def</span> <span class="nf">build_chipmatches</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qaid2_nns    : dict of assigned nearest features (only indexes are used here)</span>
+<span class="sd">        qaid2_nnfilt : dict of (featmatch_scores, featmatch_mask)</span>
+<span class="sd">                        where the scores and matches correspond to the assigned</span>
+<span class="sd">                        nearest features</span>
+<span class="sd">        qreq_        : QueryRequest object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_chipmatch : feat match, feat score, feat rank</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        The prefix ``qaid2_`` denotes a mapping where keys are query-annotation-id</span>
+
+<span class="sd">        vsmany/vsone counts here. also this is where the filter</span>
+<span class="sd">        weights and thershold are applied to the matches. Essientally</span>
+<span class="sd">        nearest neighbors are converted into weighted assignments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Config</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">is_vsone</span> <span class="o">=</span>  <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 4) Building chipmatches </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_root</span><span class="p">,))</span>
+    <span class="c"># Return var</span>
+    <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">nFeatMatches</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c">#Vsone</span>
+    <span class="k">if</span> <span class="n">is_vsone</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">new_fmfsfk</span><span class="p">()</span>
+    <span class="c"># Iterate over chips with nearest neighbors</span>
+    <span class="n">mark_</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;Build Chipmatch: &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_nns</span><span class="p">)):</span>
+        <span class="n">mark_</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>  <span class="c"># Mark progress</span>
+        <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="p">(</span><span class="n">qfx2_fs</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span> <span class="o">=</span> <span class="n">qaid2_nnfilt</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">nQKpts</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c"># Build feature matches</span>
+        <span class="n">qfx2_nnidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">qfx2_aid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
+        <span class="n">qfx2_fx</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
+        <span class="n">qfx2_qfx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nQKpts</span><span class="p">),</span> <span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">qfx2_k</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">K</span><span class="p">),</span> <span class="p">(</span><span class="n">nQKpts</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="c"># Pack valid feature matches into an interator</span>
+        <span class="n">valid_lists</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2</span><span class="p">[</span><span class="n">qfx2_valid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qfx2</span> <span class="ow">in</span> <span class="p">(</span><span class="n">qfx2_qfx</span><span class="p">,</span> <span class="n">qfx2_aid</span><span class="p">,</span> <span class="n">qfx2_fx</span><span class="p">,</span> <span class="n">qfx2_fs</span><span class="p">,</span> <span class="n">qfx2_k</span><span class="p">,))</span>
+        <span class="c"># TODO: Sorting the valid lists by aid might help the speed of this</span>
+        <span class="c"># code. Also, consolidating fm, fs, and fk into one vector will reduce</span>
+        <span class="c"># the amount of appends.</span>
+        <span class="n">match_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">valid_lists</span><span class="p">)</span>
+        <span class="c"># Vsmany - Append query feature matches to database aids</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_vsone</span><span class="p">:</span>
+            <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">new_fmfsfk</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fk</span> <span class="ow">in</span> <span class="n">match_iter</span><span class="p">:</span>
+                <span class="n">aid2_fm</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">qfx</span><span class="p">,</span> <span class="n">fx</span><span class="p">))</span>  <span class="c"># Note the difference</span>
+                <span class="n">aid2_fs</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+                <span class="n">aid2_fk</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fk</span><span class="p">)</span>
+                <span class="n">nFeatMatches</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">_fix_fmfsfk</span><span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span>
+            <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">chipmatch</span>
+            <span class="c">#if not QUIET:</span>
+            <span class="c">#    nFeats_in_matches = [len(fm) for fm in six.itervalues(aid2_fm)]</span>
+            <span class="c">#    print(&#39;nFeats_in_matches_stats = &#39; +</span>
+            <span class="c">#          utool.dict_str(utool.get_stats(nFeats_in_matches)))</span>
+        <span class="c"># Vsone - Append database feature matches to query aids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">qfx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fk</span> <span class="ow">in</span> <span class="n">match_iter</span><span class="p">:</span>
+                <span class="n">aid2_fm</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fx</span><span class="p">,</span> <span class="n">qfx</span><span class="p">))</span>  <span class="c"># Note the difference</span>
+                <span class="n">aid2_fs</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+                <span class="n">aid2_fk</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fk</span><span class="p">)</span>
+                <span class="n">nFeatMatches</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c">#Vsone</span>
+    <span class="k">if</span> <span class="n">is_vsone</span><span class="p">:</span>
+        <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">_fix_fmfsfk</span><span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">chipmatch</span>
+    <span class="n">end_</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * made </span><span class="si">%d</span><span class="s"> feat matches&#39;</span> <span class="o">%</span> <span class="n">nFeatMatches</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_chipmatch</span>
+
+
+<span class="c">#============================</span>
+<span class="c"># 5) Spatial Verification</span>
+<span class="c">#============================</span>
+
+</div>
+<div class="viewcode-block" id="spatial_verification"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.spatial_verification">[docs]</a><span class="k">def</span> <span class="nf">spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">dbginfo</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">dbginfo</span> <span class="k">else</span> <span class="n">qaid2_chipmatch</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">dbginfo</span><span class="o">=</span><span class="n">dbginfo</span><span class="p">)</span>
+
+</div>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">_spatial_verification</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">dbginfo</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    make only spatially valid features survive</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># spatial verification</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 5) Spatial verification: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span><span class="p">)</span>
+    <span class="n">prescore_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">prescore_method</span>
+    <span class="n">nShortlist</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nShortlist</span>
+    <span class="n">xy_thresh</span>       <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span>
+    <span class="n">scale_thresh</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">scale_thresh</span>
+    <span class="n">ori_thresh</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">ori_thresh</span>
+    <span class="n">use_chip_extent</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">use_chip_extent</span>
+    <span class="n">min_nInliers</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">min_nInliers</span>
+    <span class="n">qaid2_chipmatchSV</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">nFeatSVTotal</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nFeatMatchSV</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nFeatMatchSVAff</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">dbginfo</span><span class="p">:</span>
+        <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># dbg info (can remove if there is a speed issue)</span>
+    <span class="k">def</span> <span class="nf">print_</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; temp print_. Using count in this way is a hack &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">25</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c"># Find a transform from chip2 to chip1 (the old way was 1 to 2)</span>
+    <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">):</span>
+        <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">aid2_prescore</span> <span class="o">=</span> <span class="n">score_chipmatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">prescore_method</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="c">#print(&#39;Prescore: %r&#39; % (aid2_prescore,))</span>
+        <span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span> <span class="o">=</span> <span class="n">chipmatch</span>
+        <span class="n">topx2_aid</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_dict</span><span class="o">.</span><span class="n">keys_sorted_by_value</span><span class="p">(</span><span class="n">aid2_prescore</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">nRerank</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">topx2_aid</span><span class="p">),</span> <span class="n">nShortlist</span><span class="p">)</span>
+        <span class="c"># Precompute output container</span>
+        <span class="k">if</span> <span class="n">dbginfo</span><span class="p">:</span>
+            <span class="n">aid2_svtup</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># dbg info (can remove if there is a speed issue)</span>
+        <span class="n">aid2_fm_V</span><span class="p">,</span> <span class="n">aid2_fs_V</span><span class="p">,</span> <span class="n">aid2_fk_V</span> <span class="o">=</span> <span class="n">new_fmfsfk</span><span class="p">()</span>
+        <span class="c"># Query Keypoints</span>
+        <span class="n">kpts1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">topx2_kpts</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">topx2_aid</span><span class="p">)</span>
+        <span class="c"># Check the diaglen sizes before doing the homography</span>
+        <span class="n">topx2_dlen_sqrd</span> <span class="o">=</span> <span class="n">_precompute_topx2_dlen_sqrd</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">topx2_aid</span><span class="p">,</span>
+                                                      <span class="n">topx2_kpts</span><span class="p">,</span> <span class="n">nRerank</span><span class="p">,</span>
+                                                      <span class="n">use_chip_extent</span><span class="p">)</span>
+        <span class="c"># spatially verify the top __NUM_RERANK__ results</span>
+        <span class="k">for</span> <span class="n">topx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRerank</span><span class="p">):</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">topx2_aid</span><span class="p">[</span><span class="n">topx</span><span class="p">]</span>
+            <span class="n">fm</span> <span class="o">=</span> <span class="n">aid2_fm</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s">&#39;o&#39;</span><span class="p">)</span>  <span class="c"># sv failure</span>
+                <span class="k">continue</span>
+            <span class="n">dlen_sqrd</span> <span class="o">=</span> <span class="n">topx2_dlen_sqrd</span><span class="p">[</span><span class="n">topx</span><span class="p">]</span>
+            <span class="n">kpts2</span> <span class="o">=</span> <span class="n">topx2_kpts</span><span class="p">[</span><span class="n">topx</span><span class="p">]</span>
+            <span class="n">fs</span>    <span class="o">=</span> <span class="n">aid2_fs</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+            <span class="n">fk</span>    <span class="o">=</span> <span class="n">aid2_fk</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sv_tup</span> <span class="o">=</span> <span class="n">sver</span><span class="o">.</span><span class="n">spatial_verification</span><span class="p">(</span><span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span>
+                                                   <span class="n">xy_thresh</span><span class="p">,</span> <span class="n">scale_thresh</span><span class="p">,</span> <span class="n">ori_thresh</span><span class="p">,</span> <span class="n">dlen_sqrd</span><span class="p">,</span>
+                                                   <span class="n">min_nInliers</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Unknown error in spatial verification.&#39;</span><span class="p">,</span>
+                              <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s">&#39;kpts2&#39;</span><span class="p">,</span>  <span class="s">&#39;fm&#39;</span><span class="p">,</span> <span class="s">&#39;xy_thresh&#39;</span><span class="p">,</span>
+                                    <span class="s">&#39;scale_thresh&#39;</span><span class="p">,</span> <span class="s">&#39;dlen_sqrd&#39;</span><span class="p">,</span> <span class="s">&#39;min_nInliers&#39;</span><span class="p">])</span>
+                <span class="n">sv_tup</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="c">#if utool.STRICT:</span>
+                <span class="c">#    print(&#39;Strict is on. Reraising&#39;)</span>
+                <span class="c">#    raise</span>
+            <span class="n">nFeatSVTotal</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sv_tup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;o&#39;</span><span class="p">)</span>  <span class="c"># sv failure</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Return the inliers to the homography</span>
+                <span class="n">homog_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span> <span class="o">=</span> <span class="n">sv_tup</span>
+                <span class="k">if</span> <span class="n">dbginfo</span><span class="p">:</span>
+                    <span class="n">aid2_svtup</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">sv_tup</span>
+                <span class="n">aid2_fm_V</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">fm</span><span class="p">[</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="n">aid2_fs_V</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">fs</span><span class="p">[</span><span class="n">homog_inliers</span><span class="p">]</span>
+                <span class="n">aid2_fk_V</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">fk</span><span class="p">[</span><span class="n">homog_inliers</span><span class="p">]</span>
+                <span class="n">nFeatMatchSV</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">)</span>
+                <span class="n">nFeatMatchSVAff</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aff_inliers</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+                    <span class="c">#print(inliers)</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>  <span class="c"># verified something</span>
+        <span class="c"># Rebuild the feature match / score arrays to be consistent</span>
+        <span class="n">chipmatchSV</span> <span class="o">=</span> <span class="n">_fix_fmfsfk</span><span class="p">(</span><span class="n">aid2_fm_V</span><span class="p">,</span> <span class="n">aid2_fs_V</span><span class="p">,</span> <span class="n">aid2_fk_V</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dbginfo</span><span class="p">:</span>
+            <span class="n">qaid2_svtups</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid2_svtup</span>
+        <span class="n">qaid2_chipmatchSV</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">chipmatchSV</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * Affine verified </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> feat matches&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nFeatMatchSVAff</span><span class="p">,</span> <span class="n">nFeatSVTotal</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] * Homog  verified </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> feat matches&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nFeatMatchSV</span><span class="p">,</span> <span class="n">nFeatSVTotal</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">dbginfo</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_chipmatchSV</span><span class="p">,</span> <span class="n">qaid2_svtups</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_chipmatchSV</span>
+
+
+<span class="k">def</span> <span class="nf">_precompute_topx2_dlen_sqrd</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">topx2_aid</span><span class="p">,</span> <span class="n">topx2_kpts</span><span class="p">,</span>
+                                <span class="n">nRerank</span><span class="p">,</span> <span class="n">use_chip_extent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; helper for spatial verification, computes the squared diagonal length of</span>
+<span class="sd">    matching chips &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_chip_extent</span><span class="p">:</span>
+        <span class="n">topx2_chipsize</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">topx2_aid</span><span class="p">))</span>
+        <span class="k">def</span> <span class="nf">chip_dlen_sqrd</span><span class="p">(</span><span class="n">tx</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">chipw</span><span class="p">,</span> <span class="n">chiph</span><span class="p">)</span> <span class="o">=</span> <span class="n">topx2_chipsize</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span>
+            <span class="n">dlen_sqrd</span> <span class="o">=</span> <span class="n">chipw</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">chiph</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">return</span> <span class="n">dlen_sqrd</span>
+        <span class="n">topx2_dlen_sqrd</span> <span class="o">=</span> <span class="p">[</span><span class="n">chip_dlen_sqrd</span><span class="p">(</span><span class="n">tx</span><span class="p">)</span> <span class="k">for</span> <span class="n">tx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRerank</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Use extent of matching keypoints</span>
+        <span class="k">def</span> <span class="nf">kpts_dlen_sqrd</span><span class="p">(</span><span class="n">tx</span><span class="p">):</span>
+            <span class="n">kpts2</span> <span class="o">=</span> <span class="n">topx2_kpts</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">topx2_aid</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span>
+            <span class="n">fm</span>  <span class="o">=</span> <span class="n">aid2_fm</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+            <span class="c"># This dosent make sense when len(fm) == 0</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_xys</span><span class="p">(</span><span class="n">kpts2</span><span class="p">[</span><span class="n">fm</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]])</span>
+            <span class="n">dlensqrd</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_m</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">x_m</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y_m</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">y_m</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">return</span> <span class="n">dlensqrd</span>
+        <span class="n">topx2_dlen_sqrd</span> <span class="o">=</span> <span class="p">[</span><span class="n">kpts_dlen_sqrd</span><span class="p">(</span><span class="n">tx</span><span class="p">)</span> <span class="k">for</span> <span class="n">tx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRerank</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">topx2_dlen_sqrd</span>
+
+
+<span class="c">#============================</span>
+<span class="c"># Scoring Mechanism</span>
+<span class="c">#============================</span>
+
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="score_chipmatch"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.score_chipmatch">[docs]</a><span class="k">def</span> <span class="nf">score_chipmatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">score_method</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">)</span> <span class="o">=</span> <span class="n">chipmatch</span>
+    <span class="c"># HACK: Im not even sure if the &#39;w&#39; suffix is correctly handled anymore</span>
+    <span class="k">if</span> <span class="n">score_method</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_method</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">score_method</span> <span class="o">=</span> <span class="n">score_method</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c"># Choose the appropriate scoring mechanism</span>
+    <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;csum&#39;</span><span class="p">:</span>
+        <span class="n">aid2_score</span> <span class="o">=</span> <span class="n">vr2</span><span class="o">.</span><span class="n">score_chipmatch_csum</span><span class="p">(</span><span class="n">chipmatch</span><span class="p">)</span>
+    <span class="c">#elif score_method == &#39;pl&#39;:</span>
+    <span class="c">#    aid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)</span>
+    <span class="c">#elif score_method == &#39;borda&#39;:</span>
+    <span class="c">#    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, &#39;borda&#39;)</span>
+    <span class="c">#elif score_method == &#39;topk&#39;:</span>
+    <span class="c">#    aid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, &#39;topk&#39;)</span>
+    <span class="c">#elif score_method.startswith(&#39;coverage&#39;):</span>
+    <span class="c">#    # Method num is at the end of coverage</span>
+    <span class="c">#    method = int(score_method.replace(&#39;coverage&#39;, &#39;0&#39;))</span>
+    <span class="c">#    aid2_score = coverage_image.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;[hs] unknown scoring method:&#39;</span> <span class="o">+</span> <span class="n">score_method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid2_score</span>
+
+
+<span class="c">#============================</span>
+<span class="c"># 6) Query Result Format</span>
+<span class="c">#============================</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="chipmatch_to_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.chipmatch_to_resdict">[docs]</a><span class="k">def</span> <span class="nf">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span>
+                         <span class="n">qaid2_scores</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.pipeline import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 6) Convert chipmatch -&gt; qres&#39;</span><span class="p">)</span>
+    <span class="n">qaids</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">qauuids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_quuids</span><span class="p">()</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="n">score_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span>
+    <span class="c"># Create the result structures for each query.</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Currently not looping over the keys so we have access to uuids</span>
+    <span class="c"># using qreq_ externals aids should be equivalent</span>
+    <span class="c">#for qaid in six.iterkeys(qaid2_chipmatch):</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qauuids</span><span class="p">):</span>
+        <span class="c"># Create a query result structure</span>
+        <span class="n">qres</span> <span class="o">=</span> <span class="n">hots_query_result</span><span class="o">.</span><span class="n">QueryResult</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+        <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qres</span>
+
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
+        <span class="k">pass</span>
+        <span class="c"># For each query&#39;s chipmatch</span>
+        <span class="n">chipmatch</span> <span class="o">=</span> <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">chipmatch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">chipmatch</span>
+            <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fm</span> <span class="o">=</span> <span class="n">aid2_fm</span>
+            <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fs</span> <span class="o">=</span> <span class="n">aid2_fs</span>
+            <span class="n">qres</span><span class="o">.</span><span class="n">aid2_fk</span> <span class="o">=</span> <span class="n">aid2_fk</span>
+
+        <span class="c"># Perform final scoring</span>
+        <span class="k">if</span> <span class="n">qaid2_scores</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">aid2_score</span> <span class="o">=</span> <span class="n">score_chipmatch</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chipmatch</span><span class="p">,</span> <span class="n">score_method</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">aid2_score</span> <span class="o">=</span> <span class="n">qaid2_scores</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aid2_score</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="c"># Pandas hack</span>
+                <span class="n">aid2_score</span> <span class="o">=</span> <span class="n">aid2_score</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="c"># Populate query result fields</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">aid2_score</span> <span class="o">=</span> <span class="n">aid2_score</span>
+
+        <span class="n">qres</span><span class="o">.</span><span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># dbgstats</span>
+        <span class="k">for</span> <span class="n">filt</span><span class="p">,</span> <span class="n">qaid2_meta</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">filt2_meta</span><span class="p">):</span>
+            <span class="n">qres</span><span class="o">.</span><span class="n">filt2_meta</span><span class="p">[</span><span class="n">filt</span><span class="p">]</span> <span class="o">=</span> <span class="n">qaid2_meta</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>  <span class="c"># things like k+1th</span>
+    <span class="c"># Retain original score method</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="try_load_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.try_load_resdict">[docs]</a><span class="k">def</span> <span class="nf">try_load_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">force_miss</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Try and load the result structures for each query.</span>
+<span class="sd">    returns a list of failed qaids &quot;&quot;&quot;</span>
+    <span class="n">qaids</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">qauuids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_quuids</span><span class="p">()</span>
+
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+    <span class="n">qresdir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qresdir</span><span class="p">()</span>
+    <span class="n">qaid2_qres_hit</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">cachemiss_qaids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qauuids</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">qres</span> <span class="o">=</span> <span class="n">hots_query_result</span><span class="o">.</span><span class="n">QueryResult</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+            <span class="n">qres</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">qresdir</span><span class="p">,</span> <span class="n">force_miss</span><span class="o">=</span><span class="n">force_miss</span><span class="p">)</span>  <span class="c"># 77.4 % time</span>
+            <span class="n">qaid2_qres_hit</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">qres</span>  <span class="c"># cache hit</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">hsexcept</span><span class="o">.</span><span class="n">HotsCacheMissError</span><span class="p">,</span> <span class="n">hsexcept</span><span class="o">.</span><span class="n">HotsNeedsRecomputeError</span><span class="p">):</span>
+            <span class="n">cachemiss_qaids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>  <span class="c"># cache miss</span>
+    <span class="k">return</span> <span class="n">qaid2_qres_hit</span><span class="p">,</span> <span class="n">cachemiss_qaids</span>
+
+</div>
+<div class="viewcode-block" id="save_resdict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.save_resdict">[docs]</a><span class="k">def</span> <span class="nf">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">):</span>
+    <span class="n">qresdir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qresdir</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">qresdir</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

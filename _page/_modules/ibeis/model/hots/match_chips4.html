@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.match_chips4 &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.match_chips4</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DoctestCMD:</span>
+<span class="sd">    python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span> <span class="k">as</span> <span class="n">hspipe</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[mc4]&#39;</span><span class="p">)</span>
+
+
+<span class="n">USE_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-query&#39;</span><span class="p">)</span>
+<span class="n">SAVE_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-save&#39;</span><span class="p">)</span>
+<span class="n">USE_BIGCACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-big&#39;</span><span class="p">,</span> <span class="s">&#39;--no-bigcache-query&#39;</span><span class="p">))</span>
+<span class="n">MIN_BIGCACHE_BUNDLE</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<span class="c">#----------------------</span>
+<span class="c"># Main Query Logic</span>
+<span class="c">#----------------------</span>
+
+<span class="c">#@profile</span>
+<div class="viewcode-block" id="submit_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">USE_CACHE</span><span class="p">,</span>
+                         <span class="n">use_bigcache</span><span class="o">=</span><span class="n">USE_BIGCACHE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The standard query interface.</span>
+
+<span class="sd">    Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres</span>
+<span class="sd">    individually.  On an individual cache miss, it preforms the query.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs  : ibeis control object</span>
+<span class="sd">        qreq_ : query request object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_qres (dict): dict of QueryResult objects</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; use_bigcache = True</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = True</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Create new query request object to store temporary state</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- Submit QueryRequest_ --- &#39;</span><span class="p">)</span>
+    <span class="c"># --- BIG CACHE ---</span>
+    <span class="c"># Do not use bigcache single queries</span>
+    <span class="n">use_bigcache_</span> <span class="o">=</span> <span class="p">(</span><span class="n">use_bigcache</span> <span class="ow">and</span> <span class="n">use_cache</span> <span class="ow">and</span>
+                     <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">)</span>
+    <span class="c"># Try and load directly from a big cache</span>
+    <span class="k">if</span> <span class="n">use_bigcache_</span><span class="p">:</span>
+        <span class="n">bc_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span>
+        <span class="n">qhashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="s">&#39;_QAUUIDS&#39;</span><span class="p">)</span>
+        <span class="n">dhashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuid_hashid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;_DAUUIDS&#39;</span><span class="p">)</span>
+        <span class="n">bc_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="s">&#39;_QRESMAP&#39;</span><span class="p">,</span> <span class="n">qhashid</span><span class="p">,</span> <span class="n">dhashid</span><span class="p">))</span>
+        <span class="n">bc_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>  <span class="c"># FIXME, rectify w/ qparams</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache hit&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">qaid2_qres</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache miss&#39;</span><span class="p">)</span>
+    <span class="c"># ------------</span>
+    <span class="c"># Build query request</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="c"># Execute query request</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">)</span>
+    <span class="c"># ------------</span>
+    <span class="k">if</span> <span class="n">use_bigcache_</span><span class="p">:</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="execute_query_and_save_L1"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_query_and_save_L1">[docs]</a><span class="k">def</span> <span class="nf">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">USE_CACHE</span><span class="p">):</span>
+    <span class="c">#print(&#39;[q1] execute_query_and_save_L1()&#39;)</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>  <span class="c"># SANITY CHECK</span>
+        <span class="c"># Try loading as many cached results as possible</span>
+        <span class="n">qaid2_qres_hit</span><span class="p">,</span> <span class="n">cachemiss_qaids</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">try_load_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">cachemiss_quuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">cachemiss_qaids</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaids</span><span class="p">(</span><span class="n">cachemiss_qaids</span><span class="p">,</span> <span class="n">cachemiss_quuids</span><span class="p">)</span>  <span class="c"># FIXME: changes qreq_ state</span>
+        <span class="c">#if utool.DEBUG2:</span>
+        <span class="c">#    qreq_.assert_self(ibs)  # SANITY CHECK</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cachemiss_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">qaid2_qres_hit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] cache-query is off&#39;</span><span class="p">)</span>
+        <span class="c">#if __debug__:</span>
+        <span class="c">#    hspipe.try_load_resdict(qreq_, force_miss=True)</span>
+        <span class="n">qaid2_qres_hit</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>  <span class="c"># SANITY CHECK</span>
+    <span class="c"># Execute and save cachemiss queries</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">hspipe</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>  <span class="c"># execute queries</span>
+    <span class="c"># Cache save only misses</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>  <span class="c"># SANITY CHECK</span>
+    <span class="k">if</span> <span class="n">SAVE_CACHE</span><span class="p">:</span>
+        <span class="n">hspipe</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+    <span class="c"># Merge cache hits with computed misses</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">qaid2_qres</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">qreq_</span>  <span class="c"># the query request is no longer needed</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

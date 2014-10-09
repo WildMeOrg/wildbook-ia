@@ -1,0 +1,607 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.dev package &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="index.html" />
+    <link rel="up" title="ibeis package" href="ibeis.html" />
+    <link rel="next" title="ibeis.gui package" href="ibeis.gui.html" />
+    <link rel="prev" title="ibeis.control package" href="ibeis.control.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.gui.html" title="ibeis.gui package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ibeis.control.html" title="ibeis.control package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="ibeis.html" accesskey="U">ibeis package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ibeis-dev-package">
+<h1>ibeis.dev package<a class="headerlink" href="#ibeis-dev-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.dev.dbinfo">
+<span id="ibeis-dev-dbinfo-module"></span><h2>ibeis.dev.dbinfo module<a class="headerlink" href="#module-ibeis.dev.dbinfo" title="Permalink to this headline">¶</a></h2>
+<p>python -c &#8220;import doctest, ibeis.dev.dbinfo; print(doctest.testmod(ibeis.dev.dbinfo))&#8221;</p>
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.cache_memory_stats">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">cache_memory_stats</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>fnum=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#cache_memory_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.cache_memory_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.dbstats">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">dbstats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#dbstats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.dbstats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.get_dbinfo">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">get_dbinfo</tt><big>(</big><em>ibs</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#get_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.get_dbinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dictionary of digestable database information
+Infostr is a string summary of all the stats. Prints infostr in addition to
+returning locals</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Mothers&#39;</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="go">66w+mdzw!n%3+i6h</span>
+</pre></div>
+</div>
+<p>#&gt;&gt;&gt; print(utool.hashstr(repr(output)))</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.get_keypoint_stats">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">get_keypoint_stats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#get_keypoint_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.get_keypoint_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.duct_tape">
+<span id="ibeis-dev-duct-tape-module"></span><h2>ibeis.dev.duct_tape module<a class="headerlink" href="#module-ibeis.dev.duct_tape" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.enforce_unkonwn_name_is_explicit">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">enforce_unkonwn_name_is_explicit</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#enforce_unkonwn_name_is_explicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.enforce_unkonwn_name_is_explicit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.fix_compname_configs">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">fix_compname_configs</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#fix_compname_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.fix_compname_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>duct tape to keep version in check</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.remove_database_slag">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">remove_database_slag</tt><big>(</big><em>ibs</em>, <em>delete_invalid_names=False</em>, <em>delete_invalid_encounters=False</em>, <em>delete_annotations_for_missing_images=False</em>, <em>delete_image_labels_for_missing_types=False</em>, <em>delete_annot_labels_for_missing_types=False</em>, <em>delete_chips_for_missing_annotations=False</em>, <em>delete_features_for_missing_annotations=False</em>, <em>delete_invalid_eg_relations=False</em>, <em>delete_invalid_gl_relations=False</em>, <em>delete_invalid_al_relations=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#remove_database_slag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.remove_database_slag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.experiment_configs">
+<span id="ibeis-dev-experiment-configs-module"></span><h2>ibeis.dev.experiment_configs module<a class="headerlink" href="#module-ibeis.dev.experiment_configs" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.dev.experiment_harness">
+<span id="ibeis-dev-experiment-harness-module"></span><h2>ibeis.dev.experiment_harness module<a class="headerlink" href="#module-ibeis.dev.experiment_harness" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.experiment_harness.get_qx2_bestrank">
+<tt class="descclassname">ibeis.dev.experiment_harness.</tt><tt class="descname">get_qx2_bestrank</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>nTotalQueries</em>, <em>nPrevQueries</em>, <em>cfglbl</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_harness.html#get_qx2_bestrank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_harness.get_qx2_bestrank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs queries of a specific configuration returns the best rank of each query</p>
+<p>qaids - query annotation ids</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_harness.test_configurations">
+<tt class="descclassname">ibeis.dev.experiment_harness.</tt><tt class="descname">test_configurations</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>test_cfg_name_list</em>, <em>fnum=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_harness.html#test_configurations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_harness.test_configurations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.experiment_helpers">
+<span id="ibeis-dev-experiment-helpers-module"></span><h2>ibeis.dev.experiment_helpers module<a class="headerlink" href="#module-ibeis.dev.experiment_helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.format_cfgstr_list">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">format_cfgstr_list</tt><big>(</big><em>cfgstr_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#format_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.format_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.get_cfg_list">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_cfg_list</tt><big>(</big><em>test_cfg_name_list</em>, <em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_cfg_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_cfg_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.get_cfg_list_and_lbls">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_cfg_list_and_lbls</tt><big>(</big><em>test_cfg_name_list</em>, <em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_cfg_list_and_lbls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_cfg_list_and_lbls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of varied query configurations. Only custom configs depend on
+IBEIS</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.get_varied_params_list">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_varied_params_list</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_varied_params_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_varied_params_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.get_vary_dicts">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">get_vary_dicts</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#get_vary_dicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.get_vary_dicts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.rankscore_str">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">rankscore_str</tt><big>(</big><em>thresh</em>, <em>nLess</em>, <em>total</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#rankscore_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.rankscore_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_helpers.wrap_cfgstr">
+<tt class="descclassname">ibeis.dev.experiment_helpers.</tt><tt class="descname">wrap_cfgstr</tt><big>(</big><em>cfgstr</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_helpers.html#wrap_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_helpers.wrap_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.experiment_printres">
+<span id="ibeis-dev-experiment-printres-module"></span><h2>ibeis.dev.experiment_printres module<a class="headerlink" href="#module-ibeis.dev.experiment_printres" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.experiment_printres.draw_results">
+<tt class="descclassname">ibeis.dev.experiment_printres.</tt><tt class="descname">draw_results</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>sel_rows</em>, <em>sel_cols</em>, <em>cfg_list</em>, <em>cfgx2_lbl</em>, <em>new_hard_qx_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_printres.html#draw_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_printres.draw_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_printres.get_diffmat_str">
+<tt class="descclassname">ibeis.dev.experiment_printres.</tt><tt class="descname">get_diffmat_str</tt><big>(</big><em>rank_mat</em>, <em>qaids</em>, <em>nCfg</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_printres.html#get_diffmat_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_printres.get_diffmat_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.experiment_printres.print_results">
+<tt class="descclassname">ibeis.dev.experiment_printres.</tt><tt class="descname">print_results</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>cfg_list</em>, <em>mat_list</em>, <em>testnameid</em>, <em>sel_rows</em>, <em>sel_cols</em>, <em>cfgx2_lbl=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/experiment_printres.html#print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.experiment_printres.print_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.main_commands">
+<span id="ibeis-dev-main-commands-module"></span><h2>ibeis.dev.main_commands module<a class="headerlink" href="#module-ibeis.dev.main_commands" title="Permalink to this headline">¶</a></h2>
+<p>TODO: Rename to ibeis/init/commands.py</p>
+<dl class="function">
+<dt id="ibeis.dev.main_commands.parse_cfgstr_list">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">parse_cfgstr_list</tt><big>(</big><em>cfgstr_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#parse_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.parse_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a list of items in the format
+[&#8216;var1:val1&#8217;, &#8216;var2:val2&#8217;, &#8216;var3:val3&#8217;]
+the &#8216;=&#8217; character can be used instead of the &#8216;:&#8217; character if desired</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_commands.postload_commands">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">postload_commands</tt><big>(</big><em>ibs</em>, <em>back</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#postload_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.postload_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Postload commands deal with a specific ibeis database</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_commands.preload_commands">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">preload_commands</tt><big>(</big><em>dbdir</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#preload_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.preload_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preload commands work with command line arguments and global caches</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_commands.preload_convert_hsdb">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">preload_convert_hsdb</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#preload_convert_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.preload_convert_hsdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the database before loading (A bit hacky)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_commands.vdd">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">vdd</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#vdd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.vdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>view data dir</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_commands.vdq">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">vdq</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#vdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.vdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>view directory and quit</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_commands.vwd">
+<tt class="descclassname">ibeis.dev.main_commands.</tt><tt class="descname">vwd</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_commands.html#vwd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_commands.vwd" title="Permalink to this definition">¶</a></dt>
+<dd><p>view work dir</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.main_helpers">
+<span id="ibeis-dev-main-helpers-module"></span><h2>ibeis.dev.main_helpers module<a class="headerlink" href="#module-ibeis.dev.main_helpers" title="Permalink to this headline">¶</a></h2>
+<p>TODO: Rename to ibeis/init/commands.py</p>
+<dl class="function">
+<dt id="ibeis.dev.main_helpers.ensure_flatiterable">
+<tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">ensure_flatiterable</tt><big>(</big><em>input_</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#ensure_flatiterable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.ensure_flatiterable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_helpers.ensure_flatlistlike">
+<tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">ensure_flatlistlike</tt><big>(</big><em>input_</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#ensure_flatlistlike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.ensure_flatlistlike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_helpers.get_test_qaids">
+<tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">get_test_qaids</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#get_test_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.get_test_qaids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets test annot_rowids based on command line arguments</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.main_helpers.register_utool_aliases">
+<tt class="descclassname">ibeis.dev.main_helpers.</tt><tt class="descname">register_utool_aliases</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/main_helpers.html#register_utool_aliases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.main_helpers.register_utool_aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.results_all">
+<span id="ibeis-dev-results-all-module"></span><h2>ibeis.dev.results_all module<a class="headerlink" href="#module-ibeis.dev.results_all" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.dev.results_all.AllResults">
+<em class="property">class </em><tt class="descclassname">ibeis.dev.results_all.</tt><tt class="descname">AllResults</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.DynamicStruct.DynStruct</span></tt></p>
+<p>Data container for all compiled results</p>
+<dl class="method">
+<dt id="ibeis.dev.results_all.AllResults.get_orgres_annotationmatch_scores">
+<tt class="descname">get_orgres_annotationmatch_scores</tt><big>(</big><em>allres</em>, <em>orgtype_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_orgres_annotationmatch_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_orgres_annotationmatch_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_all.AllResults.get_orgres_desc_match_dists">
+<tt class="descname">get_orgres_desc_match_dists</tt><big>(</big><em>allres</em>, <em>orgtype_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_orgres_desc_match_dists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_orgres_desc_match_dists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_all.AllResults.get_orgtype">
+<tt class="descname">get_orgtype</tt><big>(</big><em>allres</em>, <em>orgtype</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_orgtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_orgtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_all.AllResults.get_qres">
+<tt class="descname">get_qres</tt><big>(</big><em>allres</em>, <em>qaid</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#AllResults.get_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.AllResults.get_qres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_all.init_allres">
+<tt class="descclassname">ibeis.dev.results_all.</tt><tt class="descname">init_allres</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_all.html#init_allres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_all.init_allres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.results_analyzer">
+<span id="ibeis-dev-results-analyzer-module"></span><h2>ibeis.dev.results_analyzer module<a class="headerlink" href="#module-ibeis.dev.results_analyzer" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.results_analyzer.get_feat_matches">
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_feat_matches</tt><big>(</big><em>allres</em>, <em>qaid</em>, <em>aid</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_feat_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_feat_matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_analyzer.get_matching_descriptors">
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_matching_descriptors</tt><big>(</big><em>allres</em>, <em>qaids</em>, <em>aids</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_matching_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_matching_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_analyzer.get_orgres_annotationmatch_scores">
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_orgres_annotationmatch_scores</tt><big>(</big><em>allres, orgtype_list=['false', 'true']</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_orgres_annotationmatch_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_orgres_annotationmatch_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_analyzer.get_orgres_desc_match_dists">
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">get_orgres_desc_match_dists</tt><big>(</big><em>allres, orgtype_list=['false', 'true']</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#get_orgres_desc_match_dists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.get_orgres_desc_match_dists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_analyzer.print_annotationmatch_scores_map">
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">print_annotationmatch_scores_map</tt><big>(</big><em>orgres2_scores</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#print_annotationmatch_scores_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.print_annotationmatch_scores_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_analyzer.print_desc_distances_map">
+<tt class="descclassname">ibeis.dev.results_analyzer.</tt><tt class="descname">print_desc_distances_map</tt><big>(</big><em>orgres2_distmap</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_analyzer.html#print_desc_distances_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_analyzer.print_desc_distances_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.results_organizer">
+<span id="ibeis-dev-results-organizer-module"></span><h2>ibeis.dev.results_organizer module<a class="headerlink" href="#module-ibeis.dev.results_organizer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.dev.results_organizer.OrganizedResult">
+<em class="property">class </em><tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">OrganizedResult</tt><big>(</big><em>orgtype=''</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.DynamicStruct.DynStruct</span></tt></p>
+<p>What chips are populated depends on the type of organization</p>
+<dl class="docutils">
+<dt>Maintains an organized list of::</dt>
+<dd><ul class="first last simple">
+<li>query annotation indexes</li>
+<li>their top matching result</li>
+<li>their score</li>
+<li>their rank</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="ibeis.dev.results_organizer.OrganizedResult.append">
+<tt class="descname">append</tt><big>(</big><em>qaid</em>, <em>aid</em>, <em>rank</em>, <em>score</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_organizer.OrganizedResult.freeze">
+<tt class="descname">freeze</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.freeze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.freeze" title="Permalink to this definition">¶</a></dt>
+<dd><p>No more appending</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_organizer.OrganizedResult.iter">
+<tt class="descname">iter</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>useful for plotting</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_organizer.OrganizedResult.printme3">
+<tt class="descname">printme3</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.printme3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.printme3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.dev.results_organizer.OrganizedResult.where_ranks_lt">
+<tt class="descname">where_ranks_lt</tt><big>(</big><em>orgres</em>, <em>num</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#OrganizedResult.where_ranks_lt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.OrganizedResult.where_ranks_lt" title="Permalink to this definition">¶</a></dt>
+<dd><p>get new orgres where all the ranks are less or equal to</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_organizer.get_automatch_candidates">
+<tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">get_automatch_candidates</tt><big>(</big><em>qaid2_qres</em>, <em>ranks_lt=5</em>, <em>directed=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#get_automatch_candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.get_automatch_candidates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of matches that should be inspected
+This function is more lightweight than orgres or allres
+and will be used in production.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_organizer.organize_results">
+<tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">organize_results</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#organize_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.organize_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.results_organizer.qres2_true_and_false">
+<tt class="descclassname">ibeis.dev.results_organizer.</tt><tt class="descname">qres2_true_and_false</tt><big>(</big><em>ibs</em>, <em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/results_organizer.html#qres2_true_and_false"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.results_organizer.qres2_true_and_false" title="Permalink to this definition">¶</a></dt>
+<dd><p>Organizes results into true positive set and false positive set</p>
+<p>a set is a query, its best match, and a score</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.sysres">
+<span id="ibeis-dev-sysres-module"></span><h2>ibeis.dev.sysres module<a class="headerlink" href="#module-ibeis.dev.sysres" title="Permalink to this headline">¶</a></h2>
+<p>sysres.py == system_resources
+Module for dealing with system resoureces in the context of IBEIS</p>
+<dl class="function">
+<dt id="ibeis.dev.sysres.db_to_dbdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">db_to_dbdir</tt><big>(</big><em>db</em>, <em>allow_newdir=False</em>, <em>extra_workdirs=[]</em>, <em>use_sync=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#db_to_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.db_to_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implicitly gets dbdir. Searches for db inside of workdir</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.ensure_pz_mtest">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">ensure_pz_mtest</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#ensure_pz_mtest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.ensure_pz_mtest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that you have the PZ_MTEST dataset</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_args_dbdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_args_dbdir</tt><big>(</big><em>defaultdb=None</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>dbdir=None</em>, <em>cache_priority=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_args_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_args_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Machinery for finding a database directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_dbalias_dict">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_dbalias_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_dbalias_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_dbalias_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_default_dbdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_default_dbdir</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_default_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_default_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_hsinternal">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_hsinternal</tt><big>(</big><em>hsdb_dir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_hsinternal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_hsinternal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_ibsdb_list">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_ibsdb_list</tt><big>(</big><em>workdir=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_ibsdb_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_ibsdb_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_rawdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_rawdir</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_rawdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_rawdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the standard raw data directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_syncdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_syncdir</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_syncdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_syncdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.get_workdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">get_workdir</tt><big>(</big><em>allow_gui=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#get_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.get_workdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the work directory set for this computer.  If allow_gui is true,
+a dialog will ask a user to specify the workdir if it does not exist.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.guiselect_workdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">guiselect_workdir</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#guiselect_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.guiselect_workdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prompts the user to specify a work directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.is_hsdb">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">is_hsdb</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#is_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.is_hsdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.is_hsdbv3">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">is_hsdbv3</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#is_hsdbv3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.is_hsdbv3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.is_hsdbv4">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">is_hsdbv4</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#is_hsdbv4"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.is_hsdbv4" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.is_hsinternal">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">is_hsinternal</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#is_hsinternal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.is_hsinternal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.is_ibeisdb">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">is_ibeisdb</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#is_ibeisdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.is_ibeisdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if path contains the IBEIS internal dir</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.set_default_dbdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">set_default_dbdir</tt><big>(</big><em>dbdir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#set_default_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.set_default_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.set_logdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">set_logdir</tt><big>(</big><em>log_dir</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#set_logdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.set_logdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.sysres.set_workdir">
+<tt class="descclassname">ibeis.dev.sysres.</tt><tt class="descname">set_workdir</tt><big>(</big><em>work_dir=None</em>, <em>allow_gui=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/sysres.html#set_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.sysres.set_workdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the workdirectory for this computer</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.dev" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.import_subs">
+<tt class="descclassname">ibeis.dev.</tt><tt class="descname">import_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev.html#import_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.import_subs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.reload_subs">
+<tt class="descclassname">ibeis.dev.</tt><tt class="descname">reload_subs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ibeis.dev package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.dbinfo">ibeis.dev.dbinfo module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.duct_tape">ibeis.dev.duct_tape module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.experiment_configs">ibeis.dev.experiment_configs module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.experiment_harness">ibeis.dev.experiment_harness module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.experiment_helpers">ibeis.dev.experiment_helpers module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.experiment_printres">ibeis.dev.experiment_printres module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.main_commands">ibeis.dev.main_commands module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.main_helpers">ibeis.dev.main_helpers module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.results_all">ibeis.dev.results_all module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.results_analyzer">ibeis.dev.results_analyzer module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.results_organizer">ibeis.dev.results_organizer module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev.sysres">ibeis.dev.sysres module</a></li>
+<li><a class="reference internal" href="#module-ibeis.dev">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ibeis.control.html"
+                        title="previous chapter">ibeis.control package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ibeis.gui.html"
+                        title="next chapter">ibeis.gui package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ibeis.dev.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.gui.html" title="ibeis.gui package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ibeis.control.html" title="ibeis.control package"
+             >previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="ibeis.html" >ibeis package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

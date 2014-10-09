@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.smk.smk_match &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots.smk" href="../smk.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../../hots.html" >ibeis.model.hots</a> &raquo;</li>
+          <li><a href="../smk.html" accesskey="U">ibeis.model.hots.smk</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.smk.smk_match</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_core</span>
+<span class="c">#from six.moves import zip</span>
+<span class="c">#from ibeis.model.hots.smk.hstypes import INTEGER_TYPE</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_match]&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="query_inverted_index"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_match.query_inverted_index">[docs]</a><span class="k">def</span> <span class="nf">query_inverted_index</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">withinfo</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                         <span class="n">aggregate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nAssign</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="n">can_match_self</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate</span>
+<span class="sd">        &gt;&gt;&gt; alpha     = ibs.cfg.query_cfg.smk_cfg.alpha</span>
+<span class="sd">        &gt;&gt;&gt; thresh    = ibs.cfg.query_cfg.smk_cfg.thresh</span>
+<span class="sd">        &gt;&gt;&gt; withinfo = True</span>
+<span class="sd">        &gt;&gt;&gt; daid2_totalscore, daid2_chipmatch = query_inverted_index(annots_df, qaid, invindex, withinfo, aggregate, alpha, thresh)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#from ibeis.model.hots.smk import smk_index</span>
+    <span class="c"># Get query words / residuals</span>
+    <span class="n">qindex</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">new_qindex</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span>
+                                  <span class="n">thresh</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">query_gamma</span><span class="p">)</span> <span class="o">=</span> <span class="n">qindex</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">qfx2_vec</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">invindex_dbgstr</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2_rvecs2</span><span class="p">(</span>
+            <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">),</span> <span class="s">&#39;bad qindex&#39;</span>
+        <span class="k">assert</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_wx2_rvecs2</span><span class="p">(</span><span class="n">invindex</span><span class="p">),</span> <span class="s">&#39;bad invindex&#39;</span>
+    <span class="c"># Compute match kernel for all database aids</span>
+    <span class="n">kernel_args</span> <span class="o">=</span> <span class="p">(</span><span class="n">wx2_qrvecs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_qaids</span><span class="p">,</span> <span class="n">wx2_qfxs</span><span class="p">,</span> <span class="n">query_gamma</span><span class="p">,</span>
+                   <span class="n">invindex</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="n">daid2_totalscore</span><span class="p">,</span> <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="n">smk_core</span><span class="o">.</span><span class="n">match_kernel</span><span class="p">(</span><span class="o">*</span><span class="n">kernel_args</span><span class="p">)</span>  <span class="c"># 54 %</span>
+    <span class="c"># Prevent self matches</span>
+    <span class="c">#can_match_self = not utool.get_argflag(&#39;--noself&#39;)</span>
+    <span class="n">can_match_self</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--self-match&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">can_match_self</span><span class="p">)</span> <span class="ow">and</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">daid2_totalscore</span><span class="p">:</span>
+        <span class="c"># If we cannot do self-matches</span>
+        <span class="n">daid2_totalscore</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">daid2_chipmatch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">daid2_chipmatch</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">daid2_chipmatch</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="c"># Build chipmatches if daid2_wx2_scoremat is not None</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">check_daid2_chipmatch</span><span class="p">(</span><span class="n">daid2_chipmatch</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">daid2_totalscore</span><span class="p">,</span> <span class="n">daid2_chipmatch</span>
+
+</div>
+<span class="nd">@utool.indent_func</span><span class="p">(</span><span class="s">&#39;[smk_query]&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="selective_match_kernel"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_match.selective_match_kernel">[docs]</a><span class="k">def</span> <span class="nf">selective_match_kernel</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ibeis query interface</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_match</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import query_request</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex = smk_debug.testdata_internals_full()</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = query_request.new_ibeis_query_request(ibs, qaids, daids)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres_ = smk_match.selective_match_kernel(qreq_)</span>
+
+<span class="sd">    Dev::</span>
+<span class="sd">        qres = qaid2_qres_[qaids[0]]</span>
+<span class="sd">        fig = qres.show_top(ibs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">ibs</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c"># Params</span>
+    <span class="n">nWords</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nWords</span>
+    <span class="n">aggregate</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
+    <span class="n">alpha</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">alpha</span>
+    <span class="n">thresh</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">thresh</span>
+    <span class="n">nAssign</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAssign</span>
+    <span class="c"># Build Pandas dataframe (or maybe not)</span>
+    <span class="n">annots_df</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">make_annot_df</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>  <span class="c"># .3%</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;words&#39;</span><span class="p">):</span>
+        <span class="c"># Hack</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">words</span>
+        <span class="n">invindex</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">invindex</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">+--- QREQ NEEDS TO LOAD VOCAB --- &#39;</span><span class="p">)</span>
+        <span class="c"># Load vocabulary</span>
+        <span class="n">taids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>  <span class="c"># exemplar</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">nWords</span><span class="p">)</span>
+        <span class="c"># Index database annotations</span>
+        <span class="n">invindex</span> <span class="o">=</span> <span class="n">smk_index</span><span class="o">.</span><span class="n">index_data_annots</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="n">aggregate</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___ FINISHED LOADING VOCAB ___</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">withinfo</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c"># Progress</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;asmk query: &#39;</span> <span class="k">if</span> <span class="n">aggregate</span> <span class="k">else</span> <span class="s">&#39;smk query: &#39;</span>
+    <span class="n">logkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flushfreq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">writefreq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_totaltime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="o">**</span><span class="n">logkw</span><span class="p">)</span>
+    <span class="c"># Output</span>
+    <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">qaid2_scores</span>    <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># Foreach query annotation</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qaids</span><span class="p">):</span>
+        <span class="n">mark</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="n">daid2_score</span><span class="p">,</span> <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="n">query_inverted_index</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span>
+                                                            <span class="n">invindex</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">,</span>
+                                                            <span class="n">aggregate</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span>
+                                                            <span class="n">thresh</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="n">qaid2_scores</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>    <span class="o">=</span> <span class="n">daid2_score</span>
+        <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">daid2_chipmatch</span>
+    <span class="n">end_</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_ibeis2</span><span class="p">()</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">selective_match_kernel</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres_</span><span class="p">[</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">show_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">main</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+    <span class="k">exec</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../../hots.html" >ibeis.model.hots</a> &raquo;</li>
+          <li><a href="../smk.html" >ibeis.model.hots.smk</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

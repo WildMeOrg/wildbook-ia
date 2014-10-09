@@ -1,0 +1,62 @@
+ibeis.io package
+================
+
+Submodules
+----------
+
+ibeis.io.export_hsdb module
+---------------------------
+
+.. automodule:: ibeis.io.export_hsdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.io.export_subset module
+-----------------------------
+
+.. automodule:: ibeis.io.export_subset
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.io.export_wb module
+-------------------------
+
+.. automodule:: ibeis.io.export_wb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.io.ingest_database module
+-------------------------------
+
+.. automodule:: ibeis.io.ingest_database
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.io.ingest_hsdb module
+---------------------------
+
+.. automodule:: ibeis.io.ingest_hsdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.io.ingest_mdb module
+--------------------------
+
+.. automodule:: ibeis.io.ingest_mdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.io
+    :members:
+    :undoc-members:
+    :show-inheritance:

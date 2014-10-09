@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.control.DB_SCHEMA &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.control" href="../control.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../control.html" accesskey="U">ibeis.control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.control.DB_SCHEMA</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module Licence and docstring</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+
+
+<span class="c"># =======================</span>
+<span class="c"># Schema Version 1.0.0</span>
+<span class="c"># =======================</span>
+
+
+<div class="viewcode-block" id="update_1_0_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_0_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_0</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,</span>                   <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_uri&#39;</span><span class="p">,</span>                    <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_ext&#39;</span><span class="p">,</span>                    <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_original_name&#39;</span><span class="p">,</span>          <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># We could parse this out</span>
+        <span class="c">#(&#39;image_original_path&#39;,          &#39;TEXT NOT NULL&#39;),</span>
+        <span class="p">(</span><span class="s">&#39;image_width&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER DEFAULT -1&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_height&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT -1&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_time_posix&#39;</span><span class="p">,</span>             <span class="s">&#39;INTEGER DEFAULT -1&#39;</span><span class="p">),</span>  <span class="c"># this should probably be UCT</span>
+        <span class="p">(</span><span class="s">&#39;image_gps_lat&#39;</span><span class="p">,</span>                <span class="s">&#39;REAL DEFAULT -1.0&#39;</span><span class="p">),</span>   <span class="c"># there doesn&#39;t seem to exist a GPSPoint in SQLite (TODO: make one in the __SQLITE3__ custom types</span>
+        <span class="p">(</span><span class="s">&#39;image_gps_lon&#39;</span><span class="p">,</span>                <span class="s">&#39;REAL DEFAULT -1.0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_toggle_enabled&#39;</span><span class="p">,</span>         <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_toggle_reviewed&#39;</span><span class="p">,</span>        <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_note&#39;</span><span class="p">,</span>                   <span class="s">&#39;TEXT&#39;</span><span class="p">,),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;image_uuid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        First class table used to store image locations and meta-data&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>              <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_uuid&#39;</span><span class="p">,</span>               <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_text&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_note&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;encounter_text&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        List of all encounters&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLTYPE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lbltype_text&#39;</span><span class="p">,</span>                 <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lbltype_default&#39;</span><span class="p">,</span>              <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;lbltype_text&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        List of keys used to define the categories of annotation lables, text</span>
+<span class="s">        is for human-readability. The lbltype_default specifies the</span>
+<span class="s">        lblannot_value of annotations with a relationship of some</span>
+<span class="s">        lbltype_rowid&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;config_suffix&#39;</span><span class="p">,</span>                <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;config_suffix&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store the ids of algorithm configurations that generate</span>
+<span class="s">        annotation lblannots.  Each user will have a config id for manual</span>
+<span class="s">        contributions &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c">##########################</span>
+    <span class="c"># FIRST ORDER            #</span>
+    <span class="c">##########################</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_uuid&#39;</span><span class="p">,</span>                   <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_xtl&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_ytl&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_width&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_height&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_theta&#39;</span><span class="p">,</span>                  <span class="s">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_num_verts&#39;</span><span class="p">,</span>              <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_verts&#39;</span><span class="p">,</span>                  <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_detect_confidence&#39;</span><span class="p">,</span>      <span class="s">&#39;REAL DEFAULT -1.0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_exemplar_flag&#39;</span><span class="p">,</span>          <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_note&#39;</span><span class="p">,</span>                   <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annot_uuid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Mainly used to store the geometry of the annotation within its parent</span>
+<span class="s">        image The one-to-many relationship between images and annotations is</span>
+<span class="s">        encoded here Attributes are stored in the Annotation Label Relationship</span>
+<span class="s">        Table&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;lblimage_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lblimage_uuid&#39;</span><span class="p">,</span>                <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># this is &quot;category&quot; in the proposal</span>
+        <span class="p">(</span><span class="s">&#39;lblimage_value&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lblimage_note&#39;</span><span class="p">,</span>                <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;lblimage_value&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store the labels (attributes) of images&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lblannot_uuid&#39;</span><span class="p">,</span>                <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>  <span class="c"># this is &quot;category&quot; in the proposal</span>
+        <span class="p">(</span><span class="s">&#39;lblannot_value&#39;</span><span class="p">,</span>               <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lblannot_note&#39;</span><span class="p">,</span>                <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;lblannot_value&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store the labels / attributes of annotations.</span>
+<span class="s">        E.G name, species &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c">##########################</span>
+    <span class="c"># SECOND ORDER           #</span>
+    <span class="c">##########################</span>
+    <span class="c"># TODO: constraint needs modification</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;chip_uri&#39;</span><span class="p">,</span>                     <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;chip_width&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;chip_height&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store *processed* annots as chips&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;feature_num_feats&#39;</span><span class="p">,</span>            <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;feature_keypoints&#39;</span><span class="p">,</span>            <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,</span>                <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;chip_rowid, config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store individual chip features (ellipses)&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;egr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_rowid&#39;</span><span class="p">,</span>              <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;image_rowid, encounter_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Relationship between encounters and images (many to many mapping) the</span>
+<span class="s">        many-to-many relationship between images and encounters is encoded here</span>
+<span class="s">        encounter_image_relationship stands for encounter-image-pairs.&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c">##########################</span>
+    <span class="c"># THIRD ORDER            #</span>
+    <span class="c">##########################</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;glr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lblimage_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;glr_confidence&#39;</span><span class="p">,</span>               <span class="s">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;lblimage_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store one-to-many the relationship between images</span>
+<span class="s">        and labels&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;alr_confidence&#39;</span><span class="p">,</span>               <span class="s">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store one-to-many the relationship between annotations (annots)</span>
+<span class="s">        and labels&#39;&#39;&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="post_1_0_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.post_1_0_0">[docs]</a><span class="k">def</span> <span class="nf">post_1_0_0</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># We are dropping the versions table and rather using the metadata table</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span>
+
+
+<span class="c"># =======================</span>
+<span class="c"># Schema Version 1.0.1</span>
+<span class="c"># =======================</span>
+
+</div>
+<div class="viewcode-block" id="update_1_0_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_0_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_1</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># Add a contributor&#39;s table</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span>            <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span>              <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_name_first&#39;</span><span class="p">,</span>       <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_name_last&#39;</span><span class="p">,</span>        <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_location_city&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_location_state&#39;</span><span class="p">,</span>   <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_location_country&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_location_zip&#39;</span><span class="p">,</span>     <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_note&#39;</span><span class="p">,</span>             <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Used to store the contributors to the project</span>
+<span class="s">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># add column to v1.0.0 at index 1</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># add column to v1.0.0 at index 1</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;annot_parent_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># append column to v1.0.0 because None</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;feature_weight&#39;</span><span class="p">,</span> <span class="s">&#39;REAL DEFAULT 1.0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+
+<span class="c"># =======================</span>
+<span class="c"># Schema Version 1.0.2</span>
+<span class="c"># =======================</span>
+
+</div>
+<div class="viewcode-block" id="update_1_0_2"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_0_2">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_2</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># Fix the contibutor table&#39;s constraint</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># add column to v1.0.1 at index 1</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">table_constraints</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;contributor_tag&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+<span class="c"># =======================</span>
+<span class="c"># Schema Version 1.1.0</span>
+<span class="c"># =======================</span>
+
+</div>
+<div class="viewcode-block" id="update_1_1_0"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_1_0">[docs]</a><span class="k">def</span> <span class="nf">update_1_1_0</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># Moving chips and features to their own cache database</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">)</span>
+
+    <span class="c"># Add viewpoint (radians) to annotations</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># add column to v1.0.2 at index 11</span>
+        <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="s">&#39;annot_viewpoint&#39;</span><span class="p">,</span> <span class="s">&#39;REAL DEFAULT 0.0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+    <span class="c"># Add contributor to configs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># add column to v1.0.2 at index 1</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;UUID&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">table_constraints</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;config_suffix&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c"># Add config to encounters</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># add column to v1.0.2 at index 2</span>
+        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">table_constraints</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;encounter_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_text&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c"># Error in the drop table script, re-drop again from post_1_0_0 to kill table&#39;s metadata</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">)</span>
+
+
+<span class="c"># =======================</span>
+<span class="c"># Schema Version 1.1.1</span>
+<span class="c"># =======================</span>
+
+</div>
+<div class="viewcode-block" id="update_1_1_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_1_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_1_1</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># Change name of column</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># rename column and change it&#39;s type</span>
+        <span class="p">(</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">table_constraints</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_suffix&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c"># Change type of column</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># rename column and change it&#39;s type</span>
+        <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+    <span class="c"># Change type of columns</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="c"># Update column&#39;s types</span>
+        <span class="p">(</span><span class="s">&#39;contributor_location_zip&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_note&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">))</span>
+
+
+<span class="c"># ========================</span>
+<span class="c"># Valid Versions &amp; Mapping</span>
+<span class="c"># ========================</span>
+
+</div>
+<span class="n">base</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
+<span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
+    <span class="n">base</span>   <span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="bp">None</span><span class="p">,</span>               <span class="bp">None</span>                <span class="p">),</span>
+    <span class="s">&#39;1.0.0&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_0</span><span class="p">,</span>       <span class="n">post_1_0_0</span>          <span class="p">),</span>
+    <span class="s">&#39;1.0.1&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_1</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">),</span>
+    <span class="s">&#39;1.0.2&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_2</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">),</span>
+    <span class="s">&#39;1.1.0&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_1_0</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">),</span>
+    <span class="s">&#39;1.1.1&#39;</span><span class="p">:</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_1_1</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../control.html" >ibeis.control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

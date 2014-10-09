@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.model.hots.smk.smk_speed &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../../index.html" />
+    <link rel="up" title="ibeis.model.hots.smk" href="../smk.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../../hots.html" >ibeis.model.hots</a> &raquo;</li>
+          <li><a href="../smk.html" accesskey="U">ibeis.model.hots.smk</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.model.hots.smk.smk_speed</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_core</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.hstypes</span> <span class="kn">import</span> <span class="n">FLOAT_TYPE</span><span class="p">,</span> <span class="n">VEC_DIM</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_speed]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="compute_agg_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_speed.compute_agg_rvecs">[docs]</a><span class="k">def</span> <span class="nf">compute_agg_rvecs</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sums and normalizes all rvecs that belong to the same word and the same</span>
+<span class="sd">    annotation id</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_speed import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()</span>
+<span class="sd">        &gt;&gt;&gt; rvecs_list = compute_nonagg_rvec_listcomp(words, wx_sublist, idxs_list, idx2_vec)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#assert len(idxs_list) == len(rvecs_list)</span>
+    <span class="c"># group members of each word by aid, we will collapse these groups</span>
+    <span class="n">grouptup_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">clustertool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="c"># Agg aids</span>
+    <span class="n">aggaids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">grouptup_list</span><span class="p">]</span>
+    <span class="n">groupxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">grouptup_list</span><span class="p">]</span>
+    <span class="c"># Aggregate vecs that belong to the same aid, for each word</span>
+    <span class="c"># (weighted aggregation with multi-assign-weights)</span>
+    <span class="n">aggvecs_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">smk_core</span><span class="o">.</span><span class="n">aggregate_rvecs</span><span class="p">(</span><span class="n">rvecs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">maws</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">groupxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">VEC_DIM</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">)]</span>
+    <span class="c"># Agg idxs</span>
+    <span class="n">aggidxs_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idxs_list</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">)]</span>
+    <span class="n">aggmaws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">maws</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">prod</span><span class="p">()</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">maws</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">maws_list</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">aggvecs_list</span><span class="p">,</span> <span class="n">aggaids_list</span><span class="p">,</span> <span class="n">aggidxs_list</span><span class="p">,</span> <span class="n">aggmaws_list</span>
+
+
+<span class="c">#def group_and_aggregate(rvecs, aids):</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    assumes rvecs are all from the same word</span>
+<span class="c">#    Returns aggregated vecs, the aids they came from, and the invertable feature</span>
+<span class="c">#    map</span>
+
+<span class="c">#    &gt;&gt;&gt; from ibeis.model.hots.smk.smk_speed import *</span>
+<span class="c">#    &gt;&gt;&gt; rvecs = np.random.rand(5, 128) * 255</span>
+<span class="c">#    &gt;&gt;&gt; aids  = np.array([1, 1, 2, 3, 2])</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    assert len(aids) == len(rvecs)</span>
+<span class="c">#    if len(aids) == 0:</span>
+<span class="c">#        group_aids = np.empty((0), dtype=INTEGER_TYPE)</span>
+<span class="c">#        groupxs = np.empty((0), dtype=INTEGER_TYPE)</span>
+<span class="c">#        group_aggvecs = np.empty((0, 128), dtype=FLOAT_TYPE)</span>
+<span class="c">#        return group_aids, group_aggvecs</span>
+<span class="c">#    else:</span>
+<span class="c">#        group_aids, groupxs = group_indicies(aids)  # 35us</span>
+<span class="c">#        group_vecs = [rvecs.take(xs, axis=0) for xs in groupxs]</span>
+<span class="c">#        aggvec_list = [smk_core.aggregate_rvecs(vecs) for vecs in group_vecs]  # 25us</span>
+<span class="c">#        group_aggvecs = np.vstack(aggvec_list)  # 6.53us</span>
+<span class="c">#        return group_aids, group_aggvecs, groupxs</span>
+<span class="c">#    #with utool.Timer(&#39;tew&#39;):</span>
+<span class="c">#    #    agg_list = [group_and_aggregate(rvecs, aids)</span>
+<span class="c">#    #                for rvecs, aids in zip(rvecs_list, aids_list)]  # 233 ms</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="compute_nonagg_rvec_listcomp"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_speed.compute_nonagg_rvec_listcomp">[docs]</a><span class="k">def</span> <span class="nf">compute_nonagg_rvec_listcomp</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PREFERED METHOD - 110ms</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()</span>
+
+<span class="sd">    Timeit:</span>
+<span class="sd">        %timeit words_list = [words[np.newaxis, wx] for wx in wx_sublist]  # 5 ms</span>
+<span class="sd">        %timeit words_list = [words[wx:wx + 1] for wx in wx_sublist]  # 1.6 ms</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#with utool.Timer(&#39;compute_nonagg_rvec_listcomp&#39;):</span>
+    <span class="c">#vecs_list  = [idx2_vec[idxs] for idxs in idxs_list]  # 23 ms</span>
+    <span class="n">words_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="n">wx</span><span class="p">:</span><span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>  <span class="c"># 1 ms</span>
+    <span class="n">vecs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>  <span class="c"># 5.3 ms</span>
+    <span class="n">rvecs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">smk_core</span><span class="o">.</span><span class="n">get_norm_rvecs</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+                  <span class="k">for</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">words_list</span><span class="p">)]</span>  <span class="c"># 103 ms  # 90%</span>
+    <span class="k">return</span> <span class="n">rvecs_list</span>
+
+</div>
+<div class="viewcode-block" id="compute_nonagg_residuals_forloop"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_speed.compute_nonagg_residuals_forloop">[docs]</a><span class="k">def</span> <span class="nf">compute_nonagg_residuals_forloop</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    OK, but slower than listcomp method - 140ms</span>
+
+<span class="sd">    Timeit:</span>
+<span class="sd">        idxs = idxs.astype(np.int32)</span>
+<span class="sd">        %timeit idx2_vec.take(idxs, axis=0)  # 1.27</span>
+<span class="sd">        %timeit idx2_vec.take(idxs.astype(np.int32), axis=0)  # 1.94</span>
+<span class="sd">        %timeit idx2_vec[idxs]  # 7.8</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#with utool.Timer(&#39;compute_nonagg_residuals_forloop&#39;):</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">wx_sublist</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">rvecs_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">wx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">):</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">idxs_list</span><span class="p">[</span><span class="n">count</span><span class="p">]</span>
+        <span class="n">vecs</span> <span class="o">=</span> <span class="n">idx2_vec</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">wx</span><span class="p">:</span><span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">rvecs_n</span> <span class="o">=</span> <span class="n">smk_core</span><span class="o">.</span><span class="n">get_norm_rvecs</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="n">rvecs_list</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">rvecs_n</span>
+    <span class="k">return</span> <span class="n">rvecs_list</span>
+
+</div>
+<div class="viewcode-block" id="compute_nonagg_residuals_pandas"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_speed.compute_nonagg_residuals_pandas">[docs]</a><span class="k">def</span> <span class="nf">compute_nonagg_residuals_pandas</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    VERY SLOW. DEBUG USE ONLY</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        pico  = ps = 1E-12</span>
+<span class="sd">        nano  = ns = 1E-9</span>
+<span class="sd">        micro = us = 1E-6</span>
+<span class="sd">        mili  = ns = 1E-3</span>
+<span class="sd">        words = words.values</span>
+<span class="sd">        wxlist = [wx]</span>
+<span class="sd">        ### index test</span>
+<span class="sd">        %timeit words[wx:wx + 1]      # 0.334 us</span>
+<span class="sd">        %timeit words[wx, np.newaxis] # 1.05 us</span>
+<span class="sd">        %timeit words[np.newaxis, wx] # 1.05 us</span>
+<span class="sd">        %timeit words.take(wxlist, axis=0) # 1.6 us</span>
+<span class="sd">        ### pandas test</span>
+<span class="sd">        %timeit words.values[wx:wx + 1]      # 7.6 us</span>
+<span class="sd">        %timeit words[wx:wx + 1].values      # 84.9 us</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#with utool.Timer(&#39;compute_nonagg_residuals_pandas&#39;):</span>
+    <span class="c">#mark, end_ = utool.log_progress(&#39;compute residual: &#39;, len(wx_sublist), flushfreq=500, writefreq=50)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">wx_sublist</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">rvecs_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+    <span class="c"># Compute Residuals</span>
+    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">wx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wx_sublist</span><span class="p">):</span>
+        <span class="c">#mark(count)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">vecs</span> <span class="o">=</span> <span class="n">idx2_vec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">words</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">wx</span><span class="p">:</span><span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">rvecs_n</span> <span class="o">=</span> <span class="n">smk_core</span><span class="o">.</span><span class="n">get_norm_rvecs</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="n">rvecs_arr</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">rvecs_n</span>
+    <span class="k">return</span> <span class="n">rvecs_arr</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../../../model.html" >ibeis.model</a> &raquo;</li>
+          <li><a href="../../hots.html" >ibeis.model.hots</a> &raquo;</li>
+          <li><a href="../smk.html" >ibeis.model.hots.smk</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

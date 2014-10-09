@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.control.accessor_decors &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.control" href="../control.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../control.html" accesskey="U">ibeis.control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.control.accessor_decors</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">decorator</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
+
+<span class="c">#</span>
+<span class="c">#-----------------</span>
+<span class="c"># IBEIS DECORATORS</span>
+<span class="c">#-----------------</span>
+
+
+<span class="c"># DECORATORS::OTHERS</span>
+
+<div class="viewcode-block" id="default_decorator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.default_decorator">[docs]</a><span class="k">def</span> <span class="nf">default_decorator</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+        <span class="n">func_</span> <span class="o">=</span> <span class="n">input_</span>
+        <span class="c">#return utool.indent_func(profile(func_))</span>
+        <span class="c">#return profile(func_)</span>
+        <span class="k">return</span> <span class="n">func_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#@decorator.decorator</span>
+        <span class="k">def</span> <span class="nf">closure_default</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="c">#return utool.indent_func(input_)(profile(func))</span>
+            <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">indent_func</span><span class="p">(</span><span class="n">input_</span><span class="p">)(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">closure_default</span>
+
+
+<span class="c"># DECORATORS::ADDER</span>
+<span class="c">#TABLE_CACHE = {}</span>
+
+
+<span class="c">#class ColumnsCache(object):</span>
+<span class="c">#    def __init__(self):</span>
+<span class="c">#        self._cache = {}</span>
+
+<span class="c">#    def __setitem__(self, index, value):</span>
+<span class="c">#        self._cache[index] = value</span>
+
+<span class="c">#    def __getitem__(self, index):</span>
+<span class="c">#        return self._cache[index]</span>
+
+<span class="c">#    def __delitem__(self, index):</span>
+<span class="c">#        del self._cache[index]</span>
+
+</div>
+<span class="n">API_CACHE</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--api-cache&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#print(&#39;[accessor_decors] API_CACHE IS DISABLED&#39;)</span>
+        <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="init_tablecache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.init_tablecache">[docs]</a><span class="k">def</span> <span class="nf">init_tablecache</span><span class="p">():</span>
+    <span class="c">#return utool.ddict(ColumnsCache)</span>
+    <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">))</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_delete_items</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">key_list</span><span class="p">):</span>
+    <span class="n">invalid_keys</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">dict_</span><span class="o">.</span><span class="n">rows</span><span class="p">()))</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">invalid_keys</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="cache_getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_getter">[docs]</a><span class="k">def</span> <span class="nf">cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates a getter cacher &quot;&quot;&quot;</span>
+    <span class="c">#@decorator.decorator</span>
+    <span class="k">def</span> <span class="nf">closure_getter_cacher</span><span class="p">(</span><span class="n">getter_func</span><span class="p">):</span>
+        <span class="n">getter_func</span> <span class="o">=</span> <span class="n">profile</span><span class="p">(</span><span class="n">getter_func</span><span class="p">)</span>  <span class="c"># Autoprofilehack</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">getter_func</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">getter_func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c"># the class must have a table_cache property</span>
+            <span class="n">cache_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">]</span>
+            <span class="c"># Get cached values for each rowid</span>
+            <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
+            <span class="c"># Compute any cache misses</span>
+            <span class="n">miss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
+            <span class="c">#DEBUG_CACHE_HITS = False</span>
+            <span class="c">#if DEBUG_CACHE_HITS:</span>
+            <span class="c">#    num_miss  = sum(miss_list)</span>
+            <span class="c">#    num_total = len(rowid_list)</span>
+            <span class="c">#    num_hit   = num_total - num_miss</span>
+            <span class="c">#    print(&#39;\n[get] %s.%s %d / %d cache hits&#39; % (tblname, colname, num_hit, num_total))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">miss_list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">vals_list</span>
+            <span class="n">miss_rowid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">miss_list</span><span class="p">)</span>
+            <span class="n">miss_vals</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">miss_rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># Write the misses to the cache</span>
+            <span class="n">miss_iter_</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">miss_vals</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">miss_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
+                    <span class="n">miss_index</span><span class="p">,</span> <span class="n">miss_val</span> <span class="o">=</span> <span class="n">miss_iter_</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+                    <span class="n">rowid</span> <span class="o">=</span> <span class="n">rowid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                    <span class="n">vals_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">miss_val</span>  <span class="c"># Output write</span>
+                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">miss_val</span>  <span class="c"># Cache write</span>
+            <span class="k">return</span> <span class="n">vals_list</span>
+        <span class="n">wrp_getter_cacher</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter_cacher</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wrp_getter_cacher</span>
+    <span class="k">return</span> <span class="n">closure_getter_cacher</span>
+
+</div>
+<div class="viewcode-block" id="cache_invalidator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_invalidator">[docs]</a><span class="k">def</span> <span class="nf">cache_invalidator</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; cacher setter decorator &quot;&quot;&quot;</span>
+    <span class="c">#@decorator.decorator</span>
+    <span class="k">def</span> <span class="nf">closure_cache_invalidator</span><span class="p">(</span><span class="n">setter_func</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">setter_func</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">setter_func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrp_cache_invalidator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c"># the class must have a table_cache property</span>
+            <span class="n">colscache_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
+            <span class="n">colnames_</span> <span class="o">=</span>  <span class="n">colscache_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">colnames</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">colnames</span>
+            <span class="c"># Delete the cached values for the rowids in these columns of this table</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span><span class="p">:</span>
+                <span class="n">cache_</span> <span class="o">=</span> <span class="n">colscache_</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
+                <span class="n">_delete_items</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+            <span class="c"># Preform set action</span>
+            <span class="n">setter_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">wrp_cache_invalidator</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_cache_invalidator</span><span class="p">,</span> <span class="n">setter_func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wrp_cache_invalidator</span>
+    <span class="k">return</span> <span class="n">closure_cache_invalidator</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="adder"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.adder">[docs]</a><span class="k">def</span> <span class="nf">adder</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.on_exception_report_input</span>
+    <span class="nd">@utool.accepts_scalar_input</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_adder</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ADD]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">wrp_adder</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_adder</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_adder</span>
+
+
+<span class="c"># DECORATORS::DELETER</span>
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="deleter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.deleter">[docs]</a><span class="k">def</span> <span class="nf">deleter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.accepts_scalar_input</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_deleter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DELETE]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">wrp_deleter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_deleter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_deleter</span>
+
+
+<span class="c"># DECORATORS::SETTER</span>
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="setter_general"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.setter_general">[docs]</a><span class="k">def</span> <span class="nf">setter_general</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="setter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.setter">[docs]</a><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.accepts_scalar_input2</span><span class="p">(</span><span class="n">argx_list</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_setter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SET]: &#39;</span> <span class="o">+</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="n">builtins</span><span class="o">.</span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="c">#print(&#39;set: funcname=%r, args=%r, kwargs=%r&#39; % (get_funcname(func), args, kwargs))</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">wrp_setter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_setter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_setter</span>
+
+
+<span class="c"># DECORATORS::GETTER</span>
+</div>
+<div class="viewcode-block" id="getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter">[docs]</a><span class="k">def</span> <span class="nf">getter</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Getter decorator for functions which takes as the first input a unique id</span>
+<span class="sd">    list and returns a heterogeous list of values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#func_ = func</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.on_exception_report_input</span>
+    <span class="nd">@utool.accepts_scalar_input</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[IN GETTER] args=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[IN GETTER] kwargs=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_getter</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="getter_vector_output"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter_vector_output">[docs]</a><span class="k">def</span> <span class="nf">getter_vector_output</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Getter decorator for functions which takes as the first input a unique id</span>
+<span class="sd">    list and returns a homogenous list of values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.accepts_scalar_input_vector_output</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">getter_vector_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">getter_vector_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_vector_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">getter_vector_wrp</span>
+</div>
+<span class="n">getter_1toM</span> <span class="o">=</span> <span class="n">getter_vector_output</span>
+<span class="n">getter_1to1</span> <span class="o">=</span> <span class="n">getter</span>
+<span class="n">getter_1to1</span> <span class="o">=</span> <span class="n">getter</span>
+
+
+<span class="c">#@decorator.decorator</span>
+<div class="viewcode-block" id="getter_numpy"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter_numpy">[docs]</a><span class="k">def</span> <span class="nf">getter_numpy</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Getter decorator for functions which takes as the first input a unique id</span>
+<span class="sd">    list and returns a heterogeous list of values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#getter_func = getter(func)</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.accepts_numpy</span>
+    <span class="nd">@utool.on_exception_report_input</span>
+    <span class="nd">@utool.accepts_scalar_input</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">getter_numpy_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">getter_numpy_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">getter_numpy_wrp</span>
+
+
+<span class="c">#@decorator.decorator</span></div>
+<div class="viewcode-block" id="getter_numpy_vector_output"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.getter_numpy_vector_output">[docs]</a><span class="k">def</span> <span class="nf">getter_numpy_vector_output</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Getter decorator for functions which takes as the first input a unique</span>
+<span class="sd">    id list and returns a heterogeous list of values &quot;&quot;&quot;</span>
+    <span class="c">#getter_func = getter_vector_output(func)</span>
+    <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@utool.accepts_numpy</span>
+    <span class="nd">@utool.accepts_scalar_input_vector_output</span>
+    <span class="nd">@utool.ignores_exc_tb</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">getter_numpy_vector_wrp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">getter_numpy_vector_wrp</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">getter_numpy_vector_wrp</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">getter_numpy_vector_wrp</span>
+
+</div>
+<div class="viewcode-block" id="ider"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.ider">[docs]</a><span class="k">def</span> <span class="nf">ider</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This function takes returns ids subject to conditions &quot;&quot;&quot;</span>
+    <span class="n">ider_func</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">ider_func</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">ider_func</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ider_func</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../control.html" >ibeis.control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

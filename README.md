@@ -62,6 +62,26 @@ cd ibeis
 
 ```
 
+# Github IO Documentation:
+code
+git clone git@github.com:Erotemic/ibeis.github.io
+
+git clone git@github.com:Erotemic/ibeis.github.io.git
+git clone git@github.com:Erotemic/utool.github.io.git
+
+ib
+mkdir _page
+cp -r _doc/_build/html/* _page
+git subtree push --prefix _page origin gh-pages
+
+~/code/ibeis.github.io/
+cp -r ~/code/utool/_doc/_build/html/* ~/code/utool.github.io/
+
+
+git subtree push --prefix _doc/_build/html origin gh-pages
+
+http://erotemic.github.io/ibeis
+http://erotemic.github.io/ibeis.github.io
 
 ###
 

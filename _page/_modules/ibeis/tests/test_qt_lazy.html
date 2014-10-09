@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.tests.test_qt_lazy &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis" href="../../ibeis.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" accesskey="U">ibeis</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.tests.test_qt_lazy</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">guitool.api_item_model</span> <span class="kn">import</span> <span class="n">APIItemModel</span>
+<span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_GUI_LAZY] &#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_databse"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.create_databse">[docs]</a><span class="k">def</span> <span class="nf">create_databse</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">_randstr</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">chars</span><span class="o">=</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">))</span>
+
+    <span class="n">sqldb_fname</span> <span class="o">=</span> <span class="s">&#39;data_test_qt.sqlite3&#39;</span>
+    <span class="n">sqldb_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;testfiles&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">util_path</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">,</span> <span class="n">sqldb_fname</span><span class="p">),</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">SQLDatabaseControl</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="o">=</span><span class="n">sqldb_dpath</span><span class="p">,</span>
+                                                  <span class="n">sqldb_fname</span><span class="o">=</span><span class="n">sqldb_fname</span><span class="p">)</span>
+
+    <span class="n">encounters</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;encounter_id&#39;</span><span class="p">,</span>      <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_name&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;encounters&#39;</span><span class="p">,</span> <span class="n">encounters</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">feats_iter</span> <span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">_randstr</span><span class="p">(),</span> <span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] insert encounters&#39;</span><span class="p">)</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        INSERT</span>
+<span class="s">        INTO encounters</span>
+<span class="s">        (</span>
+<span class="s">            encounter_name</span>
+<span class="s">        )</span>
+<span class="s">        VALUES (?)</span>
+<span class="s">        &#39;&#39;&#39;</span><span class="p">,</span> <span class="n">params_iter</span><span class="o">=</span><span class="n">feats_iter</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * execute insert time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+
+    <span class="c">##############################################</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;data_id&#39;</span><span class="p">,</span>      <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_id&#39;</span><span class="p">,</span> <span class="s">&#39;INT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;data_float&#39;</span><span class="p">,</span>   <span class="s">&#39;FLOAT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;data_int&#39;</span><span class="p">,</span>     <span class="s">&#39;INT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;data_text&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;data_text2&#39;</span><span class="p">,</span>   <span class="s">&#39;TEXT&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">column</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">headers</span> <span class="p">]</span>
+    <span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">str</span> <span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">)</span>
+    <span class="n">col_edit_list</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span> <span class="p">]</span>
+    <span class="n">col_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;ID&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Encounter ID&#39;</span><span class="p">,</span>
+        <span class="s">&#39;TEST Float&#39;</span><span class="p">,</span>
+        <span class="s">&#39;TEST Int&#39;</span><span class="p">,</span>
+        <span class="s">&#39;TEST String 1&#39;</span><span class="p">,</span>
+        <span class="s">&#39;TEST String 2&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">10</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">feats_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">_randstr</span><span class="p">(),</span> <span class="n">_randstr</span><span class="p">())</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] insert data&#39;</span><span class="p">)</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        INSERT</span>
+<span class="s">        INTO data</span>
+<span class="s">        (</span>
+<span class="s">            encounter_id,</span>
+<span class="s">            data_float,</span>
+<span class="s">            data_int,</span>
+<span class="s">            data_text,</span>
+<span class="s">            data_text2</span>
+<span class="s">        )</span>
+<span class="s">        VALUES (?,?,?,?,?)</span>
+<span class="s">        &#39;&#39;&#39;</span><span class="p">,</span> <span class="n">params_iter</span><span class="o">=</span><span class="n">feats_iter</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; * execute insert time=</span><span class="si">%r</span><span class="s"> sec&#39;</span> <span class="o">%</span> <span class="n">utool</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">col_nice_list</span><span class="p">,</span> <span class="n">db</span>
+
+</div>
+<div class="viewcode-block" id="ImageModelSQL"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.ImageModelSQL">[docs]</a><span class="k">class</span> <span class="nc">ImageModelSQL</span><span class="p">(</span><span class="n">APIItemModel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">col_nice_list</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">encounter_id</span> <span class="o">=</span> <span class="s">&#39;-1&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ImageModelSQL</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">col_name_list</span><span class="o">=</span><span class="n">col_name_list</span><span class="p">,</span>
+                                             <span class="n">col_type_list</span><span class="o">=</span><span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_nice_list</span><span class="o">=</span><span class="n">col_nice_list</span><span class="p">,</span>
+                                             <span class="n">col_edit_list</span><span class="o">=</span><span class="n">col_edit_list</span><span class="p">,</span>
+                                             <span class="n">col_getter_list</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span> <span class="n">col_setter_list</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">_setter</span><span class="p">,</span>
+                                             <span class="n">row_index_callback</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">_row_index_callback</span><span class="p">,</span>
+                                             <span class="n">paernt</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_change_encounter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">encounter_id</span> <span class="o">=</span> <span class="n">encounter_id</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_update_rows</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_row_index_callback</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">col_sort_name</span><span class="p">):</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s">&#39;SELECT data_id FROM data WHERE (? IS &quot;-1&quot; OR encounter_id=?) ORDER BY &#39;</span> <span class="o">+</span> <span class="n">col_sort_name</span> <span class="o">+</span> <span class="s">&#39; ASC&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">encounter_id</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">encounter_id</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">result</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">result_iter</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">_setter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">row_id</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="s">&#39;UPDATE data SET &#39;</span> <span class="o">+</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s">&#39;=? WHERE data_id=?&#39;</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">[</span><span class="n">value</span><span class="p">,</span> <span class="n">row_id</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">_getter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">row_id</span><span class="p">):</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s">&#39;SELECT &#39;</span> <span class="o">+</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s">&#39; FROM data WHERE data_id=?&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">[</span><span class="n">row_id</span><span class="p">])</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">result_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="EncounterModelSQL"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.EncounterModelSQL">[docs]</a><span class="k">class</span> <span class="nc">EncounterModelSQL</span><span class="p">(</span><span class="n">APIItemModel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EncounterModelSQL</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">col_name_list</span><span class="o">=</span><span class="n">col_name_list</span><span class="p">,</span>
+                                                 <span class="n">col_type_list</span><span class="o">=</span><span class="n">col_type_list</span><span class="p">,</span>
+                                                 <span class="n">col_getter_list</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span>
+                                                 <span class="n">col_edit_list</span><span class="o">=</span><span class="n">col_edit_list</span><span class="p">,</span>
+                                                 <span class="n">col_setter_list</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">_setter</span><span class="p">,</span>
+                                                 <span class="n">row_index_callback</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">_row_index_callback</span><span class="p">,</span>
+                                                 <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_encounter_id_name</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_row_col</span><span class="p">(</span><span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">encounter_id</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_row_id</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">encounter_name</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_get_cell</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span>
+
+    <span class="k">def</span> <span class="nf">_row_index_callback</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">col_sort_name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">col_sort_name</span> <span class="o">==</span> <span class="s">&#39;num_images&#39;</span><span class="p">:</span>
+            <span class="n">col_sort_name</span> <span class="o">=</span> <span class="s">&#39;encounter_id&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT encounter_id FROM encounters ORDER BY &#39;</span> <span class="o">+</span> <span class="n">col_sort_name</span> <span class="o">+</span> <span class="s">&#39; ASC&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">result</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">result_iter</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">_setter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">row_id</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="s">&#39;UPDATE encounters SET &#39;</span> <span class="o">+</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s">&#39;=? WHERE encounter_id=?&#39;</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">[</span><span class="n">value</span><span class="p">,</span> <span class="n">row_id</span><span class="p">])</span>
+            <span class="c"># model.parent()._update_encounter_tab_name(row_id, value)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">_getter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">row_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">column_name</span> <span class="o">==</span> <span class="s">&#39;num_images&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s">&#39;SELECT &#39;</span> <span class="o">+</span> <span class="n">column_name</span> <span class="o">+</span> <span class="s">&#39; FROM encounters WHERE encounter_id=?&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">[</span><span class="n">row_id</span><span class="p">])</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">result_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="ImageView"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.ImageView">[docs]</a><span class="k">class</span> <span class="nc">ImageView</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableView</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QTableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">setSortingEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">vh</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span>
+        <span class="n">vh</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">setSelectionBehavior</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SelectRows</span><span class="p">)</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">resizeColumnsToContents</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_change_encounter</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">):</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">_change_encounter</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="EncounterView"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.EncounterView">[docs]</a><span class="k">class</span> <span class="nc">EncounterView</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableView</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QTableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">setSortingEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">vh</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">verticalHeader</span><span class="p">()</span>
+        <span class="n">vh</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c">#hh = view.horizontalHeader()</span>
+        <span class="c">#hh.setVisible(False)</span>
+
+<div class="viewcode-block" id="EncounterView.mouseDoubleClickEvent"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.EncounterView.mouseDoubleClickEvent">[docs]</a>    <span class="k">def</span> <span class="nf">mouseDoubleClickEvent</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">selectedIndexes</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">model</span><span class="p">()</span><span class="o">.</span><span class="n">_get_encounter_id_name</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">_add_encounter_tab</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="TabWidget"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.TabWidget">[docs]</a><span class="k">class</span> <span class="nc">TabWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">setTabsClosable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;darwin&#39;</span><span class="p">):</span>
+            <span class="n">tab_height</span> <span class="o">=</span> <span class="mi">21</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tab_height</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">setMaximumSize</span><span class="p">(</span><span class="mi">9999</span><span class="p">,</span> <span class="n">tab_height</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_tb</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">tabBar</span><span class="p">()</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_tb</span><span class="o">.</span><span class="n">setMovable</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&#39;border: none;&#39;</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_tb</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&#39;border: none;&#39;</span><span class="p">)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">tabCloseRequested</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_close_tab</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">currentChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_on_change</span><span class="p">)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_add_encounter_tab</span><span class="p">(</span><span class="s">&#39;-1&#39;</span><span class="p">,</span> <span class="s">&#39;Database&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_change</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">index</span> <span class="ow">and</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="p">):</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">_change_encounter</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_close_tab</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;-1&#39;</span><span class="p">:</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">removeTab</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_encounter_tab</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">encounter_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="p">:</span>
+            <span class="n">tab_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; - &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">encounter_name</span><span class="p">)</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">(),</span> <span class="n">tab_name</span><span class="p">)</span>
+
+            <span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_on_change</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update_encounter_tab_name</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">encounter_id_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">encounter_id</span> <span class="o">==</span> <span class="n">_id</span><span class="p">:</span>
+                <span class="n">widget</span><span class="o">.</span><span class="n">setTabText</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DummyWidget"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_qt_lazy.DummyWidget">[docs]</a><span class="k">class</span> <span class="nc">DummyWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Test Main Window &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">vlayout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+
+        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">col_nice_list</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">create_databse</span><span class="p">()</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_image_model</span> <span class="o">=</span> <span class="n">ImageModelSQL</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">col_nice_list</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_image_view</span> <span class="o">=</span> <span class="n">ImageView</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_image_model</span><span class="p">)</span>
+
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;encounter_name&#39;</span><span class="p">,</span> <span class="s">&#39;num_images&#39;</span><span class="p">]</span>
+        <span class="n">col_type_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+        <span class="n">col_edit_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]</span>
+
+        <span class="c">#splitter = QtGui.QSplitter(centralwidget)</span>
+        <span class="c">#splitter.setOrientation(QtCore.Qt.Vertical)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">_encounter_model</span> <span class="o">=</span> <span class="n">EncounterModelSQL</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_type_list</span><span class="p">,</span> <span class="n">col_edit_list</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_encounter_view</span> <span class="o">=</span> <span class="n">EncounterView</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_encounter_view</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_encounter_model</span><span class="p">)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">_tab_widget</span> <span class="o">=</span> <span class="n">TabWidget</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">widget</span><span class="p">)</span>
+
+        <span class="n">widget</span><span class="o">.</span><span class="n">vlayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_tab_widget</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">vlayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_image_view</span><span class="p">)</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">vlayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">_encounter_view</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_change_encounter</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">_change_encounter</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_encounter_tab</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_tab_widget</span><span class="o">.</span><span class="n">_add_encounter_tab</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update_encounter_tab_name</span><span class="p">(</span><span class="n">widget</span><span class="p">,</span> <span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">):</span>
+        <span class="n">widget</span><span class="o">.</span><span class="n">_tab_widget</span><span class="o">.</span><span class="n">_update_encounter_tab_name</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">,</span> <span class="n">encounter_name</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">signal</span>
+    <span class="kn">import</span> <span class="nn">guitool</span>
+    <span class="k">def</span> <span class="nf">_on_ctrl_c</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Caught ctrl+c&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">_on_ctrl_c</span><span class="p">)</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+    <span class="n">widget</span> <span class="o">=</span> <span class="n">DummyWidget</span><span class="p">()</span>
+    <span class="n">widget</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">widget</span><span class="o">.</span><span class="n">timer</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">ping_python_interpreter</span><span class="p">()</span>
+    <span class="n">widget</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">)</span>  <span class="c"># reset ctrl+c behavior</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

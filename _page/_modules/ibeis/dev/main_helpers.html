@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.dev.main_helpers &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
+    <link rel="up" title="ibeis.dev" href="../dev.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../dev.html" accesskey="U">ibeis.dev</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ibeis.dev.main_helpers</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: Rename to ibeis/init/commands.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="c"># Inject utool functions</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[main_helpers]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="register_utool_aliases"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.register_utool_aliases">[docs]</a><span class="k">def</span> <span class="nf">register_utool_aliases</span><span class="p">():</span>
+    <span class="c">#print(&#39;REGISTER UTOOL ALIASES&#39;)</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
+    <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
+    <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guiback</span>
+    <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">guifront</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">extend_global_aliases</span><span class="p">([</span>
+        <span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">,</span> <span class="s">&#39;ibs&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">guiback</span><span class="o">.</span><span class="n">MainWindowBackend</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">guifront</span><span class="o">.</span><span class="n">MainWindowFrontend</span><span class="p">,</span> <span class="s">&#39;front&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="s">&#39;fig&#39;</span><span class="p">)</span>
+    <span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="ensure_flatiterable"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.ensure_flatiterable">[docs]</a><span class="k">def</span> <span class="nf">ensure_flatiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">input_</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">input_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;cannot ensure </span><span class="si">%r</span><span class="s"> input_=</span><span class="si">%r</span><span class="s"> is iterable&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">),</span> <span class="n">input_</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="ensure_flatlistlike"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.ensure_flatlistlike">[docs]</a><span class="k">def</span> <span class="nf">ensure_flatlistlike</span><span class="p">(</span><span class="n">input_</span><span class="p">):</span>
+    <span class="n">iter_</span> <span class="o">=</span> <span class="n">ensure_flatiterable</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iter_</span><span class="p">)</span>
+
+</div>
+<span class="nd">@utool.indent_func</span>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_test_qaids"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.main_helpers.get_test_qaids">[docs]</a><span class="k">def</span> <span class="nf">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+<span class="c">#def get_allowed_qaids(ibs):</span>
+    <span class="sd">&quot;&quot;&quot; Gets test annot_rowids based on command line arguments &quot;&quot;&quot;</span>
+    <span class="n">available_qaids</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Currently the only avaialable query annots are ones specified on the</span>
+    <span class="c"># command line</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">qaid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">args_qaid</span> <span class="o">=</span> <span class="n">ensure_flatlistlike</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">args_qaid</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">qaid</span>
+        <span class="k">if</span> <span class="n">__debug__</span><span class="p">:</span>
+            <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;Testing qaid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">args_qaid</span><span class="p">)</span>
+
+    <span class="n">valid_aids_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">lazyfunc</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">valid_aids_</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;no annotations available&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_cases</span><span class="p">:</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">is_hard_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_is_hard</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span>
+        <span class="n">hard_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">(),</span> <span class="n">is_hard_list</span><span class="p">)</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hard_aids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">all_gt_cases</span><span class="p">:</span>
+        <span class="n">has_gt_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_groundtruth</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span>
+        <span class="n">hasgt_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">(),</span> <span class="n">has_gt_list</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Testing all </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> ground-truthed cases&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">),</span>
+                                                          <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())))</span>
+        <span class="n">available_qaids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hasgt_aids</span><span class="p">)</span>
+
+    <span class="c"># Sample a large pool of chosen query indexes</span>
+    <span class="c"># Filter only the ones you want from the large pool</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="n">ensure_flatlistlike</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;Chosen indexes=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">indexes</span><span class="p">,))</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;available_qaids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">available_qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">])</span>
+        <span class="n">_test_qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">available_qaids</span><span class="p">[</span><span class="n">xx</span><span class="p">]</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">]</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">_test_qaids</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;available_qaids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">available_qaids</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids_</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;no hard or gt aids. Defaulting to the first ANNOTATION&#39;</span><span class="p">)</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">valid_aids_</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c">#print(&#39;available_qaids = %r&#39; % available_qaids)</span>
+    <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">available_qaids</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
+          <li><a href="../dev.html" >ibeis.dev</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

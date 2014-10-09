@@ -1,0 +1,54 @@
+ibeis.control package
+=====================
+
+Submodules
+----------
+
+ibeis.control.DBCACHE_SCHEMA module
+-----------------------------------
+
+.. automodule:: ibeis.control.DBCACHE_SCHEMA
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.DB_SCHEMA module
+------------------------------
+
+.. automodule:: ibeis.control.DB_SCHEMA
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.IBEISControl module
+---------------------------------
+
+.. automodule:: ibeis.control.IBEISControl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.SQLDatabaseControl module
+---------------------------------------
+
+.. automodule:: ibeis.control.SQLDatabaseControl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.accessor_decors module
+------------------------------------
+
+.. automodule:: ibeis.control.accessor_decors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.control
+    :members:
+    :undoc-members:
+    :show-inheritance:
