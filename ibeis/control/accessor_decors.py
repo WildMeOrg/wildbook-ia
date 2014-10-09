@@ -198,6 +198,9 @@ def getter(func):
     @utool.ignores_exc_tb
     @wraps(func)
     def wrp_getter(*args, **kwargs):
+        #if utool.DEBUG:
+        #    print('[IN GETTER] args=%r' % (args,))
+        #    print('[IN GETTER] kwargs=%r' % (kwargs,))
         return func_(*args, **kwargs)
     wrp_getter = utool.preserve_sig(wrp_getter, func)
     return wrp_getter

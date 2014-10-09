@@ -1251,6 +1251,8 @@ class IBEISController(object):
 
     @ider
     def get_database_version(ibs, db):
+        #utool.DEBUG = True
+        #utool.TRACE = True
         version_list = ibs.get_metadata_value(['database_version'], db)
         version = version_list[0]
         if version is None:
