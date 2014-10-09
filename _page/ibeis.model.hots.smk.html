@@ -848,23 +848,26 @@ the score of K(X, X) = 1</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.hots.smk.smk_index.compute_idf_label2">
-<tt class="descclassname">ibeis.model.hots.smk.smk_index.</tt><tt class="descname">compute_idf_label2</tt><big>(</big><em>aids_list</em>, <em>daid2_label</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_index.html#compute_idf_label2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_index.compute_idf_label2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Chuck&#8217;s formulation of label-idf</p>
-<dl class="docutils">
-<dt>Math::</dt>
-<dd><p class="first">p(n_i | c) = sum_{ell in L : ell=(n_i, v)} p(ell | c)</p>
-<p>p(ell | c) = frac{p(c | ell) p(ell)}{p(c)}</p>
-<p>p(c) = sum_{ell&#8217; in L} p(c | ell&#8217;) p(ell&#8217;)</p>
-<p class="last">p(c | ell) = frac{sum_{X in DB_ell} b(c, X)}{card{DB_ell}}</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
 <dt id="ibeis.model.hots.smk.smk_index.compute_idf_orig">
 <tt class="descclassname">ibeis.model.hots.smk.smk_index.</tt><tt class="descname">compute_idf_orig</tt><big>(</big><em>aids_list</em>, <em>daids</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_index.html#compute_idf_orig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_index.compute_idf_orig" title="Permalink to this definition">¶</a></dt>
 <dd><p>The standard idf measure</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.smk.smk_index.compute_negentropy_names">
+<tt class="descclassname">ibeis.model.hots.smk.smk_index.</tt><tt class="descname">compute_negentropy_names</tt><big>(</big><em>aids_list</em>, <em>daid2_label</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_index.html#compute_negentropy_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_index.compute_negentropy_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Word weighting based on the negative entropy over all names of p(n_i | word)</p>
+<dl class="docutils">
+<dt>Math::</dt>
+<dd><p class="first">p(n_i | word) = sum_{lbl in L_i} p(lbl | word)</p>
+<p>p(lbl | word) = frac{p(word | lbl) p(lbl)}{p(word)}</p>
+<p>p(word) = sum_{lbl&#8217; in L} p(word | lbl&#8217;) p(lbl&#8217;)</p>
+<p>p(word | lbl) = NumAnnotOfLabelWithWord / NumAnnotWithLabel =
+frac{sum_{X in DB_lbl} b(word, X)}{card{DB_lbl}}</p>
+<p>h(n_i | word) = -sum_{i=1}^N p(n_i | word) log p(n_i | word)</p>
+<p class="last">word_weight = log(N) - h(n | word)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">

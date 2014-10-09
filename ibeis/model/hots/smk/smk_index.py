@@ -459,46 +459,79 @@ def compute_idf_label1(aids_list, daid2_label):
     return idf_list
 
 
-def compute_idf_label2(aids_list, daid2_label):
+def compute_negentropy_names(aids_list, daid2_label):
     r"""
-    Chuck's formulation of label-idf
+    Word weighting based on the negative entropy over all names of p(n_i | word)
 
     Math::
-        p(n_i | c) = \sum_{\ell \in L : \ell=(n_i, v)} p(\ell | c)
+        p(n_i | \word) = \sum_{\lbl \in L_i} p(\lbl | \word)
 
-        p(\ell | c) = \frac{p(c | \ell) p(\ell)}{p(c)}
+        p(\lbl | \word) = \frac{p(\word | \lbl) p(\lbl)}{p(\word)}
 
-        p(c) = \sum_{\ell' \in L} p(c | \ell') p(\ell')
+        p(\word) = \sum_{\lbl' \in L} p(\word | \lbl') p(\lbl')
 
-        p(c | \ell) = \frac{\sum_{\X \in \DB_\ell} b(c, \X)}{\card{\DB_\ell}}
+        p(\word | \lbl) = NumAnnotOfLabelWithWord / NumAnnotWithLabel =
+        \frac{\sum_{\X \in \DB_\lbl} b(\word, \X)}{\card{\DB_\lbl}}
+
+        h(n_i | word) = -\sum_{i=1}^N p(n_i | \word) \log p(n_i | \word)
+
+        word_weight = log(N) - h(n | word)
     """
     nWords = len(aids_list)
-    # Computes our novel label idf weight
+    # --- LABEL MEMBERS w.r.t daids ---
+    # compute mapping from label to daids
     # Translate tuples into scalars for efficiency
-    lblindex_list = np.array(utool.tuples_to_unique_scalars(daid2_label.values()))
-
+    label_list = list(daid2_label.values())
+    lblindex_list = np.array(utool.tuples_to_unique_scalars(label_list))
     #daid2_lblindex = dict(zip(daid_list, lblindex_list))
     unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
     daid_list = np.array(daid2_label.keys())
     daids_list = [daid_list.take(xs) for xs in groupxs]
-    daid2_wxs = utool.ddict(list)
-    for wx, daids in enumerate(aids_list):
-        for daid in daids:
-            daid2_wxs[daid].append(wx)
-    lblindex2_daids = list(zip(unique_lblindexes, daids_list))
-    nLabels = len(unique_lblindexes)
-    pcntLblsWithWord = np.zeros(nWords, np.float64)
-    # Get num times word appears for eachlabel
-    for lblindex, daids in lblindex2_daids:
-        nWordsWithLabel = np.zeros(nWords)
-        for daid in daids:
-            wxs = daid2_wxs[daid]
-            nWordsWithLabel[wxs] += 1
-        pcntLblsWithWord += (1 - nWordsWithLabel.astype(np.float64) / len(daids))
 
-    # Labels for each word
-    idf_list = np.log(np.divide(nLabels, np.add(pcntLblsWithWord, 1), dtype=FLOAT_TYPE), dtype=FLOAT_TYPE)
-    return idf_list
+    # --- DAID MEMBERS w.r.t. words ---
+    # compute mapping from daid to word indexes
+    # finds all the words that belong to an annotation
+    daid2_wxs = utool.ddict(list)
+    for wx, _daids in enumerate(aids_list):
+        for daid in _daids:
+            daid2_wxs[daid].append(wx)
+
+    # --- \Pr(\word \given \lbl) for each label ---
+    # Compute the number of annotations in a label with the word vs
+    # the number of annotations in the label
+    lblindex2_daids = list(zip(unique_lblindexes, daids_list))
+    # Get num times word appears for each label
+    probWordGivenLabel_list = []
+    for lblindex, _daids in lblindex2_daids:
+        nAnnotOfLabelWithWord = np.zeros(nWords, dtype=np.int32)
+        for daid in _daids:
+            wxs = np.unique(daid2_wxs[daid])
+            nAnnotOfLabelWithWord[wxs] += 1
+        probWordGivenLabel = nAnnotOfLabelWithWord.astype(np.float64) / len(_daids)
+        probWordGivenLabel_list.append(probWordGivenLabel)
+    # (nLabels, nWords)
+    probWordGivenLabel_arr = np.array(probWordGivenLabel_list)
+    # --- \Pr(\lbl \given \word) ---
+    # compute partition function that approximates probability of a word
+    # (1, nWords)
+    probWord = probWordGivenLabel_arr.sum(axis=0)
+    probWord.shape = (1, probWord.size)
+    # (nLabels, nWords)
+    probLabelGivenWord_arr = (probWordGivenLabel_arr / probWord)
+    # --- \Pr(\name \given \lbl) ---
+    # get names for each unique label
+    nid_list = np.array([label_list[xs[0]][0] for xs in groupxs])
+    unique_nids, groupxs_ = clustertool.group_indicies(nid_list)
+    # (nNames, nWords)
+    # add a little wiggle room
+    eps = 1E-9
+    probNameGivenWord = eps + (1.0 - eps) * np.array([probLabelGivenWord_arr.take(xs, axis=0).sum(axis=0) for xs in groupxs_])
+    logProbNameGivenWord = np.log(probNameGivenWord)
+    wordNameEntropy = -(probNameGivenWord * logProbNameGivenWord).sum(0)
+    # Compute negative entropy for weights
+    nNames = len(nid_list)
+    negentropy_list = np.log(nNames) - wordNameEntropy
+    return negentropy_list
 
 
 #@utool.cached_func('residuals', appname='smk')
