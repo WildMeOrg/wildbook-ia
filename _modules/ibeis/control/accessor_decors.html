@@ -50,7 +50,7 @@
             
   <h1>Source code for ibeis.control.accessor_decors</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">decorator</span>  <span class="c"># NOQA</span>
+<span class="c"># import decorator  # NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
@@ -249,9 +249,9 @@
     <span class="nd">@utool.ignores_exc_tb</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrp_getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[IN GETTER] args=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[IN GETTER] kwargs=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
+        <span class="c">#if utool.DEBUG:</span>
+        <span class="c">#    print(&#39;[IN GETTER] args=%r&#39; % (args,))</span>
+        <span class="c">#    print(&#39;[IN GETTER] kwargs=%r&#39; % (kwargs,))</span>
         <span class="k">return</span> <span class="n">func_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrp_getter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wrp_getter</span>
