@@ -512,46 +512,79 @@
     <span class="k">return</span> <span class="n">idf_list</span>
 
 </div>
-<div class="viewcode-block" id="compute_idf_label2"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_idf_label2">[docs]</a><span class="k">def</span> <span class="nf">compute_idf_label2</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_negentropy_names"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_index.compute_negentropy_names">[docs]</a><span class="k">def</span> <span class="nf">compute_negentropy_names</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">daid2_label</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Chuck&#39;s formulation of label-idf</span>
+<span class="sd">    Word weighting based on the negative entropy over all names of p(n_i | word)</span>
 
 <span class="sd">    Math::</span>
-<span class="sd">        p(n_i | c) = \sum_{\ell \in L : \ell=(n_i, v)} p(\ell | c)</span>
+<span class="sd">        p(n_i | \word) = \sum_{\lbl \in L_i} p(\lbl | \word)</span>
 
-<span class="sd">        p(\ell | c) = \frac{p(c | \ell) p(\ell)}{p(c)}</span>
+<span class="sd">        p(\lbl | \word) = \frac{p(\word | \lbl) p(\lbl)}{p(\word)}</span>
 
-<span class="sd">        p(c) = \sum_{\ell&#39; \in L} p(c | \ell&#39;) p(\ell&#39;)</span>
+<span class="sd">        p(\word) = \sum_{\lbl&#39; \in L} p(\word | \lbl&#39;) p(\lbl&#39;)</span>
 
-<span class="sd">        p(c | \ell) = \frac{\sum_{\X \in \DB_\ell} b(c, \X)}{\card{\DB_\ell}}</span>
+<span class="sd">        p(\word | \lbl) = NumAnnotOfLabelWithWord / NumAnnotWithLabel =</span>
+<span class="sd">        \frac{\sum_{\X \in \DB_\lbl} b(\word, \X)}{\card{\DB_\lbl}}</span>
+
+<span class="sd">        h(n_i | word) = -\sum_{i=1}^N p(n_i | \word) \log p(n_i | \word)</span>
+
+<span class="sd">        word_weight = log(N) - h(n | word)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nWords</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
-    <span class="c"># Computes our novel label idf weight</span>
+    <span class="c"># --- LABEL MEMBERS w.r.t daids ---</span>
+    <span class="c"># compute mapping from label to daids</span>
     <span class="c"># Translate tuples into scalars for efficiency</span>
-    <span class="n">lblindex_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">tuples_to_unique_scalars</span><span class="p">(</span><span class="n">daid2_label</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-
+    <span class="n">label_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">daid2_label</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">lblindex_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">tuples_to_unique_scalars</span><span class="p">(</span><span class="n">label_list</span><span class="p">))</span>
     <span class="c">#daid2_lblindex = dict(zip(daid_list, lblindex_list))</span>
     <span class="n">unique_lblindexes</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">lblindex_list</span><span class="p">)</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">daid2_label</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">daids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">daid_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">]</span>
-    <span class="n">daid2_wxs</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aids_list</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">daids</span><span class="p">:</span>
-            <span class="n">daid2_wxs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
-    <span class="n">lblindex2_daids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_lblindexes</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">))</span>
-    <span class="n">nLabels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_lblindexes</span><span class="p">)</span>
-    <span class="n">pcntLblsWithWord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nWords</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="c"># Get num times word appears for eachlabel</span>
-    <span class="k">for</span> <span class="n">lblindex</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">lblindex2_daids</span><span class="p">:</span>
-        <span class="n">nWordsWithLabel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nWords</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">daids</span><span class="p">:</span>
-            <span class="n">wxs</span> <span class="o">=</span> <span class="n">daid2_wxs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>
-            <span class="n">nWordsWithLabel</span><span class="p">[</span><span class="n">wxs</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">pcntLblsWithWord</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">nWordsWithLabel</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">))</span>
 
-    <span class="c"># Labels for each word</span>
-    <span class="n">idf_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">nLabels</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pcntLblsWithWord</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">idf_list</span>
+    <span class="c"># --- DAID MEMBERS w.r.t. words ---</span>
+    <span class="c"># compute mapping from daid to word indexes</span>
+    <span class="c"># finds all the words that belong to an annotation</span>
+    <span class="n">daid2_wxs</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">_daids</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aids_list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">_daids</span><span class="p">:</span>
+            <span class="n">daid2_wxs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+
+    <span class="c"># --- \Pr(\word \given \lbl) for each label ---</span>
+    <span class="c"># Compute the number of annotations in a label with the word vs</span>
+    <span class="c"># the number of annotations in the label</span>
+    <span class="n">lblindex2_daids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_lblindexes</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">))</span>
+    <span class="c"># Get num times word appears for each label</span>
+    <span class="n">probWordGivenLabel_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">lblindex</span><span class="p">,</span> <span class="n">_daids</span> <span class="ow">in</span> <span class="n">lblindex2_daids</span><span class="p">:</span>
+        <span class="n">nAnnotOfLabelWithWord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nWords</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">_daids</span><span class="p">:</span>
+            <span class="n">wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">daid2_wxs</span><span class="p">[</span><span class="n">daid</span><span class="p">])</span>
+            <span class="n">nAnnotOfLabelWithWord</span><span class="p">[</span><span class="n">wxs</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">probWordGivenLabel</span> <span class="o">=</span> <span class="n">nAnnotOfLabelWithWord</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">_daids</span><span class="p">)</span>
+        <span class="n">probWordGivenLabel_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probWordGivenLabel</span><span class="p">)</span>
+    <span class="c"># (nLabels, nWords)</span>
+    <span class="n">probWordGivenLabel_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">probWordGivenLabel_list</span><span class="p">)</span>
+    <span class="c"># --- \Pr(\lbl \given \word) ---</span>
+    <span class="c"># compute partition function that approximates probability of a word</span>
+    <span class="c"># (1, nWords)</span>
+    <span class="n">probWord</span> <span class="o">=</span> <span class="n">probWordGivenLabel_arr</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">probWord</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">probWord</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="c"># (nLabels, nWords)</span>
+    <span class="n">probLabelGivenWord_arr</span> <span class="o">=</span> <span class="p">(</span><span class="n">probWordGivenLabel_arr</span> <span class="o">/</span> <span class="n">probWord</span><span class="p">)</span>
+    <span class="c"># --- \Pr(\name \given \lbl) ---</span>
+    <span class="c"># get names for each unique label</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">label_list</span><span class="p">[</span><span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">])</span>
+    <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs_</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="c"># (nNames, nWords)</span>
+    <span class="c"># add a little wiggle room</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">1E-9</span>
+    <span class="n">probNameGivenWord</span> <span class="o">=</span> <span class="n">eps</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">eps</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">probLabelGivenWord_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs_</span><span class="p">])</span>
+    <span class="n">logProbNameGivenWord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">probNameGivenWord</span><span class="p">)</span>
+    <span class="n">wordNameEntropy</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">probNameGivenWord</span> <span class="o">*</span> <span class="n">logProbNameGivenWord</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c"># Compute negative entropy for weights</span>
+    <span class="n">nNames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">negentropy_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">nNames</span><span class="p">)</span> <span class="o">-</span> <span class="n">wordNameEntropy</span>
+    <span class="k">return</span> <span class="n">negentropy_list</span>
 
 
 <span class="c">#@utool.cached_func(&#39;residuals&#39;, appname=&#39;smk&#39;)</span></div>

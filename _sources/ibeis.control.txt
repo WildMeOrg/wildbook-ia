@@ -44,14 +44,6 @@ ibeis.control.__SQLITE3__ module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control._grave module
----------------------------
-
-.. automodule:: ibeis.control._grave
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.control._sql_helpers module
 ---------------------------------
 
