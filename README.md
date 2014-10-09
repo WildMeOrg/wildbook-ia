@@ -1,11 +1,14 @@
 # IBEIS
 ## I.B.E.I.S. = Image Based Ecological Information System
+
 =====
 
+Documentation: http://erotemic.github.io/ibeis
 
 Erotemic's IBEIS module dependencies 
 
 * https://github.com/Erotemic/utool
+  Documentation: http://erotemic.github.io/utool
 * https://github.com/Erotemic/plottool
 * https://github.com/Erotemic/vtool
 * https://github.com/Erotemic/hesaff
@@ -76,6 +79,8 @@ mkdir _page
 cp -r _doc/_build/html/* _page
 git add _page
 touch _page/.nojekyll
+git add _page/.nojekyll
+git add _page/*
 git commit -am "Added docs"
 git push
 git subtree push --prefix _page origin gh-pages
@@ -85,11 +90,12 @@ mkdir _page
 cp -r _doc/_build/html/* _page
 git add _page
 git commit -am "Added docs"
+touch _page/.nojekyll
+git add _page/.nojekyll
+git add _page/*
 git push
 git subtree push --prefix _page origin gh-pages
 
-http://erotemic.github.io/ibeis
-http://erotemic.github.io/utool
 
 
 ###
