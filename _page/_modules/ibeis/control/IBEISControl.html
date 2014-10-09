@@ -1302,8 +1302,8 @@
 </div>
     <span class="nd">@ider</span>
 <div class="viewcode-block" id="IBEISController.get_database_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.get_database_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_database_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">TRACE</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c">#utool.DEBUG = True</span>
+        <span class="c">#utool.TRACE = True</span>
         <span class="n">version_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_metadata_value</span><span class="p">([</span><span class="s">&#39;database_version&#39;</span><span class="p">],</span> <span class="n">db</span><span class="p">)</span>
         <span class="n">version</span> <span class="o">=</span> <span class="n">version_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>

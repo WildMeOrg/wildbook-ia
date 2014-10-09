@@ -74,23 +74,14 @@ git clone git@github.com:Erotemic/utool.github.io.git
 
 TODO: Create custom name https://help.github.com/articles/adding-a-cname-file-to-your-repository/
 
-ib
-mkdir _page
-cp -r _doc/_build/html/* _page
-git add _page
-touch _page/.nojekyll
-git add _page/.nojekyll
-git add _page/*
-git commit -am "Added docs"
-git push
-git subtree push --prefix _page origin gh-pages
+ib/ut/vt/pt/gt/hes...
 
-ut
+autogen_sphinx_docs.py
 mkdir _page
+touch _page/.nojekyll
 cp -r _doc/_build/html/* _page
 git add _page
 git commit -am "Added docs"
-touch _page/.nojekyll
 git add _page/.nojekyll
 git add _page/*
 git push
