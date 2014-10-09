@@ -293,8 +293,12 @@ def group_indicies(idx2_groupid):
 
 
 def apply_grouping(items, groupxs):
-    return [items.take(idxs, axis=0) for idxs in groupxs]
+    return [items.take(xs, axis=0) for xs in groupxs]
     #return [items[idxs] for idxs in groupxs]
+
+
+def apply_grouping_iter(items, groupxs):
+    return (items.take(xs, axis=0) for xs in groupxs)
 
 
 def groupby(items, idx2_groupid):
@@ -335,7 +339,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
     Returns:
         utool.ddict of dicts: outerkey2_innerkey2_items
 
-    Example:
+    Examples:
         >>> from vtool.clustering2 import *  # NOQA
         >>> inner_key_list = [100, 200, 300, 400]
         >>> outer_keys_list = [[10, 20, 20], [30], [30, 10], [20]]
@@ -348,6 +352,22 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
             20: {400: array([7]), 100: array([2, 3])},
             30: {200: array([4]), 300: array([5])},
         }
+
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> len_ = 3000
+        >>> incrementer = utool.make_incrementer()
+        >>> nOuterList = [np.random.randint(300) for _ in range(len_)]
+        >>> # Define big double_group input
+        >>> inner_key_list = np.random.randint(100, size=len_) * 1000 + 1000
+        >>> outer_keys_list = [np.random.randint(100, size=nOuter_) for nOuter_ in nOuterList]
+        >>> items_list = [np.array([incrementer() for _ in range(nOuter_)]) for nOuter_ in nOuterList]
+        >>> ensure_numpy = False
+        >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
+        >>> print(utool.dict_str(outerkey2_innerkey2_items))
+        >>> print(utool.dict_str(outerkey2_innerkey2_items[0]))
+
+    Timeit:
+        %timeit double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
     """
     if ensure_numpy:
         inner_key_list = np.array(inner_key_list)
@@ -357,8 +377,8 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
     _iter =  zip(inner_key_list, outer_keys_list, items_list)
     for inner_key, outer_keys, items in _iter:
         group_outerkeys, groupxs = group_indicies(outer_keys)
-        items_group = apply_grouping(items, groupxs)
-        for outer_key, subitems in zip(group_outerkeys, items_group):
+        subitem_iter = (items.take(xs, axis=0) for xs in groupxs)
+        for outer_key, subitems in zip(group_outerkeys, subitem_iter):
             outerkey2_innerkey2_items[outer_key][inner_key] = subitems
     return outerkey2_innerkey2_items
     #daid2_wx2_drvecs = utool.ddict(lambda: utool.ddict(list))
