@@ -134,8 +134,8 @@ def compute_homog(xy1_mn, xy2_mn):
     #endif
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
-    #Mx9 = build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)
-    Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+    Mx9 = build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)  # NOQA
+    #Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
     try:
         (U, S, V) = npl.svd(Mx9, full_matrices=True, compute_uv=True)
     except MemoryError as ex:
@@ -245,28 +245,27 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     # Map keypoints from image 1 onto image 2
     invVR1s_mt = matrix_multiply(Aff, invVR1s_m)
     # Get projection components
-    #_xy1_mt   = ktool.get_invVR_mats_xys_cyth(invVR1s_mt)
-    #_det1_mt  = npl.det(invVR1s_mt[:, 0:2, 0:2])  # ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
-    #_det1_mt  = ktool.get_invVR_mats_sqrd_scale_cyth(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
-    #_ori1_mt  = ktool.get_invVR_mats_oris_cyth(invVR1s_mt)
-    #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-    #xy_err    = ltool.L2_sqrd_cyth(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
-    #scale_err = ltool.det_distance_cyth(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
-    #ori_err   = ltool.ori_distance_cyth(_ori1_mt, ori2_m)
-    _xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
-    _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
-    _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
+    _xy1_mt   = ktool.get_invVR_mats_xys_cyth(invVR1s_mt)
+    _det1_mt  = ktool.get_invVR_mats_sqrd_scale_cyth(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
+    _ori1_mt  = ktool.get_invVR_mats_oris_cyth(invVR1s_mt)
     # Check for projection errors
-    xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-    scale_err = ltool.det_distance(_det1_mt, det2_m)
-    ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
+    xy_err    = ltool.L2_sqrd_cyth(xy2_m.T, _xy1_mt.T)  # Speedup: 131.0/36.4 = 3.5x
+    scale_err = ltool.det_distance_cyth(_det1_mt, det2_m)  # Speedup: 107.6/38 = 2.8
+    ori_err   = ltool.ori_distance_cyth(_ori1_mt, ori2_m)
+    #_xy1_mt   = ktool.get_invVR_mats_xys(invVR1s_mt)
+    #_det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)  # Seedup: 396.9/19.4 = 20x
+    #_ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
+    ## Check for projection errors
+    #xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+    #scale_err = ltool.det_distance(_det1_mt, det2_m)
+    #ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = xy_err    < xy_thresh_sqrd
     scale_inliers_flag = scale_err < scale_thresh_sqrd
     ori_inliers_flag   = ori_err   < ori_thresh
     # TODO Add uniqueness of matches constraint
-    #hypo_inliers_flag = ltool.and_3lists_cyth(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
-    hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+    hypo_inliers_flag = ltool.and_3lists_cyth(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+    #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
     hypo_errors = (xy_err, ori_err, scale_err)
     hypo_inliers = np.where(hypo_inliers_flag)[0]
     return hypo_inliers, hypo_errors
@@ -480,38 +479,12 @@ def spatial_verification(kpts1, kpts2, fm,
     return homog_inliers, H, aff_inliers, Aff
 
 
-#import cyth
-#if cyth.DYNAMIC:
-#    exec(cyth.import_cyth_execstr(__name__))
-#else:
-#    # <AUTOGEN_CYTH>
-#    # Regen command: python -c "import vtool.spatial_verification" --cyth-write
-#    try:
-#        if not cyth.WITH_CYTH:
-#            raise ImportError('no cyth')
-#        import vtool._spatial_verification_cyth
-#        __test_hypothesis_inliers_cyth = vtool._spatial_verification_cyth.__test_hypothesis_inliers_cyth
-#        _build_lstsqrs_Mx9_cyth        = vtool._spatial_verification_cyth._build_lstsqrs_Mx9_cyth
-#        _compute_homog_cyth            = vtool._spatial_verification_cyth._compute_homog_cyth
-#        _determine_best_inliers_cyth   = vtool._spatial_verification_cyth._determine_best_inliers_cyth
-#        _get_affine_inliers_cyth       = vtool._spatial_verification_cyth._get_affine_inliers_cyth
-#        _get_best_affine_inliers_cyth  = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
-#        _get_homography_inliers_cyth   = vtool._spatial_verification_cyth._get_homography_inliers_cyth
-#        _test_hypothesis_inliers_cyth  = vtool._spatial_verification_cyth.__test_hypothesis_inliers_cyth
-#        build_lstsqrs_Mx9_cyth         = vtool._spatial_verification_cyth._build_lstsqrs_Mx9_cyth
-#        compute_homog_cyth             = vtool._spatial_verification_cyth._compute_homog_cyth
-#        determine_best_inliers_cyth    = vtool._spatial_verification_cyth._determine_best_inliers_cyth
-#        get_affine_inliers_cyth        = vtool._spatial_verification_cyth._get_affine_inliers_cyth
-#        get_best_affine_inliers_cyth   = vtool._spatial_verification_cyth._get_best_affine_inliers_cyth
-#        get_homography_inliers_cyth    = vtool._spatial_verification_cyth._get_homography_inliers_cyth
-#        CYTHONIZED = True
-#    except ImportError:
-#        _test_hypothesis_inliers_cyth = _test_hypothesis_inliers
-#        build_lstsqrs_Mx9_cyth        = build_lstsqrs_Mx9
-#        compute_homog_cyth            = compute_homog
-#        determine_best_inliers_cyth   = determine_best_inliers
-#        get_affine_inliers_cyth       = get_affine_inliers
-#        get_best_affine_inliers_cyth  = get_best_affine_inliers
-#        get_homography_inliers_cyth   = get_homography_inliers
-#        CYTHONIZED = False
-#    # </AUTOGEN_CYTH>
+import cyth
+if cyth.DYNAMIC:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    # Regen command: python -c "import vtool.linalg" --cyth-write
+    pass
+    # </AUTOGEN_CYTH>
+    pass

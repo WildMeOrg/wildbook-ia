@@ -37,7 +37,7 @@ def svd(M):
 
 @profile
 def OLD_pdf_norm2d(x_, y_):
-    # DEPRICATED
+    """  DEPRICATED """
     import math
     x = np.array([x_, y_])
     sigma = np.eye(2)
@@ -293,7 +293,7 @@ def det_distance(det1, det2):
         np.ndarray[np.float64_t, ndim=1] det1
         np.ndarray[np.float64_t, ndim=1] det2
     #if CYTH
-    # TODO: Move to ktool_cython
+    # TODO: Move to ktool?
     cdef unsigned int nDets = det1.shape[0]
     # Prealloc output
     out = np.zeros((nDets,), dtype=det1.dtype)
@@ -424,7 +424,7 @@ def homogonize(_xyzs):
     return _xys
 
 
-def normalize_rows(arr1):  #, out=None):
+def normalize_rows(arr1):  # , out=None):
     """
     from vtool.linalg import *
     """
@@ -523,30 +523,12 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
     return output
 
 
-#import cyth
-#if cyth.DYNAMIC:
-#    exec(cyth.import_cyth_execstr(__name__))
-#else:
-#    # <AUTOGEN_CYTH>
-#    # Regen command: python -c "import vtool.linalg" --cyth-write
-#    try:
-#        if not cyth.WITH_CYTH:
-#            raise ImportError('no cyth')
-#        import vtool._linalg_cyth
-#        L2_sqrd_cyth       = vtool._linalg_cyth._L2_sqrd_cyth
-#        _L2_sqrd_cyth      = vtool._linalg_cyth._L2_sqrd_cyth
-#        _and_3lists_cyth   = vtool._linalg_cyth._and_3lists_cyth
-#        _det_distance_cyth = vtool._linalg_cyth._det_distance_cyth
-#        _ori_distance_cyth = vtool._linalg_cyth._ori_distance_cyth
-#        and_3lists_cyth    = vtool._linalg_cyth._and_3lists_cyth
-#        det_distance_cyth  = vtool._linalg_cyth._det_distance_cyth
-#        ori_distance_cyth  = vtool._linalg_cyth._ori_distance_cyth
-#        CYTHONIZED = True
-#    except ImportError:
-#        L2_sqrd_cyth      = L2_sqrd
-#        and_3lists_cyth   = and_3lists
-#        det_distance_cyth = det_distance
-#        ori_distance_cyth = ori_distance
-#        CYTHONIZED = False
-#    # </AUTOGEN_CYTH>
-#    pass
+import cyth
+if cyth.DYNAMIC:
+    exec(cyth.import_cyth_execstr(__name__))
+else:
+    # <AUTOGEN_CYTH>
+    # Regen command: python -c "import vtool.linalg" --cyth-write
+    pass
+    # </AUTOGEN_CYTH>
+    pass
